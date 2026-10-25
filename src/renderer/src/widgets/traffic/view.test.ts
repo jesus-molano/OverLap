@@ -159,6 +159,18 @@ describe('toRowSlot', () => {
       sector: 'S2'
     })
     expect(s.clsStyle['--cls']).toBe('#ff5888')
+    expect(s.nameUnknown).toBe(false)
+  })
+
+  it("names a car whose driver iRacing wrote as '?' by its number, dim, or by its team", () => {
+    const unknown = entry({ driver: { ...entry().driver, driverName: '' } })
+    expect(toRowSlot(unknown, 'faster', 0, styles, 'abbr', ES)).toMatchObject({
+      name: 'Piloto #7',
+      nameUnknown: true
+    })
+    expect(toRowSlot(unknown, 'faster', 0, styles, 'abbr', EN).name).toBe('Driver #7')
+    const team = entry({ driver: { ...entry().driver, driverName: '', teamName: 'Apex Racing' } })
+    expect(toRowSlot(team, 'faster', 0, styles, 'tv', ES).name).toBe('Apex Racing')
   })
 
   it('faster car lapping you: lap colour and "te dobla"', () => {

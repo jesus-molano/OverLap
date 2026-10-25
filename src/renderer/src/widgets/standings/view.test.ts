@@ -265,6 +265,20 @@ describe('toLineViews', () => {
     expect(carView(row, ctx({ nameFormat: 'tv' })).name).toBe('BER')
   })
 
+  it("shows 'Piloto #7' (dim) or the team for a name iRacing wrote as '?'", () => {
+    const unknown = makeRow({ carNumber: '7', driverName: '' })
+    expect(carView(unknown, ctx({ nameFormat: 'tv' }))).toMatchObject({
+      name: 'Piloto #7',
+      nameUnknown: true
+    })
+    expect(carView(unknown, ctx({ m: EN })).name).toBe('Driver #7')
+    const team = makeRow({ carNumber: '7', driverName: '', teamName: 'Apex Racing Team' })
+    expect(carView(team, ctx({ nameFormat: 'abbr' }))).toMatchObject({
+      name: 'Apex Racing Team',
+      nameUnknown: false
+    })
+  })
+
   it('turns another class leader into a one-line leader with its class tag', () => {
     const classes = [block([1, 2], {}, 1), block([1], { classId: 2, className: 'LMP2' })]
     const lines = toLineViews(

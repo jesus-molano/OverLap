@@ -91,8 +91,10 @@ export interface RowSlotView {
   readonly cls: string
   /** Car number, '' when unknown. */
   readonly number: string
-  /** Formatted with the widget's name format. */
+  /** Formatted with the widget's name format (DriverCellView.name). */
   readonly name: string
+  /** `name` is the 'Piloto #7' placeholder: drawn dim. */
+  readonly nameUnknown: boolean
   /** Name colour of a car on another lap (as in the relative), null on your lap. */
   readonly lap: 'ahead' | 'behind' | null
   /** 'Te dobla' / 'Doblado' after the name, '' on your lap. */
@@ -173,7 +175,7 @@ export function toRowSlot(
   m: Messages
 ): RowSlotView {
   const t = m.widgets.traffic
-  const driver = toDriverCell(e.driver, styles, nameFormat)
+  const driver = toDriverCell(e.driver, styles, nameFormat, m)
   const badges = hazardBadges(m)
   const hazard =
     group !== 'hazard' ? null : e.hazard === null ? badges.unknown : badges.kinds[e.hazard]
@@ -196,6 +198,7 @@ export function toRowSlot(
     cls: classLabel(e.className),
     number: driver.number,
     name: driver.name,
+    nameUnknown: driver.nameUnknown,
     lap,
     lapBadge: lap === 'ahead' ? t.lapping : lap === 'behind' ? t.lapped : '',
     hazard: hazard?.text ?? '',

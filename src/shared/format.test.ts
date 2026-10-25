@@ -21,6 +21,8 @@ import {
   formatLicense,
   formatLicenseShort,
   formatSessionType,
+  isKnownName,
+  shownDriverName,
   signAt,
   speedUnit
 } from './format'
@@ -357,5 +359,42 @@ describe('formatDriverName', () => {
   it('collapses whitespace', () => {
     expect(formatDriverName('  Ana   María  López ', 'full')).toBe('Ana María López')
     expect(formatDriverName('  Ana   María  López ', 'abbr')).toBe('A. López')
+  })
+})
+
+describe('isKnownName', () => {
+  it("is false for what iRacing leaves of a name outside Windows-1252: '?', spaces, punctuation", () => {
+    for (const name of ['?????? ?????', '?. ?????', '???', ' ?? - ?, ', '', '   ', '\uFFFD']) {
+      expect(isKnownName(name), name).toBe(false)
+    }
+  })
+
+  it('is true with any letter or digit, of any script', () => {
+    for (const name of ['Zoë Ångström', 'Ivan ??????', '?? 77', 'Ж', '李', 'Lucía']) {
+      expect(isKnownName(name), name).toBe(true)
+    }
+  })
+})
+
+describe('shownDriverName', () => {
+  it('keeps a formatted name that says something', () => {
+    expect(shownDriverName('L. Peñalver', 'Team', '11', ES)).toEqual({
+      text: 'L. Peñalver',
+      unknown: false
+    })
+  })
+
+  it("falls back to the team's name as it is, then to 'Piloto #7'", () => {
+    expect(shownDriverName('', '  Équipe   Rouge ', '7', ES)).toEqual({
+      text: 'Équipe Rouge',
+      unknown: false
+    })
+    expect(shownDriverName('?. ?????', '?????? ?????', ' 7 ', ES)).toEqual({
+      text: 'Piloto #7',
+      unknown: true
+    })
+    expect(shownDriverName('', undefined, '7', EN)).toEqual({ text: 'Driver #7', unknown: true })
+    expect(shownDriverName('', undefined, '', ES).text).toBe('Piloto')
+    expect(shownDriverName('', undefined, '', EN).text).toBe('Driver')
   })
 })

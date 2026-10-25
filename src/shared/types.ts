@@ -31,6 +31,8 @@ export type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 export interface DriverEntry {
   carIdx: number
   userName: string
+  /** DriverInfo TeamName: the team in team races, the driver's own name again elsewhere. */
+  teamName: string
   carNumber: string
   iRating: number
   /** e.g. "A 4.99". Empty string when unknown. */
@@ -137,7 +139,9 @@ export interface RelativeRow {
   /** Class position (> 0) or null when the sim does not report one yet. */
   classPosition: number | null
   carNumber: string
+  /** '' when unknown; teamName stands in then (see DriverIdentity). */
   driverName: string
+  teamName?: string
   classShortName: string
   classColor: string
   iRating: number | null
@@ -232,7 +236,9 @@ export interface StandingsRow {
   /** Grid class position minus current one (+ = gained), null when the grid is unknown or not a race. */
   positionsGained: number | null
   carNumber: string
+  /** '' when unknown; teamName stands in then (see DriverIdentity). */
   driverName: string
+  teamName?: string
   classColor: string
   iRating: number | null
   licString: string | null
@@ -331,7 +337,9 @@ export interface BattleOpponent {
   inPits: boolean
   carIdx: number
   carNumber: string
+  /** '' when unknown; teamName stands in then (see DriverIdentity). */
   driverName: string
+  teamName?: string
   classColor: string
   iRating: number | null
   licString: string | null
@@ -482,7 +490,8 @@ export interface DeltaData {
   reference: DeltaReference
   /**
    * For a 'class' reference driven by someone else: '#44 J. Lindqvist'
-   * (number and abbreviated name, no words to translate); '' otherwise. The
+   * (number and abbreviated name, no words to translate), '#44' alone when the
+   * name is unknown (the widget words it: 'Piloto #44'); '' otherwise. The
    * widget names the other kinds itself.
    */
   refDriver: string

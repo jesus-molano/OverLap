@@ -286,7 +286,7 @@ export function toLaneView(
     carIdx: op.carIdx,
     tag: m.widgets.battle[side],
     tagIcon: TAG_ICONS[side],
-    driver: toDriverCell(op, styles, o.nameFormat),
+    driver: toDriverCell(op, styles, o.nameFormat, m),
     inPits: op.inPits,
     gap: gapView(op.gapS),
     trend,

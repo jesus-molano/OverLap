@@ -185,6 +185,7 @@ describe('parseSessionMeta', () => {
     expect(meta.drivers.get(0)).toEqual<DriverEntry>({
       carIdx: 0,
       userName: 'Pace Car',
+      teamName: '',
       carNumber: '0',
       // iRacing's placeholder ratings (iRating 0, R 0.01): unknown.
       iRating: 0,
@@ -208,6 +209,7 @@ describe('parseSessionMeta', () => {
     expect(meta.drivers.get(1)).toEqual<DriverEntry>({
       carIdx: 1,
       userName: 'Jesús Molano',
+      teamName: '',
       carNumber: '7',
       iRating: 2345,
       licString: 'A 4.60',
@@ -760,6 +762,16 @@ describe('parseSessionMeta: entry identity', () => {
       expect(d?.userId).toBe(0)
       expect(d?.teamId).toBe(0)
     }
+  })
+
+  it("reads TeamName as text, '' when missing", () => {
+    expect(driverOf({ TeamName: 'Équipe Rouge' })?.teamName).toBe('Équipe Rouge')
+    expect(driverOf({ TeamName: 2024 })?.teamName).toBe('2024')
+    expect(driverOf({})?.teamName).toBe('')
+  })
+
+  it("keeps a UserName iRacing wrote as '?' as it is (the widgets decide what to show)", () => {
+    expect(driverOf({ UserName: '?????? ?????' })?.userName).toBe('?????? ?????')
   })
 })
 

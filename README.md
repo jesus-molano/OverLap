@@ -32,7 +32,9 @@ izquierda a derecha, un coche a la izquierda, uno a la derecha, uno a cada lado 
 ### Addon nativo y `postinstall`
 
 `@irsdk-node/native` trae binarios N-API precompilados (`prebuildify --napi --electron-compat`), así
-que funcionan tal cual con Node y con Electron sin recompilar nada.
+que funcionan tal cual con Node y con Electron sin recompilar nada. `koffi` (FFI con el que se lee el
+texto de sesión) también: su binario viene en `@koromix/koffi-win32-x64`, que el empaquetado deja
+fuera del asar, y solo se distribuye ese.
 
 - El `postinstall` solo ejecuta `install-electron`: Electron 44 ya no descarga su binario durante
   `npm install`.
@@ -309,7 +311,8 @@ Canales IPC (`src/shared/ipc.ts`):
 ### Anti-cheat
 
 La app nunca toca el proceso del juego: solo lee el mapa de memoria del iRacing SDK (en el
-`utilityProcess` de telemetría) y dibuja ventanas propias, transparentes, que no cogen el foco y dejan
+`utilityProcess` de telemetría; abierto con `FILE_MAP_READ`, tanto por irsdk-node como por el lector
+del texto de sesión) y dibuja ventanas propias, transparentes, que no cogen el foco y dejan
 pasar los clics, encima del juego. **Solo en modo edición**, el reenvío de ratón de Electron
 (`setIgnoreMouseEvents(true, { forward: true })`, para los resaltados al pasar por encima) instala un
 gancho de ratón de bajo nivel (`WH_MOUSE_LL`) en este proceso: observa movimientos del ratón, nunca
@@ -364,9 +367,15 @@ Consejos:
   disco y los datos en vivo no lo necesitan.
 
 - Fuera de alcance en la v1: temperatura de neumáticos, minimapa y VR.
-- **Nombres con caracteres no ASCII** pueden verse con `�`: `irsdk-node` decodifica el texto de sesión
-  como UTF-8, pero iRacing usa ISO-8859-1 por defecto. Se puede probar `irsdkUTF8SessionStr=1` en el
-  `app.ini` de iRacing (Documentos\iRacing); **no verificado**.
+- **Nombres con acentos**: iRacing escribe el YAML de sesión en Windows-1252 y `irsdk-node` lo lee
+  como UTF-8, así que cada acento llegaba como `�`. El proceso de telemetría lee ese texto él mismo
+  de la memoria compartida del SDK, **solo lectura** como el propio SDK (`OpenFileMappingW` +
+  `MapViewOfFile` con `FILE_MAP_READ`, vía `koffi`; `src/telemetry/sessionString`), y lo decodifica
+  bien (si el texto es UTF-8 válido, como UTF-8). Si `koffi` no carga o la lectura falla, lo anota una
+  vez en el log y vuelve al texto de `irsdk-node`.
+- Los caracteres que **no existen en Windows-1252** (cirílico, chino, la `ł` polaca...) ya llegan de
+  iRacing como `?` y no se pueden recuperar: un nombre sin ninguna letra ni cifra se muestra como el
+  nombre del equipo, o si tampoco lo hay como «Piloto #7» atenuado.
 - Si el nombre de algún piloto rompe el parseo del YAML de sesión, la app recurre a un parser tolerante.
 - Si alguna ventana se ve con fondo negro en lugar de transparente, puede ser la aceleración por
   hardware (Electron issue #40515).

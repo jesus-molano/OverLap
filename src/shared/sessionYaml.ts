@@ -36,7 +36,8 @@ export function sanitizeSessionYaml(text: string): string {
 }
 
 /**
- * Fallback for when irsdk-node's getSessionData() returns null because
+ * Loads the session YAML: the text the telemetry source read in its own
+ * encoding, or irsdk-node's when its getSessionData() returned null because
  * js-yaml threw. Returns the loaded document, or null on any error (and for
  * an empty document).
  */

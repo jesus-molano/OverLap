@@ -131,7 +131,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <TrafficKindIcon class="tr-icon" :kind="slot.group" />
           <span v-if="slot.cls" class="tr-cls">{{ slot.cls }}</span>
           <span v-else class="tr-cls tr-cls--none" />
-          <DriverCell class="tr-who" :number="slot.number" :name="slot.name" :lap="slot.lap">
+          <DriverCell
+            class="tr-who"
+            :number="slot.number"
+            :name="slot.name"
+            :name-unknown="slot.nameUnknown"
+            :lap="slot.lap"
+          >
             <Badge
               v-if="slot.lapBadge"
               class="tr-lap"

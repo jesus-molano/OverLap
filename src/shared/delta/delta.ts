@@ -21,7 +21,7 @@
  */
 import { arrayEqual } from '../equal'
 import { CAUTION_FLAGS } from '../flags'
-import { formatDriverName } from '../format'
+import { formatDriverName, isKnownName } from '../format'
 import { isValidPct } from '../lapDist'
 import { finiteOr, quantise } from '../num'
 import { RACE_TIMING_LINES } from '../race/raceView'
@@ -603,15 +603,20 @@ export class DeltaProvider {
 
 /**
  * DeltaData.refDriver of another driver's class best: '#44 J. Lindqvist' (number and
- * abbreviated name, no words: the widget names every other reference in its language); '' for
- * the other kinds and for a driver no longer in the session info.
+ * abbreviated name, no words: the widget names every other reference in its language). A name
+ * iRacing turned into '?' gives way to the team's, else to nothing: '#44' alone, which the
+ * widget words as 'Piloto #44'. '' for the other kinds and for a driver no longer in the
+ * session info.
  */
 function refDriverOf(cand: Candidate, session: SessionMeta): string {
   if (cand.kind !== 'class') return ''
   const d = session.drivers.get(cand.carIdx)
   if (!d) return ''
-  const name = formatDriverName(d.userName, 'abbr')
-  return d.carNumber !== '' ? `#${d.carNumber} ${name}` : name
+  const own = formatDriverName(d.userName, 'abbr')
+  const team = formatDriverName(d.teamName, 'full')
+  const name = isKnownName(own) ? own : isKnownName(team) ? team : ''
+  const number = d.carNumber !== '' ? `#${d.carNumber}` : ''
+  return number !== '' && name !== '' ? `${number} ${name}` : number || name
 }
 
 /** Structural equality of two payloads (for SKIP_EMIT). */

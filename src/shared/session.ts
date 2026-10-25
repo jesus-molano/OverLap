@@ -124,6 +124,7 @@ function parseDriver(d: Obj, carIdx: number): DriverEntry {
   return {
     carIdx,
     userName: text(d.UserName),
+    teamName: text(d.TeamName),
     carNumber: text(d.CarNumber),
     // No real driver has an iRating of 0 or 1 (new members start at 1350).
     iRating: flag(d.CarIsAI) || rawIRating <= 1 ? 0 : rawIRating,

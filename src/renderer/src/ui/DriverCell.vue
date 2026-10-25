@@ -19,6 +19,8 @@ const props = withDefaults(
     number: string
     /** Shown as is, unless `format` is given. */
     name: string
+    /** `name` is a placeholder ('Piloto #7': the session info lost the name): drawn dim. */
+    nameUnknown?: boolean
     clsStyle?: InlineStyle
     iRating?: string
     lic?: string
@@ -33,7 +35,7 @@ const props = withDefaults(
     withRating?: boolean
     withLicense?: boolean
   }>(),
-  { lap: null, player: false, withRating: false, withLicense: false }
+  { nameUnknown: false, lap: null, player: false, withRating: false, withLicense: false }
 )
 
 const appearance = useAppearance()
@@ -49,6 +51,7 @@ const shownName = computed(() =>
     class="ov-driver"
     :class="{
       'ov-driver--player': player,
+      'ov-driver--unknown': nameUnknown,
       'ov-driver--lap-ahead': lap === 'ahead',
       'ov-driver--lap-behind': lap === 'behind'
     }"
@@ -115,6 +118,11 @@ const shownName = computed(() =>
 /* Your name a step heavier; the row's bracket says the rest. */
 .ov-driver--player .ov-driver__name {
   font-weight: var(--ov-w-you);
+}
+
+/* A placeholder for a name the session info lost: secondary text. A lap colour still wins. */
+.ov-driver--unknown .ov-driver__name {
+  color: var(--ov-fg-muted);
 }
 
 .ov-driver--lap-ahead .ov-driver__name {

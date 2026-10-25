@@ -26,7 +26,8 @@
     "@irsdk-node/native": "^5.4.0",
     "@irsdk-node/types": "^4.0.5",
     "irsdk-node": "^4.4.0",
-    "js-yaml": "^4.3.2"
+    "js-yaml": "^4.3.2",
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "3.0.1",

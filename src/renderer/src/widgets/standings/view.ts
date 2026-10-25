@@ -206,7 +206,7 @@ function toCarView(
   const showDelta = ctx.race && (ctx.deltaAll || row.isPlayer)
   const leader = o.classTag !== ''
   return {
-    ...toDriverCell(row, ctx.styles, ctx.nameFormat),
+    ...toDriverCell(row, ctx.styles, ctx.nameFormat, ctx.m),
     kind: leader ? 'leader' : 'car',
     css: carCss(row, o.alt, o.sep, leader),
     classTag: o.classTag,

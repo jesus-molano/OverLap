@@ -216,6 +216,12 @@ describe('reference and predicted lap', () => {
     expect(refView(ref('class', '#44 J. Lindqvist'), EN).label).toBe('#44 J. Lindqvist')
   })
 
+  it("words the number alone (a name iRacing wrote as '?') as 'Piloto #44'", () => {
+    expect(refView(ref('class', '#44'), ES).label).toBe('Piloto #44')
+    expect(refView(ref('class', ' #44 '), EN).label).toBe('Driver #44')
+    expect(refView(ref('class', '#44 Équipe Rouge'), ES).label).toBe('#44 Équipe Rouge')
+  })
+
   it('falls back to your record and a dash', () => {
     expect(refView(ref('pb', '#44 J. Lindqvist', true, null), ES)).toEqual({
       kind: 'pb',
