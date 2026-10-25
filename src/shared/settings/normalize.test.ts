@@ -560,8 +560,13 @@ describe('normalizeSettings: options', () => {
     for (const bad of [Number.NaN, Infinity, '2', null, true]) expect(range(bad)).toBe(1)
     const ref = (reference: unknown): string =>
       normalizeSettings({ delta: { reference } }).delta.reference
-    for (const ok of ['pb', 'session', 'class']) expect(ref(ok)).toBe(ok)
-    for (const bad of ['PB', 'best', '', null, 1]) expect(ref(bad)).toBe('pb')
+    for (const ok of ['pb', 'session', 'optimal', 'class', 'classOptimal']) expect(ref(ok)).toBe(ok)
+    for (const bad of ['PB', 'best', 'Optimal', 'sessionOptimal', '', null, 1]) {
+      expect(ref(bad)).toBe('pb')
+    }
+    // A file from before the optimal references keeps its choice and its fallback.
+    const old = normalizeSettings({ delta: { reference: 'session', fallback: false } }).delta
+    expect(old).toMatchObject({ reference: 'session', fallback: false })
   })
 
   it('validates every enum', () => {

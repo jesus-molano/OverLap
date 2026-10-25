@@ -165,10 +165,14 @@ export const widgetsEs = {
     /** The reference the delta is against. */
     pb: 'Récord personal',
     session: 'Mejor vuelta',
+    /** Your best sectors of the session, joined. */
+    optimal: 'Vuelta óptima',
     /** The class best is your own lap. */
     self: 'Tú',
     /** The class best of a driver not in the session info any more. */
-    classBest: 'Mejor de la clase'
+    classBest: 'Mejor de la clase',
+    /** The best sectors of your class, joined (nobody's lap). */
+    classOptimal: 'Óptima de la clase'
   }
 } as const
 
@@ -280,7 +284,9 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     predicted: 'Pred.',
     pb: 'Personal best',
     session: 'Session best',
+    optimal: 'Optimal lap',
     self: 'You',
-    classBest: 'Class best'
+    classBest: 'Class best',
+    classOptimal: 'Class optimal'
   }
 }

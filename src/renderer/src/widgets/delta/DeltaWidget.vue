@@ -399,7 +399,7 @@ const rootClass = computed(() => ({
   white-space: nowrap;
 }
 
-/* Whose lap it is, as a square marker: yours (accent) or the class's fastest (best). */
+/* Whose lap it is, as a square marker: yours (accent) or your class's (best). */
 .dl-ref__dot {
   flex: none;
   width: 0.5em;
@@ -408,7 +408,8 @@ const rootClass = computed(() => ({
   background: var(--ov-accent);
 }
 
-.dl-ref__dot--class {
+.dl-ref__dot--class,
+.dl-ref__dot--classOptimal {
   background: var(--ov-best);
 }
 
