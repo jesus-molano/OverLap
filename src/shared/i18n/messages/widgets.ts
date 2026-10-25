@@ -193,8 +193,8 @@ export const widgetsEs = {
       caution: { label: 'SAFETY CAR', short: '', note: 'no adelantes', chip: '' },
       yellow: { label: 'AMARILLA', short: '', note: 'precaución', chip: '' },
       debris: { label: 'RESTOS', short: '', note: 'en pista', chip: '' },
-      // The furled black flag: what race control warns about is not in the data.
-      furled: { label: 'AVISO', short: '', note: '', chip: '' },
+      // The furled black flag: what race control warns about is not in the data, who does is.
+      furled: { label: 'ADVERTENCIA', short: '', note: 'dirección de carrera', chip: '' },
       blue: { label: 'AZUL', short: '', note: 'déjale pasar', chip: '' },
       white: { label: 'ÚLTIMA VUELTA', short: '', note: '', chip: '' },
       checkered: {
@@ -213,12 +213,14 @@ export const widgetsEs = {
         note: 'da la vuelta',
         chip: 'CONTRAMANO'
       },
-      // Heading for the pit entry with the limiter off.
-      pitEntry: { label: 'LIMITADOR', short: '', note: 'actívalo', chip: '' },
+      // Heading for the pit entry with the limiter off: the action, so it never reads like the
+      // limiter-on line ('LIMITADOR'), not even as a chip or without its note.
+      pitEntry: { label: 'PON LIMITADOR', short: '', note: 'entrada a boxes', chip: '' },
       stalled: { label: 'CALADO', short: '', note: 'arranca el motor', chip: '' },
       oilPressure: { label: 'PRESIÓN ACEITE', short: 'P. ACEITE', note: 'baja', chip: 'P. ACEITE' },
-      water: { label: 'AGUA', short: '', note: 'temperatura alta', chip: '' },
-      oilTemp: { label: 'ACEITE', short: '', note: 'temperatura alta', chip: '' },
+      // 'TEMP.' like 'P. ACEITE': a bare 'ACEITE' chip next to it, or 'AGUA +6 °C', is ambiguous.
+      water: { label: 'TEMP. AGUA', short: '', note: 'alta', chip: '' },
+      oilTemp: { label: 'TEMP. ACEITE', short: '', note: 'alta', chip: '' },
       fuelPressure: {
         label: 'PRESIÓN GASOLINA',
         short: 'P. GASOLINA',
@@ -229,8 +231,8 @@ export const widgetsEs = {
     /** The tow countdown ('GRÚA 0:42'). */
     tow: (clock: string) => `GRÚA${NB}${clock}`,
     towNote: 'a boxes',
-    /** Laps to the end of the race ('5 VUELTAS'). */
-    lapsToGo: (n: number) => `${n}${NB}VUELTAS`,
+    /** Laps to the end of the race ('QUEDAN 5 V', like the headers): it says "to go" as a chip. */
+    lapsToGo: (n: number) => `QUEDAN${NB}${n}${NB}V`,
     lapsToGoNote: 'para el final',
     /** Water or oil above your own average: 'AGUA 98 °C ↑' + '+6 vs tu media (¿rebufo?)'. */
     trend: {
@@ -454,7 +456,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       caution: { label: 'CAUTION', short: '', note: 'no overtaking', chip: '' },
       yellow: { label: 'YELLOW FLAG', short: '', note: 'hazard ahead', chip: 'YELLOW' },
       debris: { label: 'DEBRIS', short: '', note: 'on track', chip: '' },
-      furled: { label: 'WARNING', short: '', note: '', chip: '' },
+      furled: { label: 'WARNING', short: '', note: 'from race control', chip: '' },
       blue: { label: 'BLUE FLAG', short: '', note: 'let them pass', chip: 'BLUE' },
       white: { label: 'LAST LAP', short: '', note: '', chip: '' },
       checkered: { label: 'CHECKERED FLAG', short: 'CHECKERED', note: '', chip: 'CHECKERED' },
@@ -462,7 +464,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     },
     notices: {
       wrongWay: { label: 'WRONG WAY', short: '', note: 'turn around', chip: '' },
-      pitEntry: { label: 'PIT LIMITER', short: '', note: 'switch it on', chip: '' },
+      pitEntry: { label: 'LIMITER OFF', short: '', note: 'pit entry ahead', chip: '' },
       stalled: { label: 'STALLED', short: '', note: 'restart the engine', chip: '' },
       oilPressure: { label: 'OIL PRESSURE', short: '', note: 'low', chip: 'OIL PRESS.' },
       water: { label: 'WATER TEMP', short: '', note: 'too hot', chip: '' },
@@ -471,8 +473,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     },
     tow: (clock) => `TOW${NB}${clock}`,
     towNote: 'to the pits',
-    lapsToGo: (n) => `${n}${NB}LAPS`,
-    lapsToGoNote: 'to go',
+    lapsToGo: (n) => `${n}${NB}TO GO`,
+    lapsToGoNote: 'laps left',
     trend: {
       label: {
         water: (temp) => `WATER ${temp} ↑`,

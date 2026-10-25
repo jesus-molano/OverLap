@@ -122,6 +122,9 @@ describe('pitKind', () => {
     expect(pitKind(makeRow({ outLap: true, pitStops: 1 }))).toBe('out')
     expect(pitKind(makeRow({ pitStops: 2, lastPitLap: 12 }))).toBe('stops')
     expect(pitKind(makeRow())).toBe('none')
+    // Unknown (a replay): no stops shown, but PIT and OUT still are.
+    expect(pitKind(makeRow({ pitStops: null, lastPitLap: null }))).toBe('none')
+    expect(pitKind(makeRow({ pitStops: null, status: 'pits' }))).toBe('pit')
   })
 })
 
@@ -372,6 +375,7 @@ describe('best lap, last stop, stint and tyre cells', () => {
     expect(pitLapCell(makeRow(), ES)).toBe('')
     // A pit-lane start leaves the pits without stopping.
     expect(pitLapCell(makeRow({ pitStops: 0, lastPitLap: 1 }), ES)).toBe('')
+    expect(pitLapCell(makeRow({ pitStops: null, lastPitLap: null }), ES)).toBe('')
   })
 
   it('fills the car line', () => {

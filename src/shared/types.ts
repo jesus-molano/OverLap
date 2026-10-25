@@ -232,7 +232,7 @@ export interface RelativeRow {
   lapRelation: LapRelation
   /** On pit road or in the pit stall: rendered dimmed. */
   inPits: boolean
-  /** Laps of the car's current stint (RaceCarState.stintLaps), null when unknown. */
+  /** Laps of the car's current stint (RaceCarState.stintLaps), null when unknown (a replay). */
   stintLaps: number | null
   /** Its tyre compound's name ('Hard'), null when unknown (tyreCompoundOf in tyres.ts). */
   tyre: string | null
@@ -337,12 +337,13 @@ export interface StandingsRow {
   bestLap: number | null
   /** 'class-best': bestLap is the fastest lap of the class this session (purple). */
   bestLapKind: 'normal' | 'class-best'
-  pitStops: number
-  /** CarIdxLapCompleted at the last pit exit, null when none. */
+  /** Pit stops so far, null when unknown (a replay: its model never saw the stops before it). */
+  pitStops: number | null
+  /** CarIdxLapCompleted at the last pit exit, null when none or unknown. */
   lastPitLap: number | null
   /** On the first lap after leaving the pits ("OUT"). */
   outLap: boolean
-  /** Laps of the current stint (RaceCarState.stintLaps); null when unknown or no column shows it. */
+  /** Laps of the current stint (RaceCarState.stintLaps); null if unknown (replay) or not shown. */
   stintLaps: number | null
   /** Its tyre compound's name ('Hard'); null when unknown or no column shows it (tyres.ts). */
   tyre: string | null

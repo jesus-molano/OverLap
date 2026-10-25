@@ -84,7 +84,7 @@ describe('mock extras through the providers', () => {
 
   it('shows a stop: the lap it was on, a fresh stint', () => {
     const last = rowsOf(at(samples, samples.length - 1).table)
-    const stopped = last.filter((r) => r.pitStops > 0 && r.lastPitLap !== null)
+    const stopped = last.filter((r) => (r.pitStops ?? 0) > 0 && r.lastPitLap !== null)
     expect(stopped.length).toBeGreaterThan(0)
     for (const r of stopped) expect(r.stintLaps).toBeLessThan(5)
   })

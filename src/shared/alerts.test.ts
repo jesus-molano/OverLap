@@ -356,9 +356,9 @@ describe('engine', () => {
     const all = Object.values(ENGINE_WARNING_BITS).reduce((a, b) => a | b, 0)
     expect(kinds(k.warnings(all).run())).toEqual([
       'oilPressure',
+      'fuelPressure',
       'water',
-      'oilTemp',
-      'fuelPressure'
+      'oilTemp'
     ])
     // No engine running, no pressure: the stall says it all.
     expect(kinds(k.warnings(all | EngineWarning.Stalled).run())).toEqual([

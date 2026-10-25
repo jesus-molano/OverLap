@@ -33,6 +33,14 @@ export interface WidgetDef {
 }
 
 /**
+ * Height (DIP) left free under the alerts' default top edge, where the delta starts: at the default
+ * 100 % their edit-mode sample (band, chips, incident and limiter lines) is 111 px and the tallest
+ * live mix (two flags, an incident and the limiter alarm) 120 px, so a fresh layout never draws
+ * the delta over the pit limiter alarm.
+ */
+export const ALERTS_DEFAULT_ROOM = 140
+
+/**
  * Registry of every widget. Adding a widget starts here: add an entry, its
  * payload type to `WidgetPayloads`, its provider in `providers.ts`, its
  * Vue component in the renderer registry and its name in
@@ -55,7 +63,8 @@ export const WIDGET_DEFS = {
   radar: {
     id: 'radar',
     hz: 60,
-    defaultBounds: { x: 560, y: 260, width: 220, height: 260 },
+    // Clear of the delta below the alerts (x 760 on).
+    defaultBounds: { x: 540, y: 260, width: 220, height: 260 },
     minSize: { width: 120, height: 140 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
@@ -109,6 +118,7 @@ export const WIDGET_DEFS = {
   alerts: {
     id: 'alerts',
     hz: 10,
+    // Grows down to ALERTS_DEFAULT_ROOM, where the delta starts.
     defaultBounds: { x: 760, y: 90, width: 400, height: 70 },
     minSize: { width: 200, height: 50 },
     defaultVisible: true,
@@ -119,7 +129,7 @@ export const WIDGET_DEFS = {
   delta: {
     id: 'delta',
     hz: 30,
-    defaultBounds: { x: 760, y: 170, width: 400, height: 80 },
+    defaultBounds: { x: 760, y: 90 + ALERTS_DEFAULT_ROOM, width: 400, height: 80 },
     minSize: { width: 200, height: 48 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,

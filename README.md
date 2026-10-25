@@ -174,9 +174,9 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
 | En repeticiones (`replays`)                          | Seguir la cámara (`follow`) | `follow`: muestran el coche que estás viendo; `hide`: ninguno |
 
 - Siguiendo la cámara, Relativo, Clasificación, Batalla y Tráfico se centran en el coche de la
-  repetición. Radar, Pedales, Avisos, Delta y Pista solo muestran datos en directo (de tu coche, o
-  de la pista vista desde él): en una repetición se ocultan siempre (lo dice la sección **Ventana**
-  de su página).
+  repetición. Radar, Pedales, Avisos, Delta y Condiciones solo muestran datos en directo (de tu
+  coche, o de la pista vista desde él): en una repetición se ocultan siempre (lo dice la sección
+  **Ventana** de su página).
 - Una repetición no toca el cronometraje en directo: no cuenta vueltas, récords, incidentes ni
   sectores del óptimo, y al volver al directo todo sigue donde estaba (la vuelta que la repetición
   partió no se cronometra). La línea de SR de Clasificación y el contador de incidentes de las
@@ -212,7 +212,7 @@ app cerrada**. Los archivos de la versión 1 se migran solos. Valores por defect
     },
     "radar": {
       "visible": true,
-      "bounds": { "x": 560, "y": 260, "width": 220, "height": 260 },
+      "bounds": { "x": 540, "y": 260, "width": 220, "height": 260 },
       "locked": false,
       "backgroundOpacity": 0.8
     }
@@ -233,12 +233,12 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 
 ## Widgets
 
-| Widget   | Id           | Frecuencia | Tamaño mínimo |
-| -------- | ------------ | ---------- | ------------- |
-| Relativo | `relative`   | 10 Hz      | 300 x 150     |
-| Radar    | `radar`      | 60 Hz      | 120 x 140     |
-| Delta    | `delta`      | 30 Hz      | 200 x 48      |
-| Pista    | `conditions` | 1 Hz       | 180 x 40      |
+| Widget      | Id           | Frecuencia | Tamaño mínimo |
+| ----------- | ------------ | ---------- | ------------- |
+| Relativo    | `relative`   | 10 Hz      | 300 x 150     |
+| Radar       | `radar`      | 60 Hz      | 120 x 140     |
+| Delta       | `delta`      | 30 Hz      | 200 x 48      |
+| Condiciones | `conditions` | 1 Hz       | 180 x 40      |
 
 ### Relativo
 
@@ -262,7 +262,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   vuelta».
 - **Última parada** (`pitLap`, «V12») y **vueltas del stint** (`stint`, «7 v»): las calcula el modelo
   de carrera desde la última salida de boxes o desde la salida. Si OverLap arranca con la carrera
-  empezada, cuenta desde la salida (no sabe de paradas anteriores).
+  empezada, cuenta desde la salida (no sabe de paradas anteriores). En una repetición las paradas,
+  la última parada y el stint salen vacíos: el modelo de la repetición no vio las paradas de antes.
 - **Neumático** (`tyre`): la letra del compuesto (`CarIdxTireCompound` + `DriverTires` del YAML,
   H = duro, W = lluvia). iRacing solo nombra los compuestos de tu modelo de coche: el resto sale «—».
 - Las tres van ocultas por defecto, al final de la lista de columnas, y son las primeras en
@@ -325,22 +326,24 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   palabras y su marca (se lee también con la paleta daltónica). Un aviso breve sigue en pantalla al
   menos `alerts.holdS` segundos.
 - Cada caso se activa o desactiva en Ajustes → Avisos; todos vienen activados:
-  - **Banderas** tuyas y de la sesión, también la **negra enrollada** (`AVISO`, sin motivo: no llega
-    en los datos).
+  - **Banderas** tuyas y de la sesión, también la **negra enrollada**
+    (`ADVERTENCIA · dirección de carrera`, sin motivo: no llega en los datos).
   - **Limitador** en el pit lane: puesto, `LIMITADOR OFF` y por encima del límite del YAML
     (`TrackPitSpeedLimit`) con o sin él: `EXCESO 68 / 60 · LIMITADOR OFF`.
-  - **Antes de la entrada**: `LIMITADOR` al pasar de la pista a la zona de boxes
+  - **Antes de la entrada**: `PON LIMITADOR` al pasar de la pista a la zona de boxes
     (`PlayerTrackSurface`) sin el limitador. Esa zona también cubre el pit lane y la salida, así que
     se calla en cuanto pisas el pit lane y no vuelve al salir.
-  - **10 y 5 vueltas** para el final de la carrera, unos segundos y una sola vez cada una: con
-    `SessionLapsRemainEx` (tus vueltas, una menos si te han doblado) y, en carreras a tiempo, con la
-    misma estimación que la clasificación.
+  - **10 y 5 vueltas** para el final de la carrera (`QUEDAN 5 V`), unos segundos y una sola vez
+    cada una: con `SessionLapsRemainEx` (tus vueltas, una menos si te han doblado) y, en carreras a
+    tiempo, con la misma estimación que la clasificación.
   - **Grúa** con cuenta atrás (`PlayerCarTowTime`), **motor calado** (solo dentro del coche) y
     **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas en marcha; no cuentan la
     marcha atrás, el pit lane ni el cruce de meta.
   - **Incidentes**: `+2x Pérdida de control · V5 · S3 · grava` al sumar puntos (ver Incidentes).
-  - **Testigos del motor** de `EngineWarnings`: agua, aceite, presión de aceite y de gasolina (las
-    presiones no con el motor calado).
+  - **Testigos del motor** de `EngineWarnings`: presión de aceite y de gasolina (`P. ACEITE`, no con
+    el motor calado) y temperatura del agua y del aceite (`TEMP. AGUA`). Las temperaturas pueden
+    seguir encendidas vueltas enteras: van detrás de las banderas amarilla y azul, que no se quedan en
+    un chip por ellas.
   - **Temperatura al alza**: `AGUA 98 °C ↑ +6 vs tu media` cuando el agua o el aceite siguen 20 s
     por encima de tu media de vueltas limpias de la sesión, con `(¿rebufo?)` si ibas pegado a otro
     coche. `WaterTemp` y `OilTemp` dependen del coche: si no los tiene, este aviso no sale.
@@ -366,7 +369,7 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   confirmarlo en una carrera oficial.
 - Solo los tuyos: iRacing no da incidentes de los demás pilotos.
 
-### Pista
+### Condiciones
 
 - Las condiciones de ahora mismo, una vez por segundo (iRacing no da pronóstico):
   - temperatura de la pista (`TrackTempCrew`) con una flecha si sube o baja en los últimos 5 min, y
@@ -375,7 +378,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
     un dial apunta a tu coche desde ese lado, con «de cara», «de cola» o «por la izq./dcha.». Solo al
     volante;
   - lo mojado que está el asfalto (`TrackWetness`, 7 niveles; «—» si iRacing no lo sabe, nunca
-    «Seco»), la lluvia (`Precipitation`) y la banda **DECLARADA MOJADA** (`WeatherDeclaredWet`);
+    «Seco»; el medidor va vacío en seco y lleno encharcado), la lluvia (`Precipitation`) y la banda
+    **DECLARADA MOJADA** (`WeatherDeclaredWet`);
   - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML).
 - Cada parte se activa o desactiva en su página de Ajustes (`conditions.*`); la cabecera va apagada
   por defecto. Grados y velocidad según `appearance.units` (°C y km/h por defecto).

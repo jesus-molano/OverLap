@@ -1,5 +1,5 @@
 /**
- * ConditionsData to what the conditions widget ('Pista') draws: four short lines and a band.
+ * ConditionsData to what the conditions widget ('Condiciones') draws: four short lines and a band.
  * Pure.
  *
  *   PISTA   34.2 °C ▲               AIRE  22.0 °C
@@ -11,7 +11,7 @@
  * Every part is an option; a line goes when both its parts are off or unknown. Words come from
  * the dictionary `m` (messagesFor(lang)); temperatures and speeds follow appearance.units.
  */
-import { WETNESS_MAX, wrapDeg } from '@shared/conditions'
+import { WETNESS_MAX, WETNESS_MIN, wrapDeg } from '@shared/conditions'
 import { formatSpeed, speedUnit, tempIn, tempUnit } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
@@ -125,9 +125,15 @@ export interface WindView extends ReadingView {
   readonly side: string
 }
 
+/**
+ * Cells of the wetness meter: one per level past dry, so a dry track is an empty meter (a lit
+ * cell reads as water, and in narrow windows the meter is all there is).
+ */
+export const WETNESS_CELLS = WETNESS_MAX - WETNESS_MIN
+
 export interface WetnessView extends ReadingView {
-  /** Filled cells of the WETNESS_MAX-cell meter, null when unknown (no meter). */
-  readonly level: number | null
+  /** Filled cells of the WETNESS_CELLS-cell meter, 0 when dry; null when unknown (no meter). */
+  readonly cells: number | null
 }
 
 export interface DeclaredWetView {
@@ -219,7 +225,12 @@ export function conditionsView(
     air,
     wind,
     wetness: o.showWetness
-      ? { label: w.surface, value: wetnessText(level, m), unit: '', level }
+      ? {
+          label: w.surface,
+          value: wetnessText(level, m),
+          unit: '',
+          cells: level === null ? null : level - WETNESS_MIN
+        }
       : null,
     rain:
       o.showPrecipitation && d.precipPct !== null

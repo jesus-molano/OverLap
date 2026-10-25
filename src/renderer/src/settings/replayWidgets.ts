@@ -4,9 +4,9 @@ import type { VisibilityOptions } from '@shared/types'
 import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
 
 /**
- * 'Radar, Pedales, Avisos, Delta y Pista': the widgets with live data only (your own car's, or
- * the track's seen from it), which every replay hides, in sidebar order and joined the way
- * `locale` lists things.
+ * 'Radar, Pedales, Avisos, Delta y Condiciones': the widgets with live data only (your own
+ * car's, or the track's seen from it), which every replay hides, in sidebar order and joined the
+ * way `locale` lists things.
  */
 export function liveOnlyWidgets(m: Messages, locale: string): string {
   const names = WIDGET_IDS.filter((id) => !followsCamera(id)).map((id) => widgetTitle(m, id))

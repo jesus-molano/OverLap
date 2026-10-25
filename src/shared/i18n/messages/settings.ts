@@ -514,7 +514,7 @@ export const settingsEs = {
     blue: 'Bandera azul',
     blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
     furled: 'Negra enrollada',
-    furledHelp: '«AVISO» de dirección de carrera; el motivo no llega en los datos',
+    furledHelp: '«ADVERTENCIA» de dirección de carrera; el motivo no llega en los datos',
     limiter: 'Limitador de boxes',
     limiterHelp: 'En el pit lane: puesto, sin poner o por encima del límite',
     overspeed: 'Exceso con el limitador OFF',

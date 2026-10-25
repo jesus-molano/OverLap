@@ -20,6 +20,7 @@ import { WrongWayDetector } from './notices/wrongWay'
 import { finiteOr } from './num'
 import type { RaceView } from './race/raceView'
 import { resolvePlayerCarIdx } from './sessionInfo'
+import { OPTION_SCHEMA } from './settingsSchema'
 import { SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type {
@@ -77,16 +78,19 @@ export const FLAG_BITS: Readonly<Record<FlagKind, number>> = {
   green: SessionFlag.Green
 }
 
-/** Most important first: oil pressure (the engine seizes) before the temperatures. */
+/**
+ * Most important first: the pressures (the engine is about to fail) before the tow and the
+ * temperatures (a light that can stay on for laps, and nothing to do about it at once).
+ */
 export const NOTICE_ORDER = [
   'wrongWay',
   'pitEntry',
   'stalled',
   'oilPressure',
-  'water',
-  'oilTemp',
   'fuelPressure',
   'tow',
+  'water',
+  'oilTemp',
   'lapsToGo',
   'engineTrend'
 ] as const satisfies readonly NoticeKind[]
@@ -96,6 +100,8 @@ export type AlertKind = FlagKind | NoticeKind
 /**
  * Flags and the other alerts in one order, most important first: the band shows the first one
  * shown, the chips the next. Each list keeps its own order inside it (FLAG_ORDER, NOTICE_ORDER).
+ * The temperature lights come after the yellow and the blue flags: they can stay on for laps,
+ * and a flag that asks for something now must not shrink to a chip under them all that time.
  */
 export const ALERT_ORDER = [
   'disqualified',
@@ -107,14 +113,14 @@ export const ALERT_ORDER = [
   'stalled',
   'caution',
   'oilPressure',
-  'water',
-  'oilTemp',
   'fuelPressure',
   'tow',
   'yellow',
   'debris',
   'furled',
   'blue',
+  'water',
+  'oilTemp',
   'white',
   'lapsToGo',
   'checkered',
@@ -157,6 +163,29 @@ export const NOTICE_OPTION: Readonly<Record<NoticeKind, AlertToggle>> = {
 export const FLAG_OPTION: Readonly<Partial<Record<FlagKind, AlertToggle>>> = {
   furled: 'showFurled',
   blue: 'showBlue'
+}
+
+/** Every on/off option, in the schema's (settings page) order. */
+export const ALERT_TOGGLES: readonly AlertToggle[] = (
+  Object.keys(OPTION_SCHEMA.alerts) as (keyof AlertsOptions)[]
+).filter((k): k is AlertToggle => OPTION_SCHEMA.alerts[k].kind === 'bool')
+
+/** Options that only refine another one: they do nothing while it is off (greyed out then). */
+export const OPTION_PARENT: Readonly<Partial<Record<AlertToggle, AlertToggle>>> = {
+  showBlue: 'showFlags',
+  showFurled: 'showFlags',
+  showPitOverspeed: 'showPitLimiter'
+}
+
+/**
+ * No option that shows something by itself is on, so the widget never shows: an option that
+ * refines another (OPTION_PARENT) counts only with that one on.
+ */
+export function showsNothing(o: Readonly<Pick<AlertsOptions, AlertToggle>>): boolean {
+  return ALERT_TOGGLES.every((k) => {
+    const parent = OPTION_PARENT[k]
+    return !o[k] || (parent !== undefined && !o[parent])
+  })
 }
 
 /**

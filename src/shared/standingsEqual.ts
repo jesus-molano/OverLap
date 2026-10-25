@@ -39,7 +39,7 @@ function rowEqual(a: DisplayRow, b: DisplayRow): boolean {
     a.lastLapKind === b.lastLapKind &&
     same(a.bestLap, b.bestLap) &&
     a.bestLapKind === b.bestLapKind &&
-    a.pitStops === b.pitStops &&
+    same(a.pitStops, b.pitStops) &&
     same(a.lastPitLap, b.lastPitLap) &&
     a.outLap === b.outLap &&
     same(a.stintLaps, b.stintLaps) &&
