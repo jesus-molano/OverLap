@@ -11,13 +11,14 @@ import { injectOverlayRegistry, useSlot, useSlotErrorBoundary } from './slots'
  * One widget's panel in the overlay window: absolutely positioned where main (or an edit
  * interaction) puts it, fitted to the content of an auto-height widget, isolated from the
  * other panels (paint, layout and errors). Not drawn while a rule hides it (edit mode previews
- * it); the widget component is created the first time it is shown and then kept.
+ * it); a widget the user disabled is hosted only in edit mode, as a ghost (its outline and chip,
+ * never the widget). The widget component is created the first time it is shown and then kept.
  */
 const props = defineProps<{ widget: WidgetId }>()
 
 // Keyed by the widget in OverlayApp: the id never changes for this instance.
 const id = props.widget
-const { handle, host, style, shown, mounted, dragging } = useSlot(injectOverlayRegistry(), id)
+const { handle, host, style, onScreen, mounted, dragging } = useSlot(injectOverlayRegistry(), id)
 provideWidgetId(id)
 provideSlot(handle)
 providePanelHost(host)
@@ -29,7 +30,7 @@ const component = WIDGET_COMPONENTS[id]
   <div
     v-inline-style="style"
     class="ov-slot"
-    :class="{ 'is-hidden': !shown, 'is-dragging': dragging }"
+    :class="{ 'is-hidden': !onScreen, 'is-ghost': handle.ghost.value, 'is-dragging': dragging }"
     :data-ov-slot="id"
   >
     <EditFrame>
@@ -51,12 +52,17 @@ const component = WIDGET_COMPONENTS[id]
   display: none;
 }
 
-/* Only edit mode takes the mouse, and main lets it through only over an unlocked panel. */
+/* Only edit mode takes the mouse; main lets it through over an unlocked panel or a chip only. */
 .ov-overlay.is-editing .ov-slot {
   pointer-events: auto;
 }
 
-/* The panel being dragged stays above the others. */
+/* A ghost is not in the way: the panel below it gets the pointer, but over its chip buttons. */
+.ov-overlay.is-editing .ov-slot.is-ghost {
+  pointer-events: none;
+}
+
+/* The panel being dragged stays above the others (the radar included, while it lasts). */
 .ov-slot.is-dragging {
   z-index: 1;
 }

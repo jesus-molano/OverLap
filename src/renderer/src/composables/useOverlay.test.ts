@@ -77,7 +77,7 @@ describe('useOverlayState', () => {
     const b = mod.useOverlayState()
     expect(a).toBe(b)
     expect(a).toBe(mod.overlayState)
-    expect(fake.listenerCount()).toBe(8)
+    expect(fake.listenerCount()).toBe(9)
     await flush()
     expect(a.status.value).toEqual(LIVE_STATUS)
     expect(a.settings.value?.version).toBe(4)
@@ -109,6 +109,22 @@ describe('useOverlayState', () => {
     expect(s.shortcutStatus.value).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'disabled' })
     fake.overlayHidden.emit(false)
     expect(s.overlayHidden.value).toBe(false)
+  })
+
+  it('takes the hidden cursor from the initial state, unless a push came first', async () => {
+    await load({ cursorHidden: true })
+    const s = mod.useOverlayState()
+    expect(s.cursorHidden.value).toBe(false)
+    await flush()
+    expect(s.cursorHidden.value).toBe(true)
+    fake.cursorHidden.emit(false)
+    expect(s.cursorHidden.value).toBe(false)
+
+    await load({ cursorHidden: false })
+    const t = mod.useOverlayState()
+    fake.cursorHidden.emit(true)
+    await flush()
+    expect(t.cursorHidden.value).toBe(true)
   })
 })
 
@@ -217,6 +233,19 @@ describe('useWidgetData', () => {
     fake.data.emit({ widget: 'standings', payload: STANDINGS })
     fake.data.emit({ widget: 'battle', payload: BATTLE })
     fake.layout.emit(layout(2, ['battle']))
+    expect(s.latest.standings.value).toBeNull()
+    expect(s.latest.battle.value).toBe(BATTLE)
+  })
+
+  it('drops the payload of a widget the window now hosts as a ghost (disabled)', async () => {
+    await load({ view: { kind: 'overlay' }, layout: layout(1, ['standings', 'battle']) })
+    const s = mod.useOverlayState()
+    await flush()
+    fake.data.emit({ widget: 'standings', payload: STANDINGS })
+    fake.data.emit({ widget: 'battle', payload: BATTLE })
+    const next = layout(2, ['standings', 'battle'])
+    next.panels[0] = { ...panel('standings'), ghost: true }
+    fake.layout.emit(next)
     expect(s.latest.standings.value).toBeNull()
     expect(s.latest.battle.value).toBe(BATTLE)
   })

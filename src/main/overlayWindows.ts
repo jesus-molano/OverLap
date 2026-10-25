@@ -33,6 +33,7 @@ import { MOUSE_POLL_MS, mouseMode, type HitPanel, type MouseMode } from './mouse
 import {
   anyShown,
   buildLayout,
+  chipOnScreen,
   displayAtPoint,
   displayNumbers,
   fittedBounds,
@@ -44,7 +45,13 @@ import {
   sameLayoutContent,
   type DisplayInfo
 } from './overlayLayout'
-import { parseBoundsCommit, parseDragState, parseScaleStep } from './overlayMessages'
+import {
+  parseBoundsCommit,
+  parseDragState,
+  parseEditChips,
+  parseScaleStep,
+  parseWidgetToggle
+} from './overlayMessages'
 import { MainPerfLog, perfEnabled } from './overlayPerf'
 import { OverlayWindow, type OverlayWindowHost } from './overlayWindow'
 import { PayloadCache } from './payloadCache'
@@ -57,6 +64,10 @@ export const RELOAD_DELAY_MS = 1_000
 export const GPU_RECREATE_DELAY_MS = 1_000
 /** Fitted and wheel-resized bounds are saved this long after the last change. */
 export const COMMIT_DELAY_MS = 1_000
+/** While editing, main reads whether the mouse cursor shows this often... */
+export const CURSOR_POLL_MS = 250
+/** ...and says it is hidden after this many hidden reads in a row (no flash on a blink). */
+export const CURSOR_HIDDEN_READS = 2
 
 export interface OverlayWindowsOptions {
   getSettings(): OverlaySettings
@@ -64,6 +75,16 @@ export interface OverlayWindowsOptions {
   onBoundsCommitted(id: WidgetId, bounds: Rect): void
   /** Mouse wheel over an auto-height widget in edit mode: change its content scale. */
   onScaleStep(id: WidgetId, step: 1 | -1): void
+  /**
+   * An edit chip's eye (`visible`) or padlock (`locked`) in edit mode: save it like the tray and
+   * the settings window do (the change comes back through setVisible / applySettings).
+   */
+  onWidgetToggle(id: WidgetId, field: 'visible' | 'locked', value: boolean): void
+  /**
+   * Whether the mouse cursor shows now (null: unknown), read only while editing: the game hides
+   * it while you drive, and the overlay then says how to free it. Absent: never hidden.
+   */
+  cursorShowing?(): boolean | null
 }
 
 /** What the recovery timer will do when it fires (a GPU loss and a resume can combine). */
@@ -109,9 +130,18 @@ export class OverlayWindows implements OverlayWindowHost {
   /** Debounced saves: a wheel resize saves the whole rect, a fit only the height. */
   private readonly wheelSaves = new KeyedTimer<WidgetId>(COMMIT_DELAY_MS, (id) => this.saveRect(id))
   private readonly fitSaves = new KeyedTimer<WidgetId>(COMMIT_DELAY_MS, (id) => this.saveFit(id))
+  /**
+   * Each window's edit chips (relative to their panels) as its document last reported them,
+   * edit mode only: they take the mouse even over a locked panel or a ghost.
+   */
+  private readonly chips = new Map<OverlayWindow, { session: number; rects: Map<WidgetId, Rect> }>()
   /** Last `OverlayLayout.revision` sent to any window. */
   private revision = 0
   private editing = false
+  /** Edit mode with the cursor hidden by the game (`IPC.cursorHidden`). */
+  private cursorHiddenNow = false
+  private hiddenReads = 0
+  private cursorTimer: ReturnType<typeof setInterval> | null = null
   private suspended = false
   /** The user hid every window (tray, shortcut). Not saved: the app always starts shown. */
   private hiddenByUser = false
@@ -141,6 +171,11 @@ export class OverlayWindows implements OverlayWindowHost {
     return this.hiddenByUser
   }
 
+  /** Edit mode with the mouse cursor hidden by the game, for `InitialState.cursorHidden`. */
+  get cursorHidden(): boolean {
+    return this.cursorHiddenNow
+  }
+
   /**
    * Registers the overlay IPC and the display, power and GPU listeners, places every widget,
    * creates the windows and starts the z-order guard. IPC.init is answered by main (see
@@ -152,6 +187,8 @@ export class OverlayWindows implements OverlayWindowHost {
     ipcMain.on(IPC.commitBounds, this.onCommitBounds)
     ipcMain.on(IPC.scaleStep, this.onScaleStep)
     ipcMain.on(IPC.dragState, this.onDragState)
+    ipcMain.on(IPC.widgetToggle, this.onWidgetToggle)
+    ipcMain.on(IPC.editChips, this.onEditChips)
     screen.on('display-added', this.onDisplayAdded)
     screen.on('display-removed', this.onDisplayRemoved)
     screen.on('display-metrics-changed', this.onDisplayMetricsChanged)
@@ -186,9 +223,10 @@ export class OverlayWindows implements OverlayWindowHost {
     this.disposed = true
     if (this.zOrderTimer) clearInterval(this.zOrderTimer)
     if (this.pollTimer) clearInterval(this.pollTimer)
+    if (this.cursorTimer) clearInterval(this.cursorTimer)
     if (this.displayTimer) clearTimeout(this.displayTimer)
     if (this.recovery) clearTimeout(this.recovery.timer)
-    this.zOrderTimer = this.pollTimer = this.displayTimer = null
+    this.zOrderTimer = this.pollTimer = this.cursorTimer = this.displayTimer = null
     this.recovery = null
     this.perf?.dispose()
     this.perf = null
@@ -198,6 +236,8 @@ export class OverlayWindows implements OverlayWindowHost {
     ipcMain.removeListener(IPC.commitBounds, this.onCommitBounds)
     ipcMain.removeListener(IPC.scaleStep, this.onScaleStep)
     ipcMain.removeListener(IPC.dragState, this.onDragState)
+    ipcMain.removeListener(IPC.widgetToggle, this.onWidgetToggle)
+    ipcMain.removeListener(IPC.editChips, this.onEditChips)
     screen.removeListener('display-added', this.onDisplayAdded)
     screen.removeListener('display-removed', this.onDisplayRemoved)
     screen.removeListener('display-metrics-changed', this.onDisplayMetricsChanged)
@@ -209,14 +249,16 @@ export class OverlayWindows implements OverlayWindowHost {
     const windows = [...this.pool.values()]
     this.pool.clear()
     this.owner.clear()
+    this.chips.clear()
     this.payloads.clear()
     for (const w of windows) w.destroy()
   }
 
   /**
-   * Enabled by the user. A disabled widget is not hosted at all (its window goes away with its
-   * last widget). Enabling a widget of a display main gave up on (repeated crashes) is the
-   * explicit retry.
+   * Enabled by the user. A disabled widget is not hosted at all outside edit mode (its window
+   * goes away with its last widget); in edit mode it stays as a ghost, so its chip's eye can
+   * bring it back. It gets no data either way. Enabling a widget of a display main gave up on
+   * (repeated crashes) is the explicit retry.
    */
   setVisible(id: WidgetId, visible: boolean): void {
     this.visible.set(id, visible)
@@ -271,8 +313,10 @@ export class OverlayWindows implements OverlayWindowHost {
   }
 
   /**
-   * Edit mode: rule-hidden widgets preview, and the windows take the mouse only while the
-   * cursor is over an unlocked panel or a drag runs (main polls the cursor). The windows stay
+   * Edit mode: rule-hidden widgets preview, disabled ones show as ghosts (hosted only while
+   * editing, so a display with nothing else gets its window now), and the windows take the
+   * mouse only while the cursor is over an unlocked panel, any panel's edit chip, or a drag
+   * runs (main polls the cursor; and whether the game hides it). The windows stay
    * non-focusable. Leaving it makes every window click-through again at once; drags in
    * progress are cancelled by the renderers (late commits are rejected), then the pending
    * wheel and fit saves are written.
@@ -285,13 +329,19 @@ export class OverlayWindows implements OverlayWindowHost {
     if (!this.started || this.disposed) return
     if (on) {
       this.pollTimer ??= setInterval(() => this.pollMouse(), MOUSE_POLL_MS)
+      this.cursorTimer ??= setInterval(() => this.pollCursor(), CURSOR_POLL_MS)
     } else {
       if (this.pollTimer) clearInterval(this.pollTimer)
-      this.pollTimer = null
+      if (this.cursorTimer) clearInterval(this.cursorTimer)
+      this.pollTimer = this.cursorTimer = null
       for (const w of this.pool.values()) w.dragUntil = 0
+      this.chips.clear()
+      this.hiddenReads = 0
+      this.setCursorHidden(false)
     }
     this.updateModes()
-    for (const w of this.pool.values()) this.refresh(w)
+    // The ghosts come and go with edit mode: windows may too. Refreshes every window.
+    this.syncWindows()
     if (on) this.guardAll()
     this.broadcast(IPC.editMode, on)
     if (!on) this.flushSaves()
@@ -486,7 +536,7 @@ export class OverlayWindows implements OverlayWindowHost {
     if (!this.started || this.disposed) return
     // Before any window goes away: a widget whose window is destroyed below changes window too.
     const before = new Map(this.owner)
-    const parts = partition(this.rects, (id) => this.visible.get(id) === true, this.displays)
+    const parts = partition(this.rects, (id) => this.isHosted(id), this.displays)
     const needed = [...parts.keys()].filter((id) => !this.givenUp.has(id))
     const plan = reconcileWindows(
       [...this.pool.values()].map((w) => ({ key: w.key, displayId: w.display.id })),
@@ -549,6 +599,7 @@ export class OverlayWindows implements OverlayWindowHost {
   private removeWindow(w: OverlayWindow): void {
     if (this.pool.get(w.key) === w) this.pool.delete(w.key)
     for (const [id, owner] of this.owner) if (owner === w) this.owner.delete(id)
+    this.chips.delete(w)
   }
 
   /** Repeated failures: no window for that display until one of its widgets is enabled again. */
@@ -583,6 +634,7 @@ export class OverlayWindows implements OverlayWindowHost {
       widgets: w.hosted,
       rects: this.rects,
       placements: this.placements,
+      ghosts: new Set(w.hosted.filter((id) => this.isGhost(id))),
       session: w.session,
       ackSeq: w.ackSeq,
       revision
@@ -630,9 +682,24 @@ export class OverlayWindows implements OverlayWindowHost {
     })
   }
 
+  /** Hosted by a window: enabled, or disabled in edit mode (drawn as a ghost). */
+  private isHosted(id: WidgetId): boolean {
+    return this.visible.get(id) === true || this.editing
+  }
+
+  /** Disabled by the user: hosted only in edit mode, as a ghost (no data, no drags). */
+  private isGhost(id: WidgetId): boolean {
+    return this.visible.get(id) !== true
+  }
+
+  /** Its window draws it: shown, or a ghost in edit mode. */
+  private isDrawn(id: WidgetId): boolean {
+    return this.isShown(id) || (this.editing && this.isGhost(id))
+  }
+
   private syncShown(w: OverlayWindow): void {
     const show =
-      this.canReceive(w) && anyShown(w.hosted, (id) => this.isShown(id)) && !this.disposed
+      this.canReceive(w) && anyShown(w.hosted, (id) => this.isDrawn(id)) && !this.disposed
     if (show === w.isVisible()) return
     if (show) w.show()
     else w.hide()
@@ -676,14 +743,28 @@ export class OverlayWindows implements OverlayWindowHost {
     for (const w of this.pool.values()) this.updateMode(w, cursor)
   }
 
-  /** The shown panels of a window, topmost first (later WIDGET_IDS are drawn on top). */
+  /**
+   * The drawn panels of a window, topmost first (hosted in PAINT_ORDER, later ones on top: the
+   * radar above all), each with its edit chip on screen. A ghost takes the mouse only over its
+   * chip, and lets it through to the panels below anywhere else.
+   */
   private hitPanels(w: OverlayWindow): HitPanel[] {
     const settings = this.opts.getSettings()
+    const reported = this.chips.get(w)
+    const chips = reported?.session === w.session ? reported.rects : undefined
     const out: HitPanel[] = []
     for (let n = w.hosted.length - 1; n >= 0; n--) {
       const id = w.hosted[n]
-      const rect = id !== undefined && this.isShown(id) ? this.rects.get(id) : undefined
-      if (id !== undefined && rect) out.push({ rect, locked: settings.widgets[id].locked })
+      const rect = id !== undefined && this.isDrawn(id) ? this.rects.get(id) : undefined
+      if (id === undefined || !rect) continue
+      const chip = chips?.get(id)
+      const ghost = this.isGhost(id)
+      out.push({
+        rect,
+        locked: settings.widgets[id].locked || ghost,
+        ghost,
+        chip: chip ? chipOnScreen(rect, chip) : null
+      })
     }
     return out
   }
@@ -693,6 +774,21 @@ export class OverlayWindows implements OverlayWindowHost {
     let anyVisible = false
     for (const w of this.pool.values()) anyVisible ||= w.isVisible()
     if (anyVisible) this.updateModes()
+  }
+
+  /** While editing: is the cursor hidden (the game's, while you drive)? Tells every window. */
+  private pollCursor(): void {
+    if (!this.editing || this.disposed) return
+    const showing = this.opts.cursorShowing?.() ?? null
+    this.hiddenReads = showing === false ? this.hiddenReads + 1 : 0
+    this.setCursorHidden(this.hiddenReads >= CURSOR_HIDDEN_READS)
+  }
+
+  private setCursorHidden(hidden: boolean): void {
+    if (this.cursorHiddenNow === hidden) return
+    this.cursorHiddenNow = hidden
+    console.log(`[overlay] edit mode: cursor ${hidden ? 'hidden by the game' : 'shown'}`)
+    this.broadcast(IPC.cursorHidden, hidden)
   }
 
   // -------------------------------------------------------------------------
@@ -731,7 +827,8 @@ export class OverlayWindows implements OverlayWindowHost {
   private commitContext(w: OverlayWindow, id: WidgetId): CommitContext {
     return {
       editing: this.editing,
-      hosted: this.owner.get(id) === w,
+      // A ghost is drawn, not hosted for changes: it is neither moved nor fitted.
+      hosted: this.owner.get(id) === w && !this.isGhost(id),
       prefs: this.opts.getSettings().widgets[id],
       def: WIDGET_DEFS[id],
       geometryRevision: w.geometryRevision,
@@ -762,6 +859,29 @@ export class OverlayWindows implements OverlayWindowHost {
     const w = msg ? this.windowOf(event.sender) : undefined
     if (!msg || !w || msg.session !== w.session || !this.editing) return
     w.dragUntil = msg.dragging ? performance.now() + DRAG_LEASE_MS : 0
+    this.updateMode(w)
+  }
+
+  /**
+   * An edit chip's eye or padlock: only in edit mode, from the current document of the window
+   * hosting that widget (a ghost included). Saved through the normal settings path.
+   */
+  private readonly onWidgetToggle = (event: IpcMainEvent, raw: unknown): void => {
+    const msg = parseWidgetToggle(raw)
+    const w = msg ? this.windowOf(event.sender) : undefined
+    if (!msg || !w || msg.session !== w.session || !this.editing) return
+    if (this.owner.get(msg.widget) !== w) return
+    this.opts.onWidgetToggle(msg.widget, msg.field, msg.value)
+  }
+
+  /** Where a window's edit chips are (edit mode, its current document only). */
+  private readonly onEditChips = (event: IpcMainEvent, raw: unknown): void => {
+    const msg = parseEditChips(raw)
+    const w = msg ? this.windowOf(event.sender) : undefined
+    if (!msg || !w || msg.session !== w.session || !this.editing) return
+    const rects = new Map<WidgetId, Rect>()
+    for (const c of msg.chips) rects.set(c.widget, c.rect)
+    this.chips.set(w, { session: msg.session, rects })
     this.updateMode(w)
   }
 

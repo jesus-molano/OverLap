@@ -256,7 +256,8 @@ const CONDITIONS: ConditionsData = {
   precipPct: null,
   declaredWet: false,
   skies: null,
-  rubberState: ''
+  rubberState: '',
+  rubberCarried: false
 }
 
 interface Call<P> {

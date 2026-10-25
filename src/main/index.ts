@@ -12,6 +12,7 @@ import {
 } from '@shared/settings'
 import type { OverlaySettings, OverlayStatus, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
+import { createCursorProbe } from './cursorProbe'
 import { SettingsStore } from './settingsStore'
 import { diffSettings, isSettingsCommand, viewOfSender } from './settingsSync'
 import {
@@ -36,8 +37,10 @@ import { createTray, destroyTray, updateTray, type TrayState } from './tray'
  * top. In edit mode only, Electron's mouse forwarding installs a low-level
  * mouse hook (WH_MOUSE_LL) in this process: it observes mouse moves, never
  * injects input, and is removed when edit mode ends (FORWARD_IN_EDIT=false,
- * in mouseMode.ts, disables it). Only the settings window, opened from the
- * tray, is a normal focusable window. The global shortcuts are Windows hot
+ * in mouseMode.ts, disables it); while editing, main also reads whether the
+ * cursor shows (user32 GetCursorInfo, read-only, cursorProbe.ts). Only the
+ * settings window, opened from the tray, is a normal focusable window. The
+ * global shortcuts are Windows hot
  * keys (RegisterHotKey through globalShortcut): no keyboard hook, nothing
  * sent to the game.
  */
@@ -129,7 +132,14 @@ function start(): void {
       changeSettings((s) => {
         s.widgets[id].scale = stepScale(s.widgets[id].scale, step)
       })
-    }
+    },
+    // An edit chip's eye or padlock: the same settings as the tray and the settings window.
+    onWidgetToggle: (id, field, value) => {
+      changeSettings((s) => {
+        s.widgets[id][field] = value
+      })
+    },
+    cursorShowing: createCursorProbe()
   })
 
   const telemetry = new TelemetryHost({
@@ -318,7 +328,8 @@ function start(): void {
       layout: overlay ? windows.layoutFor(event.sender) : null,
       autoHidden: overlay ? windows.autoHiddenMap() : {},
       overlayHidden: windows.userHidden,
-      shortcutStatus: shortcuts.status
+      shortcutStatus: shortcuts.status,
+      cursorHidden: windows.cursorHidden
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown): OverlaySettings => {

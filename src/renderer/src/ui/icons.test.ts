@@ -22,7 +22,9 @@ describe('icons', () => {
       'clock',
       'plug',
       'wheel',
-      'eye-off'
+      'eye',
+      'eye-off',
+      'unlock'
     ]) {
       expect(ICON_NAMES).toContain(name)
     }

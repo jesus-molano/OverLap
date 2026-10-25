@@ -16,7 +16,8 @@ export const settingsEs = {
     editBanner: {
       before:
         'Modo edición: arrastra los widgets para moverlos y usa sus bordes para cambiar el ancho; la rueda del ratón los escala y',
-      after: 'desactiva el imán. Los bloqueados no se mueven.'
+      after:
+        'desactiva el imán. Los bloqueados no se mueven; el ojo y el candado de cada widget lo ocultan o lo bloquean.'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
     loading: 'Cargando ajustes…',
@@ -44,9 +45,15 @@ export const settingsEs = {
     }
   },
   editMode: {
-    tooltip: 'Mover y redimensionar los widgets',
-    /** With the edit-mode shortcut: 'Mover y redimensionar los widgets (Ctrl+Shift+E)'. */
-    tooltipKeys: (keys: string) => `Mover y redimensionar los widgets (${keys})`,
+    /**
+     * Also the way in while driving: iRacing hides the cursor in the car, and this window (it
+     * takes the focus) frees it.
+     */
+    tooltip:
+      'Mover y redimensionar los widgets. En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera',
+    /** With the edit-mode shortcut: 'Mover y redimensionar los widgets (Ctrl+Shift+E). En…'. */
+    tooltipKeys: (keys: string) =>
+      `Mover y redimensionar los widgets (${keys}). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera`,
     enter: 'Modo edición',
     exit: 'Salir de edición'
   },
@@ -691,7 +698,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     editBanner: {
       before:
         'Edit mode: drag a widget to move it and drag its edges to change its width; the mouse wheel scales it and holding',
-      after: 'turns off snapping. Locked widgets stay put.'
+      after:
+        'turns off snapping. Locked widgets stay put; each widget’s eye and padlock hide or lock it.'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
     loading: 'Loading settings…',
@@ -716,8 +724,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   editMode: {
-    tooltip: 'Move and resize the widgets',
-    tooltipKeys: (keys) => `Move and resize the widgets (${keys})`,
+    tooltip:
+      'Move and resize the widgets. In the car iRacing hides the cursor: start here, this window frees it',
+    tooltipKeys: (keys) =>
+      `Move and resize the widgets (${keys}). In the car iRacing hides the cursor: start here, this window frees it`,
     enter: 'Edit mode',
     exit: 'Exit edit mode'
   },
