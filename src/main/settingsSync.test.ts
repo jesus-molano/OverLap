@@ -53,6 +53,8 @@ function otherValue(spec: OptionSpec, value: unknown): unknown {
       return (value as StandingsColumn[]).map((c, i) =>
         i === 0 ? { ...c, visible: !c.visible } : c
       )
+    case 'accelerator':
+      return value === 'Ctrl+Alt+F9' ? 'Ctrl+Alt+F10' : 'Ctrl+Alt+F9'
   }
 }
 
@@ -86,6 +88,8 @@ describe('viewOfSender', () => {
 describe('isSettingsCommand', () => {
   it('accepts the known commands', () => {
     expect(isSettingsCommand({ type: 'set-edit-mode', on: true })).toBe(true)
+    expect(isSettingsCommand({ type: 'set-overlay-hidden', hidden: true })).toBe(true)
+    expect(isSettingsCommand({ type: 'capture-shortcuts', on: false })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-bounds', widgetId: 'relative' })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-options', widgetId: 'standings' })).toBe(true)
     expect(isSettingsCommand({ type: 'open-settings-folder' })).toBe(true)
@@ -104,6 +108,11 @@ describe('isSettingsCommand', () => {
       {},
       { type: 'set-edit-mode' },
       { type: 'set-edit-mode', on: 'yes' },
+      { type: 'set-overlay-hidden' },
+      { type: 'set-overlay-hidden', hidden: 1 },
+      { type: 'set-overlay-hidden', on: true },
+      { type: 'capture-shortcuts' },
+      { type: 'capture-shortcuts', on: 'true' },
       { type: 'reset-widget-bounds', widgetId: 'toString' },
       { type: 'reset-widget-bounds' },
       { type: 'reset-widget-options', widgetId: 'fuel' },
@@ -165,7 +174,10 @@ describe('diffSettings', () => {
       (s: OverlaySettings) => (s.appearance.colorBlind = !s.appearance.colorBlind),
       (s: OverlaySettings) => (s.appearance.units = 'imperial'),
       // Payloads carry codes: the telemetry process never needs the language.
-      (s: OverlaySettings) => (s.appearance.language = 'en')
+      (s: OverlaySettings) => (s.appearance.language = 'en'),
+      // Main registers the shortcuts; the telemetry process never sees them.
+      (s: OverlaySettings) => (s.shortcuts.toggleOverlay = 'Ctrl+Alt+F9'),
+      (s: OverlaySettings) => (s.shortcuts.toggleEditMode = '')
     ]) {
       expect(configChanged(mutate), mutate.toString()).toBe(false)
     }

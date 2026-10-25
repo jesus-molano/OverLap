@@ -8,6 +8,19 @@ import iconPath from '../../resources/icon.png?asset'
 let win: BrowserWindow | null = null
 /** settings.appearance.language, for the title bar (see setSettingsWindowLanguage). */
 let language: Language = DEFAULT_LANGUAGE
+let inactiveListener: (() => void) | null = null
+
+/**
+ * `listener` runs whenever the settings window stops being where the user types: it loses
+ * focus, hides, closes, reloads or its renderer dies (main ends a shortcut capture then).
+ */
+export function onSettingsWindowInactive(listener: (() => void) | null): void {
+  inactiveListener = listener
+}
+
+function notifyInactive(): void {
+  inactiveListener?.()
+}
 
 /** 'OverLap — Ajustes' in `lang`. */
 export function settingsWindowTitle(lang: Language): string {
@@ -35,6 +48,11 @@ export function openSettingsWindow(): void {
     return
   }
   win = createWindow()
+}
+
+/** The settings window is open and has the keyboard focus. */
+export function isSettingsWindowFocused(): boolean {
+  return win !== null && !win.isDestroyed() && win.isFocused()
 }
 
 /** True when `sender` is the settings window's renderer. */
@@ -95,10 +113,16 @@ function createWindow(): BrowserWindow {
   // Reopening from the tray creates a fresh one.
   wc.on('render-process-gone', (_event, details) => {
     console.error(`[settings-window] renderer gone (${details.reason})`)
+    notifyInactive()
     if (!w.isDestroyed()) w.destroy()
   })
+  // A page that is not there, or not in front, cannot be recording keys.
+  w.on('blur', notifyInactive)
+  w.on('hide', notifyInactive)
+  wc.on('did-start-loading', notifyInactive)
   w.on('closed', () => {
     if (win === w) win = null
+    notifyInactive()
   })
 
   const devUrl = process.env.ELECTRON_RENDERER_URL

@@ -16,6 +16,9 @@ interface MenuItem {
   type?: string
   checked?: boolean
   enabled?: boolean
+  accelerator?: string
+  registerAccelerator?: boolean
+  click?: (item: { checked: boolean }) => void
   submenu?: MenuItem[]
 }
 
@@ -92,6 +95,7 @@ const ACTIONS = {
   setWidgetVisible: () => {},
   setRadarRange: () => {},
   setEditMode: () => {},
+  setOverlayHidden: () => {},
   openSettingsFolder: () => {},
   quit: () => {}
 }
@@ -101,14 +105,24 @@ function state(settings: OverlaySettings, autoHidden: TrayState['autoHidden'] = 
     status: { state: 'mock', source: 'mock', note: 'none', detail: '' },
     settings,
     editMode: false,
+    overlayHidden: false,
     autoHidden
   }
 }
 
+const MODE_LABELS = new Set(['Modo edición', 'Edit mode', 'Ocultar overlay', 'Hide overlay'])
+
 function widgetItems(): MenuItem[] {
   return (fake.menus.at(-1) ?? []).filter(
-    (i) => i.type === 'checkbox' && i.label !== 'Modo edición' && i.label !== 'Edit mode'
+    (i) => i.type === 'checkbox' && !MODE_LABELS.has(i.label ?? '')
   )
+}
+
+/** The item of the last menu with this label. */
+function item(label: string): MenuItem {
+  const found = (fake.menus.at(-1) ?? []).find((i) => i.label === label)
+  if (!found) throw new Error(`no menu item ${label}`)
+  return found
 }
 
 function english(settings: OverlaySettings): OverlaySettings {
@@ -284,5 +298,71 @@ describe('tray menu', () => {
     updateTray(state(createDefaultSettings()))
     expect(fake.menus).toHaveLength(3)
     expect(labels()).toContain('Ajustes…')
+  })
+})
+
+describe('tray menu: hiding the overlay and the shortcuts', () => {
+  it('has a hide checkbox next to edit mode, both labelled with their shortcuts only', () => {
+    createTray(state(createDefaultSettings()), ACTIONS)
+    expect(item('Ocultar overlay')).toMatchObject({
+      type: 'checkbox',
+      checked: false,
+      accelerator: 'Ctrl+Shift+H',
+      registerAccelerator: false
+    })
+    expect(item('Modo edición')).toMatchObject({
+      type: 'checkbox',
+      checked: false,
+      accelerator: 'Ctrl+Shift+E',
+      registerAccelerator: false
+    })
+    const all = labels()
+    expect(all.indexOf('Ocultar overlay')).toBe(all.indexOf('Modo edición') - 1)
+  })
+
+  it('checks it while hidden and says so in the tooltip', () => {
+    const s = state(createDefaultSettings())
+    s.overlayHidden = true
+    createTray(s, ACTIONS)
+    expect(item('Ocultar overlay').checked).toBe(true)
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Overlay oculto · Modo simulado (mock)')
+    const en = state(english(createDefaultSettings()))
+    en.overlayHidden = true
+    updateTray(en)
+    expect(item('Hide overlay').checked).toBe(true)
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Overlay hidden · Simulated mode (mock)')
+  })
+
+  it('shows the configured combinations, and none for a shortcut turned off', () => {
+    const settings = createDefaultSettings()
+    settings.shortcuts = { toggleOverlay: 'F13', toggleEditMode: '' }
+    createTray(state(settings), ACTIONS)
+    expect(item('Ocultar overlay')).toMatchObject({
+      accelerator: 'F13',
+      registerAccelerator: false
+    })
+    expect(item('Modo edición').accelerator).toBeUndefined()
+    expect(item('Modo edición').registerAccelerator).toBeUndefined()
+  })
+
+  it('rebuilds the menu when the hidden state or a shortcut changes', () => {
+    const settings = createDefaultSettings()
+    createTray(state(settings), ACTIONS)
+    const hidden = state(settings)
+    hidden.overlayHidden = true
+    updateTray(hidden)
+    expect(fake.menus).toHaveLength(2)
+    const changed = createDefaultSettings()
+    changed.shortcuts.toggleOverlay = 'Ctrl+Alt+H'
+    updateTray({ ...hidden, settings: changed })
+    expect(fake.menus).toHaveLength(3)
+    expect(item('Ocultar overlay').accelerator).toBe('Ctrl+Alt+H')
+  })
+
+  it('hides and shows through the action', () => {
+    const setOverlayHidden = vi.fn()
+    createTray(state(createDefaultSettings()), { ...ACTIONS, setOverlayHidden })
+    item('Ocultar overlay').click?.({ checked: true })
+    expect(setOverlayHidden).toHaveBeenCalledWith(true)
   })
 })

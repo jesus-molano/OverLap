@@ -84,7 +84,8 @@ interface Recovery {
  *
  * Any event that can leave a garbage surface (crash, failed load, hang, GPU loss, sleep, a
  * display that changed or went away) hides the affected windows and makes them click-through
- * at once; they show again once recovered.
+ * at once; they show again once recovered. The user can also hide them all (setUserHidden): a
+ * window is shown only when it is not user-hidden and healthy, so no recovery reveals it.
  */
 export class OverlayWindows implements OverlayWindowHost {
   private readonly pool = new Map<number, OverlayWindow>()
@@ -112,6 +113,8 @@ export class OverlayWindows implements OverlayWindowHost {
   private revision = 0
   private editing = false
   private suspended = false
+  /** The user hid every window (tray, shortcut). Not saved: the app always starts shown. */
+  private hiddenByUser = false
   /** settings.appearance.language the window titles are in. */
   private language: Language = DEFAULT_LANGUAGE
   private zOrderTimer: ReturnType<typeof setInterval> | null = null
@@ -132,6 +135,10 @@ export class OverlayWindows implements OverlayWindowHost {
 
   get editMode(): boolean {
     return this.editing
+  }
+
+  get userHidden(): boolean {
+    return this.hiddenByUser
   }
 
   /**
@@ -272,6 +279,8 @@ export class OverlayWindows implements OverlayWindowHost {
    */
   setEditMode(on: boolean): void {
     if (this.editing === on) return
+    // Editing what you cannot see: entering edit mode shows the overlay first.
+    if (on) this.setUserHidden(false)
     this.editing = on
     if (!this.started || this.disposed) return
     if (on) {
@@ -286,6 +295,26 @@ export class OverlayWindows implements OverlayWindowHost {
     if (on) this.guardAll()
     this.broadcast(IPC.editMode, on)
     if (!on) this.flushSaves()
+  }
+
+  /**
+   * The user hides or shows every overlay window (tray checkbox, shortcut). Hidden: every
+   * window is hidden and click-through and gets no widget data (the latest payloads are kept
+   * and handed over when shown again); settings, status, layouts and rule states still reach
+   * them, so they are current when shown. Shown again with showInactive only, each window once
+   * it is healthy. Hiding leaves edit mode first, as Escape does (a drag in progress is
+   * cancelled, pending saves are written).
+   */
+  setUserHidden(hidden: boolean): void {
+    if (this.hiddenByUser === hidden) return
+    if (hidden) this.setEditMode(false)
+    this.hiddenByUser = hidden
+    if (!this.started || this.disposed) return
+    for (const w of this.pool.values()) {
+      w.dragUntil = 0
+      this.refresh(w, !hidden)
+    }
+    if (!hidden) this.guardAll()
   }
 
   /**
@@ -588,9 +617,9 @@ export class OverlayWindows implements OverlayWindowHost {
     if (handOver) this.handOver(w)
   }
 
-  /** Not loading, crashed, hung, waiting for a display re-check or suspended. */
+  /** Not hidden by the user, loading, crashed, hung, waiting for a display check or suspended. */
   private canReceive(w: OverlayWindow): boolean {
-    return !this.suspended && w.healthy
+    return !this.hiddenByUser && !this.suspended && w.healthy
   }
 
   private isShown(id: WidgetId): boolean {

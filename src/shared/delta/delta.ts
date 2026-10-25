@@ -4,11 +4,13 @@
  *
  * References: 'pb' your all-time best with this car on this layout (PersonalBestStore, on disk),
  * 'session' your best clean lap of the session and 'class' the fastest clean lap of your class by
- * anyone (RaceView.lapProfile). With `fallback` the chain pb -> session -> class is walked from
- * the chosen one. A reference is only switched at the start of a lap (its first DELTA.switchS,
- * before the first sector line), when there is none or when the options change: a faster lap
- * set mid-lap never makes the delta jump, and the sectors of one lap compare with one reference.
- * Its profile is copied, so the store and the model may replace theirs at will.
+ * anyone (RaceView.lapProfile); 'optimal' your best time in each sector this session and
+ * 'classOptimal' the best in each sector by anyone in your class, joined into a lap (clean laps,
+ * OptimalLaps in optimal.ts). With `fallback` the chain DELTA_FALLBACK of the chosen one is
+ * walked. A reference is only switched at the start of a lap (its first DELTA.switchS, before
+ * the first sector line), when there is none or when the options change: a faster lap or a best
+ * sector set mid-lap never makes the delta jump, and the sectors of one lap compare with one
+ * reference. Its profile is copied, so the store and the model may replace theirs at will.
  *
  * Delta = seconds into the lap (RaceView.currentLap) - the reference's time at the same lap
  * fraction (linear between timing lines). In the first DELTA.guardPct of a lap, where the lap
@@ -17,7 +19,8 @@
  * holds. Sector crossings of the lap in progress are interpolated between computes.
  *
  * Per compute the work is O(sectors) plus one payload; references are looked up again at most
- * every DELTA.refreshS (every DELTA.searchS while there is none or the lap is starting).
+ * every DELTA.refreshS (every DELTA.searchS while there is none or the lap is starting), and
+ * only then are the laps completed since taken into the optimal laps.
  */
 import { arrayEqual } from '../equal'
 import { CAUTION_FLAGS } from '../flags'
@@ -30,7 +33,8 @@ import { resolvePlayerCarIdx } from '../sessionInfo'
 import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type { DeltaData, DeltaOptions, DeltaReference, SessionMeta } from '../types'
-import { personalBestKey } from './references'
+import { OptimalLaps } from './optimal'
+import { personalBestKey, usableLap } from './references'
 import type { PersonalBestStore } from './references'
 
 const LINES = RACE_TIMING_LINES
@@ -57,8 +61,22 @@ export const DELTA = {
   searchS: 0.25
 } as const
 
-/** Fallback order. */
-const REFERENCES = ['pb', 'session', 'class'] as const satisfies readonly DeltaReference[]
+/**
+ * The chain each reference walks with DeltaOptions.fallback, the chosen one first. Your optimal
+ * exists exactly when your session best does (a clean lap of yours), so it skips it: your record,
+ * then the optimal of your class. Until someone in your class has a clean lap, your record is
+ * the only lap a class optimal can fall back to. The class best has no fallback.
+ */
+export const DELTA_FALLBACK: Readonly<Record<DeltaReference, readonly DeltaReference[]>> = {
+  pb: ['pb', 'session', 'class'],
+  session: ['session', 'class'],
+  optimal: ['optimal', 'pb', 'classOptimal'],
+  class: ['class'],
+  classOptimal: ['classOptimal', 'pb']
+}
+
+const isReference = (v: unknown): v is DeltaReference =>
+  typeof v === 'string' && Object.prototype.hasOwnProperty.call(DELTA_FALLBACK, v)
 
 /**
  * Seconds into the lap of `profile` (RACE_TIMING_LINES + 1 cumulative times) at lap fraction
@@ -85,25 +103,13 @@ export function sectorLines(starts: readonly number[]): number[] {
   return out
 }
 
-/** A lap usable as a reference: a positive time and RACE_TIMING_LINES + 1 non-decreasing times. */
-function usable(lapTime: number, profile: readonly number[]): boolean {
-  if (!(lapTime > 0) || !Number.isFinite(lapTime) || profile.length !== LINES + 1) return false
-  let prev = 0
-  for (let i = 0; i <= LINES; i++) {
-    const v = profile[i]
-    if (v === undefined || !(v >= prev) || !Number.isFinite(v)) return false
-    prev = v
-  }
-  return prev > 0
-}
-
 type CurrentLap = NonNullable<ReturnType<RaceView['currentLap']>>
 
 interface Candidate {
   kind: DeltaReference
-  /** Car of the lap; -1 for a personal best (not a lap of this session). */
+  /** Car of the lap; -1 for a personal best (not a lap of this session) or a class optimal. */
   carIdx: number
-  /** Its lap number this session; -1 for a personal best. */
+  /** Its lap number this session; -1 for a personal best; OptimalLap.id for an optimal lap. */
   lap: number
   lapTime: number
   profile: readonly number[]
@@ -163,6 +169,10 @@ export class DeltaProvider {
   private refSelf = false
   private readonly refProfile = new Float64Array(LINES + 1)
   private refreshT = Number.NaN
+  /** Every car's best sectors this session (the optimal references). */
+  private readonly optimal = new OptimalLaps()
+  /** Last scan of the laps while you are not driving (no reference lookups then). */
+  private scanT = Number.NaN
 
   // The lap in progress.
   private lap = Number.NaN
@@ -192,6 +202,8 @@ export class DeltaProvider {
     this.bounds = []
     this.cross = new Float64Array(0)
     this.refreshT = Number.NaN
+    this.optimal.reset()
+    this.scanT = Number.NaN
     this.dropReference()
     this.endLap()
     this.summary = null
@@ -204,7 +216,7 @@ export class DeltaProvider {
     bests: PersonalBestStore,
     opts: DeltaOptions
   ): DeltaData {
-    const reference: DeltaReference = REFERENCES.includes(opts.reference) ? opts.reference : 'pb'
+    const reference: DeltaReference = isReference(opts.reference) ? opts.reference : 'pb'
     const now = finiteOr(frame.SessionTime[0], Number.NaN)
     if (race.sessionKey !== this.sessionKey || !(now >= this.lastT)) {
       this.reset()
@@ -219,14 +231,19 @@ export class DeltaProvider {
       this.summary = null
       this.player = player
     }
+    this.syncSectors(session.sectorStarts)
     // Not driving (garage, replay, a teammate's stint): nothing to compare.
     if (frame.IsOnTrack[0] !== true || player < 0 || !Number.isFinite(now)) {
       this.dropReference()
       this.endLap()
       this.summary = null
+      // The laps of the others still count for the class optimal.
+      if (Number.isFinite(now) && !(now - this.scanT < DELTA.refreshS)) {
+        this.scanT = now
+        this.optimal.scan(race, session)
+      }
       return hiddenPayload(reference)
     }
-    this.syncSectors(session.sectorStarts)
 
     const rawPct = frame.CarIdxLapDistPct[player]
     const pct = isValidPct(rawPct) ? rawPct : Number.NaN
@@ -400,6 +417,8 @@ export class DeltaProvider {
     this.cross = new Float64Array(this.bounds.length).fill(Number.NaN)
     if (this.cross.length > 0 && Number.isFinite(this.lap)) this.cross[0] = 0
     this.summary = null
+    // Best times between other lines mean nothing now: the optimal laps start over.
+    this.optimal.setSectors(this.bounds)
   }
 
   // ---------------------------------------------------------------------------
@@ -423,12 +442,14 @@ export class DeltaProvider {
     const every = this.ref === null || starting ? DELTA.searchS : DELTA.refreshS
     if (!optsChanged && !lapChanged && now - this.refreshT < every) return
     this.refreshT = now
+    // Whatever the reference: an optimal one chosen later has the laps before it.
+    this.optimal.scan(race, session)
 
-    const start = REFERENCES.indexOf(reference)
-    const end = fallback ? REFERENCES.length : start + 1
+    const chain = DELTA_FALLBACK[reference]
+    const end = fallback ? chain.length : 1
     let cand: Candidate | null = null
-    for (let i = start; i < end && cand === null; i++) {
-      cand = this.candidate(REFERENCES[i] ?? 'pb', session, race, bests, player)
+    for (let i = 0; i < end && cand === null; i++) {
+      cand = this.candidate(chain[i] ?? 'pb', session, race, bests, player)
     }
     const canSwitch = this.ref === null || optsChanged || lapChanged || starting
     if (cand === null) {
@@ -459,22 +480,32 @@ export class DeltaProvider {
     if (kind === 'pb') {
       const key = this.personalBestKey(session, player)
       const pb = key === null ? null : bests.get(key)
-      if (!pb || !usable(pb.lapTime, pb.profile)) return null
+      if (!pb || !usableLap(pb.lapTime, pb.profile)) return null
       return { kind, carIdx: -1, lap: -1, lapTime: pb.lapTime, profile: pb.profile }
     }
     if (kind === 'session') {
       const p = race.lapProfile(player, 'best')
-      if (!p || !p.clean || !usable(p.lapTime, p.profile)) return null
+      if (!p || !p.clean || !usableLap(p.lapTime, p.profile)) return null
       return { kind, carIdx: player, lap: p.lap, lapTime: p.lapTime, profile: p.profile }
+    }
+    if (kind === 'optimal') {
+      const o = this.optimal.ofCar(player)
+      if (!o || !usableLap(o.lapTime, o.profile)) return null
+      return { kind, carIdx: player, lap: o.id, lapTime: o.lapTime, profile: o.profile }
     }
     const mine = session.drivers.get(player)
     if (!mine) return null
+    if (kind === 'classOptimal') {
+      const o = this.optimal.ofClass(mine.classId)
+      if (!o || !usableLap(o.lapTime, o.profile)) return null
+      return { kind, carIdx: -1, lap: o.id, lapTime: o.lapTime, profile: o.profile }
+    }
     let best: Candidate | null = null
     for (const car of race.cars()) {
       const idx = car.carIdx
       if (session.drivers.get(idx)?.classId !== mine.classId) continue
       const p = race.lapProfile(idx, 'best')
-      if (!p || !p.clean || !usable(p.lapTime, p.profile)) continue
+      if (!p || !p.clean || !usableLap(p.lapTime, p.profile)) continue
       // Ties: yours, then the lowest CarIdx (a stable choice).
       const better =
         best === null ||

@@ -24,12 +24,26 @@ export const settingsEs = {
     title: 'Ajustes',
     sections: 'Secciones de ajustes',
     appearance: 'Apariencia',
+    shortcuts: 'Atajos de teclado',
     widgets: 'Widgets',
-    keyToggle: 'entrar o salir',
-    keyExit: 'salir'
+    /** What each shortcut at the foot of the sidebar does. */
+    keys: {
+      editMode: 'modo edición',
+      overlay: 'mostrar u ocultar',
+      exit: 'salir de edición'
+    },
+    /** The user hid the overlay (tray, shortcut): a line above every page. */
+    hidden: {
+      title: 'Overlay oculto',
+      /** The show / hide shortcut: 'Ctrl+Shift+H lo muestra'. */
+      press: (keys: string) => `${keys} lo muestra`,
+      show: 'Mostrar'
+    }
   },
   editMode: {
-    tooltip: 'Mover y redimensionar los widgets (Ctrl+Shift+E)',
+    tooltip: 'Mover y redimensionar los widgets',
+    /** With the edit-mode shortcut: 'Mover y redimensionar los widgets (Ctrl+Shift+E)'. */
+    tooltipKeys: (keys: string) => `Mover y redimensionar los widgets (${keys})`,
     enter: 'Modo edición',
     exit: 'Salir de edición'
   },
@@ -154,6 +168,74 @@ export const settingsEs = {
       label: 'Restablecer apariencia',
       description:
         'Vuelve la apariencia a los valores por defecto; el idioma y las opciones de cada widget no cambian'
+    }
+  },
+  /** "Atajos de teclado" page. */
+  shortcuts: {
+    sub: 'Combinaciones de teclas que funcionan en todo Windows, también con iRacing en primer plano.',
+    section: 'Atajos globales',
+    actions: {
+      toggleOverlay: {
+        label: 'Mostrar u ocultar el overlay',
+        help: 'Oculta todos los widgets de golpe; la telemetría sigue, así que vuelven al instante'
+      },
+      toggleEditMode: {
+        label: 'Modo edición',
+        help: 'Entra o sale del modo edición para mover y redimensionar los widgets'
+      }
+    },
+    /** The fixed Esc row. */
+    escape: {
+      label: 'Salir del modo edición',
+      help: 'Solo mientras editas; no se puede cambiar',
+      tag: 'Fijo'
+    },
+    status: {
+      disabled: 'Desactivado',
+      unavailable: 'En uso por otra aplicación'
+    },
+    unavailableHelp:
+      'Otra aplicación ya usa esta combinación. Elige otra, o ciérrala y vuelve a asignarla aquí',
+    change: 'Cambiar',
+    cancel: 'Cancelar',
+    disable: 'Desactivar',
+    reset: 'Restablecer',
+    /** Button names for screen readers: 'Cambiar: Modo edición'. */
+    changeLabel: (action: string) => `Cambiar: ${action}`,
+    cancelLabel: (action: string) => `Cancelar el cambio: ${action}`,
+    disableLabel: (action: string) => `Desactivar: ${action}`,
+    resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
+    capture: {
+      prompt: 'Pulsa la combinación… (Esc cancela)',
+      clearHint: 'Retroceso o Supr lo desactivan'
+    },
+    /** Why a combination was refused (accelerator.ts). */
+    errors: {
+      invalid: 'Esa combinación no es válida',
+      unsupportedKey:
+        'Esa tecla no sirve: usa letras, números, F1–F24, el teclado numérico, Espacio o las de navegación',
+      meta: 'La tecla Windows no se puede usar',
+      needsModifier: 'Añade Ctrl o Alt: sin ellas solo valen F13–F24',
+      reserved: 'Windows o los programas ya usan esa combinación',
+      duplicate: (action: string) => `Ya la usa «${action}»`
+    },
+    saved: (keys: string) => `Guardado: ${keys}`,
+    disabled: 'Desactivado: esta acción ya no tiene atajo',
+    warnings: {
+      altgr:
+        'En un teclado español, Ctrl+Alt es AltGr: puede impedir escribir @, # o € mientras OverLap esté abierto'
+    },
+    notes: {
+      title: 'Cómo funcionan',
+      focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
+      exclusive:
+        'Una combinación asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
+      buttonBox:
+        'Consejo: F13–F24 (las envían muchas button box y teclados de macros) funcionan sin Ctrl ni Alt.'
+    },
+    resetAll: {
+      label: 'Restablecer atajos',
+      description: 'Vuelve todos los atajos de teclado a los de fábrica'
     }
   },
   /** One widget's page: header, hidden note and resets. */
@@ -398,24 +480,40 @@ export const settingsEs = {
         hint: 'Tu mejor vuelta de siempre con este coche en este trazado'
       },
       session: { label: 'Mejor vuelta de la sesión', hint: 'Tu mejor vuelta de esta sesión' },
+      optimal: {
+        label: 'Vuelta óptima',
+        hint: 'Tus mejores sectores de esta sesión, unidos en una vuelta'
+      },
       class: {
         label: 'Mejor de tu clase',
         hint: 'La vuelta más rápida de tu clase en esta sesión, sea de quien sea'
+      },
+      classOptimal: {
+        label: 'Óptima de tu clase',
+        hint: 'Los mejores sectores de tu clase en esta sesión, sean de quien sean'
       }
     },
     /** What each reference is, under the choice. */
     referenceHelp: {
       pb: 'Tu mejor vuelta limpia de siempre con este coche en este trazado. Se guarda en tu equipo y no se pierde al cambiar de sesión',
       session: 'Tu mejor vuelta limpia de esta sesión, como el delta de iRacing',
+      optimal:
+        'Tus mejores tiempos de cada sector del circuito en tus vueltas limpias de esta sesión, unidos en una sola vuelta: lo que harías juntando lo mejor de cada una',
       class:
-        'La vuelta limpia más rápida de tu clase en esta sesión, sea de quien sea (tú incluido): el ritmo a batir'
+        'La vuelta limpia más rápida de tu clase en esta sesión, sea de quien sea (tú incluido): el ritmo a batir',
+      classOptimal:
+        'Los mejores tiempos de cada sector en las vueltas limpias de tu clase en esta sesión, sean de quien sean (tú incluido), unidos en una sola vuelta: el límite teórico'
     },
     fallback: 'Usar la siguiente si no existe',
-    /** Where the fallback goes from each reference (pb → session → class). */
+    /** Where the fallback goes from each reference (DELTA_FALLBACK in delta.ts). */
     fallbackHelp: {
       pb: 'Sin récord guardado aún, compara con tu mejor vuelta de la sesión y, si tampoco hay, con la mejor de tu clase',
       session: 'Mientras no tengas vuelta en esta sesión, compara con la mejor de tu clase',
-      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra'
+      optimal:
+        'Mientras no tengas vuelta en esta sesión, compara con tu récord y, si tampoco hay, con la óptima de tu clase',
+      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra',
+      classOptimal:
+        'Mientras nadie de tu clase haya marcado vuelta en esta sesión, compara con tu récord'
     },
     fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
     range: 'Escala de la barra',
@@ -483,12 +581,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
     title: 'Settings',
     sections: 'Settings sections',
     appearance: 'Appearance',
+    shortcuts: 'Keyboard shortcuts',
     widgets: 'Widgets',
-    keyToggle: 'enter or exit',
-    keyExit: 'exit'
+    keys: {
+      editMode: 'edit mode',
+      overlay: 'show or hide',
+      exit: 'leave editing'
+    },
+    hidden: {
+      title: 'Overlay hidden',
+      press: (keys) => `${keys} shows it`,
+      show: 'Show'
+    }
   },
   editMode: {
-    tooltip: 'Move and resize the widgets (Ctrl+Shift+E)',
+    tooltip: 'Move and resize the widgets',
+    tooltipKeys: (keys) => `Move and resize the widgets (${keys})`,
     enter: 'Edit mode',
     exit: 'Exit edit mode'
   },
@@ -607,6 +715,69 @@ export const settingsEn: Dict<typeof settingsEs> = {
       label: 'Reset appearance',
       description:
         'Returns the appearance to its defaults; the language and each widget’s options stay as they are'
+    }
+  },
+  shortcuts: {
+    sub: 'Key combinations that work all over Windows, with iRacing in front too.',
+    section: 'Global shortcuts',
+    actions: {
+      toggleOverlay: {
+        label: 'Show or hide the overlay',
+        help: 'Hides every widget at once; telemetry keeps running, so they come back instantly'
+      },
+      toggleEditMode: {
+        label: 'Edit mode',
+        help: 'Enters or leaves edit mode to move and resize the widgets'
+      }
+    },
+    escape: {
+      label: 'Leave edit mode',
+      help: 'Only while editing; it can’t be changed',
+      tag: 'Fixed'
+    },
+    status: {
+      disabled: 'Off',
+      unavailable: 'Used by another app'
+    },
+    unavailableHelp:
+      'Another app already uses this combination. Pick another, or close that app and assign it again here',
+    change: 'Change',
+    cancel: 'Cancel',
+    disable: 'Disable',
+    reset: 'Reset',
+    changeLabel: (action) => `Change: ${action}`,
+    cancelLabel: (action) => `Cancel the change: ${action}`,
+    disableLabel: (action) => `Disable: ${action}`,
+    resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
+    capture: {
+      prompt: 'Press the combination… (Esc cancels)',
+      clearHint: 'Backspace or Delete turns it off'
+    },
+    errors: {
+      invalid: 'That isn’t a valid combination',
+      unsupportedKey:
+        'That key can’t be used: pick letters, digits, F1–F24, the numeric keypad, Space or the navigation keys',
+      meta: 'The Windows key can’t be used',
+      needsModifier: 'Add Ctrl or Alt: only F13–F24 work alone',
+      reserved: 'Windows or other programs already use that combination',
+      duplicate: (action) => `Already used by “${action}”`
+    },
+    saved: (keys) => `Saved: ${keys}`,
+    disabled: 'Off: this action has no shortcut now',
+    warnings: {
+      altgr:
+        'On a Spanish keyboard, Ctrl+Alt is AltGr: it may stop you typing @, # or € while OverLap is open'
+    },
+    notes: {
+      title: 'How they work',
+      focus: 'They work while iRacing has focus, without leaving the game.',
+      exclusive:
+        'An assigned combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
+      buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
+    },
+    resetAll: {
+      label: 'Reset shortcuts',
+      description: 'Returns every keyboard shortcut to its default'
     }
   },
   widgetPage: {
@@ -840,23 +1011,39 @@ export const settingsEn: Dict<typeof settingsEs> = {
         hint: 'Your all-time best lap with this car on this layout'
       },
       session: { label: 'Session best', hint: 'Your best lap of this session' },
+      optimal: {
+        label: 'Optimal lap',
+        hint: 'Your best sectors of this session, joined into one lap'
+      },
       class: {
         label: 'Class best',
         hint: 'The fastest lap in your class this session, whoever set it'
+      },
+      classOptimal: {
+        label: 'Class optimal',
+        hint: 'The best sectors in your class this session, whoever set them'
       }
     },
     referenceHelp: {
       pb: 'Your all-time best clean lap with this car on this layout. Stored on your computer and kept from one session to the next',
       session: 'Your best clean lap of this session, like iRacing’s own delta bar',
+      optimal:
+        'Your best times in each sector of the track over your clean laps this session, joined into one lap: what you would do putting the best of each together',
       class:
-        'The fastest clean lap in your class this session, whoever set it (you included): the pace to beat'
+        'The fastest clean lap in your class this session, whoever set it (you included): the pace to beat',
+      classOptimal:
+        'The best times in each sector over the clean laps of your class this session, whoever set them (you included), joined into one lap: the theoretical limit'
     },
     fallback: 'Fall back to the next one',
     fallbackHelp: {
       pb: 'With no personal best stored yet, compares with your session best and, failing that, with your class best',
       session: 'Until you set a lap this session, compares with your class best',
+      optimal:
+        'Until you set a lap this session, compares with your personal best and, failing that, with your class optimal',
       class:
-        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to'
+        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to',
+      classOptimal:
+        'Until someone in your class sets a lap this session, compares with your personal best'
     },
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
     range: 'Bar scale',

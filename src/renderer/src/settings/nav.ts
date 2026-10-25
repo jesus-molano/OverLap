@@ -1,10 +1,18 @@
-/** Pages of the settings window: the global appearance, then one per widget. Pure. */
+/** Pages of the settings window: appearance, keyboard shortcuts, then one per widget. Pure. */
 import { widgetTitle, type Messages } from '@shared/i18n'
 import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
 
-export type SettingsPage = 'appearance' | WidgetId
+/** The pages that are not a widget's, in sidebar order. */
+export const GLOBAL_PAGES = ['appearance', 'shortcuts'] as const
 
-export const SETTINGS_PAGES: readonly SettingsPage[] = Object.freeze(['appearance', ...WIDGET_IDS])
+export type GlobalPage = (typeof GLOBAL_PAGES)[number]
+
+export type SettingsPage = GlobalPage | WidgetId
+
+export const SETTINGS_PAGES: readonly SettingsPage[] = Object.freeze([
+  ...GLOBAL_PAGES,
+  ...WIDGET_IDS
+])
 
 export const DEFAULT_PAGE: SettingsPage = 'appearance'
 
@@ -12,12 +20,14 @@ export const DEFAULT_PAGE: SettingsPage = 'appearance'
 export const PAGE_STORAGE_KEY = 'ov-settings:page'
 
 export function isSettingsPage(value: unknown): value is SettingsPage {
-  return value === 'appearance' || isWidgetId(value)
+  return (GLOBAL_PAGES as readonly unknown[]).includes(value) || isWidgetId(value)
 }
 
-/** 'Apariencia', or the widget's name, in the language of `m`. */
+/** 'Apariencia', 'Atajos de teclado', or the widget's name, in the language of `m`. */
 export function pageTitle(m: Messages, page: SettingsPage): string {
-  return page === 'appearance' ? m.settings.nav.appearance : widgetTitle(m, page)
+  if (page === 'appearance') return m.settings.nav.appearance
+  if (page === 'shortcuts') return m.settings.nav.shortcuts
+  return widgetTitle(m, page)
 }
 
 /** The storage the page is remembered in; anything that can throw (private mode, sandbox). */

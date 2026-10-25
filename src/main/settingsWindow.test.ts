@@ -10,6 +10,8 @@ import {
 import {
   destroySettingsWindow,
   isSettingsSender,
+  isSettingsWindowFocused,
+  onSettingsWindowInactive,
   openSettingsWindow,
   sendToSettingsWindow,
   setSettingsWindowLanguage
@@ -26,6 +28,7 @@ function only(): FakeBrowserWindow {
 beforeEach(() => resetFakeElectron())
 
 afterEach(() => {
+  onSettingsWindowInactive(null)
   destroySettingsWindow()
   setSettingsWindowLanguage('es')
   vi.unstubAllEnvs()
@@ -149,5 +152,51 @@ describe('settings window', () => {
     w.webContents.emit('render-process-gone', {}, { reason: 'crashed' })
     expect(w.destroyed).toBe(true)
     expect(isSettingsSender(w.webContents as never)).toBe(false)
+  })
+})
+
+describe('settings window: where the user types', () => {
+  it('knows when it has the focus', () => {
+    expect(isSettingsWindowFocused()).toBe(false)
+    openSettingsWindow()
+    const w = only()
+    expect(isSettingsWindowFocused()).toBe(false)
+    w.becomeReady()
+    expect(isSettingsWindowFocused()).toBe(true)
+    w.blur()
+    expect(isSettingsWindowFocused()).toBe(false)
+    w.destroy()
+    expect(isSettingsWindowFocused()).toBe(false)
+  })
+
+  it('tells when it stops taking the keys: blur, hide, reload, close', () => {
+    const inactive = vi.fn()
+    onSettingsWindowInactive(inactive)
+    openSettingsWindow()
+    const w = only()
+    w.becomeReady()
+    inactive.mockClear()
+    w.blur()
+    expect(inactive).toHaveBeenCalledTimes(1)
+    w.hide()
+    w.emit('hide')
+    expect(inactive).toHaveBeenCalledTimes(2)
+    w.webContents.reload()
+    expect(inactive).toHaveBeenCalledTimes(3)
+    w.destroy()
+    expect(inactive).toHaveBeenCalledTimes(4)
+  })
+
+  it('tells when its renderer dies', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const inactive = vi.fn()
+    onSettingsWindowInactive(inactive)
+    openSettingsWindow()
+    const w = only()
+    w.becomeReady()
+    inactive.mockClear()
+    w.webContents.emit('render-process-gone', {}, { reason: 'crashed' })
+    expect(inactive).toHaveBeenCalled()
+    expect(w.destroyed).toBe(true)
   })
 })

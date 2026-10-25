@@ -8,9 +8,10 @@
  * holds the lease), so this never asks for it: it only reports drags (useEditSession).
  */
 import { computed, onBeforeUnmount } from 'vue'
-import { hiddenText, widgetTitle } from '@shared/i18n'
+import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS } from '@shared/widgets'
 import { useI18n } from '../composables/useI18n'
+import { useShortcuts } from '../composables/useShortcuts'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
 import Icon from '../ui/Icon.vue'
 import { injectSlot } from './contract'
@@ -24,6 +25,7 @@ const session = injectEditSession()
 const def = WIDGET_DEFS[slot.id]
 const prefs = useWidgetSettings(slot.id)
 const t = useI18n()
+const shortcuts = useShortcuts()
 
 const edit = createPanelEdit({
   slot,
@@ -43,6 +45,14 @@ const title = computed(() => widgetTitle(t.value, slot.id))
 /** Why a rule hides the widget: 'Oculto en práctica'. */
 const hiddenNote = computed(() => hiddenText(t.value, autoHidden.value.reason))
 const handles = computed(() => handlesFor(autoHeight.value))
+
+/** How to use and leave edit mode, by panel width; the shortcut is left out when it has none. */
+const hints = computed(() => {
+  const f = t.value.core.editFrame
+  const keys = acceleratorText(t.value, shortcuts.value.toggleEditMode)
+  if (keys === '') return { long: f.hintLongNoKey, short: f.hintShortNoKey, tiny: f.hintShortNoKey }
+  return { long: f.hintLong(keys), short: f.hintShort(keys), tiny: keys }
+})
 
 /** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets), as drawn now. */
 const sizeText = computed(() => {
@@ -92,9 +102,9 @@ onBeforeUnmount(() => edit.dispose())
         <span class="chip-meta">{{ hiddenNote }}</span>
       </div>
       <div v-if="!locked" class="hint">
-        <span class="hint-long">{{ t.core.editFrame.hintLong }}</span>
-        <span class="hint-short">{{ t.core.editFrame.hintShort }}</span>
-        <span class="hint-tiny">Ctrl+Shift+E</span>
+        <span class="hint-long">{{ hints.long }}</span>
+        <span class="hint-short">{{ hints.short }}</span>
+        <span class="hint-tiny">{{ hints.tiny }}</span>
       </div>
     </div>
     <template v-if="editable">

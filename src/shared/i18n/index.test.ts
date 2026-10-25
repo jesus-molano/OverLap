@@ -111,3 +111,35 @@ describe('core texts', () => {
     expect(en.core.percent(110)).toBe('110%')
   })
 })
+
+describe('shortcut texts', () => {
+  it('word the edit-mode hints with the configured keys, or without any', () => {
+    expect(es.core.editFrame.hintShort('Ctrl+Shift+E')).toBe('Rueda: tamaño · Ctrl+Shift+E salir')
+    expect(en.core.editFrame.hintLong('F13')).toBe('Scroll: size · Alt: no snap · F13 exit')
+    expect(es.core.editFrame.hintLongNoKey).toBe('Rueda: tamaño · Alt: sin imán')
+    expect(en.core.editFrame.hintShortNoKey).toBe('Scroll: size')
+  })
+
+  it('name the hide item and the hidden tooltip in both languages', () => {
+    expect(es.core.tray.hideOverlay).toBe('Ocultar overlay')
+    expect(en.core.tray.hideOverlay).toBe('Hide overlay')
+    expect(es.core.tray.tooltipHidden('Conectado a iRacing')).toBe(
+      'OverLap · Overlay oculto · Conectado a iRacing'
+    )
+  })
+
+  it('word the shortcuts page in both languages', () => {
+    const s = es.settings.shortcuts
+    expect(es.settings.nav.shortcuts).toBe('Atajos de teclado')
+    expect(en.settings.nav.shortcuts).toBe('Keyboard shortcuts')
+    expect(s.capture.prompt).toBe('Pulsa la combinación… (Esc cancela)')
+    expect(s.status).toEqual({ disabled: 'Desactivado', unavailable: 'En uso por otra aplicación' })
+    expect([s.change, s.disable, s.reset]).toEqual(['Cambiar', 'Desactivar', 'Restablecer'])
+    expect([en.settings.shortcuts.change, en.settings.shortcuts.disable]).toEqual([
+      'Change',
+      'Disable'
+    ])
+    expect(s.resetAll.label).toBe('Restablecer atajos')
+    expect(es.settings.nav.hidden.press('Ctrl+Shift+H')).toBe('Ctrl+Shift+H lo muestra')
+  })
+})

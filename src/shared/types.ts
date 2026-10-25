@@ -4,6 +4,7 @@
  */
 import type { DriverIdentity } from './driver'
 import type { Language } from './i18n/language'
+import type { ShortcutSettings } from './shortcuts'
 import type { WidgetId } from './widgets'
 
 export interface Size {
@@ -479,9 +480,11 @@ export interface AlertsData {
 /**
  * - `pb`: your all-time best lap with this car on this track layout (stored on disk).
  * - `session`: your best lap of this session.
+ * - `optimal`: your best time in each track sector this session (clean laps), joined into a lap.
  * - `class`: the fastest lap of your class in this session, by anyone.
+ * - `classOptimal`: the best time in each sector by anyone in your class this session, joined.
  */
-export type DeltaReference = 'pb' | 'session' | 'class'
+export type DeltaReference = 'pb' | 'session' | 'optimal' | 'class' | 'classOptimal'
 
 export interface DeltaData {
   /** False when there is no reference or you are not driving: the widget fades out. */
@@ -491,8 +494,8 @@ export interface DeltaData {
   /**
    * For a 'class' reference driven by someone else: '#44 J. Lindqvist'
    * (number and abbreviated name, no words to translate), '#44' alone when the
-   * name is unknown (the widget words it: 'Piloto #44'); '' otherwise. The
-   * widget names the other kinds itself.
+   * name is unknown (the widget words it: 'Piloto #44'); '' otherwise (an
+   * optimal lap is nobody's). The widget names the other kinds itself.
    */
   refDriver: string
   /** A 'class' reference that is your own lap. */
@@ -744,7 +747,10 @@ export interface AlertsOptions {
 
 export interface DeltaOptions {
   reference: DeltaReference
-  /** Use the next available reference while the preferred one does not exist (pb -> session -> class). */
+  /**
+   * Use the next available reference while the preferred one does not exist: pb -> session ->
+   * class, optimal -> pb -> classOptimal, classOptimal -> pb (see DELTA_FALLBACK).
+   */
   fallback: boolean
   /** Full scale of the bar in seconds (0.5..3). */
   rangeS: number
@@ -766,6 +772,8 @@ export interface OverlaySettings {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
+  /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
+  shortcuts: ShortcutSettings
 }
 
 /**
@@ -800,6 +808,8 @@ export interface SettingsPatch {
   traffic?: Partial<TrafficOptions>
   alerts?: Partial<AlertsOptions>
   delta?: Partial<DeltaOptions>
+  /** A combination another action has is refused (the current one is kept). */
+  shortcuts?: Partial<ShortcutSettings>
 }
 
 /** What main tells the telemetry process. */

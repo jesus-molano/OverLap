@@ -204,6 +204,10 @@ describe('applySettingsPatch', () => {
     })
     // A free-size widget never follows its content.
     expect(out.widgets.delta).toEqual({ ...current.widgets.delta, backgroundOpacity: 0.4 })
+    // The optimal references are choices like the others.
+    for (const reference of ['optimal', 'classOptimal'] as const) {
+      expect(applySettingsPatch(current, { delta: { reference } }).delta.reference).toBe(reference)
+    }
   })
 
   it('applies the v4 fields', () => {
@@ -453,5 +457,88 @@ describe('resetWidgetOptions', () => {
     const out = resetWidgetOptions(current, 'fuel' as WidgetId)
     expect(out).toEqual(current)
     expect(out).not.toBe(current)
+  })
+})
+
+describe('applySettingsPatch: shortcuts', () => {
+  function withShortcuts(toggleOverlay: string, toggleEditMode: string): OverlaySettings {
+    const s = createDefaultSettings()
+    s.shortcuts = { toggleOverlay, toggleEditMode }
+    return s
+  }
+
+  it('assigns a valid combination in its canonical spelling', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'control+alt+shift+o' }
+    })
+    expect(out.shortcuts).toEqual({
+      toggleOverlay: 'Ctrl+Alt+Shift+O',
+      toggleEditMode: 'Ctrl+Shift+E'
+    })
+  })
+
+  it('turns a shortcut off with an empty combination', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, { shortcuts: { toggleEditMode: '' } })
+    expect(out.shortcuts.toggleEditMode).toBe('')
+  })
+
+  it('keeps the current combination for an invalid or reserved one', () => {
+    const current = withShortcuts('F13', 'Ctrl+Alt+PageUp')
+    for (const bad of ['Ctrl+V', 'Alt+Tab', 'F2', 'Win+E', 'Ctrl+;', 7, null]) {
+      expect(
+        applySettingsPatch(current, { shortcuts: { toggleOverlay: bad } }).shortcuts,
+        JSON.stringify(bad)
+      ).toEqual(current.shortcuts)
+    }
+  })
+
+  it("refuses another action's combination: both keep theirs", () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'Ctrl+Shift+E' }
+    })
+    expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
+  })
+
+  it('refuses giving both actions one new combination', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'Ctrl+Alt+F9', toggleEditMode: 'Ctrl+Alt+F9' }
+    })
+    expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
+  })
+
+  it('accepts a swap, and a combination another action gives up in the same patch', () => {
+    const swapped = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Shift+H' }
+    })
+    expect(swapped.shortcuts).toEqual({
+      toggleOverlay: 'Ctrl+Shift+E',
+      toggleEditMode: 'Ctrl+Shift+H'
+    })
+    const handedOver = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: '' }
+    })
+    expect(handedOver.shortcuts).toEqual({ toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: '' })
+  })
+
+  it('keeps the valid half of a patch whose other half collides', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Alt+F10' }
+    })
+    // toggleEditMode moved away, so toggleOverlay may take its old combination.
+    expect(out.shortcuts).toEqual({ toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Alt+F10' })
+    const moved = applySettingsPatch(withShortcuts('F13', 'F14'), {
+      shortcuts: { toggleOverlay: 'F14', toggleEditMode: 'F15' }
+    })
+    expect(moved.shortcuts).toEqual({ toggleOverlay: 'F14', toggleEditMode: 'F15' })
+    const half = applySettingsPatch(withShortcuts('F13', 'F14'), {
+      shortcuts: { toggleOverlay: 'F14', toggleEditMode: 'Ctrl+C' }
+    })
+    expect(half.shortcuts).toEqual({ toggleOverlay: 'F13', toggleEditMode: 'F14' })
+  })
+
+  it('resets every shortcut at once with the defaults as one patch', () => {
+    const current = withShortcuts('Ctrl+Shift+E', 'Ctrl+Shift+H')
+    const out = applySettingsPatch(current, { shortcuts: { ...DEFAULT_SETTINGS.shortcuts } })
+    expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
   })
 })

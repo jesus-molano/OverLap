@@ -13,6 +13,7 @@ import type {
   SettingsCommand
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
+import type { ShortcutStatusMap } from '@shared/shortcuts'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings, OverlayStatus, WidgetDataMessage } from '@shared/types'
 
@@ -52,6 +53,8 @@ export interface FakeOverlay extends OverlayApi {
   readonly autoHidden: Channel<AutoHiddenMessage>
   readonly layout: Channel<OverlayLayout>
   readonly personalBests: Channel<PersonalBestList>
+  readonly overlayHidden: Channel<boolean>
+  readonly shortcutStatus: Channel<ShortcutStatusMap>
   readonly sent: {
     commitBounds: BoundsCommit[]
     scaleStep: ScaleStepMessage[]
@@ -70,6 +73,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const autoHidden = new Channel<AutoHiddenMessage>()
   const layout = new Channel<OverlayLayout>()
   const personalBests = new Channel<PersonalBestList>()
+  const overlayHidden = new Channel<boolean>()
+  const shortcutStatus = new Channel<ShortcutStatusMap>()
   const sent: FakeOverlay['sent'] = {
     commitBounds: [],
     scaleStep: [],
@@ -83,6 +88,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     settings: createDefaultSettings(),
     layout: null,
     autoHidden: {},
+    overlayHidden: false,
+    shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'ok' },
     ...init
   }
   return {
@@ -93,6 +100,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     autoHidden,
     layout,
     personalBests,
+    overlayHidden,
+    shortcutStatus,
     sent,
     listenerCount: () =>
       data.listeners.size +
@@ -101,7 +110,9 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       settings.listeners.size +
       autoHidden.listeners.size +
       layout.listeners.size +
-      personalBests.listeners.size,
+      personalBests.listeners.size +
+      overlayHidden.listeners.size +
+      shortcutStatus.listeners.size,
     getInitialState: () => Promise.resolve(initial),
     onData: (cb) => data.on(cb),
     onStatus: (cb) => status.on(cb),
@@ -110,6 +121,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onAutoHidden: (cb) => autoHidden.on(cb),
     onLayout: (cb) => layout.on(cb),
     onPersonalBests: (cb) => personalBests.on(cb),
+    onOverlayHidden: (cb) => overlayHidden.on(cb),
+    onShortcutStatus: (cb) => shortcutStatus.on(cb),
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),
     dragState: (msg) => void sent.dragState.push(msg),
