@@ -134,6 +134,7 @@ const OPTS: RelativeOptions = {
   showClassPosition: true,
   showLicense: true,
   showIRating: true,
+  showIncidents: true,
   nameFormat: 'full'
 }
 
@@ -583,5 +584,31 @@ describe('row fields', () => {
         inPits: false
       }
     ])
+  })
+})
+
+describe('incidents', () => {
+  const LIMITS = { dq: null, penalty: 17, penaltyEvery: 8 }
+
+  it('carries your count and the next limit for the header, in any session', () => {
+    const session = makeSession(drivers(2), { incidentLimits: LIMITS })
+    const frame = makeFrame(
+      { 0: { pct: 0.5 }, 1: { pct: 0.6 } },
+      { sessionNum: 1, overrides: { PlayerCarMyIncidentCount: [11] } }
+    )
+    expect(computeRelative(frame, session, OPTS).incidents).toEqual({
+      mine: 11,
+      team: null,
+      limit: { kind: 'penalty', at: 17 }
+    })
+  })
+
+  it('out of the car the header still counts; without the variable it is unknown', () => {
+    const session = makeSession(drivers(2))
+    const out = makeFrame({ 1: { pct: 0.6 } }, { overrides: { PlayerCarMyIncidentCount: [4] } })
+    const data = computeRelative(out, session, OPTS)
+    expect(data.playerRow).toBe(-1)
+    expect(data.incidents?.mine).toBe(4)
+    expect(computeRelative(makeFrame({ 0: { pct: 0.5 } }), session, OPTS).incidents).toBeNull()
   })
 })

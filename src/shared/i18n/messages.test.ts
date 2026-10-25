@@ -146,6 +146,8 @@ const SAME_IN_ENGLISH = new Set([
   'widgets.standings.srKey',
   'widgets.standings.perPosition',
   'widgets.standings.incidents',
+  'widgets.incidents.count',
+  'widgets.incidents.added',
   'widgets.battle.stake',
   'widgets.inputs.abs',
   'settings.nav.widgets',

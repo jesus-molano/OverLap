@@ -272,6 +272,25 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - El récord se escribe unos segundos después de cruzar meta, cuando llega el tiempo oficial, de forma
   atómica y sin frenar el bucle. Si el archivo está dañado se guarda una copia `.bak`.
 
+### Incidentes
+
+- **Contador siempre visible** en la cabecera del Relativo y de la Clasificación, en cualquier tipo de
+  sesión: `3x` (`PlayerCarMyIncidentCount`), en carreras por equipos también el del equipo
+  (`3x · eq. 7x`), y el próximo límite de la sesión si lo hay (`11x · pen. a 17x`, `DQ a 25x`). Se
+  pone naranja a 4x o menos del límite. Opciones `relative.showIncidents` y
+  `standings.headerIncidents`.
+- **Aviso «+Nx»** en Avisos, al menos 6 s (o «Mantener visible» si es más):
+  `+2x Pérdida de control · V5 · S3 · grava`. El tipo sale de `PlayerIncidents`, la vuelta y el
+  sector del modelo de carrera y la superficie de `PlayerTrackSurfaceMaterial`. Las subidas a menos
+  de 2 s son un solo incidente (iRacing puede subir 2x a 4x); si `PlayerIncidents` no dice nada, solo
+  `+2x` y dónde fue. Opción `alerts.showIncidents`.
+- No cuenta nada durante una repetición, al conectar ni al cambiar de sesión (iRacing empieza cada
+  sesión de cero).
+- Límites del YAML: `IncidentLimit` se lee como la DQ e `IncidentWarningInitialLimit` /
+  `IncidentWarningSubsequentLimit` como penalizaciones; con «unlimited» no se muestra límite. Falta
+  confirmarlo en una carrera oficial.
+- Solo los tuyos: iRacing no da incidentes de los demás pilotos.
+
 ## Arquitectura
 
 ```

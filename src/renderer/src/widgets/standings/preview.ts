@@ -1,11 +1,12 @@
 /**
  * Sample standings for edit mode (ux §4.7): an invented multiclass race with every row state
  * (you at P5, PIT, OUT, a lapped car, class best and personal best laps, off-track, meatball),
- * names that exercise every name format, and the ratings header. Rows are picked with the same
- * rules as the provider (top rows, rows around you, other class leaders), so the window is sized
- * on what the current options really show. Pure.
+ * names that exercise every name format, and the ratings and incidents header. Rows are picked
+ * with the same rules as the provider (top rows, rows around you, other class leaders), so the
+ * window is sized on what the current options really show. Pure.
  */
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
+import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 import type {
   GapValue,
   StandingsClassBlock,
@@ -321,10 +322,12 @@ const HEADER: Readonly<StandingsHeader> = {
     projected: 3.31,
     licClass: 'B',
     projectedLicClass: 'B',
-    incidents: 1,
+    incidents: PREVIEW_INCIDENTS.mine,
     corners: 112,
     incidentBudget: 2
-  }
+  },
+  // The header option hides it in the view (headerIncidents is display only).
+  incidents: PREVIEW_INCIDENTS
 }
 
 type DisplayRow = StandingsClassBlock['rows'][number]

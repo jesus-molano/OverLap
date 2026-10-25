@@ -32,6 +32,7 @@ function header(over: Partial<StandingsHeader> = {}): StandingsHeader {
       ifLoseOne: -5
     },
     safetyRating: SR,
+    incidents: null,
     ...over
   }
 }
@@ -45,6 +46,7 @@ function input(over: Partial<HeaderInput> = {}): HeaderInput {
     showSafetyRating: true,
     showSof: true,
     showCarCount: true,
+    showIncidents: true,
     preview: false,
     title: WIDGET_TITLE,
     m: ES,
@@ -58,7 +60,7 @@ describe('toHeaderView', () => {
     expect(h).toMatchObject({
       title: 'CARRERA',
       meta: '',
-      remaining: '38:19\u2002≈19 v',
+      remaining: '38:19\u2002≈19\u00a0v',
       finished: false,
       lines: 2,
       hasIr: true,
@@ -81,6 +83,34 @@ describe('toHeaderView', () => {
 
   it('is flat, so an unchanged header keeps its object (shallow reuse)', () => {
     for (const v of Object.values(toHeaderView(input()))) expect(typeof v).not.toBe('object')
+    const withCount = input({ header: header({ incidents: { mine: 3, team: 7, limit: null } }) })
+    for (const v of Object.values(toHeaderView(withCount))) expect(typeof v).not.toBe('object')
+  })
+
+  it('shows your incidents on line 1 in any session, and the SR line stops repeating them', () => {
+    const incidents = { mine: 3, team: null, limit: { kind: 'penalty', at: 17 } } as const
+    const h = toHeaderView(input({ header: header({ incidents }) }))
+    expect(h).toMatchObject({
+      incCount: '3x',
+      incTeam: '',
+      incLimit: 'pen.\u00a0a\u00a017x',
+      incTone: 'neutral',
+      srIncidents: ''
+    })
+    // Practice, no ratings: still there, and the header stays one line.
+    const practice = toHeaderView(
+      input({
+        race: false,
+        classes: [block([1, 2], {}, 1)],
+        header: header({ sessionType: 'Practice', iRating: null, safetyRating: null, incidents })
+      })
+    )
+    expect(practice).toMatchObject({ incCount: '3x', title: 'PRÁCTICA' })
+    // The option hides it at once, and the SR line counts them again.
+    const off = toHeaderView(input({ showIncidents: false, header: header({ incidents }) }))
+    expect(off).toMatchObject({ incCount: '', incLimit: '', srIncidents: '1x' })
+    // Unknown (no player car): nothing.
+    expect(toHeaderView(input()).incCount).toBe('')
   })
 
   it('falls back to the iRating per position without your row', () => {
@@ -194,7 +224,7 @@ describe('toHeaderView', () => {
       input({ m: EN, title: widgetCaption(EN, 'standings', LOCALES.en), ...over })
     expect(toHeaderView(en())).toMatchObject({
       title: 'RACE',
-      remaining: '38:19\u2002≈19 L',
+      remaining: '38:19\u2002≈19\u00a0L',
       irNeutral: 'break-even P6',
       srIncidents: '1x',
       srBudget: 'margin 4x'

@@ -8,6 +8,7 @@ import {
 } from './constants'
 import { MOCK_CLASSES, MOCK_PACE_CAR_IDX, licColorOf, licLevelOf, licSubLevelOf } from './drivers'
 import type { MockDriver } from './drivers'
+import { MOCK_INCIDENT_LIMITS } from './playerIncidents'
 import type { Rng } from './rng'
 import { MOCK_CORNERS, MOCK_SECTOR_STARTS } from './track'
 
@@ -72,6 +73,8 @@ export interface MockSessionInfo {
     NumCarClasses: number
     /** 1 when drivers share cars. */
     TeamRacing: number
+    /** Only the incident limits (text or number in iRacing's YAML). */
+    WeekendOptions: Record<keyof typeof MOCK_INCIDENT_LIMITS, number | string>
   }
   SessionInfo: {
     Sessions: {
@@ -129,7 +132,8 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       EventType: 'Race',
       Category: 'Road',
       NumCarClasses: 2,
-      TeamRacing: 0
+      TeamRacing: 0,
+      WeekendOptions: { ...MOCK_INCIDENT_LIMITS }
     },
     SessionInfo: {
       Sessions: [

@@ -74,6 +74,7 @@ describe('previewStandings', () => {
       showSafetyRating: true,
       showSof: true,
       showCarCount: true,
+      showIncidents: true,
       preview: true,
       title: '',
       m: messagesFor('es')
