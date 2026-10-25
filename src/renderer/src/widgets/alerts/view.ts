@@ -116,12 +116,14 @@ const NOTICE_LOOKS: Readonly<
   oilTemp: { fill: 'alarm', icon: 'alert' },
   fuelPressure: { fill: 'alarm', icon: 'alert' },
   tow: { fill: 'warn', icon: 'clock' },
+  // Repairs, as iRacing draws them: mandatory ones are an alarm, optional ones a warning.
+  damage: { fill: 'alarm', icon: 'meatball' },
   lapsToGo: { fill: 'info', icon: 'chequered' },
   engineTrend: { fill: 'warn', icon: 'arrow-up' }
 }
 
 /** The notices whose words never change (the others carry a value). */
-type StaticNotice = Exclude<NoticeKind, 'tow' | 'lapsToGo' | 'engineTrend'>
+type StaticNotice = Exclude<NoticeKind, 'tow' | 'damage' | 'lapsToGo' | 'engineTrend'>
 const STATIC_NOTICES = [
   'wrongWay',
   'pitEntry',
@@ -178,6 +180,25 @@ export const flagViews = perDictionary((m): Readonly<Record<FlagKind, FlagView>>
   return Object.freeze(out)
 })
 
+/** No short label (both fit), the chip is the label. */
+const NO_EXTRAS = { short: '', chip: '' } as const
+
+/** Damage, mandatory repairs (an alarm) or optional ones (a warning), frozen per language. */
+const damageViews = perDictionary((m): Readonly<Record<'mandatory' | 'optional', FlagView>> => {
+  const words = m.widgets.alerts.damage
+  const { icon } = NOTICE_LOOKS.damage
+  return Object.freeze({
+    mandatory: flagLike('damage', { ...words.mandatory, ...NO_EXTRAS }, 'alarm', 'icon', icon),
+    optional: flagLike('damage', { ...words.optional, ...NO_EXTRAS }, 'warn', 'icon', icon)
+  })
+})
+
+/** The meatball in your box (the tow takes you there): no 'entra en boxes' then. */
+export const meatballInBoxView = perDictionary((m): FlagView => {
+  const { fill, mark } = LOOKS.meatball
+  return flagLike('meatball', { ...m.widgets.alerts.flags.meatball, note: '' }, fill, mark, null)
+})
+
 /** The same for the alerts without a value. */
 export const staticNoticeViews = perDictionary((m): Readonly<Record<StaticNotice, FlagView>> => {
   const words = m.widgets.alerts.notices
@@ -228,6 +249,7 @@ function validNotice(n: unknown): AlertNotice | null {
     return null
   }
   if (kind === 'tow') return finite(v.seconds) && v.seconds > 0 ? (n as AlertNotice) : null
+  if (kind === 'damage') return typeof v.mandatory === 'boolean' ? (n as AlertNotice) : null
   if (kind === 'lapsToGo') return finite(v.laps) && v.laps >= 1 ? (n as AlertNotice) : null
   if (kind === 'engineTrend') {
     const ok = FLUIDS.has(v.fluid) && finite(v.tempC) && finite(v.deltaC)
@@ -277,6 +299,8 @@ export function noticeView(
         note: t.towNote,
         chip: ''
       })
+    case 'damage':
+      return n.mandatory ? damageViews(m).mandatory : damageViews(m).optional
     case 'lapsToGo':
       return noticeLike(n.kind, {
         label: t.lapsToGo(Math.round(n.laps)),
@@ -406,10 +430,14 @@ function reused(v: FlagView, prev: FlagsView | undefined): FlagView {
 
 /**
  * Flags and notices to band + chips, in ALERT_ORDER. Keeps `prev` while the same alerts are
- * shown with the same words (one shallow check per alert).
+ * shown with the same words (one shallow check per alert). In your box (towed there or not) the
+ * meatball does not tell you to pit.
  */
 export function toFlagsView(
-  d: Pick<AlertsData, 'flags'> & { readonly notices?: readonly AlertNotice[] },
+  d: Pick<AlertsData, 'flags'> & {
+    readonly notices?: readonly AlertNotice[]
+    readonly inBox?: boolean
+  },
   o: AlertFilter,
   units: AppearanceSettings['units'],
   m: Messages,
@@ -418,8 +446,10 @@ export function toFlagsView(
 ): FlagsView {
   const flags = flagViews(m)
   const notices = Array.isArray(d.notices) ? d.notices : []
+  const flagView = (k: FlagKind): FlagView =>
+    k === 'meatball' && d.inBox === true ? meatballInBoxView(m) : flags[k]
   const views = [
-    ...shownFlags(d.flags, o).map((k) => flags[k]),
+    ...shownFlags(d.flags, o).map(flagView),
     ...shownNotices(notices, o).map((n) => reused(noticeView(n, units, m), prev))
   ].sort((a, b) => rankOf(a) - rankOf(b))
   const primary = views[0]

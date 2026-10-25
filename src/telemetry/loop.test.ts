@@ -230,7 +230,8 @@ const ALERTS: AlertsData = {
   pitLimiter: null,
   speedKmh: 0,
   pitLimitKmh: null,
-  incident: null
+  incident: null,
+  inBox: false
 }
 const DELTA: DeltaData = {
   visible: false,
@@ -242,7 +243,7 @@ const DELTA: DeltaData = {
   trend: 0,
   predictedLap: null,
   sectors: [],
-  lapValid: true
+  lapState: 'none'
 }
 const CONDITIONS: ConditionsData = {
   visible: false,

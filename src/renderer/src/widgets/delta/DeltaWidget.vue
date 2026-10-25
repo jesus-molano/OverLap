@@ -22,6 +22,7 @@ import {
   deltaSign,
   deltaTone,
   formatDelta,
+  lapCounts,
   liveSectorDelta,
   predictedText,
   refView,
@@ -74,7 +75,9 @@ const sectors = computed<readonly (number | null)[]>((prev) => {
   const next = Array.isArray(s) ? s : NO_SECTORS
   return prev !== undefined && arrayEqual(prev, next) ? prev : next
 })
-const valid = computed(() => content.value?.lapValid !== false)
+const lapState = computed(() => content.value?.lapState)
+/** An invalid lap, the out lap or a tow won't count: the numbers step back. */
+const counts = computed(() => lapCounts(lapState.value))
 
 const heroText = computed(() => formatDelta(delta.value))
 const sign = computed(() => deltaSign(delta.value))
@@ -82,7 +85,7 @@ const heroTone = computed<Tone>(() => deltaTone(delta.value))
 
 const trend = computed<TrendKind>((prev) => trendKind(content.value?.trend ?? 0, prev))
 // Frozen per language: the same object while the state and the language stay.
-const state = computed(() => stateView(valid.value, trend.value, showTrend.value, t.value))
+const state = computed(() => stateView(lapState.value, trend.value, showTrend.value, t.value))
 
 const predicted = computed(() => predictedText(content.value?.predictedLap))
 // Primitives first: the view object is only rebuilt when the reference (or the language)
@@ -131,7 +134,7 @@ const rootClass = computed(() => ({
   'is-shown': shown.value,
   'dl--sectors': showSectors.value,
   'dl--trend': showTrend.value,
-  'dl--invalid': !valid.value,
+  'dl--invalid': !counts.value,
   'dl--good': heroTone.value === 'good',
   'dl--bad': heroTone.value === 'bad'
 }))
@@ -156,7 +159,7 @@ const rootClass = computed(() => ({
             class="dl-state__line"
             :class="`ov-tone-${state.tone}`"
           >
-            <Icon v-if="state.kind === 'invalid'" name="warning" />
+            <Icon v-if="state.icon !== null" :name="state.icon" />
             <!-- Chevrons point where the bar is heading: left gaining, right losing. -->
             <svg
               v-else
@@ -425,7 +428,8 @@ const rootClass = computed(() => ({
   color: var(--ov-fg);
 }
 
-/* An invalid lap won't count: its numbers step back, the state says why. */
+/* A lap that won't count (invalid, the out lap, a tow): its numbers step back, the state says
+   why. */
 .dl--invalid .dl-hero,
 .dl--invalid .dl-pred {
   opacity: var(--ov-o-dim);

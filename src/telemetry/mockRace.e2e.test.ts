@@ -222,7 +222,7 @@ function checkOwnDelta(sent: readonly Sent<'delta'>[], laps: readonly number[]):
   for (const { s, payload: p } of sent) {
     const at = `t=${s.toFixed(2)}`
     if (!p.visible || p.reference === 'class' || p.delta === null) continue
-    if (p.lapValid) expect(Math.abs(p.delta), at).toBeLessThan(3)
+    if (p.lapState === 'valid') expect(Math.abs(p.delta), at).toBeLessThan(3)
     expect(p.predictedLap, at).toBeCloseTo((p.refLapTime ?? NaN) + p.delta, 2)
     if (!atLine(p)) continue
     lines++
@@ -914,16 +914,16 @@ describe('mock race end to end: late join, pit stop, finish and the next session
     const [pitIn, pitOut] = pitStretch()
     const inPits = mine.filter((x) => x.s > pitIn + 0.1 && x.s < pitOut && x.payload.visible)
     expect(inPits.length).toBeGreaterThan(5)
-    expect(inPits.every((x) => !x.payload.lapValid)).toBe(true)
+    expect(inPits.every((x) => x.payload.lapState !== 'valid')).toBe(true)
     const inLap = mine.find((x) => x.s > pitIn && atLine(x.payload))?.payload
-    expect(inLap?.lapValid).toBe(false)
+    expect(inLap?.lapState).toBe('invalid')
     expect(inLap?.predictedLap).toBeGreaterThan((inLap?.refLapTime ?? Infinity) + 5)
     // After your flag your last lap stays on show: nothing more to send.
     const tFinish = afterPlayerFinish()
     expect(mine.filter((x) => x.s >= tFinish).length).toBeLessThanOrEqual(1)
     const final = mine.filter((x) => x.s < tFinish).at(-1)?.payload
     expect(final && atLine(final)).toBe(true)
-    expect(final?.lapValid).toBe(true)
+    expect(final?.lapState).toBe('valid')
     expect(Math.abs((final?.predictedLap ?? 0) - (laps.at(-1) ?? NaN))).toBeLessThan(0.01)
     // The next session (same car and track): your record from its first tick, before any lap.
     const record = mine.filter((x) => x.payload.reference === 'pb').at(-1)?.payload.refLapTime

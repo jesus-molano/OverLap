@@ -14,6 +14,7 @@ import {
   deltaTone,
   fillTransform,
   formatDelta,
+  lapCounts,
   liveSectorDelta,
   predictedText,
   refView,
@@ -160,24 +161,53 @@ describe('trend', () => {
   })
 
   it('an invalid lap says so first; the trend only when shown', () => {
-    expect(stateView(false, 'gain', true, ES)).toBe(STATE_VIEWS.invalid)
-    expect(stateView(false, 'steady', false, ES).text).toBe('vuelta inválida')
-    expect(stateView(true, 'gain', true, ES)).toBe(STATE_VIEWS.gain)
-    expect(stateView(true, 'loss', true, ES)).toEqual({
+    expect(stateView('invalid', 'gain', true, ES)).toBe(STATE_VIEWS.invalid)
+    expect(stateView('invalid', 'steady', false, ES).text).toBe('vuelta inválida')
+    expect(stateView('valid', 'gain', true, ES)).toBe(STATE_VIEWS.gain)
+    expect(stateView('valid', 'loss', true, ES)).toEqual({
       kind: 'loss',
       text: 'perdiendo',
-      tone: 'bad'
+      tone: 'bad',
+      icon: null
     })
-    expect(stateView(true, 'gain', false, ES)).toBe(STATE_VIEWS.none)
-    expect(stateView(true, 'steady', true, ES)).toBe(STATE_VIEWS.none)
+    expect(stateView('valid', 'gain', false, ES)).toBe(STATE_VIEWS.none)
+    expect(stateView('valid', 'steady', true, ES)).toBe(STATE_VIEWS.none)
     expect(STATE_VIEWS.gain.tone).toBe('good')
+    expect(STATE_VIEWS.invalid.icon).toBe('warning')
+  })
+
+  it('without a lap says nothing; the out lap and the tow say what they are (B15)', () => {
+    // Online: 'INVALID LAP' all the out lap from the pits, on the grid and the tow (145 s).
+    expect(stateView('none', 'gain', true, ES)).toBe(STATE_VIEWS.none)
+    expect(stateView('out', 'gain', true, ES)).toMatchObject({
+      kind: 'out',
+      text: 'vuelta de salida',
+      tone: 'info',
+      icon: 'out'
+    })
+    expect(stateView('tow', 'steady', false, ES)).toMatchObject({
+      kind: 'tow',
+      text: 'grúa',
+      icon: 'clock'
+    })
+    expect(stateView('out', 'gain', true, EN).text).toBe('out lap')
+    expect(stateView('tow', 'gain', true, EN).text).toBe('tow')
+    // An unknown state (the payload crosses IPC) reads as a lap that counts.
+    expect(stateView(undefined, 'gain', true, ES)).toBe(STATE_VIEWS.gain)
+    // Only these step the numbers back.
+    expect(lapCounts('valid')).toBe(true)
+    expect(lapCounts('none')).toBe(true)
+    expect(lapCounts(undefined)).toBe(true)
+    expect(lapCounts('invalid')).toBe(false)
+    expect(lapCounts('out')).toBe(false)
+    expect(lapCounts('tow')).toBe(false)
   })
 
   it('says the state in English, one frozen set per language', () => {
-    expect(stateView(true, 'gain', true, EN)).toMatchObject({ kind: 'gain', text: 'gaining' })
-    expect(stateView(true, 'loss', true, EN).text).toBe('losing')
-    expect(stateView(false, 'gain', true, EN).text).toBe('invalid lap')
-    expect(stateView(true, 'gain', true, EN)).toBe(stateViews(EN).gain)
+    expect(stateView('valid', 'gain', true, EN)).toMatchObject({ kind: 'gain', text: 'gaining' })
+    expect(stateView('valid', 'loss', true, EN).text).toBe('losing')
+    expect(stateView('invalid', 'gain', true, EN).text).toBe('invalid lap')
+    expect(stateView('valid', 'gain', true, EN)).toBe(stateViews(EN).gain)
     expect(stateViews(EN)).not.toBe(STATE_VIEWS)
     expect(Object.isFrozen(stateViews(EN).loss)).toBe(true)
   })

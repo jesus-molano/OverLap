@@ -58,10 +58,12 @@ describe('toIncidentCountView', () => {
     expect(toIncidentCountView(count({ mine: -1 }), ES)).toBeNull()
   })
 
-  it('the samples show a penalty limit', () => {
+  it("the samples show an official race's limit: the DQ at 17x", () => {
     expect(toIncidentCountView(PREVIEW_INCIDENTS, ES)).toMatchObject({
       count: '3x',
-      limit: `pen.${NB}a${NB}17x`
+      limit: `DQ${NB}a${NB}17x`,
+      tone: 'neutral'
     })
+    expect(toIncidentCountView(PREVIEW_INCIDENTS, EN)?.limit).toBe(`DQ${NB}at${NB}17x`)
   })
 })

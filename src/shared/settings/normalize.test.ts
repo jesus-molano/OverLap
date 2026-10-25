@@ -153,6 +153,7 @@ const DEFAULT_ALERTS: AlertsOptions = {
   showPitEntry: true,
   showLapsToGo: true,
   showTow: true,
+  showDamage: true,
   showWrongWay: true,
   showIncidents: true,
   showStalled: true,

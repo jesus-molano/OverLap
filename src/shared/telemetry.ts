@@ -98,6 +98,8 @@ export const TELEMETRY_VARS = {
   WaterTemp: 'number',
   /** °C. Per car model, like WaterTemp. */
   OilTemp: 'number',
+  /** Engine revs: a pressure light means nothing with a stopped engine below its idle. */
+  RPM: 'number',
 
   // --- What the sim's screen shows (simScreen.ts): hide with its UI, follow replays ---
   /**

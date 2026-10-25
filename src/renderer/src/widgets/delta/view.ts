@@ -12,7 +12,8 @@ import { MINUS, formatLapTime, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { isFiniteNumber } from '@shared/num'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
-import type { DeltaData, DeltaReference } from '@shared/types'
+import type { DeltaData, DeltaLapState, DeltaReference } from '@shared/types'
+import type { IconName } from '@renderer/ui/icons'
 import type { Tone } from '@renderer/ui/tones'
 import { perDictionary } from '@renderer/view/perDictionary'
 import type { InlineStyle } from '@renderer/view/styles'
@@ -141,33 +142,46 @@ export function trendKind(trend: number, prev: TrendKind = 'steady'): TrendKind 
 
 /** What the small column after the hero says. */
 export interface StateView {
-  readonly kind: 'gain' | 'loss' | 'invalid' | 'none'
-  /** 'ganando' / 'perdiendo' / 'vuelta inválida'; '' for none. */
+  readonly kind: 'gain' | 'loss' | 'invalid' | 'out' | 'tow' | 'none'
+  /** 'ganando' / 'perdiendo' / 'vuelta inválida' / 'vuelta de salida' / 'grúa'; '' for none. */
   readonly text: string
   readonly tone: Tone
+  /** Its mark: null for the trend (its chevrons) and for none. */
+  readonly icon: IconName | null
 }
 
 /** The state views in a language: frozen, one set per dictionary (the same object every time). */
 export const stateViews = perDictionary((m): Readonly<Record<StateView['kind'], StateView>> => {
   const t = m.widgets.delta
   return Object.freeze({
-    gain: Object.freeze({ kind: 'gain', text: t.gaining, tone: 'good' }),
-    loss: Object.freeze({ kind: 'loss', text: t.losing, tone: 'bad' }),
-    invalid: Object.freeze({ kind: 'invalid', text: t.invalid, tone: 'warn' }),
-    none: Object.freeze({ kind: 'none', text: '', tone: 'dim' })
+    gain: Object.freeze({ kind: 'gain', text: t.gaining, tone: 'good', icon: null }),
+    loss: Object.freeze({ kind: 'loss', text: t.losing, tone: 'bad', icon: null }),
+    invalid: Object.freeze({ kind: 'invalid', text: t.invalid, tone: 'warn', icon: 'warning' }),
+    out: Object.freeze({ kind: 'out', text: t.outLap, tone: 'info', icon: 'out' }),
+    tow: Object.freeze({ kind: 'tow', text: t.tow, tone: 'info', icon: 'clock' }),
+    none: Object.freeze({ kind: 'none', text: '', tone: 'dim', icon: null })
   })
 })
 
-/** An invalid lap says so first (it won't count); then the trend, when shown and not steady. */
+/** The lap states that count (or may yet): the others step the numbers back. */
+export function lapCounts(state: DeltaLapState | undefined): boolean {
+  return state !== 'invalid' && state !== 'out' && state !== 'tow'
+}
+
+/**
+ * A lap that won't count says why first (invalid, the out lap, a tow); then the trend, when
+ * shown and not steady. No lap in progress says nothing. An unknown state (the payload crosses
+ * IPC) reads as a lap that counts.
+ */
 export function stateView(
-  lapValid: boolean,
+  lapState: DeltaLapState | undefined,
   trend: TrendKind,
   showTrend: boolean,
   m: Messages
 ): StateView {
   const views = stateViews(m)
-  if (!lapValid) return views.invalid
-  if (!showTrend || trend === 'steady') return views.none
+  if (lapState === 'invalid' || lapState === 'out' || lapState === 'tow') return views[lapState]
+  if (lapState === 'none' || !showTrend || trend === 'steady') return views.none
   return views[trend]
 }
 

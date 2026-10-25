@@ -270,7 +270,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   esconderse si la ventana se estrecha (luego la mejor vuelta).
 - **Banderas** tras el nombre: negra, reparación (meatball) y aviso (negra enrollada, dibujada como
   la bandera blanca y negra de aviso). Las dos tablas las muestran y en las dos se pueden quitar
-  (`relative.showFlags`, `standings.showFlags`, activadas).
+  (`relative.showFlags`, `standings.showFlags`, activadas). La negra enrollada que iRacing pone a
+  un coche que ya terminó no se muestra.
 - En el relativo: `relative.showTyre` y `relative.showStint` (desactivadas) y `relative.showFlags`
   (activada). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
   cambian de alto.
@@ -316,7 +317,11 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - La referencia solo cambia al empezar una vuelta, así el delta nunca salta a mitad de vuelta (un
   sector mejor marcado a mitad de vuelta cuenta desde la siguiente).
 - Solo cuentan vueltas limpias conducidas por ti (sin boxes, salidas de pista, paradas ni amarillas).
-  La vuelta en curso se marca como inválida en cuanto deja de contar.
+  La vuelta en curso se marca como inválida en cuanto deja de contar; la vuelta de salida dice
+  `vuelta de salida` y la grúa `grúa`. Sin vuelta en curso (parrilla, antes de cruzar meta) no dice
+  nada.
+- Tras tu bandera a cuadros se queda la última vuelta. Fuera de carrera también: la vuelta empezada
+  con la bandera fuera o sin vueltas restantes (la de enfriamiento) no se cronometra.
 - El récord se escribe unos segundos después de cruzar meta, cuando llega el tiempo oficial, de forma
   atómica y sin frenar el bucle. Si el archivo está dañado se guarda una copia `.bak`.
 
@@ -327,26 +332,37 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   menos `alerts.holdS` segundos.
 - Cada caso se activa o desactiva en Ajustes → Avisos; todos vienen activados:
   - **Banderas** tuyas y de la sesión, también la **negra enrollada**
-    (`ADVERTENCIA · dirección de carrera`, sin motivo: no llega en los datos).
+    (`ADVERTENCIA · dirección de carrera`, sin motivo: no llega en los datos). Solo dentro del coche.
+    La verde y la de cuadros cuentan desde que salen (3 y 10 s, o «Mantener visible» si es más):
+    iRacing deja la de cuadros puesta hasta el cambio de sesión. La negra enrollada tras tu bandera
+    no sale.
   - **Limitador** en el pit lane: puesto, `LIMITADOR OFF` y por encima del límite del YAML
-    (`TrackPitSpeedLimit`) con o sin él: `EXCESO 68 / 60 · LIMITADOR OFF`.
+    (`TrackPitSpeedLimit`) con o sin él: `EXCESO 68 / 60 · LIMITADOR OFF`. No se lee durante la
+    grúa ni los 2 s después de aparecer en tu box (el limitador llega un momento después).
   - **Antes de la entrada**: `PON LIMITADOR` al pasar de la pista a la zona de boxes
     (`PlayerTrackSurface`) sin el limitador. Esa zona también cubre el pit lane y la salida, así que
     se calla en cuanto pisas el pit lane y no vuelve al salir.
   - **10 y 5 vueltas** para el final de la carrera (`QUEDAN 5 V`), unos segundos y una sola vez
     cada una: con `SessionLapsRemainEx` (tus vueltas, una menos si te han doblado) y, en carreras a
     tiempo, con la misma estimación que la clasificación.
-  - **Grúa** con cuenta atrás (`PlayerCarTowTime`), **motor calado** (solo dentro del coche) y
+  - **Grúa** con cuenta atrás (`PlayerCarTowTime`), lo primero de todo; la reparación (meatball) va
+    al lado y, en tu box, sin «entra en boxes». **Motor calado** (solo dentro del coche) y
     **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas en marcha; no cuentan la
     marcha atrás, el pit lane ni el cruce de meta.
+  - **Daños** (`EngineWarnings`): `DAÑOS · reparación obligatoria` mientras esté pendiente, hasta que
+    sale la bandera de reparación; `DAÑOS LEVES` unos segundos. Opción `alerts.showDamage`.
   - **Incidentes**: `+2x Pérdida de control · V5 · S3 · grava` al sumar puntos (ver Incidentes).
-  - **Testigos del motor** de `EngineWarnings`: presión de aceite y de gasolina (`P. ACEITE`, no con
-    el motor calado) y temperatura del agua y del aceite (`TEMP. AGUA`). Las temperaturas pueden
-    seguir encendidas vueltas enteras: van detrás de las banderas amarilla y azul, que no se quedan en
-    un chip por ellas.
+  - **Testigos del motor** de `EngineWarnings`: presión de aceite y de gasolina (`P. ACEITE`, solo con
+    el motor en marcha: a más de 5 m/s o al 80 % del ralentí, `DriverCarIdleRPM`) y temperatura del
+    agua y del aceite (`TEMP. AGUA`). Las temperaturas pueden seguir encendidas vueltas enteras: van
+    detrás de las banderas amarilla y azul, que no se quedan en un chip por ellas.
+  - Ningún aviso del motor (calado, testigos, daños) durante la grúa, en tu box ni los 3 s después de
+    subir al coche: ahí parpadean con el coche parado.
   - **Temperatura al alza**: `AGUA 98 °C ↑ +6 vs tu media` cuando el agua o el aceite siguen 20 s
     por encima de tu media de vueltas limpias de la sesión, con `(¿rebufo?)` si ibas pegado a otro
-    coche. `WaterTemp` y `OilTemp` dependen del coche: si no los tiene, este aviso no sale.
+    coche. Solo cuentan vueltas a 1 °C o menos de la anterior (no las de calentamiento), y la media
+    empieza de cero tras una grúa o un salto de más de 5 °C (una reparación). `WaterTemp` y `OilTemp`
+    dependen del coche: si no los tiene, este aviso no sale.
 - En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
   limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
 
@@ -360,8 +376,10 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - **Aviso «+Nx»** en Avisos, al menos 6 s (o «Mantener visible» si es más):
   `+2x Pérdida de control · V5 · S3 · grava`. El tipo sale de `PlayerIncidents`, la vuelta y el
   sector del modelo de carrera y la superficie de `PlayerTrackSurfaceMaterial`. Las subidas a menos
-  de 2 s son un solo incidente (iRacing puede subir 2x a 4x); si `PlayerIncidents` no dice nada, solo
-  `+2x` y dónde fue. Opción `alerts.showIncidents`.
+  de 2 s son un solo incidente (iRacing puede subir 2x a 4x); con varios avisos gana el más grave
+  (choque con coche, golpe contra el muro, pérdida de control, salida de pista, roce): el byte de
+  penalización no son los puntos. Si `PlayerIncidents` no dice nada, solo `+2x` y dónde fue. Opción
+  `alerts.showIncidents`.
 - No cuenta nada durante una repetición, al conectar ni al cambiar de sesión (iRacing empieza cada
   sesión de cero).
 - Límites del YAML: `IncidentLimit` se lee como la DQ e `IncidentWarningInitialLimit` /

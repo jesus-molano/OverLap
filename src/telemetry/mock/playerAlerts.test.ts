@@ -12,7 +12,7 @@ import { parseSessionMeta } from '@shared/session'
 import { defaultOptions } from '@shared/settings'
 import type { AlertsData, NoticeKind } from '@shared/types'
 import { MockFrameBuffer } from './frameBuffer'
-import { MOCK_ALERTS_TIMELINE, MOCK_WATER_C, MockPlayerAlerts } from './playerAlerts'
+import { MOCK_ALERTS_TIMELINE, MOCK_IDLE_RPM, MOCK_WATER_C, MockPlayerAlerts } from './playerAlerts'
 import { MockSeries } from './series'
 import { at } from './testUtils'
 import { TRACK_LENGTH_M } from './track'
@@ -46,6 +46,27 @@ describe('MockPlayerAlerts', () => {
       expect(bits(from + len) & bit).toBe(0)
     }
     expect(bits(0)).toBe(EngineWarning.PitSpeedLimiter)
+    // Damage: optional repairs first, mandatory ones a second later.
+    const [dmgAt, dmgFor] = TL.damage
+    const repairs = EngineWarning.OptionalRepairs | EngineWarning.MandatoryRepairs
+    expect(bits(dmgAt - 0.1) & repairs).toBe(0)
+    expect(bits(dmgAt + 0.5) & repairs).toBe(EngineWarning.OptionalRepairs)
+    expect(bits(dmgAt + 1.5) & repairs).toBe(repairs)
+    expect(bits(dmgAt + dmgFor) & repairs).toBe(0)
+  })
+
+  it('revs: the idle stopped, more with speed, none while stalled', () => {
+    const a = new MockPlayerAlerts()
+    const rpm = (t: number, speedMs: number): number => {
+      const v = new MockFrameBuffer().vars
+      v.CarIdxLapDistPct[P] = 0.5
+      v.Speed[0] = speedMs
+      a.apply(v, t, P)
+      return at(v.RPM, 0)
+    }
+    expect(rpm(100, 0)).toBe(MOCK_IDLE_RPM)
+    expect(rpm(100, 40)).toBeGreaterThan(MOCK_IDLE_RPM)
+    expect(rpm(TL.stall[0] + 1, 40)).toBe(0)
   })
 
   it('reads the temperatures of the lights, and a slow rise for the trend', () => {
@@ -139,6 +160,7 @@ describe('a mock session through the alerts provider', () => {
       'oilTemp',
       'fuelPressure',
       'tow',
+      'damage',
       'lapsToGo',
       'engineTrend'
     ]
@@ -157,6 +179,7 @@ describe('a mock session through the alerts provider', () => {
     expect(first('tow')).toBeCloseTo(TL.tow[0], 0)
     expect(first('water')).toBeCloseTo(TL.waterLight[0], 0)
     expect(first('fuelPressure')).toBeCloseTo(TL.fuelPressureLight[0], 0)
+    expect(first('damage')).toBeCloseTo(TL.damage[0], 0)
     // The water rise: the notice once it held 20 s, well before its warning light.
     expect(first('engineTrend')).toBeGreaterThan(TL.waterTrend.atS + 20)
     expect(first('engineTrend')).toBeLessThan(TL.waterTrend.atS + 60)

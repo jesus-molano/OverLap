@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { IncidentKind } from '../types'
 import {
+  INCIDENT_SEVERITY,
   IncidentPenalty,
   IncidentReport,
   SURFACE_RANK,
@@ -80,5 +81,22 @@ describe('incidentSurface', () => {
   it('ranks the gravel trap above the grass, and both above the kerb', () => {
     expect(SURFACE_RANK.gravel).toBeGreaterThan(SURFACE_RANK.grass)
     expect(SURFACE_RANK.grass).toBeGreaterThan(SURFACE_RANK.kerb)
+  })
+})
+
+describe('INCIDENT_SEVERITY', () => {
+  it('car > wall > loss of control > off track > contact, each type once (Q7)', () => {
+    const order: IncidentKind[] = [
+      'collision-car',
+      'collision-world',
+      'loss-of-control',
+      'off-track',
+      'contact-car',
+      'contact-world'
+    ]
+    expect(Object.keys(INCIDENT_SEVERITY).sort()).toEqual([...order].sort())
+    const ranks = order.map((k) => INCIDENT_SEVERITY[k])
+    expect(ranks).toEqual([...ranks].sort((a, b) => b - a))
+    expect(new Set(ranks).size).toBe(order.length)
   })
 })

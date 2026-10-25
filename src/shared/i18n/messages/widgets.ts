@@ -231,6 +231,14 @@ export const widgetsEs = {
     /** The tow countdown ('GRÚA 0:42'). */
     tow: (clock: string) => `GRÚA${NB}${clock}`,
     towNote: 'a boxes',
+    /**
+     * The car is damaged (the band and its note; the chip is the band): repairs it must make
+     * before racing on (the meatball follows) or only optional ones.
+     */
+    damage: {
+      mandatory: { label: 'DAÑOS', note: 'reparación obligatoria' },
+      optional: { label: 'DAÑOS LEVES', note: 'reparación opcional' }
+    },
     /** Laps to the end of the race ('QUEDAN 5 V', like the headers): it says "to go" as a chip. */
     lapsToGo: (n: number) => `QUEDAN${NB}${n}${NB}V`,
     lapsToGoNote: 'para el final',
@@ -269,6 +277,10 @@ export const widgetsEs = {
     gaining: 'ganando',
     losing: 'perdiendo',
     invalid: 'vuelta inválida',
+    /** The lap from the pit exit (it never counts). */
+    outLap: 'vuelta de salida',
+    /** Being towed to the pits. */
+    tow: 'grúa',
     /** Before the predicted lap time. */
     predicted: 'Prev.',
     /** The reference the delta is against. */
@@ -473,6 +485,10 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     },
     tow: (clock) => `TOW${NB}${clock}`,
     towNote: 'to the pits',
+    damage: {
+      mandatory: { label: 'DAMAGE', note: 'repairs required' },
+      optional: { label: 'MINOR DAMAGE', note: 'optional repairs' }
+    },
     lapsToGo: (n) => `${n}${NB}TO GO`,
     lapsToGoNote: 'laps left',
     trend: {
@@ -505,6 +521,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     gaining: 'gaining',
     losing: 'losing',
     invalid: 'invalid lap',
+    outLap: 'out lap',
+    tow: 'tow',
     predicted: 'Pred.',
     pb: 'Personal best',
     session: 'Session best',
