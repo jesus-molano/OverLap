@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { choiceOptions } from './controls/choice'
 
 /** Every leaf of a dictionary group as [path, text]; functions are called with sample values. */
@@ -52,16 +53,20 @@ describe('settings dictionary', () => {
   })
 
   it('words a choice group in each language', () => {
-    const values = ['pb', 'session', 'class'] as const
+    const values = OPTION_SCHEMA.delta.reference.values
     expect(choiceOptions(values, es.delta.references).map((o) => o.label)).toEqual([
       'Récord personal',
       'Mejor vuelta de la sesión',
-      'Mejor de tu clase'
+      'Vuelta óptima',
+      'Mejor de tu clase',
+      'Óptima de tu clase'
     ])
     expect(choiceOptions(values, en.delta.references).map((o) => o.label)).toEqual([
       'Personal best',
       'Session best',
-      'Class best'
+      'Optimal lap',
+      'Class best',
+      'Class optimal'
     ])
     expect(
       choiceOptions(['top', 'bottom'] as const, en.window.anchorChoices).map((o) => o.label)

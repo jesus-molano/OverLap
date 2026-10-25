@@ -471,9 +471,11 @@ export interface AlertsData {
 /**
  * - `pb`: your all-time best lap with this car on this track layout (stored on disk).
  * - `session`: your best lap of this session.
+ * - `optimal`: your best time in each track sector this session (clean laps), joined into a lap.
  * - `class`: the fastest lap of your class in this session, by anyone.
+ * - `classOptimal`: the best time in each sector by anyone in your class this session, joined.
  */
-export type DeltaReference = 'pb' | 'session' | 'class'
+export type DeltaReference = 'pb' | 'session' | 'optimal' | 'class' | 'classOptimal'
 
 export interface DeltaData {
   /** False when there is no reference or you are not driving: the widget fades out. */
@@ -482,8 +484,8 @@ export interface DeltaData {
   reference: DeltaReference
   /**
    * For a 'class' reference driven by someone else: '#44 J. Lindqvist'
-   * (number and abbreviated name, no words to translate); '' otherwise. The
-   * widget names the other kinds itself.
+   * (number and abbreviated name, no words to translate); '' otherwise (an
+   * optimal lap is nobody's). The widget names the other kinds itself.
    */
   refDriver: string
   /** A 'class' reference that is your own lap. */
@@ -735,7 +737,10 @@ export interface AlertsOptions {
 
 export interface DeltaOptions {
   reference: DeltaReference
-  /** Use the next available reference while the preferred one does not exist (pb -> session -> class). */
+  /**
+   * Use the next available reference while the preferred one does not exist: pb -> session ->
+   * class, optimal -> pb -> classOptimal, classOptimal -> pb (see DELTA_FALLBACK).
+   */
   fallback: boolean
   /** Full scale of the bar in seconds (0.5..3). */
   rangeS: number

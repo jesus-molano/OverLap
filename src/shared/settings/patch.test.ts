@@ -204,6 +204,10 @@ describe('applySettingsPatch', () => {
     })
     // A free-size widget never follows its content.
     expect(out.widgets.delta).toEqual({ ...current.widgets.delta, backgroundOpacity: 0.4 })
+    // The optimal references are choices like the others.
+    for (const reference of ['optimal', 'classOptimal'] as const) {
+      expect(applySettingsPatch(current, { delta: { reference } }).delta.reference).toBe(reference)
+    }
   })
 
   it('applies the v4 fields', () => {

@@ -226,10 +226,16 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
     guarda en `personal-bests.json`, junto a `settings.json` (el modo mock usa su propia subcarpeta
     `mock/`), y no se pierde al cambiar de sesión, a diferencia del delta de iRacing.
   - **Mejor vuelta de la sesión** (`session`): tu mejor vuelta limpia de esta sesión.
+  - **Vuelta óptima** (`optimal`): tus mejores tiempos de cada sector del circuito en tus vueltas
+    limpias de esta sesión, unidos en una vuelta. Sin sectores en la sesión es tu mejor vuelta.
   - **Mejor de tu clase** (`class`): la vuelta limpia más rápida de tu clase en la sesión, sea de
     quien sea.
-- Con `delta.fallback` se usa la siguiente (pb → session → class) mientras no exista la elegida.
-- La referencia solo cambia al empezar una vuelta, así el delta nunca salta a mitad de vuelta.
+  - **Óptima de tu clase** (`classOptimal`): los mejores tiempos de cada sector en las vueltas
+    limpias de tu clase en esta sesión, sean de quien sean (tú incluido), unidos en una vuelta.
+- Con `delta.fallback` se usa la siguiente mientras no exista la elegida: pb → session → class,
+  optimal → pb → classOptimal y classOptimal → pb (`class` no tiene ninguna).
+- La referencia solo cambia al empezar una vuelta, así el delta nunca salta a mitad de vuelta (un
+  sector mejor marcado a mitad de vuelta cuenta desde la siguiente).
 - Solo cuentan vueltas limpias conducidas por ti (sin boxes, salidas de pista, paradas ni amarillas).
   La vuelta en curso se marca como inválida en cuanto deja de contar.
 - El récord se escribe unos segundos después de cruzar meta, cuando llega el tiempo oficial, de forma

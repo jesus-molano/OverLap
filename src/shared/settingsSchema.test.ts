@@ -153,7 +153,8 @@ describe('v2.1 traffic and alerts specs', () => {
 describe('v2.2 delta specs', () => {
   it('has the documented ranges and defaults', () => {
     const d = OPTION_SCHEMA.delta
-    expect(d.reference.values).toEqual(['pb', 'session', 'class'])
+    // Yours first (record, session best, optimal), then your class's (best, optimal).
+    expect(d.reference.values).toEqual(['pb', 'session', 'optimal', 'class', 'classOptimal'])
     expect(d.reference.default).toBe('pb')
     expect(d.fallback.default).toBe(true)
     expect([d.rangeS.min, d.rangeS.max, d.rangeS.step, d.rangeS.default]).toEqual([0.5, 3, 0.25, 1])
@@ -171,14 +172,20 @@ describe('v2.2 delta specs', () => {
     expect(clampOption(OPTION_SCHEMA.delta.rangeS, null)).toBe(1)
   })
 
-  it('names every reference in every language', () => {
+  it('names and explains every reference in every language', () => {
     for (const lang of LANGUAGES) {
+      const s = messagesFor(lang).settings.delta
       for (const ref of OPTION_SCHEMA.delta.reference.values) {
-        expect(messagesFor(lang).settings.delta.references[ref].label, lang).toBeTruthy()
+        expect(s.references[ref].label, `${lang} ${ref}`).toBeTruthy()
+        expect(s.references[ref].hint, `${lang} ${ref}`).toBeTruthy()
+        expect(s.referenceHelp[ref], `${lang} ${ref}`).toBeTruthy()
+        expect(s.fallbackHelp[ref], `${lang} ${ref}`).toBeTruthy()
       }
     }
     expect(messagesFor('es').settings.delta.references.pb.label).toBe('Récord personal')
     expect(messagesFor('en').settings.delta.references.pb.label).toBe('Personal best')
+    expect(messagesFor('es').settings.delta.references.optimal.label).toBe('Vuelta óptima')
+    expect(messagesFor('en').settings.delta.references.classOptimal.label).toBe('Class optimal')
   })
 })
 
