@@ -18,35 +18,59 @@ export interface GapSample {
 
 /**
  * Seconds `b` trails `a` at the last timing line `b` crossed (see
- * RaceView.timeGap); `now` is the SessionTime of the last tick.
+ * RaceView.timeGap); `now` is the SessionTime of the last tick. Who is ahead
+ * is decided by race distance: after a tow or reset, the lines a car crossed
+ * before it say nothing about where it is.
  */
 export function timeGap(b: CarTrack, a: CarTrack, now: number): number | null {
   if (b.state.finished || a.state.finished) return finishGap(b, a, now)
   if (!a.state.inWorld || !b.state.inWorld) return null
   if (a.lastLine === NO_LINE || b.lastLine === NO_LINE) return null
-  if (b.lastLine <= a.lastLine) {
-    const g = b.lastLine
-    if (!a.has(g) || !b.has(g)) return null
+  return b.lastD < a.lastD ? gapBehind(b, a, now) : gapAhead(b, a, now)
+}
+
+/** `b` trails `a` by race distance: >= 0, null when unknown (never a false 0). */
+function gapBehind(b: CarTrack, a: CarTrack, now: number): number | null {
+  const g = b.lastLine
+  // `b` crossed g where it is now, not before a tow or reset that put it there.
+  if (b.has(g) && b.time(g) >= b.jumpT && a.has(g)) {
     const gap = b.time(g) - a.time(g)
     // Between lines the gap is at least the time since `ahead` crossed the next one,
     // so it grows live when `behind` slows down or stops.
     const live = a.has(g + 1) ? Math.max(gap, now - a.time(g + 1)) : gap
-    // Passed between two lines (e.g. a car stopped in its box): not behind any more.
-    if (b.lastD >= a.lastD) return Math.min(live, 0)
-    // `ahead` is in or went through the pits after line g: the gap there predates its
-    // stop and would stay that large until `behind` reaches the pit box. Use the time
-    // `behind` needs to reach it at its own pace instead.
-    if (a.state.inPits || crossedPitsAfter(a, g)) {
+    // `ahead` is in or went through the pits after line g, or was towed or reset since:
+    // the gap there predates it and would stay that large until `behind` reaches it. Use
+    // the time `behind` needs to reach it at its own pace instead.
+    if (a.state.inPits || crossedPitsAfter(a, g) || a.jumpT > a.time(g)) {
       const reach = timeToReach(b, a)
       if (reach !== null) return Math.min(live, reach)
     }
-    return live
+    return live >= 0 ? live : null
   }
-  // `behind` is actually ahead: negative gap at `ahead`'s last line.
+  // `behind` landed where it is (tow, reset, world entry) or has no line in common: the
+  // time since `ahead` was there (since the line before, when `ahead` is just past it),
+  // unless `ahead` itself jumped since.
+  let ta = timeAtDistance(a, b.lastD)
+  if (!Number.isFinite(ta)) ta = a.time(Math.floor(b.lastD * LINES))
+  if (!Number.isFinite(ta)) return null
+  if (a.jumpT > ta) return timeToReach(b, a)
+  return Math.max(0, now - ta)
+}
+
+/** `b` is level with or ahead of `a` by race distance: <= 0 (the shown order can lag a pass). */
+function gapAhead(b: CarTrack, a: CarTrack, now: number): number | null {
+  if (b.lastLine <= a.lastLine) {
+    // Passed between two lines (e.g. a car stopped in its box): not behind any more.
+    const g = b.lastLine
+    if (!a.has(g) || !b.has(g)) return null
+    const gap = b.time(g) - a.time(g)
+    return Math.min(a.has(g + 1) ? Math.max(gap, now - a.time(g + 1)) : gap, 0)
+  }
+  // Negative gap at `ahead`'s last line.
   const g = a.lastLine
   if (!a.has(g) || !b.has(g)) return null
   const gap = b.time(g) - a.time(g)
-  return b.has(g + 1) ? Math.min(gap, b.time(g + 1) - now) : gap
+  return Math.min(b.has(g + 1) ? Math.min(gap, b.time(g + 1) - now) : gap, 0)
 }
 
 /**
@@ -87,8 +111,16 @@ function timeToReach(b: CarTrack, a: CarTrack): number | null {
   return p !== null ? (to - from) * p : null
 }
 
-/** Whole laps `b` trails `a` by race distance (frozen at the finish line for finishers). */
-export function lapsBehind(b: CarTrack, a: CarTrack): number {
+/**
+ * Whole laps `b` trails `a` by race distance (frozen at the finish line for finishers). Once
+ * `a` took the flag, a car that will not cross the line again (out of the world, or
+ * `raceOver`: the session went to cool-down) is classified by the laps it completed.
+ */
+export function lapsBehind(b: CarTrack, a: CarTrack, raceOver = false): number {
+  if (a.state.finished && !b.state.finished && (raceOver || !b.state.inWorld)) {
+    const done = Math.floor(b.lastD)
+    if (Number.isFinite(done)) return Math.max(0, a.finishLap - done)
+  }
   const diff = a.orderDistance() - b.orderDistance()
   return diff > 0 ? Math.floor(diff) : 0
 }
@@ -133,7 +165,11 @@ export function lapSectors(
   return out
 }
 
-/** Average of the last clean laps, else class est lap, else best lap; null when none. */
+/**
+ * Average of the last clean laps; before the first one, the best lap of this session, the
+ * entry's best of the earlier sessions, its class's best there, and only then the class est
+ * lap (CarClassEstLapTime is often seconds faster than anyone laps); null when none.
+ */
 export function pace(track: CarTrack): number | null {
   let sum = 0
   let n = 0
@@ -146,9 +182,11 @@ export function pace(track: CarTrack): number | null {
     }
   }
   if (n > 0) return sum / n
-  if (track.estLapTime > 0) return track.estLapTime
   const best = track.state.bestLapTime
-  return best !== null && best > 0 ? best : null
+  if (best !== null && best > 0) return best
+  if (track.priorBest > 0) return track.priorBest
+  if (track.classPriorBest > 0) return track.classPriorBest
+  return track.estLapTime > 0 ? track.estLapTime : null
 }
 
 /** A recorded crossing of `track` of a line in first..last was on pit road. */

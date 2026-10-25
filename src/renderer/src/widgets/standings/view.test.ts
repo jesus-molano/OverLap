@@ -36,6 +36,7 @@ function ctx(over: Partial<LineContext> = {}): LineContext {
     showSof: true,
     showCarCount: true,
     showFlags: true,
+    gapLeaderShown: false,
     styles: createDriverStyles(),
     m: ES,
     ...over
@@ -75,6 +76,22 @@ describe('gapCell', () => {
   it('falls back to the other gap when the chosen one is missing', () => {
     expect(gapCell({ ...row, interval: null }, 'interval', true, ES).text).toBe('+12.3')
     expect(gapCell({ ...row, gapToLeader: null }, 'leader', true, ES).text).toBe('+1.2')
+  })
+
+  // Lime Rock: a car 0.02 laps behind the one ahead read "+1L +1L" with gap mode 'both'.
+  it('never repeats the gap to the leader its own column already shows (B16)', () => {
+    const lapped = makeRow({ classPosition: 8, interval: null, gapToLeader: l(1) })
+    expect(gapCell(lapped, 'both', true, ES, true)).toEqual({ text: '—', kind: 'none' })
+    expect(gapCell(lapped, 'interval', true, ES, true).text).toBe('—')
+    // Without that column it still stands in.
+    expect(gapCell(lapped, 'both', true, ES, false).text).toBe('+1L')
+    // In leader mode the column shows the gap to the leader anyway.
+    expect(gapCell(lapped, 'leader', true, ES, true).text).toBe('+1L')
+    const lines = toLineViews(
+      [{ kind: 'car', row: lapped, gapBefore: false, alt: false }],
+      ctx({ gapMode: 'both', gapLeaderShown: true })
+    )
+    expect(lines[0]).toMatchObject({ gap: '—', gapLeader: '+1L' })
   })
 
   it('reads LÍDER for the class leader, a dash when unknown, +NL for laps', () => {
@@ -125,6 +142,12 @@ describe('pitKind', () => {
     // Unknown (a replay): no stops shown, but PIT and OUT still are.
     expect(pitKind(makeRow({ pitStops: null, lastPitLap: null }))).toBe('none')
     expect(pitKind(makeRow({ pitStops: null, status: 'pits' }))).toBe('pit')
+  })
+
+  it('tells a tow to the box from a stop (Q9)', () => {
+    expect(pitKind(makeRow({ status: 'pits', towed: true }))).toBe('tow')
+    // Out of the box after a tow: an out lap like any other.
+    expect(pitKind(makeRow({ outLap: true }))).toBe('out')
   })
 })
 

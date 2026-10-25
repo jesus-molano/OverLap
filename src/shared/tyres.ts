@@ -43,6 +43,22 @@ export function tyreCompoundOf(
 }
 
 /**
+ * Whether the compounds are worth a column: some car the names cover (in the world) runs
+ * another one than TireIndex 0, the model's usual dry tyre (so the field does not all run
+ * the same, or all runs something else). A field all on 0 would only say 'H' on every row.
+ */
+export function tyresVary(frame: TelemetryFrame, session: SessionMeta, model: TyreModel): boolean {
+  if (session.tyreCompounds.size === 0) return false
+  const indices = frame.CarIdxTireCompound
+  for (let i = 0; i < indices.length; i++) {
+    const index = indices[i]
+    if (index === undefined || !Number.isInteger(index) || index <= 0) continue
+    if (tyreCompoundOf(frame, session, model, i) !== null) return true
+  }
+  return false
+}
+
+/**
  * The letter a widget draws for a compound ('Hard' -> 'H', 'Wet' -> 'W'): the sim's own
  * English initial, the one printed on tyre walls, in both languages. '' for a blank name.
  */

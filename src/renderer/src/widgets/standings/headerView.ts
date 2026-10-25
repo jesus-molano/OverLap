@@ -35,9 +35,9 @@ export interface HeaderView {
   meta: string
   /** Sample content (edit mode): the 'VISTA PREVIA' tag. */
   preview: boolean
-  /** The chequered flag is out: 'Final' instead of what is left. */
+  /** You took the chequered flag (anyone, without your row): 'Final' instead of what is left. */
   finished: boolean
-  /** '38:19  ≈19 v' (en-spaced), 'Quedan 12 v', '' when unknown. */
+  /** '38:19  ≈19 v' (en-spaced), 'Quedan 12 v', 'Última vuelta', '' when unknown. */
   remaining: string
   /** Your incident count on line 1 ('3x'), '' when hidden or unknown; the rest as in IncidentCount. */
   incCount: string
@@ -107,6 +107,32 @@ function playerPosition(classes: readonly StandingsClassBlock[]): number | null 
     for (const r of c.rows) if (r.isPlayer && r.classPosition > 0) return r.classPosition
   }
   return null
+}
+
+/**
+ * The race is over for you: your row took the flag. Without your row (spectating), once
+ * anyone did. The leader's flag alone is not it: you may still be on your last lap.
+ */
+function raceFinished(classes: readonly StandingsClassBlock[]): boolean {
+  let any = false
+  for (const c of classes) {
+    for (const r of c.rows) {
+      if (r.isPlayer) return r.status === 'finished'
+      if (r.status === 'finished') any = true
+    }
+  }
+  return any
+}
+
+/**
+ * What is left: 'Última vuelta' on a race's last lap with no clock running (the flag is out,
+ * or a race by laps), else the clock and/or the laps ('38:19  ≈19 v').
+ */
+function remainingText(h: StandingsHeader, race: boolean, m: Messages): string {
+  if (race && h.lapsRemaining === 1 && h.timeRemainingS === null) {
+    return m.widgets.standings.lastLap
+  }
+  return formatRemaining(h.lapsRemaining, h.timeRemainingS, m)
 }
 
 interface IrSwing {
@@ -197,8 +223,8 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     title: formatSessionType(h?.sessionType ?? null, m) || i.title,
     meta: single !== undefined ? classMeta(single, i.showSof, i.showCarCount, m) : '',
     preview: i.preview,
-    finished: i.race && classes.some((c) => c.rows.some((r) => r.status === 'finished')),
-    remaining: h !== null ? formatRemaining(h.lapsRemaining, h.timeRemainingS, m) : '',
+    finished: i.race && raceFinished(classes),
+    remaining: h !== null ? remainingText(h, i.race, m) : '',
     incCount: inc?.count ?? '',
     incTeam: inc?.team ?? '',
     incLimit: inc?.limit ?? '',

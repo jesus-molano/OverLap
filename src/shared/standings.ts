@@ -22,7 +22,7 @@ import {
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { isReplayPlaying } from './simScreen'
 import type { TelemetryFrame } from './telemetry'
-import { tyreCompoundOf, tyreModelOf, type TyreModel } from './tyres'
+import { tyreCompoundOf, tyreModelOf, tyresVary, type TyreModel } from './tyres'
 import type {
   DriverEntry,
   GapValue,
@@ -70,6 +70,8 @@ interface ClassGroup {
   cars: Entry[]
   /** Fastest best lap of the class, null when nobody has one. */
   classBest: number | null
+  /** Registered entries of the class (SessionMeta.drivers), loaded or not. */
+  entries: number
 }
 
 function byClassPosition(a: Entry, b: Entry): number {
@@ -79,14 +81,55 @@ function byClassPosition(a: Entry, b: Entry): number {
   return pa - pb || a.car.carIdx - b.car.carIdx
 }
 
-function groupByClass(frame: TelemetryFrame, session: SessionMeta, race: RaceView): ClassGroup[] {
+function isEntry(driver: DriverEntry | undefined, session: SessionMeta): driver is DriverEntry {
+  return (
+    driver !== undefined &&
+    !driver.isPaceCar &&
+    !driver.isSpectator &&
+    driver.carIdx !== session.paceCarIdx
+  )
+}
+
+/**
+ * An entry on the grid the model has not seen yet (still loading before the green): its
+ * slot and nothing else, so the grid shows whole and in its real order.
+ */
+function absentCar(carIdx: number, classPosition: number, position: number): RaceCarState {
+  return {
+    carIdx,
+    distance: NaN,
+    classPosition,
+    overallPosition: position,
+    inWorld: false,
+    inPits: false,
+    offTrack: false,
+    disconnected: false,
+    finished: false,
+    pitStops: 0,
+    towStops: 0,
+    towed: false,
+    lastPitLap: null,
+    outLap: false,
+    stintLaps: 0,
+    lastLapTime: null,
+    bestLapTime: null,
+    laps: [],
+    pace: null,
+    speed: 0,
+    stoppedForS: 0,
+    sessionFlags: 0
+  }
+}
+
+function groupByClass(
+  frame: TelemetryFrame,
+  session: SessionMeta,
+  race: RaceView,
+  preGreen: boolean
+): ClassGroup[] {
   const byId = new Map<number, ClassGroup>()
   const officialLast = frame.CarIdxLastLapTime
-  for (const car of race.cars()) {
-    const driver = session.drivers.get(car.carIdx)
-    if (!driver || driver.isPaceCar || driver.isSpectator || car.carIdx === session.paceCarIdx) {
-      continue
-    }
+  const group = (driver: DriverEntry): ClassGroup => {
     let g = byId.get(driver.classId)
     if (!g) {
       g = {
@@ -95,13 +138,31 @@ function groupByClass(frame: TelemetryFrame, session: SessionMeta, race: RaceVie
         color: driver.classColor,
         relSpeed: driver.classRelSpeed,
         cars: [],
-        classBest: null
+        classBest: null,
+        entries: 0
       }
       byId.set(driver.classId, g)
     } else {
       if (g.name === '') g.name = driver.classShortName
       if (driver.classRelSpeed > g.relSpeed) g.relSpeed = driver.classRelSpeed
     }
+    return g
+  }
+  for (const driver of session.drivers.values()) {
+    if (!isEntry(driver, session)) continue
+    const g = group(driver)
+    g.entries++
+    // Before the green, the whole grid: entries still loading at their slot.
+    const slot = preGreen && !race.car(driver.carIdx) ? session.grid.get(driver.carIdx) : undefined
+    if (slot) {
+      const car = absentCar(driver.carIdx, slot.classPosition, slot.position)
+      g.cars.push({ car, driver, lastLap: null, bestLap: null })
+    }
+  }
+  for (const car of race.cars()) {
+    const driver = session.drivers.get(car.carIdx)
+    if (!isEntry(driver, session)) continue
+    const g = group(driver)
     // The sim's own last lap (ms resolution, same source as CarIdxBestLapTime) when it has one;
     // a finisher's stays frozen at its finishing lap (the model's), whatever the cool-down does.
     const lastLap = car.finished
@@ -111,8 +172,9 @@ function groupByClass(frame: TelemetryFrame, session: SessionMeta, race: RaceVie
     if (bestLap !== null && (g.classBest === null || bestLap < g.classBest)) g.classBest = bestLap
     g.cars.push({ car, driver, lastLap, bestLap })
   }
-  const groups = [...byId.values()]
-  // A class with no name stays '': the widget words it in the window's language ('Clase 30').
+  // Only classes with a car to show; a class with no name stays '': the widget words it in
+  // the window's language ('Clase 30').
+  const groups = [...byId.values()].filter((g) => g.cars.length > 0)
   for (const g of groups) g.cars.sort(byClassPosition)
   return groups
 }
@@ -187,6 +249,8 @@ interface RowContext {
   pitHistory: boolean
   deltas: ReadonlyMap<number, number> | null
   tyreModel: TyreModel
+  /** The tyre column has something to say (tyresVary): otherwise every row's tyre is null. */
+  tyres: boolean
 }
 
 function makeRow(
@@ -216,7 +280,8 @@ function makeRow(
     }
   }
   let positionsGained: number | null = null
-  if (ctx.isRace && cp > 0) {
+  // Before the green everyone is on their grid slot: nothing gained yet.
+  if (ctx.isRace && ctx.race.racing && cp > 0) {
     const grid = ctx.session.grid.get(car.carIdx)
     if (grid && grid.classPosition > 0) positionsGained = grid.classPosition - cp
   }
@@ -236,8 +301,9 @@ function makeRow(
     pitStops: ctx.pitHistory ? car.pitStops : null,
     lastPitLap: ctx.pitHistory ? car.lastPitLap : null,
     outLap: car.outLap,
+    towed: car.towed,
     stintLaps: needs.stint && ctx.pitHistory ? car.stintLaps : null,
-    tyre: needs.tyre ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
+    tyre: ctx.tyres ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
     penalty: penaltyOf(car.sessionFlags),
     iRatingDelta: delta,
@@ -266,7 +332,8 @@ function blockRows(
   const topEnd = Math.min(n, topRows)
   for (let i = 0; i < topEnd; i++) rows.push(makeRow(ctx, g, i, false))
   let prev = topEnd - 1
-  const pi = g.cars.findIndex((e) => e.car.carIdx === ctx.playerIdx && e.car.classPosition > 0)
+  // Your rows stay anchored on you, also unclassified (no lap time yet in qualifying).
+  const pi = g.cars.findIndex((e) => e.car.carIdx === ctx.playerIdx)
   if (pi >= 0) {
     const to = Math.min(n - 1, pi + aroundRows)
     for (let i = Math.max(topEnd, pi - aroundRows); i <= to; i++) {
@@ -318,9 +385,11 @@ export class StandingsProvider {
     // The SR line and the incident count are your own: never shown for a car a replay follows.
     const ownCar = playerIdx === resolvePlayerCarIdx(frame, session)
 
-    const groups = groupByClass(frame, session, race)
+    // Before the green the table is the grid, entries still loading included (their slots).
+    const preGreen = isRace && !race.racing
+    const groups = groupByClass(frame, session, race, preGreen)
     const playerGroup =
-      race.car(playerIdx) && playerDriver
+      playerDriver && (race.car(playerIdx) || (preGreen && session.grid.has(playerIdx)))
         ? groups.find((g) => g.classId === playerDriver.classId)
         : undefined
     groups.sort(
@@ -339,6 +408,8 @@ export class StandingsProvider {
       tyre: columnShown(opts, 'tyre')
     }
     const tyreModel = tyreModelOf(session)
+    // A column of the same compound on every row says nothing: none until one differs.
+    const tyres = needs.tyre && tyresVary(frame, session, tyreModel)
     const pitHistory = !isReplayPlaying(frame)
     // Only rated races change iRating; the player's own row and the header need the deltas.
     const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
@@ -357,7 +428,8 @@ export class StandingsProvider {
       const leaderPos = g.cars[0]?.car.classPosition ?? 0
       if (compact && !isPrimary && (!opts.otherClassLeaders || leaderPos <= 0)) continue
       const classDeltas = withDeltas && (g === playerGroup || needs.allDeltas)
-      const field = classRatingField(session, race, g.classId)
+      // Before the green, the grid is the field: everyone on it a starter.
+      const field = classRatingField(session, race, g.classId, preGreen)
       const ratings = this.ratings.get(g.classId, field, playerIdx, classDeltas)
       if (g === playerGroup) iRating = ratings.player
       const ctx: RowContext = {
@@ -369,7 +441,8 @@ export class StandingsProvider {
         needs,
         pitHistory,
         deltas: ratings.deltas,
-        tyreModel
+        tyreModel,
+        tyres
       }
       const mode = !compact ? 'full' : isPrimary ? 'window' : 'leader'
       classes.push({
@@ -377,7 +450,8 @@ export class StandingsProvider {
         className: g.name,
         classColor: g.color,
         sof: ratings.sof,
-        carCount: g.cars.length,
+        // The registered entries ('11 coches'), not only the cars loaded so far.
+        carCount: g.entries,
         isPlayerClass: g === playerGroup,
         rows: blockRows(ctx, g, mode, topRows, aroundRows)
       })

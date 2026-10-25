@@ -158,10 +158,22 @@ describe('RaceModel lap profiles', () => {
     const green = sim.t
     const cars = (t: number): Cars => ({ 0: { d: 0.98 + V * (t - green) } })
     sim.run(32, 60, cars) // 1.0 and 2.0 (lap 2: the first racing lap)
-    expect(profileOf(sim.view, 0, 'last')).toMatchObject({ lap: 2, clean: false })
+    // Timed from the green, as iRacing does: its lines only span the part from the line.
+    expect(sim.view.lapProfile(0, 'last')).toBeNull()
     expect(sim.view.lapProfile(0, 'best')).toBeNull()
     sim.run(30, 60, cars) // 3.0
     expect(profileOf(sim.view, 0, 'best')).toMatchObject({ lap: 3, clean: true })
+  })
+
+  it('profiles the first racing lap of a rolling start, never as the best', () => {
+    const sim = new Sim(makeSession(1), { state: SessionState.ParadeLaps })
+    const cars = (t: number): Cars => ({ 0: { d: 0.85 + V * t } })
+    sim.run(3, 60, cars)
+    sim.state = SessionState.Racing
+    sim.run(32, 60, cars) // 1.0 at t = 4.5, 2.0 at t = 34.5
+    expect(profileOf(sim.view, 0, 'last')).toMatchObject({ lap: 2, clean: false })
+    expect(profileOf(sim.view, 0, 'last').lapTime).toBeCloseTo(LAP_S, 2)
+    expect(sim.view.lapProfile(0, 'best')).toBeNull()
   })
 
   it('ends the profile on the official lap time once iRacing confirms it', () => {

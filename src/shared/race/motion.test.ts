@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { TrackLocation } from '../telemetry'
+import type { SessionMeta } from '../types'
 import { STOP_FRACTION } from './motion'
 import { LAP_S, PRACTICE, Sim, V, car, makeDriver, makeSession } from './testing/raceSim'
 import type { Cars } from './testing/raceSim'
@@ -64,23 +65,40 @@ describe('RaceModel pace', () => {
     expect(car(sim.view, 0).pace).toBeCloseTo((30 + 37.5) / 2, 1)
   })
 
-  it('falls back to the class estimate, then the best lap, else null', () => {
+  it('falls back to the best lap, the qualifying bests, then the class estimate, else null', () => {
     const noEst = makeSession(1, {}, [makeDriver(0, { classEstLapTime: 0 })])
     const sim = new Sim(noEst, { sessionNum: PRACTICE })
     const cars = (t: number): Cars => ({ 0: { d: 0.5 + V * t } })
     sim.run(2, 60, cars)
     expect(car(sim.view, 0).pace).toBeNull()
+
+    // A new SessionMeta applies also while the car is out of the world. CarClassEstLapTime is
+    // only the last resort: often seconds faster than anyone laps (Lime Rock MX-5: 56.8 s for
+    // 61-64 s laps).
+    sim.run(1, 60, () => ({}))
+    sim.session = makeSession(1, {}, [makeDriver(0, { classEstLapTime: 28 })])
+    sim.run(1, 60, () => ({}))
+    expect(car(sim.view, 0).inWorld).toBe(false)
+    expect(car(sim.view, 0).pace).toBe(28)
+
+    // Its class's fastest qualifying time, then its own one (QualifyResultsInfo FastestTime).
+    const drivers = [0, 1].map((i) => makeDriver(i, { classEstLapTime: 28 }))
+    const grid = (own: number | null): SessionMeta['grid'] =>
+      new Map([
+        [0, { position: 2, classPosition: 2, bestLap: own }],
+        [1, { position: 1, classPosition: 1, bestLap: 31.2 }]
+      ])
+    sim.session = makeSession(2, { grid: grid(null) }, drivers)
+    sim.run(1, 60, cars)
+    expect(car(sim.view, 0).pace).toBe(31.2)
+    sim.session = makeSession(2, { grid: grid(31.9) }, drivers)
+    sim.run(1, 60, cars)
+    expect(car(sim.view, 0).pace).toBe(31.9)
+
+    // This session's best lap first.
     sim.frame.CarIdxBestLapTime[0] = 33
     sim.run(1, 60, cars)
     expect(car(sim.view, 0).pace).toBe(33)
-
-    // A new SessionMeta with the estimate applies also while the car is out of the world.
-    sim.frame.CarIdxBestLapTime[0] = -1
-    sim.run(1, 60, () => ({}))
-    sim.session = makeSession(1, {}, [makeDriver(0, { classEstLapTime: 50 })])
-    sim.run(1, 60, () => ({}))
-    expect(car(sim.view, 0).inWorld).toBe(false)
-    expect(car(sim.view, 0).pace).toBe(50)
   })
 })
 

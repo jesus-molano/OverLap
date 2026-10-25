@@ -175,4 +175,32 @@ describe('RaceModel race finish', () => {
     expect(car(sim.view, 0).finished).toBe(false)
     expect(car(sim.view, 0).laps.map((l) => l.lap)).toEqual([3, 2])
   })
+
+  // Lime Rock: a car retired after 2 laps showed "+9L" behind a 12-lap winner; iRacing
+  // classified it 10 laps down.
+  it('counts a retired car down by the laps it completed once the winner finished (B19)', () => {
+    const sim = new Sim(makeSession(4))
+    const cars = (t: number): Cars => ({
+      0: { d: 11.6 + V * t },
+      // Out of the world for good at 2.017 laps.
+      1: t < 1 ? { d: 2.017 } : null,
+      // Parked in its box at 1.011 laps (it will not cross the line again).
+      2: { d: 1.011, pit: true },
+      // Still running, on its last lap: finishes on the lead lap.
+      3: { d: 11.3 + V * t }
+    })
+    sim.run(5, 60, cars)
+    expect(sim.view.lapsBehind(1, 0)).toBe(9)
+    sim.state = SessionState.Checkered
+    sim.run(10, 60, cars) // car 0 takes the flag at 12.0 (t = 12)
+    expect(car(sim.view, 0).finished).toBe(true)
+    expect(sim.view.lapsBehind(1, 0)).toBe(10)
+    expect(sim.view.lapsBehind(3, 0)).toBe(0)
+    // Parked but in the world: it could still leave until the race is over.
+    expect(sim.view.lapsBehind(2, 0)).toBe(10)
+    sim.state = SessionState.CoolDown
+    sim.run(1, 60, cars)
+    expect(sim.view.lapsBehind(2, 0)).toBe(11)
+    expect(sim.view.lapsBehind(1, 0)).toBe(10)
+  })
 })

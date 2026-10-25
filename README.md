@@ -245,6 +245,9 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - 3 coches delante y 3 detrás por defecto (`relative.carsAhead` / `carsBehind`); si faltan coches se
   rellena con filas vacías para que tu fila quede centrada.
 - Cada fila incluye posición en clase, número, nombre, licencia, iRating y gap.
+- **Posición**: la misma que la Clasificación (la del modelo de carrera, no `CarIdxClassPosition`,
+  que iRacing solo actualiza en meta). La de parrilla solo en carrera antes de la verde; fuera de
+  carrera, sin tiempo no hay posición.
 - **Gap**: a partir de `CarIdxEstTime`, normalizado a la clase del jugador y corregido en el cruce de
   meta con el `CarClassEstLapTime` de tu clase.
 - **Signo** como irDashies: positivo = delante en pista, negativo = detrás.
@@ -252,6 +255,24 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - **Rojo**: coche con vuelta(s) de más que te va a doblar. **Azul**: coche doblado. Solo en carrera.
 - Atenuados los coches en boxes (pit road o puesto).
 - Excluye pace car, espectadores y coches fuera del mundo.
+
+### Clasificación: parrilla, huecos y lo que queda
+
+- **Antes de la verde**: la parrilla entera (`QualifyResultsInfo`), también los coches que aún
+  cargan; sin puestos ganados, iRating proyectado con todos de salida y «N coches» = inscritos.
+  Reloj, vueltas y margen de SR con la duración programada, no con la cuenta atrás de parrilla.
+- **Ritmo** antes de la primera vuelta limpia: tu mejor vuelta, luego los tiempos de clasificación
+  (tuyo o el mejor de tu clase); `CarClassEstLapTime` solo como último recurso.
+- **Grúa o reset**: el hueco se mide desde donde queda el coche (nunca un «+0.0» falso); sale
+  **GRÚA** en boxes y no cuenta como parada, y la vuelta que iRacing le acredita en el box no suma
+  al stint. Si no se sabe el intervalo y la columna de hueco al líder ya lo dice, «—» (no «+1L» dos
+  veces).
+- **Vuelta 1** de una salida parada: cronometrada desde la verde, como iRacing.
+- **Al final**: un retirado queda a (vueltas del ganador − las suyas); la cabecera dice «Última
+  vuelta» hasta que tú cruzas la meta y entonces «Final».
+- **Clasificación y práctica**: sin tiempo no hay puesto ni «LÍDER», y tu ventana sigue anclada en
+  ti. Las vueltas que quedan no suben al salir del coche; con límite de vueltas y de tiempo, también
+  sale el reloj.
 
 ### Clasificación y relativo: mejor vuelta, stint, neumático y banderas
 
@@ -266,6 +287,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   la última parada y el stint salen vacíos: el modelo de la repetición no vio las paradas de antes.
 - **Neumático** (`tyre`): la letra del compuesto (`CarIdxTireCompound` + `DriverTires` del YAML,
   H = duro, W = lluvia). iRacing solo nombra los compuestos de tu modelo de coche: el resto sale «—».
+  La columna solo aparece cuando alguien no lleva el compuesto habitual (el 0): una «H» en todas
+  las filas no dice nada.
 - Las tres van ocultas por defecto, al final de la lista de columnas, y son las primeras en
   esconderse si la ventana se estrecha (luego la mejor vuelta).
 - **Banderas** tras el nombre: negra, reparación (meatball) y aviso (negra enrollada, dibujada como
