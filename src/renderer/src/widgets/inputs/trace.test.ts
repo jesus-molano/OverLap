@@ -6,14 +6,19 @@ import {
   CH_CLUTCH,
   CH_THROTTLE,
   MAX_SEGMENT_S,
+  PHASE_STEPS,
   SampleRing,
   TRACE_PAD_CSS,
   clampTraceSeconds,
   clampTraceWidth,
   drawTraceFull,
   drawTraceStep,
+  phaseOffsetCss,
+  phaseStep,
+  phaseTransforms,
   ringCapacity,
   sampleX,
+  scrollPhase,
   scrollShift,
   traceGeometry,
   valueY,
@@ -224,6 +229,121 @@ describe('geometry', () => {
     expect(tiny.height).toBe(1)
     expect(Number.isFinite(tiny.pxPerS)).toBe(true)
     expect(tiny.bottom).toBeGreaterThanOrEqual(tiny.top)
+  })
+})
+
+describe('sub-pixel scroll phase', () => {
+  const DPRS = [1, 1.25, 1.5, 2]
+  /** Largest on-screen error (device px) of a phase rounded to whole steps. */
+  const HALF_STEP = 0.5 / PHASE_STEPS + 1e-9
+
+  it('is 0 while empty or with one sample, else the rest of the head', () => {
+    const g = traceGeometry(280, 90, 1, 5, 2)
+    const r = new SampleRing(10)
+    expect(scrollPhase(g, r)).toBe(0)
+    r.push(12, 0, 0, 0, false)
+    expect(scrollPhase(g, r)).toBe(0)
+    r.push(12 + DT, 0, 0, 0, false)
+    const head = DT * g.pxPerS
+    expect(scrollPhase(g, r)).toBeCloseTo(head - Math.floor(head), 9)
+    expect(sampleX(g, r, 0) - scrollPhase(g, r)).toBeCloseTo(g.right, 9)
+  })
+
+  it('moved back by the phase, the newest point is at right and older ones at their exact distance', () => {
+    for (const dpr of DPRS) {
+      const g = traceGeometry(280, 90, dpr, 5, 2)
+      const r = new SampleRing(1000)
+      let t = 20
+      for (let i = 0; i < 300; i++) {
+        r.push((t += i % 7 === 0 ? 2 * DT : DT), 0, 0, 0, false)
+        const p = scrollPhase(g, r)
+        expect(p).toBeGreaterThanOrEqual(0)
+        expect(p).toBeLessThan(1)
+        expect(sampleX(g, r, 0) - p).toBeCloseTo(g.right, 9)
+        // The translation actually written (whole steps, CSS px) is as good to half a step.
+        const shown = sampleX(g, r, 0) + phaseOffsetCss(p, dpr) * dpr
+        expect(Math.abs(shown - g.right)).toBeLessThanOrEqual(HALF_STEP)
+        if (r.length > 5) {
+          const exact = g.right - (r.timeAt(0) - r.timeAt(5)) * g.pxPerS
+          expect(sampleX(g, r, 5) - p).toBeCloseTo(exact, 9)
+        }
+      }
+    }
+  })
+
+  it('content blitted on earlier samples moves its exact distance per sample on screen', () => {
+    // ~0.97 px per sample: the whole-pixel blits alone move it 1 px on most samples, 0 on some.
+    const g = traceGeometry(300, 90, 1.25, 5, 2)
+    const r = new SampleRing(2000)
+    let t = 50
+    for (let i = 0; i < 77; i++) r.push((t += DT), 0, 0, 0, false)
+    const t0 = r.timeAt(0)
+    const drawnAt = sampleX(g, r, 0) // on the canvas, when it was the newest point
+    let shifted = 0
+    let prevShown = drawnAt - scrollPhase(g, r)
+    const shifts = new Set<number>()
+    for (let i = 0; i < 150; i++) {
+      r.push((t += DT), 0, 0, 0, false)
+      const shift = scrollShift(g, r)
+      shifts.add(shift)
+      shifted += shift
+      const shown = drawnAt - shifted - scrollPhase(g, r)
+      expect(shown).toBeCloseTo(g.right - (r.timeAt(0) - t0) * g.pxPerS, 6)
+      expect(prevShown - shown).toBeCloseTo(DT * g.pxPerS, 6)
+      prevShown = shown
+    }
+    expect([...shifts].sort((a, b) => a - b)).toEqual([0, 1])
+  })
+
+  it('phase -> CSS px: -phase / dpr in whole steps', () => {
+    const exact: [number, number, number][] = [
+      // dpr, phase, CSS px
+      [1, 0.5, -0.5],
+      [1, 0.25, -0.25],
+      [1.25, 0.5, -0.4],
+      [1.25, 0.75, -0.6],
+      [1.5, 0.75, -0.5],
+      [1.5, 0.375, -0.25],
+      [2, 0.5, -0.25],
+      [2, 0.125, -0.0625]
+    ]
+    for (const [dpr, phase, css] of exact) expect(phaseOffsetCss(phase, dpr)).toBeCloseTo(css, 12)
+    for (const dpr of DPRS) {
+      expect(phaseOffsetCss(0, dpr)).toBe(0)
+      // Just under a whole pixel rounds to a whole one: the same place as phase 0, one px left.
+      expect(phaseOffsetCss(0.999, dpr)).toBeCloseTo(-1 / dpr, 12)
+      for (let p = 0; p < 1; p += 0.0137) {
+        const css = phaseOffsetCss(p, dpr)
+        expect(css).toBeLessThanOrEqual(0)
+        expect(Math.abs(css * dpr + p)).toBeLessThanOrEqual(HALF_STEP)
+      }
+    }
+  })
+
+  it('anything invalid reads as no translation (phase) or dpr 1', () => {
+    for (const p of [NaN, -0.2, 1, 7, Infinity]) {
+      expect(phaseStep(p)).toBe(0)
+      expect(phaseOffsetCss(p, 1.5)).toBe(0)
+    }
+    expect(phaseStep(0.5 / PHASE_STEPS - 1e-6)).toBe(0)
+    expect(phaseStep(0.5)).toBe(PHASE_STEPS / 2)
+    expect(phaseOffsetCss(0.5, 0)).toBe(-0.5)
+    expect(phaseOffsetCss(0.5, NaN)).toBe(-0.5)
+  })
+
+  it('phaseTransforms: one string per step, none at 0', () => {
+    for (const dpr of DPRS) {
+      const table = phaseTransforms(dpr)
+      expect(table).toHaveLength(PHASE_STEPS + 1)
+      expect(table[0]).toBe('none')
+      expect(new Set(table).size).toBe(table.length)
+      for (let s = 1; s <= PHASE_STEPS; s++) {
+        const css = Number(/^translateX\((.+)px\)$/.exec(table[s] ?? '')?.[1])
+        expect(css).toBeCloseTo(-s / PHASE_STEPS / dpr, 12)
+      }
+    }
+    expect(phaseTransforms(1.25)[PHASE_STEPS / 2]).toBe('translateX(-0.4px)')
+    expect(phaseTransforms(2)[PHASE_STEPS]).toBe('translateX(-0.5px)')
   })
 })
 

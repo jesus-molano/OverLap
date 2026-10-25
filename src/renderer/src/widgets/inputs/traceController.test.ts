@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { PREVIEW_READOUT } from './readout'
 import { recorder } from './testing/recorder'
-import { CH_THROTTLE, MAX_SEGMENT_S, ringCapacity, sampleX, traceGeometry } from './trace'
+import {
+  CH_THROTTLE,
+  MAX_SEGMENT_S,
+  PHASE_STEPS,
+  phaseStep,
+  phaseTransforms,
+  ringCapacity,
+  sampleX,
+  scrollPhase,
+  traceGeometry
+} from './trace'
 import {
   TraceController,
   type TraceCanvas,
@@ -22,20 +32,37 @@ function sample(t: number, throttle = 0.5, brake = 0): TraceSample {
   return { t, throttle, brake, clutch: 0, abs: false }
 }
 
-function fakeCanvas(): TraceCanvas {
-  return { width: 300, height: 150 } as TraceCanvas
+/** A canvas stand-in; `writes` records every transform written to its inline style. */
+function fakeCanvas(): TraceCanvas & { writes: string[] } {
+  const writes: string[] = []
+  let transform = ''
+  const style = {
+    get transform(): string {
+      return transform
+    },
+    set transform(v: string) {
+      transform = v
+      writes.push(v)
+    }
+  }
+  return { width: 300, height: 150, style, writes } as unknown as TraceCanvas & {
+    writes: string[]
+  }
 }
 
-function setup(settings = SETTINGS): {
+function setup(
+  settings = SETTINGS,
+  dpr = 1
+): {
   trace: TraceController
   rec: ReturnType<typeof recorder>
-  canvas: TraceCanvas
+  canvas: ReturnType<typeof fakeCanvas>
 } {
   const trace = new TraceController(60, settings)
   const rec = recorder()
   const canvas = fakeCanvas()
   trace.attach(canvas, rec.ctx)
-  trace.resize(400, 100, 1)
+  trace.resize(400, 100, dpr)
   rec.reset()
   return { trace, rec, canvas }
 }
@@ -173,5 +200,116 @@ describe('TraceController', () => {
     expect(next.height).toBe(100)
     expect(fullRedraws(rec.calls)).toBe(1)
     expect(trace.samples.length).toBe(3)
+  })
+})
+
+describe('TraceController: sub-pixel phase translation', () => {
+  /** The translation (CSS px) a transform string stands for. */
+  const cssOf = (transform: string): number =>
+    transform === 'none' ? 0 : Number(/^translateX\((.+)px\)$/.exec(transform)?.[1])
+
+  /** Live samples with irregular arrivals; returns the time of the last one. */
+  function drive(trace: TraceController, from: number, n: number): number {
+    let t = from
+    for (let i = 0; i < n; i++) trace.push(sample((t += i % 9 === 0 ? 2 * DT : DT), (i % 10) / 10))
+    return t
+  }
+
+  for (const dpr of [1, 1.25, 1.5, 2]) {
+    it(`dpr ${dpr}: the newest sample shows at right; the transform is written once per change`, () => {
+      const { trace, canvas } = setup(SETTINGS, dpr)
+      const g = traceGeometry(400, 100, dpr, SETTINGS.seconds, SETTINGS.lineCss)
+      const table = phaseTransforms(dpr)
+      expect(canvas.style.transform).toBe('none') // drawn empty on resize: no phase
+      canvas.writes.length = 0
+      let last = canvas.style.transform
+      let changes = 0
+      let t = 10
+      for (let i = 0; i < 240; i++) {
+        trace.push(sample((t += i % 9 === 0 ? 2 * DT : DT), (i % 10) / 10))
+        const ring = trace.samples
+        const want = table[phaseStep(scrollPhase(g, ring))]
+        expect(canvas.style.transform).toBe(want)
+        // On screen (device px): drawn at sampleX, moved by the translation.
+        const shown = sampleX(g, ring, 0) + cssOf(canvas.style.transform) * dpr
+        expect(Math.abs(shown - g.right)).toBeLessThanOrEqual(0.5 / PHASE_STEPS + 1e-9)
+        if (want !== last) changes++
+        last = want ?? last
+      }
+      expect(canvas.writes).toHaveLength(changes)
+      expect(changes).toBeGreaterThan(100)
+    })
+  }
+
+  it('a paused sim writes nothing; a pedal moved while paused keeps the translation', () => {
+    const { trace, canvas } = setup()
+    const t = drive(trace, 10, 7)
+    const before = canvas.style.transform
+    expect(before).not.toBe('none')
+    canvas.writes.length = 0
+    for (let i = 0; i < 100; i++) trace.push(sample(t, 0.6))
+    trace.push(sample(t, 0.95)) // full redraw, same phase
+    expect(canvas.writes).toEqual([])
+    expect(canvas.style.transform).toBe(before)
+  })
+
+  it('a reset or a restart (time back, long gap) goes back to no translation', () => {
+    const { trace, canvas } = setup()
+    drive(trace, 10, 7)
+    expect(canvas.style.transform).not.toBe('none')
+    trace.reset()
+    trace.push(sample(50))
+    expect(canvas.style.transform).toBe('none')
+    drive(trace, 50, 7)
+    expect(canvas.style.transform).not.toBe('none')
+    trace.push(sample(3)) // new session
+    expect(canvas.style.transform).toBe('none')
+    const t = drive(trace, 3, 7)
+    expect(canvas.style.transform).not.toBe('none')
+    trace.push(sample(t + 60)) // gap longer than the plot
+    expect(canvas.style.transform).toBe('none')
+  })
+
+  it('the preview is never translated, also when resized or restyled', () => {
+    const { trace, canvas } = setup()
+    drive(trace, 10, 7)
+    expect(canvas.style.transform).not.toBe('none')
+    trace.preview()
+    expect(canvas.style.transform).toBe('none')
+    canvas.writes.length = 0
+    trace.resize(357, 100, 1.5)
+    trace.configure({ ...SETTINGS, seconds: 7, lineCss: 3 })
+    trace.preview()
+    expect(canvas.writes).toEqual([])
+    // Back in the car: live again.
+    trace.reset()
+    drive(trace, 10, 7)
+    expect(canvas.style.transform).not.toBe('none')
+  })
+
+  it('a new dpr or geometry recomputes the translation', () => {
+    const { trace, canvas } = setup()
+    drive(trace, 10, 7)
+    trace.resize(400, 100, 2)
+    const g = traceGeometry(400, 100, 2, SETTINGS.seconds, SETTINGS.lineCss)
+    expect(canvas.style.transform).toBe(
+      phaseTransforms(2)[phaseStep(scrollPhase(g, trace.samples))]
+    )
+    trace.configure({ ...SETTINGS, seconds: 7 })
+    const g7 = traceGeometry(400, 100, 2, 7, SETTINGS.lineCss)
+    expect(canvas.style.transform).toBe(
+      phaseTransforms(2)[phaseStep(scrollPhase(g7, trace.samples))]
+    )
+  })
+
+  it('a re-created canvas gets the translation with its first draw', () => {
+    const { trace, canvas } = setup()
+    drive(trace, 10, 7)
+    const shown = canvas.style.transform
+    expect(shown).not.toBe('none')
+    trace.attach(null, null)
+    const next = fakeCanvas()
+    trace.attach(next, recorder().ctx)
+    expect(next.writes).toEqual([shown])
   })
 })

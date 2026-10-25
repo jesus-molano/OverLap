@@ -330,12 +330,20 @@ watch(
   );
 }
 
+/*
+ * Own compositor layer: the controller translates it left by the sub-pixel scroll phase
+ * (under 1 device px) after each draw, a transform change with no repaint. The strip that
+ * slides past the left edge is clipped by the plot (contain: strict); the one it uncovers on
+ * the right is inside the canvas's empty right margin (traceGeometry `right`), so no line is
+ * cut and no edge shows a gap.
+ */
 .trace {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  will-change: transform;
 }
 
 .plot__tag {

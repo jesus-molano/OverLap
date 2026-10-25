@@ -164,7 +164,10 @@ export function edgeOpacity(distM: number, rangeM: number): number {
 export interface CarMark {
   /** carIdx, or 'p' + lane for phantom cars (suffixed if a lane repeats). */
   key: string
-  /** SVG transform placing the car centre. */
+  /** Car centre (SVG units, rounded like the transform): its lane's x, its distance's y. */
+  x: number
+  y: number
+  /** SVG transform placing the car centre: markTransform(x, y). */
   transform: string
   /** Proximity colour step, 0 (far) to PROX_BUCKETS - 1 (touching): see BUCKET_CLASSES. */
   bucket: number
@@ -195,9 +198,17 @@ const EXACT: MarkPrecision = Object.freeze({ pos: 100, opacity: 0 })
  */
 export const WIDGET_PRECISION: MarkPrecision = Object.freeze({ pos: 10, opacity: 50 })
 
-// Integer steps divide back exactly: 0.1, not 0.30000000000000004.
-const roundSteps = (v: number, steps: number): number =>
+/**
+ * `v` in steps of 1 / `steps` (0 = exact). Integer steps divide back exactly: 0.1, not
+ * 0.30000000000000004.
+ */
+export const roundSteps = (v: number, steps: number): number =>
   steps > 0 ? Math.round(v * steps) / steps : v
+
+/** SVG transform of a car centred on (x, y). */
+export function markTransform(x: number, y: number): string {
+  return `translate(${x} ${y})`
+}
 
 /**
  * Cars to draw, closest last so they paint on top; fully faded ones are left out.
@@ -224,7 +235,9 @@ export function toCarMarks(
     const y = roundSteps(distToY(car.distM, rangeM), precision.pos)
     marks.push({
       key,
-      transform: `translate(${x} ${y})`,
+      x,
+      y,
+      transform: markTransform(x, y),
       bucket: proximityBucket(car.proximity, car.overlapping),
       classColor: car.classColor,
       overlapping: car.overlapping,
@@ -234,7 +247,7 @@ export function toCarMarks(
   return marks.length > 0 ? marks : NO_MARKS
 }
 
-/** True when both lists draw exactly the same thing, in the same order. */
+/** True when both lists draw exactly the same thing, in the same order (x, y: see transform). */
 export function sameMarks(a: readonly CarMark[], b: readonly CarMark[]): boolean {
   if (a === b) return true
   if (a.length !== b.length) return false
