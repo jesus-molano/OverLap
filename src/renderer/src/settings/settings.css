@@ -1,8 +1,9 @@
 /*
  * Settings window (?view=settings; main.ts tags <html> with .ov-settings). theme.css is tuned for
  * transparent overlay windows that never scroll; this turns the page back into an ordinary,
- * opaque, scrollable one and holds the controls shared by the settings components. Every rule is
- * scoped to .ov-settings so nothing can leak into a widget window.
+ * opaque one whose options scroll (page frame below) and holds the controls shared by the
+ * settings components. Every rule is scoped to .ov-settings so nothing can leak into a widget
+ * window.
  *
  * Same material as the widgets: graphite surfaces with no blue cast, cards with a lit top edge,
  * captions in the Small face, titles and readouts in the Display face. Every control is drawn
@@ -38,23 +39,19 @@ html.ov-settings {
   --st-lit: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --st-radius: 8px;
   --st-radius-sm: 5px;
+  /* Page column: side padding and the widest it gets. */
+  --st-page-pad: 28px;
+  --st-page-max: 780px;
 
+  /* The document keeps theme.css's full height and never scrolls: each page's options do. */
   color-scheme: dark;
-  height: auto;
-  min-height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  /* The sample's width must not depend on whether the scrollbar shows (it would feed back). */
-  scrollbar-gutter: stable;
   background: var(--st-bg);
+  /* Inherited by every scroller (sidebar, options). */
   scrollbar-color: #343a42 transparent;
 }
 
 html.ov-settings body,
 html.ov-settings #app {
-  height: auto;
-  min-height: 100%;
-  overflow: visible;
   background: var(--st-bg);
 }
 
@@ -93,6 +90,56 @@ html.ov-settings .st-sr-only {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* ---- Page frame ---------------------------------------------------------- */
+
+/*
+ * The main column is a stack of bands: top bar and banners, the page header with its live
+ * preview, and the options, the only one that scrolls. Every band reserves the scrollbar's
+ * gutter at the window edge, so they all have the options' width whether or not the options
+ * scroll: the preview's width (and so its scale and height) never depends on that scrollbar,
+ * which would feed back. Overflow is clipped, never scrolled, in the fixed bands. Positioned,
+ * so absolutely placed content (live regions) scrolls and clips with its band.
+ */
+html.ov-settings .st-band {
+  position: relative;
+  flex: none;
+  min-width: 0;
+  padding-inline: var(--st-page-pad);
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+html.ov-settings .st-band > * {
+  max-width: var(--st-page-max);
+}
+
+/* The options: what is left of the window's height. Focused (Tab), the keys scroll it. */
+html.ov-settings .st-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* A control reached with Tab lands clear of the edges, its focus ring whole. */
+  scroll-padding-block: 12px;
+}
+
+/* Drawn inside: the scroller meets the window's edges. */
+html.ov-settings .st-scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (max-width: 639px) {
+  html.ov-settings {
+    --st-page-pad: 16px;
+  }
+
+  html.ov-settings .st-scroll {
+    padding-bottom: 16px;
+  }
 }
 
 /* ---- Buttons ------------------------------------------------------------ */

@@ -4,20 +4,50 @@
  * panel's background opacity and the text halo read as they would over the game; the preview
  * rows straddle both. Neutral greys only: a green verge or a red kerb behind a row would read
  * as our meaning colours. Painted once.
+ *
+ * The stage stays above the page's scrolling options, so it never takes more than about 40 %
+ * of the window height (--stage-max): a sample taller than that (it already fits the stage
+ * width on its own) is drawn smaller as a whole, centred (stageFit). Only the window height and
+ * the sample's own layout size decide it, never the scale, so nothing feeds back.
  */
+import { computed, useTemplateRef } from 'vue'
+import { useElementSize } from '../../composables/useElementSize'
 import { useI18n } from '../../composables/useI18n'
+import type { InlineStyle } from '../../view/styles'
+import { stageFit } from './stageFit'
 
 /** `caption`: the figure caption (default: the sample-data note in the current language). */
 withDefaults(defineProps<{ caption?: string }>(), { caption: undefined })
 
 const t = useI18n()
+
+/** Height the sample may take: the stage's cap less its padding and border (CSS decides it). */
+const limitSize = useElementSize(useTemplateRef<HTMLElement>('limit'))
+/** The sample's layout size (the scale below is a transform: it does not change it). */
+const sampleSize = useElementSize(useTemplateRef<HTMLElement>('sample'))
+
+const fit = computed(() =>
+  stageFit(sampleSize.value, { w: sampleSize.value.w, h: Math.floor(limitSize.value.h) })
+)
+/** Until the sample is measured it takes its own height. */
+const fitStyle = computed<InlineStyle | undefined>(() =>
+  fit.value.height > 0 ? { height: `${fit.value.height}px` } : undefined
+)
+const sampleStyle = computed<InlineStyle | undefined>(() =>
+  fit.value.scale < 1 ? { transform: `scale(${fit.value.scale})` } : undefined
+)
 </script>
 
 <template>
   <figure class="stage">
     <div class="scene" aria-hidden="true" />
+    <div ref="limit" class="limit" aria-hidden="true" />
     <div class="content">
-      <slot />
+      <div class="fit" :style="fitStyle">
+        <div ref="sample" class="sample" :style="sampleStyle">
+          <slot />
+        </div>
+      </div>
     </div>
     <figcaption class="caption">{{ caption ?? t.settings.sample.caption }}</figcaption>
   </figure>
@@ -25,9 +55,16 @@ const t = useI18n()
 
 <style scoped>
 .stage {
+  --pad-top: 22px;
+  --pad-bottom: 30px;
+  /* A share of the window, never below a usable minimum: the options keep the rest. */
+  --stage-max: max(160px, 40vh);
+
   position: relative;
+  max-height: var(--stage-max);
   margin: 0;
-  overflow: hidden;
+  /* Clipped, never scrollable: the measuring .limit reaches past a short stage. */
+  overflow: clip;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: #30353c;
@@ -53,11 +90,30 @@ const t = useI18n()
     );
 }
 
+/* Measured, never seen: as tall as the sample may be (2 px: the stage's border). */
+.limit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: calc(var(--stage-max) - var(--pad-top) - var(--pad-bottom) - 2px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .content {
+  padding: var(--pad-top) 16px var(--pad-bottom);
+}
+
+/* The space the scaled sample takes; its unscaled layout box must not show past it. */
+.fit {
+  overflow: clip;
+}
+
+.sample {
   display: flex;
   justify-content: center;
-  overflow-x: auto;
-  padding: 22px 16px 30px;
+  transform-origin: 50% 0;
 }
 
 .caption {

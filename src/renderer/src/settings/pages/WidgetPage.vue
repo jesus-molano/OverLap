@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useWidgetSettings } from '../../composables/useWidgetSettings'
 import { resetWidgetBounds, resetWidgetOptions, widgetSetter } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
+import PageFrame from '../layout/PageFrame.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { WIDGET_OPTIONS } from '../options'
 import WidgetSample from '../samples/WidgetSample.vue'
@@ -14,12 +15,16 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
 import WindowSection from './WindowSection.vue'
 
-/** One widget's page: live preview, window, content options and resets. Keyed by the id. */
+/**
+ * One widget's page: live preview (fixed), then the window, content options and resets (they
+ * scroll). Keyed by the id. The default slot closes the scrolling part (the window's foot).
+ */
 const props = defineProps<{ widgetId: WidgetId }>()
 
 const t = useI18n()
 const def = computed(() => WIDGET_DEFS[props.widgetId])
 const title = computed(() => widgetTitle(t.value, props.widgetId))
+const titleId = useId()
 const prefs = useWidgetSettings(props.widgetId)
 const width = useSampleWidth(props.widgetId)
 const size = useWidgetSizeText(props.widgetId)
@@ -37,29 +42,31 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 </script>
 
 <template>
-  <article class="page">
-    <header class="page-head">
-      <div class="page-titles">
-        <h1 class="page-title">{{ title }}</h1>
-        <p class="page-sub">{{ subtitle }}</p>
-      </div>
-      <div class="visible-toggle">
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.widgetPage.visible"
-          :current="prefs.visible"
-          :apply="setVisible"
-        />
-      </div>
-    </header>
+  <PageFrame :labelledby="titleId">
+    <template #top>
+      <header class="page-head">
+        <div class="page-titles">
+          <h1 :id="titleId" class="page-title">{{ title }}</h1>
+          <p class="page-sub">{{ subtitle }}</p>
+        </div>
+        <div class="visible-toggle">
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.widgetPage.visible"
+            :current="prefs.visible"
+            :apply="setVisible"
+          />
+        </div>
+      </header>
 
-    <p v-if="!prefs.visible" class="hidden-note" role="status">
-      {{ t.settings.widgetPage.hiddenNote }}
-    </p>
+      <p v-if="!prefs.visible" class="hidden-note" role="status">
+        {{ t.settings.widgetPage.hiddenNote }}
+      </p>
 
-    <SampleStage class="stage">
-      <WidgetSample :widget-id="widgetId" />
-    </SampleStage>
+      <SampleStage class="stage">
+        <WidgetSample :widget-id="widgetId" />
+      </SampleStage>
+    </template>
 
     <WindowSection :widget-id="widgetId" />
     <component :is="options" v-if="options" />
@@ -78,7 +85,11 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
         :action="resetBounds"
       />
     </footer>
-  </article>
+
+    <template #foot>
+      <slot />
+    </template>
+  </PageFrame>
 </template>
 
 <style scoped>
