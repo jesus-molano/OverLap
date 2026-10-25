@@ -26,7 +26,7 @@ import type { BoundsCommit, OverlayDisplay, OverlayLayout, OverlayPanel } from '
 import { widgetShown } from '@shared/panelGeometry'
 import { rectsEqual } from '@shared/settings'
 import type { Point, Rect, Size } from '@shared/types'
-import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import { PAINT_ORDER, WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useAutoHidden, useOverlayState } from '../composables/useOverlay'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
 import type { PanelHost } from '../composables/widgetContext'
@@ -68,7 +68,7 @@ interface SlotEntry {
 export interface OverlayRegistry extends SlotRegistry {
   /** The window's layout; null until the first. */
   readonly layout: Readonly<ShallowRef<OverlayLayout | null>>
-  /** The widgets this window hosts, WIDGET_IDS order (later ones on top). Same array while equal. */
+  /** The widgets this window hosts, PAINT_ORDER (later ones on top). Same array while equal. */
   readonly widgets: ComputedRef<readonly WidgetId[]>
   readonly env: SlotEnv
   /** Sequence numbers and pending commits of the whole window. */
@@ -94,7 +94,7 @@ export function createSlotRegistry(env: SlotEnv = windowEnv()): OverlayRegistry 
   })
   const widgets = computed<readonly WidgetId[]>((prev) => {
     const panels = layout.value?.panels ?? []
-    const next = WIDGET_IDS.filter((id) => panels.some((p) => p.widget === id))
+    const next = PAINT_ORDER.filter((id) => panels.some((p) => p.widget === id))
     if (prev !== undefined && prev.length === next.length && prev.every((w, i) => w === next[i])) {
       return prev
     }
@@ -119,7 +119,7 @@ export function createSlotRegistry(env: SlotEnv = windowEnv()): OverlayRegistry 
 
   function publish(): void {
     const next: SlotHandle[] = []
-    for (const id of WIDGET_IDS) {
+    for (const id of PAINT_ORDER) {
       const e = entries.get(id)
       if (e !== undefined) next.push(e.handle)
     }
@@ -175,7 +175,10 @@ export interface SlotView {
   readonly host: PanelHost
   /** Inline style of the slot element (position and size, edges on device pixels). */
   readonly style: ComputedRef<InlineStyle>
+  /** The widget is rendered. */
   readonly shown: ComputedRef<boolean>
+  /** The panel is on screen at all: the widget is shown, or it is a ghost in edit mode. */
+  readonly onScreen: ComputedRef<boolean>
   /** The widget component exists: from the first time it is shown, for the slot's whole life. */
   readonly mounted: ComputedRef<boolean>
   /** An edit interaction draws its own rect. */
@@ -231,9 +234,15 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
 
   const autoHeight = computed(() => def.sizeModel === 'auto-height' && prefs.value.autoHeight)
   const locked = computed(() => prefs.value.locked)
+  const ghost = computed(() => panel.value?.ghost === true)
   const shown = computed(() =>
-    widgetShown({ userVisible: true, autoHidden: autoHidden.value.hidden, editing: editMode.value })
+    widgetShown({
+      userVisible: !ghost.value,
+      autoHidden: autoHidden.value.hidden,
+      editing: editMode.value
+    })
   )
+  const onScreen = computed(() => shown.value || (ghost.value && editMode.value))
   // Latched: once true it no longer reads `shown`.
   const mounted = computed<boolean>((prev) => prev === true || shown.value)
   const dragging = computed(() => dragRect.value !== null)
@@ -317,7 +326,8 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
 
   const host: PanelHost = {
     reportHeight(px) {
-      if (disposed || !autoHeight.value) return
+      // A ghost keeps its saved height: its widget, if it exists, is not drawn.
+      if (disposed || !autoHeight.value || ghost.value) return
       const h = sanitizeContentHeight(px)
       if (h !== null) gate.report(h, !shown.value)
     },
@@ -334,9 +344,12 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
 
   // ---- Commits -----------------------------------------------------------
 
-  /** Height to tell main for an auto-height panel; null while an interaction owns the rect. */
+  /**
+   * Height to tell main for an auto-height panel; null while an interaction owns the rect, and
+   * for a ghost (main ignores its fits).
+   */
   const fitToSend = computed(() =>
-    autoHeight.value && dragRect.value === null && pendingRect.value === null
+    autoHeight.value && !ghost.value && dragRect.value === null && pendingRect.value === null
       ? drawn.value.height
       : null
   )
@@ -378,6 +391,7 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
     rect: drawn,
     autoHeight,
     locked,
+    ghost,
     shown,
     autoHidden,
     placement,
@@ -433,7 +447,7 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
     settleWaiters()
   })
 
-  return { handle, host, style, shown, mounted, dragging }
+  return { handle, host, style, shown, onScreen, mounted, dragging }
 }
 
 /**

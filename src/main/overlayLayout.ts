@@ -8,7 +8,7 @@ import type { OverlayDisplay, OverlayLayout, OverlayPanel } from '@shared/ipc'
 import { fitHeight, type Anchor } from '@shared/panelGeometry'
 import { clampRectToDisplay, pickDisplay, rectsEqual, restoreBounds } from '@shared/settings'
 import type { Point, Rect, Size } from '@shared/types'
-import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import { PAINT_ORDER, type WidgetId } from '@shared/widgets'
 
 /** A display as main uses it (the fields of Electron's `Display` that matter here). */
 export interface DisplayInfo {
@@ -110,8 +110,9 @@ export function hostWindowBounds(display: DisplayInfo): Rect {
 }
 
 /**
- * The enabled widgets of every display that hosts at least one, WIDGET_IDS order. A widget
- * belongs to the display of its rect (see `owningDisplay`).
+ * The hosted widgets of every display that hosts at least one, PAINT_ORDER (later ones on top,
+ * so main hit-tests them in reverse). A widget belongs to the display of its rect (see
+ * `owningDisplay`).
  */
 export function partition(
   rects: ReadonlyMap<WidgetId, Rect>,
@@ -119,7 +120,7 @@ export function partition(
   displays: readonly DisplayInfo[]
 ): Map<number, WidgetId[]> {
   const out = new Map<number, WidgetId[]>()
-  for (const id of WIDGET_IDS) {
+  for (const id of PAINT_ORDER) {
     const rect = rects.get(id)
     if (!rect || !enabled(id)) continue
     const display = owningDisplay(rect, displays)
@@ -196,11 +197,13 @@ export interface LayoutInput {
   display: DisplayInfo
   /** 1-based display number (see `displayNumbers`). */
   index: number
-  /** Hosted widgets, WIDGET_IDS order. */
+  /** Hosted widgets, PAINT_ORDER. */
   widgets: readonly WidgetId[]
   /** Effective rects, screen DIP. */
   rects: ReadonlyMap<WidgetId, Rect>
   placements: ReadonlyMap<WidgetId, number>
+  /** Hosted widgets the user disabled (edit mode draws them as ghosts); none when absent. */
+  ghosts?: ReadonlySet<WidgetId>
   session: number
   ackSeq: number
   revision: number
@@ -220,9 +223,27 @@ export function buildLayout(i: LayoutInput): OverlayLayout {
   for (const widget of i.widgets) {
     const rect = i.rects.get(widget)
     if (!rect) continue
-    panels.push({ widget, rect: toLocal(rect, origin), placement: i.placements.get(widget) ?? 0 })
+    const panel: OverlayPanel = {
+      widget,
+      rect: toLocal(rect, origin),
+      placement: i.placements.get(widget) ?? 0
+    }
+    if (i.ghosts?.has(widget) === true) panel.ghost = true
+    panels.push(panel)
   }
   return { revision: i.revision, session: i.session, ackSeq: i.ackSeq, display, panels }
+}
+
+/**
+ * An edit chip a window reported (relative to its panel's top-left) on screen: clipped to the
+ * panel's screen rect `panel`, as the panel clips it on screen. Null when nothing is left.
+ */
+export function chipOnScreen(panel: Rect, chip: Rect): Rect | null {
+  const x0 = Math.max(panel.x, panel.x + chip.x)
+  const y0 = Math.max(panel.y, panel.y + chip.y)
+  const x1 = Math.min(panel.x + panel.width, panel.x + chip.x + chip.width)
+  const y1 = Math.min(panel.y + panel.height, panel.y + chip.y + chip.height)
+  return x1 > x0 && y1 > y0 ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : null
 }
 
 /** Same layout content: everything but `revision`. */
@@ -246,6 +267,7 @@ export function sameLayoutContent(a: OverlayLayout, b: OverlayLayout): boolean {
       q !== undefined &&
       p.widget === q.widget &&
       p.placement === q.placement &&
+      p.ghost === q.ghost &&
       rectsEqual(p.rect, q.rect)
     )
   })

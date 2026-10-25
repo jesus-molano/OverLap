@@ -2,10 +2,10 @@
  * ConditionsData to what the conditions widget ('Condiciones') draws: four short lines and a band.
  * Pure.
  *
- *   PISTA   34.2 °C ▲               AIRE  22.0 °C
+ *   PISTA   34 °C ▲                 AIRE  22 °C
  *   VIENTO  (dial) 12 km/h  de cara
  *   ASFALTO ▰▰▰▱▱▱▱ Poco mojado      LLUVIA  40 %
- *   CIELO   Muy nuboso               GOMA  Moderada
+ *   CIELO   Muy nuboso               GOMA  Media-alta (heredada)
  *   [DECLARADA MOJADA] neumáticos de lluvia permitidos
  *
  * Every part is an option; a line goes when both its parts are off or unknown. Words come from
@@ -27,10 +27,13 @@ export type Units = AppearanceSettings['units']
 
 const DASH = '—'
 
-/** '34.2' (°C) or '93.6' (°F) with one decimal; '—' when unknown. */
+/**
+ * '34' (°C) or '94' (°F), whole degrees; '—' when unknown. iRacing's track temperature moves in
+ * steps of 1 °F, so a decimal would claim a precision there is not (report Q11).
+ */
 export function tempText(c: number | null, units: Units): string {
   if (c === null || !Number.isFinite(c)) return DASH
-  return (Math.round(tempIn(c, units) * 10) / 10 || 0).toFixed(1)
+  return String(Math.round(tempIn(c, units)) || 0)
 }
 
 /** The trend as a shape (no colour: warmer is neither good nor bad); null while measuring. */
@@ -91,12 +94,20 @@ export function rubberKey(raw: string): RubberKey | null {
   return null
 }
 
-/** The rubber state in words; an unknown one as iRacing writes it (capitalised); '—' when none. */
-export function rubberText(raw: string, m: Messages): string {
+/**
+ * The rubber state in words; an unknown one as iRacing writes it (capitalised); '—' when none.
+ * `carried`: an earlier session's state, carried over ('Media-alta (heredada)').
+ */
+export function rubberText(raw: string, m: Messages, carried = false): string {
   const key = rubberKey(raw)
-  if (key !== null) return m.widgets.conditions.rubberStates[key]
   const s = raw.trim()
-  return s === '' ? DASH : s.charAt(0).toUpperCase() + s.slice(1)
+  const text =
+    key !== null
+      ? m.widgets.conditions.rubberStates[key]
+      : s === ''
+        ? DASH
+        : s.charAt(0).toUpperCase() + s.slice(1)
+  return carried && text !== DASH ? m.widgets.conditions.carried(text) : text
 }
 
 /** '40 %' / '40%' (the dictionary's percent); '—' when unknown. */
@@ -241,7 +252,7 @@ export function conditionsView(
         ? { label: w.sky, value: skiesText(d.skies, m), unit: '' }
         : null,
     rubber: o.showRubber
-      ? { label: w.rubber, value: rubberText(d.rubberState, m), unit: '' }
+      ? { label: w.rubber, value: rubberText(d.rubberState, m, d.rubberCarried), unit: '' }
       : null,
     declaredWet:
       o.showDeclaredWet && d.declaredWet ? { label: w.declaredWet, note: w.declaredWetNote } : null

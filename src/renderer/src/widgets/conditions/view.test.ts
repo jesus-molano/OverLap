@@ -44,12 +44,16 @@ function data(over: Partial<ConditionsData> = {}): ConditionsData {
 }
 
 describe('readings', () => {
-  it('writes temperatures with one decimal, in °C or °F', () => {
-    expect(tempText(27.84, 'metric')).toBe('27.8')
-    expect(tempText(30, 'metric')).toBe('30.0')
-    expect(tempText(-0.04, 'metric')).toBe('0.0')
-    expect(tempText(30, 'imperial')).toBe('86.0')
+  it('writes temperatures in whole degrees, in °C or °F (TrackTempCrew moves by 1 °F, Q11)', () => {
+    expect(tempText(27.84, 'metric')).toBe('28')
+    expect(tempText(30, 'metric')).toBe('30')
+    expect(tempText(-0.04, 'metric')).toBe('0')
+    expect(tempText(30, 'imperial')).toBe('86')
     expect(tempText(null, 'metric')).toBe('—')
+    // The race at Lime Rock: 71 °F reads 21.7 °C after the provider rounds to 0.1, 72 °F 22.2.
+    expect(tempText(21.7, 'imperial')).toBe('71')
+    expect(tempText(21.7, 'metric')).toBe('22')
+    expect(tempText(22.2, 'imperial')).toBe('72')
   })
 
   it('draws the trend as a shape, nothing while measuring', () => {
@@ -128,6 +132,19 @@ describe('readings', () => {
     expect(rubberText(' ', ES)).toBe('—')
   })
 
+  it('marks a rubber state carried over from an earlier session', () => {
+    expect(rubberText('moderately high usage', ES, true)).toBe('Media-alta (heredada)')
+    expect(rubberText('moderately high usage', EN, true)).toBe('Moderately high (carried over)')
+    expect(rubberText('', ES, true)).toBe('—')
+    const v = conditionsView(
+      data({ rubberState: 'moderately high usage', rubberCarried: true }),
+      ALL_ON,
+      'metric',
+      ES
+    )
+    expect(v.rubber?.value).toBe('Media-alta (heredada)')
+  })
+
   it('writes the rain with each language percent', () => {
     expect(precipText(40, ES)).toBe(`40${NB}%`)
     expect(precipText(40, EN)).toBe('40%')
@@ -144,8 +161,8 @@ describe('conditionsView', () => {
 
   it('fills every part of the sample', () => {
     const v = conditionsView(PREVIEW_CONDITIONS, ALL_ON, 'metric', ES)
-    expect(v.track).toEqual({ label: 'Pista', value: '27.8', unit: '°C', trend: 'arrow-down' })
-    expect(v.air).toEqual({ label: 'Aire', value: '18.6', unit: '°C' })
+    expect(v.track).toEqual({ label: 'Pista', value: '28', unit: '°C', trend: 'arrow-down' })
+    expect(v.air).toEqual({ label: 'Aire', value: '19', unit: '°C' })
     expect(v.wind).toEqual({
       label: 'Viento',
       value: '14',
@@ -167,7 +184,7 @@ describe('conditionsView', () => {
 
   it('follows the units', () => {
     const v = conditionsView(PREVIEW_CONDITIONS, ALL_ON, 'imperial', EN)
-    expect(v.track?.value).toBe('82.0')
+    expect(v.track?.value).toBe('82')
     expect(v.track?.unit).toBe('°F')
     expect(v.wind?.value).toBe('9')
     expect(v.wind?.unit).toBe('mph')
@@ -246,7 +263,7 @@ describe('conditionsView', () => {
     const a = conditionsView(PREVIEW_CONDITIONS, ALL_ON, 'metric', ES)
     const same = reuseParts(a, conditionsView(PREVIEW_CONDITIONS, ALL_ON, 'metric', ES))
     expect(same).toBe(a)
-    const b = reuseParts(a, conditionsView(data({ airTempC: 19 }), ALL_ON, 'metric', ES))
+    const b = reuseParts(a, conditionsView(data({ airTempC: 21 }), ALL_ON, 'metric', ES))
     expect(b).not.toBe(a)
     expect(b.track).toBe(a.track)
     expect(b.wind).toBe(a.wind)

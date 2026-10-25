@@ -94,7 +94,16 @@ export const IPC = {
   /** main -> settings window, `boolean`: the user hid every overlay window (tray, shortcut). */
   overlayHidden: 'overlay:overlay-hidden',
   /** main -> settings window, `ShortcutStatusMap`: whenever a shortcut's registration changes. */
-  shortcutStatus: 'overlay:shortcut-status'
+  shortcutStatus: 'overlay:shortcut-status',
+  /** overlay window -> main (send), `WidgetToggleMessage`: an edit chip's eye or padlock. */
+  widgetToggle: 'overlay:widget-toggle',
+  /** overlay window -> main (send), `EditChipsMessage`: where its edit chips are (edit mode). */
+  editChips: 'overlay:edit-chips',
+  /**
+   * main -> every overlay window, `boolean`: while editing, the game hides the mouse cursor (a
+   * driver in the car), so nothing can be dragged until another window frees it.
+   */
+  cursorHidden: 'overlay:cursor-hidden'
 } as const
 
 export interface AutoHiddenState {
@@ -145,6 +154,12 @@ export interface OverlayPanel {
    * commits or fits. A change cancels the interaction in progress on this panel.
    */
   placement: number
+  /**
+   * Disabled by the user (widgets[id].visible false), hosted only in edit mode: the window draws
+   * a ghost (outline, name and the chip's eye to show it again), never the widget, and it gets
+   * no data. Absent for an enabled widget.
+   */
+  ghost?: true
 }
 
 /** `IPC.layout`: everything an overlay window hosts. Sent whole, whenever any of it changes. */
@@ -159,7 +174,10 @@ export interface OverlayLayout {
   /** Last `BoundsCommit.seq` main processed from this document (0: none yet). */
   ackSeq: number
   display: OverlayDisplay
-  /** Enabled widgets placed on this display, WIDGET_IDS order (later ones on top). */
+  /**
+   * Enabled widgets placed on this display (in edit mode the disabled ones too, as ghosts),
+   * PAINT_ORDER (later ones on top).
+   */
   panels: OverlayPanel[]
 }
 
@@ -216,6 +234,34 @@ export interface DragStateMessage {
   dragging: boolean
 }
 
+/**
+ * `IPC.widgetToggle`, edit mode only: the eye (`visible`) or the padlock (`locked`) of a widget's
+ * edit chip, from the window hosting it. Main applies it like the tray and the settings window
+ * (widgets[id].visible / .locked), so all three stay in sync.
+ */
+export interface WidgetToggleMessage {
+  session: number
+  widget: WidgetId
+  field: 'visible' | 'locked'
+  value: boolean
+}
+
+/** One panel's edit chip: `rect` relative to the panel's top-left corner, px. */
+export interface EditChip {
+  widget: WidgetId
+  rect: Rect
+}
+
+/**
+ * `IPC.editChips`, edit mode only: where the edit chips of this window's panels are, the whole
+ * list, sent whenever one moves or changes size. Main takes the mouse over a chip even when its
+ * panel is locked or a ghost (the chip's buttons must take clicks), clipped to the panel.
+ */
+export interface EditChipsMessage {
+  session: number
+  chips: EditChip[]
+}
+
 /** While dragging, an overlay window repeats its DragStateMessage this often. */
 export const DRAG_HEARTBEAT_MS = 500
 /** Main stops holding the mouse for a drag when that repeat is this late (hung renderer). */
@@ -262,6 +308,8 @@ export interface InitialState {
   overlayHidden: boolean
   /** How each configured shortcut is doing (registered, off, taken by another app). */
   shortcutStatus: ShortcutStatusMap
+  /** Edit mode with the mouse cursor hidden by the game (see `IPC.cursorHidden`). */
+  cursorHidden: boolean
 }
 
 export type Unsubscribe = () => void
@@ -283,12 +331,18 @@ export interface OverlayApi {
   onOverlayHidden(cb: (hidden: boolean) => void): Unsubscribe
   /** Settings window only. */
   onShortcutStatus(cb: (status: ShortcutStatusMap) => void): Unsubscribe
+  /** Overlay windows: edit mode with the cursor hidden by the game, or not any more. */
+  onCursorHidden(cb: (hidden: boolean) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */
   scaleStep(msg: ScaleStepMessage): void
   /** Overlay windows, edit mode: a drag started, is still running, or ended. */
   dragState(msg: DragStateMessage): void
+  /** Overlay windows, edit mode: an edit chip's eye or padlock was clicked. */
+  widgetToggle(msg: WidgetToggleMessage): void
+  /** Overlay windows, edit mode: where this window's edit chips are now. */
+  editChips(msg: EditChipsMessage): void
   /** Settings window only (main rejects it from overlay windows). */
   updateSettings(patch: SettingsPatch): Promise<OverlaySettings>
   /** Settings window only. */

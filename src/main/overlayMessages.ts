@@ -4,10 +4,17 @@
  * message asks for (edit mode, locks, which window hosts the widget...) is decided in
  * overlayWindows.ts.
  */
-import type { BoundsCommit, DragStateMessage, ScaleStepMessage } from '@shared/ipc'
+import type {
+  BoundsCommit,
+  DragStateMessage,
+  EditChip,
+  EditChipsMessage,
+  ScaleStepMessage,
+  WidgetToggleMessage
+} from '@shared/ipc'
 import { clamp } from '@shared/num'
 import type { Point, Rect, Size } from '@shared/types'
-import { isWidgetId } from '@shared/widgets'
+import { WIDGET_IDS, isWidgetId } from '@shared/widgets'
 
 /** Window-local positions further than this are a renderer bug, not a layout. */
 const MAX_COORD = 100_000
@@ -96,4 +103,36 @@ export function parseDragState(raw: unknown): DragStateMessage | null {
   const r = record(raw)
   if (!r || !isCount(r.session, 1) || typeof r.dragging !== 'boolean') return null
   return { session: r.session, dragging: r.dragging }
+}
+
+/** Validates an `IPC.widgetToggle` message: one widget's visibility or lock, on or off. */
+export function parseWidgetToggle(raw: unknown): WidgetToggleMessage | null {
+  const r = record(raw)
+  if (!r || !isCount(r.session, 1) || !isWidgetId(r.widget)) return null
+  if ((r.field !== 'visible' && r.field !== 'locked') || typeof r.value !== 'boolean') return null
+  return { session: r.session, widget: r.widget, field: r.field, value: r.value }
+}
+
+/**
+ * Validates an `IPC.editChips` message: at most one chip per widget, each a finite rect within
+ * a panel's reach (relative to it, so never far outside [0, MAX_SIZE]). Any bad entry rejects
+ * the whole message: a renderer that sends one is not trusted with the others.
+ */
+export function parseEditChips(raw: unknown): EditChipsMessage | null {
+  const r = record(raw)
+  if (!r || !isCount(r.session, 1) || !Array.isArray(r.chips)) return null
+  if (r.chips.length > WIDGET_IDS.length) return null
+  const chips: EditChip[] = []
+  for (const item of r.chips as unknown[]) {
+    const c = record(item)
+    const rect = c ? parseRect(c.rect) : null
+    if (!c || !isWidgetId(c.widget) || !rect || chips.some((x) => x.widget === c.widget)) {
+      return null
+    }
+    if (!isFiniteIn(rect.x, -MAX_SIZE, MAX_SIZE) || !isFiniteIn(rect.y, -MAX_SIZE, MAX_SIZE)) {
+      return null
+    }
+    chips.push({ widget: c.widget, rect })
+  }
+  return { session: r.session, chips }
 }

@@ -3,22 +3,32 @@
  * moving, the wind against your car, how wet the track is, the rain, the stewards' wet call, the
  * sky and the rubber laid down. iRacing has no forecast, so there is none here. Runs at 1 Hz;
  * readings are quantised to what the widget shows, so SKIP_EMIT drops the ticks where nothing
- * shown changed. The trend's history lives in one ConditionsProvider per telemetry loop.
+ * shown changed. The trend's and the wind's history live in one ConditionsProvider per telemetry
+ * loop.
  *
- * Two readings are unverified (report §2.6) and are decided in one place each:
- * - The wind: WindDir is read as where the wind blows FROM (the meteorological convention) and
- *   YawNorth as the car's heading, both in the same sense from north, so the wind relative to
- *   your nose is WindDir - YawNorth (WIND_CONVENTION). If a live session draws the arrow on the
- *   wrong side, flip `dirIsFrom`; if it turns the wrong way as the car turns, flip
- *   `yawClockwise`.
- * - Precipitation: the SDK's unit is '%', read as 0..1 like every other '%' variable (Throttle,
- *   FuelLevelPct); a value above 1 is taken as already in percent.
+ * What a live race confirmed (report Q11):
+ * - The wind: WindDir is where the wind blows FROM (258° read as W, as iRacing's own panel) and
+ *   YawNorth is the car's heading clockwise from north (YawNorth + Yaw = TrackNorthOffset), so
+ *   the wind relative to your nose is WindDir - YawNorth (WIND_CONVENTION). The instant wind
+ *   changes almost every second while iRacing's panel shows a steady value: this widget shows
+ *   the mean of the last minute (WindAverager).
+ * - TrackTempCrew moves in steps of 1 °F, and the first reading of a session can still be the
+ *   last session's: the trend waits CONDITIONS.trendSettleS, and the widget shows whole degrees.
+ * - SessionTrackRubberState 'carry over' is followed back to the last real state (rubberOf).
+ *
+ * Still unverified: Precipitation's unit is '%', read as 0..1 like every other '%' variable
+ * (Throttle, FuelLevelPct); a value above 1 is taken as already in percent.
  */
 import { finiteOr, isFiniteNumber } from './num'
 import type { TelemetryFrame } from './telemetry'
-import type { ConditionsData, SessionMeta, TempTrend } from './types'
+import type { ConditionsData, SessionDetails, SessionMeta, TempTrend } from './types'
 
 export const CONDITIONS = {
+  /**
+   * The trend ignores the first seconds after it (re)starts (s of session time): the race's
+   * first TrackTempCrew was the previous session's, 1 °F off, and would have read as a fall.
+   */
+  trendSettleS: 10,
   /** The trend keeps one track temperature sample this often at most (s of session time). */
   trendSampleS: 15,
   /** It compares with the temperature this long ago (s)... */
@@ -32,10 +42,16 @@ export const CONDITIONS = {
   /** Below this the wind has no direction worth drawing (m/s, about 2 km/h). */
   calmMs: 0.5,
   /** The relative wind direction goes out in steps of this (degrees). */
-  windStepDeg: 5
+  windStepDeg: 5,
+  /**
+   * The wind shown is the mean of this much session time (s), steady like iRacing's own panel:
+   * with the instant WindVel the shown km/h changed in 30 % of the race's seconds, with this
+   * mean in 5 %.
+   */
+  windMeanS: 60
 } as const
 
-/** How WindDir and YawNorth are read (unverified: see the top of this file). */
+/** How WindDir and YawNorth are read (confirmed live: see the top of this file). */
 export interface WindConvention {
   /** WindDir is where the wind blows FROM, not where it goes. */
   readonly dirIsFrom: boolean
@@ -121,18 +137,28 @@ function skiesOf(v: unknown): number | null {
 export class TempTrendTracker {
   private readonly samples: { t: number; c: number }[] = []
   private trend: TempTrend = 'steady'
+  /** Session time of the first reading since the (re)start; null before it. */
+  private startT: number | null = null
+  private lastT = -Infinity
 
   reset(): void {
     this.samples.length = 0
     this.trend = 'steady'
+    this.startT = null
+    this.lastT = -Infinity
   }
 
-  /** The trend at `t` (s) with the temperature `c` (°C); null while there is too little history. */
+  /**
+   * The trend at `t` (s) with the temperature `c` (°C); null while there is too little history,
+   * which starts CONDITIONS.trendSettleS after the first reading.
+   */
   update(t: number, c: number | null): TempTrend | null {
     if (!Number.isFinite(t) || c === null) return null
+    if (t < this.lastT) this.reset()
+    this.lastT = t
+    this.startT ??= t
+    if (t - this.startT < CONDITIONS.trendSettleS) return null
     const s = this.samples
-    const last = s[s.length - 1]
-    if (last !== undefined && t < last.t) this.reset()
     const newest = s[s.length - 1]
     if (newest === undefined || t - newest.t >= CONDITIONS.trendSampleS) s.push({ t, c })
     // Keep one sample at or before the start of the window: the comparison spans all of it.
@@ -152,32 +178,109 @@ export class TempTrendTracker {
   }
 }
 
+/** The wind over the last CONDITIONS.windMeanS. */
+export interface MeanWind {
+  /** Mean speed, m/s. */
+  speedMs: number
+  /** Where it blows from on average (radians, WindDir's frame); null without a direction. */
+  fromRad: number | null
+}
+
+/**
+ * The wind as iRacing's panel shows it: the mean speed of the last CONDITIONS.windMeanS of
+ * session time, and the mean direction (each reading weighted by its speed, so a lull does not
+ * swing it). Fed once per compute; the session clock going back starts it over.
+ */
+export class WindAverager {
+  /** Readings of the window: speed (m/s) and the wind as a vector (x east, y north, m/s). */
+  private readonly samples: { t: number; v: number; x: number; y: number }[] = []
+
+  reset(): void {
+    this.samples.length = 0
+  }
+
+  /** The mean at `t` (s) with this reading; null when the speed is unusable (none, negative). */
+  update(t: number, speedMs: unknown, fromRad: unknown): MeanWind | null {
+    if (!isFiniteNumber(speedMs) || speedMs < 0) return null
+    const dir = isFiniteNumber(fromRad)
+    // Without a clock nothing can be averaged: this reading alone.
+    if (!Number.isFinite(t)) {
+      this.reset()
+      return { speedMs, fromRad: dir ? fromRad : null }
+    }
+    const s = this.samples
+    const last = s[s.length - 1]
+    if (last !== undefined && t < last.t) this.reset()
+    s.push({
+      t,
+      v: speedMs,
+      x: dir ? speedMs * Math.sin(fromRad) : 0,
+      y: dir ? speedMs * Math.cos(fromRad) : 0
+    })
+    while (s.length > 1 && (s[0]?.t ?? t) <= t - CONDITIONS.windMeanS) s.shift()
+    let v = 0
+    let x = 0
+    let y = 0
+    for (const r of s) {
+      v += r.v
+      x += r.x
+      y += r.y
+    }
+    return { speedMs: v / s.length, fromRad: x !== 0 || y !== 0 ? Math.atan2(x, y) : null }
+  }
+}
+
+function isCarryOver(state: string): boolean {
+  return state.trim().toLowerCase().includes('carry')
+}
+
+/**
+ * The rubber state of session `num`: its own, or for a 'carry over' the last real state of an
+ * earlier session (`carried`), as iRacing carries the rubber from one session to the next. A
+ * 'carry over' with no real state before it stays as it is.
+ */
+export function rubberOf(
+  sessions: ReadonlyMap<number, SessionDetails>,
+  num: number | undefined
+): { state: string; carried: boolean } {
+  const own = num === undefined ? '' : (sessions.get(num)?.rubberState ?? '')
+  if (num === undefined || !isCarryOver(own)) return { state: own, carried: false }
+  for (let k = num - 1; k >= 0; k--) {
+    const state = sessions.get(k)?.rubberState ?? ''
+    if (state.trim() !== '' && !isCarryOver(state)) return { state, carried: true }
+  }
+  return { state: own, carried: false }
+}
+
 /** One per telemetry loop. compute() runs at the widget rate; reset() on a reconnect or a new session. */
 export class ConditionsProvider {
   private readonly trend = new TempTrendTracker()
+  private readonly wind = new WindAverager()
 
   reset(): void {
     this.trend.reset()
+    this.wind.reset()
   }
 
   compute(frame: TelemetryFrame, session: SessionMeta): ConditionsData {
+    const t = finiteOr(frame.SessionTime[0], Number.NaN)
     const trackTempC = tempC(frame.TrackTempCrew[0])
     const airTempC = tempC(frame.AirTemp[0])
-    const windMs = frame.WindVel[0]
-    const windKmh = isFiniteNumber(windMs) && windMs >= 0 ? Math.round(windMs * MS_TO_KMH) : null
+    const wind = this.wind.update(t, frame.WindVel[0], frame.WindDir[0])
+    const windKmh = wind === null ? null : Math.round(wind.speedMs * MS_TO_KMH)
 
-    // Relative to the car only while you drive it (YawNorth is yours), and only with real wind.
+    // Relative to the car only while you drive it (YawNorth is yours), and only with real wind:
+    // the mean direction against the heading now.
     let windFromDeg: number | null = null
-    if (frame.IsOnTrack[0] === true && isFiniteNumber(windMs) && windMs >= CONDITIONS.calmMs) {
-      const rel = windFromRelDeg(frame.WindDir[0], frame.YawNorth[0])
+    if (frame.IsOnTrack[0] === true && wind !== null && wind.speedMs >= CONDITIONS.calmMs) {
+      const rel = windFromRelDeg(wind.fromRad, frame.YawNorth[0])
       if (rel !== null) windFromDeg = stepDeg(rel, CONDITIONS.windStepDeg)
     }
 
     const wetness = wetnessLevel(frame.TrackWetness[0])
     const precipPct = precipitationPct(frame.Precipitation[0])
     const skies = skiesOf(frame.Skies[0])
-    const num = frame.SessionNum[0]
-    const rubberState = num === undefined ? '' : (session.sessions.get(num)?.rubberState ?? '')
+    const rubber = rubberOf(session.sessions, frame.SessionNum[0])
 
     return {
       visible:
@@ -188,7 +291,7 @@ export class ConditionsProvider {
         precipPct !== null ||
         skies !== null,
       trackTempC,
-      trackTempTrend: this.trend.update(finiteOr(frame.SessionTime[0], Number.NaN), trackTempC),
+      trackTempTrend: this.trend.update(t, trackTempC),
       airTempC,
       windKmh,
       windFromDeg,
@@ -196,7 +299,8 @@ export class ConditionsProvider {
       precipPct,
       declaredWet: frame.WeatherDeclaredWet[0] === true,
       skies,
-      rubberState
+      rubberState: rubber.state,
+      rubberCarried: rubber.carried
     }
   }
 }
@@ -214,6 +318,7 @@ export function conditionsEqual(a: ConditionsData, b: ConditionsData): boolean {
     a.precipPct === b.precipPct &&
     a.declaredWet === b.declaredWet &&
     a.skies === b.skies &&
-    a.rubberState === b.rubberState
+    a.rubberState === b.rubberState &&
+    a.rubberCarried === b.rubberCarried
   )
 }

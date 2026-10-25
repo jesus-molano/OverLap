@@ -95,7 +95,23 @@ export const coreEs = {
     hintShort: (keys: string) => `Rueda: tamaño · ${keys} salir`,
     hintShortNoKey: 'Rueda: tamaño',
     /** A dragged widget whose pointer left this display: releasing moves it there. */
-    dropOnOtherDisplay: 'Suelta para moverlo a la otra pantalla'
+    dropOnOtherDisplay: 'Suelta para moverlo a la otra pantalla',
+    /** A disabled widget, drawn in edit mode as a ghost at its place. */
+    hidden: 'Oculto',
+    /** The chip's eye and padlock (tooltips): `widget` is its name. */
+    show: (widget: string) => `Mostrar ${widget}`,
+    hide: (widget: string) => `Ocultar ${widget}`,
+    lock: (widget: string) => `Bloquear ${widget}`,
+    unlock: (widget: string) => `Desbloquear ${widget}`,
+    /** The radar is painted above every panel: on it, the panels it covers ('Avisos, Delta'). */
+    coversPanels: (names: string) => `Tapa: ${names}`,
+    /** On a panel under the radar. */
+    underRadar: 'El radar lo tapa',
+    /** Edit mode while the game hides the mouse cursor (you are in the car). */
+    cursorHidden: {
+      title: 'iRacing oculta el cursor',
+      body: 'Para mover los widgets, abre los Ajustes de OverLap desde la bandeja o pulsa Alt+Tab para ir al escritorio: así recuperas el cursor.'
+    }
   },
   /**
    * Keys as a Spanish keyboard prints them (keycaps, acceleratorText). Ctrl, Alt, Shift, the
@@ -191,7 +207,18 @@ export const coreEn: Dict<typeof coreEs> = {
     hintLongNoKey: 'Scroll: size · Alt: no snap',
     hintShort: (keys) => `Scroll: size · ${keys} exit`,
     hintShortNoKey: 'Scroll: size',
-    dropOnOtherDisplay: 'Release to move it to the other display'
+    dropOnOtherDisplay: 'Release to move it to the other display',
+    hidden: 'Hidden',
+    show: (widget) => `Show ${widget}`,
+    hide: (widget) => `Hide ${widget}`,
+    lock: (widget) => `Lock ${widget}`,
+    unlock: (widget) => `Unlock ${widget}`,
+    coversPanels: (names) => `Covers: ${names}`,
+    underRadar: 'The radar covers it',
+    cursorHidden: {
+      title: 'iRacing is hiding the cursor',
+      body: 'To move the widgets, open OverLap’s settings from the tray or press Alt+Tab to go to the desktop: that frees the cursor.'
+    }
   },
   keys: {
     space: 'Space',

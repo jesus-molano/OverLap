@@ -19,7 +19,12 @@ export interface SlotHandle {
   /** Height follows the content (auto-height model, option on): side handles only. */
   readonly autoHeight: Readonly<Ref<boolean>>
   readonly locked: Readonly<Ref<boolean>>
-  /** Rendered right now (edit mode previews rule-hidden widgets). */
+  /**
+   * Disabled by the user, hosted only in edit mode (`OverlayPanel.ghost`): an outline with its
+   * chip at its saved place, never the widget; it does not move or fit.
+   */
+  readonly ghost: Readonly<Ref<boolean>>
+  /** The widget is rendered right now (edit mode previews rule-hidden widgets; never a ghost). */
   readonly shown: Readonly<Ref<boolean>>
   /** A visibility rule hides it outside edit mode (the edit chip says why). */
   readonly autoHidden: Readonly<Ref<AutoHiddenState>>
@@ -46,7 +51,7 @@ export interface SlotHandle {
 
 /** The slots of this window and its display (OverlayApp hands it to `useEditSession`). */
 export interface SlotRegistry {
-  /** Mounted slots, WIDGET_IDS order. */
+  /** Mounted slots, PAINT_ORDER (later ones on top). */
   readonly slots: Readonly<Ref<readonly SlotHandle[]>>
   /** This window's display, window-local; null until the first layout. */
   readonly display: Readonly<Ref<OverlayDisplay | null>>
