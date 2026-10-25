@@ -2,6 +2,7 @@ import { Menu, app, globalShortcut, ipcMain, session, shell, type WebContents } 
 import { join } from 'node:path'
 import type { PersonalBestList } from '@shared/delta/references'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
+import { stepScale } from '@shared/panelGeometry'
 import {
   applySettingsPatch,
   rectsEqual,
@@ -22,15 +23,18 @@ import {
 } from './settingsWindow'
 import { resolveSource } from './sourceFlag'
 import { TelemetryHost } from './telemetryHost'
+import { OverlayWindows } from './overlayWindows'
 import { EDIT_MODE_ACCELERATOR, createTray, destroyTray, updateTray, type TrayState } from './tray'
-import { WidgetWindows } from './widgetWindows'
-import { stepScale } from './windowMath'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
- * iRacing SDK memory map (in the telemetry utilityProcess) and draws its own
- * separate, non-focusable windows on top. Only the settings window, opened
- * from the tray, is a normal focusable window.
+ * iRacing SDK memory map (in the telemetry utilityProcess) and draws one
+ * separate, transparent, non-focusable, click-through window per display on
+ * top. In edit mode only, Electron's mouse forwarding installs a low-level
+ * mouse hook (WH_MOUSE_LL) in this process: it observes mouse moves, never
+ * injects input, and is removed when edit mode ends (FORWARD_IN_EDIT=false,
+ * in mouseMode.ts, disables it). Only the settings window, opened from the
+ * tray, is a normal focusable window.
  */
 
 const APP_USER_MODEL_ID = 'dev.local.overlap'
@@ -110,7 +114,7 @@ function start(): void {
   console.log(`[main] source: ${source}, settings: ${store.file}`)
   setSettingsWindowLanguage(store.settings.appearance.language)
 
-  const windows = new WidgetWindows({
+  const windows = new OverlayWindows({
     getSettings: () => store.settings,
     onBoundsCommitted: (id, bounds) => {
       changeSettings((s) => {
@@ -176,9 +180,9 @@ function start(): void {
 
   /**
    * Brings windows, telemetry, renderers and tray in line with the store after
-   * a change from `prev`. Re-entrant: hiding or locking a widget mid-drag
-   * commits that drag (another change) before this returns, so the broadcast
-   * reads the store again instead of using `next`.
+   * a change from `prev`. Re-entrant: disabling a widget writes its pending
+   * wheel or auto-height save (another change) before this returns, so the
+   * broadcast reads the store again instead of using `next`.
    */
   function syncSettings(prev: OverlaySettings): void {
     const next = store.settings
@@ -212,7 +216,8 @@ function start(): void {
     store.update((s) => {
       Object.assign(s, resetWidgetBounds(s, id))
     })
-    // Move the window first: this also drops a drag of it, so the reset wins.
+    // Move the widget first: its pending saves are dropped and a drag of it is
+    // cancelled, so the reset wins.
     windows.reloadBounds(id)
     syncSettings(prev)
   }
@@ -243,7 +248,8 @@ function start(): void {
       }
     } else {
       globalShortcut.unregister(EXIT_EDIT_ACCELERATOR)
-      // Drags already went through onBoundsCommitted. Saving every window's
+      // Drags already went through onBoundsCommitted and leaving edit mode
+      // wrote the pending wheel and auto-height saves. Saving every widget's
       // current bounds here would persist the fallback position of a widget
       // whose monitor is disconnected, so it would never return there.
       store.flush()
@@ -253,14 +259,25 @@ function start(): void {
   }
 
   const viewOf = (sender: WebContents): RendererView | null =>
-    viewOfSender(sender, { widgetOf: (wc) => windows.widgetOf(wc), isSettings: isSettingsSender })
+    viewOfSender(sender, {
+      isOverlay: (wc) => windows.isOverlaySender(wc),
+      isSettings: isSettingsSender
+    })
 
-  // Registered before any window loads. Widget and settings windows share the
+  // Registered before any window loads. Overlay and settings windows share the
   // preload, so every handler checks which kind of window is asking.
   ipcMain.handle(IPC.init, (event): InitialState => {
     const view = viewOf(event.sender)
     if (!view) throw new Error(`${IPC.init} from an unknown window`)
-    return { view, editMode: windows.editMode, status, settings: store.settings }
+    const overlay = view.kind === 'overlay'
+    return {
+      view,
+      editMode: windows.editMode,
+      status,
+      settings: store.settings,
+      layout: overlay ? windows.layoutFor(event.sender) : null,
+      autoHidden: overlay ? windows.autoHiddenMap() : {}
+    }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown): OverlaySettings => {
     if (!isSettingsSender(event.sender)) {

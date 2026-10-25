@@ -1,10 +1,10 @@
 /**
- * Pure window geometry main uses to restore, validate, move and resize widget
- * windows. All rects are in DIP screen coordinates, which can be negative (a
- * display left of or above the primary one).
+ * Pure widget geometry: main restores and validates the saved bounds of every
+ * widget (DIP screen coordinates, which can be negative: a display left of or
+ * above the primary one); the overlay windows move and resize their panels in
+ * edit mode with the same rules (window-local CSS px, = DIP at zoom 1).
  */
-import type { ResizeHandle } from '../ipc'
-import type { Rect, Size } from '../types'
+import type { Rect, ResizeHandle, Size } from '../types'
 
 /** Part of a widget that must be on some display for it to count as reachable. */
 const MIN_VISIBLE_WIDTH = 48

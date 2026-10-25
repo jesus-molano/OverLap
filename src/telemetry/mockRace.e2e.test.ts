@@ -492,23 +492,28 @@ describe('mock race end to end: the first ten minutes at 60 Hz', () => {
     let hardBraking = 0
     let clutchDown = 0
     let lastT = -Infinity
+    // 36 000 payloads: checked with plain comparisons (one expect per payload would take
+    // seconds), the first one out of range reported whole.
+    const inRange = (v: number, min: number, max: number): boolean => v >= min && v <= max
+    let firstBad: unknown = null
     for (const { payload: p } of run.inputs) {
-      expect(p.active).toBe(true)
-      for (const v of [p.throttle, p.brake, p.clutch]) {
-        expect(v).toBeGreaterThanOrEqual(0)
-        expect(v).toBeLessThanOrEqual(1)
-      }
-      expect(Math.abs(p.steering)).toBeLessThanOrEqual(1)
-      expect(p.gear).toBeGreaterThanOrEqual(1)
-      expect(p.gear).toBeLessThanOrEqual(7)
-      expect(p.speedKmh).toBeGreaterThan(30)
-      expect(p.speedKmh).toBeLessThan(330)
-      expect(p.t).toBeGreaterThan(lastT)
+      const ok =
+        p.active &&
+        inRange(p.throttle, 0, 1) &&
+        inRange(p.brake, 0, 1) &&
+        inRange(p.clutch, 0, 1) &&
+        Math.abs(p.steering) <= 1 &&
+        inRange(p.gear, 1, 7) &&
+        p.speedKmh > 30 &&
+        p.speedKmh < 330 &&
+        p.t > lastT
+      if (!ok && firstBad === null) firstBad = { ...p, previousT: lastT }
       lastT = p.t
       if (p.throttle === 1) fullThrottle++
       if (p.brake > 0.5) hardBraking++
       if (p.clutch > 0) clutchDown++
     }
+    expect(firstBad).toBeNull()
     const n = run.inputs.length
     expect(fullThrottle / n).toBeGreaterThan(0.3)
     expect(hardBraking).toBeGreaterThan(0)

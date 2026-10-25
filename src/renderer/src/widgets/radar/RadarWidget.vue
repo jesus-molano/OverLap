@@ -251,6 +251,12 @@ const rangeLabels = computed(() => {
 </template>
 
 <style scoped>
+/* Its own compositor layer: the 60 Hz cars repaint this panel only (overlay windows draw every
+   widget of a display in one document). */
+.radar {
+  will-change: transform;
+}
+
 .radar__svg {
   display: block;
   width: 100%;

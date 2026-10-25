@@ -16,6 +16,14 @@ export interface Rect extends Size {
   y: number
 }
 
+export interface Point {
+  x: number
+  y: number
+}
+
+/** Edge or corner being dragged when resizing a widget in edit mode. */
+export type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+
 // ---------------------------------------------------------------------------
 // Session info (parsed from the session YAML)
 // ---------------------------------------------------------------------------
@@ -792,7 +800,8 @@ export interface TelemetryConfig {
   /**
    * Visibility rules per widget, evaluated every tick against the current
    * session type and whether the player is on pit road. A widget hidden by a
-   * rule is not computed and main hides its window (except in edit mode).
+   * rule is not computed and its overlay panel is not drawn (except in edit
+   * mode).
    */
   rules: Record<WidgetId, { showIn: ShowInSessions; hideInPits: boolean }>
   relative: RelativeOptions

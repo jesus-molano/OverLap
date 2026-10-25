@@ -1,6 +1,6 @@
 /**
  * At most one pending timeout per key, all cancellable at once. Used for the
- * per-widget shrink delay and the debounced bounds commit, so no widget can
+ * debounced bounds saves (wheel resizes, fitted heights), so no widget can
  * ever pile up timers.
  */
 export class KeyedTimer<K> {
@@ -11,12 +11,7 @@ export class KeyedTimer<K> {
     private readonly fire: (key: K) => void
   ) {}
 
-  /** Starts the timer for `key` unless one is already pending. */
-  start(key: K): void {
-    if (!this.timers.has(key)) this.set(key)
-  }
-
-  /** Starts the timer for `key` again from now (debounce). */
+  /** Starts the timer for `key` from now, replacing a pending one (debounce). */
   restart(key: K): void {
     this.cancel(key)
     this.set(key)

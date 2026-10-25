@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import type { ContentSizeMessage } from '@shared/ipc'
 import { contentHeightPx, createContentSizeReporter, type ContentSizeReporter } from './contentSize'
 
 describe('contentHeightPx', () => {
@@ -17,9 +16,9 @@ describe('contentHeightPx', () => {
 })
 
 describe('createContentSizeReporter', () => {
-  function setup(): { sent: ContentSizeMessage[]; r: ContentSizeReporter } {
-    const sent: ContentSizeMessage[] = []
-    return { sent, r: createContentSizeReporter((m) => sent.push(m)) }
+  function setup(): { sent: number[]; r: ContentSizeReporter } {
+    const sent: number[] = []
+    return { sent, r: createContentSizeReporter((h) => sent.push(h)) }
   }
 
   it('sends only when the whole-pixel height changes', () => {
@@ -29,7 +28,7 @@ describe('createContentSizeReporter', () => {
     r.report(296.9)
     r.report(310)
     r.report(310)
-    expect(sent).toEqual([{ height: 297 }, { height: 310 }])
+    expect(sent).toEqual([297, 310])
     expect(r.last).toBe(310)
   })
 
@@ -39,7 +38,7 @@ describe('createContentSizeReporter', () => {
     r.report(Number.NaN)
     r.report(0)
     r.report(100)
-    expect(sent).toEqual([{ height: 100 }])
+    expect(sent).toEqual([100])
   })
 
   it('re-sends an equal height after reset', () => {
@@ -59,6 +58,6 @@ describe('createContentSizeReporter', () => {
       b.r.report(h)
     }
     expect(a.sent).toEqual(b.sent)
-    expect(a.sent.map((m) => m.height)).toEqual([120, 121, 180, 64])
+    expect(a.sent).toEqual([120, 121, 180, 64])
   })
 })

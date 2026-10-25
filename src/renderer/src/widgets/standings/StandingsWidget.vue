@@ -7,7 +7,7 @@ import { useAppearance } from '@renderer/composables/useAppearance'
 import { useContentHeight } from '@renderer/composables/useContentSize'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { useI18n } from '@renderer/composables/useI18n'
-import { isLive, useOverlayState } from '@renderer/composables/useOverlay'
+import { isLive, useAutoHidden, useOverlayState } from '@renderer/composables/useOverlay'
 import { useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import {
   useAutoHeight,
@@ -18,6 +18,7 @@ import {
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
+import { injectPanelHost } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
@@ -62,7 +63,8 @@ const { data, phase } = useWidgetPhase(ID, {
   showsOffline: true,
   hasContent: (d) => d.classes.length > 0
 })
-const { status, autoHidden } = useOverlayState()
+const { status } = useOverlayState()
+const autoHidden = useAutoHidden(ID)
 const opts = useOptions(ID)
 const prefs = useWidgetSettings(ID)
 const appearance = useAppearance()
@@ -72,8 +74,8 @@ const autoHeight = useAutoHeight(ID)
 const { halo, fontPx, surfaceStyle } = useWidgetSurface(ID)
 const t = useI18n()
 const title = useWidgetTitle(ID)
-// Window size: the width picks the columns, the height only trims rows when the content does
-// not fit (auto height grows the window first). A ResizeObserver: fires on resize only.
+// Panel size: the width picks the columns, the height only trims rows when the content does
+// not fit (auto height grows the panel first). A ResizeObserver: fires on resize only.
 const root = useTemplateRef<HTMLElement>('root')
 const size = useElementSize(root)
 
@@ -141,7 +143,11 @@ const plan = computed<readonly PlannedLine[]>(() => {
   return planLines(classes.value, planOpts.value, metrics.value, budget)
 })
 
-const widthPx = computed(() => (size.value.w > 0 ? size.value.w : window.innerWidth))
+// Before the first measurement: the panel's drawn width (the window is the whole display).
+const panelHost = injectPanelHost()
+const widthPx = computed(() =>
+  size.value.w > 0 ? size.value.w : (panelHost?.size.value.width ?? 0)
+)
 const cols = computed<Columns>((prev) =>
   reuseColumns(
     prev,

@@ -144,7 +144,7 @@ describe('useWidgetPhase', () => {
     await flush()
     fake.data.emit({ widget: 'battle', payload: BATTLE })
     expect(phase.value).toBe('live')
-    fake.autoHidden.emit({ hidden: true, reason: 'practice' })
+    fake.autoHidden.emit({ widget: 'battle', hidden: true, reason: 'practice' })
     await nextTick()
     expect(data.value).toBeNull()
     expect(phase.value).toBe('hidden')

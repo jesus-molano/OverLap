@@ -1,10 +1,11 @@
 /**
- * Edge snapping while moving or resizing a widget in edit mode. Pure: main
- * applies it to the rect from `applyDrag` (unless Alt is held). Rects are in
- * DIP screen coordinates.
+ * Edge snapping while moving or resizing a widget in edit mode. Pure: the
+ * overlay window applies it to the rect from `applyDrag` (unless Alt or Shift
+ * is held; renderer overlay/dragMath.ts), against the other panels of its
+ * display and that display's bounds and work area. Rects are DIP in any one
+ * coordinate space (the overlay uses window-local CSS px, = DIP at zoom 1).
  */
-import type { ResizeHandle } from './ipc'
-import type { Rect, Size } from './types'
+import type { Rect, ResizeHandle, Size } from './types'
 
 /** Distance (DIP) within which an edge jumps to a line. */
 export const SNAP_THRESHOLD = 8

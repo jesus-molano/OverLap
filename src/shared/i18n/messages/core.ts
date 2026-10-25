@@ -69,22 +69,24 @@ export const coreEs = {
     settings: 'OverLap — Ajustes',
     /** The settings page's document.title. */
     settingsPage: 'Ajustes · OverLap',
-    widget: (title: string) => `${title} · OverLap`
+    /** An overlay window (one per display): 'Pantalla 1 · OverLap'. */
+    overlay: (display: number) => `Pantalla ${display} · OverLap`
   },
-  /** Edit-mode chrome drawn over every widget (WidgetFrame). */
+  /** Edit-mode chrome drawn over every widget (overlay/EditFrame.vue). */
   editFrame: {
     locked: 'Bloqueado',
     /** Height of an auto-height widget in the size readout: '460 × auto'. */
     autoHeight: 'auto',
     hintLong: 'Rueda: tamaño · Alt: sin imán · Ctrl+Shift+E salir',
-    hintShort: 'Rueda: tamaño · Ctrl+Shift+E salir'
+    hintShort: 'Rueda: tamaño · Ctrl+Shift+E salir',
+    /** A dragged widget whose pointer left this display: releasing moves it there. */
+    dropOnOtherDisplay: 'Suelta para moverlo a la otra pantalla'
   },
   /** A window that could not start (renderer main.ts). */
   boot: {
     settingsFailed: 'No se pudo cargar la ventana de ajustes.',
     unknownView: (view: string) => `Vista desconocida: "${view}".`,
-    missingParam: 'Falta el parámetro ?widget= o ?view= en la URL.',
-    unknownWidget: (id: string) => `Widget desconocido: "${id}".`
+    missingParam: 'Falta el parámetro ?view= en la URL.'
   }
 } as const
 
@@ -141,18 +143,18 @@ export const coreEn: Dict<typeof coreEs> = {
   windowTitles: {
     settings: 'OverLap — Settings',
     settingsPage: 'Settings · OverLap',
-    widget: (title) => `${title} · OverLap`
+    overlay: (display) => `Display ${display} · OverLap`
   },
   editFrame: {
     locked: 'Locked',
     autoHeight: 'auto',
     hintLong: 'Scroll: size · Alt: no snap · Ctrl+Shift+E exit',
-    hintShort: 'Scroll: size · Ctrl+Shift+E exit'
+    hintShort: 'Scroll: size · Ctrl+Shift+E exit',
+    dropOnOtherDisplay: 'Release to move it to the other display'
   },
   boot: {
     settingsFailed: 'Could not load the settings window.',
     unknownView: (view) => `Unknown view: "${view}".`,
-    missingParam: 'The URL is missing the ?widget= or ?view= parameter.',
-    unknownWidget: (id) => `Unknown widget: "${id}".`
+    missingParam: 'The URL is missing the ?view= parameter.'
   }
 }

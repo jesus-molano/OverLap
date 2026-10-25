@@ -1,41 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { WIDGET_SCALE_MAX as SCALE_MAX, WIDGET_SCALE_MIN as SCALE_MIN } from '@shared/settings'
-import {
-  fitHeight,
-  isEditDragMessage,
-  isEditScaleMessage,
-  parseContentHeight,
-  scaleAroundCentre,
-  snapAreas,
-  stepScale,
-  windowShown,
-  workAreaFor
-} from './windowMath'
+import { fitHeight, scaleAroundCentre, stepScale, widgetShown } from './panelGeometry'
+import { WIDGET_SCALE_MAX as SCALE_MAX, WIDGET_SCALE_MIN as SCALE_MIN } from './settings'
 
 const WORK = { x: 0, y: 0, width: 1920, height: 1040 }
-
-describe('parseContentHeight', () => {
-  it('rounds and raises small heights to the minimum', () => {
-    expect(parseContentHeight({ height: 296.4 }, 60)).toBe(296)
-    expect(parseContentHeight({ height: 12 }, 60)).toBe(60)
-  })
-
-  it('rejects anything that is not a sane height', () => {
-    for (const raw of [
-      null,
-      296,
-      {},
-      { height: '296' },
-      { height: Number.NaN },
-      { height: Infinity },
-      { height: 0 },
-      { height: -5 },
-      { height: 20_000 }
-    ]) {
-      expect(parseContentHeight(raw, 60), JSON.stringify(raw)).toBeNull()
-    }
-  })
-})
 
 describe('fitHeight', () => {
   const bounds = { x: 100, y: 200, width: 460, height: 470 }
@@ -134,27 +101,7 @@ describe('scaleAroundCentre', () => {
   })
 })
 
-describe('workAreaFor / snapAreas', () => {
-  const left = {
-    bounds: { x: -1920, y: 0, width: 1920, height: 1080 },
-    workArea: { x: -1920, y: 0, width: 1920, height: 1080 }
-  }
-  const primary = { bounds: { x: 0, y: 0, width: 1920, height: 1080 }, workArea: WORK }
-
-  it('picks the work area of the display the rect is on', () => {
-    expect(workAreaFor({ x: 100, y: 100, width: 50, height: 50 }, [left, primary])).toBe(WORK)
-    expect(workAreaFor({ x: -500, y: 100, width: 50, height: 50 }, [left, primary])).toBe(
-      left.workArea
-    )
-    expect(workAreaFor({ x: 0, y: 0, width: 1, height: 1 }, [])).toBeUndefined()
-  })
-
-  it('lists every display edge once, work areas included', () => {
-    expect(snapAreas([left, primary])).toEqual([left.bounds, primary.bounds, WORK])
-  })
-})
-
-describe('windowShown', () => {
+describe('widgetShown', () => {
   it('shows enabled widgets unless a rule hides them, and previews them in edit mode', () => {
     const cases: [boolean, boolean, boolean, boolean][] = [
       // userVisible, autoHidden, editing -> shown
@@ -166,32 +113,7 @@ describe('windowShown', () => {
       [false, true, true, false]
     ]
     for (const [userVisible, autoHidden, editing, shown] of cases) {
-      expect(windowShown({ userVisible, autoHidden, editing })).toBe(shown)
-    }
-  })
-})
-
-describe('edit message validation', () => {
-  it('accepts drags with a known phase and mode only', () => {
-    expect(isEditDragMessage({ phase: 'move', mode: 'se', dx: 0, dy: 0 })).toBe(true)
-    expect(isEditDragMessage({ phase: 'start', mode: 'move' })).toBe(true)
-    for (const raw of [
-      null,
-      'move',
-      {},
-      { phase: 'drag', mode: 'move' },
-      { phase: 'move', mode: 'nesw' },
-      { phase: 'toString', mode: 'move' }
-    ]) {
-      expect(isEditDragMessage(raw), JSON.stringify(raw)).toBe(false)
-    }
-  })
-
-  it('accepts one wheel notch up or down only', () => {
-    expect(isEditScaleMessage({ step: 1 })).toBe(true)
-    expect(isEditScaleMessage({ step: -1 })).toBe(true)
-    for (const raw of [null, 1, {}, { step: 2 }, { step: '1' }, { step: 0 }]) {
-      expect(isEditScaleMessage(raw), JSON.stringify(raw)).toBe(false)
+      expect(widgetShown({ userVisible, autoHidden, editing })).toBe(shown)
     }
   })
 })

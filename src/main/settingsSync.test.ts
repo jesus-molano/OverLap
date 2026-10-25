@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
 import { OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
 import type { OverlaySettings, StandingsColumn } from '@shared/types'
-import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import { WIDGET_DEFS, WIDGET_IDS } from '@shared/widgets'
 import {
   DISPLAY_ONLY,
   computedConfig,
@@ -72,12 +72,12 @@ function columns(...visible: StandingsColumn['id'][]): StandingsColumn[] {
 
 describe('viewOfSender', () => {
   const lookup = {
-    widgetOf: (s: string): WidgetId | undefined => (s === 'radar-wc' ? 'radar' : undefined),
+    isOverlay: (s: string): boolean => s === 'overlay-wc',
     isSettings: (s: string): boolean => s === 'settings-wc'
   }
 
-  it('tells widget windows, the settings window and strangers apart', () => {
-    expect(viewOfSender('radar-wc', lookup)).toEqual({ kind: 'widget', widgetId: 'radar' })
+  it('tells overlay windows, the settings window and strangers apart', () => {
+    expect(viewOfSender('overlay-wc', lookup)).toEqual({ kind: 'overlay' })
     expect(viewOfSender('settings-wc', lookup)).toEqual({ kind: 'settings' })
     expect(viewOfSender('devtools', lookup)).toBeNull()
   })
