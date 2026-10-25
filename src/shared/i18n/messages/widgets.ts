@@ -178,6 +178,50 @@ export const widgetsEs = {
     classBest: 'Mejor de la clase',
     /** The best sectors of your class, joined (nobody's lap). */
     classOptimal: 'Óptima de la clase'
+  },
+  conditions: {
+    /** Captions before each reading (drawn in caps). */
+    track: 'Pista',
+    air: 'Aire',
+    wind: 'Viento',
+    surface: 'Asfalto',
+    rain: 'Lluvia',
+    sky: 'Cielo',
+    rubber: 'Goma',
+    /** Where the wind comes from, relative to your car. */
+    windFrom: {
+      head: 'de cara',
+      tail: 'de cola',
+      left: 'por la izq.',
+      right: 'por la dcha.'
+    },
+    /** Too little wind to have a direction. */
+    calm: 'en calma',
+    /** irsdk_TrackWetness 1..7 (the asphalt: masculine). */
+    wetness: [
+      'Seco',
+      'Casi seco',
+      'Algo húmedo',
+      'Poco mojado',
+      'Mojado',
+      'Muy mojado',
+      'Encharcado'
+    ],
+    /** Skies 0..3. */
+    skies: ['Despejado', 'Poco nuboso', 'Muy nuboso', 'Cubierto'],
+    /** SessionTrackRubberState (the rubber: feminine); anything else is shown as iRacing writes it. */
+    rubberStates: {
+      clean: 'Limpia',
+      low: 'Poca',
+      moderateLow: 'Media-baja',
+      moderate: 'Moderada',
+      moderateHigh: 'Media-alta',
+      high: 'Alta',
+      carryOver: 'Heredada'
+    },
+    /** The stewards allow rain tyres (WeatherDeclaredWet). */
+    declaredWet: 'DECLARADA MOJADA',
+    declaredWetNote: 'neumáticos de lluvia permitidos'
   }
 } as const
 
@@ -294,5 +338,42 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     self: 'You',
     classBest: 'Class best',
     classOptimal: 'Class optimal'
+  },
+  conditions: {
+    track: 'Track',
+    air: 'Air',
+    wind: 'Wind',
+    surface: 'Surface',
+    rain: 'Rain',
+    sky: 'Sky',
+    rubber: 'Rubber',
+    windFrom: {
+      head: 'headwind',
+      tail: 'tailwind',
+      left: 'from left',
+      right: 'from right'
+    },
+    calm: 'calm',
+    wetness: [
+      'Dry',
+      'Mostly dry',
+      'Very lightly wet',
+      'Lightly wet',
+      'Moderately wet',
+      'Very wet',
+      'Extremely wet'
+    ],
+    skies: ['Clear', 'Partly cloudy', 'Mostly cloudy', 'Overcast'],
+    rubberStates: {
+      clean: 'Clean',
+      low: 'Low',
+      moderateLow: 'Moderately low',
+      moderate: 'Moderate',
+      moderateHigh: 'Moderately high',
+      high: 'High',
+      carryOver: 'Carried over'
+    },
+    declaredWet: 'DECLARED WET',
+    declaredWetNote: 'rain tyres allowed'
   }
 }

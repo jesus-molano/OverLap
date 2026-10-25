@@ -2,13 +2,15 @@
 import { TELEMETRY_VAR_NAMES, TrackLocation } from '@shared/telemetry'
 import type { TelemetryFrame, TelemetryVarName } from '@shared/telemetry'
 import { MOCK_CAR_SLOTS } from './constants'
+import { initialWeatherVars, type MockWeatherVars } from './weather'
 
 /**
  * Every variable the mock produces, as arrays the race writes in place
  * (scalars are 1-element arrays). snapshot() copies the TELEMETRY_VARS ones;
  * a var the mock produces before TELEMETRY_VARS lists it stays out of the frame.
+ * The weather and the player's heading are weather.ts's.
  */
-export interface MockVars {
+export interface MockVars extends MockWeatherVars {
   SessionTime: number[]
   SessionNum: number[]
   SessionState: number[]
@@ -80,7 +82,8 @@ export class MockFrameBuffer {
     Speed: [0],
     BrakeABSactive: [false],
     EngineWarnings: [0],
-    OnPitRoad: [false]
+    OnPitRoad: [false],
+    ...initialWeatherVars()
   }
   /** Same object: the assignment fails to compile if TELEMETRY_VARS lists a var the mock lacks. */
   private readonly listed: TelemetryFrame = this.vars

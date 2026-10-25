@@ -66,6 +66,7 @@ import {
   spotterState,
   trackGapM
 } from './traffic'
+import { writeWeather } from './weather'
 
 export type { MockCast } from './field'
 export type { MockRacePhase } from './finish'
@@ -662,6 +663,7 @@ export class MockRace {
     v.Gear[0] = inp.gear
     v.Speed[0] = inp.speed
     v.BrakeABSactive[0] = inp.abs
+    writeWeather(v, this.elapsedS, this.sessionIndex, frac(player.dist))
   }
 }
 

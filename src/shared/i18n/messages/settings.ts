@@ -156,10 +156,10 @@ export const settingsEs = {
     other: {
       title: 'Otros',
       units: 'Unidades',
-      unitsHelp: 'Velocidad del widget de pedales',
+      unitsHelp: 'Velocidades y temperaturas de los widgets',
       unitChoices: {
-        metric: { label: 'Métricas', hint: 'km/h' },
-        imperial: { label: 'Imperiales', hint: 'mph' }
+        metric: { label: 'Métricas', hint: 'km/h, °C' },
+        imperial: { label: 'Imperiales', hint: 'mph, °F' }
       },
       simPill: 'Etiqueta SIM',
       simPillHelp: 'Marca los widgets cuando los datos son simulados'
@@ -526,6 +526,35 @@ export const settingsEs = {
     trend: 'Tendencia',
     trendHelp: '«Ganando» o «perdiendo» según cómo cambia el delta ahora mismo'
   },
+  conditions: {
+    note: 'iRacing no da pronóstico: todo es lo que hay ahora mismo',
+    nothing: 'Sin nada que mostrar el widget no se muestra',
+    header: 'Cabecera',
+    headerHelp: 'Una banda con el nombre del widget y la etiqueta SIM',
+    temps: 'Temperaturas',
+    trackTemp: 'Pista',
+    trackTempHelp: 'La que mide el equipo alrededor del circuito',
+    trend: 'Tendencia de la pista',
+    trendHelp: 'Flecha si sube o baja en los últimos minutos',
+    airTemp: 'Aire',
+    wind: 'Viento',
+    windSpeed: 'Velocidad',
+    windHelp: 'Velocidad del viento en meta',
+    windDirection: 'Dirección respecto a tu coche',
+    windDirectionHelp:
+      'La flecha apunta a tu coche desde donde sopla: de cara, de cola o por un lado. Solo al volante',
+    surface: 'Pista y cielo',
+    wetness: 'Asfalto',
+    wetnessHelp: 'De seco a encharcado, en 7 niveles; «—» si iRacing no lo sabe',
+    precipitation: 'Lluvia',
+    precipitationHelp: 'Intensidad de la lluvia en meta',
+    declaredWet: 'Declarada mojada',
+    declaredWetHelp: 'Cuando dirección de carrera permite los neumáticos de lluvia',
+    skies: 'Cielo',
+    skiesHelp: 'Despejado, nuboso o cubierto',
+    rubber: 'Goma',
+    rubberHelp: 'La goma que había en la pista al empezar la sesión'
+  },
   personalBests: {
     title: 'Récords personales',
     note: 'Uno por coche y trazado, guardados en tu equipo',
@@ -703,10 +732,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     other: {
       title: 'Other',
       units: 'Units',
-      unitsHelp: 'Speed in the Inputs widget',
+      unitsHelp: 'Speeds and temperatures in the widgets',
       unitChoices: {
-        metric: { label: 'Metric', hint: 'km/h' },
-        imperial: { label: 'Imperial', hint: 'mph' }
+        metric: { label: 'Metric', hint: 'km/h, °C' },
+        imperial: { label: 'Imperial', hint: 'mph, °F' }
       },
       simPill: 'SIM tag',
       simPillHelp: 'Marks the widgets when the data is simulated'
@@ -1055,6 +1084,35 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sectorsHelp: 'Each sector against the reference; the current one updates live',
     trend: 'Trend',
     trendHelp: '“Gaining” or “losing” depending on how the delta is changing right now'
+  },
+  conditions: {
+    note: 'iRacing gives no forecast: everything here is how it is right now',
+    nothing: 'With nothing to show the widget stays hidden',
+    header: 'Header',
+    headerHelp: 'A band with the widget’s name and the SIM tag',
+    temps: 'Temperatures',
+    trackTemp: 'Track',
+    trackTempHelp: 'Measured by the crew around the circuit',
+    trend: 'Track trend',
+    trendHelp: 'An arrow when it rises or falls over the last few minutes',
+    airTemp: 'Air',
+    wind: 'Wind',
+    windSpeed: 'Speed',
+    windHelp: 'Wind speed at the start/finish line',
+    windDirection: 'Direction relative to your car',
+    windDirectionHelp:
+      'The arrow points at your car from where the wind blows: head, tail or side. Only while driving',
+    surface: 'Track and sky',
+    wetness: 'Surface',
+    wetnessHelp: 'From dry to extremely wet, in 7 levels; “—” when iRacing does not know',
+    precipitation: 'Rain',
+    precipitationHelp: 'How hard it rains at the start/finish line',
+    declaredWet: 'Declared wet',
+    declaredWetHelp: 'When race control allows rain tyres',
+    skies: 'Sky',
+    skiesHelp: 'Clear, cloudy or overcast',
+    rubber: 'Rubber',
+    rubberHelp: 'The rubber on the track when the session started'
   },
   personalBests: {
     title: 'Personal bests',

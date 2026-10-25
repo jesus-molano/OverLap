@@ -23,7 +23,8 @@ import type {
   StandingsData,
   TelemetryConfig,
   TrafficData,
-  AlertsData
+  AlertsData,
+  ConditionsData
 } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
@@ -229,6 +230,19 @@ const DELTA: DeltaData = {
   sectors: [],
   lapValid: true
 }
+const CONDITIONS: ConditionsData = {
+  visible: false,
+  trackTempC: null,
+  trackTempTrend: null,
+  airTempC: null,
+  windKmh: null,
+  windFromDeg: null,
+  wetness: null,
+  precipPct: null,
+  declaredWet: false,
+  skies: null,
+  rubberState: ''
+}
 
 interface Call<P> {
   ctx: ProviderContext
@@ -314,7 +328,8 @@ function setup(
     delta: (ctx, prev) => {
       calls.delta.push({ ctx, prev, at: clock.t, payload: DELTA })
       return DELTA
-    }
+    },
+    conditions: () => CONDITIONS
   }
 
   const loop = new TelemetryLoop(source, (msg) => out.push(msg), {
