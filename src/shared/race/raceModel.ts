@@ -390,7 +390,12 @@ export class RaceModel {
     const flags = (inPits ? FLAG_PIT : 0) | (this.caution ? FLAG_CAUTION : 0)
     const d = advanceTrack(track, lapRaw, pct, this.time, flags, this.onSfLine)
     if (this.racing) track.seenRacing = true
-    if (raceStart || Number.isNaN(track.stintStartLap)) track.stintStartLap = Math.floor(d)
+    // Joined after a green flag it missed: as far as the model knows the car has run since the
+    // start (stops it never saw are not counted, like pitStops), so a restart mid-race does not
+    // reset every stint.
+    if (raceStart || Number.isNaN(track.stintStartLap)) {
+      track.stintStartLap = this.racing && this.raceStartT === -Infinity ? 0 : Math.floor(d)
+    }
     updatePitEdges(track, onPitRoad, this.racingNow, lapRaw, d)
 
     const st = track.state

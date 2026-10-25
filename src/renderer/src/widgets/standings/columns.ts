@@ -6,10 +6,17 @@
  */
 import type { AppearanceSettings, StandingsColumnId, StandingsOptions } from '@shared/types'
 
-/** First to go when the window narrows. 'gap' never goes (nor the position and the name). */
+/**
+ * First to go when the window narrows. 'gap' never goes (nor the position and the name). The
+ * stint extras go before the best lap, which goes before anything that was there first.
+ */
 export const DROP_ORDER = [
   'delta',
   'gapLeader',
+  'pitLap',
+  'stint',
+  'tyre',
+  'best',
   'gained',
   'lic',
   'ir',
@@ -47,7 +54,12 @@ const COLUMN_WIDTH: Readonly<Record<StandingsColumnId, ColumnWidth>> = {
   gap: { w: 3.2, text: 1 },
   gapLeader: { w: 3, text: 0.9 },
   last: { w: 4.2, text: 0.85 },
-  pit: { w: 2.2, text: 0.65 }
+  best: { w: 4.2, text: 0.85 },
+  pit: { w: 2.2, text: 0.65 },
+  // 'V123', '123 v' and a one-letter tyre ring.
+  pitLap: { w: 2.1, text: 0.75 },
+  stint: { w: 2.2, text: 0.82 },
+  tyre: { w: 1.3, text: 0.65 }
 }
 /** Gaps to a best lap carry three decimals ('+0.412'). */
 const NON_RACE_GAP: ColumnWidth = { w: 3.9, text: 1 }
@@ -96,12 +108,16 @@ export interface Columns {
 /**
  * Whether a column is on for these options, before fitting:
  * - 'gained' and 'delta' only in races; 'delta' also when the Δ of every row is on.
+ * - 'best' and 'pitLap' only in races: elsewhere 'last' already shows the best lap, and stops
+ *   are only counted under the green flag.
  * - 'gapLeader' when the gap mode is 'both' (or the column is on), never in 'leader' mode,
  *   where 'gap' already shows the gap to the leader.
  */
 export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnPrefs): boolean {
   switch (id) {
     case 'gained':
+    case 'best':
+    case 'pitLap':
       return visible && p.race
     case 'delta':
       return (visible || p.iRatingDeltaAll) && p.race

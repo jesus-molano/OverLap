@@ -70,7 +70,8 @@ describe('visibility', () => {
   })
 
   it('restores the default order and keeps each visibility', () => {
-    const custom = setColumnVisible(moveColumn(opts().columns, 7, 0), 'gapLeader', true)
+    const pit = STANDINGS_COLUMN_IDS.indexOf('pit')
+    const custom = setColumnVisible(moveColumn(opts().columns, pit, 0), 'gapLeader', true)
     const back = defaultOrder(custom)
     expect(ids(back)).toEqual([...STANDINGS_COLUMN_IDS])
     expect(isColumnVisible(back, 'gapLeader')).toBe(true)

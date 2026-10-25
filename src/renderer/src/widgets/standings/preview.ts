@@ -1,7 +1,8 @@
 /**
  * Sample standings for edit mode (ux §4.7): an invented multiclass race with every row state
- * (you at P5, PIT, OUT, a lapped car, class best and personal best laps, off-track, meatball),
- * names that exercise every name format, and the ratings header. Rows are picked with the same
+ * (you at P5, PIT, OUT, a lapped car, class best and personal best laps, off-track, meatball, a
+ * warning), stints and stops, tyres known for your car model only, names that exercise every
+ * name format, and the ratings header. Rows are picked with the same
  * rules as the provider (top rows, rows around you, other class leaders), so the window is sized
  * on what the current options really show. Pure.
  */
@@ -34,8 +35,20 @@ const laps = (n: number): GapValue => ({ kind: 'laps', laps: n })
 type RowSeed = Partial<StandingsRow> &
   Pick<StandingsRow, 'carNumber' | 'driverName' | 'iRating' | 'licString'>
 
-function makeRows(classColor: string, seeds: readonly RowSeed[], firstIdx: number): StandingsRow[] {
-  return seeds.map((seed, i) => ({
+/** Laps the leaders have completed: a stint without a stop is this long. */
+const RACE_LAPS = 16
+
+/**
+ * `tyre`: the compound of a class of your car model, null for another model (no name). The
+ * fastest best lap of the class gets its purple plate.
+ */
+function makeRows(
+  classColor: string,
+  tyre: string | null,
+  seeds: readonly RowSeed[],
+  firstIdx: number
+): StandingsRow[] {
+  const rows = seeds.map((seed, i): StandingsRow => ({
     carIdx: firstIdx + i,
     isPlayer: false,
     classPosition: i + 1,
@@ -47,14 +60,19 @@ function makeRows(classColor: string, seeds: readonly RowSeed[], firstIdx: numbe
     lastLap: null,
     lastLapKind: 'normal',
     bestLap: null,
+    bestLapKind: 'normal',
     pitStops: 0,
     lastPitLap: null,
     outLap: false,
+    stintLaps: RACE_LAPS,
+    tyre,
     status: 'running',
     penalty: null,
     iRatingDelta: null,
     ...seed
   }))
+  const best = Math.min(...rows.map((r) => r.bestLap ?? Infinity))
+  return rows.map((r) => (r.bestLap === best ? { ...r, bestLapKind: 'class-best' } : r))
 }
 
 const GT3 = '#33ceff'
@@ -62,6 +80,7 @@ const LMP2 = '#ff5888'
 
 const GT3_ROWS = makeRows(
   GT3,
+  'Hard',
   [
     {
       carNumber: '44',
@@ -83,6 +102,8 @@ const GT3_ROWS = makeRows(
       gapToLeader: s(3.2),
       lastLap: 136.91,
       bestLap: 136.48,
+      // A drive-through to serve.
+      penalty: 'black',
       iRatingDelta: 30
     },
     {
@@ -110,6 +131,9 @@ const GT3_ROWS = makeRows(
       pitStops: 1,
       lastPitLap: 15,
       outLap: true,
+      // Just out on wets: rain is coming.
+      stintLaps: 0,
+      tyre: 'Wet',
       iRatingDelta: 4
     },
     {
@@ -136,6 +160,8 @@ const GT3_ROWS = makeRows(
       lastLap: 139.711,
       bestLap: 136.955,
       status: 'off-track',
+      // Warned for leaving the track.
+      penalty: 'furled',
       iRatingDelta: -2
     },
     {
@@ -149,6 +175,8 @@ const GT3_ROWS = makeRows(
       lastLap: 136.512,
       lastLapKind: 'personal-best',
       bestLap: 136.512,
+      // Another GT3 model: its compound has no name.
+      tyre: null,
       iRatingDelta: -9
     },
     {
@@ -162,6 +190,7 @@ const GT3_ROWS = makeRows(
       lastLap: 145.934,
       bestLap: 137.33,
       pitStops: 1,
+      stintLaps: RACE_LAPS - 1,
       status: 'pits',
       iRatingDelta: -15
     },
@@ -177,6 +206,7 @@ const GT3_ROWS = makeRows(
       bestLap: 137.41,
       pitStops: 1,
       lastPitLap: 9,
+      stintLaps: RACE_LAPS - 1 - 9,
       iRatingDelta: -21
     },
     {
@@ -189,6 +219,7 @@ const GT3_ROWS = makeRows(
       gapToLeader: laps(1),
       lastLap: 138.25,
       bestLap: 137.96,
+      stintLaps: RACE_LAPS - 1,
       iRatingDelta: -30
     },
     {
@@ -200,6 +231,7 @@ const GT3_ROWS = makeRows(
       gapToLeader: laps(1),
       lastLap: 139.09,
       bestLap: 138.4,
+      stintLaps: RACE_LAPS - 1,
       iRatingDelta: -38
     },
     {
@@ -212,6 +244,7 @@ const GT3_ROWS = makeRows(
       gapToLeader: laps(2),
       lastLap: null,
       bestLap: 139.88,
+      stintLaps: RACE_LAPS - 2,
       status: 'disconnected',
       iRatingDelta: -47
     }
@@ -221,6 +254,7 @@ const GT3_ROWS = makeRows(
 
 const LMP2_ROWS = makeRows(
   LMP2,
+  null,
   [
     {
       carNumber: '29',

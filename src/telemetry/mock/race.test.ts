@@ -10,6 +10,7 @@ import {
   estCurve
 } from './simulation'
 import { at, raceDist, run } from './testUtils'
+import { MOCK_WARNING } from './warnings'
 
 const DT = 1 / 60
 const L = MOCK_TRACK_LENGTH_M
@@ -587,7 +588,13 @@ describe(`MockRace over ${LONG_S / 60} min`, () => {
     expect(at(black, 0).from).toBeCloseTo(420, 0)
     // Served (drive-through) within about a lap.
     expect(at(black, 0).to).toBeLessThan(LONG_S - 1)
-    expect([...r.flags.keys()].sort()).toEqual([meatball, blackFlag].sort())
+    // And the battle car ahead's warning (warnings.test.ts): nobody else is flagged.
+    const { battleAhead } = r.race.cast
+    expect([...r.flags.keys()].sort()).toEqual([meatball, blackFlag, battleAhead].sort())
+    const warning = r.flags.get(battleAhead) ?? []
+    expect(warning.map((s) => s.flag)).toEqual([SessionFlag.Furled])
+    expect(at(warning, 0).from).toBeCloseTo(MOCK_WARNING.atS, 0)
+    expect(at(warning, 0).to - at(warning, 0).from).toBeCloseTo(MOCK_WARNING.forS, 0)
   })
 
   it('shows the blue flag on the player only while a car lapping it is within ~3 s behind', () => {

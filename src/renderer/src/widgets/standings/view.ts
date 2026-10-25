@@ -15,12 +15,14 @@ import {
 } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
+  CarPenalty,
   GapValue,
   NameFormat,
   StandingsClassBlock,
   StandingsOptions,
   StandingsRow
 } from '@shared/types'
+import { stintCell, tyreCell } from '@renderer/view/carExtras'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
 import type { IconName } from '@renderer/ui/icons'
@@ -52,7 +54,7 @@ export interface CarLineView extends DriverCellView {
   pos: string
   /** Off track: the position chip gets the warning ring. */
   posWarn: boolean
-  penalty: 'black' | 'meatball' | null
+  penalty: CarPenalty | null
   disconnected: boolean
   /** Places gained or lost, digits only ('4', after gainedIcon); '' for none or unknown. */
   gained: string
@@ -70,9 +72,19 @@ export interface CarLineView extends DriverCellView {
   /** Last lap in races, best lap in practice and qualifying. */
   lap: string
   lapKind: LapKind
+  /** The 'best' column (races only): the best lap, 'best' kind for the class's fastest. */
+  best: string
+  bestKind: LapKind
   pit: PitKind
   /** Pit stops so far ('2'), '' when none. */
   pitStops: string
+  /** Lap of the last stop ('V12'), '' before the first one. */
+  pitLap: string
+  /** Laps of the stint ('7', then stintUnit 'v'); both '' when unknown. */
+  stint: string
+  stintUnit: string
+  /** Tyre compound letter ('H'), '—' when unknown (another car model, or not reported). */
+  tyre: string
 }
 
 export interface ClassLineView {
@@ -165,6 +177,23 @@ export function lapCell(row: StandingsRow, race: boolean): { text: string; kind:
   return { text, kind }
 }
 
+/** The 'best' column (races only): the best lap, filled when it is the class's fastest. */
+export function bestCell(row: StandingsRow): { text: string; kind: LapKind } {
+  const text = formatLapTime(row.bestLap)
+  if (text === '—') return { text, kind: 'none' }
+  return { text, kind: row.bestLapKind === 'class-best' ? 'best' : 'normal' }
+}
+
+/**
+ * The 'pitLap' column: the lap of the last stop ('V12'); '' before the first one, also for a
+ * pit-lane start (it left the pits, but that was no stop).
+ */
+export function pitLapCell(row: StandingsRow, m: Messages): string {
+  const lap = row.lastPitLap
+  if (row.pitStops <= 0 || lap === null || !Number.isFinite(lap) || lap < 0) return ''
+  return m.widgets.laps.number(lap)
+}
+
 const NO_GAIN = Object.freeze({ text: '', icon: null })
 
 /**
@@ -202,6 +231,8 @@ function toCarView(
   const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m)
   const gapLeader = gapLeaderCell(row, ctx.race)
   const lap = lapCell(row, ctx.race)
+  const best = bestCell(row)
+  const stint = stintCell(row.stintLaps, ctx.m)
   const gained = ctx.race ? gainedCell(row.positionsGained) : NO_GAIN
   const showDelta = ctx.race && (ctx.deltaAll || row.isPlayer)
   const leader = o.classTag !== ''
@@ -226,8 +257,14 @@ function toCarView(
     gapLeaderKind: gapLeader.kind,
     lap: lap.text,
     lapKind: lap.kind,
+    best: best.text,
+    bestKind: best.kind,
     pit: pitKind(row),
-    pitStops: row.pitStops > 0 ? String(row.pitStops) : ''
+    pitStops: row.pitStops > 0 ? String(row.pitStops) : '',
+    pitLap: pitLapCell(row, ctx.m),
+    stint: stint.text,
+    stintUnit: stint.unit,
+    tyre: tyreCell(row.tyre)
   }
 }
 

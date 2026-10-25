@@ -59,6 +59,8 @@ export type MockEventKind =
   | 'off-track'
   | 'repair-flag'
   | 'black-flag'
+  | 'warning-flag'
+  | 'warning-end'
   | 'incident'
   | 'hazard'
   | 'hazard-end'

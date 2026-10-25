@@ -8,6 +8,7 @@
  * - scripts.ts, scenarios.ts: the cast's motion and the timeline;
  * - pitLane.ts, inputs.ts: the player's pit stop and driver inputs;
  * - traffic.ts: lanes and the spotter; sessionInfo.ts: the session YAML;
+ * - tyres.ts, warnings.ts: the compounds and the furled black flag;
  * - frameBuffer.ts: output arrays and the telemetry frame.
  *
  * Cast around the player (GT3 #07 by default), ~40 min before the end:
@@ -18,7 +19,10 @@
  * - battle: a classmate ~0.8 s ahead that the player slowly catches and one
  *   ~1.2 s behind slowly closing in, both scripted in time gap to the player;
  * - a classmate pits right away, another one goes off, gets a meatball and
- *   pits for repairs, a car of the other class gets a black flag;
+ *   pits for repairs, a car of the other class gets a black flag, the battle
+ *   car ahead a warning (furled black flag) for a while;
+ * - most cars on hards, a few on wets (the compounds are only named for the
+ *   player's car model, as in iRacing);
  * - everyone else races freely, some a lap or two up or down: the LMP2s
  *   (~9 % quicker) lap the GT3 player every few minutes, with the blue flag
  *   on the player while one is within 3 s behind, and the player catches slow
