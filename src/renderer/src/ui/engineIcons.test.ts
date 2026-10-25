@@ -32,6 +32,13 @@ describe('engine icons', () => {
     }
   })
 
+  it('tells the two repair lights apart by their badge, on the same wrench', () => {
+    const [wrench, badge] = ENGINE_ICONS.repair
+    const [optionalWrench, optionalBadge] = ENGINE_ICONS['repair-optional']
+    expect(optionalWrench.d).toBe(wrench.d)
+    expect(optionalBadge.d).not.toBe(badge.d)
+  })
+
   it('only holds well-formed paths inside the 16 x 16 box', () => {
     for (const name of ENGINE_ICON_NAMES) {
       const shapes: readonly IconShape[] = ENGINE_ICONS[name]

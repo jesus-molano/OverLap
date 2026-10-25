@@ -6,6 +6,13 @@
 
 import type { IconShape } from './icons'
 
+/**
+ * The repair lights' wrench, head top right, clear of the bottom right corner, where a badge
+ * says what to do about the damage.
+ */
+const WRENCH =
+  'M2.4 9.58L6.99 4.99A3.25 3.25 0 0 1 11.24 .74L9.47 2.51L11.24 4.28L13.01 2.51A3.25 3.25 0 0 1 8.76 6.76L4.17 11.35A1.25 1.25 0 0 1 2.4 9.58z'
+
 export const ENGINE_ICONS = {
   /** Oil pressure: an oil can, its spout dripping. */
   'oil-pressure': [
@@ -43,15 +50,31 @@ export const ENGINE_ICONS = {
     { d: 'M5.5 8.75a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5z' },
     { d: 'M12 6.25l2.08 3.11a2.5 2.5 0 1 1-4.16 0z' }
   ],
-  /** Repair needed: a solid wrench (a solid fill means act now). */
+  /**
+   * Mandatory repairs (pit now): the wrench with an exclamation mark cut out of a disc, the alert
+   * icon's badge. The mark sits on whole units, so it stays sharp at 16 px.
+   */
   repair: [
+    { d: WRENCH },
     {
-      d: 'M2.87 11.36L7.82 6.41A3.25 3.25 0 0 1 12.07 2.17L10.3 3.93L12.07 5.7L13.83 3.93A3.25 3.25 0 0 1 9.59 8.18L4.64 13.13A1.25 1.25 0 0 1 2.87 11.36z'
+      d: 'M11.5 8a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z' + 'M11 9h1v3h-1zM11 13h1v1h-1z',
+      evenodd: true
     }
   ],
-  /** Optional repair: the same wrench in line, lighter than the solid one. */
+  /**
+   * Optional repairs (fix it at the stop if you like): the wrench with the pit icon's P cut out of
+   * a rounded square, "repairable in the pits". Square and P, not disc and mark, so the two
+   * repair lights differ in outline as well as in letter.
+   */
   'repair-optional': [
-    { d: 'M3.4 12.6L9.06 6.94M10.96 2.67A2.5 2.5 0 1 0 13.33 5.04', kind: 'stroke' }
+    { d: WRENCH },
+    {
+      d:
+        'M9.75 8h3.5A1.75 1.75 0 0 1 15 9.75v3.5a1.75 1.75 0 0 1-1.75 1.75h-3.5A1.75 1.75 0 0 1 8 13.25v-3.5A1.75 1.75 0 0 1 9.75 8z' +
+        'M10 9h1.5a1.5 1.5 0 0 1 0 3H11v2h-1z' +
+        'M11 10h.5a.5 .5 0 0 1 0 1H11z',
+      evenodd: true
+    }
   ],
   /**
    * Pit limiter: a P under a speed dial's sweep. Not a P in a ring, which is the parking brake
