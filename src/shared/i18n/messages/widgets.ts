@@ -171,6 +171,8 @@ export const widgetsEs = {
       caution: { label: 'SAFETY CAR', short: '', note: 'no adelantes', chip: '' },
       yellow: { label: 'AMARILLA', short: '', note: 'precaución', chip: '' },
       debris: { label: 'RESTOS', short: '', note: 'en pista', chip: '' },
+      // The furled black flag: what race control warns about is not in the data.
+      furled: { label: 'AVISO', short: '', note: '', chip: '' },
       blue: { label: 'AZUL', short: '', note: 'déjale pasar', chip: '' },
       white: { label: 'ÚLTIMA VUELTA', short: '', note: '', chip: '' },
       checkered: {
@@ -180,6 +182,52 @@ export const widgetsEs = {
         chip: 'A CUADROS'
       },
       green: { label: 'VERDE', short: '', note: 'pista libre', chip: '' }
+    },
+    /** The alerts that are not flags, with the same four texts. */
+    notices: {
+      wrongWay: {
+        label: 'SENTIDO CONTRARIO',
+        short: 'CONTRAMANO',
+        note: 'da la vuelta',
+        chip: 'CONTRAMANO'
+      },
+      // Heading for the pit entry with the limiter off.
+      pitEntry: { label: 'LIMITADOR', short: '', note: 'actívalo', chip: '' },
+      stalled: { label: 'CALADO', short: '', note: 'arranca el motor', chip: '' },
+      oilPressure: { label: 'PRESIÓN ACEITE', short: 'P. ACEITE', note: 'baja', chip: 'P. ACEITE' },
+      water: { label: 'AGUA', short: '', note: 'temperatura alta', chip: '' },
+      oilTemp: { label: 'ACEITE', short: '', note: 'temperatura alta', chip: '' },
+      fuelPressure: {
+        label: 'PRESIÓN GASOLINA',
+        short: 'P. GASOLINA',
+        note: 'baja',
+        chip: 'P. GASOLINA'
+      }
+    },
+    /** The tow countdown ('GRÚA 0:42'). */
+    tow: (clock: string) => `GRÚA${NB}${clock}`,
+    towNote: 'a boxes',
+    /** Laps to the end of the race ('5 VUELTAS'). */
+    lapsToGo: (n: number) => `${n}${NB}VUELTAS`,
+    lapsToGoNote: 'para el final',
+    /** Water or oil above your own average: 'AGUA 98 °C ↑' + '+6 vs tu media (¿rebufo?)'. */
+    trend: {
+      label: {
+        water: (temp: string) => `AGUA ${temp} ↑`,
+        oil: (temp: string) => `ACEITE ${temp} ↑`
+      },
+      /** The narrow-window label, without the arrow. */
+      short: {
+        water: (temp: string) => `AGUA ${temp}`,
+        oil: (temp: string) => `ACEITE ${temp}`
+      },
+      note: (delta: string) => `${delta} vs tu media`,
+      chip: {
+        water: (delta: string) => `AGUA ${delta}`,
+        oil: (delta: string) => `ACEITE ${delta}`
+      },
+      /** You spent most of the time close behind another car. */
+      draft: '(¿rebufo?)'
     },
     /** The pit limiter line. */
     limiterOn: 'LIMITADOR',
@@ -324,10 +372,40 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       caution: { label: 'CAUTION', short: '', note: 'no overtaking', chip: '' },
       yellow: { label: 'YELLOW FLAG', short: '', note: 'hazard ahead', chip: 'YELLOW' },
       debris: { label: 'DEBRIS', short: '', note: 'on track', chip: '' },
+      furled: { label: 'WARNING', short: '', note: '', chip: '' },
       blue: { label: 'BLUE FLAG', short: '', note: 'let them pass', chip: 'BLUE' },
       white: { label: 'LAST LAP', short: '', note: '', chip: '' },
       checkered: { label: 'CHECKERED FLAG', short: 'CHECKERED', note: '', chip: 'CHECKERED' },
       green: { label: 'GREEN FLAG', short: '', note: 'track clear', chip: 'GREEN' }
+    },
+    notices: {
+      wrongWay: { label: 'WRONG WAY', short: '', note: 'turn around', chip: '' },
+      pitEntry: { label: 'PIT LIMITER', short: '', note: 'switch it on', chip: '' },
+      stalled: { label: 'STALLED', short: '', note: 'restart the engine', chip: '' },
+      oilPressure: { label: 'OIL PRESSURE', short: '', note: 'low', chip: 'OIL PRESS.' },
+      water: { label: 'WATER TEMP', short: '', note: 'too hot', chip: '' },
+      oilTemp: { label: 'OIL TEMP', short: '', note: 'too hot', chip: '' },
+      fuelPressure: { label: 'FUEL PRESSURE', short: '', note: 'low', chip: 'FUEL PRESS.' }
+    },
+    tow: (clock) => `TOW${NB}${clock}`,
+    towNote: 'to the pits',
+    lapsToGo: (n) => `${n}${NB}LAPS`,
+    lapsToGoNote: 'to go',
+    trend: {
+      label: {
+        water: (temp) => `WATER ${temp} ↑`,
+        oil: (temp) => `OIL ${temp} ↑`
+      },
+      short: {
+        water: (temp) => `WATER ${temp}`,
+        oil: (temp) => `OIL ${temp}`
+      },
+      note: (delta) => `${delta} vs your average`,
+      chip: {
+        water: (delta) => `WATER ${delta}`,
+        oil: (delta) => `OIL ${delta}`
+      },
+      draft: '(slipstream?)'
     },
     limiterOn: 'PIT LIMITER',
     limiterOff: 'LIMITER OFF',

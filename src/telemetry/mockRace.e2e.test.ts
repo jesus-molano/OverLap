@@ -757,7 +757,7 @@ describe('mock race end to end: late join, pit stop, finish and the next session
     }
   })
 
-  it('alerts: the pit limiter through the stop: OFF, on but over the limit, on', () => {
+  it('alerts: the pit limiter through the stop: OFF, over the limit without and with it, on', () => {
     const stop = run.alerts.filter(
       (x) => x.session === 0 && x.s > MOCK_TIMELINE.playerPitS && x.payload.pitLimiter !== null
     )
@@ -765,14 +765,14 @@ describe('mock race end to end: late join, pit stop, finish and the next session
     const states = stop.map((x) => x.payload.pitLimiter)
     // Consecutive repeats removed: the mock's late limiter.
     const seq = states.filter((v, i) => i === 0 || v !== states[i - 1])
-    expect(seq).toEqual(['off', 'speeding', 'on'])
+    expect(seq).toEqual(['off', 'offSpeeding', 'speeding', 'on'])
     for (const { s, payload } of stop) {
       const at = `t=${s.toFixed(2)}`
       expect(payload.visible, at).toBe(true)
       expect(payload.pitLimitKmh).toBe(MOCK_PIT_SPEED_LIMIT_KMH)
-      if (payload.pitLimiter === 'speeding') {
+      if (payload.pitLimiter === 'speeding' || payload.pitLimiter === 'offSpeeding') {
         expect(payload.speedKmh, at).toBeGreaterThan(MOCK_PIT_SPEED_LIMIT_KMH + 1)
-      } else if (payload.pitLimiter === 'on') {
+      } else if (payload.pitLimiter === 'on' || payload.pitLimiter === 'off') {
         expect(payload.speedKmh, at).toBeLessThanOrEqual(MOCK_PIT_SPEED_LIMIT_KMH + 1)
       }
     }

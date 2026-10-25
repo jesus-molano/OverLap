@@ -42,6 +42,7 @@ import {
   PIT_PCT_PER_S,
   PlayerPitStop
 } from './pitLane'
+import { MockPlayerAlerts } from './playerAlerts'
 import { MockPlayerIncidents } from './playerIncidents'
 import { playerLapPace } from './playerPace'
 import { mulberry32 } from './rng'
@@ -145,6 +146,7 @@ export class MockRace {
   private readonly end: RaceFinish
   private readonly pitStop = new PlayerPitStop()
   private readonly inputs = new PlayerInputs()
+  private readonly playerAlerts = new MockPlayerAlerts()
   private readonly out = new MockFrameBuffer()
 
   constructor(opts: MockRaceOptions = {}) {
@@ -574,6 +576,8 @@ export class MockRace {
       return TrackLocation.InPitStall
     }
     if (onPitRoad) return TrackLocation.ApproachingPits
+    // Like iRacing's, the player's pit surface also covers the lead-in and the exit.
+    if (car === this.player && this.pitStop.active) return TrackLocation.ApproachingPits
     return this.elapsedS < car.offTrackUntilS ? TrackLocation.OffTrack : TrackLocation.OnTrack
   }
 
@@ -663,6 +667,7 @@ export class MockRace {
     v.Gear[0] = inp.gear
     v.Speed[0] = inp.speed
     v.BrakeABSactive[0] = inp.abs
+    this.playerAlerts.apply(v, this.elapsedS, this.playerIdx)
   }
 }
 
