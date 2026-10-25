@@ -5,7 +5,9 @@ import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import Icon from '@renderer/ui/Icon.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
+import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import PositionChip from '@renderer/ui/PositionChip.vue'
+import TyreChip from '@renderer/ui/TyreChip.vue'
 import type { Columns } from './columns'
 import type { CarLineView } from './view'
 
@@ -51,8 +53,7 @@ const inlinePit = computed(() =>
       :player="line.player"
     >
       <span v-if="line.penalty || line.disconnected || inlinePit" class="sd-icons">
-        <Icon v-if="line.penalty === 'black'" name="flag" class="sd-flag" />
-        <Icon v-else-if="line.penalty === 'meatball'" name="meatball" />
+        <PenaltyIcon v-if="line.penalty" :penalty="line.penalty" />
         <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
         <Icon v-if="inlinePit === 'finished'" name="chequered" />
         <Icon v-else-if="inlinePit === 'pit'" name="pit" class="sd-inline-pit" />
@@ -80,6 +81,14 @@ const inlinePit = computed(() =>
     <span v-else-if="id === 'last'" class="c-lap"
       ><span class="sd-lap" :class="`is-${line.lapKind}`">{{ line.lap }}</span></span
     >
+    <span v-else-if="id === 'best'" class="c-lap"
+      ><span class="sd-lap" :class="`is-${line.bestKind}`">{{ line.best }}</span></span
+    >
+    <span v-else-if="id === 'pitLap'" class="c-pitlap">{{ line.pitLap }}</span>
+    <span v-else-if="id === 'stint'" class="c-stint"
+      >{{ line.stint }}<span v-if="line.stintUnit" class="sd-unit">{{ line.stintUnit }}</span></span
+    >
+    <span v-else-if="id === 'tyre'" class="c-tyre"><TyreChip :letter="line.tyre" /></span>
     <span v-else-if="id === 'pit'" class="c-pit">
       <Badge v-if="line.pit === 'pit'">{{ t.widgets.common.pit }}</Badge>
       <Badge v-else-if="line.pit === 'out'" variant="outline">{{ t.widgets.common.out }}</Badge>
@@ -94,7 +103,8 @@ const inlinePit = computed(() =>
 <style scoped>
 .c-pos,
 .c-lic,
-.c-pit {
+.c-pit,
+.c-tyre {
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -139,13 +149,6 @@ const inlinePit = computed(() =>
   align-items: center;
   gap: 0.25em;
   font-size: 0.85em;
-}
-
-/* The real black flag, outlined in ink so it reads on the dark glass. */
-.sd-flag {
-  color: var(--ov-flag-black);
-  stroke: var(--ov-fg);
-  stroke-width: 0.6;
 }
 
 .sd-plug {
@@ -280,6 +283,34 @@ const inlinePit = computed(() =>
   font-size: 1.1em;
 }
 
+/* Stint extras are references, not values to race: secondary figures, right-aligned. */
+.c-pitlap,
+.c-stint {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  color: var(--ov-fg-muted);
+}
+
+/* The lap of the last stop ('V12'), as small as the stop count it goes with. */
+.c-pitlap {
+  font-size: max(var(--ov-min-text), 0.75em);
+  font-weight: var(--ov-w-text);
+}
+
+.c-stint {
+  font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-strong);
+}
+
+/* The lap unit after the stint count ('7 v'): smaller and dim, like every unit. */
+.sd-unit {
+  margin-left: 0.12em;
+  font-size: max(var(--ov-min-text), 0.8em);
+  font-weight: var(--ov-w-text);
+  color: var(--ov-fg-dim);
+}
+
 /*
  * Row states (classes on the line, see view.ts). The line belongs to the parent component, so
  * every cell is named: a scoped `.is-pits > :not(…)` or `> *` puts this component's scope
@@ -295,6 +326,9 @@ const inlinePit = computed(() =>
 .is-pits > .c-gap,
 .is-pits > .c-gapl,
 .is-pits > .c-lap,
+.is-pits > .c-pitlap,
+.is-pits > .c-stint,
+.is-pits > .c-tyre,
 .is-pits > .c-driver > :deep(:not(.sd-icons)) {
   opacity: var(--ov-o-dim);
 }
@@ -309,7 +343,10 @@ const inlinePit = computed(() =>
 .is-disconnected > .c-gap,
 .is-disconnected > .c-gapl,
 .is-disconnected > .c-lap,
-.is-disconnected > .c-pit {
+.is-disconnected > .c-pit,
+.is-disconnected > .c-pitlap,
+.is-disconnected > .c-stint,
+.is-disconnected > .c-tyre {
   opacity: var(--ov-o-dim);
 }
 

@@ -10,6 +10,7 @@ import { MOCK_CLASSES, MOCK_PACE_CAR_IDX, licColorOf, licLevelOf, licSubLevelOf 
 import type { MockDriver } from './drivers'
 import type { Rng } from './rng'
 import { MOCK_CORNERS, MOCK_SECTOR_STARTS } from './track'
+import { mockDriverTires, type MockDriverTire } from './tyres'
 
 export interface MockYamlDriver {
   CarIdx: number
@@ -93,6 +94,8 @@ export interface MockSessionInfo {
     DriverUserID: number
     PaceCarIdx: number
     DriverCarEstLapTime: number
+    /** The player's car model's compounds (tyres.ts). */
+    DriverTires: MockDriverTire[]
     Drivers: MockYamlDriver[]
   }
 }
@@ -151,6 +154,7 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       DriverUserID: me?.userId ?? -1,
       PaceCarIdx: MOCK_PACE_CAR_IDX,
       DriverCarEstLapTime: me ? MOCK_CLASSES[me.classKey].estLapTimeS : 0,
+      DriverTires: mockDriverTires(),
       Drivers: input.roster.map(toYamlDriver)
     }
   }

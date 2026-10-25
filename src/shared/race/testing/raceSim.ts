@@ -84,6 +84,7 @@ export function makeSession(
     trackLengthM: 3000,
     trackName: 'Test',
     drivers: new Map(drivers.map((d) => [d.carIdx, d])),
+    tyreCompounds: new Map(),
     sessionTypes: new Map([
       [RACE, 'Race'],
       [PRACTICE, 'Practice']

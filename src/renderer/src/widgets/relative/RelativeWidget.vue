@@ -14,7 +14,9 @@ import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PanelHeader from '@renderer/ui/PanelHeader.vue'
+import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
+import TyreChip from '@renderer/ui/TyreChip.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
@@ -67,11 +69,12 @@ const cols = computed<RelativeColumns>((prev) => {
   return prev !== undefined && prev.key === next.key ? prev : next
 })
 
-// Every row inherits --rl-slots and --rl-cols; written only when one of them changes.
+// Every row inherits --rl-slots, --rl-cols and --rl-fit; written only when one of them changes.
 const panelStyle = computed<InlineStyle>(() => ({
   ...surfaceStyle.value,
   '--rl-slots': String(slots.value.length),
-  '--rl-cols': cols.value.template
+  '--rl-cols': cols.value.template,
+  '--rl-fit': String(cols.value.fitEm)
 }))
 </script>
 
@@ -104,12 +107,20 @@ const panelStyle = computed<InlineStyle>(() => ({
               :player="slot.isPlayer"
               :lap="slot.lap"
             >
+              <span v-if="cols.flags && slot.penalty" class="rl-flag"
+                ><PenaltyIcon :penalty="slot.penalty"
+              /></span>
               <Badge v-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
             </DriverCell>
             <span v-if="cols.lic" class="c-lic"
               ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
             /></span>
             <span v-if="cols.ir" class="c-ir">{{ slot.iRating }}</span>
+            <span v-if="cols.tyre" class="c-tyre"><TyreChip :letter="slot.tyre" /></span>
+            <span v-if="cols.stint" class="c-stint"
+              >{{ slot.stint
+              }}<span v-if="slot.stintUnit" class="rl-unit">{{ slot.stintUnit }}</span></span
+            >
             <span class="c-gap">{{ slot.gap }}</span>
           </template>
         </div>
@@ -124,11 +135,11 @@ const panelStyle = computed<InlineStyle>(() => ({
   container-type: size;
 }
 
-/* About half a row high, capped by the width so the fixed columns always fit. */
+/* About half a row high, capped by the width so the columns always fit (--rl-fit: view.ts). */
 .rl-panel {
   font-size: clamp(
     var(--ov-min-text),
-    min(calc(100cqh / (var(--rl-slots) * 2 + 1.8)), calc(100cqw / 27)),
+    min(calc(100cqh / (var(--rl-slots) * 2 + 1.8)), calc(100cqw / var(--rl-fit, 27))),
     30px
   );
 }
@@ -180,10 +191,17 @@ const panelStyle = computed<InlineStyle>(() => ({
   box-shadow: none;
 }
 
-/* Dim the content, not the row, so the striping stays even; the PIT badge stays bright. */
+/* Dim the content, not the row, so the striping stays even; the PIT badge and flag stay bright. */
 .rl-row.is-pits > :not(.c-driver),
-.rl-row.is-pits > .c-driver > :deep(:not(.rl-pit)) {
+.rl-row.is-pits > .c-driver > :deep(:not(.rl-pit):not(.rl-flag)) {
   opacity: var(--ov-o-dim);
+}
+
+/* The flag after the name, a notch under the text like the standings' icons. */
+.rl-flag {
+  display: inline-flex;
+  flex: none;
+  font-size: 0.85em;
 }
 
 /* Secondary in a relative, by design: plain figures, bright on your own row. */
@@ -204,7 +222,8 @@ const panelStyle = computed<InlineStyle>(() => ({
   overflow: hidden;
 }
 
-.c-lic {
+.c-lic,
+.c-tyre {
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -218,6 +237,23 @@ const panelStyle = computed<InlineStyle>(() => ({
   font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
   text-align: right;
+}
+
+/* Stint laps: a secondary figure like the iR, its lap unit smaller and dim. */
+.c-stint {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-fg-muted);
+  text-align: right;
+}
+
+.rl-unit {
+  margin-left: 0.12em;
+  font-size: max(var(--ov-min-text), 0.8em);
+  font-weight: var(--ov-w-text);
+  color: var(--ov-fg-dim);
 }
 
 /* The value read at a glance: Text face, 600, full ink. */

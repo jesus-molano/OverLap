@@ -17,6 +17,7 @@ export const EMPTY_SESSION: SessionMeta = Object.freeze({
   trackLengthM: null,
   trackName: '',
   drivers: new Map<number, DriverEntry>(),
+  tyreCompounds: new Map<number, string>(),
   sessionTypes: new Map<number, string>(),
   sessions: new Map<number, SessionDetails>(),
   subSessionId: 0,
@@ -223,6 +224,23 @@ function parseGrid(root: Obj | null, rawSessions: readonly unknown[]): Map<numbe
 }
 
 /**
+ * DriverInfo.DriverTires (`- TireIndex: 0  TireCompoundType: "Hard"`) by TireIndex; entries
+ * without a whole index or a name are skipped, the first one wins on a repeated index.
+ */
+function parseTyreCompounds(driverInfo: Obj | null): Map<number, string> {
+  const out = new Map<number, string>()
+  for (const t of arrAt(driverInfo, 'DriverTires')) {
+    if (!isObj(t)) continue
+    const raw = t.TireIndex
+    const index = typeof raw === 'string' && /^\s*\d+\s*$/.test(raw) ? Number(raw) : raw
+    const name = text(t.TireCompoundType).trim()
+    if (!isNonNegInt(index) || name === '' || out.has(index)) continue
+    out.set(index, name)
+  }
+  return out
+}
+
+/**
  * Session YAML object (irsdk-node getSessionData() or parseSessionYaml())
  * to SessionMeta. Never throws: missing or mistyped fields get defaults.
  * DriverEntry.classId is -1 when CarClassID is missing.
@@ -264,6 +282,7 @@ export function parseSessionMeta(raw: unknown): SessionMeta {
     trackLengthM: parseTrackLength(weekend?.TrackLength),
     trackName: text(weekend?.TrackDisplayName) || text(weekend?.TrackName),
     drivers,
+    tyreCompounds: parseTyreCompounds(driverInfo),
     sessionTypes,
     sessions,
     subSessionId: nonNegIntOr0(weekend?.SubSessionID),

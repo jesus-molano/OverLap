@@ -33,6 +33,9 @@ function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
     gapS: 1.5,
     lapRelation: 'same',
     inPits: false,
+    stintLaps: null,
+    tyre: null,
+    penalty: null,
     ...over
   }
 }
@@ -169,6 +172,51 @@ describe('relativeColumns', () => {
     expect(none.template).toBe('minmax(0, 1fr) 3.1em')
     expect(none.key).not.toBe(all.key)
   })
+
+  it('adds the tyre and stint columns before the gap, widening what the font fits', () => {
+    const base = { showClassPosition: true, showLicense: true, showIRating: true }
+    const plain = relativeColumns(base)
+    expect(plain).toMatchObject({ tyre: false, stint: false, flags: true, fitEm: 27 })
+    const extras = relativeColumns({ ...base, showTyre: true, showStint: true })
+    expect(extras.template).toBe('1.9em minmax(0, 1fr) 2.8em 2.4em 1.3em 2.3em 3.1em')
+    expect(extras.fitEm).toBeCloseTo(27 + 1.3 + 2.3 + 0.8, 5)
+    expect(relativeColumns({ ...base, showTyre: true }).template).toBe(
+      '1.9em minmax(0, 1fr) 2.8em 2.4em 1.3em 3.1em'
+    )
+    // Flags change no track, only what the rows draw: still a new key for v-memo.
+    const noFlags = relativeColumns({ ...base, showFlags: false })
+    expect(noFlags.flags).toBe(false)
+    expect(noFlags.template).toBe(plain.template)
+    expect(new Set([plain.key, extras.key, noFlags.key]).size).toBe(3)
+  })
+})
+
+describe('stint, tyre and flag cells', () => {
+  const styles = createDriverStyles()
+
+  it('writes the stint as its laps and unit, in each language', () => {
+    expect(toSlotView(row(1, { stintLaps: 7 }), 0, styles, 'full', ES)).toMatchObject({
+      stint: '7',
+      stintUnit: 'v'
+    })
+    expect(toSlotView(row(1, { stintLaps: 0 }), 0, styles, 'full', EN)).toMatchObject({
+      stint: '0',
+      stintUnit: 'L'
+    })
+    expect(toSlotView(row(1), 0, styles, 'full', ES)).toMatchObject({ stint: '', stintUnit: '' })
+  })
+
+  it('shows the compound letter, a dash when nobody can name it', () => {
+    expect(toSlotView(row(1, { tyre: 'Hard' }), 0, styles, 'full', ES).tyre).toBe('H')
+    expect(toSlotView(row(1, { tyre: 'wet' }), 0, styles, 'full', EN).tyre).toBe('W')
+    expect(toSlotView(row(1, { tyre: null }), 0, styles, 'full', ES).tyre).toBe('—')
+    expect(toSlotView(row(1, { tyre: '  ' }), 0, styles, 'full', ES).tyre).toBe('—')
+  })
+
+  it('passes the flag badge on', () => {
+    expect(toSlotView(row(1, { penalty: 'furled' }), 0, styles, 'full', ES).penalty).toBe('furled')
+    expect(toSlotView(row(1), 0, styles, 'full', ES).penalty).toBeNull()
+  })
 })
 
 describe('previewRelative', () => {
@@ -190,5 +238,13 @@ describe('previewRelative', () => {
     // Gaps: positive ahead, negative behind, ordered top to bottom.
     const gaps = rows.map((r) => r.gapS ?? 0)
     expect([...gaps].sort((a, b) => b - a)).toEqual(gaps)
+  })
+
+  it('shows every flag badge, stints and both a named and an unnamed compound close to you', () => {
+    const rows = previewRelative(3, 3).rows
+    const flags = rows.map((r) => r.penalty).filter((p) => p !== null)
+    expect([...flags].sort()).toEqual(['black', 'furled', 'meatball'])
+    expect(rows.every((r) => r.stintLaps !== null)).toBe(true)
+    expect(new Set(rows.map((r) => r.tyre))).toEqual(new Set(['Hard', 'Wet', null]))
   })
 })
