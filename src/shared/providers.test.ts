@@ -361,7 +361,7 @@ describe('delta on the real RaceModel', () => {
   // Practice. You lap in 30 s until t = 90, then one lap in 31 s; car 1 (your class) in 29.5 s.
   // Your first timed (clean) lap ends at t = 60, car 1's at t = 44.25.
   const drivers = [
-    makeDriver(0, { userName: 'Jesús Molano' }),
+    makeDriver(0, { userName: 'Andrés Lucena' }),
     makeDriver(1, { userName: 'Lia Costa', carNumber: '23' })
   ]
   const session = makeSession(2, { sectorStarts: [0, 0.5] }, drivers)
