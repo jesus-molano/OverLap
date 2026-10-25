@@ -191,8 +191,8 @@ describe('parseSessionMeta', () => {
       [2, { type: 'Race', name: 'RACE', laps: 14, timeS: null, rubberState: '' }]
     ])
     expect([...meta.grid]).toEqual<[number, GridEntry][]>([
-      [1, { position: 1, classPosition: 1 }],
-      [2, { position: 2, classPosition: 1 }]
+      [1, { position: 1, classPosition: 1, bestLap: 137.1 }],
+      [2, { position: 2, classPosition: 1, bestLap: 150.8 }]
     ])
     expect([...meta.drivers.keys()]).toEqual([0, 1, 2, 63])
 
@@ -714,9 +714,9 @@ describe('parseSessionMeta: starting grid', () => {
         }
       })
     ).toEqual<[number, GridEntry][]>([
-      [70, { position: 3, classPosition: 2 }],
-      [4, { position: 1, classPosition: 1 }],
-      [9, { position: 2, classPosition: 1 }]
+      [70, { position: 3, classPosition: 2, bestLap: null }],
+      [4, { position: 1, classPosition: 1, bestLap: null }],
+      [9, { position: 2, classPosition: 1, bestLap: null }]
     ])
   })
 
@@ -739,7 +739,7 @@ describe('parseSessionMeta: starting grid', () => {
           ]
         }
       })
-    ).toEqual<[number, GridEntry][]>([[10, { position: 4, classPosition: 3 }]])
+    ).toEqual<[number, GridEntry][]>([[10, { position: 4, classPosition: 3, bestLap: null }]])
   })
 
   it("falls back to the last Race session's QualifyPositions", () => {
@@ -765,8 +765,8 @@ describe('parseSessionMeta: starting grid', () => {
       { SessionNum: 3, SessionType: 'Race', QualifyPositions: 'x' }
     ]
     const expected: [number, GridEntry][] = [
-      [3, { position: 2, classPosition: 2 }],
-      [4, { position: 1, classPosition: 1 }]
+      [3, { position: 2, classPosition: 2, bestLap: null }],
+      [4, { position: 1, classPosition: 1, bestLap: null }]
     ]
     expect(gridOf({ SessionInfo: { Sessions: sessions } })).toEqual(expected)
     // Also when QualifyResultsInfo is there but gives nothing usable.
@@ -792,7 +792,7 @@ describe('parseSessionMeta: starting grid', () => {
           ]
         }
       })
-    ).toEqual<[number, GridEntry][]>([[9, { position: 1, classPosition: 1 }]])
+    ).toEqual<[number, GridEntry][]>([[9, { position: 1, classPosition: 1, bestLap: null }]])
   })
 
   it('is empty without any qualifying data', () => {

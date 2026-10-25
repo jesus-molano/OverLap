@@ -18,7 +18,9 @@ export const OFFICIAL_WAIT_S = 5
  * Lap `g / LINES` completed at SessionTime `tc`: adds its record when its start
  * line is in the history, then starts a new lap. In a race (`raceStartT`: the
  * green flag, -Infinity when it was never seen) a lap is not clean when it
- * started before the green or at the car's first S/F line under green.
+ * started before the green or at the car's first S/F line under green. After a
+ * standing start (the grid is behind the line) the first lap runs from the
+ * green, as iRacing times it, not from the line.
  */
 export function closeLap(
   track: CarTrack,
@@ -37,7 +39,9 @@ export function closeLap(
     for (let k = g0; clean && k <= g; k++) {
       if (!track.has(k) || track.flagsAt(k) !== 0) clean = false
     }
-    const rec: MutableLapRecord = { lap: lapNo, time: tc - t0, clean }
+    const fromGreen =
+      isRace && track.gridStart && g0 === track.startSfLine && raceStartT > -Infinity
+    const rec: MutableLapRecord = { lap: lapNo, time: tc - (fromGreen ? raceStartT : t0), clean }
     // Re-crossing after a backward jump replaces the record of that lap.
     const keep = track.records.slice(newest?.lap === lapNo ? 1 : 0, MAX_LAP_RECORDS)
     if (keep.length === MAX_LAP_RECORDS) keep.pop()
@@ -48,7 +52,9 @@ export function closeLap(
     track.pending = rec
     track.officialBefore = track.prevOfficial
     track.confirmUntil = tc + OFFICIAL_WAIT_S
-    captureLap(track, g0, rec)
+    // The lines only span the part from the line: no profile of a lap timed from the green.
+    if (fromGreen) track.lastLap.clear()
+    else captureLap(track, g0, rec)
   } else {
     // No record for the lap just completed: no 'last' profile either.
     track.lastLap.clear()

@@ -13,9 +13,13 @@ const POSITION_FORCE_S = 2
 /**
  * How cars are ranked: `race` by distance (finishers frozen by finishing lap,
  * then crossing time), `grid` by starting position before the green, `best`
- * by best lap (practice/qualifying).
+ * by best lap (practice/qualifying; a car without a lap time is not
+ * classified: position 0, listed last).
  */
 export type OrderMode = 'race' | 'grid' | 'best'
+
+/** `best` mode key1 of a car without any lap time. */
+const NO_TIME = 2
 
 type Tracks = readonly (CarTrack | undefined)[]
 
@@ -60,10 +64,10 @@ export class RaceOrder {
       const track = tracks[i]
       if (track) this.setKeys(i, track, mode, gridPos[i] ?? Infinity)
     }
-    this.settle(this.overall, tracks, now, fresh, true)
+    this.settle(this.overall, tracks, now, fresh, true, mode)
     for (let c = 0; c < this.classGroupCount; c++) {
       const group = this.classGroups[c]
-      if (group) this.settle(group, tracks, now, fresh, false)
+      if (group) this.settle(group, tracks, now, fresh, false, mode)
     }
   }
 
@@ -81,7 +85,7 @@ export class RaceOrder {
       this.key2[i] = track.officialBest
     } else {
       const model = Number.isFinite(track.bestClean)
-      this.key1[i] = model ? 1 : 2
+      this.key1[i] = model ? 1 : NO_TIME
       this.key2[i] = model ? track.bestClean : 0
     }
   }
@@ -91,17 +95,21 @@ export class RaceOrder {
     tracks: Tracks,
     now: number,
     fresh: boolean,
-    all: boolean
+    all: boolean,
+    mode: OrderMode
   ): void {
     group.sort(this.compare)
     if (fresh) group.showNow()
     else group.settle(now, POSITION_HOLD_S, POSITION_FORCE_S)
     const shown = group.shown
     for (let k = 0; k < group.size; k++) {
-      const track = tracks[shown[k] ?? 0]
+      const i = shown[k] ?? 0
+      const track = tracks[i]
       if (!track) continue
-      if (all) track.state.overallPosition = k + 1
-      else track.state.classPosition = k + 1
+      // Without a lap time nobody is classified by best lap (no "leader" without a lap).
+      const pos = mode === 'best' && this.key1[i] === NO_TIME ? 0 : k + 1
+      if (all) track.state.overallPosition = pos
+      else track.state.classPosition = pos
     }
   }
 

@@ -28,12 +28,12 @@ import { isRaceSession, resolveFocusCarIdx } from '../sessionInfo'
 import { MAX_CARS, SessionState, TrackLocation } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type { DriverEntry, SessionDetails, SessionMeta } from '../types'
-import { TELEPORT_LAPS, advanceTrack, updatePitEdges } from './advance'
+import { TELEPORT_LAPS, advanceTrack, stintStart, updatePitEdges } from './advance'
 import { CarTrack, FLAG_CAUTION, FLAG_PIT, NO_LINE } from './carTrack'
 import { entryKey } from './entry'
 import { closeLap, updateLapTimes } from './laps'
 import { crossingsUntil, lapLimitedLapsLeft, timedRaceEndS } from './lapsRemaining'
-import { updateMotion } from './motion'
+import { STOP_FRACTION, updateMotion } from './motion'
 import { RaceOrder } from './order'
 import { currentLap, lapProfile } from './profiles'
 import { gapHistory, lapSectors, lapsBehind, pace, timeGap } from './queries'
@@ -52,6 +52,8 @@ const UNLIMITED_TIME_S = 6 * 24 * 3600
 const TIME_BACKWARD_S = 1
 /** Offline sessions all have SubSessionID 0: a reconnect resumes one only within this gap. */
 const OFFLINE_RESUME_S = 60
+/** Crawl threshold (s per lap) of a car with no pace, for the standing-start check. */
+const FALLBACK_LAP_S = 120
 
 /** SectorStartPct values snapped to timing lines; [] unless they start at 0. */
 function snapSectors(starts: readonly number[]): number[] {
@@ -77,8 +79,18 @@ export class RaceModel {
   /** Eligible CarIdx of the current SessionMeta (has a DriverEntry, not pace car/spectator). */
   private readonly eligible = new Int32Array(MAX_CARS)
   private eligibleCount = 0
-  /** Grid position by CarIdx, Infinity when unknown. */
+  /** Grid position (overall and in class) by CarIdx, Infinity when unknown. */
   private readonly gridPos = new Float64Array(MAX_CARS)
+  private readonly gridClassPos = new Float64Array(MAX_CARS)
+  /**
+   * By CarIdx: the last grid slot of its class (0 without a grid), so a car without one
+   * goes after every entry of the grid, loaded or not. gridLast: the same overall.
+   */
+  private readonly gridClassLast = new Float64Array(MAX_CARS)
+  private gridLast = 0
+  /** By CarIdx: pace fallbacks from the earlier sessions (CarTrack.priorBest / classPriorBest). */
+  private readonly priorBest = new Float64Array(MAX_CARS)
+  private readonly classPriorBest = new Float64Array(MAX_CARS)
   private sessionRef: SessionMeta | null = null
   private sessionDetails: ReadonlyMap<number, SessionDetails> = new Map()
   private sectorLines: number[] = []
@@ -113,6 +125,11 @@ export class RaceModel {
   private incidents = 0
   private timeRemain = NaN
   private lapsRemainEx = NaN
+  /**
+   * Practice/qualifying by laps: your laps left, as seen in the car. Out of it iRacing resets
+   * SessionLapsRemainEx to the session's laps; a rise is only taken while IsOnTrack.
+   */
+  private playerLapsLeft = NaN
   /** Lap-limited races: lap count at which the leader takes the flag, debounced. */
   private leaderFinishLap = NaN
   private finishLapCandidate = NaN
@@ -168,7 +185,9 @@ export class RaceModel {
       lapsBehind: (behind, ahead) => {
         const b = self.activeTrack(behind)
         const a = self.activeTrack(ahead)
-        return a && b ? lapsBehind(b, a) : 0
+        return a && b
+          ? lapsBehind(b, a, self.isRace && self.sessionState >= SessionState.CoolDown)
+          : 0
       },
       gapHistory: (behind, ahead, laps) => {
         const b = self.activeTrack(behind)
@@ -233,9 +252,11 @@ export class RaceModel {
     this.updatePlayer(frame, session)
     this.timeRemain = finiteOr(frame.SessionTimeRemain[0], NaN)
     this.lapsRemainEx = finiteOr(frame.SessionLapsRemainEx[0], NaN)
+    this.updatePlayerLapsLeft(frame.IsOnTrack[0] === true)
 
     const mode = this.racing ? 'race' : this.isRace ? 'grid' : 'best'
     this.order.update(this.tracks, mode, this.gridPos, t, this.membershipDirty)
+    if (mode === 'grid') this.gridPositions()
     this.updateLeaderFinishLap()
     if (this.membershipDirty) {
       const list: RaceCarState[] = []
@@ -317,6 +338,7 @@ export class RaceModel {
     this.incidents = 0
     this.timeRemain = NaN
     this.lapsRemainEx = NaN
+    this.playerLapsLeft = NaN
     this.leaderFinishLap = NaN
     this.finishLapCandidate = NaN
     this.order.clear()
@@ -330,7 +352,15 @@ export class RaceModel {
     this.teamRacing = session.teamRacing
     this.drivers.fill(undefined)
     this.gridPos.fill(Infinity)
+    this.gridClassPos.fill(Infinity)
+    this.gridClassLast.fill(0)
+    this.priorBest.fill(0)
+    this.classPriorBest.fill(0)
+    this.gridLast = 0
     this.eligibleCount = 0
+    // Per class: the last grid slot and the fastest qualifying time (small: a few classes).
+    const classLast = new Map<number, number>()
+    const classBest = new Map<number, number>()
     for (const [idx, d] of session.drivers) {
       if (!Number.isInteger(idx) || idx < 0 || idx >= MAX_CARS) continue
       if (d.isPaceCar || d.isSpectator || idx === session.paceCarIdx) continue
@@ -338,7 +368,22 @@ export class RaceModel {
       this.entryKeys[idx] = entryKey(d, session.teamRacing)
       this.eligible[this.eligibleCount++] = idx
       const g = session.grid.get(idx)
-      if (g) this.gridPos[idx] = g.position
+      if (!g) continue
+      this.gridPos[idx] = g.position
+      this.gridClassPos[idx] = g.classPosition
+      this.gridLast = Math.max(this.gridLast, g.position)
+      classLast.set(d.classId, Math.max(classLast.get(d.classId) ?? 0, g.classPosition))
+      if (g.bestLap !== null && g.bestLap > 0) {
+        this.priorBest[idx] = g.bestLap
+        const best = classBest.get(d.classId)
+        if (best === undefined || g.bestLap < best) classBest.set(d.classId, g.bestLap)
+      }
+    }
+    for (let k = 0; k < this.eligibleCount; k++) {
+      const idx = this.eligible[k] ?? 0
+      const classId = this.drivers[idx]?.classId ?? 0
+      this.gridClassLast[idx] = classLast.get(classId) ?? 0
+      this.classPriorBest[idx] = classBest.get(classId) ?? 0
     }
     // A slot taken over by another entry, or no longer eligible, starts over. A driver
     // change inside the same team car keeps its history.
@@ -352,6 +397,8 @@ export class RaceModel {
         continue
       }
       track.estLapTime = d.classEstLapTime
+      track.priorBest = this.priorBest[i] ?? 0
+      track.classPriorBest = this.classPriorBest[i] ?? 0
       if (d.classId !== track.classId) {
         track.classId = d.classId
         this.membershipDirty = true
@@ -388,6 +435,8 @@ export class RaceModel {
       track.entryKey = this.entryKeys[i] ?? ''
       track.classId = driver.classId
       track.estLapTime = driver.classEstLapTime
+      track.priorBest = this.priorBest[i] ?? 0
+      track.classPriorBest = this.classPriorBest[i] ?? 0
       this.membershipDirty = true
     }
 
@@ -397,13 +446,20 @@ export class RaceModel {
     // Before this tick's crossings: an excursion at the line counts for the lap it ends.
     if (offTrack) track.lapOffTrack = true
     const flags = (inPits ? FLAG_PIT : 0) | (this.caution ? FLAG_CAUTION : 0)
+    // Standing still just behind the line at the green (as of the ticks before it): a standing
+    // start, whose first crossing only reaches the line.
+    if (raceStart) {
+      track.gridStart = this.sawPreRace && frac(track.lastD) > 0.5 && this.crawling(track)
+    }
     const d = advanceTrack(track, lapRaw, pct, this.time, flags, this.onSfLine)
     if (this.racing) track.seenRacing = true
+    // A lap credited without driving it (a towed car in its box) is not a stint lap.
+    if (track.creditedLaps > 0) track.stintStartLap += track.creditedLaps
     // Joined after a green flag it missed: as far as the model knows the car has run since the
     // start (stops it never saw are not counted, like pitStops), so a restart mid-race does not
     // reset every stint.
     if (raceStart || Number.isNaN(track.stintStartLap)) {
-      track.stintStartLap = this.racing && this.raceStartT === -Infinity ? 0 : Math.floor(d)
+      track.stintStartLap = this.racing && this.raceStartT === -Infinity ? 0 : stintStart(d)
     }
     updatePitEdges(track, onPitRoad, this.racingNow, lapRaw, d)
 
@@ -510,6 +566,56 @@ export class RaceModel {
     this.incidents = finiteOr(frame.PlayerCarMyIncidentCount[0], 0)
   }
 
+  /** The car's measured speed is a crawl (motion.ts): stopped on the grid, in its box... */
+  private crawling(track: CarTrack): boolean {
+    const st = track.state
+    return track.spdKnown && st.speed < STOP_FRACTION / (st.pace ?? FALLBACK_LAP_S)
+  }
+
+  /**
+   * Before the green: every car at its grid slot (QualifyResultsInfo), so the positions are
+   * the real ones while entries are still loading; a car without a slot goes after the
+   * whole grid, in the order's ranking. Without any grid, the order's numbering stays.
+   */
+  private gridPositions(): void {
+    if (this.gridLast <= 0) return
+    for (let k = 0; k < this.eligibleCount; k++) {
+      const i = this.eligible[k] ?? 0
+      const track = this.tracks[i]
+      if (!track?.active) continue
+      const pos = this.gridPos[i] ?? Infinity
+      if (Number.isFinite(pos)) {
+        track.state.overallPosition = pos
+        track.state.classPosition = this.gridClassPos[i] ?? 0
+        continue
+      }
+      // Ranked by the order among the other cars without a slot (none, nearly always).
+      let overall = this.gridLast + 1
+      let cls = (this.gridClassLast[i] ?? 0) + 1
+      const own = track.state.overallPosition
+      for (let j = 0; j < this.eligibleCount; j++) {
+        const other = this.tracks[this.eligible[j] ?? 0]
+        if (!other?.active || other === track) continue
+        if (Number.isFinite(this.gridPos[other.carIdx] ?? Infinity)) continue
+        if (other.state.overallPosition >= own) continue
+        overall++
+        if (other.classId === track.classId) cls++
+      }
+      track.state.overallPosition = overall
+      track.state.classPosition = cls
+    }
+  }
+
+  /** Non-race sessions by laps: your laps left only go up while you are in the car. */
+  private updatePlayerLapsLeft(onTrack: boolean): void {
+    if (this.isRace || !this.lapLimited()) {
+      this.playerLapsLeft = NaN
+      return
+    }
+    const ex = this.lapsRemainEx
+    if (onTrack || !(this.playerLapsLeft <= ex)) this.playerLapsLeft = ex
+  }
+
   /**
    * Lap-limited race: the leader's finishing lap = its completed laps +
    * SessionLapsRemainEx (assumed to count the leader's laps left including
@@ -554,15 +660,21 @@ export class RaceModel {
     return ex >= 0 && ex < LAPS_REMAIN_UNLIMITED
   }
 
-  /** Clock left for the laps estimate: SessionTimeRemain, or the scheduled length before the start. */
+  /** The session's scheduled time limit (s), null when it has none. */
+  private scheduledTimeS(): number | null {
+    const s = this.sessionDetails.get(this.sessionNum)?.timeS ?? null
+    return s !== null && s > 0 && s < UNLIMITED_TIME_S ? s : null
+  }
+
+  /**
+   * Clock left for the laps estimate: SessionTimeRemain, or the scheduled length before the
+   * start. Before a race's green SessionTimeRemain counts down the grid, not the race.
+   */
   private timeLeftForLaps(): number | null {
+    if (this.isRace && this.sessionState < SessionState.Racing) return this.scheduledTimeS()
     const remain = this.timeRemain
     if (remain >= 0 && remain < UNLIMITED_TIME_S) return remain
-    if (this.sessionState < SessionState.Racing) {
-      const s = this.sessionDetails.get(this.sessionNum)?.timeS ?? null
-      if (s !== null && s > 0 && s < UNLIMITED_TIME_S) return s
-    }
-    return null
+    return this.sessionState < SessionState.Racing ? this.scheduledTimeS() : null
   }
 
   private lapsRemaining(carIdx: number): number | null {
@@ -571,7 +683,10 @@ export class RaceModel {
     const ex = this.lapsRemainEx
     if (!this.isRace) {
       // Practice/qualifying: lap limits are the player's own; time limits end each car's lap.
-      if (this.lapLimited()) return carIdx === this.playerIdx ? ex : null
+      if (this.lapLimited()) {
+        if (carIdx !== this.playerIdx) return null
+        return this.sessionState >= SessionState.CoolDown ? 0 : this.playerLapsLeft
+      }
       const remain = this.timeLeftForLaps()
       const p = pace(track)
       if (remain === null || p === null) return null
@@ -602,11 +717,19 @@ export class RaceModel {
     const p = pace(track)
     if (remain === null || leaderPace === null || p === null) return null
     const endS = timedRaceEndS(remain, frac(leader.orderDistance()), leaderPace)
-    return crossingsUntil(endS, frac(track.orderDistance()), p)
+    const d = track.orderDistance()
+    const n = crossingsUntil(endS, frac(d), p)
+    // On the grid (lap -1) the first crossing only reaches the line: no lap done.
+    return d < 0 ? Math.max(1, n - 1) : n
   }
 
   private timeRemainingS(): number | null {
-    if (this.lapLimited()) return null
+    // A race's clock: its scheduled length before the green. Any session's is over once the
+    // flag is out (SessionTimeRemain then counts the time left to finish, or to leave).
+    if (this.isRace && this.sessionState < SessionState.Racing) return this.scheduledTimeS()
+    if (this.sessionState >= SessionState.Checkered) return null
+    // By laps, a clock only when the session has a time limit too.
+    if (this.lapLimited() && this.scheduledTimeS() === null) return null
     const remain = this.timeRemain
     return remain >= 0 && remain < UNLIMITED_TIME_S ? remain : null
   }

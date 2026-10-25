@@ -86,6 +86,8 @@ function makeRace(list: readonly FakeCar[], o: FakeRaceOpts = {}): RaceView {
       disconnected: false,
       finished: false,
       pitStops: 0,
+      towStops: 0,
+      towed: false,
       lastPitLap: null,
       outLap: false,
       stintLaps: 0,
@@ -301,13 +303,14 @@ describe('compact mode', () => {
     expect(b.rows.filter((r) => r.gapBefore).map((r) => r.classPosition)).toEqual([18])
   })
 
-  it('shows just the top rows when the player is not classified', () => {
+  it('keeps the window on the player while not classified (no lap time yet)', () => {
     const cars = field(20)
     const race = makeRace([...cars.slice(0, 19), { carIdx: 19, classPosition: 0 }], {
       playerCarIdx: 19
     })
     const b = block(compute(RACE, session, race, OPTS))
-    expect(positions(b)).toEqual([1, 2, 3])
+    expect(positions(b)).toEqual([1, 2, 3, 18, 19, 0])
+    expect(b.rows.find((r) => r.isPlayer)?.carIdx).toBe(19)
     expect(b.isPlayerClass).toBe(true)
   })
 
@@ -585,9 +588,9 @@ describe('last laps', () => {
 describe('positions gained', () => {
   const session = makeSession(drivers(4), {
     grid: new Map([
-      [0, { position: 3, classPosition: 3 }],
-      [1, { position: 1, classPosition: 1 }],
-      [3, { position: 2, classPosition: 2 }]
+      [0, { position: 3, classPosition: 3, bestLap: null }],
+      [1, { position: 1, classPosition: 1, bestLap: null }],
+      [3, { position: 2, classPosition: 2, bestLap: null }]
     ])
   })
   const race = makeRace([...field(3), { carIdx: 3, classPosition: 0 }])
@@ -604,6 +607,83 @@ describe('positions gained', () => {
   it('null outside races', () => {
     const data = compute(PRACTICE, session, race, FULL)
     expect(block(data).rows.every((r) => r.positionsGained === null)).toBe(true)
+  })
+})
+
+// Lime Rock, 1:35 before the green: "7 coches", you "7 ▲4" and -37 iR (11 entries, you P11,
+// -96 iR): only the cars loaded so far were ranked, the rest counted as non-starters.
+describe('before the green (B09)', () => {
+  const grid = new Map(
+    [0, 1, 2, 3, 4].map((i) => [i, { position: i + 1, classPosition: i + 1, bestLap: null }])
+  )
+  const session = makeSession(drivers(5), { grid, playerCarIdx: 4 })
+  // Loaded so far: the cars on slots 2 and 5 (the model puts them at their grid slots).
+  const loaded = makeRace(
+    [
+      { carIdx: 1, classPosition: 2 },
+      { carIdx: 4, classPosition: 5 }
+    ],
+    { racing: false, playerCarIdx: 4 }
+  )
+
+  it('lists the whole grid, entries still loading included, with nothing gained', () => {
+    const b = block(compute(RACE, session, loaded, FULL))
+    expect(carIdxs(b)).toEqual([0, 1, 2, 3, 4])
+    expect(positions(b)).toEqual([1, 2, 3, 4, 5])
+    expect(b.rows.every((r) => r.positionsGained === null)).toBe(true)
+    expect(b.carCount).toBe(5)
+    expect(b.rows.find((r) => r.isPlayer)?.classPosition).toBe(5)
+  })
+
+  it('projects the iRating over the grid, everybody on it a starter', () => {
+    const data = compute(RACE, session, loaded, FULL)
+    expect(vi.mocked(iRatingDeltas).mock.calls[0]?.[0]).toEqual(
+      [0, 1, 2, 3, 4].map((i) => ({ carIdx: i, iRating: 2000 + i, position: i + 1, started: true }))
+    )
+    // Last on the grid of five equal-ish ratings: a loss, the same as with everyone loaded.
+    const all = makeRace(field(5), { racing: false, playerCarIdx: 4 })
+    const full = new StandingsProvider().compute(RACE, session, all, FULL)
+    expect(data.header.iRating?.iRatingDelta).toBe(full.header.iRating?.iRatingDelta)
+    expect(data.header.iRating?.iRatingDelta ?? 0).toBeLessThan(0)
+  })
+
+  it('counts the registered entries, not the cars seen, once racing too', () => {
+    const racing = makeRace(field(2), { playerCarIdx: 0 })
+    const b = block(compute(RACE, session, racing, FULL))
+    expect(carIdxs(b)).toEqual([0, 1])
+    expect(b.carCount).toBe(5)
+  })
+})
+
+describe('tyres and tows (Q9, Q10)', () => {
+  const session = makeSession(drivers(3), {
+    tyreCompounds: new Map([
+      [0, 'Hard'],
+      [1, 'Wet']
+    ])
+  })
+
+  it('names no compound while the whole field runs the same usual one', () => {
+    const compounds = new Array<number>(MAX_CARS).fill(-1)
+    compounds.fill(0, 0, 3)
+    const frame: TelemetryFrame = { ...RACE, CarIdxTireCompound: compounds }
+    const data = compute(frame, session, makeRace(field(3)), FULL)
+    expect(data.classes.flatMap((b) => b.rows).map((r) => r.tyre)).toEqual([null, null, null])
+    // One on wets: every known compound.
+    compounds[2] = 1
+    const wet = compute(frame, session, makeRace(field(3)), FULL)
+    expect(wet.classes.flatMap((b) => b.rows).map((r) => r.tyre)).toEqual(['Hard', 'Hard', 'Wet'])
+  })
+
+  it('marks a car towed to its box, apart from its stops', () => {
+    const race = makeRace([
+      { carIdx: 0, classPosition: 1 },
+      { carIdx: 1, classPosition: 2, inPits: true, towed: true, towStops: 1 },
+      { carIdx: 2, classPosition: 3, inPits: true, pitStops: 1 }
+    ])
+    const data = compute(RACE, session, race, FULL)
+    expect(rowOf(data, 1)).toMatchObject({ status: 'pits', towed: true, pitStops: 0 })
+    expect(rowOf(data, 2)).toMatchObject({ status: 'pits', towed: false, pitStops: 1 })
   })
 })
 

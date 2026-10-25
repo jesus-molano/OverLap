@@ -83,6 +83,8 @@ export interface SessionDetails {
 export interface GridEntry {
   position: number
   classPosition: number
+  /** Its qualifying time (FastestTime) in seconds, null without one (it starts at the back). */
+  bestLap: number | null
 }
 
 export interface SessionMeta {
@@ -212,7 +214,10 @@ export type CarPenalty = 'black' | 'meatball' | 'furled'
 export interface RelativeRow {
   carIdx: number
   isPlayer: boolean
-  /** Class position (> 0) or null when the sim does not report one yet. */
+  /**
+   * Class position (> 0), the same as Standings (the race model's); null when unknown: no
+   * lap time outside races, not classified yet.
+   */
   classPosition: number | null
   carNumber: string
   /** '' when unknown; teamName stands in then (see DriverIdentity). */
@@ -337,15 +342,23 @@ export interface StandingsRow {
   bestLap: number | null
   /** 'class-best': bestLap is the fastest lap of the class this session (purple). */
   bestLapKind: 'normal' | 'class-best'
-  /** Pit stops so far, null when unknown (a replay: its model never saw the stops before it). */
+  /**
+   * Pit stops so far (tows not counted), null when unknown (a replay: its model never saw the
+   * stops before it).
+   */
   pitStops: number | null
   /** CarIdxLapCompleted at the last pit exit, null when none or unknown. */
   lastPitLap: number | null
   /** On the first lap after leaving the pits ("OUT"). */
   outLap: boolean
+  /** In the pits after a tow or reset (RaceCarState.towed): a tow badge instead of PIT. */
+  towed: boolean
   /** Laps of the current stint (RaceCarState.stintLaps); null if unknown (replay) or not shown. */
   stintLaps: number | null
-  /** Its tyre compound's name ('Hard'); null when unknown or no column shows it (tyres.ts). */
+  /**
+   * Its tyre compound's name ('Hard'); null when unknown, no column shows it, or the whole
+   * field runs the same usual compound (tyresVary: the column then says nothing).
+   */
   tyre: string | null
   status: StandingsStatus
   /** Flag shown as a badge. */

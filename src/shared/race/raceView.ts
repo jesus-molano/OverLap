@@ -34,9 +34,10 @@ export interface RaceCarState {
   /** Continuous race distance in laps (CarIdxLapCompleted + CarIdxLapDistPct); NaN when not in world. */
   readonly distance: number
   /**
-   * 1-based position within the class by race distance in races, by best lap
-   * otherwise. A change must hold for 0.5 s before it shows (no flicker at the
-   * S/F line). 0 when not classified (never seen in world this session).
+   * 1-based position within the class by race distance in races (before the green flag, its
+   * grid slot: QualifyResultsInfo, counting the entries not loaded yet), by best lap
+   * otherwise. A change must hold for 0.5 s before it shows (no flicker at the S/F line).
+   * 0 when not classified: never seen in world this session, or (outside races) no lap time.
    */
   readonly classPosition: number
   /** Same, over all classes. */
@@ -57,15 +58,24 @@ export interface RaceCarState {
    * last lap are frozen at the finish line.
    */
   readonly finished: boolean
-  /** Pit-road entries during Racing (a pit-lane start is not a stop). */
+  /**
+   * Pit-road entries driven during Racing (a pit-lane start is not a stop, nor a tow or reset
+   * that puts the car on pit road: those are towStops).
+   */
   readonly pitStops: number
+  /** Tows and resets to pit road during Racing (iRacing places the car in its box). */
+  readonly towStops: number
+  /** On pit road after a tow or reset, until it leaves pit road. */
+  readonly towed: boolean
   /** CarIdxLapCompleted when it last left pit road during Racing, null when never. */
   readonly lastPitLap: number | null
   /** On the first lap after a pit exit. */
   readonly outLap: boolean
   /**
    * Laps completed since the last pit exit (or since the start; joined mid-race, stops before
-   * that are unknown). Outside races, since the car was first seen or left the pits.
+   * that are unknown). Outside races, since the car was first seen or left the pits. Laps
+   * iRacing credits without driving them (a towed car parked in its box) do not count, nor
+   * the run from the grid or the pit lane to the line.
    */
   readonly stintLaps: number
   /** Last lap time (model-timed, falling back to CarIdxLastLapTime), seconds, null when none. */
@@ -75,9 +85,10 @@ export interface RaceCarState {
   /** Up to the last 10 laps, most recent first. */
   readonly laps: readonly LapRecord[]
   /**
-   * Seconds per lap at the car's current pace: average of its last clean laps,
-   * falling back to its class est lap time, then its best lap; null when none
-   * is known. The same estimate lapsRemaining() uses.
+   * Seconds per lap at the car's current pace: average of its last clean laps, falling back
+   * to its best lap this session, its best of the event's earlier sessions (qualifying,
+   * practice), the fastest of its class there, and only then the class est lap time (often
+   * seconds off); null when none is known. The same estimate lapsRemaining() uses.
    */
   readonly pace: number | null
   /** Current speed in laps per second (smoothed over ~0.5 s); 0 when not in world. */
@@ -111,13 +122,18 @@ export interface RaceView {
 
   /**
    * Seconds `behind` trails `ahead` at the last timing line `behind` crossed
-   * (difference of their crossing times of that line on the same lap). Null
-   * when `ahead` has no crossing of that line+lap in the history (e.g. it is
-   * several laps ahead, or history is too short). Negative when `behind` is
-   * actually ahead.
+   * (difference of their crossing times of that line on the same lap); after a
+   * tow, reset or world entry of `behind`, the time since `ahead` was where
+   * `behind` is now. Null when `ahead` has no crossing there in the history
+   * (e.g. it is several laps ahead, or history is too short). Negative (or 0)
+   * only when `behind` is actually ahead by race distance.
    */
   timeGap(behind: number, ahead: number): number | null
-  /** Whole laps `behind` trails `ahead` by race distance (floor of the distance difference, >= 0). */
+  /**
+   * Whole laps `behind` trails `ahead` by race distance (floor of the distance difference,
+   * >= 0). Once `ahead` has taken the flag, a car that will not finish (out of the world, or
+   * the race is over) trails it by its finishing lap minus the laps it completed.
+   */
   lapsBehind(behind: number, ahead: number): number
   /**
    * Gap samples of timeGap(behind, ahead) at each line crossed during the last
@@ -161,7 +177,11 @@ export interface RaceView {
     carIdx: number,
     which: 'best' | 'last'
   ): { lap: number; lapTime: number; clean: boolean; profile: readonly number[] } | null
-  /** Seconds left in a timed session, null otherwise. */
+  /**
+   * Seconds left in a session with a time limit (also when it has a lap limit too), null
+   * otherwise. Before the green flag of a race, its scheduled length (SessionTimeRemain counts
+   * down the grid then); null once the chequered flag is out.
+   */
   readonly timeRemainingS: number | null
 
   /**

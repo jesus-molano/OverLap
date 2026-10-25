@@ -639,7 +639,7 @@ describe('RaceModel positions', () => {
     expect(shownAfter).toBeLessThan(0.6)
   })
 
-  it('orders by best lap outside races (no time last, ties by CarIdx)', () => {
+  it('orders by best lap outside races, unclassified without a time', () => {
     const sim = new Sim(makeSession(4), { sessionNum: PRACTICE })
     sim.frame.CarIdxBestLapTime[1] = 91.5
     sim.frame.CarIdxBestLapTime[2] = 90.2
@@ -650,7 +650,8 @@ describe('RaceModel positions', () => {
       2: { d: 1.7 + V * t },
       3: { d: 1.6 + V * t }
     }))
-    expect([0, 1, 2, 3].map((i) => car(sim.view, i).classPosition)).toEqual([4, 3, 1, 2])
+    // No lap time: not classified (no "leader" without a lap), listed last.
+    expect([0, 1, 2, 3].map((i) => car(sim.view, i).classPosition)).toEqual([0, 3, 1, 2])
     expect(sim.view.racing).toBe(false)
   })
 
@@ -670,7 +671,7 @@ describe('RaceModel positions', () => {
     })
     expect(car(sim.view, 1).laps[0]).toMatchObject({ lap: 2, clean: false })
     expect(car(sim.view, 1).bestLapTime).toBeNull()
-    expect([0, 1, 2].map((i) => car(sim.view, i).classPosition)).toEqual([2, 3, 1])
+    expect([0, 1, 2].map((i) => car(sim.view, i).classPosition)).toEqual([2, 0, 1])
     sim.frame.CarIdxBestLapTime[2] = -1
     sim.run(1, 60, cars)
     expect(car(sim.view, 2).bestLapTime).toBe(30.5)
@@ -688,8 +689,8 @@ describe('RaceModel positions', () => {
 
   it('orders by the grid in a race before the start', () => {
     const grid = new Map([
-      [0, { position: 2, classPosition: 2 }],
-      [1, { position: 1, classPosition: 1 }]
+      [0, { position: 2, classPosition: 2, bestLap: null }],
+      [1, { position: 1, classPosition: 1, bestLap: null }]
     ])
     const sim = new Sim(makeSession(3, { grid }), { state: SessionState.GetInCar })
     sim.run(1, 60, () => ({ 0: { d: 0.99 }, 1: { d: 0.98 }, 2: { d: 0.97 } }))
