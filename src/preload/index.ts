@@ -11,6 +11,7 @@ import {
   type SettingsCommand
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
+import type { ShortcutStatusMap } from '@shared/shortcuts'
 import type {
   OverlaySettings,
   OverlayStatus,
@@ -39,6 +40,8 @@ const api: OverlayApi = {
   onAutoHidden: (cb) => subscribe<AutoHiddenMessage>(IPC.autoHidden, cb),
   onLayout: (cb) => subscribe<OverlayLayout>(IPC.layout, cb),
   onPersonalBests: (cb) => subscribe<PersonalBestList>(IPC.personalBests, cb),
+  onOverlayHidden: (cb) => subscribe<boolean>(IPC.overlayHidden, cb),
+  onShortcutStatus: (cb) => subscribe<ShortcutStatusMap>(IPC.shortcutStatus, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),

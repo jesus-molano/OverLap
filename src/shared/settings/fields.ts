@@ -4,6 +4,7 @@
  * `target` (a fresh copy); invalid ones keep target's value: the default when
  * normalising, the current value when patching.
  */
+import { canonicalAccelerator } from '../accelerator'
 import { normalizeHexColor } from '../colors'
 import { STANDINGS_COLUMN_IDS, WIDGET_FIELD_SCHEMA, type OptionSpec } from '../settingsSchema'
 import type { StandingsColumn, StandingsColumnId, WidgetSettings } from '../types'
@@ -71,6 +72,15 @@ export function normalizeColumns(
   return out
 }
 
+/**
+ * '' (turned off), or an assignable combination in its canonical spelling; anything else
+ * (not a string, unparsable, reserved, needing a modifier) keeps `fallback`.
+ */
+export function pickAccelerator(value: unknown, fallback: string): string {
+  if (value === '') return ''
+  return canonicalAccelerator(value) ?? fallback
+}
+
 /** A valid value for `spec` from `raw`, else `current` (copied when it is an object). */
 export function validateOption(spec: OptionSpec, raw: unknown, current: unknown): unknown {
   switch (spec.kind) {
@@ -95,6 +105,54 @@ export function validateOption(spec: OptionSpec, raw: unknown, current: unknown)
     }
     case 'columns':
       return normalizeColumns(raw, current as readonly StandingsColumn[])
+    case 'accelerator':
+      return pickAccelerator(raw, current as string)
+  }
+}
+
+/** The accelerator fields of a section, in schema order. */
+function acceleratorFields(specs: Readonly<Record<string, OptionSpec>>): string[] {
+  return Object.keys(specs).filter((f) => specs[f]?.kind === 'accelerator')
+}
+
+/**
+ * One combination, one action. Read from disk: the first accelerator field (schema order)
+ * keeps a combination and the later ones that repeat it are turned off.
+ */
+export function disableDuplicateAccelerators(
+  target: object,
+  specs: Readonly<Record<string, OptionSpec>>
+): void {
+  const t = target as Record<string, unknown>
+  const seen = new Set<unknown>()
+  for (const field of acceleratorFields(specs)) {
+    const value = t[field]
+    if (value === '') continue
+    if (seen.has(value)) t[field] = ''
+    else seen.add(value)
+  }
+}
+
+/**
+ * One combination, one action. From a patch: every field it changed that now repeats another
+ * field's combination keeps its value from `before`, until none does (`before` has no
+ * duplicates, so this ends). Fields that only swapped combinations are accepted.
+ */
+export function revertDuplicateAccelerators(
+  target: object,
+  before: object,
+  specs: Readonly<Record<string, OptionSpec>>
+): void {
+  const t = target as Record<string, unknown>
+  const b = before as Record<string, unknown>
+  const fields = acceleratorFields(specs)
+  for (;;) {
+    const colliding = fields.filter(
+      (f) =>
+        t[f] !== b[f] && t[f] !== '' && fields.some((other) => other !== f && t[other] === t[f])
+    )
+    if (colliding.length === 0) return
+    for (const f of colliding) t[f] = b[f]
   }
 }
 

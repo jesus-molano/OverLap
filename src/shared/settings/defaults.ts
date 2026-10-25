@@ -60,7 +60,8 @@ export function createDefaultSettings(): OverlaySettings {
     inputs: defaultOptions('inputs'),
     traffic: defaultOptions('traffic'),
     alerts: defaultOptions('alerts'),
-    delta: defaultOptions('delta')
+    delta: defaultOptions('delta'),
+    shortcuts: defaultOptions('shortcuts')
   }
 }
 

@@ -102,6 +102,7 @@ solo.
 - **Idioma** (en Apariencia): español (por defecto) o inglés. Cambia al momento los widgets, la
   ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja
   (`appearance.language`: `"es"` o `"en"` en `settings.json`).
+- **Atajos de teclado** (justo debajo de Apariencia): ver [Atajos de teclado](#atajos-de-teclado).
 - Botón de modo edición y acceso a la carpeta de ajustes.
 
 Es una ventana normal y sí coge el foco al abrirla (lo pides tú); los widgets nunca lo hacen.
@@ -110,12 +111,39 @@ Es una ventana normal y sí coge el foco al abrirla (lo pides tú); los widgets 
 | ---------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------ |
 | ![Ajustes](docs/screenshots/ajustes.png) | ![Relativo](docs/screenshots/edicion-relativo-35.png) | ![Radar](docs/screenshots/edicion-radar-bloqueado.png) |
 
-### Atajos y modo edición
+### Atajos de teclado
 
-| Atajo          | Acción                          |
-| -------------- | ------------------------------- |
-| `Ctrl+Shift+E` | Entrar / salir del modo edición |
-| `Esc`          | Salir del modo edición          |
+Son globales: funcionan aunque iRacing esté en primer plano, sin salir del juego.
+
+| Atajo (por defecto) | Acción                                                    |
+| ------------------- | --------------------------------------------------------- |
+| `Ctrl+Shift+H`      | Mostrar / ocultar el overlay (todos los widgets de golpe) |
+| `Ctrl+Shift+E`      | Entrar / salir del modo edición                           |
+| `Esc`               | Salir del modo edición (solo mientras editas; fijo)       |
+
+- **Ocultar el overlay** esconde todas las ventanas de los widgets al instante; la telemetría sigue
+  funcionando, así que al mostrarlo vuelven con los datos al día. No se guarda: la app siempre
+  arranca con el overlay visible. Ocultarlo en modo edición sale antes del modo edición, y entrar en
+  modo edición con el overlay oculto lo vuelve a mostrar. La ventana de Ajustes avisa mientras está
+  oculto, con un botón **Mostrar**; la bandeja también tiene la casilla **Ocultar overlay**.
+- Se cambian en **Ajustes > Atajos de teclado**: pulsa **Cambiar** y luego la combinación (`Esc`
+  cancela, `Retroceso` o `Supr` lo desactivan). También se pueden **desactivar** o **restablecer**
+  uno a uno, o todos con **Restablecer atajos**. Se guardan en `settings.json` (`shortcuts`).
+- **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras
+  OverLap está abierto: no elijas una que uses en el simulador. Si otra aplicación ya la tiene, la
+  página lo marca como _En uso por otra aplicación_ y la bandeja sigue sirviendo.
+- Las combinaciones necesitan `Ctrl` o `Alt` (con `Shift` + letra no podrías escribir esa mayúscula,
+  y `F1`–`F12` son las cajas negras de iRacing). Sirven letras, números, `F1`–`F24`, el teclado
+  numérico, `Espacio` y las teclas de navegación; los signos de puntuación no, porque cambian de
+  sitio según la distribución del teclado. No se pueden usar las de Windows (`Alt+Tab`, `Alt+F4`,
+  `Ctrl+Esc`...), las de editar (`Ctrl+C`, `Ctrl+V`, `Ctrl+Z`...), ninguna con `Esc` ni la tecla
+  Windows.
+- `Ctrl+Alt` + letra o número equivale a `AltGr` en un teclado español: se guarda, pero avisa de que
+  puede impedir escribir `@`, `#` o `€`.
+- Consejo: `F13`–`F24` funcionan sin `Ctrl` ni `Alt`; muchas button box y teclados de macros las
+  envían.
+
+### Modo edición
 
 En modo edición se arrastra el widget para moverlo y se usan sus bordes y esquinas para
 redimensionarlo; los widgets bloqueados muestran un candado y no se mueven. Fuera del modo edición
@@ -128,17 +156,18 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
   Mouse > Desplazar ventanas inactivas al mantener el puntero sobre ellas_.
 - Para llevar un widget a **otra pantalla**, arrástralo fuera de la suya: aparece "Suelta para
   moverlo a la otra pantalla" y al soltar queda bajo el puntero.
-- Salir del modo edición (`Esc`, `Ctrl+Shift+E` o la bandeja) en mitad de un arrastre lo **cancela**:
-  el widget vuelve a donde estaba.
+- Salir del modo edición (`Esc`, su atajo, ocultar el overlay o la bandeja) en mitad de un arrastre
+  lo **cancela**: el widget vuelve a donde estaba.
 - Coloca los widgets en el garaje o en los menús: mientras el modo edición está activo, los clics
   sobre un widget no llegan al juego.
 
 ### Bandeja del sistema
 
-Desde el icono de la bandeja: **Ajustes…**, mostrar/ocultar cada widget, entrar en modo edición,
-alcance del radar (10 / 20 / 30 / 50 m), abrir la carpeta de ajustes y salir.
+Desde el icono de la bandeja: **Ajustes…**, mostrar/ocultar cada widget, alcance del radar
+(10 / 20 / 30 / 50 m), ocultar el overlay, entrar en modo edición (estos dos con su atajo al lado),
+abrir la carpeta de ajustes y salir. Mientras el overlay está oculto, el texto del icono lo dice.
 
-Al hacer clic en la bandeja, Windows le quita el foco al juego; mientras conduces usa el atajo.
+Al hacer clic en la bandeja, Windows le quita el foco al juego; mientras conduces usa los atajos.
 
 ### Archivo de ajustes (`settings.json`)
 
@@ -303,8 +332,10 @@ Canales IPC (`src/shared/ipc.ts`):
 | `overlay:scale-step`      | overlay -> main  | `ScaleStepMessage` (rueda sobre un widget de alto automático)            |
 | `overlay:drag-state`      | overlay -> main  | `DragStateMessage` (hay un arrastre en curso)                            |
 | `overlay:update-settings` | Ajustes -> main  | `SettingsPatch` validado (invoke)                                        |
-| `overlay:command`         | Ajustes -> main  | modo edición, restablecer, carpeta, récords                              |
+| `overlay:command`         | Ajustes -> main  | modo edición, ocultar, grabar atajo, restablecer, carpeta, récords       |
 | `overlay:personal-bests`  | main -> Ajustes  | `PersonalBestList`                                                       |
+| `overlay:overlay-hidden`  | main -> Ajustes  | `boolean`: el overlay está oculto                                        |
+| `overlay:shortcut-status` | main -> Ajustes  | `ShortcutStatusMap`: atajo registrado, desactivado o en uso por otra app |
 
 ### Anti-cheat
 
@@ -315,7 +346,9 @@ pasar los clics, encima del juego. **Solo en modo edición**, el reenvío de rat
 gancho de ratón de bajo nivel (`WH_MOUSE_LL`) en este proceso: observa movimientos del ratón, nunca
 inyecta entrada, y se quita al salir del modo edición. `FORWARD_IN_EDIT = false`
 (`src/main/mouseMode.ts`) lo elimina del todo sin perder nada más que esos resaltados. La única
-ventana normal, que sí coge el foco, es la de Ajustes, y solo cuando la abres tú.
+ventana normal, que sí coge el foco, es la de Ajustes, y solo cuando la abres tú. Los atajos de
+teclado son `RegisterHotKey` de Windows (vía `globalShortcut` de Electron): Windows avisa a la app
+cuando se pulsa la combinación; no hay ganchos de teclado ni nada que llegue al juego.
 
 ## Cómo añadir un widget nuevo
 

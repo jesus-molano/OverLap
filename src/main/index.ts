@@ -17,14 +17,17 @@ import { diffSettings, isSettingsCommand, viewOfSender } from './settingsSync'
 import {
   destroySettingsWindow,
   isSettingsSender,
+  isSettingsWindowFocused,
+  onSettingsWindowInactive,
   openSettingsWindow,
   sendToSettingsWindow,
   setSettingsWindowLanguage
 } from './settingsWindow'
+import { ShortcutManager } from './shortcutManager'
 import { resolveSource } from './sourceFlag'
 import { TelemetryHost } from './telemetryHost'
 import { OverlayWindows } from './overlayWindows'
-import { EDIT_MODE_ACCELERATOR, createTray, destroyTray, updateTray, type TrayState } from './tray'
+import { createTray, destroyTray, updateTray, type TrayState } from './tray'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
@@ -34,12 +37,12 @@ import { EDIT_MODE_ACCELERATOR, createTray, destroyTray, updateTray, type TraySt
  * mouse hook (WH_MOUSE_LL) in this process: it observes mouse moves, never
  * injects input, and is removed when edit mode ends (FORWARD_IN_EDIT=false,
  * in mouseMode.ts, disables it). Only the settings window, opened from the
- * tray, is a normal focusable window.
+ * tray, is a normal focusable window. The global shortcuts are Windows hot
+ * keys (RegisterHotKey through globalShortcut): no keyboard hook, nothing
+ * sent to the game.
  */
 
 const APP_USER_MODEL_ID = 'dev.local.overlap'
-/** Registered only while editing: non-focusable windows never get key events. */
-const EXIT_EDIT_ACCELERATOR = 'Escape'
 /** Backstop for before-quit: telemetry.stop() resolves within ~2 s on its own. */
 const FORCE_EXIT_AFTER_MS = 5_000
 
@@ -149,11 +152,30 @@ function start(): void {
     if (personalBests) sendToSettingsWindow(IPC.personalBests, personalBests)
   }
 
+  const shortcuts = new ShortcutManager({
+    registry: globalShortcut,
+    onAction: (action) => {
+      switch (action) {
+        case 'toggleOverlay':
+          setOverlayHidden(!windows.userHidden)
+          break
+        case 'toggleEditMode':
+          setEditMode(!windows.editMode)
+          break
+      }
+    },
+    onExitEdit: () => setEditMode(false),
+    onStatus: (next) => sendToSettingsWindow(IPC.shortcutStatus, next)
+  })
+  // Whatever takes the keys away from the settings page ends a capture there.
+  onSettingsWindowInactive(() => shortcuts.stopCapture())
+
   function trayState(): TrayState {
     return {
       status,
       settings: store.settings,
       editMode: windows.editMode,
+      overlayHidden: windows.userHidden,
       autoHidden: windows.autoHiddenReasons()
     }
   }
@@ -196,6 +218,7 @@ function start(): void {
     windows.applySettings(store.settings)
     windows.broadcastSettings(store.settings)
     sendToSettingsWindow(IPC.settings, store.settings)
+    shortcuts.configure(store.settings.shortcuts)
     refreshTray()
   }
 
@@ -237,25 +260,42 @@ function start(): void {
     })
   }
 
+  /** Tray, shortcut, settings window: entering edit mode shows a hidden overlay first. */
   function setEditMode(on: boolean): void {
-    if (on === windows.editMode) return
-    windows.setEditMode(on)
-    sendToSettingsWindow(IPC.editMode, on)
-    if (on) {
+    changeModes(() => windows.setEditMode(on))
+  }
+
+  /** Tray, shortcut, settings window: hiding leaves edit mode first, as Escape does. */
+  function setOverlayHidden(hidden: boolean): void {
+    changeModes(() => windows.setUserHidden(hidden))
+  }
+
+  /**
+   * Edit mode and the user's hiding depend on each other (OverlayWindows keeps them
+   * consistent): whichever changed, its side effects follow here.
+   */
+  function changeModes(change: () => void): void {
+    const wasEditing = windows.editMode
+    const wasHidden = windows.userHidden
+    change()
+    const editing = windows.editMode
+    const hidden = windows.userHidden
+    if (editing !== wasEditing) {
+      sendToSettingsWindow(IPC.editMode, editing)
       // Steals Escape from every app, but only while editing.
-      if (!globalShortcut.register(EXIT_EDIT_ACCELERATOR, () => setEditMode(false))) {
-        console.warn('[main] could not register Escape to leave edit mode')
-      }
-    } else {
-      globalShortcut.unregister(EXIT_EDIT_ACCELERATOR)
+      shortcuts.setEditing(editing)
       // Drags already went through onBoundsCommitted and leaving edit mode
       // wrote the pending wheel and auto-height saves. Saving every widget's
       // current bounds here would persist the fallback position of a widget
       // whose monitor is disconnected, so it would never return there.
-      store.flush()
+      if (!editing) store.flush()
+      console.log(`[main] edit mode ${editing ? 'on' : 'off'}`)
     }
-    console.log(`[main] edit mode ${on ? 'on' : 'off'}`)
-    refreshTray()
+    if (hidden !== wasHidden) {
+      sendToSettingsWindow(IPC.overlayHidden, hidden)
+      console.log(`[main] overlay ${hidden ? 'hidden' : 'shown'}`)
+    }
+    if (editing !== wasEditing || hidden !== wasHidden) refreshTray()
   }
 
   const viewOf = (sender: WebContents): RendererView | null =>
@@ -276,7 +316,9 @@ function start(): void {
       status,
       settings: store.settings,
       layout: overlay ? windows.layoutFor(event.sender) : null,
-      autoHidden: overlay ? windows.autoHiddenMap() : {}
+      autoHidden: overlay ? windows.autoHiddenMap() : {},
+      overlayHidden: windows.userHidden,
+      shortcutStatus: shortcuts.status
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown): OverlaySettings => {
@@ -292,6 +334,15 @@ function start(): void {
     switch (raw.type) {
       case 'set-edit-mode':
         setEditMode(raw.on)
+        break
+      case 'set-overlay-hidden':
+        setOverlayHidden(raw.hidden)
+        break
+      // Only a page in front records keys: a renewal that arrives after the window lost focus
+      // (the page cancels on blur too) must not suspend the shortcuts again.
+      case 'capture-shortcuts':
+        if (!raw.on) shortcuts.stopCapture()
+        else if (isSettingsWindowFocused()) shortcuts.startCapture()
         break
       case 'reset-widget-bounds':
         resetBounds(raw.widgetId)
@@ -323,18 +374,16 @@ function start(): void {
     setWidgetVisible,
     setRadarRange,
     setEditMode,
+    setOverlayHidden,
     openSettingsFolder,
     quit: () => app.quit()
   })
   // `--settings` (e.g. a desktop shortcut) opens the settings window on start.
   if (process.argv.includes('--settings')) openSettingsWindow()
 
-  if (!globalShortcut.register(EDIT_MODE_ACCELERATOR, () => setEditMode(!windows.editMode))) {
-    console.warn(
-      `[main] ${EDIT_MODE_ACCELERATOR} is already used by another application; ` +
-        'use the tray menu to toggle edit mode'
-    )
-  }
+  // A combination another application holds is reported on the shortcuts page; the tray
+  // menu still does everything.
+  shortcuts.configure(store.settings.shortcuts)
 
   // Quit in two steps: clean up synchronously, then wait (max ~2 s) for the
   // telemetry process to release the SDK before letting Electron quit. Each step
@@ -351,7 +400,7 @@ function start(): void {
     }, FORCE_EXIT_AFTER_MS)
     safe('leave edit mode', () => setEditMode(false))
     safe('close settings window', () => destroySettingsWindow())
-    safe('unregister shortcuts', () => globalShortcut.unregisterAll())
+    safe('unregister shortcuts', () => shortcuts.dispose())
     safe('dispose windows', () => windows.dispose())
     safe('flush settings', () => store.flush())
     safe('destroy tray', () => destroyTray())

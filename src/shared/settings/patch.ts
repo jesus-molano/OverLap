@@ -3,7 +3,7 @@ import type { OptionSection } from '../settingsSchema'
 import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, isWidgetId, type WidgetId } from '../widgets'
 import { OPTION_SECTIONS, defaultOptions, defaultWidgetSettings, sectionSpecs } from './defaults'
-import { isRecord, mergeSection, mergeWidgetFields } from './fields'
+import { isRecord, mergeSection, mergeWidgetFields, revertDuplicateAccelerators } from './fields'
 import { normalizeSettings } from './normalize'
 
 /**
@@ -12,7 +12,9 @@ import { normalizeSettings } from './normalize'
  * their non-bounds fields, plus the known fields of each option section, are
  * taken; invalid values keep the current one and numbers are clamped like in
  * `normalizeSettings`. A column list replaces the current one (normalised);
- * colour sets merge per colour. Bounds cannot be changed here.
+ * colour sets merge per colour. A shortcut combination another action has is
+ * refused (that action keeps its own, the patched one its current one). Bounds
+ * cannot be changed here.
  */
 export function applySettingsPatch(current: OverlaySettings, patch: unknown): OverlaySettings {
   const out = normalizeSettings(current)
@@ -26,7 +28,10 @@ export function applySettingsPatch(current: OverlaySettings, patch: unknown): Ov
   }
   for (const section of OPTION_SECTIONS) {
     const p = patch[section]
-    if (isRecord(p)) mergeSection(out[section], p, sectionSpecs(section))
+    if (!isRecord(p)) continue
+    const before = { ...out[section] }
+    mergeSection(out[section], p, sectionSpecs(section))
+    revertDuplicateAccelerators(out[section], before, sectionSpecs(section))
   }
   return out
 }

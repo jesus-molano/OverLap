@@ -28,10 +28,9 @@ import lightIcon24 from '../../resources/tray/tray-light-24.png?asset'
 import lightIcon32 from '../../resources/tray/tray-light-32.png?asset'
 
 // Note: clicking the tray icon moves focus to the Windows shell (that is how
-// the notification area works), so while driving use the global shortcut
-// Ctrl+Shift+E instead of the menu.
+// the notification area works), so while driving use the global shortcuts
+// (settings.shortcuts) instead of the menu.
 
-export const EDIT_MODE_ACCELERATOR = 'CommandOrControl+Shift+E'
 /** Windows truncates tray tooltips at 127 characters. */
 const TOOLTIP_MAX = 127
 
@@ -47,6 +46,8 @@ export interface TrayState {
   status: OverlayStatus
   settings: OverlaySettings
   editMode: boolean
+  /** The user hid every overlay window (this checkbox, the shortcut). */
+  overlayHidden: boolean
   /** Why each widget a visibility rule hides right now is hidden (null: no known reason). */
   autoHidden: Partial<Record<WidgetId, HiddenReason | null>>
 }
@@ -56,6 +57,7 @@ export interface TrayActions {
   setWidgetVisible(id: WidgetId, visible: boolean): void
   setRadarRange(rangeM: number): void
   setEditMode(on: boolean): void
+  setOverlayHidden(hidden: boolean): void
   openSettingsFolder(): void
   quit(): void
 }
@@ -104,13 +106,17 @@ export function updateTray(state: TrayState): void {
     lang,
     status,
     state.editMode,
+    state.overlayHidden,
+    state.settings.shortcuts,
     state.settings.radar.rangeM,
     // '' shown, '-' hidden for no known reason (JSON would turn both undefined and null into null).
     WIDGET_IDS.map((id) => [state.settings.widgets[id].visible, hiddenKey(state.autoHidden[id])])
   ])
   if (key === lastKey) return
   lastKey = key
-  tray.setToolTip(messagesFor(lang).core.tray.tooltip(status).slice(0, TOOLTIP_MAX))
+  const t = messagesFor(lang).core.tray
+  const tooltip = state.overlayHidden ? t.tooltipHidden(status) : t.tooltip(status)
+  tray.setToolTip(tooltip.slice(0, TOOLTIP_MAX))
   tray.setContextMenu(Menu.buildFromTemplate(buildMenu(state, status, actions)))
 }
 
@@ -133,6 +139,7 @@ function buildMenu(
   act: TrayActions
 ): MenuItemConstructorOptions[] {
   const { settings } = state
+  const { shortcuts } = settings
   const lang = settings.appearance.language
   const t = messagesFor(lang).core.tray
   const rangeM = settings.radar.rangeM
@@ -164,18 +171,33 @@ function buildMenu(
     },
     { type: 'separator' },
     {
+      label: t.hideOverlay,
+      type: 'checkbox',
+      checked: state.overlayHidden,
+      ...acceleratorLabel(shortcuts.toggleOverlay),
+      click: (item) => act.setOverlayHidden(item.checked)
+    },
+    {
       label: t.editMode,
       type: 'checkbox',
       checked: state.editMode,
-      // Only the label: the real shortcut is a globalShortcut registered by main.
-      accelerator: EDIT_MODE_ACCELERATOR,
-      registerAccelerator: false,
+      ...acceleratorLabel(shortcuts.toggleEditMode),
       click: (item) => act.setEditMode(item.checked)
     },
     { label: t.openSettingsFolder, click: () => act.openSettingsFolder() },
     { type: 'separator' },
     { label: t.quit, click: () => act.quit() }
   ]
+}
+
+/**
+ * A configured shortcut, shown next to its item. Only the label: the real shortcut is a
+ * globalShortcut registered by main (shortcutManager.ts). None when it is turned off ('').
+ */
+function acceleratorLabel(
+  accelerator: string
+): Pick<MenuItemConstructorOptions, 'accelerator' | 'registerAccelerator'> {
+  return accelerator === '' ? {} : { accelerator, registerAccelerator: false }
 }
 
 /**

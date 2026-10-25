@@ -51,7 +51,8 @@ export interface EditSessionHandle extends EditSession {
 /**
  * The session of one overlay window: one drag at a time and the drag lease that keeps main's
  * mouse on the window while it runs. Turning edit mode off, or losing the display, cancels the
- * drag (approved behaviour: Escape, Ctrl+Shift+E and the tray cancel a drag in progress).
+ * drag (approved behaviour: Escape, the edit-mode and show / hide shortcuts and the tray
+ * cancel a drag in progress).
  */
 export function createEditSession(deps: EditSessionDeps): EditSessionHandle {
   const lease = createDragLease({

@@ -67,8 +67,17 @@ export interface ColumnsSpec extends SpecBase {
   readonly kind: 'columns'
   readonly default: readonly Readonly<StandingsColumn>[]
 }
+/**
+ * A global shortcut: an assignable combination in its canonical spelling (accelerator.ts), or
+ * '' when turned off. The accelerator fields of a section never share a combination.
+ */
+export interface AcceleratorSpec extends SpecBase {
+  readonly kind: 'accelerator'
+  readonly default: string
+}
 export type NumericSpec = IntSpec | NumberSpec
-export type OptionSpec = NumericSpec | BoolSpec | EnumSpec | ColorSpec | ColorsSpec | ColumnsSpec
+export type OptionSpec =
+  NumericSpec | BoolSpec | EnumSpec | ColorSpec | ColorsSpec | ColumnsSpec | AcceleratorSpec
 
 /** The spec kinds allowed for a field of type T (non-distributive on purpose). */
 export type SpecFor<T> = [T] extends [boolean]
@@ -79,7 +88,7 @@ export type SpecFor<T> = [T] extends [boolean]
       ? ColumnsSpec
       : [T] extends [string]
         ? string extends T
-          ? ColorSpec
+          ? ColorSpec | AcceleratorSpec
           : EnumSpec<T>
         : [T] extends [Readonly<Record<string, string>>]
           ? ColorsSpec<Extract<keyof T, string>>
@@ -270,6 +279,11 @@ export const OPTION_SCHEMA = {
     showPredicted: { kind: 'bool', default: true, displayOnly: true },
     showSectors: { kind: 'bool', default: true, displayOnly: true },
     showTrend: { kind: 'bool', default: true, displayOnly: true }
+  },
+  // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them.
+  shortcuts: {
+    toggleOverlay: { kind: 'accelerator', default: 'Ctrl+Shift+H', displayOnly: true },
+    toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true }
   }
 } as const satisfies OptionSchema
 

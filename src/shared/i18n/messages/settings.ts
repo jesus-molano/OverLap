@@ -24,12 +24,26 @@ export const settingsEs = {
     title: 'Ajustes',
     sections: 'Secciones de ajustes',
     appearance: 'Apariencia',
+    shortcuts: 'Atajos de teclado',
     widgets: 'Widgets',
-    keyToggle: 'entrar o salir',
-    keyExit: 'salir'
+    /** What each shortcut at the foot of the sidebar does. */
+    keys: {
+      editMode: 'modo edición',
+      overlay: 'mostrar u ocultar',
+      exit: 'salir de edición'
+    },
+    /** The user hid the overlay (tray, shortcut): a line above every page. */
+    hidden: {
+      title: 'Overlay oculto',
+      /** The show / hide shortcut: 'Ctrl+Shift+H lo muestra'. */
+      press: (keys: string) => `${keys} lo muestra`,
+      show: 'Mostrar'
+    }
   },
   editMode: {
-    tooltip: 'Mover y redimensionar los widgets (Ctrl+Shift+E)',
+    tooltip: 'Mover y redimensionar los widgets',
+    /** With the edit-mode shortcut: 'Mover y redimensionar los widgets (Ctrl+Shift+E)'. */
+    tooltipKeys: (keys: string) => `Mover y redimensionar los widgets (${keys})`,
     enter: 'Modo edición',
     exit: 'Salir de edición'
   },
@@ -154,6 +168,74 @@ export const settingsEs = {
       label: 'Restablecer apariencia',
       description:
         'Vuelve la apariencia a los valores por defecto; el idioma y las opciones de cada widget no cambian'
+    }
+  },
+  /** "Atajos de teclado" page. */
+  shortcuts: {
+    sub: 'Combinaciones de teclas que funcionan en todo Windows, también con iRacing en primer plano.',
+    section: 'Atajos globales',
+    actions: {
+      toggleOverlay: {
+        label: 'Mostrar u ocultar el overlay',
+        help: 'Oculta todos los widgets de golpe; la telemetría sigue, así que vuelven al instante'
+      },
+      toggleEditMode: {
+        label: 'Modo edición',
+        help: 'Entra o sale del modo edición para mover y redimensionar los widgets'
+      }
+    },
+    /** The fixed Esc row. */
+    escape: {
+      label: 'Salir del modo edición',
+      help: 'Solo mientras editas; no se puede cambiar',
+      tag: 'Fijo'
+    },
+    status: {
+      disabled: 'Desactivado',
+      unavailable: 'En uso por otra aplicación'
+    },
+    unavailableHelp:
+      'Otra aplicación ya usa esta combinación. Elige otra, o ciérrala y vuelve a asignarla aquí',
+    change: 'Cambiar',
+    cancel: 'Cancelar',
+    disable: 'Desactivar',
+    reset: 'Restablecer',
+    /** Button names for screen readers: 'Cambiar: Modo edición'. */
+    changeLabel: (action: string) => `Cambiar: ${action}`,
+    cancelLabel: (action: string) => `Cancelar el cambio: ${action}`,
+    disableLabel: (action: string) => `Desactivar: ${action}`,
+    resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
+    capture: {
+      prompt: 'Pulsa la combinación… (Esc cancela)',
+      clearHint: 'Retroceso o Supr lo desactivan'
+    },
+    /** Why a combination was refused (accelerator.ts). */
+    errors: {
+      invalid: 'Esa combinación no es válida',
+      unsupportedKey:
+        'Esa tecla no sirve: usa letras, números, F1–F24, el teclado numérico, Espacio o las de navegación',
+      meta: 'La tecla Windows no se puede usar',
+      needsModifier: 'Añade Ctrl o Alt: sin ellas solo valen F13–F24',
+      reserved: 'Windows o los programas ya usan esa combinación',
+      duplicate: (action: string) => `Ya la usa «${action}»`
+    },
+    saved: (keys: string) => `Guardado: ${keys}`,
+    disabled: 'Desactivado: esta acción ya no tiene atajo',
+    warnings: {
+      altgr:
+        'En un teclado español, Ctrl+Alt es AltGr: puede impedir escribir @, # o € mientras OverLap esté abierto'
+    },
+    notes: {
+      title: 'Cómo funcionan',
+      focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
+      exclusive:
+        'Una combinación asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
+      buttonBox:
+        'Consejo: F13–F24 (las envían muchas button box y teclados de macros) funcionan sin Ctrl ni Alt.'
+    },
+    resetAll: {
+      label: 'Restablecer atajos',
+      description: 'Vuelve todos los atajos de teclado a los de fábrica'
     }
   },
   /** One widget's page: header, hidden note and resets. */
@@ -483,12 +565,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
     title: 'Settings',
     sections: 'Settings sections',
     appearance: 'Appearance',
+    shortcuts: 'Keyboard shortcuts',
     widgets: 'Widgets',
-    keyToggle: 'enter or exit',
-    keyExit: 'exit'
+    keys: {
+      editMode: 'edit mode',
+      overlay: 'show or hide',
+      exit: 'leave editing'
+    },
+    hidden: {
+      title: 'Overlay hidden',
+      press: (keys) => `${keys} shows it`,
+      show: 'Show'
+    }
   },
   editMode: {
-    tooltip: 'Move and resize the widgets (Ctrl+Shift+E)',
+    tooltip: 'Move and resize the widgets',
+    tooltipKeys: (keys) => `Move and resize the widgets (${keys})`,
     enter: 'Edit mode',
     exit: 'Exit edit mode'
   },
@@ -607,6 +699,69 @@ export const settingsEn: Dict<typeof settingsEs> = {
       label: 'Reset appearance',
       description:
         'Returns the appearance to its defaults; the language and each widget’s options stay as they are'
+    }
+  },
+  shortcuts: {
+    sub: 'Key combinations that work all over Windows, with iRacing in front too.',
+    section: 'Global shortcuts',
+    actions: {
+      toggleOverlay: {
+        label: 'Show or hide the overlay',
+        help: 'Hides every widget at once; telemetry keeps running, so they come back instantly'
+      },
+      toggleEditMode: {
+        label: 'Edit mode',
+        help: 'Enters or leaves edit mode to move and resize the widgets'
+      }
+    },
+    escape: {
+      label: 'Leave edit mode',
+      help: 'Only while editing; it can’t be changed',
+      tag: 'Fixed'
+    },
+    status: {
+      disabled: 'Off',
+      unavailable: 'Used by another app'
+    },
+    unavailableHelp:
+      'Another app already uses this combination. Pick another, or close that app and assign it again here',
+    change: 'Change',
+    cancel: 'Cancel',
+    disable: 'Disable',
+    reset: 'Reset',
+    changeLabel: (action) => `Change: ${action}`,
+    cancelLabel: (action) => `Cancel the change: ${action}`,
+    disableLabel: (action) => `Disable: ${action}`,
+    resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
+    capture: {
+      prompt: 'Press the combination… (Esc cancels)',
+      clearHint: 'Backspace or Delete turns it off'
+    },
+    errors: {
+      invalid: 'That isn’t a valid combination',
+      unsupportedKey:
+        'That key can’t be used: pick letters, digits, F1–F24, the numeric keypad, Space or the navigation keys',
+      meta: 'The Windows key can’t be used',
+      needsModifier: 'Add Ctrl or Alt: only F13–F24 work alone',
+      reserved: 'Windows or other programs already use that combination',
+      duplicate: (action) => `Already used by “${action}”`
+    },
+    saved: (keys) => `Saved: ${keys}`,
+    disabled: 'Off: this action has no shortcut now',
+    warnings: {
+      altgr:
+        'On a Spanish keyboard, Ctrl+Alt is AltGr: it may stop you typing @, # or € while OverLap is open'
+    },
+    notes: {
+      title: 'How they work',
+      focus: 'They work while iRacing has focus, without leaving the game.',
+      exclusive:
+        'An assigned combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
+      buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
+    },
+    resetAll: {
+      label: 'Reset shortcuts',
+      description: 'Returns every keyboard shortcut to its default'
     }
   },
   widgetPage: {

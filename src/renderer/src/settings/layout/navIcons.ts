@@ -17,6 +17,13 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
     },
     { d: 'M4.6 7.4a1 1 0 1 0 0-.01zM6.6 4.6a1 1 0 1 0 0-.01zM9.9 4.6a1 1 0 1 0 0-.01z', fill: true }
   ],
+  // Keyboard: a row of keys over the space bar.
+  shortcuts: [
+    {
+      d: 'M2.25 4.25h11.5a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1H2.25a1 1 0 0 1-1-1v-5.5a1 1 0 0 1 1-1z'
+    },
+    { d: 'M4 6.75h.01M6.67 6.75h.01M9.33 6.75h.01M12 6.75h.01M5.5 9.25h5' }
+  ],
   // Rows around a highlighted one.
   relative: [{ d: 'M3 3.5h10M3 12.5h10' }, { d: 'M2.5 6.25h11v3.5h-11z', fill: true }],
   // Car between two side alerts.

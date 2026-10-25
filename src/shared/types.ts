@@ -4,6 +4,7 @@
  */
 import type { DriverIdentity } from './driver'
 import type { Language } from './i18n/language'
+import type { ShortcutSettings } from './shortcuts'
 import type { WidgetId } from './widgets'
 
 export interface Size {
@@ -757,6 +758,8 @@ export interface OverlaySettings {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
+  /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
+  shortcuts: ShortcutSettings
 }
 
 /**
@@ -791,6 +794,8 @@ export interface SettingsPatch {
   traffic?: Partial<TrafficOptions>
   alerts?: Partial<AlertsOptions>
   delta?: Partial<DeltaOptions>
+  /** A combination another action has is refused (the current one is kept). */
+  shortcuts?: Partial<ShortcutSettings>
 }
 
 /** What main tells the telemetry process. */
