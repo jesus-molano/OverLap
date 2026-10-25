@@ -1,9 +1,10 @@
 /**
  * Sample relative for edit mode: invented drivers around you, with a car lapping you, a lapped
  * car, one in the pits and two classes, so name format, licence style and columns are judged on
- * realistic rows. As many cars as the options ask for. Pure.
+ * realistic rows. As many cars as the options ask for, and your incident count. Pure.
  */
 import type { LapRelation, RelativeData, RelativeRow } from '@shared/types'
+import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 
 const GT3 = '#33ceff'
 const LMP2 = '#ff5888'
@@ -219,5 +220,12 @@ export function previewRelative(ahead: number, behind: number): RelativeData {
     row(PLAYER, 0, true),
     ...b.map((s, i) => row(s, i + 21))
   ]
-  return { rows, playerRow: a.length, slotsAhead: ahead, slotsBehind: behind, sessionType: 'Race' }
+  return {
+    rows,
+    playerRow: a.length,
+    slotsAhead: ahead,
+    slotsBehind: behind,
+    sessionType: 'Race',
+    incidents: PREVIEW_INCIDENTS
+  }
 }

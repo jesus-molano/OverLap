@@ -5,6 +5,7 @@
  */
 import { identityEqual } from './driver'
 import { sameNumber } from './equal'
+import { incidentCountEqual } from './incidents/count'
 import type {
   GapValue,
   PlayerRatingProjection,
@@ -107,6 +108,7 @@ export function standingsEqual(a: StandingsData, b: StandingsData): boolean {
     !same(ha.timeRemainingS, hb.timeRemainingS) ||
     !projectionEqual(ha.iRating, hb.iRating) ||
     !safetyEqual(ha.safetyRating, hb.safetyRating) ||
+    !incidentCountEqual(ha.incidents, hb.incidents) ||
     a.classes.length !== b.classes.length
   ) {
     return false

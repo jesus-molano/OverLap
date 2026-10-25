@@ -22,7 +22,8 @@ const STANDINGS: StandingsData = {
     lapsRemaining: 10,
     timeRemainingS: null,
     iRating: null,
-    safetyRating: null
+    safetyRating: null,
+    incidents: null
   },
   classes: []
 }

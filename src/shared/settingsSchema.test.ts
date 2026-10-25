@@ -109,12 +109,14 @@ describe('displayOnlyFields', () => {
       'showClassPosition',
       'showLicense',
       'showIRating',
-      'nameFormat'
+      'nameFormat',
+      'showIncidents'
     ])
     expect(displayOnlyFields('radar')).toEqual(['showRangeLabels'])
     expect(displayOnlyFields('standings')).toEqual([
       'gapMode',
       'nameFormat',
+      'headerIncidents',
       'showSof',
       'showCarCount',
       'density'

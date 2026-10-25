@@ -119,6 +119,12 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
         :current="opts.headerSafetyRating"
         :apply="set('headerSafetyRating')"
       />
+      <ToggleControl
+        :label="t.settings.standings.incidents"
+        :help="t.settings.standings.incidentsHelp"
+        :current="opts.headerIncidents"
+        :apply="set('headerIncidents')"
+      />
     </CheckGroup>
     <CheckGroup :legend="t.settings.standings.classLine">
       <ToggleControl

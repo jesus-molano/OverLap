@@ -110,6 +110,7 @@ const head = computed<HeaderView>((prev) =>
       showSafetyRating: opts.value.headerSafetyRating,
       showSof: opts.value.showSof,
       showCarCount: opts.value.showCarCount,
+      showIncidents: opts.value.headerIncidents,
       preview: phase.value === 'preview',
       title: title.value,
       m: t.value

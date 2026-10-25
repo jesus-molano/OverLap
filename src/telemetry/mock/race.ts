@@ -42,6 +42,7 @@ import {
   PIT_PCT_PER_S,
   PlayerPitStop
 } from './pitLane'
+import { MockPlayerIncidents } from './playerIncidents'
 import { playerLapPace } from './playerPace'
 import { mulberry32 } from './rng'
 import type { Rng } from './rng'
@@ -130,7 +131,7 @@ export class MockRace {
   /** Cars on pit road, the player included. */
   private inPits = 0
   private carLeftRight: number = CarLeftRight.Clear
-  private incidents = 0
+  private readonly incidents = new MockPlayerIncidents()
   private caution = false
   /** SessionFlags Green until this many seconds since the start (the restart after a caution). */
   private greenUntilS = -Infinity
@@ -291,7 +292,7 @@ export class MockRace {
       events.push({
         atS,
         apply: () => {
-          this.incidents += points
+          this.incidents.add(atS, points)
           this.player.offTrackUntilS = atS + offS
           this.logEvent('incident', this.playerIdx)
         }
@@ -650,8 +651,8 @@ export class MockRace {
       (this.elapsedS < this.greenUntilS ? SessionFlag.Green : 0) |
       (this.end.white ? SessionFlag.White : 0) |
       (phase === 'racing' ? 0 : SessionFlag.Checkered)
-    v.PlayerCarMyIncidentCount[0] = this.incidents
     v.PlayerTrackSurface[0] = v.CarIdxTrackSurface[this.playerIdx] ?? TrackLocation.OnTrack
+    this.incidents.publish(v, this.elapsedS, v.PlayerTrackSurface[0] === TrackLocation.OffTrack)
     v.EngineWarnings[0] = this.pitStop.limiter ? ENGINE_PIT_LIMITER : 0
     v.OnPitRoad[0] = playerOnPit
     const inp = this.inputs

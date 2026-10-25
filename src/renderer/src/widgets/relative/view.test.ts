@@ -43,7 +43,14 @@ function data(ahead: number, behind: number, slots = 3): RelativeData {
   for (let i = 0; i < ahead; i++) rows.push(row(10 + i))
   rows.push(row(0, { isPlayer: true, gapS: 0 }))
   for (let i = 0; i < behind; i++) rows.push(row(20 + i, { gapS: -1 - i }))
-  return { rows, playerRow: ahead, slotsAhead: slots, slotsBehind: slots, sessionType: 'Race' }
+  return {
+    rows,
+    playerRow: ahead,
+    slotsAhead: slots,
+    slotsBehind: slots,
+    sessionType: 'Race',
+    incidents: null
+  }
 }
 
 const ids = (slots: readonly (RelativeRow | null)[]): (number | null)[] =>

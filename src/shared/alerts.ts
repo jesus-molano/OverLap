@@ -1,12 +1,15 @@
 /**
- * Alerts widget: the flags that apply to you, most important first, and the pit limiter while
- * you are on pit road (on / OFF / over the limit). Runs at 10 Hz; the payload only changes when
- * something shown changes (the speed is 0 off pit road), so SKIP_EMIT drops the rest. The state
- * (when each flag was last seen, the green flag's start) lives in one AlertsProvider per
+ * Alerts widget: the flags that apply to you, most important first, the pit limiter while
+ * you are on pit road (on / OFF / over the limit) and your last incident for a few seconds.
+ * Runs at 10 Hz; the payload only changes when something shown changes (the speed is 0 off pit
+ * road), so SKIP_EMIT drops the rest. The state (when each flag was last seen, the green flag's
+ * start, the incident tracker fed on every tick by observe()) lives in one AlertsProvider per
  * telemetry loop.
  */
 import { arrayEqual } from './equal'
 import { CAUTION_FLAGS, EngineWarning, SessionFlag } from './flags'
+import { incidentAlert, incidentAlertEqual } from './incidents/alert'
+import { IncidentTracker } from './incidents/tracker'
 import { finiteOr } from './num'
 import type { RaceView } from './race/raceView'
 import { resolvePlayerCarIdx } from './sessionInfo'
@@ -80,8 +83,8 @@ export function pitLimiterState(
 }
 
 /**
- * One per telemetry loop. compute() runs at the widget rate; reset() on a reconnect or a new
- * session.
+ * One per telemetry loop. compute() runs at the widget rate, observe() on every tick; reset()
+ * on a reconnect or a new session.
  */
 export class AlertsProvider {
   /** SessionTime each flag was last seen, by FLAG_ORDER index (NaN = not seen). */
@@ -90,8 +93,20 @@ export class AlertsProvider {
   private greenWas: boolean | null = null
   private greenSince = Number.NaN
   private lastT = Number.NaN
+  private readonly incidents = new IncidentTracker()
 
   reset(): void {
+    this.resetHolds()
+    this.incidents.reset()
+  }
+
+  /** Every tick, whatever the widget's rate or rules: an incident's report may last one tick. */
+  observe(frame: TelemetryFrame, session: SessionMeta, race: RaceView): void {
+    this.incidents.observe(frame, session, race)
+  }
+
+  /** The flags' holds only: the incident tracker follows every tick, computed or not. */
+  private resetHolds(): void {
     this.lastSeen.fill(Number.NaN)
     this.greenWas = null
     this.greenSince = Number.NaN
@@ -106,7 +121,7 @@ export class AlertsProvider {
   ): AlertsData {
     const now = finiteOr(frame.SessionTime[0], Number.NaN)
     // The clock went back (a replay) or the widget was off for a while: nothing held is valid.
-    if (!(now >= this.lastT && now - this.lastT <= ALERTS.staleS)) this.reset()
+    if (!(now >= this.lastT && now - this.lastT <= ALERTS.staleS)) this.resetHolds()
     this.lastT = now
 
     const player = resolvePlayerCarIdx(frame, session)
@@ -121,9 +136,9 @@ export class AlertsProvider {
     if ((bits & (CAUTION_FLAGS | SessionFlag.Red)) !== 0) this.greenSince = Number.NaN
     this.greenWas = green
 
+    const holdS = Math.max(0, finiteOr(opts.holdS, 0))
     const flags: FlagKind[] = []
     if (opts.showFlags) {
-      const holdS = Math.max(0, finiteOr(opts.holdS, 0))
       const greenS = Math.max(holdS, ALERTS.greenMinS)
       for (let i = 0; i < FLAG_ORDER.length; i++) {
         const kind = FLAG_ORDER[i] as FlagKind
@@ -153,13 +168,16 @@ export class AlertsProvider {
       ? pitLimiterState(onPitRoad, frame.EngineWarnings[0], speedKmh, limitKmh)
       : null
 
+    const incident = opts.showIncidents ? incidentAlert(this.incidents.latest, now, holdS) : null
+
     return {
-      visible: flags.length > 0 || pitLimiter !== null,
+      visible: flags.length > 0 || pitLimiter !== null || incident !== null,
       flags,
       pitLimiter,
       // Only shown with the limiter: off pit road a changing speed would re-send at 10 Hz.
       speedKmh: pitLimiter !== null ? speedKmh : 0,
-      pitLimitKmh: limitKmh
+      pitLimitKmh: limitKmh,
+      incident
     }
   }
 }
@@ -171,6 +189,7 @@ export function alertsEqual(a: AlertsData, b: AlertsData): boolean {
     a.pitLimiter === b.pitLimiter &&
     a.speedKmh === b.speedKmh &&
     a.pitLimitKmh === b.pitLimitKmh &&
-    arrayEqual(a.flags, b.flags)
+    arrayEqual(a.flags, b.flags) &&
+    incidentAlertEqual(a.incident, b.incident)
   )
 }

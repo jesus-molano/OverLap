@@ -20,6 +20,7 @@ import type {
   DeltaData,
   DeltaOptions,
   DeltaReference,
+  RelativeData,
   SessionMeta,
   StandingsData,
   TelemetryConfig,
@@ -164,12 +165,21 @@ describe('SKIP_EMIT', () => {
   it('relative: an empty table (player out of the car) is sent once, not at 10 Hz', () => {
     const skip = SKIP_EMIT.relative
     if (!skip) throw new Error('no relative rule')
-    const empty = { rows: [], playerRow: -1, slotsAhead: 3, slotsBehind: 3, sessionType: 'Race' }
+    const empty: RelativeData = {
+      rows: [],
+      playerRow: -1,
+      slotsAhead: 3,
+      slotsBehind: 3,
+      sessionType: 'Race',
+      incidents: { mine: 2, team: null, limit: null }
+    }
     expect(skip(empty, null)).toBe(false)
-    expect(skip({ ...empty }, empty)).toBe(true)
-    // Anything the empty table draws differently is sent.
+    expect(skip(structuredClone(empty), empty)).toBe(true)
+    // Anything the empty table draws differently is sent, its header's incidents included.
     expect(skip({ ...empty, slotsAhead: 4 }, empty)).toBe(false)
     expect(skip({ ...empty, sessionType: 'Practice' }, empty)).toBe(false)
+    expect(skip({ ...empty, incidents: { mine: 3, team: null, limit: null } }, empty)).toBe(false)
+    expect(skip({ ...empty, incidents: null }, empty)).toBe(false)
     // A live table is always sent.
     expect(skip({ ...empty, playerRow: 0 }, empty)).toBe(false)
   })
@@ -219,7 +229,8 @@ describe('SKIP_EMIT', () => {
       flags: [],
       pitLimiter: null,
       speedKmh: 0,
-      pitLimitKmh: 60
+      pitLimitKmh: 60,
+      incident: null
     }
     const pit: AlertsData = { ...idle, visible: true, pitLimiter: 'on', speedKmh: 58 }
     expect(skip(idle, null)).toBe(false)

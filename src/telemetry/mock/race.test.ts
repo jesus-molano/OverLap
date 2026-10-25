@@ -563,9 +563,11 @@ describe(`MockRace over ${LONG_S / 60} min`, () => {
 
   it('adds player incidents with a moment off track', () => {
     const r = longRun()
-    expect(r.incidents.map((e) => e.n)).toEqual([0, 1, 3])
+    // The 2x one is an off-track upgraded to a loss of control a moment later (playerIncidents.ts).
+    expect(r.incidents.map((e) => e.n)).toEqual([0, 1, 2, 3])
     expect(at(r.incidents, 1).t).toBeCloseTo(90, 0)
     expect(at(r.incidents, 2).t).toBeCloseTo(300, 0)
+    expect(at(r.incidents, 3).t - at(r.incidents, 2).t).toBeCloseTo(0.8, 1)
     expect(r.playerOffTrack.length).toBeGreaterThan(0)
     for (const t of r.playerOffTrack) {
       expect((t >= 90 && t <= 91.3) || (t >= 300 && t <= 302.3), `off track at ${t}`).toBe(true)

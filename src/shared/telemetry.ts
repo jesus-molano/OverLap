@@ -54,6 +54,15 @@ export const TELEMETRY_VARS = {
   PlayerCarMyIncidentCount: 'number',
   /** irsdk_TrkLoc of the player (for SR corner counting: skip tows). */
   PlayerTrackSurface: 'number',
+  // Incidents (shared/incidents): the team's count, what each incident was and where.
+  /** The whole team's incident count (team races). */
+  PlayerCarTeamIncidentCount: 'number',
+  /** irsdk_IncidentFlags of the player's last incident: report byte | penalty byte (pulse?). */
+  PlayerIncidents: 'number',
+  /** irsdk_TrkSurf under the player's car (asphalt, kerb, grass, gravel...). */
+  PlayerTrackSurfaceMaterial: 'number',
+  /** A replay is playing: nothing seen then is a new incident. */
+  IsReplayPlaying: 'boolean',
 
   // --- v2: inputs widget (player only) ---
   /** 0 = off throttle, 1 = full. */

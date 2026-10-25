@@ -2,6 +2,7 @@ import { AlertsProvider, alertsEqual } from './alerts'
 import { BattleProvider, battleEqual } from './battle'
 import { DeltaProvider, deltaEqual } from './delta/delta'
 import type { PersonalBestStore } from './delta/references'
+import { incidentCountEqual } from './incidents/count'
 import { computeInputs } from './inputs'
 import type { RaceView } from './race/raceView'
 import { computeRadar } from './radar'
@@ -38,6 +39,11 @@ export type WidgetProvider<K extends WidgetId> = (
 export interface ProviderSet {
   /** One provider per widget; the loop runs each at WIDGET_DEFS[id].hz. */
   readonly run: { readonly [K in WidgetId]: WidgetProvider<K> }
+  /**
+   * Fed every tick, whatever the widgets' rates and rules, for state that must see each one
+   * (a PlayerIncidents report can last a single tick). A set with no such state has none.
+   */
+  readonly observe?: (frame: TelemetryFrame, session: SessionMeta, race: RaceView) => void
   /** Forget all provider state: reconnect, or race.sessionKey changed (new session). */
   reset(): void
 }
@@ -60,6 +66,7 @@ export function createProviders(): ProviderSet {
       alerts: (ctx) => alerts.compute(ctx.frame, ctx.session, ctx.race, ctx.config.alerts),
       delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta)
     },
+    observe: (frame, session, race) => alerts.observe(frame, session, race),
     reset: () => {
       standings.reset()
       battle.reset()
@@ -79,14 +86,15 @@ export function createProviders(): ProviderSet {
 export const SKIP_EMIT: {
   readonly [K in WidgetId]?: (payload: WidgetPayloads[K], prev: WidgetPayloads[K] | null) => boolean
 } = {
-  // Out of the car the relative is an empty, unchanging table.
+  // Out of the car the relative is an empty, unchanging table (its header still counts).
   relative: (payload, prev) =>
     prev !== null &&
     payload.playerRow < 0 &&
     prev.playerRow < 0 &&
     payload.slotsAhead === prev.slotsAhead &&
     payload.slotsBehind === prev.slotsBehind &&
-    payload.sessionType === prev.sessionType,
+    payload.sessionType === prev.sessionType &&
+    incidentCountEqual(payload.incidents, prev.incidents),
   radar: (payload, prev) => !payload.visible && prev !== null && !prev.visible,
   // Quantised payloads: an unchanged table is not re-sent.
   standings: (payload, prev) => prev !== null && standingsEqual(payload, prev),

@@ -53,7 +53,8 @@ function state(): StandingsData {
         incidents: 2,
         corners: 40,
         incidentBudget: 3
-      }
+      },
+      incidents: { mine: 2, team: 5, limit: { kind: 'penalty', at: 17 } }
     },
     classes: [
       {
