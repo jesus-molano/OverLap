@@ -21,11 +21,14 @@ export interface RatingField {
 /**
  * Registered drivers count even if they never joined: iRacing scores them as
  * non-starters, and their share of the field changes everybody's projection.
+ * `fromGrid` (a race before the green): positions are the grid slots
+ * (session.grid) and everyone on the grid starts, loaded yet or not.
  */
 export function classRatingField(
-  session: Pick<SessionMeta, 'drivers' | 'paceCarIdx'>,
+  session: Pick<SessionMeta, 'drivers' | 'paceCarIdx' | 'grid'>,
   race: Pick<RaceView, 'car'>,
-  classId: number
+  classId: number,
+  fromGrid = false
 ): RatingField {
   const started: IRatingEntry[] = []
   const notStarted: IRatingEntry[] = []
@@ -34,7 +37,9 @@ export function classRatingField(
     if (d.carIdx === session.paceCarIdx || !(d.iRating > 0) || !Number.isFinite(d.iRating)) {
       continue
     }
-    const cp = race.car(d.carIdx)?.classPosition ?? 0
+    const cp = fromGrid
+      ? (session.grid.get(d.carIdx)?.classPosition ?? 0)
+      : (race.car(d.carIdx)?.classPosition ?? 0)
     const entry = { carIdx: d.carIdx, iRating: d.iRating, position: cp, started: cp > 0 }
     if (entry.started) started.push(entry)
     else notStarted.push(entry)

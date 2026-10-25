@@ -24,6 +24,7 @@ export function makeRow(over: Partial<DisplayRow> = {}): DisplayRow {
     pitStops: 0,
     lastPitLap: null,
     outLap: false,
+    towed: false,
     stintLaps: null,
     tyre: null,
     status: 'running',

@@ -54,6 +54,8 @@ function carState(carIdx: number, s: CarSpec): RaceCarState {
     disconnected: false,
     finished: s.finished ?? false,
     pitStops: 0,
+    towStops: 0,
+    towed: false,
     lastPitLap: null,
     outLap: false,
     stintLaps: 0,

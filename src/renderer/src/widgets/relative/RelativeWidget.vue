@@ -73,8 +73,10 @@ const slots = computed<readonly SlotView[]>((prev) =>
     )
   )
 )
+/** The provider names no compound while the whole field runs the same one: no tyre column. */
+const tyres = computed(() => source.value?.rows.some((r) => r.tyre !== null) ?? false)
 const cols = computed<RelativeColumns>((prev) => {
-  const next = relativeColumns(opts.value)
+  const next = relativeColumns({ ...opts.value, showTyre: opts.value.showTyre && tyres.value })
   return prev !== undefined && prev.key === next.key ? prev : next
 })
 

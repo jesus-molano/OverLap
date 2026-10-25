@@ -18,6 +18,7 @@ function prefs(over: Partial<ColumnPrefs> = {}): ColumnPrefs {
     gapMode: 'interval',
     iRatingDeltaAll: false,
     race: true,
+    tyres: true,
     licenseStyle: 'soft',
     numberStyle: 'chip',
     ...over
@@ -206,6 +207,13 @@ describe('columnWanted', () => {
     }
     expect(columnWanted('stint', true, prefs({ race: false }))).toBe(true)
     expect(columnWanted('tyre', true, prefs({ race: false }))).toBe(true)
+  })
+
+  it('drops the tyre column while no row has a compound (the whole field on one: Q10)', () => {
+    expect(columnWanted('tyre', true, prefs({ tyres: false }))).toBe(false)
+    const all = allColumns()
+    expect(fitColumns(prefs({ columns: all, tyres: false }), 0, 13).cells).not.toContain('tyre')
+    expect(fitColumns(prefs({ columns: all }), 0, 13).cells).toContain('tyre')
   })
 })
 

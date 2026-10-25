@@ -37,8 +37,11 @@ export const META_SEP = '\u2002'
 export type GapKind = 'time' | 'laps' | 'leader' | 'none'
 /** 'best' = fastest of the class (purple plate), 'pb' = the driver's own best (green key). */
 export type LapKind = 'normal' | 'pb' | 'best' | 'none'
-/** What the pit cell shows: a badge (in the pits, out lap), the stop count, or the flag. */
-export type PitKind = 'pit' | 'out' | 'stops' | 'finished' | 'none'
+/**
+ * What the pit cell shows: a badge (in the pits, towed there, out lap), the stop count, or
+ * the flag.
+ */
+export type PitKind = 'pit' | 'tow' | 'out' | 'stops' | 'finished' | 'none'
 /** Triangle in front of the positions gained (up: gained, down: lost). */
 export type GainedIcon = Extract<IconName, 'arrow-up' | 'arrow-down'>
 
@@ -109,6 +112,8 @@ export interface LineContext {
   showCarCount: boolean
   /** The flag badge after the name (black, meatball, furled). */
   showFlags: boolean
+  /** The 'gapLeader' column is drawn: the 'gap' column never repeats it (gapCell). */
+  gapLeaderShown: boolean
   styles: DriverStyles
   m: Messages
 }
@@ -128,17 +133,20 @@ function gapText(gap: GapValue, race: boolean): string {
  * The 'gap' column. Interval or gap to the leader per `gapMode` (in practice and qualifying
  * 'interval' means the gap to the best lap, as on every timing screen); when the chosen value
  * is missing for a classified car, the other one stands in, so a mode switch never blanks the
- * column. The class leader reads 'LÍDER'; anything else unknown '—'.
+ * column, except the gap to the leader for an interval while the 'gapLeader' column shows it
+ * (`leaderShown`): the same '+1L' twice would read as an interval. The class leader reads
+ * 'LÍDER'; anything else unknown '—'.
  */
 export function gapCell(
   row: StandingsRow,
   gapMode: StandingsOptions['gapMode'],
   race: boolean,
-  m: Messages
+  m: Messages,
+  leaderShown = false
 ): { text: string; kind: GapKind } {
   const toLeader = gapMode === 'leader' || (!race && gapMode === 'interval')
   const first = toLeader ? row.gapToLeader : row.interval
-  const gap = first ?? (toLeader ? row.interval : row.gapToLeader)
+  const gap = first ?? (toLeader ? row.interval : leaderShown ? null : row.gapToLeader)
   if (gap === null) {
     return row.classPosition === 1 ? { text: m.widgets.standings.leader, kind: 'leader' } : NO_GAP
   }
@@ -156,7 +164,7 @@ export function gapLeaderCell(row: StandingsRow, race: boolean): { text: string;
 
 export function pitKind(row: StandingsRow): PitKind {
   if (row.status === 'finished') return 'finished'
-  if (row.status === 'pits') return 'pit'
+  if (row.status === 'pits') return row.towed ? 'tow' : 'pit'
   if (row.outLap) return 'out'
   return (row.pitStops ?? 0) > 0 ? 'stops' : 'none'
 }
@@ -230,7 +238,7 @@ function toCarView(
   ctx: LineContext,
   o: { alt: boolean; sep: boolean; classTag: string }
 ): CarLineView {
-  const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m)
+  const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m, ctx.gapLeaderShown)
   const gapLeader = gapLeaderCell(row, ctx.race)
   const lap = lapCell(row, ctx.race)
   const best = bestCell(row)

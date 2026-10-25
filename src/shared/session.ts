@@ -196,7 +196,11 @@ function parseSectorStarts(splitTimeInfo: Obj | null): number[] {
   return out
 }
 
-/** Results with 0-based Position/ClassPosition (as iRacing writes them) -> 1-based grid by CarIdx. */
+/**
+ * Results with 0-based Position/ClassPosition (as iRacing writes them) -> 1-based grid by
+ * CarIdx. An entry without a time (FastestTime -1) keeps its slot: on a race grid it starts
+ * there (at the back).
+ */
 function parseGridEntries(results: readonly unknown[]): Map<number, GridEntry> {
   const grid = new Map<number, GridEntry>()
   for (const r of results) {
@@ -204,7 +208,12 @@ function parseGridEntries(results: readonly unknown[]): Map<number, GridEntry> {
     const carIdx = carIdxOr(r.CarIdx, -1)
     if (carIdx < 0 || grid.has(carIdx)) continue
     if (!isNonNegInt(r.Position) || !isNonNegInt(r.ClassPosition)) continue
-    grid.set(carIdx, { position: r.Position + 1, classPosition: r.ClassPosition + 1 })
+    const best = positiveOr0(r.FastestTime)
+    grid.set(carIdx, {
+      position: r.Position + 1,
+      classPosition: r.ClassPosition + 1,
+      bestLap: best > 0 ? best : null
+    })
   }
   return grid
 }

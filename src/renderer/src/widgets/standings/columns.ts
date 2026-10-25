@@ -85,6 +85,8 @@ export interface ColumnPrefs {
   iRatingDeltaAll: boolean
   /** Race session: positions gained and iRating changes only exist in races. */
   race: boolean
+  /** Some row has a tyre compound (the provider sends none while the whole field runs one). */
+  tyres: boolean
   licenseStyle: AppearanceSettings['licenseStyle']
   numberStyle: AppearanceSettings['numberStyle']
 }
@@ -112,6 +114,7 @@ export interface Columns {
  *   are only counted under the green flag.
  * - 'gapLeader' when the gap mode is 'both' (or the column is on), never in 'leader' mode,
  *   where 'gap' already shows the gap to the leader.
+ * - 'tyre' only while some row has a compound: the same 'H' on every row says nothing.
  */
 export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnPrefs): boolean {
   switch (id) {
@@ -123,6 +126,8 @@ export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnP
       return (visible || p.iRatingDeltaAll) && p.race
     case 'gapLeader':
       return p.gapMode !== 'leader' && (visible || p.gapMode === 'both')
+    case 'tyre':
+      return visible && p.tyres
     default:
       return visible
   }

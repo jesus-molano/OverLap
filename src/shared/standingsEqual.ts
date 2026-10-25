@@ -42,6 +42,7 @@ function rowEqual(a: DisplayRow, b: DisplayRow): boolean {
     same(a.pitStops, b.pitStops) &&
     same(a.lastPitLap, b.lastPitLap) &&
     a.outLap === b.outLap &&
+    a.towed === b.towed &&
     same(a.stintLaps, b.stintLaps) &&
     a.tyre === b.tyre &&
     a.status === b.status &&

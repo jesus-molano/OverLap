@@ -532,8 +532,8 @@ describe('fallbacks', () => {
       { sessionState: SessionState.ParadeLaps }
     )
     const grid = new Map([
-      [0, { position: 7, classPosition: 7 }],
-      [1, { position: 6, classPosition: 6 }]
+      [0, { position: 7, classPosition: 7, bestLap: null }],
+      [1, { position: 6, classPosition: 6, bestLap: null }]
     ])
     const data = computeRelative(frame, makeSession(drivers(3), { grid }), OPTS)
     expect(rowOf(data, 0).classPosition).toBe(7)
@@ -545,6 +545,53 @@ describe('fallbacks', () => {
     expect(
       rowOf(computeRelative(racing, makeSession(drivers(2), { grid }), OPTS), 0).classPosition
     ).toBe(3)
+  })
+})
+
+// Lime Rock: on lap 1 you read "P11" (your grid slot) and a car "P2" while Standings said 7 and
+// 4; in qualifying you and another car both read "P5" from the provisional grid.
+describe('positions from the race model (B04)', () => {
+  /** Only car() is read: each listed car's class position. */
+  function raceAt(positions: Record<number, number>): RaceView {
+    const view: Pick<RaceView, 'car'> = {
+      car: (i) => {
+        const classPosition = positions[i]
+        return classPosition === undefined ? undefined : ({ classPosition } as RaceCarState)
+      }
+    }
+    return view as RaceView
+  }
+  const cars = { 0: { pct: 0.5, classPos: 11 }, 1: { pct: 0.6, classPos: 2 }, 2: { pct: 0.4 } }
+  const grid = new Map([
+    [0, { position: 11, classPosition: 11, bestLap: null }],
+    [1, { position: 2, classPosition: 2, bestLap: null }],
+    [2, { position: 5, classPosition: 5, bestLap: 99.5 }]
+  ])
+  const session = makeSession(drivers(3), { grid })
+
+  it('shows the positions Standings shows, not CarIdxClassPosition (only updated at the line)', () => {
+    const data = computeRelative(makeFrame(cars), session, OPTS, raceAt({ 0: 7, 1: 4, 2: 0 }))
+    expect([0, 1, 2].map((i) => rowOf(data, i).classPosition)).toEqual([7, 4, null])
+  })
+
+  it('takes the grid slot only in a race before the green', () => {
+    const frame = makeFrame(cars, { sessionState: SessionState.GetInCar })
+    const data = computeRelative(frame, session, OPTS, raceAt({ 0: 1, 1: 2, 2: 3 }))
+    expect([0, 1, 2].map((i) => rowOf(data, i).classPosition)).toEqual([11, 2, 5])
+  })
+
+  it('outside races, no position without a lap time and never a duplicate', () => {
+    // CarIdxClassPosition 0 and a provisional grid giving every car a slot.
+    const frame = makeFrame(
+      { 0: { pct: 0.5, classPos: 0 }, 1: { pct: 0.6, classPos: 0 }, 2: { pct: 0.4, classPos: 0 } },
+      { sessionNum: 1 }
+    )
+    const data = computeRelative(frame, session, OPTS, raceAt({ 0: 0, 1: 0, 2: 1 }))
+    expect([0, 1, 2].map((i) => rowOf(data, i).classPosition)).toEqual([null, null, 1])
+    // Without a race model: none in practice, CarIdxClassPosition in a race.
+    const practice = computeRelative(makeFrame(cars, { sessionNum: 1 }), session, OPTS)
+    expect(practice.rows.every((r) => r.classPosition === null)).toBe(true)
+    expect(rowOf(computeRelative(makeFrame(cars), session, OPTS), 1).classPosition).toBe(2)
   })
 })
 
@@ -712,6 +759,18 @@ describe('stint, tyres and flags', () => {
     expect(noList.rows.every((r) => r.tyre === null)).toBe(true)
     const noVar = computeRelative(makeFrame(cars), makeSession(list, { tyreCompounds }), OPTS)
     expect(noVar.rows.every((r) => r.tyre === null)).toBe(true)
+  })
+
+  it('names none while every car runs the usual compound (Q10)', () => {
+    const tyreCompounds = new Map([
+      [0, 'Hard'],
+      [1, 'Wet']
+    ])
+    const allHard = makeFrame(cars, {
+      overrides: { CarIdxTireCompound: perCar({ 0: 0, 1: 0, 2: 0 }) }
+    })
+    const session = makeSession(drivers(3), { tyreCompounds })
+    expect(computeRelative(allHard, session, OPTS).rows.every((r) => r.tyre === null)).toBe(true)
   })
 
   it('badges black, meatball and furled flags, signed bit fields included', () => {

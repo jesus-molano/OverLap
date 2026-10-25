@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { EMPTY_SESSION, parseSessionMeta } from './session'
 import { MAX_CARS, TELEMETRY_VAR_NAMES } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
-import { tyreCompoundOf, tyreLetter, tyreModelOf } from './tyres'
+import { tyreCompoundOf, tyreLetter, tyreModelOf, tyresVary } from './tyres'
 import type { DriverEntry, SessionMeta } from './types'
 
 const MISSING_VARS = Object.fromEntries(
@@ -98,6 +98,29 @@ describe('tyreCompoundOf', () => {
     // Car 1 may well be another model: no name.
     expect(tyreCompoundOf(f, s, model, 1)).toBeNull()
     expect(tyreModelOf(session({ playerCarIdx: -1 }))).toEqual({ carIdx: -1, carId: 0 })
+  })
+})
+
+// Lime Rock MX-5: compound 0 (Hard) on every car, a column of 'H' on every row (Q10).
+describe('tyresVary', () => {
+  it('is false while every named car runs TireIndex 0, true once one does not', () => {
+    const s = session()
+    const model = tyreModelOf(s)
+    expect(tyresVary(frame({ 0: 0, 1: 0 }), s, model)).toBe(false)
+    expect(tyresVary(frame({ 0: 0, 1: 1 }), s, model)).toBe(true)
+    // Everyone on wets: it says something too.
+    expect(tyresVary(frame({ 0: 1, 1: 1 }), s, model)).toBe(true)
+  })
+
+  it('ignores cars it cannot name and missing data', () => {
+    const s = session()
+    const model = tyreModelOf(s)
+    // Car 2 is another model: its 1 is not a known compound.
+    expect(tyresVary(frame({ 0: 0, 1: 0, 2: 1 }), s, model)).toBe(false)
+    expect(tyresVary(frame({ 0: -1, 1: -1 }), s, model)).toBe(false)
+    expect(tyresVary(frame(null), s, model)).toBe(false)
+    const noList = session({ tyreCompounds: new Map() })
+    expect(tyresVary(frame({ 0: 1 }), noList, tyreModelOf(noList))).toBe(false)
   })
 })
 
