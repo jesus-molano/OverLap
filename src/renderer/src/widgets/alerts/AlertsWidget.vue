@@ -85,7 +85,7 @@ const hasRows = computed(() => flags.value.primary !== null || limiter.value !==
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && hasRows.value
 )
-/** Where the VISTA PREVIA tag goes: the chips row, else the limiter line, else the pill. */
+/** Where the VISTA PREVIA tag goes: the chips row, else the limiter line, else the flag band. */
 const previewTag = computed<'flag' | 'chips' | 'limiter' | null>(() => {
   if (!preview.value) return null
   if (flags.value.secondary.length > 0) return 'chips'
@@ -161,10 +161,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           { 'limiter--hero': hero, 'ov-solid': limiter.state !== 'on' }
         ]"
       >
-        <Icon :name="limiter.icon" class="limiter__icon" />
+        <span class="limiter__mark"><Icon :name="limiter.icon" class="limiter__icon" /></span>
         <span class="limiter__label">{{ limiter.label }}</span>
         <span class="limiter__speed"
-          >{{ limiter.speed }}<span class="limiter__unit">&nbsp;{{ limiter.unit }}</span></span
+          >{{ limiter.speed
+          }}<span class="limiter__unit ov-unit">&nbsp;{{ limiter.unit }}</span></span
         >
         <PreviewTag v-if="previewTag === 'limiter'" class="limiter__preview" />
       </div>
@@ -178,26 +179,30 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
  * setting): the content-to-window loop of the auto height cannot exist. Only with the auto
  * height off does the panel fill the window (rows centred). Static emphasis only: no blinking,
  * every pattern is a static gradient painted once.
+ *
+ * The panel is a stack of full-bleed bands (the main flag, the secondary flags, the limiter)
+ * split by the dark keyline: no pill inside the panel, so no double frame.
  */
 .alerts {
-  /* Flag palette (the theme has none): the real flags' colours, the same in every mode. */
-  --al-black: #0b0c0e;
-  --al-white: #f3f5f8;
-  --al-yellow: #ffd21f;
-  --al-red: #e3242b;
-  --al-blue: #1f66e0;
-  --al-green: #19b04f;
-  --al-orange: #ff7a00;
+  /* The real flags' colours (theme.css), the same in every mode. */
+  --al-black: var(--ov-flag-black);
+  --al-white: var(--ov-flag-white);
+  --al-yellow: var(--ov-flag-yellow);
+  --al-red: var(--ov-flag-red);
+  --al-blue: var(--ov-flag-blue);
+  --al-green: var(--ov-flag-green);
+  --al-orange: var(--ov-flag-orange);
   --al-ink-dark: #0b0c0e;
   --al-ink-light: #ffffff;
-  /* Limiter off / over the limit: the red flag's red, white text. */
-  --al-alarm: var(--al-red);
+  /* Limiter off / over the limit: the overlay's alarm red, deepened a little so its white text
+     reads at 4.6:1 (the plain token gives 3.4:1). */
+  --al-alarm: color-mix(in srgb, var(--ov-alert) 85%, #000000);
   --al-alarm-ink: var(--al-ink-light);
 }
 
-/* Colour-blind palette: the alarm takes the theme's "against you" (orange), the "on" its blue. */
+/* Colour-blind palette: the alarm is the theme's alert orange as it is, with dark text. */
 :root[data-cvd='on'] .alerts {
-  --al-alarm: var(--ov-bad);
+  --al-alarm: var(--ov-alert);
   --al-alarm-ink: var(--al-ink-dark);
 }
 
@@ -211,8 +216,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .alerts__panel {
   flex: none;
   container: alerts / inline-size;
-  gap: 0.35em;
-  padding: 0.4em;
+  gap: 0;
+  padding: 0;
+}
+
+/* Band separators: the panel's dark keyline between two bands. */
+.flag + .chips,
+.flag + .limiter,
+.chips + .limiter {
+  box-shadow: inset 0 1px 0 var(--ov-edge-out);
 }
 
 .alerts__panel--fixed {
@@ -250,7 +262,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .al-tile {
   display: block;
   flex: none;
-  border-radius: 2px;
+  border-radius: var(--ov-radius-chip);
   background: var(--al-fill, transparent);
 }
 
@@ -302,21 +314,26 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
     0.5em;
 }
 
-/* ---- Main flag: the pill ----------------------------------------------------------- */
+/* ---- Main flag: a full-bleed band in the flag's colour ------------------------------ */
 
+/*
+ * One column for every band: each starts on the panel's content line (after the rail), the
+ * flag's mark and the limiter's icon share one 2.1em slot, so the flag label and the limiter
+ * label line up, and the secondary-flag cells start on the same line.
+ */
 .flag {
   display: flex;
   align-items: center;
   gap: 0.6em;
   min-width: 0;
-  padding: 0.38em 0.75em 0.38em 0.45em;
-  border-radius: 5px;
+  padding: 0.45em 0.6em 0.45em calc(var(--ov-bar-w) + 0.35em);
+  border-radius: 0;
   background: var(--al-fill);
   color: var(--al-ink);
   contain: layout paint style;
 }
 
-/* Black flags on a dark panel (or the game): a light ring keeps the pill's edge. */
+/* Black flags on a dark panel (or the game): a light ring keeps the band's edge. */
 .flag.al-fill-black {
   box-shadow: inset 0 0 0 max(1px, 0.08em) rgba(255, 255, 255, 0.34);
 }
@@ -324,7 +341,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .flag__mark {
   width: 2.1em;
   height: 1.5em;
-  border-radius: 3px;
+  border-radius: var(--ov-radius-chip);
 }
 
 /* The pattern tiles get a ring in the ink, so they sit on any fill. */
@@ -350,6 +367,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+  /* Room for the label's accents inside this clip box too (see .flag__label). */
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 
 .flag__label {
@@ -358,10 +378,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--ov-font-num);
-  font-size: 1.45em;
-  font-weight: 800;
+  font-size: var(--ov-t-display);
+  font-weight: var(--ov-w-solid);
   line-height: 1.15;
   letter-spacing: 0.03em;
+  /* The clip box reaches past the tight line box, so accented capitals ('REPARACIÓN',
+     'ÚLTIMA VUELTA') keep their accents; the negative margins leave the layout as it was. */
+  padding-block: 0.12em;
+  margin-block: -0.12em;
 }
 
 /* The short label replaces a long one in narrow windows (see the end). */
@@ -369,27 +393,22 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   display: none;
 }
 
-/* The note gives way first. */
+/* The note gives way first; the gap alone sets it apart. Dimmed by its colour, not opacity. */
 .flag__note {
   flex: 0 100 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: max(var(--ov-min-text), 0.92em);
-  font-weight: 600;
-  opacity: 0.8;
-}
-
-.flag__note::before {
-  content: '·';
-  margin-right: 0.45em;
+  font-size: var(--ov-t-body);
+  font-weight: var(--ov-w-strong);
+  color: color-mix(in srgb, var(--al-ink) 80%, transparent);
 }
 
 .alerts__preview {
   margin-left: auto;
 }
 
-/* ---- Other flags: chips ----------------------------------------------------------- */
+/* ---- Other flags: recessed cells with a mini flag ------------------------------------ */
 
 .chips {
   display: flex;
@@ -397,6 +416,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   align-items: center;
   gap: 0.3em;
   min-width: 0;
+  padding: 0.35em 0.6em 0.35em calc(var(--ov-bar-w) + 0.35em);
 }
 
 .chip {
@@ -404,60 +424,86 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   align-items: center;
   gap: 0.4em;
   min-width: 0;
-  padding: 0.15em 0.5em 0.15em 0.3em;
+  height: var(--ov-plate-h);
+  padding: 0 0.5em 0 0.3em;
   border-radius: var(--ov-radius-chip);
-  background: var(--ov-chip);
-  font-size: max(var(--ov-min-text), 0.8em);
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0.06em;
+  background: var(--ov-well);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
+  font-size: var(--ov-t-plate);
+  font-weight: var(--ov-w-strong);
+  line-height: 1;
+  letter-spacing: var(--ov-track-tag);
   white-space: nowrap;
 }
 
 .chip__mark {
   width: 1.2em;
   height: 0.85em;
+  border-radius: 1px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
+/* Line height above 1: the clip box must hold the accents of capitals ('ÚLTIMA'). */
 .chip__text {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
-/* ---- Pit limiter ------------------------------------------------------------------- */
+/* ---- Pit limiter: a band like the flag ---------------------------------------------- */
 
 .limiter {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.6em;
   min-width: 0;
-  padding: 0.3em 0.7em 0.3em 0.55em;
-  border-radius: 5px;
-  font-weight: 800;
+  padding: 0.3em 0.6em 0.3em calc(var(--ov-bar-w) + 0.35em);
+  border-radius: 0;
+  font-weight: var(--ov-w-strong);
   line-height: 1.25;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ov-track-tag);
   white-space: nowrap;
   contain: layout paint style;
 }
 
-/* On: a quiet ring in the "for you" tone, with the check. */
+/* On: a quiet band with the "for you" rail and the check (state is a rail, never a block). */
 .limiter--on {
   background: var(--ov-chip-faint);
-  box-shadow: inset 0 0 0 max(1px, 0.08em) color-mix(in srgb, var(--ov-good) 55%, transparent);
 }
 
-.limiter--on .limiter__icon,
-.limiter--on .limiter__label {
+.limiter--on::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--ov-bar-w);
+  background: var(--ov-good);
+}
+
+.limiter--on .limiter__icon {
   color: var(--ov-good);
 }
 
-/* Off or over the limit: a solid alarm, the loudest thing the overlay draws. */
+.limiter--on .limiter__label {
+  color: var(--ov-fg);
+}
+
+/* Off or over the limit: a full-bleed alarm band, the loudest thing the overlay draws. */
 .limiter--off,
 .limiter--speeding {
   background: var(--al-alarm);
   color: var(--al-alarm-ink);
+  font-weight: var(--ov-w-solid);
+}
+
+/* The flag mark's slot, so the limiter label starts where the flag label does. */
+.limiter__mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.1em;
 }
 
 .limiter__icon {
@@ -469,7 +515,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 1.1em;
+  font-size: var(--ov-t-lead);
 }
 
 /* The speed gives way before the words (and its unit before the numbers, see the end). */
@@ -480,29 +526,34 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--ov-font-num);
-  font-size: 1.1em;
-  font-weight: 700;
+  font-size: var(--ov-t-lead);
+  font-weight: var(--ov-w-strong);
   letter-spacing: 0;
 }
 
+/* .ov-unit (theme.css) gives the face, weight and dim colour; on the alarm it takes the ink. */
 .limiter__unit {
-  font-size: max(var(--ov-min-text), 0.8em);
-  font-weight: 600;
+  font-size: max(var(--ov-min-text), var(--ov-t-unit));
+}
+
+.limiter--off .ov-unit,
+.limiter--speeding .ov-unit {
+  color: inherit;
 }
 
 .limiter__preview {
   margin-left: 0.2em;
 }
 
-/* The limiter alone, or an alarm: as large as the pill. */
+/* The limiter alone, or an alarm: as large as the flag. */
 .limiter--hero {
-  padding: 0.42em 0.8em 0.42em 0.6em;
+  padding: 0.42em 0.6em 0.42em calc(var(--ov-bar-w) + 0.35em);
 }
 
 .limiter--hero .limiter__icon,
 .limiter--hero .limiter__label,
 .limiter--hero .limiter__speed {
-  font-size: 1.45em;
+  font-size: var(--ov-t-display);
 }
 
 /* ---- Narrow windows: the words that matter keep their room ---------------------------- */

@@ -57,11 +57,12 @@ const shapes = computed<readonly IconShape[]>(() => ICONS[props.name])
   stroke-linejoin: round;
 }
 
-.ov-icon__warn {
-  fill: var(--ov-warn);
+/* Fixed tints are real flag colours: the same in every mode, colour-blind included. */
+.ov-icon__orange {
+  fill: var(--ov-flag-orange);
 }
 
 .ov-icon__ink {
-  fill: #0b0c0e;
+  fill: var(--ov-flag-black);
 }
 </style>

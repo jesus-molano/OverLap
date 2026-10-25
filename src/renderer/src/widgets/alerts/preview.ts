@@ -1,5 +1,5 @@
 /**
- * Edit-mode sample of the alerts banner: every part filled (pill, chips, limiter line), so the
+ * Edit-mode sample of the alerts banner: every part filled (flag band, chips, limiter line), so the
  * window is placed and sized on its tallest usual content. The options still apply to it (see
  * previewFilter in view.ts): without the blue flag, its chip goes.
  */

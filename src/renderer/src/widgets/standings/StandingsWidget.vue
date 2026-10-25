@@ -259,6 +259,10 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   white-space: nowrap;
 }
 
+/*
+ * Car rows sit on the glass; alternate rows get the stripe band or, with stripes off, every row
+ * a 1 px rule on top (--ov-row-rule). All of it is background paint, redrawn only with its row.
+ */
 .sd-car {
   display: grid;
   grid-template-columns: var(--sd-cols);
@@ -273,33 +277,44 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   background: var(--ov-bg-row-alt);
 }
 
-/* Rows were skipped above. */
-.sd-car.is-sep {
-  border-top: 1px dashed var(--ov-sep);
+.sd-car + .sd-car {
+  box-shadow: inset 0 1px 0 var(--ov-row-rule);
 }
 
+/* Your bracket draws its own lines, and a skipped-rows line has its tick rule instead. */
+.sd-car.ov-player,
+.ov-player + .sd-car,
+.sd-car.is-sep {
+  box-shadow: none;
+}
+
+/* Rows were skipped above: a dotted tick rule along the top edge (inside the fixed height). */
+.sd-car.is-sep {
+  background:
+    linear-gradient(90deg, var(--ov-tick-major) 0 2px, transparent 2px) left top / 5px 1px repeat-x,
+    var(--ov-bg-row);
+}
+
+.sd-car.is-sep.is-alt {
+  background:
+    linear-gradient(90deg, var(--ov-tick-major) 0 2px, transparent 2px) left top / 5px 1px repeat-x,
+    var(--ov-bg-row-alt);
+}
+
+/*
+ * Class line: the header band with the class as a 2 px key along its bottom, fading to the right
+ * (horizontal = identity; the class never goes on a rail). The key keeps its full colour at any
+ * panel opacity, so the line still reads over a see-through panel.
+ */
 .sd-class {
   display: flex;
   align-items: center;
   gap: 0.5em;
   height: var(--sd-cls-h);
-  padding: 0 0.7em 0 0.35em;
-}
-
-/*
- * Static class tint that fades with the panel, behind the cells (the line is a stacking context:
- * contain: strict), so the multi-root cells need no positioning of their own.
- */
-.sd-class::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--cls, #ffffff) 22%, transparent),
-    transparent 70%
-  );
-  opacity: var(--ov-bg-alpha);
+  padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
+  background:
+    linear-gradient(90deg, var(--cls, var(--ov-fg-muted)), transparent 70%) left bottom / 100%
+      var(--ov-key-w) no-repeat,
+    var(--ov-bg-head);
 }
 </style>

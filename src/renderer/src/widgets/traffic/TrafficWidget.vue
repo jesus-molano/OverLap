@@ -15,7 +15,6 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
-import Chip from '@renderer/ui/Chip.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import PanelHeader from '@renderer/ui/PanelHeader.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
@@ -126,6 +125,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         :class="slot.css"
       >
         <span v-if="slot.kind === 'caption'" class="tr-cap__text">{{ slot.text }}</span>
+        <!-- One plate per line, the car number (plus a hazard tag): class, lap state and
+             sector are text. -->
         <template v-else>
           <TrafficKindIcon class="tr-icon" :kind="slot.group" />
           <span v-if="slot.cls" class="tr-cls">{{ slot.cls }}</span>
@@ -135,7 +136,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
               v-if="slot.lapBadge"
               class="tr-lap"
               :class="`tr-lap--${slot.lap}`"
-              variant="outline"
+              variant="text"
               >{{ slot.lapBadge }}</Badge
             >
           </DriverCell>
@@ -144,11 +145,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
             <span class="tr-verb">{{ slot.lead }}</span>
           </span>
           <span class="tr-num"
-            >{{ slot.num }}<span class="tr-unit">{{ slot.unit }}</span></span
+            >{{ slot.num }}<span class="tr-unit ov-unit">{{ slot.unit }}</span></span
           >
-          <span class="tr-sector"
-            ><Chip v-if="slot.sector">{{ slot.sector }}</Chip></span
-          >
+          <span class="tr-sector">{{ slot.sector }}</span>
         </template>
       </div>
     </WidgetPanel>
@@ -195,7 +194,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .tr-cap {
   align-items: flex-end;
   height: 1.55em;
-  padding: 0 0.7em 0.2em;
+  padding: 0 0.6em 0.2em calc(var(--ov-bar-w) + 0.35em);
 }
 
 .tr-cap:not(.is-first) {
@@ -206,10 +205,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: var(--ov-t-tag);
-  font-weight: 700;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--ov-track-caps);
   color: var(--ov-fg-muted);
 }
 
@@ -221,9 +221,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .tr-row {
   --tr-tone: var(--ov-fg-muted);
-  gap: 0.45em;
+  gap: 0.4em;
   height: var(--ov-row-h);
-  padding: 0 0.7em 0 calc(var(--ov-bar-w) + 0.45em);
+  padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
   background: var(--ov-bg-row);
 }
 
@@ -231,6 +231,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   background: var(--ov-bg-row-alt);
 }
 
+/* Stripes off: a hairline between lines instead of bands. */
+.tr-row + .tr-row {
+  box-shadow: inset 0 1px 0 var(--ov-row-rule);
+}
+
+/* Colour-blind mode needs nothing here: the theme's warn steps away from its orange "bad". */
 .tr-row.is-bad {
   --tr-tone: var(--ov-bad);
 }
@@ -239,19 +245,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   --tr-tone: var(--ov-warn);
 }
 
-/* The colour-blind "bad" is orange, next to the amber warn: "soon" steps up to a light yellow. */
-:root[data-cvd='on'] .tr-row.is-warn {
-  --tr-tone: #ffe066;
-}
-
-/* Urgent lines get a side bar in their tone (with the icon colour and the number, never alone). */
+/* Urgency is state: the rail in its tone, full height and flush (with the icon colour and the
+   number, never alone). */
 .tr-row.is-bad::before,
 .tr-row.is-warn::before {
   content: '';
   position: absolute;
-  inset: 0.25em auto 0.25em 0;
+  inset: 0 auto 0 0;
   width: var(--ov-bar-w);
-  border-radius: 0 2px 2px 0;
   background: var(--tr-tone);
 }
 
@@ -260,23 +261,19 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   color: var(--tr-tone);
 }
 
-/* Class of the car: its colour as text, tint and ring (the number chip next to it is filled). */
+/* Class of the car as quiet caps text, no box: the filled number plate carries its colour. */
 .tr-cls {
   flex: none;
-  width: 4.6em;
+  width: 3.4em;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 0.3em;
-  border-radius: var(--ov-radius-chip);
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-tag);
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-  text-align: center;
+  font-weight: var(--ov-w-strong);
+  line-height: 1.2;
+  letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
-  color: var(--cls);
-  background: color-mix(in srgb, var(--cls) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cls) 55%, transparent);
+  color: var(--ov-fg-muted);
 }
 
 .tr-cls--none {
@@ -289,7 +286,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   overflow: hidden;
 }
 
-/* Lapping you / lapped: the lap colours of the relative (the number chip turns outlined too). */
+/* Lapping you / lapped: a caps text tag in the lap colours of the relative (the number plate
+   turns outlined too). */
 .tr-lap--ahead {
   --ov-tone: var(--ov-lap-ahead);
   color: var(--ov-lap-ahead);
@@ -311,15 +309,17 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .tr-verb {
   font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
+/* The voice of the line: a lead number in the Display face, its unit small and dim. */
 .tr-num {
   flex: none;
   min-width: 2.3em;
   font-family: var(--ov-font-num);
-  font-size: 1.08em;
-  font-weight: 700;
+  font-size: var(--ov-t-lead);
+  font-weight: var(--ov-w-strong);
   text-align: right;
   color: var(--ov-fg);
 }
@@ -331,23 +331,27 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 /* Not converging: how far it is, quieter. */
 .tr-row.is-idle .tr-num {
-  font-weight: 600;
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
+/* .ov-unit (theme.css) gives the face, weight and colour. */
 .tr-unit {
-  margin-left: 0.12em;
-  font-size: max(var(--ov-min-text), 0.68em);
-  font-weight: 600;
-  color: var(--ov-fg-muted);
+  font-size: max(var(--ov-min-text), var(--ov-t-unit));
 }
 
-/* Always as wide, so the numbers of every line align; dropped when no line has a sector. */
+/* Where you meet, as caption text. Always as wide, so the numbers of every line align;
+   dropped when no line has a sector. */
 .tr-sector {
   flex: none;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   width: 2.2em;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-fg-muted);
 }
 
 .tr-panel:not(.has-sectors) .tr-sector {

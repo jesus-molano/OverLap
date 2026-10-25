@@ -54,9 +54,11 @@ const inlinePit = computed(() =>
     </DriverCell>
   </template>
   <template v-for="id in cols.cells" :key="id">
-    <span v-if="id === 'gained'" class="c-gained" :class="`ov-tone-${line.gainedTone}`">{{
-      line.gained
-    }}</span>
+    <span v-if="id === 'gained'" class="c-gained" :class="`ov-tone-${line.gainedTone}`"
+      ><Icon v-if="line.gainedIcon" :name="line.gainedIcon" class="sd-gain-icon" />{{
+        line.gained
+      }}</span
+    >
     <span v-else-if="id === 'ir'" class="c-ir">{{ line.iRating }}</span>
     <span v-else-if="id === 'lic'" class="c-lic"
       ><LicenseChip v-if="line.lic" :text="line.lic" :colors="line.licStyle"
@@ -97,7 +99,7 @@ const inlinePit = computed(() =>
   overflow: hidden;
 }
 
-/* Another class's leader: its class tag where the position goes, the name after it. */
+/* Another class's leader: its class name where the position goes, the name after it. */
 .c-lead {
   grid-column: 1 / span 2;
   display: flex;
@@ -107,23 +109,21 @@ const inlinePit = computed(() =>
   overflow: hidden;
 }
 
+/* Class name in the class ink, no fill: the filled number plate next to it carries the class. */
 .sd-tag {
   flex: none;
   min-width: 2.4em;
   max-width: 6em;
   overflow: hidden;
-  padding: 0 0.35em;
-  border-radius: var(--ov-radius-chip);
-  background: var(--cls);
-  color: var(--cls-fg);
+  font-family: var(--ov-font-small);
   font-size: max(var(--ov-min-text), 0.68em);
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
   line-height: 1.45;
-  letter-spacing: 0.06em;
-  text-align: center;
+  letter-spacing: var(--ov-track-tag);
+  text-align: left;
   text-overflow: ellipsis;
   text-transform: uppercase;
-  text-shadow: none;
+  color: var(--cls-ink, var(--ov-fg-muted));
 }
 
 .sd-icons {
@@ -134,8 +134,9 @@ const inlinePit = computed(() =>
   font-size: 0.85em;
 }
 
+/* The real black flag, outlined in ink so it reads on the dark glass. */
 .sd-flag {
-  color: #0b0c0e;
+  color: var(--ov-flag-black);
   stroke: var(--ov-fg);
   stroke-width: 0.6;
 }
@@ -162,27 +163,38 @@ const inlinePit = computed(() =>
   text-align: right;
 }
 
+/* Positions gained: a triangle and the count in the tone; nothing at all for none. */
 .c-gained {
   font-size: max(var(--ov-min-text), 0.75em);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
+}
+
+/* The triangle is the shape half of the colour-plus-shape rule (colour-blind mode relies on it):
+   about 8 x 5 px at 13 px. The arrow fills 11 x 7 of its 16-unit box, so the path's own side
+   bearing is the gap before the count. '▲12' still fits the 1.9em column at an 80 % text scale. */
+.sd-gain-icon {
+  font-size: 1.15em;
 }
 
 .c-ir {
   font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
 .c-delta {
   font-size: var(--ov-t-secondary);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 .c-gap {
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-fg);
 }
 
 .c-gapl {
   font-size: max(var(--ov-min-text), 0.9em);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
@@ -191,10 +203,12 @@ const inlinePit = computed(() =>
   color: var(--ov-info);
 }
 
+/* 'LÍDER' is a known word, not a value: a small caps tag. */
 .c-gap.is-leader {
+  font-family: var(--ov-font-small);
   font-size: max(var(--ov-min-text), 0.68em);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
   color: var(--ov-fg-muted);
 }
 
@@ -205,31 +219,38 @@ const inlinePit = computed(() =>
 
 .c-lap {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   min-width: 0;
   overflow: hidden;
 }
 
+/* Plate geometry, so a filled or keyed lap is exactly as tall as the row's other plates. */
 .sd-lap {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ov-plate-h);
   padding: 0 0.25em;
   border-radius: var(--ov-radius-chip);
   font-size: max(var(--ov-min-text), 0.85em);
-  line-height: 1.3;
+  font-weight: var(--ov-w-text);
+  line-height: 1;
 }
 
-/* Fastest lap of the class: filled. */
+/* Fastest lap of the class: the purple plate (a racing convention; white reads at 4.8:1). */
 .sd-lap.is-best {
-  background: var(--ov-best);
+  background: var(--ov-best-fill);
   color: #ffffff;
-  font-weight: 700;
+  font-weight: var(--ov-w-solid);
   text-shadow: none;
 }
 
-/* The driver's own best: a ring and green text. */
+/* The driver's own best: green figures over a green key (a ring would mean a warning). */
 .sd-lap.is-pb {
-  box-shadow: inset 0 0 0 1px var(--ov-good);
+  background: linear-gradient(var(--ov-good), var(--ov-good)) left bottom / 100% var(--ov-key-w)
+    no-repeat;
   color: var(--ov-good);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 .sd-lap.is-none {
@@ -252,14 +273,37 @@ const inlinePit = computed(() =>
   font-size: 1.1em;
 }
 
-/* Row states (classes on the line, see view.ts): pits dim everything but the pit state. */
-.is-pits > :not(.c-pit, .c-driver),
+/*
+ * Row states (classes on the line, see view.ts). The line belongs to the parent component, so
+ * every cell is named: a scoped `.is-pits > :not(…)` or `> *` puts this component's scope
+ * attribute on the line itself and matches nothing.
+ * Pits dim everything but the pit state (and the driver's icons).
+ */
+.is-pits > .c-pos,
+.is-pits > .c-lead,
+.is-pits > .c-gained,
+.is-pits > .c-ir,
+.is-pits > .c-lic,
+.is-pits > .c-delta,
+.is-pits > .c-gap,
+.is-pits > .c-gapl,
+.is-pits > .c-lap,
 .is-pits > .c-driver > :deep(:not(.sd-icons)) {
-  opacity: var(--ov-pit-opacity);
+  opacity: var(--ov-o-dim);
 }
 
-.is-disconnected > * {
-  opacity: 0.4;
+.is-disconnected > .c-pos,
+.is-disconnected > .c-lead,
+.is-disconnected > .c-driver,
+.is-disconnected > .c-gained,
+.is-disconnected > .c-ir,
+.is-disconnected > .c-lic,
+.is-disconnected > .c-delta,
+.is-disconnected > .c-gap,
+.is-disconnected > .c-gapl,
+.is-disconnected > .c-lap,
+.is-disconnected > .c-pit {
+  opacity: var(--ov-o-dim);
 }
 
 .is-disconnected > .c-driver :deep(.ov-driver__name) {

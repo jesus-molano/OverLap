@@ -118,7 +118,7 @@ function openSettingsFolder(): void {
   margin-bottom: 14px;
   padding: 9px 12px;
   border: 1px solid color-mix(in srgb, var(--ov-edit) 45%, transparent);
-  border-radius: 8px;
+  border-radius: var(--st-radius);
   background: color-mix(in srgb, var(--ov-edit) 10%, var(--st-bg));
   font-size: 13px;
   line-height: 1.5;

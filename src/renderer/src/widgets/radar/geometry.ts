@@ -2,12 +2,20 @@
  * Pure mapping from RadarData to SVG user units. The widget's viewBox is
  * "-50 -50 100 100": the player sits at the origin, ahead is up (negative y).
  */
+import { clamp01 } from '@shared/num'
 import { RADAR } from '@shared/radar'
 import type { RadarCar } from '@shared/types'
 
 /** Half side of the rounded-square background. */
 export const BG_HALF = 48
-export const BG_RADIUS = 12
+/** Corner radius: about 6 px in the default 220 x 260 window, like every panel (--ov-radius). */
+export const BG_RADIUS = 2.8
+/**
+ * The bezel (light inner ring and lit top edge) sits this far inside the background's edge:
+ * about 1 px at the default size, so the two 1 px rings lie side by side like a panel's border
+ * and its inset ring.
+ */
+export const BEZEL_INSET = 0.45
 /** `rangeM` maps to this many units from the centre. */
 export const RANGE_UNITS = 44
 export const LANE_SPACING = 13
@@ -69,17 +77,60 @@ export function centeredRect(w: number, h: number, rx: number, pad = 0): Centere
   })
 }
 
+/** The background rect pulled in by BEZEL_INSET on every side, its corners concentric. */
+export const BEZEL = centeredRect(BG_HALF * 2, BG_HALF * 2, BG_RADIUS, -BEZEL_INSET)
+
+/**
+ * The bezel's top edge, from the top of the left side round the corner to the top of the right
+ * side: the lit top edge of every panel (theme.css --ov-edge-top), drawn in the SVG.
+ */
+export const BEZEL_TOP_PATH = ((): string => {
+  const e = round2(BG_HALF - BEZEL_INSET)
+  const r = BEZEL.rx
+  const s = round2(e - r)
+  return `M${-e} ${-s}A${r} ${r} 0 0 1 ${-s} ${-e}H${s}A${r} ${r} 0 0 1 ${e} ${-s}`
+})()
+
 /*
  * Glows are fixed shapes behind each icon instead of blur filters, which re-rasterise every
- * frame a car moves. Two faint rings in the car's colour approximate a small blur; a car
+ * frame a car moves. One faint ring in the car's colour approximates a small blur; a car
  * alongside also gets a wide radial gradient (CAR_ALONGSIDE_GLOW) for its stronger glow.
  */
 export const CAR_BODY = centeredRect(CAR_W, CAR_H, CAR_RX)
 export const CAR_HALO_INNER = centeredRect(CAR_W, CAR_H, CAR_RX, 0.7)
-export const CAR_HALO_OUTER = centeredRect(CAR_W, CAR_H, CAR_RX, 1.5)
 export const CAR_ALONGSIDE_GLOW = centeredRect(CAR_W, CAR_H, CAR_RX, 5)
 export const PLAYER_HALO_INNER = centeredRect(CAR_W, CAR_H, CAR_RX, 1)
-export const PLAYER_HALO_OUTER = centeredRect(CAR_W, CAR_H, CAR_RX, 2.2)
+
+/**
+ * The windshield, in the front third of the body: dark on your accent car, in the class colour
+ * on everyone else's (their body carries the proximity colour).
+ */
+export const CAR_GLASS: CenteredRect = Object.freeze({
+  x: -2.4,
+  y: -4.6,
+  width: 4.8,
+  height: 2.6,
+  rx: 0.9
+})
+
+/**
+ * Proximity colour steps of a car, 0 at the edge of the range to PROX_BUCKETS - 1 touching.
+ * The colours themselves are CSS (`.rc-N` fills with theme.css `--ov-prox-N`, grey warming to
+ * the alert red, never through yellow), so the colour-blind palette recolours the cars without
+ * any JS, and a car holding its gap keeps its step, and its v-memo hit.
+ */
+export const PROX_BUCKETS = 12
+const TOP_BUCKET = PROX_BUCKETS - 1
+
+/** The class of each step, built once: a 60 Hz render looks one up and never builds one. */
+export const BUCKET_CLASSES: readonly string[] = Object.freeze(
+  Array.from({ length: PROX_BUCKETS }, (_, i) => `rc-${i}`)
+)
+
+/** Colour step of a car at `proximity` (0..1, clamped; NaN reads as far). Alongside: touching. */
+export function proximityBucket(proximity: number, overlapping: boolean): number {
+  return overlapping ? TOP_BUCKET : Math.round(clamp01(proximity) * TOP_BUCKET)
+}
 
 /**
  * Distance along the track (m, ahead positive) to y. Piecewise linear so one car length is
@@ -115,8 +166,13 @@ export interface CarMark {
   key: string
   /** SVG transform placing the car centre. */
   transform: string
-  fill: string
-  stroke: string
+  /** Proximity colour step, 0 (far) to PROX_BUCKETS - 1 (touching): see BUCKET_CLASSES. */
+  bucket: number
+  /**
+   * Class colour, drawn as the car's windshield (CAR_GLASS): a mark, never the body or its
+   * outline, so it can never turn a car into a copy of yours.
+   */
+  classColor: string
   overlapping: boolean
   opacity: number
 }
@@ -169,8 +225,8 @@ export function toCarMarks(
     marks.push({
       key,
       transform: `translate(${x} ${y})`,
-      fill: car.color,
-      stroke: car.classColor,
+      bucket: proximityBucket(car.proximity, car.overlapping),
+      classColor: car.classColor,
       overlapping: car.overlapping,
       opacity
     })
@@ -191,8 +247,8 @@ export function sameMarks(a: readonly CarMark[], b: readonly CarMark[]): boolean
       m.key !== n.key ||
       m.transform !== n.transform ||
       m.opacity !== n.opacity ||
-      m.fill !== n.fill ||
-      m.stroke !== n.stroke ||
+      m.bucket !== n.bucket ||
+      m.classColor !== n.classColor ||
       m.overlapping !== n.overlapping
     ) {
       return false

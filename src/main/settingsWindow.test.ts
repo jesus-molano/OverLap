@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   FakeBrowserWindow,
@@ -49,6 +50,17 @@ describe('settings window', () => {
     expect(w.show).not.toHaveBeenCalled()
     w.becomeReady()
     expect(w.show).toHaveBeenCalledOnce()
+  })
+
+  it("opens on the page's own background colour, so it never flashes another one", () => {
+    const css = readFileSync(
+      new URL('../renderer/src/settings/settings.css', import.meta.url),
+      'utf8'
+    )
+    const pageBg = /--st-bg:\s*(#[0-9a-f]{6})\s*;/i.exec(css)?.[1]
+    openSettingsWindow()
+    expect(pageBg).toBeDefined()
+    expect(only().options.backgroundColor).toBe(pageBg)
   })
 
   it('loads the dev server URL in development', () => {

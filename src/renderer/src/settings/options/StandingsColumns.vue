@@ -294,6 +294,7 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
+  box-shadow: var(--st-lit);
 }
 
 .intro {
@@ -325,7 +326,7 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
   min-height: 44px;
   padding: 4px 6px;
   border: 1px solid var(--st-border);
-  border-radius: 8px;
+  border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
 }
 
@@ -340,9 +341,14 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
   color: var(--ov-fg-dim);
 }
 
+/* Picked up: lifted and outlined in neutral ink (the accent means you). */
 .row.is-dragged {
-  border-color: var(--st-sel);
-  background: var(--st-sel-soft);
+  border-color: var(--st-border-strong);
+  background: var(--st-hover);
+}
+
+.row.is-dragged .handle {
+  color: var(--ov-fg);
 }
 
 .list.dragging,
@@ -363,8 +369,10 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
 
 .tag {
   margin-right: 6px;
+  font-family: var(--ov-font-small);
   font-size: 11px;
-  letter-spacing: 0.06em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
 }
 
@@ -377,7 +385,7 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
   height: 32px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-muted);
   font-size: 16px;
@@ -394,7 +402,9 @@ function onHandleKey(e: KeyboardEvent, id: StandingsColumnId): void {
   flex: none;
   width: 1.4em;
   color: var(--ov-fg-muted);
+  font-family: var(--ov-font-num);
   font-size: 12px;
+  font-weight: var(--ov-w-strong);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }

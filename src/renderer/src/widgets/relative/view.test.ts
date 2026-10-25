@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MINUS } from '@shared/format'
 import type { RelativeData, RelativeRow } from '@shared/types'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
@@ -11,6 +12,8 @@ import {
   type RelativeSlotView,
   type SlotView
 } from './view'
+
+const M = MINUS
 
 function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
   return {
@@ -84,7 +87,7 @@ describe('toSlotViews', () => {
       name: 'P. Duvalier',
       iRating: '2.0k',
       lic: 'A 3.4',
-      gap: '-2.3',
+      gap: `${M}2.3`,
       lap: null
     })
   })
@@ -127,7 +130,7 @@ describe('toSlotViews', () => {
     d.rows[4] = { ...d.rows[4]!, gapS: -0.4 }
     const next = reuseViews<SlotView>(first, toSlotViews(layoutSlots(d, 3, 3), styles, 'abbr'))
     expect(next.filter((v, i) => v !== first[i])).toHaveLength(1)
-    expect((next[4] as RelativeSlotView).gap).toBe('-0.4')
+    expect((next[4] as RelativeSlotView).gap).toBe(`${M}0.4`)
   })
 })
 

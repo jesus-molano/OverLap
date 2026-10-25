@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import type { BattleData, BattleOpponent } from '@shared/types'
 import { createDriverStyles } from '@renderer/view/styles'
@@ -21,6 +22,8 @@ import {
   trendView,
   type LaneOptions
 } from './view'
+
+const M = MINUS
 
 const NB = ' '
 const ES = messagesFor('es')
@@ -245,7 +248,7 @@ describe('delta chips', () => {
     expect(chips).toHaveLength(LAP_CHIPS)
     expect(chips).toEqual([
       { label: 'V-1', text: '+0.15', tone: 'good' },
-      { label: 'V-2', text: '-0.12', tone: 'bad' },
+      { label: 'V-2', text: `${M}0.12`, tone: 'bad' },
       { label: 'V-3', text: '—', tone: 'dim' }
     ])
     expect(lapChips([], [], ES).every((c) => c.text === '—')).toBe(true)
@@ -254,7 +257,7 @@ describe('delta chips', () => {
   it('sector chips keep the row while unknown, plus Últ when asked', () => {
     expect(sectorChips([0.12, -0.05, 0.003], undefined, ES)).toEqual([
       { label: 'S1', text: '+0.12', tone: 'good' },
-      { label: 'S2', text: '-0.05', tone: 'bad' },
+      { label: 'S2', text: `${M}0.05`, tone: 'bad' },
       { label: 'S3', text: '0.00', tone: 'neutral' }
     ])
     expect(sectorChips(null, undefined, ES)).toEqual([
@@ -333,7 +336,7 @@ describe('toLaneView', () => {
     const both = toLaneView(op, 'behind', d, { ...OPTS, detail: 'both' }, styles, ES)
     // 'both': the laps row has V-1, so the sectors row has no Últ.
     expect(both.sectors?.map((c) => c.label)).toEqual(['Sectores'])
-    expect(both.laps?.map((c) => c.text)).toEqual(['-0.50', '+0.50', '+1.50'])
+    expect(both.laps?.map((c) => c.text)).toEqual([`${M}0.50`, '+0.50', '+1.50'])
     expect(toLaneView(op, 'ahead', d, { ...OPTS, nameFormat: 'tv' }, styles, ES).driver.name).toBe(
       'LOP'
     )

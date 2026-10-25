@@ -10,7 +10,7 @@ export interface IconShape {
   /** Holes where subpaths overlap (letters cut out of a shape). */
   readonly evenodd?: true
   /** A fixed tint instead of currentColor (see Icon.vue). */
-  readonly tint?: 'warn' | 'ink'
+  readonly tint?: 'orange' | 'ink'
 }
 
 const ROUND_SQUARE = 'M3 1h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2z'
@@ -38,7 +38,7 @@ export const ICONS = {
       d: 'M3.25 1.75h9.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5v-9.5a1.5 1.5 0 0 1 1.5-1.5z',
       kind: 'stroke'
     },
-    { d: 'M8 4.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5z', tint: 'warn' }
+    { d: 'M8 4.25a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5z', tint: 'orange' }
   ],
   /** Chequered flag (finished). */
   chequered: [

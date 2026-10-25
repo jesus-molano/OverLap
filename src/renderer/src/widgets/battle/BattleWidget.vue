@@ -122,9 +122,9 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
           <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
         </DriverCell>
 
-        <span class="lane__gap"
+        <span class="lane__gap ov-t-hero"
           >{{ lane.gap.value
-          }}<span v-if="lane.gap.unit" class="lane__unit">{{ lane.gap.unit }}</span></span
+          }}<span v-if="lane.gap.unit" class="lane__unit ov-unit">{{ lane.gap.unit }}</span></span
         >
         <span class="lane__trend">
           <span class="lane__trend-value" :class="`ov-tone-${lane.trend.tone}`">
@@ -216,10 +216,10 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 /* ---- Lane ------------------------------------------------------------------- */
 
 .lane {
-  --lane-tone: var(--ov-fg-dim);
   position: relative;
   display: grid;
-  grid-template-columns: 5em minmax(0, 1fr);
+  /* The tag column also holds 'DELANTE' when the caption is floored at 9 px (80 % text). */
+  grid-template-columns: max(5em, calc(var(--ov-min-text) * 6.6)) minmax(0, 1fr);
   column-gap: 0.6em;
   row-gap: 0.25em;
   align-items: center;
@@ -228,13 +228,17 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   contain: layout paint style;
 }
 
-/* Side bar in the trend's tone (with the chevron and the words, never colour alone). */
-.lane::before {
+/*
+ * The rail: the trend's state on the lane's left edge, full height, square and flush (always with
+ * the chevron and the words, never colour alone). A rail means state, so a lane with no direction
+ * yet (neutral, unknown) has none. Changes with the trend's sign only: no transition.
+ */
+.lane--good::before,
+.lane--bad::before {
   content: '';
   position: absolute;
-  inset: 0.45em auto 0.45em 0;
+  inset: 0 auto 0 0;
   width: var(--ov-bar-w);
-  border-radius: 0 2px 2px 0;
   background: var(--lane-tone);
 }
 
@@ -246,13 +250,9 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   --lane-tone: var(--ov-bad);
 }
 
-.lane--neutral {
-  --lane-tone: var(--ov-fg-muted);
-}
-
 /* Opponent in the pits: still there, but not the fight right now. */
 .lane--pit {
-  opacity: 0.55;
+  opacity: var(--ov-o-soft);
 }
 
 .lane__tag {
@@ -263,10 +263,11 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   gap: 0.3em;
   min-width: 0;
   overflow: hidden;
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
   line-height: 1.3;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ov-track-caps);
   white-space: nowrap;
   color: var(--ov-fg-muted);
 }
@@ -277,28 +278,21 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 }
 
 .lane__who :deep(.ov-driver__name) {
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 /* ---- Headline: hero gap and trend --------------------------------------------- */
 
+/* Face, size, weight and tracking from .ov-t-hero; the unit from .ov-unit (small and dim). */
 .lane__gap {
   grid-column: 1;
   grid-row: 2;
-  font-family: var(--ov-font-num);
-  font-size: var(--ov-t-hero);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
 .lane__unit {
-  margin-left: 0.12em;
-  font-size: max(var(--ov-min-text), 0.42em);
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--ov-fg-muted);
+  margin-left: 0.08em;
+  font-size: max(var(--ov-min-text), var(--ov-t-unit-hero));
 }
 
 .lane__trend {
@@ -308,7 +302,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   align-items: baseline;
   gap: 0.45em;
   min-width: 0;
-  font-size: max(var(--ov-min-text), 0.9em);
+  font-size: var(--ov-t-body);
   line-height: 1.3;
   white-space: nowrap;
 }
@@ -318,27 +312,27 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   flex: none;
   align-items: center;
   gap: 0.25em;
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
 }
 
 .lane__note {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: max(var(--ov-min-text), 0.9em);
-  font-weight: 500;
+  font-size: var(--ov-t-body);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
 .lane__stake {
   flex: none;
   margin-left: auto;
-  font-size: max(var(--ov-min-text), 0.9em);
+  font-size: var(--ov-t-body);
   color: var(--ov-fg-muted);
 }
 
 .lane__stake b {
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
   color: var(--ov-fg);
 }
 
@@ -360,7 +354,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   gap: 0.45em;
   min-width: 0;
   min-height: 1.3em;
-  font-size: max(var(--ov-min-text), 0.85em);
+  font-size: var(--ov-t-body);
   line-height: 1.3;
   white-space: nowrap;
 }
@@ -371,7 +365,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   align-items: center;
   gap: 0.35em;
   min-width: 0;
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 .lane__verdict-text {

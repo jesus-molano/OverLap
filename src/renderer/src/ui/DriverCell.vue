@@ -81,16 +81,40 @@ const shownName = computed(() =>
   white-space: nowrap;
 }
 
+/*
+ * The name on the plate digits' baseline. Both are centred, but Blink puts a line's baseline at
+ * round(ascent) + floor(half-leading) from its top, so the 1em name (line-height inherited) and
+ * the plate's text (--ov-t-plate, line-height 1) land on different baselines: the name sat 0.5
+ * to 1.5 px low, depending on the font size. `top` raises it by exactly that difference, with
+ * Segoe UI's ascent (1.0791em) and descent (.251em) rounded as Blink rounds them: no layout,
+ * the name moves alone and the plate stays level with the position plate. Resolved once per
+ * font size, never per frame.
+ */
 .ov-driver__name {
+  --dc-name-a: round(1.0791em, 1px);
+  --dc-name-d: round(0.251em, 1px);
+  --dc-plate: var(--ov-t-plate);
+  --dc-plate-a: round(1.0791 * var(--dc-plate), 1px);
+  --dc-plate-d: round(0.251 * var(--dc-plate), 1px);
+  position: relative;
+  top: calc(
+    (
+        var(--dc-plate-a) +
+          round(down, (var(--dc-plate) - var(--dc-plate-a) - var(--dc-plate-d)) / 2, 1px) -
+          var(--dc-plate) / 2
+      ) -
+      (var(--dc-name-a) + round(down, (1lh - var(--dc-name-a) - var(--dc-name-d)) / 2, 1px) - 0.5lh)
+  );
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: var(--ov-w-name);
 }
 
+/* Your name a step heavier; the row's bracket says the rest. */
 .ov-driver--player .ov-driver__name {
-  font-weight: 700;
+  font-weight: var(--ov-w-you);
 }
 
 .ov-driver--lap-ahead .ov-driver__name {
@@ -104,6 +128,7 @@ const shownName = computed(() =>
 .ov-driver__ir {
   flex: none;
   font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 </style>

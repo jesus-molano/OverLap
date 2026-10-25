@@ -223,8 +223,9 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 }
 
 .page-title {
+  font-family: var(--ov-font-num);
   font-size: 22px;
-  font-weight: 650;
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
 

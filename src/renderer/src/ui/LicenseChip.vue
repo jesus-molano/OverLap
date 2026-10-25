@@ -9,7 +9,7 @@ import type { InlineStyle } from '../view/styles'
 const props = defineProps<{
   /** Short licence, 'A 4.9'. */
   text: string
-  /** `--lic` / `--lic-fg` / `--lic-soft` (DriverStyles.lic). */
+  /** `--lic` / `--lic-fg` / `--lic-soft` / `--lic-ink` (DriverStyles.lic). */
   colors: InlineStyle
   /** Defaults to appearance.licenseStyle. */
   variant?: AppearanceSettings['licenseStyle']
@@ -28,37 +28,49 @@ const parts = computed(() => splitLicense(props.text))
 </template>
 
 <style>
+/*
+ * Licence at plate height, as large as the iR beside it. The ink (`--lic-ink`) is the licence
+ * colour lifted until it reads on the glass over a bright sky as well as over dark asphalt.
+ */
 .ov-lic {
-  display: inline-block;
+  display: inline-flex;
   flex: none;
+  align-items: center;
   max-width: 100%;
+  height: var(--ov-plate-h);
   overflow: hidden;
-  padding: 0.05em 0.3em;
+  padding: 0 0.3em;
   border-radius: var(--ov-radius-chip);
-  font-family: var(--ov-font);
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-chip);
-  font-weight: 700;
-  line-height: 1.3;
+  font-weight: var(--ov-w-strong);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-overflow: clip;
 }
 
 .ov-lic__sr {
-  margin-left: 0.25em;
+  margin-left: 0.3em;
 }
 
-/* Quiet default for tables: a tinted chip with a ring in the licence colour. */
+/* Quiet default for tables: coloured text, no box. The letter in the ink, the SR in grey. */
 .ov-lic--soft {
-  background: color-mix(in srgb, var(--lic-soft) 26%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lic-soft) 75%, transparent);
-  color: var(--ov-fg);
+  padding: 0;
+  background: none;
+  color: var(--lic-ink, var(--lic-soft));
 }
 
-/* iRacing's own look. */
+.ov-lic--soft .ov-lic__sr {
+  font-weight: var(--ov-w-text);
+  color: var(--ov-fg-muted);
+}
+
+/* iRacing's own look: a plate. */
 .ov-lic--solid {
   background: var(--lic);
   color: var(--lic-fg);
+  font-weight: var(--ov-w-solid);
   text-shadow: none;
 }
 
@@ -66,6 +78,6 @@ const parts = computed(() => splitLicense(props.text))
 .ov-lic--letter {
   padding: 0;
   border-radius: 0;
-  color: var(--lic-soft);
+  color: var(--lic-ink, var(--lic-soft));
 }
 </style>

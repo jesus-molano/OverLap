@@ -5,9 +5,9 @@
 import { contrastText, licenseChipColor } from '@shared/colors'
 import { formatDriverName } from '@shared/format'
 import type { NameFormat } from '@shared/types'
-import { hexOr } from './color'
+import { hexOr, inkOnDark } from './color'
 
-export { hexOr } from './color'
+export { hexOr, inkOnDark } from './color'
 
 /** Inline style properties by CSS name ('--cls', 'background'). */
 export type InlineStyle = Readonly<Record<string, string>>
@@ -39,18 +39,25 @@ export function styleCache(
   }
 }
 
-/** `--cls` (class colour) and `--cls-fg` (text on it): number chips, stripes, class lines. */
-export const classVars = (c: string, fg: string): InlineStyle => ({ '--cls': c, '--cls-fg': fg })
+/**
+ * `--cls` (class colour: number plates, stripes, class keys), `--cls-fg` (text on it) and
+ * `--cls-ink` (the colour as text on the dark panel: class names, see inkOnDark).
+ */
+export const classVars = (c: string, fg: string): InlineStyle => ({
+  '--cls': c,
+  '--cls-fg': fg,
+  '--cls-ink': inkOnDark(c)
+})
 
 /**
- * `--lic` (iRacing colour), `--lic-fg` (text on it) and `--lic-soft` (the colour lifted to a
- * visible grey when it is near black, for rings and letters): see LicenseChip.
+ * `--lic` (iRacing colour), `--lic-fg` (text on it), `--lic-soft` (the colour lifted to a
+ * visible grey when it is near black) and `--lic-ink` (that colour as text on the dark panel,
+ * for the text-only styles): see LicenseChip.
  */
-export const licenseVars = (c: string, fg: string): InlineStyle => ({
-  '--lic': c,
-  '--lic-fg': fg,
-  '--lic-soft': licenseChipColor(c) ?? c
-})
+export const licenseVars = (c: string, fg: string): InlineStyle => {
+  const soft = licenseChipColor(c) ?? c
+  return { '--lic': c, '--lic-fg': fg, '--lic-soft': soft, '--lic-ink': inkOnDark(soft) }
+}
 
 export type NameFormatter = (name: string, format: NameFormat) => string
 
@@ -74,9 +81,9 @@ export type ColorStyle = (color: string | null | undefined) => InlineStyle
 
 /** Per-widget caches of the driver cell (create one per widget instance). */
 export interface DriverStyles {
-  /** `--cls` / `--cls-fg` of a class colour (falls back to white). */
+  /** The `--cls*` properties of a class colour (falls back to white). */
   cls: ColorStyle
-  /** `--lic` / `--lic-fg` / `--lic-soft` of a licence colour (falls back to grey). */
+  /** The `--lic*` properties of a licence colour (falls back to grey). */
   lic: ColorStyle
   name: NameFormatter
 }

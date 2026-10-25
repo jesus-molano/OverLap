@@ -56,6 +56,17 @@ export function snapToStep(value: number, step: number, min: number): number {
   return Number((min + k * step).toFixed(decimalsOf(step) + decimalsOf(min)))
 }
 
+/**
+ * How far `value` sits from `min` to `max`, as the CSS percentage a slider's track is filled
+ * to (its --pct): rangeFill(80, 50, 150) -> '30%'. Clamped to 0..100 %, at most 2 decimals;
+ * '0%' for an empty range or a value that is not a number.
+ */
+export function rangeFill(value: number, min: number, max: number): string {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !(max > min)) return '0%'
+  const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100))
+  return `${Number(pct.toFixed(2))}%`
+}
+
 /** Every value of a step grid from min to max (at most 50): stepValues(1, 3, 0.5) -> 1..3. */
 export function stepValues(min: number, max: number, step: number): number[] {
   if (!(step > 0) || !Number.isFinite(min) || !Number.isFinite(max) || max < min) return []

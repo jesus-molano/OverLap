@@ -126,11 +126,14 @@ const live = computed(() => liveSectorDelta(sectors.value, delta.value, current.
 const liveText = computed(() => (live.value === null ? '' : formatDelta(live.value)))
 const liveTone = computed<Tone>(() => deltaTone(live.value))
 
+// The panel's rail follows the sign of the delta: these classes change on a sign flip only.
 const rootClass = computed(() => ({
   'is-shown': shown.value,
   'dl--sectors': showSectors.value,
   'dl--trend': showTrend.value,
-  'dl--invalid': !valid.value
+  'dl--invalid': !valid.value,
+  'dl--good': heroTone.value === 'good',
+  'dl--bad': heroTone.value === 'bad'
 }))
 </script>
 
@@ -245,6 +248,26 @@ const rootClass = computed(() => ({
   --dl-fit-w: 26;
 }
 
+/* The rail is state: the sign of the delta, flush on the panel's left edge, full height. No
+   transition: the class changes only when the sign flips, and it is matched on the rail itself
+   (not an inherited property on the root), so a flip restyles the rail alone, not the widget. */
+.dl-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: var(--ov-bar-w);
+  pointer-events: none;
+}
+
+.dl--good .dl-panel::before {
+  background: var(--ov-good);
+}
+
+.dl--bad .dl-panel::before {
+  background: var(--ov-bad);
+}
+
 /* ---- Top line: hero, state, predicted lap and reference ------------------------------- */
 
 .dl-top {
@@ -264,6 +287,9 @@ const rootClass = computed(() => ({
 }
 
 .dl-hero__sym {
+  /* Centred on the figures, not on their line box (the digits sit low in it). */
+  position: relative;
+  top: 0.12em;
   display: flex;
   flex: none;
   align-items: center;
@@ -300,10 +326,11 @@ const rootClass = computed(() => ({
   gap: 0.35em;
   /* 'PERDIENDO' on one line; 'VUELTA INVÁLIDA' wraps into two. */
   max-width: 9em;
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
 }
 
@@ -331,28 +358,32 @@ const rootClass = computed(() => ({
   overflow: hidden;
 }
 
+/* Centred, not baseline: the time is a contain: strict box, whose baseline is synthesized at its
+   bottom edge, so a baseline row drops the label below the figures. */
 .dl-pred {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.35em;
   white-space: nowrap;
 }
 
 .dl-pred__label {
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
-  color: var(--ov-fg-muted);
+  color: var(--ov-fg-dim);
 }
 
-/* Fixed box: the 30 Hz predicted time re-lays out only itself. */
+/* Fixed box: the 30 Hz predicted time re-lays out only itself. A lead number. */
 .dl-pred__time {
   width: 3.95em;
   height: 1.2em;
   contain: strict;
-  font-size: 1.05em;
-  font-weight: 600;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-lead);
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
   text-align: right;
 }
@@ -368,12 +399,12 @@ const rootClass = computed(() => ({
   white-space: nowrap;
 }
 
-/* Whose lap it is: yours (accent) or the class's fastest (best). */
+/* Whose lap it is, as a square marker: yours (accent) or the class's fastest (best). */
 .dl-ref__dot {
   flex: none;
   width: 0.5em;
   height: 0.5em;
-  border-radius: 50%;
+  border-radius: 1px;
   background: var(--ov-accent);
 }
 
@@ -389,39 +420,47 @@ const rootClass = computed(() => ({
 
 .dl-ref__time {
   flex: none;
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
   color: var(--ov-fg);
-  opacity: 0.85;
 }
 
 /* An invalid lap won't count: its numbers step back, the state says why. */
 .dl--invalid .dl-hero,
 .dl--invalid .dl-pred {
-  opacity: 0.45;
+  opacity: var(--ov-o-dim);
 }
 
 /* ---- Bar ------------------------------------------------------------------------------ */
 
+/* A recessed well graduated like a gauge: majors at half scale, minors every quarter of each
+   side (eighths of the bar, so every major also falls on a minor and the spacing stays even;
+   each tick centred on its mark, the two ends alike), its top edge in a 1 px inner shade.
+   Painted once; a frame moves only the fill and the needle. */
 .dl-bar {
   --dl-tone: var(--ov-fg-muted);
-  --dl-tick: rgba(255, 255, 255, calc(0.16 * max(var(--ov-bg-alpha), 0.6)));
   position: relative;
   flex: none;
   height: 0.6em;
   contain: strict;
   overflow: hidden;
-  border-radius: 0.3em;
-  /* Half-scale ticks, painted once. */
+  border-radius: var(--ov-radius-chip);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
   background:
     linear-gradient(
       90deg,
       transparent calc(25% - 0.5px),
-      var(--dl-tick) calc(25% - 0.5px) calc(25% + 0.5px),
+      var(--ov-tick-major) calc(25% - 0.5px) calc(25% + 0.5px),
       transparent calc(25% + 0.5px) calc(75% - 0.5px),
-      var(--dl-tick) calc(75% - 0.5px) calc(75% + 0.5px),
+      var(--ov-tick-major) calc(75% - 0.5px) calc(75% + 0.5px),
       transparent calc(75% + 0.5px)
     ),
-    var(--ov-chip);
+    repeating-linear-gradient(
+      90deg,
+      var(--ov-tick) 0 0.5px,
+      transparent 0.5px calc(12.5% - 0.5px),
+      var(--ov-tick) calc(12.5% - 0.5px) 12.5%
+    ),
+    var(--ov-well);
 }
 
 .dl-bar--good {
@@ -464,6 +503,7 @@ const rootClass = computed(() => ({
   transform: translateX(0);
 }
 
+/* The needle, with a dark keyline (no blur) so it reads over the fill and the ticks. */
 .dl-bar__tip::after {
   content: '';
   position: absolute;
@@ -472,6 +512,7 @@ const rootClass = computed(() => ({
   left: calc(50% - 1px);
   width: 2px;
   background: var(--ov-fg);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 .dl-bar--idle .dl-bar__fill,
@@ -480,7 +521,7 @@ const rootClass = computed(() => ({
 }
 
 .dl--invalid .dl-bar__fill {
-  opacity: 0.5;
+  opacity: var(--ov-o-dim);
 }
 
 /* Beyond the scale: hatched end in the tone (the bar is full). */
@@ -508,7 +549,11 @@ const rootClass = computed(() => ({
 
 /* ---- Sectors -------------------------------------------------------------------------- */
 
-/* Equal cells sized by the row, never by their text: a chip change re-lays out itself only. */
+/*
+ * Equal cells sized by the row, never by their text: a cell change re-lays out itself only.
+ * Neutral recessed cells keyed in their tone (ui/Chip.vue); the current sector adds the neutral
+ * ring, keyed in the live tone; the sectors still ahead are empty wells with a fainter label.
+ */
 .dl-sectors {
   display: grid;
   flex: none;
@@ -530,14 +575,17 @@ const rootClass = computed(() => ({
   flex: 1 1 auto;
   align-items: center;
   min-width: 0;
+  height: 100%;
   overflow: hidden;
 }
 
-.dl-chip--ahead {
-  opacity: 0.55;
+/* Sectors still ahead: empty wells (kept at full depth, so they read as slots waiting, not as
+   disabled) with a fainter label. A colour, not an opacity group. */
+.dl-chip--ahead :deep(.ov-chip__label) {
+  color: color-mix(in srgb, var(--ov-fg-dim) 65%, transparent);
 }
 
-/* Crowded rows: chips with a value drop their label (position says which); the rest keep it. */
+/* Crowded rows: cells with a value drop their label (position says which); the rest keep it. */
 .dl-sectors--compact .dl-chip--done :deep(.ov-chip__label),
 .dl-sectors--tight .dl-chip--done :deep(.ov-chip__label),
 .dl-sectors--compact .dl-chip--live :deep(.ov-chip__label),
@@ -546,7 +594,7 @@ const rootClass = computed(() => ({
 }
 
 .dl-sectors--tight .dl-chip {
-  padding: 0.1em 0.15em;
+  padding-inline: 0.15em;
 }
 
 /* ---- Small windows: parts go, the hero keeps its size ---------------------------------- */

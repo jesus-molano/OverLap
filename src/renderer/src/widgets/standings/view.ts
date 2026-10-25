@@ -10,7 +10,8 @@ import {
   formatGapValue,
   formatIRating,
   formatIRatingDelta,
-  formatLapTime
+  formatLapTime,
+  signAt
 } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
@@ -22,17 +23,22 @@ import type {
 } from '@shared/types'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
+import type { IconName } from '@renderer/ui/icons'
 import { signTone, type Tone } from '@renderer/ui/tones'
 import type { DisplayRow, PlannedLine } from './layout'
 
 /** |iRating change| below this is noise: drawn dim. */
 const DELTA_DIM_BELOW = 5
+/** Between the parts of a line of meta ('SoF 2.1k', '12 coches'): an en space, no glyph. */
+export const META_SEP = '\u2002'
 
 export type GapKind = 'time' | 'laps' | 'leader' | 'none'
-/** 'best' = fastest of the class (filled), 'pb' = the driver's own best (ring). */
+/** 'best' = fastest of the class (purple plate), 'pb' = the driver's own best (green key). */
 export type LapKind = 'normal' | 'pb' | 'best' | 'none'
 /** What the pit cell shows: a badge (in the pits, out lap), the stop count, or the flag. */
 export type PitKind = 'pit' | 'out' | 'stops' | 'finished' | 'none'
+/** Triangle in front of the positions gained (up: gained, down: lost). */
+export type GainedIcon = Extract<IconName, 'arrow-up' | 'arrow-down'>
 
 export interface CarLineView extends DriverCellView {
   /** 'leader': another class's leader on one line, its class tag in front. */
@@ -48,8 +54,9 @@ export interface CarLineView extends DriverCellView {
   posWarn: boolean
   penalty: 'black' | 'meatball' | null
   disconnected: boolean
-  /** '▲4', '▼2', '·', '' (unknown). */
+  /** Places gained or lost, digits only ('4', after gainedIcon); '' for none or unknown. */
   gained: string
+  gainedIcon: GainedIcon | null
   gainedTone: Tone
   /** '+13', '' when not shown on this row. */
   delta: string
@@ -73,7 +80,7 @@ export interface ClassLineView {
   css: string
   clsStyle: InlineStyle
   name: string
-  /** 'SoF 2.1k · 12 coches', per the SoF / car count options; '' when nothing to say. */
+  /** 'SoF 2.1k', '12 coches' (en-spaced), per the SoF / car count options; '' if nothing to say. */
   meta: string
 }
 
@@ -158,6 +165,21 @@ export function lapCell(row: StandingsRow, race: boolean): { text: string; kind:
   return { text, kind }
 }
 
+const NO_GAIN = Object.freeze({ text: '', icon: null })
+
+/**
+ * Positions gained since the start: the count without sign ('4', formatGained) and a triangle
+ * for its direction. None (rounds to 0) or unknown: an empty cell, no placeholder glyph.
+ */
+export function gainedCell(n: number | null): {
+  readonly text: string
+  readonly icon: GainedIcon | null
+} {
+  const sign = signAt(n, 0)
+  if (sign === null || sign === 0) return NO_GAIN
+  return { text: formatGained(n), icon: sign > 0 ? 'arrow-up' : 'arrow-down' }
+}
+
 function deltaTone(delta: number | null): Tone {
   if (delta === null || !Number.isFinite(delta) || Math.abs(delta) < DELTA_DIM_BELOW) return 'dim'
   return signTone(delta)
@@ -180,6 +202,7 @@ function toCarView(
   const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m)
   const gapLeader = gapLeaderCell(row, ctx.race)
   const lap = lapCell(row, ctx.race)
+  const gained = ctx.race ? gainedCell(row.positionsGained) : NO_GAIN
   const showDelta = ctx.race && (ctx.deltaAll || row.isPlayer)
   const leader = o.classTag !== ''
   return {
@@ -192,7 +215,8 @@ function toCarView(
     posWarn: row.status === 'off-track',
     penalty: row.penalty,
     disconnected: row.status === 'disconnected',
-    gained: ctx.race ? formatGained(row.positionsGained) : '',
+    gained: gained.text,
+    gainedIcon: gained.icon,
     gainedTone: signTone(row.positionsGained),
     delta: showDelta ? formatIRatingDelta(row.iRatingDelta) : '',
     deltaTone: showDelta ? deltaTone(row.iRatingDelta) : 'dim',
@@ -207,7 +231,7 @@ function toCarView(
   }
 }
 
-/** 'SoF 2.1k · 12 coches' (either part optional); '' when both are off or unknown. */
+/** 'SoF 2.1k', '12 coches' (either part optional), en-spaced; '' when both are off or unknown. */
 export function classMeta(
   block: Pick<StandingsClassBlock, 'sof' | 'carCount'>,
   showSof: boolean,
@@ -219,7 +243,7 @@ export function classMeta(
   const sof = showSof ? formatIRating(block.sof) : ''
   if (sof !== '') parts.push(t.sof(sof))
   if (showCarCount && block.carCount > 0) parts.push(t.cars(block.carCount))
-  return parts.join(' · ')
+  return parts.join(META_SEP)
 }
 
 /** The class's short name, or 'Clase 30' when the session info gives it none. */

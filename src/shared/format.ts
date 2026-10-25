@@ -6,6 +6,8 @@
  *   (gaps, lap times, SR, distances). Thousands are never grouped; iRating uses 'k'.
  * - A unit is joined to its number with a no-break space ('0.8 s', '12 m', '3 v'),
  *   so it never wraps onto its own line.
+ * - Negative values take the typographic minus (MINUS, U+2212), as wide as '+' in the UI
+ *   faces, so a sign flip never shifts a figure and every widget shows the same sign.
  * - Unknown values are '—' where a cell must show something, '' where the cell
  *   is better left empty (documented per function).
  * - Functions that produce words take the dictionary (`m`, messagesFor(lang)); the examples
@@ -17,6 +19,9 @@ import type { AppearanceSettings, GapValue, NameFormat } from './types'
 const DASH = '—'
 /** No-break space between a number and its unit. */
 export const NBSP = ' '
+
+/** Typographic minus of every signed value: as wide as '+', unlike the short hyphen-minus. */
+export const MINUS = '−'
 
 /** Whole seconds as 'm:ss' (65 -> '1:05'). */
 function mss(totalSeconds: number): string {
@@ -35,7 +40,7 @@ export function signAt(v: number | null, decimals: number): 1 | 0 | -1 | null {
 
 /**
  * Gap to the player, irDashies convention: car ahead positive shown without
- * '+', behind with '-'. One decimal below a minute, 'm:ss' from 60 s on.
+ * '+', behind with '−'. One decimal below a minute, 'm:ss' from 60 s on.
  * Rounds before choosing the sign, so -0.04 is '0.0' and 59.96 is '1:00'.
  */
 export function formatGap(gapS: number | null): string {
@@ -43,7 +48,7 @@ export function formatGap(gapS: number | null): string {
   const abs = Math.abs(gapS)
   const tenths = Math.round(abs * 10)
   if (tenths === 0) return '0.0'
-  const sign = gapS < 0 ? '-' : ''
+  const sign = gapS < 0 ? MINUS : ''
   if (tenths < 600) return sign + (tenths / 10).toFixed(1)
   return sign + mss(Math.round(abs))
 }
@@ -113,7 +118,7 @@ export function formatGapValue(gap: GapValue | null): string {
   const s = gap.seconds
   if (!Number.isFinite(s)) return ''
   const tenths = Math.round(Math.abs(s) * 10)
-  const sign = s < 0 ? '-' : '+'
+  const sign = s < 0 ? MINUS : '+'
   if (tenths < 600) return sign + (tenths / 10).toFixed(1)
   return sign + mss(Math.round(Math.abs(s)))
 }
@@ -122,34 +127,36 @@ export function formatGapValue(gap: GapValue | null): string {
 export function formatBestLapGap(seconds: number): string {
   if (!Number.isFinite(seconds)) return ''
   const ms = Math.round(Math.abs(seconds) * 1000)
-  const sign = seconds < 0 ? '-' : '+'
+  const sign = seconds < 0 ? MINUS : '+'
   if (ms < 60_000) return sign + (ms / 1000).toFixed(3)
   const m = Math.floor(ms / 60_000)
   return `${sign}${m}:${((ms % 60_000) / 1000).toFixed(3).padStart(6, '0')}`
 }
 
-/** Trend in s/lap with explicit sign and two decimals ('+0.18', '-0.05'); '—' when unknown. */
+/** Trend in s/lap with explicit sign and two decimals ('+0.18', '−0.05'); '—' when unknown. */
 export function formatTrend(sPerLap: number | null): string {
   const sign = signAt(sPerLap, 2)
   if (sign === null || sPerLap === null) return DASH
   if (sign === 0) return '0.00'
-  return (sign > 0 ? '+' : '-') + (Math.abs(Math.round(sPerLap * 100)) / 100).toFixed(2)
+  return (sign > 0 ? '+' : MINUS) + (Math.abs(Math.round(sPerLap * 100)) / 100).toFixed(2)
 }
 
-/** Signed iRating change ('+23', '-7', '0'); '' when null. */
+/** Signed iRating change ('+23', '−7', '0'); '' when null. */
 export function formatIRatingDelta(delta: number | null): string {
   if (delta === null || !Number.isFinite(delta)) return ''
   const r = Math.round(delta)
-  return r > 0 ? `+${r}` : String(r)
+  if (r > 0) return `+${r}`
+  return r < 0 ? `${MINUS}${-r}` : '0'
 }
 
-/** Positions gained since the start: '▲4', '▼2', '·' for none; '' when unknown. */
+/**
+ * Positions gained or lost since the start, as the count alone ('4'): the widget draws the
+ * direction as a triangle beside it. '' for none (rounds to 0) or unknown: no placeholder glyph.
+ */
 export function formatGained(n: number | null): string {
   const sign = signAt(n, 0)
-  if (sign === null || n === null) return ''
-  if (sign === 0) return '·'
-  const r = Math.abs(Math.round(n))
-  return sign > 0 ? `▲${r}` : `▼${r}`
+  if (sign === null || sign === 0 || n === null) return ''
+  return String(Math.abs(Math.round(n)))
 }
 
 /** Safety rating with two decimals ('3.27'); '—' when unknown. */
@@ -173,8 +180,8 @@ export function formatClock(seconds: number | null): string {
 }
 
 /**
- * What is left of the session: '38:19 · ≈19 v' (timed, with the estimated
- * laps), '38:19', 'Quedan 12 v' / 'Queda 1 v'; '' when unknown.
+ * What is left of the session: '38:19  ≈19 v' (timed, with the estimated laps after an en
+ * space), '38:19', 'Quedan 12 v' / 'Queda 1 v'; '' when unknown.
  */
 export function formatRemaining(
   lapsRemaining: number | null,

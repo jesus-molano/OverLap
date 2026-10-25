@@ -58,14 +58,15 @@ describe('toHeaderView', () => {
     expect(h).toMatchObject({
       title: 'CARRERA',
       meta: '',
-      remaining: '38:19 · ≈19 v',
+      remaining: '38:19\u2002≈19 v',
       finished: false,
       lines: 2,
       hasIr: true,
       irValue: '+13',
       irTone: 'good',
       irArrow: 'arrow-up',
-      irSwing: 'P4 +31 · P6 -5',
+      irSwingUp: 'P4 +31',
+      irSwingDown: 'P6 \u22125',
       irNeutral: 'neutro P6',
       hasSr: true,
       srFrom: '3.27',
@@ -78,12 +79,16 @@ describe('toHeaderView', () => {
     })
   })
 
+  it('is flat, so an unchanged header keeps its object (shallow reuse)', () => {
+    for (const v of Object.values(toHeaderView(input()))) expect(typeof v).not.toBe('object')
+  })
+
   it('falls back to the iRating per position without your row', () => {
     const h = toHeaderView(input({ classes: [block([1, 2, 3])] }))
-    expect(h.irSwing).toBe('±17/pos')
+    expect(h).toMatchObject({ irSwingUp: '±17/pos', irSwingDown: '' })
     const p1 = toHeaderView(input({ classes: [block([1, 2], {}, 1)] }))
     // P1 cannot gain a place: only the one behind.
-    expect(p1.irSwing).toBe('P2 -5')
+    expect(p1).toMatchObject({ irSwingUp: '', irSwingDown: 'P2 −5' })
   })
 
   it('shows the licence letters when the projection changes class', () => {
@@ -114,7 +119,7 @@ describe('toHeaderView', () => {
 
   it('names the single class next to the title instead of a class line', () => {
     const h = toHeaderView(input({ classes: [block([1, 2], { sof: 2050, carCount: 18 }, 1)] }))
-    expect(h.meta).toBe('SoF 2.1k · 18 coches')
+    expect(h.meta).toBe('SoF 2.1k\u200218 coches')
     expect(
       toHeaderView(input({ classes: [block([1], {}, 1)], showSof: false, showCarCount: false }))
         .meta
@@ -147,7 +152,7 @@ describe('toHeaderView', () => {
     expect(h).toMatchObject({
       title: 'CLASIF.',
       hasIr: false,
-      best: 'Mejor 2:07.579 · #29',
+      best: 'Mejor 2:07.579\u2002#29',
       lines: 2
     })
     expect(
@@ -189,7 +194,7 @@ describe('toHeaderView', () => {
       input({ m: EN, title: widgetCaption(EN, 'standings', LOCALES.en), ...over })
     expect(toHeaderView(en())).toMatchObject({
       title: 'RACE',
-      remaining: '38:19 · ≈19 L',
+      remaining: '38:19\u2002≈19 L',
       irNeutral: 'break-even P6',
       srIncidents: '1x',
       srBudget: 'margin 4x'
@@ -197,7 +202,7 @@ describe('toHeaderView', () => {
     expect(toHeaderView(en({ header: null, classes: null })).title).toBe('STANDINGS')
     expect(
       toHeaderView(en({ classes: [block([1, 2], { sof: 2050, carCount: 18 }, 1)] })).meta
-    ).toBe('SoF 2.1k · 18 cars')
+    ).toBe('SoF 2.1k\u200218 cars')
     const rows = [
       makeRow({ classPosition: 1, carNumber: '29', bestLap: 127.579 }),
       makeRow({ classPosition: 2, isPlayer: true, bestLap: 128 })
@@ -209,8 +214,8 @@ describe('toHeaderView', () => {
         race: false
       })
     )
-    expect(quali).toMatchObject({ title: 'QUALIFY', best: 'Best 2:07.579 · #29' })
-    expect(toHeaderView(en({ classes: [block([1, 2, 3])] })).irSwing).toBe('±17/pos')
+    expect(quali).toMatchObject({ title: 'QUALIFY', best: 'Best 2:07.579\u2002#29' })
+    expect(toHeaderView(en({ classes: [block([1, 2, 3])] })).irSwingUp).toBe('±17/pos')
   })
 })
 

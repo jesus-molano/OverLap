@@ -10,6 +10,7 @@ import {
   fromPercent,
   hexDigits,
   parseIntInRange,
+  rangeFill,
   snapToStep,
   stepValues,
   toPercent
@@ -88,6 +89,28 @@ describe('step snapping', () => {
     expect(stepValues(0, 1000, 1)).toHaveLength(50)
     expect(stepValues(3, 1, 1)).toEqual([])
     expect(stepValues(0, 1, 0)).toEqual([])
+  })
+})
+
+describe('rangeFill', () => {
+  it('places the value on the track as a CSS percentage', () => {
+    expect(rangeFill(50, 0, 100)).toBe('50%')
+    expect(rangeFill(0, 0, 100)).toBe('0%')
+    expect(rangeFill(100, 0, 100)).toBe('100%')
+    expect(rangeFill(80, 50, 150)).toBe('30%')
+    expect(rangeFill(1, 0, 3)).toBe('33.33%')
+  })
+
+  it('clamps values outside the range', () => {
+    expect(rangeFill(-5, 0, 100)).toBe('0%')
+    expect(rangeFill(130, 0, 100)).toBe('100%')
+  })
+
+  it('draws an empty track for degenerate input', () => {
+    expect(rangeFill(5, 5, 5)).toBe('0%')
+    expect(rangeFill(5, 10, 0)).toBe('0%')
+    expect(rangeFill(Number.NaN, 0, 100)).toBe('0%')
+    expect(rangeFill(50, Number.NaN, 100)).toBe('0%')
   })
 })
 

@@ -8,8 +8,12 @@ import { hexOr } from '@renderer/view/color'
 import type { InlineStyle } from '@renderer/view/styles'
 import type { TraceColors } from './trace'
 
-/** Brake while ABS is active (not user-set): orange, brighter than any brake preset. */
-export const ABS_COLOR = '#ffae2b'
+/**
+ * Brake while ABS is active (not user-set): theme.css --ov-abs, an orange away from the yellow
+ * accent and brighter than any brake preset. It equals the default warn but does not follow it
+ * into the colour-blind palette.
+ */
+export const ABS_COLOR = '#ff9e40'
 /** RGB of the panel (theme.css --ov-bg) that the trace's clutch is mixed towards. */
 const PANEL_RGB = '#0c0e12'
 /** How far the trace's clutch moves towards the panel: opaque, but behind the pedals. */

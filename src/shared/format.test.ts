@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  MINUS,
   NBSP,
   formatBestLapGap,
   formatClassPosition,
@@ -26,32 +27,34 @@ import {
 import { messagesFor } from './i18n'
 import type { NameFormat } from './types'
 
+/** The typographic minus every signed value takes. */
+const M = MINUS
 const ES = messagesFor('es')
 const EN = messagesFor('en')
 
 describe('formatGap', () => {
-  it('shows cars ahead without sign and cars behind with "-"', () => {
+  it('shows cars ahead without sign and cars behind with a minus', () => {
     expect(formatGap(1.2)).toBe('1.2')
-    expect(formatGap(-0.8)).toBe('-0.8')
+    expect(formatGap(-0.8)).toBe(`${M}0.8`)
     expect(formatGap(12.345)).toBe('12.3')
-    expect(formatGap(-12.36)).toBe('-12.4')
+    expect(formatGap(-12.36)).toBe(`${M}12.4`)
   })
 
-  it('shows zero as "0.0" and never "-0.0"', () => {
+  it('shows zero as "0.0", never a signed zero', () => {
     expect(formatGap(0)).toBe('0.0')
     expect(formatGap(-0)).toBe('0.0')
     expect(formatGap(0.04)).toBe('0.0')
     expect(formatGap(-0.04)).toBe('0.0')
-    expect(formatGap(-0.05)).toBe('-0.1')
+    expect(formatGap(-0.05)).toBe(`${M}0.1`)
   })
 
   it('switches to m:ss from one minute, rounding first', () => {
     expect(formatGap(59.94)).toBe('59.9')
     expect(formatGap(59.96)).toBe('1:00')
-    expect(formatGap(-59.96)).toBe('-1:00')
+    expect(formatGap(-59.96)).toBe(`${M}1:00`)
     expect(formatGap(60)).toBe('1:00')
     expect(formatGap(65.4)).toBe('1:05')
-    expect(formatGap(-65)).toBe('-1:05')
+    expect(formatGap(-65)).toBe(`${M}1:05`)
     expect(formatGap(119.6)).toBe('2:00')
     expect(formatGap(754)).toBe('12:34')
   })
@@ -163,12 +166,31 @@ describe('v2 formatters', () => {
   })
   it('formats trends and iRating deltas', () => {
     expect(formatTrend(0.184)).toBe('+0.18')
-    expect(formatTrend(-0.051)).toBe('-0.05')
+    expect(formatTrend(-0.051)).toBe(`${M}0.05`)
     expect(formatTrend(0.001)).toBe('0.00')
     expect(formatTrend(null)).toBe('—')
     expect(formatIRatingDelta(23.4)).toBe('+23')
-    expect(formatIRatingDelta(-6.6)).toBe('-7')
+    expect(formatIRatingDelta(-6.6)).toBe(`${M}7`)
     expect(formatIRatingDelta(null)).toBe('')
+  })
+  it('signs every negative with the typographic minus (as wide as +), never a hyphen', () => {
+    expect(MINUS).toBe('−')
+    expect(formatGapValue({ kind: 'time', seconds: -0.44 })).toBe(`${M}0.4`)
+    // Zero has no sign, whichever side it rounds from.
+    expect(formatIRatingDelta(-0.4)).toBe('0')
+    expect(formatIRatingDelta(0)).toBe('0')
+    const negatives = [
+      formatGap(-3),
+      formatGap(-75),
+      formatGapValue({ kind: 'time', seconds: -75 }),
+      formatBestLapGap(-75),
+      formatTrend(-3),
+      formatIRatingDelta(-3)
+    ]
+    for (const s of negatives) {
+      expect(s.startsWith(M)).toBe(true)
+      expect(s).not.toContain('-')
+    }
   })
 })
 
@@ -186,11 +208,12 @@ describe('signAt', () => {
 })
 
 describe('moved renderer formatters', () => {
-  it('formats positions gained', () => {
-    expect(formatGained(4)).toBe('▲4')
-    expect(formatGained(-2.4)).toBe('▼2')
-    expect(formatGained(0)).toBe('·')
-    expect(formatGained(0.4)).toBe('·')
+  it('formats positions gained or lost as the count alone, nothing for none', () => {
+    expect(formatGained(4)).toBe('4')
+    expect(formatGained(-2.4)).toBe('2')
+    expect(formatGained(0)).toBe('')
+    expect(formatGained(0.4)).toBe('')
+    expect(formatGained(-0.4)).toBe('')
     expect(formatGained(null)).toBe('')
     expect(formatGained(Number.NaN)).toBe('')
   })
@@ -212,7 +235,8 @@ describe('moved renderer formatters', () => {
   })
 
   it('formats what is left of the session', () => {
-    expect(formatRemaining(18.6, 2299, ES)).toBe(`38:19 · ≈19${NBSP}v`)
+    // The estimate after an en space, no separator glyph.
+    expect(formatRemaining(18.6, 2299, ES)).toBe(`38:19\u2002≈19${NBSP}v`)
     expect(formatRemaining(null, 2299, ES)).toBe('38:19')
     expect(formatRemaining(12, null, ES)).toBe(`Quedan 12${NBSP}v`)
     expect(formatRemaining(1, null, ES)).toBe(`Queda 1${NBSP}v`)
@@ -221,7 +245,7 @@ describe('moved renderer formatters', () => {
   })
 
   it('says what is left in English', () => {
-    expect(formatRemaining(18.6, 2299, EN)).toBe(`38:19 · ≈19${NBSP}L`)
+    expect(formatRemaining(18.6, 2299, EN)).toBe(`38:19\u2002≈19${NBSP}L`)
     expect(formatRemaining(12, null, EN)).toBe(`12${NBSP}laps left`)
     expect(formatRemaining(1, null, EN)).toBe(`1${NBSP}lap left`)
     expect(formatLaps(5.6, EN)).toBe(`~6${NBSP}L`)
@@ -232,7 +256,7 @@ describe('moved renderer formatters', () => {
     expect(formatBestLapGap(0)).toBe('+0.000')
     expect(formatBestLapGap(0.4126)).toBe('+0.413')
     expect(formatBestLapGap(62.345)).toBe('+1:02.345')
-    expect(formatBestLapGap(-0.2)).toBe('-0.200')
+    expect(formatBestLapGap(-0.2)).toBe(`${M}0.200`)
     expect(formatBestLapGap(Number.NaN)).toBe('')
   })
 

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import type { InlineStyle } from '../../view/styles'
 import { useDraft } from '../useDraft'
-import { snapToStep } from '../values'
+import { rangeFill, snapToStep } from '../values'
 
 const props = withDefaults(
   defineProps<{
@@ -30,6 +31,10 @@ const { value, input, commit } = useDraft(
   (v) => props.apply(v)
 )
 const text = computed(() => props.format(value.value))
+/** The drawn track is filled in ink up to the knob (settings.css reads --pct). */
+const fillStyle = computed<InlineStyle>(() => ({
+  '--pct': rangeFill(value.value, props.min, props.max)
+}))
 const t = useI18n()
 const presetsLabel = computed(() => t.value.settings.controls.presetsLabel(props.label))
 
@@ -60,6 +65,7 @@ function onChange(e: Event): void {
       :id="id"
       type="range"
       class="st-range"
+      :style="fillStyle"
       :min="min"
       :max="max"
       :step="step"

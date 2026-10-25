@@ -28,9 +28,12 @@ export function groupCaption(group: TrafficKind, m: Messages): string {
   return m.widgets.traffic[group]
 }
 
+/** A hazard is never calm: at least a warning. */
+export type HazardTone = 'bad' | 'warn'
+
 interface HazardBadge {
   readonly text: string
-  readonly tone: Tone
+  readonly tone: HazardTone
 }
 
 interface HazardBadges {
@@ -80,10 +83,11 @@ export interface RowSlotView {
   readonly group: TrafficKind
   /** Class attribute of the line: group, stripe and urgency classes. */
   readonly css: string
+  /** By the ETA; a hazard line's is its one tone (hazardTone), never calmer than a warning. */
   readonly urgency: Urgency
   /** `--cls` / `--cls-fg` of the car's class (one shared object per colour). */
   readonly clsStyle: InlineStyle
-  /** Class chip text ('GT3' from 'GT3 Class'), '' when unknown. */
+  /** Class name shown before the car ('GT3' from 'GT3 Class'), '' when unknown. */
   readonly cls: string
   /** Car number, '' when unknown. */
   readonly number: string
@@ -95,6 +99,7 @@ export interface RowSlotView {
   readonly lapBadge: string
   /** Hazard badge ('Parado'), '' for traffic. */
   readonly hazard: string
+  /** The badge's fill: the line's tone (the same as its rail, icon and number). */
   readonly hazardTone: Tone
   /** Words before the number ('te alcanza en', 'le alcanzas en', 'a'); hidden when narrow. */
   readonly lead: string
@@ -118,6 +123,15 @@ export function urgency(etaS: number | null): Urgency {
 }
 
 /**
+ * The one tone of a hazard line (rail, icon, number and tag alike): the worse of how soon you
+ * reach it and what it is. A stopped car is red even far away; anything under URGENT_S is red
+ * whatever it is; an off-track car with no ETA still gets its warning rail.
+ */
+export function hazardTone(u: Urgency, kind: HazardTone): HazardTone {
+  return u === 'bad' || kind === 'bad' ? 'bad' : 'warn'
+}
+
+/**
  * An ETA in whole seconds, rounded down (it never reads later than it is, and '2 s' is always
  * under 3 s, so the number and its colour agree): '<1 s', '6 s', from a minute on '2 min'.
  */
@@ -137,14 +151,14 @@ export function gapParts(gapS: number): ValueParts {
   return { num: String(Math.max(1, Math.round(s / 60))), unit: 'min' }
 }
 
-/** Class chip text: the short name without a trailing 'Class' ('GT3 Class' -> 'GT3'). */
+/** Class name of a line: the short name without a trailing 'Class' ('GT3 Class' -> 'GT3'). */
 export function classLabel(name: string): string {
   const t = name.trim()
   const short = t.replace(/\s+class$/i, '')
   return short === '' ? t : short
 }
 
-/** 'S2' for a 1-based sector (common.sector, like the battle and delta chips), '' when unknown. */
+/** 'S2' for a 1-based sector (common.sector, like the battle and delta cells), '' when unknown. */
 export function sectorLabel(sector: number | null, m: Messages): string {
   return finite(sector) && sector >= 1 ? m.widgets.common.sector(Math.round(sector)) : ''
 }
@@ -163,7 +177,9 @@ export function toRowSlot(
   const badges = hazardBadges(m)
   const hazard =
     group !== 'hazard' ? null : e.hazard === null ? badges.unknown : badges.kinds[e.hazard]
-  const u = urgency(e.etaS)
+  // A hazard line has one tone, its tag's included (never a red tag on an orange rail).
+  const tone = hazard === null ? null : hazardTone(urgency(e.etaS), hazard.tone)
+  const u = tone ?? urgency(e.etaS)
   // A hazard reads 'a 3.2 s' (how far); traffic reads when you meet, or how far while not closing.
   const eta = hazard === null && finite(e.etaS) ? e.etaS : null
   const value = eta !== null ? etaParts(eta) : gapParts(finite(e.gapS) ? e.gapS : 0)
@@ -183,7 +199,7 @@ export function toRowSlot(
     lap,
     lapBadge: lap === 'ahead' ? t.lapping : lap === 'behind' ? t.lapped : '',
     hazard: hazard?.text ?? '',
-    hazardTone: hazard?.tone ?? 'neutral',
+    hazardTone: tone ?? 'neutral',
     lead: eta === null ? t.at : group === 'faster' ? t.reachesYou : t.youReach,
     num: value.num,
     unit: value.unit,
@@ -263,7 +279,7 @@ export function layoutKey(slots: readonly TrafficSlotView[]): string {
   return key
 }
 
-/** Whether any line shows a sector chip (otherwise the column is dropped). */
+/** Whether any line shows a sector (otherwise the column is dropped). */
 export function hasSectors(slots: readonly TrafficSlotView[]): boolean {
   return slots.some((s) => s.kind === 'row' && s.sector !== '')
 }

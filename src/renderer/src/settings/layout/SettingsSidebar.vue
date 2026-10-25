@@ -112,8 +112,9 @@ function openSettingsFolder(): void {
 }
 
 .title {
+  font-family: var(--ov-font-num);
   font-size: 18px;
-  font-weight: 650;
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
   letter-spacing: 0.005em;
 }
@@ -127,9 +128,10 @@ function openSettingsFolder(): void {
 .nav-group {
   margin: 12px 8px 4px;
   color: var(--ov-fg-dim);
+  font-family: var(--ov-font-small);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
 }
 
@@ -158,7 +160,7 @@ function openSettingsFolder(): void {
   min-height: 34px;
   padding: 6px 10px;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-muted);
   font-size: 13.5px;
@@ -174,15 +176,16 @@ function openSettingsFolder(): void {
 .nav-item[aria-current='page'] {
   background: var(--st-surface-hi);
   color: var(--ov-fg);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
+/* The current page: a square rail in ink (a rail means state, as in the widgets). */
 .nav-item[aria-current='page']::before {
   content: '';
   position: absolute;
   inset: 8px auto 8px 0;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
+  width: var(--ov-bar-w);
+  border-radius: 0;
   background: var(--st-sel);
 }
 

@@ -250,7 +250,7 @@ watch(
 
       <div v-if="showGearSpeed || showSteering" class="info">
         <template v-if="showGearSpeed">
-          <span ref="gear" class="gear" />
+          <span ref="gear" class="gear ov-t-hero" />
           <span class="speed">
             <span ref="speed" class="speed-num" />
             <span class="unit">{{ unitLabel }}</span>
@@ -298,27 +298,35 @@ watch(
 
 /* ---- Trace ---------------------------------------------------------------- */
 
+/* A recessed well, like every gauge of the set: its top edge in a 1 px inner shade (0 blur). */
 .plot {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
   contain: strict;
-  border-radius: calc(var(--ov-radius) / 2);
-  background: rgba(0, 0, 0, calc(0.2 * var(--ov-bg-alpha)));
+  border-radius: var(--ov-radius-inner);
+  background: var(--ov-well);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
-/* 0 %, 50 % and 100 % guides at the trace's own inset (TRACE_PAD_CSS): static, never repainted. */
+/*
+ * Graduations at the trace's own inset (TRACE_PAD_CSS): 0 and 100 %, the quarters, and a
+ * brighter 50 % line, the scale the pedal tracks share. Static, never repainted.
+ */
 .grid {
-  --line: rgba(255, 255, 255, calc(0.11 * var(--ov-bg-alpha)));
   position: absolute;
   inset: 3px 0;
   background: linear-gradient(
     to bottom,
-    var(--line) 0 1px,
-    transparent 1px calc(50% - 0.5px),
-    var(--line) calc(50% - 0.5px) calc(50% + 0.5px),
-    transparent calc(50% + 0.5px) calc(100% - 1px),
-    var(--line) calc(100% - 1px)
+    var(--ov-tick) 0 1px,
+    transparent 1px calc(25% - 0.5px),
+    var(--ov-tick) calc(25% - 0.5px) calc(25% + 0.5px),
+    transparent calc(25% + 0.5px) calc(50% - 0.5px),
+    var(--ov-tick-major) calc(50% - 0.5px) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px) calc(75% - 0.5px),
+    var(--ov-tick) calc(75% - 0.5px) calc(75% + 0.5px),
+    transparent calc(75% + 0.5px) calc(100% - 1px),
+    var(--ov-tick) calc(100% - 1px)
   );
 }
 
@@ -360,27 +368,41 @@ watch(
   width: 100%;
   height: 1.4em;
   contain: strict;
-  font-size: max(var(--ov-min-text), 0.8em);
-  font-weight: 600;
+  font-size: var(--ov-t-plate);
+  font-weight: var(--ov-w-strong);
   line-height: 1.4;
   text-align: center;
+  color: var(--ov-fg-muted);
 }
 
+/* A recessed well graduated in quarters (brighter at half travel); the fill paints over it. */
 .track {
   position: relative;
   flex: 1 1 auto;
-  width: 1.2em;
+  width: 1em;
   min-height: 0;
   contain: strict;
-  border-radius: 0.2em;
-  background: var(--ov-chip);
+  border-radius: 1px;
+  background:
+    linear-gradient(
+      to top,
+      transparent calc(25% - 0.5px),
+      var(--ov-tick) calc(25% - 0.5px) calc(25% + 0.5px),
+      transparent calc(25% + 0.5px) calc(50% - 0.5px),
+      var(--ov-tick-major) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px) calc(75% - 0.5px),
+      var(--ov-tick) calc(75% - 0.5px) calc(75% + 0.5px),
+      transparent calc(75% + 0.5px)
+    ),
+    var(--ov-well);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 /* Own compositor layer: a new value is a transform change, no layout and no repaint. */
 .fill {
   position: absolute;
   inset: 0;
-  border-radius: 0.2em;
+  border-radius: 1px;
   background: var(--bar);
   transform: scaleY(0);
   transform-origin: bottom;
@@ -404,16 +426,18 @@ watch(
   --bar: var(--ov-abs);
 }
 
+/* The legend: each pedal's letter in its colour. */
 .key {
   position: relative;
   flex: none;
   width: 100%;
   height: 1.5em;
   contain: strict;
-  font-size: max(var(--ov-min-text), 0.7em);
-  font-weight: 700;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-tag);
+  font-weight: var(--ov-w-strong);
   line-height: 1.5;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ov-track-tag);
   text-align: center;
   color: var(--bar);
 }
@@ -424,10 +448,12 @@ watch(
   inset: 0;
 }
 
+/* ABS: a solid plate (act now), the only one in the widget. */
 .key-abs {
   border-radius: var(--ov-radius-chip);
   background: var(--ov-abs);
   color: var(--ov-on-solid);
+  font-weight: var(--ov-w-solid);
   text-shadow: none;
   opacity: 0;
 }
@@ -453,13 +479,12 @@ watch(
   min-height: 0;
 }
 
+/* Hero numeral (.ov-t-hero: face, weight, tracking), larger than the other heroes. */
 .gear {
   width: 100%;
   height: 1.05em;
   contain: strict;
-  font-family: var(--ov-font-num);
   font-size: 2.6em;
-  font-weight: 700;
   line-height: 1.05;
   text-align: center;
 }
@@ -483,20 +508,23 @@ watch(
   width: 100%;
   height: 1.2em;
   contain: strict;
-  font-size: 1.1em;
-  font-weight: 600;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-lead);
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
   text-align: center;
 }
 
 .unit {
+  font-family: var(--ov-font-small);
   font-size: max(var(--ov-min-text), 0.62em);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
-  color: var(--ov-fg-muted);
+  color: var(--ov-fg-dim);
 }
 
+/* Steering: a recessed well with a graduated centre. */
 .steer {
   position: relative;
   flex: none;
@@ -505,8 +533,9 @@ watch(
   margin-top: 0.15em;
   overflow: hidden;
   contain: strict;
-  border-radius: 0.225em;
-  background: var(--ov-chip);
+  border-radius: 1px;
+  background: var(--ov-well);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 /* Centre mark. */
@@ -517,7 +546,7 @@ watch(
   bottom: 0;
   left: calc(50% - 0.5px);
   width: 1px;
-  background: var(--ov-fg-muted);
+  background: var(--ov-tick-major);
 }
 
 /* Grows from the centre towards the turn: scaleX(-1) full left, scaleX(1) full right. */

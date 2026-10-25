@@ -157,7 +157,7 @@ describe('flag views', () => {
     expect(Object.isFrozen(FLAG_VIEWS.blue)).toBe(true)
     expect(flagViews(ES).blue).toBe(FLAG_VIEWS.blue)
     expect(flagViews(EN).blue).not.toBe(FLAG_VIEWS.blue)
-    // A new language is a new pill, even for the same flags.
+    // A new language is a new band, even for the same flags.
     const es = toFlagsView(['blue'], SHOW_ALL, ES)
     expect(toFlagsView(['blue'], SHOW_ALL, EN, es)).not.toBe(es)
   })
@@ -178,7 +178,7 @@ describe('shownFlags', () => {
 })
 
 describe('toFlagsView', () => {
-  it('puts the most important flag in the pill and the next ones in chips', () => {
+  it('puts the most important flag in the band and the next ones in chips', () => {
     const v = toFlagsView(['white', 'black', 'yellow'], SHOW_ALL, ES)
     expect(v.primary).toBe(FLAG_VIEWS.black)
     expect(v.secondary).toEqual([FLAG_VIEWS.yellow, FLAG_VIEWS.white])
@@ -311,7 +311,7 @@ describe('limiter size and layout', () => {
   const two = toFlagsView(['blue', 'white'], SHOW_ALL, ES)
   const none = toFlagsView([], SHOW_ALL, ES)
 
-  it('draws the limiter as large as the pill alone or as an alarm', () => {
+  it('draws the limiter as large as the flag band alone or as an alarm', () => {
     expect(limiterHero(none, on)).toBe(true)
     expect(limiterHero(yellow, on)).toBe(false)
     expect(limiterHero(yellow, off)).toBe(true)
@@ -335,7 +335,7 @@ describe('limiter size and layout', () => {
 })
 
 describe('preview', () => {
-  it('fills the pill, the chips and the limiter line', () => {
+  it('fills the flag band, the chips and the limiter line', () => {
     const flags = toFlagsView(PREVIEW_ALERTS.flags, SHOW_ALL, ES)
     expect(flags.primary?.kind).toBe('yellow')
     expect(flags.secondary.map((f) => f.kind)).toEqual(['blue', 'white'])

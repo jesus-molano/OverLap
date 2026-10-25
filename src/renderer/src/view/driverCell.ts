@@ -22,9 +22,9 @@ export interface DriverCellView {
   iRating: string
   /** 'A 4.9', '' when unknown. */
   lic: string
-  /** `--lic` / `--lic-fg` / `--lic-soft`, shared per colour. */
+  /** `--lic` / `--lic-fg` / `--lic-soft` / `--lic-ink`, shared per colour. */
   licStyle: InlineStyle
-  /** `--cls` / `--cls-fg`, shared per colour. */
+  /** `--cls` / `--cls-fg` / `--cls-ink`, shared per colour. */
   clsStyle: InlineStyle
 }
 

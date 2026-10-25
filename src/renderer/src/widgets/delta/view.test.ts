@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import type { DeltaData, DeltaReference } from '@shared/types'
 import {
   BAR_STEPS,
-  MINUS,
   TREND_OFF,
   TREND_ON,
   barOverflow,

@@ -52,14 +52,16 @@ watch(
   { immediate: true }
 )
 
-/** '460 × auto · 100 %' (auto-height widgets) or '460 × 252' (free widgets). */
+/** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets). */
 const sizeText = computed(() => {
   const { w, h } = size.value
-  const frame = t.value.core.editFrame
-  const dims = `${w} × ${autoHeight.value ? frame.autoHeight : h}`
-  if (def.value.sizeModel !== 'auto-height') return dims
-  return `${dims} · ${t.value.core.percent(widget.value?.scale ?? 100)}`
+  return `${w} × ${autoHeight.value ? t.value.core.editFrame.autoHeight : h}`
 })
+
+/** '100 %' (auto-height widgets, scaled by the wheel); null for free widgets. */
+const scaleText = computed(() =>
+  def.value.sizeModel === 'auto-height' ? t.value.core.percent(widget.value?.scale ?? 100) : null
+)
 
 // ---- Mouse wheel: bigger / smaller (main decides between scale and resize) ----
 
@@ -197,7 +199,8 @@ onBeforeUnmount(() => {
       <div class="chip" :class="{ 'chip-locked': locked }">
         <Icon v-if="locked" name="lock" class="lock" />
         <span class="chip-title">{{ title }}</span>
-        <span class="chip-meta">· {{ locked ? t.core.editFrame.locked : sizeText }}</span>
+        <span class="chip-meta">{{ locked ? t.core.editFrame.locked : sizeText }}</span>
+        <span v-if="!locked && scaleText" class="chip-meta chip-scale">{{ scaleText }}</span>
       </div>
       <div v-if="autoHidden.hidden" class="chip chip-note">
         <Icon name="eye-off" class="eye-off" />
@@ -262,21 +265,36 @@ onBeforeUnmount(() => {
   background: var(--ov-edit-backdrop);
 }
 
-/* Border drawn on top, outside the layout: toggling edit mode never reflows the widget. */
+/*
+ * Drawn on top, outside the layout (toggling edit mode never reflows the widget): a 1 px frame
+ * with 12 x 2 px crop marks at the corners. Eight background layers, edit mode only.
+ */
 .frame.editing::after,
 .frame.locked-edit::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 2;
-  border: 2px dashed var(--ov-edit);
-  border-radius: var(--ov-radius);
+  border: 1px solid var(--ov-edit-line);
+  border-radius: 0;
+  background:
+    linear-gradient(var(--ov-edit), var(--ov-edit)) left top / 12px 2px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) left top / 2px 12px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) right top / 12px 2px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) right top / 2px 12px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) left bottom / 12px 2px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) left bottom / 2px 12px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) right bottom / 12px 2px no-repeat,
+    linear-gradient(var(--ov-edit), var(--ov-edit)) right bottom / 2px 12px no-repeat;
+  /* The marks sit on the frame line's outer corner, not 1 px inside it. */
+  background-origin: border-box;
   pointer-events: none;
 }
 
-/* Locked: no backdrop, so it shows as configured; a dim outline marks where it is. */
+/* Locked: no backdrop, so it shows as configured; a dim dashed outline marks where it is. */
 .frame.locked-edit::after {
   border: 1px dashed var(--ov-locked);
+  background: none;
 }
 
 /* Top centre, so the chips cover the header at most, never the rows. */
@@ -296,13 +314,13 @@ onBeforeUnmount(() => {
 .chip {
   display: flex;
   align-items: center;
-  gap: 0.35em;
+  gap: 0.5em;
   max-width: calc(100% - 16px);
   padding: 2px 8px;
   border: 1px solid color-mix(in srgb, var(--ov-edit) 55%, transparent);
-  border-radius: 999px;
-  background: rgba(10, 12, 16, 0.9);
-  font: 600 11px/1.3 var(--ov-font);
+  border-radius: var(--ov-radius-inner);
+  background: rgba(10, 12, 16, 0.92);
+  font: 600 11px/1.3 var(--ov-font-small);
   color: var(--ov-fg);
   white-space: nowrap;
 }
@@ -315,8 +333,16 @@ onBeforeUnmount(() => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
   color: var(--ov-fg-muted);
+}
+
+/* The scale after the size, set off by a hairline rather than a dot. */
+.chip-scale {
+  flex: none;
+  padding-left: 0.5em;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
 }
 
 .chip-locked {
@@ -345,9 +371,9 @@ onBeforeUnmount(() => {
   display: none;
   max-width: calc(100% - 16px);
   padding: 1px 7px;
-  border-radius: 999px;
+  border-radius: var(--ov-radius-inner);
   background: rgba(10, 12, 16, 0.85);
-  font: 500 10.5px/1.3 var(--ov-font);
+  font: 400 11px/1.3 var(--ov-font-small);
   color: var(--ov-fg-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -382,7 +408,7 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ---- Resize handles: ~8 px edges, ~14 px corners ------------------------- */
+/* ---- Resize handles: ~8 px edges, ~14 px corners (the crop marks show them) ---- */
 
 .handle {
   position: absolute;
@@ -436,11 +462,11 @@ onBeforeUnmount(() => {
 .grip {
   position: absolute;
   top: 50%;
-  left: 1px;
-  width: 6px;
-  height: 18px;
-  margin-top: -9px;
-  border-radius: 3px;
+  left: 2px;
+  width: 4px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 2px;
   background: var(--ov-edit);
   opacity: 0.8;
 }
@@ -476,39 +502,5 @@ onBeforeUnmount(() => {
   bottom: 0;
   right: 0;
   cursor: nwse-resize;
-}
-
-/* Corner markers. */
-.handle-ne::after,
-.handle-nw::after,
-.handle-se::after,
-.handle-sw::after {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 2px;
-  background: var(--ov-edit);
-}
-
-.handle-nw::after {
-  top: 3px;
-  left: 3px;
-}
-.handle-ne::after {
-  top: 3px;
-  right: 3px;
-}
-.handle-sw::after {
-  bottom: 3px;
-  left: 3px;
-}
-.handle-se::after {
-  bottom: 3px;
-  right: 3px;
-}
-
-.handle:hover::after {
-  transform: scale(1.5);
 }
 </style>

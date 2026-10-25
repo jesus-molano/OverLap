@@ -27,7 +27,7 @@ const detail = computed(() => (status.value ? statusText(t.value, status.value) 
   gap: 7px;
   padding: 3px 10px;
   border: 1px solid var(--st-border-hi);
-  border-radius: 999px;
+  border-radius: var(--st-radius-sm);
   background: var(--st-surface);
   color: var(--ov-fg);
   font-size: 12px;
@@ -35,11 +35,12 @@ const detail = computed(() => (status.value ? statusText(t.value, status.value) 
   white-space: nowrap;
 }
 
+/* Grey until there is something to say: the accent means you, never a state. */
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ov-accent);
+  background: var(--ov-fg-dim);
 }
 
 .chip-connected .dot {
