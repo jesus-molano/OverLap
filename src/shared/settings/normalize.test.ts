@@ -130,7 +130,16 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
 const DEFAULT_ALERTS: AlertsOptions = {
   showFlags: true,
   showBlue: true,
+  showFurled: true,
   showPitLimiter: true,
+  showPitOverspeed: true,
+  showPitEntry: true,
+  showLapsToGo: true,
+  showTow: true,
+  showWrongWay: true,
+  showStalled: true,
+  showEngineWarnings: true,
+  showEngineTrend: true,
   holdS: 3
 }
 const DEFAULT_SHORTCUTS: ShortcutSettings = {

@@ -213,6 +213,7 @@ const TRAFFIC: TrafficData = { visible: false, faster: [], slower: [], hazards: 
 const ALERTS: AlertsData = {
   visible: false,
   flags: [],
+  notices: [],
   pitLimiter: null,
   speedKmh: 0,
   pitLimitKmh: null

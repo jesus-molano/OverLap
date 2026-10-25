@@ -42,6 +42,11 @@ export interface MockVars {
   EngineWarnings: number[]
   /** The player is on pit road (same as its CarIdxOnPitRoad). */
   OnPitRoad: boolean[]
+  // The player's own lap fraction, tow and engine temperatures (playerAlerts.ts).
+  LapDistPct: number[]
+  PlayerCarTowTime: number[]
+  WaterTemp: number[]
+  OilTemp: number[]
 }
 
 function perCar<T>(value: T): T[] {
@@ -80,7 +85,11 @@ export class MockFrameBuffer {
     Speed: [0],
     BrakeABSactive: [false],
     EngineWarnings: [0],
-    OnPitRoad: [false]
+    OnPitRoad: [false],
+    LapDistPct: [0],
+    PlayerCarTowTime: [0],
+    WaterTemp: [0],
+    OilTemp: [0]
   }
   /** Same object: the assignment fails to compile if TELEMETRY_VARS lists a var the mock lacks. */
   private readonly listed: TelemetryFrame = this.vars
