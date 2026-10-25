@@ -199,4 +199,5 @@ export function mergeWidgetFields(
     }
   }
   target.hideInPits = pickBoolean(raw.hideInPits, target.hideInPits)
+  target.showOnSessionScreen = pickBoolean(raw.showOnSessionScreen, target.showOnSessionScreen)
 }

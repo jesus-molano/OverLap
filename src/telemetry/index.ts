@@ -48,12 +48,13 @@ function isObject(v: unknown): v is Record<string, unknown> {
 
 const SESSION_KINDS = ['practice', 'qualify', 'race'] as const satisfies (keyof ShowInSessions)[]
 
-/** One `{ showIn, hideInPits }` rule per widget, every field a boolean. */
+/** One `{ showIn, hideInPits, showOnSessionScreen }` rule per widget, every field a boolean. */
 function isRules(v: unknown): boolean {
   if (!isObject(v)) return false
   return WIDGET_IDS.every((id) => {
     const rule = v[id]
     if (!isObject(rule) || typeof rule.hideInPits !== 'boolean') return false
+    if (typeof rule.showOnSessionScreen !== 'boolean') return false
     const showIn = rule.showIn
     return isObject(showIn) && SESSION_KINDS.every((k) => typeof showIn[k] === 'boolean')
   })

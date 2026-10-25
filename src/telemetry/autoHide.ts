@@ -1,21 +1,21 @@
 /**
  * The visibility rules of the telemetry config, evaluated on every tick: the global ones
- * (garage screen, hidden iRacing UI, replays) first, then each widget's "Mostrar en" /
- * "Ocultar en boxes". Tracks which widgets they hide and reports only the changes
+ * (garage screen, hidden iRacing UI, session screen, replays) first, then each widget's
+ * "Mostrar en" / "Ocultar en boxes". Tracks which widgets they hide and reports only the changes
  * (allocation-free: the callback is the loop's, made once).
  */
 import {
   currentSessionType,
   isCarInPits,
   resolveFocusCarIdx,
+  resolvePlayerCarIdx,
   ruleHiddenReason,
   sessionKind
 } from '@shared/sessionInfo'
-import type { VisibilityRule } from '@shared/sessionInfo'
-import { isReplayPlaying, screenHiddenReason } from '@shared/simScreen'
+import { screenHiddenReason, type ReplayMode } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type { HiddenReason, SessionMeta, TelemetryConfig, VisibilityOptions } from '@shared/types'
-import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
+import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 
 /** `reason`: the rule hiding the widget (a code, worded by each window), null when shown. */
 export type AutoHideListener = (
@@ -23,6 +23,8 @@ export type AutoHideListener = (
   hidden: boolean,
   reason: HiddenReason | null
 ) => void
+
+type Rule = TelemetryConfig['rules'][WidgetId]
 
 export class AutoHide {
   /** Rule hiding each widget, null while shown. */
@@ -38,26 +40,35 @@ export class AutoHide {
   }
 
   /**
-   * Session type from SessionNum; the pits rule looks at the car the widgets are about (the
-   * one on camera while a replay plays, see resolveFocusCarIdx).
+   * `frame`: what the sim shows now (the screen rules read it). `live`: the frame the widgets'
+   * data comes from, the same one except in a replay of the tape (`mode` 'tape'), where it is
+   * the last live frame: the session type and the pits rule follow it, like the standings kept
+   * on screen. The pits rule looks at the car the widgets are about (the one on camera at a
+   * replay's live point, see resolveFocusCarIdx).
    */
   update(
     config: Pick<TelemetryConfig, 'rules' | 'visibility'>,
     frame: TelemetryFrame,
-    session: SessionMeta
+    session: SessionMeta,
+    mode: ReplayMode,
+    live: TelemetryFrame = frame
   ): void {
     // Main always sends the global rules; missing ones never hide.
     const visibility = config.visibility as VisibilityOptions | undefined
-    const screen = visibility ? screenHiddenReason(visibility, frame) : null
-    const replay = isReplayPlaying(frame)
-    const kind = sessionKind(currentSessionType(frame, session))
-    const inPits = isCarInPits(frame, resolveFocusCarIdx(frame, session))
+    const kind = sessionKind(currentSessionType(live, session))
+    const focus = resolveFocusCarIdx(live, session)
+    const inPits = isCarInPits(live, focus)
+    // The camera on another car at the live point: only the widgets that follow it stay.
+    const otherCar = mode === 'live' && focus !== resolvePlayerCarIdx(live, session)
     for (const id of WIDGET_IDS) {
       // Main always sends a rule per widget; a missing one never hides.
-      const rule = config.rules[id] as VisibilityRule | undefined
-      let reason = screen
-      // Its data is your live car's: over a replay it would show the wrong moment, or car.
-      if (reason === null && replay && !followsCamera(id)) reason = 'replay-player'
+      const rule = config.rules[id] as Rule | undefined
+      let reason = visibility
+        ? screenHiddenReason(visibility, frame, mode, rule?.showOnSessionScreen === true)
+        : null
+      // The tape is not live: only what shows the live race as last seen stays.
+      if (reason === null && mode === 'tape' && !keepsLiveInReplay(id)) reason = 'replay-player'
+      if (reason === null && otherCar && !followsCamera(id)) reason = 'camera-other'
       if (reason === null && rule) reason = ruleHiddenReason(rule, kind, inPits)
       this.set(id, reason)
     }

@@ -20,7 +20,6 @@ import {
   resolvePlayerCarIdx
 } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
-import { isReplayPlaying } from './simScreen'
 import type { TelemetryFrame } from './telemetry'
 import { tyreCompoundOf, tyreModelOf, type TyreModel } from './tyres'
 import type {
@@ -181,8 +180,8 @@ interface RowContext {
   playerIdx: number
   needs: RowNeeds
   /**
-   * The stops and stints are known: false during a replay, whose race model (loop.ts) only saw
-   * the replay, never the stops before it, so its counts would be a false 0 and a full race.
+   * The stops and stints are known. Always now: the loop feeds one race model with live frames
+   * only (the live point of a replay included) and never builds one from the tape (loop.ts).
    */
   pitHistory: boolean
   deltas: ReadonlyMap<number, number> | null
@@ -339,7 +338,8 @@ export class StandingsProvider {
       tyre: columnShown(opts, 'tyre')
     }
     const tyreModel = tyreModelOf(session)
-    const pitHistory = !isReplayPlaying(frame)
+    // IsReplayPlaying is also the live session screen: its stops are live (Q1).
+    const pitHistory = true
     // Only rated races change iRating; the player's own row and the header need the deltas.
     const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'

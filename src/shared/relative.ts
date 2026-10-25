@@ -16,7 +16,6 @@ import {
   resolvePlayerCarIdx
 } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
-import { isReplayPlaying } from './simScreen'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import { tyreCompoundOf, tyreModelOf } from './tyres'
@@ -181,8 +180,8 @@ export function computeRelative(
   const lapsActive = lapRelationsActive(sessionType, frame.SessionState[0] ?? SessionState.Invalid)
   const lapCompletedF = frame.CarIdxLapCompleted[focusIdx] ?? -1
   const tyreModel = tyreModelOf(session)
-  // A replay's race model never saw the stops before it (loop.ts): its stints would be the race.
-  const stints = isReplayPlaying(frame) ? null : race
+  // The live model's (IsReplayPlaying is also the live session screen: loop.ts, Q1).
+  const stints = race
 
   const makeRow = (idx: number, d: DriverEntry): RelativeRow => {
     const isPlayer = idx === focusIdx

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { cameraCarIdx, isGarageVisible, isReplayPlaying, isSimUiHidden } from '@shared/simScreen'
+import {
+  ReplayPoint,
+  cameraCarIdx,
+  isGarageVisible,
+  isReplayPlaying,
+  isSessionScreen,
+  isSimUiHidden,
+  type ReplayMode
+} from '@shared/simScreen'
 import { makeFrame } from '@shared/race/testing/raceSim'
 import type { TelemetryFrame } from '@shared/telemetry'
 import { START_SESSION_TIME_S } from './constants'
@@ -8,7 +16,9 @@ import type { MockScreenRace } from './simulation'
 
 const TL = MOCK_SCREEN_TIMELINE
 const DT = 0.05
-const RUN_S = TL.replay.atS + TL.replay.lengthS + 5
+const TAPE_S = TL.replay.atS + TL.replay.lengthS / 2
+const REPLAY_END_S = TL.replay.atS + TL.replay.lengthS
+const RUN_S = REPLAY_END_S + 5
 
 /** One output tick, reduced to what the tests read (whole frames would take ~30 MB). */
 interface Tick {
@@ -17,17 +27,22 @@ interface Tick {
   same: boolean
   time: number
   replay: boolean
+  /** What ReplayPoint makes of the output. */
+  mode: ReplayMode
   ui: boolean
   garage: boolean
+  sessionScreen: boolean
   cam: number
   /** CarIdxLapDistPct of the battle car ahead in the output, and live at that SessionTime. */
   pct: number
   livePctThen: number
+  livePctNow: number
 }
 
 function run(): { ticks: Tick[]; series: MockSeries } {
   const series = new MockSeries()
   const screen = new MockScreen()
+  const point = new ReplayPoint()
   const battle = series.current.cast.battleAhead
   const livePct = new Map<number, number>()
   const ticks: Tick[] = []
@@ -35,7 +50,8 @@ function run(): { ticks: Tick[]; series: MockSeries } {
   for (let s = 0; s < RUN_S; s += DT) {
     series.step(DT)
     const live = series.frame()
-    livePct.set(key(live.SessionTime[0] ?? NaN), live.CarIdxLapDistPct[battle] ?? NaN)
+    const now = live.CarIdxLapDistPct[battle] ?? NaN
+    livePct.set(key(live.SessionTime[0] ?? NaN), now)
     const out = screen.frame(live, series.current)
     const time = out.SessionTime[0] ?? NaN
     ticks.push({
@@ -43,11 +59,14 @@ function run(): { ticks: Tick[]; series: MockSeries } {
       same: out === live,
       time,
       replay: isReplayPlaying(out),
+      mode: point.update(out, s * 1000),
       ui: isSimUiHidden(out),
       garage: isGarageVisible(out),
+      sessionScreen: isSessionScreen(out),
       cam: cameraCarIdx(out),
       pct: out.CarIdxLapDistPct[battle] ?? NaN,
-      livePctThen: livePct.get(key(time)) ?? NaN
+      livePctThen: livePct.get(key(time)) ?? NaN,
+      livePctNow: now
     })
   }
   return { ticks, series }
@@ -80,12 +99,33 @@ describe('MockScreen', () => {
     expect(ticks.some((t) => t.ui && (t.garage || t.replay))).toBe(false)
   })
 
-  it('plays back what was live rewindS earlier: the clock goes back, then jumps forward', () => {
-    const replay = ticks.filter((t) => t.replay)
-    const [from, to] = span(ticks, (t) => t.replay)
-    expect(from).toBeCloseTo(TL.replay.atS, 1)
-    expect(to).toBeCloseTo(TL.replay.atS + TL.replay.lengthS - DT, 1)
-    for (const t of replay) {
+  it('shows the session screen at the replay’s live point: live frames, the player on camera', () => {
+    const screen = ticks.filter((t) => t.sessionScreen)
+    const [from, to] = span(ticks, (t) => t.sessionScreen)
+    expect(from).toBeCloseTo(TL.sessionScreen[0], 1)
+    expect(to).toBeCloseTo(TL.sessionScreen[1] - DT, 1)
+    for (const t of screen) {
+      expect([t.replay, t.mode, t.cam]).toEqual([true, 'live', series.current.playerCarIdx])
+      expect(t.pct).toBe(t.livePctNow)
+    }
+  })
+
+  it('watches the battle car ahead live for the first half of the replay', () => {
+    const watching = ticks.filter((t) => t.replay && t.s >= TL.replay.atS && t.s < TAPE_S - DT)
+    expect(watching.length).toBeGreaterThan(100)
+    for (const t of watching) {
+      expect([t.mode, t.cam]).toEqual(['live', cast.battleAhead])
+      expect(t.pct).toBe(t.livePctNow)
+    }
+    expect(cast.battleAhead).not.toBe(series.current.playerCarIdx)
+  })
+
+  it('then plays back the tape, rewindS back, on the player: the clock goes back, then jumps', () => {
+    const tape = ticks.filter((t) => t.mode === 'tape')
+    const [from, to] = span(ticks, (t) => t.mode === 'tape')
+    expect(from).toBeCloseTo(TAPE_S, 1)
+    expect(to).toBeCloseTo(REPLAY_END_S - DT, 1)
+    for (const t of tape) {
       // Kept every 0.1 s: up to that much older than the exact moment.
       expect(t.s - TL.replay.rewindS - (t.time - START_SESSION_TIME_S)).toBeGreaterThanOrEqual(
         -1e-6
@@ -93,27 +133,16 @@ describe('MockScreen', () => {
       expect(t.s - TL.replay.rewindS - (t.time - START_SESSION_TIME_S)).toBeLessThan(0.1 + DT)
       // The cars are where they were then.
       expect(t.pct).toBe(t.livePctThen)
+      expect(t.cam).toBe(series.current.playerCarIdx)
     }
-    const i = ticks.findIndex((t) => t.replay)
+    const i = ticks.findIndex((t) => t.mode === 'tape')
     expect((ticks[i]?.time ?? NaN) - (ticks[i - 1]?.time ?? NaN)).toBeLessThan(
       -TL.replay.rewindS + 1
     )
-    const j = ticks.findLastIndex((t) => t.replay)
+    const j = ticks.findLastIndex((t) => t.mode === 'tape')
     expect((ticks[j + 1]?.time ?? NaN) - (ticks[j]?.time ?? NaN)).toBeGreaterThan(
       TL.replay.rewindS - 1
     )
-  })
-
-  it('follows the battle car ahead for the first half, then the player', () => {
-    const replay = ticks.filter((t) => t.replay)
-    const half = TL.replay.atS + TL.replay.lengthS / 2
-    expect(new Set(replay.filter((t) => t.s < half - DT).map((t) => t.cam))).toEqual(
-      new Set([cast.battleAhead])
-    )
-    expect(new Set(replay.filter((t) => t.s > half + DT).map((t) => t.cam))).toEqual(
-      new Set([series.current.playerCarIdx])
-    )
-    expect(cast.battleAhead).not.toBe(series.current.playerCarIdx)
   })
 
   it('is the same on every run', () => {
@@ -133,13 +162,14 @@ describe('MockScreen', () => {
       f.SessionTime[0] = tag
       return screen.frame(f, r)
     }
-    for (let s = 150; s < TL.replay.atS; s += 1) at(0, s, s)
-    expect(at(0, TL.replay.atS + 1, -1).SessionTime[0]).toBe(TL.replay.atS + 1 - TL.replay.rewindS)
-    // A new session: nothing recorded yet, so its replay can only show its own frames.
-    for (let s = 150; s < TL.replay.atS; s += 1) at(1, s, 1000 + s)
-    const replay = at(1, TL.replay.atS + 1, -1)
-    expect(replay.SessionTime[0]).toBe(1000 + TL.replay.atS + 1 - TL.replay.rewindS)
-    expect(isReplayPlaying(replay)).toBe(true)
-    expect(cameraCarIdx(replay)).toBe(5)
+    for (let s = 150; s < TAPE_S; s += 1) at(0, s, s)
+    expect(at(0, TAPE_S + 1, -1).SessionTime[0]).toBe(TAPE_S + 1 - TL.replay.rewindS)
+    // A new session: nothing recorded yet, so its tape can only show its own frames.
+    for (let s = 150; s < TAPE_S; s += 1) at(1, s, 1000 + s)
+    const tape = at(1, TAPE_S + 1, -1)
+    expect(tape.SessionTime[0]).toBe(1000 + TAPE_S + 1 - TL.replay.rewindS)
+    expect(isReplayPlaying(tape)).toBe(true)
+    expect(cameraCarIdx(tape)).toBe(3)
+    expect(tape.ReplayFrameNumEnd[0]).toBeGreaterThan(0)
   })
 })

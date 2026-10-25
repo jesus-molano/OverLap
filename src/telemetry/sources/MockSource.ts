@@ -42,8 +42,8 @@ export interface MockSourceOptions {
 /**
  * Simulated races (OVERLAY_SOURCE=mock): no iRacing, no native addon. Session
  * after session: each new one bumps sessionInfoVersion (new SubSessionID).
- * Each session also hides the sim's UI, opens the garage and plays a short
- * replay once (MockScreen), for the global visibility rules.
+ * Each session also hides the sim's UI, opens the garage, shows the session
+ * screen and plays a short replay once (MockScreen), for the global visibility rules.
  */
 export class MockSource implements TelemetrySource {
   readonly kind = 'mock'

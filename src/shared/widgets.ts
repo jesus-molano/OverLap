@@ -25,11 +25,20 @@ export interface WidgetDef {
     readonly race: boolean
   }
   /**
-   * During a replay it follows the car on camera (its data exists for every car). Absent: it
-   * only has your own car's data (pedals, spotter, flags, the delta...) and hides while a
-   * replay plays, so a new widget is never shown with the wrong car's numbers by default.
+   * At the live point of a replay (the session screen, watching another car live) it follows
+   * the car on camera (its data exists for every car). Absent: it only has your own car's data
+   * (pedals, spotter, flags, the delta...) and hides while the camera is on another car, so a
+   * new widget is never shown with the wrong car's numbers by default.
    */
   readonly followsCamera?: true
+  /**
+   * In a replay of the tape (away from its live point) it stays, with the live race as last
+   * seen: its data is the whole field's, not the moment on camera. Absent: it hides there (the
+   * tape's frames are not live, and no widget rebuilds the race from them).
+   */
+  readonly keepsLiveInReplay?: true
+  /** Shown on iRacing's session screen by default, where the others hide (the results). */
+  readonly defaultOnSessionScreen?: true
 }
 
 /**
@@ -80,7 +89,9 @@ export const WIDGET_DEFS = {
     defaultBackgroundOpacity: 0.78,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
-    followsCamera: true
+    followsCamera: true,
+    keepsLiveInReplay: true,
+    defaultOnSessionScreen: true
   },
   battle: {
     id: 'battle',
@@ -157,8 +168,20 @@ export function isWidgetId(value: unknown): value is WidgetId {
   return typeof value === 'string' && Object.prototype.hasOwnProperty.call(WIDGET_DEFS, value)
 }
 
-/** WidgetDef.followsCamera: shown during a replay, about the car on camera. */
+/** WidgetDef.followsCamera: at a replay's live point, about the car on camera. */
 export function followsCamera(id: WidgetId): boolean {
   const def: WidgetDef = WIDGET_DEFS[id]
   return def.followsCamera === true
+}
+
+/** WidgetDef.keepsLiveInReplay: shown during a replay of the tape, with the live race. */
+export function keepsLiveInReplay(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.keepsLiveInReplay === true
+}
+
+/** WidgetDef.defaultOnSessionScreen: WidgetSettings.showOnSessionScreen by default. */
+export function shownOnSessionScreen(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.defaultOnSessionScreen === true
 }

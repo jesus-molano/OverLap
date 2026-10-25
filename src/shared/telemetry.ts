@@ -101,13 +101,20 @@ export const TELEMETRY_VARS = {
 
   // --- What the sim's screen shows (simScreen.ts): hide with its UI, follow replays ---
   /**
-   * A replay is playing: the per-car arrays and SessionTime are the replay's, not live (and
-   * nothing seen then is a new incident).
+   * The replay system is on: a replay of the tape (the per-car arrays and SessionTime are the
+   * tape's), or its live point, such as the session screen (live frames). ReplayPoint in
+   * simScreen.ts tells them apart. Nothing seen while it is on is a new incident.
    */
   IsReplayPlaying: 'boolean',
+  /** Replay frames (60 a second) from the end of the tape: 0 at the live point. */
+  ReplayFrameNumEnd: 'number',
+  /** SessionNum the replay shows (only read without ReplayFrameNumEnd). */
+  ReplaySessionNum: 'number',
+  /** SessionTime the replay shows, s (only read without ReplayFrameNumEnd). */
+  ReplaySessionTime: 'number',
   /** CarIdx the active camera follows (any car in a replay; meaningless on a scenic camera). */
   CamCarIdx: 'number',
-  /** irsdk_CameraState bits (UIHidden 0x8, IsScenicActive 0x2), a signed Int32. */
+  /** irsdk_CameraState bits (IsSessionScreen 0x1, IsScenicActive 0x2, UIHidden 0x8), signed. */
   CamCameraState: 'number',
   /** The garage screen is open. */
   IsGarageVisible: 'boolean',

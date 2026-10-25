@@ -40,6 +40,8 @@ const nowhere = computed(() => SHOW_IN_KINDS.every((k) => !prefs.value.showIn[k]
 /** Replays are a global rule (Apariencia > Visibilidad): only what it means for this widget. */
 const visibility = useOptions('visibility')
 const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value.replays))
+/** The session-screen exception only means something while the global rule hides there. */
+const sessionScreenRule = computed(() => visibility.value.hideOnSessionScreen)
 
 const HEIGHT_VALUES: readonly BoolChoice[] = ['on', 'off']
 const heightChoices = computed(() =>
@@ -121,6 +123,16 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :help="t.settings.window.hideInPitsHelp"
       :current="prefs.hideInPits"
       :apply="set('hideInPits')"
+    />
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.window.sessionScreen"
+      :help="
+        sessionScreenRule ? t.settings.window.sessionScreenHelp : t.settings.window.sessionScreenOff
+      "
+      :current="prefs.showOnSessionScreen || !sessionScreenRule"
+      :disabled="!sessionScreenRule"
+      :apply="set('showOnSessionScreen')"
     />
     <p class="st-row st-help replay-note">{{ replay }}</p>
   </PageSection>

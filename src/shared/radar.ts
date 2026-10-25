@@ -3,22 +3,24 @@
  * range ahead/behind in the player's lane, except cars that were alongside within the last
  * RADAR.sideHoldS, which keep their side lane. Pure function of one tick plus the previous
  * payload, which is only used as side-lane memory and for visibility hysteresis. Runs at 60 Hz.
+ * In a lone session (lone qualifying) the other cars in the telemetry are not on track with you:
+ * only CarLeftRight counts there (B11).
  */
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { clamp01 } from './num'
-import { resolvePlayerCarIdx } from './sessionInfo'
+import { currentSessionType, isLoneSession, resolvePlayerCarIdx } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { CarLeftRight, MAX_CARS, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { RadarCar, RadarData, RadarLane, RadarOptions, SessionMeta } from './types'
 
 export const RADAR = {
-  /** Cars this close (m, along the track) can be the ones CarLeftRight reports alongside. */
-  overlapM: 5.5,
   /**
-   * Cars this close are candidates for the side lanes CarLeftRight reports. Nearest-first, this
-   * is an overlapM pool widened when it holds fewer cars than reported.
+   * Cars this close (m, along the track) can be the ones CarLeftRight reports alongside: the
+   * candidates for its side lanes, nearest first (a car length plus slack for position noise).
    */
+  overlapM: 5.5,
+  /** The pool widens to this (m) when overlapM holds fewer cars than CarLeftRight reports. */
   overlapSearchM: 8,
   carLengthM: 4.6,
   minRangeM: OPTION_SCHEMA.radar.rangeM.min,
@@ -149,17 +151,19 @@ function splitLane(
 }
 
 /**
- * Puts candidates `cars[0..n)` (sorted nearest first) in the `demanded` side lanes, at most one
- * per lane, marks them overlapping and returns the mask of demanded lanes left empty.
- * Pass 1: a car alongside in `prev` keeps its lane (or the other lane of that side) while that
- * side is demanded, so a nearer drafting car cannot steal its slot. It never moves to the opposite
- * side: with its side not demanded or full it stays in lane 0. Pass 2 fills the rest nearest first:
- * cars without history inner lanes first, held cars (side lane in `prev` but no longer alongside)
- * only on their own side. A held car is a weaker claim than a car alongside last tick: when
- * CarLeftRight counts a side again it may be the held car back or a new one, so the nearer wins.
+ * Puts candidates (sorted nearest first) in the `demanded` side lanes, at most one per lane,
+ * marks them overlapping and returns the mask of demanded lanes left empty.
+ * Pass 1, over `cars[0..keepN)`: a car alongside in `prev` keeps its lane (or the other lane of
+ * that side) while that side is demanded, so a nearer drafting car cannot steal its slot. It never
+ * moves to the opposite side: with its side not demanded or full it stays in lane 0. Pass 2 fills
+ * the rest nearest first from `cars[0..n)`: cars without history inner lanes first, held cars
+ * (side lane in `prev` but no longer alongside) only on their own side. A held car is a weaker
+ * claim than a car alongside last tick: when CarLeftRight counts a side again it may be the held
+ * car back or a new one, so the nearer wins.
  */
 function assignSideLanes(
   cars: readonly RadarCar[],
+  keepN: number,
   n: number,
   demanded: number,
   prev: RadarData | null
@@ -167,7 +171,7 @@ function assignSideLanes(
   let free = demanded
 
   if (prev !== null && prev.cars.length > 0) {
-    for (let i = 0; i < n && free !== 0; i++) {
+    for (let i = 0; i < keepN && free !== 0; i++) {
       const car = cars[i]
       if (car === undefined) continue
       const p = prevSideCar(prev, car.carIdx)
@@ -287,9 +291,10 @@ export function computeRadar(
   }
 
   // Every car that could be shown, as lane 0 for now. Without a track length there are no
-  // distances, so only phantom side cars can be shown.
+  // distances, so only phantom side cars can be shown; nor in a lone session, where the other
+  // cars are on track in runs of their own.
   const cars: RadarCar[] = []
-  if (trackM !== null) {
+  if (trackM !== null && !isLoneSession(currentSessionType(frame, session))) {
     const keepM = Math.max(rangeM, RADAR.overlapSearchM)
     const focusPit = frame.CarIdxOnPitRoad[focus] === true
     for (let i = 0; i < MAX_CARS; i++) {
@@ -315,17 +320,22 @@ export function computeRadar(
     cars.sort(byAbsDist)
   }
 
-  // Side-lane candidates: the prefix of `cars` within overlapSearchM.
+  // Side-lane candidates: the prefix of `cars` within overlapM, or within overlapSearchM when
+  // that holds fewer cars than CarLeftRight reports (B24). A car alongside last tick keeps its
+  // lane anywhere within overlapSearchM, so two cars around overlapM do not swap lanes.
   const { left, right } = sideCounts(clr)
   const demanded = demandedLanes(left, right)
   let free = 0
   if (demanded !== 0) {
+    let near = 0
     let n = 0
     for (const car of cars) {
-      if (Math.abs(car.distM) > RADAR.overlapSearchM) break
+      const abs = Math.abs(car.distM)
+      if (abs > RADAR.overlapSearchM) break
+      if (abs <= RADAR.overlapM) near++
       n++
     }
-    free = assignSideLanes(cars, n, demanded, prev)
+    free = assignSideLanes(cars, n, near >= left + right ? near : n, demanded, prev)
   }
 
   // Clock of the side-lane hold. Without a valid SessionTime nothing is held.
