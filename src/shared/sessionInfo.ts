@@ -1,8 +1,9 @@
 /**
- * Per-tick facts every provider needs, defined once: who the player is, the
- * type of the current session and the "Mostrar en" / "Ocultar en boxes"
- * visibility rules. Pure.
+ * Per-tick facts every provider needs, defined once: who the player is (and which car a
+ * replay follows), the type of the current session and the "Mostrar en" / "Ocultar en
+ * boxes" visibility rules. Pure.
  */
+import { cameraCarIdx, isReplayPlaying } from './simScreen'
 import { MAX_CARS, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { HiddenReason, SessionMeta, ShowInSessions } from './types'
@@ -37,6 +38,25 @@ export function resolvePlayerCarIdx(
     return idx
   }
   return session.playerCarIdx
+}
+
+/**
+ * The car the widgets are about: the one on camera while a replay plays (when it is a race
+ * car of the session: not the pace car, a spectator or a scenic camera), the player
+ * otherwise. The one seam for following replays: the RaceModel's playerCarIdx and the
+ * providers that can follow any car resolve it here; the ones that only have the player's
+ * own data (pedals, flags, the delta) keep resolvePlayerCarIdx and hide during replays.
+ */
+export function resolveFocusCarIdx(
+  frame: Pick<TelemetryFrame, 'PlayerCarIdx' | 'IsReplayPlaying' | 'CamCarIdx' | 'CamCameraState'>,
+  session: Pick<SessionMeta, 'drivers' | 'playerCarIdx' | 'paceCarIdx'>
+): number {
+  if (isReplayPlaying(frame)) {
+    const cam = cameraCarIdx(frame)
+    const d = cam < MAX_CARS ? session.drivers.get(cam) : undefined
+    if (d && !d.isPaceCar && !d.isSpectator && cam !== session.paceCarIdx) return cam
+  }
+  return resolvePlayerCarIdx(frame, session)
 }
 
 /** SessionType of the session being driven ("Race", "Lone Qualify", ...), null when unknown. */

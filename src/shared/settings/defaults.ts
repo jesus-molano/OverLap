@@ -52,6 +52,7 @@ export function createDefaultSettings(): OverlaySettings {
   return {
     version: SETTINGS_VERSION,
     appearance: defaultOptions('appearance'),
+    visibility: defaultOptions('visibility'),
     widgets,
     relative: defaultOptions('relative'),
     radar: defaultOptions('radar'),

@@ -142,6 +142,12 @@ export const OPTION_SCHEMA = {
     showSimPill: { kind: 'bool', default: true, displayOnly: true },
     language: { kind: 'enum', values: LANGUAGES, default: DEFAULT_LANGUAGE, displayOnly: true }
   },
+  // Evaluated by the telemetry process (a hidden widget is not computed): nothing display-only.
+  visibility: {
+    hideWithSimUi: { kind: 'bool', default: true },
+    hideInGarage: { kind: 'bool', default: true },
+    replays: { kind: 'enum', values: ['follow', 'hide'], default: 'follow' }
+  },
   relative: {
     carsAhead: { kind: 'int', min: 0, max: 10, default: 3 },
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },

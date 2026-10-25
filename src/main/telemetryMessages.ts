@@ -19,7 +19,18 @@ import { isWidgetId, type WidgetId } from '@shared/widgets'
 const STATES: readonly ConnectionState[] = ['starting', 'waiting', 'connected', 'mock', 'error']
 const SOURCES: readonly SourceKind[] = ['iracing', 'mock']
 const NOTES: readonly StatusNote[] = ['none', 'restarting', 'native-missing']
-const HIDDEN_REASONS: readonly HiddenReason[] = ['practice', 'qualify', 'race', 'pits']
+/** A record, so a new HiddenReason left out here fails to compile instead of being dropped. */
+const HIDDEN_REASON_SET: Readonly<Record<HiddenReason, true>> = {
+  practice: true,
+  qualify: true,
+  race: true,
+  pits: true,
+  garage: true,
+  'ui-hidden': true,
+  replay: true,
+  'replay-player': true
+}
+const HIDDEN_REASONS = Object.keys(HIDDEN_REASON_SET) as HiddenReason[]
 const LOG_LEVELS = ['info', 'warn', 'error'] as const
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -76,7 +76,17 @@ export const TELEMETRY_VARS = {
   /** irsdk_EngineWarnings bits: pit speed limiter 0x10, engine stalled 0x08, ... */
   EngineWarnings: 'number',
   /** The player is between the pit-lane cones. */
-  OnPitRoad: 'boolean'
+  OnPitRoad: 'boolean',
+
+  // --- What the sim's screen shows (simScreen.ts): hide with its UI, follow replays ---
+  /** A replay is playing: the per-car arrays and SessionTime are the replay's, not live. */
+  IsReplayPlaying: 'boolean',
+  /** CarIdx the active camera follows (any car in a replay; meaningless on a scenic camera). */
+  CamCarIdx: 'number',
+  /** irsdk_CameraState bits (UIHidden 0x8, IsScenicActive 0x2), a signed Int32. */
+  CamCameraState: 'number',
+  /** The garage screen is open. */
+  IsGarageVisible: 'boolean'
 } as const satisfies Partial<Record<keyof TelemetryVarList, 'number' | 'boolean'>>
 
 export type TelemetryVarName = keyof typeof TELEMETRY_VARS

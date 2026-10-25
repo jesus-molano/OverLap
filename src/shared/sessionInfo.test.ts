@@ -4,11 +4,13 @@ import {
   currentSessionType,
   isCarInPits,
   isRaceSession,
+  resolveFocusCarIdx,
   resolvePlayerCarIdx,
   ruleHiddenReason,
   sessionKind,
   type VisibilityRule
 } from './sessionInfo'
+import { CameraState } from './simScreen'
 import { TrackLocation } from './telemetry'
 import type { DriverEntry, SessionMeta } from './types'
 
@@ -39,6 +41,45 @@ describe('resolvePlayerCarIdx', () => {
       expect(resolvePlayerCarIdx({ PlayerCarIdx: idx }, session())).toBe(1)
     }
     expect(resolvePlayerCarIdx({ PlayerCarIdx: [] }, session({ playerCarIdx: -1 }))).toBe(-1)
+  })
+})
+
+describe('resolveFocusCarIdx', () => {
+  /** Live on the player (car 2) unless a replay is playing; camera on `cam`. */
+  function focus(replay: boolean, cam: number, cameraState = 0, s = session()): number {
+    return resolveFocusCarIdx(
+      {
+        PlayerCarIdx: [2],
+        IsReplayPlaying: [replay],
+        CamCarIdx: [cam],
+        CamCameraState: [cameraState]
+      },
+      s
+    )
+  }
+
+  it('is the player while live, wherever the camera is', () => {
+    expect(focus(false, 0)).toBe(2)
+  })
+
+  it('is the car on camera while a replay plays, your own car included', () => {
+    expect(focus(true, 0)).toBe(0)
+    expect(focus(true, 2)).toBe(2)
+  })
+
+  it('stays on the player when the camera follows no race car', () => {
+    const drivers = new Map<number, DriverEntry>([
+      [0, { carIdx: 0 } as DriverEntry],
+      [2, { carIdx: 2 } as DriverEntry],
+      [3, { carIdx: 3, isSpectator: true } as DriverEntry],
+      [64, { carIdx: 64, isPaceCar: true } as DriverEntry],
+      [65, { carIdx: 65 } as DriverEntry]
+    ])
+    const s = session({ drivers, paceCarIdx: 65 })
+    // Not in the session, a spectator, the pace car (by flag or by PaceCarIdx).
+    for (const cam of [7, 3, 64, 65, -1]) expect(focus(true, cam, 0, s)).toBe(2)
+    // A scenic camera has no focus car.
+    expect(focus(true, 0, CameraState.IsScenicActive, s)).toBe(2)
   })
 })
 

@@ -163,6 +163,27 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
 - Coloca los widgets en el garaje o en los menús: mientras el modo edición está activo, los clics
   sobre un widget no llegan al juego.
 
+### Ocultar con iRacing: interfaz, garaje y repeticiones
+
+En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`):
+
+| Opción                                               | Por defecto                 | Qué hace                                                      |
+| ---------------------------------------------------- | --------------------------- | ------------------------------------------------------------- |
+| Ocultar con la interfaz de iRacing (`hideWithSimUi`) | Sí                          | Si ocultas la interfaz del simulador, se ocultan los widgets  |
+| Ocultar en el garaje (`hideInGarage`)                | Sí                          | Mientras está abierta la pantalla del garaje                  |
+| En repeticiones (`replays`)                          | Seguir la cámara (`follow`) | `follow`: muestran el coche que estás viendo; `hide`: ninguno |
+
+- Siguiendo la cámara, Relativo, Clasificación, Batalla y Tráfico se centran en el coche de la
+  repetición. Radar, Pedales, Avisos y Delta solo tienen datos de tu coche en directo: en una
+  repetición se ocultan siempre (lo dice la sección **Ventana** de su página).
+- Una repetición no toca el cronometraje en directo: no cuenta vueltas, récords, incidentes ni
+  sectores del óptimo, y al volver al directo todo sigue donde estaba (la vuelta que la repetición
+  partió no se cronometra). La línea de SR de Clasificación solo sale con tu coche.
+- Como con "Mostrar en", un widget oculto no se calcula, y en modo edición se ve con el motivo
+  (_Oculto en el garaje_, _Oculto en repeticiones: solo en directo_...).
+- En modo simulación (`dev:mock`) cada sesión lo enseña una vez: interfaz oculta a los 2:00, garaje
+  a los 2:20 y una repetición de 14 s a los 2:50.
+
 ### Bandeja del sistema
 
 Desde el icono de la bandeja: **Ajustes…**, mostrar/ocultar cada widget, alcance del radar
