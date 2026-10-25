@@ -231,7 +231,8 @@ describe('SKIP_EMIT', () => {
       pitLimiter: null,
       speedKmh: 0,
       pitLimitKmh: 60,
-      incident: null
+      incident: null,
+      inBox: false
     }
     const pit: AlertsData = { ...idle, visible: true, pitLimiter: 'on', speedKmh: 58 }
     expect(skip(idle, null)).toBe(false)
@@ -261,7 +262,7 @@ describe('SKIP_EMIT', () => {
       trend: 0,
       predictedLap: null,
       sectors: [],
-      lapValid: true
+      lapState: 'none'
     }
     const live: DeltaData = {
       visible: true,
@@ -273,7 +274,7 @@ describe('SKIP_EMIT', () => {
       trend: -0.01,
       predictedLap: 92.38,
       sectors: [-0.05, null, null],
-      lapValid: true
+      lapState: 'valid'
     }
     expect(skip(hidden, null)).toBe(false)
     expect(skip({ ...hidden }, hidden)).toBe(true)
@@ -287,7 +288,8 @@ describe('SKIP_EMIT', () => {
     expect(skip({ ...live, delta: -0.13, predictedLap: 92.37 }, live)).toBe(false)
     expect(skip({ ...live, trend: 0 }, live)).toBe(false)
     expect(skip({ ...live, sectors: [-0.05, 0.1, null] }, live)).toBe(false)
-    expect(skip({ ...live, lapValid: false }, live)).toBe(false)
+    expect(skip({ ...live, lapState: 'invalid' }, live)).toBe(false)
+    expect(skip({ ...live, lapState: 'out' }, live)).toBe(false)
     expect(skip({ ...live, reference: 'session' }, live)).toBe(false)
     expect(skip({ ...live, reference: 'class', refDriver: '#23 L. Costa' }, live)).toBe(false)
     expect(skip({ ...live, reference: 'class', refSelf: true }, live)).toBe(false)
@@ -423,7 +425,7 @@ describe('delta on the real RaceModel', () => {
     const lap4 = between(sent, 60 + guardS + 0.1, 90)
     expect(lap4.length).toBeGreaterThan(800)
     for (const { t, d } of lap4) {
-      expect(d, `t=${t}`).toMatchObject({ visible: true, reference: 'session', lapValid: true })
+      expect(d, `t=${t}`).toMatchObject({ visible: true, reference: 'session', lapState: 'valid' })
       expect(d).toMatchObject({ refDriver: '', refSelf: false })
       expect(d.refLapTime).toBeCloseTo(30, 2)
       expect(Math.abs(d.delta ?? Infinity), `t=${t}`).toBeLessThanOrEqual(0.01)
@@ -443,7 +445,7 @@ describe('delta on the real RaceModel', () => {
     const line = between(sent, 121.1, 121 + guardS - 0.1)
     expect(line.length).toBeGreaterThan(5)
     for (const { d } of line) {
-      expect(d).toMatchObject({ delta: 1, sectors: [0.5, 0.5], lapValid: true })
+      expect(d).toMatchObject({ delta: 1, sectors: [0.5, 0.5], lapState: 'valid' })
       expect(d.predictedLap).toBeCloseTo(31, 2)
       // The slower lap does not replace the reference.
       expect(d.refLapTime).toBeCloseTo(30, 2)

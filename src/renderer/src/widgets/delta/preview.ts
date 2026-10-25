@@ -29,7 +29,7 @@ function sample(reference: DeltaReference): DeltaData {
     trend: -0.04,
     predictedLap: Math.round((ref.lapTime + DELTA) * 1000) / 1000,
     sectors: Object.freeze([-0.12, 0.05, null]) as (number | null)[],
-    lapValid: true
+    lapState: 'valid'
   })
 }
 

@@ -239,7 +239,7 @@ function makeRow(
     stintLaps: needs.stint && ctx.pitHistory ? car.stintLaps : null,
     tyre: needs.tyre ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
-    penalty: penaltyOf(car.sessionFlags),
+    penalty: penaltyOf(car.sessionFlags, car.finished),
     iRatingDelta: delta,
     gapBefore
   }

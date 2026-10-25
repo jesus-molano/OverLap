@@ -15,24 +15,30 @@
  * Delta = seconds into the lap (RaceView.currentLap) - the reference's time at the same lap
  * fraction (linear between timing lines). In the first DELTA.guardPct of a lap, where the lap
  * counter and CarIdxLapDistPct may disagree, the lap just finished shows instead: its actual
- * delta, lap time and every sector (also after the chequered flag); without one, the last delta
- * holds. Sector crossings of the lap in progress are interpolated between computes.
+ * delta, lap time and every sector; without one, the last delta holds. Sector crossings of the
+ * lap in progress are interpolated between computes.
+ *
+ * After your chequered flag there is no lap to time: the lap just finished stays (or nothing
+ * shows). The RaceModel stops timing at the flag in races only, so outside them a lap started
+ * once the session was over for you (the chequered flag, SessionState past it, no laps left) is
+ * the cool-down lap and is not timed here either. The payload says what the lap is (lapState):
+ * no lap, the out lap, a tow, an invalid or a valid lap.
  *
  * Per compute the work is O(sectors) plus one payload; references are looked up again at most
  * every DELTA.refreshS (every DELTA.searchS while there is none or the lap is starting), and
  * only then are the laps completed since taken into the optimal laps.
  */
 import { arrayEqual } from '../equal'
-import { CAUTION_FLAGS } from '../flags'
+import { CAUTION_FLAGS, SessionFlag } from '../flags'
 import { formatDriverName, isKnownName } from '../format'
 import { isValidPct } from '../lapDist'
 import { finiteOr, quantise } from '../num'
 import { RACE_TIMING_LINES } from '../race/raceView'
 import type { RaceView } from '../race/raceView'
-import { resolvePlayerCarIdx } from '../sessionInfo'
+import { currentSessionType, isRaceSession, resolvePlayerCarIdx } from '../sessionInfo'
 import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
-import type { DeltaData, DeltaOptions, DeltaReference, SessionMeta } from '../types'
+import type { DeltaData, DeltaLapState, DeltaOptions, DeltaReference, SessionMeta } from '../types'
 import { OptimalLaps } from './optimal'
 import { personalBestKey, usableLap } from './references'
 import type { PersonalBestStore } from './references'
@@ -58,7 +64,13 @@ export const DELTA = {
   /** References are looked up again this often (s) while one is in use... */
   refreshS: 1,
   /** ...and this often while there is none or the lap is starting. */
-  searchS: 0.25
+  searchS: 0.25,
+  /**
+   * Outside races, a lap started up to this long (s) before the session was first seen over is
+   * a cool-down lap too: SessionLapsRemainEx reaches 0 with the crossing, a tick either side of
+   * the model's.
+   */
+  flagLagS: 1
 } as const
 
 /**
@@ -132,7 +144,7 @@ function hiddenPayload(reference: DeltaReference): DeltaData {
     trend: 0,
     predictedLap: null,
     sectors: [],
-    lapValid: true
+    lapState: 'none'
   }
 }
 
@@ -174,6 +186,12 @@ export class DeltaProvider {
   /** Last scan of the laps while you are not driving (no reference lookups then). */
   private scanT = Number.NaN
 
+  /**
+   * Outside races, the SessionTime the session was first seen over for you (-Infinity: it already
+   * was when the provider started following it; NaN: not over).
+   */
+  private overSince = Number.NaN
+
   // The lap in progress.
   private lap = Number.NaN
   private lapStartT = Number.NaN
@@ -181,6 +199,10 @@ export class DeltaProvider {
   private prevElapsed = Number.NaN
   private prevT = Number.NaN
   private lapInvalid = false
+  /** The lap left pit road (RaceCarState.outLap) at some point. */
+  private lapOut = false
+  /** The lap started once the session was over (outside races): a cool-down lap, not timed. */
+  private lapCoolDown = false
   private summary: LapSummary | null = null
 
   // Output.
@@ -204,6 +226,7 @@ export class DeltaProvider {
     this.refreshT = Number.NaN
     this.optimal.reset()
     this.scanT = Number.NaN
+    this.overSince = Number.NaN
     this.dropReference()
     this.endLap()
     this.summary = null
@@ -222,7 +245,9 @@ export class DeltaProvider {
       this.reset()
       this.sessionKey = race.sessionKey
     }
+    const continuous = now - this.lastT <= DELTA.maxGapS
     this.lastT = now
+    this.followSessionEnd(frame, session, now, continuous)
 
     const player = resolvePlayerCarIdx(frame, session)
     if (player !== this.player) {
@@ -249,6 +274,11 @@ export class DeltaProvider {
     const pct = isValidPct(rawPct) ? rawPct : Number.NaN
     const cur = Number.isNaN(pct) ? null : race.currentLap(player)
     const lapChanged = this.followLap(frame, race, player, cur, pct, now)
+    // Outside races the model times the lap after your flag: here it is no lap.
+    this.lapCoolDown =
+      cur !== null &&
+      Number.isFinite(this.lapStartT) &&
+      this.lapStartT >= this.overSince - DELTA.flagLagS
     // No lap in progress, or one just starting (before its first sector): a reference may change.
     const starting =
       cur === null ||
@@ -266,7 +296,28 @@ export class DeltaProvider {
       starting
     )
     if (this.ref === null) return hiddenPayload(reference)
-    return this.payload(race, player, cur, pct, now)
+    return this.payload(frame, race, player, cur, pct, now)
+  }
+
+  /**
+   * Outside races, notes when the session is first seen over for you: the chequered flag out,
+   * SessionState past it, or no laps left (SessionLapsRemainEx 0, a lap-limited qualifying). Seen
+   * first after a gap in the computes (the widget hidden, the provider just started), it was over
+   * before: every lap from now on is a cool-down lap.
+   */
+  private followSessionEnd(
+    frame: TelemetryFrame,
+    session: SessionMeta,
+    now: number,
+    continuous: boolean
+  ): void {
+    if (!Number.isNaN(this.overSince) || !Number.isFinite(now)) return
+    if (isRaceSession(currentSessionType(frame, session))) return
+    const over =
+      ((frame.SessionFlags[0] ?? 0) & SessionFlag.Checkered) !== 0 ||
+      finiteOr(frame.SessionState[0], SessionState.Invalid) >= SessionState.Checkered ||
+      frame.SessionLapsRemainEx[0] === 0
+    if (over) this.overSince = continuous ? now : -Infinity
   }
 
   // ---------------------------------------------------------------------------
@@ -298,6 +349,7 @@ export class DeltaProvider {
     this.detectCrossings(pct, cur.elapsedS, now)
 
     const me = race.car(player)
+    if (me?.outLap === true) this.lapOut = true
     const state = frame.SessionState[0] ?? SessionState.Invalid
     if (
       (me !== undefined && (me.inPits || me.offTrack || me.stoppedForS > 0 || me.outLap)) ||
@@ -318,6 +370,8 @@ export class DeltaProvider {
     this.prevElapsed = 0
     this.prevT = startT
     this.lapInvalid = false
+    this.lapOut = false
+    this.lapCoolDown = false
     this.cross.fill(Number.NaN)
     if (this.cross.length > 0) this.cross[0] = 0
     this.resetTrend()
@@ -330,8 +384,15 @@ export class DeltaProvider {
     this.prevElapsed = Number.NaN
     this.prevT = Number.NaN
     this.lapInvalid = false
+    this.lapOut = false
+    this.lapCoolDown = false
     this.cross.fill(Number.NaN)
     this.resetTrend()
+  }
+
+  /** The finished lap's state, from what it went through. */
+  private finishedState(): DeltaLapState {
+    return this.lapOut ? 'out' : this.lapInvalid ? 'invalid' : 'valid'
   }
 
   /** Sector start lines crossed since the last compute get their time, interpolated. */
@@ -355,7 +416,8 @@ export class DeltaProvider {
 
   /**
    * The lap we followed ended: when the model closed it (its last lap) or a new one started
-   * right after it, keeps what it looked like against the reference it was driven against.
+   * right after it, keeps what it looked like against the reference it was driven against. A
+   * cool-down lap ending keeps the summary of the lap before it.
    */
   private summarise(
     race: RaceView,
@@ -364,6 +426,7 @@ export class DeltaProvider {
     pct: number,
     now: number
   ): void {
+    if (this.lapCoolDown) return
     this.summary = null
     if (this.ref === null || !(now - this.prevT <= DELTA.maxGapS) || !(this.prevPct >= 0.5)) {
       return
@@ -393,7 +456,7 @@ export class DeltaProvider {
         trend: 0,
         predictedLap: quantise(lapTime, 1000),
         sectors,
-        lapValid: !this.lapInvalid
+        lapState: this.finishedState()
       }
     }
   }
@@ -560,6 +623,7 @@ export class DeltaProvider {
   // ---------------------------------------------------------------------------
 
   private payload(
+    frame: TelemetryFrame,
     race: RaceView,
     player: number,
     cur: CurrentLap | null,
@@ -567,14 +631,17 @@ export class DeltaProvider {
     now: number
   ): DeltaData {
     const s = this.summary
+    // After your flag (a race's model stops timing; a cool-down lap elsewhere): no lap to time.
+    const over = this.lapCoolDown || (cur === null && race.car(player)?.finished === true)
     if (s !== null) {
-      // At the line (also on the cool-down lap after your flag): the lap just finished.
+      // At the line, and all the cool-down lap after your flag: the lap just finished.
       const next = cur === null || cur.lap === s.lap + 1
-      if ((next && pct < DELTA.guardPct) || (cur === null && race.car(player)?.finished === true)) {
+      if ((next && pct < DELTA.guardPct) || over) {
         this.shownDelta = s.data.delta
         return { ...s.data, sectors: s.data.sectors.slice() }
       }
     }
+    if (over) return hiddenPayload(this.optRef ?? 'pb')
     const n = this.bounds.length
     const sectors = new Array<number | null>(n)
     for (let k = 0; k < n; k++) {
@@ -605,9 +672,23 @@ export class DeltaProvider {
       trend,
       predictedLap: delta === null ? null : quantise(this.refTime + delta, 1000),
       sectors,
-      // Without a lap in progress (a tow, before your first line) nothing would count.
-      lapValid: cur !== null && !this.lapInvalid
+      lapState: this.lapState(frame, race, player, cur)
     }
+  }
+
+  /**
+   * Towed; no lap in progress (before your first line, the grid; after a tow until the next line,
+   * the out lap from the pit exit); the out lap; invalid or valid.
+   */
+  private lapState(
+    frame: TelemetryFrame,
+    race: RaceView,
+    player: number,
+    cur: CurrentLap | null
+  ): DeltaLapState {
+    if (finiteOr(frame.PlayerCarTowTime[0], 0) > 0) return 'tow'
+    if (cur === null) return race.car(player)?.outLap === true ? 'out' : 'none'
+    return this.finishedState()
   }
 
   /** EMA (DELTA.trendTauS) of d(delta)/dt over SessionTime, from 0; quantised 0.01. */
@@ -661,7 +742,7 @@ export function deltaEqual(a: DeltaData, b: DeltaData): boolean {
     a.delta === b.delta &&
     a.trend === b.trend &&
     a.predictedLap === b.predictedLap &&
-    a.lapValid === b.lapValid &&
+    a.lapState === b.lapState &&
     arrayEqual(a.sectors, b.sectors)
   )
 }

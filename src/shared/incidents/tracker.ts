@@ -3,8 +3,9 @@
  * report may last a single tick). A rise of PlayerCarMyIncidentCount opens an incident; rises
  * within INCIDENTS.groupS of the last one are the same incident (iRacing upgrades an off-track
  * to a loss of control, or 2x to 4x, a moment later). Each incident takes its type from the
- * PlayerIncidents report seen around it (the most points wins), the lap and sector from the
- * RaceView and the furthest surface off the asphalt seen around it.
+ * PlayerIncidents reports seen around it (the most serious wins, INCIDENT_SEVERITY: the penalty
+ * byte is not the points), the lap and sector from the RaceView and the furthest surface off the
+ * asphalt seen around it.
  *
  * Nothing counts while a replay plays, in the first second of a session or connection, or
  * when the clock goes back: the count is only followed then. Never anyone else's incidents:
@@ -17,7 +18,13 @@ import type { TelemetryFrame } from '../telemetry'
 import { sectorOf } from '../traffic'
 import type { IncidentKind, IncidentSurface, SessionMeta } from '../types'
 import { countOf } from './count'
-import { SURFACE_RANK, decodeIncident, incidentBits, incidentSurface } from './decode'
+import {
+  INCIDENT_SEVERITY,
+  SURFACE_RANK,
+  decodeIncident,
+  incidentBits,
+  incidentSurface
+} from './decode'
 import type { DecodedIncident } from './decode'
 
 export const INCIDENTS = {
@@ -49,9 +56,8 @@ export interface IncidentEvent {
 
 interface OpenEvent {
   points: number
+  /** The most serious report taken so far (null: none yet, so any report names it). */
   kind: IncidentKind | null
-  /** Points of the report it took (-1: none yet, so any report wins). */
-  reportPoints: number
   lap: number | null
   sector: number | null
   surface: IncidentSurface | null
@@ -148,7 +154,6 @@ export class IncidentTracker {
     const ev: OpenEvent = {
       points,
       kind: null,
-      reportPoints: -1,
       lap,
       sector,
       surface: this.surfaceSince(t - INCIDENTS.surfaceWindowS),
@@ -173,10 +178,19 @@ export class IncidentTracker {
     const ev = this.event
     if (ev !== null && t - ev.lastT <= INCIDENTS.reportWindowS) {
       take(ev, report)
-    } else {
-      this.pending = report
-      this.pendingT = t
+      return
     }
+    // Two reports before the count rises (an off-track, then the wall): the worst waits.
+    const waiting = this.pending
+    if (
+      waiting !== null &&
+      t - this.pendingT <= INCIDENTS.reportWindowS &&
+      INCIDENT_SEVERITY[waiting.kind] > INCIDENT_SEVERITY[report.kind]
+    ) {
+      return
+    }
+    this.pending = report
+    this.pendingT = t
   }
 
   private watchSurface(material: number | undefined, t: number): void {
@@ -203,12 +217,13 @@ export class IncidentTracker {
   }
 }
 
-/** The report with the most points names the incident (the upgrade, when there is one). */
+/**
+ * The most serious report names the incident (INCIDENT_SEVERITY; a later one as serious wins):
+ * an off-track that ends in the wall is a wall hit, whatever each report's penalty byte says.
+ */
 function take(ev: OpenEvent, report: DecodedIncident): void {
-  const points = report.points ?? 0
-  if (points < ev.reportPoints) return
+  if (ev.kind !== null && INCIDENT_SEVERITY[report.kind] < INCIDENT_SEVERITY[ev.kind]) return
   ev.kind = report.kind
-  ev.reportPoints = points
 }
 
 /** The lap you are on and the sector, from the race model (the frame when it has no car). */

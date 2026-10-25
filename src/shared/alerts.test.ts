@@ -12,6 +12,7 @@ import {
   pitLimiterState
 } from './alerts'
 import { EngineWarning, SessionFlag } from './flags'
+import { DAMAGE } from './notices/damage'
 import { ENGINE_TREND } from './notices/engineTrend'
 import { LAPS_TO_GO } from './notices/lapsToGo'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
@@ -41,10 +42,14 @@ class Tick {
   /** 10 Hz ticks since SessionTime 100 s (an integer count, so times do not drift). */
   private n = 0
 
-  /** The tick `ticks` later (default the next one at 10 Hz; negative: the clock went back). */
+  /**
+   * The tick `ticks` later (default the next one at 10 Hz; negative: the clock went back), seen
+   * by observe() then computed, as the telemetry loop does.
+   */
   run(o: Partial<AlertsOptions> = {}, ticks = 1): AlertsData {
     this.n += ticks
     this.frame.SessionTime[0] = (1000 + this.n) / 10
+    this.p.observe(this.frame, this.session, this.race)
     return this.p.compute(this.frame, this.session, this.race, { ...OPTS, ...o })
   }
 
@@ -80,6 +85,7 @@ describe('flags', () => {
   it('maps every flag to its bits, most important first', () => {
     expect(FLAG_ORDER).toHaveLength(Object.keys(FLAG_BITS).length)
     const k = new Tick()
+    k.run()
     // Everything at once (but green, which needs its start): yellow and white are covered by
     // the caution and the chequered flag.
     let all = 0
@@ -113,10 +119,44 @@ describe('flags', () => {
       [SessionFlag.White, 'white'],
       [SessionFlag.Checkered, 'checkered']
     ]
-    for (const [bit, kind] of cases) {
-      expect(new Tick().flags(bit).run().flags, kind).toEqual([kind])
-      expect(new Tick().flags(0, bit).run().flags, kind).toEqual([kind])
+    // A tick without any first: the chequered flag counts from its edge, like the green one.
+    const fresh = (): Tick => {
+      const k = new Tick()
+      k.run()
+      return k
     }
+    for (const [bit, kind] of cases) {
+      expect(fresh().flags(bit).run().flags, kind).toEqual([kind])
+      expect(fresh().flags(0, bit).run().flags, kind).toEqual([kind])
+    }
+  })
+
+  it('none out of the car: the replay, the session screen, the garage (B07)', () => {
+    const k = new Tick()
+    k.run()
+    expect(k.flags(SessionFlag.Debris | SessionFlag.Checkered).run().flags).toEqual([
+      'debris',
+      'checkered'
+    ])
+    k.frame.IsOnTrack[0] = false
+    expect(k.run({ holdS: 5 })).toMatchObject({ visible: false, flags: [] })
+    // Back in the car the chequered flag is long gone (it counts from its edge).
+    k.frame.IsOnTrack[0] = true
+    expect(k.runFor(ALERTS.checkeredMinS).flags).toEqual(['debris'])
+  })
+
+  it('ignores the furled flag once you took the chequered flag (Q3); 0x40000 is no flag', () => {
+    const k = new Tick().flags(SessionFlag.Servicible, SessionFlag.Furled | SessionFlag.Servicible)
+    expect(k.run().flags).toEqual(['furled'])
+    k.race = {
+      ...EMPTY_RACE_VIEW,
+      car: (i) => (i === 0 ? carState({ finished: true }) : undefined)
+    }
+    expect(k.run()).toMatchObject({ visible: false, flags: [] })
+    // The black flag still applies.
+    expect(k.flags(0, SessionFlag.Furled | SessionFlag.Black).run().flags).toEqual(['black'])
+    // Servicible alone (in almost every sample online) is nothing.
+    expect(new Tick().flags(SessionFlag.Servicible, SessionFlag.Servicible).run().flags).toEqual([])
   })
 
   it('reads the bit fields as unsigned (the start-light bit makes them negative)', () => {
@@ -239,6 +279,43 @@ describe('the green flag (a start signal)', () => {
   })
 })
 
+describe('the chequered flag (B07)', () => {
+  it('shows for max(holdS, ALERTS.checkeredMinS) from its edge, though the bit stays on', () => {
+    const k = new Tick()
+    k.run()
+    k.flags(SessionFlag.Checkered)
+    expect(k.run().flags).toEqual(['checkered'])
+    expect(k.runFor(ALERTS.checkeredMinS - 0.2).flags).toEqual(['checkered'])
+    // Online the bit stayed on for minutes, until the session changed: the flag does not.
+    expect(k.runFor(0.3)).toMatchObject({ visible: false, flags: [] })
+    expect(k.runFor(120).flags).toEqual([])
+    // A longer hold makes it last longer.
+    const h = new Tick()
+    h.run({ holdS: 10 })
+    h.flags(SessionFlag.Checkered).run({ holdS: 10 })
+    expect(h.runFor(9.8, { holdS: 10 }).flags).toEqual(['checkered'])
+    expect(h.runFor(0.3, { holdS: 10 }).flags).toEqual([])
+  })
+
+  it('not when it was already out (joining, a gap in the computes)', () => {
+    const k = new Tick().flags(SessionFlag.Checkered)
+    expect(k.run().flags).toEqual([])
+    const g = new Tick()
+    g.run()
+    g.flags(SessionFlag.Checkered)
+    expect(g.run({}, (ALERTS.staleS + 0.5) * 10).flags).toEqual([])
+  })
+
+  it('the last lap is over with it, also once it is no longer shown', () => {
+    const k = new Tick()
+    k.flags(SessionFlag.White).run({ holdS: 3 })
+    expect(k.flags(SessionFlag.White | SessionFlag.Checkered).run({ holdS: 3 }).flags).toEqual([
+      'checkered'
+    ])
+    expect(k.runFor(ALERTS.checkeredMinS + 1, { holdS: 3 }).flags).toEqual([])
+  })
+})
+
 describe('pit limiter', () => {
   it('null off pit road, on / OFF on it', () => {
     const k = new Tick().pit(false, true)
@@ -249,7 +326,8 @@ describe('pit limiter', () => {
       pitLimiter: null,
       speedKmh: 0,
       pitLimitKmh: 60,
-      incident: null
+      incident: null,
+      inBox: false
     })
     expect(k.pit(true, false).run()).toEqual({
       visible: true,
@@ -258,9 +336,38 @@ describe('pit limiter', () => {
       pitLimiter: 'off',
       speedKmh: 58,
       pitLimitKmh: 60,
-      incident: null
+      incident: null,
+      inBox: false
     })
     expect(k.pit(true, true).run()).toMatchObject({ visible: true, pitLimiter: 'on' })
+  })
+
+  it('not read while towed, nor for teleportS after the car appears in its box (B10)', () => {
+    // Online: the tow puts the car in its stall on pit road (surface -1 -> 1), and the limiter
+    // bit comes 0.95 s later; the tow countdown starts in between.
+    const k = new Tick()
+    k.frame.PlayerTrackSurface[0] = TrackLocation.NotInWorld
+    k.pit(false, false, 0).run()
+    k.frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
+    expect(k.pit(true, false, 0).run().pitLimiter).toBeNull()
+    expect(k.runFor(ALERTS.teleportS - 0.2).pitLimiter).toBeNull()
+    k.frame.PlayerCarTowTime[0] = 60
+    expect(k.pit(true, true, 0).runFor(1)).toMatchObject({ pitLimiter: null, inBox: true })
+    // The tow over: the limiter line is back (on), and so is OFF; still in the box.
+    k.frame.PlayerCarTowTime[0] = 0
+    expect(k.run()).toMatchObject({ pitLimiter: 'on', inBox: true })
+    expect(k.pit(true, false, 0).run().pitLimiter).toBe('off')
+    // Out of the stall onto pit road: the meatball would say "pit" again.
+    k.frame.PlayerTrackSurface[0] = TrackLocation.ApproachingPits
+    expect(k.run().inBox).toBe(false)
+    // Getting in the car in the box is the same jump: OFF waits teleportS too.
+    const g = new Tick()
+    g.frame.PlayerTrackSurface[0] = TrackLocation.NotInWorld
+    g.run()
+    g.frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
+    g.pit(true, false, 0)
+    expect(g.runFor(ALERTS.teleportS - 0.2).pitLimiter).toBeNull()
+    expect(g.runFor(0.4).pitLimiter).toBe('off')
   })
 
   it('over the known limit by more than 1 km/h, with the limiter on or off', () => {
@@ -336,6 +443,15 @@ describe('order of the alerts', () => {
     expect(rank('lapsToGo')).toBeGreaterThan(rank('white'))
     expect(ALERT_ORDER.at(-1)).toBe('engineTrend')
   })
+
+  it('puts the tow above the meatball, the stall and the pressures; damage before them (Q2)', () => {
+    const rank = (k: (typeof ALERT_ORDER)[number]): number => ALERT_ORDER.indexOf(k)
+    for (const k of ['meatball', 'stalled', 'oilPressure', 'fuelPressure', 'damage'] as const) {
+      expect(rank('tow'), k).toBeLessThan(rank(k))
+    }
+    expect(rank('damage')).toBeGreaterThan(rank('meatball'))
+    expect(rank('damage')).toBeLessThan(rank('stalled'))
+  })
 })
 
 describe('engine', () => {
@@ -350,6 +466,7 @@ describe('engine', () => {
 
   it('each warning light, most harmful first; the pressures not while stalled', () => {
     const k = new Tick()
+    k.frame.Speed[0] = 20
     for (const [kind, bit] of Object.entries(ENGINE_WARNING_BITS)) {
       expect(k.warnings(bit).run().notices, kind).toEqual([{ kind }])
     }
@@ -369,17 +486,115 @@ describe('engine', () => {
     expect(k.run({ showEngineWarnings: false }).notices).toEqual([{ kind: 'stalled' }])
     // Signed Int32.
     expect(kinds(k.warnings(EngineWarning.WaterTemp | 0x80000000 | 0).run())).toEqual(['water'])
-    // The limiter and the repairs bits are not warning lights.
+    // The limiter and the repairs bits are not warning lights (the repairs are damage).
     const other = EngineWarning.PitSpeedLimiter | EngineWarning.MandatoryRepairs
-    expect(k.warnings(other).run().notices).toEqual([])
+    expect(kinds(k.warnings(other).run())).toEqual(['damage'])
+    expect(k.run({ showDamage: false }).notices).toEqual([])
   })
 
   it('holds a flickering light holdS, like a flag', () => {
     const k = new Tick().warnings(EngineWarning.OilPressure)
+    k.frame.Speed[0] = 20
     k.run({ holdS: 2 })
     k.warnings(0)
     expect(kinds(k.runFor(1.9, { holdS: 2 }))).toEqual(['oilPressure'])
     expect(k.runFor(0.2, { holdS: 2 }).notices).toEqual([])
+  })
+
+  it('the pressures need the engine running: moving, or stopped at 80 % of its idle (Q2)', () => {
+    const k = new Tick().warnings(EngineWarning.OilPressure | EngineWarning.FuelPressure)
+    k.session = makeSession(3, { driverCarIdleRpm: 875 })
+    k.frame.Speed[0] = 0
+    k.frame.RPM[0] = 300
+    // Online: stopped after a crash, the engine hunting at 300..600 rpm with the light on.
+    expect(k.run().notices).toEqual([])
+    k.frame.RPM[0] = 0.8 * 875 - 1
+    expect(k.run().notices).toEqual([])
+    k.frame.RPM[0] = 0.8 * 875
+    expect(kinds(k.run())).toEqual(['oilPressure', 'fuelPressure'])
+    // Moving: whatever the revs say.
+    k.frame.RPM[0] = 0
+    k.frame.Speed[0] = ALERTS.movingMs + 0.5
+    expect(kinds(k.run())).toEqual(['oilPressure', 'fuelPressure'])
+    // Without the car's idle (or the revs) only moving counts; the temperatures need neither.
+    k.session = makeSession(3)
+    k.frame.Speed[0] = 1
+    k.frame.RPM[0] = 2000
+    expect(k.run().notices).toEqual([])
+    expect(kinds(k.warnings(EngineWarning.WaterTemp).run())).toEqual(['water'])
+  })
+
+  it('quiet while towed, in the box and as you get in the car (Q2)', () => {
+    const lights = EngineWarning.OilPressure | EngineWarning.Stalled | EngineWarning.WaterTemp
+    // Towed (online: EngineWarnings alternating 400/404/412 all the tow long).
+    const t = new Tick().warnings(lights)
+    t.frame.PlayerCarTowTime[0] = 50
+    expect(kinds(t.run())).toEqual(['tow'])
+    // In the box after it, the engine starting.
+    t.frame.PlayerCarTowTime[0] = 0
+    t.frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
+    expect(t.run().notices).toEqual([])
+    t.frame.PlayerTrackSurface[0] = TrackLocation.OnTrack
+    expect(kinds(t.run())).toEqual(['stalled', 'water'])
+
+    // Getting in the car: the engine starts (online: 12 -> 4 -> 0 in 1.6 s at the grid).
+    const g = new Tick().warnings(lights)
+    g.frame.IsOnTrack[0] = false
+    g.run()
+    g.frame.IsOnTrack[0] = true
+    expect(g.runFor(ALERTS.inCarSettleS - 0.2).notices).toEqual([])
+    expect(kinds(g.runFor(0.4))).toEqual(['stalled', 'water'])
+    // Already in the car when the provider starts: nothing to wait for.
+    expect(kinds(new Tick().warnings(lights).run())).toEqual(['stalled', 'water'])
+  })
+})
+
+describe('damage (Q12)', () => {
+  it('mandatory repairs while pending, before the meatball comes out; then the meatball', () => {
+    const k = new Tick()
+    k.run()
+    // Online: optional at 370.25, mandatory 20 ms later, the meatball 10 s after.
+    k.warnings(EngineWarning.OptionalRepairs | EngineWarning.MandatoryRepairs)
+    expect(k.run().notices).toEqual([{ kind: 'damage', mandatory: true }])
+    expect(k.runFor(10).notices).toEqual([{ kind: 'damage', mandatory: true }])
+    expect(k.flags(SessionFlag.Repair).run()).toMatchObject({ flags: ['meatball'], notices: [] })
+    // Without the flags shown, the damage still says it.
+    expect(k.run({ showFlags: false }).notices).toEqual([{ kind: 'damage', mandatory: true }])
+    expect(k.run({ showFlags: false, showDamage: false })).toMatchObject({ visible: false })
+    // Repaired.
+    k.flags(0).warnings(EngineWarning.PitSpeedLimiter)
+    expect(k.run().notices).toEqual([])
+  })
+
+  it('optional repairs for a few seconds after they appear, once', () => {
+    const k = new Tick()
+    k.run()
+    k.warnings(EngineWarning.OptionalRepairs)
+    expect(k.run().notices).toEqual([{ kind: 'damage', mandatory: false }])
+    expect(k.runFor(DAMAGE.optionalS - 0.3).notices).toEqual([{ kind: 'damage', mandatory: false }])
+    expect(k.runFor(0.4).notices).toEqual([])
+    expect(k.runFor(60).notices).toEqual([])
+    // A longer hold makes it last longer.
+    const h = new Tick()
+    h.run({ holdS: 9 })
+    h.warnings(EngineWarning.OptionalRepairs)
+    expect(h.runFor(8.5, { holdS: 9 }).notices).toEqual([{ kind: 'damage', mandatory: false }])
+    // Already damaged when the provider starts: not new.
+    expect(new Tick().warnings(EngineWarning.OptionalRepairs).run().notices).toEqual([])
+  })
+
+  it('not out of the car, towed or in the box', () => {
+    const k = new Tick()
+    k.run()
+    k.warnings(EngineWarning.MandatoryRepairs)
+    k.frame.PlayerCarTowTime[0] = 30
+    expect(kinds(k.run())).toEqual(['tow'])
+    k.frame.PlayerCarTowTime[0] = 0
+    k.frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
+    expect(k.run().notices).toEqual([])
+    k.frame.PlayerTrackSurface[0] = TrackLocation.OnTrack
+    k.frame.IsOnTrack[0] = false
+    expect(k.run().notices).toEqual([])
   })
 })
 
@@ -420,6 +635,20 @@ describe('tow', () => {
     expect(new AlertsProvider().compute(frame, k.session, EMPTY_RACE_VIEW, OPTS).notices).toEqual(
       []
     )
+  })
+
+  it('first, over the meatball it takes you in for, which then says no "pit" (B10)', () => {
+    const k = new Tick().flags(SessionFlag.Repair)
+    k.warnings(EngineWarning.PitSpeedLimiter | EngineWarning.MandatoryRepairs)
+    k.frame.OnPitRoad[0] = true
+    k.frame.PlayerCarTowTime[0] = 42.8
+    const d = k.run({ showTow: false })
+    expect(d).toMatchObject({ flags: ['meatball'], notices: [], pitLimiter: null, inBox: true })
+    expect(k.run()).toMatchObject({
+      flags: ['meatball'],
+      notices: [{ kind: 'tow', seconds: 43 }],
+      inBox: true
+    })
   })
 })
 
@@ -567,12 +796,17 @@ describe('engine temperature trend', () => {
       f.CarIdxTrackSurface[1] = TrackLocation.OnTrack
     }
 
-    run(seconds: number, water: number, o: Partial<AlertsOptions> = {}): AlertsData {
+    /** `water`: °C, or °C at each SessionTime. */
+    run(
+      seconds: number,
+      water: number | ((t: number) => number),
+      o: Partial<AlertsOptions> = {}
+    ): AlertsData {
       const f = this.k.frame
       let last = this.k.run(o)
       for (let i = 0; i < Math.round(seconds * 10); i++) {
         const pct = ((this.k.frame.SessionTime[0] ?? 0) / 30) % 1
-        f.WaterTemp[0] = water
+        f.WaterTemp[0] = typeof water === 'number' ? water : water(f.SessionTime[0] ?? 0)
         f.OilTemp[0] = 100
         f.LapDistPct[0] = pct
         f.CarIdxLapDistPct[0] = pct
@@ -590,9 +824,15 @@ describe('engine temperature trend', () => {
     }
   }
 
+  // Readings move a few degrees a second at most: a step of more than jumpC is a repair.
+  const rise = (s: Session, to: number): void => {
+    s.run(1, to - 4)
+  }
+
   it('says when the water stays well above your clean-lap average', () => {
     const s = new Session()
     expect(s.run(120, 88).notices).toEqual([])
+    rise(s, 96)
     expect(s.run(15, 96).notices).toEqual([])
     const n = s.run(ENGINE_TREND.sustainS, 96).notices
     expect(n).toEqual([
@@ -605,12 +845,46 @@ describe('engine temperature trend', () => {
     const s = new Session()
     s.gapS = 0.6
     s.run(120, 88)
+    rise(s, 96)
     expect(s.run(60, 96).notices).toMatchObject([{ kind: 'engineTrend', draft: true }])
     // The pace car is never "close behind" (RaceView.cars leaves it out), nor a car further.
     const far = new Session()
     far.gapS = ALERTS.draftGapS * 1.5
     far.run(120, 88)
+    rise(far, 96)
     expect(far.run(60, 96).notices).toMatchObject([{ kind: 'engineTrend', draft: false }])
+  })
+
+  const trend = (d: AlertsData): AlertNotice[] => d.notices.filter((n) => n.kind === 'engineTrend')
+
+  it('a warm-up is no reference: only a lap within stableC of the one before (Q6)', () => {
+    const s = new Session()
+    // Online: after a repair the oil climbed ~1.5 °C a lap; laps taken then made a reference
+    // below the engine's normal, and the climb went on towards a false notice.
+    s.run(150, (t) => 80 + (1.5 * t) / 30)
+    expect(trend(s.run(40, 95))).toEqual([])
+    // Settled: laps alike make the reference, and a rise above it is said.
+    s.run(100, 95)
+    rise(s, 101)
+    expect(trend(s.run(40, 101))).toMatchObject([{ fluid: 'water', tempC: 101, deltaC: 6 }])
+  })
+
+  it('a tow or a reading jumping more than jumpC starts the reference over (Q6)', () => {
+    for (const reset of ['tow', 'jump'] as const) {
+      const s = new Session()
+      s.run(120, 88)
+      if (reset === 'tow') {
+        s.k.frame.PlayerCarTowTime[0] = 30
+        s.run(1, 88)
+        s.k.frame.PlayerCarTowTime[0] = 0
+      } else {
+        // Online: the repair at the end of the tow, the oil from 73.4 to 61.4 °C at once.
+        s.run(1, 88 - ENGINE_TREND.jumpC - 0.5)
+        s.run(1, 88)
+      }
+      rise(s, 96)
+      expect(trend(s.run(40, 96)), reset).toEqual([])
+    }
   })
 
   it('skips a car without the reading', () => {
@@ -630,7 +904,8 @@ describe('alertsEqual', () => {
     pitLimiter: 'on',
     speedKmh: 58,
     pitLimitKmh: 60,
-    incident: { points: 2, kind: 'loss-of-control', lap: 5, sector: 3, surface: 'gravel' }
+    incident: { points: 2, kind: 'loss-of-control', lap: 5, sector: 3, surface: 'gravel' },
+    inBox: false
   }
 
   it('is structural and sees every field', () => {
@@ -642,6 +917,8 @@ describe('alertsEqual', () => {
       { notices: [] },
       { notices: [{ kind: 'tow', seconds: 11 }] },
       { notices: [{ kind: 'stalled' }] },
+      { notices: [{ kind: 'damage', mandatory: true }] },
+      { inBox: true },
       { pitLimiter: 'speeding' },
       { pitLimiter: 'offSpeeding' },
       { pitLimiter: null },

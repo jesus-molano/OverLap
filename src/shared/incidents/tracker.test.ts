@@ -79,7 +79,7 @@ describe('IncidentTracker', () => {
     expect(d.tracker.latest).toMatchObject({ points: 1, kind: 'off-track', lap: 5, sector: 2 })
   })
 
-  it('groups rises a moment apart into one incident, named by the report with most points', () => {
+  it('groups rises a moment apart into one incident, named by its most serious report', () => {
     const d = settled()
     d.hit(1, OFF_1X).run(0.6).hit(1, LOC_2X)
     expect(d.tracker.latest).toMatchObject({ points: 2, kind: 'loss-of-control' })
@@ -94,6 +94,33 @@ describe('IncidentTracker', () => {
     // Past the group window: a new incident.
     d.run(INCIDENTS.groupS + 0.5).hit(1, OFF_1X)
     expect(d.tracker.latest).toMatchObject({ points: 1, kind: 'off-track' })
+  })
+
+  it('names it by the type, not by the penalty byte, which is not the points (Q7)', () => {
+    // Online the penalty byte read 0x00 for an "Off Track (1x)" and 0x04 for a 1x wall hit.
+    const offTrack2xByte = encodeIncident(IncidentReport.OffTrack, IncidentPenalty.TwoX)
+    const lossNoByte = encodeIncident(IncidentReport.OutOfControl, IncidentPenalty.None)
+    for (const order of [
+      [lossNoByte, offTrack2xByte],
+      [offTrack2xByte, lossNoByte]
+    ]) {
+      const d = settled()
+      d.hit(1, order[0]).run(0.5).hit(1, order[1])
+      expect(d.tracker.latest).toMatchObject({ points: 2, kind: 'loss-of-control' })
+    }
+    // The race's: an off-track (0x0002) 0.25 s before the count, the wall (0x0405) 0.8 s later.
+    const wall = settled()
+    wall.set({ report: encodeIncident(IncidentReport.OffTrack, IncidentPenalty.None) }).run()
+    wall.set({ report: 0 }).run(0.25).set({ count: 1 }).run(0.7)
+    wall.set({ report: encodeIncident(IncidentReport.CollisionWithWorld, IncidentPenalty.FourX) })
+    wall.run().set({ report: 0 }).run(0.1).set({ count: 2 }).run()
+    expect(wall.tracker.latest).toMatchObject({ points: 2, kind: 'collision-world' })
+    // Two reports before the count rises: the worse waits for it, whichever came last.
+    const two = settled()
+    two.set({ report: encodeIncident(IncidentReport.CollisionWithWorld, IncidentPenalty.None) })
+    two.run().set({ report: offTrack2xByte }).run().set({ report: 0 }).run(0.2)
+    two.set({ count: 2 }).run()
+    expect(two.tracker.latest).toMatchObject({ points: 2, kind: 'collision-world' })
   })
 
   it('takes a report that comes a tick before or after the count', () => {
