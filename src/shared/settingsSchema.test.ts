@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { canonicalAccelerator } from './accelerator'
 import { normalizeHexColor } from './colors'
 import { LANGUAGES, messagesFor } from './i18n'
 import {
@@ -53,6 +54,9 @@ describe('OPTION_SCHEMA', () => {
           break
         case 'bool':
           expect(typeof spec.default, name).toBe('boolean')
+          break
+        case 'accelerator':
+          expect(canonicalAccelerator(spec.default), name).toBe(spec.default)
       }
     }
   })
@@ -188,5 +192,16 @@ describe('language spec', () => {
     expect(spec.values).toEqual(['es', 'en'])
     expect(spec.default).toBe('es')
     expect(spec.displayOnly).toBe(true)
+  })
+})
+
+describe('shortcut specs', () => {
+  it('are display-only accelerators with distinct defaults', () => {
+    const specs = Object.values(OPTION_SCHEMA.shortcuts)
+    for (const spec of specs) {
+      expect(spec.kind).toBe('accelerator')
+      expect(spec.displayOnly).toBe(true)
+    }
+    expect(new Set(specs.map((s) => s.default)).size).toBe(specs.length)
   })
 })

@@ -159,6 +159,8 @@ export class FakeBrowserWindow extends Emitter {
   title: string
   visible = false
   minimized = false
+  /** Has the keyboard focus (focus() and show() give it; blur() takes it). */
+  focused = false
   destroyed = false
   /** What the last setIgnoreMouseEvents call asked for. */
   mouse: { ignore: boolean; forward: boolean } = { ignore: false, forward: false }
@@ -168,19 +170,23 @@ export class FakeBrowserWindow extends Emitter {
   })
   readonly setAlwaysOnTop = vi.fn()
   readonly moveTop = vi.fn()
-  readonly focus = vi.fn()
+  readonly focus = vi.fn(() => {
+    this.focused = true
+  })
   readonly setFocusable = vi.fn()
   readonly restore = vi.fn(() => {
     this.minimized = false
   })
   readonly show = vi.fn(() => {
     this.visible = true
+    this.focused = true
   })
   readonly showInactive = vi.fn(() => {
     this.visible = true
   })
   readonly hide = vi.fn(() => {
     this.visible = false
+    this.focused = false
   })
   readonly setBounds = vi.fn((rect: Rect) => {
     this.bounds = { ...rect }
@@ -222,6 +228,9 @@ export class FakeBrowserWindow extends Emitter {
   isMinimized(): boolean {
     return this.minimized
   }
+  isFocused(): boolean {
+    return this.focused && !this.destroyed
+  }
   getTitle(): string {
     return this.title
   }
@@ -230,6 +239,12 @@ export class FakeBrowserWindow extends Emitter {
   }
   getBounds(): Rect {
     return { ...this.bounds }
+  }
+
+  /** Another window takes the keyboard focus. */
+  blur(): void {
+    this.focused = false
+    this.emit('blur')
   }
 
   /** Finishes loading (see `finishLoad`), then fires 'ready-to-show', as after the first paint. */
@@ -329,9 +344,71 @@ class FakeApp extends Emitter {
 
 export const fakeApp = new FakeApp()
 
+/**
+ * Electron's globalShortcut as Windows treats it: a combination another application holds
+ * (`taken`) is refused, registrations fail while suspended, and a suspended shortcut does not
+ * fire. Nothing reaches the operating system.
+ */
+export class FakeGlobalShortcut {
+  /** Combinations "another application" holds: register() refuses them. */
+  readonly taken = new Set<string>()
+  readonly callbacks = new Map<string, () => void>()
+  suspended = false
+
+  readonly register = vi.fn((accelerator: string, callback: () => void): boolean => {
+    if (this.suspended || this.taken.has(accelerator) || this.callbacks.has(accelerator)) {
+      return false
+    }
+    this.callbacks.set(accelerator, callback)
+    return true
+  })
+  readonly unregister = vi.fn((accelerator: string): void => {
+    this.callbacks.delete(accelerator)
+  })
+  readonly unregisterAll = vi.fn((): void => {
+    this.callbacks.clear()
+  })
+  readonly setSuspended = vi.fn((suspended: boolean): void => {
+    this.suspended = suspended
+  })
+
+  isRegistered(accelerator: string): boolean {
+    return this.callbacks.has(accelerator)
+  }
+  isSuspended(): boolean {
+    return this.suspended
+  }
+
+  /** The user presses `accelerator`: true when a registered, unsuspended shortcut took it. */
+  press(accelerator: string): boolean {
+    const cb = this.callbacks.get(accelerator)
+    if (!cb || this.suspended) return false
+    cb()
+    return true
+  }
+
+  /** Registered combinations, sorted. */
+  registered(): string[] {
+    return [...this.callbacks.keys()].sort()
+  }
+
+  reset(): void {
+    this.taken.clear()
+    this.callbacks.clear()
+    this.suspended = false
+    this.register.mockClear()
+    this.unregister.mockClear()
+    this.unregisterAll.mockClear()
+    this.setSuspended.mockClear()
+  }
+}
+
+export const fakeGlobalShortcut = new FakeGlobalShortcut()
+
 export const electronModule = {
   BrowserWindow: FakeBrowserWindow,
   app: fakeApp,
+  globalShortcut: fakeGlobalShortcut,
   ipcMain: fakeIpcMain,
   powerMonitor: fakePowerMonitor,
   screen: fakeScreen
@@ -349,4 +426,5 @@ export function resetFakeElectron(): void {
   fakeApp.removeAllListeners()
   fakeApp.isPackaged = true
   fakeApp.gpuCompositing = 'enabled'
+  fakeGlobalShortcut.reset()
 }

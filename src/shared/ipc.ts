@@ -16,6 +16,7 @@
  * list comes back the same way.
  */
 import type { PersonalBestList } from './delta/references'
+import type { ShortcutStatusMap } from './shortcuts'
 import type {
   HiddenReason,
   OverlaySettings,
@@ -89,7 +90,11 @@ export const IPC = {
   /** overlay window -> main (send), `ScaleStepMessage`: wheel over an auto-height widget, edit mode. */
   scaleStep: 'overlay:scale-step',
   /** overlay window -> main (send), `DragStateMessage`: edit mode only. */
-  dragState: 'overlay:drag-state'
+  dragState: 'overlay:drag-state',
+  /** main -> settings window, `boolean`: the user hid every overlay window (tray, shortcut). */
+  overlayHidden: 'overlay:overlay-hidden',
+  /** main -> settings window, `ShortcutStatusMap`: whenever a shortcut's registration changes. */
+  shortcutStatus: 'overlay:shortcut-status'
 } as const
 
 export interface AutoHiddenState {
@@ -216,6 +221,11 @@ export const DRAG_HEARTBEAT_MS = 500
 /** Main stops holding the mouse for a drag when that repeat is this late (hung renderer). */
 export const DRAG_LEASE_MS = 1_500
 
+/** While it records a combination, the shortcuts page repeats its 'capture-shortcuts' this often. */
+export const SHORTCUT_CAPTURE_RENEW_MS = 10_000
+/** Main resumes its shortcuts by itself when that repeat is this late (a page that went away). */
+export const SHORTCUT_CAPTURE_LEASE_MS = 30_000
+
 /** Which page a renderer shows: `?view=overlay` or `?view=settings`. */
 export type RendererView = { kind: 'overlay' } | { kind: 'settings' }
 
@@ -229,6 +239,15 @@ export type SettingsCommand =
   | { type: 'refresh-personal-bests' }
   | { type: 'delete-personal-bests'; keys: string[] }
   | { type: 'clear-personal-bests' }
+  /** Hide or show every overlay window (like the tray checkbox and the shortcut). */
+  | { type: 'set-overlay-hidden'; hidden: boolean }
+  /**
+   * The shortcuts page records a combination: main suspends its global shortcuts so the keys
+   * reach the page. `on: true` starts or renews it (every SHORTCUT_CAPTURE_RENEW_MS); main
+   * resumes on `on: false`, SHORTCUT_CAPTURE_LEASE_MS after the last renewal, and whenever the
+   * settings window loses focus, hides, closes, reloads or crashes.
+   */
+  | { type: 'capture-shortcuts'; on: boolean }
 
 export interface InitialState {
   view: RendererView
@@ -239,6 +258,10 @@ export interface InitialState {
   layout: OverlayLayout | null
   /** Overlay windows: every widget a visibility rule hides right now ({} elsewhere). */
   autoHidden: AutoHiddenMap
+  /** The user hid every overlay window (not saved: the app always starts shown). */
+  overlayHidden: boolean
+  /** How each configured shortcut is doing (registered, off, taken by another app). */
+  shortcutStatus: ShortcutStatusMap
 }
 
 export type Unsubscribe = () => void
@@ -256,6 +279,10 @@ export interface OverlayApi {
   onLayout(cb: (layout: OverlayLayout) => void): Unsubscribe
   /** Settings window only. */
   onPersonalBests(cb: (list: PersonalBestList) => void): Unsubscribe
+  /** Settings window only: the user hid or showed every overlay window. */
+  onOverlayHidden(cb: (hidden: boolean) => void): Unsubscribe
+  /** Settings window only. */
+  onShortcutStatus(cb: (status: ShortcutStatusMap) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */

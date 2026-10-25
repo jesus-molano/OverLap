@@ -6,6 +6,7 @@ import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
 import { updateFailed } from './editor'
 import EditModeButton from './layout/EditModeButton.vue'
+import OverlayHiddenNote from './layout/OverlayHiddenNote.vue'
 import SettingsFooter from './layout/SettingsFooter.vue'
 import SettingsSidebar from './layout/SettingsSidebar.vue'
 import {
@@ -18,6 +19,7 @@ import {
   type SettingsPage
 } from './nav'
 import AppearancePage from './pages/AppearancePage.vue'
+import ShortcutsPage from './pages/ShortcutsPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 
 // Main is the source of truth: these follow its broadcasts (and the replies to our updates).
@@ -71,6 +73,7 @@ function onSelectChange(e: Event): void {
           {{ t.settings.app.editBanner.before }} <kbd>Alt</kbd>
           {{ t.settings.app.editBanner.after }}
         </p>
+        <OverlayHiddenNote />
         <p v-if="updateFailed" class="banner banner-error" role="alert">
           {{ t.settings.app.updateError }}
         </p>
@@ -82,6 +85,7 @@ function onSelectChange(e: Event): void {
           <SettingsFooter />
         </div>
         <AppearancePage v-else-if="page === 'appearance'"><SettingsFooter /></AppearancePage>
+        <ShortcutsPage v-else-if="page === 'shortcuts'"><SettingsFooter /></ShortcutsPage>
         <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>
       </main>
     </div>

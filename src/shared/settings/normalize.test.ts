@@ -13,6 +13,7 @@ import type {
   TrafficOptions,
   WidgetSettings
 } from '../types'
+import type { ShortcutSettings } from '../shortcuts'
 import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import {
   ALERTS_HOLD_MAX_S,
@@ -132,6 +133,10 @@ const DEFAULT_ALERTS: AlertsOptions = {
   showPitLimiter: true,
   holdS: 3
 }
+const DEFAULT_SHORTCUTS: ShortcutSettings = {
+  toggleOverlay: 'Ctrl+Shift+H',
+  toggleEditMode: 'Ctrl+Shift+E'
+}
 const DEFAULT_DELTA: DeltaOptions = {
   reference: 'pb',
   fallback: true,
@@ -175,7 +180,8 @@ describe('DEFAULT_SETTINGS', () => {
       inputs: DEFAULT_INPUTS,
       traffic: DEFAULT_TRAFFIC,
       alerts: DEFAULT_ALERTS,
-      delta: DEFAULT_DELTA
+      delta: DEFAULT_DELTA,
+      shortcuts: DEFAULT_SHORTCUTS
     })
   })
 
@@ -893,5 +899,72 @@ describe('normalizeSettings: migration', () => {
     expect(mixed.standings.columns).toEqual(DEFAULT_COLUMNS)
     // A file with v4 columns is not migrated: the stale header flag is ignored too.
     expect(mixed.standings.headerIRating).toBe(true)
+  })
+})
+
+describe('normalizeSettings: shortcuts', () => {
+  it('gives an older file without the section the default shortcuts', () => {
+    expect(normalizeSettings({ version: 4 }).shortcuts).toEqual(DEFAULT_SHORTCUTS)
+    expect(normalizeSettings({ shortcuts: 'Ctrl+Shift+H' }).shortcuts).toEqual(DEFAULT_SHORTCUTS)
+  })
+
+  it('stores each combination in its canonical spelling, and keeps a turned-off one', () => {
+    const s = normalizeSettings({
+      shortcuts: { toggleOverlay: 'commandorcontrol+alt+shift+o', toggleEditMode: '' }
+    })
+    expect(s.shortcuts).toEqual({ toggleOverlay: 'Ctrl+Alt+Shift+O', toggleEditMode: '' })
+  })
+
+  it('replaces invalid, reserved or modifier-less combinations with the default', () => {
+    for (const bad of [
+      'Ctrl+C',
+      'Alt+F4',
+      'Ctrl+Shift+Escape',
+      'Escape',
+      'F5',
+      'Shift+A',
+      'Win+H',
+      'Ctrl+ñ',
+      'Ctrl+Tab',
+      'nonsense',
+      null,
+      7,
+      true,
+      { key: 'H' },
+      ['Ctrl+Shift+H']
+    ]) {
+      expect(
+        normalizeSettings({ shortcuts: { toggleOverlay: bad } }).shortcuts.toggleOverlay,
+        JSON.stringify(bad)
+      ).toBe('Ctrl+Shift+H')
+    }
+  })
+
+  it('keeps an AltGr-like combination (only a warning when assigning it)', () => {
+    expect(
+      normalizeSettings({ shortcuts: { toggleEditMode: 'Ctrl+Alt+E' } }).shortcuts.toggleEditMode
+    ).toBe('Ctrl+Alt+E')
+  })
+
+  it('gives a combination repeated on disk to the first action only, the later is turned off', () => {
+    expect(
+      normalizeSettings({
+        shortcuts: { toggleOverlay: 'Ctrl+Alt+F9', toggleEditMode: 'ctrl+alt+f9' }
+      }).shortcuts
+    ).toEqual({ toggleOverlay: 'Ctrl+Alt+F9', toggleEditMode: '' })
+    // A default counts: an edited first action that takes the second's default wins it.
+    expect(normalizeSettings({ shortcuts: { toggleOverlay: 'Ctrl+Shift+E' } }).shortcuts).toEqual({
+      toggleOverlay: 'Ctrl+Shift+E',
+      toggleEditMode: ''
+    })
+    expect(
+      normalizeSettings({ shortcuts: { toggleOverlay: '', toggleEditMode: '' } }).shortcuts
+    ).toEqual({ toggleOverlay: '', toggleEditMode: '' })
+  })
+
+  it('round-trips through the file', () => {
+    const saved = createDefaultSettings()
+    saved.shortcuts = { toggleOverlay: 'F13', toggleEditMode: 'Ctrl+Alt+PageUp' }
+    expect(normalizeSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved)
   })
 })

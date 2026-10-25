@@ -2,7 +2,13 @@
 import type { OverlaySettings, Rect, Size } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
 import { OPTION_SECTIONS, createDefaultSettings, sectionSpecs } from './defaults'
-import { isFiniteNumber, isRecord, mergeSection, mergeWidgetFields } from './fields'
+import {
+  disableDuplicateAccelerators,
+  isFiniteNumber,
+  isRecord,
+  mergeSection,
+  mergeWidgetFields
+} from './fields'
 import { migrateSection } from './migrate'
 
 /** Upper bound for a widget dimension; anything larger is a corrupt file. */
@@ -12,7 +18,8 @@ const MAX_WIDGET_DIMENSION = 10_000
  * Merges anything read from disk with the defaults. Never throws: unknown
  * widget ids and keys are dropped, missing widgets and fields get their
  * defaults, invalid values are replaced and numbers are clamped to their
- * ranges. The `version` field is not trusted: v1/v2/v3 files are recognised by
+ * ranges; a shortcut combination repeated on disk stays with the first action
+ * only. The `version` field is not trusted: v1/v2/v3 files are recognised by
  * their fields (see migrate.ts); the result is always the current version.
  */
 export function normalizeSettings(raw: unknown): OverlaySettings {
@@ -29,7 +36,9 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
   }
   for (const section of OPTION_SECTIONS) {
     const r = migrateSection(section, raw[section])
-    if (isRecord(r)) mergeSection(out[section], r, sectionSpecs(section))
+    if (!isRecord(r)) continue
+    mergeSection(out[section], r, sectionSpecs(section))
+    disableDuplicateAccelerators(out[section], sectionSpecs(section))
   }
   return out
 }

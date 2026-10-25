@@ -76,7 +76,7 @@ describe('useOverlayState', () => {
     const b = mod.useOverlayState()
     expect(a).toBe(b)
     expect(a).toBe(mod.overlayState)
-    expect(fake.listenerCount()).toBe(6)
+    expect(fake.listenerCount()).toBe(8)
     await flush()
     expect(a.status.value).toEqual(LIVE_STATUS)
     expect(a.settings.value?.version).toBe(4)
@@ -86,9 +86,28 @@ describe('useOverlayState', () => {
     const s = mod.useOverlayState()
     fake.status.emit(WAITING_STATUS)
     fake.editMode.emit(true)
+    fake.overlayHidden.emit(true)
+    fake.shortcutStatus.emit({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
     await flush()
     expect(s.status.value).toEqual(WAITING_STATUS)
     expect(s.editMode.value).toBe(true)
+    expect(s.overlayHidden.value).toBe(true)
+    expect(s.shortcutStatus.value).toEqual({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
+  })
+
+  it('takes the hidden overlay and the shortcuts status from the initial state', async () => {
+    await load({
+      overlayHidden: true,
+      shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'disabled' }
+    })
+    const s = mod.useOverlayState()
+    expect(s.overlayHidden.value).toBe(false)
+    expect(s.shortcutStatus.value).toBeNull()
+    await flush()
+    expect(s.overlayHidden.value).toBe(true)
+    expect(s.shortcutStatus.value).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'disabled' })
+    fake.overlayHidden.emit(false)
+    expect(s.overlayHidden.value).toBe(false)
   })
 })
 
