@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MINUS } from '@shared/format'
+import { messagesFor } from '@shared/i18n'
 import type { RelativeData, RelativeRow } from '@shared/types'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
@@ -14,6 +15,8 @@ import {
 } from './view'
 
 const M = MINUS
+const ES = messagesFor('es')
+const EN = messagesFor('en')
 
 function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
   return {
@@ -77,7 +80,8 @@ describe('toSlotViews', () => {
       row(4, { gapS: -2.34, driverName: 'Pierre-Étienne Duvalier' }),
       1,
       styles,
-      'abbr'
+      'abbr',
+      ES
     )
     expect(v).toMatchObject({
       kind: 'car',
@@ -92,43 +96,62 @@ describe('toSlotViews', () => {
     })
   })
 
+  it("shows the team's name, then 'Piloto #7', for a name iRacing turned into '?'", () => {
+    // driverName '' is how the provider sends '?????? ?????' (shared/driver.ts).
+    const unknown = row(7, { driverName: '' })
+    expect(toSlotView(unknown, 0, styles, 'abbr', ES)).toMatchObject({
+      name: 'Piloto #7',
+      nameUnknown: true
+    })
+    expect(toSlotView(unknown, 0, styles, 'abbr', EN).name).toBe('Driver #7')
+    // The team's name as it is: not restyled like a person's.
+    expect(
+      toSlotView(row(7, { driverName: '', teamName: 'Apex Racing Team' }), 0, styles, 'tv', ES)
+    ).toMatchObject({ name: 'Apex Racing Team', nameUnknown: false })
+    // A style that keeps only the '?' part of a name falls back as well.
+    expect(toSlotView(row(7, { driverName: 'Ivan ??????' }), 0, styles, 'surname', ES).name).toBe(
+      'Piloto #7'
+    )
+    expect(toSlotView(row(7), 0, styles, 'abbr', ES).nameUnknown).toBe(false)
+  })
+
   it('leaves your own gap blank and marks your row', () => {
-    const v = toSlotView(row(0, { isPlayer: true, gapS: 0 }), 0, styles, 'full')
+    const v = toSlotView(row(0, { isPlayer: true, gapS: 0 }), 0, styles, 'full', ES)
     expect(v.gap).toBe('')
     expect(v.css).toBe('rl-row ov-player')
   })
 
   it('marks lap relations and pits', () => {
-    expect(toSlotView(row(1, { lapRelation: 'ahead' }), 0, styles, 'full')).toMatchObject({
+    expect(toSlotView(row(1, { lapRelation: 'ahead' }), 0, styles, 'full', ES)).toMatchObject({
       lap: 'ahead',
       css: 'rl-row is-lap-ahead'
     })
-    expect(toSlotView(row(1, { lapRelation: 'behind', inPits: true }), 0, styles, 'full').css).toBe(
-      'rl-row is-pits is-lap-behind'
-    )
+    expect(
+      toSlotView(row(1, { lapRelation: 'behind', inPits: true }), 0, styles, 'full', ES).css
+    ).toBe('rl-row is-pits is-lap-behind')
     // Your own row never has a lap relation.
     expect(
-      toSlotView(row(0, { isPlayer: true, lapRelation: 'behind' }), 0, styles, 'full').lap
+      toSlotView(row(0, { isPlayer: true, lapRelation: 'behind' }), 0, styles, 'full', ES).lap
     ).toBeNull()
   })
 
   it('uses shared empty slots, striped by index', () => {
-    const views = toSlotViews(layoutSlots(data(0, 0), 2, 0), styles, 'full')
+    const views = toSlotViews(layoutSlots(data(0, 0), 2, 0), styles, 'full', ES)
     expect(views.map((v) => v.kind)).toEqual(['empty', 'empty', 'car'])
-    expect(views[0]).toBe(toSlotViews([null], styles, 'full')[0])
+    expect(views[0]).toBe(toSlotViews([null], styles, 'full', ES)[0])
     expect(views[1]?.css).toBe('rl-row is-alt')
   })
 
   it('keeps unchanged slots as the same objects for v-memo', () => {
-    const first = toSlotViews(layoutSlots(data(3, 3), 3, 3), styles, 'abbr')
+    const first = toSlotViews(layoutSlots(data(3, 3), 3, 3), styles, 'abbr', ES)
     const same = reuseViews<SlotView>(
       first,
-      toSlotViews(layoutSlots(data(3, 3), 3, 3), styles, 'abbr')
+      toSlotViews(layoutSlots(data(3, 3), 3, 3), styles, 'abbr', ES)
     )
     expect(same).toBe(first)
     const d = data(3, 3)
     d.rows[4] = { ...d.rows[4]!, gapS: -0.4 }
-    const next = reuseViews<SlotView>(first, toSlotViews(layoutSlots(d, 3, 3), styles, 'abbr'))
+    const next = reuseViews<SlotView>(first, toSlotViews(layoutSlots(d, 3, 3), styles, 'abbr', ES))
     expect(next.filter((v, i) => v !== first[i])).toHaveLength(1)
     expect((next[4] as RelativeSlotView).gap).toBe(`${M}0.4`)
   })

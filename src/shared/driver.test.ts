@@ -6,6 +6,7 @@ function entry(o: Partial<DriverEntry> = {}): DriverEntry {
   return {
     carIdx: 4,
     userName: 'Alejandro Ruiz',
+    teamName: '',
     carNumber: '07',
     iRating: 2412,
     licString: 'B 3.21',
@@ -48,6 +49,22 @@ describe('driverIdentity', () => {
     expect(id.licColor).toBeNull()
     expect(driverIdentity(entry({ iRating: -1 })).iRating).toBeNull()
   })
+
+  it("leaves out a name iRacing turned into '?', with the team's when that one is known", () => {
+    // Outside team races TeamName is the same '?' name: nothing to stand in.
+    const solo = driverIdentity(entry({ userName: '?????? ?????', teamName: '?????? ?????' }))
+    expect(solo.driverName).toBe('')
+    expect('teamName' in solo).toBe(false)
+    expect(driverIdentity(entry({ userName: ' ?? - ?. ', teamName: '' })).driverName).toBe('')
+    // Team races: the team stands in for the driver in the car.
+    const team = driverIdentity(entry({ userName: '???? ??????', teamName: 'Équipe Rouge' }))
+    expect(team).toMatchObject({ driverName: '', teamName: 'Équipe Rouge' })
+    // A name with any letter or digit is the driver's own, whatever the team.
+    expect(driverIdentity(entry({ userName: 'Ivan ??????', teamName: 'Équipe Rouge' }))).toEqual(
+      driverIdentity(entry({ userName: 'Ivan ??????' }))
+    )
+    expect(driverIdentity(entry({ userName: '?? 77' })).driverName).toBe('?? 77')
+  })
 })
 
 describe('identityEqual', () => {
@@ -58,6 +75,7 @@ describe('identityEqual', () => {
       { carIdx: 5 },
       { carNumber: '7' },
       { driverName: 'X' },
+      { teamName: 'Équipe Rouge' },
       { classColor: '#ffffff' },
       { iRating: null },
       { licString: 'A 1.00' },

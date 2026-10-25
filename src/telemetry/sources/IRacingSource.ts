@@ -3,15 +3,20 @@ import type * as NativeModule from '@irsdk-node/native'
 import { parseSessionYaml } from '@shared/sessionYaml'
 import { TELEMETRY_VAR_NAMES, type TelemetryFrame, type TelemetryVarName } from '@shared/telemetry'
 import type { SourceKind } from '@shared/types'
-import { NativeSdkMissingError } from '../errors'
+import { NativeSdkMissingError, errorMessage } from '../errors'
+import { SessionStringReader, type OpenMapping } from '../sessionString/reader'
 import { isSimRunning } from '../simStatus'
 import type { TelemetrySource } from './TelemetrySource'
 
 const EMPTY: readonly never[] = Object.freeze([])
 
+/** IRSDK_MEMMAPFILENAME (irsdk_defines.h): only ever opened read-only. */
+const IRSDK_MEMMAP_NAME = 'Local\\IRSDKMemMapFileName'
+
 let nativeMocked: Promise<boolean> | null = null
 // One wrapper per process: native tick detection keeps process-global state.
 let sharedSdk: Promise<IRacingSDK> | null = null
+let mappingOpener: Promise<OpenMapping | null> | null = null
 
 /**
  * True when @irsdk-node/native fell back to its MockSDK (non-Windows or addon
@@ -41,6 +46,20 @@ function getSdk(): Promise<IRacingSDK> {
       throw err
     })
   return sharedSdk
+}
+
+/**
+ * koffi's read-only mapping opener, loaded once per process; null (logged once) when koffi or
+ * its binary does not load, and session names then keep irsdk-node's decoding.
+ */
+function getMappingOpener(): Promise<OpenMapping | null> {
+  mappingOpener ??= import('../sessionString/win32')
+    .then(({ loadMappingOpener }) => loadMappingOpener())
+    .catch((err: unknown) => {
+      console.warn(`Session info reader unavailable, accents may be lost: ${errorMessage(err)}`)
+      return null
+    })
+  return mappingOpener
 }
 
 /** irsdk-node 4.4.0 keeps the native instance in the private `_sdk`. */
@@ -74,6 +93,8 @@ export class IRacingSource implements TelemetrySource {
   readonly kind: SourceKind = 'iracing'
 
   private sdk: IRacingSDK | null = null
+  /** The session YAML in its own encoding (irsdk-node's string loses every accent). */
+  private sessionText: SessionStringReader | null = null
   private connected = false
   /** Set once irsdk-node's own YAML parse failed on this connection: go straight to ours. */
   private skipWrapperYaml = false
@@ -96,6 +117,7 @@ export class IRacingSource implements TelemetrySource {
     // Checked before touching the SDK: its constructor and IsSimRunning() log when the sim is closed.
     if (!(await isSimRunning())) return false
     const sdk = await getSdk()
+    this.sessionText ??= new SessionStringReader(IRSDK_MEMMAP_NAME, await getMappingOpener())
     this.sdk = sdk
     this.skipWrapperYaml = false
     this.present = null
@@ -108,6 +130,8 @@ export class IRacingSource implements TelemetrySource {
     const wasConnected = this.connected
     this.connected = false
     this.present = null
+    // Opened again on the next connection's first read: no handle outlives a session.
+    this.sessionText?.close()
     if (!wasConnected || !this.sdk) return
     try {
       this.sdk.stopSDK()
@@ -149,6 +173,13 @@ export class IRacingSource implements TelemetrySource {
     const sdk = this.sdk
     if (!sdk) return null
     try {
+      // iRacing writes the YAML in Windows-1252, which only our own copy decodes right.
+      const text = this.sessionText?.read() ?? null
+      if (text !== null && text !== '') {
+        const parsed = parseSessionYaml(text)
+        if (isObject(parsed)) return parsed
+      }
+      // irsdk-node's string: koffi missing, shared memory unreadable, or a YAML ours cannot load.
       if (!this.skipWrapperYaml) {
         // Null when js-yaml throws (e.g. odd driver names); undefined while the YAML is empty.
         const data: unknown = sdk.getSessionData()

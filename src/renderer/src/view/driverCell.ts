@@ -3,21 +3,27 @@
  * same driver reads the same everywhere. Pure; render it with ui/DriverCell.vue.
  */
 import type { DriverIdentity } from '@shared/driver'
-import { formatIRating, formatLicenseShort } from '@shared/format'
+import { formatIRating, formatLicenseShort, shownDriverName } from '@shared/format'
+import type { Messages } from '@shared/i18n'
 import type { NameFormat } from '@shared/types'
 import type { DriverStyles, InlineStyle } from './styles'
 
 /** The payload fields the cell reads (RelativeRow, StandingsRow and BattleOpponent have them). */
 export type DriverCellInput = Pick<
   DriverIdentity,
-  'carNumber' | 'driverName' | 'classColor' | 'iRating' | 'licString' | 'licColor'
+  'carNumber' | 'driverName' | 'teamName' | 'classColor' | 'iRating' | 'licString' | 'licColor'
 >
 
 export interface DriverCellView {
   /** Car number as painted on the car ('23', '007'); '' when unknown. */
   number: string
-  /** Already formatted with the widget's name format. */
+  /**
+   * Already formatted with the widget's name format; the team's name when the driver's own is
+   * unknown, 'Piloto #7' when that one is too (shownDriverName).
+   */
   name: string
+  /** `name` is the 'Piloto #7' placeholder: drawn dim. */
+  nameUnknown: boolean
   /** '2.3k', '' when unknown. */
   iRating: string
   /** 'A 4.9', '' when unknown. */
@@ -37,11 +43,14 @@ export function formatCarNumber(n: string): string {
 export function toDriverCell(
   d: DriverCellInput,
   styles: DriverStyles,
-  nameFormat: NameFormat = 'full'
+  nameFormat: NameFormat,
+  m: Messages
 ): DriverCellView {
+  const name = shownDriverName(styles.name(d.driverName, nameFormat), d.teamName, d.carNumber, m)
   return {
     number: d.carNumber.trim(),
-    name: styles.name(d.driverName, nameFormat),
+    name: name.text,
+    nameUnknown: name.unknown,
     iRating: formatIRating(d.iRating),
     lic: formatLicenseShort(d.licString),
     licStyle: styles.lic(d.licColor),

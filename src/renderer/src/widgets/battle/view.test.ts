@@ -342,6 +342,18 @@ describe('toLaneView', () => {
     )
   })
 
+  it("names an opponent iRacing wrote as '?' by car number, dim", () => {
+    const d = { lapsRemaining: 19, playerLastLaps: [] }
+    const op = opponent({ driverName: '' })
+    expect(toLaneView(op, 'ahead', d, OPTS, styles, ES).driver).toMatchObject({
+      name: 'Piloto #23',
+      nameUnknown: true
+    })
+    expect(toLaneView(op, 'ahead', d, OPTS, styles, EN).driver.name).toBe('Driver #23')
+    const team = opponent({ driverName: '', teamName: 'Équipe Rouge' })
+    expect(toLaneView(team, 'behind', d, OPTS, styles, ES).driver.name).toBe('Équipe Rouge')
+  })
+
   it('opponent in the pits: dim bar, no prediction', () => {
     const v = toLaneView(
       opponent({ inPits: true, lapsToCatch: 3 }),

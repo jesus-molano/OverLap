@@ -49,6 +49,7 @@ export function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): Driver
   return {
     carIdx,
     userName: `Piloto ${carIdx}`,
+    teamName: '',
     carNumber: String(carIdx + 1),
     iRating: 1500,
     licString: 'B 3.00',

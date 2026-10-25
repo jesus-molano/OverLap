@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { messagesFor } from '@shared/i18n'
 import { formatCarNumber, splitLicense, toDriverCell, type DriverCellInput } from './driverCell'
 import { createDriverStyles } from './styles'
+
+const ES = messagesFor('es')
+const EN = messagesFor('en')
 
 const DRIVER: DriverCellInput = {
   carNumber: ' 7 ',
@@ -20,20 +24,22 @@ describe('formatCarNumber', () => {
 
 describe('toDriverCell', () => {
   it('formats every field', () => {
-    const cell = toDriverCell(DRIVER, createDriverStyles(), 'abbr')
-    expect(cell).toMatchObject({ number: '7', name: 'A. Ruiz', iRating: '2.4k', lic: 'B 3.2' })
+    const cell = toDriverCell(DRIVER, createDriverStyles(), 'abbr', ES)
+    expect(cell).toMatchObject({
+      number: '7',
+      name: 'A. Ruiz',
+      nameUnknown: false,
+      iRating: '2.4k',
+      lic: 'B 3.2'
+    })
     expect(cell.clsStyle['--cls']).toBe('#ffaa00')
     expect(cell.licStyle['--lic']).toBe('#00c702')
   })
 
-  it('defaults to the full name', () => {
-    expect(toDriverCell(DRIVER, createDriverStyles()).name).toBe('Alejandro Ruiz')
-  })
-
   it('shares style objects between rows of the same colours', () => {
     const st = createDriverStyles()
-    const a = toDriverCell(DRIVER, st)
-    const b = toDriverCell({ ...DRIVER, driverName: 'Otro Piloto' }, st)
+    const a = toDriverCell(DRIVER, st, 'full', ES)
+    const b = toDriverCell({ ...DRIVER, driverName: 'Otro Piloto' }, st, 'full', ES)
     expect(b.clsStyle).toBe(a.clsStyle)
     expect(b.licStyle).toBe(a.licStyle)
   })
@@ -41,9 +47,30 @@ describe('toDriverCell', () => {
   it('leaves unknown values empty', () => {
     const cell = toDriverCell(
       { ...DRIVER, carNumber: '', iRating: null, licString: null, licColor: null },
-      createDriverStyles()
+      createDriverStyles(),
+      'full',
+      ES
     )
     expect(cell).toMatchObject({ number: '', iRating: '', lic: '' })
+  })
+
+  it("names a driver iRacing wrote as '?' by the team, else by the car number, dim", () => {
+    const st = createDriverStyles()
+    const unknown = { ...DRIVER, driverName: '' }
+    expect(toDriverCell(unknown, st, 'abbr', ES)).toMatchObject({
+      name: 'Piloto #7',
+      nameUnknown: true
+    })
+    expect(toDriverCell(unknown, st, 'abbr', EN).name).toBe('Driver #7')
+    expect(toDriverCell({ ...unknown, carNumber: '' }, st, 'abbr', ES).name).toBe('Piloto')
+    // A raw '?' name (a payload from before the provider cleared it) reads the same.
+    expect(toDriverCell({ ...DRIVER, driverName: '?????? ?????' }, st, 'tv', ES).name).toBe(
+      'Piloto #7'
+    )
+    // The team's name is shown whole, not restyled like a person's.
+    const team = toDriverCell({ ...unknown, teamName: '  Équipe   Rouge ' }, st, 'abbr', ES)
+    expect(team).toMatchObject({ name: 'Équipe Rouge', nameUnknown: false })
+    expect(toDriverCell({ ...unknown, teamName: '??? ???' }, st, 'abbr', ES).name).toBe('Piloto #7')
   })
 })
 

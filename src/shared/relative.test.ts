@@ -84,6 +84,7 @@ function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): DriverEntry {
   return {
     carIdx,
     userName: `Piloto ${carIdx}`,
+    teamName: '',
     carNumber: String(carIdx),
     iRating: 1500 + carIdx,
     licString: 'A 4.60',

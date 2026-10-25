@@ -30,7 +30,13 @@ const inlinePit = computed(() =>
 <template>
   <span v-if="line.kind === 'leader'" class="c-lead">
     <span class="sd-tag">{{ line.classTag }}</span>
-    <DriverCell class="c-driver" :number="number" :name="line.name" :number-style="numberStyle" />
+    <DriverCell
+      class="c-driver"
+      :number="number"
+      :name="line.name"
+      :name-unknown="line.nameUnknown"
+      :number-style="numberStyle"
+    />
   </span>
   <template v-else>
     <span class="c-pos"
@@ -40,6 +46,7 @@ const inlinePit = computed(() =>
       class="c-driver"
       :number="number"
       :name="line.name"
+      :name-unknown="line.nameUnknown"
       :number-style="numberStyle"
       :player="line.player"
     >

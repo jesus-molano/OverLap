@@ -323,3 +323,35 @@ export function formatDriverName(name: string, style: NameFormat): string {
       return tvCode(parts.core)
   }
 }
+
+/**
+ * False for a name with no letter or digit. iRacing writes the session info in Windows-1252 and
+ * puts '?' for every character outside it (Cyrillic, Greek, CJK, Polish 'ł'...): 'Иван Петров'
+ * arrives as '???? ??????', which says nothing about the driver.
+ */
+export function isKnownName(name: string): boolean {
+  return /[\p{L}\p{N}]/u.test(name)
+}
+
+export interface ShownName {
+  text: string
+  /** Neither name is known: `text` is the 'Piloto #7' placeholder (drawn dim). */
+  unknown: boolean
+}
+
+/**
+ * What a widget shows for a driver: `formatted` (the driver's own name in the widget's style)
+ * when it says something, else the team's name as it is (not a person's name to restyle), else
+ * 'Piloto #7' by the car number.
+ */
+export function shownDriverName(
+  formatted: string,
+  teamName: string | undefined,
+  carNumber: string,
+  m: Messages
+): ShownName {
+  if (isKnownName(formatted)) return { text: formatted, unknown: false }
+  const team = formatDriverName(teamName ?? '', 'full')
+  if (isKnownName(team)) return { text: team, unknown: false }
+  return { text: m.widgets.common.unknownDriver(carNumber.trim()), unknown: true }
+}

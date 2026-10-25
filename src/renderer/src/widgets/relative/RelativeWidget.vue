@@ -54,7 +54,12 @@ const styles = createDriverStyles()
 const slots = computed<readonly SlotView[]>((prev) =>
   reuseViews(
     prev,
-    toSlotViews(layoutSlots(source.value, ahead.value, behind.value), styles, nameFormat.value)
+    toSlotViews(
+      layoutSlots(source.value, ahead.value, behind.value),
+      styles,
+      nameFormat.value,
+      t.value
+    )
   )
 )
 const cols = computed<RelativeColumns>((prev) => {
@@ -95,6 +100,7 @@ const panelStyle = computed<InlineStyle>(() => ({
               class="c-driver"
               :number="slot.number"
               :name="slot.name"
+              :name-unknown="slot.nameUnknown"
               :player="slot.isPlayer"
               :lap="slot.lap"
             >

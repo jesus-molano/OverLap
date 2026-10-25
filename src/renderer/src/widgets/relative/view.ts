@@ -4,6 +4,7 @@
  * (`reuseViews`) for v-memo, and the grid columns of the row options. Pure.
  */
 import { formatClassPosition, formatGap } from '@shared/format'
+import type { Messages } from '@shared/i18n'
 import type { NameFormat, RelativeData, RelativeOptions, RelativeRow } from '@shared/types'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
@@ -70,11 +71,12 @@ export function toSlotView(
   row: RelativeRow,
   index: number,
   styles: DriverStyles,
-  nameFormat: NameFormat
+  nameFormat: NameFormat,
+  m: Messages
 ): RelativeSlotView {
   const lap = row.isPlayer || row.lapRelation === 'same' ? null : row.lapRelation
   return {
-    ...toDriverCell(row, styles, nameFormat),
+    ...toDriverCell(row, styles, nameFormat, m),
     kind: 'car',
     css: rowCss(row, index % 2 === 1, lap),
     isPlayer: row.isPlayer,
@@ -89,11 +91,13 @@ export function toSlotView(
 export function toSlotViews(
   rows: readonly (RelativeRow | null)[],
   styles: DriverStyles,
-  nameFormat: NameFormat
+  nameFormat: NameFormat,
+  m: Messages
 ): SlotView[] {
-  return rows.map((row, i) =>
-    row === null ? (i % 2 === 1 ? EMPTY_ODD : EMPTY_EVEN) : toSlotView(row, i, styles, nameFormat)
-  )
+  return rows.map((row, i) => {
+    if (row !== null) return toSlotView(row, i, styles, nameFormat, m)
+    return i % 2 === 1 ? EMPTY_ODD : EMPTY_EVEN
+  })
 }
 
 /** Column widths (em of the row font). The name takes the rest. */

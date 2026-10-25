@@ -76,6 +76,7 @@ function driver(carIdx: number, extra: Partial<DriverEntry> = {}): DriverEntry {
   return {
     carIdx,
     userName: `Driver ${carIdx}`,
+    teamName: '',
     carNumber: String(carIdx),
     iRating: 2000,
     licString: 'A 4.00',

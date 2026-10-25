@@ -1066,6 +1066,7 @@ function pbDriver(carId: number): DriverEntry {
   return {
     carIdx: 0,
     userName: 'Alejandro Ruiz',
+    teamName: '',
     carNumber: '07',
     iRating: 2380,
     licString: 'B 3.27',

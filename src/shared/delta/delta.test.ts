@@ -398,6 +398,21 @@ describe('DeltaProvider: references', () => {
     })
   })
 
+  it("class: a name iRacing wrote as '?' gives way to the team's, else to the number alone", () => {
+    const drivers = (o: Partial<DriverEntry>): DriverEntry[] =>
+      DRIVERS.map((d) => (d.carIdx === 1 ? { ...d, ...o } : d))
+    const refOf = (o: Partial<DriverEntry>): string => {
+      const rig = new Rig({ reference: 'class', drivers: drivers(o) })
+      rig.race.best.set(PLAYER, lapOf(101))
+      rig.race.best.set(1, lapOf(100.5))
+      return pick(rig).refDriver
+    }
+    expect(refOf({ userName: '?????? ?????', teamName: '?????? ?????' })).toBe('#44')
+    expect(refOf({ userName: '?????? ?????', teamName: 'Équipe   Rouge' })).toBe('#44 Équipe Rouge')
+    expect(refOf({ userName: '?????? ?????', carNumber: '' })).toBe('')
+    expect(refOf({ userName: 'Jonas Lindqvist', carNumber: '' })).toBe('J. Lindqvist')
+  })
+
   it('class: your own lap when you are the fastest (refSelf), also on a tie', () => {
     const fastest = new Rig({ reference: 'class' })
     fastest.race.best.set(PLAYER, lapOf(99))

@@ -13,12 +13,22 @@ files:
   - '!**/node_modules/node-gyp/**'
   - '!**/node_modules/@irsdk-node/native/{lib,prebuilds/win32-arm64}/**'
   - '!**/node_modules/@irsdk-node/native/binding.gyp'
+  # koffi: its JS loader only. The C/C++ sources, headers and docs build the binary, which comes
+  # prebuilt in @koromix/koffi-win32-x64; no other platform's package ships.
+  - '!**/node_modules/koffi/{doc,lib,vendor}/**'
+  - '!**/node_modules/koffi/src/koffi/src/abi/**'
+  - '!**/node_modules/koffi/src/koffi/**/*.{cc,hh,inc,def,S,asm,txt}'
+  - '!**/node_modules/koffi/cnoke.cjs'
+  - '!**/node_modules/@koromix/koffi-!(win32-x64)/**'
+  - '!**/node_modules/@koromix/koffi-win32-x64/**/*.lib'
 asarUnpack:
   - resources/**
   # The iRacing SDK addon is loaded with node-gyp-build from its own folder.
   # electron-builder's smartUnpack already does this; explicit on purpose.
   - '**/node_modules/@irsdk-node/native/**'
-# Prebuilt N-API binaries ship with @irsdk-node/native: nothing to rebuild.
+  # koffi's binary (the session info reader): a .node file cannot load from inside the asar.
+  - '**/node_modules/@koromix/koffi-win32-x64/**'
+# Prebuilt N-API binaries ship with @irsdk-node/native and koffi: nothing to rebuild.
 npmRebuild: false
 electronLanguages:
   - en-US

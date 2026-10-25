@@ -187,10 +187,14 @@ export interface RefView {
   readonly time: string
 }
 
+/** The provider's refDriver of a driver whose name is unknown: the car number alone ('#44'). */
+const NUMBER_ONLY_RE = /^#(\S+)$/
+
 /**
  * How the widget names a reference: your record, your session best, and for the class best
- * 'Tú' (your own lap), the provider's '#44 J. Lindqvist' (someone else's) or the generic name
- * (a driver no longer in the session info).
+ * 'Tú' (your own lap), the provider's '#44 J. Lindqvist' (someone else's), 'Piloto #44' (the
+ * provider's '#44' alone: a name the session info lost) or the generic name (a driver no longer
+ * in the session info).
  */
 export function refLabel(
   kind: DeltaReference,
@@ -203,6 +207,8 @@ export function refLabel(
   if (kind === 'session') return t.session
   if (self === true) return t.self
   const name = typeof driver === 'string' ? driver.trim() : ''
+  const car = NUMBER_ONLY_RE.exec(name)?.[1]
+  if (car !== undefined) return m.widgets.common.unknownDriver(car)
   return name !== '' ? name : t.classBest
 }
 

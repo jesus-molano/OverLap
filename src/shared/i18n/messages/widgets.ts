@@ -22,7 +22,12 @@ export const widgetsEs = {
     out: 'OUT',
     /** Sector chip ('S2') and the one placeholder chip while the sectors are unknown. */
     sector: (n: number) => `S${n}`,
-    sectors: 'Sectores'
+    sectors: 'Sectores',
+    /**
+     * A driver whose name the session info lost (all '?': not in Windows-1252), by car number
+     * ('Piloto #7'); just 'Piloto' without one.
+     */
+    unknownDriver: (car: string) => (car === '' ? 'Piloto' : `Piloto #${car}`)
   },
   /** Session captions from SessionType (headers of the relative and the standings). */
   session: {
@@ -180,7 +185,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     pit: 'PIT',
     out: 'OUT',
     sector: (n) => `S${n}`,
-    sectors: 'Sectors'
+    sectors: 'Sectors',
+    unknownDriver: (car) => (car === '' ? 'Driver' : `Driver #${car}`)
   },
   session: {
     race: 'RACE',
