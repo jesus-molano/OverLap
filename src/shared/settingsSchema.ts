@@ -254,9 +254,14 @@ export const OPTION_SCHEMA = {
     showPitLimiter: { kind: 'bool', default: true },
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
   },
-  // The reference choice changes what the provider computes; the rest is drawing.
+  // The reference choice changes what the provider computes; the rest is drawing. References in
+  // UI order: yours (record, session best, optimal), then your class's (best, optimal).
   delta: {
-    reference: { kind: 'enum', values: ['pb', 'session', 'class'], default: 'pb' },
+    reference: {
+      kind: 'enum',
+      values: ['pb', 'session', 'optimal', 'class', 'classOptimal'],
+      default: 'pb'
+    },
     fallback: { kind: 'bool', default: true },
     rangeS: {
       kind: 'number',

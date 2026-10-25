@@ -11,6 +11,7 @@
 import { MINUS, formatLapTime, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { isFiniteNumber } from '@shared/num'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { DeltaData, DeltaReference } from '@shared/types'
 import type { Tone } from '@renderer/ui/tones'
 import { perDictionary } from '@renderer/view/perDictionary'
@@ -174,23 +175,27 @@ export function stateView(
 // Reference and predicted lap
 // ---------------------------------------------------------------------------
 
-const REFERENCES: readonly string[] = ['pb', 'session', 'class'] satisfies DeltaReference[]
+const REFERENCES: readonly string[] = OPTION_SCHEMA.delta.reference.values
 
 const isReference = (v: unknown): v is DeltaReference =>
   typeof v === 'string' && REFERENCES.includes(v)
 
 export interface RefView {
   readonly kind: DeltaReference
-  /** 'Récord personal', 'Mejor vuelta', 'Tú', '#44 J. Lindqvist' or 'Mejor de la clase'. */
+  /**
+   * 'Récord personal', 'Mejor vuelta', 'Vuelta óptima', 'Tú', '#44 J. Lindqvist', 'Mejor de la
+   * clase' or 'Óptima de la clase'.
+   */
   readonly label: string
   /** '2:16.089', '—' when unknown. */
   readonly time: string
 }
 
 /**
- * How the widget names a reference: your record, your session best, and for the class best
- * 'Tú' (your own lap), the provider's '#44 J. Lindqvist' (someone else's) or the generic name
- * (a driver no longer in the session info).
+ * How the widget names a reference: your record, your session best, your optimal lap, the class
+ * optimal (nobody's lap), and for the class best 'Tú' (your own lap), the provider's
+ * '#44 J. Lindqvist' (someone else's) or the generic name (a driver no longer in the session
+ * info).
  */
 export function refLabel(
   kind: DeltaReference,
@@ -201,6 +206,8 @@ export function refLabel(
   const t = m.widgets.delta
   if (kind === 'pb') return t.pb
   if (kind === 'session') return t.session
+  if (kind === 'optimal') return t.optimal
+  if (kind === 'classOptimal') return t.classOptimal
   if (self === true) return t.self
   const name = typeof driver === 'string' ? driver.trim() : ''
   return name !== '' ? name : t.classBest
