@@ -174,8 +174,9 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
 | En repeticiones (`replays`)                          | Seguir la cámara (`follow`) | `follow`: muestran el coche que estás viendo; `hide`: ninguno |
 
 - Siguiendo la cámara, Relativo, Clasificación, Batalla y Tráfico se centran en el coche de la
-  repetición. Radar, Pedales, Avisos y Delta solo tienen datos de tu coche en directo: en una
-  repetición se ocultan siempre (lo dice la sección **Ventana** de su página).
+  repetición. Radar, Pedales, Avisos, Delta y Pista solo muestran datos en directo (de tu coche, o
+  de la pista vista desde él): en una repetición se ocultan siempre (lo dice la sección **Ventana**
+  de su página).
 - Una repetición no toca el cronometraje en directo: no cuenta vueltas, récords, incidentes ni
   sectores del óptimo, y al volver al directo todo sigue donde estaba (la vuelta que la repetición
   partió no se cronometra). La línea de SR de Clasificación solo sale con tu coche.
@@ -231,11 +232,12 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 
 ## Widgets
 
-| Widget   | Id         | Frecuencia | Tamaño mínimo |
-| -------- | ---------- | ---------- | ------------- |
-| Relativo | `relative` | 10 Hz      | 300 x 150     |
-| Radar    | `radar`    | 60 Hz      | 120 x 140     |
-| Delta    | `delta`    | 30 Hz      | 200 x 48      |
+| Widget   | Id           | Frecuencia | Tamaño mínimo |
+| -------- | ------------ | ---------- | ------------- |
+| Relativo | `relative`   | 10 Hz      | 300 x 150     |
+| Radar    | `radar`      | 60 Hz      | 120 x 140     |
+| Delta    | `delta`      | 30 Hz      | 200 x 48      |
+| Pista    | `conditions` | 1 Hz       | 180 x 40      |
 
 ### Relativo
 
@@ -361,6 +363,25 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   `IncidentWarningSubsequentLimit` como penalizaciones; con «unlimited» no se muestra límite. Falta
   confirmarlo en una carrera oficial.
 - Solo los tuyos: iRacing no da incidentes de los demás pilotos.
+
+### Pista
+
+- Las condiciones de ahora mismo, una vez por segundo (iRacing no da pronóstico):
+  - temperatura de la pista (`TrackTempCrew`) con una flecha si sube o baja en los últimos 5 min, y
+    la del aire (`AirTemp`);
+  - viento (`WindVel`) y de dónde sopla respecto a tu coche (`WindDir` − `YawNorth`): una flecha en
+    un dial apunta a tu coche desde ese lado, con «de cara», «de cola» o «por la izq./dcha.». Solo al
+    volante;
+  - lo mojado que está el asfalto (`TrackWetness`, 7 niveles; «—» si iRacing no lo sabe, nunca
+    «Seco»), la lluvia (`Precipitation`) y la banda **DECLARADA MOJADA** (`WeatherDeclaredWet`);
+  - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML).
+- Cada parte se activa o desactiva en su página de Ajustes (`conditions.*`); la cabecera va apagada
+  por defecto. Grados y velocidad según `appearance.units` (°C y km/h por defecto).
+- Sin confirmar en una sesión real: si `WindDir` es de dónde viene el viento o hacia dónde va, el
+  sentido de `YawNorth` y la escala de `Precipitation` (se lee 0..1). Cada cosa se cambia en un solo
+  sitio (`src/shared/conditions.ts`).
+- En modo mock la pista se calienta, se queda estable y se enfría, el viento cambia un poco y a los
+  21 min pasa un chubasco que la moja y la declara mojada.
 
 ## Arquitectura
 

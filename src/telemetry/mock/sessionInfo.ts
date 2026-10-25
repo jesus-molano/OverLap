@@ -12,6 +12,7 @@ import { MOCK_INCIDENT_LIMITS } from './playerIncidents'
 import type { Rng } from './rng'
 import { MOCK_CORNERS, MOCK_SECTOR_STARTS } from './track'
 import { mockDriverTires, type MockDriverTire } from './tyres'
+import { mockRubberState } from './weather'
 
 export interface MockYamlDriver {
   CarIdx: number
@@ -84,6 +85,8 @@ export interface MockSessionInfo {
       SessionName: string
       SessionLaps: string
       SessionTime: string
+      /** 'moderate usage', ... (weather.ts). */
+      SessionTrackRubberState: string
     }[]
   }
   SplitTimeInfo: {
@@ -145,7 +148,8 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
           SessionType: 'Race',
           SessionName: 'RACE',
           SessionLaps: 'unlimited',
-          SessionTime: `${MOCK_RACE_LENGTH_S.toFixed(4)} sec`
+          SessionTime: `${MOCK_RACE_LENGTH_S.toFixed(4)} sec`,
+          SessionTrackRubberState: mockRubberState(input.sessionIndex)
         }
       ]
     },

@@ -2,6 +2,7 @@ import type { Component } from 'vue'
 import type { WidgetId } from '@shared/widgets'
 import AlertsSettings from './AlertsSettings.vue'
 import BattleSettings from './BattleSettings.vue'
+import ConditionsSettings from './ConditionsSettings.vue'
 import DeltaSettings from './DeltaSettings.vue'
 import InputsSettings from './InputsSettings.vue'
 import RadarSettings from './RadarSettings.vue'
@@ -22,5 +23,6 @@ export const WIDGET_OPTIONS: Partial<Record<WidgetId, Component>> = {
   inputs: InputsSettings,
   traffic: TrafficSettings,
   alerts: AlertsSettings,
-  delta: DeltaSettings
+  delta: DeltaSettings,
+  conditions: ConditionsSettings
 }

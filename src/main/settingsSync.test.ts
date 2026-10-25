@@ -294,6 +294,18 @@ describe('diffSettings and the widget options', () => {
       })
     ).toBe(false)
   })
+
+  it('no conditions option goes to the telemetry process; its visibility rule does', () => {
+    expect(
+      configChanged((s) => {
+        for (const key of Object.keys(s.conditions) as (keyof typeof s.conditions)[]) {
+          s.conditions[key] = !s.conditions[key]
+        }
+        s.widgets.conditions.scale = 140
+      })
+    ).toBe(false)
+    expect(configChanged((s) => (s.widgets.conditions.showIn.race = false))).toBe(true)
+  })
 })
 
 describe('DISPLAY_ONLY / computedConfig', () => {

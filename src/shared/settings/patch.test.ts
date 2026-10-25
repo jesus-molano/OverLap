@@ -433,7 +433,8 @@ describe('resetWidgetOptions', () => {
       'inputs',
       'traffic',
       'alerts',
-      'delta'
+      'delta',
+      'conditions'
     ] as const) {
       const out = resetWidgetOptions(current, id)
       expect(out[id]).toEqual(DEFAULT_SETTINGS[id])

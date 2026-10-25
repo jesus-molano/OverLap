@@ -19,7 +19,8 @@ export const coreEs = {
     inputs: 'Pedales',
     traffic: 'Tráfico',
     alerts: 'Avisos',
-    delta: 'Delta'
+    delta: 'Delta',
+    conditions: 'Pista'
   },
   status: {
     starting: 'Iniciando telemetría…',
@@ -127,7 +128,8 @@ export const coreEn: Dict<typeof coreEs> = {
     inputs: 'Inputs',
     traffic: 'Traffic',
     alerts: 'Alerts',
-    delta: 'Delta'
+    delta: 'Delta',
+    conditions: 'Track'
   },
   status: {
     starting: 'Starting telemetry…',

@@ -75,6 +75,8 @@ export interface SessionDetails {
   laps: number | null
   /** Time limit in seconds, null for "unlimited" or unknown. */
   timeS: number | null
+  /** SessionTrackRubberState as iRacing writes it ('moderate usage', 'carry over'), '' when unknown. */
+  rubberState: string
 }
 
 /** Starting grid entry from QualifyResultsInfo.Results (1-based; the YAML is 0-based). */
@@ -634,6 +636,42 @@ export interface DeltaData {
   lapValid: boolean
 }
 
+// ---------------------------------------------------------------------------
+// Conditions widget payload (v2.3, 1 Hz)
+// ---------------------------------------------------------------------------
+
+/** How the track temperature moved over the last minutes (CONDITIONS in conditions.ts). */
+export type TempTrend = 'up' | 'down' | 'steady'
+
+export interface ConditionsData {
+  /** False while the sim sends no weather at all: the widget fades out. */
+  visible: boolean
+  /** TrackTempCrew in °C, to 0.1; null when missing. */
+  trackTempC: number | null
+  /** Over the last few minutes; null while there is too little history to tell. */
+  trackTempTrend: TempTrend | null
+  /** AirTemp in °C, to 0.1; null when missing. */
+  airTempC: number | null
+  /** WindVel in whole km/h; null when missing. */
+  windKmh: number | null
+  /**
+   * Where the wind blows FROM, relative to your car's nose: degrees clockwise in (-180, 180]
+   * (0 = from straight ahead, a headwind; 90 = from your right), in steps of
+   * CONDITIONS.windStepDeg. Null when it means nothing: no wind or heading, not in the car, calm.
+   */
+  windFromDeg: number | null
+  /** irsdk_TrackWetness, 1 (dry) .. 7 (extremely wet); null when unknown (0) or missing. */
+  wetness: number | null
+  /** Precipitation in whole %, null when missing. */
+  precipPct: number | null
+  /** WeatherDeclaredWet: the stewards allow rain tyres. */
+  declaredWet: boolean
+  /** Skies, 0 (clear) .. 3 (overcast); null when missing or out of range. */
+  skies: number | null
+  /** SessionTrackRubberState of the current session as iRacing writes it; '' when unknown. */
+  rubberState: string
+}
+
 export interface WidgetPayloads {
   relative: RelativeData
   radar: RadarData
@@ -643,6 +681,7 @@ export interface WidgetPayloads {
   traffic: TrafficData
   alerts: AlertsData
   delta: DeltaData
+  conditions: ConditionsData
 }
 
 /** Distributive union `{ widget: 'relative', payload: RelativeData } | ...`. */
@@ -943,6 +982,25 @@ export interface DeltaOptions {
   showTrend: boolean
 }
 
+/** Every part of the conditions widget is a toggle; the provider sends them all. */
+export interface ConditionsOptions {
+  /** Header band with the widget's name (and the SIM tag). */
+  showHeader: boolean
+  showTrackTemp: boolean
+  /** Arrow after the track temperature: rising or falling over the last minutes. */
+  showTrend: boolean
+  showAirTemp: boolean
+  showWind: boolean
+  /** Where the wind comes from relative to your car: the arrow and its words. */
+  showWindDirection: boolean
+  showWetness: boolean
+  showPrecipitation: boolean
+  /** 'DECLARADA MOJADA' while the stewards allow rain tyres. */
+  showDeclaredWet: boolean
+  showSkies: boolean
+  showRubber: boolean
+}
+
 export interface OverlaySettings {
   /** 4 added appearance and per-widget scale/auto-height/visibility rules; v1..v3 files are migrated. */
   version: 4
@@ -957,6 +1015,7 @@ export interface OverlaySettings {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
+  conditions: ConditionsOptions
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
   shortcuts: ShortcutSettings
 }
@@ -994,6 +1053,7 @@ export interface SettingsPatch {
   traffic?: Partial<TrafficOptions>
   alerts?: Partial<AlertsOptions>
   delta?: Partial<DeltaOptions>
+  conditions?: Partial<ConditionsOptions>
   /** A combination another action has is refused (the current one is kept). */
   shortcuts?: Partial<ShortcutSettings>
 }
@@ -1019,4 +1079,5 @@ export interface TelemetryConfig {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
+  conditions: ConditionsOptions
 }

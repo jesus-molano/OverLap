@@ -321,6 +321,21 @@ export const OPTION_SCHEMA = {
     showSectors: { kind: 'bool', default: true, displayOnly: true },
     showTrend: { kind: 'bool', default: true, displayOnly: true }
   },
+  // The provider sends every reading at 1 Hz: each part is drawn or not. A compact readout, so
+  // no header band by default.
+  conditions: {
+    showHeader: { kind: 'bool', default: false, displayOnly: true },
+    showTrackTemp: { kind: 'bool', default: true, displayOnly: true },
+    showTrend: { kind: 'bool', default: true, displayOnly: true },
+    showAirTemp: { kind: 'bool', default: true, displayOnly: true },
+    showWind: { kind: 'bool', default: true, displayOnly: true },
+    showWindDirection: { kind: 'bool', default: true, displayOnly: true },
+    showWetness: { kind: 'bool', default: true, displayOnly: true },
+    showPrecipitation: { kind: 'bool', default: true, displayOnly: true },
+    showDeclaredWet: { kind: 'bool', default: true, displayOnly: true },
+    showSkies: { kind: 'bool', default: true, displayOnly: true },
+    showRubber: { kind: 'bool', default: true, displayOnly: true }
+  },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them.
   shortcuts: {
     toggleOverlay: { kind: 'accelerator', default: 'Ctrl+Shift+H', displayOnly: true },

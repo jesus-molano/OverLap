@@ -91,8 +91,8 @@ export function makeSession(
       [PRACTICE, 'Practice']
     ]),
     sessions: new Map([
-      [RACE, { type: 'Race', name: 'RACE', laps: 10, timeS: null }],
-      [PRACTICE, { type: 'Practice', name: 'PRACTICE', laps: null, timeS: 3600 }]
+      [RACE, { type: 'Race', name: 'RACE', laps: 10, timeS: null, rubberState: '' }],
+      [PRACTICE, { type: 'Practice', name: 'PRACTICE', laps: null, timeS: 3600, rubberState: '' }]
     ]),
     subSessionId: 1000,
     eventType: 'Race',
