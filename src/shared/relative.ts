@@ -1,7 +1,7 @@
 /**
  * Relative widget: cars nearest to the player on track, with time gaps
  * estimated from CarIdxEstTime, and your incident count for its header. Pure function of one
- * telemetry tick (plus the RaceModel's stint counts, when given).
+ * telemetry tick (plus the RaceModel's positions and stint counts, when given).
  */
 import { driverIdentity } from './driver'
 import { incidentCount } from './incidents/count'
@@ -19,7 +19,7 @@ import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { isReplayPlaying } from './simScreen'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
-import { tyreCompoundOf, tyreModelOf } from './tyres'
+import { tyreCompoundOf, tyreModelOf, tyresVary } from './tyres'
 import type {
   DriverEntry,
   LapRelation,
@@ -125,8 +125,8 @@ function byRelDesc(a: number, b: number): number {
 }
 
 /**
- * `race` gives each row its stint (null without it). The stint, tyre and flag options are
- * display-only: every row carries them.
+ * `race` gives each row its position and stint (null without it). The stint, tyre and flag
+ * options are display-only: every row carries them.
  */
 export function computeRelative(
   frame: TelemetryFrame,
@@ -178,23 +178,41 @@ export function computeRelative(
 
   const lapF = referenceLapTime(focus, session)
   const estF = frame.CarIdxEstTime[focusIdx] ?? NaN
-  const lapsActive = lapRelationsActive(sessionType, frame.SessionState[0] ?? SessionState.Invalid)
+  const sessionState = frame.SessionState[0] ?? SessionState.Invalid
+  const lapsActive = lapRelationsActive(sessionType, sessionState)
   const lapCompletedF = frame.CarIdxLapCompleted[focusIdx] ?? -1
   const tyreModel = tyreModelOf(session)
+  // The same compound on every car says nothing: no tyre until one differs.
+  const tyres = tyresVary(frame, session, tyreModel)
   // A replay's race model never saw the stops before it (loop.ts): its stints would be the race.
   const stints = isReplayPlaying(frame) ? null : race
+  const isRace = isRaceSession(sessionType)
+  const preGreen = isRace && sessionState < SessionState.Racing
+
+  /**
+   * The position Standings shows (the race model's, live by distance), not CarIdxClassPosition:
+   * iRacing only updates that at the line (on lap 1 it is still the grid). The grid slot only
+   * in a race before the green; outside races, none without a lap time. Without a model of
+   * the car, CarIdxClassPosition in a race.
+   */
+  const positionOf = (idx: number): number | null => {
+    if (preGreen) {
+      const slot = session.grid.get(idx)?.classPosition ?? 0
+      if (slot > 0) return slot
+    }
+    const car = race?.car(idx)
+    if (car) return car.classPosition > 0 ? car.classPosition : null
+    const classPos = frame.CarIdxClassPosition[idx]
+    return isRace && classPos !== undefined && classPos > 0 ? classPos : null
+  }
 
   const makeRow = (idx: number, d: DriverEntry): RelativeRow => {
     const isPlayer = idx === focusIdx
     const pct = pcts[idx] ?? 0
-    const classPos = frame.CarIdxClassPosition[idx]
-    // 0 until the car's first scored crossing (the grid before the green): its starting slot.
-    const gridPos = session.grid.get(idx)?.classPosition ?? 0
     return {
       ...driverIdentity(d),
       isPlayer,
-      classPosition:
-        classPos !== undefined && classPos > 0 ? classPos : gridPos > 0 ? gridPos : null,
+      classPosition: positionOf(idx),
       classShortName: d.classShortName,
       gapS: isPlayer
         ? 0
@@ -204,7 +222,7 @@ export function computeRelative(
         : lapRelation(lapsActive, frame.CarIdxLapCompleted[idx] ?? -1, pct, lapCompletedF, pctF),
       inPits: isCarInPits(frame, idx),
       stintLaps: stints?.car(idx)?.stintLaps ?? null,
-      tyre: tyreCompoundOf(frame, session, tyreModel, idx),
+      tyre: tyres ? tyreCompoundOf(frame, session, tyreModel, idx) : null,
       penalty: penaltyOf(frame.CarIdxSessionFlags[idx])
     }
   }

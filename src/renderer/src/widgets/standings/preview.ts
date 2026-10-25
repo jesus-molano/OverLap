@@ -65,6 +65,7 @@ function makeRows(
     pitStops: 0,
     lastPitLap: null,
     outLap: false,
+    towed: false,
     stintLaps: RACE_LAPS,
     tyre,
     status: 'running',

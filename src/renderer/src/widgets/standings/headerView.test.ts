@@ -156,15 +156,35 @@ describe('toHeaderView', () => {
     ).toBe('')
   })
 
-  it('says Final once a car has taken the flag', () => {
+  it('says Final once you have taken the flag, Última vuelta while you are on your last lap', () => {
+    // The leader took the flag; you are still on your last lap (the clock is over).
+    const lastLap = header({ lapsRemaining: 1, timeRemainingS: null })
     const classes = [
       {
         ...block([1, 2], {}, 2),
         rows: [makeRow({ status: 'finished' }), makeRow({ classPosition: 2, isPlayer: true })]
       }
     ]
-    expect(toHeaderView(input({ classes })).finished).toBe(true)
-    expect(toHeaderView(input({ classes, race: false })).finished).toBe(false)
+    expect(toHeaderView(input({ header: lastLap, classes }))).toMatchObject({
+      finished: false,
+      remaining: 'Última vuelta'
+    })
+    expect(toHeaderView(input({ header: lastLap, classes, m: EN })).remaining).toBe('Last lap')
+    const done = [
+      {
+        ...block([1, 2], {}, 2),
+        rows: classes[0]?.rows.map((r) => ({ ...r, status: 'finished' as const })) ?? []
+      }
+    ]
+    expect(toHeaderView(input({ classes: done })).finished).toBe(true)
+    // Without your row (spectating): once anyone has.
+    const spectating = [{ ...block([1, 2], {}, 2), rows: [makeRow({ status: 'finished' })] }]
+    expect(toHeaderView(input({ classes: spectating })).finished).toBe(true)
+    expect(toHeaderView(input({ classes: done, race: false })).finished).toBe(false)
+    // A clock still running keeps it with the laps.
+    expect(
+      toHeaderView(input({ header: header({ lapsRemaining: 1, timeRemainingS: 45 }) })).remaining
+    ).toBe('0:45 ≈1 v')
   })
 
   it('outside races: no iRating, the session best on line 2', () => {

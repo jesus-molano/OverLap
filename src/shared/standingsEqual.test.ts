@@ -25,6 +25,7 @@ function row(carIdx: number, o: Partial<Row> = {}): Row {
     pitStops: 1,
     lastPitLap: 3,
     outLap: false,
+    towed: false,
     stintLaps: 5,
     tyre: 'Hard',
     status: 'running',

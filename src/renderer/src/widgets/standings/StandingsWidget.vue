@@ -149,6 +149,8 @@ const panelHost = injectPanelHost()
 const widthPx = computed(() =>
   size.value.w > 0 ? size.value.w : (panelHost?.size.value.width ?? 0)
 )
+/** The provider names no compound while the whole field runs the same one: no tyre column. */
+const tyres = computed(() => (classes.value ?? []).some((c) => c.rows.some((r) => r.tyre !== null)))
 const cols = computed<Columns>((prev) =>
   reuseColumns(
     prev,
@@ -158,6 +160,7 @@ const cols = computed<Columns>((prev) =>
         gapMode: opts.value.gapMode,
         iRatingDeltaAll: opts.value.iRatingDeltaAll,
         race: race.value,
+        tyres: tyres.value,
         licenseStyle: appearance.value.licenseStyle,
         numberStyle: appearance.value.numberStyle
       },
@@ -178,6 +181,7 @@ const lineCtx = computed<LineContext>(() => ({
   showSof: opts.value.showSof,
   showCarCount: opts.value.showCarCount,
   showFlags: opts.value.showFlags,
+  gapLeaderShown: cols.value.cells.includes('gapLeader'),
   styles,
   m: t.value
 }))

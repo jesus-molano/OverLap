@@ -56,7 +56,11 @@ const inlinePit = computed(() =>
         <PenaltyIcon v-if="line.penalty" :penalty="line.penalty" />
         <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
         <Icon v-if="inlinePit === 'finished'" name="chequered" />
-        <Icon v-else-if="inlinePit === 'pit'" name="pit" class="sd-inline-pit" />
+        <Icon
+          v-else-if="inlinePit === 'pit' || inlinePit === 'tow'"
+          name="pit"
+          class="sd-inline-pit"
+        />
         <Icon v-else-if="inlinePit === 'out'" name="out" class="sd-inline-out" />
       </span>
     </DriverCell>
@@ -91,6 +95,7 @@ const inlinePit = computed(() =>
     <span v-else-if="id === 'tyre'" class="c-tyre"><TyreChip :letter="line.tyre" /></span>
     <span v-else-if="id === 'pit'" class="c-pit">
       <Badge v-if="line.pit === 'pit'">{{ t.widgets.common.pit }}</Badge>
+      <Badge v-else-if="line.pit === 'tow'" tone="warn">{{ t.widgets.common.tow }}</Badge>
       <Badge v-else-if="line.pit === 'out'" variant="outline">{{ t.widgets.common.out }}</Badge>
       <Icon v-else-if="line.pit === 'finished'" name="chequered" class="sd-chequered" />
       <span v-else-if="line.pit === 'stops'" class="sd-stops"

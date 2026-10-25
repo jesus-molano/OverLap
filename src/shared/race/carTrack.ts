@@ -39,6 +39,8 @@ function resetState(s: MutableCarState): void {
   s.disconnected = false
   s.finished = false
   s.pitStops = 0
+  s.towStops = 0
+  s.towed = false
   s.lastPitLap = null
   s.outLap = false
   s.stintLaps = 0
@@ -63,8 +65,14 @@ export class CarTrack {
   /** Identity of the entry in this slot (entryKey()): a team driver change keeps it. */
   entryKey = ''
   classId = 0
-  /** DriverEntry.classEstLapTime (pace fallback), 0 when unknown. */
+  /** DriverEntry.classEstLapTime (last pace fallback: often well off the real pace), 0 when unknown. */
   estLapTime = 0
+  /**
+   * Pace fallbacks before the first clean lap, 0 when unknown: the entry's best lap of the
+   * event's earlier sessions (qualifying, practice) and the fastest one of its class.
+   */
+  priorBest = 0
+  classPriorBest = 0
 
   // Movement (effective lap/pct after the S/F wrap fix-up).
   prevValid = false
@@ -80,8 +88,20 @@ export class CarTrack {
   hwD = 0
   /** Highest line counted as crossed since the last discontinuity. */
   hwLine = NO_LINE
-  /** Latest recorded crossing in time (frozen at the finish line once finished). */
+  /**
+   * Latest recorded crossing in time (frozen at the finish line once finished). After a
+   * teleport, the line where the car landed, crossed long ago or never (see jumpT).
+   */
   lastLine = NO_LINE
+  /**
+   * SessionTime of the last tick that did not continue the one before (world entry, tow,
+   * reset, jump): a crossing older than this was made before the car got where it is.
+   */
+  jumpT = -Infinity
+  /** SessionTime the lap counter started to disagree with the pct near the line; NaN when not. */
+  lapMismatchT = NaN
+  /** Whole laps the last tick added without driving them (a lap credited in the box). */
+  creditedLaps = 0
   /** The lap in progress saw a teleport, a world exit/entry or started mid-lap. */
   dirty = true
   /** The lap in progress went off track (iRacing invalidates it). */
@@ -132,6 +152,8 @@ export class CarTrack {
 
   // Pits and status.
   pitKnown = false
+  /** Race: the car stood still at the green (a standing start): its first lap is timed from it. */
+  gridStart = false
   prevOnPit = false
   stintStartLap = NaN
   seenRacing = false
@@ -152,6 +174,8 @@ export class CarTrack {
       disconnected: false,
       finished: false,
       pitStops: 0,
+      towStops: 0,
+      towed: false,
       lastPitLap: null,
       outLap: false,
       stintLaps: 0,
@@ -174,12 +198,17 @@ export class CarTrack {
     this.entryKey = ''
     this.classId = 0
     this.estLapTime = 0
+    this.priorBest = 0
+    this.classPriorBest = 0
     this.prevValid = false
     this.lastD = NaN
     this.lastDelta = 0
     this.hwD = 0
     this.hwLine = NO_LINE
     this.lastLine = NO_LINE
+    this.jumpT = -Infinity
+    this.lapMismatchT = NaN
+    this.creditedLaps = 0
     this.dirty = true
     this.lapOffTrack = false
     this.lapStopped = false
@@ -197,6 +226,7 @@ export class CarTrack {
     this.bestLap.clear()
     this.currentView = null
     this.pitKnown = false
+    this.gridStart = false
     this.prevOnPit = false
     this.stintStartLap = NaN
     this.seenRacing = false
@@ -250,6 +280,19 @@ export class CarTrack {
     this.lines[s] = line
     this.times[s] = time
     this.flags[s] = flags
+    this.lastLine = line
+  }
+
+  /**
+   * Makes `line` the last one, forgetting the crossings after it: a tow or reset put the car
+   * back behind them, and they will be crossed again.
+   */
+  rewindTo(line: number): void {
+    const from = Math.max(line + 1, this.lastLine - HISTORY_SIZE + 1)
+    for (let k = from; k <= this.lastLine; k++) {
+      const s = slotOf(k)
+      if (this.lines[s] === k) this.lines[s] = NO_LINE
+    }
     this.lastLine = line
   }
 

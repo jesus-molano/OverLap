@@ -17,8 +17,9 @@ export const widgetsEs = {
     /** Pill while the data is simulated (ui/SimPill.vue) and its tooltip. */
     sim: 'SIM',
     simTitle: 'Datos simulados',
-    /** Badges: in the pits, on an out lap. */
+    /** Badges: in the pits, towed to its box, on an out lap. */
     pit: 'PIT',
+    tow: 'GRÚA',
     out: 'OUT',
     /** Sector chip ('S2') and the one placeholder chip while the sectors are unknown. */
     sector: (n: number) => `S${n}`,
@@ -87,8 +88,10 @@ export const widgetsEs = {
   standings: {
     /** The 'gap' column of the class leader. */
     leader: 'LÍDER',
-    /** Instead of what is left once the chequered flag is out. */
+    /** Instead of what is left once you have taken the chequered flag. */
     finished: 'Final',
+    /** Instead of what is left on the last lap (the flag is out, you have not crossed yet). */
+    lastLap: 'Última vuelta',
     sof: (sof: string) => `SoF ${sof}`,
     cars: (n: number) => (n === 1 ? '1 coche' : `${n} coches`),
     /** A class the session info gives no name, by its id. */
@@ -335,6 +338,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     sim: 'SIM',
     simTitle: 'Simulated data',
     pit: 'PIT',
+    tow: 'TOW',
     out: 'OUT',
     sector: (n) => `S${n}`,
     sectors: 'Sectors',
@@ -382,6 +386,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   standings: {
     leader: 'LEADER',
     finished: 'Finished',
+    lastLap: 'Last lap',
     sof: (sof) => `SoF ${sof}`,
     cars: (n) => (n === 1 ? '1 car' : `${n} cars`),
     unnamedClass: (id) => `Class ${id}`,
