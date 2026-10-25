@@ -46,7 +46,11 @@ export const widgetsEs = {
     /** A timed session with its estimated laps: '38:19  ≈19 v'. */
     timed: (clock: string, laps: number) => `${clock}${SEP}≈${laps}${NB}v`,
     /** Laps left in a session by laps. */
-    left: (n: number) => (n === 1 ? `Queda 1${NB}v` : `Quedan ${n}${NB}v`)
+    left: (n: number) => (n === 1 ? `Queda 1${NB}v` : `Quedan ${n}${NB}v`),
+    /** After a count drawn on its own ('7' + 'v': a stint of 7 laps). */
+    unit: 'v',
+    /** Lap number n, as in the battle's lap chips: 'V12' (a stop on lap 12). */
+    number: (n: number) => `V${n}`
   },
   /** Your incidents: the count in the relative and standings headers, the alerts' line. */
   incidents: {
@@ -102,7 +106,25 @@ export const widgetsEs = {
     /** Incidents left before the SR goes down. */
     budget: (n: number) => `margen ${n}x`,
     noBudget: 'sin margen',
-    budgetUnknown: 'margen —'
+    budgetUnknown: 'margen —',
+    /**
+     * Short header of each right-hand column, for a header row (none is drawn yet; the settings
+     * window's column hints are the long form).
+     */
+    heads: {
+      gained: 'POS',
+      ir: 'iR',
+      lic: 'LIC',
+      delta: 'ΔiR',
+      gap: 'HUECO',
+      gapLeader: 'LÍDER',
+      last: 'ÚLTIMA',
+      best: 'MEJOR',
+      pit: 'BOX',
+      pitLap: 'PARADA',
+      stint: 'STINT',
+      tyre: 'NEUM.'
+    }
   },
   battle: {
     ahead: 'DELANTE',
@@ -283,7 +305,9 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     about: (n) => `~${n}${NB}L`,
     underOne: `<${NB}1${NB}L`,
     timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}L`,
-    left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`)
+    left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`),
+    unit: 'L',
+    number: (n) => `L${n}`
   },
   incidents: {
     count: (n) => `${n}x`,
@@ -324,7 +348,21 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     incidents: (n) => `${n}x`,
     budget: (n) => `margin ${n}x`,
     noBudget: 'no margin',
-    budgetUnknown: 'margin —'
+    budgetUnknown: 'margin —',
+    heads: {
+      gained: 'POS',
+      ir: 'iR',
+      lic: 'LIC',
+      delta: 'ΔiR',
+      gap: 'GAP',
+      gapLeader: 'LEADER',
+      last: 'LAST',
+      best: 'BEST',
+      pit: 'PIT',
+      pitLap: 'STOP',
+      stint: 'STINT',
+      tyre: 'TYRE'
+    }
   },
   battle: {
     ahead: 'AHEAD',

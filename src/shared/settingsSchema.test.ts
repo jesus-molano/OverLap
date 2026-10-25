@@ -61,11 +61,20 @@ describe('OPTION_SCHEMA', () => {
     }
   })
 
-  it('has the v4 standings column defaults (Δ iRating and gap to leader off)', () => {
+  it('has the standings column defaults (Δ iRating, gap to leader and the stint extras off)', () => {
     const hidden = OPTION_SCHEMA.standings.columns.default
       .filter((c) => !c.visible)
       .map((c) => c.id)
-    expect(hidden).toEqual(['delta', 'gapLeader'])
+    expect(hidden).toEqual(['delta', 'gapLeader', 'pitLap', 'stint', 'tyre'])
+    // The best lap goes right after the last one, the stint extras after the pit column.
+    expect(STANDINGS_COLUMN_IDS.slice(6)).toEqual([
+      'last',
+      'best',
+      'pit',
+      'pitLap',
+      'stint',
+      'tyre'
+    ])
   })
 
   it('labels every column and offers valid, named presets in every language', () => {
@@ -109,6 +118,9 @@ describe('displayOnlyFields', () => {
       'showClassPosition',
       'showLicense',
       'showIRating',
+      'showStint',
+      'showTyre',
+      'showFlags',
       'nameFormat',
       'showIncidents'
     ])

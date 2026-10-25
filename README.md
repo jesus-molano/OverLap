@@ -98,8 +98,8 @@ solo.
 - **Por widget**: visible, **bloqueado** (no se mueve ni se redimensiona, ni siquiera en modo edición),
   **opacidad del fondo** (0–100 %: solo el panel; el texto y los coches siguen nítidos, y con poca
   opacidad el texto lleva un contorno para leerse sobre el juego) y restablecer posición y tamaño.
-- **Relativo**: coches delante y detrás (0–10) y columnas opcionales (posición en clase, licencia,
-  iRating).
+- **Relativo**: coches delante y detrás (0–10), columnas opcionales (posición en clase, licencia,
+  iRating, neumático, vueltas del stint) y banderas de penalización tras el nombre.
 - **Radar**: alcance (5–100 m, con atajos 10/20/30/50) y mostrar u ocultar las distancias.
 - **Idioma** (en Apariencia): español (por defecto) o inglés. Cambia al momento los widgets, la
   ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja
@@ -228,6 +228,28 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - **Rojo**: coche con vuelta(s) de más que te va a doblar. **Azul**: coche doblado. Solo en carrera.
 - Atenuados los coches en boxes (pit road o puesto).
 - Excluye pace car, espectadores y coches fuera del mundo.
+
+### Clasificación y relativo: mejor vuelta, stint, neumático y banderas
+
+Lo que el overlay nativo no da, cada cosa como opción propia:
+
+- **Mejor vuelta** también en carrera (`CarIdxBestLapTime`): columna `best` de la clasificación,
+  activa por defecto; morada si es la mejor de la clase. Fuera de carrera ya la muestra «Última
+  vuelta».
+- **Última parada** (`pitLap`, «V12») y **vueltas del stint** (`stint`, «7 v»): las calcula el modelo
+  de carrera desde la última salida de boxes o desde la salida. Si OverLap arranca con la carrera
+  empezada, cuenta desde la salida (no sabe de paradas anteriores).
+- **Neumático** (`tyre`): la letra del compuesto (`CarIdxTireCompound` + `DriverTires` del YAML,
+  H = duro, W = lluvia). iRacing solo nombra los compuestos de tu modelo de coche: el resto sale «—».
+- Las tres van ocultas por defecto, al final de la lista de columnas, y son las primeras en
+  esconderse si la ventana se estrecha (luego la mejor vuelta).
+- **Banderas** tras el nombre: negra, reparación (meatball) y aviso (negra enrollada, dibujada como
+  la bandera blanca y negra de aviso). Las dos tablas las muestran; en el relativo se pueden quitar.
+- En el relativo: `relative.showTyre` y `relative.showStint` (desactivadas) y `relative.showFlags`
+  (activada). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
+  cambian de alto.
+- En modo mock se ven paradas, stints, duros y algún coche con lluvia, y un aviso al coche de delante
+  entre los 2:30 y los 3:15 de cada sesión.
 
 ### Radar
 

@@ -10,7 +10,7 @@ export interface IconShape {
   /** Holes where subpaths overlap (letters cut out of a shape). */
   readonly evenodd?: true
   /** A fixed tint instead of currentColor (see Icon.vue). */
-  readonly tint?: 'orange' | 'ink'
+  readonly tint?: 'orange' | 'ink' | 'white'
 }
 
 const ROUND_SQUARE = 'M3 1h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2z'
@@ -31,6 +31,12 @@ export const ICONS = {
   out: [{ d: 'M7 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H7M6.5 8h7M10.5 5l3 3-3 3', kind: 'stroke' }],
   /** Black flag (penalty). */
   flag: [{ d: POLE }, { d: 'M3.5 2.5H14l-2.25 3.25L14 9H3.5z' }],
+  /**
+   * A warning (iRacing's furled black flag): motorsport's black-and-white flag, split along its
+   * diagonal, square so it never reads as the swallow-tailed black flag. A furled flag drawn as
+   * such is a sliver at row size.
+   */
+  'flag-warning': [{ d: POLE }, { d: 'M3.5 2.5V10H14z' }, { d: 'M3.5 2.5H14V10z', tint: 'white' }],
   /** Meatball (repair) flag: black square with an orange disc. */
   meatball: [
     { d: ROUND_SQUARE, tint: 'ink' },

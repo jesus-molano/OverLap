@@ -301,6 +301,12 @@ export const settingsEs = {
     carsBehind: 'Coches detrás',
     columns: 'Columnas',
     classPosition: 'Posición en clase',
+    stint: 'Vueltas del stint',
+    stintHelp: 'Desde su última parada, o desde la salida',
+    tyre: 'Neumático',
+    tyreHelp: 'Letra del compuesto (H duro, W lluvia); solo se conoce para tu modelo de coche',
+    flags: 'Banderas de penalización',
+    flagsHelp: 'Negra, reparación y aviso (negra enrollada), tras el nombre',
     incidents: 'Incidentes en la cabecera',
     incidentsHelp:
       'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · pen. a 17x»'
@@ -371,7 +377,11 @@ export const settingsEs = {
       gap: 'Hueco',
       gapLeader: 'Hueco al líder',
       last: 'Última vuelta',
-      pit: 'Boxes'
+      best: 'Mejor vuelta',
+      pit: 'Boxes',
+      pitLap: 'Última parada',
+      stint: 'Vueltas del stint',
+      tyre: 'Neumático'
     },
     /** Short help under a column label (only some columns have one). */
     hints: {
@@ -380,7 +390,11 @@ export const settingsEs = {
       gap: 'Según «Hueco»: al de delante o al líder',
       gapLeader: 'Con «Hueco: Ambos»',
       last: 'Fuera de carrera, la mejor vuelta',
-      pit: 'PIT / OUT y paradas'
+      best: 'Solo en carrera: fuera de carrera ya la muestra «Última vuelta»',
+      pit: 'PIT / OUT y paradas',
+      pitLap: 'Solo en carrera: la vuelta de su última parada (V12)',
+      stint: 'Desde su última parada, o desde la salida (7 v)',
+      tyre: 'Letra del compuesto (H duro, W lluvia); solo se conoce para tu modelo de coche'
     },
     move: (column: string) => `Mover ${column}`,
     moveUp: (column: string) => `Subir ${column}`,
@@ -871,6 +885,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsBehind: 'Cars behind',
     columns: 'Columns',
     classPosition: 'Class position',
+    stint: 'Stint laps',
+    stintHelp: 'Since its last stop, or since the start',
+    tyre: 'Tyre',
+    tyreHelp: 'Compound letter (H hard, W wet); only known for your car model',
+    flags: 'Penalty flags',
+    flagsHelp: 'Black flag, meatball and warning (furled black flag), after the name',
     incidents: 'Incidents in the header',
     incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · pen. at 17x”'
   },
@@ -936,7 +956,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
       gap: 'Gap',
       gapLeader: 'Gap to leader',
       last: 'Last lap',
-      pit: 'Pit'
+      best: 'Best lap',
+      pit: 'Pit',
+      pitLap: 'Last stop',
+      stint: 'Stint laps',
+      tyre: 'Tyre'
     },
     hints: {
       gained: 'Race only: positions gained since the start',
@@ -944,7 +968,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
       gap: 'Set by “Gap”: to the car ahead or to the leader',
       gapLeader: 'Only with “Gap: Both”',
       last: 'Outside races, the best lap',
-      pit: 'PIT / OUT and pit stop count'
+      best: 'Race only: outside races “Last lap” already shows it',
+      pit: 'PIT / OUT and pit stop count',
+      pitLap: 'Race only: the lap of its last stop (L12)',
+      stint: 'Since its last stop, or since the start (7 L)',
+      tyre: 'Compound letter (H hard, W wet); only known for your car model'
     },
     move: (column) => `Move ${column}`,
     moveUp: (column) => `Move ${column} up`,

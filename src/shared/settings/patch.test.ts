@@ -288,7 +288,11 @@ describe('applySettingsPatch', () => {
       'lic',
       'delta',
       'gapLeader',
-      'pit'
+      'best',
+      'pit',
+      'pitLap',
+      'stint',
+      'tyre'
     ])
     expect(out.standings.columns.filter((c) => c.visible).map((c) => c.id)).toEqual(['gap', 'last'])
   })

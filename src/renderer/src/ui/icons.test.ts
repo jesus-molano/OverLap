@@ -9,6 +9,7 @@ describe('icons', () => {
       'pit',
       'out',
       'flag',
+      'flag-warning',
       'meatball',
       'chequered',
       'lock',

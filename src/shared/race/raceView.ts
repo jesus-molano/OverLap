@@ -63,7 +63,10 @@ export interface RaceCarState {
   readonly lastPitLap: number | null
   /** On the first lap after a pit exit. */
   readonly outLap: boolean
-  /** Laps completed since the last pit exit (or since the start). */
+  /**
+   * Laps completed since the last pit exit (or since the start; joined mid-race, stops before
+   * that are unknown). Outside races, since the car was first seen or left the pits.
+   */
   readonly stintLaps: number
   /** Last lap time (model-timed, falling back to CarIdxLastLapTime), seconds, null when none. */
   readonly lastLapTime: number | null

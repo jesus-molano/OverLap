@@ -5,9 +5,9 @@
  * StandingsProvider per telemetry loop, is a cache of the rating projections.
  */
 import { driverIdentity } from './driver'
-import { SessionFlag } from './flags'
 import { incidentCount } from './incidents/count'
 import { frac } from './num'
+import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { classRatingField } from './ratings/field'
 import { ClassRatingsCache } from './ratings/projection'
@@ -16,6 +16,7 @@ import { projectSessionSafetyRating } from './ratings/sessionSafety'
 import { currentSessionType, isRaceSession, resolvePlayerCarIdx } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import type { TelemetryFrame } from './telemetry'
+import { tyreCompoundOf, tyreModelOf, type TyreModel } from './tyres'
 import type {
   DriverEntry,
   GapValue,
@@ -138,18 +139,14 @@ function statusOf(car: RaceCarState): StandingsStatus {
   return 'running'
 }
 
-function penaltyOf(flags: number): StandingsRow['penalty'] {
-  if (flags & (SessionFlag.Black | SessionFlag.Disqualify)) return 'black'
-  if (flags & SessionFlag.Repair) return 'meatball'
-  return null
+function isClassBest(lap: number | null, classBest: number | null): boolean {
+  return lap !== null && classBest !== null && Math.abs(lap - classBest) <= LAP_EPS
 }
 
 function lapKind(e: Entry, classBest: number | null): StandingsRow['lastLapKind'] {
   const last = e.lastLap
   if (last === null || e.bestLap === null || Math.abs(last - e.bestLap) > LAP_EPS) return 'normal'
-  return classBest !== null && Math.abs(e.bestLap - classBest) <= LAP_EPS
-    ? 'class-best'
-    : 'personal-best'
+  return isClassBest(e.bestLap, classBest) ? 'class-best' : 'personal-best'
 }
 
 /** What the visible columns need: the rest is left null, so it never re-sends the table. */
@@ -159,6 +156,9 @@ interface RowNeeds {
   gapToLeader: boolean
   /** Every row's iRating change (otherwise only the player's). */
   allDeltas: boolean
+  /** Stint laps change on every lap of every car: only sent for the 'stint' column. */
+  stint: boolean
+  tyre: boolean
 }
 
 function columnShown(opts: StandingsOptions, id: StandingsColumnId): boolean {
@@ -168,12 +168,14 @@ function columnShown(opts: StandingsOptions, id: StandingsColumnId): boolean {
 }
 
 interface RowContext {
+  frame: TelemetryFrame
   race: RaceView
   session: SessionMeta
   isRace: boolean
   playerIdx: number
   needs: RowNeeds
   deltas: ReadonlyMap<number, number> | null
+  tyreModel: TyreModel
 }
 
 function makeRow(
@@ -219,9 +221,12 @@ function makeRow(
     lastLap: e.lastLap,
     lastLapKind: lapKind(e, g.classBest),
     bestLap: e.bestLap,
+    bestLapKind: isClassBest(e.bestLap, g.classBest) ? 'class-best' : 'normal',
     pitStops: car.pitStops,
     lastPitLap: car.lastPitLap,
     outLap: car.outLap,
+    stintLaps: needs.stint ? car.stintLaps : null,
+    tyre: needs.tyre ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
     penalty: penaltyOf(car.sessionFlags),
     iRatingDelta: delta,
@@ -315,8 +320,11 @@ export class StandingsProvider {
     const needs: RowNeeds = {
       interval: columnShown(opts, 'gap'),
       gapToLeader: columnShown(opts, 'gap') || columnShown(opts, 'gapLeader'),
-      allDeltas: deltaColumn && opts.iRatingDeltaAll
+      allDeltas: deltaColumn && opts.iRatingDeltaAll,
+      stint: columnShown(opts, 'stint'),
+      tyre: columnShown(opts, 'tyre')
     }
+    const tyreModel = tyreModelOf(session)
     // Only rated races change iRating; the player's own row and the header need the deltas.
     const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'
@@ -337,7 +345,16 @@ export class StandingsProvider {
       const field = classRatingField(session, race, g.classId)
       const ratings = this.ratings.get(g.classId, field, playerIdx, classDeltas)
       if (g === playerGroup) iRating = ratings.player
-      const ctx: RowContext = { race, session, isRace, playerIdx, needs, deltas: ratings.deltas }
+      const ctx: RowContext = {
+        frame,
+        race,
+        session,
+        isRace,
+        playerIdx,
+        needs,
+        deltas: ratings.deltas,
+        tyreModel
+      }
       const mode = !compact ? 'full' : isPrimary ? 'window' : 'leader'
       classes.push({
         classId: g.classId,

@@ -31,6 +31,23 @@ describe('previewStandings', () => {
     expect(rows.some((r) => r.penalty === 'meatball')).toBe(true)
   })
 
+  it('shows stints, a stop, named and unnamed tyres and every flag in the default view', () => {
+    const d = previewStandings(DEFAULTS)
+    const rows = d.classes.flatMap((c) => c.rows)
+    const flags = new Set(rows.map((r) => r.penalty).filter((p) => p !== null))
+    expect(flags).toEqual(new Set(['black', 'meatball', 'furled']))
+    expect(rows.every((r) => r.stintLaps !== null)).toBe(true)
+    expect(rows.some((r) => r.stintLaps === 0 && r.outLap && r.lastPitLap !== null)).toBe(true)
+    expect(new Set(rows.map((r) => r.tyre))).toEqual(new Set(['Hard', 'Wet', null]))
+    // One purple best lap per class.
+    for (const c of d.classes) {
+      const all = previewStandings({ ...DEFAULTS, mode: 'full' }).classes.find(
+        (x) => x.classId === c.classId
+      )
+      expect(all?.rows.filter((r) => r.bestLapKind === 'class-best')).toHaveLength(1)
+    }
+  })
+
   it('has names that exercise every name format', () => {
     const names = previewStandings({ ...DEFAULTS, mode: 'full' }).classes.flatMap((c) =>
       c.rows.map((r) => r.driverName)

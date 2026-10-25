@@ -112,10 +112,22 @@ export const STANDINGS_COLUMN_IDS = [
   'gap',
   'gapLeader',
   'last',
-  'pit'
+  'best',
+  'pit',
+  'pitLap',
+  'stint',
+  'tyre'
 ] as const satisfies readonly StandingsColumnId[]
 
-const HIDDEN_BY_DEFAULT: ReadonlySet<StandingsColumnId> = new Set(['delta', 'gapLeader'])
+// The best lap is the extra most asked for; stint, last stop and tyre are for longer races.
+// Files saved before a column existed get it hidden, at the end (normalizeColumns).
+const HIDDEN_BY_DEFAULT: ReadonlySet<StandingsColumnId> = new Set([
+  'delta',
+  'gapLeader',
+  'pitLap',
+  'stint',
+  'tyre'
+])
 
 export const OPTION_SCHEMA = {
   appearance: {
@@ -148,6 +160,10 @@ export const OPTION_SCHEMA = {
     showClassPosition: { kind: 'bool', default: true, displayOnly: true },
     showLicense: { kind: 'bool', default: true, displayOnly: true },
     showIRating: { kind: 'bool', default: true, displayOnly: true },
+    // Every row carries them: the provider computes the same payload either way.
+    showStint: { kind: 'bool', default: false, displayOnly: true },
+    showTyre: { kind: 'bool', default: false, displayOnly: true },
+    showFlags: { kind: 'bool', default: true, displayOnly: true },
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,

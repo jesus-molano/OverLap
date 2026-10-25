@@ -5,7 +5,14 @@
  */
 import { formatClassPosition, formatGap } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import type { NameFormat, RelativeData, RelativeOptions, RelativeRow } from '@shared/types'
+import type {
+  CarPenalty,
+  NameFormat,
+  RelativeData,
+  RelativeOptions,
+  RelativeRow
+} from '@shared/types'
+import { stintCell, tyreCell } from '@renderer/view/carExtras'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
 
@@ -21,6 +28,13 @@ export interface RelativeSlotView extends DriverCellView {
   pos: string
   /** '1.2', '-0.8'; blank on your own row. */
   gap: string
+  /** Flag badge after the name (when the flags option is on). */
+  penalty: CarPenalty | null
+  /** Laps of the stint ('7', then stintUnit 'v'); both '' when unknown. */
+  stint: string
+  stintUnit: string
+  /** Tyre compound letter ('H'), '—' when unknown. */
+  tyre: string
 }
 
 /** A slot with no car (fewer cars than slots on that side). */
@@ -75,6 +89,7 @@ export function toSlotView(
   m: Messages
 ): RelativeSlotView {
   const lap = row.isPlayer || row.lapRelation === 'same' ? null : row.lapRelation
+  const stint = stintCell(row.stintLaps, m)
   return {
     ...toDriverCell(row, styles, nameFormat, m),
     kind: 'car',
@@ -84,7 +99,11 @@ export function toSlotView(
     lap,
     pos: formatClassPosition(row.classPosition),
     // Your own gap is always 0.0: noise.
-    gap: row.isPlayer ? '' : formatGap(row.gapS)
+    gap: row.isPlayer ? '' : formatGap(row.gapS),
+    penalty: row.penalty,
+    stint: stint.text,
+    stintUnit: stint.unit,
+    tyre: tyreCell(row.tyre)
   }
 }
 
@@ -101,36 +120,69 @@ export function toSlotViews(
 }
 
 /** Column widths (em of the row font). The name takes the rest. */
-export const RELATIVE_COL_EM = { pos: 1.9, lic: 2.8, ir: 2.4, gap: 3.1 } as const
+export const RELATIVE_COL_EM = {
+  pos: 1.9,
+  lic: 2.8,
+  ir: 2.4,
+  tyre: 1.3,
+  stint: 2.3,
+  gap: 3.1
+} as const
+/** Row width (em) the default columns need with a readable name: it caps the font by width. */
+export const RELATIVE_FIT_EM = 27
+const COL_GAP_EM = 0.4
 
 export interface RelativeColumns {
   pos: boolean
   lic: boolean
   ir: boolean
+  tyre: boolean
+  stint: boolean
+  /** Flag badges after the name. */
+  flags: boolean
   /** grid-template-columns of a row. */
   template: string
+  /**
+   * Row width (em) the columns need: RELATIVE_FIT_EM plus the optional extras, so turning them on
+   * shrinks the text in a narrow window instead of squeezing the name.
+   */
+  fitEm: number
   /** Changes with the set of columns (v-memo). */
   key: string
 }
 
+type ColumnOptions = Pick<RelativeOptions, 'showClassPosition' | 'showLicense' | 'showIRating'> &
+  Partial<Pick<RelativeOptions, 'showTyre' | 'showStint' | 'showFlags'>>
+
 /** Hidden columns leave the grid, so the name takes their width. */
-export function relativeColumns(
-  o: Pick<RelativeOptions, 'showClassPosition' | 'showLicense' | 'showIRating'>
-): RelativeColumns {
+export function relativeColumns(o: ColumnOptions): RelativeColumns {
   const pos = o.showClassPosition !== false
   const lic = o.showLicense !== false
   const ir = o.showIRating !== false
+  // A missing option reads as its schema default (tyre and stint off, flags on).
+  const tyre = o.showTyre === true
+  const stint = o.showStint === true
+  const flags = o.showFlags !== false
   const tracks: string[] = []
   if (pos) tracks.push(`${RELATIVE_COL_EM.pos}em`)
   tracks.push('minmax(0, 1fr)')
   if (lic) tracks.push(`${RELATIVE_COL_EM.lic}em`)
   if (ir) tracks.push(`${RELATIVE_COL_EM.ir}em`)
+  if (tyre) tracks.push(`${RELATIVE_COL_EM.tyre}em`)
+  if (stint) tracks.push(`${RELATIVE_COL_EM.stint}em`)
   tracks.push(`${RELATIVE_COL_EM.gap}em`)
+  let fitEm = RELATIVE_FIT_EM
+  if (tyre) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
+  if (stint) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   return {
     pos,
     lic,
     ir,
+    tyre,
+    stint,
+    flags,
     template: tracks.join(' '),
-    key: `${Number(pos)}${Number(lic)}${Number(ir)}`
+    fitEm: Math.round(fitEm * 100) / 100,
+    key: [pos, lic, ir, tyre, stint, flags].map(Number).join('')
   }
 }

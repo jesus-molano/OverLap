@@ -7,12 +7,14 @@ import { lineMetrics, planLines } from './layout'
 import { block, makeRow } from './testing/rows'
 import {
   META_SEP,
+  bestCell,
   classMeta,
   gainedCell,
   gapCell,
   gapLeaderCell,
   lapCell,
   pitKind,
+  pitLapCell,
   toLineViews,
   type CarLineView,
   type ClassLineView,
@@ -350,5 +352,47 @@ describe('toLineViews', () => {
     const next = reuseViews<LineView>(first, toLineViews(moved, c))
     expect(next).not.toBe(first)
     expect(next.filter((v, i) => v === first[i])).toHaveLength(first.length - 1)
+  })
+})
+
+describe('best lap, last stop, stint and tyre cells', () => {
+  it('best: the best lap, filled for the fastest of the class, a dash without one', () => {
+    expect(bestCell(makeRow({ bestLap: 97.1, bestLapKind: 'class-best' }))).toEqual({
+      text: '1:37.100',
+      kind: 'best'
+    })
+    expect(bestCell(makeRow({ bestLap: 97.5 }))).toEqual({ text: '1:37.500', kind: 'normal' })
+    expect(bestCell(makeRow())).toEqual({ text: '—', kind: 'none' })
+  })
+
+  it("last stop: the lap of the latest stop, in the window's language, blank without one", () => {
+    expect(pitLapCell(makeRow({ pitStops: 2, lastPitLap: 12 }), ES)).toBe('V12')
+    expect(pitLapCell(makeRow({ pitStops: 1, lastPitLap: 12 }), EN)).toBe('L12')
+    expect(pitLapCell(makeRow(), ES)).toBe('')
+    // A pit-lane start leaves the pits without stopping.
+    expect(pitLapCell(makeRow({ pitStops: 0, lastPitLap: 1 }), ES)).toBe('')
+  })
+
+  it('fills the car line', () => {
+    const row = makeRow({
+      bestLap: 136.612,
+      pitStops: 1,
+      lastPitLap: 9,
+      stintLaps: 6,
+      tyre: 'Wet',
+      penalty: 'furled'
+    })
+    expect(carView(row)).toMatchObject({
+      best: '2:16.612',
+      bestKind: 'normal',
+      pitLap: 'V9',
+      stint: '6',
+      stintUnit: 'v',
+      tyre: 'W',
+      penalty: 'furled'
+    })
+    expect(carView(row, ctx({ m: EN }))).toMatchObject({ pitLap: 'L9', stintUnit: 'L' })
+    // Unknown stint and tyre: no stint at all, a dash for the tyre.
+    expect(carView(makeRow())).toMatchObject({ stint: '', stintUnit: '', tyre: '—', pitLap: '' })
   })
 })

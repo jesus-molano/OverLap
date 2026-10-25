@@ -33,7 +33,7 @@ function dropped(p: ColumnPrefs, widthPx: number, fontPx = 13): string[] {
 }
 
 describe('fitColumns', () => {
-  it('gives the name at least 10 em at the default 460 px and 13 px', () => {
+  it('gives the name at least 10 em at 460 px and 13 px, the best lap going first', () => {
     const c = fitColumns(prefs(), 460, 13)
     expect(c.cells).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'pit'])
     expect(c.nameEm).toBeGreaterThanOrEqual(10)
@@ -41,8 +41,21 @@ describe('fitColumns', () => {
     expect(c.pitInline).toBe(false)
   })
 
+  it('fits every default column, the best lap included, at the default 540 px', () => {
+    const c = fitColumns(prefs(), 540, 13)
+    expect(c.cells).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'best', 'pit'])
+    expect(c.nameEm).toBeGreaterThanOrEqual(NAME_MIN_EM)
+  })
+
+  it('drops the stint extras before the best lap, and that before anything older', () => {
+    const p = prefs({ columns: allColumns() })
+    let w = 900
+    while (fitColumns(p, w, 13).cells.includes('best')) w -= 1
+    expect(dropped(p, w)).toEqual(['delta', 'gapLeader', 'pitLap', 'stint', 'tyre', 'best'])
+  })
+
   it('keeps the user order and builds the grid from it', () => {
-    const order: StandingsColumnId[] = ['gap', 'last', 'pit', 'lic', 'ir', 'gained']
+    const order: StandingsColumnId[] = ['gap', 'last', 'best', 'pit', 'lic', 'ir', 'gained']
     const columns = defaultColumns().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
     const c = fitColumns(prefs({ columns }), 600, 13)
     expect(c.cells).toEqual(order)
@@ -52,10 +65,24 @@ describe('fitColumns', () => {
   })
 
   it('drops columns in DROP_ORDER as the window narrows, whatever the user order', () => {
+    const ids = defaultColumns().map((c) => c.id)
     const orders: StandingsColumnId[][] = [
-      ['gained', 'ir', 'lic', 'delta', 'gap', 'gapLeader', 'last', 'pit'],
-      ['pit', 'last', 'gapLeader', 'gap', 'delta', 'lic', 'ir', 'gained'],
-      ['last', 'gained', 'pit', 'ir', 'gap', 'lic', 'gapLeader', 'delta']
+      ids,
+      [...ids].reverse(),
+      [
+        'tyre',
+        'last',
+        'gained',
+        'stint',
+        'pit',
+        'ir',
+        'best',
+        'gap',
+        'lic',
+        'pitLap',
+        'gapLeader',
+        'delta'
+      ]
     ]
     for (const order of orders) {
       const p = prefs({ columns: allColumns(order), iRatingDeltaAll: true })
@@ -86,7 +113,7 @@ describe('fitColumns', () => {
     // Find the widest width at which the default set loses 'gained'.
     let w = 700
     while (fitColumns(p, w, 13).cells.includes('gained')) w -= 1
-    expect(dropped(p, w)).toEqual(['gained'])
+    expect(dropped(p, w)).toEqual(['best', 'gained'])
     const noLast = prefs({
       columns: defaultColumns().map((c) => (c.id === 'last' ? { ...c, visible: false } : c))
     })
@@ -113,7 +140,7 @@ describe('fitColumns', () => {
 
   it('keeps every wanted column before the window is measured', () => {
     const c = fitColumns(prefs({ columns: allColumns(), iRatingDeltaAll: true }), 0, 13)
-    expect(c.cells).toHaveLength(8)
+    expect(c.cells).toHaveLength(12)
     expect(c.numberStyle).toBe('chip')
   })
 
@@ -164,11 +191,21 @@ describe('columnWanted', () => {
     expect(columnWanted('gapLeader', true, prefs({ gapMode: 'leader' }))).toBe(false)
   })
 
-  it('follows the visibility flag for the rest', () => {
-    for (const id of ['ir', 'lic', 'gap', 'last', 'pit'] as const) {
+  it('shows the best lap and the last stop in races only (elsewhere the last lap is the best)', () => {
+    for (const id of ['best', 'pitLap'] as const) {
+      expect(columnWanted(id, true, prefs())).toBe(true)
+      expect(columnWanted(id, false, prefs())).toBe(false)
+      expect(columnWanted(id, true, prefs({ race: false }))).toBe(false)
+    }
+  })
+
+  it('follows the visibility flag for the rest, stint and tyre in every session', () => {
+    for (const id of ['ir', 'lic', 'gap', 'last', 'pit', 'stint', 'tyre'] as const) {
       expect(columnWanted(id, true, prefs())).toBe(true)
       expect(columnWanted(id, false, prefs())).toBe(false)
     }
+    expect(columnWanted('stint', true, prefs({ race: false }))).toBe(true)
+    expect(columnWanted('tyre', true, prefs({ race: false }))).toBe(true)
   })
 })
 

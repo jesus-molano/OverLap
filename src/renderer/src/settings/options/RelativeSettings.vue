@@ -56,7 +56,26 @@ const nameHelp = computed(() =>
         :current="opts.showIRating"
         :apply="set('showIRating')"
       />
+      <ToggleControl
+        :label="t.settings.relative.tyre"
+        :help="t.settings.relative.tyreHelp"
+        :current="opts.showTyre"
+        :apply="set('showTyre')"
+      />
+      <ToggleControl
+        :label="t.settings.relative.stint"
+        :help="t.settings.relative.stintHelp"
+        :current="opts.showStint"
+        :apply="set('showStint')"
+      />
     </CheckGroup>
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.relative.flags"
+      :help="t.settings.relative.flagsHelp"
+      :current="opts.showFlags"
+      :apply="set('showFlags')"
+    />
     <ToggleControl
       kind="switch"
       :label="t.settings.relative.incidents"
