@@ -76,7 +76,27 @@ export const TELEMETRY_VARS = {
   /** irsdk_EngineWarnings bits: pit speed limiter 0x10, engine stalled 0x08, ... */
   EngineWarnings: 'number',
   /** The player is between the pit-lane cones. */
-  OnPitRoad: 'boolean'
+  OnPitRoad: 'boolean',
+
+  // --- v2.3: track conditions (conditions.ts; the weather is measured at the S/F line) ---
+  /** °C, measured by the crew around the track (TrackTemp is its deprecated alias). */
+  TrackTempCrew: 'number',
+  /** °C. */
+  AirTemp: 'number',
+  /** m/s. */
+  WindVel: 'number',
+  /** Radians from north, read as where the wind blows FROM (unverified, see conditions.ts). */
+  WindDir: 'number',
+  /** Radians: the player's heading from north, in WindDir's sense (unverified). */
+  YawNorth: 'number',
+  /** irsdk_TrackWetness: 0 unknown, 1 dry .. 7 extremely wet. */
+  TrackWetness: 'number',
+  /** The SDK's unit is '%': read as 0..1 like Throttle (unverified, see conditions.ts). */
+  Precipitation: 'number',
+  /** The stewards allow rain tyres. */
+  WeatherDeclaredWet: 'boolean',
+  /** 0 clear, 1 partly cloudy, 2 mostly cloudy, 3 overcast. */
+  Skies: 'number'
 } as const satisfies Partial<Record<keyof TelemetryVarList, 'number' | 'boolean'>>
 
 export type TelemetryVarName = keyof typeof TELEMETRY_VARS

@@ -23,6 +23,7 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
     inputs: { ...s.inputs, colors: { ...s.inputs.colors } },
     traffic: { ...s.traffic },
     alerts: { ...s.alerts },
-    delta: { ...s.delta }
+    delta: { ...s.delta },
+    conditions: { ...s.conditions }
   }
 }

@@ -210,11 +210,12 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 
 ## Widgets
 
-| Widget   | Id         | Frecuencia | Tamaño mínimo |
-| -------- | ---------- | ---------- | ------------- |
-| Relativo | `relative` | 10 Hz      | 300 x 150     |
-| Radar    | `radar`    | 60 Hz      | 120 x 140     |
-| Delta    | `delta`    | 30 Hz      | 200 x 48      |
+| Widget   | Id           | Frecuencia | Tamaño mínimo |
+| -------- | ------------ | ---------- | ------------- |
+| Relativo | `relative`   | 10 Hz      | 300 x 150     |
+| Radar    | `radar`      | 60 Hz      | 120 x 140     |
+| Delta    | `delta`      | 30 Hz      | 200 x 48      |
+| Pista    | `conditions` | 1 Hz       | 180 x 40      |
 
 ### Relativo
 
@@ -271,6 +272,25 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
   La vuelta en curso se marca como inválida en cuanto deja de contar.
 - El récord se escribe unos segundos después de cruzar meta, cuando llega el tiempo oficial, de forma
   atómica y sin frenar el bucle. Si el archivo está dañado se guarda una copia `.bak`.
+
+### Pista
+
+- Las condiciones de ahora mismo, una vez por segundo (iRacing no da pronóstico):
+  - temperatura de la pista (`TrackTempCrew`) con una flecha si sube o baja en los últimos 5 min, y
+    la del aire (`AirTemp`);
+  - viento (`WindVel`) y de dónde sopla respecto a tu coche (`WindDir` − `YawNorth`): una flecha en
+    un dial apunta a tu coche desde ese lado, con «de cara», «de cola» o «por la izq./dcha.». Solo al
+    volante;
+  - lo mojado que está el asfalto (`TrackWetness`, 7 niveles; «—» si iRacing no lo sabe, nunca
+    «Seco»), la lluvia (`Precipitation`) y la banda **DECLARADA MOJADA** (`WeatherDeclaredWet`);
+  - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML).
+- Cada parte se activa o desactiva en su página de Ajustes (`conditions.*`); la cabecera va apagada
+  por defecto. Grados y velocidad según `appearance.units` (°C y km/h por defecto).
+- Sin confirmar en una sesión real: si `WindDir` es de dónde viene el viento o hacia dónde va, el
+  sentido de `YawNorth` y la escala de `Precipitation` (se lee 0..1). Cada cosa se cambia en un solo
+  sitio (`src/shared/conditions.ts`).
+- En modo mock la pista se calienta, se queda estable y se enfría, el viento cambia un poco y a los
+  21 min pasa un chubasco que la moja y la declara mojada.
 
 ## Arquitectura
 

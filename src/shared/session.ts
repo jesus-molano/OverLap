@@ -253,7 +253,8 @@ export function parseSessionMeta(raw: unknown): SessionMeta {
       type,
       name: text(s.SessionName),
       laps: parseLaps(s.SessionLaps),
-      timeS: parseTimeS(s.SessionTime)
+      timeS: parseTimeS(s.SessionTime),
+      rubberState: text(s.SessionTrackRubberState).trim()
     })
   }
 

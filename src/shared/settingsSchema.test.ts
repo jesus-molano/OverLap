@@ -131,6 +131,8 @@ describe('displayOnlyFields', () => {
       'showSectors',
       'showTrend'
     ])
+    // The conditions provider sends every reading: its options only choose what is drawn.
+    expect(displayOnlyFields('conditions')).toEqual(Object.keys(OPTION_SCHEMA.conditions))
   })
 })
 

@@ -1,5 +1,6 @@
 import { AlertsProvider, alertsEqual } from './alerts'
 import { BattleProvider, battleEqual } from './battle'
+import { ConditionsProvider, conditionsEqual } from './conditions'
 import { DeltaProvider, deltaEqual } from './delta/delta'
 import type { PersonalBestStore } from './delta/references'
 import { computeInputs } from './inputs'
@@ -48,6 +49,7 @@ export function createProviders(): ProviderSet {
   const traffic = new TrafficProvider()
   const alerts = new AlertsProvider()
   const delta = new DeltaProvider()
+  const conditions = new ConditionsProvider()
   return {
     run: {
       relative: (ctx) => computeRelative(ctx.frame, ctx.session, ctx.config.relative),
@@ -58,7 +60,9 @@ export function createProviders(): ProviderSet {
       traffic: (ctx, prev) =>
         traffic.compute(ctx.frame, ctx.session, ctx.race, ctx.config.traffic, prev),
       alerts: (ctx) => alerts.compute(ctx.frame, ctx.session, ctx.race, ctx.config.alerts),
-      delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta)
+      delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta),
+      // Its options only choose what is drawn: every reading is sent.
+      conditions: (ctx) => conditions.compute(ctx.frame, ctx.session)
     },
     reset: () => {
       standings.reset()
@@ -66,6 +70,7 @@ export function createProviders(): ProviderSet {
       traffic.reset()
       alerts.reset()
       delta.reset()
+      conditions.reset()
     }
   }
 }
@@ -99,5 +104,7 @@ export const SKIP_EMIT: {
     prev !== null && ((!payload.visible && !prev.visible) || trafficEqual(payload, prev)),
   alerts: (payload, prev) => prev !== null && alertsEqual(payload, prev),
   delta: (payload, prev) =>
-    prev !== null && ((!payload.visible && !prev.visible) || deltaEqual(payload, prev))
+    prev !== null && ((!payload.visible && !prev.visible) || deltaEqual(payload, prev)),
+  // Weather moves slowly: most seconds change nothing shown.
+  conditions: (payload, prev) => prev !== null && conditionsEqual(payload, prev)
 }

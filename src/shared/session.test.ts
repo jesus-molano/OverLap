@@ -25,14 +25,16 @@ function sampleSession(): Record<string, unknown> {
           SessionType: 'Practice',
           SessionName: 'PRACTICE',
           SessionLaps: 'unlimited',
-          SessionTime: '1800.0000 sec'
+          SessionTime: '1800.0000 sec',
+          SessionTrackRubberState: 'moderate usage'
         },
         {
           SessionNum: 1,
           SessionType: 'Lone Qualify',
           SessionName: 'QUALIFY',
           SessionLaps: 2,
-          SessionTime: '480.0000 sec'
+          SessionTime: '480.0000 sec',
+          SessionTrackRubberState: ' carry over '
         },
         {
           SessionNum: 2,
@@ -172,9 +174,21 @@ describe('parseSessionMeta', () => {
       [2, 'Race']
     ])
     expect([...meta.sessions]).toEqual<[number, SessionDetails][]>([
-      [0, { type: 'Practice', name: 'PRACTICE', laps: null, timeS: 1800 }],
-      [1, { type: 'Lone Qualify', name: 'QUALIFY', laps: 2, timeS: 480 }],
-      [2, { type: 'Race', name: 'RACE', laps: 14, timeS: null }]
+      [
+        0,
+        {
+          type: 'Practice',
+          name: 'PRACTICE',
+          laps: null,
+          timeS: 1800,
+          rubberState: 'moderate usage'
+        }
+      ],
+      [
+        1,
+        { type: 'Lone Qualify', name: 'QUALIFY', laps: 2, timeS: 480, rubberState: 'carry over' }
+      ],
+      [2, { type: 'Race', name: 'RACE', laps: 14, timeS: null, rubberState: '' }]
     ])
     expect([...meta.grid]).toEqual<[number, GridEntry][]>([
       [1, { position: 1, classPosition: 1 }],
@@ -316,8 +330,8 @@ describe('parseSessionMeta', () => {
     expect([...meta.sessionTypes]).toEqual([[4, 'Race']])
     // A session without a type still has its (empty) details.
     expect([...meta.sessions]).toEqual<[number, SessionDetails][]>([
-      [3, { type: '', name: '', laps: null, timeS: null }],
-      [4, { type: 'Race', name: '', laps: null, timeS: null }]
+      [3, { type: '', name: '', laps: null, timeS: null, rubberState: '' }],
+      [4, { type: 'Race', name: '', laps: null, timeS: null, rubberState: '' }]
     ])
   })
 
@@ -587,7 +601,28 @@ describe('parseSessionMeta: session details', () => {
       { SessionNum: 0, SessionType: 'Practice', SessionName: 'A' },
       { SessionNum: 0, SessionType: 'Race', SessionName: 99 }
     ])
-    expect(s.get(0)).toEqual({ type: 'Race', name: '99', laps: null, timeS: null })
+    expect(s.get(0)).toEqual({
+      type: 'Race',
+      name: '99',
+      laps: null,
+      timeS: null,
+      rubberState: ''
+    })
+  })
+
+  it('reads the rubber state as text, trimmed, and nothing else', () => {
+    const s = withSessions([
+      { SessionNum: 0, SessionTrackRubberState: 'moderately high usage' },
+      { SessionNum: 1, SessionTrackRubberState: 7 },
+      { SessionNum: 2, SessionTrackRubberState: { usage: 'high' } },
+      { SessionNum: 3, SessionTrackRubberState: null }
+    ])
+    expect([...s].map(([n, d]) => [n, d.rubberState])).toEqual([
+      [0, 'moderately high usage'],
+      [1, '7'],
+      [2, ''],
+      [3, '']
+    ])
   })
 })
 
