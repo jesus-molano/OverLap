@@ -5,6 +5,7 @@ import type { ConditionsData } from '@shared/types'
 import { PREVIEW_CONDITIONS } from './preview'
 import {
   EMPTY_VIEW,
+  WETNESS_CELLS,
   conditionsView,
   layoutKey,
   linesOf,
@@ -91,6 +92,17 @@ describe('readings', () => {
     expect(ES.widgets.conditions.wetness).toHaveLength(7)
   })
 
+  it('leaves the meter empty on a dry track and full on an extremely wet one', () => {
+    const cells = (wetness: number | null): number | null | undefined =>
+      conditionsView(data({ wetness }), ALL_ON, 'metric', ES).wetness?.cells
+    // A lit cell is water: in narrow windows the meter is all there is (the word is hidden).
+    expect(cells(1)).toBe(0)
+    expect(cells(2)).toBe(1)
+    expect(cells(7)).toBe(WETNESS_CELLS)
+    expect(WETNESS_CELLS).toBe(6)
+    expect(cells(0)).toBeNull()
+  })
+
   it('words the sky', () => {
     expect(skiesText(0, ES)).toBe('Despejado')
     expect(skiesText(3, EN)).toBe('Overcast')
@@ -142,7 +154,7 @@ describe('conditionsView', () => {
       fromDeg: -60,
       side: 'por la izq.'
     })
-    expect(v.wetness).toEqual({ label: 'Asfalto', value: 'Poco mojado', unit: '', level: 4 })
+    expect(v.wetness).toEqual({ label: 'Asfalto', value: 'Poco mojado', unit: '', cells: 3 })
     expect(v.rain).toEqual({ label: 'Lluvia', value: `40${NB}%`, unit: '' })
     expect(v.sky).toEqual({ label: 'Cielo', value: 'Cubierto', unit: '' })
     expect(v.rubber).toEqual({ label: 'Goma', value: 'Moderada', unit: '' })
@@ -217,7 +229,7 @@ describe('conditionsView', () => {
       'metric',
       ES
     )
-    expect(v.wetness).toEqual({ label: 'Asfalto', value: '—', unit: '', level: null })
+    expect(v.wetness).toEqual({ label: 'Asfalto', value: '—', unit: '', cells: null })
     expect(v.rubber?.value).toBe('—')
     expect(v.track).toBeNull()
     expect(v.rain).toBeNull()

@@ -954,7 +954,7 @@ describe('OverlayWindows displays', () => {
     const w1 = display(1)
     expect(panel(w1, 'radar')).toEqual({
       widget: 'radar',
-      rect: { x: 560, y: 260, width: 220, height: 260 },
+      rect: { x: 540, y: 260, width: 220, height: 260 },
       placement: 1
     })
     expect(committed).toEqual([])

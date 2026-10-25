@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { AlertToggle } from '@shared/alerts'
+import { showsNothing } from '@shared/alerts'
 import { INCIDENT_ALERT } from '@shared/incidents/alert'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
@@ -20,12 +20,8 @@ const HOLD: NumericSpec = OPTION_SCHEMA.alerts.holdS
 const HOLD_PRESETS_S = [0, 3, 5].filter((s) => s >= HOLD.min && s <= HOLD.max)
 const tenths = (s: number): string => formatSeconds(s, 1)
 
-/** Every on/off option of the page, in the schema's (UI) order. */
-const TOGGLES = (Object.keys(OPTION_SCHEMA.alerts) as (keyof typeof OPTION_SCHEMA.alerts)[]).filter(
-  (k): k is AlertToggle => OPTION_SCHEMA.alerts[k].kind === 'bool'
-)
-
-const nothing = computed(() => TOGGLES.every((k) => !opts.value[k]))
+// The blue, furled and overspeed switches stay on, greyed out, under their own: not counted.
+const nothing = computed(() => showsNothing(opts.value))
 // "Ocultar en boxes" (Ventana) hides the whole widget on pit road, limiter line included.
 const prefs = useWidgetSettings('alerts')
 const limiterHidden = computed(() => opts.value.showPitLimiter && prefs.value.hideInPits)

@@ -105,11 +105,13 @@ export class IncidentTracker {
     const bits = incidentBits(frame.PlayerIncidents[0])
 
     if (frame.IsReplayPlaying[0] === true) {
-      // Follow the count and the report without counting; start afresh once it ends.
-      this.baseline = count
+      // Follow the report without counting. The count and the clock are the replay's (often
+      // earlier and lower than live), so neither is kept: the first live tick is a new baseline
+      // and settles from the live SessionTime.
+      this.baseline = null
+      this.settleUntil = -Infinity
       this.lastBits = bits
       this.pending = null
-      this.settleUntil = t + INCIDENTS.settleS
       return
     }
 

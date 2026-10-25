@@ -9,7 +9,8 @@
  */
 import type { AlertNotice, AlertsData, FlagKind, IncidentAlert } from '@shared/types'
 
-const FLAGS: readonly FlagKind[] = Object.freeze(['yellow', 'blue', 'white'])
+// No last lap: it would sit next to the 5 laps to go.
+const FLAGS: readonly FlagKind[] = Object.freeze(['yellow', 'blue'])
 const NOTICES: readonly AlertNotice[] = Object.freeze([
   Object.freeze<AlertNotice>({ kind: 'lapsToGo', laps: 5 }),
   Object.freeze<AlertNotice>({

@@ -20,6 +20,7 @@ import {
   resolvePlayerCarIdx
 } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
+import { isReplayPlaying } from './simScreen'
 import type { TelemetryFrame } from './telemetry'
 import { tyreCompoundOf, tyreModelOf, type TyreModel } from './tyres'
 import type {
@@ -179,6 +180,11 @@ interface RowContext {
   isRace: boolean
   playerIdx: number
   needs: RowNeeds
+  /**
+   * The stops and stints are known: false during a replay, whose race model (loop.ts) only saw
+   * the replay, never the stops before it, so its counts would be a false 0 and a full race.
+   */
+  pitHistory: boolean
   deltas: ReadonlyMap<number, number> | null
   tyreModel: TyreModel
 }
@@ -227,10 +233,10 @@ function makeRow(
     lastLapKind: lapKind(e, g.classBest),
     bestLap: e.bestLap,
     bestLapKind: isClassBest(e.bestLap, g.classBest) ? 'class-best' : 'normal',
-    pitStops: car.pitStops,
-    lastPitLap: car.lastPitLap,
+    pitStops: ctx.pitHistory ? car.pitStops : null,
+    lastPitLap: ctx.pitHistory ? car.lastPitLap : null,
     outLap: car.outLap,
-    stintLaps: needs.stint ? car.stintLaps : null,
+    stintLaps: needs.stint && ctx.pitHistory ? car.stintLaps : null,
     tyre: needs.tyre ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
     penalty: penaltyOf(car.sessionFlags),
@@ -333,6 +339,7 @@ export class StandingsProvider {
       tyre: columnShown(opts, 'tyre')
     }
     const tyreModel = tyreModelOf(session)
+    const pitHistory = !isReplayPlaying(frame)
     // Only rated races change iRating; the player's own row and the header need the deltas.
     const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'
@@ -360,6 +367,7 @@ export class StandingsProvider {
         isRace,
         playerIdx,
         needs,
+        pitHistory,
         deltas: ratings.deltas,
         tyreModel
       }

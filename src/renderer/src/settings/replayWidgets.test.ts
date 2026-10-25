@@ -7,10 +7,10 @@ const en = messagesFor('en')
 
 describe('replay rule wording', () => {
   it('lists the widgets every replay hides, joined like each language lists things', () => {
-    expect(liveOnlyWidgets(es, LOCALES.es)).toBe('Radar, Pedales, Avisos, Delta y Pista')
-    expect(liveOnlyWidgets(en, LOCALES.en)).toBe('Radar, Inputs, Alerts, Delta and Track')
+    expect(liveOnlyWidgets(es, LOCALES.es)).toBe('Radar, Pedales, Avisos, Delta y Condiciones')
+    expect(liveOnlyWidgets(en, LOCALES.en)).toBe('Radar, Inputs, Alerts, Delta and Conditions')
     expect(es.settings.appearance.screen.replaysHelp(liveOnlyWidgets(es, LOCALES.es))).toBe(
-      'Radar, Pedales, Avisos, Delta y Pista solo muestran datos en directo: se ocultan siempre'
+      'Radar, Pedales, Avisos, Delta y Condiciones solo muestran datos en directo: se ocultan siempre'
     )
   })
 

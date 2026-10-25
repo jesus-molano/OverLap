@@ -76,7 +76,7 @@ export interface CarLineView extends DriverCellView {
   best: string
   bestKind: LapKind
   pit: PitKind
-  /** Pit stops so far ('2'), '' when none. */
+  /** Pit stops so far ('2'), '' when none or unknown (a replay). */
   pitStops: string
   /** Lap of the last stop ('V12'), '' before the first one. */
   pitLap: string
@@ -158,7 +158,7 @@ export function pitKind(row: StandingsRow): PitKind {
   if (row.status === 'finished') return 'finished'
   if (row.status === 'pits') return 'pit'
   if (row.outLap) return 'out'
-  return row.pitStops > 0 ? 'stops' : 'none'
+  return (row.pitStops ?? 0) > 0 ? 'stops' : 'none'
 }
 
 /** Race: the last lap and its kind. Elsewhere: the best lap, filled for the class's best. */
@@ -192,7 +192,7 @@ export function bestCell(row: StandingsRow): { text: string; kind: LapKind } {
  */
 export function pitLapCell(row: StandingsRow, m: Messages): string {
   const lap = row.lastPitLap
-  if (row.pitStops <= 0 || lap === null || !Number.isFinite(lap) || lap < 0) return ''
+  if ((row.pitStops ?? 0) <= 0 || lap === null || !Number.isFinite(lap) || lap < 0) return ''
   return m.widgets.laps.number(lap)
 }
 
@@ -262,7 +262,7 @@ function toCarView(
     best: best.text,
     bestKind: best.kind,
     pit: pitKind(row),
-    pitStops: row.pitStops > 0 ? String(row.pitStops) : '',
+    pitStops: row.pitStops !== null && row.pitStops > 0 ? String(row.pitStops) : '',
     pitLap: pitLapCell(row, ctx.m),
     stint: stint.text,
     stintUnit: stint.unit,

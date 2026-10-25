@@ -160,6 +160,23 @@ describe('IncidentTracker', () => {
     expect(d.tracker.latest).toMatchObject({ points: 1, kind: 'off-track' })
   })
 
+  it('a replay from before an incident brings no false one back when you go live again', () => {
+    // A live 2x, then a rewind to before it: the replay's clock and count are earlier and lower.
+    const d = settled().hit(2, LOC_2X).run(10)
+    expect(d.tracker.latest?.points).toBe(2)
+    d.sim.t -= 17
+    d.set({ replay: true, count: 0 }).run(5)
+    // Back live, the clock well past where the replay ended, the count where it was.
+    d.sim.t += 18
+    d.set({ replay: false, count: 2 }).run()
+    expect(d.tracker.latest).toBeNull()
+    d.run(INCIDENTS.settleS)
+    expect(d.tracker.latest).toBeNull()
+    // Counting again from the live count.
+    d.hit(1, OFF_1X)
+    expect(d.tracker.latest).toMatchObject({ points: 1, kind: 'off-track' })
+  })
+
   it('starts over when the clock goes back, and on reset()', () => {
     const d = settled().hit(2, LOC_2X)
     expect(d.tracker.latest).not.toBeNull()

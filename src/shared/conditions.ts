@@ -1,9 +1,9 @@
 /**
- * Conditions widget ('Pista'): track and air temperature, how the track temperature is moving,
- * the wind against your car, how wet the track is, the rain, the stewards' wet call, the sky and
- * the rubber laid down. iRacing has no forecast, so there is none here. Runs at 1 Hz; readings
- * are quantised to what the widget shows, so SKIP_EMIT drops the ticks where nothing shown
- * changed. The trend's history lives in one ConditionsProvider per telemetry loop.
+ * Conditions widget ('Condiciones'): track and air temperature, how the track temperature is
+ * moving, the wind against your car, how wet the track is, the rain, the stewards' wet call, the
+ * sky and the rubber laid down. iRacing has no forecast, so there is none here. Runs at 1 Hz;
+ * readings are quantised to what the widget shows, so SKIP_EMIT drops the ticks where nothing
+ * shown changed. The trend's history lives in one ConditionsProvider per telemetry loop.
  *
  * Two readings are unverified (report §2.6) and are decided in one place each:
  * - The wind: WindDir is read as where the wind blows FROM (the meteorological convention) and

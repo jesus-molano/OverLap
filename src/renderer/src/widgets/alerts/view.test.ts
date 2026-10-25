@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALERT_ORDER, FLAG_ORDER, NOTICE_ORDER } from '@shared/alerts'
+import { ALERT_ORDER, FLAG_ORDER, NOTICE_ORDER, OPTION_PARENT, showsNothing } from '@shared/alerts'
 import { NBSP } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
@@ -62,10 +62,10 @@ const EVERY_NOTICE: AlertNotice[] = [
   { kind: 'pitEntry' },
   { kind: 'stalled' },
   { kind: 'oilPressure' },
-  { kind: 'water' },
-  { kind: 'oilTemp' },
   { kind: 'fuelPressure' },
   { kind: 'tow', seconds: 42 },
+  { kind: 'water' },
+  { kind: 'oilTemp' },
   { kind: 'lapsToGo', laps: 10 },
   { kind: 'engineTrend', fluid: 'water', tempC: 98, deltaC: 6, draft: true }
 ]
@@ -101,8 +101,8 @@ describe('flag views', () => {
     expect(t('caution')).toBe('SAFETY CAR · no adelantes')
     expect(t('yellow')).toBe('AMARILLA · precaución')
     expect(t('debris')).toBe('RESTOS · en pista')
-    // Neutral: what the warning is for is not in the data.
-    expect(t('furled')).toBe('AVISO')
+    // What the warning is for is not in the data; who gives it is, and it is no plain alert.
+    expect(t('furled')).toBe('ADVERTENCIA · dirección de carrera')
     expect(t('blue')).toBe('AZUL · déjale pasar')
     expect(t('white')).toBe('ÚLTIMA VUELTA')
     expect(t('checkered')).toBe('BANDERA A CUADROS')
@@ -119,7 +119,7 @@ describe('flag views', () => {
     expect(t('caution')).toBe('CAUTION · no overtaking')
     expect(t('yellow')).toBe('YELLOW FLAG · hazard ahead')
     expect(t('debris')).toBe('DEBRIS · on track')
-    expect(t('furled')).toBe('WARNING')
+    expect(t('furled')).toBe('WARNING · from race control')
     expect(t('blue')).toBe('BLUE FLAG · let them pass')
     expect(t('white')).toBe('LAST LAP')
     expect(t('checkered')).toBe('CHECKERED FLAG')
@@ -210,14 +210,14 @@ describe('notice views', () => {
   it('says each alert in Spanish', () => {
     expect(EVERY_NOTICE.map(es)).toEqual([
       'SENTIDO CONTRARIO · da la vuelta',
-      'LIMITADOR · actívalo',
+      'PON LIMITADOR · entrada a boxes',
       'CALADO · arranca el motor',
       'PRESIÓN ACEITE · baja',
-      'AGUA · temperatura alta',
-      'ACEITE · temperatura alta',
       'PRESIÓN GASOLINA · baja',
       `GRÚA${NB}0:42 · a boxes`,
-      `10${NB}VUELTAS · para el final`,
+      'TEMP. AGUA · alta',
+      'TEMP. ACEITE · alta',
+      `QUEDAN${NB}10${NB}V · para el final`,
       `AGUA 98${NB}°C ↑ · +6 vs tu media (¿rebufo?)`
     ])
   })
@@ -225,14 +225,14 @@ describe('notice views', () => {
   it('says each alert in English', () => {
     expect(EVERY_NOTICE.map(en)).toEqual([
       'WRONG WAY · turn around',
-      'PIT LIMITER · switch it on',
+      'LIMITER OFF · pit entry ahead',
       'STALLED · restart the engine',
       'OIL PRESSURE · low',
-      'WATER TEMP · too hot',
-      'OIL TEMP · too hot',
       'FUEL PRESSURE · low',
       `TOW${NB}0:42 · to the pits`,
-      `10${NB}LAPS · to go`,
+      'WATER TEMP · too hot',
+      'OIL TEMP · too hot',
+      `10${NB}TO GO · laps left`,
       `WATER 98${NB}°C ↑ · +6 vs your average (slipstream?)`
     ])
   })
@@ -286,6 +286,32 @@ describe('notice views', () => {
     }
   })
 
+  it('words what is meant even as a chip or without its note', () => {
+    for (const m of [ES, EN]) {
+      const chip = (n: AlertNotice): string => noticeView(n, 'metric', m).chip
+      // The reminder to switch the limiter on never reads like the limiter-on line.
+      expect(chip({ kind: 'pitEntry' })).not.toBe(m.widgets.alerts.limiterOn)
+      expect(chip({ kind: 'pitEntry' })).not.toContain(`${m.widgets.alerts.limiterOn} `)
+      // A temperature light is not the pressure one, nor the trend of the same fluid.
+      const trend = (fluid: 'water' | 'oil'): string =>
+        chip({ kind: 'engineTrend', fluid, tempC: 98, deltaC: 6, draft: false })
+      for (const [light, fluid] of [
+        ['water', 'water'],
+        ['oilTemp', 'oil']
+      ] as const) {
+        const own = chip({ kind: light })
+        expect(trend(fluid).startsWith(own), light).toBe(false)
+        expect(chip({ kind: 'oilPressure' }).endsWith(own), light).toBe(false)
+      }
+    }
+    // Laps to go says "to go" by itself (the note goes in chips and narrow windows).
+    expect(noticeView({ kind: 'lapsToGo', laps: 5 }, 'metric', ES).chip).toBe(`QUEDAN${NB}5${NB}V`)
+    expect(noticeView({ kind: 'lapsToGo', laps: 5 }, 'metric', EN).chip).toBe(`5${NB}TO GO`)
+    // The furled flag says who warns, in a widget whose every line is an alert.
+    expect(flagViews(ES).furled.label).not.toBe(ES.core.widgetTitles.alerts.toUpperCase())
+    expect(flagViews(ES).furled.label).not.toBe('AVISO')
+  })
+
   it('tells every alert apart by its words, in both languages, chips included', () => {
     for (const m of [ES, EN]) {
       const views = [
@@ -315,6 +341,35 @@ describe('alertFilter', () => {
     expect(Object.keys(SHOW_ALL).sort()).toEqual(toggles.sort())
     const opts = { ...SHOW_ALL, showTow: false, holdS: 3 }
     expect(alertFilter(opts)).toEqual({ ...SHOW_ALL, showTow: false })
+  })
+})
+
+describe('showsNothing', () => {
+  const none = filter(
+    Object.fromEntries(Object.keys(SHOW_ALL).map((k) => [k, false])) as Partial<AlertFilter>
+  )
+
+  it('is true with every option off, also with only the options that refine another on', () => {
+    expect(showsNothing(none)).toBe(true)
+    // The defaults of the greyed-out sub-options: still nothing to show.
+    expect(
+      showsNothing({ ...none, showBlue: true, showFurled: true, showPitOverspeed: true })
+    ).toBe(true)
+    expect(showsNothing(SHOW_ALL)).toBe(false)
+  })
+
+  it('is false with any option that shows something by itself', () => {
+    for (const k of Object.keys(SHOW_ALL) as (keyof AlertFilter)[]) {
+      const parent = OPTION_PARENT[k]
+      expect(showsNothing({ ...none, [k]: true }), k).toBe(parent !== undefined)
+      if (parent) expect(showsNothing({ ...none, [k]: true, [parent]: true }), k).toBe(false)
+    }
+    // Every sub-option is a greyed-out switch under the one it refines.
+    expect(OPTION_PARENT).toEqual({
+      showBlue: 'showFlags',
+      showFurled: 'showFlags',
+      showPitOverspeed: 'showPitLimiter'
+    })
   })
 })
 
@@ -352,8 +407,8 @@ describe('shownNotices', () => {
     ]
     expect(shownNotices(sent, SHOW_ALL)).toEqual([
       { kind: 'wrongWay' },
-      { kind: 'water' },
-      { kind: 'tow', seconds: 5 }
+      { kind: 'tow', seconds: 5 },
+      { kind: 'water' }
     ])
     expect(shownNotices([...EVERY_NOTICE].reverse(), SHOW_ALL).map((n) => n.kind)).toEqual([
       ...NOTICE_ORDER
@@ -401,6 +456,25 @@ describe('toFlagsView', () => {
     )
     expect(v.primary?.kind).toBe('wrongWay')
     expect(v.secondary.map((f) => f.kind)).toEqual(['black', 'yellow', 'lapsToGo'])
+    // A temperature light can stay on for laps: the yellow and the blue flags keep the band.
+    for (const m of [ES, EN]) {
+      for (const [flag, light] of [
+        ['yellow', 'water'],
+        ['blue', 'oilTemp'],
+        ['debris', 'water']
+      ] as const) {
+        const w = toFlagsView({ flags: [flag], notices: [{ kind: light }] }, SHOW_ALL, 'metric', m)
+        expect([w.primary?.kind, ...w.secondary.map((f) => f.kind)]).toEqual([flag, light])
+      }
+      // The pressures (the engine about to fail) still come first.
+      const p = toFlagsView(
+        { flags: ['yellow'], notices: [{ kind: 'oilPressure' }] },
+        SHOW_ALL,
+        'metric',
+        m
+      )
+      expect(p.primary?.kind).toBe('oilPressure')
+    }
     const all = toFlagsView(
       { flags: [...FLAG_ORDER], notices: EVERY_NOTICE },
       SHOW_ALL,
@@ -602,7 +676,8 @@ describe('preview', () => {
   it('fills the band, the chips, the incident line and the limiter line in edit mode', () => {
     const flags = toFlagsView(PREVIEW_ALERTS, SHOW_ALL, 'metric', ES)
     expect(flags.primary?.kind).toBe('yellow')
-    expect(flags.secondary.map((f) => f.kind)).toEqual(['blue', 'white', 'lapsToGo'])
+    // Not the last lap next to "5 laps to go": a sample that reads as possible.
+    expect(flags.secondary.map((f) => f.kind)).toEqual(['blue', 'lapsToGo', 'engineTrend'])
     expect(limiterView(PREVIEW_ALERTS, SHOW_ALL, 'metric', ES)?.state).toBe('on')
     expect(PREVIEW_ALERTS.incident).toMatchObject({ points: 2, kind: 'loss-of-control' })
     expect(Object.isFrozen(PREVIEW_ALERTS)).toBe(true)
@@ -644,7 +719,6 @@ describe('preview', () => {
     const noBlue = filter({ showBlue: false })
     expect(previewFilter(PREVIEW_ALERTS, noBlue)).toBe(noBlue)
     expect(toFlagsView(PREVIEW_ALERTS, noBlue, 'metric', ES).secondary.map((f) => f.kind)).toEqual([
-      'white',
       'lapsToGo',
       'engineTrend'
     ])

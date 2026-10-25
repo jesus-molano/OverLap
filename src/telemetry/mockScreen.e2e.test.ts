@@ -195,6 +195,32 @@ describe('mock screen end to end: UI hidden, garage and a replay', () => {
     expect(after?.payload.header.safetyRating).not.toBeNull()
   })
 
+  it('sends no stops or stints in a replay (its model never saw them), the live ones after', () => {
+    type Row = WidgetPayloads['standings']['classes'][number]['rows'][number]
+    const rows = (x: Sent<'standings'> | undefined): Row[] =>
+      x?.payload.classes.flatMap((c) => c.rows) ?? []
+    const live = rows(screen.standings.filter((x) => x.s < TL.replay.atS).at(-1))
+    const stopped = live.filter((r) => (r.pitStops ?? 0) > 0)
+    expect(stopped.length).toBeGreaterThan(0)
+    const replay = screen.standings.filter((x) => x.s > TL.replay.atS + 0.5 && x.s < replayEnd)
+    expect(replay.length).toBeGreaterThan(5)
+    for (const x of replay) {
+      for (const r of rows(x))
+        expect([r.pitStops, r.lastPitLap, r.stintLaps]).toEqual([null, null, null])
+    }
+    const relative = screen.relative.filter((x) => x.s > TL.replay.atS + 0.5 && x.s < replayEnd)
+    for (const x of relative) for (const r of x.payload.rows) expect(r.stintLaps).toBeNull()
+    const relativeLive = screen.relative.filter((x) => x.s < TL.replay.atS).at(-1)
+    expect(relativeLive?.payload.rows.some((r) => r.stintLaps !== null)).toBe(true)
+    // Live again: the live model's stops, as they were.
+    const back = rows(screen.standings.find((x) => x.s > replayEnd + 0.5))
+    for (const r of stopped) {
+      expect(back.find((b) => b.carIdx === r.carIdx)?.pitStops).toBeGreaterThanOrEqual(
+        r.pitStops ?? 0
+      )
+    }
+  })
+
   it('keeps the live timing through the replay: the delta is back at once with its reference', () => {
     const before = screen.delta.filter((x) => x.s < TL.replay.atS).at(-1)?.payload
     expect(before?.visible).toBe(true)

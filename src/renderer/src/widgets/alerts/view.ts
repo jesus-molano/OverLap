@@ -10,6 +10,7 @@
  */
 import {
   ALERT_ORDER,
+  ALERT_TOGGLES,
   FLAG_OPTION,
   FLAG_ORDER,
   NOTICE_OPTION,
@@ -27,7 +28,6 @@ import {
   tempUnit
 } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type {
   AlertNotice,
   AlertsData,
@@ -189,19 +189,15 @@ export const staticNoticeViews = perDictionary((m): Readonly<Record<StaticNotice
 /** The options the banner reads (the provider applies them too; holdS is the provider's alone). */
 export type AlertFilter = Readonly<Pick<AlertsOptions, AlertToggle>>
 
-const TOGGLES = (Object.keys(OPTION_SCHEMA.alerts) as (keyof AlertsOptions)[]).filter(
-  (k): k is AlertToggle => OPTION_SCHEMA.alerts[k].kind === 'bool'
-)
-
 /** The toggles of `o` (a new object; see reuseView for a stable one). */
 export function alertFilter(o: AlertsOptions): AlertFilter {
   const out = {} as Record<AlertToggle, boolean>
-  for (const k of TOGGLES) out[k] = o[k]
+  for (const k of ALERT_TOGGLES) out[k] = o[k]
   return out
 }
 
 export const SHOW_ALL: AlertFilter = Object.freeze(
-  Object.fromEntries(TOGGLES.map((k) => [k, true])) as Record<AlertToggle, boolean>
+  Object.fromEntries(ALERT_TOGGLES.map((k) => [k, true])) as Record<AlertToggle, boolean>
 )
 
 /** Secondary alerts drawn as chips over the game; more than this is noise (in priority order). */

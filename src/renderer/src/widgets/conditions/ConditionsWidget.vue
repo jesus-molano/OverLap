@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { WETNESS_MAX } from '@shared/conditions'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -24,6 +23,7 @@ import type { InlineStyle } from '@renderer/view/styles'
 import { PREVIEW_CONDITIONS } from './preview'
 import {
   EMPTY_VIEW,
+  WETNESS_CELLS,
   conditionsView,
   layoutKey,
   linesOf,
@@ -35,8 +35,10 @@ import {
 } from './view'
 
 const ID = 'conditions'
-/** The wetness meter's cells, 1..WETNESS_MAX. */
-const METER: readonly number[] = Object.freeze(Array.from({ length: WETNESS_MAX }, (_, i) => i + 1))
+/** The wetness meter's cells, 1..WETNESS_CELLS (a dry track fills none). */
+const METER: readonly number[] = Object.freeze(
+  Array.from({ length: WETNESS_CELLS }, (_, i) => i + 1)
+)
 
 const options = useOptions(ID)
 const prefs = useWidgetSettings(ID)
@@ -196,19 +198,19 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'wind'" class="cd-tag" />
       </div>
 
-      <!-- The track surface: how wet (a 7-cell meter and its word), and the rain. -->
+      <!-- The track surface: how wet (a 6-cell meter, empty when dry, and a word), the rain. -->
       <div v-if="view.wetness || view.rain" class="cd-line">
         <span v-if="view.wetness" v-memo="[view.wetness]" class="cd-read">
           <span class="cd-label">{{ view.wetness.label }}</span>
-          <span v-if="view.wetness.level !== null" class="cd-meter" aria-hidden="true">
+          <span v-if="view.wetness.cells !== null" class="cd-meter" aria-hidden="true">
             <span
               v-for="i in METER"
               :key="i"
               class="cd-meter__cell"
-              :class="{ 'is-on': i <= view.wetness.level }"
+              :class="{ 'is-on': i <= view.wetness.cells }"
             />
           </span>
-          <span class="cd-text" :class="{ 'cd-text--metered': view.wetness.level !== null }">{{
+          <span class="cd-text" :class="{ 'cd-text--metered': view.wetness.cells !== null }">{{
             view.wetness.value
           }}</span>
         </span>
@@ -224,7 +226,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <span class="cd-label">{{ view.sky.label }}</span>
           <span class="cd-text">{{ view.sky.value }}</span>
         </span>
-        <span v-if="view.rubber" v-memo="[view.rubber]" class="cd-read cd-read--end">
+        <span v-if="view.rubber" v-memo="[view.rubber]" class="cd-read cd-read--end cd-read--yield">
           <span class="cd-label">{{ view.rubber.label }}</span>
           <span class="cd-text">{{ view.rubber.value }}</span>
         </span>
@@ -298,6 +300,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .cd-read--end {
   flex: none;
   margin-left: auto;
+}
+
+/*
+ * The rubber is fixed at the session start and the sky changes: on their line the rubber gives
+ * way too (its words end in an ellipsis), so the sky is not cut to a letter.
+ */
+.cd-read--end.cd-read--yield {
+  flex: 0 1 auto;
 }
 
 /* Alone on its line (the left reading is off), it starts where the others do. */
@@ -428,7 +438,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 /* ---- Wetness meter ------------------------------------------------------------------ */
 
-/* Seven recessed cells, filled up to the level in the information blue (water, no verdict). */
+/* Six recessed cells, one per level past dry, in the information blue (water, no verdict). */
 .cd-meter {
   display: flex;
   flex: none;
