@@ -186,22 +186,24 @@ describe('parseSessionMeta', () => {
       carIdx: 0,
       userName: 'Pace Car',
       carNumber: '0',
+      // iRacing's placeholder ratings (iRating 0, R 0.01): unknown.
       iRating: 0,
-      licString: 'R 0.01',
-      licColor: '#fc0706',
+      licString: '',
+      licColor: null,
       classId: 11,
       classShortName: 'safety pc',
       classColor: '#ffffff',
       classEstLapTime: 160,
       isPaceCar: true,
       isSpectator: false,
-      licLevel: 1,
-      licSubLevel: 1,
+      licLevel: 0,
+      licSubLevel: 0,
       classRelSpeed: 0,
       userId: 0,
       teamId: 0,
       carId: 0,
-      carName: 'safety pc'
+      carName: 'safety pc',
+      isAI: false
     })
     expect(meta.drivers.get(1)).toEqual<DriverEntry>({
       carIdx: 1,
@@ -222,7 +224,8 @@ describe('parseSessionMeta', () => {
       userId: 123456,
       teamId: 0,
       carId: 169,
-      carName: 'Porsche 911 GT3 R'
+      carName: 'Porsche 911 GT3 R',
+      isAI: false
     })
     const weird = meta.drivers.get(2)
     expect(weird?.userName).toBe('12345')
@@ -757,5 +760,63 @@ describe('parseSessionMeta: entry identity', () => {
       expect(d?.userId).toBe(0)
       expect(d?.teamId).toBe(0)
     }
+  })
+})
+
+describe('parseSessionMeta: placeholder ratings', () => {
+  const driverOf = (d: Record<string, unknown>): DriverEntry | undefined =>
+    parseSessionMeta({ DriverInfo: { Drivers: [{ CarIdx: 3, UserName: 'A', ...d }] } }).drivers.get(
+      3
+    )
+  const unknown = { iRating: 0, licString: '', licColor: null, licLevel: 0, licSubLevel: 0 }
+
+  it("hides the player's placeholder ratings in an offline AI race (iRating 1, R 0.01)", () => {
+    // As iRacing writes the player in an AI race (seen in a real session's YAML).
+    const d = driverOf({
+      IRating: 1,
+      LicLevel: 1,
+      LicSubLevel: 1,
+      LicString: 'R 0.01',
+      LicColor: '0xundefined',
+      CarIsAI: 0
+    })
+    expect(d).toMatchObject({ ...unknown, isAI: false })
+  })
+
+  it("hides an AI driver's ratings, whatever iRacing puts there", () => {
+    const zero = {
+      IRating: 0,
+      LicLevel: 1,
+      LicSubLevel: 0,
+      LicString: 'R 0.00',
+      LicColor: 0x8800a0
+    }
+    expect(driverOf({ ...zero, CarIsAI: 1 })).toMatchObject({ ...unknown, isAI: true })
+    // A hosted AI race could carry made-up ratings: an AI car is never rated.
+    const made = { IRating: 2200, LicLevel: 18, LicSubLevel: 399, LicString: 'A 3.99' }
+    expect(driverOf({ ...made, CarIsAI: 1 })).toMatchObject({ ...unknown, isAI: true })
+  })
+
+  it('keeps real ratings, the lowest a real driver can have included', () => {
+    const rookie = driverOf({
+      IRating: 1350,
+      LicLevel: 2,
+      LicSubLevel: 250,
+      LicString: 'R 2.50',
+      LicColor: 0xfc0706,
+      CarIsAI: 0
+    })
+    expect(rookie).toMatchObject({
+      iRating: 1350,
+      licString: 'R 2.50',
+      licColor: '#fc0706',
+      licLevel: 2,
+      licSubLevel: 250,
+      isAI: false
+    })
+    // A real licence with a low SR but a real iRating is kept too.
+    expect(
+      driverOf({ IRating: 820, LicLevel: 1, LicSubLevel: 1, LicString: 'R 0.01' })
+    ).toMatchObject({ iRating: 820, licString: 'R 0.01', licLevel: 1, licSubLevel: 1 })
   })
 })

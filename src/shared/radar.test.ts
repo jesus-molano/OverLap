@@ -93,6 +93,7 @@ function driver(carIdx: number, extra: Partial<DriverEntry> = {}): DriverEntry {
     teamId: 0,
     carId: 67,
     carName: 'Porsche 911 GT3 R',
+    isAI: false,
     ...extra
   }
 }

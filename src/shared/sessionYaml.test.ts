@@ -221,7 +221,8 @@ describe('parseSessionYaml', () => {
     const pace = meta.drivers.get(0)
     expect(pace?.isPaceCar).toBe(true)
     expect(pace?.classColor).toBe('#ffffff')
-    expect(pace?.licColor).toBe('#fc0706')
+    // R 0.01 with iRating 0 is iRacing's placeholder, not a licence.
+    expect(pace?.licColor).toBeNull()
     expect(pace?.classShortName).toBe('safety pcporsche911cup')
     expect(pace?.carNumber).toBe('0')
 
