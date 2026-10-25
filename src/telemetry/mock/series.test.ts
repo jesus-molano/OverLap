@@ -398,27 +398,31 @@ describe('MockSeries: scenarios of the first session', () => {
     // ~700 m of pit lane at 60 km/h plus the box.
     expect(to - from).toBeGreaterThan(PLAYER_STALL_S + 30)
     expect(to - from).toBeLessThan(PLAYER_STALL_S + 55)
-    for (const x of ticks) {
+    // Plain comparisons over ~70k ticks (an expect() per tick per field took over 5 s with the
+    // full suite running); the first bad tick is reported.
+    const bad = ticks.find((x) => {
       const surface = at(x.f.CarIdxTrackSurface, me(x))
-      expect(at(x.f.PlayerTrackSurface, 0)).toBe(surface)
+      if (at(x.f.PlayerTrackSurface, 0) !== surface) return true
       const pit = at(x.f.CarIdxOnPitRoad, me(x))
       // The player's own OnPitRoad and EngineWarnings, in the frame.
-      expect(at(x.f.OnPitRoad, 0)).toBe(pit)
-      expect(at(x.f.EngineWarnings, 0)).toBe(x.engineWarnings)
+      if (at(x.f.OnPitRoad, 0) !== pit || at(x.f.EngineWarnings, 0) !== x.engineWarnings)
+        return true
       // The limiter goes on LIMITER_LATE_S after the entry line, off at the exit line.
       const late = pit && x.t - from < LIMITER_LATE_S - DT / 2
-      expect(x.engineWarnings & ENGINE_PIT_LIMITER).toBe(pit && !late ? ENGINE_PIT_LIMITER : 0)
-      if (pit) {
-        expect([TrackLocation.ApproachingPits, TrackLocation.InPitStall]).toContain(surface)
-        const kmh = at(x.f.Speed, 0) * 3.6
-        // Over the limit only in the late-limiter moment, by a few km/h.
-        if (x.t - from > LIMITER_LATE_S + 3)
-          expect(at(x.f.Speed, 0)).toBeLessThanOrEqual(PIT_SPEED_MS + 1e-9)
-        else expect(kmh).toBeLessThanOrEqual(MOCK_PIT_SPEED_LIMIT_KMH + PIT_OVERSPEED_KMH + 1e-6)
-      } else {
-        expect(surface).not.toBe(TrackLocation.InPitStall)
+      if ((x.engineWarnings & ENGINE_PIT_LIMITER) !== (pit && !late ? ENGINE_PIT_LIMITER : 0)) {
+        return true
       }
-    }
+      if (!pit) return surface === TrackLocation.InPitStall
+      if (surface !== TrackLocation.ApproachingPits && surface !== TrackLocation.InPitStall) {
+        return true
+      }
+      // Over the limit only in the late-limiter moment, by a few km/h.
+      const speed = at(x.f.Speed, 0)
+      return x.t - from > LIMITER_LATE_S + 3
+        ? speed > PIT_SPEED_MS + 1e-9
+        : speed * 3.6 > MOCK_PIT_SPEED_LIMIT_KMH + PIT_OVERSPEED_KMH + 1e-6
+    })
+    expect(bad, `t=${bad?.t}`).toBeUndefined()
     // OFF, then on but over the limit, then on (what the alerts widget shows).
     const states = ticks
       .filter((x) => at(x.f.OnPitRoad, 0))
