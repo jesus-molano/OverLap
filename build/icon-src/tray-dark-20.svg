@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+  <!-- OverLap "OL" monogram, tray 20 grid (125 %). 2-unit strokes on whole pixels, true 45-degree cuts with 1.41-unit gaps, shard as tall as the foot. -->
+  <path fill="#ffffff" d="M3 10V8A5 5 0 0 1 8 3H10A5 5 0 0 1 15 8V12A5 5 0 0 1 10 17H8L10 15A3 3 0 0 0 13 12V8A3 3 0 0 0 10 5H8A3 3 0 0 0 5 8Z"/>
+  <path fill="#ffc400" d="M3 12L5 10V15H8L6 17H3Z"/>
+  <path fill="#ffc400" d="M16 15H20L18 17H14Z"/>
+</svg>

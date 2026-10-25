@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- OverLap app icon, ICO 48 px entry: app.svg's tile with the tray-24 mark at 4/3 (4-px strokes; 28 px wide, the same share of the tile as app.svg). Every straight edge lands on a whole pixel at 48. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d2129"/>
+      <stop offset="1" stop-color="#0f1216"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="10" fill="url(#tile)"/>
+  <rect x="1.5" y="1.5" width="45" height="45" rx="9.5" fill="none" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+  <g transform="translate(8 8) scale(1.3333333333)">
+    <g transform="translate(1 0)">
+      <path fill="#ffffff" d="M2 12V9A6 6 0 0 1 8 3H11A6 6 0 0 1 17 9V15A6 6 0 0 1 11 21H8L11 18A3 3 0 0 0 14 15V9A3 3 0 0 0 11 6H8A3 3 0 0 0 5 9Z"/>
+      <path fill="#ffc400" d="M2 14L5 11V18H9L6 21H2Z"/>
+      <path fill="#ffc400" d="M18.5 18H23L20 21H15.5Z"/>
+    </g>
+  </g>
+</svg>

@@ -36,5 +36,10 @@ export default defineConfig(
       ]
     }
   },
+  {
+    // Node scripts run with Electron: plain JS, no types to annotate.
+    files: ['scripts/**/*.mjs'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
+  },
   eslintConfigPrettier
 )
