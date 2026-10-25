@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Rect } from './types'
-import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from './widgets'
+import {
+  ALERTS_DEFAULT_ROOM,
+  PAINT_ORDER,
+  TOPMOST_WIDGET,
+  WIDGET_DEFS,
+  WIDGET_IDS,
+  type WidgetId
+} from './widgets'
 
 /** What each widget takes on a fresh 1920 x 1080 layout: the alerts with their room to grow. */
 function footprint(id: WidgetId): Rect {
@@ -29,5 +36,16 @@ describe('default layout', () => {
     expect(WIDGET_DEFS.delta.defaultBounds.y - alerts.y).toBeGreaterThanOrEqual(ALERTS_DEFAULT_ROOM)
     // Measured in the overlay: the edit-mode sample 111 px, two flags + incident + limiter 120 px.
     expect(ALERTS_DEFAULT_ROOM).toBeGreaterThanOrEqual(120)
+  })
+})
+
+describe('PAINT_ORDER', () => {
+  it('paints every widget once, the radar last (above the alerts banner, B05)', () => {
+    expect([...PAINT_ORDER].sort()).toEqual([...WIDGET_IDS].sort())
+    expect(TOPMOST_WIDGET).toBe('radar')
+    expect(PAINT_ORDER.at(-1)).toBe('radar')
+    expect(PAINT_ORDER.indexOf('alerts')).toBeLessThan(PAINT_ORDER.indexOf('radar'))
+    // The others keep their registry order.
+    expect(PAINT_ORDER.slice(0, -1)).toEqual(WIDGET_IDS.filter((id) => id !== 'radar'))
   })
 })

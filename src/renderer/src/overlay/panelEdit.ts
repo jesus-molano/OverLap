@@ -42,7 +42,7 @@ export interface PanelEditDeps {
 }
 
 export interface PanelEdit {
-  /** Edit mode is on and the panel is not locked. */
+  /** Edit mode is on and the panel is neither locked nor a ghost. */
   readonly editable: ComputedRef<boolean>
   /** A drag of this panel runs. */
   readonly dragging: Readonly<Ref<boolean>>
@@ -59,7 +59,7 @@ export interface PanelEdit {
 
 export function createPanelEdit(deps: PanelEditDeps): PanelEdit {
   const { slot, session } = deps
-  const editable = computed(() => session.editing.value && !slot.locked.value)
+  const editable = computed(() => session.editing.value && !slot.locked.value && !slot.ghost.value)
   const dragging = shallowRef(false)
   const crossing = shallowRef(false)
   const gate = createWheelGate()
@@ -137,8 +137,8 @@ export function createPanelEdit(deps: PanelEditDeps): PanelEdit {
   }
 
   const stops = [
-    watch(slot.locked, (locked) => {
-      if (locked) cancel()
+    watch([slot.locked, slot.ghost], ([locked, ghost]) => {
+      if (locked || ghost) cancel()
     }),
     watch(slot.placement, () => cancel())
   ]

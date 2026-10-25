@@ -323,6 +323,8 @@ export const widgetsEs = {
       high: 'Alta',
       carryOver: 'Heredada'
     },
+    /** A 'carry over' resolved to an earlier session's state: 'Media-alta (heredada)'. */
+    carried: (state: string) => `${state} (heredada)`,
     /** The stewards allow rain tyres (WeatherDeclaredWet). */
     declaredWet: 'DECLARADA MOJADA',
     declaredWetNote: 'neumáticos de lluvia permitidos'
@@ -547,6 +549,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       high: 'High',
       carryOver: 'Carried over'
     },
+    carried: (state) => `${state} (carried over)`,
     declaredWet: 'DECLARED WET',
     declaredWetNote: 'rain tyres allowed'
   }

@@ -653,12 +653,13 @@ export interface ConditionsData {
   trackTempTrend: TempTrend | null
   /** AirTemp in °C, to 0.1; null when missing. */
   airTempC: number | null
-  /** WindVel in whole km/h; null when missing. */
+  /** WindVel, mean of the last CONDITIONS.windMeanS, in whole km/h; null when missing. */
   windKmh: number | null
   /**
-   * Where the wind blows FROM, relative to your car's nose: degrees clockwise in (-180, 180]
-   * (0 = from straight ahead, a headwind; 90 = from your right), in steps of
-   * CONDITIONS.windStepDeg. Null when it means nothing: no wind or heading, not in the car, calm.
+   * Where the wind blows FROM (its mean direction, as `windKmh`), relative to your car's nose:
+   * degrees clockwise in (-180, 180] (0 = from straight ahead, a headwind; 90 = from your
+   * right), in steps of CONDITIONS.windStepDeg. Null when it means nothing: no wind or heading,
+   * not in the car, calm.
    */
   windFromDeg: number | null
   /** irsdk_TrackWetness, 1 (dry) .. 7 (extremely wet); null when unknown (0) or missing. */
@@ -669,8 +670,13 @@ export interface ConditionsData {
   declaredWet: boolean
   /** Skies, 0 (clear) .. 3 (overcast); null when missing or out of range. */
   skies: number | null
-  /** SessionTrackRubberState of the current session as iRacing writes it; '' when unknown. */
+  /**
+   * SessionTrackRubberState of the current session as iRacing writes it; '' when unknown. A
+   * 'carry over' is the last real state of an earlier session instead (`rubberCarried`).
+   */
   rubberState: string
+  /** `rubberState` is carried over from an earlier session ('Media-alta (heredada)'). */
+  rubberCarried: boolean
 }
 
 export interface WidgetPayloads {

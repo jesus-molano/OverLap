@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, shallowRef, type ShallowRef } from 'vue'
-import { DRAG_HEARTBEAT_MS, type DragStateMessage } from '@shared/ipc'
-import { createFakeRegistry, createFakeSlot, type FakeRegistry } from './testing/fakeEdit'
+import { DRAG_HEARTBEAT_MS, type DragStateMessage, type EditChipsMessage } from '@shared/ipc'
+import {
+  FakeFrames,
+  createFakeRegistry,
+  createFakeSlot,
+  type FakeRegistry
+} from './testing/fakeEdit'
 import { createEditSession, type DragOwner, type EditSessionHandle } from './useEditSession'
 
 let sent: DragStateMessage[]
@@ -133,5 +138,75 @@ describe('createEditSession', () => {
     await nextTick()
     expect(a.cancels).toBe(1)
     session.dispose()
+  })
+})
+
+describe('createEditSession chips', () => {
+  function withChips(sessionId = 3): {
+    edit: ShallowRef<boolean>
+    session: EditSessionHandle
+    frames: FakeFrames
+    out: EditChipsMessage[]
+    current: { id: number }
+  } {
+    const edit = shallowRef(true)
+    const frames = new FakeFrames()
+    const out: EditChipsMessage[] = []
+    const current = { id: sessionId }
+    const session = createEditSession({
+      registry: createFakeRegistry([]),
+      editing: edit,
+      session: () => current.id,
+      sendDragState: () => {},
+      sendChips: (msg) => void out.push(msg),
+      frames
+    })
+    return { edit, session, frames, out, current }
+  }
+
+  const CHIP = { x: 140, y: 4, width: 180, height: 20 }
+
+  it('sends every chip of the window once per frame, in paint order, only when one changed', () => {
+    const { session, frames, out } = withChips()
+    session.reportChip('radar', CHIP)
+    session.reportChip('alerts', { ...CHIP, x: 100 })
+    expect(out).toEqual([])
+    frames.run()
+    expect(out).toEqual([
+      {
+        session: 3,
+        chips: [
+          { widget: 'alerts', rect: { ...CHIP, x: 100 } },
+          { widget: 'radar', rect: CHIP }
+        ]
+      }
+    ])
+    // The same rect again: nothing to send.
+    session.reportChip('radar', { ...CHIP })
+    expect(frames.pending.size).toBe(0)
+    session.reportChip('radar', null)
+    frames.run()
+    expect(out.at(-1)).toEqual({
+      session: 3,
+      chips: [{ widget: 'alerts', rect: { ...CHIP, x: 100 } }]
+    })
+    session.dispose()
+  })
+
+  it('waits for the first layout, sends nothing outside edit mode and leaves no frame behind', () => {
+    const { edit, session, frames, out, current } = withChips(0)
+    session.reportChip('radar', CHIP)
+    frames.run()
+    expect(out).toEqual([])
+    current.id = 5
+    frames.run()
+    expect(out).toEqual([{ session: 5, chips: [{ widget: 'radar', rect: CHIP }] }])
+    edit.value = false
+    session.reportChip('radar', null)
+    frames.run()
+    expect(out).toHaveLength(1)
+    session.reportChip('alerts', CHIP)
+    session.dispose()
+    expect(frames.pending.size).toBe(0)
   })
 })

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { parseBoundsCommit, parseDragState, parseScaleStep } from './overlayMessages'
+import {
+  parseBoundsCommit,
+  parseDragState,
+  parseEditChips,
+  parseScaleStep,
+  parseWidgetToggle
+} from './overlayMessages'
 
 const RECT = { x: 10, y: -20, width: 300, height: 200 }
 const HEAD = { session: 2, seq: 5, widget: 'radar' }
@@ -134,6 +140,79 @@ describe('parseDragState', () => {
       { dragging: true }
     ]) {
       expect(parseDragState(raw), JSON.stringify(raw)).toBeNull()
+    }
+  })
+})
+
+describe('parseWidgetToggle', () => {
+  it('accepts the eye and the padlock of a widget, dropping extra fields', () => {
+    expect(
+      parseWidgetToggle({ session: 3, widget: 'radar', field: 'visible', value: false })
+    ).toEqual({ session: 3, widget: 'radar', field: 'visible', value: false })
+    expect(
+      parseWidgetToggle({ session: 3, widget: 'alerts', field: 'locked', value: true, x: 1 })
+    ).toEqual({ session: 3, widget: 'alerts', field: 'locked', value: true })
+  })
+
+  it('rejects anything else', () => {
+    for (const raw of [
+      null,
+      [],
+      { session: 3, widget: 'radar', field: 'visible' },
+      { session: 3, widget: 'radar', field: 'visible', value: 'false' },
+      { session: 3, widget: 'radar', field: 'bounds', value: true },
+      { session: 3, widget: 'nope', field: 'locked', value: true },
+      { session: 0, widget: 'radar', field: 'locked', value: true },
+      { widget: 'radar', field: 'locked', value: true }
+    ]) {
+      expect(parseWidgetToggle(raw), JSON.stringify(raw)).toBeNull()
+    }
+  })
+})
+
+describe('parseEditChips', () => {
+  const CHIP = { x: 120, y: 4, width: 180, height: 20 }
+
+  it('accepts one chip per widget with a sane rect, dropping extra fields', () => {
+    expect(
+      parseEditChips({
+        session: 2,
+        chips: [
+          { widget: 'radar', rect: CHIP, extra: 1 },
+          { widget: 'alerts', rect: { ...CHIP, x: -3 } }
+        ]
+      })
+    ).toEqual({
+      session: 2,
+      chips: [
+        { widget: 'radar', rect: CHIP },
+        { widget: 'alerts', rect: { ...CHIP, x: -3 } }
+      ]
+    })
+    expect(parseEditChips({ session: 2, chips: [] })).toEqual({ session: 2, chips: [] })
+  })
+
+  it('rejects the whole message for any bad entry', () => {
+    for (const raw of [
+      null,
+      { session: 2 },
+      { session: 2, chips: {} },
+      { session: 0, chips: [] },
+      { session: 2, chips: [{ widget: 'nope', rect: CHIP }] },
+      { session: 2, chips: [{ widget: 'radar' }] },
+      { session: 2, chips: [{ widget: 'radar', rect: { ...CHIP, width: 0 } }] },
+      { session: 2, chips: [{ widget: 'radar', rect: { ...CHIP, x: Number.NaN } }] },
+      { session: 2, chips: [{ widget: 'radar', rect: { ...CHIP, y: 50_000 } }] },
+      {
+        session: 2,
+        chips: [
+          { widget: 'radar', rect: CHIP },
+          { widget: 'radar', rect: CHIP }
+        ]
+      },
+      { session: 2, chips: Array.from({ length: 20 }, () => ({ widget: 'radar', rect: CHIP })) }
+    ]) {
+      expect(parseEditChips(raw), JSON.stringify(raw)).toBeNull()
     }
   })
 })

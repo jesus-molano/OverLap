@@ -9,11 +9,13 @@ import {
 } from '@shared/ipc'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings, OverlayStatus, Rect, WidgetDataMessage } from '@shared/types'
-import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import { PAINT_ORDER, WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { MOUSE_POLL_MS } from './mouseMode'
 import { BOUNDS_GUARD_MAX_TRIES, PROBE_TIMEOUT_MS, UNRESPONSIVE_KILL_MS } from './overlayWindow'
 import {
   COMMIT_DELAY_MS,
+  CURSOR_HIDDEN_READS,
+  CURSOR_POLL_MS,
   DISPLAY_CHANGE_DEBOUNCE_MS,
   GPU_RECREATE_DELAY_MS,
   OverlayWindows,
@@ -57,6 +59,9 @@ const LIVE: OverlayStatus = { state: 'mock', source: 'mock', note: 'none', detai
 let settings: OverlaySettings
 let committed: Array<[WidgetId, Rect]>
 let scaleSteps: Array<[WidgetId, 1 | -1]>
+let toggles: Array<[WidgetId, 'visible' | 'locked', boolean]>
+/** What the cursor probe answers (null: unknown). */
+let cursorShowing: boolean | null
 let windows: OverlayWindows
 const seqs = new Map<FakeBrowserWindow, number>()
 
@@ -160,13 +165,24 @@ beforeEach(() => {
   settings = createDefaultSettings()
   committed = []
   scaleSteps = []
+  toggles = []
+  cursorShowing = true
   windows = new OverlayWindows({
     getSettings: () => settings,
     onBoundsCommitted: (id, bounds) => {
       committed.push([id, bounds])
       changeSettings((s) => (s.widgets[id].bounds = bounds))
     },
-    onScaleStep: (id, step) => scaleSteps.push([id, step])
+    onScaleStep: (id, step) => scaleSteps.push([id, step]),
+    // Like main/index.ts: the store, then the windows (visibility, then the rest).
+    onWidgetToggle: (id, field, value) => {
+      toggles.push([id, field, value])
+      settings = structuredClone(settings)
+      settings.widgets[id][field] = value
+      if (field === 'visible') windows.setVisible(id, value)
+      windows.applySettings(settings)
+    },
+    cursorShowing: () => cursorShowing
   })
 })
 
@@ -220,7 +236,7 @@ describe('OverlayWindows windows', () => {
     expect(w.loadFile).toHaveBeenCalledWith(expect.stringMatching(/renderer[\\/]index\.html$/), {
       query: { view: 'overlay' }
     })
-    expect(hosted(w)).toEqual(WIDGET_IDS)
+    expect(hosted(w)).toEqual(PAINT_ORDER)
   })
 
   it('is click-through before it is ever shown, and only shown inactive once ready', () => {
@@ -471,17 +487,33 @@ describe('OverlayWindows visibility rules', () => {
     expect(windows.autoHiddenMap()).toEqual({})
   })
 
-  it('previews rule-hidden widgets in edit mode, never disabled ones', () => {
+  it('previews rule-hidden widgets in edit mode, and disabled ones only as ghosts', () => {
     useTwoDisplays()
     start()
     windows.setAutoHidden('radar', HIDDEN)
     windows.setEditMode(true)
     expect(display(2).isVisible()).toBe(true)
+    expect(panel(display(2), 'radar')?.ghost).toBeUndefined()
     windows.setEditMode(false)
     expect(display(2).isVisible()).toBe(false)
     windows.setVisible('radar', false)
-    windows.setEditMode(true)
     expect(live()).toHaveLength(1)
+    // Edit mode hosts it again, as a ghost at its place: its display gets a window for it.
+    windows.setEditMode(true)
+    expect(live()).toHaveLength(2)
+    readyAll()
+    expect(display(2).isVisible()).toBe(true)
+    expect(panel(display(2), 'radar')).toMatchObject({
+      ghost: true,
+      rect: { x: 180, y: 300, width: 220, height: 260 }
+    })
+    // Never any data, in edit mode or out of it.
+    windows.sendData(msg('radar'))
+    expect(display(2).webContents.sentOn(IPC.data)).toEqual([])
+    // Out of edit mode nothing changes: not hosted, its window gone.
+    windows.setEditMode(false)
+    expect(live()).toHaveLength(1)
+    expect(hosted(display(1))).not.toContain('radar')
   })
 
   it('shows nothing once disposed, even when rules are released while quitting', () => {
@@ -512,7 +544,8 @@ describe('OverlayWindows mouse', () => {
     start()
     const base = vi.getTimerCount()
     windows.setEditMode(true)
-    expect(vi.getTimerCount()).toBe(base + 1)
+    // The cursor position and whether the game hides the cursor.
+    expect(vi.getTimerCount()).toBe(base + 2)
     windows.setEditMode(false)
     expect(vi.getTimerCount()).toBe(base)
   })
@@ -631,6 +664,206 @@ describe('OverlayWindows mouse', () => {
 
     windows.setEditMode(false)
     expect(w.mouse).toEqual(IGNORE)
+  })
+})
+
+describe('OverlayWindows edit chips', () => {
+  /** relative's chip: 180 x 20 at the top centre of its panel (60..520 x 260..512). */
+  const CHIP = { x: 140, y: 4, width: 180, height: 20 }
+
+  function chips(
+    w: FakeBrowserWindow,
+    list: Array<{ widget: WidgetId; rect: Rect }>,
+    session = layoutOf(w).session
+  ): void {
+    fakeIpcMain.send(IPC.editChips, w.webContents, { session, chips: list })
+  }
+
+  function toggle(
+    w: FakeBrowserWindow,
+    widget: WidgetId,
+    field: 'visible' | 'locked',
+    value: boolean,
+    session = layoutOf(w).session
+  ): void {
+    fakeIpcMain.send(IPC.widgetToggle, w.webContents, { session, widget, field, value })
+  }
+
+  it('takes the mouse over the chip of a locked panel, only there and only in edit mode', () => {
+    start()
+    const w = only()
+    changeSettings((s) => (s.widgets.relative.locked = true))
+    chips(w, [{ widget: 'relative', rect: CHIP }])
+    windows.setEditMode(true)
+    // Reported before edit mode: dropped. Nothing takes the mouse over the locked panel yet.
+    moveCursor(210, 270)
+    expect(w.mouse).toEqual(FORWARD)
+    chips(w, [{ widget: 'relative', rect: CHIP }])
+    expect(w.mouse).toEqual(CAPTURE)
+    moveCursor(210, 300) // the rest of the locked panel
+    expect(w.mouse).toEqual(FORWARD)
+    moveCursor(379, 283) // the chip's far corner (200..380 x 264..284)
+    expect(w.mouse).toEqual(CAPTURE)
+    // Another document's chips count for nothing.
+    chips(w, [{ widget: 'relative', rect: { ...CHIP, y: 40 } }], layoutOf(w).session + 1)
+    moveCursor(210, 310)
+    expect(w.mouse).toEqual(FORWARD)
+    // Leaving edit mode drops them: the next edit mode needs a new report.
+    windows.setEditMode(false)
+    expect(w.mouse).toEqual(IGNORE)
+    windows.setEditMode(true)
+    moveCursor(210, 270)
+    expect(w.mouse).toEqual(FORWARD)
+  })
+
+  it('clips a chip to its panel and ignores malformed reports', () => {
+    start()
+    const w = only()
+    changeSettings((s) => (s.widgets.relative.locked = true))
+    windows.setEditMode(true)
+    // Reaches far out of the panel: only the part inside it counts.
+    chips(w, [{ widget: 'relative', rect: { x: -200, y: -100, width: 400, height: 130 } }])
+    moveCursor(30, 270)
+    expect(w.mouse).toEqual(FORWARD)
+    moveCursor(70, 270)
+    expect(w.mouse).toEqual(CAPTURE)
+    moveCursor(1000, 1000)
+    fakeIpcMain.send(IPC.editChips, w.webContents, {
+      session: layoutOf(w).session,
+      chips: [{ widget: 'relative', rect: { x: 0, y: 0, width: -5, height: 10 } }]
+    })
+    // The bad report changed nothing: the last good one stands.
+    moveCursor(70, 270)
+    expect(w.mouse).toEqual(CAPTURE)
+  })
+
+  it('paints and hit-tests the radar above every other panel (B05)', () => {
+    // The race layout: the alerts banner reaches into the radar (alerts 802,349; radar 883,234).
+    settings.widgets.radar.bounds = { x: 883, y: 234, width: 220, height: 260 }
+    settings.widgets.alerts.bounds = { x: 802, y: 349, width: 400, height: 70 }
+    start()
+    const w = only()
+    expect(hosted(w).at(-1)).toBe('radar')
+    windows.setEditMode(true)
+    // Where both are, the radar is on top: a locked alerts panel under it changes nothing.
+    changeSettings((s) => (s.widgets.alerts.locked = true))
+    moveCursor(950, 360)
+    expect(w.mouse).toEqual(CAPTURE)
+    // And a locked radar keeps the unlocked alerts under it from taking the mouse there.
+    changeSettings((s) => {
+      s.widgets.alerts.locked = false
+      s.widgets.radar.locked = true
+    })
+    expect(w.mouse).toEqual(FORWARD)
+    moveCursor(820, 360) // alerts alone
+    expect(w.mouse).toEqual(CAPTURE)
+  })
+
+  it('applies the eye and the padlock from the hosting window, in edit mode only', () => {
+    useTwoDisplays()
+    start()
+    const w1 = display(1)
+    const w2 = display(2)
+    toggle(w1, 'relative', 'locked', true)
+    expect(toggles).toEqual([])
+    windows.setEditMode(true)
+    // Not its window, another document, a malformed message: ignored.
+    toggle(w2, 'relative', 'locked', true)
+    toggle(w1, 'relative', 'locked', true, layoutOf(w1).session + 1)
+    fakeIpcMain.send(IPC.widgetToggle, w1.webContents, {
+      session: layoutOf(w1).session,
+      widget: 'relative',
+      field: 'bounds',
+      value: true
+    })
+    expect(toggles).toEqual([])
+
+    toggle(w1, 'relative', 'locked', true)
+    expect(toggles).toEqual([['relative', 'locked', true]])
+    expect(settings.widgets.relative.locked).toBe(true)
+
+    // The eye: the radar becomes a ghost in its window, gets no data, and comes back.
+    toggle(w2, 'radar', 'visible', false)
+    expect(settings.widgets.radar.visible).toBe(false)
+    expect(panel(w2, 'radar')?.ghost).toBe(true)
+    expect(w2.isVisible()).toBe(true)
+    windows.sendData(msg('radar'))
+    expect(w2.webContents.sentOn(IPC.data)).toEqual([])
+    toggle(w2, 'radar', 'visible', true)
+    expect(panel(w2, 'radar')?.ghost).toBeUndefined()
+    windows.sendData(msg('radar'))
+    expect(w2.webContents.sentOn(IPC.data)).toHaveLength(1)
+
+    // Hidden in edit mode, then edit mode ends: gone (its window too), not computed.
+    toggle(w2, 'radar', 'visible', false)
+    windows.setEditMode(false)
+    expect(live()).toEqual([w1])
+  })
+
+  it('takes the mouse over a ghost only at its chip, and never moves or fits it', () => {
+    start()
+    const w = only()
+    windows.setVisible('relative', false)
+    windows.setEditMode(true)
+    readyAll()
+    expect(panel(w, 'relative')?.ghost).toBe(true)
+    moveCursor(100, 400)
+    expect(w.mouse).toEqual(FORWARD)
+    chips(w, [{ widget: 'relative', rect: CHIP }])
+    moveCursor(210, 270)
+    expect(w.mouse).toEqual(CAPTURE)
+    const before = { ...settings.widgets.relative.bounds }
+    drag(w, 'relative', { x: 100, y: 100, width: 460, height: 252 })
+    expect(committed).toEqual([])
+    expect(settings.widgets.relative.bounds).toEqual(before)
+    // Acknowledged all the same, so the renderer stops drawing it.
+    expect(layoutOf(w).ackSeq).toBe(seqs.get(w))
+  })
+})
+
+describe('OverlayWindows hidden cursor', () => {
+  function sentHidden(w: FakeBrowserWindow): unknown[] {
+    return w.webContents.sentOn(IPC.cursorHidden)
+  }
+
+  it('reads the cursor only while editing and says when the game hides it', () => {
+    start()
+    const w = only()
+    cursorShowing = false
+    vi.advanceTimersByTime(CURSOR_POLL_MS * 4)
+    expect(sentHidden(w)).toEqual([])
+    windows.setEditMode(true)
+    vi.advanceTimersByTime(CURSOR_POLL_MS * (CURSOR_HIDDEN_READS - 1))
+    // One hidden read is not enough (a blink while the game changes cursors).
+    expect(sentHidden(w)).toEqual([])
+    vi.advanceTimersByTime(CURSOR_POLL_MS)
+    expect(sentHidden(w)).toEqual([true])
+    expect(windows.cursorHidden).toBe(true)
+    vi.advanceTimersByTime(CURSOR_POLL_MS * 4)
+    expect(sentHidden(w)).toEqual([true])
+    // The settings window took the focus: the cursor is back.
+    cursorShowing = true
+    vi.advanceTimersByTime(CURSOR_POLL_MS)
+    expect(sentHidden(w)).toEqual([true, false])
+    cursorShowing = false
+    vi.advanceTimersByTime(CURSOR_POLL_MS * CURSOR_HIDDEN_READS)
+    expect(sentHidden(w)).toEqual([true, false, true])
+    // Leaving edit mode clears it at once and stops reading.
+    windows.setEditMode(false)
+    expect(sentHidden(w)).toEqual([true, false, true, false])
+    expect(windows.cursorHidden).toBe(false)
+    vi.advanceTimersByTime(CURSOR_POLL_MS * 4)
+    expect(sentHidden(w)).toHaveLength(4)
+  })
+
+  it('never says hidden when the state is unknown', () => {
+    start()
+    const w = only()
+    cursorShowing = null
+    windows.setEditMode(true)
+    vi.advanceTimersByTime(CURSOR_POLL_MS * 10)
+    expect(sentHidden(w)).toEqual([])
+    expect(windows.cursorHidden).toBe(false)
   })
 })
 

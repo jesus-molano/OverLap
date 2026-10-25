@@ -65,6 +65,44 @@ describe('mouseMode', () => {
     expect(mouseMode(inputs({ panels: [], cursor: { x: 160, y: 160 } }))).toBe('forward')
   })
 
+  it('captures over the edit chip of a locked panel or a ghost, and only there', () => {
+    const chip = { x: 200, y: 154, width: 100, height: 20 }
+    const locked: HitPanel = { ...LOCKED, chip }
+    expect(mouseMode(inputs({ panels: [locked], cursor: { x: 210, y: 160 } }))).toBe('capture')
+    expect(mouseMode(inputs({ panels: [locked], cursor: { x: 210, y: 180 } }))).toBe('forward')
+    // Hysteresis around the chip too, once captured.
+    const near = { x: 210, y: 174 + CAPTURE_MARGIN_DIP - 1 }
+    expect(mouseMode(inputs({ panels: [locked], cursor: near, current: 'forward' }))).toBe(
+      'forward'
+    )
+    expect(mouseMode(inputs({ panels: [locked], cursor: near, current: 'capture' }))).toBe(
+      'capture'
+    )
+    // A panel on top covers the chip below it, as it does on screen.
+    const top: HitPanel = { rect: { x: 190, y: 140, width: 50, height: 50 }, locked: true }
+    expect(mouseMode(inputs({ panels: [top, locked], cursor: { x: 210, y: 160 } }))).toBe('forward')
+    expect(mouseMode(inputs({ panels: [top, locked], cursor: { x: 260, y: 160 } }))).toBe('capture')
+    // No chip reported: a locked panel never takes the mouse.
+    expect(mouseMode(inputs({ panels: [LOCKED], cursor: { x: 210, y: 160 } }))).toBe('forward')
+  })
+
+  it('lets the mouse through a ghost to the panels below it, but over its chip', () => {
+    const chip = { x: 100, y: 100, width: 80, height: 20 }
+    const ghost: HitPanel = { ...TOP, locked: true, ghost: true, chip }
+    // Over the ghost's chip: its eye takes the click.
+    expect(mouseMode(inputs({ panels: [ghost, UNDER], cursor: { x: 120, y: 110 } }))).toBe(
+      'capture'
+    )
+    // Elsewhere on the ghost: the unlocked panel below it, or the game.
+    expect(mouseMode(inputs({ panels: [ghost, UNDER], cursor: { x: 200, y: 160 } }))).toBe(
+      'capture'
+    )
+    expect(mouseMode(inputs({ panels: [ghost, LOCKED], cursor: { x: 200, y: 160 } }))).toBe(
+      'forward'
+    )
+    expect(mouseMode(inputs({ panels: [ghost], cursor: { x: 200, y: 160 } }))).toBe('forward')
+  })
+
   it('keeps the mouse within the margin only while already captured', () => {
     const near = { x: 100 - CAPTURE_MARGIN_DIP, y: 120 }
     expect(mouseMode(inputs({ cursor: near, current: 'forward' }))).toBe('forward')

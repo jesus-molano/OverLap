@@ -17,5 +17,6 @@ export const PREVIEW_CONDITIONS: ConditionsData = Object.freeze({
   precipPct: 40,
   declaredWet: true,
   skies: 3,
-  rubberState: 'moderate usage'
+  rubberState: 'moderate usage',
+  rubberCarried: false
 })

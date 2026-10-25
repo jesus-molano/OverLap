@@ -28,6 +28,8 @@ export interface OverlayState {
   readonly overlayHidden: ShallowRef<boolean>
   /** Settings window: how each configured shortcut is doing (null until main says). */
   readonly shortcutStatus: ShallowRef<ShortcutStatusMap | null>
+  /** Overlay windows: edit mode while the game hides the mouse cursor (nothing can be dragged). */
+  readonly cursorHidden: ShallowRef<boolean>
   /**
    * Overlay windows: what this window hosts and where (the highest revision seen). Null in the
    * settings window, and until the first layout arrives.
@@ -70,6 +72,7 @@ export const overlayState: OverlayState = {
   view: shallowRef<RendererView | null>(null),
   overlayHidden: shallowRef(false),
   shortcutStatus: shallowRef<ShortcutStatusMap | null>(null),
+  cursorHidden: shallowRef(false),
   layout: shallowRef<OverlayLayout | null>(null),
   autoHiddenOf: shownEverywhere(),
   latest: emptyPayloads()
@@ -93,11 +96,15 @@ function setAutoHidden(s: OverlayState, id: WidgetId, a: AutoHiddenState): void 
   if (a.hidden) s.latest[id].value = null
 }
 
-/** Keeps the layout with the highest revision; a widget it no longer hosts loses its payload. */
+/**
+ * Keeps the layout with the highest revision; a widget it no longer hosts, or hosts as a ghost
+ * (disabled: it gets no data), loses its payload.
+ */
 function adoptLayout(s: OverlayState, next: OverlayLayout): void {
   const prev = s.layout.value
   if (prev !== null && next.revision <= prev.revision) return
   s.layout.value = next
+  for (const p of next.panels) if (p.ghost === true) s.latest[p.widget].value = null
   if (prev === null) return
   for (const p of prev.panels) {
     if (!next.panels.some((n) => n.widget === p.widget)) s.latest[p.widget].value = null
@@ -119,6 +126,7 @@ export function useOverlayState(): OverlayState {
     // Events that arrive before the initial state resolves are newer: keep them.
     let editModeSeen = false
     let overlayHiddenSeen = false
+    let cursorHiddenSeen = false
     const autoHiddenSeen = new Set<WidgetId>()
     // Status and data share one ordered channel (telemetry -> main -> renderer), so a payload
     // never arrives before the status that makes it live again.
@@ -147,12 +155,17 @@ export function useOverlayState(): OverlayState {
       s.overlayHidden.value = hidden
     })
     window.overlay.onShortcutStatus((status) => (s.shortcutStatus.value = status))
+    window.overlay.onCursorHidden((hidden) => {
+      cursorHiddenSeen = true
+      s.cursorHidden.value = hidden
+    })
     void window.overlay.getInitialState().then((init) => {
       s.status.value ??= init.status
       if (!editModeSeen) s.editMode.value = init.editMode
       s.settings.value ??= init.settings
       s.view.value = init.view
       if (!overlayHiddenSeen) s.overlayHidden.value = init.overlayHidden
+      if (!cursorHiddenSeen) s.cursorHidden.value = init.cursorHidden
       s.shortcutStatus.value ??= init.shortcutStatus
       if (init.layout !== null) adoptLayout(s, init.layout)
       const map: AutoHiddenMap = init.autoHidden

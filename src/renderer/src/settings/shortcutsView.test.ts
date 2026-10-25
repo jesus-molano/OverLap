@@ -87,12 +87,16 @@ describe('sidebarKeys', () => {
 })
 
 describe('editModeTooltip', () => {
-  it('names the configured shortcut, or none', () => {
-    expect(editModeTooltip(es, defaults)).toBe('Mover y redimensionar los widgets (Ctrl+Shift+E)')
-    expect(editModeTooltip(en, { ...defaults, toggleEditMode: 'F13' })).toBe(
-      'Move and resize the widgets (F13)'
+  it('names the configured shortcut, or none, and says this window frees the cursor', () => {
+    expect(editModeTooltip(es, defaults)).toBe(
+      'Mover y redimensionar los widgets (Ctrl+Shift+E). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera'
     )
-    expect(editModeTooltip(es, custom)).toBe('Mover y redimensionar los widgets')
+    expect(editModeTooltip(en, { ...defaults, toggleEditMode: 'F13' })).toBe(
+      'Move and resize the widgets (F13). In the car iRacing hides the cursor: start here, this window frees it'
+    )
+    expect(editModeTooltip(es, custom)).toBe(
+      'Mover y redimensionar los widgets. En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera'
+    )
   })
 })
 

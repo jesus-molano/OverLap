@@ -1,21 +1,25 @@
 <script setup lang="ts">
 /**
  * Edit-mode chrome and interactions of one panel of an overlay window: the frame, the chips
- * (name, size, scale, lock, why a rule hides it, drop on another display), the resize handles,
- * drag to move or resize and the mouse wheel. Outside edit mode it only draws the widget.
+ * (name, size, scale, the eye and padlock buttons, why a rule hides it, the radar covering it,
+ * drop on another display), the resize handles, drag to move or resize and the mouse wheel.
+ * A ghost (a widget the user disabled) is only an outline with its chip. Outside edit mode it
+ * only draws the widget.
  *
- * Main decides when the window takes the mouse (only over an unlocked panel, or while a drag
- * holds the lease), so this never asks for it: it only reports drags (useEditSession).
+ * Main decides when the window takes the mouse (over an unlocked panel, over any panel's chip,
+ * or while a drag holds the lease), so this never asks for it: it only reports drags and where
+ * its chip is (useEditSession).
  */
-import { computed, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, useTemplateRef, watch } from 'vue'
 import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
-import { WIDGET_DEFS } from '@shared/widgets'
+import { TOPMOST_WIDGET, WIDGET_DEFS } from '@shared/widgets'
 import { useI18n } from '../composables/useI18n'
 import { useShortcuts } from '../composables/useShortcuts'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
 import Icon from '../ui/Icon.vue'
 import { injectSlot } from './contract'
 import { handlesFor, type DragMode } from './dragMath'
+import { radarClashes, relativeRect, toggleMessage, type ToggleField } from './editChip'
 import { createPanelEdit } from './panelEdit'
 import { ANIMATION_FRAMES } from './timers'
 import { injectEditSession } from './useEditSession'
@@ -38,6 +42,7 @@ const edit = createPanelEdit({
 const { editable, crossing } = edit
 const editMode = session.editing
 const locked = slot.locked
+const ghost = slot.ghost
 const autoHeight = slot.autoHeight
 const autoHidden = slot.autoHidden
 
@@ -60,9 +65,79 @@ const sizeText = computed(() => {
   return `${width} × ${autoHeight.value ? t.value.core.editFrame.autoHeight : height}`
 })
 
+/** 'Oculto' for a ghost, 'Bloqueado' when locked, else the size. */
+const metaText = computed(() => {
+  const f = t.value.core.editFrame
+  if (ghost.value) return f.hidden
+  return locked.value ? f.locked : sizeText.value
+})
+
 /** '100 %' (auto-height widgets, scaled by the wheel); null for free widgets. */
 const scaleText = computed(() =>
   def.sizeModel === 'auto-height' ? t.value.core.percent(prefs.value.scale) : null
+)
+
+/** The chip's buttons: what a click does, as their tooltip. */
+const eyeLabel = computed(() => {
+  const f = t.value.core.editFrame
+  return ghost.value ? f.show(title.value) : f.hide(title.value)
+})
+const lockLabel = computed(() => {
+  const f = t.value.core.editFrame
+  return locked.value ? f.unlock(title.value) : f.lock(title.value)
+})
+
+/**
+ * The radar is painted above every panel (B05): on the radar, the panels it covers; on another
+ * panel, that the radar covers it. Edit mode only.
+ */
+const clashes = computed(() =>
+  editMode.value && !ghost.value ? radarClashes(slot.id, session.registry.slots.value) : []
+)
+const clashNote = computed(() => {
+  const list = clashes.value
+  if (list.length === 0) return null
+  const f = t.value.core.editFrame
+  if (slot.id !== TOPMOST_WIDGET) return f.underRadar
+  return f.coversPanels(list.map((id) => widgetTitle(t.value, id)).join(', '))
+})
+
+function toggle(field: ToggleField): void {
+  const msg = toggleMessage(slot, field, session.session(), editMode.value)
+  if (msg !== null) window.overlay.widgetToggle(msg)
+}
+
+// ---- Where the chip is: main takes the mouse over it ------------------------
+
+const frameEl = useTemplateRef<HTMLElement>('frame')
+const chipEl = useTemplateRef<HTMLElement>('chip')
+const observer =
+  typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => measureChip())
+
+function measureChip(): void {
+  const frame = frameEl.value
+  const chip = chipEl.value
+  const rect =
+    frame !== null && chip !== null
+      ? relativeRect(frame.getBoundingClientRect(), chip.getBoundingClientRect())
+      : null
+  session.reportChip(slot.id, rect)
+}
+
+const stopChip = watch(
+  chipEl,
+  (el, prev) => {
+    if (prev) observer?.unobserve(prev)
+    if (el) observer?.observe(el)
+    measureChip()
+  },
+  { flush: 'post' }
+)
+// The chip is centred: a new panel width moves it even when its own size stays.
+const stopWidth = watch(
+  () => slot.rect.value.width,
+  () => measureChip(),
+  { flush: 'post' }
 )
 
 function onPointerDown(e: PointerEvent, mode: DragMode): void {
@@ -74,34 +149,82 @@ function onWheel(e: WheelEvent): void {
   edit.wheel(e)
 }
 
-onBeforeUnmount(() => edit.dispose())
+onBeforeUnmount(() => {
+  stopChip()
+  stopWidth()
+  observer?.disconnect()
+  session.reportChip(slot.id, null)
+  edit.dispose()
+})
 </script>
 
 <template>
   <div
+    ref="frame"
     class="frame"
-    :class="{ editing: editable, 'locked-edit': editMode && locked, 'auto-h': autoHeight }"
+    :class="{
+      editing: editable,
+      'locked-edit': editMode && locked && !ghost,
+      'ghost-edit': editMode && ghost,
+      'radar-clash': clashNote !== null,
+      'auto-h': autoHeight
+    }"
     @pointerdown="onPointerDown($event, 'move')"
     @wheel="onWheel"
   >
-    <div class="content">
+    <div class="content" :class="{ 'is-ghost': ghost }">
       <slot />
     </div>
-    <div v-if="editMode" class="edit-layer" aria-hidden="true">
-      <div class="chip" :class="{ 'chip-locked': locked }">
-        <Icon v-if="locked" name="lock" class="lock" />
+    <div v-if="editMode" class="edit-layer">
+      <div
+        ref="chip"
+        class="chip"
+        :class="{ 'chip-locked': locked && !ghost, 'chip-ghost': ghost }"
+      >
         <span class="chip-title">{{ title }}</span>
-        <span class="chip-meta">{{ locked ? t.core.editFrame.locked : sizeText }}</span>
-        <span v-if="!locked && scaleText" class="chip-meta chip-scale">{{ scaleText }}</span>
+        <span class="chip-meta">{{ metaText }}</span>
+        <span v-if="!locked && !ghost && scaleText" class="chip-meta chip-scale">{{
+          scaleText
+        }}</span>
+        <span class="chip-actions">
+          <button
+            type="button"
+            class="chip-btn"
+            :class="{ 'is-off': ghost }"
+            :title="eyeLabel"
+            :aria-label="eyeLabel"
+            :aria-pressed="!ghost"
+            @pointerdown.stop
+            @click.stop="toggle('visible')"
+          >
+            <Icon :name="ghost ? 'eye-off' : 'eye'" />
+          </button>
+          <button
+            type="button"
+            class="chip-btn"
+            :class="{ 'is-locked': locked }"
+            :title="lockLabel"
+            :aria-label="lockLabel"
+            :aria-pressed="locked"
+            @pointerdown.stop
+            @click.stop="toggle('locked')"
+          >
+            <Icon :name="locked ? 'lock' : 'unlock'" />
+          </button>
+        </span>
       </div>
-      <div v-if="crossing" class="chip chip-drop">
+      <div v-if="crossing" class="chip chip-drop" aria-hidden="true">
         <span class="chip-meta">{{ t.core.editFrame.dropOnOtherDisplay }}</span>
       </div>
-      <div v-if="autoHidden.hidden" class="chip chip-note">
+      <div v-if="autoHidden.hidden && !ghost" class="chip chip-note" aria-hidden="true">
         <Icon name="eye-off" class="eye-off" />
         <span class="chip-meta">{{ hiddenNote }}</span>
       </div>
-      <div v-if="!locked" class="hint">
+      <div v-if="clashNote !== null" class="chip chip-clash" aria-hidden="true">
+        <Icon name="warning" class="clash-icon" />
+        <span class="chip-meta">{{ clashNote }}</span>
+      </div>
+      <div v-if="!locked && !ghost" class="hint" aria-hidden="true">
         <span class="hint-long">{{ hints.long }}</span>
         <span class="hint-short">{{ hints.short }}</span>
         <span class="hint-tiny">{{ hints.tiny }}</span>
@@ -137,6 +260,11 @@ onBeforeUnmount(() => edit.dispose())
   height: 100%;
 }
 
+/* A ghost never draws its widget (it gets no data either): only the outline and the chip. */
+.content.is-ghost {
+  display: none;
+}
+
 /* ---- Edit mode ---------------------------------------------------------- */
 
 .frame.editing {
@@ -150,7 +278,8 @@ onBeforeUnmount(() => edit.dispose())
 }
 
 /* Backdrop behind the widget, so even an empty or faded widget can be placed. */
-.frame.editing::before {
+.frame.editing::before,
+.frame.ghost-edit::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -159,12 +288,18 @@ onBeforeUnmount(() => edit.dispose())
   background: var(--ov-edit-backdrop);
 }
 
+/* A ghost: half the backdrop, so it reads as "not there", yet can be found. */
+.frame.ghost-edit::before {
+  opacity: 0.45;
+}
+
 /*
  * Drawn on top, outside the layout (toggling edit mode never reflows the widget): a 1 px frame
  * with 12 x 2 px crop marks at the corners. Eight background layers, edit mode only.
  */
 .frame.editing::after,
-.frame.locked-edit::after {
+.frame.locked-edit::after,
+.frame.ghost-edit::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -191,11 +326,25 @@ onBeforeUnmount(() => edit.dispose())
   background: none;
 }
 
-/* Top centre, so the chips cover the header at most, never the rows. */
+/* A ghost: a dashed outline in the muted text colour, no crop marks (it cannot be moved). */
+.frame.ghost-edit::after {
+  border: 1px dashed var(--ov-fg-muted);
+  background: none;
+}
+
+/* The radar covers part of this panel (or this radar covers another): a warning outline. */
+.frame.radar-clash::after {
+  border-color: var(--ov-warn);
+}
+
+/*
+ * Top centre, so the chips cover the header at most, never the rows. Above the resize handles:
+ * it takes no pointer itself, only the chip's buttons do (the top handle runs under them).
+ */
 .edit-layer {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -243,6 +392,50 @@ onBeforeUnmount(() => edit.dispose())
   border-color: var(--ov-locked);
 }
 
+.chip-ghost {
+  border-color: var(--ov-fg-dim);
+}
+
+/* The eye and the padlock: the only part of a chip that takes the pointer. */
+.chip-actions {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  margin: -1px -5px -1px 0;
+  padding-left: 0.4em;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
+}
+
+.chip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  font-size: 12px;
+  color: var(--ov-fg-muted);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.chip-btn:hover {
+  background: color-mix(in srgb, var(--ov-edit) 30%, transparent);
+  color: var(--ov-fg);
+}
+
+/* State, not decoration: the crossed eye of a ghost and the closed padlock stand out. */
+.chip-btn.is-off {
+  color: var(--ov-warn);
+}
+
+.chip-btn.is-locked {
+  color: var(--ov-fg);
+}
+
 /* The pointer left this display mid-move: releasing moves the widget there. */
 .chip-drop {
   border-color: var(--ov-edit);
@@ -253,19 +446,18 @@ onBeforeUnmount(() => edit.dispose())
 }
 
 /* A rule hides this widget outside edit mode. */
-.chip-note {
+.chip-note,
+.chip-clash {
   border-color: color-mix(in srgb, var(--ov-warn) 60%, transparent);
 }
 
-.chip-note .chip-meta {
+.chip-note .chip-meta,
+.chip-clash .chip-meta {
   color: var(--ov-fg);
 }
 
-.lock {
-  color: var(--ov-fg-muted);
-}
-
-.eye-off {
+.eye-off,
+.clash-icon {
   color: var(--ov-warn);
 }
 
