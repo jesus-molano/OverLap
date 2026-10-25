@@ -131,7 +131,7 @@ function split(times: readonly number[]): number[] {
 }
 
 const DRIVERS: DriverEntry[] = [
-  makeDriver(0, { userName: 'Jesús Molano', carNumber: '7', carId: 67 }),
+  makeDriver(0, { userName: 'Andrés Lucena', carNumber: '7', carId: 67 }),
   makeDriver(1, { userName: 'Jonas Lindqvist', carNumber: '44', carId: 67 }),
   makeDriver(2, { userName: 'Ana Prototipo', carNumber: '2', classId: 2, carId: 80 }),
   makeDriver(3, { userName: 'Marta Ruiz', carNumber: '12', carId: 67 })

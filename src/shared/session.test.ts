@@ -81,7 +81,7 @@ function sampleSession(): Record<string, unknown> {
         },
         {
           CarIdx: 1,
-          UserName: 'Jesús Molano',
+          UserName: 'Andrés Lucena',
           CarNumber: '7',
           CarClassID: 4029,
           CarIsPaceCar: 0,
@@ -208,7 +208,7 @@ describe('parseSessionMeta', () => {
     })
     expect(meta.drivers.get(1)).toEqual<DriverEntry>({
       carIdx: 1,
-      userName: 'Jesús Molano',
+      userName: 'Andrés Lucena',
       teamName: '',
       carNumber: '7',
       iRating: 2345,
