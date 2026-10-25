@@ -11,6 +11,7 @@ import type {
   StandingsColumn,
   StandingsOptions,
   TrafficOptions,
+  VisibilityOptions,
   WidgetSettings
 } from '../types'
 import type { ShortcutSettings } from '../shortcuts'
@@ -59,6 +60,11 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   textHalo: 'auto',
   showSimPill: true,
   language: 'es'
+}
+const DEFAULT_VISIBILITY: VisibilityOptions = {
+  hideWithSimUi: true,
+  hideInGarage: true,
+  replays: 'follow'
 }
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
@@ -188,6 +194,7 @@ describe('DEFAULT_SETTINGS', () => {
     expect(DEFAULT_SETTINGS).toEqual<OverlaySettings>({
       version: 4,
       appearance: DEFAULT_APPEARANCE,
+      visibility: DEFAULT_VISIBILITY,
       widgets: Object.fromEntries(WIDGET_IDS.map((id) => [id, defaultWidget(id)])) as Record<
         WidgetId,
         WidgetSettings
@@ -1012,5 +1019,21 @@ describe('normalizeSettings: shortcuts', () => {
     const saved = createDefaultSettings()
     saved.shortcuts = { toggleOverlay: 'F13', toggleEditMode: 'Ctrl+Alt+PageUp' }
     expect(normalizeSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved)
+  })
+})
+
+describe('normalizeSettings: visibility', () => {
+  it('gives an older file without the section the defaults: hide with the UI and in the garage, follow replays', () => {
+    expect(normalizeSettings({ version: 4 }).visibility).toEqual(DEFAULT_VISIBILITY)
+    expect(normalizeSettings({ visibility: 'hide' }).visibility).toEqual(DEFAULT_VISIBILITY)
+  })
+
+  it('keeps valid values and replaces invalid ones field by field', () => {
+    const v = { hideWithSimUi: false, hideInGarage: false, replays: 'hide' }
+    expect(normalizeSettings({ visibility: v }).visibility).toEqual(v)
+    expect(
+      normalizeSettings({ visibility: { hideWithSimUi: 'no', hideInGarage: 0, replays: 'skip' } })
+        .visibility
+    ).toEqual(DEFAULT_VISIBILITY)
   })
 })

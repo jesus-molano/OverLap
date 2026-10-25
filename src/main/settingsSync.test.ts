@@ -189,6 +189,10 @@ describe('diffSettings', () => {
     expect(configChanged((s) => (s.widgets.inputs.hideInPits = !s.widgets.inputs.hideInPits))).toBe(
       true
     )
+    // The global ones too: garage, iRacing UI and replays.
+    expect(configChanged((s) => (s.visibility.hideInGarage = false))).toBe(true)
+    expect(configChanged((s) => (s.visibility.hideWithSimUi = false))).toBe(true)
+    expect(configChanged((s) => (s.visibility.replays = 'hide'))).toBe(true)
   })
 })
 

@@ -24,6 +24,12 @@ export interface WidgetDef {
     readonly qualify: boolean
     readonly race: boolean
   }
+  /**
+   * During a replay it follows the car on camera (its data exists for every car). Absent: it
+   * only has your own car's data (pedals, spotter, flags, the delta...) and hides while a
+   * replay plays, so a new widget is never shown with the wrong car's numbers by default.
+   */
+  readonly followsCamera?: true
 }
 
 /**
@@ -43,7 +49,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.78,
     sizeModel: 'free',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    followsCamera: true
   },
   radar: {
     id: 'radar',
@@ -63,7 +70,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.78,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    followsCamera: true
   },
   battle: {
     id: 'battle',
@@ -73,7 +81,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: false, qualify: false, race: true }
+    defaultShowIn: { practice: false, qualify: false, race: true },
+    followsCamera: true
   },
   inputs: {
     id: 'inputs',
@@ -94,7 +103,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    followsCamera: true
   },
   alerts: {
     id: 'alerts',
@@ -124,4 +134,10 @@ export const WIDGET_IDS = Object.keys(WIDGET_DEFS) as WidgetId[]
 
 export function isWidgetId(value: unknown): value is WidgetId {
   return typeof value === 'string' && Object.prototype.hasOwnProperty.call(WIDGET_DEFS, value)
+}
+
+/** WidgetDef.followsCamera: shown during a replay, about the car on camera. */
+export function followsCamera(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.followsCamera === true
 }

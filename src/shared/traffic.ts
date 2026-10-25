@@ -17,7 +17,7 @@ import { CAUTION_FLAGS } from './flags'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { finiteOr, frac, quantise } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
-import { resolvePlayerCarIdx } from './sessionInfo'
+import { resolveFocusCarIdx } from './sessionInfo'
 import { SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type {
@@ -374,7 +374,8 @@ function begin(
   // Gridding, pace laps and the cool-down: nobody races, every closing rate would be wrong.
   const state = frame.SessionState[0]
   if (state !== SessionState.Racing && state !== SessionState.Checkered) return null
-  const idx = resolvePlayerCarIdx(frame, session)
+  // You, or the car on camera while a replay plays.
+  const idx = resolveFocusCarIdx(frame, session)
   const me = idx >= 0 ? race.car(idx) : undefined
   const myDriver = session.drivers.get(idx)
   const myPct = frame.CarIdxLapDistPct[idx]

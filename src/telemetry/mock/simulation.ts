@@ -8,9 +8,11 @@
  * - scripts.ts, scenarios.ts: the cast's motion and the timeline;
  * - pitLane.ts, inputs.ts: the player's pit stop and driver inputs;
  * - playerAlerts.ts: the player's own alerts (MOCK_ALERTS_TIMELINE, minutes 15 to 22);
+ * - playerIncidents.ts: the player's incidents, what each one was and where;
  * - traffic.ts: lanes and the spotter; sessionInfo.ts: the session YAML;
  * - tyres.ts, warnings.ts: the compounds and the furled black flag;
- * - frameBuffer.ts: output arrays and the telemetry frame.
+ * - frameBuffer.ts: output arrays and the telemetry frame;
+ * - screen.ts: MockScreen, the sim's UI hidden, the garage and a replay (MockSource only).
  *
  * Cast around the player (GT3 #07 by default), ~40 min before the end:
  * - escorts: two cars of the other class orbit the player on a fixed cycle,
@@ -52,6 +54,8 @@ export type { MockSeriesOptions } from './series'
 export { MOCK_TIMELINE } from './scenarios'
 export type { MockEvent, MockEventKind, MockTimeline } from './scenarios'
 export type { MockQualifyResult, MockSessionInfo, MockYamlDriver } from './sessionInfo'
+export { MOCK_SCREEN_TIMELINE, MockScreen } from './screen'
+export type { MockScreenRace, MockScreenTimeline } from './screen'
 export { mulberry32 } from './rng'
 export { spotterState } from './traffic'
 export { MOCK_ALERTS_TIMELINE } from './playerAlerts'

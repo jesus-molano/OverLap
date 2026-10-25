@@ -183,6 +183,7 @@ export class MockRace {
       v.CarIdxTireCompound[car.idx] = mockTyreCompound(car.idx, this.cast)
     }
     v.PlayerCarIdx[0] = this.playerIdx
+    v.CamCarIdx[0] = this.playerIdx
     v.IsOnTrack[0] = true
     v.SessionLapsRemainEx[0] = LAPS_REMAIN_UNLIMITED
     v.SteeringWheelAngleMax[0] = STEERING_MAX_RAD

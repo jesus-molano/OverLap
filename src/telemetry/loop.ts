@@ -19,6 +19,7 @@ import { RaceModel } from '@shared/race/raceModel'
 import type { RaceView } from '@shared/race/raceView'
 import { parseSessionMeta } from '@shared/session'
 import { createDefaultSettings, toTelemetryConfig } from '@shared/settings'
+import { isReplayPlaying } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
   ConnectionState,
@@ -33,7 +34,7 @@ import { errorMessage, isNativeSdkMissing } from './errors'
 import type { TelemetrySource } from './sources/TelemetrySource'
 
 /** What the loop needs from the RaceModel (a fake in tests). */
-export type RaceModelLike = Pick<RaceModel, 'view' | 'update' | 'reset'>
+export type RaceModelLike = Pick<RaceModel, 'view' | 'update' | 'reset' | 'breakContinuity'>
 
 export interface LoopDeps {
   now: () => number
@@ -160,6 +161,13 @@ function dataMessage<K extends WidgetId>(
  * carries its history on (it only breaks continuity); the model itself
  * starts over when the session changes, and the providers follow its
  * sessionKey.
+ *
+ * While a replay plays its frames are not live (their own clock, which goes
+ * back and jumps; any car on camera), so the live model is not fed them: it
+ * keeps its laps, bests and incidents and resumes after the replay without
+ * timing anything across it. A second model built for each replay times the
+ * replay instead, for the widgets that follow the car on camera; no lap of
+ * it is ever offered as a personal best.
  */
 export class TelemetryLoop {
   private readonly deps: LoopDeps
@@ -194,6 +202,11 @@ export class TelemetryLoop {
   private readonly providers: ProviderSet
   /** race.sessionKey the providers' state belongs to (null: none yet). */
   private raceKey: string | null = null
+  /** The last frame was a replay's (IsReplayPlaying). */
+  private replaying = false
+  /** Times the replay playing now; built on its first frame, dropped when it ends. */
+  private replayModel: RaceModelLike | null = null
+  private replayModelFailed = false
   private readonly autoHide: AutoHide
 
   private readonly bests: PersonalBestStore
@@ -375,13 +388,23 @@ export class TelemetryLoop {
     const session = this.session
     if (!session) return true
 
+    const replay = isReplayPlaying(frame)
+    if (replay !== this.replaying) this.followReplay(replay, now)
     // Every tick, whatever widgets are enabled or hidden: timing needs each one.
-    this.updateRace(frame, session, now)
-    const race = this.raceModel?.view ?? EMPTY_RACE_VIEW
-    this.followSessionKey(race, now)
-    this.observeTick(frame, session, race, now)
-    this.followPersonalBest(frame, session, race, now)
-    this.followTarget(session, race.playerCarIdx, now)
+    let race: RaceView
+    if (replay) {
+      race = this.updateReplay(frame, session, now)
+      // The incident tracker sees a replay too: it follows the count then, never counts it.
+      this.observeTick(frame, session, race, now)
+    } else {
+      this.updateRace(frame, session, now)
+      race = this.raceModel?.view ?? EMPTY_RACE_VIEW
+      this.followSessionKey(race, now)
+      this.observeTick(frame, session, race, now)
+      // Live frames only: a replay's laps are not yours to keep, its car is not yours.
+      this.followPersonalBest(frame, session, race, now)
+      this.followTarget(session, race.playerCarIdx, now)
+    }
     this.updateRules(frame, session, now)
     let ctx: ProviderContext | null = null
     for (const id of this.enabled) {
@@ -408,6 +431,50 @@ export class TelemetryLoop {
     } catch (err) {
       this.logEvery('providers', now, `Provider tick failed: ${errorMessage(err)}`)
     }
+  }
+
+  /**
+   * A replay started or ended. The live model will not see the replay's frames: nothing is
+   * timed across the gap (its history stays, and so does its sessionKey, so the providers keep
+   * theirs). Each replay gets a model of its own. Every widget's next payload is computed
+   * afresh and sent, so no hold or smoothing carries from live to replay or back.
+   */
+  private followReplay(replay: boolean, now: number): void {
+    this.replaying = replay
+    this.replayModel = null
+    this.replayModelFailed = false
+    if (replay) {
+      try {
+        this.raceModel?.breakContinuity()
+      } catch (err) {
+        this.logEvery('race', now, `Race model pause failed: ${errorMessage(err)}`)
+      }
+    }
+    for (const id of WIDGET_IDS) this.forget(id)
+  }
+
+  /**
+   * Feeds the replay's own model (built on its first frame) and returns its view, where the
+   * car on camera is the player (resolveFocusCarIdx). An empty view when it cannot be built
+   * (tried once per replay).
+   */
+  private updateReplay(frame: TelemetryFrame, session: SessionMeta, now: number): RaceView {
+    if (!this.replayModel && !this.replayModelFailed) {
+      try {
+        this.replayModel = this.deps.createRaceModel()
+      } catch (err) {
+        this.replayModelFailed = true
+        this.logEvery('race', now, `Replay model unavailable: ${errorMessage(err)}`)
+      }
+    }
+    const model = this.replayModel
+    if (!model) return EMPTY_RACE_VIEW
+    try {
+      model.update(frame, session)
+    } catch (err) {
+      this.logEvery('race', now, `Replay model update failed: ${errorMessage(err)}`)
+    }
+    return model.view
   }
 
   /** A failing model must not take the widgets down: providers still run with its last view. */
@@ -519,7 +586,7 @@ export class TelemetryLoop {
   /** A broken rule must not stop the loop: the widgets then stay as they were. */
   private updateRules(frame: TelemetryFrame, session: SessionMeta, now: number): void {
     try {
-      this.autoHide.update(this.config.rules, frame, session)
+      this.autoHide.update(this.config, frame, session)
     } catch (err) {
       this.logEvery('rules', now, `Visibility rules failed: ${errorMessage(err)}`)
     }
@@ -602,6 +669,9 @@ export class TelemetryLoop {
       this.logEvery('race', now, `Race model reset failed: ${errorMessage(err)}`)
     }
     this.raceKey = null
+    this.replaying = false
+    this.replayModel = null
+    this.replayModelFailed = false
     this.resetProviders(now)
     this.autoHide.showAll()
     this.targetSession = null

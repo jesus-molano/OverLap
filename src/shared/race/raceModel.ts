@@ -24,7 +24,7 @@
 import { CAUTION_FLAGS, LAPS_REMAIN_UNLIMITED } from '../flags'
 import { isValidPct } from '../lapDist'
 import { finiteOr, frac } from '../num'
-import { isRaceSession, resolvePlayerCarIdx } from '../sessionInfo'
+import { isRaceSession, resolveFocusCarIdx } from '../sessionInfo'
 import { MAX_CARS, SessionState, TrackLocation } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type { DriverEntry, SessionDetails, SessionMeta } from '../types'
@@ -257,6 +257,15 @@ export class RaceModel {
     this.key = ''
   }
 
+  /**
+   * A stretch of frames this model did not see, in the same session (a replay played
+   * meanwhile): no lap or line is timed across it and speeds start over; laps, pit stops,
+   * bests and sessionKey stay, so the providers keep their state.
+   */
+  breakContinuity(): void {
+    for (const track of this.tracks) track?.breakContinuity()
+  }
+
   /** Forgets everything, as for a new session. */
   hardReset(): void {
     this.clearAll()
@@ -480,7 +489,8 @@ export class RaceModel {
    * mid-session, so it spans the same as PlayerCarMyIncidentCount.
    */
   private updatePlayer(frame: TelemetryFrame, session: SessionMeta): void {
-    this.playerIdx = resolvePlayerCarIdx(frame, session)
+    // The player, or the car on camera in a replay (only a replay model is fed those frames).
+    this.playerIdx = resolveFocusCarIdx(frame, session)
     const pt = this.playerIdx >= 0 ? this.tracks[this.playerIdx] : undefined
     if (pt?.active && pt.state.inWorld) {
       if (!this.distanceSeeded) {

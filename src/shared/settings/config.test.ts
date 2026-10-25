@@ -42,6 +42,15 @@ describe('toTelemetryConfig', () => {
     expect(c.rules.battle.showIn).toEqual({ practice: false, qualify: false, race: true })
   })
 
+  it('carries the global visibility rules, as a copy', () => {
+    const s = createDefaultSettings()
+    s.visibility.replays = 'hide'
+    const c = toTelemetryConfig(s)
+    expect(c.visibility).toEqual({ hideWithSimUi: true, hideInGarage: true, replays: 'hide' })
+    c.visibility.hideInGarage = false
+    expect(s.visibility.hideInGarage).toBe(true)
+  })
+
   it('shares no object with the settings', () => {
     const s = createDefaultSettings()
     const c = toTelemetryConfig(s)

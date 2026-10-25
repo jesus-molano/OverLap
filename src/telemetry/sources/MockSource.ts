@@ -1,5 +1,5 @@
 import type { TelemetryFrame } from '@shared/telemetry'
-import { MockSeries } from '../mock/simulation'
+import { MockScreen, MockSeries } from '../mock/simulation'
 import type { MockSessionInfo } from '../mock/simulation'
 import type { TelemetrySource } from './TelemetrySource'
 
@@ -42,12 +42,15 @@ export interface MockSourceOptions {
 /**
  * Simulated races (OVERLAY_SOURCE=mock): no iRacing, no native addon. Session
  * after session: each new one bumps sessionInfoVersion (new SubSessionID).
+ * Each session also hides the sim's UI, opens the garage and plays a short
+ * replay once (MockScreen), for the global visibility rules.
  */
 export class MockSource implements TelemetrySource {
   readonly kind = 'mock'
   /** Simulated seconds per real second (1..20). */
   readonly speed: number
   private readonly series: MockSeries
+  private readonly screen = new MockScreen()
   private connected = false
   private lastTickMs = 0
   /**
@@ -100,7 +103,7 @@ export class MockSource implements TelemetrySource {
   }
 
   readFrame(): TelemetryFrame {
-    return this.series.frame()
+    return this.screen.frame(this.series.frame(), this.series.current)
   }
 
   sessionInfoVersion(): number {
