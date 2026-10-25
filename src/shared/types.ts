@@ -94,6 +94,11 @@ export interface SessionMeta {
   paceCarIdx: number
   /** DriverInfo.DriverCarEstLapTime in seconds, 0 when unknown (fallback for the player's class). */
   driverCarEstLapTime: number
+  /**
+   * DriverInfo.DriverCarIdleRPM of your car, 0 or missing when unknown (the alerts' pressure
+   * lights need the engine running). Optional: hand-built sessions (tests) may leave it out.
+   */
+  driverCarIdleRpm?: number
   /** Parsed WeekendInfo.TrackLength in metres, null when missing or unparseable. */
   trackLengthM: number | null
   trackName: string
@@ -582,6 +587,11 @@ export type AlertNotice =
   | { kind: EngineWarningKind }
   /** Being towed to the pits: whole seconds left. */
   | { kind: 'tow'; seconds: number }
+  /**
+   * The car is damaged (EngineWarnings): `mandatory` repairs before you may race on (the
+   * meatball follows), or only optional ones (said for a few seconds).
+   */
+  | { kind: 'damage'; mandatory: boolean }
   /** Laps to go of a race (10 or 5), shown for a few seconds once each per session. */
   | { kind: 'lapsToGo'; laps: number }
   /**
@@ -608,6 +618,11 @@ export interface AlertsData {
   pitLimitKmh: number | null
   /** Your last incident while it is shown, null otherwise. */
   incident: IncidentAlert | null
+  /**
+   * In your pit box: in the stall, or being towed there (PlayerCarTowTime > 0, whether the tow
+   * notice is shown or not). The meatball does not tell you to pit then: you are there.
+   */
+  inBox: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -622,6 +637,16 @@ export interface AlertsData {
  * - `classOptimal`: the best time in each sector by anyone in your class this session, joined.
  */
 export type DeltaReference = 'pb' | 'session' | 'optimal' | 'class' | 'classOptimal'
+
+/**
+ * The lap the delta is about:
+ * - `valid`: a lap in progress that counts so far;
+ * - `invalid`: it touched pit road, went off track, stopped or ran under caution (it won't count);
+ * - `out`: your out lap (left pit road on it, a tow included);
+ * - `tow`: being towed to the pits;
+ * - `none`: no lap in progress (before your first line, on the grid, after your flag).
+ */
+export type DeltaLapState = 'valid' | 'invalid' | 'out' | 'tow' | 'none'
 
 export interface DeltaData {
   /** False when there is no reference or you are not driving: the widget fades out. */
@@ -646,8 +671,8 @@ export interface DeltaData {
   predictedLap: number | null
   /** Completed sectors of the current lap versus the reference (+ lost, - gained), null = not reached. */
   sectors: (number | null)[]
-  /** False once the current lap touched pit road, went off track or stopped (it won't count). */
-  lapValid: boolean
+  /** The lap in progress (of the lap just finished while its summary shows). */
+  lapState: DeltaLapState
 }
 
 // ---------------------------------------------------------------------------
@@ -972,6 +997,8 @@ export interface AlertsOptions {
   showLapsToGo: boolean
   /** Tow countdown. */
   showTow: boolean
+  /** 'DAÑOS' when the car needs repairs (EngineWarnings), before the meatball comes out. */
+  showDamage: boolean
   showWrongWay: boolean
   /** '+2x Pérdida de control · V5 · S3 · grava' for a few seconds when your count goes up. */
   showIncidents: boolean

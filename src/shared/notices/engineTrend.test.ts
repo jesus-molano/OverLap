@@ -43,16 +43,20 @@ class Drive {
 /** Two whole clean laps at 88 / 100 after a first partial one: a reference. */
 function warmed(): Drive {
   const d = new Drive()
-  d.lapsOf(3)
+  d.lapsOf(4)
   d.step()
   return d
 }
 
 describe('EngineTrend', () => {
-  it('builds the reference from whole clean laps only', () => {
+  it('builds the reference from whole clean laps only, each like the lap before it', () => {
     const d = new Drive()
-    // The first lap is seen from its middle: not a reference.
+    // The first lap is seen from its middle: not a reference. The first whole one has no lap
+    // before it to be like (stableC): not one either.
     d.lapsOf(2)
+    d.step()
+    expect(d.e.reference('water')).toBeNull()
+    d.lapsOf(1)
     d.step()
     expect(d.e.reference('water')).toBeNull()
     d.lapsOf(1)
@@ -122,19 +126,53 @@ describe('EngineTrend', () => {
 
   it('averages the last refLaps clean laps; waits for the verdict of a lap', () => {
     const d = warmed()
-    for (let k = 0; k < ENGINE_TREND.refLaps; k++) d.lapsOf(1, { water: 90 })
+    // The first lap at 90 is 2 °C off the one before: not a reference; the next ones are.
+    for (let k = 0; k <= ENGINE_TREND.refLaps; k++) d.lapsOf(1, { water: 90 })
     d.step({ water: 90 })
-    // The first of them began with one sample at 88.
-    expect(d.e.reference('water')).toBeCloseTo(90, 2)
+    expect(d.e.reference('water')).toBeCloseTo(90, 6)
     // Unknown verdict: kept for pendingS, then dropped.
     const p = warmed()
     let verdict: boolean | null = null
-    p.lapsOf(1, { water: 80, lapClean: () => verdict })
+    p.lapsOf(1, { water: 87.5, lapClean: () => verdict })
     p.run(5, { lapClean: () => verdict })
     expect(p.e.reference('water')).toBeCloseTo(88, 6)
     verdict = true
     p.step({ lapClean: () => verdict })
     expect(p.e.reference('water')).toBeLessThan(88)
+  })
+
+  it('a warm-up is no reference: laps still climbing more than stableC each (Q6)', () => {
+    const d = new Drive()
+    // Online: 1.5 °C a lap after a repair, for laps.
+    for (let k = 0; k < 8; k++) d.lapsOf(1, { oil: 60 + 1.5 * k })
+    d.step({ oil: 72 })
+    expect(d.e.reference('oil')).toBeNull()
+    // The water stayed put meanwhile: its reference is there.
+    expect(d.e.reference('water')).toBeCloseTo(88, 6)
+    // Settled: within stableC of the lap before.
+    d.lapsOf(3, { oil: 72.5 })
+    d.step({ oil: 72.5 })
+    expect(d.e.reference('oil')).toBeCloseTo(72.5, 1)
+  })
+
+  it('observe(): a tow or a reading jumping more than jumpC starts it over (Q6)', () => {
+    const tow = warmed()
+    tow.e.observe(tow.t, false, 88, 100)
+    expect(tow.e.reference('water')).toBeCloseTo(88, 6)
+    tow.e.observe(tow.t + 0.02, true, 88, 100)
+    expect(tow.e.reference('water')).toBeNull()
+    expect(tow.e.reference('oil')).toBeNull()
+    // The repair: the oil 12 °C down from one tick to the next.
+    const jump = warmed()
+    jump.e.observe(jump.t, false, 88, 100)
+    jump.e.observe(jump.t + 0.02, false, 88, 100 - ENGINE_TREND.jumpC - 0.1)
+    expect(jump.e.reference('water')).toBeNull()
+    // A slow change, or the same step across a gap, is not a jump.
+    const slow = warmed()
+    let oil = 100
+    for (let k = 1; k <= 100; k++) slow.e.observe(slow.t + k / 60, false, 88, (oil -= 0.1))
+    slow.e.observe(slow.t + 10, false, 88, oil - 2 * ENGINE_TREND.jumpC)
+    expect(slow.e.reference('water')).toBeCloseTo(88, 6)
   })
 
   it('keeps the reference over resume() and drops it on reset()', () => {

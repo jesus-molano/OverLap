@@ -294,6 +294,7 @@ export const OPTION_SCHEMA = {
     showPitEntry: { kind: 'bool', default: true },
     showLapsToGo: { kind: 'bool', default: true },
     showTow: { kind: 'bool', default: true },
+    showDamage: { kind: 'bool', default: true },
     showWrongWay: { kind: 'bool', default: true },
     showIncidents: { kind: 'bool', default: true },
     showStalled: { kind: 'bool', default: true },

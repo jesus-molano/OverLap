@@ -223,7 +223,7 @@ export function computeRelative(
       inPits: isCarInPits(frame, idx),
       stintLaps: stints?.car(idx)?.stintLaps ?? null,
       tyre: tyres ? tyreCompoundOf(frame, session, tyreModel, idx) : null,
-      penalty: penaltyOf(frame.CarIdxSessionFlags[idx])
+      penalty: penaltyOf(frame.CarIdxSessionFlags[idx], race?.car(idx)?.finished === true)
     }
   }
 

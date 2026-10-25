@@ -14,9 +14,9 @@ describe('previewDelta', () => {
       const d = previewDelta(r)
       expect(d.visible).toBe(true)
       expect(d.reference).toBe(r)
-      expect(d.lapValid).toBe(true)
+      expect(d.lapState).toBe('valid')
       expect(formatDelta(d.delta)).toBe('−0.24')
-      expect(stateView(d.lapValid, trendKind(d.trend), true, ES).kind).toBe('gain')
+      expect(stateView(d.lapState, trendKind(d.trend), true, ES).kind).toBe('gain')
       // Consistent numbers: predicted = reference + delta.
       expect(d.predictedLap).toBeCloseTo((d.refLapTime ?? 0) + (d.delta ?? 0), 6)
       const cur = currentSector(d.sectors, d.delta !== null)

@@ -291,7 +291,7 @@ describe('DeltaProvider: the live delta', () => {
       refLapTime: 100,
       delta: 0.5,
       predictedLap: 100.5,
-      lapValid: true
+      lapState: 'valid'
     })
     // 0.3 s up a bit later: negative.
     const up = rig.at(T0 + 0.5, 3, 0.505, 50.2)
@@ -326,7 +326,7 @@ describe('DeltaProvider: the live delta', () => {
       trend: 0,
       predictedLap: null,
       sectors: [],
-      lapValid: true
+      lapState: 'none'
     })
     // A reference appears while there is none: taken at once (nothing to keep consistent).
     rig.race.best.set(PLAYER, lapOf(100))
@@ -338,7 +338,7 @@ describe('DeltaProvider: the live delta', () => {
     expect(rig.at(T0 + 1.5, 3, 0.515, 51.5)).toMatchObject({ visible: true, delta: 0 })
   })
 
-  it('without a lap in progress (a tow, before your first line) shows no delta and no valid lap', () => {
+  it('without a lap in progress (before your first line) shows no delta and no lap state', () => {
     const rig = new Rig()
     rig.race.best.set(PLAYER, lapOf(100))
     expect(rig.at(T0, null, 0.4)).toMatchObject({
@@ -346,7 +346,7 @@ describe('DeltaProvider: the live delta', () => {
       delta: null,
       predictedLap: null,
       sectors: [null, null, null],
-      lapValid: false
+      lapState: 'none'
     })
   })
 })
@@ -809,7 +809,7 @@ describe('DeltaProvider: the S/F line', () => {
     expect(at(0.5)?.data.sectors).toEqual([0.33, null, null])
     expect(at(0.7)?.data.sectors).toEqual([0.33, 0.33, null])
     expect(lap3.at(-1)?.data.delta).toBeCloseTo(1, 1)
-    expect(lap3.every((s) => s.data.lapValid)).toBe(true)
+    expect(lap3.every((s) => s.data.lapState === 'valid')).toBe(true)
 
     const line = samples.filter((s) => s.lap === 4 && s.pct < DELTA.guardPct)
     expect(line.length).toBeGreaterThan(30)
@@ -824,7 +824,7 @@ describe('DeltaProvider: the S/F line', () => {
         trend: 0,
         predictedLap: 101,
         sectors: [0.33, 0.33, 0.34],
-        lapValid: true
+        lapState: 'valid'
       })
     }
     // Then the new lap, live.
@@ -874,9 +874,117 @@ describe('DeltaProvider: the S/F line', () => {
     rig.race.last.set(PLAYER, lapOf(100.6, 3))
     rig.player({ finished: true })
     const t = (end?.t ?? 0) + 0.2
-    const done = { delta: 0.6, predictedLap: 100.6, sectors: [0.2, 0.2, 0.2], lapValid: true }
+    const done = { delta: 0.6, predictedLap: 100.6, sectors: [0.2, 0.2, 0.2], lapState: 'valid' }
     expect(rig.at(t, null, 0.001)).toMatchObject(done)
     expect(rig.at(t + 20, null, 0.15)).toMatchObject(done)
+  })
+
+  it('after your flag without a lap to show, nothing (not the last delta held)', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.at(T0, 3, 0.5, 50.5)
+    rig.player({ finished: true })
+    expect(rig.at(T0 + 0.5, null, 0.6)).toMatchObject({ visible: false, delta: null })
+  })
+})
+
+describe('DeltaProvider: the cool-down lap outside races (B14)', () => {
+  const QUALIFY = 5
+
+  /** A lone qualifying: the RaceModel keeps timing after the flag there (it does in races). */
+  function qualifying(): Rig {
+    const rig = new Rig()
+    rig.session = { ...rig.session, sessionTypes: new Map([[QUALIFY, 'Lone Qualify']]) }
+    rig.frame.SessionNum[0] = QUALIFY
+    rig.frame.SessionLapsRemainEx[0] = 2
+    rig.race.best.set(PLAYER, lapOf(100))
+    return rig
+  }
+
+  const finished = { delta: 0.6, predictedLap: 100.6, sectors: [0.2, 0.2, 0.2] }
+
+  it('a lap started once the chequered flag is out shows the lap before it, all of it', () => {
+    // Online: the flag came out mid flying lap; the cool-down lap read +5.86, +22.3, +25.1 s.
+    const rig = qualifying()
+    const samples = rig.drive([even(100.6), even(130), even(130)], {
+      endPct: 0.5,
+      before: (_t, lap, pct) => {
+        if (lap === 3 && pct >= 0.6) rig.frame.SessionFlags[0] = SessionFlag.Checkered
+      }
+    })
+    const flying = samples.filter((s) => s.lap === 3 && s.pct > 0.7)
+    expect(flying.every((s) => s.data.delta !== null && s.data.lapState === 'valid')).toBe(true)
+    const coolDown = samples.filter((s) => s.lap >= 4)
+    expect(coolDown.length).toBeGreaterThan(30 * 150)
+    for (const s of coolDown) {
+      expect(s.data, `lap ${s.lap} pct ${s.pct}`).toMatchObject({ visible: true, ...finished })
+    }
+  })
+
+  it('also when the laps run out (SessionLapsRemainEx 0 with the crossing)', () => {
+    const rig = qualifying()
+    const samples = rig.drive([even(100.6), even(130)], {
+      endPct: 0.9,
+      before: (_t, lap) => {
+        rig.frame.SessionLapsRemainEx[0] = lap >= 4 ? 0 : 1
+      }
+    })
+    for (const s of samples.filter((x) => x.lap === 4)) {
+      expect(s.data).toMatchObject({ visible: true, ...finished, lapState: 'valid' })
+    }
+  })
+
+  it('a flag or 0 laps left as you start following: every lap is a cool-down lap', () => {
+    const rig = qualifying()
+    rig.frame.SessionState[0] = SessionState.Checkered
+    expect(rig.at(T0, 4, 0.5, 60)).toMatchObject({ visible: false, delta: null })
+  })
+
+  it("in a race the lap after the flag is the model's to stop timing, not this rule", () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.frame.SessionFlags[0] = SessionFlag.Checkered
+    rig.frame.SessionLapsRemainEx[0] = 0
+    expect(rig.at(T0, 4, 0.5, 50.5)).toMatchObject({ visible: true, delta: 0.5 })
+  })
+})
+
+describe('DeltaProvider: the lap state (B15)', () => {
+  it('no lap in progress: nothing on the grid or before your first line; out and tow said', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    // The grid (online: INVALID LAP on the grid, the out lap from the pits and the tow).
+    expect(rig.at(T0, null, 0.97)).toMatchObject({ visible: true, delta: null, lapState: 'none' })
+    // Being towed.
+    rig.frame.PlayerCarTowTime[0] = 42
+    expect(rig.at(T0 + 1, null, 0.01).lapState).toBe('tow')
+    rig.frame.PlayerCarTowTime[0] = 0
+    // In the box after it, then the out lap from the pit exit (the model has no lap until the
+    // line after a tow).
+    rig.player({ inPits: true })
+    expect(rig.at(T0 + 2, null, 0.01).lapState).toBe('none')
+    rig.player({ outLap: true })
+    expect(rig.at(T0 + 3, null, 0.05).lapState).toBe('out')
+  })
+
+  it('a timed out lap is the out lap, at the line too; the next one is a lap again', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    const samples = rig.drive([even(100), even(100)], {
+      endPct: 0.5,
+      before: (_t, lap, pct) => rig.player({ outLap: lap === 3 && pct >= 0.1 })
+    })
+    const state = (lap: number, from: number, to: number): string[] => [
+      ...new Set(
+        samples
+          .filter((s) => s.lap === lap && s.pct >= from && s.pct < to)
+          .map((s) => s.data.lapState)
+      )
+    ]
+    expect(state(3, 0, 0.1)).toEqual(['valid'])
+    expect(state(3, 0.1, 1)).toEqual(['out'])
+    expect(state(4, 0, DELTA.guardPct)).toEqual(['out'])
+    expect(state(4, DELTA.guardPct, 1)).toEqual(['valid'])
   })
 })
 
@@ -928,7 +1036,7 @@ describe('DeltaProvider: sectors and lap validity', () => {
       const valid = (from: number, to: number, lap: number): boolean[] =>
         samples
           .filter((s) => s.lap === lap && s.pct >= from && s.pct < to)
-          .map((s) => s.data.lapValid)
+          .map((s) => s.data.lapState === 'valid')
       expect(valid(0, 0.4, 3).every(Boolean), name).toBe(true)
       expect(valid(0.4, 1, 3).some(Boolean), name).toBe(false)
       // The line shows the lap as it was; the next one starts valid.
@@ -1115,7 +1223,7 @@ describe('deltaEqual', () => {
     trend: 0.01,
     predictedLap: 92.38,
     sectors: [-0.05, null, null],
-    lapValid: true
+    lapState: 'valid'
   }
 
   it('compares every field, sectors element by element', () => {
@@ -1132,7 +1240,9 @@ describe('deltaEqual', () => {
       { predictedLap: null },
       { sectors: [-0.05, 0.02, null] },
       { sectors: [-0.05, null] },
-      { lapValid: false }
+      { lapState: 'invalid' },
+      { lapState: 'out' },
+      { lapState: 'none' }
     ]
     for (const c of changes)
       expect(deltaEqual({ ...base, ...c }, base), JSON.stringify(c)).toBe(false)

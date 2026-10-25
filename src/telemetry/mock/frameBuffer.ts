@@ -50,11 +50,12 @@ export interface MockVars extends MockWeatherVars {
   EngineWarnings: number[]
   /** The player is on pit road (same as its CarIdxOnPitRoad). */
   OnPitRoad: boolean[]
-  // The player's own lap fraction, tow and engine temperatures (playerAlerts.ts).
+  // The player's own lap fraction, tow, engine temperatures and revs (playerAlerts.ts).
   LapDistPct: number[]
   PlayerCarTowTime: number[]
   WaterTemp: number[]
   OilTemp: number[]
+  RPM: number[]
   /** Live driving: no replay, the camera on the player, the UI shown (screen.ts changes them). */
   IsReplayPlaying: boolean[]
   CamCarIdx: number[]
@@ -107,6 +108,7 @@ export class MockFrameBuffer {
     PlayerCarTowTime: [0],
     WaterTemp: [0],
     OilTemp: [0],
+    RPM: [0],
     IsReplayPlaying: [false],
     CamCarIdx: [0],
     CamCameraState: [0],

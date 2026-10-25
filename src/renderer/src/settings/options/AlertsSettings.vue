@@ -26,14 +26,15 @@ const nothing = computed(() => showsNothing(opts.value))
 const prefs = useWidgetSettings('alerts')
 const limiterHidden = computed(() => opts.value.showPitLimiter && prefs.value.hideInPits)
 /**
- * The hold applies to the flags, to the alerts a flicker could make unreadable and to the
- * incident line (never under its own minimum).
+ * The hold applies to the flags, to the alerts a flicker could make unreadable, to the incident
+ * line and to minor damage (never under their own minimum).
  */
 const holds = computed(
   () =>
     opts.value.showFlags ||
     opts.value.showWrongWay ||
     opts.value.showIncidents ||
+    opts.value.showDamage ||
     opts.value.showStalled ||
     opts.value.showEngineWarnings
 )
@@ -104,6 +105,12 @@ const holds = computed(
         :help="t.settings.alerts.towHelp"
         :current="opts.showTow"
         :apply="set('showTow')"
+      />
+      <ToggleControl
+        :label="t.settings.alerts.damage"
+        :help="t.settings.alerts.damageHelp"
+        :current="opts.showDamage"
+        :apply="set('showDamage')"
       />
       <ToggleControl
         :label="t.settings.alerts.wrongWay"

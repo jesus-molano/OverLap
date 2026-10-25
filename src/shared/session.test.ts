@@ -394,6 +394,14 @@ describe('parseSessionMeta', () => {
     }
   })
 
+  it("reads your car's idle revs (DriverCarIdleRPM), 0 when missing or broken", () => {
+    expect(parseSessionMeta({ DriverInfo: { DriverCarIdleRPM: 875 } }).driverCarIdleRpm).toBe(875)
+    expect(parseSessionMeta({ DriverInfo: {} }).driverCarIdleRpm).toBe(0)
+    expect(parseSessionMeta({ DriverInfo: { DriverCarIdleRPM: '875' } }).driverCarIdleRpm).toBe(0)
+    expect(parseSessionMeta({ DriverInfo: { DriverCarIdleRPM: -1 } }).driverCarIdleRpm).toBe(0)
+    expect(EMPTY_SESSION.driverCarIdleRpm).toBe(0)
+  })
+
   it('has the documented EMPTY_SESSION', () => {
     expect(EMPTY_SESSION.playerCarIdx).toBe(-1)
     expect(EMPTY_SESSION.paceCarIdx).toBe(-1)
