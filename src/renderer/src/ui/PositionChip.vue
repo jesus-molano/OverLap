@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * Class position chip. Filled with the accent means "you"; a warn ring means off-track. The
- * two never collide: your own off-track chip keeps the fill and gets the ring outside.
+ * Class position. Plain figures for everyone; filled with the accent means "you"; a warn ring
+ * means off-track. On your own off-track cell the warning wins (ring, no fill): the row's
+ * bracket still says it is you.
  */
 withDefaults(
   defineProps<{
@@ -21,35 +22,35 @@ withDefaults(
 
 <style>
 .ov-pos {
-  display: inline-block;
+  display: inline-flex;
   flex: none;
+  align-items: center;
+  justify-content: safe center;
   min-width: 1.8em;
+  height: var(--ov-plate-h);
   padding: 0 0.2em;
   border-radius: var(--ov-radius-chip);
-  background: var(--ov-chip);
-  font-size: max(var(--ov-min-text), 0.82em);
-  font-weight: 700;
-  line-height: 1.35;
+  background: transparent;
+  font-size: var(--ov-t-plate);
+  font-weight: var(--ov-w-strong);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-align: center;
+  color: var(--ov-fg);
   white-space: nowrap;
 }
 
 .ov-pos--player {
   background: var(--ov-accent);
   color: var(--ov-accent-fg);
+  font-weight: var(--ov-w-solid);
   text-shadow: none;
 }
 
-.ov-pos--warn {
+.ov-pos--warn,
+.ov-pos--player.ov-pos--warn {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--ov-warn);
   color: var(--ov-warn);
-}
-
-.ov-pos--player.ov-pos--warn {
-  background: var(--ov-accent);
-  box-shadow: 0 0 0 1.5px var(--ov-warn);
-  color: var(--ov-accent-fg);
+  font-weight: var(--ov-w-strong);
 }
 </style>

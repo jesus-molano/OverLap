@@ -2,28 +2,42 @@
  * Settings window (?view=settings; main.ts tags <html> with .ov-settings). theme.css is tuned for
  * transparent overlay windows that never scroll; this turns the page back into an ordinary,
  * opaque, scrollable one and holds the controls shared by the settings components. Every rule is
- * scoped to .ov-settings so nothing can leak into a widget window. Selected states use the
- * user's accent (applied to <html> by main.ts), so the window previews it too.
+ * scoped to .ov-settings so nothing can leak into a widget window.
+ *
+ * Same material as the widgets: graphite surfaces with no blue cast, cards with a lit top edge,
+ * captions in the Small face, titles and readouts in the Display face. Every control is drawn
+ * here (no native look). Selection is neutral ink (--st-sel): a light key under a lifted fill,
+ * never the accent. The accent means "you", so in this window it appears only in the live
+ * samples, the accent picker and the "now" personal record.
+ *
+ * Transitions stay at 120 ms or less and stop under reduced motion.
  */
 
 html.ov-settings {
   /* Same colour as the BrowserWindow background, so there is no flash while loading. */
-  --st-bg: #14171c;
-  --st-sidebar: #101317;
-  --st-surface: #1a1e25;
-  --st-surface-hi: #222731;
-  --st-hover: #2a303c;
-  --st-press: #313848;
-  --st-field: #0f1216;
+  --st-bg: #101216;
+  --st-sidebar: #0c0e11;
+  --st-surface: #15181d;
+  --st-surface-hi: #1c2026;
+  --st-hover: #23282f;
+  --st-press: #2a3038;
+  --st-field: #0b0d10;
   --st-border: rgba(255, 255, 255, 0.07);
-  --st-border-hi: rgba(255, 255, 255, 0.14);
-  --st-border-strong: rgba(255, 255, 255, 0.26);
-  --st-ok: #46d483;
+  --st-border-hi: rgba(255, 255, 255, 0.12);
+  --st-border-strong: rgba(255, 255, 255, 0.22);
+  --st-ok: var(--ov-good);
   --st-focus: var(--ov-edit);
-  --st-sel: var(--ov-accent);
-  --st-sel-soft: color-mix(in srgb, var(--ov-accent) 16%, var(--st-surface-hi));
-  --st-radius: 10px;
-  --st-radius-sm: 6px;
+  /* Selection: neutral ink (key, knob, check, filled track) on a lifted fill. */
+  --st-sel: #e9edf3;
+  --st-sel-fg: #0e1014;
+  --st-sel-bg: #2b313a;
+  /* Empty switch and slider track, and the switch knob when off. */
+  --st-track: #2a2f37;
+  --st-knob: #8a93a2;
+  /* Lit top edge of a raised surface (cards, buttons), as on the widget panels. */
+  --st-lit: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --st-radius: 8px;
+  --st-radius-sm: 5px;
 
   color-scheme: dark;
   height: auto;
@@ -33,7 +47,7 @@ html.ov-settings {
   /* The sample's width must not depend on whether the scrollbar shows (it would feed back). */
   scrollbar-gutter: stable;
   background: var(--st-bg);
-  scrollbar-color: #3a4150 transparent;
+  scrollbar-color: #343a42 transparent;
 }
 
 html.ov-settings body,
@@ -47,7 +61,6 @@ html.ov-settings #app {
 html.ov-settings body {
   font-size: 14px;
   line-height: 1.45;
-  accent-color: var(--ov-accent);
 }
 
 html.ov-settings :focus-visible {
@@ -94,6 +107,7 @@ html.ov-settings .st-btn {
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
+  box-shadow: var(--st-lit);
   color: var(--ov-fg);
   font-size: 13px;
   line-height: 1.2;
@@ -129,6 +143,7 @@ html.ov-settings .st-btn-icon {
 html.ov-settings .st-btn-ghost {
   border-color: transparent;
   background: transparent;
+  box-shadow: none;
   color: var(--ov-fg-muted);
 }
 
@@ -156,10 +171,13 @@ html.ov-settings .st-presets {
   gap: 6px;
 }
 
+/* Selected preset: the ink key (after the hover rule, which it overrides). */
 html.ov-settings .st-presets .st-btn[aria-pressed='true'] {
-  border-color: var(--st-sel);
-  background: var(--st-sel-soft);
+  border-color: var(--st-border-strong);
+  background: var(--st-sel-bg);
+  box-shadow: inset 0 -2px 0 var(--st-sel);
   color: var(--ov-fg);
+  font-weight: var(--ov-w-strong);
 }
 
 /* ---- Sections ----------------------------------------------------------- */
@@ -182,9 +200,10 @@ html.ov-settings .st-section-head {
 
 html.ov-settings .st-section-title {
   color: var(--ov-fg-muted);
+  font-family: var(--ov-font-small);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
 }
 
@@ -198,6 +217,7 @@ html.ov-settings .st-card {
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
+  box-shadow: var(--st-lit);
 }
 
 /* ---- Rows --------------------------------------------------------------- */
@@ -212,8 +232,7 @@ html.ov-settings .st-row {
 }
 
 /* :not() raises the specificity above .st-fieldset's border reset. */
-html.ov-settings .st-card > :not(:first-child),
-html.ov-settings .st-group > :not(:first-child) {
+html.ov-settings .st-card > :not(:first-child) {
   border-top: 1px solid var(--st-border);
 }
 
@@ -267,10 +286,12 @@ html.ov-settings .st-help-warn {
   color: var(--ov-warn);
 }
 
+/* A control's readout ("80 %", "1.5 s"): the numbers speak in the Display face. */
 html.ov-settings .st-value {
   min-width: 4.5em;
   color: var(--ov-fg);
-  font-weight: 600;
+  font-family: var(--ov-font-num);
+  font-weight: var(--ov-w-strong);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -281,12 +302,37 @@ html.ov-settings fieldset:disabled .st-help {
   opacity: 0.45;
 }
 
-/* ---- Slider ------------------------------------------------------------- */
+/* ---- Slider: ink fill up to the knob (--pct, SliderControl), knob cut from the card ------- */
 
 html.ov-settings .st-range {
+  appearance: none;
   width: 100%;
+  height: 16px;
   margin: 2px 0;
+  background: transparent;
   cursor: pointer;
+}
+
+html.ov-settings .st-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(var(--st-sel), var(--st-sel)) 0 0 / var(--pct, 0%) 100% no-repeat,
+    var(--st-track);
+}
+
+html.ov-settings .st-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--st-sel);
+  box-shadow: 0 0 0 3px var(--st-surface);
+}
+
+html.ov-settings .st-range:hover:not(:disabled)::-webkit-slider-thumb {
+  background: #ffffff;
 }
 
 html.ov-settings .st-range:disabled {
@@ -294,7 +340,7 @@ html.ov-settings .st-range:disabled {
   opacity: 0.45;
 }
 
-/* ---- Segmented choice (native radios) ------------------------------------ */
+/* ---- Segmented choice (native radios, drawn as segments) ------------------ */
 
 html.ov-settings .st-seg {
   display: inline-flex;
@@ -304,7 +350,7 @@ html.ov-settings .st-seg {
   max-width: 100%;
   padding: 2px;
   border: 1px solid var(--st-border-hi);
-  border-radius: 8px;
+  border-radius: var(--st-radius);
   background: var(--st-field);
 }
 
@@ -337,23 +383,26 @@ html.ov-settings .st-seg-text {
   gap: 6px;
   min-height: 26px;
   padding: 3px 11px;
-  border-radius: 6px;
+  border-radius: var(--st-radius-sm);
   color: var(--ov-fg-muted);
   font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
 }
 
-html.ov-settings .st-seg-item:hover .st-seg-input:not(:disabled) + .st-seg-text {
+html.ov-settings .st-seg-item:hover .st-seg-input:not(:disabled, :checked) + .st-seg-text {
   background: var(--st-surface-hi);
   color: var(--ov-fg);
 }
 
+/* Selected segment: the ink key on a lifted, ringed fill. */
 html.ov-settings .st-seg-input:checked + .st-seg-text {
-  background: var(--st-sel-soft);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-sel) 60%, transparent);
+  background: var(--st-sel-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--st-border-strong),
+    inset 0 -2px 0 var(--st-sel);
   color: var(--ov-fg);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 html.ov-settings .st-seg-input:focus-visible + .st-seg-text {
@@ -376,7 +425,7 @@ html.ov-settings .st-switch {
   margin: 0;
   border: 1px solid var(--st-border-hi);
   border-radius: 11px;
-  background: #2c313d;
+  background: var(--st-track);
   cursor: pointer;
   transition: background-color 0.12s;
 }
@@ -389,8 +438,12 @@ html.ov-settings .st-switch::before {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #cfd5df;
+  background: var(--st-knob);
   transition: transform 0.12s;
+}
+
+html.ov-settings .st-switch:hover:not(:disabled, :checked) {
+  border-color: var(--st-border-strong);
 }
 
 html.ov-settings .st-switch:checked {
@@ -399,7 +452,7 @@ html.ov-settings .st-switch:checked {
 }
 
 html.ov-settings .st-switch:checked::before {
-  background: var(--ov-accent-fg);
+  background: var(--st-sel-fg);
   transform: translateX(16px);
 }
 
@@ -418,15 +471,36 @@ html.ov-settings .st-check {
 }
 
 html.ov-settings .st-check input {
+  appearance: none;
   flex: none;
   width: 16px;
   height: 16px;
   margin: 2px 0 0;
+  /* 3.3:1 against the card: the box edge is the control (WCAG 1.4.11), unlike a divider. */
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 4px;
+  background: var(--st-field);
   cursor: pointer;
+}
+
+html.ov-settings .st-check input:hover:not(:disabled, :checked) {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+html.ov-settings .st-check input:checked {
+  border-color: var(--st-sel);
+  background: var(--st-sel)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%230e1014' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 12px 12px no-repeat;
 }
 
 html.ov-settings .st-check input:disabled {
   cursor: default;
+}
+
+/* Dimmed here unless the whole label already is (st-disabled): never twice. */
+html.ov-settings .st-check:not(.st-disabled) input:disabled {
+  opacity: 0.45;
 }
 
 html.ov-settings .st-check-text {
@@ -458,7 +532,7 @@ html.ov-settings .st-checks {
   gap: 8px 22px;
 }
 
-/* ---- Stepper ------------------------------------------------------------ */
+/* ---- Stepper and text fields -------------------------------------------- */
 
 html.ov-settings .st-stepper {
   display: inline-flex;
@@ -485,6 +559,9 @@ html.ov-settings .st-field {
 
 html.ov-settings .st-number {
   width: 3.5em;
+  font-family: var(--ov-font-num);
+  font-weight: var(--ov-w-strong);
+  font-variant-numeric: tabular-nums;
   text-align: center;
   appearance: textfield;
 }
@@ -498,6 +575,10 @@ html.ov-settings .st-field[aria-invalid='true'] {
   border-color: var(--ov-danger);
 }
 
+html.ov-settings .st-field::placeholder {
+  color: var(--ov-fg-dim);
+}
+
 /* The − / + buttons replace the native spinners. */
 html.ov-settings .st-number::-webkit-inner-spin-button,
 html.ov-settings .st-number::-webkit-outer-spin-button {
@@ -505,9 +586,30 @@ html.ov-settings .st-number::-webkit-outer-spin-button {
   margin: 0;
 }
 
-html.ov-settings select.st-field {
-  padding-right: 4px;
+/* Search fields: a drawn clear cross instead of the native one. */
+html.ov-settings .st-field[type='search']::-webkit-search-cancel-button {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-left: 6px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' fill='none' stroke='%23aeb7c4' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / 12px 12px no-repeat;
   cursor: pointer;
+}
+
+/* Drop-downs: a drawn chevron instead of the native arrow. */
+html.ov-settings select.st-field {
+  appearance: none;
+  padding-right: 26px;
+  background: var(--st-field)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23aeb7c4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    right 8px center / 12px 12px no-repeat;
+  cursor: pointer;
+}
+
+html.ov-settings select.st-field option {
+  background: var(--st-surface-hi);
+  color: var(--ov-fg);
 }
 
 /* ---- Keys --------------------------------------------------------------- */
@@ -519,8 +621,9 @@ html.ov-settings kbd {
   border-radius: 4px;
   background: var(--st-surface);
   color: var(--ov-fg);
-  font-family: inherit;
+  font-family: var(--ov-font-small);
   font-size: 11px;
+  font-weight: var(--ov-w-strong);
   white-space: nowrap;
 }
 

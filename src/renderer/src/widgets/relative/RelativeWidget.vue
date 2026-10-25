@@ -143,7 +143,8 @@ const panelStyle = computed<InlineStyle>(() => ({
 
 /*
  * Sized by the grid tracks, never by their content, so contain: strict is safe: a 10 Hz text
- * change re-lays out its own row only.
+ * change re-lays out its own row only. Rows sit on the glass; alternate rows get the stripe band
+ * (or, with stripes off, every row a 1 px rule on top: --ov-row-rule).
  */
 .rl-row {
   position: relative;
@@ -163,18 +164,33 @@ const panelStyle = computed<InlineStyle>(() => ({
   background: var(--ov-bg-row-alt);
 }
 
+.rl-row + .rl-row {
+  box-shadow: inset 0 1px 0 var(--ov-row-rule);
+}
+
+/* Your row's bracket draws its own top and bottom lines: no rule on it or right under it. */
+.rl-row.ov-player,
+.ov-player + .rl-row {
+  box-shadow: none;
+}
+
 /* Dim the content, not the row, so the striping stays even; the PIT badge stays bright. */
 .rl-row.is-pits > :not(.c-driver),
 .rl-row.is-pits > .c-driver > :deep(:not(.rl-pit)) {
-  opacity: var(--ov-pit-opacity);
+  opacity: var(--ov-o-dim);
 }
 
-/* Secondary in a relative, by design. */
+/* Secondary in a relative, by design: plain figures, bright on your own row. */
 .c-pos {
   min-width: 0;
   overflow: hidden;
-  font-size: var(--ov-t-caption);
+  font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-strong);
   color: var(--ov-fg-muted);
+}
+
+.ov-player > .c-pos {
+  color: var(--ov-fg);
 }
 
 .c-driver {
@@ -193,14 +209,17 @@ const panelStyle = computed<InlineStyle>(() => ({
   min-width: 0;
   overflow: hidden;
   font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
   text-align: right;
 }
 
+/* The value read at a glance: Text face, 600, full ink. */
 .c-gap {
   min-width: 0;
   overflow: hidden;
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-fg);
   text-align: right;
 }
 </style>

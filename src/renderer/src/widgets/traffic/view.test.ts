@@ -14,6 +14,7 @@ import {
   groupCaption,
   hasSectors,
   hasTraffic,
+  hazardTone,
   layoutKey,
   sectorLabel,
   toRowSlot,
@@ -80,6 +81,18 @@ describe('urgency', () => {
   })
 })
 
+describe('hazardTone', () => {
+  it('is the worse of the ETA and the kind, never calmer than a warning', () => {
+    expect(hazardTone('bad', 'warn')).toBe('bad')
+    expect(hazardTone('warn', 'bad')).toBe('bad')
+    expect(hazardTone('normal', 'bad')).toBe('bad')
+    expect(hazardTone('idle', 'bad')).toBe('bad')
+    expect(hazardTone('warn', 'warn')).toBe('warn')
+    expect(hazardTone('normal', 'warn')).toBe('warn')
+    expect(hazardTone('idle', 'warn')).toBe('warn')
+  })
+})
+
 describe('etaParts / gapParts', () => {
   it('ETA in whole seconds rounded down, so the number agrees with its colour', () => {
     expect(etaParts(6.9)).toEqual({ num: '6', unit: 's' })
@@ -106,7 +119,7 @@ describe('etaParts / gapParts', () => {
 })
 
 describe('labels', () => {
-  it('class chip without a trailing "Class"', () => {
+  it('class name without a trailing "Class"', () => {
     expect(classLabel('GT3 Class')).toBe('GT3')
     expect(classLabel(' GT4 class ')).toBe('GT4')
     expect(classLabel('GTP')).toBe('GTP')
@@ -114,7 +127,7 @@ describe('labels', () => {
     expect(classLabel('')).toBe('')
   })
 
-  it('sector chip', () => {
+  it('sector label', () => {
     expect(sectorLabel(2, ES)).toBe('S2')
     expect(sectorLabel(1, ES)).toBe('S1')
     expect(sectorLabel(1.6, EN)).toBe('S2')
@@ -196,28 +209,54 @@ describe('toRowSlot', () => {
     })
   })
 
-  it('hazards: kind badge and how far, urgency by ETA, no lap state', () => {
-    const base = entry({ kind: 'hazard', gapS: 3.2, etaS: 2.1, lapping: true })
+  it('hazards: kind badge and how far, no lap state', () => {
+    const base = entry({ kind: 'hazard', gapS: 3.2, etaS: 5, lapping: true })
     expect(
       toRowSlot({ ...base, hazard: 'stopped' }, 'hazard', 0, styles, 'abbr', ES)
     ).toMatchObject({
-      css: 'tr-row tr-row--hazard is-bad',
       hazard: 'Parado',
-      hazardTone: 'bad',
       lead: 'a',
       num: '3.2',
       lap: null,
       lapBadge: ''
     })
-    expect(toRowSlot({ ...base, hazard: 'slow' }, 'hazard', 0, styles, 'abbr', ES)).toMatchObject({
-      hazard: 'Lento',
+    expect(toRowSlot({ ...base, hazard: 'slow' }, 'hazard', 0, styles, 'abbr', ES).hazard).toBe(
+      'Lento'
+    )
+    expect(
+      toRowSlot({ ...base, hazard: 'off-track' }, 'hazard', 0, styles, 'abbr', ES).hazard
+    ).toBe('Fuera')
+    // A hazard without a kind is still drawn, as a warning.
+    expect(toRowSlot(base, 'hazard', 0, styles, 'abbr', ES)).toMatchObject({
+      hazard: 'Peligro',
       hazardTone: 'warn'
     })
-    expect(
-      toRowSlot({ ...base, hazard: 'off-track', etaS: null }, 'hazard', 0, styles, 'abbr', ES)
-    ).toMatchObject({ hazard: 'Fuera', hazardTone: 'warn', urgency: 'idle' })
-    // A hazard without a kind is still drawn.
-    expect(toRowSlot(base, 'hazard', 0, styles, 'abbr', ES).hazard).toBe('Peligro')
+  })
+
+  it('hazards: one tone for the whole line, the worse of the kind and the ETA', () => {
+    const base = entry({ kind: 'hazard', gapS: 3.2, lapping: false })
+    const line = (hazard: TrafficEntry['hazard'], etaS: number | null): RowSlotView =>
+      toRowSlot({ ...base, hazard, etaS }, 'hazard', 0, styles, 'abbr', ES)
+    // Stopped is red on rail, icon, number and tag, even 5 s away (the ETA alone says warn).
+    expect(line('stopped', 5)).toMatchObject({
+      css: 'tr-row tr-row--hazard is-bad',
+      urgency: 'bad',
+      hazardTone: 'bad'
+    })
+    // A slow car under 3 s: red everywhere, its tag included.
+    expect(line('slow', 2.1)).toMatchObject({
+      css: 'tr-row tr-row--hazard is-bad',
+      urgency: 'bad',
+      hazardTone: 'bad'
+    })
+    expect(line('slow', 5)).toMatchObject({ urgency: 'warn', hazardTone: 'warn' })
+    // Far away, or with no ETA at all: still the warning rail, never idle.
+    expect(line('slow', 20)).toMatchObject({ css: 'tr-row tr-row--hazard is-warn' })
+    expect(line('off-track', null)).toMatchObject({
+      css: 'tr-row tr-row--hazard is-warn',
+      urgency: 'warn',
+      hazardTone: 'warn'
+    })
   })
 
   it('says every line in English', () => {

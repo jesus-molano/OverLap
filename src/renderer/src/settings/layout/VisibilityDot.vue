@@ -47,7 +47,7 @@ const label = computed(() => t.value.settings.visibility.label(props.title))
   height: 26px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--st-radius-sm);
   background: transparent;
   cursor: pointer;
 }

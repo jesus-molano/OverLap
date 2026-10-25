@@ -13,13 +13,16 @@ defineProps<{
 </template>
 
 <style>
-/* Vertical bar in the class colour, as tall as its line. */
+/*
+ * A short bar in the class colour beside the number (number style 'stripe', or 'bare' in a
+ * narrow table). One text line tall, never on the row edge, so it never reads as a rail.
+ */
 .ov-strip {
   flex: none;
-  align-self: stretch;
+  align-self: center;
   width: var(--ov-bar-w);
-  min-height: 1em;
-  margin: 0.2em 0;
+  height: 1em;
+  margin: 0;
   border-radius: 1px;
   background: var(--cls);
 }

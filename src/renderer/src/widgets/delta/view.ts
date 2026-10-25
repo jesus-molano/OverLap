@@ -6,7 +6,9 @@
  * symbol, the side of the bar, 'ganando' / 'perdiendo'), so the colour-blind palette loses
  * nothing. Words come from the dictionary `m` (messagesFor(lang)).
  */
-import { formatLapTime, signAt } from '@shared/format'
+// The typographic minus of every widget (format.ts): as wide as '+', so the number does not
+// shift when the sign flips.
+import { MINUS, formatLapTime, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { isFiniteNumber } from '@shared/num'
 import type { DeltaData, DeltaReference } from '@shared/types'
@@ -14,8 +16,6 @@ import type { Tone } from '@renderer/ui/tones'
 import { perDictionary } from '@renderer/view/perDictionary'
 import type { InlineStyle } from '@renderer/view/styles'
 
-/** Typographic minus: as wide as '+', so the number does not shift when the sign flips. */
-export const MINUS = '−'
 const DASH = '—'
 
 /** Sign of a delta as shown (two decimals): -1 faster, 1 slower, 0 even, null unknown. */

@@ -4,7 +4,10 @@ import { useAppearance } from '../composables/useAppearance'
 import { useI18n } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 
-/** 'SIM' while the data comes from the simulated source (and appearance.showSimPill is on). */
+/**
+ * 'SIM' tag while the data comes from the simulated source (and appearance.showSimPill is on):
+ * a caps tag at plate height ringed in the information blue.
+ */
 const { status } = useOverlayState()
 const appearance = useAppearance()
 const t = useI18n()
@@ -19,15 +22,19 @@ const shown = computed(() => status.value?.source === 'mock' && appearance.value
 
 <style>
 .ov-sim {
+  display: inline-flex;
   flex: none;
-  padding: 0 0.5em;
-  border-radius: var(--ov-radius-pill);
-  box-shadow: inset 0 0 0 1px var(--ov-info);
+  align-items: center;
+  height: var(--ov-plate-h);
+  padding: 0 0.45em;
+  border-radius: var(--ov-radius-chip);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ov-info) 70%, transparent);
   color: var(--ov-info);
-  font-size: max(var(--ov-min-text), 0.68em);
-  font-weight: 700;
-  line-height: 1.45;
-  letter-spacing: 0.08em;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-tag);
+  font-weight: var(--ov-w-strong);
+  line-height: 1;
+  letter-spacing: var(--ov-track-tag);
   white-space: nowrap;
 }
 </style>

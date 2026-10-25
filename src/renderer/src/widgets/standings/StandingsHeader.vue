@@ -39,8 +39,9 @@ const t = useI18n()
         <span class="sd-v" :class="`ov-tone-${head.irTone}`"
           >{{ head.irValue }}<Icon v-if="head.irArrow" :name="head.irArrow" class="sd-arrow"
         /></span>
-        <span v-if="head.irSwing" class="sd-m sd-swing">{{ head.irSwing }}</span>
-        <span v-if="head.irNeutral" class="sd-m sd-neutral">· {{ head.irNeutral }}</span>
+        <span v-if="head.irSwingUp" class="sd-m sd-swing">{{ head.irSwingUp }}</span>
+        <span v-if="head.irSwingDown" class="sd-m sd-swing">{{ head.irSwingDown }}</span>
+        <span v-if="head.irNeutral" class="sd-m sd-neutral">{{ head.irNeutral }}</span>
       </span>
       <span v-else-if="head.best" class="sd-group sd-best">{{ head.best }}</span>
       <span v-if="head.hasSr" class="sd-group sd-sr">
@@ -49,7 +50,7 @@ const t = useI18n()
         <span class="sd-v" :class="`ov-tone-${head.srTone}`"
           >{{ head.srTo }}<Icon v-if="head.srArrow" :name="head.srArrow" class="sd-arrow"
         /></span>
-        <span class="sd-m sd-inc">· {{ head.srIncidents }}</span>
+        <span class="sd-m sd-inc">{{ head.srIncidents }}</span>
         <Chip v-if="head.srBudgetTone === 'bad'" tone="bad" variant="solid" class="sd-budget">{{
           head.srBudget
         }}</Chip>
@@ -62,10 +63,15 @@ const t = useI18n()
 </template>
 
 <style scoped>
+/*
+ * The header band: a faint lift over the glass and a rule under it. Its left edge is the rows'
+ * content line (after the rail), so titles, plates and names share one vertical.
+ */
 .sd-head {
   flex: none;
-  padding: var(--sd-head-pad) 0.7em;
-  border-bottom: 1px solid var(--ov-border);
+  padding: var(--sd-head-pad) 0.6em var(--sd-head-pad) calc(var(--ov-bar-w) + 0.35em);
+  background: var(--ov-bg-head);
+  border-bottom: 1px solid var(--ov-rule);
   white-space: nowrap;
 }
 
@@ -89,11 +95,13 @@ const t = useI18n()
   justify-content: space-between;
 }
 
+/* Same caption as PanelHeader's title and meta. */
 .sd-title {
   flex: none;
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
   color: var(--ov-fg-muted);
 }
@@ -102,19 +110,22 @@ const t = useI18n()
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
-/* The one thing to read at a glance on the right: what is left. */
+/* The one thing to read at a glance on the right: what is left, in the numeral face. */
 .sd-rem {
   display: inline-flex;
   flex: none;
   align-items: center;
   gap: 0.3em;
   margin-left: auto;
-  font-size: max(var(--ov-min-text), 0.9em);
-  font-weight: 600;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-lead);
+  font-weight: var(--ov-w-strong);
   color: var(--ov-fg);
 }
 
@@ -123,10 +134,11 @@ const t = useI18n()
   color: var(--ov-fg-muted);
 }
 
+/* Groups are spaced by the gap alone: no separator characters. */
 .sd-group {
   display: flex;
   align-items: baseline;
-  gap: 0.35em;
+  gap: 0.45em;
   min-width: 0;
   overflow: hidden;
   font-size: max(var(--ov-min-text), 0.8em);
@@ -137,25 +149,30 @@ const t = useI18n()
   margin-left: auto;
 }
 
+/* Known labels ('iR', 'SR'): small caps, dim. */
 .sd-k {
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--ov-fg-muted);
+  font-family: var(--ov-font-small);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
+  color: var(--ov-fg-dim);
 }
 
 .sd-v {
   display: inline-flex;
   align-items: center;
   gap: 0.1em;
+  font-family: var(--ov-font-num);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
 }
 
+/* The direction as a shape too, big enough to read without its colour. */
 .sd-arrow {
-  font-size: 0.75em;
+  font-size: 0.9em;
 }
 
 .sd-m {
+  font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
 }
 
@@ -165,15 +182,24 @@ const t = useI18n()
   text-overflow: ellipsis;
 }
 
+/* Each piece after the value is its own group, set off by a 0-blur hairline (the edit chip's
+   divider), so 'P3 +46' and 'P5 +13' never run together. A hidden piece takes its rule along. */
+.sd-swing,
+.sd-neutral,
+.sd-inc,
+.sd-budget-text {
+  padding-left: 0.5em;
+  box-shadow: inset 1px 0 0 var(--ov-rule);
+}
+
 .sd-best {
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
   color: var(--ov-fg);
 }
 
+/* A solid plate (Chip's own geometry), centred on the baseline-aligned line. */
 .sd-budget {
   align-self: center;
-  padding: 0 0.4em;
-  line-height: 1.25;
 }
 
 .sd-budget-text.is-neutral,
@@ -183,7 +209,7 @@ const t = useI18n()
 
 .sd-budget-text.is-warn {
   color: var(--ov-warn);
-  font-weight: 600;
+  font-weight: var(--ov-w-strong);
 }
 
 /* Narrower panels drop the secondary pieces first (headerTier). */

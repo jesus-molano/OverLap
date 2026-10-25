@@ -13,7 +13,7 @@ import type { AlertsData, AlertsOptions, AppearanceSettings, FlagKind } from '@s
 import type { IconName } from '@renderer/ui/icons'
 import { perDictionary } from '@renderer/view/perDictionary'
 
-/** Pill colour: the flag's own. */
+/** Band colour: the flag's own. */
 export type FlagFill = 'black' | 'yellow' | 'red' | 'blue' | 'white' | 'green'
 /** Text on the fill. */
 export type FlagInk = 'dark' | 'light'
@@ -25,7 +25,7 @@ export type FlagMark = 'flag' | 'cross' | 'disc' | 'hazard' | 'stripes' | 'diago
 
 export interface FlagView {
   readonly kind: FlagKind
-  /** Main pill text ('BANDERA NEGRA'). */
+  /** Main band text ('BANDERA NEGRA'). */
   readonly label: string
   /** The label in narrow windows ('A CUADROS'); '' when the label itself fits. */
   readonly short: string
@@ -63,7 +63,7 @@ const LOOKS: Readonly<Record<FlagKind, { readonly fill: FlagFill; readonly mark:
 }
 
 /**
- * One frozen view per flag and language: a flag keeps its object, so the pill re-renders only
+ * One frozen view per flag and language: a flag keeps its object, so the band re-renders only
  * when the flag (or the language) changes.
  */
 export const flagViews = perDictionary((m): Readonly<Record<FlagKind, FlagView>> => {
@@ -182,7 +182,7 @@ export function hasAlerts(d: AlertsData, o: AlertFilter): boolean {
 }
 
 export interface FlagsView {
-  /** The most important flag (the pill), null when no flag is shown. */
+  /** The most important flag (the band), null when no flag is shown. */
   readonly primary: FlagView | null
   /** The next ones as chips, at most MAX_CHIPS. */
   readonly secondary: readonly FlagView[]
@@ -191,7 +191,7 @@ export interface FlagsView {
 const NO_FLAGS: FlagsView = Object.freeze({ primary: null, secondary: Object.freeze([]) })
 
 /**
- * Flags to pill + chips. Keeps `prev` while the same flags are shown in the same language (one
+ * Flags to band + chips. Keeps `prev` while the same flags are shown in the same language (one
  * identity check per flag).
  */
 export function toFlagsView(
@@ -218,7 +218,7 @@ export function toFlagsView(
 }
 
 /**
- * The limiter line is drawn as large as the pill when it is the only content, and always when
+ * The limiter line is drawn as large as the flag band when it is the only content, and always when
  * it is an alarm (off or over the limit): on pit road it matters more than any flag.
  */
 export function limiterHero(flags: FlagsView, limiter: LimiterView | null): boolean {
@@ -235,7 +235,7 @@ export function previewFilter(sample: AlertsData, o: AlertFilter): AlertFilter {
 
 /**
  * Everything the panel height depends on besides the width and the font: whether there is a
- * pill, how many chips, and the limiter line (none, normal or hero).
+ * band, how many chips, and the limiter line (none, normal or hero).
  */
 export function layoutKey(flags: FlagsView, limiter: LimiterView | null): string {
   const line = limiter === null ? 0 : limiterHero(flags, limiter) ? 2 : 1

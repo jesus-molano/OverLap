@@ -99,8 +99,9 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 }
 
 .page-title {
+  font-family: var(--ov-font-num);
   font-size: 22px;
-  font-weight: 650;
+  font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
 
@@ -116,6 +117,7 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
+  box-shadow: var(--st-lit);
 }
 
 .visible-toggle :deep(.st-row) {
@@ -126,7 +128,7 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
   margin-bottom: 12px;
   padding: 8px 12px;
   border: 1px solid var(--st-border-hi);
-  border-radius: 8px;
+  border-radius: var(--st-radius);
   background: var(--st-surface);
   color: var(--ov-fg-muted);
   font-size: 13px;

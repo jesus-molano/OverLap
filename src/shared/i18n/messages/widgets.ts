@@ -1,6 +1,11 @@
 /** Texts of the widgets themselves (headers, labels, empty states, previews). */
 import type { Dict } from '../dict'
 
+/**
+ * Between two parts of one reading ('38:19  ≈19 v'): an en space, no separator glyph (the
+ * standings' META_SEP).
+ */
+const SEP = '\u2002'
 /** No-break space between a number and its unit (shared/format.ts NBSP). */
 const NB = ' '
 
@@ -33,8 +38,8 @@ export const widgetsEs = {
     about: (n: number) => `~${n}${NB}v`,
     /** Under a lap. */
     underOne: `<${NB}1${NB}v`,
-    /** A timed session with its estimated laps: '38:19 · ≈19 v'. */
-    timed: (clock: string, laps: number) => `${clock} · ≈${laps}${NB}v`,
+    /** A timed session with its estimated laps: '38:19  ≈19 v'. */
+    timed: (clock: string, laps: number) => `${clock}${SEP}≈${laps}${NB}v`,
     /** Laps left in a session by laps. */
     left: (n: number) => (n === 1 ? `Queda 1${NB}v` : `Quedan ${n}${NB}v`)
   },
@@ -47,9 +52,9 @@ export const widgetsEs = {
     cars: (n: number) => (n === 1 ? '1 coche' : `${n} coches`),
     /** A class the session info gives no name, by its id. */
     unnamedClass: (id: number) => `Clase ${id}`,
-    /** Session best lap outside races, with the car number when known. */
+    /** Session best lap outside races, with the car number when known ('Mejor 2:07.579  #29'). */
     best: (time: string) => `Mejor ${time}`,
-    bestBy: (time: string, car: string) => `Mejor ${time} · ${car}`,
+    bestBy: (time: string, car: string) => `Mejor ${time}${SEP}${car}`,
     irKey: 'iR',
     srKey: 'SR',
     /** iRating per position gained or lost. */
@@ -187,7 +192,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   laps: {
     about: (n) => `~${n}${NB}L`,
     underOne: `<${NB}1${NB}L`,
-    timed: (clock, laps) => `${clock} · ≈${laps}${NB}L`,
+    timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}L`,
     left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`)
   },
   standings: {
@@ -197,7 +202,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     cars: (n) => (n === 1 ? '1 car' : `${n} cars`),
     unnamedClass: (id) => `Class ${id}`,
     best: (time) => `Best ${time}`,
-    bestBy: (time, car) => `Best ${time} · ${car}`,
+    bestBy: (time, car) => `Best ${time}${SEP}${car}`,
     irKey: 'iR',
     srKey: 'SR',
     perPosition: (n) => `±${n}/pos`,

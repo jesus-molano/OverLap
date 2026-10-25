@@ -14,13 +14,19 @@ describe('styleCache', () => {
     const a = cls('#ff0000')
     expect(cls('#ff0000')).toBe(a)
     expect(Object.isFrozen(a)).toBe(true)
-    expect(a).toEqual({ '--cls': '#ff0000', '--cls-fg': '#000000' })
+    expect(a).toEqual({ '--cls': '#ff0000', '--cls-fg': '#000000', '--cls-ink': '#ff8080' })
   })
 
   it('passes the contrasting text colour', () => {
     const cls = styleCache(classVars)
     expect(cls('#0153db')['--cls-fg']).toBe('#ffffff')
     expect(cls('#feec04')['--cls-fg']).toBe('#000000')
+  })
+
+  it('adds the class ink: dark class colours lifted for text on the panel', () => {
+    const cls = styleCache(classVars)
+    expect(cls('#0153db')['--cls-ink']).toBe('#80a9ed')
+    expect(cls('#ffda59')['--cls-ink']).toBe('#ffda59')
   })
 
   it('stays bounded', () => {
@@ -57,6 +63,14 @@ describe('createDriverStyles', () => {
     expect(pro['--lic-fg']).toBe('#ffffff')
     expect(pro['--lic-soft']).not.toBe('#1f1f1f')
     expect(st.lic('#0153db')['--lic-soft']).toBe('#0153db')
+  })
+
+  it('gives licences an ink that reads as text on the panel', () => {
+    const st = createDriverStyles()
+    expect(st.lic('#0153db')['--lic-ink']).toBe('#80a9ed')
+    expect(st.lic('#feec04')['--lic-ink']).toBe('#feec04')
+    // Pro: from the visible grey, not from near-black.
+    expect(st.lic('#1f1f1f')['--lic-ink']).toBe('#9ca1ab')
   })
 
   it('keeps separate caches per instance', () => {

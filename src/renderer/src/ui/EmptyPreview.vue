@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Static placeholder lines (no shimmer: nothing animates) for a widget that is connected but
- * has no payload yet, with an optional caption.
+ * has no payload yet, with an optional caption. They start on the rows' content line.
  */
 withDefaults(defineProps<{ rows?: number; caption?: string }>(), { rows: 3 })
 </script>
@@ -18,11 +18,11 @@ withDefaults(defineProps<{ rows?: number; caption?: string }>(), { rows: 3 })
   display: flex;
   flex-direction: column;
   gap: 0.45em;
-  padding: 0.6em 0.7em;
+  padding: 0.6em 0.6em 0.6em calc(var(--ov-bar-w) + 0.35em);
 }
 
 .ov-empty__line {
-  height: 0.6em;
+  height: 0.5em;
   border-radius: var(--ov-radius-chip);
   background: var(--ov-chip-faint);
 }
@@ -42,9 +42,10 @@ withDefaults(defineProps<{ rows?: number; caption?: string }>(), { rows: 3 })
 }
 
 .ov-empty__caption {
+  font-family: var(--ov-font-small);
   font-size: var(--ov-t-caption);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
   color: var(--ov-fg-muted);
 }

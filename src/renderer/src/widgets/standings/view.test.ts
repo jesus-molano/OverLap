@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import { createDriverStyles } from '@renderer/view/styles'
 import { reuseViews } from '@renderer/view/reuse'
 import { lineMetrics, planLines } from './layout'
 import { block, makeRow } from './testing/rows'
 import {
+  META_SEP,
   classMeta,
+  gainedCell,
   gapCell,
   gapLeaderCell,
   lapCell,
@@ -16,6 +19,8 @@ import {
   type LineContext,
   type LineView
 } from './view'
+
+const M = MINUS
 
 const ES = messagesFor('es')
 const EN = messagesFor('en')
@@ -140,10 +145,28 @@ describe('lapCell', () => {
   })
 })
 
+describe('gainedCell', () => {
+  it('gives the count and a triangle for its direction', () => {
+    expect(gainedCell(4)).toEqual({ text: '4', icon: 'arrow-up' })
+    expect(gainedCell(-2.4)).toEqual({ text: '2', icon: 'arrow-down' })
+    expect(gainedCell(12)).toEqual({ text: '12', icon: 'arrow-up' })
+  })
+
+  it('leaves the cell empty for none or unknown, never a placeholder glyph', () => {
+    const empty = { text: '', icon: null }
+    expect(gainedCell(0)).toEqual(empty)
+    expect(gainedCell(0.4)).toEqual(empty)
+    expect(gainedCell(-0.4)).toEqual(empty)
+    expect(gainedCell(null)).toEqual(empty)
+    expect(gainedCell(Number.NaN)).toEqual(empty)
+  })
+})
+
 describe('classMeta', () => {
-  it('joins SoF and car count per option', () => {
+  it('joins SoF and car count per option, with an en space and no glyph', () => {
     const b = { sof: 2140, carCount: 12 }
-    expect(classMeta(b, true, true, ES)).toBe('SoF 2.1k · 12 coches')
+    expect(classMeta(b, true, true, ES)).toBe('SoF 2.1k\u200212 coches')
+    expect(META_SEP).toBe('\u2002')
     expect(classMeta(b, false, true, ES)).toBe('12 coches')
     expect(classMeta(b, true, false, ES)).toBe('SoF 2.1k')
     expect(classMeta({ sof: null, carCount: 1 }, true, true, ES)).toBe('1 coche')
@@ -151,7 +174,7 @@ describe('classMeta', () => {
   })
 
   it('says it in English', () => {
-    expect(classMeta({ sof: 2140, carCount: 12 }, true, true, EN)).toBe('SoF 2.1k · 12 cars')
+    expect(classMeta({ sof: 2140, carCount: 12 }, true, true, EN)).toBe('SoF 2.1k\u200212 cars')
     expect(classMeta({ sof: null, carCount: 1 }, true, true, EN)).toBe('1 car')
   })
 })
@@ -179,7 +202,8 @@ describe('toLineViews', () => {
       name: 'A. Ruiz',
       iRating: '2.4k',
       lic: 'B 3.2',
-      gained: '▲4',
+      gained: '4',
+      gainedIcon: 'arrow-up',
       gainedTone: 'good',
       gap: '+0.7',
       lap: '2:16.734',
@@ -206,7 +230,7 @@ describe('toLineViews', () => {
     const other = makeRow({ iRatingDelta: 23 })
     const you = makeRow({ iRatingDelta: -12, isPlayer: true })
     expect(carView(other).delta).toBe('')
-    expect(carView(you)).toMatchObject({ delta: '-12', deltaTone: 'bad' })
+    expect(carView(you)).toMatchObject({ delta: `${M}12`, deltaTone: 'bad' })
     expect(carView(other, ctx({ deltaAll: true }))).toMatchObject({
       delta: '+23',
       deltaTone: 'good'
@@ -217,10 +241,21 @@ describe('toLineViews', () => {
     expect(carView(you, ctx({ race: false })).delta).toBe('')
   })
 
-  it('leaves positions gained out of practice and qualifying', () => {
-    expect(carView(makeRow({ positionsGained: 2 }), ctx({ race: false })).gained).toBe('')
-    expect(carView(makeRow({ positionsGained: 0 })).gained).toBe('·')
-    expect(carView(makeRow({ positionsGained: 0 })).gainedTone).toBe('dim')
+  it('leaves positions gained out of practice and qualifying, and blank when none', () => {
+    expect(carView(makeRow({ positionsGained: 2 }), ctx({ race: false }))).toMatchObject({
+      gained: '',
+      gainedIcon: null
+    })
+    expect(carView(makeRow({ positionsGained: 0 }))).toMatchObject({
+      gained: '',
+      gainedIcon: null,
+      gainedTone: 'dim'
+    })
+    expect(carView(makeRow({ positionsGained: -3 }))).toMatchObject({
+      gained: '3',
+      gainedIcon: 'arrow-down',
+      gainedTone: 'bad'
+    })
   })
 
   it('uses the name format', () => {

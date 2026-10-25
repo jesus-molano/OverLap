@@ -198,13 +198,10 @@ function revertTyped(): void {
   align-items: center;
   gap: 4px;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: var(--st-radius);
 }
 
-.custom.is-custom .picker {
-  box-shadow: 0 0 0 2px var(--ov-fg);
-}
-
+/* Same geometry as a preset swatch: a 22 px dot, its ring 3 px outside when selected. */
 .picker {
   flex: none;
   width: 28px;
@@ -217,13 +214,26 @@ function revertTyped(): void {
   cursor: pointer;
 }
 
+.custom.is-custom .picker {
+  box-shadow: 0 0 0 2px var(--ov-fg);
+}
+
+.picker:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .picker::-webkit-color-swatch-wrapper {
-  padding: 0;
+  padding: 3px;
 }
 
 .picker::-webkit-color-swatch {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
+}
+
+.picker:hover:not(:disabled)::-webkit-color-swatch {
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .hash {

@@ -30,24 +30,30 @@ export type Arrow = Extract<IconName, 'arrow-up' | 'arrow-down'> | ''
 export interface HeaderView {
   /** 'CARRERA', or the widget name when the session is unknown. */
   title: string
-  /** Single-class session: 'SoF 2.0k · 12 coches' next to the title. */
+  /** Single-class session: the class meta ('SoF 2.0k', '12 coches') next to the title. */
   meta: string
   /** Sample content (edit mode): the 'VISTA PREVIA' tag. */
   preview: boolean
   /** The chequered flag is out: 'Final' instead of what is left. */
   finished: boolean
-  /** '38:19 · ≈19 v', 'Quedan 12 v', '' when unknown. */
+  /** '38:19  ≈19 v' (en-spaced), 'Quedan 12 v', '' when unknown. */
   remaining: string
   lines: HeadLines
-  /** Practice / qualifying: 'Mejor 2:07.579 · #29', else ''. */
+  /** Practice / qualifying: 'Mejor 2:07.579  #29' (en-spaced), else ''. */
   best: string
   hasIr: boolean
   /** Your projected change now: '+13'. */
   irValue: string
   irTone: Tone
   irArrow: Arrow
-  /** 'P4 +31 · P6 -5' (one place up / down), else '±17/pos'; '' when unknown. */
-  irSwing: string
+  /**
+   * What one place up is worth: 'P4 +31'; without your row, the iRating per position
+   * ('±17/pos'); '' when unknown or nothing to gain (P1). Each swing is its own group in the
+   * header (two strings, not a list, so an unchanged header keeps its object).
+   */
+  irSwingUp: string
+  /** What one place down costs: 'P6 −5'; '' when unknown. */
+  irSwingDown: string
   /** 'neutro P6', '' when unknown. */
   irNeutral: string
   hasSr: boolean
@@ -96,18 +102,25 @@ function playerPosition(classes: readonly StandingsClassBlock[]): number | null 
   return null
 }
 
-function irSwing(ir: PlayerRatingProjection, pos: number | null, m: Messages): string {
-  const parts: string[] = []
-  if (pos !== null && pos > 1 && ir.ifGainOne !== null) {
-    parts.push(`P${pos - 1} ${formatIRatingDelta(ir.ifGainOne)}`)
-  }
-  if (pos !== null && ir.ifLoseOne !== null) {
-    parts.push(`P${pos + 1} ${formatIRatingDelta(ir.ifLoseOne)}`)
-  }
-  if (parts.length > 0) return parts.join(' · ')
+interface IrSwing {
+  up: string
+  down: string
+}
+
+const NO_SWING: IrSwing = Object.freeze({ up: '', down: '' })
+
+/** One place up and one down from your position; the per-position figure without it. */
+function irSwing(ir: PlayerRatingProjection, pos: number | null, m: Messages): IrSwing {
+  const up =
+    pos !== null && pos > 1 && ir.ifGainOne !== null
+      ? `P${pos - 1} ${formatIRatingDelta(ir.ifGainOne)}`
+      : ''
+  const down =
+    pos !== null && ir.ifLoseOne !== null ? `P${pos + 1} ${formatIRatingDelta(ir.ifLoseOne)}` : ''
+  if (up !== '' || down !== '') return { up, down }
   return Number.isFinite(ir.perPosition) && ir.perPosition > 0
-    ? m.widgets.standings.perPosition(Math.round(ir.perPosition))
-    : ''
+    ? { up: m.widgets.standings.perPosition(Math.round(ir.perPosition)), down: '' }
+    : NO_SWING
 }
 
 /**
@@ -131,7 +144,7 @@ export function srBudget(
   return { text: t.budget(budget), tone: budget <= 2 ? 'warn' : 'neutral' }
 }
 
-/** 'Mejor 2:07.579 · #29' from the leader of your class (the best lap outside races). */
+/** 'Mejor 2:07.579  #29' from the leader of your class (the best lap outside races). */
 function bestLine(classes: readonly StandingsClassBlock[], m: Messages): string {
   const block = classes[primaryBlock(classes)]
   const leader = block?.rows.find((r) => r.classPosition === 1)
@@ -166,6 +179,7 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     budget = srBudget(sr, m)
   }
   const irSign = ir !== null ? signAt(ir.iRatingDelta, 0) : null
+  const swing = ir !== null ? irSwing(ir, playerPosition(classes), m) : NO_SWING
   const neutral =
     ir !== null && Number.isFinite(ir.breakEvenPosition) && ir.breakEvenPosition > 0
       ? Math.round(ir.breakEvenPosition)
@@ -183,7 +197,8 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     irValue: ir !== null ? formatIRatingDelta(ir.iRatingDelta) : '',
     irTone: valueTone(irSign),
     irArrow: arrowOf(irSign),
-    irSwing: ir !== null ? irSwing(ir, playerPosition(classes), m) : '',
+    irSwingUp: swing.up,
+    irSwingDown: swing.down,
     irNeutral: neutral !== null ? t.breakEven(neutral) : '',
     hasSr: sr !== null,
     srFrom,

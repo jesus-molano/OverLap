@@ -4,13 +4,17 @@ import type { RadarCar } from '@shared/types'
 import {
   ALERT_BAR_INSET,
   ALERT_BLOOM_PAD,
+  BEZEL,
+  BEZEL_INSET,
+  BEZEL_TOP_PATH,
   BG_HALF,
   BG_RADIUS,
+  BUCKET_CLASSES,
   CAR_ALONGSIDE_GLOW,
   CAR_BODY,
+  CAR_GLASS,
   CAR_H,
   CAR_HALO_INNER,
-  CAR_HALO_OUTER,
   CAR_RX,
   CAR_W,
   LABEL_FONT,
@@ -20,7 +24,7 @@ import {
   LANE_SPACING,
   NO_MARKS,
   PLAYER_HALO_INNER,
-  PLAYER_HALO_OUTER,
+  PROX_BUCKETS,
   RANGE_UNITS,
   WIDGET_PRECISION,
   centeredRect,
@@ -28,6 +32,7 @@ import {
   edgeOpacity,
   labelFontUnits,
   laneToX,
+  proximityBucket,
   rangeGuides,
   sameMarks,
   sideAlertStyle,
@@ -38,6 +43,14 @@ import {
 } from './geometry'
 
 const L = RADAR.carLengthM
+
+/** True when (x, y) lies inside the rounded-square background (on its edge counts). */
+function insideBackground(x: number, y: number): boolean {
+  const corner = BG_HALF - BG_RADIUS
+  const dx = Math.max(0, Math.abs(x) - corner)
+  const dy = Math.max(0, Math.abs(y) - corner)
+  return Math.abs(x) <= BG_HALF && Math.abs(y) <= BG_HALF && Math.hypot(dx, dy) <= BG_RADIUS
+}
 const FADE = RADAR.edgeFadeFrac
 const RANGES = [RADAR.minRangeM, 7.5, 10, 20, 30, 50, RADAR.maxRangeM]
 
@@ -141,17 +154,61 @@ describe('edgeOpacity', () => {
   })
 })
 
+describe('proximityBucket', () => {
+  it('steps from 0 at the edge of the range to the top step touching', () => {
+    expect(proximityBucket(0, false)).toBe(0)
+    expect(proximityBucket(1, false)).toBe(PROX_BUCKETS - 1)
+    expect(proximityBucket(0.5, false)).toBe(Math.round((PROX_BUCKETS - 1) / 2))
+    expect(proximityBucket(0.04, false)).toBe(0)
+    expect(proximityBucket(0.96, false)).toBe(PROX_BUCKETS - 1)
+  })
+
+  it('never decreases as a car closes in', () => {
+    let prev = 0
+    for (let i = 0; i <= 1000; i++) {
+      const b = proximityBucket(i / 1000, false)
+      expect(b).toBeGreaterThanOrEqual(prev)
+      expect(b - prev).toBeLessThanOrEqual(1)
+      prev = b
+    }
+    expect(prev).toBe(PROX_BUCKETS - 1)
+  })
+
+  it('puts a car alongside on the top step and clamps bad input', () => {
+    expect(proximityBucket(0, true)).toBe(PROX_BUCKETS - 1)
+    expect(proximityBucket(Number.NaN, true)).toBe(PROX_BUCKETS - 1)
+    expect(proximityBucket(Number.NaN, false)).toBe(0)
+    expect(proximityBucket(-3, false)).toBe(0)
+    expect(proximityBucket(7, false)).toBe(PROX_BUCKETS - 1)
+  })
+
+  it('has one shared class per step', () => {
+    expect(BUCKET_CLASSES).toHaveLength(PROX_BUCKETS)
+    expect(BUCKET_CLASSES[0]).toBe('rc-0')
+    expect(BUCKET_CLASSES[PROX_BUCKETS - 1]).toBe(`rc-${PROX_BUCKETS - 1}`)
+    expect(Object.isFrozen(BUCKET_CLASSES)).toBe(true)
+  })
+})
+
 describe('toCarMarks', () => {
-  it('positions cars and copies colours', () => {
-    const [m] = toCarMarks([car({ carIdx: 7, distM: L, lane: -1, color: 'red' })], 20)
+  it('positions cars and keeps their proximity step and class colour', () => {
+    const [m] = toCarMarks(
+      [car({ carIdx: 7, distM: L, lane: -1, proximity: 0.3, color: 'red' })],
+      20
+    )
     expect(m).toEqual({
       key: '7',
       transform: `translate(${-LANE_SPACING} ${-CAR_H})`,
-      fill: 'red',
-      stroke: '#ffffff',
+      bucket: proximityBucket(0.3, false),
+      classColor: '#ffffff',
       overlapping: false,
       opacity: 1
     })
+  })
+
+  it('draws a car alongside on the top step, whatever its proximity says', () => {
+    const [m] = toCarMarks([car({ lane: 1, overlapping: true, proximity: 0 })], 20)
+    expect(m?.bucket).toBe(PROX_BUCKETS - 1)
   })
 
   it('puts a car at half range on the half-range guide', () => {
@@ -230,14 +287,21 @@ describe('toCarMarks with WIDGET_PRECISION', () => {
     expect(sameMarks(at(10), at(10.01))).toBe(false)
     expect(sameMarks(at(10, W), at(10.1, W))).toBe(false)
   })
+
+  it('keeps the marks while the proximity moves within one colour step', () => {
+    const at = (proximity: number): readonly CarMark[] =>
+      toCarMarks([car({ distM: 10, proximity })], 20, W)
+    expect(sameMarks(at(0.5), at(0.52))).toBe(true)
+    expect(sameMarks(at(0.5), at(0.6))).toBe(false)
+  })
 })
 
 describe('sameMarks', () => {
   const mark = (over: Partial<CarMark>): CarMark => ({
     key: '1',
     transform: 'translate(0 -5)',
-    fill: 'red',
-    stroke: '#ffffff',
+    bucket: 3,
+    classColor: '#ffffff',
     overlapping: false,
     opacity: 1,
     ...over
@@ -257,8 +321,8 @@ describe('sameMarks', () => {
       { key: '9' },
       { transform: 'translate(0 -5.1)' },
       { opacity: 0.98 },
-      { fill: 'orange' },
-      { stroke: '#000000' },
+      { bucket: 4 },
+      { classColor: '#000000' },
       { overlapping: true }
     ]
     for (const change of changes) expect(sameMarks([a, b], [mark(change), b])).toBe(false)
@@ -289,10 +353,42 @@ describe('centeredRect and the glow shapes', () => {
       expect(outer.y).toBeCloseTo(-outer.height / 2)
     }
     nested(CAR_BODY, CAR_HALO_INNER)
-    nested(CAR_HALO_INNER, CAR_HALO_OUTER)
-    nested(CAR_HALO_OUTER, CAR_ALONGSIDE_GLOW)
+    nested(CAR_HALO_INNER, CAR_ALONGSIDE_GLOW)
     nested(CAR_BODY, PLAYER_HALO_INNER)
-    nested(PLAYER_HALO_INNER, PLAYER_HALO_OUTER)
+  })
+
+  it('puts the windshield (the class mark) inside the front half of the body', () => {
+    expect(Object.isFrozen(CAR_GLASS)).toBe(true)
+    expect(CAR_GLASS.x).toBeCloseTo(-CAR_GLASS.width / 2)
+    expect(CAR_GLASS.x).toBeGreaterThan(CAR_BODY.x)
+    expect(CAR_GLASS.y).toBeGreaterThan(CAR_BODY.y)
+    // Ahead is up (negative y): the glass ends before the body's centre.
+    expect(CAR_GLASS.y + CAR_GLASS.height).toBeLessThan(0)
+  })
+
+  it('draws the bezel just inside the background, with concentric corners', () => {
+    expect(BEZEL.x).toBeCloseTo(-BG_HALF + BEZEL_INSET)
+    expect(BEZEL.y).toBeCloseTo(-BG_HALF + BEZEL_INSET)
+    expect(BEZEL.width).toBeCloseTo(2 * (BG_HALF - BEZEL_INSET))
+    expect(BEZEL.rx).toBeCloseTo(BG_RADIUS - BEZEL_INSET)
+    expect(BEZEL.rx).toBeGreaterThan(0)
+    // About 1 px in the default window (220 px wide: 2.2 px per unit).
+    expect(BEZEL_INSET * 2.2).toBeCloseTo(1, 0)
+    // The bezel's corner point lies inside the background's rounded corner.
+    const c = BEZEL.x + BEZEL.rx * (1 - Math.SQRT1_2)
+    expect(insideBackground(c, c)).toBe(true)
+    expect(insideBackground(-BG_HALF + 0.1, -BG_HALF + 0.1)).toBe(false)
+    expect(insideBackground(0, -BG_HALF)).toBe(true)
+  })
+
+  it('runs the lit top edge round the top corners of the bezel', () => {
+    const r2 = (v: number): number => Math.round(v * 100) / 100
+    const e = r2(BG_HALF - BEZEL_INSET)
+    const s = r2(e - BEZEL.rx)
+    expect(BEZEL_TOP_PATH).toBe(
+      `M${-e} ${-s}A${BEZEL.rx} ${BEZEL.rx} 0 0 1 ${-s} ${-e}H${s}` +
+        `A${BEZEL.rx} ${BEZEL.rx} 0 0 1 ${e} ${-s}`
+    )
   })
 
   it('keeps the alert bloom inside the panel and clear of the range labels', () => {
@@ -325,7 +421,6 @@ describe('rangeGuides', () => {
   })
 
   it('keeps the range labels inside the panel and apart, up to the largest label', () => {
-    const corner = BG_HALF - BG_RADIUS
     expect(LABEL_FONT).toBeGreaterThanOrEqual(4.5)
     // Clear of the strongest side alert bar.
     expect(LABEL_X).toBeLessThanOrEqual(BG_HALF - ALERT_BAR_INSET - sideAlertStyle(2).barWidth)
@@ -333,8 +428,9 @@ describe('rangeGuides', () => {
       for (const r of RANGES) {
         const g = rangeGuides(r, font)
         const fullTop = g.fullLabelY - font
-        expect(fullTop).toBeGreaterThan(-BG_HALF)
-        expect(Math.hypot(LABEL_X - corner, -fullTop - corner)).toBeLessThan(BG_RADIUS)
+        // Inside the bezel ring, its rounded corner included.
+        expect(fullTop).toBeGreaterThan(BEZEL.y)
+        expect(insideBackground(LABEL_X, fullTop)).toBe(true)
         expect(g.halfLabelY).toBeLessThan(g.halfY)
         expect(g.halfLabelY - font).toBeGreaterThan(g.fullLabelY)
       }

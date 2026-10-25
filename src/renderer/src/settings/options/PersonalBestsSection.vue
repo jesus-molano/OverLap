@@ -135,15 +135,17 @@ function removeCurrent(): void {
 </template>
 
 <style scoped>
+/* «AHORA» is you (the car you are driving now), so it keeps the accent: a solid tag. */
 .now {
   margin-right: 6px;
   padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--st-sel-soft);
-  color: var(--ov-fg);
+  border-radius: var(--ov-radius-chip);
+  background: var(--ov-accent);
+  color: var(--ov-accent-fg);
+  font-family: var(--ov-font-small);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: var(--ov-w-solid);
+  letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
 }
 
@@ -174,8 +176,14 @@ function removeCurrent(): void {
   border-top: 1px solid var(--st-border);
 }
 
+/* Your current car's record: the accent rail, as your row in the widgets. */
+.item.is-now {
+  padding-left: 10px;
+  box-shadow: inset var(--ov-bar-w) 0 0 var(--ov-accent);
+}
+
 .item.is-now .car {
-  color: var(--st-sel);
+  color: var(--ov-fg);
 }
 
 .car,

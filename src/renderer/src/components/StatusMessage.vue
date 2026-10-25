@@ -49,7 +49,7 @@ const pulseKey = computed(() => {
   min-height: 100%;
   padding: 0.8em 1em;
   color: var(--ov-fg-muted);
-  font-size: max(var(--ov-min-text), 0.9em);
+  font-size: var(--ov-t-body);
   line-height: 1.3;
   text-align: center;
 }

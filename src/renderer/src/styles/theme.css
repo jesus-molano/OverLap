@@ -1,64 +1,153 @@
 /*
- * Overlay design tokens and primitives, loaded by every window. Widgets keep only their own
- * geometry; colours, type, shapes and motion come from here. main.ts sets the appearance on
- * <html>: --ov-accent / --ov-accent-fg and data-cvd / data-density / data-stripes
- * (view/appearance.ts).
+ * Overlay design tokens and primitives ("Night Cluster"), loaded by every window. Widgets keep
+ * only their own geometry; colours, type, shapes and motion come from here. main.ts sets the
+ * appearance on <html>: --ov-accent / --ov-accent-fg and data-cvd / data-density /
+ * data-stripes (view/appearance.ts).
+ *
+ * Every widget is one instrument of the same dashboard at night: near-black glass in a two-tone
+ * bezel whose top edge catches the light, recessed wells behind gauges, one plate height, one
+ * rail, one key. The visual grammar:
+ *
+ *   Drawn as                            Means
+ *   Rail (3 px, left, full height) ..... state: you, trend, urgency, limiter on, delta sign
+ *   Filled plate ....................... identity of a car (class number), or you (position)
+ *   Solid fill ......................... act now: PIT, hazard, alarm, flags (exception: the
+ *                                        purple fastest-lap plate, a racing convention)
+ *   Ring ............................... warning on a value (off-track), or lap relation on a
+ *                                        plate
+ *   Key (2 px bottom line) ............. notable value, or the class of a line
+ *   Coloured text ...................... direction, lap relation, licence
+ *   Grey ............................... context
  *
  * GPU budget (enforced by ui/styleBudget.test.ts): no filters or backdrop filters, no blurred
- * shadows, no infinite animations, transitions on opacity/transform/visibility only.
+ * shadows (edges, rings, keys and lips are 0-blur), no infinite animations, transitions on
+ * opacity/transform/visibility only. Keys are background layers, never box-shadows, so a ring
+ * and a key can share one element.
  */
+
+/*
+ * Plate height: declared on .ov-panel in em (so it follows the widget's font), resolved there to
+ * px and inherited as px, so every plate of a widget is one height whatever its own font size.
+ * Outside a panel (settings controls) it is the initial 15 px.
+ */
+@property --ov-plate-h {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 15px;
+}
 
 :root {
   /* Identity: the accent means "you" and nothing else (appearance.accent). */
   --ov-accent: #ffc400;
   --ov-accent-fg: #000000;
 
-  /* Semantics: always paired with a shape (chevron, sign, icon or ring), never colour alone. */
+  /* Meaning: always paired with a shape (chevron, triangle, ring, rail, key, letter). */
   --ov-good: #3ddc84; /* gaining, PB, in your favour */
   --ov-bad: #ff6b6b; /* losing, against you */
   --ov-danger: var(--ov-bad);
-  --ov-best: #b67cff; /* fastest lap of the class / session */
-  --ov-warn: #ffb020; /* off-track, ABS, meatball, last lap */
-  --ov-info: #6aa8ff; /* lapped, SIM pill, neutral information */
-  --ov-lap-ahead: #ff7a7a; /* car laps up on you (lapping you) */
+  --ov-best: #b67cff; /* fastest lap, as text and dots */
+  --ov-best-fill: #7c4dff; /* fastest lap behind white text (4.8:1) */
+  --ov-warn: #ff9e40; /* off-track, ABS, hazards, last lap: orange, apart from the accent */
+  --ov-info: #6aa8ff; /* lapped, SIM tag, neutral information */
+  --ov-alert: #ff4438; /* alarms and fills: radar alerts, limiter alarm */
+  --ov-lap-ahead: var(--ov-bad); /* car laps up on you: one red for "against you" */
   --ov-lap-behind: var(--ov-info); /* car laps down on you */
-  /* Text on solid semantic fills. */
-  --ov-on-solid: #000000;
-  --ov-pit-opacity: 0.45;
+  --ov-on-solid: #000000; /* text on solid semantic fills */
 
-  /* Pedals (inputs widget; the trace needs opaque colours). */
+  /* Dimming: two levels only. */
+  --ov-o-dim: 0.45; /* pits, invalid lap, disconnected */
+  --ov-o-soft: 0.6; /* battle pit lane */
+
+  /* Pedals (the inputs widget overrides these inline from the user's colours). */
   --ov-throttle: #3ddc84;
   --ov-brake: #ff4545;
   --ov-clutch: #4aa3ff;
-  --ov-abs: #ffae2b;
+  --ov-abs: #ff9e40;
 
-  /* Text (system fonts only: no web fonts, no external requests) */
-  --ov-fg: #f3f5f8;
-  --ov-fg-muted: #9aa3b2;
-  --ov-fg-dim: #6b7486;
+  /* Real flag colours, the same in every mode (alerts tiles, standings flag icons). */
+  --ov-flag-black: #0b0c0e;
+  --ov-flag-white: #f3f5f8;
+  --ov-flag-yellow: #ffd21f;
+  --ov-flag-red: #e3242b;
+  --ov-flag-blue: #1f66e0;
+  --ov-flag-green: #19b04f;
+  --ov-flag-orange: #ff7a00;
+
+  /* Radar proximity ramp, far (0) to touching (11): grey warming to alert red, never yellow. */
+  --ov-prox-0: #8a93a3;
+  --ov-prox-1: #988f9b;
+  --ov-prox-2: #a48b93;
+  --ov-prox-3: #b0868a;
+  --ov-prox-4: #bb8182;
+  --ov-prox-5: #c67b79;
+  --ov-prox-6: #d07570;
+  --ov-prox-7: #da6e66;
+  --ov-prox-8: #e4665c;
+  --ov-prox-9: #ed5c52;
+  --ov-prox-10: #f65146;
+  --ov-prox-11: #ff4438;
+
+  /* Text tiers (contrast at the default opacity over a white sky / dark asphalt). */
+  --ov-fg: #f3f5f8; /* 9.1 / 16.7 */
+  --ov-fg-muted: #aeb7c4; /* 4.9 / 9.0 */
+  --ov-fg-dim: #8e97a6; /* 3.4 / 6.2, 3.1 on a band: units, placeholders, known labels only */
+
+  /*
+   * Faces: system fonts only (nothing bundled, no network requests). Segoe UI Variable Text for
+   * body, names, gaps and plates; Small for captions, tags, labels, units and licences (the
+   * small optical size: opener, wider); Display for hero, display and lead numbers.
+   */
   --ov-font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --ov-font-small:
+    'Segoe UI Variable Small', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
   --ov-font-num: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --ov-font-hero: var(--ov-font-num); /* hero numerals: battle gap, delta, gear */
   /* Nothing is drawn smaller: 7 px text is unreadable at 1080p in a glance. */
   --ov-min-text: 9px;
 
-  /* Type scale, in em of the widget's base font, floors included. */
+  /*
+   * Weights. Segoe UI Variable has no Medium instance and Chromium draws 500 as Semibold
+   * (measured at 13 px: 400 = 138.0 px, 500 = 600 = 142.6 px, 700 = 148.1 px), so names take
+   * 600 outright and your own name 700, which keeps it a step above everyone else's.
+   * 700 is otherwise only for text on a solid fill.
+   */
+  --ov-w-text: 400; /* notes, meta, verbs, iR, gap to leader, last lap, licence SR */
+  --ov-w-name: 600; /* other drivers' names */
+  --ov-w-you: 700; /* your name */
+  --ov-w-strong: 600; /* values, gaps, hero / lead numbers, captions, tags, chip values */
+  --ov-w-solid: 700; /* text on a solid fill */
+
+  /* Tracking. */
+  --ov-track-caps: 0.1em; /* caption-size caps: headers, group captions, lane tags, states */
+  --ov-track-tag: 0.06em; /* tag-size caps: PIT, OUT, SIM, badges */
+  --ov-track-hero: -0.02em;
+
+  /* Type scale, in em of the widget's base font (names and gaps: 1em), floors included. */
   --ov-t-hero: 2.2em;
-  --ov-t-primary: 1em;
-  --ov-t-secondary: max(var(--ov-min-text), 0.82em);
+  --ov-t-display: 1.45em; /* flag label, limiter hero */
+  --ov-t-lead: 1.08em; /* traffic number, limiter speed, predicted lap, time left, speed */
+  --ov-t-body: max(var(--ov-min-text), 0.9em); /* battle trend line, notes, status text */
+  --ov-t-secondary: max(var(--ov-min-text), 0.82em); /* iR, relative position, Δ, reference */
+  --ov-t-plate: max(var(--ov-min-text), 0.82em); /* number, position, chip values */
   --ov-t-caption: max(var(--ov-min-text), 0.72em);
-  --ov-t-chip: max(var(--ov-min-text), 0.72em);
+  /* Licence: as big as the iR beside it, so the text-only style reads at a glance. The 2.7em
+     column already holds 'A 4.9' as a plate at this size; columns.ts's .72em text factor only
+     widens it sooner at small sizes. */
+  --ov-t-chip: max(var(--ov-min-text), 0.82em);
   --ov-t-tag: max(var(--ov-min-text), 0.65em);
+  --ov-t-unit-hero: 0.42em; /* unit after a hero number, in em of that number */
+  --ov-t-unit: 0.68em; /* unit after a lead number, in em of that number */
 
-  /* Shape: panels, chips, pills. Nothing else. */
-  --ov-radius: 8px;
-  --ov-radius-chip: 0.28em;
-  --ov-radius-pill: 999px;
-  /* Player bar, class stripe, lane tone bar. */
-  --ov-bar-w: 3px;
+  /* Shape: panels, plates, rail, key. Nothing else. */
+  --ov-radius: 6px;
+  --ov-radius-inner: 3px; /* inset wells inside a padded panel (plot), edit chip */
+  --ov-radius-chip: 2px; /* every plate, tag, tile, cell */
+  --ov-bar-w: 3px; /* the rail */
+  --ov-key-w: 2px; /* the key line */
 
-  /* Density (data-density): row and class-line heights. */
+  /* Density (data-density): the row height of CSS-sized tables (the standings size theirs in
+     TS from view/appearance.ts DENSITY_EM, the same values). */
   --ov-row-h: 1.8em;
-  --ov-class-h: 1.45em;
 
   /* Motion */
   --ov-fade-in: 250ms;
@@ -71,51 +160,70 @@
 
   /* Edit mode */
   --ov-edit: #3ea6ff;
+  --ov-edit-line: color-mix(in srgb, var(--ov-edit) 45%, transparent);
   --ov-edit-backdrop: rgba(8, 10, 14, 0.55);
   --ov-locked: rgba(154, 163, 178, 0.55);
 }
 
 :root[data-density='compact'] {
   --ov-row-h: 1.5em;
-  --ov-class-h: 1.25em;
 }
 
-/* Colour-blind palette (deuteranopia-safe blue/orange); the shapes stay. */
+/*
+ * Colour-blind palette (deuteranopia-safe blue/orange), global: every widget, the radar ramp and
+ * the alarms follow it through these tokens alone. Every shape stays.
+ */
 :root[data-cvd='on'] {
   --ov-good: #3fa7ff;
   --ov-bad: #ff9f1a;
-  --ov-lap-ahead: #ff9f1a;
+  --ov-warn: #ffe066; /* lifted, so it never equals the orange "bad" */
+  --ov-alert: #ff9f1a;
+  --ov-lap-behind: #b4c4ff; /* pale periwinkle: apart from the blue "good" by lightness */
+  --ov-prox-0: #8a93a3;
+  --ov-prox-1: #95959c;
+  --ov-prox-2: #a09794;
+  --ov-prox-3: #ab998c;
+  --ov-prox-4: #b69a84;
+  --ov-prox-5: #c09b7b;
+  --ov-prox-6: #cb9c71;
+  --ov-prox-7: #d59d66;
+  --ov-prox-8: #e09e5a;
+  --ov-prox-9: #ea9f4b;
+  --ov-prox-10: #f59f39;
+  --ov-prox-11: #ff9f1a;
 }
 
 /*
  * Surfaces, scaled by --ov-bg-alpha so 0 leaves only text and icons. Re-declared on every
  * .ov-surface (widget panel) because a custom property resolves var() where it is declared:
- * declared on :root alone they would keep :root's alpha.
+ * declared on :root alone they would keep :root's alpha. Lines, rings and wells never fade
+ * below a floor: they must still read at 0 % background.
  */
 :root,
 .ov-surface {
   --ov-bg: rgba(12, 14, 18, var(--ov-bg-alpha));
-  --ov-bg-row: rgba(255, 255, 255, calc(0.035 * var(--ov-bg-alpha)));
-  --ov-bg-row-alt: rgba(255, 255, 255, calc(0.065 * var(--ov-bg-alpha)));
-  --ov-border: rgba(255, 255, 255, calc(0.1 * var(--ov-bg-alpha)));
-  /* Separators and chips never fade below half: they must still read at 0 % background. */
-  --ov-sep: rgba(255, 255, 255, calc(0.08 * max(var(--ov-bg-alpha), 0.5)));
-  --ov-chip: rgba(255, 255, 255, calc(0.13 * max(var(--ov-bg-alpha), 0.5)));
-  --ov-chip-faint: rgba(255, 255, 255, calc(0.07 * max(var(--ov-bg-alpha), 0.5)));
-  /* Top sheen of a panel: painted only when the panel repaints. */
-  --ov-sheen: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, calc(0.04 * var(--ov-bg-alpha))),
-    transparent 2.5em
-  );
-  /* Hairline at the top edge of a panel (no blur). */
-  --ov-hairline: inset 0 1px 0 rgba(255, 255, 255, calc(0.05 * var(--ov-bg-alpha)));
+  --ov-bg-head: rgba(255, 255, 255, calc(0.04 * var(--ov-bg-alpha))); /* header band, class line */
+  --ov-bg-row: transparent; /* rows sit on the glass */
+  --ov-bg-row-alt: rgba(255, 255, 255, calc(0.04 * var(--ov-bg-alpha))); /* stripe */
+  --ov-row-rule: transparent; /* hairline between rows when stripes are off */
+  --ov-lift: rgba(255, 255, 255, calc(0.06 * max(var(--ov-bg-alpha), 0.6))); /* your row */
+  --ov-well: rgba(0, 0, 0, calc(0.3 * max(var(--ov-bg-alpha), 0.5))); /* recessed cells, tracks */
+  --ov-edge-out: rgba(0, 0, 0, calc(0.5 * var(--ov-bg-alpha))); /* outer keyline (sky) */
+  --ov-edge-in: rgba(255, 255, 255, calc(0.07 * var(--ov-bg-alpha))); /* inner ring (asphalt) */
+  --ov-edge-top: rgba(255, 255, 255, calc(0.26 * var(--ov-bg-alpha))); /* lit top edge */
+  --ov-rule: rgba(255, 255, 255, calc(0.12 * max(var(--ov-bg-alpha), 0.5))); /* under headers */
+  --ov-sep: rgba(255, 255, 255, calc(0.07 * max(var(--ov-bg-alpha), 0.5))); /* row rules */
+  /* Faint raised fill: placeholder lines, the limiter's "on" band. */
+  --ov-chip-faint: rgba(255, 255, 255, calc(0.06 * max(var(--ov-bg-alpha), 0.5)));
+  --ov-tick: rgba(255, 255, 255, calc(0.12 * max(var(--ov-bg-alpha), 0.6))); /* graduations */
+  --ov-tick-major: rgba(255, 255, 255, calc(0.24 * max(var(--ov-bg-alpha), 0.6)));
 }
 
-/* No alternate row shading (appearance.stripes off). */
+/* Stripes off: ruled rows instead of bands (appearance.stripes). */
 :root[data-stripes='off'],
 :root[data-stripes='off'] .ov-surface {
-  --ov-bg-row-alt: var(--ov-bg-row);
+  --ov-bg-row-alt: transparent;
+  --ov-row-rule: var(--ov-sep);
 }
 
 /* ---- Base ------------------------------------------------------------------ */
@@ -179,20 +287,26 @@ body {
 
 /*
  * Panel chrome (ui/WidgetPanel.vue, or these classes with .ov-surface on a widget's own element):
- * sheen + background scaled by --ov-bg-alpha, hairline, border, radius. As tall as its content
- * unless --fill (free-size widgets); auto-height widgets get their font from --ov-fs, which is
- * unset elsewhere, so the font is inherited.
+ * glass scaled by --ov-bg-alpha in a two-tone bezel (a dark outer keyline holds the outline over
+ * a bright sky, a light inner ring over dark asphalt) whose top edge is lit; all 0-blur. As tall
+ * as its content unless --fill (free-size widgets); auto-height widgets get their font from
+ * --ov-fs, which is unset elsewhere, so the font is inherited.
  */
 .ov-panel {
+  /* 15 px at 13 px; resolved here, inherited as px. Floored so a plate keeps room around its
+     text when that text is held at the 9 px floor (small text scales). */
+  --ov-plate-h: max(1.15em, calc(var(--ov-min-text) + 4px));
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  background: var(--ov-sheen), var(--ov-bg);
-  border: 1px solid var(--ov-border);
+  background: var(--ov-bg);
+  border: 1px solid var(--ov-edge-out); /* 1 px: columns.ts BORDER_PX holds */
   border-radius: var(--ov-radius);
-  box-shadow: var(--ov-hairline);
+  box-shadow:
+    inset 0 1px 0 var(--ov-edge-top),
+    inset 0 0 0 1px var(--ov-edge-in);
   color: var(--ov-fg);
   font-family: var(--ov-font);
   font-size: var(--ov-fs);
@@ -205,10 +319,6 @@ body {
   height: 100%;
 }
 
-.ov-panel--flat {
-  background: var(--ov-bg);
-}
-
 /* Text over a see-through panel: an inherited halo, off again on solid fills (.ov-solid). */
 .ov-halo {
   text-shadow: var(--ov-text-halo);
@@ -219,9 +329,10 @@ body {
 }
 
 /*
- * The player's row or lane: an accent tint that fades out to the right plus a bar. Never a flat
- * yellow fill (it reads olive on the dark panel). The tint sits behind the content of the row
- * (isolated stacking context), above the row's own background.
+ * You: a bracket of light. An accent rail on the left plus two 1 px accent hairlines that fade
+ * out to the right, over a neutral lift. No accent fill (a yellow wash reads olive on the dark
+ * glass) and no opacity group; it stays crisp at 0 % background. The marks sit behind the
+ * row's content (isolated stacking context), above the row's own background.
  */
 .ov-player {
   position: relative;
@@ -234,8 +345,10 @@ body {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(90deg, var(--ov-accent), transparent 72%);
-  opacity: calc(0.2 * max(var(--ov-bg-alpha), 0.6));
+  background:
+    linear-gradient(90deg, var(--ov-accent), transparent 55%) left top / 100% 1px no-repeat,
+    linear-gradient(90deg, var(--ov-accent), transparent 55%) left bottom / 100% 1px no-repeat,
+    var(--ov-lift);
 }
 
 .ov-player::after {
@@ -247,47 +360,27 @@ body {
   background: var(--ov-accent);
 }
 
-/* ---- Type scale ------------------------------------------------------------- */
+/* ---- Numerals ---------------------------------------------------------------- */
 
+/* Hero numerals: the gap, the delta, the gear. */
 .ov-t-hero {
-  font-family: var(--ov-font-num);
+  font-family: var(--ov-font-hero);
   font-size: var(--ov-t-hero);
-  font-weight: 700;
+  font-weight: var(--ov-w-strong);
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--ov-track-hero);
 }
 
-.ov-t-primary {
-  font-size: var(--ov-t-primary);
-  font-weight: 600;
-}
-
-.ov-t-secondary {
-  font-size: var(--ov-t-secondary);
-}
-
-.ov-t-caption {
-  font-size: var(--ov-t-caption);
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ov-fg-muted);
-}
-
-.ov-muted {
-  color: var(--ov-fg-muted);
-}
-
-.ov-dim {
+/*
+ * A unit after a number ('s', 'km/h'): small, dim, tucked in. The host sets the size from
+ * --ov-t-unit (after a lead number) or --ov-t-unit-hero (after a hero number), floored.
+ */
+.ov-unit {
+  margin-left: 0.08em;
+  font-family: var(--ov-font-small);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: 0.02em;
   color: var(--ov-fg-dim);
-}
-
-.ov-ellipsis {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Tones: `--ov-tone` for components that tint with it, `color` for plain text. */
@@ -310,10 +403,6 @@ body {
 .ov-tone-info {
   --ov-tone: var(--ov-info);
   color: var(--ov-info);
-}
-.ov-tone-accent {
-  --ov-tone: var(--ov-accent);
-  color: var(--ov-accent);
 }
 .ov-tone-dim {
   --ov-tone: var(--ov-fg-dim);

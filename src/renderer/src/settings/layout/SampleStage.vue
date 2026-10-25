@@ -1,7 +1,9 @@
 <script setup lang="ts">
 /**
- * Backdrop of the live previews: a static picture of sky, kerb and asphalt, so the panel's
- * background opacity and the text halo read as they would over the game. Painted once.
+ * Backdrop of the live previews: a static picture of bright sky over dark asphalt, so the
+ * panel's background opacity and the text halo read as they would over the game; the preview
+ * rows straddle both. Neutral greys only: a green verge or a red kerb behind a row would read
+ * as our meaning colours. Painted once.
  */
 import { useI18n } from '../../composables/useI18n'
 
@@ -28,7 +30,7 @@ const t = useI18n()
   overflow: hidden;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
-  background: #2f353f;
+  background: #30353c;
   isolation: isolate;
 }
 
@@ -39,15 +41,15 @@ const t = useI18n()
   background:
     linear-gradient(180deg, transparent 0 58%, rgba(0, 0, 0, 0.28) 100%),
     linear-gradient(180deg, transparent 0 41%, #d6dbe2 41% 42%, transparent 42% 100%),
-    repeating-linear-gradient(90deg, #c8352e 0 18px, #e9ecef 18px 36px) 0 40% / 100% 6px no-repeat,
+    repeating-linear-gradient(90deg, #6d737b 0 18px, #e9ecef 18px 36px) 0 40% / 100% 6px no-repeat,
     linear-gradient(
       180deg,
-      #7aa4d1 0%,
-      #b9cde2 34%,
-      #5c8a4c 34%,
-      #4b7440 40%,
-      #3b414b 42%,
-      #2a2f37 100%
+      #9fb0c2 0%,
+      #d5dde6 34%,
+      #3a4048 34%,
+      #343a42 40%,
+      #30353c 42%,
+      #1f2328 100%
     );
 }
 
@@ -63,6 +65,7 @@ const t = useI18n()
   right: 10px;
   bottom: 6px;
   color: rgba(255, 255, 255, 0.72);
+  font-family: var(--ov-font-small);
   font-size: 11px;
   letter-spacing: 0.02em;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);

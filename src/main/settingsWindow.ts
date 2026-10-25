@@ -67,7 +67,8 @@ function createWindow(): BrowserWindow {
     show: false,
     resizable: true,
     autoHideMenuBar: true,
-    backgroundColor: '#14171c',
+    // settings.css --st-bg: no flash of another colour while the page loads.
+    backgroundColor: '#101216',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,

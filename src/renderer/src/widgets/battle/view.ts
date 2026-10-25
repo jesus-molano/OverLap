@@ -59,7 +59,10 @@ export interface LaneView {
   readonly inPits: boolean
   readonly gap: GapView
   readonly trend: TrendView
-  /** Tone of the lane's side bar: the trend's, dim while it is unknown. */
+  /**
+   * The trend's tone (dim while unknown or in the pits). Only good and bad draw the lane's rail:
+   * a neutral or dim lane has none.
+   */
   readonly tone: Tone
   /** iRating at stake ('±17'), null when hidden or unknown. */
   readonly stake: string | null

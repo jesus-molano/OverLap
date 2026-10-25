@@ -35,7 +35,8 @@ const CHEVRONS: Readonly<Record<Exclude<TrafficKind, 'hazard'>, string>> = {
 .tr-chevron {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  /* The kit's chevron stroke (the delta trend's too). */
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
