@@ -56,7 +56,7 @@ export function createProviders(): ProviderSet {
   const delta = new DeltaProvider()
   return {
     run: {
-      relative: (ctx) => computeRelative(ctx.frame, ctx.session, ctx.config.relative),
+      relative: (ctx) => computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race),
       radar: (ctx, prev) => computeRadar(ctx.frame, ctx.session, ctx.config.radar, prev),
       standings: (ctx) => standings.compute(ctx.frame, ctx.session, ctx.race, ctx.config.standings),
       battle: (ctx, prev) => battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),

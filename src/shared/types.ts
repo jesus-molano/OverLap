@@ -95,6 +95,12 @@ export interface SessionMeta {
   trackName: string
   /** Drivers by CarIdx. */
   drivers: ReadonlyMap<number, DriverEntry>
+  /**
+   * DriverInfo.DriverTires: TireCompoundType by TireIndex (the value of CarIdxTireCompound),
+   * e.g. 0 'Hard', 1 'Wet'. It only describes your own car model (DriverCarIdx's CarID); empty
+   * when unknown.
+   */
+  tyreCompounds: ReadonlyMap<number, string>
   /** SessionInfo.Sessions[].SessionType by SessionNum ("Race", "Practice", ...). */
   sessionTypes: ReadonlyMap<number, string>
   /** SessionInfo.Sessions[] by SessionNum. */
@@ -195,6 +201,12 @@ export interface IncidentAlert {
  */
 export type LapRelation = 'same' | 'ahead' | 'behind'
 
+/**
+ * Per-car flag drawn as a badge (CarIdxSessionFlags), most serious first: black flag
+ * (disqualification included), meatball (repairs), furled black flag (a warning).
+ */
+export type CarPenalty = 'black' | 'meatball' | 'furled'
+
 export interface RelativeRow {
   carIdx: number
   isPlayer: boolean
@@ -218,6 +230,11 @@ export interface RelativeRow {
   lapRelation: LapRelation
   /** On pit road or in the pit stall: rendered dimmed. */
   inPits: boolean
+  /** Laps of the car's current stint (RaceCarState.stintLaps), null when unknown. */
+  stintLaps: number | null
+  /** Its tyre compound's name ('Hard'), null when unknown (tyreCompoundOf in tyres.ts). */
+  tyre: string | null
+  penalty: CarPenalty | null
 }
 
 export interface RelativeData {
@@ -316,14 +333,20 @@ export interface StandingsRow {
   /** 'class-best' = fastest lap of the class this session (purple), 'personal-best' = this driver's best (green). */
   lastLapKind: 'normal' | 'personal-best' | 'class-best'
   bestLap: number | null
+  /** 'class-best': bestLap is the fastest lap of the class this session (purple). */
+  bestLapKind: 'normal' | 'class-best'
   pitStops: number
   /** CarIdxLapCompleted at the last pit exit, null when none. */
   lastPitLap: number | null
   /** On the first lap after leaving the pits ("OUT"). */
   outLap: boolean
+  /** Laps of the current stint (RaceCarState.stintLaps); null when unknown or no column shows it. */
+  stintLaps: number | null
+  /** Its tyre compound's name ('Hard'); null when unknown or no column shows it (tyres.ts). */
+  tyre: string | null
   status: StandingsStatus
-  /** Penalty flag shown as a badge. */
-  penalty: 'black' | 'meatball' | null
+  /** Flag shown as a badge. */
+  penalty: CarPenalty | null
   /** Projected iRating change at the current position (race only), null when not computed. */
   iRatingDelta: number | null
 }
@@ -732,6 +755,12 @@ export interface RelativeOptions {
   showClassPosition: boolean
   showLicense: boolean
   showIRating: boolean
+  /** Laps of each car's stint. */
+  showStint: boolean
+  /** Tyre compound letter (known for your car model only). */
+  showTyre: boolean
+  /** Black flag, meatball and furled black flag badges after the name. */
+  showFlags: boolean
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
   /** Your incident count (and the session's limit) in the header. */
@@ -748,10 +777,23 @@ export interface RadarOptions {
 /**
  * Right-hand columns of the standings, in display order; the left block
  * (position, number, name) is fixed. 'gap' follows gapMode, 'gapLeader' is the
- * gap to the class leader shown as its own column.
+ * gap to the class leader shown as its own column. 'best' is the best lap in
+ * races ('last' shows it elsewhere), 'pitLap' the lap of the last stop, 'stint'
+ * the laps since then and 'tyre' the compound.
  */
 export type StandingsColumnId =
-  'gained' | 'ir' | 'lic' | 'delta' | 'gap' | 'gapLeader' | 'last' | 'pit'
+  | 'gained'
+  | 'ir'
+  | 'lic'
+  | 'delta'
+  | 'gap'
+  | 'gapLeader'
+  | 'last'
+  | 'best'
+  | 'pit'
+  | 'pitLap'
+  | 'stint'
+  | 'tyre'
 
 export interface StandingsColumn {
   id: StandingsColumnId

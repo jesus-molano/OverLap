@@ -25,6 +25,8 @@ export interface MockVars {
   CarIdxLastLapTime: number[]
   CarIdxBestLapTime: number[]
   CarIdxSessionFlags: number[]
+  /** TireIndex in DriverTires (tyres.ts), -1 for no car. */
+  CarIdxTireCompound: number[]
   SessionTimeRemain: number[]
   SessionLapsRemainEx: number[]
   SessionFlags: number[]
@@ -76,6 +78,7 @@ export class MockFrameBuffer {
     CarIdxLastLapTime: perCar(-1),
     CarIdxBestLapTime: perCar(-1),
     CarIdxSessionFlags: perCar(0),
+    CarIdxTireCompound: perCar(-1),
     SessionTimeRemain: [0],
     SessionLapsRemainEx: [0],
     SessionFlags: [0],

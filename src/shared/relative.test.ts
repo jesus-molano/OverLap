@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { SessionFlag } from './flags'
+import type { RaceCarState, RaceView } from './race/raceView'
 import {
   FALLBACK_LAP_TIME_S,
   clampRelativeSlots,
@@ -135,6 +137,9 @@ const OPTS: RelativeOptions = {
   showLicense: true,
   showIRating: true,
   showIncidents: true,
+  showStint: true,
+  showTyre: true,
+  showFlags: true,
   nameFormat: 'full'
 }
 
@@ -566,7 +571,10 @@ describe('row fields', () => {
         licColor: '#00c702',
         gapS: 0,
         lapRelation: 'same',
-        inPits: false
+        inPits: false,
+        stintLaps: null,
+        tyre: null,
+        penalty: null
       },
       {
         carIdx: 1,
@@ -581,7 +589,10 @@ describe('row fields', () => {
         licColor: null,
         gapS: expect.closeTo(-5),
         lapRelation: 'same',
-        inPits: false
+        inPits: false,
+        stintLaps: null,
+        tyre: null,
+        penalty: null
       }
     ])
   })
@@ -610,5 +621,72 @@ describe('incidents', () => {
     expect(data.playerRow).toBe(-1)
     expect(data.incidents?.mine).toBe(4)
     expect(computeRelative(makeFrame({ 0: { pct: 0.5 } }), session, OPTS).incidents).toBeNull()
+  })
+})
+
+describe('stint, tyres and flags', () => {
+  /** Only car() is read: each listed car's stint. */
+  function raceWith(stints: Record<number, number>): RaceView {
+    const view: Pick<RaceView, 'car'> = {
+      car: (i) => {
+        const stintLaps = stints[i]
+        return stintLaps === undefined ? undefined : ({ stintLaps } as RaceCarState)
+      }
+    }
+    return view as RaceView
+  }
+
+  const cars = { 0: { pct: 0.5 }, 1: { pct: 0.55 }, 2: { pct: 0.45 } }
+  const perCar = (values: Record<number, number>): number[] => {
+    const out = new Array<number>(MAX_CARS).fill(-1)
+    for (const [k, v] of Object.entries(values)) out[Number(k)] = v
+    return out
+  }
+  const byCar = (data: RelativeData): Map<number, RelativeData['rows'][number]> =>
+    new Map(data.rows.map((r) => [r.carIdx, r]))
+
+  it('takes each car its stint from the race model, null without one', () => {
+    const frame = makeFrame(cars)
+    const session = makeSession(drivers(3))
+    const rows = byCar(computeRelative(frame, session, OPTS, raceWith({ 0: 4, 1: 12 })))
+    expect(rows.get(0)?.stintLaps).toBe(4)
+    expect(rows.get(1)?.stintLaps).toBe(12)
+    expect(rows.get(2)?.stintLaps).toBeNull()
+    expect(computeRelative(frame, session, OPTS).rows.every((r) => r.stintLaps === null)).toBe(true)
+  })
+
+  it('names the compound for cars of your model only', () => {
+    const frame = makeFrame(cars, {
+      overrides: { CarIdxTireCompound: perCar({ 0: 0, 1: 1, 2: 1 }) }
+    })
+    const list = [...drivers(2), makeDriver(2, { carId: 99 })]
+    const tyreCompounds = new Map([
+      [0, 'Hard'],
+      [1, 'Wet']
+    ])
+    const rows = byCar(computeRelative(frame, makeSession(list, { tyreCompounds }), OPTS))
+    expect(rows.get(0)?.tyre).toBe('Hard')
+    expect(rows.get(1)?.tyre).toBe('Wet')
+    // Car 2 is another model: its index 1 is not this list's 'Wet'.
+    expect(rows.get(2)?.tyre).toBeNull()
+    // No DriverTires, or a sim build without the variable: nothing is named.
+    const noList = computeRelative(frame, makeSession(list), OPTS)
+    expect(noList.rows.every((r) => r.tyre === null)).toBe(true)
+    const noVar = computeRelative(makeFrame(cars), makeSession(list, { tyreCompounds }), OPTS)
+    expect(noVar.rows.every((r) => r.tyre === null)).toBe(true)
+  })
+
+  it('badges black, meatball and furled flags, signed bit fields included', () => {
+    const flags = perCar({
+      0: 0,
+      // With the start-go bit it is the negative Int32 the SDK sends; the furled bit still reads.
+      1: SessionFlag.Furled | 0x80000000,
+      2: SessionFlag.Repair | SessionFlag.Furled
+    })
+    const frame = makeFrame(cars, { overrides: { CarIdxSessionFlags: flags } })
+    const rows = byCar(computeRelative(frame, makeSession(drivers(3)), OPTS))
+    expect(rows.get(0)?.penalty).toBeNull()
+    expect(rows.get(1)?.penalty).toBe('furled')
+    expect(rows.get(2)?.penalty).toBe('meatball')
   })
 })

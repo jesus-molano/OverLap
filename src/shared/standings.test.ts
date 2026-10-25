@@ -176,6 +176,7 @@ function makeSession(list: readonly DriverEntry[], o: Partial<SessionMeta> = {})
     trackLengthM: 5000,
     trackName: 'Test',
     drivers: new Map(list.map((d) => [d.carIdx, d])),
+    tyreCompounds: new Map(),
     sessionTypes: new Map([
       [0, 'Race'],
       [1, 'Practice']
@@ -960,5 +961,69 @@ describe('performance', () => {
     for (let i = 0; i < runs; i++) compute(RACE, session, race, FULL)
     const perRun = (performance.now() - t0) / runs
     expect(perRun).toBeLessThan(1)
+  })
+})
+
+describe('best lap, stints, tyres and warnings', () => {
+  it("marks each class's fastest best lap", () => {
+    const session = makeSession([
+      ...drivers(3, 0),
+      ...drivers(2, 10, { classId: 2, classRelSpeed: 90 })
+    ])
+    const race = makeRace([
+      { carIdx: 0, classPosition: 1, bestLapTime: 90.5 },
+      { carIdx: 1, classPosition: 2, bestLapTime: 90.2 },
+      { carIdx: 2, classPosition: 3, bestLapTime: null },
+      { carIdx: 10, classPosition: 1, bestLapTime: 80 },
+      { carIdx: 11, classPosition: 2, bestLapTime: 79.9 }
+    ])
+    const data = compute(RACE, session, race, FULL)
+    const kinds = [0, 1, 2, 10, 11].map((i) => rowOf(data, i).bestLapKind)
+    expect(kinds).toEqual(['normal', 'class-best', 'normal', 'normal', 'class-best'])
+  })
+
+  it('sends the stint only for the stint column, the last stop always', () => {
+    const session = makeSession(drivers(2))
+    const race = makeRace([
+      { carIdx: 0, classPosition: 1, stintLaps: 7, pitStops: 1, lastPitLap: 9 },
+      { carIdx: 1, classPosition: 2, stintLaps: 16 }
+    ])
+    const shown = compute(RACE, session, race, FULL)
+    expect(rowOf(shown, 0)).toMatchObject({ stintLaps: 7, lastPitLap: 9 })
+    expect(rowOf(shown, 1).stintLaps).toBe(16)
+    // Every car's stint grows each lap: without the column the table is not re-sent for it.
+    const hidden = compute(RACE, session, race, hide(FULL, 'stint'))
+    expect(rowOf(hidden, 0)).toMatchObject({ stintLaps: null, lastPitLap: 9 })
+  })
+
+  it('names the tyres of your car model for the tyre column only', () => {
+    const session = makeSession([...drivers(2), makeDriver(2, { carId: 128 })], {
+      tyreCompounds: new Map([
+        [0, 'Hard'],
+        [1, 'Wet']
+      ])
+    })
+    const compounds = new Array<number>(MAX_CARS).fill(-1)
+    compounds[0] = 0
+    compounds[1] = 1
+    compounds[2] = 1
+    const frame: TelemetryFrame = { ...RACE, CarIdxTireCompound: compounds }
+    const race = makeRace(field(3))
+    const data = compute(frame, session, race, FULL)
+    expect([0, 1, 2].map((i) => rowOf(data, i).tyre)).toEqual(['Hard', 'Wet', null])
+    const hidden = compute(frame, session, race, hide(FULL, 'tyre'))
+    expect(hidden.classes.flatMap((b) => b.rows).every((r) => r.tyre === null)).toBe(true)
+  })
+
+  it('badges the furled black flag as a warning, under the black flag and the meatball', () => {
+    const session = makeSession(drivers(3))
+    const race = makeRace([
+      // 0x80000000 makes the bit field a negative Int32, as the SDK sends it.
+      { carIdx: 0, classPosition: 1, sessionFlags: SessionFlag.Furled | 0x80000000 },
+      { carIdx: 1, classPosition: 2, sessionFlags: SessionFlag.Furled | SessionFlag.Repair },
+      { carIdx: 2, classPosition: 3, sessionFlags: SessionFlag.Furled | SessionFlag.Black }
+    ])
+    const rows = block(compute(RACE, session, race, FULL)).rows
+    expect(rows.map((r) => r.penalty)).toEqual(['furled', 'meatball', 'black'])
   })
 })

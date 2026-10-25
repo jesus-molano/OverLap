@@ -65,4 +65,8 @@ const shapes = computed<readonly IconShape[]>(() => ICONS[props.name])
 .ov-icon__ink {
   fill: var(--ov-flag-black);
 }
+
+.ov-icon__white {
+  fill: var(--ov-flag-white);
+}
 </style>

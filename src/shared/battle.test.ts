@@ -139,6 +139,7 @@ function makeSession(list: DriverEntry[], o: Partial<SessionMeta> = {}): Session
     trackLengthM: 5000,
     trackName: 'Test',
     drivers: new Map(list.map((d) => [d.carIdx, d])),
+    tyreCompounds: new Map(),
     sessionTypes: new Map([[0, 'Race']]),
     sessions: new Map(),
     subSessionId: 1,

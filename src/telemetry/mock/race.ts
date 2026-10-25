@@ -68,6 +68,8 @@ import {
   spotterState,
   trackGapM
 } from './traffic'
+import { mockTyreCompound } from './tyres'
+import { warningEvents } from './warnings'
 
 export type { MockCast } from './field'
 export type { MockRacePhase } from './finish'
@@ -177,6 +179,9 @@ export class MockRace {
 
     const v = this.out.vars
     for (const d of this.roster) v.CarIdxClass[d.carIdx] = MOCK_CLASSES[d.classKey].id
+    for (const car of this.cars) {
+      v.CarIdxTireCompound[car.idx] = mockTyreCompound(car.idx, this.cast)
+    }
     v.PlayerCarIdx[0] = this.playerIdx
     v.IsOnTrack[0] = true
     v.SessionLapsRemainEx[0] = LAPS_REMAIN_UNLIMITED
@@ -290,6 +295,8 @@ export class MockRace {
         }
       })
     }
+    const warned = this.cars.find((c) => c.idx === this.cast.battleAhead)
+    events.push(...warningEvents(warned, (kind, carIdx) => this.logEvent(kind, carIdx)))
     for (const [atS, points, offS] of tl.playerIncidents) {
       events.push({
         atS,

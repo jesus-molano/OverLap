@@ -146,6 +146,7 @@ function session(name: string, type?: string): SessionMeta {
     trackLengthM: 4000,
     trackName: name,
     drivers: new Map(),
+    tyreCompounds: new Map(),
     sessionTypes: new Map(type === undefined ? [] : [[0, type]]),
     sessions: new Map(),
     subSessionId: 0,
@@ -498,6 +499,9 @@ describe('TelemetryLoop', () => {
       showClassPosition: true,
       showLicense: true,
       showIRating: true,
+      showStint: false,
+      showTyre: false,
+      showFlags: true,
       nameFormat: 'inherit',
       showIncidents: true
     })

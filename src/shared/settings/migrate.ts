@@ -11,11 +11,12 @@ import { OPTION_SCHEMA } from '../settingsSchema'
 import type { StandingsColumn, StandingsColumnId } from '../types'
 import { isRecord } from './fields'
 
-/** v3 flag -> v4 column. */
+/** v3 flag -> v4 column (someone who hid the last lap does not want the best one either). */
 const V3_COLUMN_FLAGS: readonly (readonly [flag: string, id: StandingsColumnId])[] = [
   ['showPositionsGained', 'gained'],
   ['showIRating', 'ir'],
   ['showLastLap', 'last'],
+  ['showLastLap', 'best'],
   ['showPits', 'pit']
 ]
 

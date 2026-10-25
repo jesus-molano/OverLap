@@ -66,6 +66,9 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   showClassPosition: true,
   showLicense: true,
   showIRating: true,
+  showStint: false,
+  showTyre: false,
+  showFlags: true,
   nameFormat: 'inherit',
   showIncidents: true
 }
@@ -78,7 +81,11 @@ const DEFAULT_COLUMNS: StandingsColumn[] = [
   { id: 'gap', visible: true },
   { id: 'gapLeader', visible: false },
   { id: 'last', visible: true },
-  { id: 'pit', visible: true }
+  { id: 'best', visible: true },
+  { id: 'pit', visible: true },
+  { id: 'pitLap', visible: false },
+  { id: 'stint', visible: false },
+  { id: 'tyre', visible: false }
 ]
 const DEFAULT_STANDINGS: StandingsOptions = {
   mode: 'compact',
@@ -693,7 +700,25 @@ describe('normalizeColumns', () => {
       ['lic', false],
       ['delta', false],
       ['gapLeader', false],
-      ['pit', false]
+      ['best', false],
+      ['pit', false],
+      ['pitLap', false],
+      ['stint', false],
+      ['tyre', false]
+    ])
+  })
+
+  it('adds the columns a file saved before them lacks, hidden, at the end', () => {
+    const before = DEFAULT_COLUMNS.filter(
+      (c) => !['best', 'pitLap', 'stint', 'tyre'].includes(c.id)
+    )
+    const out = normalizeColumns(before, DEFAULT_COLUMNS)
+    expect(out.slice(0, before.length)).toEqual(before)
+    expect(out.slice(before.length)).toEqual([
+      { id: 'best', visible: false },
+      { id: 'pitLap', visible: false },
+      { id: 'stint', visible: false },
+      { id: 'tyre', visible: false }
     ])
   })
 
@@ -868,7 +893,11 @@ describe('normalizeSettings: migration', () => {
       '+gap',
       '-gapLeader',
       '-last',
-      '+pit'
+      '-best',
+      '+pit',
+      '-pitLap',
+      '-stint',
+      '-tyre'
     ])
     expect(s.standings).toEqual({
       ...DEFAULT_STANDINGS,

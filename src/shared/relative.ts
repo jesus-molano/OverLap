@@ -1,15 +1,18 @@
 /**
  * Relative widget: cars nearest to the player on track, with time gaps
- * estimated from CarIdxEstTime, and your incident count for its header.
- * Pure function of one telemetry tick.
+ * estimated from CarIdxEstTime, and your incident count for its header. Pure function of one
+ * telemetry tick (plus the RaceModel's stint counts, when given).
  */
 import { driverIdentity } from './driver'
 import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
+import { penaltyOf } from './penalty'
+import type { RaceView } from './race/raceView'
 import { currentSessionType, isCarInPits, isRaceSession, resolvePlayerCarIdx } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
+import { tyreCompoundOf, tyreModelOf } from './tyres'
 import type {
   DriverEntry,
   LapRelation,
@@ -114,10 +117,15 @@ function byRelDesc(a: number, b: number): number {
   return (relBuf[b] ?? 0) - (relBuf[a] ?? 0) || a - b
 }
 
+/**
+ * `race` gives each row its stint (null without it). The stint, tyre and flag options are
+ * display-only: every row carries them.
+ */
 export function computeRelative(
   frame: TelemetryFrame,
   session: SessionMeta,
-  opts: RelativeOptions
+  opts: RelativeOptions,
+  race: RaceView | null = null
 ): RelativeData {
   const slotsAhead = clampRelativeSlots(opts.carsAhead)
   const slotsBehind = clampRelativeSlots(opts.carsBehind)
@@ -163,6 +171,7 @@ export function computeRelative(
   const estF = frame.CarIdxEstTime[focusIdx] ?? NaN
   const lapsActive = lapRelationsActive(sessionType, frame.SessionState[0] ?? SessionState.Invalid)
   const lapCompletedF = frame.CarIdxLapCompleted[focusIdx] ?? -1
+  const tyreModel = tyreModelOf(session)
 
   const makeRow = (idx: number, d: DriverEntry): RelativeRow => {
     const isPlayer = idx === focusIdx
@@ -182,7 +191,10 @@ export function computeRelative(
       lapRelation: isPlayer
         ? 'same'
         : lapRelation(lapsActive, frame.CarIdxLapCompleted[idx] ?? -1, pct, lapCompletedF, pctF),
-      inPits: isCarInPits(frame, idx)
+      inPits: isCarInPits(frame, idx),
+      stintLaps: race?.car(idx)?.stintLaps ?? null,
+      tyre: tyreCompoundOf(frame, session, tyreModel, idx),
+      penalty: penaltyOf(frame.CarIdxSessionFlags[idx])
     }
   }
 

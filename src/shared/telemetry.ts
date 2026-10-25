@@ -36,14 +36,20 @@ export const TELEMETRY_VARS = {
 
   // --- v2: timing, standings, battle, ratings ---
   // Not read, so not listed (add each back with its first consumer): CarIdxLap,
-  // CarIdxPosition, CarIdxF2Time (planned fallback for intervals: race time
-  // behind the leader, granularity unverified) and CarIdxTireCompound (tyre column).
+  // CarIdxPosition and CarIdxF2Time (planned fallback for intervals: race time
+  // behind the leader, granularity unverified).
   /** Seconds, -1 when none. */
   CarIdxLastLapTime: 'number',
   /** Seconds, -1 when none (also for disconnected drivers). */
   CarIdxBestLapTime: 'number',
   /** irsdk_Flags per car (SessionFlag in flags.ts: Black, Furled, Repair, Disqualify). */
   CarIdxSessionFlags: 'number',
+  /**
+   * TireIndex of each car's compound in DriverInfo.DriverTires (which only names your own car
+   * model's tyres), -1 when unknown. Missing in builds without it: an empty array, like any
+   * absent var.
+   */
+  CarIdxTireCompound: 'number',
   /** Seconds left; -1 before Racing. */
   SessionTimeRemain: 'number',
   /** Laps left; LAPS_REMAIN_UNLIMITED (flags.ts) in timed sessions. */
