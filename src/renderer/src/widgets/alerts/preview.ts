@@ -37,7 +37,8 @@ export const PREVIEW_ALERTS: AlertsData = Object.freeze({
   pitLimiter: 'on',
   speedKmh: 58,
   pitLimitKmh: 60,
-  incident: INCIDENT
+  incident: INCIDENT,
+  inBox: false
 })
 
 const GALLERY_FLAGS: readonly FlagKind[] = Object.freeze(['yellow', 'furled', 'blue', 'white'])
@@ -51,7 +52,8 @@ const GALLERY_NOTICES: readonly AlertNotice[] = Object.freeze([
       { kind: 'water' },
       { kind: 'oilTemp' },
       { kind: 'fuelPressure' },
-      { kind: 'tow', seconds: 42 }
+      { kind: 'tow', seconds: 42 },
+      { kind: 'damage', mandatory: true }
     ] satisfies AlertNotice[]
   ).map((n) => Object.freeze<AlertNotice>(n)),
   ...NOTICES
@@ -64,5 +66,6 @@ export const PREVIEW_GALLERY: AlertsData = Object.freeze({
   pitLimiter: 'offSpeeding',
   speedKmh: 68,
   pitLimitKmh: 60,
-  incident: INCIDENT
+  incident: INCIDENT,
+  inBox: false
 })

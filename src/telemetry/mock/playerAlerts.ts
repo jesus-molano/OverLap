@@ -1,16 +1,18 @@
 /**
  * The player's own alerts in every mock session, so each case of the alerts widget shows up at
  * least once: the furled black flag, the water slowly running hot (the trend against your own
- * average), the water and oil temperature lights, the oil and fuel pressure lights, a stall, a
- * stretch the wrong way and a tow. The pit limiter reminder and the laps to go come from the race
- * itself (race.ts: the pit lead-in surface; the RaceModel: the laps left).
+ * average), the water and oil temperature lights, the oil and fuel pressure lights, a stall,
+ * damage (optional repairs, then mandatory ones), a stretch the wrong way and a tow. The pit
+ * limiter reminder and the laps to go come from the race itself (race.ts: the pit lead-in
+ * surface; the RaceModel: the laps left).
  *
  * All of it happens between minute 15 and minute 22 (MOCK_ALERTS_TIMELINE): after the stretches
  * the other mock tests read (the first ten minutes end to end, 15 minutes of MockRace) and before
  * the late join of the end-to-end run. Only the player's own variables change (its
- * CarIdxSessionFlags and EngineWarnings bits, the tow, the temperatures and LapDistPct), never its
- * motion: the wrong way is LapDistPct alone running backwards, so the timing, the scripted cars
- * and the other widgets see the same race as without it. Deterministic: the race's state only.
+ * CarIdxSessionFlags and EngineWarnings bits, the tow, the temperatures, the revs and
+ * LapDistPct), never its motion: the wrong way is LapDistPct alone running backwards, so the
+ * timing, the scripted cars and the other widgets see the same race as without it.
+ * Deterministic: the race's state only.
  */
 import { EngineWarning, SessionFlag } from '@shared/flags'
 import { isValidPct } from '@shared/lapDist'
@@ -37,6 +39,8 @@ export interface MockAlertsTimeline {
   readonly oilPressureLight: Span
   readonly fuelPressureLight: Span
   readonly stall: Span
+  /** Damage: optional repairs from atS, mandatory ones too from a second later. */
+  readonly damage: Span
   /** From atS, the first moment mid-lap: LapDistPct runs back at speedMs for forS. */
   readonly wrongWay: { readonly atS: number; readonly forS: number; readonly speedMs: number }
   /** A tow of forS seconds. */
@@ -51,6 +55,7 @@ export const MOCK_ALERTS_TIMELINE: MockAlertsTimeline = {
   oilPressureLight: [1084, 6],
   fuelPressureLight: [1094, 6],
   stall: [1130, 6],
+  damage: [1145, 10],
   wrongWay: { atS: 1170, forS: 6, speedMs: 12 },
   tow: [1220, 40]
 }
@@ -58,6 +63,10 @@ export const MOCK_ALERTS_TIMELINE: MockAlertsTimeline = {
 /** Normal readings (°C), each with a slow wobble of a few tenths. */
 export const MOCK_WATER_C = 88
 export const MOCK_OIL_C = 102
+/** DriverCarIdleRPM of the mock's cars, and the revs per m/s above it (one gear for all). */
+export const MOCK_IDLE_RPM = 900
+const RPM_PER_MS = 110
+const MAX_RPM = 8000
 /** With the warning light on. */
 const WATER_LIGHT_C = 116
 const OIL_LIGHT_C = 128
@@ -108,8 +117,15 @@ export class MockPlayerAlerts {
     if (oilLight) bits |= EngineWarning.OilTemp
     if (inSpan(t, tl.oilPressureLight)) bits |= EngineWarning.OilPressure
     if (inSpan(t, tl.fuelPressureLight)) bits |= EngineWarning.FuelPressure
-    if (inSpan(t, tl.stall)) bits |= EngineWarning.Stalled
+    const stalled = inSpan(t, tl.stall)
+    if (stalled) bits |= EngineWarning.Stalled
+    if (inSpan(t, tl.damage)) {
+      bits |= EngineWarning.OptionalRepairs
+      if (t >= tl.damage[0] + 1) bits |= EngineWarning.MandatoryRepairs
+    }
     v.EngineWarnings[0] = (v.EngineWarnings[0] ?? 0) | bits
+    const speed = Math.abs(v.Speed[0] ?? 0)
+    v.RPM[0] = stalled ? 0 : Math.min(MAX_RPM, MOCK_IDLE_RPM + RPM_PER_MS * speed)
 
     if (inSpan(t, tl.furled)) {
       v.CarIdxSessionFlags[playerIdx] = (v.CarIdxSessionFlags[playerIdx] ?? 0) | SessionFlag.Furled

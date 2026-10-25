@@ -10,11 +10,14 @@ import type { Tone } from '@renderer/ui/tones'
 /** The next limit this close (incidents left, one car contact) turns the count to a warning. */
 export const INCIDENT_WARN_MARGIN = 4
 
-/** The count of the edit-mode samples (relative and standings): an official race's penalty. */
+/**
+ * The count of the edit-mode samples (relative and standings): an official race's limit, which
+ * online is the DQ at 17x with no penalty limit before it.
+ */
 export const PREVIEW_INCIDENTS: Readonly<IncidentCount> = Object.freeze({
   mine: 3,
   team: null,
-  limit: Object.freeze({ kind: 'penalty', at: 17 } as const)
+  limit: Object.freeze({ kind: 'dq', at: 17 } as const)
 })
 
 export interface IncidentCountView {

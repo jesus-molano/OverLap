@@ -59,8 +59,26 @@ const POINTS_OF: Readonly<Record<number, number>> = {
 
 export interface DecodedIncident {
   readonly kind: IncidentKind
-  /** Points of the penalty byte, null when it holds none we know. */
+  /**
+   * Points of the penalty byte, null when it holds none we know. Not the points the incident
+   * adds (online it read 0x00 for an "Off Track (1x)", 0x0400 for a 1x wall hit): the count says
+   * those, and INCIDENT_SEVERITY which report names an incident.
+   */
   readonly points: number | null
+}
+
+/**
+ * How serious each report is, the worst first: hitting a car, hitting the wall, a loss of
+ * control, leaving the track, then a light contact (with a car before the wall). Several reports
+ * around one incident (an off-track that ends in the wall) name it by the worst.
+ */
+export const INCIDENT_SEVERITY: Readonly<Record<IncidentKind, number>> = {
+  'collision-car': 6,
+  'collision-world': 5,
+  'loss-of-control': 4,
+  'off-track': 3,
+  'contact-car': 2,
+  'contact-world': 1
 }
 
 /** A PlayerIncidents value as an unsigned bit field, 0 when missing or not a number. */

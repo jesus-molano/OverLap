@@ -8,6 +8,7 @@ import {
 } from './constants'
 import { MOCK_CLASSES, MOCK_PACE_CAR_IDX, licColorOf, licLevelOf, licSubLevelOf } from './drivers'
 import type { MockDriver } from './drivers'
+import { MOCK_IDLE_RPM } from './playerAlerts'
 import { MOCK_INCIDENT_LIMITS } from './playerIncidents'
 import type { Rng } from './rng'
 import { MOCK_CORNERS, MOCK_SECTOR_STARTS } from './track'
@@ -100,6 +101,8 @@ export interface MockSessionInfo {
     DriverUserID: number
     PaceCarIdx: number
     DriverCarEstLapTime: number
+    /** The revs the mock's engine idles at (playerAlerts.ts writes RPM from it). */
+    DriverCarIdleRPM: number
     /** The player's car model's compounds (tyres.ts). */
     DriverTires: MockDriverTire[]
     Drivers: MockYamlDriver[]
@@ -162,6 +165,7 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       DriverUserID: me?.userId ?? -1,
       PaceCarIdx: MOCK_PACE_CAR_IDX,
       DriverCarEstLapTime: me ? MOCK_CLASSES[me.classKey].estLapTimeS : 0,
+      DriverCarIdleRPM: MOCK_IDLE_RPM,
       DriverTires: mockDriverTires(),
       Drivers: input.roster.map(toYamlDriver)
     }

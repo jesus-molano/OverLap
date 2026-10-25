@@ -2,8 +2,11 @@
  * Engine temperature trend, for the alerts widget: water or oil staying well above your own
  * reference, before the sim's warning light comes on. The reference is the average of your last
  * clean laps this session (each lap's mean reading), so it is your car on this track today, not a
- * fixed threshold. Following another car closely heats the engine without any damage: the
- * notice says so when you spent most of the time behind one. Pure.
+ * fixed threshold. Only a lap like the one before it counts (within ENGINE_TREND.stableC): the
+ * laps of a warm-up, still climbing, would make a reference below your normal. A tow or a jump of
+ * a reading (a repair cools the oil by 12 °C at once) starts the reference over: the engine is
+ * not the one it was built on. Following another car closely heats the engine without any
+ * damage: the notice says so when you spent most of the time behind one. Pure.
  *
  * WaterTemp and OilTemp are per car model: a reading the car does not have (NaN) is skipped.
  */
@@ -16,6 +19,12 @@ export const ENGINE_TREND = {
   minLaps: 2,
   /** A lap needs this many samples to be a reference (a few seconds at the 10 Hz of the widget). */
   minSamples: 20,
+  /** A lap is a reference only when its mean is this close (°C) to the mean of the lap before. */
+  stableC: 1,
+  /** A reading moving more than this (°C) from one tick to the next: a repair or a reset. */
+  jumpC: 5,
+  /** Ticks further apart than this (s) are not compared for a jump. */
+  jumpGapS: 1,
   /** Above the reference by this much (°C)... */
   riseC: 5,
   /** ...for this long (s) raises the notice... */
@@ -83,11 +92,17 @@ function fluidState(): FluidState {
   }
 }
 
+const NO_MEANS: Readonly<Record<Fluid, number>> = Object.freeze({
+  water: Number.NaN,
+  oil: Number.NaN
+})
+
 const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length
 
 /**
- * One per alerts provider. update() at every compute; resume() after a gap in the computes (the
- * reference stays: it is the session's); reset() for a new session.
+ * One per alerts provider. update() at every compute; observe() on every tick (a tow or a repair
+ * may come while the widget is hidden); resume() after a gap in the computes (the reference
+ * stays: it is the session's); reset() for a new session.
  */
 export class EngineTrend {
   private readonly fluids: Readonly<Record<Fluid, FluidState>> = {
@@ -95,6 +110,8 @@ export class EngineTrend {
     oil: fluidState()
   }
   private pending: PendingLap[] = []
+  /** Means of the last lap closed (NaN unless sampled whole): the next one must be like it. */
+  private prevMeans: Readonly<Record<Fluid, number>> = NO_MEANS
   /** CarIdxLapCompleted during the lap being sampled, NaN when unknown. */
   private lap = Number.NaN
   /** That lap was sampled from its start (its S/F crossing was seen). */
@@ -103,12 +120,17 @@ export class EngineTrend {
   private tainted = false
   private lastNow = Number.NaN
   private draft = 0
+  /** The readings of the last tick observe() saw, and when. */
+  private seenT = Number.NaN
+  private seenWater = Number.NaN
+  private seenOil = Number.NaN
 
   resume(): void {
     this.lap = Number.NaN
     this.fromStart = false
     this.lastNow = Number.NaN
     this.draft = 0
+    this.prevMeans = NO_MEANS
     for (const f of FLUIDS.map((k) => this.fluids[k])) {
       f.smooth = Number.NaN
       f.aboveSince = Number.NaN
@@ -118,9 +140,28 @@ export class EngineTrend {
   }
 
   reset(): void {
-    this.resume()
-    this.pending = []
-    for (const k of FLUIDS) this.fluids[k].refs.length = 0
+    this.restart()
+    this.seenT = Number.NaN
+    this.seenWater = Number.NaN
+    this.seenOil = Number.NaN
+  }
+
+  /**
+   * Every tick. While towed (PlayerCarTowTime > 0), or when a reading jumps more than jumpC from
+   * one tick to the next, the engine is not the one the reference was built on (repaired, reset):
+   * it starts over, and so does the lap being sampled.
+   */
+  observe(now: number, towing: boolean, water: number, oil: number): void {
+    const dt = now - this.seenT
+    const jumped =
+      dt > 0 &&
+      dt <= ENGINE_TREND.jumpGapS &&
+      (Math.abs(water - this.seenWater) > ENGINE_TREND.jumpC ||
+        Math.abs(oil - this.seenOil) > ENGINE_TREND.jumpC)
+    this.seenT = now
+    this.seenWater = water
+    this.seenOil = oil
+    if (towing || jumped) this.restart()
   }
 
   /** The reference of a fluid (°C), null until minLaps clean laps. */
@@ -179,6 +220,13 @@ export class EngineTrend {
     return best
   }
 
+  /** Nothing of the engine before: no reference, nothing waiting to be one, a new lap. */
+  private restart(): void {
+    this.resume()
+    this.pending = []
+    for (const k of FLUIDS) this.fluids[k].refs.length = 0
+  }
+
   /** Raises or ends the notice of one fluid from its distance to the reference. */
   private follow(f: FluidState, delta: number, i: EngineTrendInput): void {
     // Sitting in the box or crawling down pit road is no trend; neither is an unknown reference.
@@ -201,17 +249,22 @@ export class EngineTrend {
     const laps = i.lapsCompleted
     if (laps === this.lap) return
     const next = Number.isFinite(laps) && laps === this.lap + 1
-    // One lap more, sampled whole: a reference candidate. Anything else (the first lap seen, a
-    // reset, a jump) only starts a new lap.
-    if (next && this.fromStart && !this.tainted) {
-      const means = {
-        water: this.lapMean(this.fluids.water),
-        oil: this.lapMean(this.fluids.oil)
+    // One lap more, sampled whole: a reference candidate if it is like the lap before. Anything
+    // else (the first lap seen, a reset, a jump) only starts a new lap.
+    const means =
+      next && this.fromStart
+        ? { water: this.lapMean(this.fluids.water), oil: this.lapMean(this.fluids.oil) }
+        : NO_MEANS
+    if (!this.tainted) {
+      const stable = {
+        water: stableMean(means.water, this.prevMeans.water),
+        oil: stableMean(means.oil, this.prevMeans.oil)
       }
-      if (Number.isFinite(means.water) || Number.isFinite(means.oil)) {
-        this.pending.push({ lap: laps, means, at: i.now })
+      if (Number.isFinite(stable.water) || Number.isFinite(stable.oil)) {
+        this.pending.push({ lap: laps, means: stable, at: i.now })
       }
     }
+    this.prevMeans = means
     this.fromStart = next
     this.lap = Number.isFinite(laps) ? laps : Number.NaN
     this.clearLap()
@@ -238,6 +291,11 @@ export class EngineTrend {
       this.fluids[k].lapN = 0
     }
   }
+}
+
+/** A lap mean within stableC of the lap before it, else NaN (NaN when either is unknown). */
+function stableMean(v: number, prev: number): number {
+  return Math.abs(v - prev) <= ENGINE_TREND.stableC ? v : Number.NaN
 }
 
 function pushRef(refs: number[], v: number): void {

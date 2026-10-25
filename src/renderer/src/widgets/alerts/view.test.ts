@@ -26,6 +26,7 @@ import {
   speedView,
   staticNoticeViews,
   toFlagsView,
+  meatballInBoxView,
   type AlertFilter,
   type FlagsView,
   type FlagView,
@@ -46,6 +47,7 @@ function alerts(over: Partial<AlertsData> = {}): AlertsData {
     speedKmh: 0,
     pitLimitKmh: 60,
     incident: null,
+    inBox: false,
     ...over
   }
 }
@@ -64,6 +66,7 @@ const EVERY_NOTICE: AlertNotice[] = [
   { kind: 'oilPressure' },
   { kind: 'fuelPressure' },
   { kind: 'tow', seconds: 42 },
+  { kind: 'damage', mandatory: true },
   { kind: 'water' },
   { kind: 'oilTemp' },
   { kind: 'lapsToGo', laps: 10 },
@@ -215,6 +218,7 @@ describe('notice views', () => {
       'PRESIÓN ACEITE · baja',
       'PRESIÓN GASOLINA · baja',
       `GRÚA${NB}0:42 · a boxes`,
+      'DAÑOS · reparación obligatoria',
       'TEMP. AGUA · alta',
       'TEMP. ACEITE · alta',
       `QUEDAN${NB}10${NB}V · para el final`,
@@ -230,11 +234,25 @@ describe('notice views', () => {
       'OIL PRESSURE · low',
       'FUEL PRESSURE · low',
       `TOW${NB}0:42 · to the pits`,
+      'DAMAGE · repairs required',
       'WATER TEMP · too hot',
       'OIL TEMP · too hot',
       `10${NB}TO GO · laps left`,
       `WATER 98${NB}°C ↑ · +6 vs your average (slipstream?)`
     ])
+  })
+
+  it('damage: mandatory repairs an alarm, optional ones a warning, both marked (Q12)', () => {
+    const must = noticeView({ kind: 'damage', mandatory: true }, 'metric', ES)
+    const may = noticeView({ kind: 'damage', mandatory: false }, 'metric', ES)
+    expect(must).toMatchObject({ fill: 'alarm', mark: 'icon', icon: 'meatball', chip: 'DAÑOS' })
+    expect(may).toMatchObject({ fill: 'warn', mark: 'icon', icon: 'meatball' })
+    expect(text(may)).toBe('DAÑOS LEVES · reparación opcional')
+    expect(text(noticeView({ kind: 'damage', mandatory: false }, 'metric', EN))).toBe(
+      'MINOR DAMAGE · optional repairs'
+    )
+    // Frozen per language: the band keeps its object.
+    expect(noticeView({ kind: 'damage', mandatory: true }, 'metric', ES)).toBe(must)
   })
 
   it('words the engine trend in the chosen units, the hint only when it applies', () => {
@@ -275,6 +293,7 @@ describe('notice views', () => {
       oilTemp: 'alarm',
       fuelPressure: 'alarm',
       tow: 'warn',
+      damage: 'alarm',
       lapsToGo: 'info',
       engineTrend: 'warn'
     })
@@ -395,6 +414,8 @@ describe('shownNotices', () => {
       { kind: 'tow', seconds: Number.NaN },
       { kind: 'tow', seconds: 0 },
       { kind: 'lapsToGo', laps: 0 },
+      { kind: 'damage' },
+      { kind: 'damage', mandatory: 1 },
       { kind: 'engineTrend', fluid: 'fuel', tempC: 1, deltaC: 1, draft: false },
       null
     ] as unknown as AlertNotice[]
@@ -406,8 +427,8 @@ describe('shownNotices', () => {
       { kind: 'wrongWay' }
     ]
     expect(shownNotices(sent, SHOW_ALL)).toEqual([
-      { kind: 'wrongWay' },
       { kind: 'tow', seconds: 5 },
+      { kind: 'wrongWay' },
       { kind: 'water' }
     ])
     expect(shownNotices([...EVERY_NOTICE].reverse(), SHOW_ALL).map((n) => n.kind)).toEqual([
@@ -422,13 +443,15 @@ describe('shownNotices', () => {
     expect(off({ showPitEntry: false })).not.toContain('pitEntry')
     expect(off({ showStalled: false })).not.toContain('stalled')
     expect(off({ showTow: false })).not.toContain('tow')
+    expect(off({ showDamage: false })).not.toContain('damage')
     expect(off({ showLapsToGo: false })).not.toContain('lapsToGo')
     expect(off({ showEngineTrend: false })).not.toContain('engineTrend')
     expect(off({ showEngineWarnings: false })).toEqual([
+      'tow',
       'wrongWay',
+      'damage',
       'pitEntry',
       'stalled',
-      'tow',
       'lapsToGo',
       'engineTrend'
     ])
@@ -442,6 +465,28 @@ describe('toFlagsView', () => {
     const v = flagsView(['white', 'black', 'yellow'])
     expect(v.primary).toBe(FLAG_VIEWS.black)
     expect(v.secondary).toEqual([FLAG_VIEWS.yellow, FLAG_VIEWS.white])
+  })
+
+  it('while towed: the countdown in the band, the meatball without "pit" (B10)', () => {
+    const towed = { flags: ['meatball'] as FlagKind[], inBox: true }
+    const v = toFlagsView(
+      { ...towed, notices: [{ kind: 'tow', seconds: 42 }] },
+      SHOW_ALL,
+      'metric',
+      ES
+    )
+    expect(text(v.primary as FlagView)).toBe(`GRÚA${NB}0:42 · a boxes`)
+    expect(v.secondary).toEqual([meatballInBoxView(ES)])
+    // Without the tow notice the meatball takes the band, still without the fixed note.
+    const alone = toFlagsView(towed, filter({ showTow: false }), 'metric', EN)
+    expect(alone.primary).toBe(meatballInBoxView(EN))
+    expect(text(meatballInBoxView(EN))).toBe('MEATBALL')
+    expect(meatballInBoxView(EN)).toMatchObject({ fill: 'black', mark: 'disc', chip: 'MEATBALL' })
+    // Not towed: the usual words.
+    expect(toFlagsView({ flags: ['meatball'] }, SHOW_ALL, 'metric', EN).primary).toBe(
+      flagViews(EN).meatball
+    )
+    expect(text(flagViews(EN).meatball)).toBe('MEATBALL · pit for repairs')
   })
 
   it('ranks flags and notices together (ALERT_ORDER)', () => {
