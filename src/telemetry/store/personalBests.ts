@@ -177,10 +177,30 @@ function createStore(file: string | null, opts: FileStoreOptions): FlushableStor
     void save()
   }
 
+  /**
+   * A best stored while the session string was still read as UTF-8 has every accented letter
+   * of its layout as U+FFFD in its key: asked for under the right key, it moves there (once).
+   */
+  const adoptLegacy = (key: string): void => {
+    if (bests.has(key)) return
+    const legacy = legacyPersonalBestKey(key)
+    const old = legacy === key ? undefined : bests.get(legacy)
+    if (!old) return
+    bests.delete(legacy)
+    bests.set(key, old)
+    scheduleSave()
+    changed()
+  }
+
   return {
-    get: (key) => bests.get(key) ?? null,
+    get: (key) => {
+      if (!isKey(key)) return null
+      adoptLegacy(key)
+      return bests.get(key) ?? null
+    },
     offer: (key, lap, label) => {
       if (!isKey(key)) return false
+      adoptLegacy(key)
       const ref = toReference(lap)
       if (!ref) return false
       const cur = bests.get(key)
@@ -242,6 +262,14 @@ function createStore(file: string | null, opts: FileStoreOptions): FlushableStor
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
+}
+
+/**
+ * The key as it was built before the session string was decoded as Windows-1252: the SDK
+ * binding read its bytes as UTF-8, so each accented letter (one cp1252 byte) became U+FFFD.
+ */
+export function legacyPersonalBestKey(key: string): string {
+  return key.replace(/[\u0080-￿]/g, '�')
 }
 
 function isKey(key: unknown): key is string {

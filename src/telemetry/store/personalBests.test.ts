@@ -9,6 +9,7 @@ import {
   PERSONAL_BESTS_FILE,
   PERSONAL_BESTS_SAVE_DELAY_MS,
   createFileStore,
+  legacyPersonalBestKey,
   openPersonalBestStore,
   type StoreLog
 } from './personalBests'
@@ -442,6 +443,29 @@ describe('managing the stored bests', () => {
     expect(store.list()[0]).toMatchObject({ lapTime: 97, ...SPA })
     await store.flush()
     expect(readFile().bests[KEY]).toMatchObject({ lapTime: 97, ...SPA })
+  })
+
+  it('moves a best stored under the old U+FFFD key to the right key, once', async () => {
+    const key = '67@9001/Autódromo Núñez'
+    const legacy = legacyPersonalBestKey(key)
+    expect(legacy).toBe('67@9001/Aut�dromo N��ez')
+    writeFileSync(file, JSON.stringify({ version: 1, bests: { [legacy]: lap(98) } }))
+    const changes = vi.fn()
+    const store = createFileStore(dir, { log, onChange: changes })
+    expect(store.get(key)?.lapTime).toBe(98)
+    expect(store.list().map((b) => b.key)).toEqual([key])
+    expect(changes).toHaveBeenCalledTimes(1)
+    // Already moved: asking again changes nothing; a slower lap there only fixes the names.
+    expect(store.get(key)?.lapTime).toBe(98)
+    expect(changes).toHaveBeenCalledTimes(1)
+    const label = { car: 'Car', track: 'Autódromo', layout: 'Núñez' }
+    expect(store.offer(key, lap(99), label)).toBe(false)
+    expect(store.list()[0]).toMatchObject({ key, lapTime: 98, ...label })
+    await store.flush()
+    expect(Object.keys(readFile().bests)).toEqual([key])
+    // An ASCII key has no old form; an unknown one stays unknown.
+    expect(legacyPersonalBestKey(KEY)).toBe(KEY)
+    expect(store.get('67@9001/Otro')).toBeNull()
   })
 
   it('ignores names that are not display text', () => {
