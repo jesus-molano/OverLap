@@ -34,7 +34,6 @@ function drive(
       material: v.PlayerTrackSurfaceMaterial[0] ?? -1
     })
     expect(v.PlayerCarTeamIncidentCount[0]).toBe(v.PlayerCarMyIncidentCount[0])
-    expect(v.IsReplayPlaying[0]).toBe(false)
   }
   return out
 }

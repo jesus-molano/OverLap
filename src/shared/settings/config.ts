@@ -16,6 +16,7 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
   return {
     enabledWidgets: WIDGET_IDS.filter((id: WidgetId) => s.widgets[id].visible),
     rules,
+    visibility: { ...s.visibility },
     relative: { ...s.relative },
     radar: { ...s.radar },
     standings: { ...s.standings, columns: s.standings.columns.map((c) => ({ ...c })) },

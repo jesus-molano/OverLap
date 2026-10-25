@@ -416,6 +416,22 @@ describe('focus car', () => {
     expect(rowOf(data, 2).isPlayer).toBe(true)
     expect(data.playerRow).toBe(0)
   })
+
+  it('centres on the car on camera while a replay plays, on the player otherwise', () => {
+    const cars = { 0: { pct: 0.3 }, 1: { pct: 0.5 }, 2: { pct: 0.6 } }
+    const session = makeSession(drivers(3))
+    const replay = (playing: boolean): RelativeData =>
+      computeRelative(
+        makeFrame(cars, {
+          overrides: { IsReplayPlaying: [playing], CamCarIdx: [1], CamCameraState: [0] }
+        }),
+        session,
+        OPTS
+      )
+    expect(rowOf(replay(true), 1).isPlayer).toBe(true)
+    expect(rowOf(replay(true), 0).isPlayer).toBe(false)
+    expect(rowOf(replay(false), 0).isPlayer).toBe(true)
+  })
 })
 
 describe('fallbacks', () => {

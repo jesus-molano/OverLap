@@ -4,7 +4,8 @@ import { LANGUAGES, LANGUAGE_NAMES, type Language } from '@shared/i18n'
 import { FONT_SCALE_MAX, FONT_SCALE_MIN } from '@shared/settings'
 import { ACCENT_PRESETS, OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useAppearance } from '../../composables/useAppearance'
-import { useI18n } from '../../composables/useI18n'
+import { useI18n, useLocale } from '../../composables/useI18n'
+import { useOptions } from '../../composables/useWidgetSettings'
 import LicenseChip from '../../ui/LicenseChip.vue'
 import NumberBadge from '../../ui/NumberBadge.vue'
 import { createDriverStyles } from '../../view/styles'
@@ -19,18 +20,23 @@ import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
+import { liveOnlyWidgets } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { formatPercent } from '../values'
 
 /**
- * Global look shared by every widget (settings.appearance): live preview (fixed), then the
- * options (they scroll). The default slot closes the scrolling part (the window's foot).
+ * Global look shared by every widget (settings.appearance), and when they all hide with what
+ * iRacing shows (settings.visibility): live preview (fixed), then the options (they scroll).
+ * The default slot closes the scrolling part (the window's foot).
  */
 const appearance = useAppearance()
+const visibility = useOptions('visibility')
 const t = useI18n()
+const locale = useLocale()
 const titleId = useId()
 const set = optionSetter('appearance')
+const setVisibility = optionSetter('visibility')
 
 const A = OPTION_SCHEMA.appearance
 /** Slider readout in the current language; a new function only when the language changes. */
@@ -60,6 +66,15 @@ const numberChoices = computed(() =>
 )
 const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
+)
+const replayChoices = computed(() =>
+  choiceOptions(
+    OPTION_SCHEMA.visibility.replays.values,
+    t.value.settings.appearance.screen.replayChoices
+  )
+)
+const replaysHelp = computed(() =>
+  t.value.settings.appearance.screen.replaysHelp(liveOnlyWidgets(t.value, locale.value))
 )
 const FONT_PRESETS = [90, 100, 115, 130] as const
 
@@ -191,6 +206,30 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           {{ option.label }}
         </template>
       </ChoiceControl>
+    </PageSection>
+
+    <PageSection :title="t.settings.appearance.screen.title">
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.simUi"
+        :help="t.settings.appearance.screen.simUiHelp"
+        :current="visibility.hideWithSimUi"
+        :apply="setVisibility('hideWithSimUi')"
+      />
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.garage"
+        :help="t.settings.appearance.screen.garageHelp"
+        :current="visibility.hideInGarage"
+        :apply="setVisibility('hideInGarage')"
+      />
+      <ChoiceControl
+        :label="t.settings.appearance.screen.replays"
+        :help="replaysHelp"
+        :current="visibility.replays"
+        :options="replayChoices"
+        :apply="setVisibility('replays')"
+      />
     </PageSection>
 
     <PageSection :title="t.settings.appearance.other.title">

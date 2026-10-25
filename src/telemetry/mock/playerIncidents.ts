@@ -7,7 +7,8 @@
  * - 2 points: an off-track into the gravel, upgraded a moment later to a loss of control
  *   (1x, then 1x more: iRacing keeps the worse of the two);
  * - 4 points: a car contact; anything else: a rise with no report.
- * No replay ever plays. Deterministic: the same timeline gives the same frames.
+ * Live frames only (screen.ts plays a replay in MockSource). Deterministic: the same timeline
+ * gives the same frames.
  */
 import {
   IncidentPenalty,
@@ -89,6 +90,5 @@ export class MockPlayerIncidents {
     v.PlayerCarTeamIncidentCount[0] = this.count
     v.PlayerIncidents[0] = this.report
     v.PlayerTrackSurfaceMaterial[0] = offTrack ? this.offMaterial : TrackMaterial.Asphalt1
-    v.IsReplayPlaying[0] = false
   }
 }

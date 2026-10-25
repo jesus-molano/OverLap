@@ -8,7 +8,7 @@ import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { penaltyOf } from './penalty'
 import type { RaceView } from './race/raceView'
-import { currentSessionType, isCarInPits, isRaceSession, resolvePlayerCarIdx } from './sessionInfo'
+import { currentSessionType, isCarInPits, isRaceSession, resolveFocusCarIdx } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
@@ -143,7 +143,8 @@ export function computeRelative(
   const pcts = frame.CarIdxLapDistPct
   const surfaces = frame.CarIdxTrackSurface
 
-  const focusIdx = resolvePlayerCarIdx(frame, session)
+  // The player, or the car on camera while a replay plays.
+  const focusIdx = resolveFocusCarIdx(frame, session)
   const focus = session.drivers.get(focusIdx)
   const pctF = pcts[focusIdx]
   if (!focus || !isValidPct(pctF) || surfaces[focusIdx] === TrackLocation.NotInWorld) {

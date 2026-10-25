@@ -36,7 +36,6 @@ export interface MockVars {
   PlayerCarTeamIncidentCount: number[]
   PlayerIncidents: number[]
   PlayerTrackSurfaceMaterial: number[]
-  IsReplayPlaying: boolean[]
   Throttle: number[]
   Brake: number[]
   Clutch: number[]
@@ -54,6 +53,11 @@ export interface MockVars {
   PlayerCarTowTime: number[]
   WaterTemp: number[]
   OilTemp: number[]
+  /** Live driving: no replay, the camera on the player, the UI shown (screen.ts changes them). */
+  IsReplayPlaying: boolean[]
+  CamCarIdx: number[]
+  CamCameraState: number[]
+  IsGarageVisible: boolean[]
 }
 
 function perCar<T>(value: T): T[] {
@@ -87,7 +91,6 @@ export class MockFrameBuffer {
     PlayerCarTeamIncidentCount: [0],
     PlayerIncidents: [0],
     PlayerTrackSurfaceMaterial: [0],
-    IsReplayPlaying: [false],
     Throttle: [0],
     Brake: [0],
     Clutch: [0],
@@ -101,7 +104,11 @@ export class MockFrameBuffer {
     LapDistPct: [0],
     PlayerCarTowTime: [0],
     WaterTemp: [0],
-    OilTemp: [0]
+    OilTemp: [0],
+    IsReplayPlaying: [false],
+    CamCarIdx: [0],
+    CamCameraState: [0],
+    IsGarageVisible: [false]
   }
   /** Same object: the assignment fails to compile if TELEMETRY_VARS lists a var the mock lacks. */
   private readonly listed: TelemetryFrame = this.vars

@@ -67,8 +67,6 @@ export const TELEMETRY_VARS = {
   PlayerIncidents: 'number',
   /** irsdk_TrkSurf under the player's car (asphalt, kerb, grass, gravel...). */
   PlayerTrackSurfaceMaterial: 'number',
-  /** A replay is playing: nothing seen then is a new incident. */
-  IsReplayPlaying: 'boolean',
 
   // --- v2: inputs widget (player only) ---
   /** 0 = off throttle, 1 = full. */
@@ -99,7 +97,20 @@ export const TELEMETRY_VARS = {
   /** °C. Per car model: missing in some cars (an empty array then, see above). */
   WaterTemp: 'number',
   /** °C. Per car model, like WaterTemp. */
-  OilTemp: 'number'
+  OilTemp: 'number',
+
+  // --- What the sim's screen shows (simScreen.ts): hide with its UI, follow replays ---
+  /**
+   * A replay is playing: the per-car arrays and SessionTime are the replay's, not live (and
+   * nothing seen then is a new incident).
+   */
+  IsReplayPlaying: 'boolean',
+  /** CarIdx the active camera follows (any car in a replay; meaningless on a scenic camera). */
+  CamCarIdx: 'number',
+  /** irsdk_CameraState bits (UIHidden 0x8, IsScenicActive 0x2), a signed Int32. */
+  CamCameraState: 'number',
+  /** The garage screen is open. */
+  IsGarageVisible: 'boolean'
 } as const satisfies Partial<Record<keyof TelemetryVarList, 'number' | 'boolean'>>
 
 export type TelemetryVarName = keyof typeof TELEMETRY_VARS

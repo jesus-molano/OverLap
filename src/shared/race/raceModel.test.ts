@@ -221,6 +221,36 @@ describe('RaceModel timing', () => {
     expect(car(sim.view, 0).laps[0]?.time).toBeCloseTo(LAP_S, 3)
   })
 
+  it('times nothing across frames it did not see (a replay), keeping its laps and key', () => {
+    const laps = (sim: Sim): (number | boolean)[][] =>
+      car(sim.view, 0).laps.map((l) => [l.lap, l.clean])
+    const cars = (t: number): Cars => ({ 0: { d: 0.5 + V * t } })
+    const run = (pause: boolean): Sim => {
+      const sim = new Sim(makeSession(1), { sessionNum: PRACTICE })
+      const reaches = (d: number) => (): boolean => (sim.view.car(0)?.distance ?? -Infinity) >= d
+      sim.runUntil(reaches(2.98), cars)
+      expect(laps(sim)).toEqual([[2, true]])
+      const key = sim.view.sessionKey
+      // 1.5 s of frames went elsewhere (0.05 laps: short of a teleport), across the S/F line.
+      if (pause) sim.model.breakContinuity()
+      sim.t += 1.5
+      sim.runUntil(reaches(5.05), cars)
+      expect(sim.view.sessionKey).toBe(key)
+      return sim
+    }
+    // Bridged by interpolation, laps 3 and 4 would get line times nobody saw.
+    expect(laps(run(false))).toEqual([
+      [5, true],
+      [4, true],
+      [3, true],
+      [2, true]
+    ])
+    expect(laps(run(true))).toEqual([
+      [5, true],
+      [2, true]
+    ])
+  })
+
   it('ignores backward jitter of a stopped car and dirties a lap when it leaves the world', () => {
     const sim = new Sim(makeSession(1), { sessionNum: PRACTICE })
     sim.run(40, 60, (t) => ({ 0: { d: 0.5 + V * t } })) // ~1.83

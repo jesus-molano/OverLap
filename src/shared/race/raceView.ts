@@ -98,7 +98,10 @@ export interface RaceView {
   readonly sessionKey: string
   /** Race session (type /race/i) and SessionState >= Racing. */
   readonly racing: boolean
-  /** The player's CarIdx (telemetry PlayerCarIdx, falling back to DriverCarIdx), -1 when unknown. */
+  /**
+   * The player's CarIdx (telemetry PlayerCarIdx, falling back to DriverCarIdx), -1 when
+   * unknown. In a model fed replay frames, the car on camera (resolveFocusCarIdx).
+   */
   readonly playerCarIdx: number
 
   /** State of one car, undefined when it was never seen this session or is not a classified entry. */

@@ -4,7 +4,7 @@ import { WIDGET_SCALE_MAX, WIDGET_SCALE_MIN, WIDGET_SCALE_STEP } from '@shared/s
 import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
-import { useWidgetSettings } from '../../composables/useWidgetSettings'
+import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions, fromChoice, toChoice, type BoolChoice } from '../controls/choice'
@@ -12,6 +12,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
+import { replayNote } from '../replayWidgets'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
 /** "Ventana": how the widget's window looks, sizes itself and when it is shown. */
@@ -36,6 +37,9 @@ const showIn = computed(() => {
   }))
 })
 const nowhere = computed(() => SHOW_IN_KINDS.every((k) => !prefs.value.showIn[k]))
+/** Replays are a global rule (Apariencia > Visibilidad): only what it means for this widget. */
+const visibility = useOptions('visibility')
+const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value.replays))
 
 const HEIGHT_VALUES: readonly BoolChoice[] = ['on', 'off']
 const heightChoices = computed(() =>
@@ -118,11 +122,13 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :current="prefs.hideInPits"
       :apply="set('hideInPits')"
     />
+    <p class="st-row st-help replay-note">{{ replay }}</p>
   </PageSection>
 </template>
 
 <style scoped>
-.size-note {
+.size-note,
+.replay-note {
   display: block;
 }
 </style>

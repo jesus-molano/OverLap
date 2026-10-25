@@ -69,6 +69,7 @@ export function diffSettings(prev: OverlaySettings, next: OverlaySettings): Sett
 export type { ConfigSection }
 
 const CONFIG_SECTIONS = [
+  'visibility',
   'relative',
   'radar',
   'standings',
@@ -88,6 +89,7 @@ const CONFIG_SECTIONS = [
  * display-only by construction.
  */
 export const DISPLAY_ONLY: { readonly [K in ConfigSection]: readonly string[] } = {
+  visibility: displayOnlyFields('visibility').map(String),
   relative: displayOnlyFields('relative').map(String),
   radar: displayOnlyFields('radar').map(String),
   standings: displayOnlyFields('standings').map(String),
