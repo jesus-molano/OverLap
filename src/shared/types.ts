@@ -457,18 +457,49 @@ export type FlagKind =
   | 'caution'
   | 'yellow'
   | 'debris'
+  /** The furled black flag: a warning from race control (what for is not said). */
+  | 'furled'
   | 'blue'
   | 'white'
   | 'checkered'
   | 'green'
+
+/** Engine warning lights of EngineWarnings, one alert each. */
+export type EngineWarningKind = 'water' | 'oilTemp' | 'oilPressure' | 'fuelPressure'
+
+/** An alert that is not a flag (alerts.ts NOTICE_ORDER). */
+export type AlertNotice =
+  /** Driving forward against the direction of the lap. */
+  | { kind: 'wrongWay' }
+  /** Engine stalled (only while in the car). */
+  | { kind: 'stalled' }
+  /** Just into the pit lead-in from the track, limiter off. */
+  | { kind: 'pitEntry' }
+  | { kind: EngineWarningKind }
+  /** Being towed to the pits: whole seconds left. */
+  | { kind: 'tow'; seconds: number }
+  /** Laps to go of a race (10 or 5), shown for a few seconds once each per session. */
+  | { kind: 'lapsToGo'; laps: number }
+  /**
+   * A temperature well above your own reference (whole °C) for a while; `draft`: you spent
+   * most of that time close behind another car, which heats the engine without any damage.
+   */
+  | { kind: 'engineTrend'; fluid: 'water' | 'oil'; tempC: number; deltaC: number; draft: boolean }
+
+export type NoticeKind = AlertNotice['kind']
 
 export interface AlertsData {
   /** False when nothing is active: the widget fades out. */
   visible: boolean
   /** Flags that apply to you, most important first (see FlagKind order). */
   flags: FlagKind[]
-  /** On pit road: limiter on / off / on but over the limit; null when not on pit road. */
-  pitLimiter: 'on' | 'off' | 'speeding' | null
+  /** Other alerts, most important first (alerts.ts NOTICE_ORDER), one per kind. */
+  notices: AlertNotice[]
+  /**
+   * On pit road: limiter on / off / off and over the limit / on but over the limit; null when
+   * not on pit road.
+   */
+  pitLimiter: 'on' | 'off' | 'offSpeeding' | 'speeding' | null
   speedKmh: number
   pitLimitKmh: number | null
 }
@@ -740,8 +771,24 @@ export interface AlertsOptions {
   showFlags: boolean
   /** Blue flag (let a faster car by) as its own toggle: some find it noisy. */
   showBlue: boolean
+  /** The furled black flag (a warning), with the flags. */
+  showFurled: boolean
   showPitLimiter: boolean
-  /** Keep a flag shown at least this long (s, 0..10) so a flicker is readable. */
+  /** Over the limit with the limiter off says so ('EXCESO 68 / 60 · LIMITADOR OFF'). */
+  showPitOverspeed: boolean
+  /** 'LIMITADOR' when you head for the pit entry with the limiter off. */
+  showPitEntry: boolean
+  /** '10 VUELTAS' / '5 VUELTAS' to the end of a race. */
+  showLapsToGo: boolean
+  /** Tow countdown. */
+  showTow: boolean
+  showWrongWay: boolean
+  showStalled: boolean
+  /** The engine warning lights: water and oil temperature, oil and fuel pressure. */
+  showEngineWarnings: boolean
+  /** Water or oil well above your own average this session. */
+  showEngineTrend: boolean
+  /** Keep an alert shown at least this long (s, 0..10) so a flicker is readable. */
   holdS: number
 }
 

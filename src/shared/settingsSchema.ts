@@ -256,11 +256,21 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     }
   },
-  // The provider filters and holds the flags itself: nothing here is display-only.
+  // The provider filters and holds the alerts itself: nothing here is display-only. In UI order:
+  // flags, pit lane, race, engine.
   alerts: {
     showFlags: { kind: 'bool', default: true },
     showBlue: { kind: 'bool', default: true },
+    showFurled: { kind: 'bool', default: true },
     showPitLimiter: { kind: 'bool', default: true },
+    showPitOverspeed: { kind: 'bool', default: true },
+    showPitEntry: { kind: 'bool', default: true },
+    showLapsToGo: { kind: 'bool', default: true },
+    showTow: { kind: 'bool', default: true },
+    showWrongWay: { kind: 'bool', default: true },
+    showStalled: { kind: 'bool', default: true },
+    showEngineWarnings: { kind: 'bool', default: true },
+    showEngineTrend: { kind: 'bool', default: true },
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
   },
   // The reference choice changes what the provider computes; the rest is drawing. References in

@@ -11,18 +11,22 @@ import {
   useWidgetSettings
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
+import { injectSampleHost } from '@renderer/composables/widgetContext'
 import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView } from '@renderer/view/reuse'
-import { PREVIEW_ALERTS } from './preview'
+import { PREVIEW_ALERTS, PREVIEW_GALLERY } from './preview'
 import {
+  MAX_CHIPS,
+  alertFilter,
   hasAlerts,
   layoutKey,
   limiterHero,
   limiterView,
   previewFilter,
   toFlagsView,
+  type AlertFill,
   type AlertFilter,
   type FlagsView,
   type LimiterView
@@ -35,14 +39,16 @@ const autoHeight = useAutoHeight()
 const { surfaceStyle, halo } = useWidgetSurface()
 const t = useI18n()
 
+/**
+ * The settings page's live sample shows every alert there is, all the chips included, so each
+ * option shows what it adds; edit mode over the game, the usual tallest content.
+ */
+const gallery = injectSampleHost() !== null
+const sample = gallery ? PREVIEW_GALLERY : PREVIEW_ALERTS
+const maxChips = gallery ? Number.POSITIVE_INFINITY : MAX_CHIPS
+
 /** The options the banner reads, one object while they are equal (holdS is the provider's). */
-const filter = computed<AlertFilter>((prev) =>
-  reuseView(prev, {
-    showFlags: options.value.showFlags,
-    showBlue: options.value.showBlue,
-    showPitLimiter: options.value.showPitLimiter
-  })
-)
+const filter = computed<AlertFilter>((prev) => reuseView(prev, alertFilter(options.value)))
 
 // Payloads come only when they change (SKIP_EMIT), so there is no freshness timer: a lost
 // connection hides the banner through the phase.
@@ -56,11 +62,11 @@ const preview = computed(() => phase.value === 'preview')
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  () => PREVIEW_ALERTS
+  () => sample
 )
 /** Frozen with the content while hidden, so nothing re-renders behind the fade. */
 const shownFilter = computed<AlertFilter>((prev) => {
-  if (phase.value === 'preview') return previewFilter(PREVIEW_ALERTS, filter.value)
+  if (phase.value === 'preview') return previewFilter(sample, filter.value)
   if (phase.value === 'live') return filter.value
   return prev ?? filter.value
 })
@@ -68,7 +74,14 @@ const shownFilter = computed<AlertFilter>((prev) => {
 // Both keep their objects while equal: a speed change on pit road re-renders the limiter only.
 // The flag views are frozen per language: a new language swaps them all at once.
 const flags = computed<FlagsView>((prev) =>
-  toFlagsView(content.value?.flags ?? [], shownFilter.value, t.value, prev)
+  toFlagsView(
+    content.value ?? { flags: [] },
+    shownFilter.value,
+    appearance.value.units,
+    t.value,
+    prev,
+    maxChips
+  )
 )
 const limiter = computed<LimiterView | null>((prev) => {
   const d = content.value
@@ -106,6 +119,9 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
 /** The window grows upwards: the panel hugs the bottom edge while the window waits to shrink. */
 const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor === 'bottom')
+
+/** A quiet band (warn / info): the glass with a rail, not a solid fill. */
+const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
 </script>
 
 <template>
@@ -122,11 +138,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       <div
         v-if="flags.primary"
         v-memo="[flags.primary, previewTag === 'flag']"
-        class="flag ov-solid"
-        :class="[`al-fill-${flags.primary.fill}`, `al-ink-${flags.primary.ink}`]"
+        class="flag"
+        :class="[
+          `al-fill-${flags.primary.fill}`,
+          `al-ink-${flags.primary.ink}`,
+          { 'ov-solid': !isQuiet(flags.primary.fill), 'flag--quiet': isQuiet(flags.primary.fill) }
+        ]"
       >
-        <span v-if="flags.primary.mark === 'flag'" class="flag__mark flag__mark--icon"
-          ><Icon name="flag"
+        <span v-if="flags.primary.icon" class="flag__mark flag__mark--icon"
+          ><Icon :name="flags.primary.icon"
         /></span>
         <span v-else class="flag__mark al-tile" :class="`al-tile--${flags.primary.mark}`" />
         <span class="flag__text">
@@ -163,6 +183,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       >
         <span class="limiter__mark"><Icon :name="limiter.icon" class="limiter__icon" /></span>
         <span class="limiter__label">{{ limiter.label }}</span>
+        <span v-if="limiter.note" class="limiter__note">{{ limiter.note }}</span>
         <span class="limiter__speed"
           >{{ limiter.speed
           }}<span class="limiter__unit ov-unit">&nbsp;{{ limiter.unit }}</span></span
@@ -251,11 +272,24 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .al-fill-green {
   --al-fill: var(--al-green);
 }
+/* The alerts that are not flags: the overlay's own tones, colour-blind palette included. */
+.al-fill-alarm {
+  --al-fill: var(--al-alarm);
+}
+.al-fill-warn {
+  --al-fill: var(--ov-warn);
+}
+.al-fill-info {
+  --al-fill: var(--ov-info);
+}
 .al-ink-dark {
   --al-ink: var(--al-ink-dark);
 }
 .al-ink-light {
   --al-ink: var(--al-ink-light);
+}
+.al-ink-alarm {
+  --al-ink: var(--al-alarm-ink);
 }
 
 /* A small flag drawn like the real one: the plain flags are their fill, the others a pattern. */
@@ -298,6 +332,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   );
 }
 
+/* Furled black flag (a warning): black and white halves, like the warning flag. */
+.al-tile--halves {
+  background: linear-gradient(135deg, var(--al-white) 0 50%, var(--al-black) 50%);
+}
+
 /* Blue flag: blue with a yellow diagonal stripe. */
 .al-tile--diagonal {
   background: linear-gradient(
@@ -338,6 +377,29 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   box-shadow: inset 0 0 0 max(1px, 0.08em) rgba(255, 255, 255, 0.34);
 }
 
+/*
+ * Warn / info alerts (tow, laps to go, the engine trend): a quiet band on the glass with the
+ * tone as a rail and on the icon, like the limiter when it is on. Never a solid block: those
+ * are the flags and the alarms.
+ */
+.flag.flag--quiet {
+  --al-ink: var(--ov-fg);
+  position: relative;
+  background: var(--ov-chip-faint);
+}
+
+.flag--quiet::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--ov-bar-w);
+  background: var(--al-fill);
+}
+
+.flag--quiet .flag__mark--icon {
+  color: var(--al-fill);
+}
+
 .flag__mark {
   width: 2.1em;
   height: 1.5em;
@@ -372,8 +434,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   margin-block: -0.2em;
 }
 
+/* It never shrinks for the note (a pixel less already cuts it with an ellipsis): only past the
+   whole row ('SENTIDO CONTRARIO' in a narrow window before the short label takes over). */
 .flag__label {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -491,6 +556,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 /* Off or over the limit: a full-bleed alarm band, the loudest thing the overlay draws. */
 .limiter--off,
+.limiter--offSpeeding,
 .limiter--speeding {
   background: var(--al-alarm);
   color: var(--al-alarm-ink);
@@ -510,12 +576,28 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   font-size: 1.15em;
 }
 
+/* Like the flag label: the note and the speed give way before it loses a letter. */
 .limiter__label {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: var(--ov-t-lead);
+}
+
+/* 'EXCESO · LIMITADOR OFF': the second half at the lead size, after a dot; gone when narrow. */
+.limiter__note {
+  flex: 0 10 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--ov-t-lead);
+}
+
+.limiter__note::before {
+  content: '·';
+  margin-right: 0.45em;
 }
 
 /* The speed gives way before the words (and its unit before the numbers, see the end). */
@@ -537,6 +619,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 .limiter--off .ov-unit,
+.limiter--offSpeeding .ov-unit,
 .limiter--speeding .ov-unit {
   color: inherit;
 }
@@ -564,6 +647,29 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   }
 }
 
+/*
+ * Over the limit without the limiter, when "EXCESO · LIMITADOR OFF 68 / 60" no longer fits:
+ * "LIMITADOR OFF 68 / 60", what to do and a speed that says the rest (like 'off').
+ */
+@container alerts (max-width: 26em) {
+  .limiter--offSpeeding .limiter__label {
+    display: none;
+  }
+
+  .limiter--offSpeeding .limiter__note {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
+  .limiter--offSpeeding .limiter__note::before {
+    content: none;
+  }
+
+  .limiter--hero.limiter--offSpeeding .limiter__note {
+    font-size: var(--ov-t-display);
+  }
+}
+
 @container alerts (max-width: 22em) {
   .flag__note,
   .flag__label--long,
@@ -584,9 +690,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
     font-size: 1.2em;
   }
 
-  /* "LIMITADOR OFF" is the whole message. */
-  .limiter--off .limiter__speed {
+  /* "LIMITADOR OFF" is the whole message, also over the limit: switching it on slows you. */
+  .limiter--off .limiter__speed,
+  .limiter--offSpeeding .limiter__speed {
     display: none;
+  }
+
+  .limiter--hero.limiter--offSpeeding .limiter__note {
+    font-size: 1.2em;
   }
 }
 </style>

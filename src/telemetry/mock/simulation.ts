@@ -7,6 +7,7 @@
  * - series.ts: MockSeries, session after session;
  * - scripts.ts, scenarios.ts: the cast's motion and the timeline;
  * - pitLane.ts, inputs.ts: the player's pit stop and driver inputs;
+ * - playerAlerts.ts: the player's own alerts (MOCK_ALERTS_TIMELINE, minutes 15 to 22);
  * - traffic.ts: lanes and the spotter; sessionInfo.ts: the session YAML;
  * - frameBuffer.ts: output arrays and the telemetry frame.
  *
@@ -49,3 +50,5 @@ export type { MockEvent, MockEventKind, MockTimeline } from './scenarios'
 export type { MockQualifyResult, MockSessionInfo, MockYamlDriver } from './sessionInfo'
 export { mulberry32 } from './rng'
 export { spotterState } from './traffic'
+export { MOCK_ALERTS_TIMELINE } from './playerAlerts'
+export type { MockAlertsTimeline } from './playerAlerts'

@@ -458,16 +458,38 @@ export const settingsEs = {
     multiclassHelp: 'Sin otras clases en pista no avisa de tráfico; los peligros, siempre'
   },
   alerts: {
-    nothing: 'Sin banderas ni limitador el widget no se muestra',
+    nothing: 'Sin ningún aviso marcado el widget no se muestra',
     limiterHidden: 'Con «Ocultar en boxes» (Ventana) el limitador no llega a verse',
+    /** Groups of toggles after the flags ('Mostrar'). */
+    pitGroup: 'Boxes',
+    raceGroup: 'Carrera',
+    engineGroup: 'Motor',
     flags: 'Banderas',
     flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
     blue: 'Bandera azul',
     blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
+    furled: 'Negra enrollada',
+    furledHelp: '«AVISO» de dirección de carrera; el motivo no llega en los datos',
     limiter: 'Limitador de boxes',
     limiterHelp: 'En el pit lane: puesto, sin poner o por encima del límite',
-    holdHelp:
-      'Una bandera breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerla'
+    overspeed: 'Exceso con el limitador OFF',
+    overspeedHelp: 'Sin limitador también compara tu velocidad con el límite',
+    pitEntry: 'Antes de la entrada',
+    pitEntryHelp: 'Al tomar el carril de entrada a boxes sin el limitador puesto',
+    lapsToGo: '10 y 5 vueltas',
+    lapsToGoHelp: 'Unos segundos al quedar 10 y 5 vueltas para el final de la carrera',
+    tow: 'Grúa',
+    towHelp: 'Cuenta atrás hasta llegar a boxes',
+    wrongWay: 'Sentido contrario',
+    wrongWayHelp: 'Avanzas hacia atrás en la vuelta; marcha atrás y pit lane no cuentan',
+    stalled: 'Motor calado',
+    stalledHelp: 'Con el coche en pista',
+    engineWarnings: 'Testigos del motor',
+    engineWarningsHelp: 'Temperatura del agua y del aceite, presión del aceite y de la gasolina',
+    engineTrend: 'Temperatura al alza',
+    engineTrendHelp:
+      'Agua o aceite muy por encima de tu media en vueltas limpias; avisa si puede ser el rebufo',
+    holdHelp: 'Un aviso breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerlo'
   },
   delta: {
     reference: 'Referencia',
@@ -990,16 +1012,38 @@ export const settingsEn: Dict<typeof settingsEs> = {
     multiclassHelp: 'With no other classes on track, it only warns about hazards'
   },
   alerts: {
-    nothing: 'With neither flags nor limiter selected, the widget never shows',
+    nothing: 'With no alert selected, the widget never shows',
     limiterHidden: 'With “Hide in the pits” (Window) the limiter never shows',
+    pitGroup: 'Pit lane',
+    raceGroup: 'Race',
+    engineGroup: 'Engine',
     flags: 'Flags',
     flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
     blue: 'Blue flag',
     // The blue flag's note in the alerts widget.
     blueHelp: '“Let them pass”: a faster car is about to lap you',
+    furled: 'Furled black flag',
+    furledHelp: '“WARNING” from race control; the data does not say what for',
     limiter: 'Pit limiter',
     limiterHelp: 'On pit road: on, off or over the limit',
-    holdHelp: 'A brief flag stays on screen at least this long, so there is time to read it'
+    overspeed: 'Speeding with the limiter off',
+    overspeedHelp: 'Compares your speed with the limit without the limiter too',
+    pitEntry: 'Before the pit entry',
+    pitEntryHelp: 'As you turn into the pit lane entry with the limiter off',
+    lapsToGo: '10 and 5 laps to go',
+    lapsToGoHelp: 'A few seconds as 10 and 5 laps of the race remain',
+    tow: 'Tow',
+    towHelp: 'Countdown until you reach the pits',
+    wrongWay: 'Wrong way',
+    wrongWayHelp: 'Driving backwards around the lap; reverse gear and pit road do not count',
+    stalled: 'Engine stalled',
+    stalledHelp: 'With the car on track',
+    engineWarnings: 'Engine warning lights',
+    engineWarningsHelp: 'Water and oil temperature, oil and fuel pressure',
+    engineTrend: 'Rising temperature',
+    engineTrendHelp:
+      'Water or oil well above your clean-lap average; says when slipstreaming may be why',
+    holdHelp: 'A brief alert stays on screen at least this long, so there is time to read it'
   },
   delta: {
     reference: 'Reference',

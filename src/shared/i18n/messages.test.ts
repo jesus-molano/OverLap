@@ -51,10 +51,10 @@ const enByPath = new Map(en.map((l) => [l.path, l]))
 const byLanguage = LANGUAGES.map((lang) => [lang, leavesOf(messagesFor(lang))] as const)
 
 /**
- * Texts that are '' on purpose: an alert flag's short label, note and chip
+ * Texts that are '' on purpose: an alert's (flag or other) short label, note and chip
  * ('' = the label fits / says it all / is the chip). Nothing else may be empty.
  */
-const MAY_BE_EMPTY = /^widgets\.alerts\.flags\.\w+\.(short|note|chip)$/
+const MAY_BE_EMPTY = /^widgets\.alerts\.(flags|notices)\.\w+\.(short|note|chip)$/
 
 describe('dictionaries', () => {
   it('have the same shape in every language at runtime', () => {

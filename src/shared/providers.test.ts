@@ -217,6 +217,7 @@ describe('SKIP_EMIT', () => {
     const idle: AlertsData = {
       visible: false,
       flags: [],
+      notices: [],
       pitLimiter: null,
       speedKmh: 0,
       pitLimitKmh: 60
@@ -229,6 +230,11 @@ describe('SKIP_EMIT', () => {
     expect(skip({ ...pit, pitLimiter: 'speeding' }, pit)).toBe(false)
     expect(skip({ ...pit, flags: ['blue'] }, pit)).toBe(false)
     expect(skip(structuredClone(pit), pit)).toBe(true)
+    // A tow countdown is re-sent each second, not between.
+    const tow: AlertsData = { ...pit, notices: [{ kind: 'tow', seconds: 42 }] }
+    expect(skip(tow, pit)).toBe(false)
+    expect(skip(structuredClone(tow), tow)).toBe(true)
+    expect(skip({ ...tow, notices: [{ kind: 'tow', seconds: 41 }] }, tow)).toBe(false)
   })
 
   it('delta: hidden is sent once; an unchanged reading is not re-sent at 30 Hz', () => {
