@@ -223,12 +223,26 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         :current="visibility.hideInGarage"
         :apply="setVisibility('hideInGarage')"
       />
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.sessionScreen"
+        :help="t.settings.appearance.screen.sessionScreenHelp"
+        :current="visibility.hideOnSessionScreen"
+        :apply="setVisibility('hideOnSessionScreen')"
+      />
       <ChoiceControl
         :label="t.settings.appearance.screen.replays"
         :help="replaysHelp"
         :current="visibility.replays"
         :options="replayChoices"
         :apply="setVisibility('replays')"
+      />
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.waiting"
+        :help="t.settings.appearance.screen.waitingHelp"
+        :current="visibility.showWhileWaiting"
+        :apply="setVisibility('showWhileWaiting')"
       />
     </PageSection>
 

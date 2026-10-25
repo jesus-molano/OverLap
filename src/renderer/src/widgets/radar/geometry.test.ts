@@ -26,10 +26,13 @@ import {
   PLAYER_HALO_INNER,
   PROX_BUCKETS,
   RANGE_UNITS,
+  UNSIDED_MIN_GAP,
+  UNSIDED_OPACITY,
   WIDGET_PRECISION,
   centeredRect,
   distToY,
   edgeOpacity,
+  isUnsided,
   labelFontUnits,
   laneToX,
   markTransform,
@@ -205,25 +208,81 @@ describe('toCarMarks', () => {
       bucket: proximityBucket(0.3, false),
       classColor: '#ffffff',
       overlapping: false,
+      unsided: false,
       opacity: 1
     })
   })
 
-  it('never draws a car of your lane on top of you: closer than a car length it touches your bumper', () => {
-    // CarLeftRight says clear, yet the car is under a car length away (nose to tail, or beside
-    // with a gap iRacing does not report): touching, not overlapping your icon.
-    const behind = toCarMarks([car({ distM: -1.5 })], 20)[0]
-    const ahead = toCarMarks([car({ distM: 0.8 })], 20)[0]
-    const level = toCarMarks([car({ distM: 0 })], 20)[0]
-    expect(behind?.y).toBeCloseTo(CAR_H)
-    expect(ahead?.y).toBeCloseTo(-CAR_H)
-    expect(level?.y).toBeCloseTo(CAR_H)
-    // Beyond a car length nothing moves; side lanes and cars alongside keep their real place.
-    expect(toCarMarks([car({ distM: -2 * L })], 20)[0]?.y).toBeCloseTo(distToY(-2 * L, 20))
-    expect(toCarMarks([car({ distM: -1.5, lane: 1 })], 20)[0]?.y).toBeCloseTo(distToY(-1.5, 20))
-    expect(toCarMarks([car({ distM: -1.5, lane: -1, overlapping: true })], 20)[0]?.y).toBeCloseTo(
-      distToY(-1.5, 20)
+  it('draws a car beside you on an unknown side where it is, dimmed, never at your bumper (B22)', () => {
+    // CarLeftRight says clear, yet the car is under a car length away: it must be beside you,
+    // on a side iRacing does not tell (the start, a car rejoining).
+    for (const distM of [-1.5, 0.8, 0]) {
+      const [m] = toCarMarks([car({ distM })], 20)
+      expect(m?.unsided).toBe(true)
+      expect(m?.y).toBeCloseTo(distToY(distM, 20))
+      expect(m?.x).toBe(0)
+      expect(m?.opacity).toBeCloseTo(UNSIDED_OPACITY)
+    }
+    // Beyond a car length, in a side lane or alongside: a car like any other, fully drawn.
+    for (const c of [
+      car({ distM: -2 * L }),
+      car({ distM: -1.5, lane: 1 }),
+      car({ distM: -1.5, lane: -1, overlapping: true })
+    ]) {
+      const [m] = toCarMarks([c], 20)
+      expect(isUnsided(c)).toBe(false)
+      expect(m?.unsided).toBe(false)
+      expect(m?.y).toBeCloseTo(distToY(c.distM, 20))
+      expect(m?.opacity).toBe(1)
+    }
+  })
+
+  it('never stacks two unsided cars on the same spot (B22)', () => {
+    // The standing start: two cars level with you, iRacing placing neither.
+    const marks = toCarMarks(
+      [
+        car({ carIdx: 4, distM: 0.3 }),
+        car({ carIdx: 5, distM: 0.2 }),
+        car({ carIdx: 6, distM: -6 })
+      ],
+      20,
+      WIDGET_PRECISION
     )
+    const ys = marks
+      .filter((m) => m.unsided)
+      .map((m) => m.y)
+      .sort((a, b) => a - b)
+    expect(ys).toHaveLength(2)
+    for (let i = 1; i < ys.length; i++) {
+      expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(UNSIDED_MIN_GAP - 0.1)
+    }
+    // The pair stays centred where the two cars really are; the car further back keeps its place.
+    const pair = marks.filter((m) => m.key === '4' || m.key === '5').map((m) => m.y)
+    expect(((pair[0] ?? 0) + (pair[1] ?? 0)) / 2).toBeCloseTo(distToY(0.25, 20), 0)
+    expect(marks.find((m) => m.key === '6')?.y).toBeCloseTo(distToY(-6, 20), 1)
+    for (const m of marks) expect(m.transform).toBe(markTransform(m.x, m.y))
+  })
+
+  it('steps an unsided car off a car of your lane, never the other way round (B22)', () => {
+    // Beside you at 4.4 m behind, and a car of your lane at 4.8 m: they cannot be nose to tail.
+    const marks = toCarMarks(
+      [car({ carIdx: 1, distM: -4.4 }), car({ carIdx: 2, distM: -4.8 })],
+      20,
+      WIDGET_PRECISION
+    )
+    const placed = marks.find((m) => m.key === '2')
+    const off = marks.find((m) => m.key === '1')
+    expect(placed?.y).toBeCloseTo(distToY(-4.8, 20), 1)
+    expect(off?.unsided).toBe(true)
+    // On its own side of the other car (nearer you), half an icon away.
+    expect(off?.y).toBeCloseTo((placed?.y ?? 0) - UNSIDED_MIN_GAP, 1)
+    // Side lanes are never moved.
+    const side = toCarMarks(
+      [car({ carIdx: 1, distM: -1 }), car({ carIdx: 2, distM: -1, lane: 1 })],
+      20
+    )
+    expect(side.find((m) => m.key === '2')?.y).toBeCloseTo(distToY(-1, 20))
+    expect(side.find((m) => m.key === '1')?.y).toBeCloseTo(distToY(-1, 20))
   })
 
   it('draws a car alongside on the top step, whatever its proximity says', () => {
@@ -233,10 +292,8 @@ describe('toCarMarks', () => {
 
   it('puts a car at half range on the half-range guide', () => {
     for (const r of RANGES) {
-      // Under a car length a car of your lane is drawn touching you: check those in a side lane.
-      const lane = r / 2 < L ? 1 : 0
-      const [m] = toCarMarks([car({ distM: r / 2, lane })], r)
-      expect(m?.transform).toBe(`translate(${laneToX(lane)} ${rangeGuides(r).halfY})`)
+      const [m] = toCarMarks([car({ distM: r / 2 })], r)
+      expect(m?.transform).toBe(`translate(${laneToX(0)} ${rangeGuides(r).halfY})`)
     }
   })
 
@@ -339,6 +396,7 @@ describe('sameMarks', () => {
     bucket: 3,
     classColor: '#ffffff',
     overlapping: false,
+    unsided: false,
     opacity: 1,
     ...over
   })
@@ -359,7 +417,8 @@ describe('sameMarks', () => {
       { opacity: 0.98 },
       { bucket: 4 },
       { classColor: '#000000' },
-      { overlapping: true }
+      { overlapping: true },
+      { unsided: true }
     ]
     for (const change of changes) expect(sameMarks([a, b], [mark(change), b])).toBe(false)
     expect(sameMarks([a, b], [b, a])).toBe(false)

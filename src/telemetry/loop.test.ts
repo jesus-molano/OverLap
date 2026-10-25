@@ -27,7 +27,7 @@ import type {
   AlertsData,
   ConditionsData
 } from '@shared/types'
-import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
+import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
 import { NativeSdkMissingError } from './errors'
 import { TelemetryLoop, defaultTelemetryConfig, type LoopDeps, type RaceModelLike } from './loop'
@@ -276,7 +276,12 @@ interface Harness {
   out: TelemetryOutMessage[]
   sleeps: number[]
   parsed: unknown[]
-  calls: { relative: Call<RelativeData>[]; radar: Call<RadarData>[]; delta: Call<DeltaData>[] }
+  calls: {
+    relative: Call<RelativeData>[]
+    radar: Call<RadarData>[]
+    delta: Call<DeltaData>[]
+    standings: Call<StandingsData>[]
+  }
   throwing: Set<WidgetId>
   /** Scripted radar `visible` per call (false once exhausted). */
   radarVisible: boolean[]
@@ -299,7 +304,7 @@ function setup(
   const out: TelemetryOutMessage[] = []
   const sleeps: number[] = []
   const parsed: unknown[] = []
-  const calls: Harness['calls'] = { relative: [], radar: [], delta: [] }
+  const calls: Harness['calls'] = { relative: [], radar: [], delta: [], standings: [] }
   const throwing = new Set<WidgetId>()
   const radarVisible: boolean[] = []
   let iteration = 0
@@ -335,7 +340,10 @@ function setup(
       if (throwing.has('radar')) throw new Error('radar boom')
       return payload
     },
-    standings: () => STANDINGS,
+    standings: (ctx, prev) => {
+      calls.standings.push({ ctx, prev, at: clock.t, payload: STANDINGS })
+      return STANDINGS
+    },
     battle: () => BATTLE,
     inputs: () => INPUTS,
     traffic: () => TRAFFIC,
@@ -530,8 +538,10 @@ describe('TelemetryLoop', () => {
     })
     expect(config?.rules.battle).toEqual({
       showIn: { practice: false, qualify: false, race: true },
-      hideInPits: false
+      hideInPits: false,
+      showOnSessionScreen: false
     })
+    expect(config?.rules.standings.showOnSessionScreen).toBe(true)
     expect(h.calls.radar[0]?.ctx.frame).toBe(FRAME)
     // Each radar call gets the previous payload.
     expect(h.calls.radar[0]?.prev).toBeNull()
@@ -945,7 +955,8 @@ describe('TelemetryLoop', () => {
     const config = defaultTelemetryConfig()
     config.rules.radar = {
       showIn: { practice: false, qualify: true, race: true },
-      hideInPits: false
+      hideInPits: false,
+      showOnSessionScreen: false
     }
     h.loop.setConfig(config)
     await h.run(1 + 10)
@@ -1398,120 +1409,190 @@ describe('TelemetryLoop personal bests', () => {
 // ---------------------------------------------------------------------------
 
 const LIVE = playerFrame()
-/** A replay frame: its own clock (50 s back), the camera on car 4. */
-const REPLAY = playerFrame({ IsReplayPlaying: [true], CamCarIdx: [4], SessionTime: [-49] })
+/** iRacing's session screen out of the car: the replay system on, at its live point (Q1). */
+const SESSION_SCREEN = playerFrame({
+  IsReplayPlaying: [true],
+  ReplayFrameNumEnd: [0],
+  CamCarIdx: [0],
+  CamCameraState: [81]
+})
+/** Watching car 4 live (the live point, any car on camera). */
+const WATCHING = playerFrame({ IsReplayPlaying: [true], ReplayFrameNumEnd: [0], CamCarIdx: [4] })
+/** The tape: 20 s from the live point, its own clock (50 s back), the camera on car 4. */
+const TAPE = playerFrame({
+  IsReplayPlaying: [true],
+  ReplayFrameNumEnd: [1200],
+  CamCarIdx: [4],
+  SessionTime: [-49]
+})
+/** The tape without ReplayFrameNumEnd in the var header: only its clock tells. */
+const TAPE_NO_END = playerFrame({ IsReplayPlaying: [true], CamCarIdx: [4], SessionTime: [-49] })
 const LIVE_ONLY = WIDGET_IDS.filter((id) => !followsCamera(id))
+const OFF_TAPE = WIDGET_IDS.filter((id) => !keepsLiveInReplay(id))
 
-interface ReplayHarness extends Harness {
-  /** Every model the loop built: [0] is the live one, then one per replay. */
-  models: FakeRaceModel[]
-}
-
-function setupReplay(): ReplayHarness {
-  const models: FakeRaceModel[] = []
-  const h = setup('iracing', {}, () => {
-    const model = new FakeRaceModel()
-    model.view.sessionKey = `k${models.length + 1}`
-    models.push(model)
-    return model
+/** A race whose drivers include car 4 (a car the camera can follow). */
+function replaySetup(): Harness {
+  const h = setup('iracing', {}, undefined, {
+    parseSession: (raw) => ({
+      ...session((raw as { name: string }).name, 'Race'),
+      drivers: new Map([
+        [0, pbDriver(67)],
+        [4, { ...pbDriver(67), carIdx: 4 }]
+      ])
+    })
   })
-  h.source.sessionRaw = { name: 'S1', type: 'Race' }
   h.source.frame = LIVE
-  return Object.assign(h, { models })
-}
-
-function model(h: ReplayHarness, i: number): FakeRaceModel {
-  const m = h.models[i]
-  if (!m) throw new Error(`no model ${i}`)
-  return m
+  return h
 }
 
 describe('TelemetryLoop replays', () => {
-  it('times a replay with a model of its own; the live one keeps its history and resumes', async () => {
-    const h = setupReplay()
-    await h.run(1 + 3)
-    expect(h.models).toHaveLength(1)
-    const live = model(h, 0)
-    h.source.frame = REPLAY
-    await h.run(4)
-    const replay = model(h, 1)
-    expect(live.updates).toHaveLength(3)
-    // Nothing timed across the replay, nothing forgotten either.
-    expect(live.breaks).toBe(1)
-    expect(live.resets).toBe(0)
-    expect(replay.updates.map((u) => u.frame)).toEqual([REPLAY, REPLAY, REPLAY, REPLAY])
-    // The widgets that follow the camera read the replay's timing, from no previous payload.
-    expect(h.calls.relative.at(-1)?.ctx.race).toBe(replay.view)
-    expect(h.calls.relative.at(-1)?.prev).toBeNull()
-
+  it('feeds the live model on the live session screen: one model, nothing paused (Q1)', async () => {
+    let built = 0
+    const model = new FakeRaceModel()
+    const h = setup('iracing', {}, () => {
+      built++
+      return model
+    })
+    // Without the session-screen rule nothing hides there, even with replays set to hide.
+    const config = defaultTelemetryConfig()
+    config.visibility = { ...config.visibility, hideOnSessionScreen: false, replays: 'hide' }
+    h.loop.setConfig(config)
     h.source.frame = LIVE
-    await h.run(2)
-    expect(live.updates).toHaveLength(5)
-    expect(replay.updates).toHaveLength(4)
-    expect(h.calls.relative.at(-1)?.ctx.race).toBe(live.view)
-    expect(h.calls.relative.at(-1)?.prev).toBeNull()
-    // The same session all along: the providers keep their state (the delta's optimal laps).
-    expect(h.providerResets()).toBe(1)
-
-    // The next replay starts from nothing.
-    h.source.frame = REPLAY
-    await h.run(1)
-    expect(h.models).toHaveLength(3)
-    expect(live.breaks).toBe(2)
+    await h.run(1 + 2)
+    h.source.frame = SESSION_SCREEN
+    await h.run(40)
+    expect(built).toBe(1)
+    expect(model.updates).toHaveLength(2 + 40)
+    expect(model.updates.at(-1)?.frame).toBe(SESSION_SCREEN)
+    expect(model.breaks).toBe(0)
+    // The providers read the live model and the live frame: the results table stays whole.
+    expect(h.calls.standings.at(-1)?.ctx.race).toBe(model.view)
+    expect(h.calls.standings.at(-1)?.ctx.frame).toBe(SESSION_SCREEN)
+    expect(h.calls.relative.at(-1)?.ctx.frame).toBe(SESSION_SCREEN)
+    expect(autoHidden(h)).toEqual([])
     expect(h.logs()).toEqual([])
   })
 
-  it('hides the widgets with only your live data while it plays, and computes them again after', async () => {
-    const h = setupReplay()
-    await h.run(1 + 2)
-    const deltaRuns = h.calls.delta.length
-    h.source.frame = REPLAY
+  it('hides all but the standings on the session screen, the default (B06)', async () => {
+    const h = replaySetup()
+    await h.run(1 + 1)
+    h.source.frame = SESSION_SCREEN
+    await h.run(2)
+    expect(autoHidden(h)).toEqual(
+      WIDGET_IDS.filter((id) => id !== 'standings').map((widget) => ({
+        type: 'auto-hidden',
+        widget,
+        hidden: true,
+        reason: 'session-screen'
+      }))
+    )
+    const before = h.calls.relative.length
     await h.run(5)
+    expect(h.calls.relative).toHaveLength(before)
+  })
+
+  it('at the live point on another car, hides only the widgets with your own data', async () => {
+    const h = replaySetup()
+    await h.run(1 + 1)
+    h.source.frame = WATCHING
+    await h.run(20)
     expect(autoHidden(h)).toEqual(
       LIVE_ONLY.map((widget) => ({
+        type: 'auto-hidden',
+        widget,
+        hidden: true,
+        reason: 'camera-other'
+      }))
+    )
+    expect(h.raceModel.breaks).toBe(0)
+    expect(h.calls.relative.at(-1)?.ctx.frame).toBe(WATCHING)
+  })
+
+  it('does not feed the tape: the model pauses and resumes, the standings keep the live race', async () => {
+    const h = replaySetup()
+    await h.run(1 + 3)
+    h.source.frame = TAPE
+    await h.run(4)
+    expect(h.raceModel.updates).toHaveLength(3)
+    // Nothing timed across the tape, nothing forgotten either.
+    expect(h.raceModel.breaks).toBe(1)
+    expect(h.raceModel.resets).toBe(0)
+    // The standings read the model as it was and the last live frame, from no previous payload.
+    const onTape = h.calls.standings.at(-1)
+    expect(onTape?.ctx.frame).toBe(LIVE)
+    expect(onTape?.ctx.race).toBe(h.raceModel.view)
+    expect(onTape?.prev).toBeNull()
+
+    h.source.frame = LIVE
+    await h.run(2)
+    expect(h.raceModel.updates).toHaveLength(5)
+    expect(h.calls.relative.at(-1)?.ctx.frame).toBe(LIVE)
+    expect(h.calls.relative.at(-1)?.prev).toBeNull()
+    // The same session all along: the providers keep their state (the delta's optimal laps).
+    expect(h.providerResets()).toBe(1)
+    h.source.frame = TAPE
+    await h.run(1)
+    expect(h.raceModel.breaks).toBe(2)
+    expect(h.logs()).toEqual([])
+  })
+
+  it('hides on the tape every widget but the standings, and computes them again after', async () => {
+    const h = replaySetup()
+    await h.run(1 + 2)
+    const deltaRuns = h.calls.delta.length
+    h.source.frame = TAPE
+    await h.run(5)
+    expect(autoHidden(h)).toEqual(
+      OFF_TAPE.map((widget) => ({
         type: 'auto-hidden',
         widget,
         hidden: true,
         reason: 'replay-player'
       }))
     )
-    // Not computed at all on replay frames (the rule runs before the providers).
+    // Not computed at all on the tape (the rule runs before the providers).
     expect(h.calls.radar).toHaveLength(2)
     expect(h.calls.delta).toHaveLength(deltaRuns)
     h.source.frame = LIVE
     await h.run(1)
-    expect(autoHidden(h).slice(LIVE_ONLY.length)).toEqual(
-      LIVE_ONLY.map((widget) => ({ type: 'auto-hidden', widget, hidden: false, reason: null }))
+    expect(autoHidden(h).slice(OFF_TAPE.length)).toEqual(
+      OFF_TAPE.map((widget) => ({ type: 'auto-hidden', widget, hidden: false, reason: null }))
     )
     expect(h.calls.radar).toHaveLength(3)
     expect(h.calls.radar.at(-1)?.prev).toBeNull()
   })
 
-  it('hides and computes nothing in a replay when replays are set to hide', async () => {
-    const h = setupReplay()
+  it('tells the tape by its clock without ReplayFrameNumEnd', async () => {
+    const h = replaySetup()
+    await h.run(1 + 2)
+    h.source.frame = TAPE_NO_END
+    await h.run(3)
+    expect(h.raceModel.updates).toHaveLength(2)
+    expect(h.raceModel.breaks).toBe(1)
+    expect(autoHidden(h).map((m) => (m.type === 'auto-hidden' ? m.reason : null))).toEqual(
+      OFF_TAPE.map(() => 'replay-player')
+    )
+  })
+
+  it('hides and computes nothing on the tape when replays are set to hide', async () => {
+    const h = replaySetup()
     const config = defaultTelemetryConfig()
     config.visibility = { ...config.visibility, replays: 'hide' }
     h.loop.setConfig(config)
     await h.run(1 + 1)
-    const before = h.calls.relative.length
-    h.source.frame = REPLAY
+    const before = h.calls.standings.length
+    h.source.frame = TAPE
     await h.run(10)
     expect(autoHidden(h)).toEqual(
       WIDGET_IDS.map((widget) => ({ type: 'auto-hidden', widget, hidden: true, reason: 'replay' }))
     )
-    expect(h.calls.relative).toHaveLength(before)
+    expect(h.calls.standings).toHaveLength(before)
   })
 
-  it('offers no lap of a replay as a personal best and keeps the car + layout being driven', async () => {
+  it('offers no lap of another car, nor looks at any while the tape plays', async () => {
     const live = new LapsModel()
-    const replay = new LapsModel()
-    // A clean lap in the replay's timing, the camera on another car.
-    replay.last = lastLap(15, 90)
-    Object.assign(replay.view, { playerCarIdx: 4 })
-    const models = [live, replay]
     const offers: string[] = []
-    const targets: (PersonalBestTarget | null)[] = []
-    const h = setup('iracing', {}, () => models.shift() ?? new LapsModel(), {
+    const h = setup('iracing', {}, () => live, {
       bests: {
         get: () => null,
         offer: (key) => {
@@ -1519,7 +1600,6 @@ describe('TelemetryLoop replays', () => {
           return true
         }
       },
-      onPersonalBestTarget: (t) => targets.push(t),
       parseSession: (raw) => ({
         ...session((raw as { name: string }).name, 'Practice'),
         drivers: new Map([
@@ -1532,44 +1612,31 @@ describe('TelemetryLoop replays', () => {
     })
     h.source.frame = playerFrame({ IsOnTrack: [true] })
     await h.run(1 + 2)
-    expect(targets.map((t) => t?.key)).toEqual(['67@219/Grand Prix'])
-    h.source.frame = { ...REPLAY, IsOnTrack: [true] }
-    await h.run(Math.ceil(40_000 / TICK_MS))
-    h.source.frame = playerFrame({ IsOnTrack: [true] })
+    // Watching car 4 live: the model's player is car 4, its clean lap is not yours.
+    Object.assign(live.view, { playerCarIdx: 4 })
+    live.last = lastLap(15, 90)
+    h.source.frame = { ...WATCHING, IsOnTrack: [true] }
     await h.run(Math.ceil(40_000 / TICK_MS))
     expect(offers).toEqual([])
-    expect(targets.map((t) => t?.key)).toEqual(['67@219/Grand Prix'])
+    // On the tape the laps are not even looked at.
+    Object.assign(live.view, { playerCarIdx: 0 })
+    live.profileError = new Error('looked at the tape')
+    h.source.frame = { ...TAPE, IsOnTrack: [true] }
+    await h.run(Math.ceil(40_000 / TICK_MS))
+    expect(offers).toEqual([])
+    expect(h.logs()).toEqual([])
   })
 
-  it('leaves the replay widgets an empty view when its model cannot be built, logged once', async () => {
-    let built = 0
-    const h = setup('iracing', {}, () => {
-      if (built++ === 0) return new FakeRaceModel()
-      throw new Error('no replay model')
-    })
-    h.source.sessionRaw = { name: 'S1', type: 'Race' }
-    h.source.frame = LIVE
+  it('forgets the tape when the connection drops: the next live frames go to the model', async () => {
+    const h = replaySetup()
     await h.run(1 + 1)
-    h.source.frame = REPLAY
-    await h.run(20)
-    expect(built).toBe(2)
-    expect(h.logs()).toEqual([
-      { type: 'log', level: 'error', message: 'Replay model unavailable: no replay model' }
-    ])
-    expect(h.calls.relative.at(-1)?.ctx.race.cars()).toEqual([])
-  })
-
-  it('forgets a replay when the connection drops: the next live frames go to the live model', async () => {
-    const h = setupReplay()
-    await h.run(1 + 1)
-    h.source.frame = REPLAY
+    h.source.frame = TAPE
     await h.run(2)
     h.source.alive = false
     await h.run(1)
     h.source.frame = LIVE
     await h.run(1 + 2)
-    const live = model(h, 0)
-    expect(live.updates.map((u) => u.frame)).toEqual([LIVE, LIVE, LIVE])
-    expect(h.calls.relative.at(-1)?.ctx.race).toBe(live.view)
+    expect(h.raceModel.updates.map((u) => u.frame)).toEqual([LIVE, LIVE, LIVE])
+    expect(h.calls.relative.at(-1)?.ctx.frame).toBe(LIVE)
   })
 })

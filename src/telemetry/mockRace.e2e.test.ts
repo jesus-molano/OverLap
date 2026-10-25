@@ -681,7 +681,8 @@ describe('mock race end to end: late join, pit stop, finish and the next session
     const config = defaultTelemetryConfig()
     config.rules.radar = {
       showIn: { practice: true, qualify: true, race: false },
-      hideInPits: false
+      hideInPits: false,
+      showOnSessionScreen: false
     }
     config.rules.inputs = { ...config.rules.inputs, hideInPits: true }
     run = await runLoop(

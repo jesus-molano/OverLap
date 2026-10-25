@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CAUTION_FLAGS } from './flags'
+import { CAUTION_FLAGS, SessionFlag } from './flags'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { makeDriver, makeFrame, makeSession, PRACTICE } from './race/testing/raceSim'
@@ -391,13 +391,15 @@ describe('hazards ahead', () => {
 })
 
 describe('classes and options', () => {
-  it('onlyMulticlass: a single-class session lists no faster/slower traffic', () => {
+  it('onlyMulticlass: a single-class session lists no traffic but the cars lapping you', () => {
     const drivers = [0, 1, 2].map((i) => gt3(i))
     const w = new World(drivers).set(0, { pct: 0.5 })
     // A GT3 5 % quicker lapping you, another 5 % slower ahead.
     w.set(1, { pct: 0.45, pace: 95, lap: 11 })
     w.set(2, { pct: 0.55, pace: 105, lap: 9 })
-    expect(compute(w).visible).toBe(false)
+    const only = compute(w)
+    expect(only.faster).toEqual([expect.objectContaining({ lapping: true, etaS: 95 })])
+    expect(only.slower).toEqual([])
     const d = compute(w, { onlyMulticlass: false })
     expect(d.faster[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 95 })
     expect(d.slower[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 105 })
@@ -419,15 +421,75 @@ describe('classes and options', () => {
     const d = compute(w, { onlyMulticlass: false })
     expect(d.faster[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 95 })
     expect(d.slower[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 105 })
-    // A lapped car (or one lapping you) at your pace is never reached: not traffic.
+    // A lapped car at your pace is never reached: not traffic. One lapping you at your pace
+    // is, without an ETA: it sits behind you, a lap up (B08).
     w.set(7, { pct: 0.45, pace: 100.5, lap: 11 }).set(8, { pct: 0.55, pace: 101, lap: 9 })
-    expect(compute(w, { onlyMulticlass: false }).visible).toBe(false)
+    const even = compute(w, { onlyMulticlass: false })
+    expect(even.faster).toEqual([expect.objectContaining({ lapping: true, etaS: null })])
+    expect(even.slower).toEqual([])
     // Outside a race the paces decide: 5 % quicker on any lap is faster traffic.
     w.racing = false
     w.set(7, { pct: 0.45, pace: 95, lap: 10 }).set(8, { pct: 0.55, pace: 100.5, lap: 9 })
     const p = compute(w, { onlyMulticlass: false })
     expect(ids(p.faster)).toEqual([7])
     expect(p.slower).toEqual([])
+  })
+
+  it('lists a car of your class coming to lap you, whatever the options and the paces (B08)', () => {
+    // A single-class race: the leader a lap up, within the window behind you.
+    const drivers = [0, 1, 2].map((i) => gt3(i))
+    const w = new World(drivers).set(0, { pct: 0.5 })
+    for (const pace of [101, 100.3, 99]) {
+      w.set(1, { pct: 0.45, pace, lap: 11 })
+      const d = compute(w)
+      expect(ids(d.faster)).toEqual([1])
+      expect(d.faster[0]?.lapping).toBe(true)
+      expect(d.faster[0]?.gapS).toBeCloseTo(-0.05 * pace, 0)
+      // Closing only when it is quicker: 1 % quicker reaches you in ~8 minutes.
+      expect(d.faster[0]?.etaS === null).toBe(pace >= 100)
+    }
+    // Without a pace of its own yet: at about yours.
+    w.set(1, { pct: 0.45, pace: null, lap: 11 })
+    expect(compute(w).faster[0]).toMatchObject({ lapping: true, gapS: -5, etaS: null })
+    // Out of the window it waits; showFaster off, nothing.
+    w.set(1, { pct: 0.3, pace: 99, lap: 11 })
+    expect(compute(w).visible).toBe(false)
+    w.set(1, { pct: 0.45, pace: 99, lap: 11 })
+    expect(compute(w, { showFaster: false }).visible).toBe(false)
+    // Outside a race laps say nothing: no lapping without the paces (or a blue flag).
+    w.racing = false
+    w.set(1, { pct: 0.45, pace: 99.5, lap: 11 })
+    expect(compute(w).visible).toBe(false)
+  })
+
+  it('under your blue flag lists any car behind that can be passing you (B08)', () => {
+    const drivers = [gt3(0), gt3(1), gt3(2), makeDriver(3, { ...GT4 })]
+    const w = new World(drivers).set(0, { pct: 0.5 })
+    // A rival on your lap, a car you lapped, and a slower class at your pace, all behind.
+    w.set(1, { pct: 0.47, pace: 99, lap: 10 })
+    w.set(2, { pct: 0.46, pace: 99, lap: 9 })
+    w.set(3, { pct: 0.45, pace: 100, lap: 10 })
+    expect(compute(w).visible).toBe(false)
+    w.frame.SessionFlags[0] = SessionFlag.Blue
+    expect(ids(compute(w).faster)).toEqual([3])
+    // A high bit (the SDK's signed Int32) does not hide the flag.
+    w.frame.SessionFlags[0] = SessionFlag.Blue | 0x80000000
+    expect(ids(compute(w).faster)).toEqual([3])
+    // Outside a race your class counts too: the flag says someone is passing.
+    w.racing = false
+    expect(ids(compute(w).faster).sort()).toEqual([1, 2, 3])
+  })
+
+  it('lists nothing in a lone session: the other cars are not on track with you (B11)', () => {
+    const traffic = (type: string): TrafficData => {
+      const w = field({ sessionTypes: new Map([[0, type]]) })
+      w.set(1, { pct: 0.45, pace: 90 }).set(4, { pct: 0.55, pace: 110 })
+      w.set(7, { pct: 0.52, offTrack: true })
+      return compute(w)
+    }
+    expect(traffic('Lone Qualify')).toEqual({ visible: false, faster: [], slower: [], hazards: [] })
+    // The same cars in an open session are traffic.
+    expect(traffic('Open Qualify').visible).toBe(true)
   })
 
   it('a same-class car of similar pace is never traffic', () => {

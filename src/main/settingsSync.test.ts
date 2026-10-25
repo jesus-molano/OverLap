@@ -332,7 +332,11 @@ describe('DISPLAY_ONLY / computedConfig', () => {
       Object.fromEntries(
         WIDGET_IDS.map((id) => [
           id,
-          { showIn: defaults.widgets[id].showIn, hideInPits: defaults.widgets[id].hideInPits }
+          {
+            showIn: defaults.widgets[id].showIn,
+            hideInPits: defaults.widgets[id].hideInPits,
+            showOnSessionScreen: defaults.widgets[id].showOnSessionScreen
+          }
         ])
       )
     )

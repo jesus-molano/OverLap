@@ -730,11 +730,22 @@ export interface OverlayStatus {
 /**
  * Why a visibility rule hides a widget: its own rule (not shown in this kind of session, or
  * in the pits), or a global one (VisibilityOptions): the garage screen is open, the iRacing
- * UI is hidden, a replay plays with replays set to hide everything, or a replay plays and the
- * widget only has your own car's data ('replay-player': pedals, delta...).
+ * UI is hidden, the session screen is shown ('session-screen'), a replay of the tape plays with
+ * replays set to hide everything ('replay'), or it plays and the widget only shows live data
+ * ('replay-player': pedals, delta, relative...), or the camera follows another car live and the
+ * widget only has your own car's data ('camera-other').
  */
 export type HiddenReason =
-  'practice' | 'qualify' | 'race' | 'pits' | 'garage' | 'ui-hidden' | 'replay' | 'replay-player'
+  | 'practice'
+  | 'qualify'
+  | 'race'
+  | 'pits'
+  | 'garage'
+  | 'ui-hidden'
+  | 'session-screen'
+  | 'replay'
+  | 'replay-player'
+  | 'camera-other'
 
 /** Session kinds a widget can be limited to ("Mostrar en"). */
 export interface ShowInSessions {
@@ -766,11 +777,17 @@ export interface WidgetSettings {
   showIn: ShowInSessions
   /** Hide while the player is on pit road or in the stall. */
   hideInPits: boolean
+  /**
+   * Shown on iRacing's session screen although VisibilityOptions.hideOnSessionScreen hides the
+   * others there (default per widget: WidgetDef.defaultOnSessionScreen).
+   */
+  showOnSessionScreen: boolean
 }
 
 /**
  * Global visibility rules, for every widget at once, from what the sim's screen shows
- * (simScreen.ts). Evaluated by the telemetry process like the per-widget ones.
+ * (simScreen.ts). Evaluated by the telemetry process like the per-widget ones, except
+ * showWhileWaiting (the overlay windows').
  */
 export interface VisibilityOptions {
   /** Hide every widget while the iRacing UI is hidden (CamCameraState UIHidden). */
@@ -778,10 +795,22 @@ export interface VisibilityOptions {
   /** Hide every widget while the garage screen is open (IsGarageVisible). */
   hideInGarage: boolean
   /**
-   * While a replay plays: 'follow' = the widgets follow the car on camera (CamCarIdx) and
-   * those with only your car's data hide; 'hide' = every widget hides.
+   * Hide the widgets on iRacing's session screen (CamCameraState IsSessionScreen), except those
+   * with WidgetSettings.showOnSessionScreen.
+   */
+  hideOnSessionScreen: boolean
+  /**
+   * While a replay of the tape plays (not its live point, which is live): 'follow' = the
+   * widgets with live data only hide and the standings keep the live race; 'hide' = every
+   * widget hides. At the live point the widgets follow the car on camera (CamCarIdx) and those
+   * with only your car's data hide while it is another car.
    */
   replays: 'follow' | 'hide'
+  /**
+   * Standings and relative keep saying "Waiting for iRacing" while there is no connection;
+   * otherwise they hide after a few seconds (outside edit mode).
+   */
+  showWhileWaiting: boolean
 }
 
 /** How driver names are written: 'Alejandro Ruiz' / 'A. Ruiz' / 'Ruiz' / 'RUI'. */
@@ -1044,6 +1073,7 @@ export interface SettingsPatch {
           | 'autoHeight'
           | 'anchor'
           | 'hideInPits'
+          | 'showOnSessionScreen'
         > & { showIn: Partial<ShowInSessions> }
       >
     >
@@ -1067,11 +1097,14 @@ export interface TelemetryConfig {
   enabledWidgets: WidgetId[]
   /**
    * Visibility rules per widget, evaluated every tick against the current
-   * session type and whether the player is on pit road. A widget hidden by a
-   * rule is not computed and its overlay panel is not drawn (except in edit
-   * mode).
+   * session type and whether the player is on pit road (and the widget's
+   * exception to the session-screen rule). A widget hidden by a rule is not
+   * computed and its overlay panel is not drawn (except in edit mode).
    */
-  rules: Record<WidgetId, { showIn: ShowInSessions; hideInPits: boolean }>
+  rules: Record<
+    WidgetId,
+    { showIn: ShowInSessions; hideInPits: boolean; showOnSessionScreen: boolean }
+  >
   /** The global rules: they hide every widget, before any per-widget rule. */
   visibility: VisibilityOptions
   relative: RelativeOptions

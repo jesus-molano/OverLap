@@ -154,11 +154,14 @@ export const OPTION_SCHEMA = {
     showSimPill: { kind: 'bool', default: true, displayOnly: true },
     language: { kind: 'enum', values: LANGUAGES, default: DEFAULT_LANGUAGE, displayOnly: true }
   },
-  // Evaluated by the telemetry process (a hidden widget is not computed): nothing display-only.
+  // Evaluated by the telemetry process (a hidden widget is not computed), except the waiting
+  // panels, which only the overlay windows draw.
   visibility: {
     hideWithSimUi: { kind: 'bool', default: true },
     hideInGarage: { kind: 'bool', default: true },
-    replays: { kind: 'enum', values: ['follow', 'hide'], default: 'follow' }
+    hideOnSessionScreen: { kind: 'bool', default: true },
+    replays: { kind: 'enum', values: ['follow', 'hide'], default: 'follow' },
+    showWhileWaiting: { kind: 'bool', default: false, displayOnly: true }
   },
   relative: {
     carsAhead: { kind: 'int', min: 0, max: 10, default: 3 },
@@ -347,8 +350,8 @@ export const OPTION_SCHEMA = {
 
 /**
  * Per-widget fields that are not option sections (bounds are handled apart).
- * The real background opacity default is per widget (WIDGET_DEFS); `autoHeight`
- * and `showIn` defaults come from WIDGET_DEFS too.
+ * The real background opacity default is per widget (WIDGET_DEFS); `autoHeight`,
+ * `showIn` and `showOnSessionScreen` defaults come from WIDGET_DEFS too.
  */
 export const WIDGET_FIELD_SCHEMA = {
   backgroundOpacity: { kind: 'number', min: 0, max: 1, decimals: null, default: 0.78, step: 0.01 },

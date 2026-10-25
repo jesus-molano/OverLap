@@ -10,14 +10,23 @@
  * seconds to reach where you are; a car dPct laps ahead is dPct x your pace seconds away.
  * Closing rates are pace differences in laps per second. Faster/slower is the class speed
  * (CarClassRelSpeed); a car of your own class only counts in a race when it is on another lap.
+ * A car coming to lap you (your class, a lap or more ahead) and, while you are shown the blue
+ * flag, any car behind that can be passing you, are listed as faster whatever "Multiclass only"
+ * and the pace margin say (B08). Nothing in a lone session: the other cars there are not on
+ * track with you (B11).
  */
 import { driverIdentity, identityEqual } from './driver'
 import { arrayEqual } from './equal'
-import { CAUTION_FLAGS } from './flags'
+import { CAUTION_FLAGS, SessionFlag } from './flags'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { finiteOr, frac, quantise } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
-import { resolveFocusCarIdx } from './sessionInfo'
+import {
+  currentSessionType,
+  isLoneSession,
+  resolveFocusCarIdx,
+  resolvePlayerCarIdx
+} from './sessionInfo'
 import { SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type {
@@ -112,6 +121,21 @@ interface Run {
   myPct: number
   myPace: number
   caution: boolean
+  /** You are shown the blue flag: a car behind is passing, or lapping, you. */
+  blue: boolean
+}
+
+/**
+ * A car behind you on the road that is passing you, so it is listed as faster traffic whatever
+ * "Multiclass only" and the pace margin say (B08): one of your class a lap or more ahead in a
+ * race (it is coming to lap you, at whatever pace), or, under your blue flag, any car that can be
+ * the reason for it: not a rival on your lap (your class in a race) nor a car you lapped.
+ */
+function passingYou(run: Run, d: DriverEntry, laps: number): boolean {
+  const sameClass = d.classId === run.myDriver.classId
+  if (run.race.racing && sameClass && laps >= 1) return true
+  if (!run.blue || laps <= -1) return false
+  return !(run.race.racing && sameClass && laps === 0)
 }
 
 /**
@@ -292,12 +316,17 @@ export class TrafficProvider {
         const eta = closing > 0 && !run.caution ? dPct / closing : null
         slower.push(candidate(run, d, 'slower', gap, eta, laps <= -1, null))
       } else {
-        if (!wantFaster || pace === null) continue
+        if (!opts.showFaster) continue
         const laps = lapsApart(run, car, dPct)
-        if (relation(run, d, pace, laps) <= 0) continue
-        const gap = -dPct * pace
+        const passing = passingYou(run, d, laps)
+        if (!passing && (!wantFaster || pace === null || relation(run, d, pace, laps) <= 0)) {
+          continue
+        }
+        // Without a pace of its own (no clean lap yet) it reaches you at about yours.
+        const theirPace = pace ?? run.myPace
+        const gap = -dPct * theirPace
         if (!this.keep('faster', car.carIdx, gap <= behindS, run, null)) continue
-        const closing = 1 / pace - 1 / run.myPace
+        const closing = 1 / theirPace - 1 / run.myPace
         const eta = closing > 0 && !run.caution ? -dPct / closing : null
         faster.push(candidate(run, d, 'faster', -gap, eta, laps >= 1, null))
       }
@@ -374,7 +403,9 @@ function begin(
   // Gridding, pace laps and the cool-down: nobody races, every closing rate would be wrong.
   const state = frame.SessionState[0]
   if (state !== SessionState.Racing && state !== SessionState.Checkered) return null
-  // You, or the car on camera while a replay plays.
+  // Alone on track: the other cars run their own laps, not with you.
+  if (isLoneSession(currentSessionType(frame, session))) return null
+  // You, or the car on camera at a replay's live point.
   const idx = resolveFocusCarIdx(frame, session)
   const me = idx >= 0 ? race.car(idx) : undefined
   const myDriver = session.drivers.get(idx)
@@ -386,7 +417,13 @@ function begin(
   const myPace = me.pace
   if (myPace === null || !(myPace > 0)) return null
   const caution = ((frame.SessionFlags[0] ?? 0) & CAUTION_FLAGS) !== 0
-  return { frame, session, race, prev, now, me, myDriver, myPct, myPace, caution }
+  // Your flags; another car's own (on camera) when you are not the one followed.
+  const flags =
+    idx === resolvePlayerCarIdx(frame, session)
+      ? frame.SessionFlags[0]
+      : frame.CarIdxSessionFlags[idx]
+  const blue = (((flags ?? 0) >>> 0) & SessionFlag.Blue) !== 0
+  return { frame, session, race, prev, now, me, myDriver, myPct, myPace, caution, blue }
 }
 
 /** More than one class among the cars in the world, you included. */

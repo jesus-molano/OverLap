@@ -18,6 +18,7 @@ export interface VisibilityRule {
 
 const RACE_RE = /race/i
 const QUALIFY_RE = /qualif|time ?trial/i
+const LONE_RE = /^\s*lone\b/i
 
 /**
  * The player's CarIdx: telemetry PlayerCarIdx when it names a driver of the
@@ -41,11 +42,12 @@ export function resolvePlayerCarIdx(
 }
 
 /**
- * The car the widgets are about: the one on camera while a replay plays (when it is a race
- * car of the session: not the pace car, a spectator or a scenic camera), the player
- * otherwise. The one seam for following replays: the RaceModel's playerCarIdx and the
+ * The car the widgets are about: the one on camera while the replay system is on (when it is
+ * a race car of the session: not the pace car, a spectator or a scenic camera), the player
+ * otherwise. The one seam for following the camera: the RaceModel's playerCarIdx and the
  * providers that can follow any car resolve it here; the ones that only have the player's
- * own data (pedals, flags, the delta) keep resolvePlayerCarIdx and hide during replays.
+ * own data (pedals, flags, the delta) keep resolvePlayerCarIdx and hide while it is another
+ * car. Only live frames get here (the live point of a replay): the tape is never fed.
  */
 export function resolveFocusCarIdx(
   frame: Pick<TelemetryFrame, 'PlayerCarIdx' | 'IsReplayPlaying' | 'CamCarIdx' | 'CamCameraState'>,
@@ -71,6 +73,14 @@ export function currentSessionType(
 /** "Race", "Heat Race", ... */
 export function isRaceSession(type: string | null): boolean {
   return type !== null && RACE_RE.test(type)
+}
+
+/**
+ * "Lone Qualify", "Lone Practice": you are alone on track, and the other cars in the telemetry
+ * are on track in their own runs, not with you (iRacing's spotter, CarLeftRight, ignores them).
+ */
+export function isLoneSession(type: string | null): boolean {
+  return type !== null && LONE_RE.test(type)
 }
 
 /**
