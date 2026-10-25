@@ -65,7 +65,9 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
 const DEFAULT_VISIBILITY: VisibilityOptions = {
   hideWithSimUi: true,
   hideInGarage: true,
-  replays: 'follow'
+  hideOnSessionScreen: true,
+  replays: 'follow',
+  showWhileWaiting: false
 }
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
@@ -198,7 +200,8 @@ function defaultWidget(id: WidgetId): WidgetSettings {
     autoHeight: def.sizeModel === 'auto-height',
     anchor: 'top',
     showIn: { ...def.defaultShowIn },
-    hideInPits: false
+    hideInPits: false,
+    showOnSessionScreen: id === 'standings'
   }
 }
 
@@ -1047,11 +1050,40 @@ describe('normalizeSettings: visibility', () => {
   })
 
   it('keeps valid values and replaces invalid ones field by field', () => {
-    const v = { hideWithSimUi: false, hideInGarage: false, replays: 'hide' }
+    const v = {
+      hideWithSimUi: false,
+      hideInGarage: false,
+      hideOnSessionScreen: false,
+      replays: 'hide',
+      showWhileWaiting: true
+    }
     expect(normalizeSettings({ visibility: v }).visibility).toEqual(v)
     expect(
-      normalizeSettings({ visibility: { hideWithSimUi: 'no', hideInGarage: 0, replays: 'skip' } })
-        .visibility
+      normalizeSettings({
+        visibility: {
+          hideWithSimUi: 'no',
+          hideInGarage: 0,
+          hideOnSessionScreen: 'yes',
+          replays: 'skip',
+          showWhileWaiting: 1
+        }
+      }).visibility
     ).toEqual(DEFAULT_VISIBILITY)
+  })
+
+  it('gives a file from before the session-screen and waiting options their defaults (B06, B21)', () => {
+    const old = { hideWithSimUi: false, hideInGarage: true, replays: 'hide' }
+    expect(normalizeSettings({ visibility: old }).visibility).toEqual({
+      ...old,
+      hideOnSessionScreen: true,
+      showWhileWaiting: false
+    })
+    // Each widget's exception: only the standings stay on the session screen by default.
+    const widgets = normalizeSettings({ version: 4, widgets: { radar: { visible: true } } }).widgets
+    expect(WIDGET_IDS.filter((id) => widgets[id].showOnSessionScreen)).toEqual(['standings'])
+    const kept = normalizeSettings({ widgets: { radar: { showOnSessionScreen: true } } }).widgets
+    expect(kept.radar.showOnSessionScreen).toBe(true)
+    const bad = normalizeSettings({ widgets: { standings: { showOnSessionScreen: 'no' } } })
+    expect(bad.widgets.standings.showOnSessionScreen).toBe(true)
   })
 })

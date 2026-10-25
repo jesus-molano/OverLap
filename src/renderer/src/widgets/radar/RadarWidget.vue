@@ -19,6 +19,7 @@ import {
   CAR_HALO_INNER,
   LABEL_FONT,
   LABEL_X,
+  NO_MARKS,
   PLAYER_HALO_INNER,
   labelFontUnits,
   rangeGuides,
@@ -72,6 +73,15 @@ const cars = useCarMarks(
   () => content.value,
   () => phase.value
 )
+/**
+ * Cars beside you on a side iRacing does not tell (geometry.ts isUnsided) are drawn over your
+ * icon as dimmed outlines; every other car under it. The same array while none is unsided.
+ */
+const layers = computed(() => {
+  const all = cars.value
+  if (!all.some((c) => c.unsided)) return { under: all, over: NO_MARKS }
+  return { under: all.filter((c) => !c.unsided), over: all.filter((c) => c.unsided) }
+})
 const left = computed(() => sideAlertStyle(content.value?.leftCount ?? 0))
 const right = computed(() => sideAlertStyle(content.value?.rightCount ?? 0))
 
@@ -215,7 +225,7 @@ const rangeLabels = computed(() => {
              class colour is only the windshield (a mark, not the silhouette): a yellow class
              never turns a car into a copy of yours. -->
         <g
-          v-for="car in cars"
+          v-for="car in layers.under"
           :key="car.key"
           v-memo="[car.transform, car.opacity, car.bucket, car.classColor, car.overlapping]"
           :class="BUCKET_CLASSES[car.bucket]"
@@ -233,6 +243,19 @@ const rangeLabels = computed(() => {
           <rect class="radar__halo-inner" v-bind="PLAYER_HALO_INNER" />
           <rect class="radar__player-body" v-bind="CAR_BODY" />
           <rect class="radar__windshield" v-bind="CAR_GLASS" />
+        </g>
+
+        <!-- Beside you, side unknown: a dimmed dashed outline at its real distance, over you,
+             so neither hides the other (B22). No glass: it is not a car you can place. -->
+        <g
+          v-for="car in layers.over"
+          :key="car.key"
+          v-memo="[car.transform, car.opacity, car.bucket]"
+          :class="BUCKET_CLASSES[car.bucket]"
+          :transform="car.transform"
+          :opacity="car.opacity"
+        >
+          <rect class="radar__ghost" v-bind="CAR_BODY" />
         </g>
       </g>
 
@@ -363,6 +386,16 @@ const rangeLabels = computed(() => {
   fill-opacity: 1;
   stroke: rgba(0, 0, 0, 0.6);
   stroke-width: 0.5;
+}
+
+/* A car beside you on an unknown side: a faint body in its proximity colour inside a dashed
+   light outline, so it reads as "around here" over your accent icon. */
+.radar__ghost {
+  fill-opacity: 0.25;
+  stroke: var(--ov-fg);
+  stroke-opacity: 0.9;
+  stroke-width: 0.75;
+  stroke-dasharray: 1.6 1.1;
 }
 
 /* You: the accent car on a neutral lift (like your row's bracket: a faint accent halo reads

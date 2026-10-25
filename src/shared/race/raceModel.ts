@@ -545,7 +545,7 @@ export class RaceModel {
    * mid-session, so it spans the same as PlayerCarMyIncidentCount.
    */
   private updatePlayer(frame: TelemetryFrame, session: SessionMeta): void {
-    // The player, or the car on camera in a replay (only a replay model is fed those frames).
+    // The player, or the car on camera at a replay's live point (the tape is never fed).
     this.playerIdx = resolveFocusCarIdx(frame, session)
     const pt = this.playerIdx >= 0 ? this.tracks[this.playerIdx] : undefined
     if (pt?.active && pt.state.inWorld) {

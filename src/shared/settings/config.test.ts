@@ -37,7 +37,13 @@ describe('toTelemetryConfig', () => {
     s.widgets.relative.showIn.qualify = false
     const c = toTelemetryConfig(s)
     expect(Object.keys(c.rules)).toEqual(WIDGET_IDS)
-    expect(c.rules.inputs).toEqual({ showIn: WIDGET_DEFS.inputs.defaultShowIn, hideInPits: true })
+    expect(c.rules.inputs).toEqual({
+      showIn: WIDGET_DEFS.inputs.defaultShowIn,
+      hideInPits: true,
+      showOnSessionScreen: false
+    })
+    // The session-screen exception travels too: the standings stay there by default (B06).
+    expect(c.rules.standings.showOnSessionScreen).toBe(true)
     expect(c.rules.relative.showIn).toEqual({ practice: true, qualify: false, race: true })
     expect(c.rules.battle.showIn).toEqual({ practice: false, qualify: false, race: true })
   })
@@ -46,7 +52,13 @@ describe('toTelemetryConfig', () => {
     const s = createDefaultSettings()
     s.visibility.replays = 'hide'
     const c = toTelemetryConfig(s)
-    expect(c.visibility).toEqual({ hideWithSimUi: true, hideInGarage: true, replays: 'hide' })
+    expect(c.visibility).toEqual({
+      hideWithSimUi: true,
+      hideInGarage: true,
+      hideOnSessionScreen: true,
+      replays: 'hide',
+      showWhileWaiting: false
+    })
     c.visibility.hideInGarage = false
     expect(s.visibility.hideInGarage).toBe(true)
   })

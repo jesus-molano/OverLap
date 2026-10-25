@@ -27,8 +27,10 @@ const HIDDEN_REASON_SET: Readonly<Record<HiddenReason, true>> = {
   pits: true,
   garage: true,
   'ui-hidden': true,
+  'session-screen': true,
   replay: true,
-  'replay-player': true
+  'replay-player': true,
+  'camera-other': true
 }
 const HIDDEN_REASONS = Object.keys(HIDDEN_REASON_SET) as HiddenReason[]
 const LOG_LEVELS = ['info', 'warn', 'error'] as const

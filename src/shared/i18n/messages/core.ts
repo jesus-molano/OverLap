@@ -52,9 +52,12 @@ export const coreEs = {
     pits: 'Oculto en boxes',
     garage: 'Oculto en el garaje',
     'ui-hidden': 'Oculto: interfaz de iRacing oculta',
+    'session-screen': 'Oculto en la pantalla de sesión',
     replay: 'Oculto en repeticiones',
-    /** A replay plays and the widget only has your own car's live data (pedals, delta...). */
+    /** A replay of the tape plays and the widget only shows live data (pedals, relative...). */
     'replay-player': 'Oculto en repeticiones: solo en directo',
+    /** The camera follows another car live and the widget only has your own car's data. */
+    'camera-other': 'Oculto: cámara en otro coche',
     /** Without a known reason. */
     any: 'Oculto'
   },
@@ -158,8 +161,10 @@ export const coreEn: Dict<typeof coreEs> = {
     pits: 'Hidden in the pits',
     garage: 'Hidden in the garage',
     'ui-hidden': 'Hidden: iRacing UI hidden',
+    'session-screen': 'Hidden on the session screen',
     replay: 'Hidden in replays',
     'replay-player': 'Hidden in replays: live only',
+    'camera-other': 'Hidden: camera on another car',
     any: 'Hidden'
   },
   tray: {

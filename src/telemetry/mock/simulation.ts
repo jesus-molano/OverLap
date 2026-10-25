@@ -12,7 +12,8 @@
  * - traffic.ts: lanes and the spotter; sessionInfo.ts: the session YAML;
  * - tyres.ts, warnings.ts: the compounds and the furled black flag;
  * - frameBuffer.ts: output arrays and the telemetry frame;
- * - screen.ts: MockScreen, the sim's UI hidden, the garage and a replay (MockSource only).
+ * - screen.ts: MockScreen, the sim's UI hidden, the garage, the session screen and a replay
+ *   (MockSource only).
  *
  * Cast around the player (GT3 #07 by default), ~40 min before the end:
  * - escorts: two cars of the other class orbit the player on a fixed cycle,

@@ -6,7 +6,7 @@ import {
   type OptionSpec
 } from '../settingsSchema'
 import type { OverlaySettings, WidgetSettings } from '../types'
-import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
+import { WIDGET_DEFS, WIDGET_IDS, shownOnSessionScreen, type WidgetId } from '../widgets'
 
 export const SETTINGS_VERSION = 4
 
@@ -42,7 +42,8 @@ export function defaultWidgetSettings(id: WidgetId): WidgetSettings {
     autoHeight: def.sizeModel === 'auto-height',
     anchor: WIDGET_FIELD_SCHEMA.anchor.default,
     showIn: { ...def.defaultShowIn },
-    hideInPits: WIDGET_FIELD_SCHEMA.hideInPits.default
+    hideInPits: WIDGET_FIELD_SCHEMA.hideInPits.default,
+    showOnSessionScreen: shownOnSessionScreen(id)
   }
 }
 

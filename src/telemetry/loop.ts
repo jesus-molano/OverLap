@@ -18,8 +18,9 @@ import { OFFICIAL_WAIT_S } from '@shared/race/laps'
 import { RaceModel } from '@shared/race/raceModel'
 import type { RaceView } from '@shared/race/raceView'
 import { parseSessionMeta } from '@shared/session'
+import { resolvePlayerCarIdx } from '@shared/sessionInfo'
 import { createDefaultSettings, toTelemetryConfig } from '@shared/settings'
-import { isReplayPlaying } from '@shared/simScreen'
+import { ReplayPoint, type ReplayMode } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
   ConnectionState,
@@ -162,12 +163,15 @@ function dataMessage<K extends WidgetId>(
  * starts over when the session changes, and the providers follow its
  * sessionKey.
  *
- * While a replay plays its frames are not live (their own clock, which goes
- * back and jumps; any car on camera), so the live model is not fed them: it
- * keeps its laps, bests and incidents and resumes after the replay without
- * timing anything across it. A second model built for each replay times the
- * replay instead, for the widgets that follow the car on camera; no lap of
- * it is ever offered as a personal best.
+ * IsReplayPlaying alone does not make the frames a replay: iRacing sets it on
+ * the live session screen too, where everything moves on live, so the model
+ * keeps being fed there (ReplayPoint: the live point). A replay of the tape
+ * (away from the live point: its own clock, which goes back and jumps; any
+ * car on camera) is not live: the model is not fed it and keeps its laps,
+ * bests and incidents, resuming after it without timing anything across it.
+ * Nothing rebuilds the race from the tape: the widgets with live data only
+ * hide (AutoHide), and the ones that keep the live race (the standings) get
+ * the last live frame and the model's view as it was.
  */
 export class TelemetryLoop {
   private readonly deps: LoopDeps
@@ -202,11 +206,12 @@ export class TelemetryLoop {
   private readonly providers: ProviderSet
   /** race.sessionKey the providers' state belongs to (null: none yet). */
   private raceKey: string | null = null
-  /** The last frame was a replay's (IsReplayPlaying). */
-  private replaying = false
-  /** Times the replay playing now; built on its first frame, dropped when it ends. */
-  private replayModel: RaceModelLike | null = null
-  private replayModelFailed = false
+  /** Tells a replay of the tape from the live point (the session screen). */
+  private readonly replayPoint = new ReplayPoint()
+  /** The last frame was the tape's. */
+  private onTape = false
+  /** The last frame that was not the tape's: the widgets' data while the tape plays. */
+  private liveFrame: TelemetryFrame | null = null
   private readonly autoHide: AutoHide
 
   private readonly bests: PersonalBestStore
@@ -388,29 +393,36 @@ export class TelemetryLoop {
     const session = this.session
     if (!session) return true
 
-    const replay = isReplayPlaying(frame)
-    if (replay !== this.replaying) this.followReplay(replay, now)
+    const mode = this.replayPoint.update(frame, now)
+    const tape = mode === 'tape'
+    if (tape !== this.onTape) this.followTape(tape, now)
     // Every tick, whatever widgets are enabled or hidden: timing needs each one.
+    let live = frame
     let race: RaceView
-    if (replay) {
-      race = this.updateReplay(frame, session, now)
-      // The incident tracker sees a replay too: it follows the count then, never counts it.
+    if (tape) {
+      // The widgets left on screen show the live race as it was.
+      live = this.liveFrame ?? frame
+      race = this.raceModel?.view ?? EMPTY_RACE_VIEW
+      // The incident tracker sees the tape too: it follows the count then, never counts it.
       this.observeTick(frame, session, race, now)
     } else {
+      this.liveFrame = frame
       this.updateRace(frame, session, now)
       race = this.raceModel?.view ?? EMPTY_RACE_VIEW
       this.followSessionKey(race, now)
       this.observeTick(frame, session, race, now)
-      // Live frames only: a replay's laps are not yours to keep, its car is not yours.
-      this.followPersonalBest(frame, session, race, now)
-      this.followTarget(session, race.playerCarIdx, now)
+      // Live frames only (the tape's laps are not yours to keep), and only your own car: at the
+      // live point the model's player is the car on camera.
+      const player = resolvePlayerCarIdx(frame, session)
+      this.followPersonalBest(frame, session, race, player, now)
+      this.followTarget(session, player, now)
     }
-    this.updateRules(frame, session, now)
+    this.updateRules(frame, live, session, mode, now)
     let ctx: ProviderContext | null = null
     for (const id of this.enabled) {
       // A widget hidden by its rule is not computed (its overlay panel is not drawn).
       if (this.autoHide.isHidden(id) || !this.isDue(id, now)) continue
-      ctx ??= { frame, session, config: this.config, race, bests: this.bests }
+      ctx ??= { frame: live, session, config: this.config, race, bests: this.bests }
       this.runProvider(id, ctx, now)
     }
     return true
@@ -434,16 +446,14 @@ export class TelemetryLoop {
   }
 
   /**
-   * A replay started or ended. The live model will not see the replay's frames: nothing is
-   * timed across the gap (its history stays, and so does its sessionKey, so the providers keep
-   * theirs). Each replay gets a model of its own. Every widget's next payload is computed
-   * afresh and sent, so no hold or smoothing carries from live to replay or back.
+   * A replay of the tape started or ended. The model does not see the tape: nothing is timed
+   * across the gap (its history stays, and so does its sessionKey, so the providers keep
+   * theirs). Every widget's next payload is computed afresh and sent, so no hold or smoothing
+   * carries from live to the tape or back.
    */
-  private followReplay(replay: boolean, now: number): void {
-    this.replaying = replay
-    this.replayModel = null
-    this.replayModelFailed = false
-    if (replay) {
+  private followTape(tape: boolean, now: number): void {
+    this.onTape = tape
+    if (tape) {
       try {
         this.raceModel?.breakContinuity()
       } catch (err) {
@@ -451,30 +461,6 @@ export class TelemetryLoop {
       }
     }
     for (const id of WIDGET_IDS) this.forget(id)
-  }
-
-  /**
-   * Feeds the replay's own model (built on its first frame) and returns its view, where the
-   * car on camera is the player (resolveFocusCarIdx). An empty view when it cannot be built
-   * (tried once per replay).
-   */
-  private updateReplay(frame: TelemetryFrame, session: SessionMeta, now: number): RaceView {
-    if (!this.replayModel && !this.replayModelFailed) {
-      try {
-        this.replayModel = this.deps.createRaceModel()
-      } catch (err) {
-        this.replayModelFailed = true
-        this.logEvery('race', now, `Replay model unavailable: ${errorMessage(err)}`)
-      }
-    }
-    const model = this.replayModel
-    if (!model) return EMPTY_RACE_VIEW
-    try {
-      model.update(frame, session)
-    } catch (err) {
-      this.logEvery('race', now, `Replay model update failed: ${errorMessage(err)}`)
-    }
-    return model.view
   }
 
   /** A failing model must not take the widgets down: providers still run with its last view. */
@@ -501,11 +487,13 @@ export class TelemetryLoop {
     frame: TelemetryFrame,
     session: SessionMeta,
     race: RaceView,
+    player: number,
     now: number
   ): void {
     try {
-      const player = race.playerCarIdx
-      const last = player >= 0 ? race.lapProfile(player, 'last') : null
+      // At the live point the model's player can be the car on camera: none of yours then.
+      const last =
+        player >= 0 && race.playerCarIdx === player ? race.lapProfile(player, 'last') : null
       const prev = this.bestLap
       if (last !== prev) {
         const sameLap = prev !== null && last !== null && last.lap === prev.lap
@@ -584,9 +572,15 @@ export class TelemetryLoop {
   }
 
   /** A broken rule must not stop the loop: the widgets then stay as they were. */
-  private updateRules(frame: TelemetryFrame, session: SessionMeta, now: number): void {
+  private updateRules(
+    frame: TelemetryFrame,
+    live: TelemetryFrame,
+    session: SessionMeta,
+    mode: ReplayMode,
+    now: number
+  ): void {
     try {
-      this.autoHide.update(this.config, frame, session)
+      this.autoHide.update(this.config, frame, session, mode, live)
     } catch (err) {
       this.logEvery('rules', now, `Visibility rules failed: ${errorMessage(err)}`)
     }
@@ -669,9 +663,9 @@ export class TelemetryLoop {
       this.logEvery('race', now, `Race model reset failed: ${errorMessage(err)}`)
     }
     this.raceKey = null
-    this.replaying = false
-    this.replayModel = null
-    this.replayModelFailed = false
+    this.replayPoint.reset()
+    this.onTape = false
+    this.liveFrame = null
     this.resetProviders(now)
     this.autoHide.showAll()
     this.targetSession = null

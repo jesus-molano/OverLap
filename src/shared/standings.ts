@@ -20,7 +20,6 @@ import {
   resolvePlayerCarIdx
 } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
-import { isReplayPlaying } from './simScreen'
 import type { TelemetryFrame } from './telemetry'
 import { tyreCompoundOf, tyreModelOf, tyresVary, type TyreModel } from './tyres'
 import type {
@@ -242,11 +241,6 @@ interface RowContext {
   isRace: boolean
   playerIdx: number
   needs: RowNeeds
-  /**
-   * The stops and stints are known: false during a replay, whose race model (loop.ts) only saw
-   * the replay, never the stops before it, so its counts would be a false 0 and a full race.
-   */
-  pitHistory: boolean
   deltas: ReadonlyMap<number, number> | null
   tyreModel: TyreModel
   /** The tyre column has something to say (tyresVary): otherwise every row's tyre is null. */
@@ -298,11 +292,13 @@ function makeRow(
     lastLapKind: lapKind(e, g.classBest),
     bestLap: e.bestLap,
     bestLapKind: isClassBest(e.bestLap, g.classBest) ? 'class-best' : 'normal',
-    pitStops: ctx.pitHistory ? car.pitStops : null,
-    lastPitLap: ctx.pitHistory ? car.lastPitLap : null,
+    // The loop feeds one race model with live frames only (the live point of a replay
+    // included) and never builds one from the tape (loop.ts): its stops are always known.
+    pitStops: car.pitStops,
+    lastPitLap: car.lastPitLap,
     outLap: car.outLap,
     towed: car.towed,
-    stintLaps: needs.stint && ctx.pitHistory ? car.stintLaps : null,
+    stintLaps: needs.stint ? car.stintLaps : null,
     tyre: ctx.tyres ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
     penalty: penaltyOf(car.sessionFlags, car.finished),
@@ -410,7 +406,6 @@ export class StandingsProvider {
     const tyreModel = tyreModelOf(session)
     // A column of the same compound on every row says nothing: none until one differs.
     const tyres = needs.tyre && tyresVary(frame, session, tyreModel)
-    const pitHistory = !isReplayPlaying(frame)
     // Only rated races change iRating; the player's own row and the header need the deltas.
     const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'
@@ -439,7 +434,6 @@ export class StandingsProvider {
         isRace,
         playerIdx,
         needs,
-        pitHistory,
         deltas: ratings.deltas,
         tyreModel,
         tyres

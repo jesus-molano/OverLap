@@ -10,7 +10,11 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
   const rules = {} as TelemetryConfig['rules']
   for (const id of WIDGET_IDS) {
     const w = settings.widgets[id]
-    rules[id] = { showIn: { ...w.showIn }, hideInPits: w.hideInPits }
+    rules[id] = {
+      showIn: { ...w.showIn },
+      hideInPits: w.hideInPits,
+      showOnSessionScreen: w.showOnSessionScreen
+    }
   }
   const s = settings
   return {

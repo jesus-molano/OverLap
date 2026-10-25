@@ -16,7 +16,6 @@ import {
   resolvePlayerCarIdx
 } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
-import { isReplayPlaying } from './simScreen'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import { tyreCompoundOf, tyreModelOf, tyresVary } from './tyres'
@@ -184,8 +183,6 @@ export function computeRelative(
   const tyreModel = tyreModelOf(session)
   // The same compound on every car says nothing: no tyre until one differs.
   const tyres = tyresVary(frame, session, tyreModel)
-  // A replay's race model never saw the stops before it (loop.ts): its stints would be the race.
-  const stints = isReplayPlaying(frame) ? null : race
   const isRace = isRaceSession(sessionType)
   const preGreen = isRace && sessionState < SessionState.Racing
 
@@ -221,7 +218,8 @@ export function computeRelative(
         ? 'same'
         : lapRelation(lapsActive, frame.CarIdxLapCompleted[idx] ?? -1, pct, lapCompletedF, pctF),
       inPits: isCarInPits(frame, idx),
-      stintLaps: stints?.car(idx)?.stintLaps ?? null,
+      // The live model's (IsReplayPlaying is also the live session screen: loop.ts, Q1).
+      stintLaps: race?.car(idx)?.stintLaps ?? null,
       tyre: tyres ? tyreCompoundOf(frame, session, tyreModel, idx) : null,
       penalty: penaltyOf(frame.CarIdxSessionFlags[idx], race?.car(idx)?.finished === true)
     }

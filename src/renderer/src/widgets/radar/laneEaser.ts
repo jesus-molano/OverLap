@@ -50,6 +50,7 @@ function slid(m: CarMark, x: number): CarMark {
     bucket: m.bucket,
     classColor: m.classColor,
     overlapping: m.overlapping,
+    unsided: m.unsided,
     opacity: m.opacity
   }
 }

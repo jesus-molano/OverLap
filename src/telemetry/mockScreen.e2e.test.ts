@@ -1,6 +1,7 @@
 /**
  * End to end without Electron: the mock series with its screen moments (MockScreen: the
- * iRacing UI hidden, the garage, a replay) through the real TelemetryLoop, RaceModel and
+ * iRacing UI hidden, the garage, the session screen, a replay at its live point and on the
+ * tape) through the real TelemetryLoop, RaceModel and
  * providers, against the same series without them.
  */
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -8,7 +9,7 @@ import type { LapReference, PersonalBestStore } from '@shared/delta/references'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type { HiddenReason, WidgetPayloads } from '@shared/types'
-import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
+import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { TelemetryLoop } from './loop'
 import { MOCK_SCREEN_TIMELINE, MockScreen, MockSeries } from './mock/simulation'
 import type { MockSessionInfo } from './mock/simulation'
@@ -142,7 +143,7 @@ function moments(hidden: readonly Hidden[]): [number, string, WidgetId[]][] {
   return out
 }
 
-describe('mock screen end to end: UI hidden, garage and a replay', () => {
+describe('mock screen end to end: UI hidden, garage, session screen and a replay', () => {
   let screen: Run
   let plain: Run
   beforeAll(async () => {
@@ -151,7 +152,14 @@ describe('mock screen end to end: UI hidden, garage and a replay', () => {
   }, 30_000)
 
   const LIVE_ONLY = WIDGET_IDS.filter((id) => !followsCamera(id))
+  const OFF_TAPE = WIDGET_IDS.filter((id) => !keepsLiveInReplay(id))
+  const NOT_KEPT = WIDGET_IDS.filter((id) => id !== 'standings')
+  const tapeAt = TL.replay.atS + TL.replay.lengthS / 2
   const replayEnd = TL.replay.atS + TL.replay.lengthS
+  const during = (from: number, to: number) => (x: { s: number }) => x.s > from && x.s < to
+  type Row = WidgetPayloads['standings']['classes'][number]['rows'][number]
+  const rows = (x: Sent<'standings'> | undefined): Row[] =>
+    x?.payload.classes.flatMap((c) => c.rows) ?? []
 
   it('runs without errors, and without the screen nothing is ever hidden in a race', () => {
     expect(screen.logs).toEqual([])
@@ -159,29 +167,41 @@ describe('mock screen end to end: UI hidden, garage and a replay', () => {
     expect(plain.hidden).toEqual([])
   })
 
-  it('hides every widget with the UI and in the garage, the live-only ones in the replay', () => {
+  it('hides with the UI, in the garage, on the session screen, for another car and on the tape', () => {
     expect(moments(screen.hidden)).toEqual([
       [TL.uiHidden[0], 'ui-hidden', WIDGET_IDS],
       [TL.uiHidden[1], 'shown', WIDGET_IDS],
       [TL.garage[0], 'garage', WIDGET_IDS],
       [TL.garage[1], 'shown', WIDGET_IDS],
-      [TL.replay.atS, 'replay-player', LIVE_ONLY],
-      [replayEnd, 'shown', LIVE_ONLY]
+      // The standings stay on the session screen (the results).
+      [TL.sessionScreen[0], 'session-screen', NOT_KEPT],
+      [TL.sessionScreen[1], 'shown', NOT_KEPT],
+      [TL.replay.atS, 'camera-other', LIVE_ONLY],
+      [tapeAt, 'replay-player', OFF_TAPE],
+      [replayEnd, 'shown', OFF_TAPE]
     ])
   })
 
-  it('centres the relative and the standings on the car on camera during the replay', () => {
+  it('keeps the standings live on the session screen: the same table as without it (Q1)', () => {
+    const onScreen = screen.standings.filter(during(TL.sessionScreen[0], TL.sessionScreen[1]))
+    expect(onScreen.length).toBeGreaterThan(5)
+    for (const x of onScreen) {
+      // The last table the plain run sent by then (unchanged ones are not sent).
+      const then = plain.standings.filter((p) => p.s <= x.s + 1e-6).at(-1)
+      expect(x.payload).toEqual(then?.payload)
+    }
+  })
+
+  it('centres the relative and the standings on the car on camera at the live point', () => {
     const cast = screen.source.series.current.cast
     const player = screen.source.series.current.playerCarIdx
-    const half = TL.replay.atS + TL.replay.lengthS / 2
-    const during = (from: number, to: number) => (x: { s: number }) => x.s > from && x.s < to
     const focus = (p: WidgetPayloads['relative']): number => p.rows[p.playerRow]?.carIdx ?? -1
-    const firstHalf = screen.relative.filter(during(TL.replay.atS + 0.2, half - 0.2))
-    expect(firstHalf.length).toBeGreaterThan(20)
-    expect(new Set(firstHalf.map((x) => focus(x.payload)))).toEqual(new Set([cast.battleAhead]))
-    const secondHalf = screen.relative.filter(during(half + 0.2, replayEnd - 0.2))
-    expect(new Set(secondHalf.map((x) => focus(x.payload)))).toEqual(new Set([player]))
-    const standings = screen.standings.filter(during(TL.replay.atS + 0.5, half - 0.5))
+    const watching = screen.relative.filter(during(TL.replay.atS + 0.2, tapeAt - 0.2))
+    expect(watching.length).toBeGreaterThan(20)
+    expect(new Set(watching.map((x) => focus(x.payload)))).toEqual(new Set([cast.battleAhead]))
+    // Nothing of the relative while the tape plays: it only shows live data.
+    expect(screen.relative.filter(during(tapeAt + 0.2, replayEnd - 0.2))).toEqual([])
+    const standings = screen.standings.filter(during(TL.replay.atS + 0.5, tapeAt - 0.5))
     expect(standings.length).toBeGreaterThan(5)
     for (const { payload } of standings) {
       const me = payload.classes[0]?.rows.find((r) => r.isPlayer)
@@ -195,46 +215,41 @@ describe('mock screen end to end: UI hidden, garage and a replay', () => {
     expect(after?.payload.header.safetyRating).not.toBeNull()
   })
 
-  it('sends no stops or stints in a replay (its model never saw them), the live ones after', () => {
-    type Row = WidgetPayloads['standings']['classes'][number]['rows'][number]
-    const rows = (x: Sent<'standings'> | undefined): Row[] =>
-      x?.payload.classes.flatMap((c) => c.rows) ?? []
+  it('keeps the live stops and stints through the replay: one live model, never the tape (Q1)', () => {
     const live = rows(screen.standings.filter((x) => x.s < TL.replay.atS).at(-1))
     const stopped = live.filter((r) => (r.pitStops ?? 0) > 0)
     expect(stopped.length).toBeGreaterThan(0)
-    const replay = screen.standings.filter((x) => x.s > TL.replay.atS + 0.5 && x.s < replayEnd)
-    expect(replay.length).toBeGreaterThan(5)
-    for (const x of replay) {
-      for (const r of rows(x))
-        expect([r.pitStops, r.lastPitLap, r.stintLaps]).toEqual([null, null, null])
-    }
-    const relative = screen.relative.filter((x) => x.s > TL.replay.atS + 0.5 && x.s < replayEnd)
-    for (const x of relative) for (const r of x.payload.rows) expect(r.stintLaps).toBeNull()
-    const relativeLive = screen.relative.filter((x) => x.s < TL.replay.atS).at(-1)
-    expect(relativeLive?.payload.rows.some((r) => r.stintLaps !== null)).toBe(true)
-    // Live again: the live model's stops, as they were.
-    const back = rows(screen.standings.find((x) => x.s > replayEnd + 0.5))
+    const replay = screen.standings.filter(during(TL.replay.atS, replayEnd))
+    expect(replay.length).toBeGreaterThan(10)
+    for (const x of replay) for (const r of rows(x)) expect(r.pitStops).not.toBeNull()
+    const seen = replay.flatMap((x) => rows(x))
     for (const r of stopped) {
-      expect(back.find((b) => b.carIdx === r.carIdx)?.pitStops).toBeGreaterThanOrEqual(
+      expect(seen.find((b) => b.carIdx === r.carIdx)?.pitStops).toBeGreaterThanOrEqual(
         r.pitStops ?? 0
       )
     }
+    // On the tape the standings are the live race as it was: sent once, then unchanged.
+    const tape = screen.standings.filter(during(tapeAt - 0.1, replayEnd))
+    expect(tape).toHaveLength(1)
+    const relative = screen.relative.filter(during(TL.replay.atS + 0.5, tapeAt))
+    expect(relative.some((x) => x.payload.rows.some((r) => r.stintLaps !== null))).toBe(true)
   })
 
-  it('keeps the live timing through the replay: the delta is back at once with its reference', () => {
+  it('keeps the live timing through the replay: the delta is back at once with a reference', () => {
     const before = screen.delta.filter((x) => x.s < TL.replay.atS).at(-1)?.payload
     expect(before?.visible).toBe(true)
     const back = screen.delta.find((x) => x.s >= replayEnd)
     expect(back?.s).toBeLessThan(replayEnd + 0.2)
     expect(back?.payload.visible).toBe(true)
     expect(back?.payload.reference).toBe(before?.reference)
-    expect(back?.payload.refLapTime).toBe(before?.refLapTime)
+    // The lap the tape cut is not timed: the delta may pick its reference afresh, never none.
+    expect(back?.payload.refLapTime).toBeGreaterThan(0)
   })
 
-  it('records no lap from the replay, and does not time the lap it cut across', () => {
+  it('records no lap from the tape, and does not time the lap it cut across', () => {
     expect(plain.offers.length).toBeGreaterThan(0)
     const times = (r: Run): number[] => r.offers.map((l) => l.lapTime)
-    // Every lap offered is one the plain run offered too; the one across the replay is not.
+    // Every lap offered is one the plain run offered too; the one across the tape is not.
     for (const t of times(screen)) expect(times(plain)).toContain(t)
     expect(times(screen).length).toBe(times(plain).length - 1)
   })

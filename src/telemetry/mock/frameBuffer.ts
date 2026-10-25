@@ -58,6 +58,10 @@ export interface MockVars extends MockWeatherVars {
   RPM: number[]
   /** Live driving: no replay, the camera on the player, the UI shown (screen.ts changes them). */
   IsReplayPlaying: boolean[]
+  /** At the live point (0) unless screen.ts plays the tape. */
+  ReplayFrameNumEnd: number[]
+  ReplaySessionNum: number[]
+  ReplaySessionTime: number[]
   CamCarIdx: number[]
   CamCameraState: number[]
   IsGarageVisible: boolean[]
@@ -110,6 +114,9 @@ export class MockFrameBuffer {
     OilTemp: [0],
     RPM: [0],
     IsReplayPlaying: [false],
+    ReplayFrameNumEnd: [0],
+    ReplaySessionNum: [0],
+    ReplaySessionTime: [0],
     CamCarIdx: [0],
     CamCameraState: [0],
     IsGarageVisible: [false],

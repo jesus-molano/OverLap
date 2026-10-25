@@ -481,6 +481,89 @@ describe('computeRadar: side lanes', () => {
     expect(phantom).toMatchObject({ distM: 0, overlapping: true, classColor: '#ffffff' })
     expect(phantom?.lane).toBe(-(laneOf(data, 1) ?? 0))
   })
+
+  it('takes cars alongside from within overlapM while it holds enough of them (B24)', () => {
+    // Car 1 was alongside on the left; now only the right is reported, and car 2 is 7 m away:
+    // too far to overlap you while car 1 is level, so the right lane is a phantom.
+    const prev = radar({
+      clr: CarLeftRight.CarLeft,
+      cars: [
+        { idx: 1, distM: 1 },
+        { idx: 2, distM: 7 }
+      ]
+    })
+    expect(laneOf(prev, 1)).toBe(-1)
+    const data = radar(
+      {
+        clr: CarLeftRight.CarRight,
+        cars: [
+          { idx: 1, distM: 1 },
+          { idx: 2, distM: 7 }
+        ]
+      },
+      { prev }
+    )
+    expect(laneOf(data, 2)).toBe(0)
+    expect(laneOf(data, -1)).toBe(1)
+    expect(RADAR.overlapM).toBeLessThan(RADAR.overlapSearchM)
+    // Nobody within overlapM: the pool widens and car 2 is the one alongside.
+    const alone = radar({ clr: CarLeftRight.CarRight, cars: [{ idx: 2, distM: 7 }] })
+    expect(laneOf(alone, 2)).toBe(1)
+  })
+
+  it('keeps a car alongside in its lane up to overlapSearchM: no swap around overlapM', () => {
+    const first = radar({
+      clr: CarLeftRight.CarRight,
+      cars: [
+        { idx: 1, distM: 5.4 },
+        { idx: 2, distM: -5.6 }
+      ]
+    })
+    expect(laneOf(first, 1)).toBe(1)
+    const second = radar(
+      {
+        clr: CarLeftRight.CarRight,
+        cars: [
+          { idx: 1, distM: 5.6 },
+          { idx: 2, distM: -5.4 }
+        ]
+      },
+      { prev: first }
+    )
+    expect(laneOf(second, 1)).toBe(1)
+    expect(laneOf(second, 2)).toBe(0)
+  })
+})
+
+describe('computeRadar: lone sessions (B11)', () => {
+  // Lone qualifying: the other cars are on track in runs of their own, not with you.
+  const lone: SessionMeta = { ...makeSession(), sessionTypes: new Map([[0, 'Lone Qualify']]) }
+
+  it('draws none of the other cars: CarLeftRight said clear all along', () => {
+    const data = radar(
+      {
+        clr: CarLeftRight.Clear,
+        cars: [
+          { idx: 1, distM: 4.1 },
+          { idx: 2, distM: -12 }
+        ]
+      },
+      { session: lone }
+    )
+    expect(data.visible).toBe(false)
+    expect(data.cars).toEqual([])
+    // An open session shows them.
+    expect(radar({ clr: CarLeftRight.Clear, cars: [{ idx: 1, distM: 4.1 }] }).visible).toBe(true)
+  })
+
+  it('still shows what CarLeftRight reports, as phantoms', () => {
+    const data = radar(
+      { clr: CarLeftRight.CarLeft, cars: [{ idx: 1, distM: 1 }] },
+      { session: lone }
+    )
+    expect(data.visible).toBe(true)
+    expect(data.cars.map((c) => [c.carIdx, c.lane])).toEqual([[-1, -1]])
+  })
 })
 
 describe('computeRadar: side-lane hold', () => {

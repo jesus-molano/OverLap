@@ -177,14 +177,23 @@ export const settingsEs = {
       simUiHelp: 'Si ocultas la interfaz del simulador, los widgets también se ocultan',
       garage: 'Ocultar en el garaje',
       garageHelp: 'Mientras tienes abierta la pantalla del garaje',
+      sessionScreen: 'Ocultar en la pantalla de sesión',
+      sessionScreenHelp:
+        'Fuera del coche no tapan los resultados ni el chat de iRacing; cada widget puede quedarse (en su sección Ventana)',
       replays: 'En repeticiones',
-      /** `widgets`: the names of the widgets with live data only ('Radar, Pedales y Delta'). */
+      /** `widgets`: the names of the widgets with your car's data only ('Radar, Pedales y Delta'). */
       replaysHelp: (widgets: string) =>
-        `${widgets} solo muestran datos en directo: se ocultan siempre`,
+        `En directo siguen al coche que miras; ${widgets} solo tienen datos de tu coche y se ocultan si miras otro`,
       replayChoices: {
-        follow: { label: 'Seguir la cámara', hint: 'Muestran el coche que estás viendo' },
-        hide: { label: 'Ocultar', hint: 'Ningún widget mientras dura la repetición' }
-      }
+        follow: {
+          label: 'Mantener la clasificación',
+          hint: 'Al rebobinar queda la de la carrera en directo; el resto se oculta'
+        },
+        hide: { label: 'Ocultar', hint: 'Ningún widget mientras ves una repetición' }
+      },
+      waiting: 'Mantener «Esperando a iRacing»',
+      waitingHelp:
+        'Sin iRacing, Clasificación y Relativo se ocultan a los pocos segundos; activado, siguen con el aviso'
     },
     reset: {
       label: 'Restablecer apariencia',
@@ -314,11 +323,19 @@ export const settingsEs = {
     showInHelp: 'En las demás sesiones se oculta y no consume nada; en modo edición siempre se ve',
     hideInPits: 'Ocultar en boxes',
     hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box',
+    sessionScreen: 'Mostrar en la pantalla de sesión',
+    sessionScreenHelp: 'Fuera del coche, sobre los resultados y el chat de iRacing',
+    /** Apariencia > Visibilidad does not hide anything on the session screen. */
+    sessionScreenOff:
+      'Se muestra: Apariencia > Visibilidad no oculta nada en la pantalla de sesión',
     /** What the widget does in a replay (Apariencia > Visibilidad decides the rest). */
     replay: {
-      follows: 'En repeticiones muestra el coche que estás viendo',
-      liveOnly: 'En repeticiones se oculta: solo muestra datos en directo',
-      hidden: 'En repeticiones se oculta (Apariencia > Visibilidad)'
+      /** The standings: they keep the live race. */
+      keepsLive: 'En directo sigue al coche que miras; al rebobinar mantiene la carrera en directo',
+      follows: 'En directo sigue al coche que miras; al rebobinar una repetición se oculta',
+      liveOnly: 'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche',
+      hidden:
+        'Al rebobinar se oculta (Apariencia > Visibilidad); en directo sigue al coche que miras'
     }
   },
   relative: {
@@ -501,7 +518,8 @@ export const settingsEs = {
     entries: 'Entradas por grupo',
     entriesHelp: 'Los más cercanos primero',
     multiclass: 'Solo en multiclase',
-    multiclassHelp: 'Sin otras clases en pista no avisa de tráfico; los peligros, siempre'
+    multiclassHelp:
+      'Sin otras clases en pista solo avisa de quien te dobla (o con bandera azul) y de los peligros'
   },
   alerts: {
     nothing: 'Sin ningún aviso marcado el widget no se muestra',
@@ -822,12 +840,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
       simUiHelp: 'When you hide the sim’s interface, the widgets hide too',
       garage: 'Hide in the garage',
       garageHelp: 'While the garage screen is open',
+      sessionScreen: 'Hide on the session screen',
+      sessionScreenHelp:
+        'Out of the car they keep clear of iRacing’s results and chat; each widget can stay (in its Window section)',
       replays: 'In replays',
-      replaysHelp: (widgets) => `${widgets} only show live data: they always hide`,
+      replaysHelp: (widgets) =>
+        `Live, they follow the car you are watching; ${widgets} only have your car’s data and hide when you watch another`,
       replayChoices: {
-        follow: { label: 'Follow the camera', hint: 'They show the car you are watching' },
-        hide: { label: 'Hide', hint: 'No widgets while the replay plays' }
-      }
+        follow: {
+          label: 'Keep the standings',
+          hint: 'When you rewind, the live race’s standings stay; the rest hide'
+        },
+        hide: { label: 'Hide', hint: 'No widgets while you watch a replay' }
+      },
+      waiting: 'Keep “Waiting for iRacing”',
+      waitingHelp:
+        'Without iRacing, Standings and Relative hide after a few seconds; on, they keep the notice'
     },
     reset: {
       label: 'Reset appearance',
@@ -949,10 +977,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
     showInHelp: 'In other sessions it’s hidden and uses no resources; in edit mode it always shows',
     hideInPits: 'Hide in the pits',
     hideInPitsHelp: 'While you are on pit road or stopped in your pit box',
+    sessionScreen: 'Show on the session screen',
+    sessionScreenHelp: 'Out of the car, over iRacing’s results and chat',
+    sessionScreenOff: 'Shown: Appearance > Visibility hides nothing on the session screen',
     replay: {
-      follows: 'In replays it shows the car you are watching',
-      liveOnly: 'Hidden in replays: it only shows live data',
-      hidden: 'Hidden in replays (Appearance > Visibility)'
+      keepsLive:
+        'Live, it follows the car you are watching; when you rewind, it keeps the live race',
+      follows: 'Live, it follows the car you are watching; hidden when you rewind a replay',
+      liveOnly: 'Only your car’s data: hidden in replays and when you watch another car',
+      hidden: 'Hidden when you rewind (Appearance > Visibility); live, it follows the car you watch'
     }
   },
   relative: {
@@ -1127,7 +1160,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     entries: 'Entries per group',
     entriesHelp: 'Closest first',
     multiclass: 'Multiclass only',
-    multiclassHelp: 'With no other classes on track, it only warns about hazards'
+    multiclassHelp:
+      'With no other classes on track, it only warns about cars lapping you (or under blue flag) and hazards'
   },
   alerts: {
     nothing: 'With no alert selected, the widget never shows',
