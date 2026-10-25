@@ -1,0 +1,343 @@
+/*
+ * Overlay design tokens and primitives, loaded by every window. Widgets keep only their own
+ * geometry; colours, type, shapes and motion come from here. main.ts sets the appearance on
+ * <html>: --ov-accent / --ov-accent-fg and data-cvd / data-density / data-stripes
+ * (view/appearance.ts).
+ *
+ * GPU budget (enforced by ui/styleBudget.test.ts): no filters or backdrop filters, no blurred
+ * shadows, no infinite animations, transitions on opacity/transform/visibility only.
+ */
+
+:root {
+  /* Identity: the accent means "you" and nothing else (appearance.accent). */
+  --ov-accent: #ffc400;
+  --ov-accent-fg: #000000;
+
+  /* Semantics: always paired with a shape (chevron, sign, icon or ring), never colour alone. */
+  --ov-good: #3ddc84; /* gaining, PB, in your favour */
+  --ov-bad: #ff6b6b; /* losing, against you */
+  --ov-danger: var(--ov-bad);
+  --ov-best: #b67cff; /* fastest lap of the class / session */
+  --ov-warn: #ffb020; /* off-track, ABS, meatball, last lap */
+  --ov-info: #6aa8ff; /* lapped, SIM pill, neutral information */
+  --ov-lap-ahead: #ff7a7a; /* car laps up on you (lapping you) */
+  --ov-lap-behind: var(--ov-info); /* car laps down on you */
+  /* Text on solid semantic fills. */
+  --ov-on-solid: #000000;
+  --ov-pit-opacity: 0.45;
+
+  /* Pedals (inputs widget; the trace needs opaque colours). */
+  --ov-throttle: #3ddc84;
+  --ov-brake: #ff4545;
+  --ov-clutch: #4aa3ff;
+  --ov-abs: #ffae2b;
+
+  /* Text (system fonts only: no web fonts, no external requests) */
+  --ov-fg: #f3f5f8;
+  --ov-fg-muted: #9aa3b2;
+  --ov-fg-dim: #6b7486;
+  --ov-font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --ov-font-num: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Nothing is drawn smaller: 7 px text is unreadable at 1080p in a glance. */
+  --ov-min-text: 9px;
+
+  /* Type scale, in em of the widget's base font, floors included. */
+  --ov-t-hero: 2.2em;
+  --ov-t-primary: 1em;
+  --ov-t-secondary: max(var(--ov-min-text), 0.82em);
+  --ov-t-caption: max(var(--ov-min-text), 0.72em);
+  --ov-t-chip: max(var(--ov-min-text), 0.72em);
+  --ov-t-tag: max(var(--ov-min-text), 0.65em);
+
+  /* Shape: panels, chips, pills. Nothing else. */
+  --ov-radius: 8px;
+  --ov-radius-chip: 0.28em;
+  --ov-radius-pill: 999px;
+  /* Player bar, class stripe, lane tone bar. */
+  --ov-bar-w: 3px;
+
+  /* Density (data-density): row and class-line heights. */
+  --ov-row-h: 1.8em;
+  --ov-class-h: 1.45em;
+
+  /* Motion */
+  --ov-fade-in: 250ms;
+  --ov-fade-out: 600ms;
+
+  /* Background panel opacity, 0..1: each widget sets its own on its .ov-surface element. */
+  --ov-bg-alpha: 0.78;
+  /* Text straight over the game (see-through panel): a small dark halo, no filters. */
+  --ov-text-halo: 0 0 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
+
+  /* Edit mode */
+  --ov-edit: #3ea6ff;
+  --ov-edit-backdrop: rgba(8, 10, 14, 0.55);
+  --ov-locked: rgba(154, 163, 178, 0.55);
+}
+
+:root[data-density='compact'] {
+  --ov-row-h: 1.5em;
+  --ov-class-h: 1.25em;
+}
+
+/* Colour-blind palette (deuteranopia-safe blue/orange); the shapes stay. */
+:root[data-cvd='on'] {
+  --ov-good: #3fa7ff;
+  --ov-bad: #ff9f1a;
+  --ov-lap-ahead: #ff9f1a;
+}
+
+/*
+ * Surfaces, scaled by --ov-bg-alpha so 0 leaves only text and icons. Re-declared on every
+ * .ov-surface (widget panel) because a custom property resolves var() where it is declared:
+ * declared on :root alone they would keep :root's alpha.
+ */
+:root,
+.ov-surface {
+  --ov-bg: rgba(12, 14, 18, var(--ov-bg-alpha));
+  --ov-bg-row: rgba(255, 255, 255, calc(0.035 * var(--ov-bg-alpha)));
+  --ov-bg-row-alt: rgba(255, 255, 255, calc(0.065 * var(--ov-bg-alpha)));
+  --ov-border: rgba(255, 255, 255, calc(0.1 * var(--ov-bg-alpha)));
+  /* Separators and chips never fade below half: they must still read at 0 % background. */
+  --ov-sep: rgba(255, 255, 255, calc(0.08 * max(var(--ov-bg-alpha), 0.5)));
+  --ov-chip: rgba(255, 255, 255, calc(0.13 * max(var(--ov-bg-alpha), 0.5)));
+  --ov-chip-faint: rgba(255, 255, 255, calc(0.07 * max(var(--ov-bg-alpha), 0.5)));
+  /* Top sheen of a panel: painted only when the panel repaints. */
+  --ov-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, calc(0.04 * var(--ov-bg-alpha))),
+    transparent 2.5em
+  );
+  /* Hairline at the top edge of a panel (no blur). */
+  --ov-hairline: inset 0 1px 0 rgba(255, 255, 255, calc(0.05 * var(--ov-bg-alpha)));
+}
+
+/* No alternate row shading (appearance.stripes off). */
+:root[data-stripes='off'],
+:root[data-stripes='off'] .ov-surface {
+  --ov-bg-row-alt: var(--ov-bg-row);
+}
+
+/* ---- Base ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--ov-font);
+  color: var(--ov-fg);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+  cursor: default;
+}
+
+/* ---- Widget primitives ------------------------------------------------------ */
+
+/* A widget's root: fills the window; nothing inside can reflow or paint past it. */
+.ov-root {
+  position: absolute;
+  inset: 0;
+  contain: strict;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+
+/*
+ * Shown/hidden with a fade; hidden it is also `visibility: hidden`, so a faded-out widget is
+ * skipped by paint and hit testing. Fades in quickly, out slowly.
+ */
+.ov-fade {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--ov-fade-out) ease,
+    visibility 0s linear var(--ov-fade-out);
+}
+
+.ov-fade.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--ov-fade-in) ease,
+    visibility 0s;
+}
+
+/*
+ * Panel chrome (ui/WidgetPanel.vue, or these classes with .ov-surface on a widget's own element):
+ * sheen + background scaled by --ov-bg-alpha, hairline, border, radius. As tall as its content
+ * unless --fill (free-size widgets); auto-height widgets get their font from --ov-fs, which is
+ * unset elsewhere, so the font is inherited.
+ */
+.ov-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--ov-sheen), var(--ov-bg);
+  border: 1px solid var(--ov-border);
+  border-radius: var(--ov-radius);
+  box-shadow: var(--ov-hairline);
+  color: var(--ov-fg);
+  font-family: var(--ov-font);
+  font-size: var(--ov-fs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.ov-panel--fill {
+  width: 100%;
+  height: 100%;
+}
+
+.ov-panel--flat {
+  background: var(--ov-bg);
+}
+
+/* Text over a see-through panel: an inherited halo, off again on solid fills (.ov-solid). */
+.ov-halo {
+  text-shadow: var(--ov-text-halo);
+}
+
+.ov-solid {
+  text-shadow: none;
+}
+
+/*
+ * The player's row or lane: an accent tint that fades out to the right plus a bar. Never a flat
+ * yellow fill (it reads olive on the dark panel). The tint sits behind the content of the row
+ * (isolated stacking context), above the row's own background.
+ */
+.ov-player {
+  position: relative;
+  isolation: isolate;
+}
+
+.ov-player::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--ov-accent), transparent 72%);
+  opacity: calc(0.2 * max(var(--ov-bg-alpha), 0.6));
+}
+
+.ov-player::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--ov-bar-w);
+  pointer-events: none;
+  background: var(--ov-accent);
+}
+
+/* ---- Type scale ------------------------------------------------------------- */
+
+.ov-t-hero {
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-hero);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.ov-t-primary {
+  font-size: var(--ov-t-primary);
+  font-weight: 600;
+}
+
+.ov-t-secondary {
+  font-size: var(--ov-t-secondary);
+}
+
+.ov-t-caption {
+  font-size: var(--ov-t-caption);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ov-fg-muted);
+}
+
+.ov-muted {
+  color: var(--ov-fg-muted);
+}
+
+.ov-dim {
+  color: var(--ov-fg-dim);
+}
+
+.ov-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tones: `--ov-tone` for components that tint with it, `color` for plain text. */
+.ov-tone-good {
+  --ov-tone: var(--ov-good);
+  color: var(--ov-good);
+}
+.ov-tone-bad {
+  --ov-tone: var(--ov-bad);
+  color: var(--ov-bad);
+}
+.ov-tone-best {
+  --ov-tone: var(--ov-best);
+  color: var(--ov-best);
+}
+.ov-tone-warn {
+  --ov-tone: var(--ov-warn);
+  color: var(--ov-warn);
+}
+.ov-tone-info {
+  --ov-tone: var(--ov-info);
+  color: var(--ov-info);
+}
+.ov-tone-accent {
+  --ov-tone: var(--ov-accent);
+  color: var(--ov-accent);
+}
+.ov-tone-dim {
+  --ov-tone: var(--ov-fg-dim);
+  color: var(--ov-fg-dim);
+}
+.ov-tone-neutral {
+  --ov-tone: var(--ov-fg-muted);
+  color: var(--ov-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-fade,
+  .ov-fade.is-shown {
+    transition: none;
+  }
+}
+
+/* Shown by main.ts when the window was opened with a missing or unknown ?widget=. */
+.ov-boot-error {
+  display: inline-block;
+  margin: 8px;
+  padding: 6px 10px;
+  border-radius: var(--ov-radius);
+  background: var(--ov-bg);
+  color: var(--ov-danger);
+  font-size: 12px;
+}

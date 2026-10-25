@@ -1,0 +1,398 @@
+import { describe, expect, it } from 'vitest'
+import { messagesFor } from '@shared/i18n'
+import type { TrafficData, TrafficEntry } from '@shared/types'
+import { reuseViews, shallowEqual } from '@renderer/view/reuse'
+import { createDriverStyles } from '@renderer/view/styles'
+import { PREVIEW_TRAFFIC, previewOptions } from './preview'
+import {
+  GROUP_ORDER,
+  SOON_S,
+  URGENT_S,
+  classLabel,
+  etaParts,
+  gapParts,
+  groupCaption,
+  hasSectors,
+  hasTraffic,
+  layoutKey,
+  sectorLabel,
+  toRowSlot,
+  toSlots,
+  urgency,
+  visibleGroups,
+  type RowSlotView,
+  type TrafficSlotView,
+  type TrafficViewOptions
+} from './view'
+
+const ES = messagesFor('es')
+const EN = messagesFor('en')
+
+function entry(over: Partial<TrafficEntry> = {}): TrafficEntry {
+  return {
+    driver: {
+      carIdx: 7,
+      carNumber: '7',
+      driverName: 'Ana López',
+      classColor: '#ff5888',
+      iRating: 3100,
+      licString: 'A 2.50',
+      licColor: '#0153db'
+    },
+    kind: 'faster',
+    className: 'GTP',
+    gapS: -0.4,
+    etaS: 6.3,
+    meetPct: 0.4,
+    meetSector: 2,
+    lapping: false,
+    hazard: null,
+    ...over
+  }
+}
+
+function traffic(over: Partial<TrafficData> = {}): TrafficData {
+  return { visible: true, faster: [], slower: [], hazards: [], ...over }
+}
+
+const OPTS: TrafficViewOptions = {
+  showFaster: true,
+  showSlower: true,
+  showHazards: true,
+  maxEntries: 3,
+  nameFormat: 'abbr'
+}
+
+const rows = (slots: readonly TrafficSlotView[]): RowSlotView[] =>
+  slots.filter((s): s is RowSlotView => s.kind === 'row')
+
+describe('urgency', () => {
+  it('bad under 3 s, warn under 8 s, idle when not converging', () => {
+    expect(urgency(0)).toBe('bad')
+    expect(urgency(URGENT_S - 0.01)).toBe('bad')
+    expect(urgency(URGENT_S)).toBe('warn')
+    expect(urgency(SOON_S - 0.01)).toBe('warn')
+    expect(urgency(SOON_S)).toBe('normal')
+    expect(urgency(42)).toBe('normal')
+    expect(urgency(null)).toBe('idle')
+    expect(urgency(NaN)).toBe('idle')
+    expect(urgency(Infinity)).toBe('idle')
+  })
+})
+
+describe('etaParts / gapParts', () => {
+  it('ETA in whole seconds rounded down, so the number agrees with its colour', () => {
+    expect(etaParts(6.9)).toEqual({ num: '6', unit: 's' })
+    expect(etaParts(2.99)).toEqual({ num: '2', unit: 's' })
+    expect(etaParts(3)).toEqual({ num: '3', unit: 's' })
+    expect(etaParts(1)).toEqual({ num: '1', unit: 's' })
+    expect(etaParts(0.4)).toEqual({ num: '<1', unit: 's' })
+    expect(etaParts(-2)).toEqual({ num: '<1', unit: 's' })
+    expect(etaParts(59.9)).toEqual({ num: '59', unit: 's' })
+    expect(etaParts(60)).toEqual({ num: '1', unit: 'min' })
+    expect(etaParts(150)).toEqual({ num: '3', unit: 'min' })
+  })
+
+  it('distance: one decimal under 10 s, whole seconds, minutes', () => {
+    expect(gapParts(3.24)).toEqual({ num: '3.2', unit: 's' })
+    expect(gapParts(-0.25)).toEqual({ num: '0.3', unit: 's' })
+    expect(gapParts(0)).toEqual({ num: '0.0', unit: 's' })
+    expect(gapParts(9.96)).toEqual({ num: '10', unit: 's' })
+    expect(gapParts(14.4)).toEqual({ num: '14', unit: 's' })
+    expect(gapParts(59.4)).toEqual({ num: '59', unit: 's' })
+    expect(gapParts(59.6)).toEqual({ num: '1', unit: 'min' })
+    expect(gapParts(-125)).toEqual({ num: '2', unit: 'min' })
+  })
+})
+
+describe('labels', () => {
+  it('class chip without a trailing "Class"', () => {
+    expect(classLabel('GT3 Class')).toBe('GT3')
+    expect(classLabel(' GT4 class ')).toBe('GT4')
+    expect(classLabel('GTP')).toBe('GTP')
+    expect(classLabel('Class')).toBe('Class')
+    expect(classLabel('')).toBe('')
+  })
+
+  it('sector chip', () => {
+    expect(sectorLabel(2, ES)).toBe('S2')
+    expect(sectorLabel(1, ES)).toBe('S1')
+    expect(sectorLabel(1.6, EN)).toBe('S2')
+    expect(sectorLabel(0, ES)).toBe('')
+    expect(sectorLabel(null, EN)).toBe('')
+    expect(sectorLabel(NaN, ES)).toBe('')
+  })
+})
+
+describe('toRowSlot', () => {
+  const styles = createDriverStyles()
+
+  it('faster car: when it reaches you and where', () => {
+    const s = toRowSlot(entry(), 'faster', 0, styles, 'abbr', ES)
+    expect(s).toMatchObject({
+      kind: 'row',
+      group: 'faster',
+      css: 'tr-row tr-row--faster is-warn',
+      urgency: 'warn',
+      cls: 'GTP',
+      number: '7',
+      name: 'A. López',
+      lap: null,
+      lapBadge: '',
+      hazard: '',
+      lead: 'te alcanza en',
+      num: '6',
+      unit: 's',
+      sector: 'S2'
+    })
+    expect(s.clsStyle['--cls']).toBe('#ff5888')
+  })
+
+  it('faster car lapping you: lap colour and "te dobla"', () => {
+    const s = toRowSlot(entry({ lapping: true, etaS: 1.4 }), 'faster', 1, styles, 'full', ES)
+    expect(s).toMatchObject({
+      css: 'tr-row tr-row--faster is-alt is-bad',
+      lap: 'ahead',
+      lapBadge: 'Te dobla',
+      lead: 'te alcanza en',
+      num: '1',
+      name: 'Ana López'
+    })
+  })
+
+  it('slower car: when you reach it, "doblado" when a lap down', () => {
+    const e = entry({ kind: 'slower', className: 'GT4 Class', gapS: 1.2, etaS: 12.4 })
+    expect(toRowSlot(e, 'slower', 0, styles, 'abbr', ES)).toMatchObject({
+      css: 'tr-row tr-row--slower',
+      urgency: 'normal',
+      cls: 'GT4',
+      lap: null,
+      lead: 'le alcanzas en',
+      num: '12',
+      sector: 'S2'
+    })
+    expect(toRowSlot({ ...e, lapping: true }, 'slower', 0, styles, 'abbr', ES)).toMatchObject({
+      lap: 'behind',
+      lapBadge: 'Doblado'
+    })
+  })
+
+  it('not converging: how far it is, quieter, no sector', () => {
+    const s = toRowSlot(
+      entry({ etaS: null, meetSector: null, gapS: -4.26 }),
+      'faster',
+      0,
+      styles,
+      'abbr',
+      ES
+    )
+    expect(s).toMatchObject({
+      css: 'tr-row tr-row--faster is-idle',
+      urgency: 'idle',
+      lead: 'a',
+      num: '4.3',
+      unit: 's',
+      sector: ''
+    })
+  })
+
+  it('hazards: kind badge and how far, urgency by ETA, no lap state', () => {
+    const base = entry({ kind: 'hazard', gapS: 3.2, etaS: 2.1, lapping: true })
+    expect(
+      toRowSlot({ ...base, hazard: 'stopped' }, 'hazard', 0, styles, 'abbr', ES)
+    ).toMatchObject({
+      css: 'tr-row tr-row--hazard is-bad',
+      hazard: 'Parado',
+      hazardTone: 'bad',
+      lead: 'a',
+      num: '3.2',
+      lap: null,
+      lapBadge: ''
+    })
+    expect(toRowSlot({ ...base, hazard: 'slow' }, 'hazard', 0, styles, 'abbr', ES)).toMatchObject({
+      hazard: 'Lento',
+      hazardTone: 'warn'
+    })
+    expect(
+      toRowSlot({ ...base, hazard: 'off-track', etaS: null }, 'hazard', 0, styles, 'abbr', ES)
+    ).toMatchObject({ hazard: 'Fuera', hazardTone: 'warn', urgency: 'idle' })
+    // A hazard without a kind is still drawn.
+    expect(toRowSlot(base, 'hazard', 0, styles, 'abbr', ES).hazard).toBe('Peligro')
+  })
+
+  it('says every line in English', () => {
+    expect(toRowSlot(entry(), 'faster', 0, styles, 'abbr', EN).lead).toBe('catches you in')
+    expect(toRowSlot(entry({ lapping: true }), 'faster', 0, styles, 'abbr', EN).lapBadge).toBe(
+      'Lapping'
+    )
+    const slower = entry({ kind: 'slower', gapS: 1.2, etaS: 12.4 })
+    expect(toRowSlot(slower, 'slower', 0, styles, 'abbr', EN).lead).toBe('you catch it in')
+    expect(toRowSlot({ ...slower, lapping: true }, 'slower', 0, styles, 'abbr', EN).lapBadge).toBe(
+      'Lapped'
+    )
+    const hazard = entry({ kind: 'hazard', gapS: 3.2, etaS: 2.1 })
+    const at = (h: TrafficEntry['hazard']): RowSlotView =>
+      toRowSlot({ ...hazard, hazard: h }, 'hazard', 0, styles, 'abbr', EN)
+    expect(at('stopped')).toMatchObject({ hazard: 'Stopped', lead: 'at', hazardTone: 'bad' })
+    expect(at('slow').hazard).toBe('Slow')
+    expect(at('off-track').hazard).toBe('Off track')
+    expect(at(null).hazard).toBe('Hazard')
+  })
+
+  it('the group decides the line, whatever the entry says', () => {
+    expect(toRowSlot(entry({ kind: 'slower' }), 'faster', 0, styles, 'abbr', ES).lead).toBe(
+      'te alcanza en'
+    )
+  })
+
+  it('falls back on unknown colours, numbers and gaps', () => {
+    const s = toRowSlot(
+      entry({
+        driver: { ...entry().driver, carNumber: ' ', classColor: 'nope' },
+        className: '',
+        gapS: NaN,
+        etaS: null
+      }),
+      'slower',
+      0,
+      styles,
+      'tv',
+      ES
+    )
+    expect(s).toMatchObject({ number: '', cls: '', num: '0.0', name: 'LOP' })
+    expect(s.clsStyle['--cls']).toBe('#ffffff')
+  })
+
+  it('equal inputs give shallow-equal slots sharing their style object', () => {
+    const a = toRowSlot(entry(), 'faster', 0, styles, 'abbr', ES)
+    const b = toRowSlot(entry({ etaS: 6.8, gapS: -0.45 }), 'faster', 0, styles, 'abbr', ES)
+    expect(a).not.toBe(b)
+    expect(shallowEqual(a, b)).toBe(true)
+    expect(a.clsStyle).toBe(b.clsStyle)
+  })
+})
+
+describe('groups and slots', () => {
+  const styles = createDriverStyles()
+  const full = traffic({
+    faster: [entry(), entry({ etaS: 9 }), entry({ etaS: 12 }), entry({ etaS: 15 })],
+    slower: [entry({ kind: 'slower', etaS: 4 })],
+    hazards: [entry({ kind: 'hazard', hazard: 'stopped', etaS: 2 })]
+  })
+
+  it('ahead first (hazards, slower), the faster cars behind last', () => {
+    expect(GROUP_ORDER).toEqual(['hazard', 'slower', 'faster'])
+    expect(visibleGroups(full, OPTS).map((g) => g.group)).toEqual(['hazard', 'slower', 'faster'])
+  })
+
+  it('follows the group toggles and the entry limit', () => {
+    const g = visibleGroups(full, { ...OPTS, showHazards: false, maxEntries: 2 })
+    expect(g.map((x) => x.group)).toEqual(['slower', 'faster'])
+    expect(g[1]?.entries).toHaveLength(2)
+    expect(visibleGroups(full, { ...OPTS, maxEntries: 0 })[2]?.entries).toHaveLength(1)
+  })
+
+  it('nothing to draw: hidden payload, empty groups or every group off', () => {
+    expect(hasTraffic(full, OPTS)).toBe(true)
+    expect(hasTraffic({ ...full, visible: false }, OPTS)).toBe(false)
+    expect(hasTraffic(traffic(), OPTS)).toBe(false)
+    const onlyFaster = traffic({ faster: [entry()] })
+    expect(hasTraffic(onlyFaster, { ...OPTS, showFaster: false })).toBe(false)
+    expect(hasTraffic(onlyFaster, { ...OPTS, showSlower: false, showHazards: false })).toBe(true)
+  })
+
+  it('a caption per group, then its cars; only the first caption has no separator', () => {
+    const slots = toSlots(full, OPTS, styles, ES)
+    expect(layoutKey(slots)).toBe('crcrcrrr')
+    const captions = slots.filter((s) => s.kind === 'caption')
+    expect(captions.map((c) => c.text)).toEqual(['PELIGRO', 'DELANTE', 'POR DETRÁS'])
+    expect(captions.map((c) => c.css)).toEqual([
+      'tr-cap tr-cap--hazard is-first',
+      'tr-cap tr-cap--slower',
+      'tr-cap tr-cap--faster'
+    ])
+    // Stripes restart in every group.
+    expect(rows(slots).map((r) => r.css.includes('is-alt'))).toEqual([
+      false,
+      false,
+      false,
+      true,
+      false
+    ])
+    expect(toSlots(traffic({ slower: [entry()] }), OPTS, styles, ES)[0]?.css).toBe(
+      'tr-cap tr-cap--slower is-first'
+    )
+    expect(toSlots(traffic(), OPTS, styles, ES)).toEqual([])
+  })
+
+  it('unchanged slots keep their objects; captions are shared', () => {
+    const a = toSlots(full, OPTS, styles, ES)
+    const b = toSlots(full, OPTS, styles, ES)
+    expect(b[0]).toBe(a[0])
+    expect(reuseViews(a, b)).toBe(a)
+    const moved = toSlots(
+      { ...full, faster: [entry({ etaS: 1 }), ...full.faster.slice(1)] },
+      OPTS,
+      styles,
+      ES
+    )
+    const next = reuseViews(a, moved)
+    expect(next).not.toBe(a)
+    expect(next.filter((s, i) => s === a[i])).toHaveLength(a.length - 1)
+  })
+
+  it('captions and words in English; captions are shared per language', () => {
+    const slots = toSlots(full, OPTS, styles, EN)
+    const captions = slots.filter((s) => s.kind === 'caption')
+    expect(captions.map((c) => c.text)).toEqual(['HAZARD', 'AHEAD', 'BEHIND'])
+    expect(toSlots(full, OPTS, styles, EN)[0]).toBe(slots[0])
+    expect(toSlots(full, OPTS, styles, ES)[0]).not.toBe(slots[0])
+    expect(groupCaption('faster', ES)).toBe('POR DETRÁS')
+    expect(groupCaption('faster', EN)).toBe('BEHIND')
+  })
+
+  it('sector column only when a line has one', () => {
+    expect(hasSectors(toSlots(full, OPTS, styles, ES))).toBe(true)
+    const none = traffic({ faster: [entry({ meetSector: null })] })
+    expect(hasSectors(toSlots(none, OPTS, styles, ES))).toBe(false)
+    expect(hasSectors([])).toBe(false)
+  })
+})
+
+describe('preview', () => {
+  const styles = createDriverStyles()
+
+  it('is frozen and draws every kind of line with the default options', () => {
+    expect(Object.isFrozen(PREVIEW_TRAFFIC)).toBe(true)
+    expect(Object.isFrozen(PREVIEW_TRAFFIC.faster)).toBe(true)
+    expect(Object.isFrozen(PREVIEW_TRAFFIC.faster[0])).toBe(true)
+    const r = rows(toSlots(PREVIEW_TRAFFIC, OPTS, styles, ES))
+    expect(new Set(r.map((s) => s.group))).toEqual(new Set(['faster', 'slower', 'hazard']))
+    expect(new Set(r.map((s) => s.urgency))).toEqual(new Set(['bad', 'warn', 'normal']))
+    expect(r.some((s) => s.lap === 'ahead')).toBe(true)
+    expect(r.some((s) => s.lap === 'behind')).toBe(true)
+    expect(r.some((s) => s.hazard !== '')).toBe(true)
+    expect(r.every((s) => s.sector !== '' && s.cls !== '' && s.number !== '')).toBe(true)
+  })
+
+  it('faster cars are behind, the rest ahead, with matching ETAs', () => {
+    for (const e of PREVIEW_TRAFFIC.faster) expect(e.gapS).toBeLessThan(0)
+    for (const e of [...PREVIEW_TRAFFIC.slower, ...PREVIEW_TRAFFIC.hazards]) {
+      expect(e.gapS).toBeGreaterThan(0)
+    }
+    for (const e of [...PREVIEW_TRAFFIC.faster, ...PREVIEW_TRAFFIC.slower]) {
+      expect(e.etaS ?? 0).toBeGreaterThan(Math.abs(e.gapS))
+    }
+  })
+
+  it('follows the options; every group when all of them are off', () => {
+    expect(previewOptions(OPTS)).toBe(OPTS)
+    const some = { ...OPTS, showFaster: false, showHazards: false }
+    expect(previewOptions(some)).toBe(some)
+    expect(
+      previewOptions({ ...OPTS, showFaster: false, showSlower: false, showHazards: false })
+    ).toEqual(OPTS)
+    const one = rows(toSlots(PREVIEW_TRAFFIC, { ...OPTS, maxEntries: 1 }, styles, ES))
+    expect(one).toHaveLength(3)
+  })
+})

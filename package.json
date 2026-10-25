@@ -1,0 +1,52 @@
+{
+  "name": "overlap",
+  "version": "2.0.0",
+  "description": "OverLap: overlay de sim racing para iRacing (relativo, radar, clasificación, batalla, delta y más)",
+  "main": "./out/main/index.js",
+  "author": "jessumolano",
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint --cache .",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:shared && npm run typecheck:node && npm run typecheck:web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev -w",
+    "dev:mock": "cross-env OVERLAY_SOURCE=mock electron-vite dev -w",
+    "build": "npm run typecheck && electron-vite build",
+    "postinstall": "install-electron",
+    "build:unpack": "npm run build && electron-builder --win dir",
+    "build:win": "npm run build && electron-builder --win portable",
+    "typecheck:shared": "tsc --noEmit -p tsconfig.shared.json --composite false"
+  },
+  "dependencies": {
+    "@irsdk-node/native": "^5.4.0",
+    "@irsdk-node/types": "^4.0.5",
+    "irsdk-node": "^4.4.0",
+    "js-yaml": "^4.3.2"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config-prettier": "3.0.1",
+    "@electron-toolkit/eslint-config-ts": "^4.0.0",
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.19.2",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "cross-env": "^10.1.0",
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^6.0.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5",
+    "vue": "^3.5.44",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.13"
+  },
+  "private": true
+}

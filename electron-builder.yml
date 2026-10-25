@@ -1,0 +1,35 @@
+appId: dev.local.overlap
+productName: OverLap
+directories:
+  buildResources: build
+  output: dist
+# Whitelist: production node_modules are added automatically.
+files:
+  - out/**
+  - resources/**
+  - package.json
+  - '!**/*.{map,ts,tsx}'
+  # Only needed to compile the addon from source; the prebuilt binary ships with it.
+  - '!**/node_modules/node-gyp/**'
+  - '!**/node_modules/@irsdk-node/native/{lib,prebuilds/win32-arm64}/**'
+  - '!**/node_modules/@irsdk-node/native/binding.gyp'
+asarUnpack:
+  - resources/**
+  # The iRacing SDK addon is loaded with node-gyp-build from its own folder.
+  # electron-builder's smartUnpack already does this; explicit on purpose.
+  - '**/node_modules/@irsdk-node/native/**'
+# Prebuilt N-API binaries ship with @irsdk-node/native: nothing to rebuild.
+npmRebuild: false
+electronLanguages:
+  - en-US
+win:
+  executableName: OverLap
+  icon: build/icon.ico
+  signExecutable: false
+  target:
+    - target: portable
+      arch:
+        - x64
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+publish: null

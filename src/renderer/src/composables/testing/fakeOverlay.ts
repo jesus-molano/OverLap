@@ -1,0 +1,121 @@
+/**
+ * Test double of `window.overlay` (the preload API) for composable tests in the node
+ * environment: records what the renderer sends and lets a test push what main would.
+ */
+import type {
+  AutoHiddenState,
+  ContentSizeMessage,
+  EditDragMessage,
+  EditScaleMessage,
+  InitialState,
+  OverlayApi,
+  SettingsCommand
+} from '@shared/ipc'
+import type { PersonalBestList } from '@shared/delta/references'
+import { createDefaultSettings } from '@shared/settings'
+import type { OverlaySettings, OverlayStatus, WidgetDataMessage } from '@shared/types'
+
+type Listener<T> = (value: T) => void
+
+class Channel<T> {
+  readonly listeners = new Set<Listener<T>>()
+  on(cb: Listener<T>): () => void {
+    this.listeners.add(cb)
+    return () => {
+      this.listeners.delete(cb)
+    }
+  }
+  emit(value: T): void {
+    for (const cb of [...this.listeners]) cb(value)
+  }
+}
+
+export const LIVE_STATUS: OverlayStatus = {
+  state: 'mock',
+  source: 'mock',
+  note: 'none',
+  detail: ''
+}
+export const WAITING_STATUS: OverlayStatus = {
+  state: 'waiting',
+  source: 'iracing',
+  note: 'none',
+  detail: ''
+}
+
+export interface FakeOverlay extends OverlayApi {
+  readonly data: Channel<WidgetDataMessage>
+  readonly status: Channel<OverlayStatus>
+  readonly editMode: Channel<boolean>
+  readonly settings: Channel<OverlaySettings>
+  readonly autoHidden: Channel<AutoHiddenState>
+  readonly personalBests: Channel<PersonalBestList>
+  readonly sent: {
+    contentSize: ContentSizeMessage[]
+    editScale: EditScaleMessage[]
+    editDrag: EditDragMessage[]
+    commands: SettingsCommand[]
+  }
+  /** Registered listeners over every channel (leak checks). */
+  listenerCount(): number
+}
+
+export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay {
+  const data = new Channel<WidgetDataMessage>()
+  const status = new Channel<OverlayStatus>()
+  const editMode = new Channel<boolean>()
+  const settings = new Channel<OverlaySettings>()
+  const autoHidden = new Channel<AutoHiddenState>()
+  const personalBests = new Channel<PersonalBestList>()
+  const sent: FakeOverlay['sent'] = { contentSize: [], editScale: [], editDrag: [], commands: [] }
+  const initial: InitialState = {
+    view: { kind: 'widget', widgetId: 'standings' },
+    editMode: false,
+    status: LIVE_STATUS,
+    settings: createDefaultSettings(),
+    ...init
+  }
+  return {
+    data,
+    status,
+    editMode,
+    settings,
+    autoHidden,
+    personalBests,
+    sent,
+    listenerCount: () =>
+      data.listeners.size +
+      status.listeners.size +
+      editMode.listeners.size +
+      settings.listeners.size +
+      autoHidden.listeners.size +
+      personalBests.listeners.size,
+    getInitialState: () => Promise.resolve(initial),
+    onData: (cb) => data.on(cb),
+    onStatus: (cb) => status.on(cb),
+    onEditMode: (cb) => editMode.on(cb),
+    onSettings: (cb) => settings.on(cb),
+    onAutoHidden: (cb) => autoHidden.on(cb),
+    onPersonalBests: (cb) => personalBests.on(cb),
+    editDrag: (msg) => void sent.editDrag.push(msg),
+    contentSize: (msg) => void sent.contentSize.push(msg),
+    editScale: (msg) => void sent.editScale.push(msg),
+    updateSettings: () => Promise.resolve(initial.settings),
+    command: (cmd) => void sent.commands.push(cmd)
+  }
+}
+
+/** Settings with some fields changed (a fresh object, like every broadcast from main). */
+export function settingsWith(
+  base: OverlaySettings,
+  change: (s: OverlaySettings) => void
+): OverlaySettings {
+  const next = structuredClone(base)
+  change(next)
+  return next
+}
+
+/** Lets pending promise callbacks and Vue's pre-flush jobs run. */
+export async function flush(): Promise<void> {
+  for (let i = 0; i < 3; i++) await Promise.resolve()
+}

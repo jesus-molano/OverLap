@@ -1,0 +1,532 @@
+/*
+ * Settings window (?view=settings; main.ts tags <html> with .ov-settings). theme.css is tuned for
+ * transparent overlay windows that never scroll; this turns the page back into an ordinary,
+ * opaque, scrollable one and holds the controls shared by the settings components. Every rule is
+ * scoped to .ov-settings so nothing can leak into a widget window. Selected states use the
+ * user's accent (applied to <html> by main.ts), so the window previews it too.
+ */
+
+html.ov-settings {
+  /* Same colour as the BrowserWindow background, so there is no flash while loading. */
+  --st-bg: #14171c;
+  --st-sidebar: #101317;
+  --st-surface: #1a1e25;
+  --st-surface-hi: #222731;
+  --st-hover: #2a303c;
+  --st-press: #313848;
+  --st-field: #0f1216;
+  --st-border: rgba(255, 255, 255, 0.07);
+  --st-border-hi: rgba(255, 255, 255, 0.14);
+  --st-border-strong: rgba(255, 255, 255, 0.26);
+  --st-ok: #46d483;
+  --st-focus: var(--ov-edit);
+  --st-sel: var(--ov-accent);
+  --st-sel-soft: color-mix(in srgb, var(--ov-accent) 16%, var(--st-surface-hi));
+  --st-radius: 10px;
+  --st-radius-sm: 6px;
+
+  color-scheme: dark;
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* The sample's width must not depend on whether the scrollbar shows (it would feed back). */
+  scrollbar-gutter: stable;
+  background: var(--st-bg);
+  scrollbar-color: #3a4150 transparent;
+}
+
+html.ov-settings body,
+html.ov-settings #app {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  background: var(--st-bg);
+}
+
+html.ov-settings body {
+  font-size: 14px;
+  line-height: 1.45;
+  accent-color: var(--ov-accent);
+}
+
+html.ov-settings :focus-visible {
+  outline: 2px solid var(--st-focus);
+  outline-offset: 2px;
+}
+
+html.ov-settings button,
+html.ov-settings input,
+html.ov-settings select {
+  font: inherit;
+  color: inherit;
+}
+
+html.ov-settings h1,
+html.ov-settings h2,
+html.ov-settings h3,
+html.ov-settings p {
+  margin: 0;
+}
+
+/* Visually hidden, still read by screen readers (live regions, native radios). */
+html.ov-settings .st-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Buttons ------------------------------------------------------------ */
+
+html.ov-settings .st-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--st-border-hi);
+  border-radius: var(--st-radius-sm);
+  background: var(--st-surface-hi);
+  color: var(--ov-fg);
+  font-size: 13px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+html.ov-settings .st-btn:hover:not(:disabled) {
+  border-color: var(--st-border-strong);
+  background: var(--st-hover);
+}
+
+html.ov-settings .st-btn:active:not(:disabled) {
+  background: var(--st-press);
+}
+
+html.ov-settings .st-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+html.ov-settings .st-btn-sm {
+  min-height: 26px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+html.ov-settings .st-btn-icon {
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+}
+
+html.ov-settings .st-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ov-fg-muted);
+}
+
+html.ov-settings .st-btn-ghost:hover:not(:disabled) {
+  border-color: var(--st-border);
+  background: var(--st-surface-hi);
+  color: var(--ov-fg);
+}
+
+/* Armed destructive button (second click confirms). */
+html.ov-settings .st-btn-danger {
+  border-color: color-mix(in srgb, var(--ov-danger) 60%, transparent);
+  background: color-mix(in srgb, var(--ov-danger) 16%, var(--st-surface-hi));
+  color: var(--ov-fg);
+}
+
+html.ov-settings .st-btn-danger:hover:not(:disabled) {
+  border-color: var(--ov-danger);
+  background: color-mix(in srgb, var(--ov-danger) 24%, var(--st-surface-hi));
+}
+
+html.ov-settings .st-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html.ov-settings .st-presets .st-btn[aria-pressed='true'] {
+  border-color: var(--st-sel);
+  background: var(--st-sel-soft);
+  color: var(--ov-fg);
+}
+
+/* ---- Sections ----------------------------------------------------------- */
+
+html.ov-settings .st-section {
+  min-width: 0;
+}
+
+html.ov-settings .st-section + .st-section {
+  margin-top: 22px;
+}
+
+html.ov-settings .st-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 8px;
+}
+
+html.ov-settings .st-section-title {
+  color: var(--ov-fg-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+html.ov-settings .st-section-note {
+  color: var(--ov-fg-dim);
+  font-size: 12px;
+}
+
+html.ov-settings .st-card {
+  padding: 2px 16px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  background: var(--st-surface);
+}
+
+/* ---- Rows --------------------------------------------------------------- */
+
+html.ov-settings .st-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-width: 0;
+  padding: 11px 0;
+}
+
+/* :not() raises the specificity above .st-fieldset's border reset. */
+html.ov-settings .st-card > :not(:first-child),
+html.ov-settings .st-group > :not(:first-child) {
+  border-top: 1px solid var(--st-border);
+}
+
+html.ov-settings .st-row-stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* In a column the text block must not take its row flex-basis as a height. */
+html.ov-settings .st-row-stack > .st-row-text {
+  flex: none;
+}
+
+/* Label above, control below once the row gets narrow. */
+html.ov-settings .st-row-wrap {
+  flex-wrap: wrap;
+}
+
+html.ov-settings .st-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+html.ov-settings .st-row-text {
+  display: flex;
+  flex: 1 1 14em;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+html.ov-settings label.st-row-text {
+  cursor: pointer;
+}
+
+html.ov-settings .st-label {
+  color: var(--ov-fg);
+  font-weight: 500;
+}
+
+html.ov-settings .st-help {
+  color: var(--ov-fg-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+html.ov-settings .st-help-warn {
+  color: var(--ov-warn);
+}
+
+html.ov-settings .st-value {
+  min-width: 4.5em;
+  color: var(--ov-fg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+html.ov-settings .st-disabled,
+html.ov-settings fieldset:disabled .st-label,
+html.ov-settings fieldset:disabled .st-help {
+  opacity: 0.45;
+}
+
+/* ---- Slider ------------------------------------------------------------- */
+
+html.ov-settings .st-range {
+  width: 100%;
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+html.ov-settings .st-range:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* ---- Segmented choice (native radios) ------------------------------------ */
+
+html.ov-settings .st-seg {
+  display: inline-flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: 100%;
+  padding: 2px;
+  border: 1px solid var(--st-border-hi);
+  border-radius: 8px;
+  background: var(--st-field);
+}
+
+html.ov-settings .st-row-stack .st-seg {
+  align-self: flex-start;
+}
+
+html.ov-settings .st-seg-item {
+  position: relative;
+  display: inline-flex;
+}
+
+html.ov-settings .st-seg-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+html.ov-settings .st-seg-input:disabled {
+  cursor: default;
+}
+
+html.ov-settings .st-seg-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 11px;
+  border-radius: 6px;
+  color: var(--ov-fg-muted);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html.ov-settings .st-seg-item:hover .st-seg-input:not(:disabled) + .st-seg-text {
+  background: var(--st-surface-hi);
+  color: var(--ov-fg);
+}
+
+html.ov-settings .st-seg-input:checked + .st-seg-text {
+  background: var(--st-sel-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-sel) 60%, transparent);
+  color: var(--ov-fg);
+  font-weight: 600;
+}
+
+html.ov-settings .st-seg-input:focus-visible + .st-seg-text {
+  outline: 2px solid var(--st-focus);
+  outline-offset: 1px;
+}
+
+html.ov-settings .st-seg-input:disabled + .st-seg-text {
+  opacity: 0.45;
+}
+
+/* ---- Switch ------------------------------------------------------------- */
+
+html.ov-settings .st-switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  margin: 0;
+  border: 1px solid var(--st-border-hi);
+  border-radius: 11px;
+  background: #2c313d;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+html.ov-settings .st-switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #cfd5df;
+  transition: transform 0.12s;
+}
+
+html.ov-settings .st-switch:checked {
+  border-color: var(--st-sel);
+  background: var(--st-sel);
+}
+
+html.ov-settings .st-switch:checked::before {
+  background: var(--ov-accent-fg);
+  transform: translateX(16px);
+}
+
+html.ov-settings .st-switch:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---- Checkboxes --------------------------------------------------------- */
+
+html.ov-settings .st-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+html.ov-settings .st-check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  cursor: pointer;
+}
+
+html.ov-settings .st-check input:disabled {
+  cursor: default;
+}
+
+html.ov-settings .st-check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Float trick: keeps the legend inside the fieldset instead of on its top border. */
+html.ov-settings .st-fieldset {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 11px 0;
+  border: 0;
+}
+
+html.ov-settings .st-fieldset > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+html.ov-settings .st-checks {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+/* ---- Stepper ------------------------------------------------------------ */
+
+html.ov-settings .st-stepper {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+
+html.ov-settings .st-step {
+  width: 32px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+html.ov-settings .st-number,
+html.ov-settings .st-field {
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--st-border-hi);
+  border-radius: var(--st-radius-sm);
+  background: var(--st-field);
+}
+
+html.ov-settings .st-number {
+  width: 3.5em;
+  text-align: center;
+  appearance: textfield;
+}
+
+html.ov-settings .st-field:hover:not(:disabled),
+html.ov-settings .st-number:hover:not(:disabled) {
+  border-color: var(--st-border-strong);
+}
+
+html.ov-settings .st-field[aria-invalid='true'] {
+  border-color: var(--ov-danger);
+}
+
+/* The − / + buttons replace the native spinners. */
+html.ov-settings .st-number::-webkit-inner-spin-button,
+html.ov-settings .st-number::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+html.ov-settings select.st-field {
+  padding-right: 4px;
+  cursor: pointer;
+}
+
+/* ---- Keys --------------------------------------------------------------- */
+
+html.ov-settings kbd {
+  padding: 0 5px;
+  border: 1px solid var(--st-border-hi);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--st-surface);
+  color: var(--ov-fg);
+  font-family: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ov-settings .st-switch,
+  html.ov-settings .st-switch::before {
+    transition: none;
+  }
+}

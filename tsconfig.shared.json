@@ -1,0 +1,14 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.json",
+  "include": ["src/shared/**/*"],
+  "exclude": ["src/shared/**/*.test.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2024"],
+    "types": [],
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
