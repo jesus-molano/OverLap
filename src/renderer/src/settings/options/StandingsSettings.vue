@@ -138,6 +138,13 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
         :apply="set('showCarCount')"
       />
     </CheckGroup>
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.common.penaltyFlags"
+      :help="t.settings.common.penaltyFlagsHelp"
+      :current="opts.showFlags"
+      :apply="set('showFlags')"
+    />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
       :help="nameHelp"

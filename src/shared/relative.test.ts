@@ -432,6 +432,28 @@ describe('focus car', () => {
     expect(rowOf(replay(true), 0).isPlayer).toBe(false)
     expect(rowOf(replay(false), 0).isPlayer).toBe(true)
   })
+
+  it('counts your incidents in the header only while it is centred on your car', () => {
+    const cars = { 0: { pct: 0.3 }, 1: { pct: 0.5 } }
+    const session = makeSession(drivers(2))
+    const header = (playing: boolean, cam: number): RelativeData['incidents'] =>
+      computeRelative(
+        makeFrame(cars, {
+          overrides: {
+            IsReplayPlaying: [playing],
+            CamCarIdx: [cam],
+            CamCameraState: [0],
+            PlayerCarMyIncidentCount: [3]
+          }
+        }),
+        session,
+        OPTS
+      ).incidents
+    expect(header(false, 1)?.mine).toBe(3)
+    expect(header(true, 0)?.mine).toBe(3)
+    // A replay on another car: a count in its header would read as theirs.
+    expect(header(true, 1)).toBeNull()
+  })
 })
 
 describe('fallbacks', () => {

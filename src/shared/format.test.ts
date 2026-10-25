@@ -24,7 +24,10 @@ import {
   isKnownName,
   shownDriverName,
   signAt,
-  speedUnit
+  speedUnit,
+  tempDeltaIn,
+  tempIn,
+  tempUnit
 } from './format'
 import { messagesFor } from './i18n'
 import type { NameFormat } from './types'
@@ -287,6 +290,17 @@ describe('formatSpeed', () => {
     expect(formatSpeed(Number.NaN, 'metric')).toBe('0')
     expect(speedUnit('metric')).toBe('km/h')
     expect(speedUnit('imperial')).toBe('mph')
+  })
+})
+
+describe('temperatures', () => {
+  it('converts a reading with the offset and a difference without it', () => {
+    expect(tempIn(30, 'metric')).toBe(30)
+    expect(tempIn(30, 'imperial')).toBe(86)
+    expect(tempIn(-40, 'imperial')).toBe(-40)
+    expect(tempDeltaIn(5, 'metric')).toBe(5)
+    expect(tempDeltaIn(5, 'imperial')).toBe(9)
+    expect([tempUnit('metric'), tempUnit('imperial')]).toEqual(['°C', '°F'])
   })
 })
 

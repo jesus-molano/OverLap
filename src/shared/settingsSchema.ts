@@ -211,6 +211,8 @@ export const OPTION_SCHEMA = {
     headerIncidents: { kind: 'bool', default: true, displayOnly: true },
     showSof: { kind: 'bool', default: true, displayOnly: true },
     showCarCount: { kind: 'bool', default: true, displayOnly: true },
+    // Every row carries its badge: the provider computes the same payload either way.
+    showFlags: { kind: 'bool', default: true, displayOnly: true },
     density: {
       kind: 'enum',
       values: ['inherit', 'comfortable', 'compact'],

@@ -14,7 +14,6 @@ import {
   rubberText,
   skiesText,
   tempText,
-  tempUnit,
   trendIcon,
   unwrapDeg,
   wetnessText,
@@ -50,7 +49,6 @@ describe('readings', () => {
     expect(tempText(-0.04, 'metric')).toBe('0.0')
     expect(tempText(30, 'imperial')).toBe('86.0')
     expect(tempText(null, 'metric')).toBe('—')
-    expect([tempUnit('metric'), tempUnit('imperial')]).toEqual(['°C', '°F'])
   })
 
   it('draws the trend as a shape, nothing while measuring', () => {

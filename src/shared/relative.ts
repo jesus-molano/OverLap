@@ -8,7 +8,13 @@ import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { penaltyOf } from './penalty'
 import type { RaceView } from './race/raceView'
-import { currentSessionType, isCarInPits, isRaceSession, resolveFocusCarIdx } from './sessionInfo'
+import {
+  currentSessionType,
+  isCarInPits,
+  isRaceSession,
+  resolveFocusCarIdx,
+  resolvePlayerCarIdx
+} from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { MAX_CARS, SessionState, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
@@ -130,21 +136,22 @@ export function computeRelative(
   const slotsAhead = clampRelativeSlots(opts.carsAhead)
   const slotsBehind = clampRelativeSlots(opts.carsBehind)
   const sessionType = currentSessionType(frame, session)
+  // The player, or the car on camera while a replay plays.
+  const focusIdx = resolveFocusCarIdx(frame, session)
+  const ownCar = focusIdx === resolvePlayerCarIdx(frame, session)
   const result: RelativeData = {
     rows: [],
     playerRow: -1,
     slotsAhead,
     slotsBehind,
     sessionType,
-    // In the payload whatever showIncidents says (display only): one cheap read per tick.
-    incidents: incidentCount(frame, session)
+    // In the payload whatever showIncidents says (display only): one cheap read per tick. Yours
+    // alone, so not while a replay follows another car (the header would read as theirs).
+    incidents: ownCar ? incidentCount(frame, session) : null
   }
 
   const pcts = frame.CarIdxLapDistPct
   const surfaces = frame.CarIdxTrackSurface
-
-  // The player, or the car on camera while a replay plays.
-  const focusIdx = resolveFocusCarIdx(frame, session)
   const focus = session.drivers.get(focusIdx)
   const pctF = pcts[focusIdx]
   if (!focus || !isValidPct(pctF) || surfaces[focusIdx] === TrackLocation.NotInWorld) {

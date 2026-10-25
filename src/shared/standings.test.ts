@@ -836,6 +836,9 @@ describe('header', () => {
     expect(data.header.incidents).toEqual({ mine: 11, team: null, limit: { kind: 'dq', at: 25 } })
     // Without the variable it is unknown.
     expect(compute(PRACTICE, session, makeRace(field(3)), OPTS).header.incidents).toBeNull()
+    // A replay on another car (its model's player is the car on camera): not yours to show.
+    const replay = compute(frame, limited, makeRace(field(3), { playerCarIdx: 1 }), OPTS)
+    expect(replay.header.incidents).toBeNull()
   })
 
   it('session type, laps and time left, projected SR over the whole race', () => {

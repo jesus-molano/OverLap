@@ -177,6 +177,7 @@ const lineCtx = computed<LineContext>(() => ({
   nameFormat: nameFormat.value,
   showSof: opts.value.showSof,
   showCarCount: opts.value.showCarCount,
+  showFlags: opts.value.showFlags,
   styles,
   m: t.value
 }))

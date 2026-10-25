@@ -357,9 +357,12 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
   );
 }
 
-/* Furled black flag (a warning): black and white halves, like the warning flag. */
+/*
+ * Furled black flag (a warning): black and white halves, like the warning flag, split the way
+ * the standings and relative badge is (icons.ts 'flag-warning': black below the diagonal).
+ */
 .al-tile--halves {
-  background: linear-gradient(135deg, var(--al-white) 0 50%, var(--al-black) 50%);
+  background: linear-gradient(to top right, var(--al-black) 0 50%, var(--al-white) 50%);
 }
 
 /* Blue flag: blue with a yellow diagonal stripe. */

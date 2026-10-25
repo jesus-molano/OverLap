@@ -17,7 +17,15 @@ import {
   type AlertKind,
   type AlertToggle
 } from '@shared/alerts'
-import { NBSP, formatClock, formatSpeed, speedUnit } from '@shared/format'
+import {
+  NBSP,
+  formatClock,
+  formatSpeed,
+  speedUnit,
+  tempDeltaIn,
+  tempIn,
+  tempUnit
+} from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type {
@@ -250,15 +258,12 @@ export function shownNotices(notices: readonly AlertNotice[], o: AlertFilter): A
 
 /** '98 °C' / '208 °F'. */
 export function formatTemp(c: number, units: AppearanceSettings['units']): string {
-  return units === 'imperial'
-    ? `${Math.round((c * 9) / 5 + 32)}${NBSP}°F`
-    : `${Math.round(c)}${NBSP}°C`
+  return `${Math.round(tempIn(c, units))}${NBSP}${tempUnit(units)}`
 }
 
 /** A rise of `c` °C: '+6' ('+11' in °F). */
 export function formatRise(c: number, units: AppearanceSettings['units']): string {
-  const v = Math.max(0, Math.round(units === 'imperial' ? (c * 9) / 5 : c))
-  return `+${v}`
+  return `+${Math.max(0, Math.round(tempDeltaIn(c, units)))}`
 }
 
 /** The words of one notice. */
@@ -292,7 +297,7 @@ export function noticeView(
         label,
         short: label.length > SHORT_FROM ? t.trend.short[n.fluid](temp) : '',
         note: n.draft ? `${note} ${t.trend.draft}` : note,
-        chip: t.trend.chip[n.fluid](`${rise}${NBSP}°${units === 'imperial' ? 'F' : 'C'}`)
+        chip: t.trend.chip[n.fluid](`${rise}${NBSP}${tempUnit(units)}`)
       })
     }
     default:

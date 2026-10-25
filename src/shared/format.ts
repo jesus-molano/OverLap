@@ -225,6 +225,20 @@ export function speedUnit(units: AppearanceSettings['units']): 'km/h' | 'mph' {
   return units === 'imperial' ? 'mph' : 'km/h'
 }
 
+/** A temperature (°C, as the SDK sends it) in the chosen units, unrounded. */
+export function tempIn(c: number, units: AppearanceSettings['units']): number {
+  return units === 'imperial' ? (c * 9) / 5 + 32 : c
+}
+
+/** A temperature difference (°C) in the chosen units: no offset. */
+export function tempDeltaIn(c: number, units: AppearanceSettings['units']): number {
+  return units === 'imperial' ? (c * 9) / 5 : c
+}
+
+export function tempUnit(units: AppearanceSettings['units']): '°C' | '°F' {
+  return units === 'imperial' ? '°F' : '°C'
+}
+
 // ---------------------------------------------------------------------------
 // Driver names
 // ---------------------------------------------------------------------------
