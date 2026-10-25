@@ -886,6 +886,8 @@ export interface StandingsOptions {
   headerIncidents: boolean
   showSof: boolean
   showCarCount: boolean
+  /** Black flag, meatball and furled black flag badges after the name (as in the relative). */
+  showFlags: boolean
   /** 'inherit' = appearance.density. */
   density: 'inherit' | 'comfortable' | 'compact'
 }

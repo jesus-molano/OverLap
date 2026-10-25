@@ -35,6 +35,7 @@ function ctx(over: Partial<LineContext> = {}): LineContext {
     nameFormat: 'abbr',
     showSof: true,
     showCarCount: true,
+    showFlags: true,
     styles: createDriverStyles(),
     m: ES,
     ...over
@@ -392,6 +393,8 @@ describe('best lap, last stop, stint and tyre cells', () => {
       penalty: 'furled'
     })
     expect(carView(row, ctx({ m: EN }))).toMatchObject({ pitLap: 'L9', stintUnit: 'L' })
+    // Without its option the badge goes; the rest of the line stays.
+    expect(carView(row, ctx({ showFlags: false }))).toMatchObject({ penalty: null, tyre: 'W' })
     // Unknown stint and tyre: no stint at all, a dash for the tyre.
     expect(carView(makeRow())).toMatchObject({ stint: '', stintUnit: '', tyre: '—', pitLap: '' })
   })

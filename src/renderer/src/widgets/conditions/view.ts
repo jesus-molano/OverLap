@@ -12,7 +12,7 @@
  * the dictionary `m` (messagesFor(lang)); temperatures and speeds follow appearance.units.
  */
 import { WETNESS_MAX, wrapDeg } from '@shared/conditions'
-import { formatSpeed, speedUnit } from '@shared/format'
+import { formatSpeed, speedUnit, tempIn, tempUnit } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
   AppearanceSettings,
@@ -30,12 +30,7 @@ const DASH = '—'
 /** '34.2' (°C) or '93.6' (°F) with one decimal; '—' when unknown. */
 export function tempText(c: number | null, units: Units): string {
   if (c === null || !Number.isFinite(c)) return DASH
-  const v = units === 'imperial' ? (c * 9) / 5 + 32 : c
-  return (Math.round(v * 10) / 10 || 0).toFixed(1)
-}
-
-export function tempUnit(units: Units): '°C' | '°F' {
-  return units === 'imperial' ? '°F' : '°C'
+  return (Math.round(tempIn(c, units) * 10) / 10 || 0).toFixed(1)
 }
 
 /** The trend as a shape (no colour: warmer is neither good nor bad); null while measuring. */

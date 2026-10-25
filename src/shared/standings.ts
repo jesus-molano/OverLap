@@ -309,7 +309,7 @@ export class StandingsProvider {
     const playerIdx =
       race.playerCarIdx >= 0 ? race.playerCarIdx : resolveFocusCarIdx(frame, session)
     const playerDriver = playerIdx >= 0 ? session.drivers.get(playerIdx) : undefined
-    // The SR line is made of your own incidents: never shown for a car a replay follows.
+    // The SR line and the incident count are your own: never shown for a car a replay follows.
     const ownCar = playerIdx === resolvePlayerCarIdx(frame, session)
 
     const groups = groupByClass(frame, session, race)
@@ -400,7 +400,7 @@ export class StandingsProvider {
             )
           : null,
       // Every session type, not only rated races; headerIncidents is display only.
-      incidents: incidentCount(frame, session)
+      incidents: ownCar ? incidentCount(frame, session) : null
     }
     return { header, classes }
   }

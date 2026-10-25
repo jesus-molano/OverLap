@@ -71,8 +71,8 @@ const nameHelp = computed(() =>
     </CheckGroup>
     <ToggleControl
       kind="switch"
-      :label="t.settings.relative.flags"
-      :help="t.settings.relative.flagsHelp"
+      :label="t.settings.common.penaltyFlags"
+      :help="t.settings.common.penaltyFlagsHelp"
       :current="opts.showFlags"
       :apply="set('showFlags')"
     />

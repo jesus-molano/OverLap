@@ -179,7 +179,8 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
   de su página).
 - Una repetición no toca el cronometraje en directo: no cuenta vueltas, récords, incidentes ni
   sectores del óptimo, y al volver al directo todo sigue donde estaba (la vuelta que la repetición
-  partió no se cronometra). La línea de SR de Clasificación solo sale con tu coche.
+  partió no se cronometra). La línea de SR de Clasificación y el contador de incidentes de las
+  cabeceras solo salen con tu coche.
 - Como con "Mostrar en", un widget oculto no se calcula, y en modo edición se ve con el motivo
   (_Oculto en el garaje_, _Oculto en repeticiones: solo en directo_...).
 - En modo simulación (`dev:mock`) cada sesión lo enseña una vez: interfaz oculta a los 2:00, garaje
@@ -267,7 +268,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - Las tres van ocultas por defecto, al final de la lista de columnas, y son las primeras en
   esconderse si la ventana se estrecha (luego la mejor vuelta).
 - **Banderas** tras el nombre: negra, reparación (meatball) y aviso (negra enrollada, dibujada como
-  la bandera blanca y negra de aviso). Las dos tablas las muestran; en el relativo se pueden quitar.
+  la bandera blanca y negra de aviso). Las dos tablas las muestran y en las dos se pueden quitar
+  (`relative.showFlags`, `standings.showFlags`, activadas).
 - En el relativo: `relative.showTyre` y `relative.showStint` (desactivadas) y `relative.showFlags`
   (activada). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
   cambian de alto.

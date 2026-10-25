@@ -108,6 +108,7 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   headerIncidents: true,
   showSof: true,
   showCarCount: true,
+  showFlags: true,
   density: 'inherit'
 }
 const DEFAULT_BATTLE: BattleOptions = {

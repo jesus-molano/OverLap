@@ -107,6 +107,8 @@ export interface LineContext {
   nameFormat: NameFormat
   showSof: boolean
   showCarCount: boolean
+  /** The flag badge after the name (black, meatball, furled). */
+  showFlags: boolean
   styles: DriverStyles
   m: Messages
 }
@@ -244,7 +246,7 @@ function toCarView(
     player: row.isPlayer,
     pos: row.classPosition > 0 ? String(row.classPosition) : '',
     posWarn: row.status === 'off-track',
-    penalty: row.penalty,
+    penalty: ctx.showFlags ? row.penalty : null,
     disconnected: row.status === 'disconnected',
     gained: gained.text,
     gainedIcon: gained.icon,

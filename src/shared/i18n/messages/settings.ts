@@ -81,7 +81,10 @@ export const settingsEs = {
     nameFormat: 'Formato de nombre',
     density: 'Densidad',
     license: 'Licencia',
-    iRating: 'iRating'
+    iRating: 'iRating',
+    /** The per-car flag badges of the relative and the standings. */
+    penaltyFlags: 'Banderas de penalización',
+    penaltyFlagsHelp: 'Negra, reparación y aviso (negra enrollada), tras el nombre'
   },
   /** Option lists shared by several pages. */
   choices: {
@@ -327,8 +330,6 @@ export const settingsEs = {
     stintHelp: 'Desde su última parada, o desde la salida',
     tyre: 'Neumático',
     tyreHelp: 'Letra del compuesto (H duro, W lluvia); solo se conoce para tu modelo de coche',
-    flags: 'Banderas de penalización',
-    flagsHelp: 'Negra, reparación y aviso (negra enrollada), tras el nombre',
     incidents: 'Incidentes en la cabecera',
     incidentsHelp:
       'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · pen. a 17x»'
@@ -727,7 +728,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     nameFormat: 'Name format',
     density: 'Density',
     license: 'Licence',
-    iRating: 'iRating'
+    iRating: 'iRating',
+    penaltyFlags: 'Penalty flags',
+    penaltyFlagsHelp: 'Black flag, meatball and warning (furled black flag), after the name'
   },
   choices: {
     nameFormat: {
@@ -958,8 +961,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
     tyreHelp: 'Compound letter (H hard, W wet); only known for your car model',
-    flags: 'Penalty flags',
-    flagsHelp: 'Black flag, meatball and warning (furled black flag), after the name',
     incidents: 'Incidents in the header',
     incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · pen. at 17x”'
   },

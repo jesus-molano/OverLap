@@ -131,6 +131,7 @@ describe('displayOnlyFields', () => {
       'headerIncidents',
       'showSof',
       'showCarCount',
+      'showFlags',
       'density'
     ])
     expect(displayOnlyFields('battle')).toEqual(['layout', 'nameFormat'])
