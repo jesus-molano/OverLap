@@ -4,17 +4,33 @@ import type { MutableFrame } from '@shared/race/testing/raceSim'
 import { CameraState } from '@shared/simScreen'
 import { TrackLocation } from '@shared/telemetry'
 import type { HiddenReason, SessionMeta, TelemetryConfig, VisibilityOptions } from '@shared/types'
-import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
+import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { AutoHide } from './autoHide'
 
 type Rules = TelemetryConfig['rules']
+type Rule = Rules[WidgetId]
 type Config = Pick<TelemetryConfig, 'rules' | 'visibility'>
 
-const VISIBILITY: VisibilityOptions = { hideWithSimUi: true, hideInGarage: true, replays: 'follow' }
+const VISIBILITY: VisibilityOptions = {
+  hideWithSimUi: true,
+  hideInGarage: true,
+  hideOnSessionScreen: true,
+  replays: 'follow',
+  showWhileWaiting: false
+}
+
+const EVERYWHERE: Rule = {
+  showIn: { practice: true, qualify: true, race: true },
+  hideInPits: false,
+  showOnSessionScreen: false
+}
+
+function rule(o: Partial<Rule> = {}): Rule {
+  return { ...EVERYWHERE, ...o }
+}
 
 function rules(o: Partial<Rules> = {}): Rules {
-  const all = { showIn: { practice: true, qualify: true, race: true }, hideInPits: false }
-  return { ...(Object.fromEntries(WIDGET_IDS.map((id) => [id, all])) as Rules), ...o }
+  return { ...(Object.fromEntries(WIDGET_IDS.map((id) => [id, EVERYWHERE])) as Rules), ...o }
 }
 
 function config(r: Rules = rules(), v: Partial<VisibilityOptions> = {}): Config {
@@ -45,7 +61,7 @@ function frame(sessionNum: number, o: (f: MutableFrame) => void = () => {}): Mut
   return f
 }
 
-/** A replay on the camera of car `cam`. */
+/** The replay system on, the camera on car `cam` (at the live point, or on the tape). */
 function replay(cam: number, o: (f: MutableFrame) => void = () => {}): MutableFrame {
   return frame(0, (f) => {
     f.IsReplayPlaying[0] = true
@@ -66,21 +82,22 @@ function latest(changes: [WidgetId, boolean, HiddenReason | null][]): Map<Widget
 
 const FOLLOWING = WIDGET_IDS.filter((id) => followsCamera(id))
 const LIVE_ONLY = WIDGET_IDS.filter((id) => !followsCamera(id))
+const OFF_TAPE = WIDGET_IDS.filter((id) => !keepsLiveInReplay(id))
 
 describe('AutoHide: per-widget rules', () => {
   const raceOnly = rules({
-    battle: { showIn: { practice: false, qualify: false, race: true }, hideInPits: false }
+    battle: rule({ showIn: { practice: false, qualify: false, race: true } })
   })
 
   it('hides by session kind and reports changes only', () => {
     const { auto, changes } = harness()
-    auto.update(config(raceOnly), frame(1), SESSION)
-    auto.update(config(raceOnly), frame(1), SESSION)
+    auto.update(config(raceOnly), frame(1), SESSION, 'none')
+    auto.update(config(raceOnly), frame(1), SESSION, 'none')
     expect(changes).toEqual([['battle', true, 'practice']])
     expect(auto.isHidden('battle')).toBe(true)
     expect(auto.isHidden('relative')).toBe(false)
-    auto.update(config(raceOnly), frame(2), SESSION)
-    auto.update(config(raceOnly), frame(0), SESSION)
+    auto.update(config(raceOnly), frame(2), SESSION, 'none')
+    auto.update(config(raceOnly), frame(0), SESSION, 'none')
     expect(changes).toEqual([
       ['battle', true, 'practice'],
       ['battle', true, 'qualify'],
@@ -90,22 +107,20 @@ describe('AutoHide: per-widget rules', () => {
 
   it('hides in the pits (pit road or stall) when asked to', () => {
     const { auto, changes } = harness()
-    const r = config(
-      rules({
-        inputs: { showIn: { practice: true, qualify: true, race: true }, hideInPits: true }
-      })
-    )
+    const r = config(rules({ inputs: rule({ hideInPits: true }) }))
     auto.update(
       r,
       frame(0, (f) => (f.CarIdxOnPitRoad[3] = true)),
-      SESSION
+      SESSION,
+      'none'
     )
     auto.update(
       r,
       frame(0, (f) => (f.CarIdxTrackSurface[3] = TrackLocation.InPitStall)),
-      SESSION
+      SESSION,
+      'none'
     )
-    auto.update(r, frame(0), SESSION)
+    auto.update(r, frame(0), SESSION, 'none')
     expect(changes).toEqual([
       ['inputs', true, 'pits'],
       ['inputs', false, null]
@@ -114,15 +129,15 @@ describe('AutoHide: per-widget rules', () => {
 
   it('never hides with an unknown session kind or a missing rule', () => {
     const { auto, changes } = harness()
-    auto.update(config(raceOnly), frame(9), SESSION)
+    auto.update(config(raceOnly), frame(9), SESSION, 'none')
     const partial = { ...rules(), battle: undefined } as unknown as Rules
-    auto.update(config(partial), frame(1), SESSION)
+    auto.update(config(partial), frame(1), SESSION, 'none')
     expect(changes).toEqual([])
   })
 
   it('showAll() shows what was hidden, once', () => {
     const { auto, changes } = harness()
-    auto.update(config(raceOnly), frame(1), SESSION)
+    auto.update(config(raceOnly), frame(1), SESSION, 'none')
     auto.showAll()
     auto.showAll()
     expect(changes).toEqual([
@@ -137,9 +152,9 @@ describe('AutoHide: what the sim shows', () => {
     const { auto, changes } = harness()
     // The SDK sends the bit field as a signed Int32: a high bit makes it negative.
     const hidden = frame(1, (f) => (f.CamCameraState[0] = 0x80000000 | CameraState.UIHidden | 0))
-    auto.update(config(), hidden, SESSION)
+    auto.update(config(), hidden, SESSION, 'none')
     expect(changes).toEqual(WIDGET_IDS.map((id) => [id, true, 'ui-hidden']))
-    auto.update(config(), frame(1), SESSION)
+    auto.update(config(), frame(1), SESSION, 'none')
     expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'shown'])))
   })
 
@@ -149,69 +164,115 @@ describe('AutoHide: what the sim shows', () => {
       f.IsGarageVisible[0] = true
       f.CamCameraState[0] = CameraState.UIHidden
     })
-    auto.update(config(), both, SESSION)
+    auto.update(config(), both, SESSION, 'none')
     expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'garage'])))
   })
 
   it('leaves the widgets alone when those rules are off', () => {
     const { auto, changes } = harness()
-    const both = frame(0, (f) => {
+    const all = frame(0, (f) => {
       f.IsGarageVisible[0] = true
-      f.CamCameraState[0] = CameraState.UIHidden
+      f.CamCameraState[0] = CameraState.UIHidden | CameraState.IsSessionScreen
     })
-    auto.update(config(rules(), { hideWithSimUi: false, hideInGarage: false }), both, SESSION)
+    const off = { hideWithSimUi: false, hideInGarage: false, hideOnSessionScreen: false }
+    auto.update(config(rules(), off), all, SESSION, 'none')
     expect(changes).toEqual([])
   })
 
-  it('in a replay hides only the widgets with your own live data, also on your own car', () => {
+  it('hides on the session screen all but the widgets kept there (B06)', () => {
     const { auto, changes } = harness()
-    auto.update(config(), replay(5), SESSION)
-    expect(latest(changes)).toEqual(new Map(LIVE_ONLY.map((id) => [id, 'replay-player'])))
+    // Out of the car after the race: CamCameraState 81, the replay system at its live point.
+    const sessionScreen = replay(3, (f) => (f.CamCameraState[0] = 81))
+    const r = config(rules({ standings: rule({ showOnSessionScreen: true }) }))
+    auto.update(r, sessionScreen, SESSION, 'live')
+    expect(latest(changes)).toEqual(
+      new Map(WIDGET_IDS.filter((id) => id !== 'standings').map((id) => [id, 'session-screen']))
+    )
+    // Back in the car (80): everything again.
+    auto.update(
+      r,
+      frame(0, (f) => (f.CamCameraState[0] = 80)),
+      SESSION,
+      'none'
+    )
+    expect(WIDGET_IDS.some((id) => auto.isHidden(id))).toBe(false)
+  })
+
+  it('takes the live point of a replay as live: nothing hides, even with replays set to hide (Q1)', () => {
+    const { auto, changes } = harness()
+    auto.update(config(rules(), { replays: 'hide' }), replay(3), SESSION, 'live')
+    expect(changes).toEqual([])
+  })
+
+  it('at the live point on another car, hides only the widgets with your own data', () => {
+    const { auto, changes } = harness()
+    auto.update(config(), replay(5), SESSION, 'live')
+    expect(latest(changes)).toEqual(new Map(LIVE_ONLY.map((id) => [id, 'camera-other'])))
     expect(FOLLOWING).toEqual(['relative', 'standings', 'battle', 'traffic'])
-    auto.update(config(), replay(3), SESSION)
-    expect(changes).toHaveLength(LIVE_ONLY.length)
-    auto.update(config(), frame(0), SESSION)
+    auto.update(config(), replay(3), SESSION, 'live')
     expect(latest(changes)).toEqual(new Map(LIVE_ONLY.map((id) => [id, 'shown'])))
   })
 
-  it('hides every widget in a replay when replays are set to hide', () => {
+  it('on the tape hides every widget but the standings, which keep the live race', () => {
     const { auto, changes } = harness()
-    auto.update(config(rules(), { replays: 'hide' }), replay(5), SESSION)
+    auto.update(config(), replay(5), SESSION, 'tape')
+    expect(OFF_TAPE).toEqual(WIDGET_IDS.filter((id) => id !== 'standings'))
+    expect(latest(changes)).toEqual(new Map(OFF_TAPE.map((id) => [id, 'replay-player'])))
+    auto.update(config(), frame(0), SESSION, 'none')
+    expect(latest(changes)).toEqual(new Map(OFF_TAPE.map((id) => [id, 'shown'])))
+  })
+
+  it('hides every widget on the tape when replays are set to hide', () => {
+    const { auto, changes } = harness()
+    auto.update(config(rules(), { replays: 'hide' }), replay(5), SESSION, 'tape')
     expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'replay'])))
   })
 
-  it('applies the pits rule to the car on camera during a replay', () => {
+  it('judges the session and the pits from the live frame while the tape plays', () => {
     const { auto, changes } = harness()
-    const r = config(
-      rules({
-        relative: { showIn: { practice: true, qualify: true, race: true }, hideInPits: true }
-      })
-    )
+    const r = config(rules({ standings: rule({ hideInPits: true }) }))
+    // The tape shows you in the pits of practice; live, you are on track in the race.
+    const tape = frame(1, (f) => {
+      f.IsReplayPlaying[0] = true
+      f.CarIdxOnPitRoad[3] = true
+    })
+    auto.update(r, tape, SESSION, 'tape', frame(0))
+    expect(latest(changes).get('standings')).toBeUndefined()
+    auto.update(r, tape, SESSION, 'tape', tape)
+    expect(latest(changes).get('standings')).toBe('pits')
+  })
+
+  it('applies the pits rule to the car on camera at the live point', () => {
+    const { auto, changes } = harness()
+    const r = config(rules({ relative: rule({ hideInPits: true }) }))
     auto.update(
       r,
       replay(5, (f) => (f.CarIdxOnPitRoad[5] = true)),
-      SESSION
+      SESSION,
+      'live'
     )
     expect(latest(changes).get('relative')).toBe('pits')
-    // You in the pits do not hide it while the replay shows car 5 on track.
+    // You in the pits do not hide it while the camera shows car 5 on track.
     auto.update(
       r,
       replay(5, (f) => (f.CarIdxOnPitRoad[3] = true)),
-      SESSION
+      SESSION,
+      'live'
     )
     expect(latest(changes).get('relative')).toBe('shown')
   })
 
-  it('without global rules in the config only the replay rule applies', () => {
+  it('without global rules in the config only the replay rules apply', () => {
     const { auto, changes } = harness()
     const old = { rules: rules() } as unknown as Config
     auto.update(
       old,
       frame(0, (f) => (f.IsGarageVisible[0] = true)),
-      SESSION
+      SESSION,
+      'none'
     )
     expect(changes).toEqual([])
-    auto.update(old, replay(5), SESSION)
-    expect(latest(changes)).toEqual(new Map(LIVE_ONLY.map((id) => [id, 'replay-player'])))
+    auto.update(old, replay(5), SESSION, 'tape')
+    expect(latest(changes)).toEqual(new Map(OFF_TAPE.map((id) => [id, 'replay-player'])))
   })
 })

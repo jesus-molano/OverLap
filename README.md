@@ -82,8 +82,10 @@ Fuera de Windows se puede desarrollar con `npm run dev:mock` (Linux/macOS).
 ./dist/iracing-overlay-1.0.0-portable.exe --mock
 ```
 
-Si iRacing no está abierto, el relativo muestra **"Esperando a iRacing…"** (el radar sigue oculto,
-igual que cuando no hay nadie cerca) y se reintenta la conexión cada ~2 s. Si se corta la conexión,
+Si iRacing no está abierto, Relativo y Clasificación muestran **"Esperando a iRacing…"** unos 8 s y
+luego se ocultan, para no quedarse sobre el escritorio al cerrar el simulador (en modo edición siguen
+para colocarlos; `visibility.showWhileWaiting` los mantiene; un error de telemetría se queda a la
+vista). El radar sigue oculto, igual que cuando no hay nadie cerca, y se reintenta la conexión cada ~2 s. Si se corta la conexión,
 los widgets dejan de pintar el último dato en vez de quedarse congelados. Si el proceso de telemetría
 falla, main lo reinicia con espera creciente.
 
@@ -163,28 +165,37 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
 - Coloca los widgets en el garaje o en los menús: mientras el modo edición está activo, los clics
   sobre un widget no llegan al juego.
 
-### Ocultar con iRacing: interfaz, garaje y repeticiones
+### Ocultar con iRacing: interfaz, garaje, pantalla de sesión y repeticiones
 
 En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`):
 
-| Opción                                               | Por defecto                 | Qué hace                                                      |
-| ---------------------------------------------------- | --------------------------- | ------------------------------------------------------------- |
-| Ocultar con la interfaz de iRacing (`hideWithSimUi`) | Sí                          | Si ocultas la interfaz del simulador, se ocultan los widgets  |
-| Ocultar en el garaje (`hideInGarage`)                | Sí                          | Mientras está abierta la pantalla del garaje                  |
-| En repeticiones (`replays`)                          | Seguir la cámara (`follow`) | `follow`: muestran el coche que estás viendo; `hide`: ninguno |
+| Opción                                                   | Por defecto                          | Qué hace                                                                  |
+| -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------- |
+| Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                   | Si ocultas la interfaz del simulador, se ocultan los widgets              |
+| Ocultar en el garaje (`hideInGarage`)                    | Sí                                   | Mientras está abierta la pantalla del garaje                              |
+| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                   | Fuera del coche, salvo los widgets con «Mostrar en la pantalla de sesión» |
+| En repeticiones (`replays`)                              | Mantener la clasificación (`follow`) | `follow`: al rebobinar queda la clasificación; `hide`: ninguno            |
+| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                   | Sin iRacing, Relativo y Clasificación siguen con el aviso                 |
 
-- Siguiendo la cámara, Relativo, Clasificación, Batalla y Tráfico se centran en el coche de la
-  repetición. Radar, Pedales, Avisos, Delta y Condiciones solo muestran datos en directo (de tu
-  coche, o de la pista vista desde él): en una repetición se ocultan siempre (lo dice la sección
-  **Ventana** de su página).
-- Una repetición no toca el cronometraje en directo: no cuenta vueltas, récords, incidentes ni
-  sectores del óptimo, y al volver al directo todo sigue donde estaba (la vuelta que la repetición
-  partió no se cronometra). La línea de SR de Clasificación y el contador de incidentes de las
-  cabeceras solo salen con tu coche.
+- **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
+  botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
+  (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados.
+- iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
+  ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
+  está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
+  o salta).
+- En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
+  él; Radar, Pedales, Avisos, Delta y Condiciones solo tienen datos de tu coche y se ocultan.
+- Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
+  y Clasificación se queda con la carrera en directo tal como estaba. El cronometraje no cuenta
+  vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta que la
+  repetición partió no se cronometra). La línea de SR y el contador de incidentes solo salen con tu
+  coche.
 - Como con "Mostrar en", un widget oculto no se calcula, y en modo edición se ve con el motivo
-  (_Oculto en el garaje_, _Oculto en repeticiones: solo en directo_...).
+  (_Oculto en la pantalla de sesión_, _Oculto: cámara en otro coche_...).
 - En modo simulación (`dev:mock`) cada sesión lo enseña una vez: interfaz oculta a los 2:00, garaje
-  a los 2:20 y una repetición de 14 s a los 2:50.
+  a los 2:20, pantalla de sesión a los 2:30 y a los 2:50 una repetición de 14 s: 7 s en directo con
+  la cámara en el coche de delante y 7 s rebobinada.
 
 ### Bandeja del sistema
 
@@ -283,8 +294,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   vuelta».
 - **Última parada** (`pitLap`, «V12») y **vueltas del stint** (`stint`, «7 v»): las calcula el modelo
   de carrera desde la última salida de boxes o desde la salida. Si OverLap arranca con la carrera
-  empezada, cuenta desde la salida (no sabe de paradas anteriores). En una repetición las paradas,
-  la última parada y el stint salen vacíos: el modelo de la repetición no vio las paradas de antes.
+  empezada, cuenta desde la salida (no sabe de paradas anteriores). En la pantalla de sesión y en las
+  repeticiones son los de la carrera en directo.
 - **Neumático** (`tyre`): la letra del compuesto (`CarIdxTireCompound` + `DriverTires` del YAML,
   H = duro, W = lluvia). iRacing solo nombra los compuestos de tu modelo de coche: el resto sale «—».
   La columna solo aparece cuando alguien no lleva el compuesto habitual (el 0): una «H» en todas
@@ -315,6 +326,18 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   cuál, solo cuántos hay a cada lado) y lo mantienen hasta 3 s (o 12 m) después, cuando el SDK ya no
   da información lateral: un coche que te acaba de pasar por la izquierda se sigue viendo a la
   izquierda en vez de "en tu carril".
+- Un coche de tu carril a menos de un coche de distancia sin lado de iRacing (la salida parada, un
+  coche que se reincorpora) está a tu lado sin saber en cuál: se dibuja atenuado y con contorno
+  discontinuo a su distancia real, encima de tu coche, nunca pegado a tu parachoques ni encima de otro.
+- En las sesiones en solitario (clasificación «Lone Qualify») los demás coches no están en pista
+  contigo: el radar solo usa `CarLeftRight` y Tráfico no lista a nadie.
+
+### Tráfico
+
+- Coches más rápidos que te alcanzan por detrás, más lentos a los que alcanzas y peligros delante.
+- Un coche de tu clase con al menos una vuelta de ventaja que viene por detrás sale siempre como
+  «Te dobla», aunque la carrera sea de una sola clase (`traffic.onlyMulticlass`) o vaya a tu ritmo; y
+  con bandera azul, cualquier coche por detrás que pueda estar adelantándote.
 - Se desvanece cuando no hay nadie cerca ni al lado, con histéresis para que no parpadee en el límite
   del alcance.
 - Si la longitud de pista falta o viene rara, solo se muestran los avisos laterales.

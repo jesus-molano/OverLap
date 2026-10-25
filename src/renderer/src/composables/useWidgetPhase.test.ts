@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick } from 'vue'
+import { createDefaultSettings } from '@shared/settings'
 import type { BattleData } from '@shared/types'
-import { WAITING_STATUS, createFakeOverlay, flush, type FakeOverlay } from './testing/fakeOverlay'
+import {
+  LIVE_STATUS,
+  WAITING_STATUS,
+  createFakeOverlay,
+  flush,
+  settingsWith,
+  type FakeOverlay
+} from './testing/fakeOverlay'
 import { shownContent, widgetPhase, type PhaseInput } from './useWidgetPhase'
 
 describe('shownContent', () => {
@@ -50,6 +58,12 @@ describe('widgetPhase', () => {
   it('shows the status offline only for widgets that have one', () => {
     expect(widgetPhase(base)).toBe('offline')
     expect(widgetPhase({ ...base, showsOffline: false })).toBe('hidden')
+  })
+
+  it('hides the status once it may no longer show, except in edit mode (B21)', () => {
+    expect(widgetPhase({ ...base, offlineShown: false })).toBe('hidden')
+    expect(widgetPhase({ ...base, offlineShown: true })).toBe('offline')
+    expect(widgetPhase({ ...base, offlineShown: false, editMode: true })).toBe('preview')
   })
 
   it('hides when connected but there is nothing to show', () => {
@@ -135,6 +149,48 @@ describe('useWidgetPhase', () => {
     expect(phase.value).toBe('hidden')
     scope.stop()
     expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('says "Waiting for iRacing" for a few seconds only; an error and the option keep it (B21)', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const { useWidgetPhase, WAITING_GRACE_MS } = await import('./useWidgetPhase')
+    const scope = effectScope()
+    const { phase } = scope.run(() => useWidgetPhase('standings', { showsOffline: true }))!
+    await flush()
+    // Connected, nothing to show yet.
+    expect(phase.value).toBe('hidden')
+    // The sim closed: the status for a few seconds, then nothing over the desktop.
+    fake.status.emit(WAITING_STATUS)
+    expect(phase.value).toBe('offline')
+    vi.advanceTimersByTime(WAITING_GRACE_MS - 1)
+    expect(phase.value).toBe('offline')
+    vi.advanceTimersByTime(1)
+    expect(phase.value).toBe('hidden')
+    // Edit mode still shows the sample, to place the window.
+    fake.editMode.emit(true)
+    expect(phase.value).toBe('preview')
+    fake.editMode.emit(false)
+    // The option keeps the status on screen.
+    const keep = settingsWith(
+      createDefaultSettings(),
+      (s) => (s.visibility.showWhileWaiting = true)
+    )
+    fake.settings.emit(keep)
+    expect(phase.value).toBe('offline')
+    fake.settings.emit(createDefaultSettings())
+    expect(phase.value).toBe('hidden')
+    // An error stays: it says what is wrong.
+    fake.status.emit({ ...WAITING_STATUS, state: 'error', detail: 'boom' })
+    vi.advanceTimersByTime(3 * WAITING_GRACE_MS)
+    expect(phase.value).toBe('offline')
+    // Live again, then gone again: a new grace.
+    fake.status.emit(LIVE_STATUS)
+    expect(phase.value).toBe('hidden')
+    fake.status.emit(WAITING_STATUS)
+    expect(phase.value).toBe('offline')
+    vi.advanceTimersByTime(WAITING_GRACE_MS)
+    expect(phase.value).toBe('hidden')
+    scope.stop()
   })
 
   it('drops the payload of a rule-hidden widget, which then previews in edit mode', async () => {

@@ -5,7 +5,7 @@ import { clampRelativeSlots } from '@shared/relative'
 import type { RelativeData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
 import { useI18n } from '@renderer/composables/useI18n'
-import { useWidgetPhase } from '@renderer/composables/useWidgetPhase'
+import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
@@ -33,7 +33,11 @@ import {
 
 const ID = 'relative'
 
-const { data, phase } = useWidgetPhase(ID, { showsOffline: true })
+// No rows (the car out of the world, as on iRacing's session screen): nothing to show (B06).
+const { data, phase } = useWidgetPhase(ID, {
+  showsOffline: true,
+  hasContent: (d) => d.rows.length > 0
+})
 const opts = useOptions(ID)
 const nameFormat = useNameFormat(ID)
 const { halo, surfaceStyle } = useWidgetSurface(ID)
@@ -42,12 +46,14 @@ const title = useWidgetTitle(ID)
 
 const slotsAheadCfg = computed(() => clampRelativeSlots(opts.value.carsAhead))
 const slotsBehindCfg = computed(() => clampRelativeSlots(opts.value.carsBehind))
-/** Live rows, the sample in edit mode, or none (offline, or no payload yet: empty slots). */
-const source = computed<RelativeData | null>(() => {
-  if (phase.value === 'live') return data.value
-  if (phase.value === 'preview') return previewRelative(slotsAheadCfg.value, slotsBehindCfg.value)
-  return null
-})
+/** Hidden (no rows, no payload): the panel fades out instead of drawing empty slots (B06). */
+const shown = computed(() => phase.value !== 'hidden')
+/** Live rows, the sample in edit mode, or what was shown last (kept through the fade-out). */
+const source = useShownContent<RelativeData>(
+  () => phase.value,
+  () => data.value,
+  () => previewRelative(slotsAheadCfg.value, slotsBehindCfg.value)
+)
 const ahead = computed(() => clampRelativeSlots(source.value?.slotsAhead ?? slotsAheadCfg.value))
 const behind = computed(() => clampRelativeSlots(source.value?.slotsBehind ?? slotsBehindCfg.value))
 const sessionLabel = computed(() => formatSessionType(source.value?.sessionType ?? null, t.value))
@@ -90,7 +96,7 @@ const panelStyle = computed<InlineStyle>(() => ({
 </script>
 
 <template>
-  <div class="ov-root rl-root">
+  <div class="ov-root rl-root ov-fade" :class="{ 'is-shown': shown }">
     <WidgetPanel fill :surface="panelStyle" :halo="halo" class="rl-panel">
       <template #header>
         <PanelHeader :title="title" :meta="sessionLabel">

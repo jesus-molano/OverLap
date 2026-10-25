@@ -177,6 +177,8 @@ export interface CarMark {
    */
   classColor: string
   overlapping: boolean
+  /** Beside you on a side iRacing does not tell (isUnsided): dimmed outline, over your icon. */
+  unsided: boolean
   opacity: number
 }
 
@@ -206,20 +208,71 @@ export const roundSteps = (v: number, steps: number): number =>
   steps > 0 ? Math.round(v * steps) / steps : v
 
 /**
- * Where to draw a car along the track. In your lane and not alongside per CarLeftRight, a car
- * closer than a car length is beside you with a gap iRacing does not report, or nose to tail:
- * it is drawn touching your bumper, never on top of your icon (that read as "the radar missed
- * the car next to me"). Its colour still says how close it is.
+ * A car of your lane, not alongside per CarLeftRight and holding no side, closer than a car
+ * length: nose to tail is impossible that close, so it is beside you, on a side iRacing does not
+ * report (a standing start, a car rejoining, data lag). Drawn at its real distance, dimmed and as
+ * an outline over your icon (B22): never as a car touching your bumper, which is not there.
+ * A car that was alongside keeps its side for RADAR.sideHoldS in the provider (shared/radar.ts).
  */
-export function drawnDistM(car: Pick<RadarCar, 'distM' | 'lane' | 'overlapping'>): number {
-  const len = RADAR.carLengthM
-  if (car.lane !== 0 || car.overlapping || !(Math.abs(car.distM) < len)) return car.distM
-  return car.distM > 0 ? len : -len
+export function isUnsided(car: Pick<RadarCar, 'distM' | 'lane' | 'overlapping'>): boolean {
+  return car.lane === 0 && !car.overlapping && Math.abs(car.distM) < RADAR.carLengthM
 }
+
+/** An unsided car's opacity, times its edge fade: clearly less sure than a car alongside. */
+export const UNSIDED_OPACITY = 0.6
+/**
+ * An unsided car is never drawn closer than this along y (SVG units, half an icon) to another car
+ * of your lane: no icon on top of another.
+ */
+export const UNSIDED_MIN_GAP = CAR_H / 2
+/** Relaxation rounds of spreadUnsided: plenty for the few cars a radar holds. */
+const SPREAD_ROUNDS = 6
 
 /** SVG transform of a car centred on (x, y). */
 export function markTransform(x: number, y: number): string {
   return `translate(${x} ${y})`
+}
+
+/**
+ * Moves the unsided marks along y so that none is drawn within UNSIDED_MIN_GAP of another mark
+ * of your lane (B22). A car of your lane further than a car length is where it is: an unsided
+ * one steps off it, on its own side of it. Two unsided ones step apart evenly, so a pair stays
+ * centred where the two cars really are. Rewrites the moved marks' y and transform.
+ */
+function spreadUnsided(lane0: readonly CarMark[], steps: number): void {
+  const moved = new Set<CarMark>()
+  for (let round = 0; round < SPREAD_ROUNDS; round++) {
+    let clash = false
+    for (let i = 0; i < lane0.length; i++) {
+      for (let j = i + 1; j < lane0.length; j++) {
+        const a = lane0[i]
+        const b = lane0[j]
+        if (a === undefined || b === undefined || (!a.unsided && !b.unsided)) continue
+        const gap = b.y - a.y
+        const short = UNSIDED_MIN_GAP - Math.abs(gap)
+        if (short <= 1e-6) continue
+        clash = true
+        // Apart along y, keeping their order (a tie: the first one ahead).
+        const dir = gap >= 0 ? 1 : -1
+        if (a.unsided && b.unsided) {
+          a.y -= (dir * short) / 2
+          b.y += (dir * short) / 2
+          moved.add(a).add(b)
+        } else if (a.unsided) {
+          a.y = b.y - dir * UNSIDED_MIN_GAP
+          moved.add(a)
+        } else {
+          b.y = a.y + dir * UNSIDED_MIN_GAP
+          moved.add(b)
+        }
+      }
+    }
+    if (!clash) break
+  }
+  for (const m of moved) {
+    m.y = roundSteps(m.y, steps)
+    m.transform = markTransform(m.x, m.y)
+  }
 }
 
 /**
@@ -235,17 +288,21 @@ export function toCarMarks(
   const sorted = cars.slice().sort((a, b) => a.proximity - b.proximity)
   const used = new Set<string>()
   const marks: CarMark[] = []
+  // Your lane's marks, kept only once one of them is unsided (spreadUnsided).
+  let lane0: CarMark[] | null = null
+  let anyUnsided = false
   for (const car of sorted) {
+    const off = isUnsided(car)
     const raw = car.overlapping ? 1 : edgeOpacity(car.distM, rangeM)
-    const opacity = roundSteps(raw, precision.opacity)
+    const opacity = roundSteps(off ? raw * UNSIDED_OPACITY : raw, precision.opacity)
     if (opacity <= 0) continue
     const base = car.carIdx >= 0 ? String(car.carIdx) : `p${car.lane}`
     let key = base
     for (let n = 2; used.has(key); n++) key = `${base}#${n}`
     used.add(key)
     const x = roundSteps(laneToX(car.lane), precision.pos)
-    const y = roundSteps(distToY(drawnDistM(car), rangeM), precision.pos)
-    marks.push({
+    const y = roundSteps(distToY(car.distM, rangeM), precision.pos)
+    const mark: CarMark = {
       key,
       x,
       y,
@@ -253,9 +310,14 @@ export function toCarMarks(
       bucket: proximityBucket(car.proximity, car.overlapping),
       classColor: car.classColor,
       overlapping: car.overlapping,
+      unsided: off,
       opacity
-    })
+    }
+    marks.push(mark)
+    if (car.lane === 0) (lane0 ??= []).push(mark)
+    anyUnsided ||= off
   }
+  if (anyUnsided && lane0 !== null && lane0.length > 1) spreadUnsided(lane0, precision.pos)
   return marks.length > 0 ? marks : NO_MARKS
 }
 
@@ -274,7 +336,8 @@ export function sameMarks(a: readonly CarMark[], b: readonly CarMark[]): boolean
       m.opacity !== n.opacity ||
       m.bucket !== n.bucket ||
       m.classColor !== n.classColor ||
-      m.overlapping !== n.overlapping
+      m.overlapping !== n.overlapping ||
+      m.unsided !== n.unsided
     ) {
       return false
     }
