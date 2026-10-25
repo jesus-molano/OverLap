@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SessionFlag } from './flags'
+import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { iRatingDeltas, playerProjection } from './ratings/irating'
 import { projectSessionSafetyRating } from './ratings/sessionSafety'
@@ -190,6 +191,7 @@ function makeSession(list: readonly DriverEntry[], o: Partial<SessionMeta> = {})
     pitSpeedLimitKmh: null,
     trackId: 1,
     trackConfig: '',
+    incidentLimits: NO_INCIDENT_LIMITS,
     ...o
   }
 }
@@ -820,6 +822,20 @@ describe('iRating', () => {
 
 describe('header', () => {
   const session = makeSession(drivers(3), { trackNumTurns: 17 })
+
+  it('counts your incidents in every session type, with the next limit', () => {
+    const limited = makeSession(drivers(3), {
+      official: false,
+      incidentLimits: { dq: 25, penalty: null, penaltyEvery: null }
+    })
+    const frame = { ...PRACTICE, PlayerCarIdx: [0], PlayerCarMyIncidentCount: [11] }
+    const data = compute(frame, limited, makeRace(field(3)), OPTS)
+    // An unrated practice: no ratings, the count all the same.
+    expect(data.header.safetyRating).toBeNull()
+    expect(data.header.incidents).toEqual({ mine: 11, team: null, limit: { kind: 'dq', at: 25 } })
+    // Without the variable it is unknown.
+    expect(compute(PRACTICE, session, makeRace(field(3)), OPTS).header.incidents).toBeNull()
+  })
 
   it('session type, laps and time left, projected SR over the whole race', () => {
     const race = makeRace(field(3, 0, { distance: 3.5 }), {

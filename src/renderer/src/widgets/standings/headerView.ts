@@ -1,8 +1,8 @@
 /**
- * View model of the standings header (ux §4.4): session, what is left, and on a second line
- * your projected iRating and safety rating (race) or the session's best lap (practice and
- * qualifying). Flat and formatted, like the line views. Pure. Words come from the dictionary
- * (HeaderInput.m); the examples are the Spanish ones.
+ * View model of the standings header (ux §4.4): session, your incidents and what is left, and
+ * on a second line your projected iRating and safety rating (race) or the session's best lap
+ * (practice and qualifying). Flat and formatted, like the line views. Pure. Words come from the
+ * dictionary (HeaderInput.m); the examples are the Spanish ones.
  */
 import {
   formatIRatingDelta,
@@ -21,6 +21,7 @@ import type {
 } from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import { formatCarNumber } from '@renderer/view/driverCell'
+import { toIncidentCountView, type IncidentCountView } from '@renderer/view/incidents'
 import type { Tone } from '@renderer/ui/tones'
 import { primaryBlock, type HeadLines } from './layout'
 import { classMeta } from './view'
@@ -38,6 +39,11 @@ export interface HeaderView {
   finished: boolean
   /** '38:19  ≈19 v' (en-spaced), 'Quedan 12 v', '' when unknown. */
   remaining: string
+  /** Your incident count on line 1 ('3x'), '' when hidden or unknown; the rest as in IncidentCount. */
+  incCount: string
+  incTeam: string
+  incLimit: string
+  incTone: IncidentCountView['tone']
   lines: HeadLines
   /** Practice / qualifying: 'Mejor 2:07.579  #29' (en-spaced), else ''. */
   best: string
@@ -62,7 +68,7 @@ export interface HeaderView {
   srTo: string
   srTone: Tone
   srArrow: Arrow
-  /** '2x'. */
+  /** '2x'; '' while line 1 shows your incident count (it would say the same twice). */
   srIncidents: string
   /** 'margen 4x', 'sin margen', 'margen —'. */
   srBudget: string
@@ -79,6 +85,7 @@ export interface HeaderInput {
   showSafetyRating: boolean
   showSof: boolean
   showCarCount: boolean
+  showIncidents: boolean
   preview: boolean
   /** The widget's caption ('CLASIFICACIÓN'), the title while the session type is unknown. */
   title: string
@@ -184,6 +191,7 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     ir !== null && Number.isFinite(ir.breakEvenPosition) && ir.breakEvenPosition > 0
       ? Math.round(ir.breakEvenPosition)
       : null
+  const inc = i.showIncidents ? toIncidentCountView(h?.incidents ?? null, m) : null
 
   return {
     title: formatSessionType(h?.sessionType ?? null, m) || i.title,
@@ -191,6 +199,10 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     preview: i.preview,
     finished: i.race && classes.some((c) => c.rows.some((r) => r.status === 'finished')),
     remaining: h !== null ? formatRemaining(h.lapsRemaining, h.timeRemainingS, m) : '',
+    incCount: inc?.count ?? '',
+    incTeam: inc?.team ?? '',
+    incLimit: inc?.limit ?? '',
+    incTone: inc?.tone ?? 'neutral',
     lines: ir !== null || sr !== null || best !== '' ? 2 : 1,
     best,
     hasIr: ir !== null,
@@ -205,7 +217,8 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     srTo,
     srTone: valueTone(srSign),
     srArrow: arrowOf(srSign),
-    srIncidents: sr !== null ? t.incidents(Math.max(0, Math.round(sr.incidents)) || 0) : '',
+    srIncidents:
+      sr !== null && inc === null ? t.incidents(Math.max(0, Math.round(sr.incidents)) || 0) : '',
     srBudget: budget.text,
     srBudgetTone: budget.tone
   }
@@ -213,8 +226,9 @@ export function toHeaderView(i: HeaderInput): HeaderView {
 
 /**
  * How much of the header fits the panel width (em of its font): '' everything; 'm' without the
- * per-position iRating; 's' also without the neutral position and the SR you start from;
- * 'xs' also without the incident count.
+ * per-position iRating; 's' also without the neutral position, the SR you start from and the
+ * team's incidents; 'xs' also without the SR's incident count and the incident limit (your
+ * count always stays).
  */
 export type HeaderTier = '' | 'm' | 's' | 'xs'
 

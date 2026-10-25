@@ -5,6 +5,9 @@
  */
 import type { Dict } from '../dict'
 
+/** No-break space between a number and its unit (shared/format.ts NBSP). */
+const NB = '\u00a0'
+
 export const settingsEs = {
   /** Window frame: top bar, banners, footer. */
   app: {
@@ -297,7 +300,10 @@ export const settingsEs = {
     carsAhead: 'Coches delante',
     carsBehind: 'Coches detrás',
     columns: 'Columnas',
-    classPosition: 'Posición en clase'
+    classPosition: 'Posición en clase',
+    incidents: 'Incidentes en la cabecera',
+    incidentsHelp:
+      'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · pen. a 17x»'
   },
   radar: {
     range: 'Alcance',
@@ -333,6 +339,8 @@ export const settingsEs = {
     headerHelp:
       'Tu iRating y SR proyectados, con el margen de incidentes (estimación, solo en carrera)',
     safetyRating: 'Safety rating',
+    incidents: 'Incidentes',
+    incidentsHelp: 'En cualquier sesión, con el próximo límite: «3x · pen. a 17x»',
     classLine: 'Línea de clase',
     sof: 'SoF',
     carCount: 'Número de coches'
@@ -458,7 +466,7 @@ export const settingsEs = {
     multiclassHelp: 'Sin otras clases en pista no avisa de tráfico; los peligros, siempre'
   },
   alerts: {
-    nothing: 'Sin banderas ni limitador el widget no se muestra',
+    nothing: 'Sin banderas, limitador ni incidentes el widget no se muestra',
     limiterHidden: 'Con «Ocultar en boxes» (Ventana) el limitador no llega a verse',
     flags: 'Banderas',
     flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
@@ -466,6 +474,10 @@ export const settingsEs = {
     blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
     limiter: 'Limitador de boxes',
     limiterHelp: 'En el pit lane: puesto, sin poner o por encima del límite',
+    incidents: 'Incidentes',
+    /** `s`: the incident's own minimum time on screen. */
+    incidentsHelp: (s: number) =>
+      `Al sumar puntos, al menos ${s}${NB}s: «+2x Pérdida de control · V5 · S3 · grava»`,
     holdHelp:
       'Una bandera breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerla'
   },
@@ -836,7 +848,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsAhead: 'Cars ahead',
     carsBehind: 'Cars behind',
     columns: 'Columns',
-    classPosition: 'Class position'
+    classPosition: 'Class position',
+    incidents: 'Incidents in the header',
+    incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · pen. at 17x”'
   },
   radar: {
     range: 'Range',
@@ -870,6 +884,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     header: 'Header',
     headerHelp: 'Your projected iRating and SR, with the incident margin (estimate, race only)',
     safetyRating: 'Safety Rating',
+    incidents: 'Incidents',
+    incidentsHelp: 'In every session, with the next limit: “3x · pen. at 17x”',
     classLine: 'Class line',
     sof: 'SoF',
     carCount: 'Car count'
@@ -990,7 +1006,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     multiclassHelp: 'With no other classes on track, it only warns about hazards'
   },
   alerts: {
-    nothing: 'With neither flags nor limiter selected, the widget never shows',
+    nothing: 'With no flags, limiter or incidents selected, the widget never shows',
     limiterHidden: 'With “Hide in the pits” (Window) the limiter never shows',
     flags: 'Flags',
     flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
@@ -999,6 +1015,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     blueHelp: '“Let them pass”: a faster car is about to lap you',
     limiter: 'Pit limiter',
     limiterHelp: 'On pit road: on, off or over the limit',
+    incidents: 'Incidents',
+    incidentsHelp: (s) =>
+      `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
     holdHelp: 'A brief flag stays on screen at least this long, so there is time to read it'
   },
   delta: {

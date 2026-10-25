@@ -12,6 +12,7 @@ import type { Messages } from '@shared/i18n'
 import type { AlertsData, AlertsOptions, AppearanceSettings, FlagKind } from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import { perDictionary } from '@renderer/view/perDictionary'
+import { hasIncident, type IncidentLineView } from './incident'
 
 /** Band colour: the flag's own. */
 export type FlagFill = 'black' | 'yellow' | 'red' | 'blue' | 'white' | 'green'
@@ -87,12 +88,16 @@ export const flagViews = perDictionary((m): Readonly<Record<FlagKind, FlagView>>
 })
 
 /** The options the banner reads (the provider applies them too; holdS is the provider's alone). */
-export type AlertFilter = Pick<AlertsOptions, 'showFlags' | 'showBlue' | 'showPitLimiter'>
+export type AlertFilter = Pick<
+  AlertsOptions,
+  'showFlags' | 'showBlue' | 'showPitLimiter' | 'showIncidents'
+>
 
 export const SHOW_ALL: AlertFilter = Object.freeze({
   showFlags: true,
   showBlue: true,
-  showPitLimiter: true
+  showPitLimiter: true,
+  showIncidents: true
 })
 
 /** Secondary flags drawn as chips; more than this is noise (they stay in priority order). */
@@ -178,7 +183,11 @@ export function limiterView(
 /** Whether a payload has anything to draw with these options. */
 export function hasAlerts(d: AlertsData, o: AlertFilter): boolean {
   if (!d.visible) return false
-  return shownFlags(d.flags, o).length > 0 || (o.showPitLimiter && isLimiterState(d.pitLimiter))
+  return (
+    shownFlags(d.flags, o).length > 0 ||
+    (o.showPitLimiter && isLimiterState(d.pitLimiter)) ||
+    (o.showIncidents && hasIncident(d.incident))
+  )
 }
 
 export interface FlagsView {
@@ -225,6 +234,15 @@ export function limiterHero(flags: FlagsView, limiter: LimiterView | null): bool
   return limiter !== null && (flags.primary === null || limiter.state !== 'on')
 }
 
+/** The incident line is as large as the flag band when it is all there is to read. */
+export function incidentHero(
+  flags: FlagsView,
+  incident: IncidentLineView | null,
+  limiter: LimiterView | null
+): boolean {
+  return incident !== null && flags.primary === null && limiter === null
+}
+
 /**
  * The options to draw the edit-mode sample with: the user's, unless they hide everything (then
  * the whole sample, so the window can still be placed and sized).
@@ -235,9 +253,14 @@ export function previewFilter(sample: AlertsData, o: AlertFilter): AlertFilter {
 
 /**
  * Everything the panel height depends on besides the width and the font: whether there is a
- * band, how many chips, and the limiter line (none, normal or hero).
+ * band, how many chips, the limiter line and the incident line (each none, normal or hero).
  */
-export function layoutKey(flags: FlagsView, limiter: LimiterView | null): string {
+export function layoutKey(
+  flags: FlagsView,
+  limiter: LimiterView | null,
+  incident: IncidentLineView | null = null
+): string {
   const line = limiter === null ? 0 : limiterHero(flags, limiter) ? 2 : 1
-  return `${flags.primary !== null ? 1 : 0}|${flags.secondary.length}|${line}`
+  const inc = incident === null ? 0 : incidentHero(flags, incident, limiter) ? 2 : 1
+  return `${flags.primary !== null ? 1 : 0}|${flags.secondary.length}|${line}|${inc}`
 }

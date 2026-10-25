@@ -12,11 +12,13 @@ import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
+import IncidentCount from '@renderer/ui/IncidentCount.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PanelHeader from '@renderer/ui/PanelHeader.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { reuseViews } from '@renderer/view/reuse'
+import { toIncidentCountView, type IncidentCountView } from '@renderer/view/incidents'
+import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { previewRelative } from './preview'
 import {
@@ -47,6 +49,13 @@ const source = computed<RelativeData | null>(() => {
 const ahead = computed(() => clampRelativeSlots(source.value?.slotsAhead ?? slotsAheadCfg.value))
 const behind = computed(() => clampRelativeSlots(source.value?.slotsBehind ?? slotsBehindCfg.value))
 const sessionLabel = computed(() => formatSessionType(source.value?.sessionType ?? null, t.value))
+/** Your incidents in the header ('3x · pen. a 17x'); the same object while it reads the same. */
+const incidents = computed<IncidentCountView | null>((prev) =>
+  reuseView(
+    prev,
+    opts.value.showIncidents ? toIncidentCountView(source.value?.incidents ?? null, t.value) : null
+  )
+)
 
 const styles = createDriverStyles()
 // Slots are keyed by index and an unchanged slot keeps its object, so a 10 Hz payload only
@@ -80,6 +89,7 @@ const panelStyle = computed<InlineStyle>(() => ({
     <WidgetPanel fill :surface="panelStyle" :halo="halo" class="rl-panel">
       <template #header>
         <PanelHeader :title="title" :meta="sessionLabel">
+          <IncidentCount v-if="incidents" v-bind="incidents" />
           <PreviewTag v-if="phase === 'preview'" />
         </PanelHeader>
       </template>

@@ -379,6 +379,7 @@ export class TelemetryLoop {
     this.updateRace(frame, session, now)
     const race = this.raceModel?.view ?? EMPTY_RACE_VIEW
     this.followSessionKey(race, now)
+    this.observeTick(frame, session, race, now)
     this.followPersonalBest(frame, session, race, now)
     this.followTarget(session, race.playerCarIdx, now)
     this.updateRules(frame, session, now)
@@ -390,6 +391,23 @@ export class TelemetryLoop {
       this.runProvider(id, ctx, now)
     }
     return true
+  }
+
+  /**
+   * The providers' per-tick state (the incident tracker), after a new session reset it. A
+   * failure must not stop the loop: the widgets still run.
+   */
+  private observeTick(
+    frame: TelemetryFrame,
+    session: SessionMeta,
+    race: RaceView,
+    now: number
+  ): void {
+    try {
+      this.providers.observe?.(frame, session, race)
+    } catch (err) {
+      this.logEvery('providers', now, `Provider tick failed: ${errorMessage(err)}`)
+    }
   }
 
   /** A failing model must not take the widgets down: providers still run with its last view. */

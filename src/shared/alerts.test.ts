@@ -11,9 +11,15 @@ import { EngineWarning, SessionFlag } from './flags'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
 import { makeFrame, makeSession } from './race/testing/raceSim'
 import type { MutableFrame } from './race/testing/raceSim'
-import type { AlertsData, AlertsOptions, FlagKind, SessionMeta } from './types'
+import type { AlertsData, AlertsOptions, FlagKind, IncidentAlert, SessionMeta } from './types'
 
-const OPTS: AlertsOptions = { showFlags: true, showBlue: true, showPitLimiter: true, holdS: 0 }
+const OPTS: AlertsOptions = {
+  showFlags: true,
+  showBlue: true,
+  showPitLimiter: true,
+  holdS: 0,
+  showIncidents: true
+}
 
 /** The player is CarIdx 0 of a 3-car session with a 60 km/h pit limit. */
 class Tick {
@@ -212,14 +218,16 @@ describe('pit limiter', () => {
       flags: [],
       pitLimiter: null,
       speedKmh: 0,
-      pitLimitKmh: 60
+      pitLimitKmh: 60,
+      incident: null
     })
     expect(k.pit(true, false).run()).toEqual({
       visible: true,
       flags: [],
       pitLimiter: 'off',
       speedKmh: 58,
-      pitLimitKmh: 60
+      pitLimitKmh: 60,
+      incident: null
     })
     expect(k.pit(true, true).run()).toMatchObject({ visible: true, pitLimiter: 'on' })
   })
@@ -276,7 +284,8 @@ describe('alertsEqual', () => {
     flags: ['caution', 'blue'],
     pitLimiter: 'on',
     speedKmh: 58,
-    pitLimitKmh: 60
+    pitLimitKmh: 60,
+    incident: { points: 2, kind: 'loss-of-control', lap: 5, sector: 3, surface: 'gravel' }
   }
 
   it('is structural and sees every field', () => {
@@ -289,7 +298,11 @@ describe('alertsEqual', () => {
       { pitLimiter: null },
       { speedKmh: 59 },
       { pitLimitKmh: null },
-      { pitLimitKmh: 72 }
+      { pitLimitKmh: 72 },
+      { incident: null },
+      ...(['points', 'kind', 'lap', 'sector', 'surface'] as const).map((f) => ({
+        incident: { ...(base.incident as IncidentAlert), [f]: f === 'kind' ? 'off-track' : null }
+      }))
     ]
     for (const c of changed)
       expect(alertsEqual(base, { ...base, ...c }), JSON.stringify(c)).toBe(false)

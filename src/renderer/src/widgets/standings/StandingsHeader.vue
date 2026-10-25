@@ -2,12 +2,14 @@
 import { useI18n } from '@renderer/composables/useI18n'
 import Chip from '@renderer/ui/Chip.vue'
 import Icon from '@renderer/ui/Icon.vue'
+import IncidentCount from '@renderer/ui/IncidentCount.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import SimPill from '@renderer/ui/SimPill.vue'
 import type { HeaderTier, HeaderView } from './headerView'
 
 /**
- * Line 1: session caption, SIM / preview tags, single-class SoF, and what is left on the right.
+ * Line 1: session caption, SIM / preview tags, single-class SoF, and on the right your incidents
+ * and what is left.
  * Line 2: your iRating (or the session best lap) on the left, your SR and margin on the right.
  * Both lines have fixed heights (layout.ts), so the header never changes the panel height by
  * its content.
@@ -24,6 +26,14 @@ const t = useI18n()
       <SimPill />
       <PreviewTag v-if="head.preview" class="sd-ptag" />
       <span v-if="head.meta" class="sd-meta">{{ head.meta }}</span>
+      <IncidentCount
+        v-if="head.incCount"
+        class="sd-inc-count"
+        :count="head.incCount"
+        :team="head.incTeam"
+        :limit="head.incLimit"
+        :tone="head.incTone"
+      />
       <span v-if="head.finished" class="sd-rem">
         <Icon name="chequered" class="sd-rem-icon" />
         {{ t.widgets.standings.finished }}
@@ -50,7 +60,7 @@ const t = useI18n()
         <span class="sd-v" :class="`ov-tone-${head.srTone}`"
           >{{ head.srTo }}<Icon v-if="head.srArrow" :name="head.srArrow" class="sd-arrow"
         /></span>
-        <span class="sd-m sd-inc">{{ head.srIncidents }}</span>
+        <span v-if="head.srIncidents" class="sd-m sd-inc">{{ head.srIncidents }}</span>
         <Chip v-if="head.srBudgetTone === 'bad'" tone="bad" variant="solid" class="sd-budget">{{
           head.srBudget
         }}</Chip>
@@ -132,6 +142,15 @@ const t = useI18n()
 .sd-rem-icon {
   font-size: 0.9em;
   color: var(--ov-fg-muted);
+}
+
+/* Your incidents go right, before what is left: one auto margin pushes both. */
+.sd-inc-count {
+  margin-left: auto;
+}
+
+.sd-inc-count + .sd-rem {
+  margin-left: 0.25em;
 }
 
 /* Groups are spaced by the gap alone: no separator characters. */
@@ -223,7 +242,9 @@ const t = useI18n()
 .tier-xs .sd-inc,
 .tier-xs .sd-meta,
 .tier-s .sd-ptag,
-.tier-xs .sd-ptag {
+.tier-xs .sd-ptag,
+.tier-s :deep(.ov-inc__team),
+.tier-xs :deep(.ov-inc__more) {
   display: none;
 }
 </style>

@@ -57,6 +57,13 @@ const nameHelp = computed(() =>
         :apply="set('showIRating')"
       />
     </CheckGroup>
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.relative.incidents"
+      :help="t.settings.relative.incidentsHelp"
+      :current="opts.showIncidents"
+      :apply="set('showIncidents')"
+    />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
       :help="nameHelp"

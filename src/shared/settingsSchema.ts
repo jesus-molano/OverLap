@@ -153,7 +153,9 @@ export const OPTION_SCHEMA = {
       values: NAME_FORMATS_INHERIT,
       default: 'inherit',
       displayOnly: true
-    }
+    },
+    // The count is in every payload: the header shows it or not.
+    showIncidents: { kind: 'bool', default: true, displayOnly: true }
   },
   radar: {
     rangeM: { kind: 'number', min: 5, max: 100, decimals: null, default: 20, step: 5 },
@@ -184,6 +186,7 @@ export const OPTION_SCHEMA = {
     iRatingDeltaAll: { kind: 'bool', default: false },
     headerIRating: { kind: 'bool', default: true },
     headerSafetyRating: { kind: 'bool', default: true },
+    headerIncidents: { kind: 'bool', default: true, displayOnly: true },
     showSof: { kind: 'bool', default: true, displayOnly: true },
     showCarCount: { kind: 'bool', default: true, displayOnly: true },
     density: {
@@ -261,7 +264,8 @@ export const OPTION_SCHEMA = {
     showFlags: { kind: 'bool', default: true },
     showBlue: { kind: 'bool', default: true },
     showPitLimiter: { kind: 'bool', default: true },
-    holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
+    holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 },
+    showIncidents: { kind: 'bool', default: true }
   },
   // The reference choice changes what the provider computes; the rest is drawing. References in
   // UI order: yours (record, session best, optimal), then your class's (best, optimal).

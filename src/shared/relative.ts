@@ -1,8 +1,10 @@
 /**
  * Relative widget: cars nearest to the player on track, with time gaps
- * estimated from CarIdxEstTime. Pure function of one telemetry tick.
+ * estimated from CarIdxEstTime, and your incident count for its header.
+ * Pure function of one telemetry tick.
  */
 import { driverIdentity } from './driver'
+import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { currentSessionType, isCarInPits, isRaceSession, resolvePlayerCarIdx } from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
@@ -120,7 +122,15 @@ export function computeRelative(
   const slotsAhead = clampRelativeSlots(opts.carsAhead)
   const slotsBehind = clampRelativeSlots(opts.carsBehind)
   const sessionType = currentSessionType(frame, session)
-  const result: RelativeData = { rows: [], playerRow: -1, slotsAhead, slotsBehind, sessionType }
+  const result: RelativeData = {
+    rows: [],
+    playerRow: -1,
+    slotsAhead,
+    slotsBehind,
+    sessionType,
+    // In the payload whatever showIncidents says (display only): one cheap read per tick.
+    incidents: incidentCount(frame, session)
+  }
 
   const pcts = frame.CarIdxLapDistPct
   const surfaces = frame.CarIdxTrackSurface

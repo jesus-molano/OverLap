@@ -400,6 +400,31 @@ describe('parseSessionMeta', () => {
     expect(EMPTY_SESSION.pitSpeedLimitKmh).toBeNull()
     expect(EMPTY_SESSION.trackId).toBe(0)
     expect(EMPTY_SESSION.trackConfig).toBe('')
+    expect(EMPTY_SESSION.incidentLimits).toEqual({ dq: null, penalty: null, penaltyEvery: null })
+  })
+})
+
+describe('parseSessionMeta: incident limits', () => {
+  const limits = (WeekendOptions: unknown): unknown =>
+    parseSessionMeta({ WeekendInfo: { WeekendOptions } }).incidentLimits
+
+  it('reads WeekendOptions, numbers or text, the untyped warning limits included', () => {
+    expect(limits({ IncidentLimit: 25 })).toEqual({ dq: 25, penalty: null, penaltyEvery: null })
+    expect(
+      limits({
+        IncidentLimit: '25',
+        IncidentWarningInitialLimit: 17,
+        IncidentWarningSubsequentLimit: '8'
+      })
+    ).toEqual({ dq: 25, penalty: 17, penaltyEvery: 8 })
+  })
+
+  it("has none for 'unlimited', a missing section or nonsense", () => {
+    const none = { dq: null, penalty: null, penaltyEvery: null }
+    expect(limits({ IncidentLimit: 'unlimited' })).toEqual(none)
+    expect(limits(undefined)).toEqual(none)
+    expect(limits({ IncidentLimit: 0, IncidentWarningInitialLimit: -3 })).toEqual(none)
+    expect(parseSessionMeta({}).incidentLimits).toEqual(none)
   })
 })
 

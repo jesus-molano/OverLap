@@ -5,6 +5,7 @@ import type {
   PersonalBestStore,
   PersonalBestTarget
 } from '@shared/delta/references'
+import { NO_INCIDENT_LIMITS } from '@shared/incidents/limits'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { ProviderContext, ProviderSet, SKIP_EMIT } from '@shared/providers'
 import type { RaceView } from '@shared/race/raceView'
@@ -156,7 +157,8 @@ function session(name: string, type?: string): SessionMeta {
     teamRacing: false,
     pitSpeedLimitKmh: null,
     trackId: 0,
-    trackConfig: ''
+    trackConfig: '',
+    incidentLimits: NO_INCIDENT_LIMITS
   }
 }
 
@@ -187,7 +189,8 @@ const STANDINGS: StandingsData = {
     lapsRemaining: null,
     timeRemainingS: null,
     iRating: null,
-    safetyRating: null
+    safetyRating: null,
+    incidents: null
   },
   classes: []
 }
@@ -215,7 +218,8 @@ const ALERTS: AlertsData = {
   flags: [],
   pitLimiter: null,
   speedKmh: 0,
-  pitLimitKmh: null
+  pitLimitKmh: null,
+  incident: null
 }
 const DELTA: DeltaData = {
   visible: false,
@@ -287,7 +291,8 @@ function setup(
         playerRow: -1,
         slotsAhead: ctx.config.relative.carsAhead,
         slotsBehind: ctx.config.relative.carsBehind,
-        sessionType: null
+        sessionType: null,
+        incidents: null
       }
       calls.relative.push({ ctx, prev, at: clock.t, payload })
       return payload
@@ -492,7 +497,8 @@ describe('TelemetryLoop', () => {
       showClassPosition: true,
       showLicense: true,
       showIRating: true,
-      nameFormat: 'inherit'
+      nameFormat: 'inherit',
+      showIncidents: true
     })
     expect(config?.rules.battle).toEqual({
       showIn: { practice: false, qualify: false, race: true },
@@ -873,6 +879,35 @@ describe('TelemetryLoop', () => {
     expect(h.providerResets()).toBe(3)
     await h.run(1 + 1)
     expect(h.calls.radar.at(-1)?.prev).toBeNull()
+  })
+
+  it('feeds the providers every tick, after a new session reset them; a failure is logged', async () => {
+    const seen: string[] = []
+    let fail = false
+    const h = setup('iracing', {}, undefined, {
+      createProviders: () => ({
+        // No widget runs here: only the per-tick hook is under test.
+        run: {} as ProviderSet['run'],
+        observe: () => {
+          seen.push('observe')
+          if (fail) throw new Error('tick boom')
+        },
+        reset: () => seen.push('reset')
+      })
+    })
+    h.loop.setConfig({ ...defaultTelemetryConfig(), enabledWidgets: [] })
+    await h.run(1 + 3)
+    expect(seen).toEqual(['reset', 'observe', 'observe', 'observe'])
+    h.raceModel.view.sessionKey = 'k2'
+    await h.run(1)
+    expect(seen.slice(-2)).toEqual(['reset', 'observe'])
+    fail = true
+    await h.run(3)
+    expect(seen.filter((s) => s === 'observe')).toHaveLength(7)
+    // Logged once per ERROR_LOG_MS, and the loop goes on.
+    expect(h.logs()).toEqual([
+      { type: 'log', level: 'error', message: 'Provider tick failed: tick boom' }
+    ])
   })
 
   it('hides a widget its "Mostrar en" rule excludes: not computed, one message per change', async () => {
