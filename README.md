@@ -162,6 +162,17 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
   lo **cancela**: el widget vuelve a donde estaba.
 - Coloca los widgets en el garaje o en los menús: mientras el modo edición está activo, los clics
   sobre un widget no llegan al juego.
+- La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar) y un **candado** (bloquear o
+  desbloquear): cambian lo mismo que la bandeja y los Ajustes, y funcionan aunque el widget esté
+  bloqueado. Un widget oculto se ve **solo en modo edición**, como un hueco de borde discontinuo
+  con su nombre y el ojo tachado, para poder recuperarlo; fuera del modo edición no se dibuja ni
+  se calcula.
+- El **radar se dibuja encima de todos** los widgets (un aviso encima de él tapaba los coches en
+  paralelo). Si otro widget lo solapa, el modo edición marca los dos en naranja: «Tapa: Avisos» en
+  el radar y «El radar lo tapa» en el otro.
+- Con iRacing delante y tú en el coche, iRacing **oculta el cursor** y no se puede arrastrar nada:
+  el overlay lo avisa. Abre los Ajustes desde la bandeja (su botón de modo edición) o pulsa
+  `Alt+Tab` al escritorio para recuperar el cursor.
 
 ### Ocultar con iRacing: interfaz, garaje y repeticiones
 
@@ -380,12 +391,20 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   - lo mojado que está el asfalto (`TrackWetness`, 7 niveles; «—» si iRacing no lo sabe, nunca
     «Seco»; el medidor va vacío en seco y lleno encharcado), la lluvia (`Precipitation`) y la banda
     **DECLARADA MOJADA** (`WeatherDeclaredWet`);
-  - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML).
+  - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML). Si
+    iRacing dice «carry over», se muestra el último estado real de una sesión anterior con
+    «(heredada)»: «Media-alta (heredada)».
+- Temperaturas en grados enteros (`TrackTempCrew` va en pasos de 1 °F). La flecha de tendencia no
+  cuenta los primeros 10 s de cada sesión: la primera lectura puede ser aún la de la sesión anterior.
+- El viento es la **media del último minuto**: el valor instantáneo cambia casi cada segundo y el
+  panel de iRacing también lo da estable. La flecha usa la dirección media contra tu rumbo de ese
+  momento.
 - Cada parte se activa o desactiva en su página de Ajustes (`conditions.*`); la cabecera va apagada
   por defecto. Grados y velocidad según `appearance.units` (°C y km/h por defecto).
-- Sin confirmar en una sesión real: si `WindDir` es de dónde viene el viento o hacia dónde va, el
-  sentido de `YawNorth` y la escala de `Precipitation` (se lee 0..1). Cada cosa se cambia en un solo
-  sitio (`src/shared/conditions.ts`).
+- Confirmado en una carrera: `WindDir` es de dónde viene el viento y `YawNorth` gira en sentido
+  horario. Falta confirmar la escala de `Precipitation` (se lee 0..1; `src/shared/conditions.ts`).
+- En un `settings.json` de antes de este widget, Condiciones empieza **oculto** y en un hueco libre
+  cerca de su sitio por defecto, para no tapar lo que ya tenías colocado.
 - En modo mock la pista se calienta, se queda estable y se enfría, el viento cambia un poco y a los
   21 min pasa un chubasco que la moja y la declara mojada.
 

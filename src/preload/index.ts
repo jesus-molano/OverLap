@@ -4,11 +4,13 @@ import {
   type AutoHiddenMessage,
   type BoundsCommit,
   type DragStateMessage,
+  type EditChipsMessage,
   type InitialState,
   type OverlayApi,
   type OverlayLayout,
   type ScaleStepMessage,
-  type SettingsCommand
+  type SettingsCommand,
+  type WidgetToggleMessage
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
 import type { ShortcutStatusMap } from '@shared/shortcuts'
@@ -42,9 +44,12 @@ const api: OverlayApi = {
   onPersonalBests: (cb) => subscribe<PersonalBestList>(IPC.personalBests, cb),
   onOverlayHidden: (cb) => subscribe<boolean>(IPC.overlayHidden, cb),
   onShortcutStatus: (cb) => subscribe<ShortcutStatusMap>(IPC.shortcutStatus, cb),
+  onCursorHidden: (cb) => subscribe<boolean>(IPC.cursorHidden, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),
+  widgetToggle: (msg: WidgetToggleMessage) => ipcRenderer.send(IPC.widgetToggle, msg),
+  editChips: (msg: EditChipsMessage) => ipcRenderer.send(IPC.editChips, msg),
   updateSettings: (patch: SettingsPatch) =>
     ipcRenderer.invoke(IPC.updateSettings, patch) as Promise<OverlaySettings>,
   command: (cmd: SettingsCommand) => ipcRenderer.send(IPC.command, cmd)

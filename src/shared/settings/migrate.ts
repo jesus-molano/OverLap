@@ -5,11 +5,85 @@
  * column list and the two header toggles. v4 files written before v2.1 (v2.2)
  * only lack the traffic and alerts (delta) widgets and sections, and older v4
  * files the shortcuts or visibility section: no version bump, they get their
- * defaults like any missing section.
+ * defaults like any missing section. A file from before the conditions widget
+ * gets it hidden, in a free spot (`placeNewWidget`).
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
-import type { StandingsColumn, StandingsColumnId } from '../types'
+import type {
+  OverlaySettings,
+  Point,
+  Rect,
+  Size,
+  StandingsColumn,
+  StandingsColumnId
+} from '../types'
+import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { isRecord } from './fields'
+
+/**
+ * Widgets added after settings files already existed that such a file gets hidden: the user
+ * has moved the others, and the newcomer's default place may sit on one of them (the
+ * conditions default would cover a standings moved to the top left, report Q5). The user turns
+ * it on from the tray or the settings, or with its ghost's eye in edit mode.
+ */
+export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['conditions'])
+
+/** Where `freeSpot` looks: the default layout's display (1920 x 1080 without the taskbar). */
+export const DEFAULT_AREA: Rect = Object.freeze({ x: 0, y: 0, width: 1920, height: 1040 })
+/** Room kept around the other widgets, and the grid the search walks (px). */
+const SPOT_GAP = 10
+
+/**
+ * The top-left nearest to `near` (on a SPOT_GAP grid, inside `area`) where `size`, with SPOT_GAP
+ * all around, overlaps none of `taken`; null when there is none.
+ */
+export function freeSpot(
+  size: Size,
+  near: Point,
+  taken: readonly Rect[],
+  area: Rect
+): Point | null {
+  let best: Point | null = null
+  let bestD = Infinity
+  const g = SPOT_GAP
+  for (let y = area.y + g; y + size.height + g <= area.y + area.height; y += g) {
+    for (let x = area.x + g; x + size.width + g <= area.x + area.width; x += g) {
+      const clear = taken.every(
+        (r) =>
+          x + size.width + g <= r.x ||
+          r.x + r.width + g <= x ||
+          y + size.height + g <= r.y ||
+          r.y + r.height + g <= y
+      )
+      if (!clear) continue
+      const d = (x - near.x) ** 2 + (y - near.y) ** 2
+      if (d < bestD) {
+        bestD = d
+        best = { x, y }
+      }
+    }
+  }
+  return best
+}
+
+/** What a widget takes on screen at most: the alerts with their room to grow. */
+function footprint(id: WidgetId, r: Rect): Rect {
+  return id === 'alerts' ? { ...r, height: Math.max(r.height, ALERTS_DEFAULT_ROOM) } : r
+}
+
+/**
+ * A HIDDEN_WHEN_ADDED widget the existing file `out` was read from had no entry for: hidden,
+ * and moved to the free spot nearest its default when there is one (so its edit-mode ghost
+ * and the first time it is shown cover nothing). Its size stays the default.
+ */
+export function placeNewWidget(out: OverlaySettings, id: WidgetId): void {
+  const w = out.widgets[id]
+  w.visible = false
+  const taken = WIDGET_IDS.filter((o) => o !== id).map((o) => footprint(o, out.widgets[o].bounds))
+  const def = WIDGET_DEFS[id].defaultBounds
+  const spot = freeSpot(w.bounds, def, taken, DEFAULT_AREA)
+  if (spot !== null) w.bounds = { ...w.bounds, x: spot.x, y: spot.y }
+}
 
 /** v3 flag -> v4 column (someone who hid the last lap does not want the best one either). */
 const V3_COLUMN_FLAGS: readonly (readonly [flag: string, id: StandingsColumnId])[] = [

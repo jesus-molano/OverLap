@@ -153,6 +153,22 @@ export type WidgetId = keyof typeof WIDGET_DEFS
 
 export const WIDGET_IDS = Object.keys(WIDGET_DEFS) as WidgetId[]
 
+/**
+ * The widget painted above every other one in its overlay window (and hit-tested first): the
+ * radar shows the car alongside you, so no panel may ever cover it (an alerts banner over its
+ * centre hid a side-by-side pass, report B05). Edit mode flags the panels it covers.
+ */
+export const TOPMOST_WIDGET: WidgetId = 'radar'
+
+/**
+ * The order an overlay window paints its panels in, later ones on top: WIDGET_IDS with
+ * TOPMOST_WIDGET last. Main hit-tests them in the reverse order.
+ */
+export const PAINT_ORDER: readonly WidgetId[] = Object.freeze([
+  ...WIDGET_IDS.filter((id) => id !== TOPMOST_WIDGET),
+  TOPMOST_WIDGET
+])
+
 export function isWidgetId(value: unknown): value is WidgetId {
   return typeof value === 'string' && Object.prototype.hasOwnProperty.call(WIDGET_DEFS, value)
 }

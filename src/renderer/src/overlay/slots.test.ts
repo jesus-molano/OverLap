@@ -142,8 +142,9 @@ afterEach(() => {
 })
 
 describe('createSlotRegistry', () => {
-  it('lists the hosted widgets in WIDGET_IDS order, the same array while equal', () => {
-    expect(registry.widgets.value).toEqual(['radar', 'standings'])
+  it('lists the hosted widgets in PAINT_ORDER, the radar last, the same array while equal', () => {
+    // The radar is painted above every other panel (B05).
+    expect(registry.widgets.value).toEqual(['standings', 'radar'])
     const first = registry.widgets.value
     pushLayout(
       layoutOf(2, [panel('standings', STANDINGS_RECT), panel('radar', { ...RADAR_RECT, x: 5 })])
@@ -151,6 +152,8 @@ describe('createSlotRegistry', () => {
     expect(registry.widgets.value).toBe(first)
     pushLayout(layoutOf(3, [panel('inputs', RADAR_RECT), panel('relative', RADAR_RECT)]))
     expect(registry.widgets.value).toEqual(['relative', 'inputs'])
+    pushLayout(layoutOf(4, [panel('radar', RADAR_RECT), panel('alerts', RADAR_RECT)]))
+    expect(registry.widgets.value).toEqual(['alerts', 'radar'])
   })
 
   it('keeps the display object while its values are equal', () => {
@@ -162,10 +165,10 @@ describe('createSlotRegistry', () => {
     expect(registry.display.value?.scaleFactor).toBe(1.5)
   })
 
-  it('registers mounted slots in WIDGET_IDS order and removes them on unmount', () => {
-    const standings = mountSlot('standings')
+  it('registers mounted slots in PAINT_ORDER and removes them on unmount', () => {
     const radar = mountSlot('radar')
-    expect(registry.slots.value.map((s) => s.id)).toEqual(['radar', 'standings'])
+    const standings = mountSlot('standings')
+    expect(registry.slots.value.map((s) => s.id)).toEqual(['standings', 'radar'])
     expect(registry.slot('radar')).toBe(radar.view.handle)
     radar.stop()
     expect(registry.slots.value.map((s) => s.id)).toEqual(['standings'])
@@ -265,6 +268,33 @@ describe('useSlot shown and mounted', () => {
     fake.editMode.emit(false)
     expect(view.shown.value).toBe(false)
     expect(view.mounted.value).toBe(true)
+  })
+
+  it('draws a ghost (a disabled widget, edit mode only) without its widget, data or fits', async () => {
+    await setup({
+      editMode: true,
+      layout: layoutOf(1, [{ ...panel('standings', STANDINGS_RECT), ghost: true }])
+    })
+    const { view } = mountSlot('standings')
+    expect(view.handle.ghost.value).toBe(true)
+    expect(view.onScreen.value).toBe(true)
+    expect(view.shown.value).toBe(false)
+    expect(view.mounted.value).toBe(false)
+    // At its saved place, its height untouched by any report.
+    view.host.reportHeight(300)
+    frames.run()
+    await nextTick()
+    expect(view.handle.rect.value).toEqual(STANDINGS_RECT)
+    expect(sent).toEqual([])
+    // Shown again from its chip: an ordinary panel, its widget created.
+    pushLayout(layoutOf(2, [panel('standings', STANDINGS_RECT)]))
+    expect(view.handle.ghost.value).toBe(false)
+    expect(view.shown.value).toBe(true)
+    expect(view.mounted.value).toBe(true)
+    // Disabled again, edit mode ends: main stops hosting it; until then it is not on screen.
+    pushLayout(layoutOf(3, [{ ...panel('standings', STANDINGS_RECT), ghost: true }]))
+    fake.editMode.emit(false)
+    expect(view.onScreen.value).toBe(false)
   })
 })
 

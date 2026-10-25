@@ -9,7 +9,7 @@ import {
   mergeSection,
   mergeWidgetFields
 } from './fields'
-import { migrateSection } from './migrate'
+import { HIDDEN_WHEN_ADDED, migrateSection, placeNewWidget } from './migrate'
 
 /** Upper bound for a widget dimension; anything larger is a corrupt file. */
 const MAX_WIDGET_DIMENSION = 10_000
@@ -20,7 +20,9 @@ const MAX_WIDGET_DIMENSION = 10_000
  * defaults, invalid values are replaced and numbers are clamped to their
  * ranges; a shortcut combination repeated on disk stays with the first action
  * only. The `version` field is not trusted: v1/v2/v3 files are recognised by
- * their fields (see migrate.ts); the result is always the current version.
+ * their fields (see migrate.ts); the result is always the current version. A
+ * file with widgets saved but not a HIDDEN_WHEN_ADDED one gets that one hidden,
+ * in a free spot (`placeNewWidget`).
  */
 export function normalizeSettings(raw: unknown): OverlaySettings {
   const out = createDefaultSettings()
@@ -33,6 +35,10 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     const current = out.widgets[id]
     mergeWidgetFields(id, current, saved)
     current.bounds = normalizeBounds(saved.bounds, current.bounds, WIDGET_DEFS[id].minSize)
+  }
+  // Placed against every other widget's final bounds, so after the loop above.
+  if (WIDGET_IDS.some((id) => isRecord(widgets[id]))) {
+    for (const id of HIDDEN_WHEN_ADDED) if (!isRecord(widgets[id])) placeNewWidget(out, id)
   }
   for (const section of OPTION_SECTIONS) {
     const r = migrateSection(section, raw[section])

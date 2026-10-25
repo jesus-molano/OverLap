@@ -123,6 +123,22 @@ describe('createPanelEdit: drags', () => {
     expect(el.captured.size).toBe(0)
   })
 
+  it('never drags or wheels a ghost (a disabled widget), and cancels when one turns into it', async () => {
+    const edit = s.edit('radar')
+    const el = new FakeDragElement()
+    s.radar.ghost.value = true
+    expect(edit.editable.value).toBe(false)
+    expect(edit.pointerDown(pointerDown(450, 350), el, 'move')).toBe(false)
+    edit.wheel(wheelEvent(-120, 1000))
+    expect(s.radar.dragRect.value).toBeNull()
+    s.radar.ghost.value = false
+    expect(edit.pointerDown(pointerDown(450, 350), el, 'move')).toBe(true)
+    s.radar.ghost.value = true
+    await nextTick()
+    expect(edit.dragging.value).toBe(false)
+    expect(commits()).toEqual([])
+  })
+
   it('lets an auto-height panel be dragged by its sides only', () => {
     const edit = s.edit('standings')
     const el = new FakeDragElement()

@@ -63,6 +63,18 @@ export const ICONS = {
       d: 'M4.6 7h6.8A1.6 1.6 0 0 1 13 8.6v4.3a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 12.9V8.6A1.6 1.6 0 0 1 4.6 7z'
     }
   ],
+  /** Unlocked widget (the edit chip's padlock, open): the shackle swung up off its right post. */
+  unlock: [
+    { d: 'M5.25 7V4.75a2.75 2.75 0 0 1 5.35-.9', kind: 'stroke' },
+    {
+      d: 'M4.6 7h6.8A1.6 1.6 0 0 1 13 8.6v4.3a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 12.9V8.6A1.6 1.6 0 0 1 4.6 7z'
+    }
+  ],
+  /** Shown widget (the edit chip's eye). */
+  eye: [
+    { d: 'M1.5 8s2.4-4.25 6.5-4.25S14.5 8 14.5 8s-2.4 4.25-6.5 4.25S1.5 8 1.5 8z', kind: 'stroke' },
+    { d: 'M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4z' }
+  ],
   /** Warning / off-track: a triangle with an exclamation mark cut out. */
   warning: [
     {
