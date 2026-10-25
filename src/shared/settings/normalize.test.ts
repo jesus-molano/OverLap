@@ -3,6 +3,7 @@ import type {
   AlertsOptions,
   AppearanceSettings,
   BattleOptions,
+  ConditionsOptions,
   DeltaOptions,
   InputsOptions,
   OverlaySettings,
@@ -170,6 +171,19 @@ const DEFAULT_DELTA: DeltaOptions = {
   showSectors: true,
   showTrend: true
 }
+const DEFAULT_CONDITIONS: ConditionsOptions = {
+  showHeader: false,
+  showTrackTemp: true,
+  showTrend: true,
+  showAirTemp: true,
+  showWind: true,
+  showWindDirection: true,
+  showWetness: true,
+  showPrecipitation: true,
+  showDeclaredWet: true,
+  showSkies: true,
+  showRubber: true
+}
 
 function defaultWidget(id: WidgetId): WidgetSettings {
   const def = WIDGET_DEFS[id]
@@ -207,15 +221,17 @@ describe('DEFAULT_SETTINGS', () => {
       traffic: DEFAULT_TRAFFIC,
       alerts: DEFAULT_ALERTS,
       delta: DEFAULT_DELTA,
+      conditions: DEFAULT_CONDITIONS,
       shortcuts: DEFAULT_SHORTCUTS
     })
   })
 
-  it('makes standings, battle, traffic and alerts auto-height and battle race-only', () => {
+  it('makes standings, battle, traffic, alerts and conditions auto-height and battle race-only', () => {
     expect(DEFAULT_SETTINGS.widgets.standings.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.battle.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.traffic.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.alerts.autoHeight).toBe(true)
+    expect(DEFAULT_SETTINGS.widgets.conditions.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.relative.autoHeight).toBe(false)
     expect(DEFAULT_SETTINGS.widgets.battle.showIn).toEqual({
       practice: false,

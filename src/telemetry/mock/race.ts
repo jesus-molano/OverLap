@@ -70,6 +70,7 @@ import {
 } from './traffic'
 import { mockTyreCompound } from './tyres'
 import { warningEvents } from './warnings'
+import { writeWeather } from './weather'
 
 export type { MockCast } from './field'
 export type { MockRacePhase } from './finish'
@@ -676,6 +677,7 @@ export class MockRace {
     v.Speed[0] = inp.speed
     v.BrakeABSactive[0] = inp.abs
     this.playerAlerts.apply(v, this.elapsedS, this.playerIdx)
+    writeWeather(v, this.elapsedS, this.sessionIndex, frac(player.dist))
   }
 }
 
