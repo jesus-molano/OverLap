@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- OverLap app icon, ICO 24 px entry: the tray-20 mark at 1:1 (2-px strokes, true 45-degree cuts) on the flat tile. Whole-unit offset keeps every straight edge on the pixel grid. -->
+  <rect width="24" height="24" rx="5.25" fill="#14171c"/>
+  <g transform="translate(2 2)">
+    <path fill="#ffffff" d="M3 10V8A5 5 0 0 1 8 3H10A5 5 0 0 1 15 8V12A5 5 0 0 1 10 17H8L10 15A3 3 0 0 0 13 12V8A3 3 0 0 0 10 5H8A3 3 0 0 0 5 8Z"/>
+    <path fill="#ffc400" d="M3 12L5 10V15H8L6 17H3Z"/>
+    <path fill="#ffc400" d="M16 15H20L18 17H14Z"/>
+  </g>
+</svg>

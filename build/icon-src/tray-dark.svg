@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- OverLap "OL" monogram, tray 16 grid (100 %). 2-px strokes, 1-px stair cuts; the shard is the L's foot re-emerging from behind the O. -->
+  <g transform="translate(1 0)">
+    <path fill="#ffffff" d="M1 7V6A4 4 0 0 1 5 2H7A4 4 0 0 1 11 6V10A4 4 0 0 1 7 14V13H8V11.732A2 2 0 0 0 9 10V6A2 2 0 0 0 7 4H5A2 2 0 0 0 3 6H2V7Z"/>
+    <path fill="#ffc400" d="M1 8V14H6V13H7V12H3V7H2V8Z"/>
+    <path fill="#ffc400" d="M12 12H15V13H14V14H11V13H12Z"/>
+  </g>
+</svg>

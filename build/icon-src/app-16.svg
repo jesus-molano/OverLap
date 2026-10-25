@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- OverLap app icon, ICO 16 px entry only: 2-px strokes with 1-px stair cuts so every edge lands on a whole pixel. -->
+  <rect width="16" height="16" rx="3.5" fill="#14171c"/>
+  <g transform="translate(1 0)">
+    <path fill="#ffffff" d="M2 8V6A3 3 0 0 1 5 3H7A3 3 0 0 1 10 6V10A3 3 0 0 1 7 13V12H8V6A1 1 0 0 0 7 5H5A1 1 0 0 0 4 6V7H3V8Z"/>
+    <path fill="#ffc400" d="M2 9V13H6V12H7V11H4V8H3V9Z"/>
+    <path fill="#ffc400" d="M11 11H14V12H13V13H10V12H11Z"/>
+  </g>
+</svg>

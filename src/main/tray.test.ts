@@ -1,7 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
-import { createTray, destroyTray, updateTray, widgetLabel, type TrayState } from './tray'
+import {
+  createTray,
+  destroyTray,
+  loadIcon,
+  taskbarTheme,
+  updateTray,
+  widgetLabel,
+  type TrayState
+} from './tray'
 
 interface MenuItem {
   label?: string
@@ -11,14 +19,34 @@ interface MenuItem {
   submenu?: MenuItem[]
 }
 
-const fake = vi.hoisted(() => ({ menus: [] as MenuItem[][], tooltips: [] as string[] }))
+/** What the fake nativeImage was built from: one entry per representation. */
+interface FakeImage {
+  reps: { scaleFactor: number; file: string }[]
+}
+
+const fake = vi.hoisted(() => ({
+  menus: [] as MenuItem[][],
+  tooltips: [] as string[],
+  /** Images the tray was given (constructor, then setImage). */
+  images: [] as unknown[],
+  /** Files that exist; createFromPath of any other gives an empty image. */
+  missing: new Set<string>(),
+  darkTaskbar: true,
+  themeListeners: new Set<() => void>()
+}))
 
 vi.mock('electron', () => ({
   Menu: { buildFromTemplate: (template: MenuItem[]) => template },
   Tray: class {
+    constructor(image: unknown) {
+      fake.images.push(image)
+    }
     readonly on = vi.fn()
     setToolTip(text: string): void {
       fake.tooltips.push(text)
+    }
+    setImage(image: unknown): void {
+      fake.images.push(image)
     }
     readonly destroy = vi.fn()
     setContextMenu(menu: MenuItem[]): void {
@@ -28,9 +56,36 @@ vi.mock('electron', () => ({
       return false
     }
   },
-  nativeImage: { createFromPath: () => ({ isEmpty: () => true }) }
+  nativeImage: {
+    createEmpty: () => {
+      const reps: { scaleFactor: number; file: string }[] = []
+      return {
+        reps,
+        addRepresentation: (o: { scaleFactor: number; buffer: Buffer }) =>
+          reps.push({ scaleFactor: o.scaleFactor, file: o.buffer.toString() })
+      }
+    },
+    createFromPath: (file: string) => ({
+      isEmpty: () => fake.missing.has(file),
+      toPNG: () => Buffer.from(file)
+    })
+  },
+  nativeTheme: {
+    get shouldUseDarkColorsForSystemIntegratedUI() {
+      return fake.darkTaskbar
+    },
+    on: (_event: string, cb: () => void) => fake.themeListeners.add(cb),
+    removeListener: (_event: string, cb: () => void) => fake.themeListeners.delete(cb)
+  }
 }))
-vi.mock('../../resources/icon.png?asset', () => ({ default: 'icon.png' }))
+vi.mock('../../resources/tray/tray-dark-16.png?asset', () => ({ default: 'dark-16.png' }))
+vi.mock('../../resources/tray/tray-dark-20.png?asset', () => ({ default: 'dark-20.png' }))
+vi.mock('../../resources/tray/tray-dark-24.png?asset', () => ({ default: 'dark-24.png' }))
+vi.mock('../../resources/tray/tray-dark-32.png?asset', () => ({ default: 'dark-32.png' }))
+vi.mock('../../resources/tray/tray-light-16.png?asset', () => ({ default: 'light-16.png' }))
+vi.mock('../../resources/tray/tray-light-20.png?asset', () => ({ default: 'light-20.png' }))
+vi.mock('../../resources/tray/tray-light-24.png?asset', () => ({ default: 'light-24.png' }))
+vi.mock('../../resources/tray/tray-light-32.png?asset', () => ({ default: 'light-32.png' }))
 
 const ACTIONS = {
   openSettings: () => {},
@@ -78,6 +133,55 @@ afterEach(() => {
   destroyTray()
   fake.menus = []
   fake.tooltips = []
+  fake.images = []
+  fake.missing.clear()
+  fake.darkTaskbar = true
+})
+
+describe('tray icon', () => {
+  it('has the art of the taskbar theme for every display scale', () => {
+    expect((loadIcon('dark') as unknown as FakeImage).reps).toEqual([
+      { scaleFactor: 1, file: 'dark-16.png' },
+      { scaleFactor: 1.25, file: 'dark-20.png' },
+      { scaleFactor: 1.5, file: 'dark-24.png' },
+      { scaleFactor: 2, file: 'dark-32.png' }
+    ])
+    expect((loadIcon('light') as unknown as FakeImage).reps.map((r) => r.file)).toEqual([
+      'light-16.png',
+      'light-20.png',
+      'light-24.png',
+      'light-32.png'
+    ])
+  })
+
+  it('skips a missing size with a warning instead of failing', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    fake.missing.add('dark-20.png')
+    const reps = (loadIcon('dark') as unknown as FakeImage).reps
+    expect(reps.map((r) => r.scaleFactor)).toEqual([1, 1.5, 2])
+    expect(warn).toHaveBeenCalledOnce()
+  })
+
+  it('follows the taskbar theme, and stops listening once destroyed', () => {
+    fake.darkTaskbar = false
+    expect(taskbarTheme()).toBe('light')
+    createTray(state(createDefaultSettings()), ACTIONS)
+    const first = fake.images[0] as FakeImage
+    expect(first.reps[0]?.file).toBe('light-16.png')
+    expect(fake.themeListeners.size).toBe(1)
+
+    // An 'updated' that does not change the taskbar (the apps' theme, say) keeps the icon.
+    for (const cb of fake.themeListeners) cb()
+    expect(fake.images).toHaveLength(1)
+
+    fake.darkTaskbar = true
+    for (const cb of fake.themeListeners) cb()
+    expect(fake.images).toHaveLength(2)
+    expect((fake.images[1] as FakeImage).reps[0]?.file).toBe('dark-16.png')
+
+    destroyTray()
+    expect(fake.themeListeners.size).toBe(0)
+  })
 })
 
 describe('widgetLabel', () => {
@@ -97,11 +201,6 @@ describe('widgetLabel', () => {
 })
 
 describe('tray menu', () => {
-  // The fake icon is empty: the tray warns about it.
-  beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-  })
-
   it('keeps the checkbox as what the user enabled and notes a rule only on enabled widgets', () => {
     const settings = createDefaultSettings()
     settings.widgets.inputs.visible = false

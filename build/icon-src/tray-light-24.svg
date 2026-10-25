@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- OverLap "OL" monogram, tray 24 grid (150 % and up), light taskbar. Deeper amber #e0a400 for contrast on light grey. -->
+  <g transform="translate(1 0)">
+    <path fill="#16191e" d="M2 12V9A6 6 0 0 1 8 3H11A6 6 0 0 1 17 9V15A6 6 0 0 1 11 21H8L11 18A3 3 0 0 0 14 15V9A3 3 0 0 0 11 6H8A3 3 0 0 0 5 9Z"/>
+    <path fill="#e0a400" d="M2 14L5 11V18H9L6 21H2Z"/>
+    <path fill="#e0a400" d="M18.5 18H23L20 21H15.5Z"/>
+  </g>
+</svg>
