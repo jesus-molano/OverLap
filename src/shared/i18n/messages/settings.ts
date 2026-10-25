@@ -480,24 +480,40 @@ export const settingsEs = {
         hint: 'Tu mejor vuelta de siempre con este coche en este trazado'
       },
       session: { label: 'Mejor vuelta de la sesión', hint: 'Tu mejor vuelta de esta sesión' },
+      optimal: {
+        label: 'Vuelta óptima',
+        hint: 'Tus mejores sectores de esta sesión, unidos en una vuelta'
+      },
       class: {
         label: 'Mejor de tu clase',
         hint: 'La vuelta más rápida de tu clase en esta sesión, sea de quien sea'
+      },
+      classOptimal: {
+        label: 'Óptima de tu clase',
+        hint: 'Los mejores sectores de tu clase en esta sesión, sean de quien sean'
       }
     },
     /** What each reference is, under the choice. */
     referenceHelp: {
       pb: 'Tu mejor vuelta limpia de siempre con este coche en este trazado. Se guarda en tu equipo y no se pierde al cambiar de sesión',
       session: 'Tu mejor vuelta limpia de esta sesión, como el delta de iRacing',
+      optimal:
+        'Tus mejores tiempos de cada sector del circuito en tus vueltas limpias de esta sesión, unidos en una sola vuelta: lo que harías juntando lo mejor de cada una',
       class:
-        'La vuelta limpia más rápida de tu clase en esta sesión, sea de quien sea (tú incluido): el ritmo a batir'
+        'La vuelta limpia más rápida de tu clase en esta sesión, sea de quien sea (tú incluido): el ritmo a batir',
+      classOptimal:
+        'Los mejores tiempos de cada sector en las vueltas limpias de tu clase en esta sesión, sean de quien sean (tú incluido), unidos en una sola vuelta: el límite teórico'
     },
     fallback: 'Usar la siguiente si no existe',
-    /** Where the fallback goes from each reference (pb → session → class). */
+    /** Where the fallback goes from each reference (DELTA_FALLBACK in delta.ts). */
     fallbackHelp: {
       pb: 'Sin récord guardado aún, compara con tu mejor vuelta de la sesión y, si tampoco hay, con la mejor de tu clase',
       session: 'Mientras no tengas vuelta en esta sesión, compara con la mejor de tu clase',
-      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra'
+      optimal:
+        'Mientras no tengas vuelta en esta sesión, compara con tu récord y, si tampoco hay, con la óptima de tu clase',
+      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra',
+      classOptimal:
+        'Mientras nadie de tu clase haya marcado vuelta en esta sesión, compara con tu récord'
     },
     fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
     range: 'Escala de la barra',
@@ -995,23 +1011,39 @@ export const settingsEn: Dict<typeof settingsEs> = {
         hint: 'Your all-time best lap with this car on this layout'
       },
       session: { label: 'Session best', hint: 'Your best lap of this session' },
+      optimal: {
+        label: 'Optimal lap',
+        hint: 'Your best sectors of this session, joined into one lap'
+      },
       class: {
         label: 'Class best',
         hint: 'The fastest lap in your class this session, whoever set it'
+      },
+      classOptimal: {
+        label: 'Class optimal',
+        hint: 'The best sectors in your class this session, whoever set them'
       }
     },
     referenceHelp: {
       pb: 'Your all-time best clean lap with this car on this layout. Stored on your computer and kept from one session to the next',
       session: 'Your best clean lap of this session, like iRacing’s own delta bar',
+      optimal:
+        'Your best times in each sector of the track over your clean laps this session, joined into one lap: what you would do putting the best of each together',
       class:
-        'The fastest clean lap in your class this session, whoever set it (you included): the pace to beat'
+        'The fastest clean lap in your class this session, whoever set it (you included): the pace to beat',
+      classOptimal:
+        'The best times in each sector over the clean laps of your class this session, whoever set them (you included), joined into one lap: the theoretical limit'
     },
     fallback: 'Fall back to the next one',
     fallbackHelp: {
       pb: 'With no personal best stored yet, compares with your session best and, failing that, with your class best',
       session: 'Until you set a lap this session, compares with your class best',
+      optimal:
+        'Until you set a lap this session, compares with your personal best and, failing that, with your class optimal',
       class:
-        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to'
+        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to',
+      classOptimal:
+        'Until someone in your class sets a lap this session, compares with your personal best'
     },
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
     range: 'Bar scale',

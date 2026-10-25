@@ -3,7 +3,22 @@
  * disk in the telemetry process (src/telemetry/store/personalBests.ts); this
  * interface is all the shared code sees, so providers stay pure.
  */
+import { RACE_TIMING_LINES } from '../race/raceView'
 import type { SessionMeta } from '../types'
+
+const LINES = RACE_TIMING_LINES
+
+/** A lap usable as a reference: a positive time and RACE_TIMING_LINES + 1 non-decreasing times. */
+export function usableLap(lapTime: number, profile: readonly number[]): boolean {
+  if (!(lapTime > 0) || !Number.isFinite(lapTime) || profile.length !== LINES + 1) return false
+  let prev = 0
+  for (let i = 0; i <= LINES; i++) {
+    const v = profile[i]
+    if (v === undefined || !(v >= prev) || !Number.isFinite(v)) return false
+    prev = v
+  }
+  return prev > 0
+}
 
 export interface LapReference {
   lapTime: number

@@ -8,10 +8,13 @@ import type { DeltaData, DeltaReference } from '@shared/types'
 
 const DELTA = -0.24
 
+// Plausible times: an optimal lap beats the best lap it is made of.
 const REFS: Readonly<Record<DeltaReference, { driver: string; lapTime: number }>> = {
   pb: { driver: '', lapTime: 136.089 },
   session: { driver: '', lapTime: 136.412 },
-  class: { driver: '#44 J. Lindqvist', lapTime: 135.671 }
+  optimal: { driver: '', lapTime: 135.958 },
+  class: { driver: '#44 J. Lindqvist', lapTime: 135.671 },
+  classOptimal: { driver: '', lapTime: 135.304 }
 }
 
 function sample(reference: DeltaReference): DeltaData {
@@ -33,7 +36,9 @@ function sample(reference: DeltaReference): DeltaData {
 const SAMPLES: Readonly<Record<DeltaReference, DeltaData>> = Object.freeze({
   pb: sample('pb'),
   session: sample('session'),
-  class: sample('class')
+  optimal: sample('optimal'),
+  class: sample('class'),
+  classOptimal: sample('classOptimal')
 })
 
 /** The sample for a reference (the same object every time: nothing re-renders in edit mode). */
