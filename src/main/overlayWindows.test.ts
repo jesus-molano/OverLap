@@ -1325,3 +1325,156 @@ describe('OverlayWindows dispose', () => {
     expect(fakeApp.totalListeners()).toBe(0)
   })
 })
+
+describe('OverlayWindows hidden by the user', () => {
+  it('hides every window click-through, and shows them again inactive only', () => {
+    useTwoDisplays()
+    start()
+    const all = live()
+    for (const w of all) w.showInactive.mockClear()
+    windows.setUserHidden(true)
+    expect(windows.userHidden).toBe(true)
+    for (const w of all) {
+      expect(w.isVisible()).toBe(false)
+      expect(w.hide).toHaveBeenCalled()
+      expect(w.mouse).toEqual(IGNORE)
+    }
+    // Not a recovery: the z-order guard leaves hidden windows alone.
+    vi.advanceTimersByTime(Z_ORDER_INTERVAL_MS)
+    expect(all.every((w) => !w.isVisible())).toBe(true)
+
+    windows.setUserHidden(false)
+    expect(windows.userHidden).toBe(false)
+    for (const w of all) {
+      expect(w.isVisible()).toBe(true)
+      expect(w.showInactive).toHaveBeenCalledOnce()
+      expect(w.mouse).toEqual(IGNORE)
+    }
+  })
+
+  it('sends no widget data while hidden and hands the latest over when shown', () => {
+    useTwoDisplays()
+    start()
+    windows.broadcastStatus(LIVE)
+    windows.setUserHidden(true)
+    const older = msg('standings')
+    const latest = msg('standings')
+    const radar = msg('radar')
+    windows.sendData(older)
+    windows.sendData(latest)
+    windows.sendData(radar)
+    expect(display(1).webContents.sentOn(IPC.data)).toEqual([])
+    expect(display(2).webContents.sentOn(IPC.data)).toEqual([])
+    // Everything else still arrives, so the windows are current when shown.
+    windows.broadcastSettings(settings)
+    windows.setAutoHidden('battle', HIDDEN)
+    expect(display(1).webContents.sentOn(IPC.settings)).toEqual([settings])
+    expect(display(1).webContents.sentOn(IPC.autoHidden)).toHaveLength(1)
+
+    windows.setUserHidden(false)
+    expect(display(1).webContents.sentOn(IPC.data)).toEqual([latest])
+    expect(display(2).webContents.sentOn(IPC.data)).toEqual([radar])
+  })
+
+  it('no recovery shows a hidden window: reload, hang, resume, display change, GPU loss', () => {
+    start()
+    const w = only()
+    windows.setUserHidden(true)
+
+    w.webContents.crash()
+    vi.advanceTimersByTime(RELOAD_DELAY_MS)
+    w.webContents.finishLoad()
+    expect(w.isVisible()).toBe(false)
+
+    w.webContents.executeJavaScript.mockImplementationOnce(() => new Promise(() => {}))
+    w.emit('unresponsive')
+    w.emit('responsive')
+    expect(w.isVisible()).toBe(false)
+
+    fakePowerMonitor.emit('suspend')
+    fakePowerMonitor.emit('resume')
+    vi.advanceTimersByTime(RESUME_DEBOUNCE_MS)
+    expect(w.isVisible()).toBe(false)
+
+    fakeScreen.emit('display-metrics-changed', {}, PRIMARY, ['scaleFactor'])
+    vi.advanceTimersByTime(DISPLAY_CHANGE_DEBOUNCE_MS)
+    expect(w.isVisible()).toBe(false)
+
+    fakeApp.emit('child-process-gone', {}, { type: 'GPU', reason: 'crashed' })
+    vi.advanceTimersByTime(GPU_RECREATE_DELAY_MS)
+    readyAll()
+    expect(w.destroyed).toBe(true)
+    expect(only().isVisible()).toBe(false)
+    expect(only().mouse).toEqual(IGNORE)
+
+    windows.setUserHidden(false)
+    expect(only().isVisible()).toBe(true)
+  })
+
+  it('a window that is not healthy when shown again waits for its recovery', () => {
+    start()
+    const w = only()
+    windows.setUserHidden(true)
+    w.webContents.crash()
+    windows.setUserHidden(false)
+    expect(w.isVisible()).toBe(false)
+    vi.advanceTimersByTime(RELOAD_DELAY_MS)
+    w.webContents.finishLoad()
+    expect(w.isVisible()).toBe(true)
+  })
+
+  it('widgets enabled while hidden stay hidden, in a new window too', () => {
+    useTwoDisplays()
+    settings.widgets.radar.visible = false
+    start()
+    expect(live()).toHaveLength(1)
+    windows.setUserHidden(true)
+    settings.widgets.radar.visible = true
+    windows.setVisible('radar', true)
+    readyAll()
+    expect(live()).toHaveLength(2)
+    expect(live().every((w) => !w.isVisible())).toBe(true)
+    windows.setUserHidden(false)
+    expect(live().every((w) => w.isVisible())).toBe(true)
+  })
+
+  it('hiding leaves edit mode first: the mouse goes back and pending saves are written', () => {
+    start()
+    const w = only()
+    windows.setEditMode(true)
+    const rect = { x: 50, y: 250, width: 483, height: 265 }
+    commit(w, { kind: 'wheel', widget: 'relative', rect, revision: layoutOf(w).revision })
+    moveCursor(100, 300)
+    expect(w.mouse).toEqual(CAPTURE)
+
+    windows.setUserHidden(true)
+    expect(windows.editMode).toBe(false)
+    expect(w.webContents.sentOn(IPC.editMode).at(-1)).toBe(false)
+    expect(committed).toEqual([['relative', rect]])
+    expect(w.mouse).toEqual(IGNORE)
+    expect(w.isVisible()).toBe(false)
+    // The poll stopped with edit mode.
+    moveCursor(100, 300)
+    expect(w.mouse).toEqual(IGNORE)
+  })
+
+  it('entering edit mode shows the overlay first', () => {
+    start()
+    const w = only()
+    windows.setUserHidden(true)
+    windows.setEditMode(true)
+    expect(windows.userHidden).toBe(false)
+    expect(windows.editMode).toBe(true)
+    expect(w.isVisible()).toBe(true)
+    moveCursor(100, 300)
+    expect(w.mouse).toEqual(CAPTURE)
+  })
+
+  it('hidden before the windows exist: they start hidden', () => {
+    windows.setUserHidden(true)
+    start()
+    expect(only().isVisible()).toBe(false)
+    windows.setUserHidden(false)
+    expect(only().isVisible()).toBe(true)
+  })
+})

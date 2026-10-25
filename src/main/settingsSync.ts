@@ -29,7 +29,10 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
   const cmd = raw as Record<string, unknown>
   switch (cmd.type) {
     case 'set-edit-mode':
+    case 'capture-shortcuts':
       return typeof cmd.on === 'boolean'
+    case 'set-overlay-hidden':
+      return typeof cmd.hidden === 'boolean'
     case 'reset-widget-bounds':
     case 'reset-widget-options':
       return isWidgetId(cmd.widgetId)

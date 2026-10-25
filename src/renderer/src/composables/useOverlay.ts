@@ -1,5 +1,6 @@
 import { shallowRef, type ShallowRef } from 'vue'
 import type { AutoHiddenMap, AutoHiddenState, OverlayLayout, RendererView } from '@shared/ipc'
+import type { ShortcutStatusMap } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, WidgetPayloads } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 
@@ -23,6 +24,10 @@ export interface OverlayState {
   /** Whole settings object; replaced on every change from main (bounds included). */
   readonly settings: ShallowRef<OverlaySettings | null>
   readonly view: ShallowRef<RendererView | null>
+  /** Settings window: the user hid every overlay window (tray, shortcut). */
+  readonly overlayHidden: ShallowRef<boolean>
+  /** Settings window: how each configured shortcut is doing (null until main says). */
+  readonly shortcutStatus: ShallowRef<ShortcutStatusMap | null>
   /**
    * Overlay windows: what this window hosts and where (the highest revision seen). Null in the
    * settings window, and until the first layout arrives.
@@ -63,6 +68,8 @@ export const overlayState: OverlayState = {
   editMode: shallowRef(false),
   settings: shallowRef<OverlaySettings | null>(null),
   view: shallowRef<RendererView | null>(null),
+  overlayHidden: shallowRef(false),
+  shortcutStatus: shallowRef<ShortcutStatusMap | null>(null),
   layout: shallowRef<OverlayLayout | null>(null),
   autoHiddenOf: shownEverywhere(),
   latest: emptyPayloads()
@@ -100,9 +107,10 @@ function adoptLayout(s: OverlayState, next: OverlayLayout): void {
 let started = false
 
 /**
- * Connection status, edit mode, settings, layout, auto-hide states, payloads and which page this
- * window shows, shared by the whole window. The listeners are registered once per window and
- * live as long as it does. Safe to call outside setup (no lifecycle hooks).
+ * Connection status, edit mode, settings, layout, auto-hide states, payloads, the hidden overlay,
+ * the shortcuts' status and which page this window shows, shared by the whole window. The
+ * listeners are registered once per window and live as long as it does. Safe to call outside
+ * setup (no lifecycle hooks).
  */
 export function useOverlayState(): OverlayState {
   if (!started) {
@@ -110,6 +118,7 @@ export function useOverlayState(): OverlayState {
     const s = overlayState
     // Events that arrive before the initial state resolves are newer: keep them.
     let editModeSeen = false
+    let overlayHiddenSeen = false
     const autoHiddenSeen = new Set<WidgetId>()
     // Status and data share one ordered channel (telemetry -> main -> renderer), so a payload
     // never arrives before the status that makes it live again.
@@ -133,11 +142,18 @@ export function useOverlayState(): OverlayState {
       setAutoHidden(s, a.widget, a)
     })
     window.overlay.onLayout((layout) => adoptLayout(s, layout))
+    window.overlay.onOverlayHidden((hidden) => {
+      overlayHiddenSeen = true
+      s.overlayHidden.value = hidden
+    })
+    window.overlay.onShortcutStatus((status) => (s.shortcutStatus.value = status))
     void window.overlay.getInitialState().then((init) => {
       s.status.value ??= init.status
       if (!editModeSeen) s.editMode.value = init.editMode
       s.settings.value ??= init.settings
       s.view.value = init.view
+      if (!overlayHiddenSeen) s.overlayHidden.value = init.overlayHidden
+      s.shortcutStatus.value ??= init.shortcutStatus
       if (init.layout !== null) adoptLayout(s, init.layout)
       const map: AutoHiddenMap = init.autoHidden
       for (const id of WIDGET_IDS) {

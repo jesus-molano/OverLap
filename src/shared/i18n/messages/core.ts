@@ -1,6 +1,6 @@
 /**
  * Texts shared by every process: widget names, connection status, the
- * visibility rules' captions, the tray menu and window titles.
+ * visibility rules' captions, the tray menu, window titles and key names.
  */
 import type { Dict } from '../dict'
 
@@ -58,11 +58,14 @@ export const coreEs = {
     radarRange: 'Radar: alcance',
     rangeMeters: (m: number) => `${m} m`,
     editMode: 'Modo edición',
+    hideOverlay: 'Ocultar overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
     quit: 'Salir',
     /** A widget a rule hides right now: 'Batalla (oculto en práctica)'. */
     widgetHidden: (title: string, hiddenNote: string) => `${title} (${hiddenNote})`,
-    tooltip: (status: string) => `OverLap · ${status}`
+    tooltip: (status: string) => `OverLap · ${status}`,
+    /** While the user has the overlay hidden. */
+    tooltipHidden: (status: string) => `OverLap · Overlay oculto · ${status}`
   },
   windowTitles: {
     /** The settings window's title bar. */
@@ -77,10 +80,28 @@ export const coreEs = {
     locked: 'Bloqueado',
     /** Height of an auto-height widget in the size readout: '460 × auto'. */
     autoHeight: 'auto',
-    hintLong: 'Rueda: tamaño · Alt: sin imán · Ctrl+Shift+E salir',
-    hintShort: 'Rueda: tamaño · Ctrl+Shift+E salir',
+    /** With the edit-mode shortcut (`keys`: acceleratorText); the NoKey ones when it has none. */
+    hintLong: (keys: string) => `Rueda: tamaño · Alt: sin imán · ${keys} salir`,
+    hintLongNoKey: 'Rueda: tamaño · Alt: sin imán',
+    hintShort: (keys: string) => `Rueda: tamaño · ${keys} salir`,
+    hintShortNoKey: 'Rueda: tamaño',
     /** A dragged widget whose pointer left this display: releasing moves it there. */
     dropOnOtherDisplay: 'Suelta para moverlo a la otra pantalla'
+  },
+  /**
+   * Keys as a Spanish keyboard prints them (keycaps, acceleratorText). Ctrl, Alt, Shift, the
+   * letters, digits, F-keys, Esc and the arrows read the same in every language.
+   */
+  keys: {
+    space: 'Espacio',
+    insert: 'Insert',
+    delete: 'Supr',
+    home: 'Inicio',
+    end: 'Fin',
+    pageUp: 'Re Pág',
+    pageDown: 'Av Pág',
+    /** A key of the numeric keypad: 'Num 5', 'Num +'. */
+    numpad: (key: string) => `Num ${key}`
   },
   /** A window that could not start (renderer main.ts). */
   boot: {
@@ -135,10 +156,12 @@ export const coreEn: Dict<typeof coreEs> = {
     radarRange: 'Radar range',
     rangeMeters: (m) => `${m} m`,
     editMode: 'Edit mode',
+    hideOverlay: 'Hide overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',
     widgetHidden: (title, hiddenNote) => `${title} (${hiddenNote})`,
-    tooltip: (status) => `OverLap · ${status}`
+    tooltip: (status) => `OverLap · ${status}`,
+    tooltipHidden: (status) => `OverLap · Overlay hidden · ${status}`
   },
   windowTitles: {
     settings: 'OverLap — Settings',
@@ -148,9 +171,21 @@ export const coreEn: Dict<typeof coreEs> = {
   editFrame: {
     locked: 'Locked',
     autoHeight: 'auto',
-    hintLong: 'Scroll: size · Alt: no snap · Ctrl+Shift+E exit',
-    hintShort: 'Scroll: size · Ctrl+Shift+E exit',
+    hintLong: (keys) => `Scroll: size · Alt: no snap · ${keys} exit`,
+    hintLongNoKey: 'Scroll: size · Alt: no snap',
+    hintShort: (keys) => `Scroll: size · ${keys} exit`,
+    hintShortNoKey: 'Scroll: size',
     dropOnOtherDisplay: 'Release to move it to the other display'
+  },
+  keys: {
+    space: 'Space',
+    insert: 'Ins',
+    delete: 'Delete',
+    home: 'Home',
+    end: 'End',
+    pageUp: 'PgUp',
+    pageDown: 'PgDn',
+    numpad: (key) => `Num ${key}`
   },
   boot: {
     settingsFailed: 'Could not load the settings window.',

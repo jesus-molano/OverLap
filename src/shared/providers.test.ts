@@ -19,6 +19,7 @@ import type {
   BattleData,
   DeltaData,
   DeltaOptions,
+  DeltaReference,
   SessionMeta,
   StandingsData,
   TelemetryConfig,
@@ -462,6 +463,101 @@ describe('delta on the real RaceModel', () => {
     const next = practice({ reference: 'pb', fallback: false }, bests, undefined, 20)
     expect(next[0]?.d).toMatchObject({ visible: true, reference: 'pb', delta: null })
     expect(next[0]?.d.refLapTime).toBeCloseTo(30, 2)
+  })
+})
+
+describe('optimal laps on the real RaceModel', () => {
+  // Practice on a two-sector track (halves). Your laps from t = 0 (the first one is not timed):
+  // 15 + 15, 14 + 16, 16 + 14.5, then 15 + 15: your optimal is 14 + 14.5 = 28.5 from t = 90.5.
+  // Car 1 (your class) laps evenly in 28.8 (14.4 a half); car 2, another class, in 25.
+  const drivers = [
+    makeDriver(0),
+    makeDriver(1, { userName: 'Lia Costa', carNumber: '23' }),
+    makeDriver(2, { userName: 'Ana Prototipo', carNumber: '2', classId: 2 })
+  ]
+  const session = makeSession(3, { sectorStarts: [0, 0.5] }, drivers)
+  const HALVES: readonly (readonly [number, number])[] = [
+    [15, 15],
+    [14, 16],
+    [16, 14.5],
+    [15, 15],
+    [15, 15],
+    [15, 15]
+  ]
+
+  /** Race distance at t along HALVES, from the line at t = 0. */
+  function along(t: number): number {
+    let d = 1
+    let at = 0
+    for (const [a, b] of HALVES) {
+      if (t < at + a) return d + (0.5 * (t - at)) / a
+      if (t < at + a + b) return d + 0.5 + (0.5 * (t - at - a)) / b
+      at += a + b
+      d += 1
+    }
+    return d
+  }
+
+  const cars = (t: number): Cars => ({
+    0: { d: along(t) },
+    1: { d: 1.5 + t / 28.8 },
+    2: { d: 1.2 + t / 25 }
+  })
+
+  function practice(reference: DeltaReference): { t: number; d: DeltaData }[] {
+    const sim = new Sim(session, { sessionNum: PRACTICE })
+    const p = createProviders()
+    const base = config()
+    const delta: DeltaOptions = { ...base.delta, reference, fallback: false }
+    const ctx = ctxOf(sim, session, { ...base, delta })
+    const out: { t: number; d: DeltaData }[] = []
+    let n = 0
+    sim.run(150, 60, cars, (t) => {
+      if (n++ % 2 === 1) out.push({ t, d: p.run.delta(ctx, out.at(-1)?.d ?? null) })
+    })
+    return out
+  }
+
+  const between = <T extends { t: number }>(sent: readonly T[], from: number, to: number): T[] =>
+    sent.filter((x) => x.t > from && x.t < to)
+  const guardS = DELTA.guardPct * 30
+
+  it('your optimal: the best of each half from different laps; the sectors read against it', () => {
+    const sent = practice('optimal')
+    expect(between(sent, 0, 60).every((x) => !x.d.visible)).toBe(true)
+    // Lap 3 (14 + 16) alone, then 14 + 14.5 once lap 4 is in.
+    for (const { d } of between(sent, 60 + guardS + 0.1, 90)) {
+      expect(d).toMatchObject({
+        visible: true,
+        reference: 'optimal',
+        refDriver: '',
+        refSelf: false
+      })
+      expect(d.refLapTime).toBeCloseTo(30, 1)
+    }
+    const after = between(sent, 90.5 + guardS + 0.1, 150)
+    expect(after.length).toBeGreaterThan(1500)
+    for (const { d } of after) expect(d.refLapTime).toBeCloseTo(28.5, 1)
+    // Lap 5 (15 + 15) at its line: a second lost in S1, half a second in S2.
+    const line = between(sent, 120.6, 120.5 + guardS - 0.1)
+    expect(line.length).toBeGreaterThan(5)
+    for (const { d } of line) {
+      expect(d.delta).toBeCloseTo(1.5, 1)
+      expect(d.sectors[0]).toBeCloseTo(1, 1)
+      expect(d.sectors[1]).toBeCloseTo(0.5, 1)
+    }
+  })
+
+  it('the class optimal: your S1 and car 1’s S2, under the class best and your optimal', () => {
+    const optimal = practice('optimal').at(-1)?.d.refLapTime ?? NaN
+    const best = practice('class').at(-1)?.d.refLapTime ?? NaN
+    const sent = practice('classOptimal')
+    const last = sent.at(-1)?.d
+    expect(last).toMatchObject({ visible: true, reference: 'classOptimal', refDriver: '' })
+    expect(last?.refSelf).toBe(false)
+    expect(last?.refLapTime).toBeCloseTo(14 + 14.4, 1)
+    expect(best).toBeCloseTo(28.8, 1)
+    expect(last?.refLapTime).toBeLessThan(Math.min(best, optimal))
   })
 })
 

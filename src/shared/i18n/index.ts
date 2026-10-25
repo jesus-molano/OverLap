@@ -8,6 +8,7 @@
  * with the current settings.appearance.language, so switching language
  * applies at once everywhere without the telemetry process knowing.
  */
+import { modifierCaps, parseAccelerator } from '../accelerator'
 import type { HiddenReason, OverlayStatus } from '../types'
 import type { WidgetId } from '../widgets'
 import type { Dict } from './dict'
@@ -60,4 +61,55 @@ export function statusText(m: Messages, s: OverlayStatus): string {
 /** Edit-mode caption of a widget a visibility rule hides: 'Oculto en práctica'. */
 export function hiddenText(m: Messages, reason: HiddenReason | null): string {
   return reason === null ? m.core.hidden.any : m.core.hidden[reason]
+}
+
+const ARROWS: Readonly<Record<string, string>> = { Up: '↑', Down: '↓', Left: '←', Right: '→' }
+const NUMPAD_SYMBOLS: Readonly<Record<string, string>> = {
+  numadd: '+',
+  numsub: '-',
+  nummult: '*',
+  numdiv: '/',
+  numdec: '.'
+}
+
+/** One key as the keyboards of the interface language print it: 'Supr', 'Re Pág', 'Num 5'. */
+export function keyLabel(m: Messages, key: string): string {
+  const k = m.core.keys
+  const numpad = /^num(\d)$/.exec(key)
+  if (numpad) return k.numpad(numpad[1] ?? '')
+  const symbol = NUMPAD_SYMBOLS[key]
+  if (symbol !== undefined) return k.numpad(symbol)
+  switch (key) {
+    case 'Space':
+      return k.space
+    case 'Insert':
+      return k.insert
+    case 'Delete':
+      return k.delete
+    case 'Home':
+      return k.home
+    case 'End':
+      return k.end
+    case 'PageUp':
+      return k.pageUp
+    case 'PageDown':
+      return k.pageDown
+    case 'Escape':
+      return 'Esc'
+    default:
+      return ARROWS[key] ?? key
+  }
+}
+
+/** The keycaps of a combination: ['Ctrl', 'Shift', 'Re Pág']; [] when it has none (''). */
+export function keycaps(m: Messages, accelerator: string): string[] {
+  if (accelerator === '') return []
+  const parsed = parseAccelerator(accelerator)
+  if (!parsed.ok) return [accelerator]
+  return [...modifierCaps(parsed.value), keyLabel(m, parsed.value.key)]
+}
+
+/** A combination as one text: 'Ctrl+Shift+E', 'Alt+Av Pág'; '' when it has none. */
+export function acceleratorText(m: Messages, accelerator: string): string {
+  return keycaps(m, accelerator).join('+')
 }

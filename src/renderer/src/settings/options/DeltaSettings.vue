@@ -23,7 +23,7 @@ const referenceChoices = computed(() =>
 /** What the chosen reference is, under the choice. */
 const referenceHelp = computed(() => t.value.settings.delta.referenceHelp[opts.value.reference])
 
-/** Where the fallback goes from each reference (pb → session → class). */
+/** Where the fallback goes from each reference (DELTA_FALLBACK); the class best has none. */
 const fallbackHelp = computed(() => {
   const d = t.value.settings.delta
   const r = opts.value.reference

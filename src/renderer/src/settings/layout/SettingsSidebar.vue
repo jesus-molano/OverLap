@@ -4,9 +4,11 @@ import { widgetTitle } from '@shared/i18n'
 import { WIDGET_IDS } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
+import { useShortcuts } from '../../composables/useShortcuts'
 import StatusChip from '../StatusChip.vue'
 import { sendCommand, widgetSetter } from '../editor'
-import type { SettingsPage } from '../nav'
+import { GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
+import { sidebarKeys } from '../shortcutsView'
 import EditModeButton from './EditModeButton.vue'
 import NavIcon from './NavIcon.vue'
 import VisibilityDot from './VisibilityDot.vue'
@@ -16,6 +18,12 @@ const emit = defineEmits<{ select: [page: SettingsPage] }>()
 
 const { settings } = useOverlayState()
 const t = useI18n()
+const shortcuts = useShortcuts()
+const globalItems = computed(() =>
+  GLOBAL_PAGES.map((page) => ({ page, title: pageTitle(t.value, page) }))
+)
+/** The shortcuts at the foot, as configured (one turned off is left out). */
+const keys = computed(() => sidebarKeys(t.value, shortcuts.value))
 // A string, so dragging a widget (a settings broadcast per frame) re-renders nothing here.
 const visibleKey = computed(() =>
   WIDGET_IDS.map((id) => (settings.value?.widgets[id].visible === false ? '0' : '1')).join('')
@@ -43,13 +51,15 @@ function openSettingsFolder(): void {
 
     <nav class="nav" :aria-label="t.settings.nav.sections">
       <button
+        v-for="item in globalItems"
+        :key="item.page"
         type="button"
         class="nav-item"
-        :aria-current="page === 'appearance' ? 'page' : undefined"
-        @click="emit('select', 'appearance')"
+        :aria-current="page === item.page ? 'page' : undefined"
+        @click="emit('select', item.page)"
       >
-        <NavIcon page="appearance" />
-        <span class="nav-text">{{ t.settings.nav.appearance }}</span>
+        <NavIcon :page="item.page" />
+        <span class="nav-text">{{ item.title }}</span>
       </button>
 
       <h2 class="nav-group">{{ t.settings.nav.widgets }}</h2>
@@ -73,10 +83,12 @@ function openSettingsFolder(): void {
     <div class="foot">
       <EditModeButton />
       <dl class="keys">
-        <dt><kbd>Ctrl+Shift+E</kbd></dt>
-        <dd>{{ t.settings.nav.keyToggle }}</dd>
-        <dt><kbd>Esc</kbd></dt>
-        <dd>{{ t.settings.nav.keyExit }}</dd>
+        <template v-for="k in keys" :key="k.id">
+          <dt>
+            <kbd>{{ k.keys }}</kbd>
+          </dt>
+          <dd>{{ k.label }}</dd>
+        </template>
       </dl>
       <button
         type="button"

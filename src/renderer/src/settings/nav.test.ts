@@ -31,15 +31,16 @@ const throwing: PageStorage = {
 }
 
 describe('settings pages', () => {
-  it('lists the appearance first, then every widget once', () => {
-    expect(SETTINGS_PAGES[0]).toBe('appearance')
-    expect(SETTINGS_PAGES.slice(1)).toEqual(WIDGET_IDS)
+  it('lists the appearance, then the shortcuts, then every widget once', () => {
+    expect(SETTINGS_PAGES.slice(0, 2)).toEqual(['appearance', 'shortcuts'])
+    expect(SETTINGS_PAGES.slice(2)).toEqual(WIDGET_IDS)
     expect(new Set(SETTINGS_PAGES).size).toBe(SETTINGS_PAGES.length)
   })
 
   it('titles pages in Spanish', () => {
     const es = messagesFor('es')
     expect(pageTitle(es, 'appearance')).toBe('Apariencia')
+    expect(pageTitle(es, 'shortcuts')).toBe('Atajos de teclado')
     expect(pageTitle(es, 'standings')).toBe('Clasificación')
     expect(pageTitle(es, 'inputs')).toBe('Pedales')
   })
@@ -47,6 +48,7 @@ describe('settings pages', () => {
   it('titles pages in English', () => {
     const en = messagesFor('en')
     expect(pageTitle(en, 'appearance')).toBe('Appearance')
+    expect(pageTitle(en, 'shortcuts')).toBe('Keyboard shortcuts')
     expect(pageTitle(en, 'standings')).toBe('Standings')
     expect(pageTitle(en, 'relative')).toBe('Relative')
     expect(pageTitle(en, 'inputs')).toBe('Inputs')
@@ -55,6 +57,7 @@ describe('settings pages', () => {
   it('recognises only known pages', () => {
     expect(isSettingsPage('battle')).toBe(true)
     expect(isSettingsPage('appearance')).toBe(true)
+    expect(isSettingsPage('shortcuts')).toBe(true)
     expect(isSettingsPage('toString')).toBe(false)
     expect(isSettingsPage(null)).toBe(false)
   })
@@ -66,6 +69,8 @@ describe('remembered page', () => {
     savePage(s, 'radar')
     expect(s.data[PAGE_STORAGE_KEY]).toBe('radar')
     expect(loadPage(s)).toBe('radar')
+    savePage(s, 'shortcuts')
+    expect(loadPage(s)).toBe('shortcuts')
   })
 
   it('falls back to the default for unknown, missing or failing storage', () => {

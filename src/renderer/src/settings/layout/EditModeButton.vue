@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
+import { useShortcuts } from '../../composables/useShortcuts'
 import { sendCommand } from '../editor'
+import { editModeTooltip } from '../shortcutsView'
 
 /** Toggles edit mode in every overlay window (main is the source of truth). */
 withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 
 const { editMode } = useOverlayState()
 const t = useI18n()
+const shortcuts = useShortcuts()
+const tooltip = computed(() => editModeTooltip(t.value, shortcuts.value))
 
 function toggle(): void {
   sendCommand({ type: 'set-edit-mode', on: !editMode.value })
@@ -20,7 +25,7 @@ function toggle(): void {
     class="st-btn edit-btn"
     :class="{ compact }"
     :aria-pressed="editMode"
-    :title="t.settings.editMode.tooltip"
+    :title="tooltip"
     @click="toggle"
   >
     <span class="edit-dot" aria-hidden="true" />

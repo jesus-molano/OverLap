@@ -206,14 +206,26 @@ describe('reference and predicted lap', () => {
     })
     expect(refView(ref('class', '', true), ES).label).toBe('Tú')
     expect(refView(ref('class', '  '), ES).label).toBe('Mejor de la clase')
+    // The optimal laps are nobody's: named by kind, whatever the payload says of a driver.
+    expect(refView(ref('optimal'), ES)).toEqual({
+      kind: 'optimal',
+      label: 'Vuelta óptima',
+      time: '2:15.671'
+    })
+    expect(refView(ref('classOptimal'), ES).label).toBe('Óptima de la clase')
+    expect(refView(ref('classOptimal', '#44 J. Lindqvist', true), ES).label).toBe(
+      'Óptima de la clase'
+    )
   })
 
   it('names them in English; driver names stay as they are', () => {
     expect(refView(ref('pb'), EN).label).toBe('Personal best')
     expect(refView(ref('session'), EN).label).toBe('Session best')
+    expect(refView(ref('optimal'), EN).label).toBe('Optimal lap')
     expect(refView(ref('class', '', true), EN).label).toBe('You')
     expect(refView(ref('class'), EN).label).toBe('Class best')
     expect(refView(ref('class', '#44 J. Lindqvist'), EN).label).toBe('#44 J. Lindqvist')
+    expect(refView(ref('classOptimal'), EN).label).toBe('Class optimal')
   })
 
   it("words the number alone (a name iRacing wrote as '?') as 'Piloto #44'", () => {

@@ -149,3 +149,13 @@ export function resetAppearance(): Promise<void> {
   delete look.language
   return updateSettings({ appearance: look })
 }
+
+/** Every shortcut back to its factory combination, all in one patch (so none collides). */
+export function resetShortcuts(): Promise<void> {
+  return updateSettings({ shortcuts: { ...DEFAULT_SETTINGS.shortcuts } })
+}
+
+/** Shows or hides every overlay window, like the tray checkbox. */
+export function setOverlayHidden(hidden: boolean): void {
+  sendCommand({ type: 'set-overlay-hidden', hidden })
+}

@@ -7,9 +7,11 @@
  *   the player's pit stop, the chequered flag, the cool-down and into the next session, at 30 Hz.
  */
 import { beforeAll, describe, expect, it } from 'vitest'
+import { DELTA } from '@shared/delta/delta'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
+  DeltaReference,
   FlagKind,
   GapValue,
   HiddenReason,
@@ -520,6 +522,123 @@ describe('mock race end to end: the first ten minutes at 60 Hz', () => {
     // Clutch = 1 (engaged) in the sim is a released pedal: pressed only on the downshift blips.
     expect(clutchDown).toBeGreaterThan(0)
     expect(clutchDown / n).toBeLessThan(0.1)
+  })
+})
+
+describe('mock race end to end: the optimal references over the first ten minutes at 30 Hz', () => {
+  const RUN_S = 600
+  /** A reference in use this long unchanged has settled: past the switching window of a lap. */
+  const SETTLED_S = DELTA.switchS + 1
+  const runs = new Map<DeltaReference, Run>()
+
+  beforeAll(async () => {
+    // The same deterministic race once per reference, without fallback.
+    for (const reference of ['session', 'optimal', 'class', 'classOptimal'] as const) {
+      const config = defaultTelemetryConfig()
+      config.enabledWidgets = reference === 'optimal' ? ['delta', 'standings'] : ['delta']
+      config.delta = { ...config.delta, reference, fallback: false }
+      const ticks = RUN_S * 30
+      runs.set(reference, await runLoop(new MockSeries(), 1 / 30, (r) => r.ticks >= ticks, config))
+    }
+  }, 30_000)
+
+  function sentFor(reference: DeltaReference): Sent<'delta'>[] {
+    const run = runs.get(reference)
+    expect(run?.logs).toEqual([])
+    return run?.delta ?? []
+  }
+
+  /** refLapTime in use at each whole second where it had settled (null: none shown then). */
+  function settled(sent: readonly Sent<'delta'>[]): Map<number, number | null> {
+    const out = new Map<number, number | null>()
+    let i = -1
+    let changedAt = 0
+    let value: number | null = null
+    for (let s = 0; s <= RUN_S; s++) {
+      while (i + 1 < sent.length && (sent[i + 1]?.s ?? Infinity) <= s) {
+        i++
+        const p = sent[i]?.payload
+        const next = p?.visible ? (p.refLapTime ?? null) : null
+        if (next !== value) changedAt = sent[i]?.s ?? s
+        value = next
+      }
+      if (s - changedAt >= SETTLED_S) out.set(s, value)
+    }
+    return out
+  }
+
+  /**
+   * A shown reference only changes before the first sector line of a lap (no sector of the new
+   * payload done yet), never mid-lap. Returns how many changes were checked.
+   */
+  function switchesAtLapStart(sent: readonly Sent<'delta'>[]): number {
+    let n = 0
+    let prev: WidgetPayloads['delta'] | null = null
+    for (const { s, payload: p } of sent) {
+      if (prev?.visible && p.visible && p.refLapTime !== prev.refLapTime) {
+        n++
+        expect(
+          p.sectors.every((v) => v === null),
+          `t=${s.toFixed(2)}`
+        ).toBe(true)
+      }
+      prev = p
+    }
+    return n
+  }
+
+  /** Pairs of settled values of two runs at the same second, both shown. */
+  function pairs(a: DeltaReference, b: DeltaReference): [number, number][] {
+    const x = settled(sentFor(a))
+    const y = settled(sentFor(b))
+    const out: [number, number][] = []
+    for (const [s, v] of x) {
+      const w = y.get(s)
+      if (v !== null && w !== undefined && w !== null) out.push([v, w])
+    }
+    return out
+  }
+
+  it('optimal: nobody’s lap, never slower than your session best; the delta is against it', () => {
+    const sent = sentFor('optimal')
+    const shown = sent.filter((x) => x.payload.visible)
+    expect(shown.length).toBeGreaterThan(20)
+    for (const { payload: p } of shown) {
+      expect(p).toMatchObject({ reference: 'optimal', refDriver: '', refSelf: false })
+    }
+    // The mock's slow pace noise moves the sectors of a lap together: its best lap is often
+    // the best in every sector too, so the optimal may equal the session best (exactly: a lap
+    // best everywhere is the optimal), never exceed it.
+    const both = pairs('optimal', 'session')
+    expect(both.length).toBeGreaterThan(200)
+    for (const [optimal, best] of both) {
+      expect(optimal).toBeLessThanOrEqual(best)
+      expect(optimal).toBeGreaterThan(best - 1)
+    }
+    const laps = playerLaps(runs.get('optimal')?.standings ?? [], 0)
+    expect(checkOwnDelta(sent, laps)).toBeGreaterThanOrEqual(1)
+    expect(switchesAtLapStart(sent)).toBeGreaterThanOrEqual(1)
+  })
+
+  it('class optimal: nobody’s lap, never slower than the class best or your optimal', () => {
+    const sent = sentFor('classOptimal')
+    expect(switchesAtLapStart(sent)).toBeGreaterThanOrEqual(2)
+    const shown = sent.filter((x) => x.payload.visible)
+    expect(shown.length).toBeGreaterThan(20)
+    for (const { payload: p } of shown) {
+      expect(p).toMatchObject({ reference: 'classOptimal', refDriver: '', refSelf: false })
+      // A classmate's laps of the mock GT3s.
+      expect(p.refLapTime).toBeGreaterThan(120)
+    }
+    const vsBest = pairs('classOptimal', 'class')
+    expect(vsBest.length).toBeGreaterThan(300)
+    for (const [optimal, best] of vsBest) {
+      expect(optimal).toBeLessThanOrEqual(best)
+      expect(optimal).toBeGreaterThan(best - 1)
+    }
+    const vsYours = pairs('classOptimal', 'optimal')
+    expect(vsYours.length).toBeGreaterThan(200)
+    for (const [cls, yours] of vsYours) expect(cls).toBeLessThanOrEqual(yours)
   })
 })
 
