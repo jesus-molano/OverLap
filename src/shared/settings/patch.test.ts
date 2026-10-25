@@ -269,6 +269,23 @@ describe('applySettingsPatch', () => {
     )
   })
 
+  it('applies the global visibility rules, keeping the current value for an invalid one', () => {
+    const current = customSettings()
+    const out = applySettingsPatch(current, {
+      visibility: { replays: 'hide', hideInGarage: false }
+    })
+    expect(out).toEqual({
+      ...current,
+      visibility: { ...current.visibility, replays: 'hide', hideInGarage: false }
+    })
+    const bad = applySettingsPatch(out, { visibility: { replays: 'skip', hideWithSimUi: 'no' } })
+    expect(bad.visibility).toEqual(out.visibility)
+    // The appearance reset leaves them alone.
+    const look: Record<string, unknown> = { ...DEFAULT_SETTINGS.appearance }
+    delete look.language
+    expect(applySettingsPatch(out, { appearance: look }).visibility).toEqual(out.visibility)
+  })
+
   it('replaces the column list, normalised', () => {
     const current = customSettings()
     const out = applySettingsPatch(current, {

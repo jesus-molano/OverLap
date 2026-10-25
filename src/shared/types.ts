@@ -566,8 +566,14 @@ export interface OverlayStatus {
 // Settings (persisted as JSON in userData) and telemetry config
 // ---------------------------------------------------------------------------
 
-/** Why a visibility rule hides a widget: not shown in this kind of session, or in the pits. */
-export type HiddenReason = 'practice' | 'qualify' | 'race' | 'pits'
+/**
+ * Why a visibility rule hides a widget: its own rule (not shown in this kind of session, or
+ * in the pits), or a global one (VisibilityOptions): the garage screen is open, the iRacing
+ * UI is hidden, a replay plays with replays set to hide everything, or a replay plays and the
+ * widget only has your own car's data ('replay-player': pedals, delta...).
+ */
+export type HiddenReason =
+  'practice' | 'qualify' | 'race' | 'pits' | 'garage' | 'ui-hidden' | 'replay' | 'replay-player'
 
 /** Session kinds a widget can be limited to ("Mostrar en"). */
 export interface ShowInSessions {
@@ -599,6 +605,22 @@ export interface WidgetSettings {
   showIn: ShowInSessions
   /** Hide while the player is on pit road or in the stall. */
   hideInPits: boolean
+}
+
+/**
+ * Global visibility rules, for every widget at once, from what the sim's screen shows
+ * (simScreen.ts). Evaluated by the telemetry process like the per-widget ones.
+ */
+export interface VisibilityOptions {
+  /** Hide every widget while the iRacing UI is hidden (CamCameraState UIHidden). */
+  hideWithSimUi: boolean
+  /** Hide every widget while the garage screen is open (IsGarageVisible). */
+  hideInGarage: boolean
+  /**
+   * While a replay plays: 'follow' = the widgets follow the car on camera (CamCarIdx) and
+   * those with only your car's data hide; 'hide' = every widget hides.
+   */
+  replays: 'follow' | 'hide'
 }
 
 /** How driver names are written: 'Alejandro Ruiz' / 'A. Ruiz' / 'Ruiz' / 'RUI'. */
@@ -763,6 +785,7 @@ export interface OverlaySettings {
   /** 4 added appearance and per-widget scale/auto-height/visibility rules; v1..v3 files are migrated. */
   version: 4
   appearance: AppearanceSettings
+  visibility: VisibilityOptions
   widgets: Record<WidgetId, WidgetSettings>
   relative: RelativeOptions
   radar: RadarOptions
@@ -783,6 +806,7 @@ export interface OverlaySettings {
  */
 export interface SettingsPatch {
   appearance?: Partial<AppearanceSettings>
+  visibility?: Partial<VisibilityOptions>
   widgets?: Partial<
     Record<
       WidgetId,
@@ -823,6 +847,8 @@ export interface TelemetryConfig {
    * mode).
    */
   rules: Record<WidgetId, { showIn: ShowInSessions; hideInPits: boolean }>
+  /** The global rules: they hide every widget, before any per-widget rule. */
+  visibility: VisibilityOptions
   relative: RelativeOptions
   radar: RadarOptions
   standings: StandingsOptions

@@ -49,6 +49,11 @@ export const coreEs = {
     qualify: 'Oculto en clasificación',
     race: 'Oculto en carrera',
     pits: 'Oculto en boxes',
+    garage: 'Oculto en el garaje',
+    'ui-hidden': 'Oculto: interfaz de iRacing oculta',
+    replay: 'Oculto en repeticiones',
+    /** A replay plays and the widget only has your own car's live data (pedals, delta...). */
+    'replay-player': 'Oculto en repeticiones: solo en directo',
     /** Without a known reason. */
     any: 'Oculto'
   },
@@ -149,6 +154,10 @@ export const coreEn: Dict<typeof coreEs> = {
     qualify: 'Hidden in qualifying',
     race: 'Hidden in races',
     pits: 'Hidden in the pits',
+    garage: 'Hidden in the garage',
+    'ui-hidden': 'Hidden: iRacing UI hidden',
+    replay: 'Hidden in replays',
+    'replay-player': 'Hidden in replays: live only',
     any: 'Hidden'
   },
   tray: {

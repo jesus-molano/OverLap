@@ -4,8 +4,8 @@
  * column and one toggle for the whole ratings header, which map onto the v4
  * column list and the two header toggles. v4 files written before v2.1 (v2.2)
  * only lack the traffic and alerts (delta) widgets and sections, and older v4
- * files the shortcuts section: no version bump, they get their defaults like
- * any missing section.
+ * files the shortcuts or visibility section: no version bump, they get their
+ * defaults like any missing section.
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type { StandingsColumn, StandingsColumnId } from '../types'

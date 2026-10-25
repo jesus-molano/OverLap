@@ -12,7 +12,12 @@ import { classRatingField } from './ratings/field'
 import { ClassRatingsCache } from './ratings/projection'
 import { isRatedEvent } from './ratings/rated'
 import { projectSessionSafetyRating } from './ratings/sessionSafety'
-import { currentSessionType, isRaceSession, resolvePlayerCarIdx } from './sessionInfo'
+import {
+  currentSessionType,
+  isRaceSession,
+  resolveFocusCarIdx,
+  resolvePlayerCarIdx
+} from './sessionInfo'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import type { TelemetryFrame } from './telemetry'
 import type {
@@ -294,9 +299,12 @@ export class StandingsProvider {
     const sessionType = currentSessionType(frame, session)
     const isRace = isRaceSession(sessionType)
     const rated = isRatedEvent(session)
+    // You, or the car on camera while a replay plays.
     const playerIdx =
-      race.playerCarIdx >= 0 ? race.playerCarIdx : resolvePlayerCarIdx(frame, session)
+      race.playerCarIdx >= 0 ? race.playerCarIdx : resolveFocusCarIdx(frame, session)
     const playerDriver = playerIdx >= 0 ? session.drivers.get(playerIdx) : undefined
+    // The SR line is made of your own incidents: never shown for a car a replay follows.
+    const ownCar = playerIdx === resolvePlayerCarIdx(frame, session)
 
     const groups = groupByClass(frame, session, race)
     const playerGroup =
@@ -363,7 +371,7 @@ export class StandingsProvider {
         timeLeft !== null && Number.isFinite(timeLeft) ? Math.max(0, Math.floor(timeLeft)) : null,
       iRating: withDeltas && opts.headerIRating ? iRating : null,
       safetyRating:
-        rated && opts.headerSafetyRating && playerDriver
+        rated && opts.headerSafetyRating && playerDriver && ownCar
           ? this.safetyRating(
               frame,
               session,

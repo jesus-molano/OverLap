@@ -1,19 +1,21 @@
 /**
- * The "Mostrar en" / "Ocultar en boxes" rules of the telemetry config,
- * evaluated on every tick. Tracks which widgets they hide and reports only the
- * changes (allocation-free: the callback is the loop's, made once).
+ * The visibility rules of the telemetry config, evaluated on every tick: the global ones
+ * (garage screen, hidden iRacing UI, replays) first, then each widget's "Mostrar en" /
+ * "Ocultar en boxes". Tracks which widgets they hide and reports only the changes
+ * (allocation-free: the callback is the loop's, made once).
  */
 import {
   currentSessionType,
   isCarInPits,
-  resolvePlayerCarIdx,
+  resolveFocusCarIdx,
   ruleHiddenReason,
   sessionKind
 } from '@shared/sessionInfo'
 import type { VisibilityRule } from '@shared/sessionInfo'
+import { isReplayPlaying, screenHiddenReason } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
-import type { HiddenReason, SessionMeta, TelemetryConfig } from '@shared/types'
-import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import type { HiddenReason, SessionMeta, TelemetryConfig, VisibilityOptions } from '@shared/types'
+import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
 
 /** `reason`: the rule hiding the widget (a code, worded by each window), null when shown. */
 export type AutoHideListener = (
@@ -35,14 +37,29 @@ export class AutoHide {
     return this.reasons[id] !== null
   }
 
-  /** Session type from SessionNum, the player's pit state from their CarIdx. */
-  update(rules: TelemetryConfig['rules'], frame: TelemetryFrame, session: SessionMeta): void {
+  /**
+   * Session type from SessionNum; the pits rule looks at the car the widgets are about (the
+   * one on camera while a replay plays, see resolveFocusCarIdx).
+   */
+  update(
+    config: Pick<TelemetryConfig, 'rules' | 'visibility'>,
+    frame: TelemetryFrame,
+    session: SessionMeta
+  ): void {
+    // Main always sends the global rules; missing ones never hide.
+    const visibility = config.visibility as VisibilityOptions | undefined
+    const screen = visibility ? screenHiddenReason(visibility, frame) : null
+    const replay = isReplayPlaying(frame)
     const kind = sessionKind(currentSessionType(frame, session))
-    const inPits = isCarInPits(frame, resolvePlayerCarIdx(frame, session))
+    const inPits = isCarInPits(frame, resolveFocusCarIdx(frame, session))
     for (const id of WIDGET_IDS) {
       // Main always sends a rule per widget; a missing one never hides.
-      const rule = rules[id] as VisibilityRule | undefined
-      this.set(id, rule ? ruleHiddenReason(rule, kind, inPits) : null)
+      const rule = config.rules[id] as VisibilityRule | undefined
+      let reason = screen
+      // Its data is your live car's: over a replay it would show the wrong moment, or car.
+      if (reason === null && replay && !followsCamera(id)) reason = 'replay-player'
+      if (reason === null && rule) reason = ruleHiddenReason(rule, kind, inPits)
+      this.set(id, reason)
     }
   }
 

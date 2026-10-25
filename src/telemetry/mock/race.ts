@@ -175,6 +175,7 @@ export class MockRace {
     const v = this.out.vars
     for (const d of this.roster) v.CarIdxClass[d.carIdx] = MOCK_CLASSES[d.classKey].id
     v.PlayerCarIdx[0] = this.playerIdx
+    v.CamCarIdx[0] = this.playerIdx
     v.IsOnTrack[0] = true
     v.SessionLapsRemainEx[0] = LAPS_REMAIN_UNLIMITED
     v.SteeringWheelAngleMax[0] = STEERING_MAX_RAD

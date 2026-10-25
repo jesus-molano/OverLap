@@ -164,10 +164,26 @@ export const settingsEs = {
       simPill: 'Etiqueta SIM',
       simPillHelp: 'Marca los widgets cuando los datos son simulados'
     },
+    /** settings.visibility: when every widget hides with what iRacing shows. */
+    screen: {
+      title: 'Visibilidad',
+      simUi: 'Ocultar con la interfaz de iRacing',
+      simUiHelp: 'Si ocultas la interfaz del simulador, los widgets también se ocultan',
+      garage: 'Ocultar en el garaje',
+      garageHelp: 'Mientras tienes abierta la pantalla del garaje',
+      replays: 'En repeticiones',
+      /** `widgets`: the names of the widgets that only show your live car ('Radar, Pedales y Delta'). */
+      replaysHelp: (widgets: string) =>
+        `${widgets} solo tienen datos de tu coche en directo: se ocultan siempre`,
+      replayChoices: {
+        follow: { label: 'Seguir la cámara', hint: 'Muestran el coche que estás viendo' },
+        hide: { label: 'Ocultar', hint: 'Ningún widget mientras dura la repetición' }
+      }
+    },
     reset: {
       label: 'Restablecer apariencia',
       description:
-        'Vuelve la apariencia a los valores por defecto; el idioma y las opciones de cada widget no cambian'
+        'Vuelve la apariencia a los valores por defecto; el idioma, la visibilidad y las opciones de cada widget no cambian'
     }
   },
   /** "Atajos de teclado" page. */
@@ -291,7 +307,13 @@ export const settingsEs = {
     showInNowhere: 'No se mostrará en ninguna sesión (en modo edición sí, para colocarlo)',
     showInHelp: 'En las demás sesiones se oculta y no consume nada; en modo edición siempre se ve',
     hideInPits: 'Ocultar en boxes',
-    hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box'
+    hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box',
+    /** What the widget does in a replay (Apariencia > Visibilidad decides the rest). */
+    replay: {
+      follows: 'En repeticiones muestra el coche que estás viendo',
+      liveOnly: 'En repeticiones se oculta: solo tiene datos de tu coche en directo',
+      hidden: 'En repeticiones se oculta (Apariencia > Visibilidad)'
+    }
   },
   relative: {
     carsAhead: 'Coches delante',
@@ -711,10 +733,23 @@ export const settingsEn: Dict<typeof settingsEs> = {
       simPill: 'SIM tag',
       simPillHelp: 'Marks the widgets when the data is simulated'
     },
+    screen: {
+      title: 'Visibility',
+      simUi: 'Hide with the iRacing UI',
+      simUiHelp: 'When you hide the sim’s interface, the widgets hide too',
+      garage: 'Hide in the garage',
+      garageHelp: 'While the garage screen is open',
+      replays: 'In replays',
+      replaysHelp: (widgets) => `${widgets} only have your own live car’s data: they always hide`,
+      replayChoices: {
+        follow: { label: 'Follow the camera', hint: 'They show the car you are watching' },
+        hide: { label: 'Hide', hint: 'No widgets while the replay plays' }
+      }
+    },
     reset: {
       label: 'Reset appearance',
       description:
-        'Returns the appearance to its defaults; the language and each widget’s options stay as they are'
+        'Returns the appearance to its defaults; the language, the visibility and each widget’s options stay as they are'
     }
   },
   shortcuts: {
@@ -830,7 +865,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
     showInNowhere: 'Won’t show in any session (only in edit mode, so you can place it)',
     showInHelp: 'In other sessions it’s hidden and uses no resources; in edit mode it always shows',
     hideInPits: 'Hide in the pits',
-    hideInPitsHelp: 'While you are on pit road or stopped in your pit box'
+    hideInPitsHelp: 'While you are on pit road or stopped in your pit box',
+    replay: {
+      follows: 'In replays it shows the car you are watching',
+      liveOnly: 'Hidden in replays: it only has your own live car’s data',
+      hidden: 'Hidden in replays (Appearance > Visibility)'
+    }
   },
   relative: {
     carsAhead: 'Cars ahead',

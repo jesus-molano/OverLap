@@ -26,9 +26,18 @@ describe('parseTelemetryMessage', () => {
     expect(
       parseTelemetryMessage({ type: 'auto-hidden', widget: 'radar', hidden: false, reason: null })
     ).toEqual({ type: 'auto-hidden', widget: 'radar', hidden: false, reason: null })
-    for (const reason of ['qualify', 'race', 'pits']) {
+    for (const reason of [
+      'qualify',
+      'race',
+      'pits',
+      'garage',
+      'ui-hidden',
+      'replay',
+      'replay-player'
+    ]) {
       expect(parseTelemetryMessage({ ...msg, reason })).toEqual({ ...msg, reason })
     }
+    expect(parseTelemetryMessage({ ...msg, reason: 'replays' })).toBeNull()
   })
 
   it('accepts the personal-best list, dropping extra fields', () => {
