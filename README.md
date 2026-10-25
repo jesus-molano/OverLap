@@ -272,6 +272,34 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - El récord se escribe unos segundos después de cruzar meta, cuando llega el tiempo oficial, de forma
   atómica y sin frenar el bucle. Si el archivo está dañado se guarda una copia `.bak`.
 
+### Avisos
+
+- Una banda con lo que te afecta: lo más importante en grande y el resto al lado, cada aviso con sus
+  palabras y su marca (se lee también con la paleta daltónica). Un aviso breve sigue en pantalla al
+  menos `alerts.holdS` segundos.
+- Cada caso se activa o desactiva en Ajustes → Avisos; todos vienen activados:
+  - **Banderas** tuyas y de la sesión, también la **negra enrollada** (`AVISO`, sin motivo: no llega
+    en los datos).
+  - **Limitador** en el pit lane: puesto, `LIMITADOR OFF` y por encima del límite del YAML
+    (`TrackPitSpeedLimit`) con o sin él: `EXCESO 68 / 60 · LIMITADOR OFF`.
+  - **Antes de la entrada**: `LIMITADOR` al pasar de la pista a la zona de boxes
+    (`PlayerTrackSurface`) sin el limitador. Esa zona también cubre el pit lane y la salida, así que
+    se calla en cuanto pisas el pit lane y no vuelve al salir.
+  - **10 y 5 vueltas** para el final de la carrera, unos segundos y una sola vez cada una: con
+    `SessionLapsRemainEx` (tus vueltas, una menos si te han doblado) y, en carreras a tiempo, con la
+    misma estimación que la clasificación.
+  - **Grúa** con cuenta atrás (`PlayerCarTowTime`), **motor calado** (solo dentro del coche) y
+    **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas en marcha; no cuentan la
+    marcha atrás, el pit lane ni el cruce de meta.
+  - **Incidentes**: `+2x Pérdida de control · V5 · S3 · grava` al sumar puntos (ver Incidentes).
+  - **Testigos del motor** de `EngineWarnings`: agua, aceite, presión de aceite y de gasolina (las
+    presiones no con el motor calado).
+  - **Temperatura al alza**: `AGUA 98 °C ↑ +6 vs tu media` cuando el agua o el aceite siguen 20 s
+    por encima de tu media de vueltas limpias de la sesión, con `(¿rebufo?)` si ibas pegado a otro
+    coche. `WaterTemp` y `OilTemp` dependen del coche: si no los tiene, este aviso no sale.
+- En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
+  limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
+
 ### Incidentes
 
 - **Contador siempre visible** en la cabecera del Relativo y de la Clasificación, en cualquier tipo de

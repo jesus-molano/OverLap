@@ -132,9 +132,18 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
 const DEFAULT_ALERTS: AlertsOptions = {
   showFlags: true,
   showBlue: true,
+  showFurled: true,
   showPitLimiter: true,
-  holdS: 3,
-  showIncidents: true
+  showPitOverspeed: true,
+  showPitEntry: true,
+  showLapsToGo: true,
+  showTow: true,
+  showWrongWay: true,
+  showIncidents: true,
+  showStalled: true,
+  showEngineWarnings: true,
+  showEngineTrend: true,
+  holdS: 3
 }
 const DEFAULT_SHORTCUTS: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Shift+H',

@@ -85,7 +85,15 @@ export const TELEMETRY_VARS = {
   /** irsdk_EngineWarnings bits: pit speed limiter 0x10, engine stalled 0x08, ... */
   EngineWarnings: 'number',
   /** The player is between the pit-lane cones. */
-  OnPitRoad: 'boolean'
+  OnPitRoad: 'boolean',
+  /** The player's own lap fraction (wrong-way detection). */
+  LapDistPct: 'number',
+  /** Seconds until the tow reaches the pits; 0 when not being towed. */
+  PlayerCarTowTime: 'number',
+  /** °C. Per car model: missing in some cars (an empty array then, see above). */
+  WaterTemp: 'number',
+  /** °C. Per car model, like WaterTemp. */
+  OilTemp: 'number'
 } as const satisfies Partial<Record<keyof TelemetryVarList, 'number' | 'boolean'>>
 
 export type TelemetryVarName = keyof typeof TELEMETRY_VARS
