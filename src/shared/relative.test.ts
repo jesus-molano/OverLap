@@ -101,6 +101,7 @@ function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): DriverEntry {
     teamId: 0,
     carId: 67,
     carName: 'Porsche 911 GT3 R',
+    isAI: false,
     ...o
   }
 }
@@ -477,6 +478,28 @@ describe('fallbacks', () => {
 
     const empty = makeFrame({}, { overrides: { PlayerCarIdx: [], CarIdxLapDistPct: [] } })
     expect(computeRelative(empty, makeSession(drivers(2)), OPTS).rows).toEqual([])
+  })
+
+  it('shows the starting slot on the grid, before the first scored crossing', () => {
+    // On the grid iRacing reports class position 0 for everyone.
+    const frame = makeFrame(
+      { 0: { pct: 0.5, classPos: 0 }, 1: { pct: 0.6, classPos: 0 }, 2: { pct: 0.4, classPos: 0 } },
+      { sessionState: SessionState.ParadeLaps }
+    )
+    const grid = new Map([
+      [0, { position: 7, classPosition: 7 }],
+      [1, { position: 6, classPosition: 6 }]
+    ])
+    const data = computeRelative(frame, makeSession(drivers(3), { grid }), OPTS)
+    expect(rowOf(data, 0).classPosition).toBe(7)
+    expect(rowOf(data, 1).classPosition).toBe(6)
+    // Not on the grid (joined late): unknown.
+    expect(rowOf(data, 2).classPosition).toBeNull()
+    // Once scored, the live position wins.
+    const racing = makeFrame({ 0: { pct: 0.5, classPos: 3 }, 1: { pct: 0.6, classPos: 2 } })
+    expect(
+      rowOf(computeRelative(racing, makeSession(drivers(2), { grid }), OPTS), 0).classPosition
+    ).toBe(3)
   })
 })
 

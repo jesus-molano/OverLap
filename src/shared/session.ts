@@ -103,28 +103,46 @@ function parseTimeS(v: unknown): number | null {
   return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null
 }
 
+/**
+ * iRacing fills AI cars, and every driver of an offline session (AI races,
+ * offline testing), with placeholder ratings: iRating 0 or 1 and licence
+ * R 0.00 / R 0.01. No real driver has those (a new member starts at 1350 and
+ * R 2.50), so they read as unknown and the widgets hide them, like any
+ * missing rating, instead of showing "R 0.0" and a field of strength 1.
+ */
+const PLACEHOLDER_LICENCE = /^R\s*0\.0[01]$/i
+
+function hasPlaceholderLicence(d: Obj, iRating: number): boolean {
+  if (flag(d.CarIsAI)) return true
+  return iRating <= 1 && PLACEHOLDER_LICENCE.test(text(d.LicString).trim())
+}
+
 function parseDriver(d: Obj, carIdx: number): DriverEntry {
-  const licString = typeof d.LicString === 'string' ? d.LicString : ''
+  const rawIRating = finiteOr(d.IRating, 0)
+  const placeholder = hasPlaceholderLicence(d, rawIRating)
+  const licString = !placeholder && typeof d.LicString === 'string' ? d.LicString : ''
   return {
     carIdx,
     userName: text(d.UserName),
     carNumber: text(d.CarNumber),
-    iRating: finiteOr(d.IRating, 0),
+    // No real driver has an iRating of 0 or 1 (new members start at 1350).
+    iRating: flag(d.CarIsAI) || rawIRating <= 1 ? 0 : rawIRating,
     licString,
-    licColor: licenseColor(licString, d.LicColor),
+    licColor: placeholder ? null : licenseColor(licString, d.LicColor),
     classId: typeof d.CarClassID === 'number' && Number.isInteger(d.CarClassID) ? d.CarClassID : -1,
     classShortName: text(d.CarClassShortName) || text(d.CarScreenNameShort),
     classColor: classColorToCss(d.CarClassColor),
     classEstLapTime: positiveOr0(d.CarClassEstLapTime),
     isPaceCar: flag(d.CarIsPaceCar),
     isSpectator: flag(d.IsSpectator),
-    licLevel: nonNegIntOr0(d.LicLevel),
-    licSubLevel: nonNegIntOr0(d.LicSubLevel),
+    licLevel: placeholder ? 0 : nonNegIntOr0(d.LicLevel),
+    licSubLevel: placeholder ? 0 : nonNegIntOr0(d.LicSubLevel),
     classRelSpeed: positiveOr0(d.CarClassRelSpeed),
     userId: nonNegIntOr0(d.UserID),
     teamId: nonNegIntOr0(d.TeamID),
     carId: nonNegIntOr0(d.CarID),
-    carName: text(d.CarScreenName) || text(d.CarScreenNameShort)
+    carName: text(d.CarScreenName) || text(d.CarScreenNameShort),
+    isAI: flag(d.CarIsAI)
   }
 }
 

@@ -205,6 +205,18 @@ export const WIDGET_PRECISION: MarkPrecision = Object.freeze({ pos: 10, opacity:
 export const roundSteps = (v: number, steps: number): number =>
   steps > 0 ? Math.round(v * steps) / steps : v
 
+/**
+ * Where to draw a car along the track. In your lane and not alongside per CarLeftRight, a car
+ * closer than a car length is beside you with a gap iRacing does not report, or nose to tail:
+ * it is drawn touching your bumper, never on top of your icon (that read as "the radar missed
+ * the car next to me"). Its colour still says how close it is.
+ */
+export function drawnDistM(car: Pick<RadarCar, 'distM' | 'lane' | 'overlapping'>): number {
+  const len = RADAR.carLengthM
+  if (car.lane !== 0 || car.overlapping || !(Math.abs(car.distM) < len)) return car.distM
+  return car.distM > 0 ? len : -len
+}
+
 /** SVG transform of a car centred on (x, y). */
 export function markTransform(x: number, y: number): string {
   return `translate(${x} ${y})`
@@ -232,7 +244,7 @@ export function toCarMarks(
     for (let n = 2; used.has(key); n++) key = `${base}#${n}`
     used.add(key)
     const x = roundSteps(laneToX(car.lane), precision.pos)
-    const y = roundSteps(distToY(car.distM, rangeM), precision.pos)
+    const y = roundSteps(distToY(drawnDistM(car), rangeM), precision.pos)
     marks.push({
       key,
       x,

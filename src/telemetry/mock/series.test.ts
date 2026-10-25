@@ -176,7 +176,9 @@ describe('MockSeries: one whole session', () => {
     const coolDown = spans(firstSession(), (x) => at(x.f.SessionState, 0) === SessionState.CoolDown)
     expect(coolDown).toHaveLength(1)
     expect(at(coolDown, 0)[1] - at(coolDown, 0)[0]).toBeCloseTo(60, 0)
-  })
+    // The first test pays for simulating the whole session (cached for the rest): ~3-5 s on
+    // its own, more while the full suite runs in parallel.
+  }, 30_000)
 
   it('shows the chequered flag at the overall leader first crossing with the clock at 0', () => {
     const ticks = firstSession()

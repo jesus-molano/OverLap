@@ -209,6 +209,23 @@ describe('toCarMarks', () => {
     })
   })
 
+  it('never draws a car of your lane on top of you: closer than a car length it touches your bumper', () => {
+    // CarLeftRight says clear, yet the car is under a car length away (nose to tail, or beside
+    // with a gap iRacing does not report): touching, not overlapping your icon.
+    const behind = toCarMarks([car({ distM: -1.5 })], 20)[0]
+    const ahead = toCarMarks([car({ distM: 0.8 })], 20)[0]
+    const level = toCarMarks([car({ distM: 0 })], 20)[0]
+    expect(behind?.y).toBeCloseTo(CAR_H)
+    expect(ahead?.y).toBeCloseTo(-CAR_H)
+    expect(level?.y).toBeCloseTo(CAR_H)
+    // Beyond a car length nothing moves; side lanes and cars alongside keep their real place.
+    expect(toCarMarks([car({ distM: -2 * L })], 20)[0]?.y).toBeCloseTo(distToY(-2 * L, 20))
+    expect(toCarMarks([car({ distM: -1.5, lane: 1 })], 20)[0]?.y).toBeCloseTo(distToY(-1.5, 20))
+    expect(toCarMarks([car({ distM: -1.5, lane: -1, overlapping: true })], 20)[0]?.y).toBeCloseTo(
+      distToY(-1.5, 20)
+    )
+  })
+
   it('draws a car alongside on the top step, whatever its proximity says', () => {
     const [m] = toCarMarks([car({ lane: 1, overlapping: true, proximity: 0 })], 20)
     expect(m?.bucket).toBe(PROX_BUCKETS - 1)
@@ -216,8 +233,10 @@ describe('toCarMarks', () => {
 
   it('puts a car at half range on the half-range guide', () => {
     for (const r of RANGES) {
-      const [m] = toCarMarks([car({ distM: r / 2 })], r)
-      expect(m?.transform).toBe(`translate(0 ${rangeGuides(r).halfY})`)
+      // Under a car length a car of your lane is drawn touching you: check those in a side lane.
+      const lane = r / 2 < L ? 1 : 0
+      const [m] = toCarMarks([car({ distM: r / 2, lane })], r)
+      expect(m?.transform).toBe(`translate(${laneToX(lane)} ${rangeGuides(r).halfY})`)
     }
   })
 
@@ -263,8 +282,8 @@ describe('toCarMarks', () => {
   })
 
   it('rounds coordinates for compact transforms', () => {
-    const [m] = toCarMarks([car({ distM: 1 / 3, lane: 0 })], 7)
-    expect(m?.transform).toBe('translate(0 -1.09)')
+    const [m] = toCarMarks([car({ distM: 1 / 3, lane: 1 })], 7)
+    expect(m?.transform).toBe(`translate(${LANE_SPACING} -1.09)`)
     expect(m?.y).toBe(-1.09)
   })
 
@@ -282,7 +301,9 @@ describe('toCarMarks with WIDGET_PRECISION', () => {
   const W = WIDGET_PRECISION
 
   it('rounds positions to 0.1 units and opacity to 1/50', () => {
-    expect(toCarMarks([car({ distM: 1 / 3 })], 7, W)[0]?.transform).toBe('translate(0 -1.1)')
+    expect(toCarMarks([car({ distM: 1 / 3, lane: 1 })], 7, W)[0]?.transform).toBe(
+      `translate(${LANE_SPACING} -1.1)`
+    )
     const [m] = toCarMarks([car({ distM: 20 * (1 - FADE * 0.373) })], 20, W)
     expect(m?.opacity).toBe(0.38)
   })

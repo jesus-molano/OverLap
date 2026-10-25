@@ -158,10 +158,13 @@ export function computeRelative(
     const isPlayer = idx === focusIdx
     const pct = pcts[idx] ?? 0
     const classPos = frame.CarIdxClassPosition[idx]
+    // 0 until the car's first scored crossing (the grid before the green): its starting slot.
+    const gridPos = session.grid.get(idx)?.classPosition ?? 0
     return {
       ...driverIdentity(d),
       isPlayer,
-      classPosition: classPos !== undefined && classPos > 0 ? classPos : null,
+      classPosition:
+        classPos !== undefined && classPos > 0 ? classPos : gridPos > 0 ? gridPos : null,
       classShortName: d.classShortName,
       gapS: isPlayer
         ? 0

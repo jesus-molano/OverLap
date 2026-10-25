@@ -51,6 +51,8 @@ export interface DriverEntry {
   carId: number
   /** DriverInfo CarScreenName (falls back to CarScreenNameShort), '' when unknown. */
   carName: string
+  /** DriverInfo CarIsAI: an AI driver (its iRating and licence are always unknown). */
+  isAI: boolean
 }
 
 /** One session of the weekend (SessionInfo.Sessions[]). */

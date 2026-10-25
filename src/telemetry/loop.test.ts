@@ -1082,7 +1082,8 @@ function pbDriver(carId: number): DriverEntry {
     userId: 1,
     teamId: 0,
     carId,
-    carName: 'Porsche 911 GT3 R'
+    carName: 'Porsche 911 GT3 R',
+    isAI: false
   }
 }
 
