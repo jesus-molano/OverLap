@@ -19,18 +19,14 @@ import {
   CAR_HALO_INNER,
   LABEL_FONT,
   LABEL_X,
-  NO_MARKS,
   PLAYER_HALO_INNER,
-  WIDGET_PRECISION,
   labelFontUnits,
   rangeGuides,
-  sameMarks,
-  sideAlertStyle,
-  toCarMarks,
-  type CarMark
+  sideAlertStyle
 } from './geometry'
 import { previewRadar } from './preview'
 import RadarSideAlert from './RadarSideAlert.vue'
+import { useCarMarks } from './useCarMarks'
 
 /** No payload for this long hides the radar, though the status may still say connected. */
 const STALE_MS = 300
@@ -70,12 +66,12 @@ const glowUrl = url(glowId)
 
 // The template reads only these computeds, and each keeps its previous value unless what it
 // draws changed: a payload that moves nothing visible does not re-render, and while hidden
-// the content is frozen, so no payload can repaint an invisible radar.
-const cars = computed<readonly CarMark[]>((prev) => {
-  const d = content.value
-  const next = d !== null ? toCarMarks(d.cars, d.rangeM, WIDGET_PRECISION) : NO_MARKS
-  return prev !== undefined && sameMarks(prev, next) ? prev : next
-})
+// the content is frozen, so no payload can repaint an invisible radar. A car changing lane
+// slides there over ~170 ms instead of jumping (useCarMarks.ts).
+const cars = useCarMarks(
+  () => content.value,
+  () => phase.value
+)
 const left = computed(() => sideAlertStyle(content.value?.leftCount ?? 0))
 const right = computed(() => sideAlertStyle(content.value?.rightCount ?? 0))
 
@@ -212,7 +208,8 @@ const rangeLabels = computed(() => {
           :bar-url="barUrl"
         />
 
-        <!-- Positions follow the 60 Hz data directly: no transitions on transform. Halo and body
+        <!-- Positions follow the 60 Hz data: no CSS transitions on transform (a lane change
+             slides in script, one transform per frame drawn: laneEaser.ts). Halo and body
              inherit the fill of the car's proximity class (.rc-N) and the body has the same dark
              keyline as yours, so a frame changes at most transform, opacity and that class. The
              class colour is only the windshield (a mark, not the silhouette): a yellow class

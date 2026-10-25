@@ -1,10 +1,12 @@
 /**
  * Drives the pedal trace: owns the sample ring and the geometry, decides between a full
- * redraw and an incremental step, and turns each payload's SessionTime into a position. Plain
- * state outside Vue reactivity, no timers and no animation frames: it draws at most once per
- * call, so nothing runs while no payload arrives.
+ * redraw and an incremental step, and turns each payload's SessionTime into a position. After
+ * each draw it translates the canvas element left by the sub-pixel scroll phase of what was
+ * drawn (written only when its step changes). Plain state outside Vue reactivity, no timers
+ * and no animation frames: it draws at most once per call, so nothing runs while no payload
+ * arrives.
  */
-import { fillPreview } from './readout'
+import { TransformSlot, fillPreview } from './readout'
 import {
   CH_ABS,
   CH_BRAKE,
@@ -14,7 +16,10 @@ import {
   clampTraceSeconds,
   drawTraceFull,
   drawTraceStep,
+  phaseStep,
+  phaseTransforms,
   ringCapacity,
+  scrollPhase,
   traceGeometry,
   type TraceColors,
   type TraceContext,
@@ -43,8 +48,15 @@ export interface TraceSettings {
   readonly colors: TraceColors
 }
 
-/** The canvas element as the controller uses it (its backing store and itself as a blit source). */
-export type TraceCanvas = CanvasImageSource & { width: number; height: number }
+/**
+ * The canvas element as the controller uses it: its backing store, itself as a blit source,
+ * and its inline transform (the phase translation).
+ */
+export type TraceCanvas = CanvasImageSource & {
+  width: number
+  height: number
+  style: { transform: string }
+}
 
 export class TraceController {
   private ring: SampleRing
@@ -56,6 +68,12 @@ export class TraceController {
   private geom: TraceGeometry | null = null
   /** The canvas no longer matches the ring: the next draw is a full one. */
   private dirty = true
+  /** The ring holds the edit-mode preview: a still picture, never translated (as before). */
+  private still = false
+  /** Phase translation of the canvas element: one string per step, built once per dpr. */
+  private readonly shift = new TransformSlot()
+  private shifts = phaseTransforms(1)
+  private shiftsDpr = 1
 
   constructor(
     private readonly hz: number,
@@ -81,6 +99,8 @@ export class TraceController {
     this.canvas = canvas
     this.ctx = canvas === null ? null : ctx
     this.dirty = true
+    // A new element gets its translation with its first draw; a removed one is let go.
+    if (canvas === null) this.shift.set(null, '')
     const { w, h } = this.size
     if (canvas === null || w <= 0 || h <= 0) return
     if (canvas.width !== w) canvas.width = w
@@ -118,10 +138,12 @@ export class TraceController {
   reset(): void {
     this.ring.clear()
     this.dirty = true
+    this.still = false
   }
 
   /** One live sample, drawn at once. */
   push(s: TraceSample): void {
+    this.still = false
     const ring = this.ring
     const prev = ring.length > 0 ? ring.timeAt(0) : NaN
     const t = Number.isFinite(s.t) ? s.t : Number.isFinite(prev) ? prev + 1 / this.hz : 0
@@ -146,6 +168,7 @@ export class TraceController {
 
   /** The edit-mode sample, drawn at once. */
   preview(): void {
+    this.still = true
     fillPreview(this.ring, clampTraceSeconds(this.settings.seconds), this.hz)
     this.redraw()
   }
@@ -154,6 +177,10 @@ export class TraceController {
     const { w, h, dpr } = this.size
     this.geom =
       w > 0 && h > 0 ? traceGeometry(w, h, dpr, this.settings.seconds, this.settings.lineCss) : null
+    if (dpr !== this.shiftsDpr) {
+      this.shifts = phaseTransforms(dpr)
+      this.shiftsDpr = dpr
+    }
   }
 
   private redraw(): void {
@@ -163,6 +190,7 @@ export class TraceController {
     }
     drawTraceFull(this.ctx, this.geom, this.ring, this.style)
     this.dirty = false
+    this.place()
   }
 
   private draw(): void {
@@ -170,7 +198,21 @@ export class TraceController {
       this.redraw()
     } else {
       drawTraceStep(this.ctx, this.canvas, this.geom, this.ring, this.style)
+      this.place()
     }
+  }
+
+  /**
+   * Moves the element left by the scroll phase of what was just drawn, so the newest sample
+   * shows at exactly `right` and the trace moves its exact distance per sample (whole-pixel
+   * blits alone move it 1 px on some samples and 0 on others). A cleared ring has phase 0.
+   */
+  private place(): void {
+    const canvas = this.canvas
+    const g = this.geom
+    if (canvas === null || g === null) return
+    const step = this.still ? 0 : phaseStep(scrollPhase(g, this.ring))
+    this.shift.set(canvas, this.shifts[step] ?? 'none')
   }
 }
 

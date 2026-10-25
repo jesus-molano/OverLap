@@ -32,6 +32,7 @@ import {
   edgeOpacity,
   labelFontUnits,
   laneToX,
+  markTransform,
   proximityBucket,
   rangeGuides,
   sameMarks,
@@ -198,6 +199,8 @@ describe('toCarMarks', () => {
     )
     expect(m).toEqual({
       key: '7',
+      x: -LANE_SPACING,
+      y: -CAR_H,
       transform: `translate(${-LANE_SPACING} ${-CAR_H})`,
       bucket: proximityBucket(0.3, false),
       classColor: '#ffffff',
@@ -262,6 +265,16 @@ describe('toCarMarks', () => {
   it('rounds coordinates for compact transforms', () => {
     const [m] = toCarMarks([car({ distM: 1 / 3, lane: 0 })], 7)
     expect(m?.transform).toBe('translate(0 -1.09)')
+    expect(m?.y).toBe(-1.09)
+  })
+
+  it('builds the transform from the rounded centre', () => {
+    for (const lane of [-2, -1, 0, 1, 2] as const) {
+      const [m] = toCarMarks([car({ distM: -3.3, lane })], 20, WIDGET_PRECISION)
+      expect(m?.x).toBe(laneToX(lane))
+      expect(m?.transform).toBe(markTransform(m?.x ?? NaN, m?.y ?? NaN))
+    }
+    expect(markTransform(-6.5, 0)).toBe('translate(-6.5 0)')
   })
 })
 
@@ -299,6 +312,8 @@ describe('toCarMarks with WIDGET_PRECISION', () => {
 describe('sameMarks', () => {
   const mark = (over: Partial<CarMark>): CarMark => ({
     key: '1',
+    x: 0,
+    y: -5,
     transform: 'translate(0 -5)',
     bucket: 3,
     classColor: '#ffffff',

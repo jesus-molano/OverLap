@@ -3,8 +3,10 @@
  * time-to-pixel mapping and the canvas drawing. x follows each sample's SessionTime, so a
  * dropped or late sample leaves the line where it belongs and a gap in the stream shows as a
  * gap. The canvas scrolls left by whole device pixels and only the newest segments are
- * stroked, so a 60 Hz update costs one self-blit and a few short strokes. Geometry is in
- * device pixels.
+ * stroked, so a 60 Hz update costs one self-blit and a few short strokes. The sub-pixel rest
+ * of the scroll (the phase) is taken out by translating the canvas element (scrollPhase), so
+ * the trace moves by its exact distance on every sample instead of 1 px on some and 0 on
+ * others. Geometry is in device pixels.
  */
 import { frac } from '@shared/num'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
@@ -140,7 +142,10 @@ export interface TraceGeometry {
   /** y of value 1 and of value 0. */
   top: number
   bottom: number
-  /** x of the newest sample at scroll phase 0; it moves right by up to 1 px with the phase. */
+  /**
+   * x of the newest sample at scroll phase 0; on the canvas it moves right by up to 1 px with
+   * the phase, which the element's translation (scrollPhase) takes back out on screen.
+   */
   right: number
   /** Device px per second of history. */
   pxPerS: number
@@ -160,7 +165,7 @@ export function traceGeometry(
   seconds: number,
   lineCss: number
 ): TraceGeometry {
-  const scale = Number.isFinite(dpr) && dpr > 0 ? dpr : 1
+  const scale = dprScale(dpr)
   const w = Math.max(1, Math.floor(width))
   const h = Math.max(1, Math.floor(height))
   const line = clampTraceWidth(lineCss)
@@ -180,6 +185,11 @@ export function traceGeometry(
     clutchLineWidth: Math.max(1, line * CLUTCH_RATIO) * scale,
     outlineWidth
   }
+}
+
+/** Device px per CSS px; anything invalid reads as 1. */
+function dprScale(dpr: number): number {
+  return Number.isFinite(dpr) && dpr > 0 ? dpr : 1
 }
 
 /** y of a 0..1 value (clamped; NaN reads as 0). */
@@ -209,6 +219,54 @@ export function scrollShift(g: TraceGeometry, ring: SampleRing): number {
   const shift =
     Math.floor(head(g, ring, ring.timeAt(0))) - Math.floor(head(g, ring, ring.timeAt(1)))
   return shift > 0 ? shift : 0
+}
+
+// ---------------------------------------------------------------------------
+// Sub-pixel scroll
+// ---------------------------------------------------------------------------
+
+/**
+ * Steps per device px of the translation that cancels the phase: 1/64 px is far below anything
+ * visible, and a fixed set of steps lets every transform string be built once per dpr.
+ */
+export const PHASE_STEPS = 64
+
+/**
+ * Scroll phase (device px, in [0, 1)) of what is drawn: the canvas has scrolled by
+ * floor(head) whole pixels, so its content sits frac(head) px right of its exact place (the
+ * newest sample at sampleX = right + phase). 0 while empty.
+ */
+export function scrollPhase(g: TraceGeometry, ring: SampleRing): number {
+  if (ring.length === 0) return 0
+  const p = frac(head(g, ring, ring.timeAt(0)))
+  return p > 0 && p < 1 ? p : 0
+}
+
+/** The phase in steps of 1/PHASE_STEPS px, rounded (0..PHASE_STEPS); invalid reads as 0. */
+export function phaseStep(phase: number): number {
+  return phase > 0 && phase < 1 ? Math.round(phase * PHASE_STEPS) : 0
+}
+
+/**
+ * Translation (CSS px, never positive) of the canvas element that puts content drawn at
+ * `phase` device px to the right back on its exact place: -phase / dpr, in whole steps.
+ */
+export function phaseOffsetCss(phase: number, dpr: number): number {
+  return stepOffsetCss(phaseStep(phase), dpr)
+}
+
+function stepOffsetCss(step: number, dpr: number): number {
+  return step === 0 ? 0 : -step / PHASE_STEPS / dprScale(dpr)
+}
+
+/**
+ * The element's transform for each phase step (index phaseStep(phase)): 'none' at 0, else
+ * translateX(phaseOffsetCss). Built once per dpr, so the 60 Hz path allocates no string.
+ */
+export function phaseTransforms(dpr: number): readonly string[] {
+  const out = ['none']
+  for (let s = 1; s <= PHASE_STEPS; s++) out.push(`translateX(${stepOffsetCss(s, dpr)}px)`)
+  return out
 }
 
 // ---------------------------------------------------------------------------
