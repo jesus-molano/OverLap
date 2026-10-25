@@ -1,15 +1,16 @@
 /**
- * Auto-height widgets (ux §3.2) tell main the height their content wants; main fits the window
- * to it (growing at once, shrinking after a pause, clamped to the work area).
+ * Auto-height widgets (ux §3.2) report the height their content wants; their overlay panel fits
+ * to it (growing at once, shrinking after a pause, clamped to the work area), or the sample box
+ * of their settings page does.
  *
- * Contract: the measured element must not depend on the window height (no `cqh`, no
+ * Contract: the measured element must not depend on the panel height (no `cqh`, no
  * `height: 100%`, no font from the viewport height). Its height then depends on the content
  * and the width only, so a granted height can never feed back into the next report.
  */
 import { onScopeDispose, watch, type Ref, type WatchSource } from 'vue'
 import { createContentSizeReporter } from '../view/contentSize'
 import { useElementSize, type MaybeElement } from './useElementSize'
-import { injectSampleHost } from './widgetContext'
+import { injectPanelHost, injectSampleHost } from './widgetContext'
 
 export interface ContentSizeOptions {
   /**
@@ -22,21 +23,31 @@ export interface ContentSizeOptions {
 }
 
 /**
- * Shared by both helpers: report `height()` whenever it or `enabled` changes, to main or, for a
- * settings sample, to its box.
+ * Where the heights go: a settings sample's box, else the overlay panel (overlay/WidgetSlot).
+ * Null outside both: nothing fits to the content, so nothing is measured.
  */
-function reportHeight(height: WatchSource<number | null>, o: ContentSizeOptions): void {
+function heightSink(): ((heightPx: number) => void) | null {
   const sample = injectSampleHost()
-  const reporter = createContentSizeReporter((msg) =>
-    sample !== null ? sample.reportHeight(msg.height) : window.overlay.contentSize(msg)
-  )
+  if (sample !== null) return (h) => sample.reportHeight(h)
+  const panel = injectPanelHost()
+  if (panel !== null) return (h) => panel.reportHeight(h)
+  return null
+}
+
+/** Shared by both helpers: report `height()` whenever it or `enabled` changes. */
+function reportHeight(
+  sink: (heightPx: number) => void,
+  height: WatchSource<number | null>,
+  o: ContentSizeOptions
+): void {
+  const reporter = createContentSizeReporter(sink)
   const extra = o.extraPx ?? 0
   const enabled = o.enabled ?? ((): boolean => true)
   const stop = watch(
     [height, enabled],
     ([h, on], prev) => {
       if (!on) return
-      // Just enabled (or first run): main may have a different height by now.
+      // Just enabled (or first run): the panel may have another height by now.
       if (prev === undefined || !prev[1]) reporter.reset()
       if (h !== null) reporter.report(h + extra)
     },
@@ -50,8 +61,10 @@ export function useContentSize(
   target: Readonly<Ref<MaybeElement>>,
   o: ContentSizeOptions = {}
 ): void {
+  const sink = heightSink()
+  if (sink === null) return
   const size = useElementSize(target, { box: 'border-box' })
-  reportHeight(() => (size.value.h > 0 ? size.value.h : null), o)
+  reportHeight(sink, () => (size.value.h > 0 ? size.value.h : null), o)
 }
 
 /** Reports a height computed from a pure layout (e.g. lines x row height + chrome). */
@@ -59,21 +72,6 @@ export function useContentHeight(
   heightPx: WatchSource<number | null>,
   o: ContentSizeOptions = {}
 ): void {
-  reportHeight(heightPx, o)
-}
-
-/**
- * Resolves on the next window resize or after `timeoutMs`, whichever comes first: lets a widget
- * report a new height and wait for the window before fading in (ux §3.2 step 4).
- */
-export function waitForWindowResize(timeoutMs = 50): Promise<void> {
-  return new Promise((resolve) => {
-    const done = (): void => {
-      clearTimeout(timer)
-      window.removeEventListener('resize', done)
-      resolve()
-    }
-    const timer = setTimeout(done, timeoutMs)
-    window.addEventListener('resize', done)
-  })
+  const sink = heightSink()
+  if (sink !== null) reportHeight(sink, heightPx, o)
 }

@@ -1,7 +1,7 @@
 import type { Rect, Size } from './types'
 
 export interface WidgetDef {
-  /** Unique id, also the `?widget=` query param of its window. */
+  /** Unique id: the settings key, and the `data-ov-slot` of its overlay panel. */
   readonly id: string
   /** How often the telemetry process computes and sends this widget's payload. */
   readonly hz: number
@@ -12,9 +12,10 @@ export interface WidgetDef {
   /** Background panel opacity on first run, 0..1. */
   readonly defaultBackgroundOpacity: number
   /**
-   * 'auto-height': the height follows the content (renderer reports it with
-   * contentSize), the user sets the width; text size comes from the scale
-   * setting. 'free': the user sets both and the content fits the window.
+   * 'auto-height': the height follows the content (the widget reports it and
+   * its overlay panel fits to it), the user sets the width; text size comes
+   * from the scale setting. 'free': the user sets both and the content fits
+   * the panel.
    */
   readonly sizeModel: 'auto-height' | 'free'
   /** Default "Mostrar en" rule. */

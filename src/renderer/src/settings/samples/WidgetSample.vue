@@ -24,7 +24,7 @@ const id = props.widgetId
 provideWidgetId(id)
 /** Content height reported by an auto-height widget (null until it does). */
 const contentHeight = shallowRef<number | null>(null)
-// Applied on the next frame, like main resizing a widget window: resizing the box from inside
+// Applied on the next frame, like an overlay panel: resizing the box from inside
 // the widget's own ResizeObserver delivery would make the observers loop within one frame.
 let pendingHeight = 0
 let frame = 0

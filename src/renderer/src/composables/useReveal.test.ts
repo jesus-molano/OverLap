@@ -2,19 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick, shallowRef, type ShallowRef } from 'vue'
 import { useReveal } from './useReveal'
 
-const listeners = new Set<() => void>()
-
 beforeEach(() => {
   vi.useFakeTimers()
-  listeners.clear()
-  vi.stubGlobal('window', {
-    addEventListener: (_type: string, cb: () => void) => listeners.add(cb),
-    removeEventListener: (_type: string, cb: () => void) => listeners.delete(cb)
-  })
 })
 
 afterEach(() => {
-  vi.unstubAllGlobals()
   vi.useRealTimers()
 })
 
@@ -24,8 +16,9 @@ async function settle(): Promise<void> {
   for (let i = 0; i < 3; i++) await Promise.resolve()
 }
 
-function resizeWindow(): void {
-  for (const cb of [...listeners]) cb()
+/** The default wait outside an overlay panel (a settings sample). */
+function waitOut(): void {
+  vi.advanceTimersByTime(50)
 }
 
 function setup(fit = true): {
@@ -48,21 +41,8 @@ function setup(fit = true): {
   return { want, key, shown, stop: () => scope.stop() }
 }
 
-describe('useReveal', () => {
-  it('waits for the window resize before the first fade-in', async () => {
-    const r = setup()
-    r.want.value = true
-    await settle()
-    expect(r.shown.value).toBe(false)
-    expect(listeners.size).toBe(1)
-    resizeWindow()
-    await settle()
-    expect(r.shown.value).toBe(true)
-    expect(listeners.size).toBe(0)
-    r.stop()
-  })
-
-  it('or for the timeout when the window does not change', async () => {
+describe('useReveal in a settings sample', () => {
+  it('waits for the timeout before the first fade-in', async () => {
     const r = setup()
     r.want.value = true
     await settle()
@@ -72,7 +52,6 @@ describe('useReveal', () => {
     vi.advanceTimersByTime(1)
     await settle()
     expect(r.shown.value).toBe(true)
-    expect(listeners.size).toBe(0)
     expect(vi.getTimerCount()).toBe(0)
     r.stop()
   })
@@ -81,7 +60,7 @@ describe('useReveal', () => {
     const r = setup()
     r.want.value = true
     await settle()
-    resizeWindow()
+    waitOut()
     await settle()
     r.want.value = false
     await settle()
@@ -96,7 +75,7 @@ describe('useReveal', () => {
     r.want.value = true
     await settle()
     expect(r.shown.value).toBe(false)
-    resizeWindow()
+    waitOut()
     await settle()
     expect(r.shown.value).toBe(true)
     r.stop()
@@ -106,12 +85,12 @@ describe('useReveal', () => {
     const r = setup()
     r.want.value = true
     await settle()
-    resizeWindow()
+    waitOut()
     await settle()
     r.key.value = '2'
     await settle()
     expect(r.shown.value).toBe(true)
-    expect(listeners.size).toBe(0)
+    expect(vi.getTimerCount()).toBe(0)
     r.stop()
   })
 
@@ -120,7 +99,7 @@ describe('useReveal', () => {
     r.want.value = true
     await settle()
     expect(r.shown.value).toBe(true)
-    expect(listeners.size).toBe(0)
+    expect(vi.getTimerCount()).toBe(0)
     r.stop()
   })
 
@@ -130,7 +109,7 @@ describe('useReveal', () => {
     await settle()
     r.want.value = false
     await settle()
-    resizeWindow()
+    waitOut()
     await settle()
     expect(r.shown.value).toBe(false)
 
@@ -140,7 +119,42 @@ describe('useReveal', () => {
     vi.advanceTimersByTime(100)
     await settle()
     expect(r.shown.value).toBe(false)
-    expect(listeners.size).toBe(0)
     expect(vi.getTimerCount()).toBe(0)
+  })
+})
+
+describe('useReveal in an overlay panel', () => {
+  it('waits for the panel to be fitted, not for a timeout', async () => {
+    const waits: number[] = []
+    const fit = { done: (): void => undefined }
+    vi.resetModules()
+    vi.doMock('./widgetContext', () => ({
+      injectPanelHost: () => ({
+        waitForFit: (ms: number) => {
+          waits.push(ms)
+          return new Promise<void>((resolve) => (fit.done = resolve))
+        }
+      })
+    }))
+    const { useReveal: inPanel } = await import('./useReveal')
+    const scope = effectScope()
+    const want = shallowRef(false)
+    const shown = scope.run(() =>
+      inPanel(
+        () => want.value,
+        () => 'a',
+        { fit: () => true, timeoutMs: 80 }
+      )
+    )!
+    want.value = true
+    await settle()
+    expect(waits).toEqual([80])
+    expect(vi.getTimerCount()).toBe(0)
+    expect(shown.value).toBe(false)
+    fit.done()
+    await settle()
+    expect(shown.value).toBe(true)
+    scope.stop()
+    vi.doUnmock('./widgetContext')
   })
 })

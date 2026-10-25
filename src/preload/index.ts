@@ -1,12 +1,13 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
   IPC,
-  type AutoHiddenState,
-  type ContentSizeMessage,
-  type EditDragMessage,
-  type EditScaleMessage,
+  type AutoHiddenMessage,
+  type BoundsCommit,
+  type DragStateMessage,
   type InitialState,
   type OverlayApi,
+  type OverlayLayout,
+  type ScaleStepMessage,
   type SettingsCommand
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
@@ -18,7 +19,7 @@ import type {
 } from '@shared/types'
 
 // Sandboxed preload: only `electron` can be required at runtime, everything
-// else (the IPC constants) is bundled in by electron-vite. Widget windows and
+// else (the IPC constants) is bundled in by electron-vite. Overlay windows and
 // the settings window share it; main checks which window sent each request.
 
 function subscribe<T>(channel: string, cb: (value: T) => void): () => void {
@@ -35,11 +36,12 @@ const api: OverlayApi = {
   onStatus: (cb) => subscribe<OverlayStatus>(IPC.status, cb),
   onEditMode: (cb) => subscribe<boolean>(IPC.editMode, cb),
   onSettings: (cb) => subscribe<OverlaySettings>(IPC.settings, cb),
-  onAutoHidden: (cb) => subscribe<AutoHiddenState>(IPC.autoHidden, cb),
+  onAutoHidden: (cb) => subscribe<AutoHiddenMessage>(IPC.autoHidden, cb),
+  onLayout: (cb) => subscribe<OverlayLayout>(IPC.layout, cb),
   onPersonalBests: (cb) => subscribe<PersonalBestList>(IPC.personalBests, cb),
-  editDrag: (msg: EditDragMessage) => ipcRenderer.send(IPC.editDrag, msg),
-  contentSize: (msg: ContentSizeMessage) => ipcRenderer.send(IPC.contentSize, msg),
-  editScale: (msg: EditScaleMessage) => ipcRenderer.send(IPC.editScale, msg),
+  commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
+  scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
+  dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),
   updateSettings: (patch: SettingsPatch) =>
     ipcRenderer.invoke(IPC.updateSettings, patch) as Promise<OverlaySettings>,
   command: (cmd: SettingsCommand) => ipcRenderer.send(IPC.command, cmd)

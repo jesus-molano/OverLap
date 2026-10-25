@@ -3,9 +3,10 @@
 Overlay personal para iRacing al estilo RaceLab. La v1 trae dos widgets: **relativo** y **radar de
 proximidad**. Uso personal, sin distribución.
 
-- Solo **lee** la telemetría oficial del iRacing SDK (vía `irsdk-node` 4.4.0) y dibuja cada widget en
-  una ventana aparte, transparente y siempre encima del juego.
-- **No inyecta nada** en el proceso del juego (iRacing usa EasyAntiCheat).
+- Solo **lee** la telemetría oficial del iRacing SDK (vía `irsdk-node` 4.4.0) y dibuja los widgets en
+  ventanas propias, transparentes y siempre encima del juego: una por pantalla que tenga widgets.
+- **No inyecta nada** en el proceso del juego (iRacing usa EasyAntiCheat). Ver
+  [Anti-cheat](#anti-cheat).
 - Sin servicios externos ni cuentas.
 
 Stack: Electron 44, electron-vite 6, Vue 3 (`<script setup lang="ts">`), TypeScript estricto y
@@ -13,7 +14,7 @@ Vitest 5.
 
 ![Relativo y radar en modo mock](docs/screenshots/overlay-mock.png)
 
-_Capturas reales de las ventanas del overlay en modo mock (`npm run dev:mock`). El radar muestra, de
+_Capturas reales del overlay en modo mock (`npm run dev:mock`). El radar muestra, de
 izquierda a derecha, un coche a la izquierda, uno a la derecha, uno a cada lado y dos a la izquierda._
 
 ## Requisitos
@@ -119,6 +120,18 @@ Es una ventana normal y sí coge el foco al abrirla (lo pides tú); los widgets 
 En modo edición se arrastra el widget para moverlo y se usan sus bordes y esquinas para
 redimensionarlo; los widgets bloqueados muestran un candado y no se mueven. Fuera del modo edición
 todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guardan solos.
+
+- Al arrastrar, el widget se pega a los bordes de los demás widgets de esa pantalla y a los de la
+  pantalla y su área de trabajo; con `Alt` (o `Shift`) pulsado no se pega.
+- La **rueda del ratón** sobre un widget cambia su tamaño (escala del texto en los de alto
+  automático). Windows solo la entrega si está activado _Configuración > Bluetooth y dispositivos >
+  Mouse > Desplazar ventanas inactivas al mantener el puntero sobre ellas_.
+- Para llevar un widget a **otra pantalla**, arrástralo fuera de la suya: aparece "Suelta para
+  moverlo a la otra pantalla" y al soltar queda bajo el puntero.
+- Salir del modo edición (`Esc`, `Ctrl+Shift+E` o la bandeja) en mitad de un arrastre lo **cancela**:
+  el widget vuelve a donde estaba.
+- Coloca los widgets en el garaje o en los menús: mientras el modo edición está activo, los clics
+  sobre un widget no llegan al juego.
 
 ### Bandeja del sistema
 
@@ -238,38 +251,71 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
         v                           |
  +--------------------------------------+
  | main (Electron)                      |  src/main
- |  ventanas, estado, modo edición,     |
- |  bandeja, ajustes                    |
+ |  dónde está cada widget, qué ventana |
+ |  lo aloja, ratón, estado, bandeja,   |
+ |  ajustes                             |
  +--------------------------------------+
-        |  IPC: cada payload solo a su ventana
-        +------------------+
-        v                  v
- [ ?widget=relative ]  [ ?widget=radar ]   src/renderer (Vue) + src/preload
+        |  IPC: cada payload solo a la ventana que aloja su widget
+        +------------------------------+
+        v                              v
+ [ ?view=overlay  pantalla 1 ]  [ ?view=overlay  pantalla 2 ]   src/renderer (Vue) + src/preload
+   relativo, radar, ...           clasificación, ...            (un panel por widget)
 ```
+
+Una sola ventana por pantalla: Chromium presenta más o menos una ventana por refresco, así que ocho
+ventanas que se actualizan a la vez se reparten los ~60 fps (unos 7 fps cada una); en un solo
+documento todos los paneles van a la tasa de refresco.
 
 - **Telemetría** (`src/telemetry`, un `utilityProcess`): bucle a ~60 Hz que cede el event loop con
   `setImmediate`. Lee solo las variables de `TELEMETRY_VARS` (`src/shared/telemetry.ts`) con
   `getTelemetryVariable`, reparsea el YAML de sesión solo cuando cambia `getSessionVersionNum` y
   calcula cada payload con los providers de `src/shared/providers.ts`, cada uno a la frecuencia de su
   widget. Solo calcula los widgets activos que le indica main (`TelemetryConfig`).
-- **Main** (`src/main`): reenvía cada payload solo a la ventana de su widget y gestiona estado de
-  conexión, ventanas, modo edición, bandeja y ajustes.
-- **Renderer** (`src/renderer`): una ventana por widget, la misma app Vue cargada con
-  `?widget=<id>`. Preload tipado con `contextBridge` (`window.overlay`, tipo `OverlayApi`) y sandbox.
+- **Main** (`src/main`): decide dónde está cada widget (coordenadas de pantalla en DIP, las de
+  `settings.json`), a qué pantalla pertenece (la que contiene su centro; si su monitor no está, cae en
+  la principal sin guardar ese cambio) y qué ventana lo aloja (`overlayWindows.ts`,
+  `overlayWindow.ts`, reglas puras en `overlayLayout.ts`). Cada ventana cubre su pantalla, es
+  transparente, no coge el foco (`focusable: false`, solo `showInactive()`), está siempre encima y
+  deja pasar los clics. Main reenvía cada payload solo a la ventana que aloja su widget, decide cuándo
+  una ventana coge el ratón (`mouseMode.ts`), guarda lo que el renderer confirma y la oculta en
+  cuanto su superficie puede quedar mal (fallo o cuelgue del renderer, pérdida de la GPU, suspensión,
+  cambio de pantalla) hasta recuperarla.
+- **Renderer** (`src/renderer`): la misma app Vue con `?view=overlay` (las ventanas del overlay) o
+  `?view=settings` (Ajustes). En el overlay, `overlay/OverlayApp.vue` pinta un panel con posición
+  absoluta por widget (`WidgetSlot.vue`, `contain: strict`), ajusta los de alto automático a su
+  contenido y hace las interacciones del modo edición (`EditFrame.vue`, `dragSession.ts`); lo que
+  cambian vuelve a main como `BoundsCommit`. Preload tipado con `contextBridge` (`window.overlay`,
+  tipo `OverlayApi`) y sandbox.
 - **Lógica pura** en `src/shared`: sin Electron, Node ni DOM, y con tests.
 
 Canales IPC (`src/shared/ipc.ts`):
 
-| Canal                     | Sentido          | Contenido                               |
-| ------------------------- | ---------------- | --------------------------------------- |
-| `overlay:data`            | main -> renderer | `WidgetDataMessage` del widget          |
-| `overlay:status`          | main -> renderer | `OverlayStatus`                         |
-| `overlay:edit-mode`       | main -> renderer | `boolean`                               |
-| `overlay:init`            | renderer -> main | devuelve `InitialState` (invoke)        |
-| `overlay:edit-drag`       | renderer -> main | `EditDragMessage` (mover/redimensionar) |
-| `overlay:settings`        | main -> renderer | `OverlaySettings` al cambiar            |
-| `overlay:update-settings` | Ajustes -> main  | `SettingsPatch` validado (invoke)       |
-| `overlay:command`         | Ajustes -> main  | modo edición, restablecer, carpeta      |
+| Canal                     | Sentido          | Contenido                                                                |
+| ------------------------- | ---------------- | ------------------------------------------------------------------------ |
+| `overlay:init`            | renderer -> main | devuelve `InitialState` (invoke), con el `OverlayLayout`                 |
+| `overlay:layout`          | main -> overlay  | `OverlayLayout`: qué widgets aloja la ventana y dónde                    |
+| `overlay:data`            | main -> overlay  | `WidgetDataMessage`, solo de los widgets que aloja                       |
+| `overlay:auto-hidden`     | main -> overlay  | `AutoHiddenMessage` (una regla oculta o muestra uno)                     |
+| `overlay:status`          | main -> renderer | `OverlayStatus`                                                          |
+| `overlay:edit-mode`       | main -> renderer | `boolean`                                                                |
+| `overlay:settings`        | main -> renderer | `OverlaySettings` al cambiar                                             |
+| `overlay:commit-bounds`   | overlay -> main  | `BoundsCommit` (arrastre, rueda, alto ajustado, soltar en otra pantalla) |
+| `overlay:scale-step`      | overlay -> main  | `ScaleStepMessage` (rueda sobre un widget de alto automático)            |
+| `overlay:drag-state`      | overlay -> main  | `DragStateMessage` (hay un arrastre en curso)                            |
+| `overlay:update-settings` | Ajustes -> main  | `SettingsPatch` validado (invoke)                                        |
+| `overlay:command`         | Ajustes -> main  | modo edición, restablecer, carpeta, récords                              |
+| `overlay:personal-bests`  | main -> Ajustes  | `PersonalBestList`                                                       |
+
+### Anti-cheat
+
+La app nunca toca el proceso del juego: solo lee el mapa de memoria del iRacing SDK (en el
+`utilityProcess` de telemetría) y dibuja ventanas propias, transparentes, que no cogen el foco y dejan
+pasar los clics, encima del juego. **Solo en modo edición**, el reenvío de ratón de Electron
+(`setIgnoreMouseEvents(true, { forward: true })`, para los resaltados al pasar por encima) instala un
+gancho de ratón de bajo nivel (`WH_MOUSE_LL`) en este proceso: observa movimientos del ratón, nunca
+inyecta entrada, y se quita al salir del modo edición. `FORWARD_IN_EDIT = false`
+(`src/main/mouseMode.ts`) lo elimina del todo sin perder nada más que esos resaltados. La única
+ventana normal, que sí coge el foco, es la de Ajustes, y solo cuando la abres tú.
 
 ## Cómo añadir un widget nuevo
 
@@ -324,6 +370,11 @@ Consejos:
 - Si el nombre de algún piloto rompe el parseo del YAML de sesión, la app recurre a un parser tolerante.
 - Si alguna ventana se ve con fondo negro en lugar de transparente, puede ser la aceleración por
   hardware (Electron issue #40515).
+- **OBS**: ya no hay una ventana por widget. Con captura de ventana, elige "Pantalla N · OverLap"
+  ("Display N · OverLap" en inglés), que trae todos los widgets de esa pantalla; o usa la captura de
+  pantalla.
+- Con widgets en dos o más pantallas hay una ventana por pantalla, y esas ventanas sí se reparten el
+  refresco entre ellas.
 
 ## Licencias y créditos
 

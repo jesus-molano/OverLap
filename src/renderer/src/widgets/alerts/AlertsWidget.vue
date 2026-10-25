@@ -98,7 +98,7 @@ const shown = useReveal(
   { fit: () => autoHeight.value }
 )
 
-// The panel is as tall as its rows, whatever the window height: main fits the window to it.
+// The panel is as tall as its rows, whatever the widget's height: its overlay panel fits to it.
 // It only exists once there is something to show (and then keeps the last rows while hidden),
 // so the first height measured is the real one, never that of an empty panel.
 const panel = useTemplateRef('panel')

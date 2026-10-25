@@ -1,8 +1,7 @@
 /**
- * Change detection for the auto-height protocol (ux §3.2): the renderer reports the height its
+ * Change detection for the auto-height protocol (ux §3.2): a widget reports the height its
  * content wants, in whole DIP, only when that number changes. Pure.
  */
-import type { ContentSizeMessage } from '@shared/ipc'
 
 /** Float noise below this (px) does not round a height up to the next pixel. */
 const ROUND_SLACK_PX = 0.01
@@ -22,16 +21,14 @@ export function contentHeightPx(px: number): number | null {
   return Math.max(1, Math.ceil(px - ROUND_SLACK_PX))
 }
 
-export function createContentSizeReporter(
-  send: (msg: ContentSizeMessage) => void
-): ContentSizeReporter {
+export function createContentSizeReporter(send: (height: number) => void): ContentSizeReporter {
   let last: number | null = null
   return {
     report(heightPx) {
       const h = contentHeightPx(heightPx)
       if (h === null || h === last) return
       last = h
-      send({ height: h })
+      send(h)
     },
     reset() {
       last = null

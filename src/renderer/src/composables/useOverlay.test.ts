@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick } from 'vue'
-import type { StandingsData } from '@shared/types'
+import type { InitialState, OverlayLayout, OverlayPanel } from '@shared/ipc'
+import type { BattleData, StandingsData } from '@shared/types'
+import type { WidgetId } from '@shared/widgets'
 import {
   LIVE_STATUS,
   WAITING_STATUS,
@@ -25,11 +27,43 @@ const STANDINGS: StandingsData = {
   classes: []
 }
 
-beforeEach(async () => {
+const BATTLE: BattleData = {
+  visible: true,
+  lapsRemaining: null,
+  playerLastLaps: [],
+  ahead: null,
+  behind: null
+}
+
+function panel(widget: WidgetId): OverlayPanel {
+  return { widget, rect: { x: 10, y: 20, width: 300, height: 200 }, placement: 0 }
+}
+
+function layout(revision: number, widgets: WidgetId[]): OverlayLayout {
+  return {
+    revision,
+    session: 1,
+    ackSeq: 0,
+    display: {
+      id: 7,
+      index: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      scaleFactor: 1
+    },
+    panels: widgets.map(panel)
+  }
+}
+
+async function load(init: Partial<InitialState> = {}): Promise<void> {
   vi.resetModules()
-  fake = createFakeOverlay()
+  fake = createFakeOverlay(init)
   vi.stubGlobal('window', { overlay: fake })
   mod = await import('./useOverlay')
+}
+
+beforeEach(async () => {
+  await load()
 })
 
 afterEach(() => {
@@ -42,7 +76,7 @@ describe('useOverlayState', () => {
     const b = mod.useOverlayState()
     expect(a).toBe(b)
     expect(a).toBe(mod.overlayState)
-    expect(fake.listenerCount()).toBe(5)
+    expect(fake.listenerCount()).toBe(6)
     await flush()
     expect(a.status.value).toEqual(LIVE_STATUS)
     expect(a.settings.value?.version).toBe(4)
@@ -56,17 +90,65 @@ describe('useOverlayState', () => {
     expect(s.status.value).toEqual(WAITING_STATUS)
     expect(s.editMode.value).toBe(true)
   })
+})
 
-  it('tracks the auto-hide state and ignores repeats', () => {
+describe('auto-hidden states', () => {
+  it('tracks each widget and ignores repeats', () => {
     const s = mod.useOverlayState()
-    expect(s.autoHidden.value.hidden).toBe(false)
-    fake.autoHidden.emit({ hidden: true, reason: 'practice' })
-    const first = s.autoHidden.value
+    expect(s.autoHiddenOf.standings.value).toBe(mod.NOT_AUTO_HIDDEN)
+    fake.autoHidden.emit({ widget: 'standings', hidden: true, reason: 'practice' })
+    const first = s.autoHiddenOf.standings.value
     expect(first).toEqual({ hidden: true, reason: 'practice' })
-    fake.autoHidden.emit({ hidden: true, reason: 'practice' })
-    expect(s.autoHidden.value).toBe(first)
-    fake.autoHidden.emit({ hidden: false, reason: null })
-    expect(s.autoHidden.value).toBe(mod.NOT_AUTO_HIDDEN)
+    expect(Object.isFrozen(first)).toBe(true)
+    // Another widget's state is its own.
+    expect(s.autoHiddenOf.battle.value).toBe(mod.NOT_AUTO_HIDDEN)
+    fake.autoHidden.emit({ widget: 'standings', hidden: true, reason: 'practice' })
+    expect(s.autoHiddenOf.standings.value).toBe(first)
+    fake.autoHidden.emit({ widget: 'standings', hidden: false, reason: null })
+    expect(s.autoHiddenOf.standings.value).toBe(mod.NOT_AUTO_HIDDEN)
+    expect(mod.useAutoHidden('standings')).toBe(s.autoHiddenOf.standings)
+    expect(Object.isFrozen(s.autoHiddenOf)).toBe(true)
+  })
+
+  it('takes the initial map, unless a push for that widget came first', async () => {
+    await load({
+      autoHidden: {
+        battle: { hidden: true, reason: 'practice' },
+        standings: { hidden: true, reason: 'pits' }
+      }
+    })
+    const s = mod.useOverlayState()
+    fake.autoHidden.emit({ widget: 'standings', hidden: false, reason: null })
+    await flush()
+    expect(s.autoHiddenOf.battle.value).toEqual({ hidden: true, reason: 'practice' })
+    expect(s.autoHiddenOf.standings.value).toBe(mod.NOT_AUTO_HIDDEN)
+    expect(s.autoHiddenOf.radar.value).toBe(mod.NOT_AUTO_HIDDEN)
+  })
+})
+
+describe('layout', () => {
+  it('keeps the highest revision, from the initial state or a push', async () => {
+    await load({ view: { kind: 'overlay' }, layout: layout(5, ['radar']) })
+    const s = mod.useOverlayState()
+    const pushed = layout(6, ['radar', 'inputs'])
+    fake.layout.emit(pushed)
+    await flush()
+    // The initial state resolved after the push: its older layout is ignored.
+    expect(s.layout.value).toBe(pushed)
+    fake.layout.emit(layout(4, []))
+    expect(s.layout.value).toBe(pushed)
+    const next = layout(9, ['radar'])
+    fake.layout.emit(next)
+    expect(s.layout.value).toBe(next)
+  })
+
+  it('takes the initial layout when nothing newer came', async () => {
+    const init = layout(3, ['standings'])
+    await load({ view: { kind: 'overlay' }, layout: init })
+    const s = mod.useOverlayState()
+    expect(s.layout.value).toBeNull()
+    await flush()
+    expect(s.layout.value).toBe(init)
   })
 })
 
@@ -82,26 +164,49 @@ describe('useWidgetData', () => {
     scope.stop()
   })
 
-  it('drops the payload when the connection stops being live', async () => {
+  it('drops every payload when the connection stops being live', async () => {
     const scope = effectScope()
     const data = scope.run(() => mod.useWidgetData('standings'))!
     await flush()
     fake.data.emit({ widget: 'standings', payload: STANDINGS })
+    fake.data.emit({ widget: 'battle', payload: BATTLE })
     fake.status.emit(WAITING_STATUS)
     await nextTick()
     expect(data.value).toBeNull()
+    expect(mod.overlayState.latest.battle.value).toBeNull()
     scope.stop()
   })
 
-  it('drops the payload when a visibility rule hides the widget', async () => {
+  it('drops only the payload of the widget a visibility rule hides', async () => {
     const scope = effectScope()
     const data = scope.run(() => mod.useWidgetData('standings'))!
     await flush()
     fake.data.emit({ widget: 'standings', payload: STANDINGS })
-    fake.autoHidden.emit({ hidden: true, reason: 'pits' })
+    fake.data.emit({ widget: 'battle', payload: BATTLE })
+    fake.autoHidden.emit({ widget: 'standings', hidden: true, reason: 'pits' })
     await nextTick()
     expect(data.value).toBeNull()
+    expect(mod.overlayState.latest.battle.value).toBe(BATTLE)
     scope.stop()
+  })
+
+  it('drops the payload of a widget the window no longer hosts', async () => {
+    await load({ view: { kind: 'overlay' }, layout: layout(1, ['standings', 'battle']) })
+    const s = mod.useOverlayState()
+    await flush()
+    fake.data.emit({ widget: 'standings', payload: STANDINGS })
+    fake.data.emit({ widget: 'battle', payload: BATTLE })
+    fake.layout.emit(layout(2, ['battle']))
+    expect(s.latest.standings.value).toBeNull()
+    expect(s.latest.battle.value).toBe(BATTLE)
+  })
+
+  it('drops the payload of a widget the initial map hides', async () => {
+    await load({ autoHidden: { standings: { hidden: true, reason: 'pits' } } })
+    const s = mod.useOverlayState()
+    fake.data.emit({ widget: 'standings', payload: STANDINGS })
+    await flush()
+    expect(s.latest.standings.value).toBeNull()
   })
 
   it('keeps a payload handed over before any widget or the initial state exists', async () => {
@@ -124,7 +229,10 @@ describe('useWidgetData', () => {
     const base = fake.listenerCount()
     for (let i = 0; i < 50; i++) {
       const scope = effectScope()
-      scope.run(() => mod.useWidgetData('standings'))
+      scope.run(() => {
+        mod.useWidgetData('standings')
+        mod.useAutoHidden('standings')
+      })
       scope.stop()
     }
     expect(fake.listenerCount()).toBe(base)

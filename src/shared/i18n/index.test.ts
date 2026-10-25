@@ -102,8 +102,8 @@ describe('core texts', () => {
   it('titles the windows in both languages', () => {
     expect(es.core.windowTitles.settings).toBe('OverLap — Ajustes')
     expect(en.core.windowTitles.settings).toBe('OverLap — Settings')
-    expect(es.core.windowTitles.widget(widgetTitle(es, 'relative'))).toBe('Relativo · OverLap')
-    expect(en.core.windowTitles.widget(widgetTitle(en, 'relative'))).toBe('Relative · OverLap')
+    expect(es.core.windowTitles.overlay(1)).toBe('Pantalla 1 · OverLap')
+    expect(en.core.windowTitles.overlay(2)).toBe('Display 2 · OverLap')
   })
 
   it('writes a percentage in the typography of each language', () => {

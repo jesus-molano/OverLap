@@ -134,7 +134,6 @@ const SAME_IN_ENGLISH = new Set([
   'core.tray.rangeMeters',
   'core.tray.widgetHidden',
   'core.tray.tooltip',
-  'core.windowTitles.widget',
   'core.editFrame.autoHeight',
   'widgets.common.sim',
   'widgets.common.pit',

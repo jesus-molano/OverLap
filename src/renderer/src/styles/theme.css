@@ -255,7 +255,7 @@ body {
 
 /* ---- Widget primitives ------------------------------------------------------ */
 
-/* A widget's root: fills the window; nothing inside can reflow or paint past it. */
+/* A widget's root: fills its panel; nothing inside can reflow or paint past it. */
 .ov-root {
   position: absolute;
   inset: 0;
@@ -420,7 +420,7 @@ body {
   }
 }
 
-/* Shown by main.ts when the window was opened with a missing or unknown ?widget=. */
+/* Shown by main.ts when the window was opened with a missing or unknown ?view=. */
 .ov-boot-error {
   display: inline-block;
   margin: 8px;

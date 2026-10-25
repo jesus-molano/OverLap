@@ -3,7 +3,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { sendCommand } from '../editor'
 
-/** Toggles edit mode in every widget window (main is the source of truth). */
+/** Toggles edit mode in every overlay window (main is the source of truth). */
 withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 
 const { editMode } = useOverlayState()

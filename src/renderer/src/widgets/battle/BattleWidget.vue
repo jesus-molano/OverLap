@@ -68,7 +68,7 @@ const preview = computed(() => phase.value === 'preview')
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && lanes.value.length > 0
 )
-// The window width (set by the user; resize events only happen in edit mode).
+// The widget's width (set by the user; it changes only in edit mode).
 const root = useTemplateRef<HTMLElement>('root')
 const rootSize = useElementSize(root)
 const widthEm = computed(() => (rootSize.value.w > 0 ? rootSize.value.w / fontPx.value : Infinity))
@@ -87,7 +87,7 @@ const shown = useReveal(
   { fit: () => autoHeight.value }
 )
 
-// The panel is as tall as its lanes, whatever the window height: main fits the window to it.
+// The panel is as tall as its lanes, whatever the widget's height: its overlay panel fits to it.
 // It only exists once there are lanes (and then keeps the last ones while hidden), so the first
 // height measured is the real one, never that of an empty panel.
 const panel = useTemplateRef('panel')

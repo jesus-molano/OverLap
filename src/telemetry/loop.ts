@@ -384,7 +384,7 @@ export class TelemetryLoop {
     this.updateRules(frame, session, now)
     let ctx: ProviderContext | null = null
     for (const id of this.enabled) {
-      // A widget hidden by its rule is not computed (main hides its window).
+      // A widget hidden by its rule is not computed (its overlay panel is not drawn).
       if (this.autoHide.isHidden(id) || !this.isDue(id, now)) continue
       ctx ??= { frame, session, config: this.config, race, bests: this.bests }
       this.runProvider(id, ctx, now)

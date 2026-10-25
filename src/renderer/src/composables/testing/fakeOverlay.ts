@@ -3,12 +3,13 @@
  * environment: records what the renderer sends and lets a test push what main would.
  */
 import type {
-  AutoHiddenState,
-  ContentSizeMessage,
-  EditDragMessage,
-  EditScaleMessage,
+  AutoHiddenMessage,
+  BoundsCommit,
+  DragStateMessage,
   InitialState,
   OverlayApi,
+  OverlayLayout,
+  ScaleStepMessage,
   SettingsCommand
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
@@ -48,12 +49,13 @@ export interface FakeOverlay extends OverlayApi {
   readonly status: Channel<OverlayStatus>
   readonly editMode: Channel<boolean>
   readonly settings: Channel<OverlaySettings>
-  readonly autoHidden: Channel<AutoHiddenState>
+  readonly autoHidden: Channel<AutoHiddenMessage>
+  readonly layout: Channel<OverlayLayout>
   readonly personalBests: Channel<PersonalBestList>
   readonly sent: {
-    contentSize: ContentSizeMessage[]
-    editScale: EditScaleMessage[]
-    editDrag: EditDragMessage[]
+    commitBounds: BoundsCommit[]
+    scaleStep: ScaleStepMessage[]
+    dragState: DragStateMessage[]
     commands: SettingsCommand[]
   }
   /** Registered listeners over every channel (leak checks). */
@@ -65,14 +67,22 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const status = new Channel<OverlayStatus>()
   const editMode = new Channel<boolean>()
   const settings = new Channel<OverlaySettings>()
-  const autoHidden = new Channel<AutoHiddenState>()
+  const autoHidden = new Channel<AutoHiddenMessage>()
+  const layout = new Channel<OverlayLayout>()
   const personalBests = new Channel<PersonalBestList>()
-  const sent: FakeOverlay['sent'] = { contentSize: [], editScale: [], editDrag: [], commands: [] }
+  const sent: FakeOverlay['sent'] = {
+    commitBounds: [],
+    scaleStep: [],
+    dragState: [],
+    commands: []
+  }
   const initial: InitialState = {
-    view: { kind: 'widget', widgetId: 'standings' },
+    view: { kind: 'overlay' },
     editMode: false,
     status: LIVE_STATUS,
     settings: createDefaultSettings(),
+    layout: null,
+    autoHidden: {},
     ...init
   }
   return {
@@ -81,6 +91,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     editMode,
     settings,
     autoHidden,
+    layout,
     personalBests,
     sent,
     listenerCount: () =>
@@ -89,6 +100,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       editMode.listeners.size +
       settings.listeners.size +
       autoHidden.listeners.size +
+      layout.listeners.size +
       personalBests.listeners.size,
     getInitialState: () => Promise.resolve(initial),
     onData: (cb) => data.on(cb),
@@ -96,10 +108,11 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onEditMode: (cb) => editMode.on(cb),
     onSettings: (cb) => settings.on(cb),
     onAutoHidden: (cb) => autoHidden.on(cb),
+    onLayout: (cb) => layout.on(cb),
     onPersonalBests: (cb) => personalBests.on(cb),
-    editDrag: (msg) => void sent.editDrag.push(msg),
-    contentSize: (msg) => void sent.contentSize.push(msg),
-    editScale: (msg) => void sent.editScale.push(msg),
+    commitBounds: (msg) => void sent.commitBounds.push(msg),
+    scaleStep: (msg) => void sent.scaleStep.push(msg),
+    dragState: (msg) => void sent.dragState.push(msg),
     updateSettings: () => Promise.resolve(initial.settings),
     command: (cmd) => void sent.commands.push(cmd)
   }

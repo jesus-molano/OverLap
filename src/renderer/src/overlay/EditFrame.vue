@@ -1,188 +1,70 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
+/**
+ * Edit-mode chrome and interactions of one panel of an overlay window: the frame, the chips
+ * (name, size, scale, lock, why a rule hides it, drop on another display), the resize handles,
+ * drag to move or resize and the mouse wheel. Outside edit mode it only draws the widget.
+ *
+ * Main decides when the window takes the mouse (only over an unlocked panel, or while a drag
+ * holds the lease), so this never asks for it: it only reports drags (useEditSession).
+ */
+import { computed, onBeforeUnmount } from 'vue'
 import { hiddenText, widgetTitle } from '@shared/i18n'
-import type { EditDragMessage, ResizeHandle } from '@shared/ipc'
-import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
+import { WIDGET_DEFS } from '@shared/widgets'
 import { useI18n } from '../composables/useI18n'
-import { useOverlayState } from '../composables/useOverlay'
+import { useWidgetSettings } from '../composables/useWidgetSettings'
 import Icon from '../ui/Icon.vue'
+import { injectSlot } from './contract'
+import { handlesFor, type DragMode } from './dragMath'
+import { createPanelEdit } from './panelEdit'
+import { ANIMATION_FRAMES } from './timers'
+import { injectEditSession } from './useEditSession'
 
-const props = defineProps<{ widgetId: WidgetId }>()
-
-// autoHidden: a "Mostrar en" / "Ocultar en boxes" rule hides the widget outside edit mode.
-const { editMode, settings, autoHidden } = useOverlayState()
+const slot = injectSlot()
+const session = injectEditSession()
+const def = WIDGET_DEFS[slot.id]
+const prefs = useWidgetSettings(slot.id)
 const t = useI18n()
-const def = computed(() => WIDGET_DEFS[props.widgetId])
-const title = computed(() => widgetTitle(t.value, props.widgetId))
+
+const edit = createPanelEdit({
+  slot,
+  session,
+  minSize: def.minSize,
+  sizeModel: def.sizeModel,
+  sendScaleStep: (msg) => window.overlay.scaleStep(msg),
+  frames: ANIMATION_FRAMES
+})
+const { editable, crossing } = edit
+const editMode = session.editing
+const locked = slot.locked
+const autoHeight = slot.autoHeight
+const autoHidden = slot.autoHidden
+
+const title = computed(() => widgetTitle(t.value, slot.id))
 /** Why a rule hides the widget: 'Oculto en práctica'. */
 const hiddenNote = computed(() => hiddenText(t.value, autoHidden.value.reason))
-const widget = computed(() => settings.value?.widgets[props.widgetId])
-// Main keeps a locked widget click-through even in edit mode; this only hides the edit UI.
-const locked = computed(() => widget.value?.locked === true)
-const editable = computed(() => editMode.value && !locked.value)
-/** Main fits the height to the content: the user only sets the width (side handles). */
-const autoHeight = computed(
-  () => def.value.sizeModel === 'auto-height' && widget.value?.autoHeight !== false
-)
+const handles = computed(() => handlesFor(autoHeight.value))
 
-const ALL_HANDLES: readonly ResizeHandle[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
-const SIDE_HANDLES: readonly ResizeHandle[] = ['e', 'w']
-const handles = computed(() => (autoHeight.value ? SIDE_HANDLES : ALL_HANDLES))
-
-// ---- Live size readout (resize events only happen in edit mode) ----
-
-const size = shallowRef({ w: window.innerWidth, h: window.innerHeight })
-
-function readSize(): void {
-  const w = window.innerWidth
-  const h = window.innerHeight
-  if (w !== size.value.w || h !== size.value.h) size.value = { w, h }
-}
-
-watch(
-  editMode,
-  (on) => {
-    if (on) {
-      readSize()
-      window.addEventListener('resize', readSize)
-    } else {
-      window.removeEventListener('resize', readSize)
-    }
-  },
-  { immediate: true }
-)
-
-/** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets). */
+/** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets), as drawn now. */
 const sizeText = computed(() => {
-  const { w, h } = size.value
-  return `${w} × ${autoHeight.value ? t.value.core.editFrame.autoHeight : h}`
+  const { width, height } = slot.rect.value
+  return `${width} × ${autoHeight.value ? t.value.core.editFrame.autoHeight : height}`
 })
 
 /** '100 %' (auto-height widgets, scaled by the wheel); null for free widgets. */
 const scaleText = computed(() =>
-  def.value.sizeModel === 'auto-height' ? t.value.core.percent(widget.value?.scale ?? 100) : null
+  def.sizeModel === 'auto-height' ? t.value.core.percent(prefs.value.scale) : null
 )
 
-// ---- Mouse wheel: bigger / smaller (main decides between scale and resize) ----
-
-const WHEEL_INTERVAL_MS = 50
-let lastWheelAt = -Infinity
+function onPointerDown(e: PointerEvent, mode: DragMode): void {
+  const el = e.currentTarget
+  if (el instanceof HTMLElement) edit.pointerDown(e, el, mode)
+}
 
 function onWheel(e: WheelEvent): void {
-  if (!editable.value || drag || e.deltaY === 0) return
-  e.preventDefault()
-  // One step per 50 ms whatever the wheel's resolution: a timestamp, no timer.
-  if (e.timeStamp - lastWheelAt < WHEEL_INTERVAL_MS) return
-  lastWheelAt = e.timeStamp
-  window.overlay.editScale({ step: e.deltaY < 0 ? 1 : -1 })
+  edit.wheel(e)
 }
 
-// ---- Manual move / resize ----
-// The window is frameless, transparent and non-focusable, where native
-// drag/resize is unreliable. Main reads the cursor itself on every message
-// (getCursorScreenPoint, DIP), so `move` is only a "pointer moved" tick, at
-// most one per frame; dx/dy travel along for the contract but main ignores them.
-
-interface Drag {
-  el: HTMLElement
-  pointerId: number
-  mode: EditDragMessage['mode']
-  startX: number
-  startY: number
-  dx: number
-  dy: number
-  /** Alt (or Shift) held: no edge snapping. */
-  noSnap: boolean
-  /** The pointer moved since the last message. */
-  moved: boolean
-  /** Pending requestAnimationFrame id, 0 when none. */
-  raf: number
-}
-
-let drag: Drag | null = null
-
-function send(d: Drag, phase: EditDragMessage['phase']): void {
-  d.moved = false
-  window.overlay.editDrag({ phase, mode: d.mode, dx: d.dx, dy: d.dy, noSnap: d.noSnap })
-}
-
-function track(d: Drag, e: PointerEvent): void {
-  d.dx = Math.round(e.screenX - d.startX)
-  d.dy = Math.round(e.screenY - d.startY)
-  // Shift as well: the window never has keyboard focus, and Windows can report Alt late to it.
-  d.noSnap = e.altKey || e.shiftKey
-  d.moved = true
-}
-
-function flush(): void {
-  if (!drag) return
-  drag.raf = 0
-  if (drag.moved) send(drag, 'move')
-}
-
-function onPointerDown(e: PointerEvent, mode: EditDragMessage['mode']): void {
-  if (!editable.value || drag || e.button !== 0 || !e.isPrimary) return
-  const el = e.currentTarget
-  if (!(el instanceof HTMLElement)) return
-  e.preventDefault()
-  el.setPointerCapture(e.pointerId)
-  drag = {
-    el,
-    pointerId: e.pointerId,
-    mode,
-    startX: e.screenX,
-    startY: e.screenY,
-    dx: 0,
-    dy: 0,
-    noSnap: e.altKey || e.shiftKey,
-    moved: false,
-    raf: 0
-  }
-  el.addEventListener('pointermove', onPointerMove)
-  el.addEventListener('pointerup', onPointerEnd)
-  el.addEventListener('pointercancel', onPointerEnd)
-  el.addEventListener('lostpointercapture', onPointerEnd)
-  send(drag, 'start')
-}
-
-function onPointerMove(e: PointerEvent): void {
-  if (!drag || e.pointerId !== drag.pointerId) return
-  track(drag, e)
-  if (drag.raf === 0) drag.raf = requestAnimationFrame(flush)
-}
-
-function onPointerEnd(e: PointerEvent): void {
-  if (!drag || e.pointerId !== drag.pointerId) return
-  if (e.type === 'pointerup') track(drag, e)
-  endDrag()
-}
-
-/**
- * Finishes the current drag (if any) with `end`, which main also applies as a
- * last step. A widget locked mid-drag sends nothing more (main rejects drags
- * of locked widgets anyway).
- */
-function endDrag(): void {
-  const d = drag
-  if (!d) return
-  drag = null
-  if (d.raf !== 0) cancelAnimationFrame(d.raf)
-  d.el.removeEventListener('pointermove', onPointerMove)
-  d.el.removeEventListener('pointerup', onPointerEnd)
-  d.el.removeEventListener('pointercancel', onPointerEnd)
-  d.el.removeEventListener('lostpointercapture', onPointerEnd)
-  if (d.el.hasPointerCapture(d.pointerId)) d.el.releasePointerCapture(d.pointerId)
-  if (!locked.value) send(d, 'end')
-}
-
-watch(editable, (on) => {
-  if (!on) endDrag()
-})
-
-onBeforeUnmount(() => {
-  endDrag()
-  window.removeEventListener('resize', readSize)
-})
+onBeforeUnmount(() => edit.dispose())
 </script>
 
 <template>
@@ -201,6 +83,9 @@ onBeforeUnmount(() => {
         <span class="chip-title">{{ title }}</span>
         <span class="chip-meta">{{ locked ? t.core.editFrame.locked : sizeText }}</span>
         <span v-if="!locked && scaleText" class="chip-meta chip-scale">{{ scaleText }}</span>
+      </div>
+      <div v-if="crossing" class="chip chip-drop">
+        <span class="chip-meta">{{ t.core.editFrame.dropOnOtherDisplay }}</span>
       </div>
       <div v-if="autoHidden.hidden" class="chip chip-note">
         <Icon name="eye-off" class="eye-off" />
@@ -227,13 +112,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* The window's root: fixed to the viewport, so nothing inside can reflow or paint past it. */
+/* Fills its panel; the panel (.ov-slot) holds the size and the paint containment. */
 .frame {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  contain: strict;
 }
 
 .content {
@@ -349,6 +233,15 @@ onBeforeUnmount(() => {
   border-color: var(--ov-locked);
 }
 
+/* The pointer left this display mid-move: releasing moves the widget there. */
+.chip-drop {
+  border-color: var(--ov-edit);
+}
+
+.chip-drop .chip-meta {
+  color: var(--ov-fg);
+}
+
 /* A rule hides this widget outside edit mode. */
 .chip-note {
   border-color: color-mix(in srgb, var(--ov-warn) 60%, transparent);
@@ -366,7 +259,7 @@ onBeforeUnmount(() => {
   color: var(--ov-warn);
 }
 
-/* Only while the pointer is over the widget: the chip alone says what and how big. */
+/* Only while the pointer is over the panel: the chip alone says what and how big. */
 .hint {
   display: none;
   max-width: calc(100% - 16px);
@@ -384,7 +277,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-/* Longest hint that fits the window width (the window is the container). */
+/* Longest hint that fits the panel width (the edit layer is the container). */
 .hint-long,
 .hint-short {
   display: none;

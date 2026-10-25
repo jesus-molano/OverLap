@@ -12,15 +12,15 @@ import type { OverlaySettings, StandingsColumn, StandingsColumnId } from '@share
 import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
 
 export interface SenderLookup<S> {
-  widgetOf(sender: S): WidgetId | undefined
+  /** One of the overlay windows (one per display). */
+  isOverlay(sender: S): boolean
   isSettings(sender: S): boolean
 }
 
 /** Page shown by the renderer that sent an IPC message; null for any other sender. */
 export function viewOfSender<S>(sender: S, lookup: SenderLookup<S>): RendererView | null {
   if (lookup.isSettings(sender)) return { kind: 'settings' }
-  const widgetId = lookup.widgetOf(sender)
-  return widgetId ? { kind: 'widget', widgetId } : null
+  return lookup.isOverlay(sender) ? { kind: 'overlay' } : null
 }
 
 /** Validates an untrusted `IPC.command` payload. */
