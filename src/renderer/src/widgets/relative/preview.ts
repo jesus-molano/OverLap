@@ -1,0 +1,223 @@
+/**
+ * Sample relative for edit mode: invented drivers around you, with a car lapping you, a lapped
+ * car, one in the pits and two classes, so name format, licence style and columns are judged on
+ * realistic rows. As many cars as the options ask for. Pure.
+ */
+import type { LapRelation, RelativeData, RelativeRow } from '@shared/types'
+
+const GT3 = '#33ceff'
+const LMP2 = '#ff5888'
+const LIC = { A: '#0153db', B: '#00c702', C: '#feec04', D: '#fc8a27', R: '#fc0706' } as const
+
+interface Seed {
+  num: string
+  name: string
+  cls?: string
+  pos: number
+  ir: number
+  lic: keyof typeof LIC
+  sr: string
+  gap: number
+  lap?: LapRelation
+  pits?: boolean
+}
+
+function row(s: Seed, i: number, isPlayer = false): RelativeRow {
+  return {
+    carIdx: i,
+    isPlayer,
+    classPosition: s.pos,
+    carNumber: s.num,
+    driverName: s.name,
+    classShortName: s.cls === LMP2 ? 'LMP2' : 'GT3',
+    classColor: s.cls ?? GT3,
+    iRating: s.ir,
+    licString: `${s.lic} ${s.sr}`,
+    licColor: LIC[s.lic],
+    gapS: s.gap,
+    lapRelation: s.lap ?? 'same',
+    inPits: s.pits === true
+  }
+}
+
+/** Closest first. */
+const AHEAD: readonly Seed[] = [
+  { num: '19', name: 'Pierre-Étienne Duvalier', pos: 4, ir: 3488, lic: 'A', sr: '4.12', gap: 0.9 },
+  {
+    num: '29',
+    name: 'Zoë van der Berg',
+    cls: LMP2,
+    pos: 1,
+    ir: 3320,
+    lic: 'A',
+    sr: '2.88',
+    gap: 2.4,
+    lap: 'ahead'
+  },
+  { num: '12', name: 'Mateo Echeverría', pos: 3, ir: 3105, lic: 'A', sr: '3.40', gap: 4.6 },
+  { num: '3', name: 'Lukas Brandt', pos: 2, ir: 2034, lic: 'B', sr: '2.12', gap: 7.8 },
+  {
+    num: '31',
+    name: 'Hugo Lefèvre',
+    cls: LMP2,
+    pos: 2,
+    ir: 2950,
+    lic: 'A',
+    sr: '3.66',
+    gap: 11.2,
+    lap: 'ahead'
+  },
+  { num: '44', name: 'Jonas Lindqvist', pos: 1, ir: 2712, lic: 'A', sr: '2.71', gap: 14.9 },
+  {
+    num: '5',
+    name: 'Sofia Rossi',
+    cls: LMP2,
+    pos: 3,
+    ir: 2610,
+    lic: 'B',
+    sr: '4.02',
+    gap: 19.3,
+    lap: 'ahead'
+  },
+  {
+    num: '36',
+    name: 'Liam O’Connor',
+    cls: LMP2,
+    pos: 4,
+    ir: 2240,
+    lic: 'B',
+    sr: '2.77',
+    gap: 24.1,
+    lap: 'ahead'
+  },
+  {
+    num: '77',
+    name: 'Ana Sousa',
+    cls: LMP2,
+    pos: 5,
+    ir: 1985,
+    lic: 'C',
+    sr: '3.05',
+    gap: 30.6,
+    lap: 'ahead'
+  },
+  {
+    num: '61',
+    name: 'Tomasz Nowak',
+    pos: 10,
+    ir: 1630,
+    lic: 'C',
+    sr: '2.94',
+    gap: 37.2,
+    lap: 'behind'
+  }
+]
+
+/** Closest first. */
+const BEHIND: readonly Seed[] = [
+  { num: '51', name: 'Marco Bianchi', pos: 6, ir: 2488, lic: 'A', sr: '1.84', gap: -1.1 },
+  {
+    num: '8',
+    name: 'Kenji Watanabe',
+    pos: 8,
+    ir: 2203,
+    lic: 'B',
+    sr: '3.81',
+    gap: -3.5,
+    lap: 'behind',
+    pits: true
+  },
+  { num: '9', name: 'Camille Martineau', pos: 7, ir: 1104, lic: 'R', sr: '2.03', gap: -5.2 },
+  {
+    num: '23',
+    name: 'John Smith Jr',
+    pos: 9,
+    ir: 1876,
+    lic: 'C',
+    sr: '3.55',
+    gap: -9.4,
+    lap: 'behind'
+  },
+  {
+    num: '88',
+    name: 'Emma Larsen',
+    pos: 11,
+    ir: 1422,
+    lic: 'D',
+    sr: '3.10',
+    gap: -13.8,
+    lap: 'behind'
+  },
+  {
+    num: '14',
+    name: 'Diego Fernández Ortega',
+    pos: 12,
+    ir: 1290,
+    lic: 'D',
+    sr: '2.48',
+    gap: -18.0,
+    lap: 'behind'
+  },
+  {
+    num: '2',
+    name: 'Nora Lindgren',
+    pos: 13,
+    ir: 1210,
+    lic: 'D',
+    sr: '1.95',
+    gap: -22.7,
+    lap: 'behind'
+  },
+  {
+    num: '17',
+    name: 'Rafael Costa',
+    pos: 14,
+    ir: 1150,
+    lic: 'R',
+    sr: '2.60',
+    gap: -27.4,
+    lap: 'behind'
+  },
+  {
+    num: '40',
+    name: 'Yuki Tanaka',
+    pos: 15,
+    ir: 1066,
+    lic: 'R',
+    sr: '1.41',
+    gap: -31.9,
+    lap: 'behind'
+  },
+  {
+    num: '66',
+    name: 'Oscar Berg',
+    pos: 16,
+    ir: 987,
+    lic: 'R',
+    sr: '2.05',
+    gap: -36.3,
+    lap: 'behind'
+  }
+]
+
+const PLAYER: Seed = {
+  num: '7',
+  name: 'Alejandro Ruiz',
+  pos: 5,
+  ir: 2391,
+  lic: 'B',
+  sr: '3.27',
+  gap: 0
+}
+
+/** Sample payload with up to `ahead` / `behind` cars (already clamped by the caller). */
+export function previewRelative(ahead: number, behind: number): RelativeData {
+  const a = AHEAD.slice(0, Math.max(0, ahead)).reverse()
+  const b = BEHIND.slice(0, Math.max(0, behind))
+  const rows = [
+    ...a.map((s, i) => row(s, i + 1)),
+    row(PLAYER, 0, true),
+    ...b.map((s, i) => row(s, i + 21))
+  ]
+  return { rows, playerRow: a.length, slotsAhead: ahead, slotsBehind: behind, sessionType: 'Race' }
+}

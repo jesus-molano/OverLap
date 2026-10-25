@@ -1,0 +1,819 @@
+import { setFlagsFromString } from 'node:v8'
+import { runInNewContext } from 'node:vm'
+import { describe, expect, it } from 'vitest'
+import { SessionFlag } from '../flags'
+import { SessionState } from '../telemetry'
+import { EMPTY_RACE_VIEW } from '../race/emptyRaceView'
+import { RACE_TIMING_LINES } from '../race/raceView'
+import type { RaceCarState, RaceView } from '../race/raceView'
+import { makeDriver, makeFrame, makeSession } from '../race/testing/raceSim'
+import type { DeltaData, DeltaOptions, DeltaReference, DriverEntry, SessionMeta } from '../types'
+import { DELTA, DeltaProvider, deltaEqual, profileAt, sectorLines } from './delta'
+import { createMemoryStore, personalBestKey } from './references'
+import type { LapReference } from './references'
+
+const LINES = RACE_TIMING_LINES
+const PLAYER = 0
+const T0 = 1000
+
+/** Profile of a lap driven at constant speed. */
+function even(lapTime: number): number[] {
+  return Array.from({ length: LINES + 1 }, (_, i) => (lapTime * i) / LINES)
+}
+
+/** Lap fraction reached `e` seconds into a lap driven along `profile`. */
+function pctAt(profile: readonly number[], e: number): number {
+  for (let i = 0; i < LINES; i++) {
+    const a = profile[i] ?? 0
+    const b = profile[i + 1] ?? 0
+    if (e < b) return (i + (b > a ? (e - a) / (b - a) : 0)) / LINES
+  }
+  return 1
+}
+
+interface Lap {
+  lap: number
+  lapTime: number
+  clean: boolean
+  profile: readonly number[]
+}
+
+function lapOf(lapTime: number, lap = 2, profile: readonly number[] = even(lapTime)): Lap {
+  return { lap, lapTime, clean: true, profile }
+}
+
+function carState(carIdx: number, o: Partial<RaceCarState> = {}): RaceCarState {
+  return {
+    carIdx,
+    distance: 3.5,
+    classPosition: 1,
+    overallPosition: 1,
+    inWorld: true,
+    inPits: false,
+    offTrack: false,
+    disconnected: false,
+    finished: false,
+    pitStops: 0,
+    lastPitLap: null,
+    outLap: false,
+    stintLaps: 3,
+    lastLapTime: null,
+    bestLapTime: null,
+    laps: [],
+    pace: 100,
+    speed: 0.01,
+    stoppedForS: 0,
+    sessionFlags: 0,
+    ...o
+  }
+}
+
+/** A RaceView whose cars, laps and lap profiles each test sets by hand. */
+class FakeRace {
+  key = 'race-a'
+  readonly states = new Map<number, RaceCarState>()
+  readonly best = new Map<number, Lap>()
+  readonly last = new Map<number, Lap>()
+  readonly current = new Map<number, { lap: number; elapsedS: number }>()
+  profileCalls = 0
+  readonly view: RaceView
+
+  constructor() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this
+    this.view = {
+      ...EMPTY_RACE_VIEW,
+      get sessionKey(): string {
+        return self.key
+      },
+      car: (i) => self.states.get(i),
+      cars: () => [...self.states.values()],
+      currentLap: (i) => self.current.get(i) ?? null,
+      lapProfile: (i, which) => {
+        self.profileCalls++
+        return (which === 'best' ? self.best : self.last).get(i) ?? null
+      }
+    }
+  }
+}
+
+const DRIVERS: DriverEntry[] = [
+  makeDriver(0, { userName: 'Jesús Molano', carNumber: '7', carId: 67 }),
+  makeDriver(1, { userName: 'Jonas Lindqvist', carNumber: '44', carId: 67 }),
+  makeDriver(2, { userName: 'Ana Prototipo', carNumber: '2', classId: 2, carId: 80 }),
+  makeDriver(3, { userName: 'Marta Ruiz', carNumber: '12', carId: 67 })
+]
+
+interface Sample {
+  t: number
+  lap: number
+  pct: number
+  data: DeltaData
+}
+
+interface DriveOptions {
+  t0?: number
+  /** Lap number of the first profile. */
+  lap?: number
+  hz?: number
+  /** Stop on the last lap once the pct reaches this. */
+  endPct?: number
+  /** Make each completed lap the model's best when faster (the player's session best). */
+  promote?: boolean
+  /** Runs before each compute (the model updates before the providers). */
+  before?: (t: number, lap: number, pct: number) => void
+  /** Keep the samples (default true; false for long runs). */
+  keep?: boolean
+}
+
+class Rig {
+  readonly frame = makeFrame()
+  readonly race = new FakeRace()
+  readonly bests = createMemoryStore()
+  readonly provider = new DeltaProvider()
+  session: SessionMeta
+  opts: DeltaOptions
+
+  constructor(
+    o: {
+      reference?: DeltaReference
+      fallback?: boolean
+      sectorStarts?: number[]
+      drivers?: DriverEntry[]
+    } = {}
+  ) {
+    const drivers = o.drivers ?? DRIVERS
+    this.session = makeSession(
+      drivers.length,
+      { sectorStarts: o.sectorStarts ?? [0, 0.33, 0.66], trackId: 219, trackConfig: 'Grand Prix' },
+      drivers
+    )
+    this.opts = {
+      reference: o.reference ?? 'session',
+      fallback: o.fallback ?? false,
+      rangeS: 1,
+      showPredicted: true,
+      showSectors: true,
+      showTrend: true
+    }
+    this.frame.PlayerCarIdx[0] = PLAYER
+    for (const d of drivers) this.race.states.set(d.carIdx, carState(d.carIdx))
+  }
+
+  player(o: Partial<RaceCarState>): void {
+    this.race.states.set(PLAYER, carState(PLAYER, o))
+  }
+
+  compute(): DeltaData {
+    return this.provider.compute(this.frame, this.session, this.race.view, this.bests, this.opts)
+  }
+
+  /** The player `elapsed` s into lap `lap` (null: no lap in progress) at `pct`, SessionTime `t`. */
+  at(t: number, lap: number | null, pct: number, elapsed = 0): DeltaData {
+    this.frame.SessionTime[0] = t
+    this.frame.CarIdxLapDistPct[PLAYER] = pct
+    if (lap === null) this.race.current.delete(PLAYER)
+    else this.race.current.set(PLAYER, { lap, elapsedS: elapsed })
+    return this.compute()
+  }
+
+  /**
+   * Drives consecutive laps from the S/F line at SessionTime t0, lap k along profiles[k]. At
+   * each line the model's last lap (and best with `promote`) changes before the compute.
+   */
+  drive(profiles: readonly (readonly number[])[], o: DriveOptions = {}): Sample[] {
+    const hz = o.hz ?? 30
+    const t0 = o.t0 ?? T0
+    const first = o.lap ?? 3
+    const out: Sample[] = []
+    let k = 0
+    let start = t0
+    for (let n = 1; ; n++) {
+      const t = t0 + n / hz
+      let prof = profiles[k] ?? []
+      while (t >= start + (prof[LINES] ?? 0)) {
+        const done: Lap = { lap: first + k, lapTime: prof[LINES] ?? 0, clean: true, profile: prof }
+        this.race.last.set(PLAYER, done)
+        const best = this.race.best.get(PLAYER)
+        if (o.promote && (!best || best.lapTime > done.lapTime)) this.race.best.set(PLAYER, done)
+        start += done.lapTime
+        k++
+        if (k >= profiles.length) return out
+        prof = profiles[k] ?? []
+      }
+      const lap = first + k
+      const pct = pctAt(prof, t - start)
+      if (k === profiles.length - 1 && o.endPct !== undefined && pct >= o.endPct) return out
+      o.before?.(t, lap, pct)
+      const data = this.at(t, lap, pct, t - start)
+      if (o.keep !== false) out.push({ t, lap, pct, data })
+    }
+  }
+}
+
+function pbLap(lapTime: number, o: Partial<LapReference> = {}): LapReference {
+  return { lapTime, profile: even(lapTime), recordedAt: '2026-10-01T20:00:00.000Z', ...o }
+}
+
+describe('profileAt', () => {
+  it('interpolates linearly between timing lines and clamps the lap fraction', () => {
+    const p = even(100)
+    expect(profileAt(p, 0)).toBe(0)
+    expect(profileAt(p, 0.5)).toBeCloseTo(50, 9)
+    expect(profileAt(p, 0.255)).toBeCloseTo(25.5, 9)
+    expect(profileAt(p, 1)).toBe(100)
+    expect(profileAt(p, -0.2)).toBe(0)
+    expect(profileAt(p, 1.3)).toBe(100)
+    // A lap that speeds up: t(line i) = i^2 / 100.
+    const q = Array.from({ length: LINES + 1 }, (_, i) => (i * i) / 100)
+    expect(profileAt(q, 0.105)).toBeCloseTo(1 + 0.5 * 0.21, 9)
+    expect(profileAt(q, 0.999)).toBeCloseTo(98.01 + 0.9 * 1.99, 9)
+  })
+})
+
+describe('sectorLines', () => {
+  it('snaps the sector starts to timing lines like the RaceModel', () => {
+    expect(sectorLines([0, 0.33, 0.66])).toEqual([0, 33, 66])
+    expect(sectorLines([0, 0.334, 0.999])).toEqual([0, 33, 99])
+    expect(sectorLines([])).toEqual([])
+    expect(sectorLines([0.1, 0.5])).toEqual([])
+  })
+})
+
+describe('DeltaProvider: the live delta', () => {
+  it('is seconds versus the reference at the same point of the lap: faster is negative', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    // Half a second down at half distance: the lap is heading for 100.5.
+    expect(rig.at(T0, 3, 0.5, 50.5)).toMatchObject({
+      visible: true,
+      reference: 'session',
+      refDriver: '',
+      refSelf: false,
+      refLapTime: 100,
+      delta: 0.5,
+      predictedLap: 100.5,
+      lapValid: true
+    })
+    // 0.3 s up a bit later: negative.
+    const up = rig.at(T0 + 0.5, 3, 0.505, 50.2)
+    expect(up.delta).toBe(-0.3)
+    expect(up.predictedLap).toBe(99.7)
+    // Quantised to 0.01.
+    expect(rig.at(T0 + 1, 3, 0.51, 51.0049).delta).toBe(0)
+    expect(rig.at(T0 + 1.5, 3, 0.515, 51.4361).delta).toBe(-0.06)
+  })
+
+  it('follows the shape of the reference lap, not just its average', () => {
+    const rig = new Rig()
+    // The reference is quick in the first half (40 s) and slow in the second (60 s).
+    const ref = Array.from({ length: LINES + 1 }, (_, i) =>
+      i <= 50 ? 0.8 * i : 40 + 1.2 * (i - 50)
+    )
+    rig.race.best.set(PLAYER, lapOf(100, 2, ref))
+    expect(rig.at(T0, 3, 0.25, 21).delta).toBe(1)
+    expect(rig.at(T0 + 0.5, 3, 0.755, 70.6).delta).toBe(0)
+  })
+
+  it('is hidden without a reference or out of the car, and shown when one appears', () => {
+    const rig = new Rig()
+    const none = rig.at(T0, 3, 0.5, 50)
+    expect(none).toEqual({
+      visible: false,
+      reference: 'session',
+      refDriver: '',
+      refSelf: false,
+      refLapTime: null,
+      delta: null,
+      trend: 0,
+      predictedLap: null,
+      sectors: [],
+      lapValid: true
+    })
+    // A reference appears while there is none: taken at once (nothing to keep consistent).
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0 + 0.5, 3, 0.505, 50.5).visible).toBe(true)
+    // Garage, replay or a teammate driving.
+    rig.frame.IsOnTrack[0] = false
+    expect(rig.at(T0 + 1, 3, 0.51, 51).visible).toBe(false)
+    rig.frame.IsOnTrack[0] = true
+    expect(rig.at(T0 + 1.5, 3, 0.515, 51.5)).toMatchObject({ visible: true, delta: 0 })
+  })
+
+  it('without a lap in progress (a tow, before your first line) shows no delta and no valid lap', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, null, 0.4)).toMatchObject({
+      visible: true,
+      delta: null,
+      predictedLap: null,
+      sectors: [null, null, null],
+      lapValid: false
+    })
+  })
+})
+
+describe('DeltaProvider: references', () => {
+  const key = (rig: Rig): string => personalBestKey(rig.session, PLAYER) ?? ''
+
+  function pick(rig: Rig): DeltaData {
+    return rig.at(T0, 3, 0.5, 50)
+  }
+
+  it('fallback walks pb -> session -> class from the chosen one', () => {
+    const setup = (reference: DeltaReference, fallback: boolean, have: DeltaReference[]): Rig => {
+      const rig = new Rig({ reference, fallback })
+      if (have.includes('pb')) rig.bests.offer(key(rig), pbLap(99))
+      if (have.includes('session')) rig.race.best.set(PLAYER, lapOf(101))
+      if (have.includes('class')) rig.race.best.set(1, lapOf(100))
+      return rig
+    }
+    const ref = (d: DeltaData): string => (d.visible ? `${d.reference} ${d.refLapTime}` : 'none')
+    expect(ref(pick(setup('pb', true, ['pb', 'session', 'class'])))).toBe('pb 99')
+    expect(ref(pick(setup('pb', true, ['session', 'class'])))).toBe('session 101')
+    // The class best (car 1, 100) is faster than your own (101) but comes later in the chain.
+    expect(ref(pick(setup('pb', true, ['class'])))).toBe('class 100')
+    expect(ref(pick(setup('session', true, ['pb', 'class'])))).toBe('class 100')
+    // The chain never goes back...
+    expect(ref(pick(setup('session', true, ['pb'])))).toBe('none')
+    expect(ref(pick(setup('class', true, ['pb'])))).toBe('none')
+    // ...but your own session best is a lap of your class too.
+    expect(ref(pick(setup('class', true, ['pb', 'session'])))).toBe('class 101')
+    // Without fallback, only the chosen one.
+    expect(ref(pick(setup('pb', false, ['session', 'class'])))).toBe('none')
+    expect(ref(pick(setup('class', false, ['class'])))).toBe('class 100')
+  })
+
+  it('personal best: this car on this layout, with no driver (the widget names it)', () => {
+    const rig = new Rig({ reference: 'pb' })
+    expect(key(rig)).toBe('67@219/Grand Prix')
+    rig.bests.offer('67@219/Oval', pbLap(90))
+    rig.bests.offer('80@219/Grand Prix', pbLap(80))
+    expect(pick(rig).visible).toBe(false)
+    const mine = new Rig({ reference: 'pb' })
+    mine.bests.offer(key(mine), pbLap(99.5))
+    expect(pick(mine)).toMatchObject({
+      visible: true,
+      reference: 'pb',
+      refDriver: '',
+      refSelf: false,
+      refLapTime: 99.5,
+      delta: 0.25
+    })
+  })
+
+  it('ignores unusable laps (corrupt store data): wrong length, NaN, time going back', () => {
+    const bad: LapReference[] = [
+      pbLap(99, { profile: even(99).slice(0, 50) }),
+      pbLap(99, { profile: even(99).map((v, i) => (i === 40 ? Number.NaN : v)) }),
+      pbLap(99, { profile: even(99).map((v, i) => (i === 40 ? 1 : v)) }),
+      pbLap(0, { profile: even(0) }),
+      pbLap(Number.POSITIVE_INFINITY)
+    ]
+    for (const lap of bad) {
+      const rig = new Rig({ reference: 'pb', fallback: true })
+      rig.bests.offer(key(rig), lap)
+      rig.race.best.set(PLAYER, lapOf(101))
+      expect(pick(rig)).toMatchObject({ reference: 'session', refLapTime: 101 })
+    }
+    // The model's laps are checked the same way; a lap that is not clean is never a reference.
+    const rig = new Rig({ reference: 'class' })
+    rig.race.best.set(1, { ...lapOf(98), clean: false })
+    rig.race.best.set(3, lapOf(99, 4, even(99).slice(1)))
+    expect(pick(rig).visible).toBe(false)
+  })
+
+  it('class: the fastest clean lap of your class by anyone, labelled by number and name', () => {
+    const rig = new Rig({ reference: 'class' })
+    rig.race.best.set(PLAYER, lapOf(101))
+    rig.race.best.set(1, lapOf(100.5))
+    // Another class is faster, it does not count.
+    rig.race.best.set(2, lapOf(95))
+    rig.race.best.set(3, lapOf(100.8))
+    expect(pick(rig)).toMatchObject({
+      reference: 'class',
+      refDriver: '#44 J. Lindqvist',
+      refSelf: false,
+      refLapTime: 100.5
+    })
+  })
+
+  it('class: your own lap when you are the fastest (refSelf), also on a tie', () => {
+    const fastest = new Rig({ reference: 'class' })
+    fastest.race.best.set(PLAYER, lapOf(99))
+    fastest.race.best.set(1, lapOf(100.5))
+    expect(pick(fastest)).toMatchObject({ refDriver: '', refSelf: true, refLapTime: 99 })
+    const tie = new Rig({ reference: 'class' })
+    tie.race.best.set(3, lapOf(100))
+    tie.race.best.set(PLAYER, lapOf(100))
+    tie.race.best.set(1, lapOf(100))
+    expect(pick(tie)).toMatchObject({ refDriver: '', refSelf: true })
+    // Without you: the lowest CarIdx.
+    const others = new Rig({ reference: 'class' })
+    others.race.best.set(3, lapOf(100))
+    others.race.best.set(1, lapOf(100))
+    expect(pick(others)).toMatchObject({ refDriver: '#44 J. Lindqvist', refSelf: false })
+  })
+
+  it('switches only at the S/F line: a faster lap set mid-lap waits for your next lap', () => {
+    const rig = new Rig({ reference: 'class' })
+    rig.race.best.set(1, lapOf(100.5, 5))
+    expect(rig.at(T0, 3, 0.3, 30.35)).toMatchObject({ refLapTime: 100.5, delta: 0.2 })
+    // The same lap of car 1 with its official time: refined mid-lap (a few ms).
+    rig.race.best.set(1, lapOf(100.503, 5))
+    expect(rig.at(T0 + 2, 3, 0.32, 32.36)).toMatchObject({ refLapTime: 100.503, delta: 0.2 })
+    // Car 3 laps faster while you are mid-lap: the delta keeps comparing with car 1.
+    rig.race.best.set(3, lapOf(100, 6))
+    expect(rig.at(T0 + 4, 3, 0.34, 34.37)).toMatchObject({
+      refDriver: '#44 J. Lindqvist',
+      refLapTime: 100.503,
+      delta: 0.2
+    })
+    // Your next lap compares with car 3.
+    expect(rig.at(T0 + 5, 4, 0.005, 0.5)).toMatchObject({
+      refDriver: '#12 M. Ruiz',
+      refLapTime: 100
+    })
+  })
+
+  it('a personal best offered a few seconds after the line is the reference of that same lap', () => {
+    const rig = new Rig({ reference: 'pb', fallback: true })
+    rig.bests.offer(key(rig), pbLap(101))
+    const samples = rig.drive([even(100), even(101)], {
+      promote: true,
+      endPct: 0.4,
+      // The loop offers lap 3 (100 s) once its official time had time to arrive.
+      before: (t) => {
+        if (t >= T0 + 105.5) rig.bests.offer(key(rig), pbLap(100))
+      }
+    })
+    // Lap 3 against the old record: -1.00 at the line...
+    const line = samples.filter((s) => s.lap === 4 && s.pct < DELTA.guardPct)
+    expect(line.every((s) => s.data.delta === -1 && s.data.refLapTime === 101)).toBe(true)
+    // ...which stays the reference until the new one is stored...
+    const lap4 = samples.filter((s) => s.lap === 4 && s.pct >= DELTA.guardPct)
+    const early = lap4.filter((s) => s.t < T0 + 105.5)
+    expect(early.length).toBeGreaterThan(90)
+    expect(early.every((s) => s.data.reference === 'pb' && s.data.refLapTime === 101)).toBe(true)
+    // ...then the new record, in the same lap (before its first sector line).
+    const late = lap4.filter((s) => s.t >= T0 + 105.5 + DELTA.searchS + 0.05)
+    expect(late.length).toBeGreaterThan(100)
+    expect(late.every((s) => s.data.reference === 'pb' && s.data.refLapTime === 100)).toBe(true)
+    expect(late.at(-1)?.data.sectors).toEqual([0.33, null, null])
+  })
+
+  it('a better lap that arrives once a sector is done waits for the next lap', () => {
+    // A short first sector: done 2 s into the lap.
+    const rig = new Rig({ reference: 'class', sectorStarts: [0, 0.02, 0.5] })
+    rig.race.best.set(1, lapOf(100.5, 5))
+    const samples = rig.drive([even(100)], {
+      endPct: 0.1,
+      before: (t) => {
+        if (t >= T0 + 4) rig.race.best.set(3, lapOf(100, 6))
+      }
+    })
+    const after = samples.filter((s) => s.t >= T0 + 4)
+    expect(after.length).toBeGreaterThan(100)
+    expect(after.every((s) => s.data.refLapTime === 100.5)).toBe(true)
+  })
+
+  it('a change of options applies at once, mid-lap', () => {
+    const rig = new Rig({ reference: 'class' })
+    rig.race.best.set(1, lapOf(100.5, 5))
+    rig.race.best.set(PLAYER, lapOf(101, 2))
+    expect(rig.at(T0, 3, 0.3, 30.35).reference).toBe('class')
+    rig.opts = { ...rig.opts, reference: 'session' }
+    expect(rig.at(T0 + 0.1, 3, 0.301, 30.45)).toMatchObject({
+      reference: 'session',
+      refDriver: '',
+      refSelf: false,
+      refLapTime: 101
+    })
+    rig.opts = { ...rig.opts, fallback: true, reference: 'pb' }
+    expect(rig.at(T0 + 0.2, 3, 0.302, 30.55).reference).toBe('session')
+    rig.opts = { ...rig.opts, fallback: false }
+    expect(rig.at(T0 + 0.3, 3, 0.303, 30.65).visible).toBe(false)
+  })
+
+  it('looks the references up at most every refreshS while one is in use (cheap at 30 Hz)', () => {
+    const drivers = Array.from({ length: 20 }, (_, i) => makeDriver(i, { carId: 67 }))
+    const rig = new Rig({ reference: 'class', drivers })
+    for (let i = 1; i < 20; i++) rig.race.best.set(i, lapOf(100 + i / 10, 5))
+    const profile = even(100)
+    rig.race.profileCalls = 0
+    // 60 s mid-lap at 30 Hz: 1800 computes.
+    const samples = rig.drive([profile], { t0: T0 - 20, endPct: 0.8 })
+    const mid = samples.filter((s) => s.pct > 0.2)
+    expect(mid.length).toBeGreaterThan(1700)
+    expect(mid.every((s) => s.data.refLapTime === 100.1)).toBe(true)
+    // One scan of the 20 cars per second (4 per second while the lap starts), not one per
+    // compute (48000 calls).
+    const scans = 80 / DELTA.refreshS + DELTA.switchS / DELTA.searchS + 2
+    expect(rig.race.profileCalls).toBeLessThanOrEqual(scans * 20)
+  })
+})
+
+describe('DeltaProvider: the S/F line', () => {
+  it('shows the lap just finished in the first guardPct of the next one, with every sector', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    // 1 % slower everywhere: +0.33 per 33 % sector, +1.00 on the lap.
+    const samples = rig.drive([even(101), even(101)], { endPct: 0.05 })
+    const lap3 = samples.filter((s) => s.lap === 3)
+    const at = (pct: number): Sample | undefined => lap3.find((s) => s.pct >= pct)
+    expect(at(0.5)?.data.delta).toBeCloseTo(0.5, 2)
+    expect(at(0.5)?.data.sectors).toEqual([0.33, null, null])
+    expect(at(0.7)?.data.sectors).toEqual([0.33, 0.33, null])
+    expect(lap3.at(-1)?.data.delta).toBeCloseTo(1, 1)
+    expect(lap3.every((s) => s.data.lapValid)).toBe(true)
+
+    const line = samples.filter((s) => s.lap === 4 && s.pct < DELTA.guardPct)
+    expect(line.length).toBeGreaterThan(30)
+    for (const s of line) {
+      expect(s.data, `pct=${s.pct}`).toEqual({
+        visible: true,
+        reference: 'session',
+        refDriver: '',
+        refSelf: false,
+        refLapTime: 100,
+        delta: 1,
+        trend: 0,
+        predictedLap: 101,
+        sectors: [0.33, 0.33, 0.34],
+        lapValid: true
+      })
+    }
+    // Then the new lap, live.
+    const after = samples.filter((s) => s.lap === 4 && s.pct >= DELTA.guardPct)
+    expect(after.length).toBeGreaterThan(0)
+    expect(after[0]?.data.sectors).toEqual([null, null, null])
+    expect(after[0]?.data.delta).toBeCloseTo(0.02, 2)
+  })
+
+  it('a new session best becomes the reference of the next lap; the line still shows the old one', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    // Lap 3 is faster (99 s) and becomes your best at the line.
+    const samples = rig.drive([even(99), even(99)], { promote: true, endPct: 0.05 })
+    const line = samples.filter((s) => s.lap === 4 && s.pct < DELTA.guardPct)
+    expect(line.every((s) => s.data.refLapTime === 100 && s.data.delta === -1)).toBe(true)
+    const after = samples.filter((s) => s.lap === 4 && s.pct >= DELTA.guardPct)
+    expect(after.every((s) => s.data.refLapTime === 99 && s.data.delta === 0)).toBe(true)
+  })
+
+  it('without a summary (a gap in the computes) the last delta holds', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.9, 90.5).delta).toBe(0.5)
+    // The widget was off for a while: nothing to summarise, the last value holds at the line.
+    expect(rig.at(T0 + 12, 4, 0.01, 1.5)).toMatchObject({ delta: 0.5, predictedLap: 100.5 })
+    expect(rig.at(T0 + 12.5, 4, 0.025, 2.6).delta).toBe(0.1)
+  })
+
+  it('a lap counter out of step with the pct (impossible delta) holds the last value', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.5, 50.2).delta).toBe(0.2)
+    // The counter says a new lap but the pct is still mid-lap: -50 s is not a delta.
+    const glitch = rig.at(T0 + 1 / 30, 4, 0.5003, 0.01)
+    expect(glitch.delta).toBe(0.2)
+    expect(glitch.trend).toBe(0)
+  })
+
+  it('after the chequered flag the last lap stays on show', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    const samples = rig.drive([even(100.6)], { endPct: 0.999 })
+    const end = samples.at(-1)
+    expect(end?.data.delta).toBeCloseTo(0.6, 1)
+    // The model closes the lap and stops timing you: no lap in progress any more.
+    rig.race.last.set(PLAYER, lapOf(100.6, 3))
+    rig.player({ finished: true })
+    const t = (end?.t ?? 0) + 0.2
+    const done = { delta: 0.6, predictedLap: 100.6, sectors: [0.2, 0.2, 0.2], lapValid: true }
+    expect(rig.at(t, null, 0.001)).toMatchObject(done)
+    expect(rig.at(t + 20, null, 0.15)).toMatchObject(done)
+  })
+})
+
+describe('DeltaProvider: sectors and lap validity', () => {
+  it('a sector is unknown when its start or end line was not seen (a gap in the computes)', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.at(T0, 3, 0.2, 20.1)
+    // 2 s without computes across the S1/S2 line.
+    rig.at(T0 + 2, 3, 0.4, 40.3)
+    expect(rig.at(T0 + 2.1, 3, 0.401, 40.4).sectors).toEqual([null, null, null])
+    // S2 has no start, S3 not finished either.
+    const later = rig.at(T0 + 28, 3, 0.67, 67.5)
+    expect(later.sectors).toEqual([null, null, null])
+  })
+
+  it('no sectors in the session info: none in the payload', () => {
+    const rig = new Rig({ sectorStarts: [] })
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.5, 50).sectors).toEqual([])
+  })
+
+  it('pit road, off track, a stop or a full-course caution invalidate the lap until the line', () => {
+    const cases: [string, (rig: Rig, on: boolean) => void][] = [
+      ['pits', (rig, on) => rig.player({ inPits: on })],
+      ['off track', (rig, on) => rig.player({ offTrack: on })],
+      ['stopped', (rig, on) => rig.player({ stoppedForS: on ? 0.5 : 0 })],
+      ['out lap', (rig, on) => rig.player({ outLap: on })],
+      [
+        'caution',
+        (rig, on) => {
+          rig.frame.SessionFlags[0] = on ? SessionFlag.Caution : 0
+        }
+      ],
+      [
+        'parade lap',
+        (rig, on) => {
+          rig.frame.SessionState[0] = on ? SessionState.ParadeLaps : SessionState.Racing
+        }
+      ]
+    ]
+    for (const [name, set] of cases) {
+      const rig = new Rig()
+      rig.race.best.set(PLAYER, lapOf(100))
+      const samples = rig.drive([even(100), even(100)], {
+        endPct: 0.1,
+        before: (_t, lap, pct) => set(rig, lap === 3 && pct >= 0.4 && pct < 0.42)
+      })
+      const valid = (from: number, to: number, lap: number): boolean[] =>
+        samples
+          .filter((s) => s.lap === lap && s.pct >= from && s.pct < to)
+          .map((s) => s.data.lapValid)
+      expect(valid(0, 0.4, 3).every(Boolean), name).toBe(true)
+      expect(valid(0.4, 1, 3).some(Boolean), name).toBe(false)
+      // The line shows the lap as it was; the next one starts valid.
+      expect(valid(0, DELTA.guardPct, 4).some(Boolean), name).toBe(false)
+      expect(valid(DELTA.guardPct, 1, 4).every(Boolean), name).toBe(true)
+    }
+  })
+})
+
+describe('DeltaProvider: trend', () => {
+  it('positive while losing time, negative while gaining, 0 at the same pace', () => {
+    const trendOf = (lapTime: number): number[] => {
+      const rig = new Rig()
+      rig.race.best.set(PLAYER, lapOf(100))
+      return rig
+        .drive([even(lapTime)], { endPct: 0.5 })
+        .filter((s) => s.t - T0 > 3)
+        .map((s) => s.data.trend)
+    }
+    // d(delta)/dt = 1 - 100 / lapTime.
+    expect(new Set(trendOf(102))).toEqual(new Set([0.02]))
+    expect(new Set(trendOf(98))).toEqual(new Set([-0.02]))
+    expect(new Set(trendOf(100))).toEqual(new Set([0]))
+  })
+
+  it('reacts within about a second of a change of pace', () => {
+    const rig = new Rig()
+    // A reference that was quick in the first half and slow in the second (40 + 60 s).
+    const ref = Array.from({ length: LINES + 1 }, (_, i) =>
+      i <= 50 ? 0.8 * i : 40 + 1.2 * (i - 50)
+    )
+    rig.race.best.set(PLAYER, lapOf(100, 2, ref))
+    const samples = rig.drive([even(100)], { endPct: 0.7 })
+    // First half: 1 s per line against 0.8, losing 0.2 s/s; second half gaining 0.2 s/s.
+    const t50 = samples.find((s) => s.pct >= 0.5)?.t ?? 0
+    const before = samples.filter((s) => s.t > t50 - 5 && s.t < t50)
+    expect(before.length).toBeGreaterThan(100)
+    expect(before.every((s) => s.data.trend === 0.2)).toBe(true)
+    const after = samples.filter((s) => s.t > t50 + 2)
+    expect(after.length).toBeGreaterThan(100)
+    expect(after.every((s) => s.data.trend <= -0.19 && s.data.trend >= -0.2)).toBe(true)
+  })
+})
+
+describe('DeltaProvider: state', () => {
+  it('starts over on a new session (sessionKey), when SessionTime goes back, or on reset()', () => {
+    for (const restart of ['key', 'time', 'reset'] as const) {
+      const rig = new Rig({ reference: 'class' })
+      rig.race.best.set(1, lapOf(100.5, 5))
+      expect(rig.at(T0, 3, 0.3, 30.35).refLapTime).toBe(100.5)
+      // A faster class lap appears mid-lap: only a restart takes it at once.
+      rig.race.best.set(3, lapOf(100, 6))
+      expect(rig.at(T0 + 0.1, 3, 0.301, 30.45).refLapTime).toBe(100.5)
+      let t = T0 + 0.2
+      if (restart === 'key') rig.race.key = 'race-b'
+      else if (restart === 'time') t = T0 - 50
+      else rig.provider.reset()
+      expect(rig.at(t, 3, 0.302, 30.55).refLapTime, restart).toBe(100)
+    }
+  })
+
+  it('follows a change of player car (PlayerCarIdx)', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.race.best.set(3, lapOf(102))
+    expect(rig.at(T0, 3, 0.5, 50).refLapTime).toBe(100)
+    rig.frame.PlayerCarIdx[0] = 3
+    rig.race.current.set(3, { lap: 7, elapsedS: 51 })
+    rig.frame.CarIdxLapDistPct[3] = 0.5
+    rig.frame.SessionTime[0] = T0 + 0.1
+    expect(rig.compute()).toMatchObject({ refLapTime: 102, delta: 0 })
+  })
+
+  it('every payload is a fresh object (the loop keeps the last one as prev)', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    const samples = rig.drive([even(101), even(101)], { endPct: 0.01 })
+    const line = samples.filter((s) => s.lap === 4)
+    expect(line.length).toBeGreaterThan(2)
+    expect(line[0]?.data).not.toBe(line[1]?.data)
+    expect(line[0]?.data.sectors).not.toBe(line[1]?.data.sectors)
+    expect(line[0]?.data).toEqual(line[1]?.data)
+  })
+})
+
+/** The process-wide gc() even without --expose-gc, or null if V8 refuses. */
+function exposeGc(): (() => void) | null {
+  try {
+    setFlagsFromString('--expose-gc')
+    const gc: unknown = runInNewContext('gc')
+    return typeof gc === 'function' ? (gc as () => void) : null
+  } catch {
+    return null
+  }
+}
+
+describe('DeltaProvider: long runs', () => {
+  it('keeps nothing per lap or per compute: the heap does not grow over 60 laps at 30 Hz', () => {
+    const gc = exposeGc()
+    const rig = new Rig({ reference: 'pb', fallback: true })
+    rig.race.best.set(1, lapOf(30.4, 5))
+    // 30-s laps a tenth apart, a new personal best now and then.
+    const laps = Array.from({ length: 60 }, (_, i) => even(30 + ((i * 7) % 5) / 10 - i / 1000))
+    const key = personalBestKey(rig.session, PLAYER) ?? ''
+    const heap: number[] = []
+    let seen = 0
+    let computes = 0
+    rig.drive(laps, {
+      keep: false,
+      promote: true,
+      before: (_t, lap) => {
+        computes++
+        if (lap === seen) return
+        seen = lap
+        // The loop stores your clean laps as records.
+        const last = rig.race.last.get(PLAYER)
+        if (last)
+          rig.bests.offer(key, { lapTime: last.lapTime, profile: last.profile, recordedAt: '' })
+        if (gc && (lap === 13 || lap === 62)) {
+          gc()
+          heap.push(process.memoryUsage().heapUsed)
+        }
+      }
+    })
+    expect(computes).toBeGreaterThan(50_000)
+    // Still working, against the best of those laps.
+    const best = Math.min(...laps.map((l) => l[LINES] ?? Infinity))
+    expect(rig.at(T0 + 9000, 70, 0.5, 15)).toMatchObject({
+      visible: true,
+      reference: 'pb',
+      refLapTime: best
+    })
+    if (heap.length === 2) {
+      expect((heap[1] ?? 0) - (heap[0] ?? 0)).toBeLessThan(1_000_000)
+    }
+  })
+})
+
+describe('deltaEqual', () => {
+  const base: DeltaData = {
+    visible: true,
+    reference: 'pb',
+    refDriver: '',
+    refSelf: false,
+    refLapTime: 92.5,
+    delta: -0.12,
+    trend: 0.01,
+    predictedLap: 92.38,
+    sectors: [-0.05, null, null],
+    lapValid: true
+  }
+
+  it('compares every field, sectors element by element', () => {
+    expect(deltaEqual(base, structuredClone(base))).toBe(true)
+    const changes: Partial<DeltaData>[] = [
+      { visible: false },
+      { reference: 'session' },
+      { refDriver: '#44 J. Lindqvist' },
+      { refSelf: true },
+      { refLapTime: 92.51 },
+      { delta: -0.13 },
+      { delta: null },
+      { trend: 0 },
+      { predictedLap: null },
+      { sectors: [-0.05, 0.02, null] },
+      { sectors: [-0.05, null] },
+      { lapValid: false }
+    ]
+    for (const c of changes)
+      expect(deltaEqual({ ...base, ...c }, base), JSON.stringify(c)).toBe(false)
+  })
+})

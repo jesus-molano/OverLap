@@ -1,0 +1,907 @@
+/**
+ * Texts of the settings window, grouped by page and component. Choice groups
+ * are `{ value: { label, hint? } }` (see settings/controls/choice.ts); widget
+ * names come from core.widgetTitles.
+ */
+import type { Dict } from '../dict'
+
+export const settingsEs = {
+  /** Window frame: top bar, banners, footer. */
+  app: {
+    pageSelect: 'Sección',
+    /** Split around the <kbd>Alt</kbd> key. */
+    editBanner: {
+      before:
+        'Modo edición: arrastra los widgets para moverlos y usa sus bordes para cambiar el ancho; la rueda del ratón los escala y',
+      after: 'desactiva el imán. Los bloqueados no se mueven.'
+    },
+    updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
+    loading: 'Cargando ajustes…',
+    footNote: 'Los cambios se aplican al momento y se guardan solos.',
+    openFolder: 'Abrir carpeta de ajustes'
+  },
+  nav: {
+    title: 'Ajustes',
+    sections: 'Secciones de ajustes',
+    appearance: 'Apariencia',
+    widgets: 'Widgets',
+    keyToggle: 'entrar o salir',
+    keyExit: 'salir'
+  },
+  editMode: {
+    tooltip: 'Mover y redimensionar los widgets (Ctrl+Shift+E)',
+    enter: 'Modo edición',
+    exit: 'Salir de edición'
+  },
+  /** Sidebar dot that shows or hides a widget. */
+  visibility: {
+    label: (widget: string) => `${widget} visible`,
+    hide: (widget: string) => `Ocultar ${widget}`,
+    show: (widget: string) => `Mostrar ${widget}`
+  },
+  confirm: {
+    /** Screen-reader text while a ConfirmButton is armed. */
+    pressAgain: (description: string) => `Pulsa otra vez para confirmar: ${description}`,
+    reset: '¿Restablecer? Pulsa otra vez'
+  },
+  sample: {
+    caption: 'Vista previa con datos de ejemplo'
+  },
+  controls: {
+    customColor: 'Color personalizado',
+    customColorLabel: (label: string) => `${label}: color personalizado`,
+    hexLabel: (label: string) => `${label}: código hexadecimal`,
+    presetsLabel: (label: string) => `${label}: valores rápidos`,
+    decrease: 'Reducir',
+    increase: 'Aumentar'
+  },
+  /** Labels several pages share. */
+  common: {
+    content: 'Contenido',
+    show: 'Mostrar',
+    layout: 'Disposición',
+    keepVisible: 'Mantener visible',
+    nameFormat: 'Formato de nombre',
+    density: 'Densidad',
+    license: 'Licencia',
+    iRating: 'iRating'
+  },
+  /** Option lists shared by several pages. */
+  choices: {
+    nameFormat: {
+      full: 'Completo',
+      abbr: 'Abreviado',
+      surname: 'Apellido',
+      tv: 'TV'
+    },
+    density: {
+      comfortable: { label: 'Cómoda', hint: 'Filas más altas' },
+      compact: { label: 'Compacta', hint: 'Más filas en el mismo alto' }
+    },
+    /** 'inherit', labelled with what it resolves to: 'Global (Apellido)'. */
+    inherit: (current: string) => `Global (${current})`,
+    nameInheritHint: 'El de Apariencia',
+    densityInheritHint: 'La de Apariencia',
+    example: (sample: string, formatted: string) => `Ejemplo: ${sample} → ${formatted}`
+  },
+  appearance: {
+    sub: 'El aspecto común de todos los widgets. Cada widget puede usar su propio formato de nombre y densidad en su página.',
+    language: {
+      title: 'Idioma',
+      label: 'Idioma',
+      help: 'Idioma de los widgets, los ajustes y el menú de la bandeja'
+    },
+    color: {
+      title: 'Color',
+      accent: 'Color de acento',
+      accentHelp: 'Te identifica a ti y nada más: tu fila, tu posición y tu barra',
+      accentNames: {
+        yellow: 'Amarillo',
+        orange: 'Naranja',
+        cyan: 'Cian',
+        lime: 'Lima',
+        pink: 'Rosa',
+        white: 'Blanco'
+      },
+      colorBlind: 'Paleta para daltónicos',
+      colorBlindHelp:
+        'Azul y naranja en lugar de verde y rojo; las flechas y los iconos se mantienen'
+    },
+    text: {
+      title: 'Texto',
+      fontScale: 'Tamaño del texto',
+      fontScaleHelp:
+        'Multiplica la escala de Clasificación y Batalla; los demás ajustan el texto a su ventana',
+      halo: 'Contorno del texto',
+      haloHelp: 'Un borde oscuro fino para leer el texto sobre el juego',
+      haloChoices: {
+        auto: {
+          label: 'Auto',
+          hint: 'Solo con el fondo casi transparente (menos del 35 %)'
+        },
+        on: { label: 'Siempre' },
+        off: { label: 'Nunca' }
+      }
+    },
+    rows: {
+      title: 'Filas y pilotos',
+      densityHelp: 'Alto de las filas en clasificación y relativo',
+      stripes: 'Filas alternas',
+      stripesHelp: 'Sombrea una fila de cada dos',
+      licenseChoices: {
+        soft: { label: 'Suave', hint: 'Tinte y borde del color de la licencia' },
+        solid: { label: 'Sólida', hint: 'Como en iRacing' },
+        letter: { label: 'Solo letra', hint: 'La letra en su color, sin chip' }
+      },
+      number: 'Número del coche',
+      numberChoices: {
+        chip: { label: 'Chip', hint: 'Número sobre el color de su clase' },
+        stripe: { label: 'Franja', hint: 'Franja del color de la clase y número en texto' }
+      }
+    },
+    other: {
+      title: 'Otros',
+      units: 'Unidades',
+      unitsHelp: 'Velocidad del widget de pedales',
+      unitChoices: {
+        metric: { label: 'Métricas', hint: 'km/h' },
+        imperial: { label: 'Imperiales', hint: 'mph' }
+      },
+      simPill: 'Etiqueta SIM',
+      simPillHelp: 'Marca los widgets cuando los datos son simulados'
+    },
+    reset: {
+      label: 'Restablecer apariencia',
+      description:
+        'Vuelve la apariencia a los valores por defecto; el idioma y las opciones de cada widget no cambian'
+    }
+  },
+  /** One widget's page: header, hidden note and resets. */
+  widgetPage: {
+    sizeFree: (size: string) => `Tamaño libre · ${size} px`,
+    sizeAuto: (width: number, scale: string) => `Alto automático · ${width} px de ancho · ${scale}`,
+    sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
+    visible: 'Visible',
+    hiddenNote: 'Oculto: no se dibuja ni se calcula. Actívalo para verlo sobre el juego.',
+    resetOptions: {
+      label: 'Restablecer opciones',
+      description:
+        'Vuelve a los valores por defecto las opciones, la escala, la opacidad y las reglas de este widget; no cambia su posición'
+    },
+    resetBounds: {
+      label: 'Restablecer posición y tamaño',
+      confirm: '¿Moverlo? Pulsa otra vez',
+      description: 'Lleva el widget a su posición y tamaño de fábrica'
+    }
+  },
+  /** "Ventana" section of every widget page. */
+  window: {
+    title: 'Ventana',
+    locked: 'Bloqueado',
+    lockedHelp: 'No se mueve ni se redimensiona, ni siquiera en modo edición',
+    opacity: 'Opacidad del fondo',
+    opacityHelp:
+      'Solo el panel: el texto y los coches siguen opacos. Por debajo del 35 % el texto lleva contorno (ver Apariencia)',
+    scale: 'Escala',
+    scaleHelp: 'Tamaño del texto de este widget; también con la rueda del ratón en modo edición',
+    height: 'Alto',
+    heightHelp: 'Automático: sin huecos vacíos; en modo edición solo eliges el ancho',
+    heightChoices: {
+      on: { label: 'Automático', hint: 'La ventana crece y encoge con el contenido' },
+      off: { label: 'Fijo', hint: 'El alto que le des en modo edición' }
+    },
+    anchor: 'Crece hacia',
+    anchorHelp: 'Arriba si lo tienes pegado al borde inferior de la pantalla',
+    anchorOff: 'Solo con alto automático',
+    // The anchor is the edge that stays put: anchored at the top, it grows downwards.
+    anchorChoices: {
+      top: { label: 'Abajo', hint: 'El borde de arriba se queda fijo' },
+      bottom: { label: 'Arriba', hint: 'El borde de abajo se queda fijo' }
+    },
+    sizeNote:
+      'Tamaño libre: el contenido se ajusta a la ventana. Cámbiala arrastrando sus bordes en modo edición, o con la rueda del ratón para escalarla entera.',
+    showIn: 'Mostrar en',
+    showInKinds: {
+      practice: 'Práctica',
+      qualify: 'Clasificación',
+      race: 'Carrera'
+    },
+    showInNowhere: 'No se mostrará en ninguna sesión (en modo edición sí, para colocarlo)',
+    showInHelp: 'En las demás sesiones se oculta y no consume nada; en modo edición siempre se ve',
+    hideInPits: 'Ocultar en boxes',
+    hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box'
+  },
+  relative: {
+    carsAhead: 'Coches delante',
+    carsBehind: 'Coches detrás',
+    columns: 'Columnas',
+    classPosition: 'Posición en clase'
+  },
+  radar: {
+    range: 'Alcance',
+    rangeHelp: 'Distancia por delante y por detrás que cubre el radar',
+    labels: 'Mostrar distancias',
+    labelsHelp: 'Etiquetas con la distancia en las guías del radar'
+  },
+  standings: {
+    mode: 'Modo',
+    modeChoices: {
+      compact: { label: 'Compacto', hint: 'Primeros, tu entorno y líderes de otras clases' },
+      full: { label: 'Completo', hint: 'Todos los coches de todas las clases' }
+    },
+    compact: 'Modo compacto',
+    compactOff: '(no se usa en modo completo)',
+    topRows: 'Primeros puestos',
+    topRowsHelp: 'Filas de cabeza de tu clase',
+    aroundRows: 'Alrededor de ti',
+    aroundRowsHelp: 'Coches por delante y por detrás de ti',
+    leaders: 'Líderes de otras clases',
+    leadersHelp: 'Una línea con el líder de cada otra clase',
+    gap: 'Hueco',
+    gapHelp: 'Fuera de carrera, el hueco es a la mejor vuelta',
+    gapChoices: {
+      interval: { label: 'Al de delante' },
+      leader: { label: 'Al líder' },
+      both: { label: 'Ambos', hint: 'Al de delante y, en otra columna, al líder' }
+    },
+    deltaAll: 'Δ iRating de todos',
+    deltaAllHelp:
+      'El cambio de iRating proyectado en cada fila, no solo en la tuya (activa la columna)',
+    header: 'Cabecera',
+    headerHelp:
+      'Tu iRating y SR proyectados, con el margen de incidentes (estimación, solo en carrera)',
+    safetyRating: 'Safety rating',
+    classLine: 'Línea de clase',
+    sof: 'SoF',
+    carCount: 'Número de coches'
+  },
+  /** Standings column editor. */
+  columns: {
+    title: 'Columnas',
+    count: (visible: number, total: number) => `${visible} de ${total} visibles`,
+    /** Split around the drag handle glyph. */
+    intro: {
+      before: 'Arrastra',
+      after:
+        'o usa ↑ ↓ para ordenarlas. Si la ventana se queda estrecha se ocultan primero las menos importantes; el nombre siempre cabe.'
+    },
+    fixedList: 'Columnas fijas',
+    fixedTag: 'Fija',
+    fixed: {
+      pos: 'Posición',
+      num: 'Número',
+      name: 'Nombre'
+    },
+    list: 'Columnas de la derecha, en orden',
+    labels: {
+      gained: 'Puestos ganados',
+      ir: 'iRating',
+      lic: 'Licencia',
+      delta: 'Δ iRating',
+      gap: 'Hueco',
+      gapLeader: 'Hueco al líder',
+      last: 'Última vuelta',
+      pit: 'Boxes'
+    },
+    /** Short help under a column label (only some columns have one). */
+    hints: {
+      gained: 'Solo en carrera: puestos ganados desde la salida',
+      delta: 'Tu cambio de iRating proyectado (o el de todos, con la opción)',
+      gap: 'Según «Hueco»: al de delante o al líder',
+      gapLeader: 'Con «Hueco: Ambos»',
+      last: 'Fuera de carrera, la mejor vuelta',
+      pit: 'PIT / OUT y paradas'
+    },
+    move: (column: string) => `Mover ${column}`,
+    moveUp: (column: string) => `Subir ${column}`,
+    moveDown: (column: string) => `Bajar ${column}`,
+    defaultOrder: 'Orden por defecto',
+    /** Screen-reader announcements. */
+    moved: (column: string, position: number, total: number) =>
+      `${column} movida a la posición ${position} de ${total}.`,
+    shown: (column: string) => `${column} visible.`,
+    hidden: (column: string) => `${column} oculta.`,
+    reordered: 'Columnas en el orden por defecto.'
+  },
+  battle: {
+    threshold: 'Mostrar cuando el hueco sea menor de',
+    thresholdHelp: 'Aparece solo con un rival de tu clase a menos de este tiempo',
+    holdHelp:
+      'Sigue en pantalla este tiempo después de que el rival se aleje, para que no parpadee',
+    rivals: 'Rivales',
+    noRivals: 'Sin rivales el widget no se muestra',
+    ahead: 'Coche de delante',
+    behind: 'Coche de detrás',
+    layoutChoices: {
+      stacked: { label: 'Apilada', hint: 'Delante arriba, detrás abajo' },
+      side: { label: 'Lado a lado', hint: 'Para ventanas anchas (520 px o más)' }
+    },
+    detail: 'Detalle',
+    detailHelp: 'Diferencia por sector o por vuelta: + es a tu favor',
+    detailChoices: {
+      none: { label: 'Ninguno' },
+      sectors: { label: 'Sectores', hint: 'S1 S2 S3 y la última vuelta' },
+      laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' },
+      both: { label: 'Ambos' }
+    },
+    prediction: 'Predicción de alcance',
+    predictionHelp: '«Le alcanzas en ~4 v de 19»',
+    atStake: 'iRating en juego',
+    atStakeHelp: 'Cuánto iRating vale ese puesto'
+  },
+  inputs: {
+    layoutChoices: {
+      'trace-bars-info': { label: 'Traza · barras · datos' },
+      'info-bars-trace': { label: 'Datos · barras · traza' },
+      bars: { label: 'Solo barras', hint: 'Para un widget pequeño (~140 × 110)' }
+    },
+    traceSeconds: 'Segundos de traza',
+    traceSecondsHelp: 'Historia de acelerador, freno y embrague que muestra la gráfica',
+    traceWidth: 'Grosor de la traza',
+    clutchInTrace: 'Embrague en la traza',
+    clutchInTraceHelp: 'Desactívalo si cambias con levas',
+    steering: 'Volante',
+    gearSpeed: 'Marcha y velocidad',
+    steeringStyle: 'Estilo del volante',
+    steeringChoices: {
+      bar: { label: 'Barra' },
+      wheel: { label: 'Volante', hint: 'Un aro que gira con el volante' }
+    },
+    colors: 'Colores',
+    colorsNote: 'Colores opacos: la traza los superpone',
+    pedals: {
+      throttle: 'Acelerador',
+      brake: 'Freno',
+      clutch: 'Embrague'
+    }
+  },
+  traffic: {
+    warnAbout: 'Avisar de',
+    nothing: 'Sin nada que avisar el widget no se muestra',
+    faster: 'Clase más rápida',
+    fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
+    slower: 'Tráfico lento',
+    slowerHelp: 'Una clase más lenta a la que alcanzas',
+    hazards: 'Peligros',
+    hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
+    behind: 'Mirar atrás',
+    behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
+    ahead: 'Mirar delante',
+    aheadHelp: 'Tráfico lento hasta este tiempo por delante de ti',
+    hazardRange: 'Peligros hasta',
+    hazardRangeHelp: 'Avisa de un coche parado o lento a menos de este tiempo por delante',
+    entries: 'Entradas por grupo',
+    entriesHelp: 'Los más cercanos primero',
+    multiclass: 'Solo en multiclase',
+    multiclassHelp: 'Sin otras clases en pista no avisa de tráfico; los peligros, siempre'
+  },
+  alerts: {
+    nothing: 'Sin banderas ni limitador el widget no se muestra',
+    limiterHidden: 'Con «Ocultar en boxes» (Ventana) el limitador no llega a verse',
+    flags: 'Banderas',
+    flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
+    blue: 'Bandera azul',
+    blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
+    limiter: 'Limitador de boxes',
+    limiterHelp: 'En el pit lane: puesto, sin poner o por encima del límite',
+    holdHelp:
+      'Una bandera breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerla'
+  },
+  delta: {
+    reference: 'Referencia',
+    referenceNote: 'El récord personal se guarda por coche y trazado',
+    compareWith: 'Comparar con',
+    /** Delta references, in UI order. */
+    references: {
+      pb: {
+        label: 'Récord personal',
+        hint: 'Tu mejor vuelta de siempre con este coche en este trazado'
+      },
+      session: { label: 'Mejor vuelta de la sesión', hint: 'Tu mejor vuelta de esta sesión' },
+      class: {
+        label: 'Mejor de tu clase',
+        hint: 'La vuelta más rápida de tu clase en esta sesión, sea de quien sea'
+      }
+    },
+    /** What each reference is, under the choice. */
+    referenceHelp: {
+      pb: 'Tu mejor vuelta limpia de siempre con este coche en este trazado. Se guarda en tu equipo y no se pierde al cambiar de sesión',
+      session: 'Tu mejor vuelta limpia de esta sesión, como el delta de iRacing',
+      class:
+        'La vuelta limpia más rápida de tu clase en esta sesión, sea de quien sea (tú incluido): el ritmo a batir'
+    },
+    fallback: 'Usar la siguiente si no existe',
+    /** Where the fallback goes from each reference (pb → session → class). */
+    fallbackHelp: {
+      pb: 'Sin récord guardado aún, compara con tu mejor vuelta de la sesión y, si tampoco hay, con la mejor de tu clase',
+      session: 'Mientras no tengas vuelta en esta sesión, compara con la mejor de tu clase',
+      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra'
+    },
+    fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
+    range: 'Escala de la barra',
+    rangeHelp:
+      'Diferencia con la que la barra llega al final, a cada lado; más allá se marca el extremo',
+    predicted: 'Vuelta prevista',
+    predictedHelp: 'El tiempo que harás si mantienes el ritmo: referencia + delta',
+    sectors: 'Sectores',
+    sectorsHelp: 'Cada sector contra la referencia; el que estás corriendo, en vivo',
+    trend: 'Tendencia',
+    trendHelp: '«Ganando» o «perdiendo» según cómo cambia el delta ahora mismo'
+  },
+  personalBests: {
+    title: 'Récords personales',
+    note: 'Uno por coche y trazado, guardados en tu equipo',
+    mock: 'Telemetría simulada: estos récords son de prueba y se guardan aparte de los reales.',
+    now: 'Ahora',
+    record: (time: string) => `récord ${time}`,
+    noRecord: 'sin récord todavía: tu próxima vuelta limpia lo será',
+    deleteCurrent: {
+      label: 'Borrar este récord',
+      confirm: '¿Borrarlo? Pulsa otra vez',
+      description:
+        'Borra tu récord con este coche en este trazado; tu próxima vuelta limpia aquí será el nuevo'
+    },
+    loading: 'Cargando récords…',
+    empty:
+      'Aún no hay récords. Cada vuelta limpia que des se guarda sola si mejora la anterior con ese coche en ese trazado, y el delta la usa como referencia.',
+    search: 'Buscar',
+    searchPlaceholder: 'Coche o circuito',
+    list: 'Récords guardados',
+    deleteOne: {
+      label: 'Borrar',
+      confirm: '¿Seguro?',
+      description: (car: string, place: string) => `Borra el récord de ${car} en ${place}`
+    },
+    noMatch: (query: string) => `Ningún récord coincide con «${query}».`,
+    count: (n: number) => (n === 1 ? '1 récord guardado' : `${n} récords guardados`),
+    deleteAll: {
+      label: 'Borrar todos',
+      confirm: (n: number) =>
+        n === 1 ? '¿Borrarlo? Pulsa otra vez' : `¿Borrar los ${n}? Pulsa otra vez`,
+      description:
+        'Borra todos tus récords personales, de todos los coches y trazados; no se puede deshacer'
+    },
+    unnamedCar: 'Coche sin nombre',
+    unnamedTrack: 'Circuito sin nombre'
+  }
+} as const
+
+export const settingsEn: Dict<typeof settingsEs> = {
+  app: {
+    pageSelect: 'Section',
+    editBanner: {
+      before:
+        'Edit mode: drag a widget to move it and drag its edges to change its width; the mouse wheel scales it and holding',
+      after: 'turns off snapping. Locked widgets stay put.'
+    },
+    updateError: 'Couldn’t apply the change. Please try again.',
+    loading: 'Loading settings…',
+    footNote: 'Changes apply instantly and are saved automatically.',
+    openFolder: 'Open settings folder'
+  },
+  nav: {
+    title: 'Settings',
+    sections: 'Settings sections',
+    appearance: 'Appearance',
+    widgets: 'Widgets',
+    keyToggle: 'enter or exit',
+    keyExit: 'exit'
+  },
+  editMode: {
+    tooltip: 'Move and resize the widgets (Ctrl+Shift+E)',
+    enter: 'Edit mode',
+    exit: 'Exit edit mode'
+  },
+  visibility: {
+    label: (widget) => `${widget} visible`,
+    hide: (widget) => `Hide ${widget}`,
+    show: (widget) => `Show ${widget}`
+  },
+  confirm: {
+    pressAgain: (description) => `Press again to confirm: ${description}`,
+    reset: 'Reset? Click again'
+  },
+  sample: {
+    caption: 'Preview with sample data'
+  },
+  controls: {
+    customColor: 'Custom colour',
+    customColorLabel: (label) => `${label}: custom colour`,
+    hexLabel: (label) => `${label}: hex code`,
+    presetsLabel: (label) => `${label}: presets`,
+    decrease: 'Decrease',
+    increase: 'Increase'
+  },
+  common: {
+    content: 'Content',
+    show: 'Show',
+    layout: 'Layout',
+    keepVisible: 'Keep visible',
+    nameFormat: 'Name format',
+    density: 'Density',
+    license: 'Licence',
+    iRating: 'iRating'
+  },
+  choices: {
+    nameFormat: {
+      full: 'Full',
+      abbr: 'Abbreviated',
+      surname: 'Surname',
+      tv: 'TV'
+    },
+    density: {
+      comfortable: { label: 'Comfortable', hint: 'Taller rows' },
+      compact: { label: 'Compact', hint: 'More rows in the same height' }
+    },
+    inherit: (current) => `Global (${current})`,
+    nameInheritHint: 'As set in Appearance',
+    densityInheritHint: 'As set in Appearance',
+    example: (sample, formatted) => `Example: ${sample} → ${formatted}`
+  },
+  appearance: {
+    sub: 'The look shared by every widget. Each widget can use its own name format and density on its page.',
+    language: {
+      title: 'Language',
+      label: 'Language',
+      help: 'Language of the widgets, the settings and the tray menu'
+    },
+    color: {
+      title: 'Colour',
+      accent: 'Accent colour',
+      accentHelp: 'Highlights you and only you: your row, your position and your bar',
+      accentNames: {
+        yellow: 'Yellow',
+        orange: 'Orange',
+        cyan: 'Cyan',
+        lime: 'Lime',
+        pink: 'Pink',
+        white: 'White'
+      },
+      colorBlind: 'Colour-blind palette',
+      colorBlindHelp: 'Blue and orange instead of green and red; arrows and icons stay the same'
+    },
+    text: {
+      title: 'Text',
+      fontScale: 'Text size',
+      fontScaleHelp:
+        'Multiplies the scale of Standings and Battle; the other widgets fit their text to the window',
+      halo: 'Text outline',
+      haloHelp: 'A thin dark edge that keeps text readable over the game',
+      haloChoices: {
+        auto: {
+          label: 'Auto',
+          hint: 'Only with a nearly transparent background (below 35%)'
+        },
+        on: { label: 'Always' },
+        off: { label: 'Never' }
+      }
+    },
+    rows: {
+      title: 'Rows and drivers',
+      densityHelp: 'Row height in Standings and Relative',
+      stripes: 'Alternating rows',
+      stripesHelp: 'Shades every other row',
+      licenseChoices: {
+        soft: { label: 'Soft', hint: 'Tint and border in the licence colour' },
+        solid: { label: 'Solid', hint: 'As in iRacing' },
+        letter: { label: 'Letter only', hint: 'The letter in its colour, no chip' }
+      },
+      number: 'Car number',
+      numberChoices: {
+        chip: { label: 'Chip', hint: 'Number on its class colour' },
+        stripe: { label: 'Stripe', hint: 'Class-colour stripe and the number as text' }
+      }
+    },
+    other: {
+      title: 'Other',
+      units: 'Units',
+      unitsHelp: 'Speed in the Inputs widget',
+      unitChoices: {
+        metric: { label: 'Metric', hint: 'km/h' },
+        imperial: { label: 'Imperial', hint: 'mph' }
+      },
+      simPill: 'SIM tag',
+      simPillHelp: 'Marks the widgets when the data is simulated'
+    },
+    reset: {
+      label: 'Reset appearance',
+      description:
+        'Returns the appearance to its defaults; the language and each widget’s options stay as they are'
+    }
+  },
+  widgetPage: {
+    sizeFree: (size) => `Free size · ${size} px`,
+    sizeAuto: (width, scale) => `Auto height · ${width} px wide · ${scale}`,
+    sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
+    visible: 'Visible',
+    hiddenNote: 'Hidden: not drawn or computed. Turn it on to see it over the game.',
+    resetOptions: {
+      label: 'Reset options',
+      description:
+        'Returns this widget’s options, scale, opacity and rules to their defaults; its position doesn’t change'
+    },
+    resetBounds: {
+      label: 'Reset position and size',
+      confirm: 'Move it? Click again',
+      description: 'Moves the widget back to its default position and size'
+    }
+  },
+  window: {
+    title: 'Window',
+    locked: 'Locked',
+    lockedHelp: 'Can’t be moved or resized, not even in edit mode',
+    opacity: 'Background opacity',
+    opacityHelp:
+      'Only the panel: text and cars stay opaque. Below 35% the text gets an outline (see Appearance)',
+    scale: 'Scale',
+    scaleHelp: 'This widget’s text size; you can also use the mouse wheel in edit mode',
+    height: 'Height',
+    heightHelp: 'Automatic: no empty space; in edit mode you only choose the width',
+    heightChoices: {
+      on: { label: 'Automatic', hint: 'The window grows and shrinks with its content' },
+      off: { label: 'Fixed', hint: 'The height you give it in edit mode' }
+    },
+    anchor: 'Grows',
+    anchorHelp: 'Up if it sits against the bottom edge of the screen',
+    anchorOff: 'Only with automatic height',
+    anchorChoices: {
+      top: { label: 'Down', hint: 'The top edge stays put' },
+      bottom: { label: 'Up', hint: 'The bottom edge stays put' }
+    },
+    sizeNote:
+      'Free size: the content fits the window. Resize it by dragging its edges in edit mode, or use the mouse wheel to scale it as a whole.',
+    showIn: 'Show in',
+    showInKinds: {
+      practice: 'Practice',
+      qualify: 'Qualifying',
+      race: 'Race'
+    },
+    showInNowhere: 'Won’t show in any session (only in edit mode, so you can place it)',
+    showInHelp: 'In other sessions it’s hidden and uses no resources; in edit mode it always shows',
+    hideInPits: 'Hide in the pits',
+    hideInPitsHelp: 'While you are on pit road or stopped in your pit box'
+  },
+  relative: {
+    carsAhead: 'Cars ahead',
+    carsBehind: 'Cars behind',
+    columns: 'Columns',
+    classPosition: 'Class position'
+  },
+  radar: {
+    range: 'Range',
+    rangeHelp: 'How far ahead and behind the radar looks',
+    labels: 'Show distances',
+    labelsHelp: 'Distance labels on the radar’s guide lines'
+  },
+  standings: {
+    mode: 'Mode',
+    modeChoices: {
+      compact: { label: 'Compact', hint: 'The front, the cars around you and other class leaders' },
+      full: { label: 'Full', hint: 'Every car in every class' }
+    },
+    compact: 'Compact mode',
+    compactOff: '(not used in full mode)',
+    topRows: 'Top positions',
+    topRowsHelp: 'Rows from the front of your class',
+    aroundRows: 'Around you',
+    aroundRowsHelp: 'Cars ahead of and behind you',
+    leaders: 'Other class leaders',
+    leadersHelp: 'A line with the leader of each other class',
+    gap: 'Gap',
+    gapHelp: 'Outside a race, the gap is to the best lap',
+    gapChoices: {
+      interval: { label: 'Interval' },
+      leader: { label: 'Leader' },
+      both: { label: 'Both', hint: 'To the car ahead and, in another column, to the leader' }
+    },
+    deltaAll: 'Δ iRating for everyone',
+    deltaAllHelp: 'The projected iRating change on every row, not just yours (turns the column on)',
+    header: 'Header',
+    headerHelp: 'Your projected iRating and SR, with the incident margin (estimate, race only)',
+    safetyRating: 'Safety Rating',
+    classLine: 'Class line',
+    sof: 'SoF',
+    carCount: 'Car count'
+  },
+  columns: {
+    title: 'Columns',
+    count: (visible, total) => `${visible} of ${total} visible`,
+    intro: {
+      before: 'Drag',
+      after:
+        'or use ↑ ↓ to reorder them. If the window gets narrow, the least important ones are hidden first; the name always fits.'
+    },
+    fixedList: 'Fixed columns',
+    fixedTag: 'Fixed',
+    fixed: {
+      pos: 'Position',
+      num: 'Number',
+      name: 'Name'
+    },
+    list: 'Right-hand columns, in order',
+    labels: {
+      gained: 'Positions gained',
+      ir: 'iRating',
+      lic: 'Licence',
+      delta: 'Δ iRating',
+      gap: 'Gap',
+      gapLeader: 'Gap to leader',
+      last: 'Last lap',
+      pit: 'Pit'
+    },
+    hints: {
+      gained: 'Race only: positions gained since the start',
+      delta: 'Your projected iRating change (or everyone’s, with the option)',
+      gap: 'Set by “Gap”: to the car ahead or to the leader',
+      gapLeader: 'Only with “Gap: Both”',
+      last: 'Outside races, the best lap',
+      pit: 'PIT / OUT and pit stop count'
+    },
+    move: (column) => `Move ${column}`,
+    moveUp: (column) => `Move ${column} up`,
+    moveDown: (column) => `Move ${column} down`,
+    defaultOrder: 'Default order',
+    moved: (column, position, total) => `${column} moved to position ${position} of ${total}.`,
+    shown: (column) => `${column} shown.`,
+    hidden: (column) => `${column} hidden.`,
+    reordered: 'Columns back in the default order.'
+  },
+  battle: {
+    threshold: 'Show when the gap is under',
+    thresholdHelp: 'Only appears with a rival from your class closer than this',
+    holdHelp: 'Stays on screen this long after the gap opens up, so it doesn’t flicker',
+    rivals: 'Rivals',
+    noRivals: 'With no rival selected, the widget never shows',
+    ahead: 'Car ahead',
+    behind: 'Car behind',
+    layoutChoices: {
+      stacked: { label: 'Stacked', hint: 'Ahead on top, behind below' },
+      side: { label: 'Side by side', hint: 'For wide windows (520 px or more)' }
+    },
+    detail: 'Detail',
+    detailHelp: 'Difference per sector or per lap: + is in your favour',
+    detailChoices: {
+      none: { label: 'None' },
+      sectors: { label: 'Sectors', hint: 'S1 S2 S3 and the last lap' },
+      laps: { label: 'Laps', hint: 'The last three laps' },
+      both: { label: 'Both' }
+    },
+    prediction: 'Catch prediction',
+    // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
+    predictionHelp: '“Catching in ~4 L of 19”',
+    atStake: 'iRating at stake',
+    atStakeHelp: 'How much iRating that position is worth'
+  },
+  inputs: {
+    layoutChoices: {
+      'trace-bars-info': { label: 'Trace · bars · info' },
+      'info-bars-trace': { label: 'Info · bars · trace' },
+      bars: { label: 'Bars only', hint: 'For a small widget (~140 × 110)' }
+    },
+    traceSeconds: 'Trace length',
+    traceSecondsHelp: 'How much throttle, brake and clutch history the graph shows',
+    traceWidth: 'Trace thickness',
+    clutchInTrace: 'Clutch in the trace',
+    clutchInTraceHelp: 'Turn it off if you shift with paddles',
+    steering: 'Steering',
+    gearSpeed: 'Gear and speed',
+    steeringStyle: 'Steering style',
+    steeringChoices: {
+      bar: { label: 'Bar' },
+      wheel: { label: 'Wheel', hint: 'A rim that turns with your wheel' }
+    },
+    colors: 'Colours',
+    colorsNote: 'Solid colours only, as the traces overlap',
+    pedals: {
+      throttle: 'Throttle',
+      brake: 'Brake',
+      clutch: 'Clutch'
+    }
+  },
+  traffic: {
+    warnAbout: 'Warn about',
+    nothing: 'With nothing selected, the widget never shows',
+    faster: 'Faster class',
+    fasterHelp: 'Catching you from behind: how soon and where',
+    slower: 'Slower traffic',
+    slowerHelp: 'A slower class you are catching',
+    hazards: 'Hazards',
+    hazardsHelp: 'Stopped, very slow or off-track cars ahead',
+    behind: 'Look behind',
+    behindHelp: 'Faster cars up to this far behind you',
+    ahead: 'Look ahead',
+    aheadHelp: 'Slower traffic up to this far ahead of you',
+    hazardRange: 'Hazards up to',
+    hazardRangeHelp: 'Warns about a stopped or slow car less than this far ahead',
+    entries: 'Entries per group',
+    entriesHelp: 'Closest first',
+    multiclass: 'Multiclass only',
+    multiclassHelp: 'With no other classes on track, it only warns about hazards'
+  },
+  alerts: {
+    nothing: 'With neither flags nor limiter selected, the widget never shows',
+    limiterHidden: 'With “Hide in the pits” (Window) the limiter never shows',
+    flags: 'Flags',
+    flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
+    blue: 'Blue flag',
+    // The blue flag's note in the alerts widget.
+    blueHelp: '“Let them pass”: a faster car is about to lap you',
+    limiter: 'Pit limiter',
+    limiterHelp: 'On pit road: on, off or over the limit',
+    holdHelp: 'A brief flag stays on screen at least this long, so there is time to read it'
+  },
+  delta: {
+    reference: 'Reference',
+    referenceNote: 'The personal best is stored per car and layout',
+    compareWith: 'Compare with',
+    references: {
+      pb: {
+        label: 'Personal best',
+        hint: 'Your all-time best lap with this car on this layout'
+      },
+      session: { label: 'Session best', hint: 'Your best lap of this session' },
+      class: {
+        label: 'Class best',
+        hint: 'The fastest lap in your class this session, whoever set it'
+      }
+    },
+    referenceHelp: {
+      pb: 'Your all-time best clean lap with this car on this layout. Stored on your computer and kept from one session to the next',
+      session: 'Your best clean lap of this session, like iRacing’s own delta bar',
+      class:
+        'The fastest clean lap in your class this session, whoever set it (you included): the pace to beat'
+    },
+    fallback: 'Fall back to the next one',
+    fallbackHelp: {
+      pb: 'With no personal best stored yet, compares with your session best and, failing that, with your class best',
+      session: 'Until you set a lap this session, compares with your class best',
+      class:
+        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to'
+    },
+    fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
+    range: 'Bar scale',
+    rangeHelp:
+      'The time difference that fills the bar on each side; anything beyond is shown at the end',
+    predicted: 'Predicted lap',
+    predictedHelp: 'The lap time you’ll set if you keep this pace: reference + delta',
+    sectors: 'Sectors',
+    sectorsHelp: 'Each sector against the reference; the current one updates live',
+    trend: 'Trend',
+    trendHelp: '“Gaining” or “losing” depending on how the delta is changing right now'
+  },
+  personalBests: {
+    title: 'Personal bests',
+    note: 'One per car and layout, stored on your computer',
+    mock: 'Simulated telemetry: these personal bests are for testing and are stored apart from the real ones.',
+    now: 'Now',
+    record: (time) => `PB ${time}`,
+    noRecord: 'no PB yet: your next clean lap sets it',
+    deleteCurrent: {
+      label: 'Delete this PB',
+      confirm: 'Delete it? Click again',
+      description:
+        'Deletes your personal best with this car on this layout; your next clean lap here becomes the new one'
+    },
+    loading: 'Loading personal bests…',
+    empty:
+      'No personal bests yet. Each clean lap is saved automatically when it beats your previous best with that car on that layout, and the delta uses it as its reference.',
+    search: 'Search',
+    searchPlaceholder: 'Car or track',
+    list: 'Saved personal bests',
+    deleteOne: {
+      label: 'Delete',
+      confirm: 'Sure?',
+      description: (car, place) => `Deletes the personal best for ${car} at ${place}`
+    },
+    noMatch: (query) => `No personal best matches “${query}”.`,
+    count: (n) => (n === 1 ? '1 personal best saved' : `${n} personal bests saved`),
+    deleteAll: {
+      label: 'Delete all',
+      confirm: (n) => (n === 1 ? 'Delete it? Click again' : `Delete all ${n}? Click again`),
+      description:
+        'Deletes all your personal bests, for every car and layout; this cannot be undone'
+    },
+    unnamedCar: 'Unnamed car',
+    unnamedTrack: 'Unnamed track'
+  }
+}

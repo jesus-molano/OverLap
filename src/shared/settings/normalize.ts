@@ -1,0 +1,49 @@
+/** Defensive load of anything read from disk. */
+import type { OverlaySettings, Rect, Size } from '../types'
+import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
+import { OPTION_SECTIONS, createDefaultSettings, sectionSpecs } from './defaults'
+import { isFiniteNumber, isRecord, mergeSection, mergeWidgetFields } from './fields'
+import { migrateSection } from './migrate'
+
+/** Upper bound for a widget dimension; anything larger is a corrupt file. */
+const MAX_WIDGET_DIMENSION = 10_000
+
+/**
+ * Merges anything read from disk with the defaults. Never throws: unknown
+ * widget ids and keys are dropped, missing widgets and fields get their
+ * defaults, invalid values are replaced and numbers are clamped to their
+ * ranges. The `version` field is not trusted: v1/v2/v3 files are recognised by
+ * their fields (see migrate.ts); the result is always the current version.
+ */
+export function normalizeSettings(raw: unknown): OverlaySettings {
+  const out = createDefaultSettings()
+  if (!isRecord(raw)) return out
+
+  const widgets = isRecord(raw.widgets) ? raw.widgets : {}
+  for (const id of WIDGET_IDS) {
+    const saved = widgets[id]
+    if (!isRecord(saved)) continue
+    const current = out.widgets[id]
+    mergeWidgetFields(id, current, saved)
+    current.bounds = normalizeBounds(saved.bounds, current.bounds, WIDGET_DEFS[id].minSize)
+  }
+  for (const section of OPTION_SECTIONS) {
+    const r = migrateSection(section, raw[section])
+    if (isRecord(r)) mergeSection(out[section], r, sectionSpecs(section))
+  }
+  return out
+}
+
+/** Field by field: an invalid coordinate falls back to the default one. */
+function normalizeBounds(raw: unknown, fallback: Rect, minSize: Size): Rect {
+  if (!isRecord(raw)) return { ...fallback }
+  const pick = (v: unknown, def: number): number => (isFiniteNumber(v) ? Math.round(v) : def)
+  const size = (v: unknown, def: number, min: number): number =>
+    isFiniteNumber(v) && v > 0 ? Math.min(MAX_WIDGET_DIMENSION, Math.max(min, Math.round(v))) : def
+  return {
+    x: pick(raw.x, fallback.x),
+    y: pick(raw.y, fallback.y),
+    width: size(raw.width, fallback.width, minSize.width),
+    height: size(raw.height, fallback.height, minSize.height)
+  }
+}
