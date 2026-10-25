@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BATTLE, BattleProvider, battleEqual, gapSlope } from './battle'
+import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { LapRecord, RaceCarState, RaceView } from './race/raceView'
 import { iRatingDeltas } from './ratings/irating'
 import { createDefaultSettings } from './settings'
@@ -150,6 +151,7 @@ function makeSession(list: DriverEntry[], o: Partial<SessionMeta> = {}): Session
     pitSpeedLimitKmh: null,
     trackId: 1,
     trackConfig: '',
+    incidentLimits: NO_INCIDENT_LIMITS,
     ...o
   }
 }

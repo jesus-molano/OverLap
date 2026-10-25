@@ -48,6 +48,38 @@ export const widgetsEs = {
     /** Laps left in a session by laps. */
     left: (n: number) => (n === 1 ? `Queda 1${NB}v` : `Quedan ${n}${NB}v`)
   },
+  /** Your incidents: the count in the relative and standings headers, the alerts' line. */
+  incidents: {
+    /** Your count: '3x'. */
+    count: (n: number) => `${n}x`,
+    /** The team's, in team races: 'eq. 7x'. */
+    team: (n: number) => `eq.${NB}${n}x`,
+    /** The session's next limit. */
+    penaltyAt: (n: number) => `pen.${NB}a${NB}${n}x`,
+    dqAt: (n: number) => `DQ${NB}a${NB}${n}x`,
+    /** The points an incident added: '+2x'. */
+    added: (n: number) => `+${n}x`,
+    /** The lap it happened on ('V5'; the sector is common.sector). */
+    lap: (n: number) => `V${n}`,
+    /** What PlayerIncidents reported (iRacing's own points: 2x, 1x, 0x, 2x, 0x, 4x). */
+    kinds: {
+      'loss-of-control': 'Pérdida de control',
+      'off-track': 'Salida de pista',
+      'contact-world': 'Roce con el muro',
+      'collision-world': 'Golpe contra el muro',
+      'contact-car': 'Roce con un coche',
+      'collision-car': 'Choque con un coche'
+    },
+    /** Where the car was off the asphalt, after the rest (lower case). */
+    surfaces: {
+      kerb: 'piano',
+      grass: 'hierba',
+      dirt: 'tierra',
+      sand: 'arena',
+      gravel: 'grava',
+      astroturf: 'césped artificial'
+    }
+  },
   standings: {
     /** The 'gap' column of the class leader. */
     leader: 'LÍDER',
@@ -204,6 +236,30 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     underOne: `<${NB}1${NB}L`,
     timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}L`,
     left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`)
+  },
+  incidents: {
+    count: (n) => `${n}x`,
+    team: (n) => `team${NB}${n}x`,
+    penaltyAt: (n) => `pen.${NB}at${NB}${n}x`,
+    dqAt: (n) => `DQ${NB}at${NB}${n}x`,
+    added: (n) => `+${n}x`,
+    lap: (n) => `L${n}`,
+    kinds: {
+      'loss-of-control': 'Loss of control',
+      'off-track': 'Off track',
+      'contact-world': 'Light wall contact',
+      'collision-world': 'Wall contact',
+      'contact-car': 'Light car contact',
+      'collision-car': 'Car contact'
+    },
+    surfaces: {
+      kerb: 'kerb',
+      grass: 'grass',
+      dirt: 'dirt',
+      sand: 'sand',
+      gravel: 'gravel',
+      astroturf: 'astroturf'
+    }
   },
   standings: {
     leader: 'LEADER',

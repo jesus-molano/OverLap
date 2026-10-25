@@ -3,6 +3,7 @@
  * Only imported by tests.
  */
 import { LAPS_REMAIN_UNLIMITED } from '../../flags'
+import { NO_INCIDENT_LIMITS } from '../../incidents/limits'
 import { SessionState, TELEMETRY_VARS, TELEMETRY_VAR_NAMES, TrackLocation } from '../../telemetry'
 import type { TelemetryFrame } from '../../telemetry'
 import type { DriverEntry, SessionMeta } from '../../types'
@@ -102,6 +103,7 @@ export function makeSession(
     pitSpeedLimitKmh: null,
     trackId: 219,
     trackConfig: 'Grand Prix',
+    incidentLimits: NO_INCIDENT_LIMITS,
     ...o
   }
 }

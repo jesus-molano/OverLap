@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { INCIDENT_ALERT } from '@shared/incidents/alert'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
@@ -18,7 +19,9 @@ const HOLD: NumericSpec = OPTION_SCHEMA.alerts.holdS
 const HOLD_PRESETS_S = [0, 3, 5].filter((s) => s >= HOLD.min && s <= HOLD.max)
 const tenths = (s: number): string => formatSeconds(s, 1)
 
-const nothing = computed(() => !opts.value.showFlags && !opts.value.showPitLimiter)
+const nothing = computed(
+  () => !opts.value.showFlags && !opts.value.showPitLimiter && !opts.value.showIncidents
+)
 // "Ocultar en boxes" (Ventana) hides the whole widget on pit road, limiter line included.
 const prefs = useWidgetSettings('alerts')
 const limiterHidden = computed(() => opts.value.showPitLimiter && prefs.value.hideInPits)
@@ -50,7 +53,14 @@ const showHelp = computed(() => {
         :current="opts.showPitLimiter"
         :apply="set('showPitLimiter')"
       />
+      <ToggleControl
+        :label="t.settings.alerts.incidents"
+        :help="t.settings.alerts.incidentsHelp(INCIDENT_ALERT.minS)"
+        :current="opts.showIncidents"
+        :apply="set('showIncidents')"
+      />
     </CheckGroup>
+    <!-- The incident line keeps the same minimum time (never under its own). -->
     <SliderControl
       :label="t.settings.common.keepVisible"
       :help="t.settings.alerts.holdHelp"
@@ -60,7 +70,7 @@ const showHelp = computed(() => {
       :step="HOLD.step"
       :format="tenths"
       :presets="HOLD_PRESETS_S"
-      :disabled="!opts.showFlags"
+      :disabled="!opts.showFlags && !opts.showIncidents"
       :apply="set('holdS')"
     />
   </PageSection>

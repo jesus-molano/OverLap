@@ -66,7 +66,8 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   showClassPosition: true,
   showLicense: true,
   showIRating: true,
-  nameFormat: 'inherit'
+  nameFormat: 'inherit',
+  showIncidents: true
 }
 const DEFAULT_RADAR: RadarOptions = { rangeM: 20, showRangeLabels: true }
 const DEFAULT_COLUMNS: StandingsColumn[] = [
@@ -90,6 +91,7 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   iRatingDeltaAll: false,
   headerIRating: true,
   headerSafetyRating: true,
+  headerIncidents: true,
   showSof: true,
   showCarCount: true,
   density: 'inherit'
@@ -131,7 +133,8 @@ const DEFAULT_ALERTS: AlertsOptions = {
   showFlags: true,
   showBlue: true,
   showPitLimiter: true,
-  holdS: 3
+  holdS: 3,
+  showIncidents: true
 }
 const DEFAULT_SHORTCUTS: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Shift+H',

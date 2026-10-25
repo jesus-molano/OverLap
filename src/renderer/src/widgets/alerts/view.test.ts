@@ -4,12 +4,14 @@ import { NBSP } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import type { AlertsData, FlagKind } from '@shared/types'
 import { ICON_NAMES } from '@renderer/ui/icons'
+import { incidentLineView } from './incident'
 import { PREVIEW_ALERTS } from './preview'
 import {
   MAX_CHIPS,
   SHOW_ALL,
   flagViews,
   hasAlerts,
+  incidentHero,
   layoutKey,
   limiterHero,
   limiterView,
@@ -33,6 +35,7 @@ function alerts(over: Partial<AlertsData> = {}): AlertsData {
     pitLimiter: null,
     speedKmh: 0,
     pitLimitKmh: 60,
+    incident: null,
     ...over
   }
 }
@@ -335,11 +338,12 @@ describe('limiter size and layout', () => {
 })
 
 describe('preview', () => {
-  it('fills the flag band, the chips and the limiter line', () => {
+  it('fills the flag band, the chips, the incident line and the limiter line', () => {
     const flags = toFlagsView(PREVIEW_ALERTS.flags, SHOW_ALL, ES)
     expect(flags.primary?.kind).toBe('yellow')
     expect(flags.secondary.map((f) => f.kind)).toEqual(['blue', 'white'])
     expect(limiterView(PREVIEW_ALERTS, SHOW_ALL, 'metric', ES)?.state).toBe('on')
+    expect(PREVIEW_ALERTS.incident).toMatchObject({ points: 2, kind: 'loss-of-control' })
     expect(Object.isFrozen(PREVIEW_ALERTS)).toBe(true)
   })
 
@@ -347,7 +351,46 @@ describe('preview', () => {
     const noBlue = filter({ showBlue: false })
     expect(previewFilter(PREVIEW_ALERTS, noBlue)).toBe(noBlue)
     expect(toFlagsView(PREVIEW_ALERTS.flags, noBlue, ES).secondary).toEqual([FLAG_VIEWS.white])
-    const off = filter({ showFlags: false, showPitLimiter: false })
+    // The incident line alone is something to show.
+    const incidentsOnly = filter({ showFlags: false, showPitLimiter: false })
+    expect(previewFilter(PREVIEW_ALERTS, incidentsOnly)).toBe(incidentsOnly)
+    const off = filter({ showFlags: false, showPitLimiter: false, showIncidents: false })
     expect(previewFilter(PREVIEW_ALERTS, off)).toBe(SHOW_ALL)
+  })
+})
+
+describe('incident line', () => {
+  const incident = {
+    points: 2,
+    kind: 'loss-of-control',
+    lap: 5,
+    sector: 3,
+    surface: 'gravel'
+  } as const
+  const line = incidentLineView(incident, true, ES)
+
+  it('counts as content only with its option on', () => {
+    expect(hasAlerts(alerts({ incident }), filter())).toBe(true)
+    expect(hasAlerts(alerts({ incident }), filter({ showIncidents: false }))).toBe(false)
+    expect(hasAlerts(alerts({ incident: { ...incident, points: 0 } }), filter())).toBe(false)
+    expect(hasAlerts(alerts({ incident, visible: false }), filter())).toBe(false)
+  })
+
+  it('is as large as a flag only when it is alone', () => {
+    const flags = toFlagsView(['yellow'], SHOW_ALL, ES)
+    const none = toFlagsView([], SHOW_ALL, ES)
+    const on = limiterView(alerts({ pitLimiter: 'on' }), SHOW_ALL, 'metric', ES)
+    expect(incidentHero(none, line, null)).toBe(true)
+    expect(incidentHero(flags, line, null)).toBe(false)
+    expect(incidentHero(none, line, on)).toBe(false)
+    expect(incidentHero(none, null, null)).toBe(false)
+  })
+
+  it('changes the layout key: none, normal, hero', () => {
+    const flags = toFlagsView(['yellow'], SHOW_ALL, ES)
+    const none = toFlagsView([], SHOW_ALL, ES)
+    const keys = [layoutKey(flags, null), layoutKey(flags, null, line), layoutKey(none, null, line)]
+    expect(new Set(keys).size).toBe(3)
+    expect(layoutKey(flags, null, null)).toBe(layoutKey(flags, null))
   })
 })

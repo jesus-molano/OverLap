@@ -119,6 +119,67 @@ export interface SessionMeta {
   trackId: number
   /** WeekendInfo.TrackConfigName ('' when none): different layouts get different personal bests. */
   trackConfig: string
+  /** WeekendInfo.WeekendOptions incident limits (all null when 'unlimited' or missing). */
+  incidentLimits: IncidentLimits
+}
+
+// ---------------------------------------------------------------------------
+// Incidents (the player's only: iRacing gives no incident data for other drivers)
+// ---------------------------------------------------------------------------
+
+/**
+ * Incident limits of the session, from WeekendOptions (text: 'unlimited' or a number; the
+ * warning ones are not in the SDK's types and may be missing). null = no such limit.
+ */
+export interface IncidentLimits {
+  /** IncidentLimit: disqualified on reaching it. */
+  dq: number | null
+  /** IncidentWarningInitialLimit: the first penalty on reaching it. */
+  penalty: number | null
+  /** IncidentWarningSubsequentLimit: another penalty every this many after the first one. */
+  penaltyEvery: number | null
+}
+
+/** The next limit of the session ahead of your count: a penalty or the DQ, at `at` incidents. */
+export interface IncidentThreshold {
+  kind: 'penalty' | 'dq'
+  at: number
+}
+
+/** The incident count of the relative and standings headers ('3x · eq. 7x · pen. a 17x'). */
+export interface IncidentCount {
+  /** PlayerCarMyIncidentCount: yours, this session. */
+  mine: number
+  /** PlayerCarTeamIncidentCount in team races, null otherwise. */
+  team: number | null
+  /** The next limit (counted on the team's incidents in team races), null without limits. */
+  limit: IncidentThreshold | null
+}
+
+/** irsdk_IncidentFlags report of PlayerIncidents (points: 2x, 1x, 0x, 2x, 0x, 4x). */
+export type IncidentKind =
+  | 'loss-of-control'
+  | 'off-track'
+  | 'contact-world'
+  | 'collision-world'
+  | 'contact-car'
+  | 'collision-car'
+
+/** Where the car was off the asphalt when it happened (PlayerTrackSurfaceMaterial). */
+export type IncidentSurface = 'kerb' | 'grass' | 'dirt' | 'sand' | 'gravel' | 'astroturf'
+
+/** Your last incident, while the alerts banner shows it ('+2x Pérdida de control · V5 · S3'). */
+export interface IncidentAlert {
+  /** Points it added: rises a moment apart are one incident (iRacing upgrades 2x to 4x). */
+  points: number
+  /** What PlayerIncidents reported, null when it reported nothing (the alert reads '+2x'). */
+  kind: IncidentKind | null
+  /** The lap you were on (1-based), null when unknown. */
+  lap: number | null
+  /** 1-based sector (SessionMeta.sectorStarts), null when unknown. */
+  sector: number | null
+  /** Off the asphalt (kerb, grass, gravel...), null on the track itself or when unknown. */
+  surface: IncidentSurface | null
 }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +233,8 @@ export interface RelativeData {
   slotsBehind: number
   /** SessionType of the current session ("Race", "Practice", ...) or null. */
   sessionType: string | null
+  /** Your incident count for the header, null when unknown (no player car). */
+  incidents: IncidentCount | null
 }
 
 // ---------------------------------------------------------------------------
@@ -321,6 +384,8 @@ export interface StandingsHeader {
   /** Race sessions with known iRatings only. */
   iRating: PlayerRatingProjection | null
   safetyRating: SafetyRatingProjection | null
+  /** Your incident count, in every session type; null when unknown (no player car). */
+  incidents: IncidentCount | null
 }
 
 export interface StandingsData {
@@ -471,6 +536,8 @@ export interface AlertsData {
   pitLimiter: 'on' | 'off' | 'speeding' | null
   speedKmh: number
   pitLimitKmh: number | null
+  /** Your last incident while it is shown, null otherwise. */
+  incident: IncidentAlert | null
 }
 
 // ---------------------------------------------------------------------------
@@ -636,6 +703,8 @@ export interface RelativeOptions {
   showIRating: boolean
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
+  /** Your incident count (and the session's limit) in the header. */
+  showIncidents: boolean
 }
 
 export interface RadarOptions {
@@ -679,6 +748,8 @@ export interface StandingsOptions {
   headerIRating: boolean
   /** Header line with your projected SR and incident margin. */
   headerSafetyRating: boolean
+  /** Your incident count (and the session's limit) in the header, in every session type. */
+  headerIncidents: boolean
   showSof: boolean
   showCarCount: boolean
   /** 'inherit' = appearance.density. */
@@ -743,6 +814,8 @@ export interface AlertsOptions {
   showPitLimiter: boolean
   /** Keep a flag shown at least this long (s, 0..10) so a flicker is readable. */
   holdS: number
+  /** '+2x Pérdida de control · V5 · S3 · grava' for a few seconds when your count goes up. */
+  showIncidents: boolean
 }
 
 export interface DeltaOptions {

@@ -15,9 +15,12 @@ import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView } from '@renderer/view/reuse'
+import { incidentLineView, type IncidentLineView } from './incident'
+import IncidentLine from './IncidentLine.vue'
 import { PREVIEW_ALERTS } from './preview'
 import {
   hasAlerts,
+  incidentHero,
   layoutKey,
   limiterHero,
   limiterView,
@@ -40,7 +43,8 @@ const filter = computed<AlertFilter>((prev) =>
   reuseView(prev, {
     showFlags: options.value.showFlags,
     showBlue: options.value.showBlue,
-    showPitLimiter: options.value.showPitLimiter
+    showPitLimiter: options.value.showPitLimiter,
+    showIncidents: options.value.showIncidents
   })
 )
 
@@ -78,23 +82,37 @@ const limiter = computed<LimiterView | null>((prev) => {
   )
 })
 
+const incident = computed<IncidentLineView | null>((prev) =>
+  reuseView(
+    prev,
+    incidentLineView(content.value?.incident, shownFilter.value.showIncidents, t.value)
+  )
+)
+
 const hero = computed(() => limiterHero(flags.value, limiter.value))
+const incidentBig = computed(() => incidentHero(flags.value, incident.value, limiter.value))
 
 /** The panel has a row to draw (live, the sample, or the last ones kept while hidden). */
-const hasRows = computed(() => flags.value.primary !== null || limiter.value !== null)
+const hasRows = computed(
+  () => flags.value.primary !== null || limiter.value !== null || incident.value !== null
+)
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && hasRows.value
 )
-/** Where the VISTA PREVIA tag goes: the chips row, else the limiter line, else the flag band. */
-const previewTag = computed<'flag' | 'chips' | 'limiter' | null>(() => {
+/**
+ * Where the VISTA PREVIA tag goes: the chips row, else the limiter line, else the incident line,
+ * else the flag band.
+ */
+const previewTag = computed<'flag' | 'chips' | 'limiter' | 'incident' | null>(() => {
   if (!preview.value) return null
   if (flags.value.secondary.length > 0) return 'chips'
-  return limiter.value !== null ? 'limiter' : 'flag'
+  if (limiter.value !== null) return 'limiter'
+  return incident.value !== null ? 'incident' : 'flag'
 })
 
 const shown = useReveal(
   () => wanted.value,
-  () => layoutKey(flags.value, limiter.value),
+  () => layoutKey(flags.value, limiter.value, incident.value),
   { fit: () => autoHeight.value }
 )
 
@@ -152,6 +170,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         </span>
         <PreviewTag v-if="previewTag === 'chips'" class="alerts__preview" />
       </div>
+
+      <IncidentLine
+        v-if="incident"
+        :view="incident"
+        :hero="incidentBig"
+        :preview="previewTag === 'incident'"
+      />
 
       <div
         v-if="limiter"
@@ -220,10 +245,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   padding: 0;
 }
 
-/* Band separators: the panel's dark keyline between two bands. */
+/* Band separators: the panel's dark keyline between two bands (IncidentLine draws its own). */
 .flag + .chips,
 .flag + .limiter,
-.chips + .limiter {
+.chips + .limiter,
+.al-incident + .limiter {
   box-shadow: inset 0 1px 0 var(--ov-edge-out);
 }
 

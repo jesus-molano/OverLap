@@ -6,6 +6,7 @@
  */
 import { driverIdentity } from './driver'
 import { SessionFlag } from './flags'
+import { incidentCount } from './incidents/count'
 import { frac } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { classRatingField } from './ratings/field'
@@ -372,7 +373,9 @@ export class StandingsProvider {
               isRace ? lapsLeft : null,
               sessionType ?? ''
             )
-          : null
+          : null,
+      // Every session type, not only rated races; headerIncidents is display only.
+      incidents: incidentCount(frame, session)
     }
     return { header, classes }
   }

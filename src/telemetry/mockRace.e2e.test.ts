@@ -443,10 +443,37 @@ describe('mock race end to end: the first ten minutes at 60 Hz', () => {
       expect(payload.pitLimiter).toBeNull()
       expect(payload.speedKmh).toBe(0)
       expect(payload.pitLimitKmh).toBe(MOCK_PIT_SPEED_LIMIT_KMH)
-      expect(payload.visible).toBe(payload.flags.length > 0)
+      expect(payload.visible).toBe(payload.flags.length > 0 || payload.incident !== null)
     }
     // 10 Hz at most, and only on change.
     expect(run.alerts.length).toBeLessThan(RUN_S * 2)
+  })
+
+  it('incidents: the header count with the next limit, and each one in the alerts', () => {
+    // Every standings header counts your incidents, with the session's next limit (17x).
+    const counts = run.standings.map((x) => x.payload.header.incidents)
+    expect(counts[0]).toEqual({ mine: 0, team: null, limit: { kind: 'penalty', at: 17 } })
+    expect(counts.at(-1)?.mine).toBe(3)
+    // One alert per timeline incident: what, where and on what, for a few seconds.
+    const [first, second] = MOCK_TIMELINE.playerIncidents.map(([atS]) =>
+      run.alerts.filter((x) => x.payload.incident !== null && x.s >= atS && x.s < atS + 10)
+    )
+    const off = first?.[0]
+    expect(off?.s).toBeCloseTo(MOCK_TIMELINE.playerIncidents[0]?.[0] ?? 0, 0)
+    expect(off?.payload.incident).toMatchObject({ points: 1, kind: 'off-track', surface: 'grass' })
+    expect(off?.payload.incident?.lap).toBeGreaterThan(1)
+    expect([1, 2, 3]).toContain(off?.payload.incident?.sector)
+    // The 2x one: an off-track upgraded a moment later to a loss of control, one incident.
+    expect(second?.map((x) => x.payload.incident?.points)).toEqual([1, 2])
+    expect(second?.at(-1)?.payload.incident).toMatchObject({
+      kind: 'loss-of-control',
+      surface: 'gravel'
+    })
+    // Gone a few seconds after its last point (the next message clears it).
+    const after = run.alerts.find((x) => x.s > (second?.at(-1)?.s ?? 0))
+    expect(after?.payload.incident).toBeNull()
+    expect((after?.s ?? 0) - (second?.at(-1)?.s ?? 0)).toBeGreaterThan(5)
+    expect((after?.s ?? 0) - (second?.at(-1)?.s ?? 0)).toBeLessThan(7)
   })
 
   it('delta: a classmate lap until your first clean one, then yours; predictions are your laps', () => {

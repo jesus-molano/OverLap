@@ -30,6 +30,11 @@ export interface MockVars {
   SessionFlags: number[]
   PlayerCarMyIncidentCount: number[]
   PlayerTrackSurface: number[]
+  /** Incidents (playerIncidents.ts): the team's count, the last report, the surface. */
+  PlayerCarTeamIncidentCount: number[]
+  PlayerIncidents: number[]
+  PlayerTrackSurfaceMaterial: number[]
+  IsReplayPlaying: boolean[]
   Throttle: number[]
   Brake: number[]
   Clutch: number[]
@@ -71,6 +76,10 @@ export class MockFrameBuffer {
     SessionFlags: [0],
     PlayerCarMyIncidentCount: [0],
     PlayerTrackSurface: [TrackLocation.NotInWorld],
+    PlayerCarTeamIncidentCount: [0],
+    PlayerIncidents: [0],
+    PlayerTrackSurfaceMaterial: [0],
+    IsReplayPlaying: [false],
     Throttle: [0],
     Brake: [0],
     Clutch: [0],
