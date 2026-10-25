@@ -4,8 +4,9 @@ import { computed, shallowRef, useId } from 'vue'
 import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
-import { sendCommand, updateFailed } from './editor'
+import { updateFailed } from './editor'
 import EditModeButton from './layout/EditModeButton.vue'
+import SettingsFooter from './layout/SettingsFooter.vue'
 import SettingsSidebar from './layout/SettingsSidebar.vue'
 import {
   SETTINGS_PAGES,
@@ -31,20 +32,16 @@ const pageOptions = computed(() =>
   SETTINGS_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
 )
 
+/** A new page is a new scroller (it is keyed), so it starts at the top. */
 function select(next: SettingsPage): void {
   if (next === page.value) return
   page.value = next
   savePage(storage, next)
-  window.scrollTo({ top: 0 })
 }
 
 function onSelectChange(e: Event): void {
   const v = e.target instanceof HTMLSelectElement ? e.target.value : null
   if (isSettingsPage(v)) select(v)
-}
-
-function openSettingsFolder(): void {
-  sendCommand({ type: 'open-settings-folder' })
 }
 </script>
 
@@ -52,62 +49,61 @@ function openSettingsFolder(): void {
   <div class="app" :lang="lang">
     <SettingsSidebar class="side" :page="page" @select="select" />
 
+    <!-- The window never scrolls: bands (settings.css), of which only the page's options scroll. -->
     <div class="main-col">
-      <!-- Narrow windows: the sidebar becomes this bar. -->
-      <div class="topbar">
-        <label :for="selectId" class="st-sr-only">{{ t.settings.app.pageSelect }}</label>
-        <select :id="selectId" class="st-field page-select" :value="page" @change="onSelectChange">
-          <option v-for="o in pageOptions" :key="o.page" :value="o.page">{{ o.title }}</option>
-        </select>
-        <StatusChip />
-        <EditModeButton compact />
+      <div class="st-band">
+        <!-- Narrow windows: the sidebar becomes this bar. -->
+        <div class="topbar">
+          <label :for="selectId" class="st-sr-only">{{ t.settings.app.pageSelect }}</label>
+          <select
+            :id="selectId"
+            class="st-field page-select"
+            :value="page"
+            @change="onSelectChange"
+          >
+            <option v-for="o in pageOptions" :key="o.page" :value="o.page">{{ o.title }}</option>
+          </select>
+          <StatusChip />
+          <EditModeButton compact />
+        </div>
+
+        <p v-if="editMode" class="banner" role="status">
+          {{ t.settings.app.editBanner.before }} <kbd>Alt</kbd>
+          {{ t.settings.app.editBanner.after }}
+        </p>
+        <p v-if="updateFailed" class="banner banner-error" role="alert">
+          {{ t.settings.app.updateError }}
+        </p>
       </div>
 
-      <p v-if="editMode" class="banner" role="status">
-        {{ t.settings.app.editBanner.before }} <kbd>Alt</kbd>
-        {{ t.settings.app.editBanner.after }}
-      </p>
-      <p v-if="updateFailed" class="banner banner-error" role="alert">
-        {{ t.settings.app.updateError }}
-      </p>
-
       <main class="content">
-        <p v-if="settings === null" class="loading">{{ t.settings.app.loading }}</p>
-        <AppearancePage v-else-if="page === 'appearance'" />
-        <WidgetPage v-else :key="page" :widget-id="page" />
+        <div v-if="settings === null" class="st-band st-scroll loading">
+          <p class="loading-text">{{ t.settings.app.loading }}</p>
+          <SettingsFooter />
+        </div>
+        <AppearancePage v-else-if="page === 'appearance'"><SettingsFooter /></AppearancePage>
+        <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>
       </main>
-
-      <footer class="foot">
-        <p class="foot-note">{{ t.settings.app.footNote }}</p>
-        <button
-          type="button"
-          class="st-btn st-btn-ghost st-btn-sm narrow-only"
-          @click="openSettingsFolder"
-        >
-          {{ t.settings.app.openFolder }}
-        </button>
-      </footer>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* The window's height, never more: the page's options scroll inside it. */
 .app {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: 212px minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100%;
 }
 
+/* No side padding of its own: each band has it, beside the scrollbar's gutter. */
 .main-col {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 22px 28px 20px;
-}
-
-.main-col > * {
-  width: 100%;
-  max-width: 780px;
+  min-height: 0;
+  padding-top: 22px;
 }
 
 .topbar {
@@ -131,31 +127,22 @@ function openSettingsFolder(): void {
 }
 
 .content {
-  flex: 1 0 auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .loading {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-text {
+  flex: 1 0 auto;
   margin: 48px 0;
   color: var(--ov-fg-muted);
   text-align: center;
-}
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin-top: 20px;
-}
-
-.foot-note {
-  color: var(--ov-fg-dim);
-  font-size: 12px;
-}
-
-.foot .narrow-only {
-  display: none;
 }
 
 @media (max-width: 639px) {
@@ -168,13 +155,10 @@ function openSettingsFolder(): void {
   }
 
   .main-col {
-    padding: 0 16px 16px;
+    padding-top: 0;
   }
 
   .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -189,10 +173,6 @@ function openSettingsFolder(): void {
     flex: 1 1 10em;
     min-width: 0;
     font-weight: 600;
-  }
-
-  .foot .narrow-only {
-    display: inline-flex;
   }
 }
 </style>

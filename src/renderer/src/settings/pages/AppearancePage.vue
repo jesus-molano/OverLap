@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from '@shared/i18n'
 import { FONT_SCALE_MAX, FONT_SCALE_MIN } from '@shared/settings'
 import { ACCENT_PRESETS, OPTION_SCHEMA } from '@shared/settingsSchema'
@@ -16,15 +16,20 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter, resetAppearance } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
+import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { formatPercent } from '../values'
 
-/** Global look shared by every widget (settings.appearance). */
+/**
+ * Global look shared by every widget (settings.appearance): live preview (fixed), then the
+ * options (they scroll). The default slot closes the scrolling part (the window's foot).
+ */
 const appearance = useAppearance()
 const t = useI18n()
+const titleId = useId()
 const set = optionSetter('appearance')
 
 const A = OPTION_SCHEMA.appearance
@@ -67,15 +72,17 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 </script>
 
 <template>
-  <article class="page">
-    <header class="page-head">
-      <h1 class="page-title">{{ t.settings.nav.appearance }}</h1>
-      <p class="page-sub">{{ t.settings.appearance.sub }}</p>
-    </header>
+  <PageFrame :labelledby="titleId">
+    <template #top>
+      <header class="page-head">
+        <h1 :id="titleId" class="page-title">{{ t.settings.nav.appearance }}</h1>
+        <p class="page-sub">{{ t.settings.appearance.sub }}</p>
+      </header>
 
-    <SampleStage class="stage">
-      <WidgetSample widget-id="standings" global />
-    </SampleStage>
+      <SampleStage class="stage">
+        <WidgetSample widget-id="standings" global />
+      </SampleStage>
+    </template>
 
     <PageSection :title="t.settings.appearance.language.title">
       <ChoiceControl
@@ -211,7 +218,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         :action="resetAppearance"
       />
     </footer>
-  </article>
+
+    <template #foot>
+      <slot />
+    </template>
+  </PageFrame>
 </template>
 
 <style scoped>
