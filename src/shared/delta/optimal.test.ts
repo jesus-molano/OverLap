@@ -51,6 +51,7 @@ const BASE: Omit<RaceCarState, 'carIdx' | 'laps'> = {
   pitStops: 0,
   towStops: 0,
   towed: false,
+  towedAt: NaN,
   lastPitLap: null,
   outLap: false,
   stintLaps: 3,

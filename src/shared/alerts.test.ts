@@ -725,6 +725,7 @@ function carState(o: Partial<RaceCarState> = {}): RaceCarState {
     pitStops: 0,
     towStops: 0,
     towed: false,
+    towedAt: NaN,
     lastPitLap: null,
     outLap: false,
     stintLaps: 10,

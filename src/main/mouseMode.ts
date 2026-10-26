@@ -12,7 +12,8 @@
  *
  * The edit chips are the one thing the renderer reports (where its chips are, IPC.editChips):
  * main clips each to its own panel rect, so a stale report can only ever take the mouse inside
- * a panel, in edit mode.
+ * a panel, in edit mode. The renderer draws every chip above every panel, so each one takes the
+ * mouse even where a panel painted later (the radar) covers its own.
  */
 import type { Point, Rect } from '@shared/types'
 
@@ -30,7 +31,8 @@ export interface HitPanel {
   ghost?: boolean
   /**
    * Its edit chip (name, eye and padlock), screen DIP, inside `rect`: takes the mouse even when
-   * the panel is locked or a ghost, so its buttons take clicks. Absent or null: none reported.
+   * the panel is locked, a ghost or under another panel, so its buttons take clicks. Absent or
+   * null: none reported.
    */
   chip?: Rect | null
 }
@@ -72,17 +74,20 @@ export function panelAt(p: Point, panels: readonly HitPanel[], margin: number): 
 }
 
 /**
- * The topmost panel under the cursor decides: an unlocked one or any chip takes the mouse, a
- * locked one gives it to the game, a ghost lets it through to the panels below.
+ * Any panel's chip under the cursor takes the mouse (the chips are drawn above every panel);
+ * elsewhere the topmost panel under it decides: an unlocked one takes the mouse, a locked one
+ * gives it to the game, a ghost lets it through to the panels below.
  */
 export function mouseMode(i: MouseInputs): MouseMode {
   if (!i.editing || !i.healthy) return 'ignore'
   if (i.dragging) return 'capture'
   const margin = i.current === 'capture' ? CAPTURE_MARGIN_DIP : 0
   for (const panel of i.panels) {
-    if (!rectHas(panel.rect, i.cursor, margin)) continue
     const chip = panel.chip ?? null
     if (chip !== null && rectHas(chip, i.cursor, margin)) return 'capture'
+  }
+  for (const panel of i.panels) {
+    if (!rectHas(panel.rect, i.cursor, margin)) continue
     if (panel.ghost === true) continue
     return panel.locked ? 'forward' : 'capture'
   }

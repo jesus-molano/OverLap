@@ -45,6 +45,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetPct: 0.38,
       meetSector: 2,
       lapping: false,
+      passing: null,
       hazard: 'stopped'
     })
   ]),
@@ -58,6 +59,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetPct: 0.17,
       meetSector: 1,
       lapping: false,
+      passing: null,
       hazard: null
     }),
     entry({
@@ -69,6 +71,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetPct: 0.71,
       meetSector: 3,
       lapping: true,
+      passing: null,
       hazard: null
     })
   ]),
@@ -82,6 +85,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetPct: 0.41,
       meetSector: 2,
       lapping: false,
+      passing: null,
       hazard: null
     }),
     entry({
@@ -93,6 +97,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetPct: 0.66,
       meetSector: 3,
       lapping: true,
+      passing: null,
       hazard: null
     })
   ])

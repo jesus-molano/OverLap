@@ -58,6 +58,12 @@ export interface SlotRegistry {
   slot(id: WidgetId): SlotHandle | undefined
 }
 
+/**
+ * The window's chip layer (OverlayApp), above every panel: each EditFrame draws its chips there,
+ * over its own panel, so a panel painted later never covers them.
+ */
+export const CHIP_LAYER = '[data-ov-chips]'
+
 const SLOT: InjectionKey<SlotHandle> = Symbol('overlay-slot')
 
 /** WidgetSlot: the slot of the widget below it. */

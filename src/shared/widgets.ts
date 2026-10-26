@@ -39,6 +39,11 @@ export interface WidgetDef {
   readonly keepsLiveInReplay?: true
   /** Shown on iRacing's session screen by default, where the others hide (the results). */
   readonly defaultOnSessionScreen?: true
+  /**
+   * Only has data while you are in the car (IsOnTrack): out of it, the session screen included,
+   * it shows nothing whatever its rules say (the radar, the pedals, the delta).
+   */
+  readonly inCarOnly?: true
 }
 
 /**
@@ -78,7 +83,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'free',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    inCarOnly: true
   },
   standings: {
     id: 'standings',
@@ -113,7 +119,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.75,
     sizeModel: 'free',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    inCarOnly: true
   },
   traffic: {
     id: 'traffic',
@@ -145,7 +152,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'free',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    inCarOnly: true
   },
   // Weather moves slowly: once a second is plenty. Top left, above the relative.
   conditions: {
@@ -194,6 +202,12 @@ export function followsCamera(id: WidgetId): boolean {
 export function keepsLiveInReplay(id: WidgetId): boolean {
   const def: WidgetDef = WIDGET_DEFS[id]
   return def.keepsLiveInReplay === true
+}
+
+/** WidgetDef.inCarOnly: nothing to show while you are out of the car. */
+export function inCarOnly(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.inCarOnly === true
 }
 
 /** WidgetDef.defaultOnSessionScreen: WidgetSettings.showOnSessionScreen by default. */

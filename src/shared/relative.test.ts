@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { SessionFlag } from './flags'
 import type { RaceCarState, RaceView } from './race/raceView'
+import { TOW_BADGE_S } from './race/towBadge'
 import {
   FALLBACK_LAP_TIME_S,
   clampRelativeSlots,
@@ -260,6 +261,26 @@ describe('cars in the pits', () => {
     expect(rowOf(data, 2).inPits).toBe(true)
     expect(rowOf(data, 3).inPits).toBe(false)
     expect(rowOf(data, 0).inPits).toBe(false)
+  })
+
+  it('marks a tow as the standings do: only around the tow itself (TOW_BADGE_S)', () => {
+    const session = makeSession(drivers(3))
+    const frame = makeFrame({
+      0: { pct: 0.5 },
+      1: { pct: 0.02, onPitRoad: true, surface: TrackLocation.InPitStall },
+      2: { pct: 0.03, onPitRoad: true, surface: TrackLocation.InPitStall }
+    })
+    const towedAt: Record<number, number> = { 1: 1000 - 10, 2: 1000 - TOW_BADGE_S }
+    const race = {
+      sessionTime: 1000,
+      car: (i: number) =>
+        i in towedAt ? ({ towed: true, towedAt: towedAt[i] } as RaceCarState) : undefined
+    } as unknown as RaceView
+    const data = computeRelative(frame, session, OPTS, race)
+    expect(rowOf(data, 1)).toMatchObject({ inPits: true, towed: true })
+    expect(rowOf(data, 2)).toMatchObject({ inPits: true, towed: false })
+    // Without the model nothing says it was towed: PIT.
+    expect(rowOf(computeRelative(frame, session, OPTS), 1).towed).toBe(false)
   })
 })
 
@@ -657,6 +678,7 @@ describe('row fields', () => {
         gapS: 0,
         lapRelation: 'same',
         inPits: false,
+        towed: false,
         stintLaps: null,
         tyre: null,
         penalty: null
@@ -675,6 +697,7 @@ describe('row fields', () => {
         gapS: expect.closeTo(-5),
         lapRelation: 'same',
         inPits: false,
+        towed: false,
         stintLaps: null,
         tyre: null,
         penalty: null

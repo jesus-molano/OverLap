@@ -201,6 +201,7 @@ describe('SKIP_EMIT', () => {
     meetPct: 0.62,
     meetSector: 2,
     lapping: false,
+    passing: null,
     hazard: null
   }
   const noTraffic: TrafficData = { visible: false, faster: [], slower: [], hazards: [] }

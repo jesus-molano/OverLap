@@ -22,6 +22,8 @@ export interface RelativeSlotView extends DriverCellView {
   css: string
   isPlayer: boolean
   inPits: boolean
+  /** In the pits around a tow: the tow badge (as in the standings) instead of PIT. */
+  towed: boolean
   /** Lapping you / lapped by you; null on your lap. */
   lap: 'ahead' | 'behind' | null
   /** 'P5', '' when unknown. */
@@ -96,6 +98,7 @@ export function toSlotView(
     css: rowCss(row, index % 2 === 1, lap),
     isPlayer: row.isPlayer,
     inPits: row.inPits,
+    towed: row.inPits && row.towed,
     lap,
     pos: formatClassPosition(row.classPosition),
     // Your own gap is always 0.0: noise.

@@ -110,10 +110,12 @@ function playerPosition(classes: readonly StandingsClassBlock[]): number | null 
 }
 
 /**
- * The race is over for you: your row took the flag. Without your row (spectating), once
+ * The race is over for you: your row took the flag, or no lap is left for you (the cool-down:
+ * also for a car parked in its box that never took it). Without your row (spectating), once
  * anyone did. The leader's flag alone is not it: you may still be on your last lap.
  */
-function raceFinished(classes: readonly StandingsClassBlock[]): boolean {
+function raceFinished(h: StandingsHeader | null, classes: readonly StandingsClassBlock[]): boolean {
+  if (h?.lapsRemaining === 0) return true
   let any = false
   for (const c of classes) {
     for (const r of c.rows) {
@@ -223,7 +225,7 @@ export function toHeaderView(i: HeaderInput): HeaderView {
     title: formatSessionType(h?.sessionType ?? null, m) || i.title,
     meta: single !== undefined ? classMeta(single, i.showSof, i.showCarCount, m) : '',
     preview: i.preview,
-    finished: i.race && raceFinished(classes),
+    finished: i.race && raceFinished(h, classes),
     remaining: h !== null ? remainingText(h, i.race, m) : '',
     incCount: inc?.count ?? '',
     incTeam: inc?.team ?? '',

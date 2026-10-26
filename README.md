@@ -166,7 +166,8 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
   sobre un widget no llegan al juego.
 - La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar) y un **candado** (bloquear o
   desbloquear): cambian lo mismo que la bandeja y los Ajustes, y funcionan aunque el widget esté
-  bloqueado. Un widget oculto se ve **solo en modo edición**, como un hueco de borde discontinuo
+  bloqueado. Las etiquetas se dibujan **encima de todos los widgets**, así que ninguna queda tapada
+  por otro widget (el radar, una muestra más alta), y arrastrar la etiqueta mueve su widget. Un widget oculto se ve **solo en modo edición**, como un hueco de borde discontinuo
   con su nombre y el ojo tachado, para poder recuperarlo; fuera del modo edición no se dibuja ni
   se calcula.
 - El **radar se dibuja encima de todos** los widgets (un aviso encima de él tapaba los coches en
@@ -190,7 +191,8 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
 
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
-  (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados.
+  (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados. Radar,
+  Pedales y Delta no la tienen: fuera del coche no tienen datos.
 - iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
@@ -286,13 +288,16 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - **Ritmo** antes de la primera vuelta limpia: tu mejor vuelta, luego los tiempos de clasificación
   (tuyo o el mejor de tu clase); `CarClassEstLapTime` solo como último recurso.
 - **Grúa o reset**: el hueco se mide desde donde queda el coche (nunca un «+0.0» falso); sale
-  **GRÚA** en boxes y no cuenta como parada, y la vuelta que iRacing le acredita en el box no suma
-  al stint. Si no se sabe el intervalo y la columna de hueco al líder ya lo dice, «—» (no «+1L» dos
+  **GRÚA** en boxes mientras dura la cuenta atrás (la tuya, `PlayerCarTowTime`; la de los demás no
+  se publica: un minuto) y luego **PIT**, igual en Clasificación y Relativo; no cuenta como parada,
+  y la vuelta que iRacing le acredita en el box no suma al stint. Las vueltas que se dan mientras
+  OverLap no ve la carrera (una repetición, una reconexión) sí suman. Si no se sabe el intervalo y la columna de hueco al líder ya lo dice, «—» (no «+1L» dos
   veces).
 - **Vuelta 1** de una salida parada: cronometrada desde que el semáforo se pone verde, como iRacing
   (un segundo antes de que la sesión pase a carrera).
 - **Al final**: un retirado queda a (vueltas del ganador − las suyas); la cabecera dice «Última
-  vuelta» hasta que tú cruzas la meta y entonces «Final».
+  vuelta» hasta que tú cruzas la meta y entonces «Final» (también si te quedas en el box: al acabar
+  la sesión).
 - **Clasificación y práctica**: sin tiempo no hay puesto ni «LÍDER», y tu ventana sigue anclada en
   ti. Las vueltas que quedan no suben al salir del coche; con límite de vueltas y de tiempo, también
   sale el reloj.
@@ -349,7 +354,10 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - Coches más rápidos que te alcanzan por detrás, más lentos a los que alcanzas y peligros delante.
 - Un coche de tu clase con al menos una vuelta de ventaja que viene por detrás sale siempre como
   «Te dobla», aunque la carrera sea de una sola clase (`traffic.onlyMulticlass`) o vaya a tu ritmo; y
-  con bandera azul, cualquier coche por detrás que pueda estar adelantándote.
+  con bandera azul, cualquier coche por detrás que pueda estar adelantándote. Si está a menos de
+  3 s o tardaría más de 30 s en alcanzarte, dice a qué distancia va («a 0.3 s») en vez de cuándo
+  llega; con bandera azul se pone en ámbar a menos de 2 s y en rojo a menos de 1 s.
+- Con una sola clase en la sesión no hay columna de clase.
 - Se desvanece cuando no hay nadie cerca ni al lado, con histéresis para que no parpadee en el límite
   del alcance.
 - Si la longitud de pista falta o viene rara, solo se muestran los avisos laterales.
@@ -403,10 +411,10 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   - **10 y 5 vueltas** para el final de la carrera (`QUEDAN 5 V`), unos segundos y una sola vez
     cada una: con `SessionLapsRemainEx` (tus vueltas, una menos si te han doblado) y, en carreras a
     tiempo, con la misma estimación que la clasificación.
-  - **Grúa** con cuenta atrás (`PlayerCarTowTime`), lo primero de todo; la reparación (meatball) va
-    al lado y, en tu box, sin «entra en boxes». **Motor calado** (solo dentro del coche) y
-    **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas en marcha; no cuentan la
-    marcha atrás, el pit lane ni el cruce de meta.
+  - **Grúa** con cuenta atrás hasta poder salir de tu box (`PlayerCarTowTime`), lo primero de
+    todo; la reparación (meatball) va al lado y, en tu box, sin «entra en boxes». **Motor calado**
+    (solo dentro del coche) y **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas
+    en marcha; no cuentan la marcha atrás, el pit lane ni el cruce de meta.
   - **Daños** (`EngineWarnings`): `DAÑOS · reparación obligatoria` mientras esté pendiente, hasta que
     sale la bandera de reparación; `DAÑOS LEVES` unos segundos. Opción `alerts.showDamage`.
   - **Incidentes**: `+2x Pérdida de control · V5 · S3 · grava` al sumar puntos (ver Incidentes).

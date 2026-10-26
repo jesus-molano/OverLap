@@ -1,7 +1,13 @@
 /** Words of the replay rule (settings.visibility.replays): which widgets a replay hides. Pure. */
 import { widgetTitle, type Messages } from '@shared/i18n'
 import type { VisibilityOptions } from '@shared/types'
-import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
+import {
+  WIDGET_IDS,
+  followsCamera,
+  inCarOnly,
+  keepsLiveInReplay,
+  type WidgetId
+} from '@shared/widgets'
 
 /**
  * 'Radar, Pedales, Avisos, Delta y Condiciones': the widgets with your own car's data only (or
@@ -20,6 +26,7 @@ export function replayNote(
   replays: VisibilityOptions['replays']
 ): string {
   const r = m.settings.window.replay
+  if (inCarOnly(id)) return r.inCarOnly
   if (!followsCamera(id)) return r.liveOnly
   if (replays === 'hide') return r.hidden
   return keepsLiveInReplay(id) ? r.keepsLive : r.follows

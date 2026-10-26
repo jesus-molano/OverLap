@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SessionFlag } from './flags'
 import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { RaceCarState, RaceView } from './race/raceView'
+import { TOW_BADGE_S } from './race/towBadge'
 import { iRatingDeltas, playerProjection } from './ratings/irating'
 import { projectSessionSafetyRating } from './ratings/sessionSafety'
 import type { SessionSafetyInput } from './ratings/sessionSafety'
@@ -88,6 +89,7 @@ function makeRace(list: readonly FakeCar[], o: FakeRaceOpts = {}): RaceView {
       pitStops: 0,
       towStops: 0,
       towed: false,
+      towedAt: NaN,
       lastPitLap: null,
       outLap: false,
       stintLaps: 0,
@@ -678,12 +680,30 @@ describe('tyres and tows (Q9, Q10)', () => {
   it('marks a car towed to its box, apart from its stops', () => {
     const race = makeRace([
       { carIdx: 0, classPosition: 1 },
-      { carIdx: 1, classPosition: 2, inPits: true, towed: true, towStops: 1 },
+      // Landed in its box 10 s ago (the race view's clock reads 1000).
+      { carIdx: 1, classPosition: 2, inPits: true, towed: true, towedAt: 990, towStops: 1 },
       { carIdx: 2, classPosition: 3, inPits: true, pitStops: 1 }
     ])
     const data = compute(RACE, session, race, FULL)
     expect(rowOf(data, 1)).toMatchObject({ status: 'pits', towed: true, pitStops: 0 })
     expect(rowOf(data, 2)).toMatchObject({ status: 'pits', towed: false, pitStops: 1 })
+  })
+
+  // From the Lime Rock race: a car parked in its box after a tow read GRÚA to the final results.
+  it('marks the tow only around the tow itself, then PIT like any car in its box', () => {
+    const towed = { inPits: true, towed: true, towStops: 1 }
+    const race = makeRace([
+      { carIdx: 0, classPosition: 1, ...towed, towedAt: 1000 - 200 },
+      { carIdx: 1, classPosition: 2, ...towed, towedAt: 1000 - (TOW_BADGE_S - 1) },
+      { carIdx: 2, classPosition: 3, ...towed, towedAt: 1000 - TOW_BADGE_S }
+    ])
+    const data = compute(RACE, session, race, FULL)
+    expect(rowOf(data, 1)).toMatchObject({ status: 'pits', towed: true })
+    expect(rowOf(data, 2)).toMatchObject({ status: 'pits', towed: false })
+    // Yours while your countdown runs, however long it is; PIT once it is over.
+    expect(rowOf(data, 0)?.towed).toBe(false)
+    const counting = compute({ ...RACE, PlayerCarTowTime: [30] }, session, race, FULL)
+    expect(rowOf(counting, 0)?.towed).toBe(true)
   })
 })
 

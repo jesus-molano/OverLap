@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LOCALES, messagesFor } from '@shared/i18n'
+import { WIDGET_IDS, followsCamera, inCarOnly } from '@shared/widgets'
 import { liveOnlyWidgets, replayNote } from './replayWidgets'
 
 const es = messagesFor('es')
@@ -27,15 +28,28 @@ describe('replay rule wording', () => {
     )
     // Your car's data only hides whatever the rule says.
     for (const replays of ['follow', 'hide'] as const) {
-      expect(replayNote(es, 'inputs', replays)).toBe(
+      expect(replayNote(es, 'alerts', replays)).toBe(
         'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche'
       )
-      expect(replayNote(en, 'delta', replays)).toBe(
+      expect(replayNote(en, 'conditions', replays)).toBe(
         'Only your car’s data: hidden in replays and when you watch another car'
+      )
+      // The ones with data only from inside the car: out of it too (no session-screen switch).
+      expect(replayNote(es, 'inputs', replays)).toBe(
+        'Solo tiene datos de tu coche y desde dentro: se oculta fuera del coche (también en la pantalla de sesión), en repeticiones y si miras otro coche'
+      )
+      expect(replayNote(en, 'delta', replays)).toBe(
+        'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car'
       )
     }
     expect(replayNote(en, 'battle', 'follow')).toBe(
       'Live, it follows the car you are watching; hidden when you rewind a replay'
     )
+  })
+
+  it('has nothing to show out of the car only for the radar, the pedals and the delta', () => {
+    expect(WIDGET_IDS.filter(inCarOnly)).toEqual(['radar', 'inputs', 'delta'])
+    // Every one of them hides with another car on camera too.
+    for (const id of WIDGET_IDS.filter(inCarOnly)) expect(followsCamera(id)).toBe(false)
   })
 })

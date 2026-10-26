@@ -6,21 +6,27 @@
  * A ghost (a widget the user disabled) is only an outline with its chip. Outside edit mode it
  * only draws the widget.
  *
- * Main decides when the window takes the mouse (over an unlocked panel, over any panel's chip,
+ * The chips and notes are drawn in the window's chip layer (CHIP_LAYER, above every panel), over
+ * the top of their panel: a panel painted later (the radar, a fitted sample) never covers them.
+ * Dragging the name chip moves its own panel.
+ *
+ * Main decides when the window takes the mouse (over any panel's chip, over an unlocked panel,
  * or while a drag holds the lease), so this never asks for it: it only reports drags and where
  * its chip is (useEditSession).
  */
-import { computed, onBeforeUnmount, useTemplateRef, watch } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
 import { TOPMOST_WIDGET, WIDGET_DEFS } from '@shared/widgets'
 import { useI18n } from '../composables/useI18n'
 import { useShortcuts } from '../composables/useShortcuts'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
+import { vInlineStyle } from '../directives/inlineStyle'
 import Icon from '../ui/Icon.vue'
-import { injectSlot } from './contract'
+import { CHIP_LAYER, injectSlot } from './contract'
 import { handlesFor, type DragMode } from './dragMath'
-import { radarClashes, relativeRect, toggleMessage, type ToggleField } from './editChip'
+import { hintTier, radarClashes, relativeRect, toggleMessage, type ToggleField } from './editChip'
 import { createPanelEdit } from './panelEdit'
+import { slotStyle } from './slotGeometry'
 import { ANIMATION_FRAMES } from './timers'
 import { injectEditSession } from './useEditSession'
 
@@ -52,11 +58,12 @@ const hiddenNote = computed(() => hiddenText(t.value, autoHidden.value.reason))
 const handles = computed(() => handlesFor(autoHeight.value))
 
 /** How to use and leave edit mode, by panel width; the shortcut is left out when it has none. */
-const hints = computed(() => {
+const hint = computed(() => {
   const f = t.value.core.editFrame
   const keys = acceleratorText(t.value, shortcuts.value.toggleEditMode)
-  if (keys === '') return { long: f.hintLongNoKey, short: f.hintShortNoKey, tiny: f.hintShortNoKey }
-  return { long: f.hintLong(keys), short: f.hintShort(keys), tiny: keys }
+  const tier = hintTier(slot.rect.value.width)
+  if (keys === '') return tier === 'long' ? f.hintLongNoKey : f.hintShortNoKey
+  return tier === 'long' ? f.hintLong(keys) : tier === 'short' ? f.hintShort(keys) : keys
 })
 
 /** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets), as drawn now. */
@@ -107,19 +114,36 @@ function toggle(field: ToggleField): void {
   if (msg !== null) window.overlay.widgetToggle(msg)
 }
 
+// ---- The chip layer: over the panel, above every panel ----------------------
+
+/** On screen in edit mode: drawn (rule-hidden widgets are previewed) or a ghost. */
+const chipsShown = computed(() => editMode.value && (slot.shown.value || ghost.value))
+/** Exactly over the panel: the same device-pixel edges. */
+const layerStyle = computed(() =>
+  slotStyle(slot.rect.value, session.registry.display.value?.scaleFactor ?? 1)
+)
+/** The pointer is over the panel or its chip: the hint shows (both can be under it in turn). */
+const overFrame = shallowRef(false)
+const overChip = shallowRef(false)
+// A chip that goes away under the pointer gets no pointerleave.
+watch(chipsShown, (on) => {
+  if (!on) overChip.value = false
+})
+
 // ---- Where the chip is: main takes the mouse over it ------------------------
 
-const frameEl = useTemplateRef<HTMLElement>('frame')
+const layerEl = useTemplateRef<HTMLElement>('layer')
 const chipEl = useTemplateRef<HTMLElement>('chip')
 const observer =
   typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => measureChip())
 
+/** Relative to the layer, which sits exactly on the panel. */
 function measureChip(): void {
-  const frame = frameEl.value
+  const layer = layerEl.value
   const chip = chipEl.value
   const rect =
-    frame !== null && chip !== null
-      ? relativeRect(frame.getBoundingClientRect(), chip.getBoundingClientRect())
+    layer !== null && chip !== null
+      ? relativeRect(layer.getBoundingClientRect(), chip.getBoundingClientRect())
       : null
   session.reportChip(slot.id, rect)
 }
@@ -160,7 +184,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    ref="frame"
     class="frame"
     :class="{
       editing: editable,
@@ -171,15 +194,40 @@ onBeforeUnmount(() => {
     }"
     @pointerdown="onPointerDown($event, 'move')"
     @wheel="onWheel"
+    @pointerenter="overFrame = true"
+    @pointerleave="overFrame = false"
   >
     <div class="content" :class="{ 'is-ghost': ghost }">
       <slot />
     </div>
-    <div v-if="editMode" class="edit-layer">
+    <template v-if="editable">
+      <div
+        v-for="h in handles"
+        :key="h"
+        class="handle"
+        :class="`handle-${h}`"
+        @pointerdown.stop="onPointerDown($event, h)"
+      >
+        <span v-if="autoHeight" class="grip" />
+      </div>
+    </template>
+  </div>
+  <Teleport v-if="chipsShown" defer :to="CHIP_LAYER">
+    <div
+      ref="layer"
+      v-inline-style="layerStyle"
+      class="edit-layer"
+      :data-ov-chips-of="slot.id"
+      :class="{ hovered: editable && (overFrame || overChip) }"
+    >
       <div
         ref="chip"
-        class="chip"
-        :class="{ 'chip-locked': locked && !ghost, 'chip-ghost': ghost }"
+        class="chip chip-main"
+        :class="{ 'chip-locked': locked && !ghost, 'chip-ghost': ghost, 'chip-move': editable }"
+        @pointerdown="onPointerDown($event, 'move')"
+        @wheel="onWheel"
+        @pointerenter="overChip = true"
+        @pointerleave="overChip = false"
       >
         <span class="chip-title">{{ title }}</span>
         <span class="chip-meta">{{ metaText }}</span>
@@ -225,23 +273,10 @@ onBeforeUnmount(() => {
         <span class="chip-meta">{{ clashNote }}</span>
       </div>
       <div v-if="!locked && !ghost" class="hint" aria-hidden="true">
-        <span class="hint-long">{{ hints.long }}</span>
-        <span class="hint-short">{{ hints.short }}</span>
-        <span class="hint-tiny">{{ hints.tiny }}</span>
+        {{ hint }}
       </div>
     </div>
-    <template v-if="editable">
-      <div
-        v-for="h in handles"
-        :key="h"
-        class="handle"
-        :class="`handle-${h}`"
-        @pointerdown.stop="onPointerDown($event, h)"
-      >
-        <span v-if="autoHeight" class="grip" />
-      </div>
-    </template>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -338,20 +373,21 @@ onBeforeUnmount(() => {
 }
 
 /*
- * Top centre, so the chips cover the header at most, never the rows. Above the resize handles:
- * it takes no pointer itself, only the chip's buttons do (the top handle runs under them).
+ * In the chip layer, exactly over its panel (position and size inline), clipped to it like the
+ * panel. Top centre, so the chips cover the header at most, never the rows. It takes no pointer
+ * itself: only the name chip does (it moves its panel) and its buttons. No stacking context of
+ * its own (no z-index, no containment): every name chip of the window sits above every note.
  */
 .edit-layer {
   position: absolute;
-  inset: 0;
-  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
   padding-top: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
   pointer-events: none;
-  container: ov-frame / inline-size;
 }
 
 .chip {
@@ -396,7 +432,28 @@ onBeforeUnmount(() => {
   border-color: var(--ov-fg-dim);
 }
 
-/* The eye and the padlock: the only part of a chip that takes the pointer. */
+/* The notes and the hint: under every name chip, theirs or another panel's. */
+.chip,
+.hint {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * The name chip takes the pointer even over a panel painted above its own: it is its handle. Above
+ * every note, so another panel's note never hides its buttons.
+ */
+.chip-main {
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.chip-move {
+  cursor: move;
+  touch-action: none;
+}
+
+/* The eye and the padlock: buttons of the name chip. */
 .chip-actions {
   display: flex;
   flex: none;
@@ -475,32 +532,8 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-.frame.editing:hover .hint {
+.edit-layer.hovered .hint {
   display: block;
-}
-
-/* Longest hint that fits the panel width (the edit layer is the container). */
-.hint-long,
-.hint-short {
-  display: none;
-}
-
-@container ov-frame (min-width: 230px) {
-  .hint-tiny {
-    display: none;
-  }
-  .hint-short {
-    display: inline;
-  }
-}
-
-@container ov-frame (min-width: 330px) {
-  .hint-short {
-    display: none;
-  }
-  .hint-long {
-    display: inline;
-  }
 }
 
 /* ---- Resize handles: ~8 px edges, ~14 px corners (the crop marks show them) ---- */

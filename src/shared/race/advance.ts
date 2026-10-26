@@ -20,6 +20,12 @@ const WRAP_WINDOW = 0.03
  * box just past the line keeps its pct and gets the lap after the tow): take the counter.
  */
 const WRAP_HOLD_S = 1
+/**
+ * Longest step (s) between two ticks across which a lap counter that went up with the car
+ * where it was is a lap credited in the box: far less than any lap, so the car cannot have
+ * driven one meanwhile.
+ */
+const CREDIT_MAX_DT_S = 2
 
 /** Called for every S/F line `g` (g % LINES === 0) crossed at SessionTime `tc`, in order. */
 export type SfCrossing = (track: CarTrack, g: number, tc: number) => void
@@ -76,8 +82,17 @@ export function advanceTrack(
   if (!track.continuous) {
     // Entering the world, first sight or a jump: nothing to interpolate from.
     const at = Math.floor(d * LINES)
-    // Laps gained without driving them (iRacing credits a towed car parked in its box).
-    if (track.lastD < d) track.creditedLaps = Math.floor(d) - Math.floor(track.lastD)
+    // Laps gained without driving them (iRacing credits a towed car parked in its box): the
+    // counter went up since the tick just before while the car stayed where it was. Not across
+    // frames this model did not see (a replay, a reconnect, a gap): the car drove those laps.
+    if (
+      track.prevValid &&
+      lap > track.effLap &&
+      Math.abs(pct - track.prevPct) <= JITTER_LAPS &&
+      t - track.prevT <= CREDIT_MAX_DT_S
+    ) {
+      track.creditedLaps = lap - track.effLap
+    }
     // Its crossings ahead of here (a tow back) predate it and will be crossed again; the gap
     // to it is measured from here on (finishers keep their frozen finish line).
     if (track.lastLine !== NO_LINE && !track.state.finished) track.rewindTo(at)
@@ -124,7 +139,7 @@ export function stintStart(d: number): number {
 }
 
 /**
- * Pit-road entry/exit edges. Stops count only when `countStops` (green flag
+ * Pit-road entry/exit edges at SessionTime `t`. Stops count only when `countStops` (green flag
  * running); a car already on pit road at first sight (pit-lane start) is not
  * a stop. Landing on pit road from a tick that did not continue the one before
  * (a tow or reset puts the car in its box, through a world exit) is a tow, not
@@ -135,7 +150,8 @@ export function updatePitEdges(
   onPitRoad: boolean,
   countStops: boolean,
   lapRaw: number,
-  d: number
+  d: number,
+  t: number
 ): void {
   if (!track.pitKnown) {
     track.prevOnPit = onPitRoad
@@ -147,6 +163,7 @@ export function updatePitEdges(
   if (st.finished) return
   if (onPitRoad) {
     st.towed = !track.continuous
+    st.towedAt = st.towed ? t : NaN
     if (!countStops) return
     if (st.towed) st.towStops++
     else st.pitStops++
@@ -155,6 +172,7 @@ export function updatePitEdges(
   // The lap of the last stop: a tow is not one.
   if (countStops && !st.towed) st.lastPitLap = lapRaw
   st.towed = false
+  st.towedAt = NaN
   st.outLap = true
   track.stintStartLap = stintStart(d)
 }

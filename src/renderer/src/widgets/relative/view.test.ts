@@ -33,6 +33,7 @@ function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
     gapS: 1.5,
     lapRelation: 'same',
     inPits: false,
+    towed: false,
     stintLaps: null,
     tyre: null,
     penalty: null,

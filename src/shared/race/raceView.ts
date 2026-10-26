@@ -67,6 +67,8 @@ export interface RaceCarState {
   readonly towStops: number
   /** On pit road after a tow or reset, until it leaves pit road. */
   readonly towed: boolean
+  /** SessionTime the tow or reset landed it on pit road while `towed`, NaN otherwise. */
+  readonly towedAt: number
   /** CarIdxLapCompleted when it last left pit road during Racing, null when never. */
   readonly lastPitLap: number | null
   /** On the first lap after a pit exit. */

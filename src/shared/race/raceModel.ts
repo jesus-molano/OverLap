@@ -24,7 +24,7 @@
 import { CAUTION_FLAGS, LAPS_REMAIN_UNLIMITED, SessionFlag } from '../flags'
 import { isValidPct } from '../lapDist'
 import { finiteOr, frac } from '../num'
-import { isRaceSession, resolveFocusCarIdx } from '../sessionInfo'
+import { isRaceSession, resolveFocusCarIdx, resolvePlayerCarIdx } from '../sessionInfo'
 import { MAX_CARS, SessionState, TrackLocation } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type { DriverEntry, SessionDetails, SessionMeta } from '../types'
@@ -474,7 +474,7 @@ export class RaceModel {
     if (raceStart || Number.isNaN(track.stintStartLap)) {
       track.stintStartLap = this.racing && this.raceStartT === -Infinity ? 0 : stintStart(d)
     }
-    updatePitEdges(track, onPitRoad, this.racingNow, lapRaw, d)
+    updatePitEdges(track, onPitRoad, this.racingNow, lapRaw, d, this.time)
 
     const st = track.state
     st.distance = d
@@ -555,12 +555,14 @@ export class RaceModel {
    * SR distance: laps the player drove this session, only while in the car
    * (IsOnTrack: not while a teammate drives or a replay plays), without
    * tows/teleports. Seeded once from the car's laps when the model starts
-   * mid-session, so it spans the same as PlayerCarMyIncidentCount.
+   * mid-session, so it spans the same as PlayerCarMyIncidentCount. Always your
+   * own car's, also while the camera follows another one.
    */
   private updatePlayer(frame: TelemetryFrame, session: SessionMeta): void {
     // The player, or the car on camera at a replay's live point (the tape is never fed).
     this.playerIdx = resolveFocusCarIdx(frame, session)
-    const pt = this.playerIdx >= 0 ? this.tracks[this.playerIdx] : undefined
+    const own = resolvePlayerCarIdx(frame, session)
+    const pt = own >= 0 ? this.tracks[own] : undefined
     if (pt?.active && pt.state.inWorld) {
       if (!this.distanceSeeded) {
         this.distanceSeeded = true
@@ -712,6 +714,8 @@ export class RaceModel {
       return crossingsUntil(remain, frac(track.lastD), p)
     }
     if (track.state.finished) return 0
+    // The cool-down: the race is over, flag taken or not (a car parked in its box for good).
+    if (this.sessionState >= SessionState.CoolDown) return 0
     // Flag out, not crossed since the leader took it: this lap is the last.
     if (this.sessionState >= SessionState.Checkered) return 1
     if (this.lapLimited()) {

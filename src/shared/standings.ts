@@ -9,6 +9,7 @@ import { incidentCount } from './incidents/count'
 import { frac } from './num'
 import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
+import { ownTowTime, showsTow } from './race/towBadge'
 import { classRatingField } from './ratings/field'
 import { ClassRatingsCache } from './ratings/projection'
 import { isRatedEvent } from './ratings/rated'
@@ -107,6 +108,7 @@ function absentCar(carIdx: number, classPosition: number, position: number): Rac
     pitStops: 0,
     towStops: 0,
     towed: false,
+    towedAt: NaN,
     lastPitLap: null,
     outLap: false,
     stintLaps: 0,
@@ -240,6 +242,8 @@ interface RowContext {
   session: SessionMeta
   isRace: boolean
   playerIdx: number
+  /** Your own car (resolvePlayerCarIdx): its tow countdown is known. */
+  ownIdx: number
   needs: RowNeeds
   deltas: ReadonlyMap<number, number> | null
   tyreModel: TyreModel
@@ -297,7 +301,8 @@ function makeRow(
     pitStops: car.pitStops,
     lastPitLap: car.lastPitLap,
     outLap: car.outLap,
-    towed: car.towed,
+    // Only around the tow itself, then PIT (a car parked in its box for good).
+    towed: showsTow(car, ctx.race.sessionTime, ownTowTime(ctx.frame, car.carIdx, ctx.ownIdx)),
     stintLaps: needs.stint ? car.stintLaps : null,
     tyre: ctx.tyres ? tyreCompoundOf(ctx.frame, ctx.session, ctx.tyreModel, car.carIdx) : null,
     status: statusOf(car),
@@ -379,7 +384,8 @@ export class StandingsProvider {
       race.playerCarIdx >= 0 ? race.playerCarIdx : resolveFocusCarIdx(frame, session)
     const playerDriver = playerIdx >= 0 ? session.drivers.get(playerIdx) : undefined
     // The SR line and the incident count are your own: never shown for a car a replay follows.
-    const ownCar = playerIdx === resolvePlayerCarIdx(frame, session)
+    const ownIdx = resolvePlayerCarIdx(frame, session)
+    const ownCar = playerIdx === ownIdx
 
     // Before the green the table is the grid, entries still loading included (their slots).
     const preGreen = isRace && !race.racing
@@ -433,6 +439,7 @@ export class StandingsProvider {
         session,
         isRace,
         playerIdx,
+        ownIdx,
         needs,
         deltas: ratings.deltas,
         tyreModel,

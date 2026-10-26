@@ -231,9 +231,12 @@ export const widgetsEs = {
         chip: 'P. GASOLINA'
       }
     },
-    /** The tow countdown ('GRÚA 0:42'). */
+    /**
+     * The tow countdown ('GRÚA 0:42'). The car already sits in its box while it runs: the note
+     * says what it counts down to.
+     */
     tow: (clock: string) => `GRÚA${NB}${clock}`,
-    towNote: 'a boxes',
+    towNote: 'hasta poder salir',
     /**
      * The car is damaged (the band and its note; the chip is the band): repairs it must make
      * before racing on (the meatball follows) or only optional ones.
@@ -491,7 +494,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       fuelPressure: { label: 'FUEL PRESSURE', short: '', note: 'low', chip: 'FUEL PRESS.' }
     },
     tow: (clock) => `TOW${NB}${clock}`,
-    towNote: 'to the pits',
+    towNote: 'until you can drive',
     damage: {
       mandatory: { label: 'DAMAGE', note: 'repairs required' },
       optional: { label: 'MINOR DAMAGE', note: 'optional repairs' }

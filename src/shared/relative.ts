@@ -8,6 +8,7 @@ import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { penaltyOf } from './penalty'
 import type { RaceView } from './race/raceView'
+import { ownTowTime, showsTow } from './race/towBadge'
 import {
   currentSessionType,
   isCarInPits,
@@ -138,7 +139,8 @@ export function computeRelative(
   const sessionType = currentSessionType(frame, session)
   // The player, or the car on camera while a replay plays.
   const focusIdx = resolveFocusCarIdx(frame, session)
-  const ownCar = focusIdx === resolvePlayerCarIdx(frame, session)
+  const ownIdx = resolvePlayerCarIdx(frame, session)
+  const ownCar = focusIdx === ownIdx
   const result: RelativeData = {
     rows: [],
     playerRow: -1,
@@ -206,6 +208,8 @@ export function computeRelative(
   const makeRow = (idx: number, d: DriverEntry): RelativeRow => {
     const isPlayer = idx === focusIdx
     const pct = pcts[idx] ?? 0
+    const inPits = isCarInPits(frame, idx)
+    const car = race?.car(idx)
     return {
       ...driverIdentity(d),
       isPlayer,
@@ -217,11 +221,17 @@ export function computeRelative(
       lapRelation: isPlayer
         ? 'same'
         : lapRelation(lapsActive, frame.CarIdxLapCompleted[idx] ?? -1, pct, lapCompletedF, pctF),
-      inPits: isCarInPits(frame, idx),
+      inPits,
+      // The standings' rule: only around the tow itself.
+      towed:
+        inPits &&
+        car !== undefined &&
+        race !== null &&
+        showsTow(car, race.sessionTime, ownTowTime(frame, idx, ownIdx)),
       // The live model's (IsReplayPlaying is also the live session screen: loop.ts, Q1).
-      stintLaps: race?.car(idx)?.stintLaps ?? null,
+      stintLaps: car?.stintLaps ?? null,
       tyre: tyres ? tyreCompoundOf(frame, session, tyreModel, idx) : null,
-      penalty: penaltyOf(frame.CarIdxSessionFlags[idx], race?.car(idx)?.finished === true)
+      penalty: penaltyOf(frame.CarIdxSessionFlags[idx], car?.finished === true)
     }
   }
 

@@ -5,13 +5,19 @@ import { reuseViews, shallowEqual } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
 import { PREVIEW_TRAFFIC, previewOptions } from './preview'
 import {
+  BLUE_BAD_S,
+  BLUE_WARN_S,
   GROUP_ORDER,
+  PASSING_ETA_S,
+  PASSING_GAP_S,
   SOON_S,
   URGENT_S,
+  blueUrgency,
   classLabel,
   etaParts,
   gapParts,
   groupCaption,
+  hasClasses,
   hasSectors,
   hasTraffic,
   hazardTone,
@@ -19,8 +25,10 @@ import {
   sectorLabel,
   toRowSlot,
   toSlots,
+  showsPassingGap,
   urgency,
   visibleGroups,
+  worseUrgency,
   type RowSlotView,
   type TrafficSlotView,
   type TrafficViewOptions
@@ -47,6 +55,7 @@ function entry(over: Partial<TrafficEntry> = {}): TrafficEntry {
     meetPct: 0.4,
     meetSector: 2,
     lapping: false,
+    passing: null,
     hazard: null,
     ...over
   }
@@ -78,6 +87,41 @@ describe('urgency', () => {
     expect(urgency(null)).toBe('idle')
     expect(urgency(NaN)).toBe('idle')
     expect(urgency(Infinity)).toBe('idle')
+  })
+})
+
+describe('blueUrgency / worseUrgency', () => {
+  it('by the gap to a car passing you: under 1 s bad, under 2 s warn', () => {
+    expect(blueUrgency(0)).toBe('bad')
+    expect(blueUrgency(-(BLUE_BAD_S - 0.1))).toBe('bad')
+    expect(blueUrgency(-BLUE_BAD_S)).toBe('warn')
+    expect(blueUrgency(-(BLUE_WARN_S - 0.1))).toBe('warn')
+    expect(blueUrgency(-BLUE_WARN_S)).toBe('normal')
+    expect(blueUrgency(NaN)).toBe('normal')
+  })
+
+  it('takes the more urgent', () => {
+    expect(worseUrgency('normal', 'bad')).toBe('bad')
+    expect(worseUrgency('warn', 'normal')).toBe('warn')
+    expect(worseUrgency('idle', 'normal')).toBe('normal')
+    expect(worseUrgency('bad', 'warn')).toBe('bad')
+  })
+})
+
+describe('showsPassingGap', () => {
+  it('a car passing you that is close or closing slowly reads its gap', () => {
+    const at = (
+      gapS: number,
+      etaS: number | null,
+      passing: 'lap' | 'blue' | null = 'lap'
+    ): boolean => showsPassingGap({ passing, gapS, etaS })
+    expect(at(-(PASSING_GAP_S - 0.1), 5)).toBe(true)
+    expect(at(-PASSING_GAP_S, 5)).toBe(false)
+    expect(at(-5, PASSING_ETA_S + 1)).toBe(true)
+    expect(at(-5, PASSING_ETA_S)).toBe(false)
+    expect(at(-5, null)).toBe(true)
+    // Listed for its pace: always the ETA.
+    expect(at(-0.3, 50, null)).toBe(false)
   })
 })
 
@@ -183,6 +227,48 @@ describe('toRowSlot', () => {
       num: '1',
       name: 'Ana López'
     })
+  })
+
+  // From the Lime Rock race: a same-class car a lap up sat 0-3 s behind for minutes, closing at
+  // ~0 s/s: "te alcanza en 2 min" in a neutral tone, also under the blue flag.
+  it('a car lapping you at your pace: how far behind, by its gap under the blue flag', () => {
+    const lapping = (gapS: number, etaS: number | null, passing: 'lap' | 'blue'): RowSlotView =>
+      toRowSlot(entry({ lapping: true, passing, gapS, etaS }), 'faster', 0, styles, 'abbr', ES)
+    // Before the blue flag: 1 s behind, closing in over 2 minutes.
+    expect(lapping(-1, 146, 'lap')).toMatchObject({
+      urgency: 'normal',
+      lead: 'a',
+      num: '1.0',
+      unit: 's',
+      lapBadge: 'Te dobla'
+    })
+    // Under it, 1 s: warn; 0.3 s: bad; alongside, the ETA of the pass counts down: bad too.
+    expect(lapping(-1, 146, 'blue')).toMatchObject({ urgency: 'warn', lead: 'a', num: '1.0' })
+    expect(lapping(-0.3, 50.9, 'blue')).toMatchObject({
+      css: 'tr-row tr-row--faster is-bad',
+      urgency: 'bad',
+      num: '0.3'
+    })
+    expect(lapping(0, 6.5, 'blue')).toMatchObject({ urgency: 'bad', lead: 'a', num: '0.0' })
+    // Further back and closing fast enough: still when it gets to you.
+    expect(lapping(-5, 12, 'blue')).toMatchObject({
+      urgency: 'normal',
+      lead: 'te alcanza en',
+      num: '12'
+    })
+    expect(lapping(-4, 2.5, 'lap')).toMatchObject({ urgency: 'bad', num: '2' })
+    // Not closing at all: its gap, quiet.
+    expect(lapping(-5, null, 'lap')).toMatchObject({ urgency: 'idle', lead: 'a', num: '5.0' })
+    expect(
+      toRowSlot(
+        entry({ lapping: true, passing: 'blue', gapS: -0.3, etaS: 50.9 }),
+        'faster',
+        0,
+        styles,
+        'abbr',
+        EN
+      )
+    ).toMatchObject({ lead: 'at', urgency: 'bad' })
   })
 
   it('slower car: when you reach it, "doblado" when a lap down', () => {
@@ -407,6 +493,15 @@ describe('groups and slots', () => {
     const none = traffic({ faster: [entry({ meetSector: null })] })
     expect(hasSectors(toSlots(none, OPTS, styles, ES))).toBe(false)
     expect(hasSectors([])).toBe(false)
+  })
+
+  it('class column only when a line names a class (not in a single-class session)', () => {
+    expect(hasClasses(toSlots(full, OPTS, styles, ES))).toBe(true)
+    const oneClass = traffic({ faster: [entry({ className: '', lapping: true, passing: 'lap' })] })
+    const slots = toSlots(oneClass, OPTS, styles, ES)
+    expect(rows(slots)[0]?.cls).toBe('')
+    expect(hasClasses(slots)).toBe(false)
+    expect(hasClasses([])).toBe(false)
   })
 })
 

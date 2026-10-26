@@ -41,6 +41,7 @@ function resetState(s: MutableCarState): void {
   s.pitStops = 0
   s.towStops = 0
   s.towed = false
+  s.towedAt = NaN
   s.lastPitLap = null
   s.outLap = false
   s.stintLaps = 0
@@ -176,6 +177,7 @@ export class CarTrack {
       pitStops: 0,
       towStops: 0,
       towed: false,
+      towedAt: NaN,
       lastPitLap: null,
       outLap: false,
       stintLaps: 0,
