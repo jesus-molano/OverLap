@@ -9,6 +9,7 @@ import { NO_INCIDENT_LIMITS } from '@shared/incidents/limits'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { ProviderContext, ProviderSet, SKIP_EMIT } from '@shared/providers'
 import type { RaceView } from '@shared/race/raceView'
+import { IN_CAR_HOLD_MS } from '@shared/simScreen'
 import { TELEMETRY_VAR_NAMES, TrackLocation } from '@shared/telemetry'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
@@ -24,9 +25,11 @@ import type {
   StandingsData,
   TelemetryConfig,
   TrafficData,
+  VisibilityOptions,
   AlertsData,
   ConditionsData,
-  FuelData
+  FuelData,
+  HiddenReason
 } from '@shared/types'
 import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
@@ -1449,8 +1452,11 @@ const TAPE_NO_END = playerFrame({ IsReplayPlaying: [true], CamCarIdx: [4], Sessi
 const LIVE_ONLY = WIDGET_IDS.filter((id) => !followsCamera(id))
 const OFF_TAPE = WIDGET_IDS.filter((id) => !keepsLiveInReplay(id))
 
-/** A race whose drivers include car 4 (a car the camera can follow). */
-function replaySetup(): Harness {
+/**
+ * A race whose drivers include car 4 (a car the camera can follow), with replays following the
+ * camera (the default hides them: see 'hides and computes nothing on the tape by default').
+ */
+function replaySetup(visibility: Partial<VisibilityOptions> = { replays: 'follow' }): Harness {
   const h = setup('iracing', {}, undefined, {
     parseSession: (raw) => ({
       ...session((raw as { name: string }).name, 'Race'),
@@ -1460,6 +1466,9 @@ function replaySetup(): Harness {
       ])
     })
   })
+  const config = defaultTelemetryConfig()
+  config.visibility = { ...config.visibility, ...visibility }
+  h.loop.setConfig(config)
   h.source.frame = LIVE
   return h
 }
@@ -1593,11 +1602,9 @@ describe('TelemetryLoop replays', () => {
     )
   })
 
-  it('hides and computes nothing on the tape when replays are set to hide', async () => {
-    const h = replaySetup()
-    const config = defaultTelemetryConfig()
-    config.visibility = { ...config.visibility, replays: 'hide' }
-    h.loop.setConfig(config)
+  it('hides and computes nothing on the tape by default (replays hidden)', async () => {
+    const h = replaySetup({})
+    expect(defaultTelemetryConfig().visibility.replays).toBe('hide')
     await h.run(1 + 1)
     const before = h.calls.standings.length
     h.source.frame = TAPE
@@ -1657,5 +1664,97 @@ describe('TelemetryLoop replays', () => {
     await h.run(1 + 2)
     expect(h.raceModel.updates.map((u) => u.frame)).toEqual([LIVE, LIVE, LIVE])
     expect(h.calls.relative.at(-1)?.ctx.frame).toBe(LIVE)
+  })
+})
+
+describe('TelemetryLoop when to show the overlay', () => {
+  const IN_CAR = playerFrame({ IsOnTrack: [true] })
+  const OUT_OF_CAR = playerFrame({ IsOnTrack: [false] })
+  /** Out of the car on the session screen (CamCameraState 81), the replay system live. */
+  const OUT_ON_SESSION_SCREEN = { ...SESSION_SCREEN, IsOnTrack: [false] }
+  const NOT_KEPT = WIDGET_IDS.filter((id) => id !== 'standings')
+  const hidden = (widgets: readonly WidgetId[], reason: HiddenReason): TelemetryOutMessage[] =>
+    widgets.map((widget) => ({ type: 'auto-hidden', widget, hidden: true, reason }))
+  const shown = (widgets: readonly WidgetId[]): TelemetryOutMessage[] =>
+    widgets.map((widget) => ({ type: 'auto-hidden', widget, hidden: false, reason: null }))
+
+  it('by default shows the overlay only in the car, the standings on the session screen', async () => {
+    const h = replaySetup({})
+    h.source.frame = OUT_ON_SESSION_SCREEN
+    await h.run(1 + 2)
+    expect(autoHidden(h)).toEqual(hidden(NOT_KEPT, 'out-of-car'))
+    // Not computed while hidden; the results table is.
+    const standings = h.calls.standings.length
+    await h.run(Math.ceil(2000 / TICK_MS))
+    expect(h.calls.relative).toHaveLength(0)
+    expect(h.calls.delta).toHaveLength(0)
+    expect(h.calls.standings.length).toBeGreaterThan(standings)
+    // Getting in shows everything at once, computed afresh.
+    h.source.frame = IN_CAR
+    await h.run(1)
+    expect(autoHidden(h).slice(NOT_KEPT.length)).toEqual(shown(NOT_KEPT))
+    expect(h.calls.relative.at(-1)?.prev).toBeNull()
+    expect(h.calls.delta).toHaveLength(1)
+    expect(h.logs()).toEqual([])
+  })
+
+  it('holds a moment out of the car before hiding (a reset, a tow)', async () => {
+    const h = replaySetup({})
+    h.source.frame = IN_CAR
+    await h.run(1 + 2)
+    h.source.frame = OUT_OF_CAR
+    // Just short of the hold: nothing hides, everything is still computed (the radar every tick).
+    const ticks = Math.floor(IN_CAR_HOLD_MS / TICK_MS) - 1
+    const runs = h.calls.radar.length
+    await h.run(ticks)
+    expect(autoHidden(h)).toEqual([])
+    expect(h.calls.radar).toHaveLength(runs + ticks)
+    await h.run(3)
+    expect(autoHidden(h)).toEqual(hidden(WIDGET_IDS, 'out-of-car'))
+  })
+
+  it('forgets you were in the car with the connection: out of it again, hidden at once', async () => {
+    const h = replaySetup({})
+    h.source.frame = IN_CAR
+    await h.run(1 + 2)
+    h.source.alive = false
+    await h.run(1)
+    h.source.frame = OUT_OF_CAR
+    await h.run(1 + 1)
+    expect(autoHidden(h)).toEqual(hidden(WIDGET_IDS, 'out-of-car'))
+  })
+
+  it('in races only: hides everything in another kind of session, in the car too', async () => {
+    const h = setup()
+    const config = defaultTelemetryConfig()
+    config.visibility = { ...config.visibility, showWhen: 'race' }
+    h.loop.setConfig(config)
+    h.source.sessionRaw = { name: 'S1', type: 'Practice' }
+    h.source.frame = IN_CAR
+    await h.run(1 + 2)
+    expect(autoHidden(h)).toEqual(hidden(WIDGET_IDS, 'not-race'))
+    expect(h.calls.relative).toHaveLength(0)
+    // Always: the practice shows, out of the car too; each widget's own rules still apply
+    // (the battle and the fuel are for races by default).
+    config.visibility = { ...config.visibility, showWhen: 'always' }
+    h.loop.setConfig({ ...config })
+    h.source.frame = OUT_OF_CAR
+    await h.run(1)
+    const raceOnly = new Set<WidgetId>(['battle', 'fuel'])
+    expect(autoHidden(h).slice(WIDGET_IDS.length)).toEqual(
+      WIDGET_IDS.map((widget) =>
+        raceOnly.has(widget)
+          ? { type: 'auto-hidden', widget, hidden: true, reason: 'practice' }
+          : { type: 'auto-hidden', widget, hidden: false, reason: null }
+      )
+    )
+  })
+
+  it('follows the car on camera from out of the car when replays follow it', async () => {
+    const h = replaySetup({ replays: 'follow' })
+    h.source.frame = { ...WATCHING, IsOnTrack: [false] }
+    await h.run(1 + 2)
+    expect(autoHidden(h)).toEqual(hidden(LIVE_ONLY, 'camera-other'))
+    expect(h.calls.relative.at(-1)?.ctx.frame.CamCarIdx).toEqual([4])
   })
 })

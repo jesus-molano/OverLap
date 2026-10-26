@@ -8,9 +8,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { LapReference, PersonalBestStore } from '@shared/delta/references'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { TelemetryFrame } from '@shared/telemetry'
-import type { HiddenReason, WidgetPayloads } from '@shared/types'
+import type { HiddenReason, VisibilityOptions, WidgetPayloads } from '@shared/types'
 import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
-import { TelemetryLoop } from './loop'
+import { TelemetryLoop, defaultTelemetryConfig } from './loop'
 import { MOCK_SCREEN_TIMELINE, MockScreen, MockSeries } from './mock/simulation'
 import type { MockSessionInfo } from './mock/simulation'
 import type { TelemetrySource } from './sources/TelemetrySource'
@@ -82,7 +82,15 @@ interface Run {
   logs: string[]
 }
 
-async function runLoop(withScreen: boolean): Promise<Run> {
+/**
+ * The series through the loop for `runS` session seconds, with replays following the camera
+ * unless `visibility` says otherwise (the default hides them).
+ */
+async function runLoop(
+  withScreen: boolean,
+  visibility: Partial<VisibilityOptions> = { replays: 'follow' },
+  runS = RUN_S
+): Promise<Run> {
   const clock = { ms: 0 }
   const start = new MockSeries().sessionTime
   const run: Run = {
@@ -94,7 +102,7 @@ async function runLoop(withScreen: boolean): Promise<Run> {
     offers: [],
     logs: []
   }
-  const source = new ScreenSource(withScreen, clock, () => s() >= RUN_S)
+  const source = new ScreenSource(withScreen, clock, () => s() >= runS)
   run.source = source
   const s = (): number => source.series.sessionTime - start
   const bests: PersonalBestStore = {
@@ -118,7 +126,7 @@ async function runLoop(withScreen: boolean): Promise<Run> {
     now: () => clock.ms,
     sleep: () => Promise.resolve(),
     yieldToEventLoop: () => {
-      if (!stopped && s() >= RUN_S) {
+      if (!stopped && s() >= runS) {
         stopped = true
         loop.stop()
       }
@@ -126,6 +134,9 @@ async function runLoop(withScreen: boolean): Promise<Run> {
     },
     bests
   })
+  const config = defaultTelemetryConfig()
+  config.visibility = { ...config.visibility, ...visibility }
+  loop.setConfig(config)
   await loop.start()
   return run
 }
@@ -146,10 +157,13 @@ function moments(hidden: readonly Hidden[]): [number, string, WidgetId[]][] {
 describe('mock screen end to end: UI hidden, garage, session screen and a replay', () => {
   let screen: Run
   let plain: Run
+  /** The defaults (replays hidden), until just after the replay. */
+  let defaults: Run
   beforeAll(async () => {
     screen = await runLoop(true)
     plain = await runLoop(false)
-  }, 30_000)
+    defaults = await runLoop(true, {}, TL.replay.atS + TL.replay.lengthS + 2)
+  }, 45_000)
 
   const LIVE_ONLY = WIDGET_IDS.filter((id) => !followsCamera(id))
   const OFF_TAPE = WIDGET_IDS.filter((id) => !keepsLiveInReplay(id))
@@ -164,7 +178,25 @@ describe('mock screen end to end: UI hidden, garage, session screen and a replay
   it('runs without errors, and without the screen nothing is ever hidden in a race', () => {
     expect(screen.logs).toEqual([])
     expect(plain.logs).toEqual([])
+    expect(defaults.logs).toEqual([])
     expect(plain.hidden).toEqual([])
+  })
+
+  it('with the defaults, in the car all along: the session screen, then the whole replay hidden', () => {
+    expect(moments(defaults.hidden)).toEqual([
+      [TL.uiHidden[0], 'ui-hidden', WIDGET_IDS],
+      [TL.uiHidden[1], 'shown', WIDGET_IDS],
+      [TL.garage[0], 'garage', WIDGET_IDS],
+      [TL.garage[1], 'shown', WIDGET_IDS],
+      [TL.sessionScreen[0], 'session-screen', NOT_KEPT],
+      [TL.sessionScreen[1], 'shown', NOT_KEPT],
+      // The live point on another car, from the car: live, it follows the camera.
+      [TL.replay.atS, 'camera-other', LIVE_ONLY],
+      [tapeAt, 'replay', WIDGET_IDS],
+      [replayEnd, 'shown', WIDGET_IDS]
+    ])
+    // Nothing computed on the tape, not even the standings.
+    expect(defaults.standings.filter(during(tapeAt + 0.1, replayEnd - 0.1))).toEqual([])
   })
 
   it('hides with the UI, in the garage, on the session screen, for another car and on the tape', () => {

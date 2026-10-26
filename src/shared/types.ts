@@ -899,19 +899,23 @@ export interface OverlayStatus {
 
 /**
  * Why a visibility rule hides a widget: its own rule (not shown in this kind of session, or
- * in the pits), or a global one (VisibilityOptions): the garage screen is open, the iRacing
- * UI is hidden, the session screen is shown ('session-screen'), a replay of the tape plays with
- * replays set to hide everything ('replay'), or it plays and the widget only shows live data
- * ('replay-player': pedals, delta, relative...), or the camera follows another car live and the
- * widget only has your own car's data ('camera-other').
+ * in the pits), or a global one (VisibilityOptions): the overlay only shows in races and this
+ * session is not one ('not-race'), the garage screen is open, the iRacing UI is hidden, a replay
+ * of the tape plays with replays set to hide everything ('replay'), you are out of the car and
+ * the overlay only shows in it ('out-of-car'), the session screen is shown ('session-screen'),
+ * or a replay of the tape plays and the widget only shows live data ('replay-player': pedals,
+ * delta, relative...), or the camera follows another car live and the widget only has your own
+ * car's data ('camera-other').
  */
 export type HiddenReason =
   | 'practice'
   | 'qualify'
   | 'race'
   | 'pits'
+  | 'not-race'
   | 'garage'
   | 'ui-hidden'
+  | 'out-of-car'
   | 'session-screen'
   | 'replay'
   | 'replay-player'
@@ -949,17 +953,33 @@ export interface WidgetSettings {
   hideInPits: boolean
   /**
    * Shown on iRacing's session screen although VisibilityOptions.hideOnSessionScreen hides the
-   * others there (default per widget: WidgetDef.defaultOnSessionScreen).
+   * others there, and although you are out of the car with VisibilityOptions.showWhen 'car' or
+   * 'race' (default per widget: WidgetDef.defaultOnSessionScreen: the standings, for the
+   * results).
    */
   showOnSessionScreen: boolean
 }
 
 /**
+ * When the overlay is shown at all (VisibilityOptions.showWhen): 'car' only while you are in the
+ * car (IsOnTrack), 'race' only while you are in the car in a race session, 'always' whatever you
+ * do (the other rules still apply).
+ */
+export type ShowWhen = 'car' | 'race' | 'always'
+
+/**
  * Global visibility rules, for every widget at once, from what the sim's screen shows
  * (simScreen.ts). Evaluated by the telemetry process like the per-widget ones, except
- * showWhileWaiting (the overlay windows').
+ * showWhileWaiting (the overlay windows'). Edit mode shows every widget and the user's hiding
+ * (the shortcut, the tray) hides them all, whatever these say.
  */
 export interface VisibilityOptions {
+  /**
+   * When to show the overlay. Out of the car ('car', 'race') only the widgets kept on the
+   * session screen stay there (WidgetSettings.showOnSessionScreen), and with replays 'follow'
+   * the widgets follow the car on camera while the replay system is on (live or the tape).
+   */
+  showWhen: ShowWhen
   /** Hide every widget while the iRacing UI is hidden (CamCameraState UIHidden). */
   hideWithSimUi: boolean
   /** Hide every widget while the garage screen is open (IsGarageVisible). */
@@ -970,12 +990,14 @@ export interface VisibilityOptions {
    */
   hideOnSessionScreen: boolean
   /**
-   * While a replay of the tape plays (not its live point, which is live): 'follow' = the
-   * widgets with live data only hide and the standings keep the live race; 'hide' = every
-   * widget hides. At the live point the widgets follow the car on camera (CamCarIdx) and those
-   * with only your car's data hide while it is another car.
+   * While a replay of the tape plays (not its live point, which is live): 'hide' = every widget
+   * hides; 'follow' = the widgets with live data only hide and the standings keep the live race.
+   * At the live point the widgets follow the car on camera (CamCarIdx) and those with only your
+   * car's data hide while it is another car. Out of the car with showWhen 'car' or 'race',
+   * 'follow' is what shows them while you watch (the replay system on); 'hide' leaves them
+   * hidden.
    */
-  replays: 'follow' | 'hide'
+  replays: 'hide' | 'follow'
   /**
    * Standings and relative keep saying "Waiting for iRacing" while there is no connection;
    * otherwise they hide after a few seconds (outside edit mode).

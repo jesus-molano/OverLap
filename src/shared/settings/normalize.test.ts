@@ -64,10 +64,11 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   language: 'es'
 }
 const DEFAULT_VISIBILITY: VisibilityOptions = {
+  showWhen: 'car',
   hideWithSimUi: true,
   hideInGarage: true,
   hideOnSessionScreen: true,
-  replays: 'follow',
+  replays: 'hide',
   showWhileWaiting: false
 }
 const DEFAULT_RELATIVE: RelativeOptions = {
@@ -1070,23 +1071,29 @@ describe('normalizeSettings: shortcuts', () => {
 })
 
 describe('normalizeSettings: visibility', () => {
-  it('gives an older file without the section the defaults: hide with the UI and in the garage, follow replays', () => {
+  it('gives an older file without the section the defaults: only in the car, no replays', () => {
     expect(normalizeSettings({ version: 4 }).visibility).toEqual(DEFAULT_VISIBILITY)
     expect(normalizeSettings({ visibility: 'hide' }).visibility).toEqual(DEFAULT_VISIBILITY)
   })
 
   it('keeps valid values and replaces invalid ones field by field', () => {
     const v = {
+      showWhen: 'always',
       hideWithSimUi: false,
       hideInGarage: false,
       hideOnSessionScreen: false,
-      replays: 'hide',
+      replays: 'follow',
       showWhileWaiting: true
     }
     expect(normalizeSettings({ visibility: v }).visibility).toEqual(v)
+    expect(normalizeSettings({ visibility: { ...v, showWhen: 'race' } }).visibility).toEqual({
+      ...v,
+      showWhen: 'race'
+    })
     expect(
       normalizeSettings({
         visibility: {
+          showWhen: 'sometimes',
           hideWithSimUi: 'no',
           hideInGarage: 0,
           hideOnSessionScreen: 'yes',
@@ -1101,6 +1108,7 @@ describe('normalizeSettings: visibility', () => {
     const old = { hideWithSimUi: false, hideInGarage: true, replays: 'hide' }
     expect(normalizeSettings({ visibility: old }).visibility).toEqual({
       ...old,
+      showWhen: 'car',
       hideOnSessionScreen: true,
       showWhileWaiting: false
     })
@@ -1111,5 +1119,22 @@ describe('normalizeSettings: visibility', () => {
     expect(kept.radar.showOnSessionScreen).toBe(true)
     const bad = normalizeSettings({ widgets: { standings: { showOnSessionScreen: 'no' } } })
     expect(bad.widgets.standings.showOnSessionScreen).toBe(true)
+  })
+
+  it('hides replays for a file from before “when to show the overlay”, keeps later choices', () => {
+    // Saved with the old default ('follow' = keep the standings), chosen or not.
+    const before = { hideWithSimUi: true, hideInGarage: true, replays: 'follow' }
+    expect(normalizeSettings({ visibility: before }).visibility).toMatchObject({
+      showWhen: 'car',
+      replays: 'hide'
+    })
+    // Chosen with the new option there: kept, through every later load.
+    const chosen = { ...before, showWhen: 'car', replays: 'follow' }
+    const loaded = normalizeSettings({ visibility: chosen })
+    expect(loaded.visibility).toMatchObject({ showWhen: 'car', replays: 'follow' })
+    expect(normalizeSettings(loaded).visibility.replays).toBe('follow')
+    // An invalid showWhen is still a file with the option: its replays stay.
+    const broken = normalizeSettings({ visibility: { ...chosen, showWhen: 1 } })
+    expect(broken.visibility).toMatchObject({ showWhen: 'car', replays: 'follow' })
   })
 })

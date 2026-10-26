@@ -189,10 +189,14 @@ describe('diffSettings', () => {
     expect(configChanged((s) => (s.widgets.inputs.hideInPits = !s.widgets.inputs.hideInPits))).toBe(
       true
     )
-    // The global ones too: garage, iRacing UI and replays.
+    // The global ones too: when to show the overlay, garage, iRacing UI and replays.
+    expect(configChanged((s) => (s.visibility.showWhen = 'race'))).toBe(true)
+    expect(configChanged((s) => (s.visibility.showWhen = 'always'))).toBe(true)
     expect(configChanged((s) => (s.visibility.hideInGarage = false))).toBe(true)
     expect(configChanged((s) => (s.visibility.hideWithSimUi = false))).toBe(true)
-    expect(configChanged((s) => (s.visibility.replays = 'hide'))).toBe(true)
+    expect(configChanged((s) => (s.visibility.replays = 'follow'))).toBe(true)
+    // The standings' session-screen exception (also on Apariencia).
+    expect(configChanged((s) => (s.widgets.standings.showOnSessionScreen = false))).toBe(true)
   })
 })
 

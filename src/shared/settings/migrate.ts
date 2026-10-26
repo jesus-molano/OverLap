@@ -6,7 +6,9 @@
  * only lack the traffic and alerts (delta) widgets and sections, and older v4
  * files the shortcuts or visibility section: no version bump, they get their
  * defaults like any missing section. A file from before the conditions or the
- * fuel widget gets it hidden, in a free spot (`placeNewWidget`).
+ * fuel widget gets it hidden, in a free spot (`placeNewWidget`). A visibility
+ * section from before "when to show the overlay" gets replays hidden
+ * (`migrateVisibility`).
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type {
@@ -123,7 +125,19 @@ export function migrateStandings(raw: Record<string, unknown>): Record<string, u
   return out
 }
 
+/**
+ * A visibility section saved before `showWhen` existed: its `replays` is the old default
+ * ('follow', "keep the standings"), saved whether or not anyone chose it, so it takes the new
+ * one (replays hidden, as the overlay now only shows while you drive). Later files keep theirs.
+ */
+export function migrateVisibility(raw: Record<string, unknown>): Record<string, unknown> {
+  if ('showWhen' in raw) return raw
+  return { ...raw, replays: OPTION_SCHEMA.visibility.replays.default }
+}
+
 /** Section-level migrations, keyed by section; untouched sections pass through. */
 export function migrateSection(section: string, raw: unknown): unknown {
-  return section === 'standings' && isRecord(raw) ? migrateStandings(raw) : raw
+  if (!isRecord(raw)) return raw
+  if (section === 'standings') return migrateStandings(raw)
+  return section === 'visibility' ? migrateVisibility(raw) : raw
 }
