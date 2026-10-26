@@ -51,8 +51,12 @@ export const coreEs = {
     qualify: 'Oculto en clasificación',
     race: 'Oculto en carrera',
     pits: 'Oculto en boxes',
+    /** The overlay only shows in races (Apariencia > Visibilidad) and this session is not one. */
+    'not-race': 'Oculto: solo en carrera',
     garage: 'Oculto en el garaje',
     'ui-hidden': 'Oculto: interfaz de iRacing oculta',
+    /** The overlay only shows while you are in the car (Apariencia > Visibilidad). */
+    'out-of-car': 'Oculto: fuera del coche',
     'session-screen': 'Oculto en la pantalla de sesión',
     replay: 'Oculto en repeticiones',
     /** A replay of the tape plays and the widget only shows live data (pedals, relative...). */
@@ -62,11 +66,19 @@ export const coreEs = {
     /** Without a known reason. */
     any: 'Oculto'
   },
+  /** When the overlay is shown (visibility.showWhen): the tray's choices and the settings'. */
+  showWhen: {
+    car: 'Solo cuando estás en el coche',
+    race: 'Solo en carrera',
+    always: 'Siempre'
+  },
   /** The tray icon's menu and tooltip. */
   tray: {
     settings: 'Ajustes…',
     radarRange: 'Radar: alcance',
     rangeMeters: (m: number) => `${m} m`,
+    /** The submenu with the showWhen choices. */
+    showWhen: 'Mostrar el overlay',
     editMode: 'Modo edición',
     hideOverlay: 'Ocultar overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
@@ -75,7 +87,12 @@ export const coreEs = {
     widgetHidden: (title: string, hiddenNote: string) => `${title} (${hiddenNote})`,
     tooltip: (status: string) => `OverLap · ${status}`,
     /** While the user has the overlay hidden. */
-    tooltipHidden: (status: string) => `OverLap · Overlay oculto · ${status}`
+    tooltipHidden: (status: string) => `OverLap · Overlay oculto · ${status}`,
+    /**
+     * While one rule hides every enabled widget (`hiddenNote`: its caption, 'Oculto: fuera del
+     * coche').
+     */
+    tooltipAutoHidden: (status: string, hiddenNote: string) => `OverLap · ${hiddenNote} · ${status}`
   },
   windowTitles: {
     /** The settings window's title bar. */
@@ -177,25 +194,34 @@ export const coreEn: Dict<typeof coreEs> = {
     qualify: 'Hidden in qualifying',
     race: 'Hidden in races',
     pits: 'Hidden in the pits',
+    'not-race': 'Hidden: races only',
     garage: 'Hidden in the garage',
     'ui-hidden': 'Hidden: iRacing UI hidden',
+    'out-of-car': 'Hidden: out of the car',
     'session-screen': 'Hidden on the session screen',
     replay: 'Hidden in replays',
     'replay-player': 'Hidden in replays: live only',
     'camera-other': 'Hidden: camera on another car',
     any: 'Hidden'
   },
+  showWhen: {
+    car: 'Only when you are in the car',
+    race: 'Races only',
+    always: 'Always'
+  },
   tray: {
     settings: 'Settings…',
     radarRange: 'Radar range',
     rangeMeters: (m) => `${m} m`,
+    showWhen: 'Show the overlay',
     editMode: 'Edit mode',
     hideOverlay: 'Hide overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',
     widgetHidden: (title, hiddenNote) => `${title} (${hiddenNote})`,
     tooltip: (status) => `OverLap · ${status}`,
-    tooltipHidden: (status) => `OverLap · Overlay hidden · ${status}`
+    tooltipHidden: (status) => `OverLap · Overlay hidden · ${status}`,
+    tooltipAutoHidden: (status, hiddenNote) => `OverLap · ${hiddenNote} · ${status}`
   },
   windowTitles: {
     settings: 'OverLap — Settings',

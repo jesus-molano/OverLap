@@ -90,6 +90,8 @@ describe('hiddenText', () => {
     expect(hiddenText(es, 'ui-hidden')).toBe('Oculto: interfaz de iRacing oculta')
     expect(hiddenText(es, 'replay')).toBe('Oculto en repeticiones')
     expect(hiddenText(es, 'replay-player')).toBe('Oculto en repeticiones: solo en directo')
+    expect(hiddenText(es, 'out-of-car')).toBe('Oculto: fuera del coche')
+    expect(hiddenText(es, 'not-race')).toBe('Oculto: solo en carrera')
     expect(hiddenText(es, null)).toBe('Oculto')
   })
 
@@ -102,6 +104,8 @@ describe('hiddenText', () => {
     expect(hiddenText(en, 'ui-hidden')).toBe('Hidden: iRacing UI hidden')
     expect(hiddenText(en, 'replay')).toBe('Hidden in replays')
     expect(hiddenText(en, 'replay-player')).toBe('Hidden in replays: live only')
+    expect(hiddenText(en, 'out-of-car')).toBe('Hidden: out of the car')
+    expect(hiddenText(en, 'not-race')).toBe('Hidden: races only')
     expect(hiddenText(en, null)).toBe('Hidden')
   })
 })

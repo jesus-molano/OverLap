@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
+import { WIDGET_IDS } from '@shared/widgets'
 import {
+  commonHiddenReason,
   createTray,
   destroyTray,
   loadIcon,
@@ -94,6 +96,7 @@ const ACTIONS = {
   openSettings: () => {},
   setWidgetVisible: () => {},
   setRadarRange: () => {},
+  setShowWhen: () => {},
   setEditMode: () => {},
   setOverlayHidden: () => {},
   openSettingsFolder: () => {},
@@ -364,5 +367,101 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
     createTray(state(createDefaultSettings()), { ...ACTIONS, setOverlayHidden })
     item('Ocultar overlay').click?.({ checked: true })
     expect(setOverlayHidden).toHaveBeenCalledWith(true)
+  })
+})
+
+describe('tray menu: when to show the overlay', () => {
+  /** Every enabled widget hidden by `reason`. */
+  function allHidden(settings: OverlaySettings, reason: 'out-of-car' | 'not-race'): TrayState {
+    return state(
+      settings,
+      Object.fromEntries(
+        WIDGET_IDS.filter((id) => settings.widgets[id].visible).map((id) => [id, reason])
+      )
+    )
+  }
+
+  it('offers the three choices, the current one checked, and sets them through the action', () => {
+    const setShowWhen = vi.fn()
+    createTray(state(createDefaultSettings()), { ...ACTIONS, setShowWhen })
+    const menu = item('Mostrar el overlay')
+    expect(menu.submenu?.map((i) => [i.label, i.type, i.checked])).toEqual([
+      ['Solo cuando estás en el coche', 'radio', true],
+      ['Solo en carrera', 'radio', false],
+      ['Siempre', 'radio', false]
+    ])
+    menu.submenu?.[2]?.click?.({ checked: true })
+    expect(setShowWhen).toHaveBeenCalledWith('always')
+    // After the radar range, before hiding the overlay.
+    const all = labels()
+    expect(all.indexOf('Mostrar el overlay')).toBeGreaterThan(all.indexOf('Radar: alcance'))
+    expect(all.indexOf('Mostrar el overlay')).toBeLessThan(all.indexOf('Ocultar overlay'))
+  })
+
+  it('checks the choice of the settings and speaks English', () => {
+    const settings = english(createDefaultSettings())
+    settings.visibility.showWhen = 'race'
+    createTray(state(settings), ACTIONS)
+    expect(item('Show the overlay').submenu?.map((i) => [i.label, i.checked])).toEqual([
+      ['Only when you are in the car', false],
+      ['Races only', true],
+      ['Always', false]
+    ])
+  })
+
+  it('says once, under the status and in the tooltip, why every widget is hidden', () => {
+    createTray(allHidden(createDefaultSettings(), 'out-of-car'), ACTIONS)
+    const menu = fake.menus.at(-1) ?? []
+    expect(menu[0]?.label).toBe('Modo simulado (mock)')
+    expect(menu[1]).toEqual({ label: 'Oculto: fuera del coche', enabled: false })
+    // No note repeated on every widget.
+    expect(widgetItems().map((i) => i.label)).toContain('Relativo')
+    expect(widgetItems().every((i) => !i.label?.includes('oculto'))).toBe(true)
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Oculto: fuera del coche · Modo simulado (mock)')
+
+    const en = allHidden(english(createDefaultSettings()), 'not-race')
+    updateTray(en)
+    expect(fake.menus.at(-1)?.[1]).toEqual({ label: 'Hidden: races only', enabled: false })
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Hidden: races only · Simulated mode (mock)')
+    // The user's own hiding says so first.
+    updateTray({ ...en, overlayHidden: true })
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Overlay hidden · Simulated mode (mock)')
+  })
+
+  it('notes each widget when they are not all hidden for one reason', () => {
+    const settings = createDefaultSettings()
+    // The standings stay on the session screen: the others note why they are hidden.
+    const s = allHidden(settings, 'out-of-car')
+    delete s.autoHidden.standings
+    createTray(s, ACTIONS)
+    expect(fake.menus.at(-1)?.[1]).toEqual({ type: 'separator' })
+    expect(labels()).toContain('Relativo (oculto: fuera del coche)')
+    expect(labels()).toContain('Clasificación')
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Modo simulado (mock)')
+  })
+
+  it('finds the common reason among the enabled widgets only', () => {
+    const settings = createDefaultSettings()
+    for (const id of WIDGET_IDS) settings.widgets[id].visible = id === 'relative'
+    expect(commonHiddenReason({ settings, autoHidden: { relative: 'garage' } })).toBe('garage')
+    expect(commonHiddenReason({ settings, autoHidden: { relative: null } })).toBeUndefined()
+    expect(commonHiddenReason({ settings, autoHidden: { radar: 'garage' } })).toBeUndefined()
+    settings.widgets.radar.visible = true
+    expect(
+      commonHiddenReason({ settings, autoHidden: { relative: 'garage', radar: 'ui-hidden' } })
+    ).toBeUndefined()
+    // Nothing enabled: nothing to say.
+    for (const id of WIDGET_IDS) settings.widgets[id].visible = false
+    expect(commonHiddenReason({ settings, autoHidden: {} })).toBeUndefined()
+  })
+
+  it('rebuilds the menu when the choice changes', () => {
+    const settings = createDefaultSettings()
+    createTray(state(settings), ACTIONS)
+    const changed = createDefaultSettings()
+    changed.visibility.showWhen = 'always'
+    updateTray(state(changed))
+    expect(fake.menus).toHaveLength(2)
+    expect(item('Mostrar el overlay').submenu?.[2]?.checked).toBe(true)
   })
 })

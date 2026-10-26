@@ -10,7 +10,7 @@ import {
   resetWidgetOptions,
   toTelemetryConfig
 } from '@shared/settings'
-import type { OverlaySettings, OverlayStatus, SourceKind } from '@shared/types'
+import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
 import { SettingsStore } from './settingsStore'
@@ -244,6 +244,13 @@ function start(): void {
     })
   }
 
+  /** The tray's "Mostrar el overlay": the same setting as Apariencia > Visibilidad. */
+  function setShowWhen(showWhen: ShowWhen): void {
+    changeSettings((s) => {
+      s.visibility.showWhen = showWhen
+    })
+  }
+
   function resetBounds(id: WidgetId): void {
     const prev = store.settings
     store.update((s) => {
@@ -384,6 +391,7 @@ function start(): void {
     openSettings: openSettingsWindow,
     setWidgetVisible,
     setRadarRange,
+    setShowWhen,
     setEditMode,
     setOverlayHidden,
     openSettingsFolder,

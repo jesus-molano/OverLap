@@ -20,7 +20,7 @@ import type { RaceView } from '@shared/race/raceView'
 import { parseSessionMeta } from '@shared/session'
 import { resolvePlayerCarIdx } from '@shared/sessionInfo'
 import { createDefaultSettings, toTelemetryConfig } from '@shared/settings'
-import { ReplayPoint, type ReplayMode } from '@shared/simScreen'
+import { InCarHold, ReplayPoint, type ReplayMode } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
   ConnectionState,
@@ -212,6 +212,8 @@ export class TelemetryLoop {
   private onTape = false
   /** The last frame that was not the tape's: the widgets' data while the tape plays. */
   private liveFrame: TelemetryFrame | null = null
+  /** Whether you are in the car, read from the live frames (a moment out is held). */
+  private readonly inCar = new InCarHold()
   private readonly autoHide: AutoHide
 
   private readonly bests: PersonalBestStore
@@ -571,7 +573,10 @@ export class TelemetryLoop {
     this.nextDue[id] = -Infinity
   }
 
-  /** A broken rule must not stop the loop: the widgets then stay as they were. */
+  /**
+   * The visibility rules, with whether you are in the car (held a moment, InCarHold). A broken
+   * rule must not stop the loop: the widgets then stay as they were.
+   */
   private updateRules(
     frame: TelemetryFrame,
     live: TelemetryFrame,
@@ -580,7 +585,9 @@ export class TelemetryLoop {
     now: number
   ): void {
     try {
-      this.autoHide.update(this.config, frame, session, mode, live)
+      // From the live frames: on the tape, whether you were in the car when it started.
+      const inCar = this.inCar.update(live, now)
+      this.autoHide.update(this.config, frame, session, mode, live, inCar)
     } catch (err) {
       this.logEvery('rules', now, `Visibility rules failed: ${errorMessage(err)}`)
     }
@@ -664,6 +671,7 @@ export class TelemetryLoop {
     }
     this.raceKey = null
     this.replayPoint.reset()
+    this.inCar.reset()
     this.onTape = false
     this.liveFrame = null
     this.resetProviders(now)

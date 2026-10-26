@@ -1,11 +1,12 @@
 /**
  * What the sim's screen shows besides the car: its UI hidden, the garage screen, the session
- * screen, a replay and the car on camera. Read from the frame on every tick for the global
- * visibility rules (VisibilityOptions) and the replay focus car. Pure, except ReplayPoint, which
- * remembers the last frame to tell a replay of the tape from the live point.
+ * screen, a replay, the car on camera and whether you are in the car. Read from the frame on
+ * every tick for the global visibility rules (VisibilityOptions) and the replay focus car. Pure,
+ * except ReplayPoint, which remembers the last frame to tell a replay of the tape from the live
+ * point, and InCarHold, which remembers when you were last in the car.
  */
 import type { TelemetryFrame } from './telemetry'
-import type { HiddenReason, VisibilityOptions } from './types'
+import type { HiddenReason, ShowInSessions, VisibilityOptions } from './types'
 
 /** irsdk_CameraState bits of CamCameraState (mirrors CameraState in @irsdk-node/types). */
 export const CameraState = {
@@ -151,22 +152,88 @@ export class ReplayPoint {
 }
 
 /**
- * Why the global rules hide a widget now, null when they do not: the garage screen first (it
- * covers the whole sim), then the hidden UI, then the session screen (unless the widget is kept
- * there: `keepOnSessionScreen`), then a replay of the tape with replays set to hide everything.
- * The live point of a replay is live: it hides nothing here.
+ * You are in the car: IsOnTrack, the physics running with you in it (not the garage, the
+ * session screen, a teammate's stint, spectating). Null when the var is missing or broken.
+ */
+export function isInCar(frame: Pick<TelemetryFrame, 'IsOnTrack'>): boolean | null {
+  const v = frame.IsOnTrack[0]
+  return typeof v === 'boolean' ? v : null
+}
+
+/**
+ * How long (ms) IsOnTrack must read false, after you were in the car, before you count as out
+ * of it: a frame or two without it (a reset, the first frames of a tow) does not blink the whole
+ * overlay. Getting in shows it at once.
+ */
+export const IN_CAR_HOLD_MS = 1000
+
+/**
+ * isInCar with IN_CAR_HOLD_MS of hold after getting out. Out of the car from the first frame
+ * (connecting from the garage) is out at once: nothing to hold.
+ */
+export class InCarHold {
+  private lastInMs = -Infinity
+
+  /** `nowMs`: a wall clock in ms (the loop's). Unknown stays unknown (it never hides). */
+  update(frame: Pick<TelemetryFrame, 'IsOnTrack'>, nowMs: number): boolean | null {
+    const inCar = isInCar(frame)
+    if (inCar === null) return null
+    if (inCar) {
+      this.lastInMs = nowMs
+      return true
+    }
+    return nowMs - this.lastInMs < IN_CAR_HOLD_MS
+  }
+
+  /** A new connection: you were never in the car. */
+  reset(): void {
+    this.lastInMs = -Infinity
+  }
+}
+
+/** What the global rules need besides the frame: one tick's facts, worked out by the caller. */
+export interface ScreenFacts {
+  /** What the replay system plays (ReplayPoint). */
+  readonly mode: ReplayMode
+  /** You are in the car (InCarHold); null when unknown, which never hides. */
+  readonly inCar: boolean | null
+  /** The kind of the session being driven (sessionKind); null when unknown, never hides. */
+  readonly kind: keyof ShowInSessions | null
+}
+
+/** The rules that read IsOnTrack: the overlay only while you are in the car. */
+function onlyInCar(opts: VisibilityOptions): boolean {
+  return opts.showWhen === 'car' || opts.showWhen === 'race'
+}
+
+/**
+ * Why the global rules hide a widget now, null when they do not, most lasting first:
+ * - 'not-race': the overlay only shows in races and this is another kind of session;
+ * - 'garage' (it covers the whole sim), then 'ui-hidden';
+ * - 'replay': a replay of the tape with replays set to hide everything;
+ * - 'out-of-car': the overlay only shows in the car and you are not in it, unless you watch a
+ *   replay (live or the tape) with replays set to follow the camera, or the session screen is
+ *   shown and the widget is kept there (`keepOnSessionScreen`: the standings, for the results);
+ * - 'session-screen': the session screen, unless the widget is kept there.
+ * The live point of a replay is live: by itself it hides nothing here. Unknown facts (no
+ * IsOnTrack, no session type) never hide: better a widget too many than one missing.
  */
 export function screenHiddenReason(
   opts: VisibilityOptions,
   frame: Pick<TelemetryFrame, 'CamCameraState' | 'IsGarageVisible'>,
-  mode: ReplayMode,
+  facts: ScreenFacts,
   keepOnSessionScreen = false
 ): HiddenReason | null {
+  if (opts.showWhen === 'race' && facts.kind !== null && facts.kind !== 'race') return 'not-race'
   if (opts.hideInGarage && isGarageVisible(frame)) return 'garage'
   if (opts.hideWithSimUi && isSimUiHidden(frame)) return 'ui-hidden'
-  if (opts.hideOnSessionScreen && !keepOnSessionScreen && isSessionScreen(frame)) {
-    return 'session-screen'
+  if (opts.replays === 'hide' && facts.mode === 'tape') return 'replay'
+  const sessionScreen = isSessionScreen(frame)
+  const kept = keepOnSessionScreen && sessionScreen
+  if (onlyInCar(opts) && facts.inCar === false && !kept) {
+    const watching = opts.replays === 'follow' && facts.mode !== 'none'
+    if (!watching) return 'out-of-car'
   }
-  if (opts.replays === 'hide' && mode === 'tape') return 'replay'
+  if (opts.hideOnSessionScreen && sessionScreen && !keepOnSessionScreen) return 'session-screen'
   return null
 }

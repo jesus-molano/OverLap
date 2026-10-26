@@ -516,6 +516,33 @@ describe('OverlayWindows visibility rules', () => {
     expect(hosted(display(1))).not.toContain('radar')
   })
 
+  it('out of the car hides every window; edit mode shows them all; the user still hides by hand', () => {
+    start()
+    const w = only()
+    const OUT: AutoHiddenState = { hidden: true, reason: 'out-of-car' }
+    // The standings stay on the session screen (the results): the window stays for them.
+    for (const id of WIDGET_IDS) if (id !== 'standings') windows.setAutoHidden(id, OUT)
+    expect(w.isVisible()).toBe(true)
+    windows.setAutoHidden('standings', OUT)
+    expect(w.isVisible()).toBe(false)
+    expect(windows.autoHiddenReasons()).toEqual(
+      Object.fromEntries(WIDGET_IDS.map((id) => [id, 'out-of-car']))
+    )
+    // Edit mode shows every widget, with its reason (the renderer's caption).
+    windows.setEditMode(true)
+    expect(w.isVisible()).toBe(true)
+    expect([...hosted(w)].sort()).toEqual([...WIDGET_IDS].sort())
+    expect(w.webContents.sentOn(IPC.autoHidden).at(-1)).toEqual({ widget: 'standings', ...OUT })
+    windows.setEditMode(false)
+    expect(w.isVisible()).toBe(false)
+    // Back in the car while the user hid the overlay (the shortcut): it stays hidden until shown.
+    windows.setUserHidden(true)
+    for (const id of WIDGET_IDS) windows.setAutoHidden(id, { hidden: false, reason: null })
+    expect(w.isVisible()).toBe(false)
+    windows.setUserHidden(false)
+    expect(w.isVisible()).toBe(true)
+  })
+
   it('shows nothing once disposed, even when rules are released while quitting', () => {
     start()
     windows.dispose()
