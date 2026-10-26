@@ -435,7 +435,8 @@ describe('resetWidgetOptions', () => {
       'alerts',
       'delta',
       'conditions',
-      'fuel'
+      'fuel',
+      'lights'
     ] as const) {
       const out = resetWidgetOptions(current, id)
       expect(out[id]).toEqual(DEFAULT_SETTINGS[id])

@@ -144,6 +144,20 @@ export const WIDGET_DEFS = {
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true }
   },
+  // The engine's warning lights, a small strip like a dashboard's (Testigos), at the alerts'
+  // rate: the trend samples the temperatures at 10 Hz. Under the delta, where it can grow down
+  // (a column, captions) over nothing; the panel hugs its lights, whatever the window's width.
+  lights: {
+    id: 'lights',
+    hz: 10,
+    defaultBounds: { x: 760, y: 320, width: 300, height: 40 },
+    minSize: { width: 40, height: 24 },
+    defaultVisible: true,
+    defaultBackgroundOpacity: 0.8,
+    sizeModel: 'auto-height',
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    inCarOnly: true
+  },
   delta: {
     id: 'delta',
     hz: 30,

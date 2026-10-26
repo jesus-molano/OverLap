@@ -287,7 +287,8 @@ export const OPTION_SCHEMA = {
     }
   },
   // The provider filters and holds the alerts itself: nothing here is display-only. In UI order:
-  // flags, pit lane, race, engine, fuel.
+  // flags, pit lane, race, engine, fuel. Of the engine, only the critical lights: the warning
+  // lights strip has them all (a file's showEngineWarnings becomes showOilPressure, migrate.ts).
   alerts: {
     showFlags: { kind: 'bool', default: true },
     showBlue: { kind: 'bool', default: true },
@@ -297,12 +298,11 @@ export const OPTION_SCHEMA = {
     showPitEntry: { kind: 'bool', default: true },
     showLapsToGo: { kind: 'bool', default: true },
     showTow: { kind: 'bool', default: true },
-    showDamage: { kind: 'bool', default: true },
     showWrongWay: { kind: 'bool', default: true },
     showIncidents: { kind: 'bool', default: true },
     showStalled: { kind: 'bool', default: true },
-    showEngineWarnings: { kind: 'bool', default: true },
-    showEngineTrend: { kind: 'bool', default: true },
+    showOilPressure: { kind: 'bool', default: true },
+    showDamage: { kind: 'bool', default: true },
     showBoxThisLap: { kind: 'bool', default: true },
     showFuelLow: { kind: 'bool', default: true },
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
@@ -358,6 +358,27 @@ export const OPTION_SCHEMA = {
     showLimits: { kind: 'bool', default: true, displayOnly: true },
     avgLaps: { kind: 'int', min: 2, max: 10, default: 5 },
     marginLaps: { kind: 'number', min: 0, max: 3, decimals: 1, default: 0.5, step: 0.1 }
+  },
+  // The provider leaves out the lights turned off, the readings not shown and, with onlyWhenLit,
+  // the dim lights (a rev limiter flickering unseen re-sends nothing); the layout and the
+  // captions are drawing. Small by default: icons only, the repair time, every engine light; the
+  // limiters are there for those who want them. In UI order.
+  lights: {
+    layout: { kind: 'enum', values: ['row', 'column'], default: 'row', displayOnly: true },
+    onlyWhenLit: { kind: 'bool', default: false },
+    showCaptions: { kind: 'bool', default: false, displayOnly: true },
+    showTemps: { kind: 'bool', default: false },
+    showRepairTime: { kind: 'bool', default: true },
+    showOilPressure: { kind: 'bool', default: true },
+    showFuelPressure: { kind: 'bool', default: true },
+    showStalled: { kind: 'bool', default: true },
+    showRepair: { kind: 'bool', default: true },
+    showRepairOptional: { kind: 'bool', default: true },
+    showWater: { kind: 'bool', default: true },
+    showOilTemp: { kind: 'bool', default: true },
+    showTrend: { kind: 'bool', default: true },
+    showPitLimiter: { kind: 'bool', default: false },
+    showRevLimiter: { kind: 'bool', default: false }
   },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them.
   shortcuts: {

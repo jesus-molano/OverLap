@@ -4,7 +4,7 @@
  * Every pictogram is one colour, so the strip lights it by severity alone.
  */
 
-import type { IconShape } from './icons'
+import { ICONS, type IconName, type IconShape } from './icons'
 
 /**
  * The repair lights' wrench, head top right, clear of the bottom right corner, where a badge
@@ -98,3 +98,15 @@ export const ENGINE_ICONS = {
 export type EngineIconName = keyof typeof ENGINE_ICONS
 
 export const ENGINE_ICON_NAMES = Object.keys(ENGINE_ICONS) as EngineIconName[]
+
+/** A name of either registry: Icon.vue draws both. */
+export type AnyIconName = IconName | EngineIconName
+
+export function isEngineIcon(name: string): name is EngineIconName {
+  return Object.prototype.hasOwnProperty.call(ENGINE_ICONS, name)
+}
+
+/** The shapes of an icon of either registry. */
+export function iconShapes(name: AnyIconName): readonly IconShape[] {
+  return isEngineIcon(name) ? ENGINE_ICONS[name] : ICONS[name]
+}

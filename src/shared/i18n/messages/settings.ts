@@ -553,21 +553,21 @@ export const settingsEs = {
     lapsToGoHelp: 'Unos segundos al quedar 10 y 5 vueltas para el final de la carrera',
     tow: 'Grúa',
     towHelp: 'Cuenta atrás de la grúa: tiempo hasta poder salir de tu box',
-    damage: 'Daños',
-    damageHelp: 'Al dañarse el coche, antes de la bandera de reparación; los leves, unos segundos',
     wrongWay: 'Sentido contrario',
     wrongWayHelp: 'Avanzas hacia atrás en la vuelta; marcha atrás y pit lane no cuentan',
     incidents: 'Incidentes',
     /** `s`: the incident's own minimum time on screen. */
     incidentsHelp: (s: number) =>
       `Al sumar puntos, al menos ${s}${NB}s: «+2x Pérdida de control · V5 · S3 · grava»`,
+    /** Under the engine group: where the other lights went. */
+    engineNote: 'Las temperaturas, la gasolina y las reparaciones opcionales están en Testigos',
     stalled: 'Motor calado',
     stalledHelp: 'Con el coche en pista',
-    engineWarnings: 'Testigos del motor',
-    engineWarningsHelp: 'Temperatura del agua y del aceite, presión del aceite y de la gasolina',
-    engineTrend: 'Temperatura al alza',
-    engineTrendHelp:
-      'Agua o aceite muy por encima de tu media en vueltas limpias; avisa si puede ser el rebufo',
+    oilPressure: 'Presión de aceite',
+    oilPressureHelp: 'Baja, con el motor en marcha: «PRESIÓN ACEITE · baja»',
+    damage: 'Daños',
+    damageHelp:
+      'Al dañarse el coche, antes de la bandera de reparación: «DAÑO · reparación obligatoria en boxes»',
     fuelGroup: 'Combustible',
     /** `laps`: FUEL_ALERT.lowLaps. */
     fuelLow: 'Combustible bajo',
@@ -700,6 +700,96 @@ export const settingsEs = {
     marginHelp: 'Vueltas de combustible de sobra al cruzar la meta',
     /** The margin's readout ('0.5 v'). */
     marginValue: (laps: string) => `${laps}${NB}v`
+  },
+  lights: {
+    note: 'Como los testigos del salpicadero: en gris apagados, encendidos con su color y su forma',
+    nothing: 'Sin ningún testigo marcado el widget no se muestra',
+    layout: 'Disposición',
+    layoutChoices: {
+      row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
+      column: { label: 'En columna' }
+    },
+    onlyWhenLit: 'Solo encendidos',
+    onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
+    captions: 'Rótulos',
+    captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
+    temps: 'Temperaturas',
+    tempsHelp: 'La del agua y la del aceite junto a su testigo: «98°»',
+    repairTime: 'Tiempo de reparación',
+    repairTimeHelp: 'Lo que tardarán en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
+    /** The per-light toggles (labelled with the lights' names). */
+    lightsGroup: 'Testigos',
+    trend: 'Temperatura al alza',
+    /** `s`: ENGINE_TREND.sustainS. */
+    trendHelp: (s: number) =>
+      `El agua o el aceite en amarillo tras ${s}${NB}s muy por encima de tu media: «+6°»`,
+    /** Short help under each light's toggle. */
+    help: {
+      oilPressure: 'Solo con el motor en marcha',
+      fuelPressure: 'Casi siempre, el depósito quedándose seco',
+      stalled: 'Con el coche en pista',
+      repair: 'Daños que hay que reparar para seguir',
+      repairOptional: 'Daños leves, arreglables en la parada',
+      water: 'El testigo del coche',
+      oilTemp: 'El testigo del coche',
+      pitLimiter: 'Puesto, en azul',
+      revLimiter: 'En el corte, en azul'
+    },
+    legend: 'Leyenda',
+    legendNote: 'Qué significa cada testigo y qué hacer',
+    /** What each lit look says, without its colour. */
+    looks: {
+      alarm: 'Rojo y relleno: actúa ya',
+      warn: 'Naranja con borde: atención',
+      caution: 'Amarillo subrayado: por encima de tu media',
+      info: 'Azul con raya: un estado'
+    },
+    /** The legend's rows: what the light means and what to do. */
+    entries: {
+      oilPressure: {
+        meaning: 'Presión de aceite baja con el motor en marcha',
+        action: 'Levanta y entra en boxes: el motor puede romperse'
+      },
+      fuelPressure: {
+        meaning: 'Presión de gasolina baja; casi siempre, el depósito se queda seco',
+        action: 'Entra a repostar; en las curvas el motor puede cortarse'
+      },
+      stalled: {
+        meaning: 'El motor se ha calado con el coche en pista',
+        action: 'Arráncalo con el botón de arranque y sigue'
+      },
+      repair: {
+        meaning:
+          'Daños que hay que reparar para seguir en carrera; llegará la bandera de reparación',
+        action: 'Entra en boxes. «REPARAR · 42 s» es lo que tardarán'
+      },
+      repairOptional: {
+        meaning: 'Daños leves: puedes seguir con ellos',
+        action: 'Arréglalos en tu próxima parada si compensa: «OPC. · 38 s»'
+      },
+      water: {
+        meaning: 'Agua demasiado caliente: el testigo del propio coche',
+        action: 'Sal del rebufo y de la hierba; si no baja, entra en boxes'
+      },
+      oilTemp: {
+        meaning: 'Aceite demasiado caliente: el testigo del propio coche',
+        action: 'Sal del rebufo y de la hierba; si no baja, entra en boxes'
+      },
+      trend: {
+        /** `s`: ENGINE_TREND.sustainS. */
+        meaning: (s: number) =>
+          `Agua o aceite muy por encima de tu media de esta sesión durante ${s}${NB}s, antes de su testigo`,
+        action: 'Sal del rebufo un rato para que entre aire; si sigue subiendo, cuida el motor'
+      },
+      pitLimiter: {
+        meaning: 'El limitador de boxes está puesto',
+        action: 'Quítalo al salir del pit lane'
+      },
+      revLimiter: {
+        meaning: 'El motor está en el corte de revoluciones',
+        action: 'Cambia de marcha antes'
+      }
+    }
   },
   personalBests: {
     title: 'Récords personales',
@@ -1245,20 +1335,19 @@ export const settingsEn: Dict<typeof settingsEs> = {
     lapsToGoHelp: 'A few seconds as 10 and 5 laps of the race remain',
     tow: 'Tow',
     towHelp: 'Tow countdown: time until you can leave your box',
-    damage: 'Damage',
-    damageHelp: 'When the car is damaged, before the meatball flag; minor damage for a few seconds',
     wrongWay: 'Wrong way',
     wrongWayHelp: 'Driving backwards around the lap; reverse gear and pit road do not count',
     incidents: 'Incidents',
     incidentsHelp: (s) =>
       `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
+    engineNote: 'The temperatures, the fuel and the optional repairs are in Warning lights',
     stalled: 'Engine stalled',
     stalledHelp: 'With the car on track',
-    engineWarnings: 'Engine warning lights',
-    engineWarningsHelp: 'Water and oil temperature, oil and fuel pressure',
-    engineTrend: 'Rising temperature',
-    engineTrendHelp:
-      'Water or oil well above your clean-lap average; says when slipstreaming may be why',
+    oilPressure: 'Oil pressure',
+    oilPressureHelp: 'Low, with the engine running: “OIL PRESSURE · low”',
+    damage: 'Damage',
+    damageHelp:
+      'When the car is damaged, before the meatball flag: “DAMAGE · pit for mandatory repairs”',
     fuelGroup: 'Fuel',
     fuelLow: 'Low fuel',
     fuelLowHelp: (laps) =>
@@ -1382,6 +1471,88 @@ export const settingsEn: Dict<typeof settingsEs> = {
     margin: 'Margin',
     marginHelp: 'Laps of fuel to spare as you cross the line',
     marginValue: (laps) => `${laps}${NB}laps`
+  },
+  lights: {
+    note: 'Like a dashboard’s warning lights: grey when off, lit with their colour and their shape',
+    nothing: 'With no light selected, the widget never shows',
+    layout: 'Layout',
+    layoutChoices: {
+      row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
+      column: { label: 'Column' }
+    },
+    onlyWhenLit: 'Lit only',
+    onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
+    captions: 'Captions',
+    captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
+    temps: 'Temperatures',
+    tempsHelp: 'The water and oil temperature next to their lights: “98°”',
+    repairTime: 'Repair time',
+    repairTimeHelp: 'How long they take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
+    lightsGroup: 'Lights',
+    trend: 'Rising temperature',
+    trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average: “+6°”`,
+    help: {
+      oilPressure: 'Only with the engine running',
+      fuelPressure: 'Nearly always a tank running dry',
+      stalled: 'With the car on track',
+      repair: 'Damage you must repair to race on',
+      repairOptional: 'Minor damage, fixable at the stop',
+      water: 'The car’s own light',
+      oilTemp: 'The car’s own light',
+      pitLimiter: 'On, in blue',
+      revLimiter: 'On the limiter, in blue'
+    },
+    legend: 'Legend',
+    legendNote: 'What each light means and what to do',
+    looks: {
+      alarm: 'Red and filled: act now',
+      warn: 'Orange with a border: attention',
+      caution: 'Yellow, underlined: above your average',
+      info: 'Blue with a bar: a state'
+    },
+    entries: {
+      oilPressure: {
+        meaning: 'Low oil pressure with the engine running',
+        action: 'Back off and pit: the engine may fail'
+      },
+      fuelPressure: {
+        meaning: 'Low fuel pressure; nearly always a tank running dry',
+        action: 'Pit to refuel; the engine may cut out in corners'
+      },
+      stalled: {
+        meaning: 'The engine stalled with the car on track',
+        action: 'Restart it with the starter button and go on'
+      },
+      repair: {
+        meaning: 'Damage you must repair to race on; the meatball flag will follow',
+        action: 'Pit now. “REPAIR · 42 s” is how long it takes'
+      },
+      repairOptional: {
+        meaning: 'Minor damage: you can race on with it',
+        action: 'Fix it at your next stop if it pays off: “OPT. · 38 s”'
+      },
+      water: {
+        meaning: 'Water too hot: the car’s own warning light',
+        action: 'Get out of the slipstream and off the grass; if it stays, pit'
+      },
+      oilTemp: {
+        meaning: 'Oil too hot: the car’s own warning light',
+        action: 'Get out of the slipstream and off the grass; if it stays, pit'
+      },
+      trend: {
+        meaning: (s) =>
+          `Water or oil well above your own average this session for ${s}${NB}s, before its light`,
+        action: 'Leave the slipstream for a while to cool it; if it keeps rising, nurse the engine'
+      },
+      pitLimiter: {
+        meaning: 'The pit limiter is on',
+        action: 'Turn it off as you leave pit road'
+      },
+      revLimiter: {
+        meaning: 'The engine is on the rev limiter',
+        action: 'Shift up earlier'
+      }
+    }
   },
   personalBests: {
     title: 'Personal bests',

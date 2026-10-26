@@ -1,6 +1,6 @@
 /**
- * Engine temperature trend, for the alerts widget: water or oil staying well above your own
- * reference, before the sim's warning light comes on. The reference is the average of your last
+ * Engine temperature trend, for the warning lights (engine.ts): water or oil staying well above
+ * your own reference, before the sim's warning light comes on. The reference is the average of your last
  * clean laps this session (each lap's mean reading), so it is your car on this track today, not a
  * fixed threshold. Only a lap like the one before it counts (within ENGINE_TREND.stableC): the
  * laps of a warm-up, still climbing, would make a reference below your normal. A tow or a jump of
@@ -10,14 +10,12 @@
  *
  * WaterTemp and OilTemp are per car model: a reading the car does not have (NaN) is skipped.
  */
-import type { AlertNotice } from '../types'
-
 export const ENGINE_TREND = {
   /** The reference averages this many of your last clean laps... */
   refLaps: 5,
   /** ...and needs at least this many. */
   minLaps: 2,
-  /** A lap needs this many samples to be a reference (a few seconds at the 10 Hz of the widget). */
+  /** A lap needs this many samples to be a reference (a few seconds at the widgets' 10 Hz). */
   minSamples: 20,
   /** A lap is a reference only when its mean is this close (°C) to the mean of the lap before. */
   stableC: 1,
@@ -61,7 +59,17 @@ export interface EngineTrendInput {
   readonly lapClean: (lap: number) => boolean | null
 }
 
-export type TrendNotice = Extract<AlertNotice, { kind: 'engineTrend' }>
+/**
+ * A temperature well above your own reference (whole °C) for a while; `draft`: you spent most of
+ * that time close behind another car, which heats the engine without any damage.
+ */
+export interface TrendNotice {
+  readonly kind: 'engineTrend'
+  readonly fluid: Fluid
+  readonly tempC: number
+  readonly deltaC: number
+  readonly draft: boolean
+}
 
 const FLUIDS = ['water', 'oil'] as const satisfies readonly Fluid[]
 
@@ -100,8 +108,8 @@ const NO_MEANS: Readonly<Record<Fluid, number>> = Object.freeze({
 const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length
 
 /**
- * One per alerts provider. update() at every compute; observe() on every tick (a tow or a repair
- * may come while the widget is hidden); resume() after a gap in the computes (the reference
+ * One per EngineMonitor. update() once per read tick; observe() on every tick (a tow or a repair
+ * may come while the widgets are hidden); resume() after a gap in the reads (the reference
  * stays: it is the session's); reset() for a new session.
  */
 export class EngineTrend {
@@ -124,6 +132,8 @@ export class EngineTrend {
   private seenT = Number.NaN
   private seenWater = Number.NaN
   private seenOil = Number.NaN
+  /** Each fluid's notice at the last update (null: not above its reference). */
+  private readonly notices: Record<Fluid, TrendNotice | null> = { water: null, oil: null }
 
   resume(): void {
     this.lap = Number.NaN
@@ -131,10 +141,12 @@ export class EngineTrend {
     this.lastNow = Number.NaN
     this.draft = 0
     this.prevMeans = NO_MEANS
-    for (const f of FLUIDS.map((k) => this.fluids[k])) {
+    for (const k of FLUIDS) {
+      const f = this.fluids[k]
       f.smooth = Number.NaN
       f.aboveSince = Number.NaN
       f.active = false
+      this.notices[k] = null
     }
     this.clearLap()
   }
@@ -170,6 +182,11 @@ export class EngineTrend {
     return refs.length >= ENGINE_TREND.minLaps ? mean(refs) : null
   }
 
+  /** One fluid's notice at the last update(): null while it is not well above its reference. */
+  notice(fluid: Fluid): TrendNotice | null {
+    return this.notices[fluid]
+  }
+
   /** The trend notice to show now (the fluid furthest above its reference), or null. */
   update(i: EngineTrendInput): TrendNotice | null {
     const dt = i.now - this.lastNow
@@ -187,6 +204,7 @@ export class EngineTrend {
     for (const fluid of FLUIDS) {
       const f = this.fluids[fluid]
       const v = fluid === 'water' ? i.water : i.oil
+      this.notices[fluid] = null
       if (!Number.isFinite(v)) {
         f.smooth = Number.NaN
         f.aboveSince = Number.NaN
@@ -206,15 +224,17 @@ export class EngineTrend {
       // A lap with a rise in it is not your normal either, even before the notice is up.
       if (f.active || delta >= ENGINE_TREND.riseC) this.tainted = true
       if (!f.active) continue
+      const notice: TrendNotice = {
+        kind: 'engineTrend',
+        fluid,
+        tempC: Math.round(f.smooth),
+        deltaC: Math.round(delta),
+        draft: this.draft >= ENGINE_TREND.draftShare
+      }
+      this.notices[fluid] = notice
       if (delta > bestDelta) {
         bestDelta = delta
-        best = {
-          kind: 'engineTrend',
-          fluid,
-          tempC: Math.round(f.smooth),
-          deltaC: Math.round(delta),
-          draft: this.draft >= ENGINE_TREND.draftShare
-        }
+        best = notice
       }
     }
     return best

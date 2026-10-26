@@ -152,6 +152,8 @@ describe('displayOnlyFields', () => {
     expect(displayOnlyFields('fuel')).toEqual(
       Object.keys(OPTION_SCHEMA.fuel).filter((k) => k !== 'avgLaps' && k !== 'marginLaps')
     )
+    // The lights provider leaves out what is not shown; the layout and the captions are drawing.
+    expect(displayOnlyFields('lights')).toEqual(['layout', 'showCaptions'])
   })
 })
 

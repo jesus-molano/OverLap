@@ -1,26 +1,24 @@
 /**
- * Alerts widget: the flags that apply to you, the other alerts (tow, wrong way, damage, engine
- * stalled, the engine warning lights, the pit limiter reminder before the pit entry, the stop and
- * the low fuel of the fuel plan in notices/fuel.ts, laps to go, an engine running hot against
- * your own average), most important first, the pit limiter while
- * you are on pit road (on / OFF / over the limit, with it off or on) and your last incident for
- * a few seconds. Runs at 10 Hz; the payload only changes when something shown changes (the speed
- * is 0 off pit road), so SKIP_EMIT drops the rest. The state (when each alert was last seen, the
- * green and chequered flags' start, the detectors in notices/, the incident tracker and when you
- * got in the car, fed on every tick by observe()) lives in one AlertsProvider per telemetry loop.
+ * Alerts widget: the flags that apply to you, the other alerts (tow, wrong way, mandatory repairs,
+ * engine stalled, low oil pressure, the pit limiter reminder before the pit entry, the stop and
+ * the low fuel of the fuel plan in notices/fuel.ts, laps to go), most important first, the pit
+ * limiter while you are on pit road (on / OFF / over the limit, with it off or on) and your last
+ * incident for a few seconds. Runs at 10 Hz; the payload only changes when something shown
+ * changes (the speed is 0 off pit road), so SKIP_EMIT drops the rest. The state (when each alert
+ * was last seen, the green and chequered flags' start, the detectors in notices/ and the incident
+ * tracker, fed on every tick by observe()) lives in one AlertsProvider per telemetry loop.
  *
  * Out of the car no flag is shown (the replay, the session screen, the garage: nothing there is
- * yours to act on). The engine's lights are quiet while towed, in the box, out of the world and as
- * you get in the car, when they flicker at a standstill (online, every one of them did), and one
- * held from before does not carry into that; the pressure lights also need the engine running.
+ * yours to act on). Of the engine's lights the band keeps the critical ones; the warning lights
+ * strip (lights.ts) has them all, the temperatures and their trend included. Both read the loop's
+ * EngineMonitor (notices/engine.ts), so both follow the same rules: quiet while towed, in the
+ * box, out of the world and as you get in the car, the pressure only with the engine running.
  */
 import { arrayEqual, deepEqual } from './equal'
 import { CAUTION_FLAGS, EngineWarning, SessionFlag } from './flags'
 import { incidentAlert, incidentAlertEqual } from './incidents/alert'
 import { IncidentTracker } from './incidents/tracker'
-import { isValidPct, wrapPctDelta } from './lapDist'
-import { DAMAGE, DamageReport } from './notices/damage'
-import { EngineTrend } from './notices/engineTrend'
+import { EngineMonitor, type EngineState } from './notices/engine'
 import { fuelNotices, type FuelAlertInput } from './notices/fuel'
 import { LAPS_TO_GO, LapsToGo } from './notices/lapsToGo'
 import { PitEntryReminder } from './notices/pitEntry'
@@ -35,7 +33,6 @@ import type {
   AlertNotice,
   AlertsData,
   AlertsOptions,
-  EngineWarningKind,
   FlagKind,
   NoticeKind,
   SessionMeta
@@ -52,20 +49,7 @@ export const ALERTS = {
   /** Over the pit speed limit by more than this (km/h): 'speeding' / 'offSpeeding'. */
   speedingMarginKmh: 1,
   /** No compute for longer than this (s): the widget was off, start the holds over. */
-  staleS: 1,
-  /** Close behind another car (the engine trend's slipstream hint): at most this far (s). */
-  draftGapS: 1,
-  /** Moving faster than this (m/s) counts as driving (the engine trend, the pressure lights). */
-  movingMs: 5,
-  /** The engine's lights wait this long (s) after you get in the car: the engine is starting. */
-  inCarSettleS: 3,
-  /** Stopped, a pressure light needs the revs at this share of the car's idle at least. */
-  idleRpmShare: 0.8,
-  /**
-   * The limiter is not read this long (s) after the car appears in the world: a tow or a reset
-   * puts it on pit road a moment before its limiter is on (online: a false OFF for 0.95 s).
-   */
-  teleportS: 2
+  staleS: 1
 } as const
 
 /** Most important first: the order of the FlagKind union. */
@@ -102,9 +86,8 @@ export const FLAG_BITS: Readonly<Record<FlagKind, number>> = {
 
 /**
  * Most important first: the tow (being towed, nothing else can be acted on), damage, then the
- * pressures (the engine is about to fail) before the temperatures (a light that can stay on for
- * laps, and nothing to do about it at once). The stop the fuel needs this lap comes right after
- * the pressures, the low fuel with the temperatures (neither is on while towed).
+ * stall and the oil pressure (the engine is about to fail). The stop the fuel needs this lap
+ * comes right after the pressure, the low fuel after it (neither is on while towed).
  */
 export const NOTICE_ORDER = [
   'tow',
@@ -113,13 +96,9 @@ export const NOTICE_ORDER = [
   'pitEntry',
   'stalled',
   'oilPressure',
-  'fuelPressure',
   'boxThisLap',
   'fuelLow',
-  'water',
-  'oilTemp',
-  'lapsToGo',
-  'engineTrend'
+  'lapsToGo'
 ] as const satisfies readonly NoticeKind[]
 
 export type AlertKind = FlagKind | NoticeKind
@@ -127,10 +106,10 @@ export type AlertKind = FlagKind | NoticeKind
 /**
  * Flags and the other alerts in one order, most important first: the band shows the first one
  * shown, the chips the next. Each list keeps its own order inside it (FLAG_ORDER, NOTICE_ORDER).
- * The tow countdown comes before the meatball it is taking you in for. The temperature lights
- * come after the yellow and the blue flags: they can stay on for laps, and a flag that asks for
- * something now must not shrink to a chip under them all that time. So does the low fuel; the
- * stop the fuel needs this lap does not wait behind a passing flag.
+ * The tow countdown comes before the meatball it is taking you in for. The low fuel comes after
+ * the yellow and the blue flags: it can stay on for laps, and a flag that asks for something now
+ * must not shrink to a chip under it all that time; the stop the fuel needs this lap does not
+ * wait behind a passing flag.
  */
 export const ALERT_ORDER = [
   'disqualified',
@@ -144,36 +123,20 @@ export const ALERT_ORDER = [
   'stalled',
   'caution',
   'oilPressure',
-  'fuelPressure',
   'boxThisLap',
   'yellow',
   'debris',
   'furled',
   'blue',
   'fuelLow',
-  'water',
-  'oilTemp',
   'white',
   'lapsToGo',
   'checkered',
-  'green',
-  'engineTrend'
+  'green'
 ] as const satisfies readonly AlertKind[]
 
-/** EngineWarnings bit of each warning light. */
-export const ENGINE_WARNING_BITS: Readonly<Record<EngineWarningKind, number>> = {
-  oilPressure: EngineWarning.OilPressure,
-  water: EngineWarning.WaterTemp,
-  oilTemp: EngineWarning.OilTemp,
-  fuelPressure: EngineWarning.FuelPressure
-}
-const ENGINE_WARNINGS = Object.keys(ENGINE_WARNING_BITS) as EngineWarningKind[]
-
-/** The pressures drop with the engine: not shown while it is stalled or not running. */
-const ENGINE_OFF_HIDES: ReadonlySet<EngineWarningKind> = new Set(['oilPressure', 'fuelPressure'])
-
-/** The notices read from the engine's lights: none while the engine is quiet (engineQuiet). */
-const ENGINE_NOTICES: ReadonlySet<NoticeKind> = new Set<NoticeKind>(['stalled', ...ENGINE_WARNINGS])
+/** The notices read from the engine's lights: none while they are quiet (EngineState.quiet). */
+const ENGINE_NOTICES: ReadonlySet<NoticeKind> = new Set<NoticeKind>(['stalled', 'oilPressure'])
 
 /** The on/off options of AlertsOptions. */
 export type AlertToggle = {
@@ -185,16 +148,12 @@ export const NOTICE_OPTION: Readonly<Record<NoticeKind, AlertToggle>> = {
   wrongWay: 'showWrongWay',
   pitEntry: 'showPitEntry',
   stalled: 'showStalled',
-  oilPressure: 'showEngineWarnings',
-  water: 'showEngineWarnings',
-  oilTemp: 'showEngineWarnings',
-  fuelPressure: 'showEngineWarnings',
+  oilPressure: 'showOilPressure',
   tow: 'showTow',
   damage: 'showDamage',
   boxThisLap: 'showBoxThisLap',
   fuelLow: 'showFuelLow',
-  lapsToGo: 'showLapsToGo',
-  engineTrend: 'showEngineTrend'
+  lapsToGo: 'showLapsToGo'
 }
 
 /** Flags with their own option besides showFlags. */
@@ -228,17 +187,10 @@ export function showsNothing(o: Readonly<Pick<AlertsOptions, AlertToggle>>): boo
 
 /**
  * Notices held holdS like the flags, so a flicker is readable. The others follow their own
- * timing: the tow counts down, damage lasts until repaired (or a few seconds), the reminder ends
- * on pit road, laps to go and the trend last long enough by themselves.
+ * timing: the tow counts down, damage lasts until repaired, the reminder ends on pit road, laps
+ * to go last long enough by themselves.
  */
-const HELD: ReadonlySet<NoticeKind> = new Set<NoticeKind>([
-  'wrongWay',
-  'stalled',
-  'oilPressure',
-  'water',
-  'oilTemp',
-  'fuelPressure'
-])
+const HELD: ReadonlySet<NoticeKind> = new Set<NoticeKind>(['wrongWay', 'stalled', 'oilPressure'])
 
 const GREEN = FLAG_ORDER.indexOf('green')
 const CHECKERED = FLAG_ORDER.indexOf('checkered')
@@ -277,34 +229,11 @@ export function pitLimiterState(
   return over ? 'speeding' : 'on'
 }
 
-/** Whether a car is within ALERTS.draftGapS ahead of the player on track. */
-function closeBehind(frame: TelemetryFrame, race: RaceView, player: number): boolean {
-  const me = race.car(player)
-  const pace = me?.pace ?? null
-  const myPct = frame.CarIdxLapDistPct[player]
-  if (!me || !me.inWorld || me.inPits || pace === null || !(pace > 0) || !isValidPct(myPct)) {
-    return false
-  }
-  // race.cars() leaves out the pace car and spectators.
-  for (const car of race.cars()) {
-    if (car.carIdx === player || !car.inWorld || car.inPits) continue
-    const pct = frame.CarIdxLapDistPct[car.carIdx]
-    if (!isValidPct(pct)) continue
-    const ahead = wrapPctDelta(pct, myPct)
-    if (ahead > 0 && ahead * pace <= ALERTS.draftGapS) return true
-  }
-  return false
-}
-
-/** `now - since` is within [0, s): since a moment that is not in the future. */
-const within = (now: number, since: number, s: number): boolean =>
-  now - since >= 0 && now - since < s
-
 /**
- * One per telemetry loop. compute() runs at the widget rate, observe() on every tick; reset()
- * on a reconnect or a new session (a gap in the computes only starts the holds over: the
- * laps-to-go marks already shown, the engine reference, the incidents and when you got in the
- * car are the session's).
+ * One per telemetry loop, sharing the loop's EngineMonitor with the warning lights (or, built
+ * alone, with one of its own that it feeds and resets). compute() runs at the widget rate,
+ * observe() on every tick; reset() on a reconnect or a new session (a gap in the computes only
+ * starts the holds over: the laps-to-go marks already shown and the incidents are the session's).
  */
 export class AlertsProvider {
   /** SessionTime each flag was last seen, by FLAG_ORDER index (NaN = not seen). */
@@ -318,76 +247,38 @@ export class AlertsProvider {
   private checkeredWas: boolean | null = null
   private checkeredSince = Number.NaN
   private lastT = Number.NaN
-  // Followed by observe() on every tick, whatever the widget's rate or rules.
-  /** SessionTime of the last tick observed (NaN: none since the start). */
-  private tickT = Number.NaN
-  /** IsOnTrack last tick (null: unknown, no edge), and when it last turned true. */
-  private inCarWas: boolean | null = null
-  private inCarSince = Number.NaN
-  /** PlayerTrackSurface last tick, and when the car last appeared in the world. */
-  private surfaceWas: number | null = null
-  private appearedAt = Number.NaN
+  private readonly engine: EngineMonitor
+  /** Built without a shared monitor: this one feeds and resets its own. */
+  private readonly ownsEngine: boolean
   private readonly wrongWay = new WrongWayDetector()
   private readonly pitEntry = new PitEntryReminder()
   private readonly lapsToGo = new LapsToGo()
-  private readonly damage = new DamageReport()
-  private readonly engineTrend = new EngineTrend()
   private readonly incidents = new IncidentTracker()
+
+  constructor(engine?: EngineMonitor) {
+    this.ownsEngine = engine === undefined
+    this.engine = engine ?? new EngineMonitor()
+  }
 
   reset(): void {
     this.resume()
     this.lapsToGo.reset()
-    this.engineTrend.reset()
     this.incidents.reset()
-    this.forgetTicks()
+    if (this.ownsEngine) this.engine.reset()
   }
 
   /**
-   * Every tick, whatever the widget's rate or rules: an incident's report may last one tick, and
-   * getting in the car, a tow or a repair may happen while the widget is hidden.
+   * Every tick, whatever the widget's rate or rules: an incident's report may last one tick (and
+   * the engine's own monitor, when it has one, follows getting in the car and the tows).
    */
   observe(frame: TelemetryFrame, session: SessionMeta, race: RaceView): void {
     this.incidents.observe(frame, session, race)
-    const t = frame.SessionTime[0]
-    if (t === undefined || !Number.isFinite(t)) return
-    // The clock went back (a replay, a restarted session): no edge across it.
-    if (t < this.tickT) this.forgetTicks()
-    this.tickT = t
-    const inCar = frame.IsOnTrack[0] === true
-    if (inCar && this.inCarWas === false) this.inCarSince = t
-    this.inCarWas = inCar
-    const raw = frame.PlayerTrackSurface[0]
-    const surface = raw !== undefined && Number.isFinite(raw) ? raw : null
-    if (
-      surface !== null &&
-      surface !== TrackLocation.NotInWorld &&
-      this.surfaceWas === TrackLocation.NotInWorld
-    ) {
-      this.appearedAt = t
-    }
-    this.surfaceWas = surface
-    // A replay's readings are not your engine's now.
-    if (frame.IsReplayPlaying[0] !== true) {
-      this.engineTrend.observe(
-        t,
-        finiteOr(frame.PlayerCarTowTime[0], 0) > 0,
-        finiteOr(frame.WaterTemp[0], Number.NaN),
-        finiteOr(frame.OilTemp[0], Number.NaN)
-      )
-    }
-  }
-
-  private forgetTicks(): void {
-    this.tickT = Number.NaN
-    this.inCarWas = null
-    this.inCarSince = Number.NaN
-    this.surfaceWas = null
-    this.appearedAt = Number.NaN
+    if (this.ownsEngine) this.engine.observe(frame)
   }
 
   /**
    * After a gap in the computes or the clock going back: nothing held is valid. The incident
-   * tracker and the ticks observe() follows go on, computed or not, so they are not touched.
+   * tracker and the engine monitor go on, computed or not, so they are not touched.
    */
   private resume(): void {
     this.lastSeen.fill(Number.NaN)
@@ -400,8 +291,6 @@ export class AlertsProvider {
     this.wrongWay.resume()
     this.pitEntry.resume()
     this.lapsToGo.resume()
-    this.damage.resume()
-    this.engineTrend.resume()
   }
 
   /** `fuel`: the fuel plan (fuel/provider.ts fuelAlertInput), null without one. */
@@ -423,6 +312,7 @@ export class AlertsProvider {
     const towing = finiteOr(frame.PlayerCarTowTime[0], 0) > 0
     // The tow puts the car in its box at once, and counts down there.
     const inBox = towing || frame.PlayerTrackSurface[0] === TrackLocation.InPitStall
+    const engine = this.engine.read(frame, session, race)
 
     const speedKmh = Math.round(Math.abs(finiteOr(frame.Speed[0], 0)) * 3.6)
     const limit = session.pitSpeedLimitKmh
@@ -430,9 +320,8 @@ export class AlertsProvider {
     const onPitRoad =
       frame.OnPitRoad[0] ?? (player >= 0 ? frame.CarIdxOnPitRoad[player] : undefined) ?? false
     // Towed, or just put in the box by a tow or a reset: nothing to drive with a limiter yet.
-    const limiterRead = !towing && !within(now, this.appearedAt, ALERTS.teleportS)
     const pitLimiter =
-      opts.showPitLimiter && limiterRead
+      opts.showPitLimiter && engine.limiterRead
         ? pitLimiterState(
             onPitRoad,
             frame.EngineWarnings[0],
@@ -441,18 +330,11 @@ export class AlertsProvider {
             opts.showPitOverspeed
           )
         : null
-    const notices = this.notices(
-      frame,
-      session,
-      race,
-      player,
-      onPitRoad,
-      now,
-      holdS,
-      opts,
+    const notices = this.notices(frame, session, race, player, onPitRoad, now, holdS, opts, {
       flags,
+      engine,
       fuel
-    )
+    })
     const incident = opts.showIncidents ? incidentAlert(this.incidents.latest, now, holdS) : null
 
     return {
@@ -529,7 +411,7 @@ export class AlertsProvider {
 
   /**
    * The notices, in NOTICE_ORDER. Every detector runs whatever the options say, so one turned on
-   * mid-session already knows the session (the engine reference, the marks shown).
+   * mid-session already knows the session (the marks shown).
    */
   private notices(
     frame: TelemetryFrame,
@@ -540,16 +422,15 @@ export class AlertsProvider {
     now: number,
     holdS: number,
     opts: AlertsOptions,
-    flags: readonly FlagKind[],
-    fuel: FuelAlertInput | null
+    seen: NoticeInputs
   ): AlertNotice[] {
-    const raw = this.detect(frame, session, race, player, onPitRoad, now, holdS, fuel)
-    const quiet = this.engineQuiet(frame, now)
+    const raw = this.detect(frame, session, race, player, onPitRoad, now, holdS, seen)
+    const quiet = seen.engine.quiet
     const out: AlertNotice[] = []
     for (const kind of NOTICE_ORDER) {
       if (!opts[NOTICE_OPTION[kind]]) continue
       // The meatball, once out, says what the repairs do.
-      if (kind === 'damage' && flags.includes('meatball')) continue
+      if (kind === 'damage' && seen.flags.includes('meatball')) continue
       const notice = raw.get(kind)
       if (!HELD.has(kind)) {
         if (notice) out.push(notice)
@@ -561,28 +442,10 @@ export class AlertsProvider {
         continue
       }
       if (notice) this.noticeSeen.set(kind, { at: now, notice })
-      const seen = this.noticeSeen.get(kind)
-      if (seen && (now - seen.at < holdS || seen.at === now)) out.push(seen.notice)
+      const held = this.noticeSeen.get(kind)
+      if (held && (now - held.at < holdS || held.at === now)) out.push(held.notice)
     }
     return out
-  }
-
-  /**
-   * The engine's lights mean nothing while towed, in the box, out of the world (the tow or a reset
-   * taking the car away), just after it reappears or as you get in the car: they flicker at a
-   * standstill then (the engine starting, the tow's own engine model). Online the stall light
-   * came on as the tow lifted the car, a moment before PlayerCarTowTime started counting.
-   */
-  private engineQuiet(frame: TelemetryFrame, now: number): boolean {
-    const surface = frame.PlayerTrackSurface[0]
-    return (
-      frame.IsOnTrack[0] !== true ||
-      finiteOr(frame.PlayerCarTowTime[0], 0) > 0 ||
-      surface === TrackLocation.InPitStall ||
-      surface === TrackLocation.NotInWorld ||
-      within(now, this.appearedAt, ALERTS.teleportS) ||
-      within(now, this.inCarSince, ALERTS.inCarSettleS)
-    )
   }
 
   /** Each notice that is on right now, before options and holds. */
@@ -594,7 +457,7 @@ export class AlertsProvider {
     onPitRoad: boolean,
     now: number,
     holdS: number,
-    fuel: FuelAlertInput | null
+    { engine, fuel }: NoticeInputs
   ): Map<NoticeKind, AlertNotice> {
     const on = new Map<NoticeKind, AlertNotice>()
     const add = (n: AlertNotice): void => {
@@ -606,31 +469,12 @@ export class AlertsProvider {
     const speedMs = Math.abs(finiteOr(frame.Speed[0], 0))
     const surface = frame.PlayerTrackSurface[0]
     const towS = finiteOr(frame.PlayerCarTowTime[0], 0)
-    const quiet = this.engineQuiet(frame, now)
-    // No pressure without the engine running: moving, or stopped at its idle at least.
-    const idleRpm = finiteOr(session.driverCarIdleRpm, 0)
-    const running =
-      speedMs > ALERTS.movingMs ||
-      (idleRpm > 0 && finiteOr(frame.RPM[0], 0) >= ALERTS.idleRpmShare * idleRpm)
 
-    const stalled = !quiet && warnings !== null && (warnings & EngineWarning.Stalled) !== 0
-    if (stalled) add({ kind: 'stalled' })
-    let warning = false
-    if (inCar && warnings !== null) {
-      for (const kind of ENGINE_WARNINGS) {
-        if ((warnings & ENGINE_WARNING_BITS[kind]) === 0) continue
-        warning = true
-        if (quiet || (ENGINE_OFF_HIDES.has(kind) && (stalled || !running))) continue
-        add({ kind })
-      }
-    }
-
-    const damage = this.damage.update(
-      now,
-      inCar ? warnings : null,
-      Math.max(holdS, DAMAGE.optionalS)
-    )
-    if (damage !== null && !quiet) add(damage)
+    // The engine's critical lights, by the monitor's rules (quiet, the engine running).
+    if (engine.stalled) add(STALLED)
+    if (engine.oilPressure) add(OIL_PRESSURE)
+    // In your box, towed there or not, no "pit for repairs": you are there.
+    if (engine.repair && !engine.quiet) add(DAMAGE)
 
     const limiterOn = warnings === null ? null : (warnings & EngineWarning.PitSpeedLimiter) !== 0
     if (this.pitEntry.update(surface, onPitRoad, limiterOn)) add({ kind: 'pitEntry' })
@@ -655,23 +499,20 @@ export class AlertsProvider {
         : null
     const laps = this.lapsToGo.update(now, left, Math.max(holdS, LAPS_TO_GO.showS))
     if (laps !== null) add({ kind: 'lapsToGo', laps })
-
-    const trend = this.engineTrend.update({
-      now,
-      lapsCompleted:
-        player >= 0 ? finiteOr(frame.CarIdxLapCompleted[player], Number.NaN) : Number.NaN,
-      water: finiteOr(frame.WaterTemp[0], Number.NaN),
-      oil: finiteOr(frame.OilTemp[0], Number.NaN),
-      driving:
-        inCar && !onPitRoad && surface !== TrackLocation.InPitStall && speedMs > ALERTS.movingMs,
-      closeBehind: player >= 0 && closeBehind(frame, race, player),
-      warning,
-      lapClean: (lap) => race.car(player)?.laps.find((l) => l.lap === lap)?.clean ?? null
-    })
-    if (trend) add(trend)
     return on
   }
 }
+
+/** What the notices read besides the frame: the flags shown, the engine and the fuel plan. */
+interface NoticeInputs {
+  readonly flags: readonly FlagKind[]
+  readonly engine: EngineState
+  readonly fuel: FuelAlertInput | null
+}
+
+const STALLED: AlertNotice = Object.freeze({ kind: 'stalled' })
+const OIL_PRESSURE: AlertNotice = Object.freeze({ kind: 'oilPressure' })
+const DAMAGE: AlertNotice = Object.freeze({ kind: 'damage' })
 
 /** Structural equality of two payloads (for SKIP_EMIT). */
 export function alertsEqual(a: AlertsData, b: AlertsData): boolean {

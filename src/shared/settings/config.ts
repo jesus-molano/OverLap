@@ -30,6 +30,7 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
     alerts: { ...s.alerts },
     delta: { ...s.delta },
     conditions: { ...s.conditions },
-    fuel: { ...s.fuel }
+    fuel: { ...s.fuel },
+    lights: { ...s.lights }
   }
 }

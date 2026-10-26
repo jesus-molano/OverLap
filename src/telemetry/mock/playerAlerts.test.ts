@@ -1,18 +1,28 @@
 /**
  * The player's alerts of the mock: the scripted variables themselves, then a whole session through
- * the real RaceModel and AlertsProvider (default options), so every case of the alerts widget is
+ * the real RaceModel, AlertsProvider and LightsProvider sharing one EngineMonitor (default
+ * options, the limiters on), so every case of the alerts widget and of the warning lights is
  * known to show up in mock mode, and none in the stretches the other mock tests read.
  */
 import { describe, expect, it } from 'vitest'
 import { AlertsProvider } from '@shared/alerts'
 import { EngineWarning, SessionFlag } from '@shared/flags'
 import { wrapPctDelta } from '@shared/lapDist'
+import { LightsProvider } from '@shared/lights'
+import { EngineMonitor } from '@shared/notices/engine'
 import { RaceModel } from '@shared/race/raceModel'
 import { parseSessionMeta } from '@shared/session'
 import { defaultOptions } from '@shared/settings'
-import type { AlertsData, NoticeKind } from '@shared/types'
+import type { AlertsData, LightsData, NoticeKind } from '@shared/types'
 import { MockFrameBuffer } from './frameBuffer'
-import { MOCK_ALERTS_TIMELINE, MOCK_IDLE_RPM, MOCK_WATER_C, MockPlayerAlerts } from './playerAlerts'
+import {
+  MOCK_ALERTS_TIMELINE,
+  MOCK_IDLE_RPM,
+  MOCK_OPT_REPAIR_S,
+  MOCK_REPAIR_S,
+  MOCK_WATER_C,
+  MockPlayerAlerts
+} from './playerAlerts'
 import { MockSeries } from './series'
 import { at } from './testUtils'
 import { TRACK_LENGTH_M } from './track'
@@ -53,6 +63,15 @@ describe('MockPlayerAlerts', () => {
     expect(bits(dmgAt + 0.5) & repairs).toBe(EngineWarning.OptionalRepairs)
     expect(bits(dmgAt + 1.5) & repairs).toBe(repairs)
     expect(bits(dmgAt + dmgFor) & repairs).toBe(0)
+    // With the time each takes, while they are on.
+    const times = (t: number): number[] => {
+      const v = varsAt(a, t)
+      return [at(v.PitRepairLeft, 0), at(v.PitOptRepairLeft, 0)]
+    }
+    expect(times(dmgAt - 0.1)).toEqual([0, 0])
+    expect(times(dmgAt + 0.5)).toEqual([0, MOCK_OPT_REPAIR_S])
+    expect(times(dmgAt + 1.5)).toEqual([MOCK_REPAIR_S, MOCK_OPT_REPAIR_S])
+    expect(times(dmgAt + dmgFor)).toEqual([0, 0])
   })
 
   it('revs: the idle stopped, more with speed, none while stalled', () => {
@@ -107,7 +126,7 @@ describe('MockPlayerAlerts', () => {
 interface Seen {
   /** Session seconds of each notice and flag shown, and of each limiter state. */
   readonly at: Map<string, number[]>
-  readonly payloads: { t: number; d: AlertsData }[]
+  readonly payloads: { t: number; d: AlertsData; l: LightsData }[]
 }
 
 let cache: Seen | null = null
@@ -119,8 +138,11 @@ function session(): Seen {
   const start = series.sessionTime
   const meta = parseSessionMeta(series.sessionInfo())
   const model = new RaceModel()
-  const alerts = new AlertsProvider()
+  const engine = new EngineMonitor()
+  const alerts = new AlertsProvider(engine)
+  const lights = new LightsProvider(engine)
   const opts = defaultOptions('alerts')
+  const lightOpts = { ...defaultOptions('lights'), showPitLimiter: true, showRevLimiter: true }
   const seen: Seen = { at: new Map(), payloads: [] }
   const mark = (key: string, t: number): void => {
     const list = seen.at.get(key) ?? []
@@ -132,13 +154,21 @@ function session(): Seen {
     if (series.sessionIndex !== 0) break
     const f = series.frame()
     model.update(f, meta)
+    engine.observe(f)
+    alerts.observe(f, meta, model.view)
     const d = alerts.compute(f, meta, model.view, opts)
+    const l = lights.compute(f, meta, model.view, lightOpts)
     const t = series.sessionTime - start
-    seen.payloads.push({ t, d })
+    seen.payloads.push({ t, d, l })
     for (const n of d.notices) {
       mark(n.kind, t)
       if (n.kind === 'lapsToGo') mark(`lapsToGo${n.laps}`, t)
-      if (n.kind === 'engineTrend' && n.draft) mark('draft', t)
+    }
+    for (const light of l.lights) {
+      if (light.level === 'off') continue
+      mark(`light:${light.kind}:${light.level}`, t)
+      if (light.seconds !== null) mark(`light:${light.kind}:${light.seconds}s`, t)
+      if (light.draft) mark('draft', t)
     }
     for (const flag of d.flags) mark(flag, t)
     if (d.pitLimiter) mark(`limiter:${d.pitLimiter}`, t)
@@ -149,24 +179,35 @@ function session(): Seen {
 
 const first = (key: string): number => session().at.get(key)?.[0] ?? Number.NaN
 
-describe('a mock session through the alerts provider', () => {
-  it('shows every alert the widget has, once each at least', () => {
+describe('a mock session through the alerts and warning lights providers', () => {
+  it('shows every alert the band has and every look of the lights, once each at least', () => {
     const notices: NoticeKind[] = [
       'wrongWay',
       'pitEntry',
       'stalled',
       'oilPressure',
-      'water',
-      'oilTemp',
-      'fuelPressure',
       'tow',
       'damage',
-      'lapsToGo',
-      'engineTrend'
+      'lapsToGo'
     ]
     for (const k of notices) expect(session().at.has(k), k).toBe(true)
     for (const k of ['lapsToGo10', 'lapsToGo5', 'draft', 'furled']) {
       expect(session().at.has(k), k).toBe(true)
+    }
+    for (const k of [
+      'oilPressure:alarm',
+      'fuelPressure:alarm',
+      'stalled:alarm',
+      'repair:alarm',
+      `repair:${MOCK_REPAIR_S}s`,
+      'repairOptional:warn',
+      `repairOptional:${MOCK_OPT_REPAIR_S}s`,
+      'water:warn',
+      'water:caution',
+      'oilTemp:warn',
+      'pitLimiter:info'
+    ]) {
+      expect(session().at.has(`light:${k}`), k).toBe(true)
     }
     for (const s of ['off', 'offSpeeding', 'speeding', 'on']) {
       expect(session().at.has(`limiter:${s}`), s).toBe(true)
@@ -177,18 +218,24 @@ describe('a mock session through the alerts provider', () => {
     expect(first('furled')).toBeCloseTo(TL.furled[0], 0)
     expect(first('stalled')).toBeCloseTo(TL.stall[0], 0)
     expect(first('tow')).toBeCloseTo(TL.tow[0], 0)
-    expect(first('water')).toBeCloseTo(TL.waterLight[0], 0)
-    expect(first('fuelPressure')).toBeCloseTo(TL.fuelPressureLight[0], 0)
-    expect(first('damage')).toBeCloseTo(TL.damage[0], 0)
-    // The water rise: the notice once it held 20 s, well before its warning light.
-    expect(first('engineTrend')).toBeGreaterThan(TL.waterTrend.atS + 20)
-    expect(first('engineTrend')).toBeLessThan(TL.waterTrend.atS + 60)
+    expect(first('light:water:warn')).toBeCloseTo(TL.waterLight[0], 0)
+    expect(first('light:fuelPressure:alarm')).toBeCloseTo(TL.fuelPressureLight[0], 0)
+    expect(first('light:stalled:alarm')).toBeCloseTo(TL.stall[0], 0)
+    // Optional repairs first (the lights only), the mandatory ones a second later (the band too).
+    expect(first('light:repairOptional:warn')).toBeCloseTo(TL.damage[0], 0)
+    expect(first('light:repair:alarm')).toBeCloseTo(TL.damage[0] + 1, 0)
+    expect(first('damage')).toBeCloseTo(TL.damage[0] + 1, 0)
+    // The water rise: yellow once it held 20 s, well before its warning light.
+    expect(first('light:water:caution')).toBeGreaterThan(TL.waterTrend.atS + 20)
+    expect(first('light:water:caution')).toBeLessThan(TL.waterTrend.atS + 60)
     expect(first('wrongWay')).toBeGreaterThan(TL.wrongWay.atS)
     expect(first('wrongWay')).toBeLessThan(TL.wrongWay.atS + 160)
     // Nothing new in the first ten minutes (the end-to-end run reads them).
-    for (const { t, d } of session().payloads) {
+    for (const { t, d, l } of session().payloads) {
       if (t > 600) break
       expect(d.notices, `t=${t}`).toEqual([])
+      const lit = l.lights.filter((x) => x.level !== 'off' && x.kind !== 'pitLimiter')
+      expect(lit, `t=${t}`).toEqual([])
     }
   })
 

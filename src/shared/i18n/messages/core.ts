@@ -19,6 +19,7 @@ export const coreEs = {
     inputs: 'Pedales',
     traffic: 'Tráfico',
     alerts: 'Avisos',
+    lights: 'Testigos',
     delta: 'Delta',
     conditions: 'Condiciones',
     fuel: 'Combustible'
@@ -148,6 +149,7 @@ export const coreEn: Dict<typeof coreEs> = {
     inputs: 'Inputs',
     traffic: 'Traffic',
     alerts: 'Alerts',
+    lights: 'Warning lights',
     delta: 'Delta',
     conditions: 'Conditions',
     fuel: 'Fuel'
