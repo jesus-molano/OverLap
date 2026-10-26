@@ -122,10 +122,12 @@ export const WIDGET_DEFS = {
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
   },
+  // Auto height: the default height is what its edit-mode sample takes at 100 % (208 px), so the
+  // fuel under it starts clear of it.
   traffic: {
     id: 'traffic',
     hz: 4,
-    defaultBounds: { x: 1340, y: 620, width: 400, height: 160 },
+    defaultBounds: { x: 1340, y: 620, width: 400, height: 210 },
     minSize: { width: 220, height: 60 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
@@ -147,10 +149,12 @@ export const WIDGET_DEFS = {
   // The engine's warning lights, a small strip like a dashboard's (Testigos), at the alerts'
   // rate: the trend samples the temperatures at 10 Hz. Under the delta, where it can grow down
   // (a column, captions) over nothing; the panel hugs its lights, whatever the window's width.
+  // The default height is a row with the repair times and the trend under the lights (its
+  // edit-mode sample at 100 %, 53 px): what a settings file from before them makes room for.
   lights: {
     id: 'lights',
     hz: 10,
-    defaultBounds: { x: 760, y: 320, width: 300, height: 40 },
+    defaultBounds: { x: 760, y: 320, width: 300, height: 54 },
     minSize: { width: 40, height: 24 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
@@ -170,12 +174,13 @@ export const WIDGET_DEFS = {
     inCarOnly: true
   },
   // Fuel moves a tenth of a litre every few seconds: twice a second is plenty (the laps are
-  // measured on every tick anyway). Bottom right, beside the pedals and under the traffic; races
-  // only by default, like the battle.
+  // measured on every tick anyway). Bottom right, beside the pedals and under the traffic (clear
+  // of its sample), its own sample's height (190 px at 100 %) inside the work area; races only by
+  // default, like the battle.
   fuel: {
     id: 'fuel',
     hz: 2,
-    defaultBounds: { x: 1200, y: 820, width: 320, height: 170 },
+    defaultBounds: { x: 1200, y: 840, width: 320, height: 190 },
     minSize: { width: 180, height: 40 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,

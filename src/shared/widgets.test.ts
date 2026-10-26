@@ -19,10 +19,11 @@ const overlaps = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
 
 describe('default layout', () => {
-  it('places every widget on a 1920 x 1080 display, none over another', () => {
+  it('places every widget on a 1920 x 1080 display, above the taskbar, none over another', () => {
     for (const id of WIDGET_IDS) {
       const r = footprint(id)
-      expect(r.x >= 0 && r.y >= 0 && r.x + r.width <= 1920 && r.y + r.height <= 1080, id).toBe(true)
+      // 1040: the work area of that display with the taskbar at the bottom.
+      expect(r.x >= 0 && r.y >= 0 && r.x + r.width <= 1920 && r.y + r.height <= 1040, id).toBe(true)
     }
     for (const [i, a] of WIDGET_IDS.entries()) {
       for (const b of WIDGET_IDS.slice(i + 1)) {
