@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ICONS, type IconName, type IconShape } from './icons'
+import { iconShapes, type AnyIconName } from './engineIcons'
+import type { IconShape } from './icons'
 
 const props = defineProps<{
-  name: IconName
+  /** An icon of icons.ts or of engineIcons.ts (the warning lights). */
+  name: AnyIconName
   /** Accessible label; without it the icon is decorative (aria-hidden). */
   label?: string
 }>()
 
-const shapes = computed<readonly IconShape[]>(() => ICONS[props.name])
+const shapes = computed<readonly IconShape[]>(() => iconShapes(props.name))
 </script>
 
 <template>

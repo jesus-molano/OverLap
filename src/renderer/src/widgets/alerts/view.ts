@@ -18,15 +18,7 @@ import {
   type AlertKind,
   type AlertToggle
 } from '@shared/alerts'
-import {
-  NBSP,
-  formatClock,
-  formatSpeed,
-  speedUnit,
-  tempDeltaIn,
-  tempIn,
-  tempUnit
-} from '@shared/format'
+import { NBSP, formatClock, formatSpeed, speedUnit } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
   AlertNotice,
@@ -112,29 +104,22 @@ const NOTICE_LOOKS: Readonly<
   pitEntry: { fill: 'alarm', icon: 'pit' },
   stalled: { fill: 'alarm', icon: 'alert' },
   oilPressure: { fill: 'alarm', icon: 'alert' },
-  water: { fill: 'alarm', icon: 'alert' },
-  oilTemp: { fill: 'alarm', icon: 'alert' },
-  fuelPressure: { fill: 'alarm', icon: 'alert' },
   tow: { fill: 'warn', icon: 'clock' },
-  // Repairs, as iRacing draws them: mandatory ones are an alarm, optional ones a warning.
+  // Mandatory repairs: pit for them.
   damage: { fill: 'alarm', icon: 'meatball' },
   // Stop at the end of this lap or run dry: now. Low fuel lasts laps: a warning.
   boxThisLap: { fill: 'alarm', icon: 'pit' },
   fuelLow: { fill: 'warn', icon: 'warning' },
-  lapsToGo: { fill: 'info', icon: 'chequered' },
-  engineTrend: { fill: 'warn', icon: 'arrow-up' }
+  lapsToGo: { fill: 'info', icon: 'chequered' }
 }
 
-/** The notices whose words never change (the others carry a value). */
-type StaticNotice = Exclude<NoticeKind, 'tow' | 'damage' | 'lapsToGo' | 'engineTrend' | 'fuelLow'>
+/** The notices whose words never change (the others carry a value, or words of their own). */
+type StaticNotice = Exclude<NoticeKind, 'tow' | 'damage' | 'lapsToGo' | 'fuelLow'>
 const STATIC_NOTICES = [
   'wrongWay',
   'pitEntry',
   'stalled',
   'oilPressure',
-  'water',
-  'oilTemp',
-  'fuelPressure',
   'boxThisLap'
 ] as const satisfies readonly StaticNotice[]
 
@@ -187,15 +172,10 @@ export const flagViews = perDictionary((m): Readonly<Record<FlagKind, FlagView>>
 /** No short label (both fit), the chip is the label. */
 const NO_EXTRAS = { short: '', chip: '' } as const
 
-/** Damage, mandatory repairs (an alarm) or optional ones (a warning), frozen per language. */
-const damageViews = perDictionary((m): Readonly<Record<'mandatory' | 'optional', FlagView>> => {
-  const words = m.widgets.alerts.damage
-  const { icon } = NOTICE_LOOKS.damage
-  return Object.freeze({
-    mandatory: flagLike('damage', { ...words.mandatory, ...NO_EXTRAS }, 'alarm', 'icon', icon),
-    optional: flagLike('damage', { ...words.optional, ...NO_EXTRAS }, 'warn', 'icon', icon)
-  })
-})
+/** Mandatory repairs pending ('DAÑO · reparación obligatoria en boxes'), frozen per language. */
+const damageView = perDictionary((m): FlagView =>
+  noticeLike('damage', { ...m.widgets.alerts.damage, ...NO_EXTRAS })
+)
 
 /** The meatball in your box (the tow takes you there): no 'entra en boxes' then. */
 export const meatballInBoxView = perDictionary((m): FlagView => {
@@ -241,7 +221,6 @@ export function shownFlags(flags: readonly FlagKind[], o: AlertFilter): FlagKind
   })
 }
 
-const FLUIDS: ReadonlySet<unknown> = new Set(['water', 'oil'])
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
 /** A notice as sent, or null when it is not one this view knows (the payload crosses IPC). */
@@ -253,13 +232,8 @@ function validNotice(n: unknown): AlertNotice | null {
     return null
   }
   if (kind === 'tow') return finite(v.seconds) && v.seconds > 0 ? (n as AlertNotice) : null
-  if (kind === 'damage') return typeof v.mandatory === 'boolean' ? (n as AlertNotice) : null
   if (kind === 'lapsToGo') return finite(v.laps) && v.laps >= 1 ? (n as AlertNotice) : null
   if (kind === 'fuelLow') return finite(v.laps) && v.laps >= 0 ? (n as AlertNotice) : null
-  if (kind === 'engineTrend') {
-    const ok = FLUIDS.has(v.fluid) && finite(v.tempC) && finite(v.deltaC)
-    return ok ? (n as AlertNotice) : null
-  }
   return n as AlertNotice
 }
 
@@ -279,22 +253,8 @@ export function shownNotices(notices: readonly AlertNotice[], o: AlertFilter): A
   return out
 }
 
-/** '98 °C' / '208 °F'. */
-export function formatTemp(c: number, units: AppearanceSettings['units']): string {
-  return `${Math.round(tempIn(c, units))}${NBSP}${tempUnit(units)}`
-}
-
-/** A rise of `c` °C: '+6' ('+11' in °F). */
-export function formatRise(c: number, units: AppearanceSettings['units']): string {
-  return `+${Math.max(0, Math.round(tempDeltaIn(c, units)))}`
-}
-
 /** The words of one notice. */
-export function noticeView(
-  n: AlertNotice,
-  units: AppearanceSettings['units'],
-  m: Messages
-): FlagView {
+export function noticeView(n: AlertNotice, m: Messages): FlagView {
   const t = m.widgets.alerts
   switch (n.kind) {
     case 'tow':
@@ -305,7 +265,7 @@ export function noticeView(
         chip: ''
       })
     case 'damage':
-      return n.mandatory ? damageViews(m).mandatory : damageViews(m).optional
+      return damageView(m)
     case 'lapsToGo':
       return noticeLike(n.kind, {
         label: t.lapsToGo(Math.round(n.laps)),
@@ -323,18 +283,6 @@ export function noticeView(
         short: label.length > SHORT_FROM ? short : '',
         note: t.fuelLowNote,
         chip: short
-      })
-    }
-    case 'engineTrend': {
-      const temp = formatTemp(n.tempC, units)
-      const rise = formatRise(n.deltaC, units)
-      const label = t.trend.label[n.fluid](temp)
-      const note = t.trend.note(rise)
-      return noticeLike(n.kind, {
-        label,
-        short: label.length > SHORT_FROM ? t.trend.short[n.fluid](temp) : '',
-        note: n.draft ? `${note} ${t.trend.draft}` : note,
-        chip: t.trend.chip[n.fluid](`${rise}${NBSP}${tempUnit(units)}`)
       })
     }
     default:
@@ -456,7 +404,6 @@ export function toFlagsView(
     readonly inBox?: boolean
   },
   o: AlertFilter,
-  units: AppearanceSettings['units'],
   m: Messages,
   prev?: FlagsView,
   maxChips: number = MAX_CHIPS
@@ -467,7 +414,7 @@ export function toFlagsView(
     k === 'meatball' && d.inBox === true ? meatballInBoxView(m) : flags[k]
   const views = [
     ...shownFlags(d.flags, o).map(flagView),
-    ...shownNotices(notices, o).map((n) => reused(noticeView(n, units, m), prev))
+    ...shownNotices(notices, o).map((n) => reused(noticeView(n, m), prev))
   ].sort((a, b) => rankOf(a) - rankOf(b))
   const primary = views[0]
   if (primary === undefined) return NO_FLAGS

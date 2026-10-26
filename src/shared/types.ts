@@ -606,10 +606,11 @@ export type FlagKind =
   | 'checkered'
   | 'green'
 
-/** Engine warning lights of EngineWarnings, one alert each. */
-export type EngineWarningKind = 'water' | 'oilTemp' | 'oilPressure' | 'fuelPressure'
-
-/** An alert that is not a flag (alerts.ts NOTICE_ORDER). */
+/**
+ * An alert that is not a flag (alerts.ts NOTICE_ORDER). Of the engine's lights the band keeps the
+ * critical ones (a stall, the oil pressure, mandatory repairs); the warning lights strip shows
+ * them all (LightsData).
+ */
 export type AlertNotice =
   /** Driving forward against the direction of the lap. */
   | { kind: 'wrongWay' }
@@ -617,21 +618,17 @@ export type AlertNotice =
   | { kind: 'stalled' }
   /** Just into the pit lead-in from the track, limiter off. */
   | { kind: 'pitEntry' }
-  | { kind: EngineWarningKind }
+  /** Low oil pressure with the engine running. */
+  | { kind: 'oilPressure' }
   /** Towed: the countdown in your box until you can drive (PlayerCarTowTime), whole seconds left. */
   | { kind: 'tow'; seconds: number }
   /**
-   * The car is damaged (EngineWarnings): `mandatory` repairs before you may race on (the
-   * meatball follows), or only optional ones (said for a few seconds).
+   * Mandatory repairs pending (EngineWarnings): pit for them before you may race on (the meatball
+   * follows). Optional ones are the warning lights' alone.
    */
-  | { kind: 'damage'; mandatory: boolean }
+  | { kind: 'damage' }
   /** Laps to go of a race (10 or 5), shown for a few seconds once each per session. */
   | { kind: 'lapsToGo'; laps: number }
-  /**
-   * A temperature well above your own reference (whole °C) for a while; `draft`: you spent
-   * most of that time close behind another car, which heats the engine without any damage.
-   */
-  | { kind: 'engineTrend'; fluid: 'water' | 'oil'; tempC: number; deltaC: number; draft: boolean }
   /**
    * Fuel for fewer than FUEL_ALERT.lowLaps laps (to 0.1) and not enough to finish
    * (notices/fuel.ts).
@@ -663,6 +660,55 @@ export interface AlertsData {
    * notice is shown or not). The meatball does not tell you to pit then: you are there.
    */
   inBox: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Warning lights widget payload (v2.5)
+// ---------------------------------------------------------------------------
+
+/** The lights of the strip, in its order (lights.ts LIGHT_ORDER). */
+export type LightKind =
+  | 'oilPressure'
+  | 'fuelPressure'
+  | 'stalled'
+  /** Mandatory repairs (EngineWarnings 0x80): pit now. */
+  | 'repair'
+  /** Optional repairs (0x100): fixable at the stop. */
+  | 'repairOptional'
+  | 'water'
+  | 'oilTemp'
+  | 'pitLimiter'
+  | 'revLimiter'
+
+/**
+ * How a light is lit, by severity: `off` dim grey; `alarm` red, act now (pressures, stall,
+ * mandatory repairs); `warn` orange (the car's temperature lights, optional repairs); `caution`
+ * yellow (a temperature above your own average, before its light); `info` blue, a state (the
+ * limiters). Each lit level also has its own shape, so it reads without its colour.
+ */
+export type LightLevel = 'off' | 'alarm' | 'warn' | 'caution' | 'info'
+
+export interface LightReading {
+  kind: LightKind
+  level: LightLevel
+  /** Water and oil, with lights.showTemps: the reading in whole °C; null otherwise or unknown. */
+  tempC: number | null
+  /** Water and oil while the trend is up: whole °C above your own average; null otherwise. */
+  riseC: number | null
+  /** That trend while you spent most of it close behind another car (slipstream heats it). */
+  draft: boolean
+  /**
+   * The repairs, lit, with lights.showRepairTime: whole seconds they take (PitRepairLeft /
+   * PitOptRepairLeft); null otherwise or while iRacing says 0.
+   */
+  seconds: number | null
+}
+
+export interface LightsData {
+  /** False out of the car, or with lights.onlyWhenLit while none is lit: the strip fades out. */
+  visible: boolean
+  /** The lights turned on in the options, in LIGHT_ORDER (with onlyWhenLit, the lit ones). */
+  lights: LightReading[]
 }
 
 // ---------------------------------------------------------------------------
@@ -853,6 +899,7 @@ export interface WidgetPayloads {
   delta: DeltaData
   conditions: ConditionsData
   fuel: FuelData
+  lights: LightsData
 }
 
 /** Distributive union `{ widget: 'relative', payload: RelativeData } | ...`. */
@@ -1158,16 +1205,17 @@ export interface AlertsOptions {
   showLapsToGo: boolean
   /** Tow countdown. */
   showTow: boolean
-  /** 'DAÑOS' when the car needs repairs (EngineWarnings), before the meatball comes out. */
-  showDamage: boolean
   showWrongWay: boolean
   /** '+2x Pérdida de control · V5 · S3 · grava' for a few seconds when your count goes up. */
   showIncidents: boolean
+  /**
+   * The engine's critical lights (the warning lights strip has them all): a stall, the oil
+   * pressure, and 'DAÑO · reparación obligatoria en boxes' while mandatory repairs are pending,
+   * before the meatball comes out.
+   */
   showStalled: boolean
-  /** The engine warning lights: water and oil temperature, oil and fuel pressure. */
-  showEngineWarnings: boolean
-  /** Water or oil well above your own average this session. */
-  showEngineTrend: boolean
+  showOilPressure: boolean
+  showDamage: boolean
   /** 'ENTRA ESTA VUELTA': the pit window closes on this lap. */
   showBoxThisLap: boolean
   /** 'COMBUSTIBLE · 1.6 V': under two laps of fuel and not enough to finish. */
@@ -1238,6 +1286,34 @@ export interface FuelOptions {
   marginLaps: number
 }
 
+/**
+ * The warning lights strip: every light its own toggle, how it is laid out and what goes next
+ * to each icon. The layout and the captions are drawing; the rest changes the payload.
+ */
+export interface LightsOptions {
+  /** A row (it wraps when the window is narrower) or a column. */
+  layout: 'row' | 'column'
+  /** Only the lit lights; the strip hides while none is (instead of the dim dashboard). */
+  onlyWhenLit: boolean
+  /** A short word after each icon ('AGUA', 'REPARAR'). */
+  showCaptions: boolean
+  /** The water and oil temperature after their icons ('98°'). */
+  showTemps: boolean
+  /** How long the repairs take, while lit ('REPARAR · 42 s', 'OPC. · 38 s'). */
+  showRepairTime: boolean
+  showOilPressure: boolean
+  showFuelPressure: boolean
+  showStalled: boolean
+  showRepair: boolean
+  showRepairOptional: boolean
+  showWater: boolean
+  showOilTemp: boolean
+  /** The water and oil lights turn yellow while above your own average ('+6°'). */
+  showTrend: boolean
+  showPitLimiter: boolean
+  showRevLimiter: boolean
+}
+
 export interface OverlaySettings {
   /** 4 added appearance and per-widget scale/auto-height/visibility rules; v1..v3 files are migrated. */
   version: 4
@@ -1254,6 +1330,7 @@ export interface OverlaySettings {
   delta: DeltaOptions
   conditions: ConditionsOptions
   fuel: FuelOptions
+  lights: LightsOptions
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
   shortcuts: ShortcutSettings
 }
@@ -1294,6 +1371,7 @@ export interface SettingsPatch {
   delta?: Partial<DeltaOptions>
   conditions?: Partial<ConditionsOptions>
   fuel?: Partial<FuelOptions>
+  lights?: Partial<LightsOptions>
   /** A combination another action has is refused (the current one is kept). */
   shortcuts?: Partial<ShortcutSettings>
 }
@@ -1324,4 +1402,5 @@ export interface TelemetryConfig {
   delta: DeltaOptions
   conditions: ConditionsOptions
   fuel: FuelOptions
+  lights: LightsOptions
 }

@@ -27,17 +27,16 @@ const nothing = computed(() => showsNothing(opts.value))
 const prefs = useWidgetSettings('alerts')
 const limiterHidden = computed(() => opts.value.showPitLimiter && prefs.value.hideInPits)
 /**
- * The hold applies to the flags, to the alerts a flicker could make unreadable, to the incident
- * line and to minor damage (never under their own minimum).
+ * The hold applies to the flags, to the alerts a flicker could make unreadable and to the
+ * incident line (never under their own minimum).
  */
 const holds = computed(
   () =>
     opts.value.showFlags ||
     opts.value.showWrongWay ||
     opts.value.showIncidents ||
-    opts.value.showDamage ||
     opts.value.showStalled ||
-    opts.value.showEngineWarnings
+    opts.value.showOilPressure
 )
 </script>
 
@@ -108,12 +107,6 @@ const holds = computed(
         :apply="set('showTow')"
       />
       <ToggleControl
-        :label="t.settings.alerts.damage"
-        :help="t.settings.alerts.damageHelp"
-        :current="opts.showDamage"
-        :apply="set('showDamage')"
-      />
-      <ToggleControl
         :label="t.settings.alerts.wrongWay"
         :help="t.settings.alerts.wrongWayHelp"
         :current="opts.showWrongWay"
@@ -126,7 +119,7 @@ const holds = computed(
         :apply="set('showIncidents')"
       />
     </CheckGroup>
-    <CheckGroup :legend="t.settings.alerts.engineGroup">
+    <CheckGroup :legend="t.settings.alerts.engineGroup" :help="t.settings.alerts.engineNote">
       <ToggleControl
         :label="t.settings.alerts.stalled"
         :help="t.settings.alerts.stalledHelp"
@@ -134,16 +127,16 @@ const holds = computed(
         :apply="set('showStalled')"
       />
       <ToggleControl
-        :label="t.settings.alerts.engineWarnings"
-        :help="t.settings.alerts.engineWarningsHelp"
-        :current="opts.showEngineWarnings"
-        :apply="set('showEngineWarnings')"
+        :label="t.settings.alerts.oilPressure"
+        :help="t.settings.alerts.oilPressureHelp"
+        :current="opts.showOilPressure"
+        :apply="set('showOilPressure')"
       />
       <ToggleControl
-        :label="t.settings.alerts.engineTrend"
-        :help="t.settings.alerts.engineTrendHelp"
-        :current="opts.showEngineTrend"
-        :apply="set('showEngineTrend')"
+        :label="t.settings.alerts.damage"
+        :help="t.settings.alerts.damageHelp"
+        :current="opts.showDamage"
+        :apply="set('showDamage')"
       />
     </CheckGroup>
     <CheckGroup :legend="t.settings.alerts.fuelGroup">

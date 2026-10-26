@@ -100,6 +100,10 @@ export const TELEMETRY_VARS = {
   OilTemp: 'number',
   /** Engine revs: a pressure light means nothing with a stopped engine below its idle. */
   RPM: 'number',
+  /** Seconds the mandatory repairs take (the warning lights' 'REPARAR · 42 s'), 0 without. */
+  PitRepairLeft: 'number',
+  /** Seconds the optional repairs take ('OPC. · 38 s'), 0 without. */
+  PitOptRepairLeft: 'number',
 
   // --- What the sim's screen shows (simScreen.ts): hide with its UI, follow replays ---
   /**
