@@ -386,8 +386,8 @@ export const widgetsEs = {
     carried: 'de la sesión anterior',
     /** The next stop fills the tank. */
     fill: 'LLENO',
-    /** What the pit menu adds ('caja 20 L'). */
-    box: (litres: string) => `caja${NB}${litres}${NB}L`,
+    /** What the pit menu adds ('menú 20 L', like the option 'Menú de boxes'). */
+    box: (litres: string) => `menú${NB}${litres}${NB}L`,
     /** The pit window: 'V24–V28', or 'V24' when it is one lap. */
     window1: (lap: number) => `V${lap}`,
     windowN: (from: number, to: number) => `V${from}–V${to}`,

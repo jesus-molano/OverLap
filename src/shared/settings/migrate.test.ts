@@ -29,9 +29,9 @@ function fileBeforeConditions(): Record<string, unknown> {
   return { version: 4, widgets }
 }
 
-describe('the conditions widget in a file from before it (Q5)', () => {
-  it('starts hidden, in a free spot near its default, covering nothing', () => {
-    expect(HIDDEN_WHEN_ADDED).toEqual(['conditions'])
+describe('a widget newer than the settings file (Q5)', () => {
+  it('starts the conditions widget hidden, in a free spot near its default, covering nothing', () => {
+    expect(HIDDEN_WHEN_ADDED).toEqual(['conditions', 'fuel'])
     const def = WIDGET_DEFS.conditions.defaultBounds
     expect(overlaps(def, RACE_LAYOUT.standings as Rect)).toBe(true)
 
@@ -71,6 +71,31 @@ describe('the conditions widget in a file from before it (Q5)', () => {
     const s = normalizeSettings({ widgets: { standings: { visible: true, bounds: wall } } })
     expect(s.widgets.conditions.visible).toBe(false)
     expect(s.widgets.conditions.bounds).toEqual(WIDGET_DEFS.conditions.defaultBounds)
+  })
+
+  it('places the fuel widget of a file from before it the same way', () => {
+    // The same layout once the conditions widget was placed, saved before the fuel widget: its
+    // default (bottom right) sits on the relative moved there.
+    const raw = fileBeforeConditions()
+    const conditions = { x: 60, y: 300, width: 320, height: 130 }
+    ;(raw.widgets as Record<string, unknown>).conditions = { visible: true, bounds: conditions }
+    const def = WIDGET_DEFS.fuel.defaultBounds
+    expect(overlaps(def, RACE_LAYOUT.relative as Rect)).toBe(true)
+
+    const s = normalizeSettings(raw)
+    const f = s.widgets.fuel
+    expect(f.visible).toBe(false)
+    expect(f.bounds).toMatchObject({ width: def.width, height: def.height })
+    for (const id of WIDGET_IDS) {
+      if (id === 'fuel') continue
+      const b = s.widgets[id].bounds
+      const room = id === 'alerts' ? { ...b, height: Math.max(b.height, ALERTS_DEFAULT_ROOM) } : b
+      expect(overlaps(f.bounds, room), id).toBe(false)
+    }
+    // The conditions widget the file has stays as it was.
+    expect(s.widgets.conditions).toMatchObject({ visible: true, bounds: conditions })
+    // A fresh start shows it where it belongs.
+    expect(normalizeSettings({}).widgets.fuel).toEqual(createDefaultSettings().widgets.fuel)
   })
 
   it('finds the free spot nearest the default, on its grid and with room around', () => {

@@ -198,7 +198,8 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
   o salta).
 - En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
-  él; Radar, Pedales, Avisos, Delta y Condiciones solo tienen datos de tu coche y se ocultan.
+  él; Radar, Pedales, Avisos, Delta, Condiciones y Combustible solo tienen datos de tu coche y se
+  ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
   y Clasificación se queda con la carrera en directo tal como estaba. El cronometraje no cuenta
   vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta que la
@@ -431,6 +432,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
     coche. Solo cuentan vueltas a 1 °C o menos de la anterior (no las de calentamiento), y la media
     empieza de cero tras una grúa o un salto de más de 5 °C (una reparación). `WaterTemp` y `OilTemp`
     dependen del coche: si no los tiene, este aviso no sale.
+  - **Combustible** (ver Combustible): `ENTRA ESTA VUELTA` va justo detrás de los testigos de
+    presión y no espera a una bandera; `COMBUSTIBLE · 1.6 V`, detrás de las banderas amarilla y azul,
+    como las temperaturas. Ninguno durante la grúa ni en el pit lane.
 - En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
   limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
 
@@ -500,7 +504,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   lectura de neumáticos y las reparaciones rápidas y juegos que quedan si la sesión los limita.
 - El plan cuenta paradas al final de vuelta (la última, en la penúltima vuelta) y relevos de vueltas
   enteras, y parte del combustible con el que empezó la vuelta: no baila dentro de la vuelta. En la
-  última ya no hay parada: solo dice si llegas (`SOBRAN`) o no (`FALTAN`).
+  última ya no hay parada: solo dice si llegas (`SOBRAN`) o no (`FALTAN`). Desde la parrilla o el
+  pit lane, el tramo hasta la línea no es una vuelta (como en el modelo de carrera): la primera parada
+  posible es al final de la V1.
 - Capacidad: `DriverCarFuelMaxLtr` por el menor de `DriverCarMaxFuelPct` y `CarClassMaxFuelPct` (el
   BoP). Litros siempre.
 - Neumáticos: iRacing solo mide el desgaste (`LFwearL`… `RRwearR`) con el coche parado en tu box, así
@@ -510,6 +516,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   cierra en esta vuelta y `COMBUSTIBLE · 1.6 V` con menos de 2 vueltas de gasolina, los dos solo si
   con tu media no llegas a meta (una parada que solo pide el margen no es una alarma). Usan el mismo
   consumo; ninguno en el pit lane ni en una repetición.
+- En un `settings.json` de antes de este widget, Combustible empieza **oculto** y en un hueco libre
+  cerca de su sitio por defecto, como Condiciones.
 - Sin confirmar en una sesión real: la escala de los `%` de capacidad y desgaste, si `FuelLevel`
   sigue al coche con un compañero al volante y cuándo exactamente se actualiza el desgaste en el box
   (`src/shared/fuel/`).

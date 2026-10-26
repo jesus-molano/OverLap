@@ -10,12 +10,15 @@
  * races); an unlimited session has none, so only the fuel and the consumption are drawn. The
  * plan starts from the fuel the lap in progress had at the S/F line, less the average for the
  * part of the lap driven (FuelTracker.lapStart), so it holds still through a lap; the fuel and
- * its laps on the hero line are the fuel of the moment. A replay shows nothing: its car is the
- * one on camera, the fuel only ever yours.
+ * its laps on the hero line are the fuel of the moment. The fuel is only ever yours: the plan
+ * is your own car's (resolvePlayerCarIdx), never the one on camera the race view follows at a
+ * replay's live point, and nothing is shown while the replay system is on (the tape, or its live
+ * point).
  */
 import { deepEqual } from '../equal'
 import { isFiniteNumber } from '../num'
 import type { RaceView } from '../race/raceView'
+import { resolvePlayerCarIdx } from '../sessionInfo'
 import { clampOption, OPTION_SCHEMA } from '../settingsSchema'
 import { isReplayPlaying } from '../simScreen'
 import type { TelemetryFrame } from '../telemetry'
@@ -75,7 +78,7 @@ function planOf(
   const tankL = tankLitres(session.pitSpec, fuelL, frame.FuelLevelPct[0])
   const cons = consumption(tracker.samples, opts.avgLaps)
   const avgL = cons.avgL
-  const player = race.playerCarIdx
+  const player = resolvePlayerCarIdx(frame, session)
   const d = player >= 0 ? (race.car(player)?.distance ?? Number.NaN) : Number.NaN
   const left = player >= 0 && Number.isFinite(d) ? race.lapsRemaining(player) : null
   const start = tracker.lapStart
