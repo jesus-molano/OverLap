@@ -11,7 +11,8 @@
  * to where those lights went (`migrateSection`). The conditions widget became the
  * footer of the relative and the standings: what a file saved for it
  * (REMOVED_WIDGETS) is dropped like any unknown key, the rest of the file
- * untouched, and the footers start with their own defaults.
+ * untouched, and the footers start with their own defaults. A visibility section
+ * from before "when to show the overlay" gets replays hidden (`migrateVisibility`).
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type {
@@ -169,6 +170,16 @@ export function migrateLights(raw: unknown, file: Record<string, unknown>): unkn
 }
 
 /**
+ * A visibility section saved before `showWhen` existed: its `replays` is the old default
+ * ('follow', "keep the standings"), saved whether or not anyone chose it, so it takes the new
+ * one (replays hidden, as the overlay now only shows while you drive). Later files keep theirs.
+ */
+export function migrateVisibility(raw: Record<string, unknown>): Record<string, unknown> {
+  if ('showWhen' in raw) return raw
+  return { ...raw, replays: OPTION_SCHEMA.visibility.replays.default }
+}
+
+/**
  * Section-level migrations, keyed by section; untouched sections pass through. `file` is the
  * whole file, for an option that moved from one section to another.
  */
@@ -180,5 +191,6 @@ export function migrateSection(
   if (section === 'lights') return migrateLights(raw, file)
   if (!isRecord(raw)) return raw
   if (section === 'standings') return migrateStandings(raw)
-  return section === 'alerts' ? migrateAlerts(raw) : raw
+  if (section === 'alerts') return migrateAlerts(raw)
+  return section === 'visibility' ? migrateVisibility(raw) : raw
 }

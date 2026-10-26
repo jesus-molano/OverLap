@@ -12,7 +12,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
-import { replayNote } from '../replayWidgets'
+import { replayNote, sessionScreenRuleOn } from '../replayWidgets'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
 /** "Ventana": how the widget's window looks, sizes itself and when it is shown. */
@@ -39,9 +39,15 @@ const showIn = computed(() => {
 const nowhere = computed(() => SHOW_IN_KINDS.every((k) => !prefs.value.showIn[k]))
 /** Replays are a global rule (Apariencia > Visibilidad): only what it means for this widget. */
 const visibility = useOptions('visibility')
-const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value.replays))
-/** The session-screen exception only means something while the global rule hides there. */
-const sessionScreenRule = computed(() => visibility.value.hideOnSessionScreen)
+const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value))
+/** The overlay only in races (Apariencia > Visibilidad): practice and qualifying never show. */
+const showInHelp = computed(() => {
+  const w = t.value.settings.window
+  if (nowhere.value) return w.showInNowhere
+  return visibility.value.showWhen === 'race' ? w.showInRaceOnly : w.showInHelp
+})
+/** The session-screen exception only means something while a global rule hides there. */
+const sessionScreenRule = computed(() => sessionScreenRuleOn(visibility.value))
 /** Out of the car it has nothing to show: no session-screen switch (its replay note says so). */
 const sessionScreenSwitch = computed(() => !inCarOnly(props.widgetId))
 
@@ -106,11 +112,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
     <p v-else class="st-row st-help size-note">
       {{ t.settings.window.sizeNote }}
     </p>
-    <CheckGroup
-      :legend="t.settings.window.showIn"
-      :help="nowhere ? t.settings.window.showInNowhere : t.settings.window.showInHelp"
-      :warn="nowhere"
-    >
+    <CheckGroup :legend="t.settings.window.showIn" :help="showInHelp" :warn="nowhere">
       <ToggleControl
         v-for="s in showIn"
         :key="s.kind"

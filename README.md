@@ -178,18 +178,35 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
   el overlay lo avisa. Abre los Ajustes desde la bandeja (su botón de modo edición) o pulsa
   `Alt+Tab` al escritorio para recuperar el cursor.
 
-### Ocultar con iRacing: interfaz, garaje, pantalla de sesión y repeticiones
+### Cuándo se ve el overlay
 
-En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`):
+En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Mostrar el
+overlay** también está en la bandeja):
 
-| Opción                                                   | Por defecto                          | Qué hace                                                                  |
-| -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------- |
-| Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                   | Si ocultas la interfaz del simulador, se ocultan los widgets              |
-| Ocultar en el garaje (`hideInGarage`)                    | Sí                                   | Mientras está abierta la pantalla del garaje                              |
-| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                   | Fuera del coche, salvo los widgets con «Mostrar en la pantalla de sesión» |
-| En repeticiones (`replays`)                              | Mantener la clasificación (`follow`) | `follow`: al rebobinar queda la clasificación; `hide`: ninguno            |
-| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                   | Sin iRacing, Relativo y Clasificación siguen con el aviso                 |
+| Opción                                                   | Por defecto                           | Qué hace                                                                       |
+| -------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
+| Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre  |
+| Clasificación en la pantalla de sesión                   | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
+| En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda la clasificación  |
+| Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                   |
+| Ocultar en el garaje (`hideInGarage`)                    | Sí                                    | Mientras está abierta la pantalla del garaje                                   |
+| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                       |
+| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Clasificación siguen con el aviso                      |
 
+- **En el coche** es `IsOnTrack` (tú dentro, con la física en marcha). Fuera del coche (garaje,
+  pantalla de sesión, mirando la carrera, el turno de un compañero en una carrera por equipos) no se
+  ve nada, salvo Clasificación en la pantalla de sesión. Un instante fuera (≤ 1 s: un reset, el
+  principio de una grúa) no hace parpadear el overlay; al subir al coche vuelve en el acto.
+- **Solo en carrera** oculta también la práctica y la clasificación enteras, dentro del coche.
+- **Repeticiones**: por defecto no se ve ningún widget. Con «Seguir al coche en cámara» (`follow`),
+  fuera del coche los widgets siguen al coche que miras mientras el sistema de repeticiones está
+  activo (en directo o rebobinando). En carreras por equipos es la opción para ver el turno de tu
+  compañero.
+- Por encima de todo: el **modo edición** enseña siempre todos los widgets (con el motivo:
+  _Oculto: fuera del coche_, _Oculto: solo en carrera_...) y `Ctrl+Shift+H` los sigue ocultando a
+  mano. Las reglas de cada widget («Mostrar en», «Ocultar en boxes») se aplican además de estas.
+- Un archivo de ajustes de antes de esta opción pasa a «Ocultar» repeticiones (su `follow` era el
+  valor por defecto de entonces).
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
   (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados. Radar,
@@ -202,21 +219,24 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
   él; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se
   ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
-  y Clasificación se queda con la carrera en directo tal como estaba. El cronometraje no cuenta
-  vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta que la
-  repetición partió no se cronometra). La línea de SR y el contador de incidentes solo salen con tu
-  coche.
+  y Clasificación (con `follow`) se queda con la carrera en directo tal como estaba. El cronometraje
+  no cuenta vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta
+  que la repetición partió no se cronometra). La línea de SR y el contador de incidentes solo salen
+  con tu coche.
 - Como con "Mostrar en", un widget oculto no se calcula, y en modo edición se ve con el motivo
   (_Oculto en la pantalla de sesión_, _Oculto: cámara en otro coche_...).
 - En modo simulación (`dev:mock`) cada sesión lo enseña una vez: interfaz oculta a los 2:00, garaje
   a los 2:20, pantalla de sesión a los 2:30 y a los 2:50 una repetición de 14 s: 7 s en directo con
-  la cámara en el coche de delante y 7 s rebobinada.
+  la cámara en el coche de delante y 7 s rebobinada (oculta entera por defecto). El piloto simulado
+  no se baja del coche.
 
 ### Bandeja del sistema
 
 Desde el icono de la bandeja: **Ajustes…**, mostrar/ocultar cada widget, alcance del radar
-(10 / 20 / 30 / 50 m), ocultar el overlay, entrar en modo edición (estos dos con su atajo al lado),
-abrir la carpeta de ajustes y salir. Mientras el overlay está oculto, el texto del icono lo dice.
+(10 / 20 / 30 / 50 m), **Mostrar el overlay** (en el coche / en carrera / siempre), ocultar el
+overlay, entrar en modo edición (estos dos con su atajo al lado), abrir la carpeta de ajustes y
+salir. Mientras el overlay está oculto, el texto del icono lo dice; si una regla oculta todos los
+widgets (_Oculto: fuera del coche_), lo dice una vez bajo el estado y en el texto del icono.
 
 Al hacer clic en la bandeja, Windows le quita el foco al juego; mientras conduces usa los atajos.
 
