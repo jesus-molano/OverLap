@@ -51,7 +51,9 @@ const GALLERY_NOTICES: readonly AlertNotice[] = Object.freeze([
       { kind: 'water' },
       { kind: 'oilTemp' },
       { kind: 'fuelPressure' },
-      { kind: 'tow', seconds: 42 }
+      { kind: 'tow', seconds: 42 },
+      { kind: 'boxThisLap' },
+      { kind: 'fuelLow', laps: 1.6 }
     ] satisfies AlertNotice[]
   ).map((n) => Object.freeze<AlertNotice>(n)),
   ...NOTICES

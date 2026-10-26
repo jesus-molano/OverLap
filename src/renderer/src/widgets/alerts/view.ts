@@ -116,12 +116,15 @@ const NOTICE_LOOKS: Readonly<
   oilTemp: { fill: 'alarm', icon: 'alert' },
   fuelPressure: { fill: 'alarm', icon: 'alert' },
   tow: { fill: 'warn', icon: 'clock' },
+  // Stop at the end of this lap or run dry: now. Low fuel lasts laps: a warning.
+  boxThisLap: { fill: 'alarm', icon: 'pit' },
+  fuelLow: { fill: 'warn', icon: 'warning' },
   lapsToGo: { fill: 'info', icon: 'chequered' },
   engineTrend: { fill: 'warn', icon: 'arrow-up' }
 }
 
 /** The notices whose words never change (the others carry a value). */
-type StaticNotice = Exclude<NoticeKind, 'tow' | 'lapsToGo' | 'engineTrend'>
+type StaticNotice = Exclude<NoticeKind, 'tow' | 'lapsToGo' | 'engineTrend' | 'fuelLow'>
 const STATIC_NOTICES = [
   'wrongWay',
   'pitEntry',
@@ -129,7 +132,8 @@ const STATIC_NOTICES = [
   'oilPressure',
   'water',
   'oilTemp',
-  'fuelPressure'
+  'fuelPressure',
+  'boxThisLap'
 ] as const satisfies readonly StaticNotice[]
 
 interface Words {
@@ -229,6 +233,7 @@ function validNotice(n: unknown): AlertNotice | null {
   }
   if (kind === 'tow') return finite(v.seconds) && v.seconds > 0 ? (n as AlertNotice) : null
   if (kind === 'lapsToGo') return finite(v.laps) && v.laps >= 1 ? (n as AlertNotice) : null
+  if (kind === 'fuelLow') return finite(v.laps) && v.laps >= 0 ? (n as AlertNotice) : null
   if (kind === 'engineTrend') {
     const ok = FLUIDS.has(v.fluid) && finite(v.tempC) && finite(v.deltaC)
     return ok ? (n as AlertNotice) : null
@@ -284,6 +289,18 @@ export function noticeView(
         note: t.lapsToGoNote,
         chip: ''
       })
+    case 'fuelLow': {
+      // Floored like the provider: 1.96 laps never reads '2.0'.
+      const laps = (Math.floor(n.laps * 10) / 10).toFixed(1)
+      const label = t.fuelLow(laps)
+      const short = t.fuelLowShort(laps)
+      return noticeLike(n.kind, {
+        label,
+        short: label.length > SHORT_FROM ? short : '',
+        note: t.fuelLowNote,
+        chip: short
+      })
+    }
     case 'engineTrend': {
       const temp = formatTemp(n.tempC, units)
       const rise = formatRise(n.deltaC, units)

@@ -44,5 +44,11 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
   conditions: [
     { d: 'M4.25 9.4V3.5a1.5 1.5 0 0 1 3 0v5.9a2.6 2.6 0 1 1-3 0z' },
     { d: 'M9.75 5h2.5a1.4 1.4 0 1 0-1.4-1.4M9.75 8.5h3.5a1.4 1.4 0 1 1-1.4 1.4' }
+  ],
+  // Fuel pump with its hose.
+  fuel: [
+    { d: 'M3.5 13.75V3.25a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v10.5M2.5 13.75h8' },
+    { d: 'M5 4.25h3v2.5H5z', fill: true },
+    { d: 'M9.5 7.25h1.25a.75.75 0 0 1 .75.75v3.25a1 1 0 0 0 2 0V5.5l-1.75-1.75' }
   ]
 }

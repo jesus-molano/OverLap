@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { showsNothing } from '@shared/alerts'
 import { INCIDENT_ALERT } from '@shared/incidents/alert'
+import { FUEL_ALERT } from '@shared/notices/fuel'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
@@ -136,6 +137,20 @@ const holds = computed(
         :help="t.settings.alerts.engineTrendHelp"
         :current="opts.showEngineTrend"
         :apply="set('showEngineTrend')"
+      />
+    </CheckGroup>
+    <CheckGroup :legend="t.settings.alerts.fuelGroup">
+      <ToggleControl
+        :label="t.settings.alerts.boxThisLap"
+        :help="t.settings.alerts.boxThisLapHelp"
+        :current="opts.showBoxThisLap"
+        :apply="set('showBoxThisLap')"
+      />
+      <ToggleControl
+        :label="t.settings.alerts.fuelLow"
+        :help="t.settings.alerts.fuelLowHelp(FUEL_ALERT.lowLaps)"
+        :current="opts.showFuelLow"
+        :apply="set('showFuelLow')"
       />
     </CheckGroup>
     <SliderControl

@@ -207,7 +207,7 @@ describe('telemetry entry', () => {
         ...config,
         rules: { ...config.rules, inputs: { hideInPits: false, showIn: { practice: true } } }
       },
-      { ...config, enabledWidgets: ['relative', 'fuel'] },
+      { ...config, enabledWidgets: ['relative', 'pitboard'] },
       { ...config, standings: null },
       { ...config, delta: undefined }
     ]

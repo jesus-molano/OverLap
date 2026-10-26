@@ -25,7 +25,8 @@ import type {
   TelemetryConfig,
   TrafficData,
   AlertsData,
-  ConditionsData
+  ConditionsData,
+  FuelData
 } from '@shared/types'
 import { WIDGET_IDS, followsCamera, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
@@ -257,6 +258,22 @@ const CONDITIONS: ConditionsData = {
   skies: null,
   rubberState: ''
 }
+const FUEL: FuelData = {
+  visible: false,
+  fuelL: null,
+  tankL: null,
+  lapsOfFuel: null,
+  avgL: null,
+  lastL: null,
+  maxL: null,
+  samples: 0,
+  carried: false,
+  finish: null,
+  boxL: null,
+  tyres: null,
+  fastRepairs: null,
+  tyreSets: null
+}
 
 interface Call<P> {
   ctx: ProviderContext
@@ -344,7 +361,8 @@ function setup(
       calls.delta.push({ ctx, prev, at: clock.t, payload: DELTA })
       return DELTA
     },
-    conditions: () => CONDITIONS
+    conditions: () => CONDITIONS,
+    fuel: () => FUEL
   }
 
   const loop = new TelemetryLoop(source, (msg) => out.push(msg), {
@@ -952,25 +970,27 @@ describe('TelemetryLoop', () => {
     expect(h.calls.radar).toHaveLength(0)
     expect(h.data('battle')).toHaveLength(0)
     expect(h.data('relative').length).toBeGreaterThan(0)
-    // Battle is race-only by default.
+    // Battle and fuel are race-only by default.
     expect(autoHidden(h)).toEqual([
       { type: 'auto-hidden', widget: 'radar', hidden: true, reason: 'practice' },
-      { type: 'auto-hidden', widget: 'battle', hidden: true, reason: 'practice' }
+      { type: 'auto-hidden', widget: 'battle', hidden: true, reason: 'practice' },
+      { type: 'auto-hidden', widget: 'fuel', hidden: true, reason: 'practice' }
     ])
 
-    // The race session starts: both are shown again and computed at once, with no stale prev.
+    // The race session starts: all are shown again and computed at once, with no stale prev.
     h.source.version = 2
     h.source.sessionRaw = { name: 'S2', type: 'Race' }
     await h.run(1)
-    expect(autoHidden(h).slice(2)).toEqual([
+    expect(autoHidden(h).slice(3)).toEqual([
       { type: 'auto-hidden', widget: 'radar', hidden: false, reason: null },
-      { type: 'auto-hidden', widget: 'battle', hidden: false, reason: null }
+      { type: 'auto-hidden', widget: 'battle', hidden: false, reason: null },
+      { type: 'auto-hidden', widget: 'fuel', hidden: false, reason: null }
     ])
     expect(h.calls.radar).toHaveLength(1)
     expect(h.calls.radar[0]?.prev).toBeNull()
     expect(h.data('battle')).toHaveLength(1)
     await h.run(20)
-    expect(autoHidden(h)).toHaveLength(4)
+    expect(autoHidden(h)).toHaveLength(6)
   })
 
   it('"Ocultar en boxes": hidden while the player is on pit road or in the stall', async () => {
@@ -1024,24 +1044,21 @@ describe('TelemetryLoop', () => {
     h.source.sessionRaw = { name: 'S1', type: 'Practice' }
     h.source.frame = playerFrame()
     await h.run(1 + 2)
-    const hidden = {
+    // Battle and fuel are race-only by default.
+    const hidden = (['battle', 'fuel'] as const).map((widget) => ({
       type: 'auto-hidden',
-      widget: 'battle',
+      widget,
       hidden: true,
       reason: 'practice'
-    }
-    expect(autoHidden(h)).toEqual([hidden])
+    }))
+    const shown = hidden.map((m) => ({ ...m, hidden: false, reason: null }))
+    expect(autoHidden(h)).toEqual(hidden)
     h.source.alive = false
     await h.run(1)
-    expect(autoHidden(h).at(-1)).toEqual({
-      type: 'auto-hidden',
-      widget: 'battle',
-      hidden: false,
-      reason: null
-    })
+    expect(autoHidden(h).slice(-2)).toEqual(shown)
     // Reconnected to the same practice: hidden again.
     await h.run(1 + 1)
-    expect(autoHidden(h)).toEqual([hidden, { ...hidden, hidden: false, reason: null }, hidden])
+    expect(autoHidden(h)).toEqual([...hidden, ...shown, ...hidden])
   })
 
   it('keeps running with broken rules, logging at most every 5 s', async () => {

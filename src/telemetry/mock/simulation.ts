@@ -9,6 +9,7 @@
  * - pitLane.ts, inputs.ts: the player's pit stop and driver inputs;
  * - playerAlerts.ts: the player's own alerts (MOCK_ALERTS_TIMELINE, minutes 15 to 22);
  * - playerIncidents.ts: the player's incidents, what each one was and where;
+ * - fuel.ts: the player's fuel (a refuel at its pit stop), pit menu, tyre readings and limits;
  * - traffic.ts: lanes and the spotter; sessionInfo.ts: the session YAML;
  * - tyres.ts, warnings.ts: the compounds and the furled black flag;
  * - frameBuffer.ts: output arrays and the telemetry frame;
