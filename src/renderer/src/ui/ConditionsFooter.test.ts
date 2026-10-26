@@ -96,7 +96,7 @@ describe('ConditionsFooter', () => {
       viewOf({ wetness: 4, precipPct: 40, declaredWet: true, trackTempTrend: 'up' })
     )
     expect(text(html)).toBe(
-      'Pista 24 °C DECLARADA MOJADA Poco mojado Lluvia 40 % 14 km/h Aire 17 °C Goma Moderada'
+      'Pista 24 °C DECLARADA MOJADA Agua Poco mojado Lluvia 40 % 14 km/h Aire 17 °C Goma Moderada'
     )
     expect(html).toContain('data-icon="arrow-up"')
     expect(html.match(/cf-meter__cell/g)).toHaveLength(6)
@@ -110,16 +110,33 @@ describe('ConditionsFooter', () => {
     expect(html).not.toContain('badge')
   })
 
-  it('draws the dial with its arrow, or the caption without the direction', async () => {
+  it('draws the dial with its arrow, or the caption without a direction', async () => {
     const withDial = await render(viewOf())
-    expect(withDial).toContain('cf-dial has-dir')
+    expect(withDial).toContain('class="cf-dial"')
+    expect(withDial).toContain('cf-dial__arrow')
     expect(text(withDial)).not.toContain('Viento')
-    const calm = await render(viewOf({ windKmh: 1 }))
-    expect(calm).toContain('class="cf-dial"')
-    expect(calm).not.toContain('has-dir')
-    const caption = await render(viewOf({}, { conditionsWindDirection: false }))
-    expect(caption).not.toContain('cf-dial')
-    expect(text(caption)).toContain('Viento 14 km/h')
+    // Calm, out of the car (the session screen) or the direction off: no empty ring, the caption.
+    for (const v of [
+      viewOf({ windKmh: 1 }),
+      viewOf({ windFromDeg: null }),
+      viewOf({}, { conditionsWindDirection: false })
+    ]) {
+      const caption = await render(v)
+      expect(caption).not.toContain('cf-dial')
+      expect(text(caption)).toContain('Viento')
+    }
+    expect(text(await render(viewOf({ windFromDeg: null })))).toContain('Viento 14 km/h')
+  })
+
+  it('keeps a caption for the wetness meter where a narrow table drops its word', async () => {
+    const html = await render(viewOf({ wetness: 4 }))
+    expect(html).toContain('cf-label cf-wet-label')
+    expect(text(html)).toContain('Agua Poco mojado')
+    // Hidden while the word is there; the narrow rule swaps the word for it.
+    expect(SOURCE).toMatch(/\.cf-wet-label \{\s*display: none;/)
+    expect(SOURCE).toMatch(
+      /@container cfoot \(max-width: 26em\) \{\s*\.cf-wet-word \{\s*display: none;\s*\}\s*\.cf-wet-label \{\s*display: inline;/
+    )
   })
 
   it('draws nothing but its band for an empty view', async () => {

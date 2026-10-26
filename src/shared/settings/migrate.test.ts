@@ -233,4 +233,68 @@ describe('the alerts band before the warning lights', () => {
     expect(migrateSection('lights', undefined, { alerts: 'junk' })).toBeUndefined()
     expect(migrateSection('lights', undefined)).toBeUndefined()
   })
+
+  it('keeps off in the lights every engine warning the band was told not to say', () => {
+    // A file of the last release with the engine warnings and the trend off: the band still said
+    // the damage, so the strip comes, with only the repairs (and the stall) of its engine lights.
+    const raw = fileBeforeFuel()
+    raw.alerts = { showEngineWarnings: false, showEngineTrend: false }
+    const s = normalizeSettings(raw)
+    expect(s.widgets.lights.visible).toBe(true)
+    expect(s.lights).toMatchObject({
+      showOilPressure: false,
+      showFuelPressure: false,
+      showWater: false,
+      showOilTemp: false,
+      showTrend: false,
+      showStalled: true,
+      showRepair: true,
+      showRepairOptional: true
+    })
+    expect(s.alerts.showOilPressure).toBe(false)
+    // The damage off: both repair lights (the band said the optional ones too).
+    const noDamage = normalizeSettings({ ...fileBeforeFuel(), alerts: { showDamage: false } })
+    expect(noDamage.lights).toMatchObject({
+      showRepair: false,
+      showRepairOptional: false,
+      showWater: true
+    })
+    expect(noDamage.alerts.showDamage).toBe(false)
+    expect(noDamage.widgets.lights.visible).toBe(true)
+    // The stall off in the band stays off in the strip too.
+    expect(normalizeSettings({ alerts: { showStalled: false } }).lights.showStalled).toBe(false)
+  })
+
+  it('leaves the lights hidden for a band that showed none of what they took over', () => {
+    // Every option that moved off: the strip would be new on screen.
+    const raw = fileBeforeFuel()
+    raw.alerts = { showEngineWarnings: false, showEngineTrend: false, showDamage: false }
+    const s = normalizeSettings(raw)
+    expect(s.widgets.lights.visible).toBe(false)
+    // Still placed clear of the others, for the day it is turned on.
+    expect(overlaps(s.widgets.lights.bounds, RACE_LAYOUT.radar as Rect)).toBe(false)
+    expect(s.lights).toMatchObject({ showWater: false, showRepair: false, showTrend: false })
+
+    // The whole band hidden: none of it was on screen, whatever its options.
+    const hidden = fileBeforeFuel()
+    ;(hidden.widgets as Record<string, Record<string, unknown>>).alerts = {
+      visible: false,
+      bounds: RACE_LAYOUT.alerts
+    }
+    const h = normalizeSettings(hidden)
+    expect(h.widgets.alerts.visible).toBe(false)
+    expect(h.widgets.lights.visible).toBe(false)
+    expect(h.lights).toEqual(createDefaultSettings().lights)
+
+    // A band shown with one of them on keeps the strip coming; a file with the lights, its own.
+    hidden.alerts = { showEngineWarnings: false, showEngineTrend: true, showDamage: false }
+    ;(hidden.widgets as Record<string, Record<string, unknown>>).alerts = {
+      visible: true,
+      bounds: RACE_LAYOUT.alerts
+    }
+    expect(normalizeSettings(hidden).widgets.lights.visible).toBe(true)
+    ;(hidden.widgets as Record<string, unknown>).lights = { visible: true }
+    hidden.alerts = { showEngineWarnings: false, showEngineTrend: false, showDamage: false }
+    expect(normalizeSettings(hidden).widgets.lights.visible).toBe(true)
+  })
 })

@@ -3,6 +3,7 @@ import { makeFrame, makeSession, type MutableFrame } from '../race/testing/raceS
 import type { RaceView } from '../race/raceView'
 import { createDefaultSettings } from '../settings'
 import type { FuelOptions, PitSpec, TyreReading } from '../types'
+import { canShowOnSessionScreen } from '../widgets'
 import { computeFuel, consumption, fuelAlertInput, fuelEqual } from './provider'
 import type { FuelSamples, FuelTracker, LapStart } from './tracker'
 
@@ -209,6 +210,19 @@ describe('in a replay', () => {
     const replay = frame({ IsReplayPlaying: true })
     expect(computeFuel(replay, session, race(10.5, 15), tracker([3]), OPTS).visible).toBe(false)
     expect(fuelAlertInput(replay, session, race(10.5, 15), tracker([3]), OPTS)).toBeNull()
+  })
+
+  it('shows nothing on the session screen either, so it has no session-screen exception', () => {
+    // Out of the car on the session screen, the replay at its live point, your car on camera.
+    const screen = frame({
+      IsOnTrack: false,
+      CamCameraState: 0x51,
+      IsReplayPlaying: true,
+      CamCarIdx: 0,
+      FuelLevel: 40
+    })
+    expect(computeFuel(screen, session, race(10.5, 15), tracker([3]), OPTS).visible).toBe(false)
+    expect(canShowOnSessionScreen('fuel')).toBe(false)
   })
 })
 

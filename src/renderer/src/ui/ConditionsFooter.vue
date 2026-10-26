@@ -17,8 +17,9 @@ import Icon from './Icon.vue'
  * 1 px rule (the height the tables' maths count), with the readings in FOOTER_ITEMS order. A
  * reading that does not fit the width wraps to a second line, which is clipped, so a narrow
  * table drops whole readings from the end (never a cut word); below 26 em the wetness keeps its
- * meter and drops its word first. Rendered again only when `view` changes (reuseFooter keeps it
- * while every reading reads the same), each reading only when it does.
+ * meter and swaps its word for a short caption ('AGUA') first. Rendered again only when `view`
+ * changes (reuseFooter keeps it while every reading reads the same), each reading only when it
+ * does.
  */
 const props = defineProps<{ view: FooterView }>()
 
@@ -65,6 +66,7 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
       <Badge tone="info" class="cf-plate">{{ view.declaredWet }}</Badge>
     </span>
     <span v-if="view.wetness" v-memo="[view.wetness]" class="cf-item">
+      <span class="cf-label cf-wet-label">{{ view.wetness.label }}</span>
       <span class="cf-meter" aria-hidden="true">
         <span
           v-for="i in METER"
@@ -80,14 +82,10 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
       <span class="cf-num">{{ view.rain.value }}</span>
     </span>
 
-    <!-- Wind: a dial with your car pointing up and an arrow on the side it blows from. -->
+    <!-- Wind: a dial with your car pointing up and an arrow on the side it blows from; without a
+         direction (calm, out of the car) its caption instead. -->
     <span v-if="view.wind" class="cf-item">
-      <span
-        v-if="view.wind.dial"
-        class="cf-dial"
-        :class="{ 'has-dir': view.wind.fromDeg !== null }"
-        aria-hidden="true"
-      >
+      <span v-if="view.wind.dial" class="cf-dial" aria-hidden="true">
         <svg class="cf-dial__face" viewBox="0 0 16 16" focusable="false">
           <circle class="cf-dial__ring" cx="8" cy="8" r="7.25" />
           <path
@@ -257,20 +255,10 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
   fill: var(--ov-accent);
 }
 
-/* Without a direction (out of the car, calm) the car steps back and the arrow goes. */
-.cf-dial:not(.has-dir) .cf-dial__car {
-  fill: var(--ov-fg-dim);
-}
-
 /* Turned by its inline transform; a second's eased turn between two 1 Hz readings. */
 .cf-dial__arrow {
   display: block;
-  opacity: 0;
   transition: transform 0.8s ease-out;
-}
-
-.cf-dial.has-dir .cf-dial__arrow {
-  opacity: 1;
 }
 
 .cf-dial__arrow svg {
@@ -290,10 +278,21 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
   }
 }
 
-/* Narrow tables: the meter says how wet it is, so its word goes before any reading does. */
+/*
+ * Narrow tables: the meter says how wet it is, so its word goes before any reading does, and a
+ * short caption says what the meter is (a blue bar alone could be any gauge).
+ */
+.cf-wet-label {
+  display: none;
+}
+
 @container cfoot (max-width: 26em) {
   .cf-wet-word {
     display: none;
+  }
+
+  .cf-wet-label {
+    display: inline;
   }
 }
 </style>

@@ -21,7 +21,12 @@ import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
-import { replaysHelp as replaysHelpText, sessionScreenRuleOn } from '../replayWidgets'
+import {
+  outOfCarHidesSessionScreen,
+  replaysHelp as replaysHelpText,
+  sessionScreenRuleOn,
+  sessionScreenWidgets
+} from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { formatPercent } from '../values'
@@ -85,6 +90,21 @@ const showWhenHelp = computed(
 )
 /** Off when nothing hides on the session screen: then the standings show there anyway. */
 const keepStandingsRule = computed(() => sessionScreenRuleOn(visibility.value))
+const keepStandingsHelp = computed(() => {
+  const s = t.value.settings.appearance.screen
+  if (!keepStandingsRule.value) return s.keepStandingsOff
+  return s.keepStandingsHelp(sessionScreenWidgets(t.value, locale.value))
+})
+/**
+ * Hiding on the session screen changes nothing while out of the car hides it already (the
+ * overlay only for the car, replays hidden): shown on and greyed, saying so.
+ */
+const sessionScreenHidden = computed(() => outOfCarHidesSessionScreen(visibility.value))
+const sessionScreenHelp = computed(() => {
+  const s = t.value.settings.appearance.screen
+  if (!sessionScreenHidden.value) return s.sessionScreenHelp
+  return s.sessionScreenAlready(t.value.core.showWhen[visibility.value.showWhen])
+})
 const replayChoices = computed(() =>
   choiceOptions(
     OPTION_SCHEMA.visibility.replays.values,
@@ -233,24 +253,30 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         :options="showWhenChoices"
         :apply="setVisibility('showWhen')"
       />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.keepStandings"
-        :help="
-          keepStandingsRule
-            ? t.settings.appearance.screen.keepStandingsHelp
-            : t.settings.appearance.screen.keepStandingsOff
-        "
-        :current="standings.showOnSessionScreen || !keepStandingsRule"
-        :disabled="!keepStandingsRule"
-        :apply="setKeepStandings"
-      />
       <ChoiceControl
         :label="t.settings.appearance.screen.replays"
         :help="replaysHelp"
         :current="visibility.replays"
         :options="replayChoices"
         :apply="setVisibility('replays')"
+      />
+      <!-- The session screen: whether it hides (after the two rules that decide it), then the
+           standings' exception. -->
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.sessionScreen"
+        :help="sessionScreenHelp"
+        :current="visibility.hideOnSessionScreen || sessionScreenHidden"
+        :disabled="sessionScreenHidden"
+        :apply="setVisibility('hideOnSessionScreen')"
+      />
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.keepStandings"
+        :help="keepStandingsHelp"
+        :current="standings.showOnSessionScreen || !keepStandingsRule"
+        :disabled="!keepStandingsRule"
+        :apply="setKeepStandings"
       />
       <ToggleControl
         kind="switch"
@@ -265,13 +291,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         :help="t.settings.appearance.screen.garageHelp"
         :current="visibility.hideInGarage"
         :apply="setVisibility('hideInGarage')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.sessionScreen"
-        :help="t.settings.appearance.screen.sessionScreenHelp"
-        :current="visibility.hideOnSessionScreen"
-        :apply="setVisibility('hideOnSessionScreen')"
       />
       <ToggleControl
         kind="switch"

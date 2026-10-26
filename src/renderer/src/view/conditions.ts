@@ -117,8 +117,9 @@ export interface TrackTempItem extends FooterReading {
 
 export interface WindItem extends FooterReading {
   /**
-   * Draw the dial (the direction option is on): it says what the reading is, so the caption is
-   * left out then (`label` stays for the caption-only case).
+   * Draw the dial (the direction option is on, and there is a direction to show): its arrow says
+   * what the reading is, so the caption is left out then. Without a direction (calm, out of the
+   * car) an empty ring would say nothing: the caption (`label`) instead.
    */
   readonly dial: boolean
   /** Relative direction it comes from (degrees, CONDITIONS), null without one (calm, no car). */
@@ -132,6 +133,8 @@ export interface WindItem extends FooterReading {
 export const WETNESS_CELLS = WETNESS_MAX - WETNESS_MIN
 
 export interface WetnessItem {
+  /** 'Agua': the meter's caption where a narrow table drops the word. */
+  readonly label: string
   /** 'Poco mojado'. */
   readonly value: string
   /** Filled cells of the WETNESS_CELLS-cell meter, 1 or more. */
@@ -195,12 +198,13 @@ export function footerView(
   let wind: WindItem | null = null
   if (o.conditionsWind && d.windKmh !== null) {
     const calm = d.windKmh < CALM_KMH
+    const fromDeg = o.conditionsWindDirection && !calm ? d.windFromDeg : null
     wind = {
       label: w.wind,
       value: formatSpeed(d.windKmh, units),
       unit: speedUnit(units),
-      dial: o.conditionsWindDirection,
-      fromDeg: o.conditionsWindDirection && !calm ? d.windFromDeg : null
+      dial: fromDeg !== null,
+      fromDeg
     }
   }
 
@@ -220,7 +224,9 @@ export function footerView(
         : null,
     declaredWet: wet && d.declaredWet ? w.declaredWet : null,
     wetness:
-      wet && level !== null ? { value: wetnessText(level, m), cells: level - WETNESS_MIN } : null,
+      wet && level !== null
+        ? { label: w.water, value: wetnessText(level, m), cells: level - WETNESS_MIN }
+        : null,
     rain: wet && rain !== null ? { label: w.rain, value: precipText(rain, m), unit: '' } : null,
     wind,
     air:
