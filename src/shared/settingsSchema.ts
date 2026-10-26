@@ -8,6 +8,7 @@
 import { DEFAULT_LANGUAGE, LANGUAGES } from './i18n/language'
 import { clamp, isFiniteNumber, roundTo } from './num'
 import type {
+  ConditionsFooterOptions,
   NameFormat,
   OverlaySettings,
   ShowInSessions,
@@ -129,6 +130,27 @@ const HIDDEN_BY_DEFAULT: ReadonlySet<StandingsColumnId> = new Set([
   'tyre'
 ])
 
+/**
+ * The readings of a table's conditions footer (ConditionsFooterOptions), after its switch: the
+ * feed sends every reading while the footer is on, so which ones are drawn is display only. The
+ * sky is not offered (nothing a driver acts on), and the wet readings only show when relevant.
+ */
+const CONDITIONS_READINGS = {
+  conditionsTrackTemp: { kind: 'bool', default: true, displayOnly: true },
+  conditionsTrend: { kind: 'bool', default: true, displayOnly: true },
+  conditionsWet: { kind: 'bool', default: true, displayOnly: true },
+  conditionsWind: { kind: 'bool', default: true, displayOnly: true },
+  conditionsWindDirection: { kind: 'bool', default: true, displayOnly: true },
+  conditionsAirTemp: { kind: 'bool', default: true, displayOnly: true },
+  conditionsRubber: { kind: 'bool', default: true, displayOnly: true }
+} as const
+
+/** Every field of ConditionsFooterOptions: the switch, then the readings in the line's order. */
+export const CONDITIONS_FOOTER_FIELDS = Object.freeze([
+  'conditionsFooter',
+  ...(Object.keys(CONDITIONS_READINGS) as (keyof typeof CONDITIONS_READINGS)[])
+]) satisfies readonly (keyof ConditionsFooterOptions)[]
+
 export const OPTION_SCHEMA = {
   appearance: {
     accent: { kind: 'color', default: '#ffc400', displayOnly: true },
@@ -180,7 +202,11 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     },
     // The count is in every payload: the header shows it or not.
-    showIncidents: { kind: 'bool', default: true, displayOnly: true }
+    showIncidents: { kind: 'bool', default: true, displayOnly: true },
+    // Off by default: the relative is a free-size window, so a footer line takes its height
+    // from the rows (the standings grows by it instead). Computed: the feed runs only while on.
+    conditionsFooter: { kind: 'bool', default: false },
+    ...CONDITIONS_READINGS
   },
   radar: {
     rangeM: { kind: 'number', min: 5, max: 100, decimals: null, default: 20, step: 5 },
@@ -221,7 +247,11 @@ export const OPTION_SCHEMA = {
       values: ['inherit', 'comfortable', 'compact'],
       default: 'inherit',
       displayOnly: true
-    }
+    },
+    // On by default: the standings grows by the line (auto height), and it is the table you
+    // look at between sessions too. Computed: the feed runs only while a footer is on.
+    conditionsFooter: { kind: 'bool', default: true },
+    ...CONDITIONS_READINGS
   },
   battle: {
     thresholdS: { kind: 'number', min: 0.3, max: 5, decimals: 1, default: 1.5, step: 0.1 },
@@ -328,21 +358,6 @@ export const OPTION_SCHEMA = {
     showPredicted: { kind: 'bool', default: true, displayOnly: true },
     showSectors: { kind: 'bool', default: true, displayOnly: true },
     showTrend: { kind: 'bool', default: true, displayOnly: true }
-  },
-  // The provider sends every reading at 1 Hz: each part is drawn or not. A compact readout, so
-  // no header band by default.
-  conditions: {
-    showHeader: { kind: 'bool', default: false, displayOnly: true },
-    showTrackTemp: { kind: 'bool', default: true, displayOnly: true },
-    showTrend: { kind: 'bool', default: true, displayOnly: true },
-    showAirTemp: { kind: 'bool', default: true, displayOnly: true },
-    showWind: { kind: 'bool', default: true, displayOnly: true },
-    showWindDirection: { kind: 'bool', default: true, displayOnly: true },
-    showWetness: { kind: 'bool', default: true, displayOnly: true },
-    showPrecipitation: { kind: 'bool', default: true, displayOnly: true },
-    showDeclaredWet: { kind: 'bool', default: true, displayOnly: true },
-    showSkies: { kind: 'bool', default: true, displayOnly: true },
-    showRubber: { kind: 'bool', default: true, displayOnly: true }
   },
   // The provider sends every line: each is drawn or not. The average and the margin change what
   // it computes (the average also the alerts band's fuel alerts).

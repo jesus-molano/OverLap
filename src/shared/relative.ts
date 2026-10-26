@@ -149,7 +149,9 @@ export function computeRelative(
     sessionType,
     // In the payload whatever showIncidents says (display only): one cheap read per tick. Yours
     // alone, so not while a replay follows another car (the header would read as theirs).
-    incidents: ownCar ? incidentCount(frame, session) : null
+    incidents: ownCar ? incidentCount(frame, session) : null,
+    // The conditions footer's readings are the provider set's (ConditionsFeed).
+    conditions: null
   }
 
   const pcts = frame.CarIdxLapDistPct

@@ -2,11 +2,13 @@
  * Sample standings for edit mode (ux §4.7): an invented multiclass race with every row state
  * (you at P5, PIT, OUT, a lapped car, class best and personal best laps, off-track, meatball, a
  * warning), stints and stops, tyres known for your car model only, names that exercise every
- * name format, and the ratings and incidents header. Rows are picked with the same rules as the
- * provider (top rows, rows around you, other class leaders), so the window is sized on what the
- * current options really show. Pure.
+ * name format, the ratings and incidents header, and the conditions footer's readings (drawn
+ * only with the footer on). Rows are picked with the same rules as the provider (top rows, rows
+ * around you, other class leaders), so the window is sized on what the current options really
+ * show. Pure.
  */
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
+import { PREVIEW_CONDITIONS } from '@renderer/view/conditions'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 import type {
   GapValue,
@@ -401,6 +403,7 @@ export function previewStandings(o: PreviewOptions): StandingsData {
       iRating: o.headerIRating ? HEADER.iRating : null,
       safetyRating: o.headerSafetyRating ? HEADER.safetyRating : null
     },
-    classes
+    classes,
+    conditions: PREVIEW_CONDITIONS
   }
 }

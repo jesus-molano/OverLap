@@ -4,6 +4,7 @@ import { isRaceSession } from '@shared/sessionInfo'
 import type { StandingsData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
 import { useAppearance } from '@renderer/composables/useAppearance'
+import { useConditionsFooter } from '@renderer/composables/useConditionsFooter'
 import { useContentHeight } from '@renderer/composables/useContentSize'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -20,8 +21,10 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { injectPanelHost } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
+import ConditionsFooter from '@renderer/ui/ConditionsFooter.vue'
 import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
+import { hasFooter } from '@renderer/view/conditions'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { fitColumns, reuseColumns, rowWidthEm, type Columns } from './columns'
@@ -119,6 +122,16 @@ const head = computed<HeaderView>((prev) =>
 )
 const headLines = computed(() => head.value.lines)
 
+/**
+ * The conditions footer under the table (its option, on by default), with the table only (not
+ * under the offline or waiting placeholders); kept while hidden, like the lines. The same object
+ * while it reads the same, so a 4 Hz payload re-renders nothing there.
+ */
+const footer = useConditionsFooter(ID, () => payload.value?.conditions ?? null)
+const footed = computed(
+  () => (body.value === 'table' || body.value === 'none') && hasFooter(footer.value)
+)
+
 const metrics = computed(() => lineMetrics(density.value))
 const planOpts = computed(() => ({ oneLineLeaders: opts.value.mode !== 'full' }))
 /** Every line, untrimmed: what the content wants (the reported height). */
@@ -133,13 +146,15 @@ const bodyEm = computed(() => {
   if (body.value === 'empty') return EMPTY_EM
   return linesEm(fullPlan.value, metrics.value)
 })
-const desiredPx = computed(() => panelHeightPx(bodyEm.value, headLines.value, fontPx.value))
+const desiredPx = computed(() =>
+  panelHeightPx(bodyEm.value, headLines.value, fontPx.value, footed.value)
+)
 useContentHeight(() => desiredPx.value, { enabled: () => autoHeight.value && shown.value })
 
 /** The lines that fit the window: all of them unless the window is shorter than the content. */
 const plan = computed<readonly PlannedLine[]>(() => {
   const full = fullPlan.value
-  const budget = lineBudgetEm(size.value.h, fontPx.value, headLines.value)
+  const budget = lineBudgetEm(size.value.h, fontPx.value, headLines.value, footed.value)
   if (linesEm(full, metrics.value) <= budget + 1e-6 || classes.value === null) return full
   return planLines(classes.value, planOpts.value, metrics.value, budget)
 })
@@ -210,7 +225,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :surface="panelStyle"
       :halo="halo"
       class="sd-panel ov-fade"
-      :class="{ 'is-shown': shown }"
+      :class="{ 'is-shown': shown, 'has-foot': footed }"
     >
       <template #header>
         <StandingsHeader :head="head" :tier="tier" />
@@ -229,6 +244,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <StandingsCarCells v-else :line="line" :cols="cols" />
         </div>
       </template>
+      <ConditionsFooter v-if="footed" :view="footer" />
     </WidgetPanel>
   </div>
 </template>
@@ -245,6 +261,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .sd-panel {
   flex: none;
   padding-bottom: var(--sd-bottom-pad);
+}
+
+/* The conditions footer ends the panel: it takes the bottom padding's place (layout.ts). */
+.sd-panel.has-foot {
+  padding-bottom: 0;
 }
 
 .sd-status {

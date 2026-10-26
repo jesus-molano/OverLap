@@ -193,3 +193,45 @@ describe('SettingsStore with a v3 file', () => {
     }
   })
 })
+
+describe('SettingsStore with a file that has the old conditions widget (v2.3-v2.4)', () => {
+  const v24 = {
+    version: 4,
+    widgets: {
+      relative: { visible: true, bounds: { x: 1431, y: 796, width: 417, height: 229 } },
+      standings: { visible: true, bounds: { x: 18, y: 21, width: 540, height: 261 } },
+      conditions: {
+        visible: true,
+        locked: true,
+        scale: 120,
+        bounds: { x: 60, y: 300, width: 320, height: 130 }
+      },
+      fuel: { visible: false, bounds: { x: 1200, y: 600, width: 320, height: 170 } }
+    },
+    relative: { carsAhead: 4 },
+    standings: { topRows: 5 },
+    conditions: { showHeader: true, showWind: false, showSkies: false }
+  }
+
+  it('loads without it: the footers get their defaults, the rest of the file is kept', () => {
+    writeFileSync(file, JSON.stringify(v24))
+    const s = SettingsStore.load(file).settings
+    expect(s.widgets).not.toHaveProperty('conditions')
+    expect(s).not.toHaveProperty('conditions')
+    expect(s.relative).toEqual({ ...DEFAULT_SETTINGS.relative, carsAhead: 4 })
+    expect(s.standings).toEqual({ ...DEFAULT_SETTINGS.standings, topRows: 5 })
+    expect(s.standings.conditionsFooter).toBe(true)
+    expect(s.relative.conditionsFooter).toBe(false)
+    expect(s.widgets.standings.bounds).toEqual(v24.widgets.standings.bounds)
+    expect(s.widgets.fuel.visible).toBe(false)
+  })
+
+  it('does not write it back', () => {
+    const saved = roundTrip(v24, (d) => {
+      d.standings.conditionsWind = false
+    }) as { widgets: Record<string, unknown>; standings: Record<string, unknown> }
+    expect(saved).not.toHaveProperty('conditions')
+    expect(saved.widgets).not.toHaveProperty('conditions')
+    expect(saved.standings.conditionsWind).toBe(false)
+  })
+})

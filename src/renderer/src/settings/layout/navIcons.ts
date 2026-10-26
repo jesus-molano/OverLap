@@ -45,11 +45,6 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
   ],
   // Stopwatch.
   delta: [{ d: 'M3 9.25a5 5 0 1 0 10 0 5 5 0 1 0-10 0M6.5 1.75h3M8 1.75v2.5M8 9.25l2-2' }],
-  // Thermometer beside two gusts of wind.
-  conditions: [
-    { d: 'M4.25 9.4V3.5a1.5 1.5 0 0 1 3 0v5.9a2.6 2.6 0 1 1-3 0z' },
-    { d: 'M9.75 5h2.5a1.4 1.4 0 1 0-1.4-1.4M9.75 8.5h3.5a1.4 1.4 0 1 1-1.4 1.4' }
-  ],
   // Fuel pump with its hose.
   fuel: [
     { d: 'M3.5 13.75V3.25a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v10.5M2.5 13.75h8' },

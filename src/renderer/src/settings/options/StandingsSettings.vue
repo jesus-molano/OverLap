@@ -20,6 +20,7 @@ import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter, updateSection, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
+import ConditionsFooterSection from './ConditionsFooterSection.vue'
 import StandingsColumns from './StandingsColumns.vue'
 
 const opts = useOptions('standings')
@@ -162,6 +163,8 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
   </PageSection>
 
   <StandingsColumns />
+
+  <ConditionsFooterSection section="standings" />
 </template>
 
 <style scoped>

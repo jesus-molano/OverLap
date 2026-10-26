@@ -1,8 +1,10 @@
 /**
  * Structural equality of standings payloads, for SKIP_EMIT: an unchanged
- * table is not sent again. The provider already leaves out what no visible
- * column draws, so every field compared here can be on screen. Pure.
+ * table (and conditions footer) is not sent again. The provider already
+ * leaves out what no visible column draws, so every field compared here can be
+ * on screen. Pure.
  */
+import { footerConditionsEqual } from './conditions'
 import { identityEqual } from './driver'
 import { sameNumber } from './equal'
 import { incidentCountEqual } from './incidents/count'
@@ -101,12 +103,13 @@ function blockEqual(a: StandingsClassBlock, b: StandingsClassBlock): boolean {
   return true
 }
 
-/** True when the widget would paint the same table. */
+/** True when the widget would paint the same table and footer. */
 export function standingsEqual(a: StandingsData, b: StandingsData): boolean {
   if (a === b) return true
   const ha = a.header
   const hb = b.header
   if (
+    !footerConditionsEqual(a.conditions, b.conditions) ||
     ha.sessionType !== hb.sessionType ||
     !same(ha.lapsRemaining, hb.lapsRemaining) ||
     !same(ha.timeRemainingS, hb.timeRemainingS) ||
