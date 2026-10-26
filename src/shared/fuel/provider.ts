@@ -7,12 +7,17 @@
  * nothing shown changed. fuelAlertInput() gives the alerts band the same plan.
  *
  * The laps left are the RaceModel's (RaceView.lapsRemaining: the overall leader's pace in timed
- * races); an unlimited session has none, so only the fuel and the consumption are drawn.
+ * races); an unlimited session has none, so only the fuel and the consumption are drawn. The
+ * plan starts from the fuel the lap in progress had at the S/F line, less the average for the
+ * part of the lap driven (FuelTracker.lapStart), so it holds still through a lap; the fuel and
+ * its laps on the hero line are the fuel of the moment. A replay shows nothing: its car is the
+ * one on camera, the fuel only ever yours.
  */
 import { deepEqual } from '../equal'
 import { isFiniteNumber } from '../num'
 import type { RaceView } from '../race/raceView'
 import { clampOption, OPTION_SCHEMA } from '../settingsSchema'
+import { isReplayPlaying } from '../simScreen'
 import type { TelemetryFrame } from '../telemetry'
 import type { FuelData, FuelFinish, FuelOptions, SessionMeta } from '../types'
 import type { FuelAlertInput } from '../notices/fuel'
@@ -69,14 +74,19 @@ function planOf(
   const fuelL = isFiniteNumber(raw) && raw >= 0 ? raw : null
   const tankL = tankLitres(session.pitSpec, fuelL, frame.FuelLevelPct[0])
   const cons = consumption(tracker.samples, opts.avgLaps)
+  const avgL = cons.avgL
   const player = race.playerCarIdx
   const d = player >= 0 ? (race.car(player)?.distance ?? Number.NaN) : Number.NaN
   const left = player >= 0 && Number.isFinite(d) ? race.lapsRemaining(player) : null
+  const start = tracker.lapStart
   const finish =
-    fuelL !== null && cons.avgL !== null && left !== null
+    fuelL !== null && avgL !== null && left !== null
       ? fuelStrategy({
-          fuelL,
-          avgL: cons.avgL,
+          fuelL:
+            start !== null && start.lap === Math.floor(d)
+              ? Math.max(0, start.fuelL - (d - start.lap) * avgL)
+              : fuelL,
+          avgL,
           tankL,
           distance: d,
           lapsRemaining: left,
@@ -117,7 +127,8 @@ export function computeFuel(
   const last = tracker.lastLapL
   return {
     // Out of the car an empty tank is no reading (the garage, a teammate's stint).
-    visible: fuelL !== null && (frame.IsOnTrack[0] === true || fuelL > 0),
+    visible:
+      fuelL !== null && !isReplayPlaying(frame) && (frame.IsOnTrack[0] === true || fuelL > 0),
     fuelL: fuelL === null ? null : round1(fuelL),
     tankL: plan.tankL === null ? null : round1(plan.tankL),
     lapsOfFuel: fuelL !== null && cons.avgL !== null ? round1(fuelL / cons.avgL) : null,
@@ -139,8 +150,8 @@ export function computeFuel(
 }
 
 /**
- * The plan as the alerts band reads it; null without a fuel reading. The window only closes in a
- * race under way: nobody has to reach the end of a practice.
+ * The plan as the alerts band reads it; null without a fuel reading or in a replay. The window
+ * only closes in a race under way: nobody has to reach the end of a practice.
  */
 export function fuelAlertInput(
   frame: TelemetryFrame,
@@ -149,13 +160,14 @@ export function fuelAlertInput(
   tracker: FuelTracker,
   opts: FuelOptions
 ): FuelAlertInput | null {
+  if (isReplayPlaying(frame)) return null
   const plan = planOf(frame, session, race, tracker, opts)
   if (plan.fuelL === null) return null
   const avg = plan.cons.avgL
   const f = plan.finish
   return {
     lapsOfFuel: avg === null ? null : plan.fuelL / avg,
-    stops: f === null ? null : f.stops,
+    short: f === null ? null : f.short,
     closesThisLap: race.racing && f !== null && f.window !== null && f.window.to === f.lap
   }
 }

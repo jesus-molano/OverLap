@@ -222,6 +222,49 @@ describe('FuelTracker laps', () => {
   })
 })
 
+describe('FuelTracker lap start', () => {
+  it('keeps the fuel each lap started with at the line, not where it was first seen', () => {
+    const s = new FuelSim()
+    s.run(14) // d 0.97: joined mid-lap
+    expect(s.tracker.lapStart).toBeNull()
+    s.run(2) // crosses 1.0 with 60 - 0.5 x 2.5 L
+    expect(s.tracker.lapStart).toEqual({ lap: 1, fuelL: expect.closeTo(58.75, 1) })
+    const first = s.tracker.lapStart
+    s.run(10)
+    // The same object through the lap.
+    expect(s.tracker.lapStart).toBe(first)
+    s.run(20) // crosses 2.0
+    expect(s.tracker.lapStart).toEqual({ lap: 2, fuelL: expect.closeTo(56.25, 1) })
+  })
+
+  it('drops it on a refuel, a tow or out of the car, until the next line', () => {
+    let tow = 0
+    let inCar = true
+    const s = new FuelSim(undefined, undefined, (f) => {
+      f.PlayerCarTowTime[0] = tow
+      f.IsOnTrack[0] = inCar
+    })
+    s.run(16)
+    expect(s.tracker.lapStart).not.toBeNull()
+    s.fuel += 20
+    s.run(1)
+    expect(s.tracker.lapStart).toBeNull()
+    s.run(30) // crosses 2.0
+    expect(s.tracker.lapStart).toMatchObject({ lap: 2 })
+    tow = 10
+    s.run(1)
+    expect(s.tracker.lapStart).toBeNull()
+    tow = 0
+    s.run(30) // crosses 3.0
+    expect(s.tracker.lapStart).toMatchObject({ lap: 3 })
+    inCar = false
+    s.run(1)
+    expect(s.tracker.lapStart).toBeNull()
+    s.run(30) // crosses 4.0 out of the car
+    expect(s.tracker.lapStart).toBeNull()
+  })
+})
+
 describe('FuelTracker tyres', () => {
   it('keeps the most worn reading of a stay in the stall, with its lap', () => {
     let stall = false

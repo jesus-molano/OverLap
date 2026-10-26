@@ -22,6 +22,7 @@ export const PREVIEW_FUEL: FuelData = Object.freeze({
     lapsLeft: 18.7,
     needL: 56.8,
     deficitL: 4.8,
+    short: true,
     stops: 1,
     addL: 4.9,
     fill: false,

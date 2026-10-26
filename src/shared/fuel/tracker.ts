@@ -1,7 +1,8 @@
 /**
  * What the fuel widget and the alerts band learn from every tick (60 Hz), whatever the widgets'
- * rates and rules: the litres each of your laps used, measured at the S/F line, and the tyre
- * readings of your stops. One FuelTracker per telemetry loop, fed by ProviderSet.observe.
+ * rates and rules: the litres each of your laps used, measured at the S/F line, the fuel the lap
+ * in progress started with (the plan projects from it) and the tyre readings of your stops. One
+ * FuelTracker per telemetry loop, fed by ProviderSet.observe.
  *
  * A lap counts for the average when the RaceModel calls it clean (no pit road, caution, tow or
  * reset, off-track excursion or stop on track, not the race's first lap or a lap it joined
@@ -83,6 +84,14 @@ export interface FuelSamples {
 
 const NO_SAMPLES: FuelSamples = Object.freeze({ laps: Object.freeze([]), carried: false })
 
+/** The lap in progress as it started at the S/F line. */
+export interface LapStart {
+  /** Laps completed at the line (the floor of the race distance during the lap). */
+  readonly lap: number
+  /** Litres in the tank there. */
+  readonly fuelL: number
+}
+
 export class FuelTracker {
   /** Car (CarID, 0 before the first tick with one) and track layout the laps belong to. */
   private carId = 0
@@ -105,6 +114,8 @@ export class FuelTracker {
   private lapOk = false
   private lapMinFuel = Infinity
   private prevD = Number.NaN
+  /** The line the lap in progress started at (lapStart). */
+  private start: LapStart | null = null
 
   private reading: TyreReading | null = null
   /** In the pit stall: what the tread variables held on arrival, and the stay's most worn. */
@@ -136,6 +147,17 @@ export class FuelTracker {
   /** The last tyre reading of this session, null before any. */
   get tyres(): TyreReading | null {
     return this.reading
+  }
+
+  /**
+   * The fuel at the S/F line the lap in progress started at; null when this tracker did not see
+   * that line (it joined mid-lap), you are not driving, or a refuel, tow or reset changed the
+   * fuel or the distance since. The plan projects the fuel from it at the average: a lap does
+   * not burn evenly (full throttle, braking), and planning on the fuel of the moment would move
+   * the window's last lap, and the stop alert with it, back and forth within a lap.
+   */
+  get lapStart(): LapStart | null {
+    return this.start
   }
 
   observe(frame: TelemetryFrame, session: SessionMeta, race: RaceView): void {
@@ -170,12 +192,15 @@ export class FuelTracker {
     }
     if (!driving || towed || jumped || fuel > this.lapMinFuel + FUEL_TRACK.refuelL) {
       this.lapOk = false
+      this.start = null
     }
     this.lapMinFuel = Math.min(this.lapMinFuel, fuel)
 
     if (lap === this.anchorLap + 1) {
       this.closeLap(lap, fuel, race, player)
-      this.startLap(lap, fuel, driving && !towed && !jumped)
+      const ok = driving && !towed && !jumped
+      this.startLap(lap, fuel, ok)
+      if (ok) this.start = Object.freeze({ lap, fuelL: fuel })
     } else if (lap > this.anchorLap + 1 || lap < this.anchorLap - 1) {
       // A crossing missed or a lap gone back (a reset): start over from here.
       this.last = null
@@ -229,11 +254,13 @@ export class FuelTracker {
     this.updateSamples()
   }
 
+  /** A lap is followed from `lap` with `fuel`; the caller sets `start` when that is the line. */
   private startLap(lap: number, fuel: number, ok: boolean): void {
     this.anchorLap = lap
     this.anchorFuel = fuel
     this.lapOk = ok
     this.lapMinFuel = fuel
+    this.start = null
   }
 
   private breakLap(): void {
@@ -242,6 +269,7 @@ export class FuelTracker {
     this.lapOk = false
     this.lapMinFuel = Infinity
     this.prevD = Number.NaN
+    this.start = null
   }
 
   private updateSamples(): void {

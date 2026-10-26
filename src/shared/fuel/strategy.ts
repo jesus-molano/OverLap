@@ -6,15 +6,19 @@
  * ('V12' is the lap from distance 11 to 12). "Stopping on lap n" is entering the pits at the end
  * of it, at distance n: the fuel must last that far, and the stop's lap is counted as driven.
  *
- * - You take the flag at distance floor(d) + lapsRemaining (RaceView.lapsRemaining counts the
- *   lap in progress), with marginLaps of fuel left.
- * - Every stop can fill the tank (what you may carry, tankL), so after the first stop at distance
- *   x you have at most stops x tankL for the rest: x >= finish + margin - stops x tank / avg is
- *   the window's first lap; the last is the last lap end the fuel you have reaches.
- * - The stops are the fewest whose window is not empty: ceil(short / tank), one more when the
- *   rounding to whole laps closes that window.
- * - Saving a stop: the litres per lap with one stop less (each one still a full tank), shown only
- *   when within FUEL_STRATEGY.saveReach of the average.
+ * - You take the flag at distance F = floor(d) + lapsRemaining (RaceView.lapsRemaining counts
+ *   the lap in progress), with marginLaps of fuel left.
+ * - Stops are made at lap ends, F - 1 the last one (a stop at the end of the last lap comes after
+ *   the flag). On the last lap there is none left to make: all that is left to say is whether
+ *   the fuel reaches the flag, and the margin buys nothing.
+ * - Every stop can fill the tank (what you may carry, T), and a stint between two stops is whole
+ *   laps, floor(T / avg) at most. With s stops, the first at x, the last is at x + (s - 1) x
+ *   floor(T / avg) at the latest and its tank must reach F + margin: x >= F + margin - T / avg -
+ *   (s - 1) x floor(T / avg) is the window's first lap; its last is the last lap end the fuel you
+ *   have reaches.
+ * - The stops are the fewest whose window is not empty.
+ * - Saving a stop: the litres per lap at which one stop less has a window (each one still a full
+ *   tank), shown only when within FUEL_STRATEGY.saveReach of the average.
  */
 import type { FuelFinish } from '../types'
 
@@ -24,7 +28,9 @@ export const FUEL_STRATEGY = {
   /** Rounding slack: a value this close to a whole lap or litre is that value. */
   eps: 1e-6,
   /** Never more stops than this (a corrupt tank or average). */
-  maxStops: 50
+  maxStops: 50,
+  /** Halvings of the search for the saving (a 10 % range to well under 0.01 L). */
+  saveSteps: 30
 } as const
 
 export interface StrategyInput {
@@ -45,13 +51,66 @@ const round1 = (v: number): number => Math.round(v * 10) / 10 || 0
 const ceil1 = (v: number): number => Math.ceil(v * 10 - FUEL_STRATEGY.eps) / 10 || 0
 const floor2 = (v: number): number => Math.floor(v * 100 + FUEL_STRATEGY.eps) / 100 || 0
 
+/** Where you are, where the flag is and what the plan keeps at it. */
+interface Course {
+  readonly fuel: number
+  /** Litres you may carry, Infinity when unknown. */
+  readonly tank: number
+  readonly distance: number
+  /** The lap in progress. */
+  readonly current: number
+  /** Distance of the flag. */
+  readonly finish: number
+  readonly margin: number
+}
+
+/** The fewest stops at some litres per lap and the first one's window (null: no stop). */
+interface Stops {
+  readonly stops: number
+  readonly window: { readonly from: number; readonly to: number } | null
+}
+
+function stopsAt(c: Course, rate: number): Stops {
+  const eps = FUEL_STRATEGY.eps
+  const deficit = (c.finish + c.margin - c.distance) * rate - c.fuel
+  if (deficit <= 0) return { stops: 0, window: null }
+  // The last lap end the fuel reaches (stop now when it does not reach this one), never after
+  // the lap before the last.
+  const reach = Math.floor(c.distance + c.fuel / rate + eps)
+  const to = Math.min(c.finish - 1, Math.max(c.current, reach))
+  if (!Number.isFinite(c.tank)) return { stops: 1, window: { from: c.current, to } }
+  const tankLaps = c.tank / rate
+  const stint = Math.floor(tankLaps + eps)
+  const from = (stops: number): number =>
+    Math.max(c.current, Math.ceil(c.finish + c.margin - tankLaps - (stops - 1) * stint - eps))
+  let stops = Math.max(1, Math.ceil(deficit / c.tank - eps))
+  while (from(stops) > to && stops < FUEL_STRATEGY.maxStops) stops++
+  return { stops, window: { from: Math.min(from(stops), to), to } }
+}
+
+/**
+ * The most litres per lap that need one stop less than `stops`, to 0.01 and rounded down; null
+ * when that takes more than FUEL_STRATEGY.saveReach less than `avgL`.
+ */
+function saveRate(c: Course, avgL: number, stops: number): number | null {
+  const fewer = (rate: number): boolean => stopsAt(c, rate).stops < stops
+  let lo = avgL * (1 - FUEL_STRATEGY.saveReach)
+  let hi = avgL
+  if (!fewer(lo)) return null
+  for (let k = 0; k < FUEL_STRATEGY.saveSteps; k++) {
+    const mid = (lo + hi) / 2
+    if (fewer(mid)) lo = mid
+    else hi = mid
+  }
+  return floor2(lo)
+}
+
 /**
  * Null when the inputs say nothing (no average, a broken number). With no laps left (you took
  * the flag) nothing is needed: no stop, everything spare.
  */
 export function fuelStrategy(i: StrategyInput): FuelFinish | null {
   const { fuelL, avgL, distance, lapsRemaining } = i
-  const margin = Number.isFinite(i.marginLaps) ? Math.max(0, i.marginLaps) : 0
   if (
     !Number.isFinite(fuelL) ||
     !(avgL > 0) ||
@@ -71,6 +130,7 @@ export function fuelStrategy(i: StrategyInput): FuelFinish | null {
       lapsLeft: 0,
       needL: 0,
       deficitL: round1(-fuel),
+      short: false,
       stops: 0,
       addL: 0,
       fill: false,
@@ -78,40 +138,28 @@ export function fuelStrategy(i: StrategyInput): FuelFinish | null {
       saveL: null
     }
   }
+  // The last stop is at the end of the lap before the last: on the last lap there is none.
+  const canStop = current <= finishD - 1
+  const margin = canStop && Number.isFinite(i.marginLaps) ? Math.max(0, i.marginLaps) : 0
   const needL = (lapsLeft + margin) * avgL
   const deficit = needL - fuel
   const base = {
     lap: current,
     lapsLeft: round1(lapsLeft),
     needL: round1(needL),
-    deficitL: round1(deficit)
+    deficitL: round1(deficit),
+    short: fuel + eps < lapsLeft * avgL
   }
-  if (deficit <= 0) {
+  const tank = i.tankL !== null && i.tankL > 0 ? i.tankL : Infinity
+  const course: Course = { fuel, tank, distance, current, finish: finishD, margin }
+  const { stops, window } = canStop ? stopsAt(course, avgL) : { stops: 0, window: null }
+  if (window === null) {
     return { ...base, stops: 0, addL: 0, fill: false, window: null, saveL: null }
   }
 
-  const tank = i.tankL !== null && i.tankL > 0 ? i.tankL : Infinity
-  // The last lap end the fuel reaches, never before the lap in progress (then: stop now).
-  const to = Math.max(current, Math.floor(distance + fuel / avgL + eps))
-  const from = (stops: number): number =>
-    Number.isFinite(tank)
-      ? Math.max(current, Math.ceil(finishD + margin - (stops * tank) / avgL - eps))
-      : current
-  let stops = Number.isFinite(tank) ? Math.max(1, Math.ceil(deficit / tank - eps)) : 1
-  while (from(stops) > to && stops < FUEL_STRATEGY.maxStops) stops++
-  const first = Math.min(from(stops), to)
-
   // At the window's first lap the tank has room for the rest, or the stop fills it.
-  const room = tank - Math.max(0, fuel - (first - distance) * avgL)
+  const room = tank - Math.max(0, fuel - (window.from - distance) * avgL)
   const fill = deficit > room + eps
   const addL = ceil1(Math.max(0, Math.min(deficit, room)))
-
-  let saveL: number | null = null
-  const available = fuel + (stops - 1) * (Number.isFinite(tank) ? tank : 0)
-  const target = available / (lapsLeft + margin)
-  if (target > 0 && target < avgL && 1 - target / avgL <= FUEL_STRATEGY.saveReach) {
-    saveL = floor2(target)
-  }
-
-  return { ...base, stops, addL, fill, window: { from: first, to }, saveL }
+  return { ...base, stops, addL, fill, window, saveL: saveRate(course, avgL, stops) }
 }
