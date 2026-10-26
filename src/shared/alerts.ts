@@ -9,9 +9,9 @@
  * got in the car, fed on every tick by observe()) lives in one AlertsProvider per telemetry loop.
  *
  * Out of the car no flag is shown (the replay, the session screen, the garage: nothing there is
- * yours to act on). The engine's lights are quiet while towed, in the box and as you get in the
- * car, when they flicker at a standstill (online, every one of them did); the pressure lights
- * also need the engine running.
+ * yours to act on). The engine's lights are quiet while towed, in the box, out of the world and as
+ * you get in the car, when they flicker at a standstill (online, every one of them did), and one
+ * held from before does not carry into that; the pressure lights also need the engine running.
  */
 import { arrayEqual, deepEqual } from './equal'
 import { CAUTION_FLAGS, EngineWarning, SessionFlag } from './flags'
@@ -163,6 +163,9 @@ const ENGINE_WARNINGS = Object.keys(ENGINE_WARNING_BITS) as EngineWarningKind[]
 
 /** The pressures drop with the engine: not shown while it is stalled or not running. */
 const ENGINE_OFF_HIDES: ReadonlySet<EngineWarningKind> = new Set(['oilPressure', 'fuelPressure'])
+
+/** The notices read from the engine's lights: none while the engine is quiet (engineQuiet). */
+const ENGINE_NOTICES: ReadonlySet<NoticeKind> = new Set<NoticeKind>(['stalled', ...ENGINE_WARNINGS])
 
 /** The on/off options of AlertsOptions. */
 export type AlertToggle = {
@@ -517,6 +520,7 @@ export class AlertsProvider {
     flags: readonly FlagKind[]
   ): AlertNotice[] {
     const raw = this.detect(frame, session, race, player, onPitRoad, now, holdS)
+    const quiet = this.engineQuiet(frame, now)
     const out: AlertNotice[] = []
     for (const kind of NOTICE_ORDER) {
       if (!opts[NOTICE_OPTION[kind]]) continue
@@ -527,11 +531,34 @@ export class AlertsProvider {
         if (notice) out.push(notice)
         continue
       }
+      // A light held from before the tow or the reset says nothing about the engine now.
+      if (quiet && ENGINE_NOTICES.has(kind)) {
+        this.noticeSeen.delete(kind)
+        continue
+      }
       if (notice) this.noticeSeen.set(kind, { at: now, notice })
       const seen = this.noticeSeen.get(kind)
       if (seen && (now - seen.at < holdS || seen.at === now)) out.push(seen.notice)
     }
     return out
+  }
+
+  /**
+   * The engine's lights mean nothing while towed, in the box, out of the world (the tow or a reset
+   * taking the car away), just after it reappears or as you get in the car: they flicker at a
+   * standstill then (the engine starting, the tow's own engine model). Online the stall light
+   * came on as the tow lifted the car, a moment before PlayerCarTowTime started counting.
+   */
+  private engineQuiet(frame: TelemetryFrame, now: number): boolean {
+    const surface = frame.PlayerTrackSurface[0]
+    return (
+      frame.IsOnTrack[0] !== true ||
+      finiteOr(frame.PlayerCarTowTime[0], 0) > 0 ||
+      surface === TrackLocation.InPitStall ||
+      surface === TrackLocation.NotInWorld ||
+      within(now, this.appearedAt, ALERTS.teleportS) ||
+      within(now, this.inCarSince, ALERTS.inCarSettleS)
+    )
   }
 
   /** Each notice that is on right now, before options and holds. */
@@ -554,14 +581,7 @@ export class AlertsProvider {
     const speedMs = Math.abs(finiteOr(frame.Speed[0], 0))
     const surface = frame.PlayerTrackSurface[0]
     const towS = finiteOr(frame.PlayerCarTowTime[0], 0)
-
-    // The engine's lights mean nothing while towed, in the box or as you get in the car: they
-    // flicker at a standstill then (the engine starting, the tow's own engine model).
-    const quiet =
-      !inCar ||
-      towS > 0 ||
-      surface === TrackLocation.InPitStall ||
-      within(now, this.inCarSince, ALERTS.inCarSettleS)
+    const quiet = this.engineQuiet(frame, now)
     // No pressure without the engine running: moving, or stopped at its idle at least.
     const idleRpm = finiteOr(session.driverCarIdleRpm, 0)
     const running =

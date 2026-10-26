@@ -21,7 +21,7 @@
  * Queries (timeGap, gapHistory, lapsRemaining...) run at provider rate
  * (queries.ts).
  */
-import { CAUTION_FLAGS, LAPS_REMAIN_UNLIMITED } from '../flags'
+import { CAUTION_FLAGS, LAPS_REMAIN_UNLIMITED, SessionFlag } from '../flags'
 import { isValidPct } from '../lapDist'
 import { finiteOr, frac } from '../num'
 import { isRaceSession, resolveFocusCarIdx } from '../sessionInfo'
@@ -54,6 +54,12 @@ const TIME_BACKWARD_S = 1
 const OFFLINE_RESUME_S = 60
 /** Crawl threshold (s per lap) of a car with no pace, for the standing-start check. */
 const FALLBACK_LAP_S = 120
+/**
+ * The green light (SessionFlags Green before SessionState reads Racing) is the race start when it
+ * came on at most this long (s) before: iRacing times lap 1 from it (online: lights at 105.42,
+ * Racing at 106.47, lap 1 of 1:17.440 from the lights).
+ */
+const GREEN_LIGHT_LEAD_S = 5
 
 /** SectorStartPct values snapped to timing lines; [] unless they start at 0. */
 function snapSectors(starts: readonly number[]): number[] {
@@ -112,6 +118,8 @@ export class RaceModel {
   private sawPreRace = false
   /** SessionTime of the green flag; -Infinity when the model joined after it. */
   private raceStartT = NaN
+  /** SessionTime the green light came on before the race (NaN: not on). */
+  private greenLightT = NaN
   /** SessionTime SessionState first read Checkered. */
   private checkeredAt = NaN
   /** SessionTime the overall leader took the flag: crossings from then on finish. */
@@ -237,13 +245,17 @@ export class RaceModel {
     this.sessionState = state
     this.racing = this.isRace && state >= SessionState.Racing
     this.racingNow = this.isRace && state === SessionState.Racing
+    const sessionFlags = finiteOr(frame.SessionFlags[0], 0)
     if (this.isRace && state >= SessionState.GetInCar && state < SessionState.Racing) {
       this.sawPreRace = true
+      // The start lights go green a moment before SessionState reads Racing.
+      if ((sessionFlags & SessionFlag.Green) === 0) this.greenLightT = NaN
+      else if (Number.isNaN(this.greenLightT)) this.greenLightT = t
     }
     const raceStart = this.racing && Number.isNaN(this.raceStartT)
     // Joined after the green: its time (and the first racing lap) is unknown.
-    if (raceStart) this.raceStartT = this.sawPreRace ? t : -Infinity
-    this.caution = (finiteOr(frame.SessionFlags[0], 0) & CAUTION_FLAGS) !== 0
+    if (raceStart) this.raceStartT = this.sawPreRace ? this.greenAt(t) : -Infinity
+    this.caution = (sessionFlags & CAUTION_FLAGS) !== 0
 
     for (let k = 0; k < this.eligibleCount; k++) {
       this.updateCar(this.eligible[k] ?? 0, frame, raceStart)
@@ -327,6 +339,7 @@ export class RaceModel {
     this.racingNow = false
     this.sawPreRace = false
     this.raceStartT = NaN
+    this.greenLightT = NaN
     this.checkeredAt = NaN
     this.finishStartT = NaN
     this.caution = false
@@ -564,6 +577,12 @@ export class RaceModel {
       }
     }
     this.incidents = finiteOr(frame.PlayerCarMyIncidentCount[0], 0)
+  }
+
+  /** The race start at the tick SessionState reads Racing (`t`): the green light, when just before. */
+  private greenAt(t: number): number {
+    const lead = t - this.greenLightT
+    return lead >= 0 && lead <= GREEN_LIGHT_LEAD_S ? this.greenLightT : t
   }
 
   /** The car's measured speed is a crawl (motion.ts): stopped on the grid, in its box... */

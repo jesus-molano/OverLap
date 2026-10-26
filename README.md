@@ -85,9 +85,9 @@ Fuera de Windows se puede desarrollar con `npm run dev:mock` (Linux/macOS).
 Si iRacing no está abierto, Relativo y Clasificación muestran **"Esperando a iRacing…"** unos 8 s y
 luego se ocultan, para no quedarse sobre el escritorio al cerrar el simulador (en modo edición siguen
 para colocarlos; `visibility.showWhileWaiting` los mantiene; un error de telemetría se queda a la
-vista). El radar sigue oculto, igual que cuando no hay nadie cerca, y se reintenta la conexión cada ~2 s. Si se corta la conexión,
-los widgets dejan de pintar el último dato en vez de quedarse congelados. Si el proceso de telemetría
-falla, main lo reinicia con espera creciente.
+vista). El radar sigue oculto, igual que cuando no hay nadie cerca, y se reintenta la conexión cada
+~2 s. Si se corta la conexión, los widgets dejan de pintar el último dato en vez de quedarse
+congelados. Si el proceso de telemetría falla, main lo reinicia con espera creciente.
 
 ## Uso
 
@@ -289,7 +289,8 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
   **GRÚA** en boxes y no cuenta como parada, y la vuelta que iRacing le acredita en el box no suma
   al stint. Si no se sabe el intervalo y la columna de hueco al líder ya lo dice, «—» (no «+1L» dos
   veces).
-- **Vuelta 1** de una salida parada: cronometrada desde la verde, como iRacing.
+- **Vuelta 1** de una salida parada: cronometrada desde que el semáforo se pone verde, como iRacing
+  (un segundo antes de que la sesión pase a carrera).
 - **Al final**: un retirado queda a (vueltas del ganador − las suyas); la cabecera dice «Última
   vuelta» hasta que tú cruzas la meta y entonces «Final».
 - **Clasificación y práctica**: sin tiempo no hay puesto ni «LÍDER», y tu ventana sigue anclada en
@@ -413,8 +414,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
     el motor en marcha: a más de 5 m/s o al 80 % del ralentí, `DriverCarIdleRPM`) y temperatura del
     agua y del aceite (`TEMP. AGUA`). Las temperaturas pueden seguir encendidas vueltas enteras: van
     detrás de las banderas amarilla y azul, que no se quedan en un chip por ellas.
-  - Ningún aviso del motor (calado, testigos, daños) durante la grúa, en tu box ni los 3 s después de
-    subir al coche: ahí parpadean con el coche parado.
+  - Ningún aviso del motor (calado, testigos, daños) durante la grúa, en tu box, con el coche fuera
+    del mundo, los 2 s después de reaparecer ni los 3 s después de subir al coche: ahí parpadean con
+    el coche parado. Un testigo que venía de antes no se mantiene en ese rato.
   - **Temperatura al alza**: `AGUA 98 °C ↑ +6 vs tu media` cuando el agua o el aceite siguen 20 s
     por encima de tu media de vueltas limpias de la sesión, con `(¿rebufo?)` si ibas pegado a otro
     coche. Solo cuentan vueltas a 1 °C o menos de la anterior (no las de calentamiento), y la media

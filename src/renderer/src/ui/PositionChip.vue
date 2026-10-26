@@ -2,7 +2,8 @@
 /**
  * Class position. Plain figures for everyone; filled with the accent means "you"; a warn ring
  * means off-track. On your own off-track cell the warning wins (ring, no fill): the row's
- * bracket still says it is you.
+ * bracket still says it is you. Without a position (qualifying before your first time) there is
+ * no number to fill: an empty accent box would read as a missing number, so no fill either.
  */
 withDefaults(
   defineProps<{
@@ -17,7 +18,9 @@ withDefaults(
 </script>
 
 <template>
-  <span class="ov-pos" :class="{ 'ov-pos--player': player, 'ov-pos--warn': warn }">{{ pos }}</span>
+  <span class="ov-pos" :class="{ 'ov-pos--player': player && pos !== '', 'ov-pos--warn': warn }">{{
+    pos
+  }}</span>
 </template>
 
 <style>

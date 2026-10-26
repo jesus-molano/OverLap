@@ -547,6 +547,23 @@ describe('engine', () => {
     // Already in the car when the provider starts: nothing to wait for.
     expect(kinds(new Tick().warnings(lights).run())).toEqual(['stalled', 'water'])
   })
+
+  it('quiet out of the world and as the car reappears; nothing held carries into it (Q2)', () => {
+    // Online: stalled after the crash, the tow lifts the car (surface -1) with the stall light
+    // on, puts it in its stall 20 ms later and only then starts counting down.
+    const lights = EngineWarning.OilPressure | EngineWarning.Stalled
+    const k = new Tick().warnings(lights)
+    expect(kinds(k.run({ holdS: 3 }))).toEqual(['stalled'])
+    k.frame.PlayerTrackSurface[0] = TrackLocation.NotInWorld
+    expect(k.run({ holdS: 3 }).notices).toEqual([])
+    // Back in the world, still before the countdown: not for teleportS, and the hold is gone.
+    k.frame.PlayerTrackSurface[0] = TrackLocation.OnTrack
+    k.warnings(0)
+    expect(k.runFor(ALERTS.teleportS - 0.2, { holdS: 3 }).notices).toEqual([])
+    k.warnings(lights)
+    expect(k.run({ holdS: 3 }).notices).toEqual([])
+    expect(kinds(k.runFor(0.4, { holdS: 3 }))).toEqual(['stalled'])
+  })
 })
 
 describe('damage (Q12)', () => {
