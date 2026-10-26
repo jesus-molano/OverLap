@@ -115,7 +115,7 @@ describe('isSettingsCommand', () => {
       { type: 'capture-shortcuts', on: 'true' },
       { type: 'reset-widget-bounds', widgetId: 'toString' },
       { type: 'reset-widget-bounds' },
-      { type: 'reset-widget-options', widgetId: 'fuel' },
+      { type: 'reset-widget-options', widgetId: 'pitboard' },
       { type: 'reset-widget-options' },
       { type: 'delete-personal-bests' },
       { type: 'delete-personal-bests', keys: [] },
@@ -305,6 +305,24 @@ describe('diffSettings and the widget options', () => {
       })
     ).toBe(false)
     expect(configChanged((s) => (s.widgets.conditions.showIn.race = false))).toBe(true)
+  })
+
+  it('the fuel lines are drawing only; the average and the margin go to the telemetry process', () => {
+    expect(
+      configChanged((s) => {
+        s.fuel.showHeader = !s.fuel.showHeader
+        s.fuel.showGauge = !s.fuel.showGauge
+        s.fuel.showPerLap = !s.fuel.showPerLap
+        s.fuel.showFinish = !s.fuel.showFinish
+        s.fuel.showBox = !s.fuel.showBox
+        s.fuel.showWindow = !s.fuel.showWindow
+        s.fuel.showSave = !s.fuel.showSave
+        s.fuel.showTyres = !s.fuel.showTyres
+        s.fuel.showLimits = !s.fuel.showLimits
+      })
+    ).toBe(false)
+    expect(configChanged((s) => (s.fuel.avgLaps = 3))).toBe(true)
+    expect(configChanged((s) => (s.fuel.marginLaps = 1))).toBe(true)
   })
 })
 

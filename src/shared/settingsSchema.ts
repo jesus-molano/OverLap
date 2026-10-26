@@ -287,7 +287,7 @@ export const OPTION_SCHEMA = {
     }
   },
   // The provider filters and holds the alerts itself: nothing here is display-only. In UI order:
-  // flags, pit lane, race, engine.
+  // flags, pit lane, race, engine, fuel.
   alerts: {
     showFlags: { kind: 'bool', default: true },
     showBlue: { kind: 'bool', default: true },
@@ -303,6 +303,8 @@ export const OPTION_SCHEMA = {
     showStalled: { kind: 'bool', default: true },
     showEngineWarnings: { kind: 'bool', default: true },
     showEngineTrend: { kind: 'bool', default: true },
+    showBoxThisLap: { kind: 'bool', default: true },
+    showFuelLow: { kind: 'bool', default: true },
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
   },
   // The reference choice changes what the provider computes; the rest is drawing. References in
@@ -341,6 +343,21 @@ export const OPTION_SCHEMA = {
     showDeclaredWet: { kind: 'bool', default: true, displayOnly: true },
     showSkies: { kind: 'bool', default: true, displayOnly: true },
     showRubber: { kind: 'bool', default: true, displayOnly: true }
+  },
+  // The provider sends every line: each is drawn or not. The average and the margin change what
+  // it computes (the average also the alerts band's fuel alerts).
+  fuel: {
+    showHeader: { kind: 'bool', default: false, displayOnly: true },
+    showGauge: { kind: 'bool', default: true, displayOnly: true },
+    showPerLap: { kind: 'bool', default: true, displayOnly: true },
+    showFinish: { kind: 'bool', default: true, displayOnly: true },
+    showBox: { kind: 'bool', default: true, displayOnly: true },
+    showWindow: { kind: 'bool', default: true, displayOnly: true },
+    showSave: { kind: 'bool', default: true, displayOnly: true },
+    showTyres: { kind: 'bool', default: true, displayOnly: true },
+    showLimits: { kind: 'bool', default: true, displayOnly: true },
+    avgLaps: { kind: 'int', min: 2, max: 10, default: 5 },
+    marginLaps: { kind: 'number', min: 0, max: 3, decimals: 1, default: 0.5, step: 0.1 }
   },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them.
   shortcuts: {

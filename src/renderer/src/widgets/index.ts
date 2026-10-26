@@ -15,5 +15,6 @@ export const WIDGET_COMPONENTS: { [K in WidgetId]: Component } = {
   traffic: defineAsyncComponent(() => import('./traffic/TrafficWidget.vue')),
   alerts: defineAsyncComponent(() => import('./alerts/AlertsWidget.vue')),
   delta: defineAsyncComponent(() => import('./delta/DeltaWidget.vue')),
-  conditions: defineAsyncComponent(() => import('./conditions/ConditionsWidget.vue'))
+  conditions: defineAsyncComponent(() => import('./conditions/ConditionsWidget.vue')),
+  fuel: defineAsyncComponent(() => import('./fuel/FuelWidget.vue'))
 }

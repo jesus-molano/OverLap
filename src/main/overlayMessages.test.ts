@@ -53,7 +53,7 @@ describe('parseBoundsCommit', () => {
       { ...ok, seq: 0 },
       { ...ok, seq: Number.MAX_SAFE_INTEGER + 2 },
       { ...ok, seq: -1 },
-      { ...ok, widget: 'fuel' },
+      { ...ok, widget: 'pitboard' },
       { ...ok, widget: 'toString' },
       { ...ok, session: undefined }
     ]) {

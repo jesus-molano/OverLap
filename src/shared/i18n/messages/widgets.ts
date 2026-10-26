@@ -229,6 +229,13 @@ export const widgetsEs = {
         short: 'P. GASOLINA',
         note: 'baja',
         chip: 'P. GASOLINA'
+      },
+      // The pit window closes on this lap: stop at the end of it or run dry.
+      boxThisLap: {
+        label: 'ENTRA ESTA VUELTA',
+        short: 'BOX ESTA V.',
+        note: 'se cierra la ventana',
+        chip: 'BOX ESTA V.'
       }
     },
     /**
@@ -245,6 +252,11 @@ export const widgetsEs = {
       mandatory: { label: 'DAÑOS', note: 'reparación obligatoria' },
       optional: { label: 'DAÑOS LEVES', note: 'reparación opcional' }
     },
+    /** Under two laps of fuel: 'COMBUSTIBLE · 1.6 V' (`laps` written with its decimal). */
+    fuelLow: (laps: string) => `COMBUSTIBLE${NB}·${NB}${laps}${NB}V`,
+    /** Narrow windows and the chip. */
+    fuelLowShort: (laps: string) => `COMB.${NB}${laps}${NB}V`,
+    fuelLowNote: 'para a repostar',
     /** Laps to the end of the race ('QUEDAN 5 V', like the headers): it says "to go" as a chip. */
     lapsToGo: (n: number) => `QUEDAN${NB}${n}${NB}V`,
     lapsToGoNote: 'para el final',
@@ -346,6 +358,48 @@ export const widgetsEs = {
     /** The stewards allow rain tyres (WeatherDeclaredWet). */
     declaredWet: 'DECLARADA MOJADA',
     declaredWetNote: 'neumáticos de lluvia permitidos'
+  },
+  fuel: {
+    /** After a number of laps ('12.9 v'). */
+    laps: 'v',
+    /** After litres per lap ('2.96 L/v'). */
+    perLap: 'L/v',
+    /** No clean lap measured yet. */
+    measuring: 'midiendo…',
+    /** Captions before each reading (drawn in caps). */
+    left: 'Quedan',
+    use: 'Consumo',
+    need: 'Para meta',
+    add: 'Repostar',
+    spare: 'Sobran',
+    /** On the last lap, the litres the fuel falls short of the flag (no stop is left). */
+    short: 'Faltan',
+    window: 'Ventana',
+    save: 'Ahorro',
+    tyres: 'Neum.',
+    repairs: 'Reparaciones',
+    sets: 'Juegos',
+    /** After the average ('últ. 3.02 · máx. 3.10'). */
+    last: (v: string) => `últ.${NB}${v}`,
+    max: (v: string) => `máx.${NB}${v}`,
+    /** The average comes from the last session with this car and track. */
+    carried: 'de la sesión anterior',
+    /** The next stop fills the tank. */
+    fill: 'LLENO',
+    /** What the pit menu adds ('caja 20 L'). */
+    box: (litres: string) => `caja${NB}${litres}${NB}L`,
+    /** The pit window: 'V24–V28', or 'V24' when it is one lap. */
+    window1: (lap: number) => `V${lap}`,
+    windowN: (from: number, to: number) => `V${from}–V${to}`,
+    /** The stops still needed. */
+    stops: (n: number) => (n === 1 ? '1 parada' : `${n} paradas`),
+    noStop: 'sin parar',
+    /** What saving that much gets you: one stop less. */
+    saveFor: (n: number) => (n === 1 ? 'con 1 parada' : `con ${n} paradas`),
+    /** The lap of the tyre reading ('V13'). */
+    readingLap: (lap: number) => `V${lap}`,
+    /** Front left, front right, rear left, rear right. */
+    corners: ['DI', 'DD', 'TI', 'TD']
   }
 } as const
 
@@ -491,7 +545,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       oilPressure: { label: 'OIL PRESSURE', short: '', note: 'low', chip: 'OIL PRESS.' },
       water: { label: 'WATER TEMP', short: '', note: 'too hot', chip: '' },
       oilTemp: { label: 'OIL TEMP', short: '', note: 'too hot', chip: '' },
-      fuelPressure: { label: 'FUEL PRESSURE', short: '', note: 'low', chip: 'FUEL PRESS.' }
+      fuelPressure: { label: 'FUEL PRESSURE', short: '', note: 'low', chip: 'FUEL PRESS.' },
+      boxThisLap: { label: 'BOX THIS LAP', short: '', note: 'pit window closes', chip: '' }
     },
     tow: (clock) => `TOW${NB}${clock}`,
     towNote: 'until you can drive',
@@ -499,6 +554,9 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       mandatory: { label: 'DAMAGE', note: 'repairs required' },
       optional: { label: 'MINOR DAMAGE', note: 'optional repairs' }
     },
+    fuelLow: (laps) => `FUEL${NB}·${NB}${laps}${NB}LAPS`,
+    fuelLowShort: (laps) => `FUEL${NB}${laps}${NB}LAPS`,
+    fuelLowNote: 'pit to refuel',
     lapsToGo: (n) => `${n}${NB}TO GO`,
     lapsToGoNote: 'laps left',
     trend: {
@@ -578,5 +636,33 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     carried: (state) => `${state} (carried over)`,
     declaredWet: 'DECLARED WET',
     declaredWetNote: 'rain tyres allowed'
+  },
+  fuel: {
+    laps: 'laps',
+    perLap: 'L/lap',
+    measuring: 'measuring…',
+    left: 'To go',
+    use: 'Use',
+    need: 'To finish',
+    add: 'Add',
+    spare: 'Spare',
+    short: 'Short',
+    window: 'Window',
+    save: 'Save',
+    tyres: 'Tyres',
+    repairs: 'Fast repairs',
+    sets: 'Tyre sets',
+    last: (v) => `last${NB}${v}`,
+    max: (v) => `max${NB}${v}`,
+    carried: 'from the last session',
+    fill: 'FULL',
+    box: (litres) => `menu${NB}${litres}${NB}L`,
+    window1: (lap) => `L${lap}`,
+    windowN: (from, to) => `L${from}–L${to}`,
+    stops: (n) => (n === 1 ? '1 stop' : `${n} stops`),
+    noStop: 'no stop',
+    saveFor: (n) => (n === 1 ? 'with 1 stop' : `with ${n} stops`),
+    readingLap: (lap) => `L${lap}`,
+    corners: ['FL', 'FR', 'RL', 'RR']
   }
 }
