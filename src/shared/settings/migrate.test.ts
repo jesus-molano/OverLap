@@ -17,7 +17,7 @@ const overlaps = (a: Rect, b: Rect): boolean =>
 /**
  * A layout like the one raced at Lime Rock (report Q5), with the old conditions widget placed
  * where its edit-mode fix put it, from before the fuel widget: the relative moved to the bottom
- * right, right where the fuel default (1200,820 320x170) is.
+ * right, right where the fuel default (1200,840 320x190) is.
  */
 const RACE_LAYOUT: Partial<Record<WidgetId, Rect>> = {
   relative: { x: 1431, y: 796, width: 417, height: 229 },
@@ -82,7 +82,7 @@ describe('a widget newer than the settings file (Q5)', () => {
   it('keeps the default place when no spot is free', () => {
     const wall = { x: 0, y: 0, width: 1920, height: 1080 }
     expect(
-      freeSpot({ width: 320, height: 170 }, { x: 1200, y: 820 }, [wall], DEFAULT_AREA)
+      freeSpot({ width: 320, height: 190 }, { x: 1200, y: 840 }, [wall], DEFAULT_AREA)
     ).toBeNull()
     const s = normalizeSettings({ widgets: { standings: { visible: true, bounds: wall } } })
     expect(s.widgets.fuel.visible).toBe(false)
@@ -116,6 +116,35 @@ describe('a widget newer than the settings file (Q5)', () => {
     ;(raw.widgets as Record<string, unknown>).lights = { visible: false, bounds: saved }
     expect(normalizeSettings(raw).widgets.lights).toMatchObject({ visible: false, bounds: saved })
     expect(normalizeSettings({}).widgets.lights).toEqual(createDefaultSettings().widgets.lights)
+  })
+
+  it('places both newcomers of a file from the last release clear of the others and each other', () => {
+    // The conditions widget still in the file, neither the fuel widget nor the warning lights.
+    const raw = fileBeforeFuel()
+    ;(raw.widgets as Record<string, unknown>).conditions = OLD_CONDITIONS.widget
+    raw.conditions = OLD_CONDITIONS.options
+    raw.alerts = { showEngineWarnings: true, showEngineTrend: true }
+    const s = normalizeSettings(raw)
+    expect('conditions' in s.widgets).toBe(false)
+    expect(s.widgets.fuel.visible).toBe(false)
+    expect(s.widgets.lights.visible).toBe(true)
+    const room = (id: WidgetId): Rect => {
+      const b = s.widgets[id].bounds
+      return id === 'alerts' ? { ...b, height: Math.max(b.height, ALERTS_DEFAULT_ROOM) } : b
+    }
+    for (const id of ['fuel', 'lights'] as const) {
+      const b = s.widgets[id].bounds
+      expect(b.x >= 0 && b.y >= 0, id).toBe(true)
+      expect(b.x + b.width <= DEFAULT_AREA.width && b.y + b.height <= DEFAULT_AREA.height, id).toBe(
+        true
+      )
+      for (const other of WIDGET_IDS) {
+        if (other !== id) expect(overlaps(b, room(other)), `${id} / ${other}`).toBe(false)
+      }
+    }
+    // The band keeps its oil pressure, the lights their trend.
+    expect(s.alerts.showOilPressure).toBe(true)
+    expect(s.lights.showTrend).toBe(true)
   })
 })
 

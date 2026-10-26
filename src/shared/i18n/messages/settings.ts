@@ -595,7 +595,8 @@ export const settingsEs = {
     incidentsHelp: (s: number) =>
       `Al sumar puntos, al menos ${s}${NB}s: «+2x Pérdida de control · V5 · S3 · grava»`,
     /** Under the engine group: where the other lights went. */
-    engineNote: 'Las temperaturas, la gasolina y las reparaciones opcionales están en Testigos',
+    engineNote:
+      'Las temperaturas, la presión de gasolina y las reparaciones opcionales están en Testigos',
     stalled: 'Motor calado',
     stalledHelp: 'Con el coche en pista',
     oilPressure: 'Presión de aceite',
@@ -1399,7 +1400,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     incidents: 'Incidents',
     incidentsHelp: (s) =>
       `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
-    engineNote: 'The temperatures, the fuel and the optional repairs are in Warning lights',
+    engineNote:
+      'The temperatures, the fuel pressure and the optional repairs are in Warning lights',
     stalled: 'Engine stalled',
     stalledHelp: 'With the car on track',
     oilPressure: 'Oil pressure',
