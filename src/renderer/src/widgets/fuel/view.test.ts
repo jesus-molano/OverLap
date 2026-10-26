@@ -101,8 +101,8 @@ describe('fuelView', () => {
       ]
     })
     expect(v.limits).toEqual({
-      repairs: { label: 'Reparaciones', value: '1', unit: '' },
-      sets: { label: 'Juegos', value: '2', unit: '' }
+      repairs: { label: 'Rep. rápidas', value: '1', unit: '' },
+      sets: { label: 'Juegos neum.', value: '2', unit: '' }
     })
   })
 
@@ -259,7 +259,7 @@ describe('fuelView', () => {
     expect(v.limits).toBeNull()
     expect(fuelView(data({ fastRepairs: null }), ALL_ON, ES).limits).toEqual({
       repairs: null,
-      sets: { label: 'Juegos', value: '2', unit: '' }
+      sets: { label: 'Juegos neum.', value: '2', unit: '' }
     })
   })
 

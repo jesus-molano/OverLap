@@ -322,10 +322,12 @@ export const widgetsEs = {
     /** Captions before each reading (drawn in caps). */
     track: 'Pista',
     air: 'Aire',
-    /** Only without the dial (the dial says it is the wind). */
+    /** Only without the dial (no direction, or it is off): the dial says it is the wind. */
     wind: 'Viento',
     rain: 'Lluvia',
     rubber: 'Goma',
+    /** The wetness meter's caption, where a narrow table drops its word. */
+    water: 'Agua',
     /** irsdk_TrackWetness 1..7 (the asphalt: masculine). */
     wetness: [
       'Seco',
@@ -369,8 +371,9 @@ export const widgetsEs = {
     window: 'Ventana',
     save: 'Ahorro',
     tyres: 'Neum.',
-    repairs: 'Reparaciones',
-    sets: 'Juegos',
+    /** What is left of the session's fast repairs and tyre sets (iRacing's limits). */
+    repairs: 'Rep. rápidas',
+    sets: 'Juegos neum.',
     /** After the average ('últ. 3.02 · máx. 3.10'). */
     last: (v: string) => `últ.${NB}${v}`,
     max: (v: string) => `máx.${NB}${v}`,
@@ -602,6 +605,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     wind: 'Wind',
     rain: 'Rain',
     rubber: 'Rubber',
+    water: 'Wet',
     wetness: [
       'Dry',
       'Mostly dry',

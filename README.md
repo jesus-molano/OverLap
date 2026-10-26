@@ -186,11 +186,11 @@ overlay** también está en la bandeja):
 | Opción                                                   | Por defecto                           | Qué hace                                                                       |
 | -------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
 | Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre  |
-| Clasificación en la pantalla de sesión                   | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
 | En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda la clasificación  |
+| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                       |
+| Clasificación en la pantalla de sesión                   | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
 | Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                   |
 | Ocultar en el garaje (`hideInGarage`)                    | Sí                                    | Mientras está abierta la pantalla del garaje                                   |
-| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                       |
 | Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Clasificación siguen con el aviso                      |
 
 - **En el coche** es `IsOnTrack` (tú dentro, con la física en marcha). Fuera del coche (garaje,
@@ -210,7 +210,12 @@ overlay** también está en la bandeja):
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
   (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados. Radar,
-  Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos.
+  Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos; Combustible tampoco: no
+  muestra nada con el sistema de repeticiones activo, y lo está en la pantalla de sesión. Con «Solo
+  cuando estás en el coche» (o «Solo en carrera») y las repeticiones ocultas, la pantalla de sesión
+  ya se oculta por estar fuera del coche: «Ocultar en la pantalla de sesión» sale gris y activado, y
+  solo cuentan las excepciones. Con «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es
+  el punto en directo de las repeticiones, donde los widgets siguen al coche.
 - iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
@@ -446,8 +451,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   - **Combustible** (ver Combustible): `ENTRA ESTA VUELTA` va justo detrás de la presión de aceite y
     no espera a una bandera; `COMBUSTIBLE · 1.6 V`, detrás de las banderas amarilla y azul, que no se
     quedan en un chip por él. Ninguno durante la grúa ni en el pit lane.
-- En un `settings.json` de antes de Testigos, «Testigos del motor» pasa a «Presión de aceite» y una
-  «Temperatura al alza» apagada sigue apagada en Testigos.
+- En un `settings.json` de antes de Testigos, «Testigos del motor» pasa a «Presión de aceite», y lo
+  que Avisos tenía apagado sigue apagado en Testigos: «Testigos del motor» (presiones de aceite y
+  gasolina, agua y aceite), «Daños» (las dos reparaciones), «Motor calado» y «Temperatura al alza».
 - En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
   limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
 
@@ -474,7 +480,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   más de 5 °C (una reparación). Con rótulos dice `¿rebufo?` si ibas pegado a otro coche.
   `WaterTemp` y `OilTemp` dependen del coche: si no los tiene, no hay tendencia ni temperatura.
 - En un `settings.json` de antes de este widget, Testigos empieza **visible** en un hueco libre cerca
-  de su sitio (oculto si no hay ninguno): se lleva lo que antes salía en Avisos.
+  de su sitio (oculto si no hay ninguno): se lleva lo que antes salía en Avisos. Empieza oculto si
+  Avisos estaba oculto o tenía apagado todo lo que se llevó («Testigos del motor», «Daños» y
+  «Temperatura al alza»): no salía nada de eso en pantalla.
 - En modo mock cada testigo se enciende al menos una vez entre los minutos 15 y 22 (las reparaciones
   con 42 y 38 s), y el limitador en tu parada.
 
@@ -511,11 +519,13 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   - el agua, solo si la hay: **DECLARADA MOJADA** (`WeatherDeclaredWet`), el medidor de
     `TrackWetness` desde «Casi seco» y la lluvia (`Precipitation`) desde el 1 %;
   - el viento medio del último minuto, con un dial que apunta a tu coche desde donde sopla
-    (`WindDir` − `YawNorth`, solo al volante);
+    (`WindDir` − `YawNorth`, solo al volante); sin dirección (en calma, fuera del coche) o con el
+    dial desactivado, con su rótulo: `VIENTO 14 km/h`;
   - el aire (`AirTemp`) y la goma al empezar la sesión (`SessionTrackRubberState`; un «carry over»
     muestra el último estado real: «Media-alta (heredada)»).
-- En una tabla estrecha los datos del final se quitan enteros (primero la goma) y el medidor pierde su
-  palabra; nunca se corta un texto. Grados y velocidad según `appearance.units`.
+- En una tabla estrecha los datos del final se quitan enteros (primero la goma) y el medidor cambia su
+  palabra por un rótulo corto (`AGUA`); nunca se corta un texto. Grados y velocidad según
+  `appearance.units`.
 - Se calcula una vez por segundo y solo con algún pie activado; las tablas lo llevan en sus datos y el
   pie solo se vuelve a dibujar cuando cambia lo que muestra.
 - Confirmado en una carrera: `WindDir` es de dónde viene el viento y `YawNorth` gira en sentido

@@ -192,22 +192,28 @@ export const settingsEs = {
       showWhenHints: {
         car: 'Lo normal: el overlay solo cuando estás dentro del coche',
         race: 'Como «Solo cuando estás en el coche», y solo en carreras',
-        always: 'Como hasta ahora: también en el garaje y mirando la carrera'
+        always:
+          'También fuera del coche: pantalla de sesión, el turno de un compañero y mirando la carrera'
       },
       /** widgets.standings.showOnSessionScreen, also in the standings' Ventana section. */
       keepStandings: 'Clasificación en la pantalla de sesión',
-      keepStandingsHelp:
-        'Fuera del coche se queda con los resultados; cada widget tiene esta opción en su sección Ventana',
-      /** Nothing hides on the session screen: showWhen 'always' and hideOnSessionScreen off. */
-      keepStandingsOff:
-        'Se muestra: con «Siempre» y sin ocultar en la pantalla de sesión ahí se ve todo',
+      /** `widgets`: the others with this exception ('Relativo, Batalla, Tráfico y Avisos'). */
+      keepStandingsHelp: (widgets: string) =>
+        `Fuera del coche se queda con los resultados; ${widgets} también pueden quedarse (en su sección Ventana)`,
+      /** Nothing hides on the session screen: hideOnSessionScreen off, and showWhen 'always' or replays followed. */
+      keepStandingsOff: 'Se muestra: sin «Ocultar en la pantalla de sesión», ahí se ve todo',
       simUi: 'Ocultar con la interfaz de iRacing',
       simUiHelp: 'Si ocultas la interfaz del simulador, los widgets también se ocultan',
       garage: 'Ocultar en el garaje',
       garageHelp: 'Mientras tienes abierta la pantalla del garaje',
       sessionScreen: 'Ocultar en la pantalla de sesión',
-      sessionScreenHelp:
-        'Fuera del coche no tapan los resultados ni el chat de iRacing; cada widget puede quedarse (en su sección Ventana)',
+      sessionScreenHelp: 'Fuera del coche no tapan los resultados ni el chat de iRacing',
+      /**
+       * The overlay only for the car and replays hidden: out of the car the session screen hides
+       * already. `rule`: the showWhen choice ('Solo cuando estás en el coche').
+       */
+      sessionScreenAlready: (rule: string) =>
+        `Ya se oculta con «${rule}» y las repeticiones ocultas: solo se quedan los widgets que dejes ahí`,
       replays: 'En repeticiones',
       /** The help line under it, for the current choice. */
       replaysHelp: {
@@ -376,6 +382,9 @@ export const settingsEs = {
       /** The radar, the pedals, the delta: no session-screen switch either. */
       inCarOnly:
         'Solo tiene datos de tu coche y desde dentro: se oculta fuera del coche (también en la pantalla de sesión), en repeticiones y si miras otro coche',
+      /** The fuel: nothing while the replay system is on, so no session-screen switch either. */
+      noSessionScreen:
+        'Solo tiene datos de tu coche: se oculta en repeticiones, en la pantalla de sesión y si miras otro coche',
       hidden:
         'Al rebobinar se oculta (Apariencia > Visibilidad); en directo sigue al coche que miras',
       /** Replays hidden with the overlay only in the car: watching from out of it hides too. */
@@ -1026,20 +1035,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
       showWhenHints: {
         car: 'The usual: the overlay only while you are in the car',
         race: 'Like “Only when you are in the car”, and in races only',
-        always: 'As before: in the garage and while watching the race too'
+        always: 'Out of the car too: the session screen, a teammate’s stint and watching the race'
       },
       keepStandings: 'Standings on the session screen',
-      keepStandingsHelp:
-        'Out of the car they stay with the results; every widget has this option in its Window section',
-      keepStandingsOff:
-        'Shown: with “Always” and the session screen not hidden, everything shows there',
+      keepStandingsHelp: (widgets) =>
+        `Out of the car they stay with the results; ${widgets} can stay too (in their Window section)`,
+      keepStandingsOff: 'Shown: without “Hide on the session screen”, everything shows there',
       simUi: 'Hide with the iRacing UI',
       simUiHelp: 'When you hide the sim’s interface, the widgets hide too',
       garage: 'Hide in the garage',
       garageHelp: 'While the garage screen is open',
       sessionScreen: 'Hide on the session screen',
-      sessionScreenHelp:
-        'Out of the car they keep clear of iRacing’s results and chat; each widget can stay (in its Window section)',
+      sessionScreenHelp: 'Out of the car they keep clear of iRacing’s results and chat',
+      sessionScreenAlready: (rule) =>
+        `Already hidden with “${rule}” and replays hidden: only the widgets you keep there stay`,
       replays: 'In replays',
       replaysHelp: {
         hide: 'No widgets while you watch a replay, nor while you watch other cars live from out of the car',
@@ -1191,6 +1200,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       liveOnly: 'Only your car’s data: hidden in replays and when you watch another car',
       inCarOnly:
         'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car',
+      noSessionScreen:
+        'Only your car’s data: hidden in replays, on the session screen and when you watch another car',
       hidden:
         'Hidden when you rewind (Appearance > Visibility); live, it follows the car you watch',
       hiddenOutOfCar:

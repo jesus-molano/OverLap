@@ -137,7 +137,7 @@ describe('footerView', () => {
     const v = view(SHOWER)
     expect(v.track).toEqual({ label: 'Pista', value: '28', unit: '°C', trend: 'arrow-down' })
     expect(v.declaredWet).toBe('DECLARADA MOJADA')
-    expect(v.wetness).toEqual({ value: 'Poco mojado', cells: 3 })
+    expect(v.wetness).toEqual({ label: 'Agua', value: 'Poco mojado', cells: 3 })
     expect(v.rain).toEqual({ label: 'Lluvia', value: `40${NB}%`, unit: '' })
     expect(v.wind).toEqual({
       label: 'Viento',
@@ -171,7 +171,7 @@ describe('footerView', () => {
     expect(view(data({ precipPct: 0.4 })).rain).toBeNull()
     expect(view(data({ precipPct: 0.6 })).rain?.value).toBe(`1${NB}%`)
     // Mostly dry is the first level past dry: one cell; extremely wet fills the meter.
-    expect(view(data({ wetness: 2 })).wetness).toEqual({ value: 'Casi seco', cells: 1 })
+    expect(view(data({ wetness: 2 })).wetness).toMatchObject({ value: 'Casi seco', cells: 1 })
     expect(view(data({ wetness: 7 })).wetness?.cells).toBe(WETNESS_CELLS)
     expect(WETNESS_CELLS).toBe(6)
   })
@@ -221,10 +221,14 @@ describe('footerView', () => {
     expect(hasFooter(none)).toBe(false)
   })
 
-  it('draws no direction in a calm or without one, the dial still there', () => {
-    expect(view(data({ windKmh: 1 })).wind).toMatchObject({ dial: true, fromDeg: null })
-    expect(view(data({ windFromDeg: null })).wind).toMatchObject({ dial: true, fromDeg: null })
-    expect(view(data({ windFromDeg: 170 })).wind?.fromDeg).toBe(170)
+  it('draws the caption instead of an empty dial in a calm or without a direction', () => {
+    // Out of the car (the session screen) there is no direction: 'VIENTO 14 km/h', not a ring.
+    const caption = { dial: false, fromDeg: null, label: 'Viento' }
+    expect(view(data({ windKmh: 1 })).wind).toMatchObject(caption)
+    expect(view(data({ windFromDeg: null })).wind).toMatchObject(caption)
+    expect(view(data({ windFromDeg: 170 })).wind).toMatchObject({ dial: true, fromDeg: 170 })
+    const off = view(data({ windFromDeg: 170 }), { conditionsWindDirection: false })
+    expect(off.wind).toMatchObject(caption)
   })
 
   it('leaves out what the sim does not send, never "—"', () => {
@@ -269,7 +273,7 @@ describe('the edit-mode sample', () => {
   it('is a drying track: the meter, no rain, no call, every default reading shown', () => {
     const v = view(PREVIEW_CONDITIONS)
     expect(items(v)).toEqual(['track', 'wetness', 'wind', 'air', 'rubber'])
-    expect(v.wetness).toEqual({ value: 'Algo húmedo', cells: 2 })
+    expect(v.wetness).toEqual({ label: 'Agua', value: 'Algo húmedo', cells: 2 })
   })
 
   it('matches the default options of both tables but the switch', () => {

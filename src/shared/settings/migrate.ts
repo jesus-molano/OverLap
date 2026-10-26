@@ -7,8 +7,9 @@
  * files the shortcuts or visibility section: no version bump, they get their
  * defaults like any missing section. A file from before the fuel widget gets it
  * hidden, in a free spot (`placeNewWidget`); one from before the warning lights
- * gets them shown in a free spot, and the alerts band's old engine options moved
- * to where those lights went (`migrateSection`). The conditions widget became the
+ * gets them in a free spot, shown if the alerts band showed what they took over
+ * (`shownWhenAdded`), and the band's old engine options moved to where those
+ * lights went (`migrateSection`). The conditions widget became the
  * footer of the relative and the standings: what a file saved for it
  * (REMOVED_WIDGETS) is dropped like any unknown key, the rest of the file
  * untouched, and the footers start with their own defaults. A visibility section
@@ -16,6 +17,7 @@
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type {
+  LightsOptions,
   OverlaySettings,
   Point,
   Rect,
@@ -48,7 +50,7 @@ export const REMOVED_WIDGETS: readonly string[] = Object.freeze(['conditions'])
  * Widgets added after settings files existed that such a file gets shown, in the free spot
  * nearest their default (hidden like the others when there is none): the warning lights took the
  * temperature lights and the trend from the alerts band, so hiding them would drop what the band
- * showed until then.
+ * showed until then. Not when the band showed none of it (`shownWhenAdded`).
  */
 export const SHOWN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['lights'])
 
@@ -159,14 +161,52 @@ export function migrateAlerts(raw: Record<string, unknown>): Record<string, unkn
 }
 
 /**
- * The warning lights of a file from before them (no lights section): a trend turned off in the
- * alerts band (`alerts.showEngineTrend` false) stays off in the lights, where it went.
+ * The alerts band's engine options before the warning lights, and the lights each one covered:
+ * the four engine lights, the stall, the damage (mandatory and optional repairs), the trend.
+ */
+type Lights = readonly (keyof LightsOptions)[]
+const BAND_TO_LIGHTS: readonly (readonly [band: string, lights: Lights])[] = [
+  ['showEngineWarnings', ['showOilPressure', 'showFuelPressure', 'showWater', 'showOilTemp']],
+  ['showStalled', ['showStalled']],
+  ['showDamage', ['showRepair', 'showRepairOptional']],
+  ['showEngineTrend', ['showTrend']]
+]
+
+/**
+ * The band's options whose lights left it, wholly or in part, for the warning lights: the
+ * temperature and fuel pressure lights, the optional repairs, the trend. (The stall stayed.)
+ */
+const BAND_MOVED: readonly string[] = ['showEngineWarnings', 'showDamage', 'showEngineTrend']
+
+/**
+ * The warning lights of a file from before them (no lights section): what the alerts band was
+ * told not to say stays off in the lights, where it went (BAND_TO_LIGHTS); the rest takes the
+ * defaults.
  */
 export function migrateLights(raw: unknown, file: Record<string, unknown>): unknown {
   if (raw !== undefined) return raw
   const alerts = file.alerts
-  if (!isRecord(alerts) || typeof alerts.showEngineTrend !== 'boolean') return raw
-  return { showTrend: alerts.showEngineTrend }
+  if (!isRecord(alerts)) return raw
+  const off: Partial<Record<keyof LightsOptions, boolean>> = {}
+  for (const [band, lights] of BAND_TO_LIGHTS) {
+    if (alerts[band] === false) for (const l of lights) off[l] = false
+  }
+  return Object.keys(off).length > 0 ? off : raw
+}
+
+/**
+ * Whether a file without the SHOWN_WHEN_ADDED widget `id` gets it shown. The warning lights only
+ * when its alerts band showed something they took over: the band shown, with one of the options
+ * that moved (BAND_MOVED, each on by default) on. A band hidden, or with all of them off, showed
+ * none of it: a new strip on screen would be news to its driver, so it waits hidden.
+ */
+export function shownWhenAdded(id: WidgetId, file: Record<string, unknown>): boolean {
+  if (id !== 'lights') return true
+  const widgets = isRecord(file.widgets) ? file.widgets : {}
+  const band = widgets.alerts
+  if (isRecord(band) && band.visible === false) return false
+  const alerts = isRecord(file.alerts) ? file.alerts : {}
+  return BAND_MOVED.some((o) => alerts[o] !== false)
 }
 
 /**

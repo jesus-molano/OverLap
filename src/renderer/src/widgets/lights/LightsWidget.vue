@@ -156,17 +156,28 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   align-items: flex-start;
 }
 
+/* A reading sits close to its own light, so it never reads as the next one's. */
 .wl-light {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 0.35em;
+  gap: 0.2em;
   min-width: 0;
   max-width: 100%;
 }
 
+/*
+ * In a row, the next light starts further from a reading than the reading from its own light.
+ * After it, so a row that wraps starts its next line flush.
+ */
+.wl-strip:not(.wl-strip--column) > .wl-light:has(> .wl-text):not(:last-child) {
+  margin-right: 0.4em;
+}
+
+/* The letter spacing after the last letter is taken back: the room after it is the strip's. */
 .wl-text {
   min-width: 0;
+  margin-right: calc(-1 * var(--ov-track-tag));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

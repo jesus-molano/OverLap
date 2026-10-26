@@ -44,6 +44,12 @@ export interface WidgetDef {
    * it shows nothing whatever its rules say (the radar, the pedals, the delta).
    */
   readonly inCarOnly?: true
+  /**
+   * Shows nothing while iRacing's replay system is on (IsReplayPlaying), its live point
+   * included: so never on the session screen, where it is on (the fuel, whose readings would be
+   * the car on camera's or the tape's). No session-screen exception for it, like inCarOnly.
+   */
+  readonly noSessionScreen?: true
 }
 
 /**
@@ -185,7 +191,8 @@ export const WIDGET_DEFS = {
     defaultVisible: true,
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: false, qualify: false, race: true }
+    defaultShowIn: { practice: false, qualify: false, race: true },
+    noSessionScreen: true
   }
 } as const satisfies Record<string, WidgetDef>
 
@@ -229,6 +236,15 @@ export function keepsLiveInReplay(id: WidgetId): boolean {
 export function inCarOnly(id: WidgetId): boolean {
   const def: WidgetDef = WIDGET_DEFS[id]
   return def.inCarOnly === true
+}
+
+/**
+ * It can show something on the session screen, so its session-screen exception means something
+ * (WidgetSettings.showOnSessionScreen): neither WidgetDef.inCarOnly nor noSessionScreen.
+ */
+export function canShowOnSessionScreen(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.inCarOnly !== true && def.noSessionScreen !== true
 }
 
 /** WidgetDef.defaultOnSessionScreen: WidgetSettings.showOnSessionScreen by default. */
