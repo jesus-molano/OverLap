@@ -14,6 +14,7 @@ import {
 import { EngineWarning, SessionFlag } from './flags'
 import { DAMAGE } from './notices/damage'
 import { ENGINE_TREND } from './notices/engineTrend'
+import type { FuelAlertInput } from './notices/fuel'
 import { LAPS_TO_GO } from './notices/lapsToGo'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
 import { makeFrame, makeSession } from './race/testing/raceSim'
@@ -38,6 +39,8 @@ class Tick {
   readonly frame: MutableFrame = makeFrame()
   session: SessionMeta = makeSession(3, { pitSpeedLimitKmh: 60 })
   race: RaceView = EMPTY_RACE_VIEW
+  /** The fuel plan handed to compute(), as fuelAlertInput gives it. */
+  fuel: FuelAlertInput | null = null
   readonly p = new AlertsProvider()
   /** 10 Hz ticks since SessionTime 100 s (an integer count, so times do not drift). */
   private n = 0
@@ -50,7 +53,7 @@ class Tick {
     this.n += ticks
     this.frame.SessionTime[0] = (1000 + this.n) / 10
     this.p.observe(this.frame, this.session, this.race)
-    return this.p.compute(this.frame, this.session, this.race, { ...OPTS, ...o })
+    return this.p.compute(this.frame, this.session, this.race, { ...OPTS, ...o }, this.fuel)
   }
 
   /** Every 10 Hz tick for `seconds`; the last payload. */
@@ -452,6 +455,16 @@ describe('order of the alerts', () => {
     expect(rank('damage')).toBeGreaterThan(rank('meatball'))
     expect(rank('damage')).toBeLessThan(rank('stalled'))
   })
+
+  it('puts the stop this lap after the pressures, above the flags that pass; low fuel later', () => {
+    const rank = (k: (typeof ALERT_ORDER)[number]): number => ALERT_ORDER.indexOf(k)
+    for (const k of ['tow', 'damage', 'oilPressure', 'fuelPressure'] as const) {
+      expect(rank('boxThisLap'), k).toBeGreaterThan(rank(k))
+    }
+    expect(rank('boxThisLap')).toBeLessThan(rank('yellow'))
+    expect(rank('fuelLow')).toBeGreaterThan(rank('blue'))
+    expect(rank('fuelLow')).toBeLessThan(rank('water'))
+  })
 })
 
 describe('engine', () => {
@@ -610,6 +623,42 @@ describe('damage (Q12)', () => {
     k.frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
     expect(k.run().notices).toEqual([])
     k.frame.PlayerTrackSurface[0] = TrackLocation.OnTrack
+    k.frame.IsOnTrack[0] = false
+    expect(k.run().notices).toEqual([])
+  })
+})
+
+describe('fuel', () => {
+  /** Short of the flag, under two laps of fuel, the window closing on this lap. */
+  const SHORT: FuelAlertInput = { lapsOfFuel: 1.64, short: true, closesThisLap: true }
+
+  it('the stop and the low fuel of the plan, between the pressures and the temperatures', () => {
+    const k = new Tick()
+    k.fuel = SHORT
+    k.frame.Speed[0] = 20
+    k.warnings(EngineWarning.OilPressure | EngineWarning.WaterTemp)
+    expect(k.run().notices).toEqual([
+      { kind: 'oilPressure' },
+      { kind: 'boxThisLap' },
+      { kind: 'fuelLow', laps: 1.6 },
+      { kind: 'water' }
+    ])
+    expect(kinds(k.run({ showBoxThisLap: false, showFuelLow: false }))).toEqual([
+      'oilPressure',
+      'water'
+    ])
+  })
+
+  it('none while towed, on pit road or out of the car', () => {
+    const k = new Tick()
+    k.fuel = SHORT
+    expect(kinds(k.run())).toEqual(['boxThisLap', 'fuelLow'])
+    k.frame.PlayerCarTowTime[0] = 30
+    expect(kinds(k.run())).toEqual(['tow'])
+    k.frame.PlayerCarTowTime[0] = 0
+    k.frame.OnPitRoad[0] = true
+    expect(k.run().notices).toEqual([])
+    k.frame.OnPitRoad[0] = false
     k.frame.IsOnTrack[0] = false
     expect(k.run().notices).toEqual([])
   })

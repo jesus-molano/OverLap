@@ -79,7 +79,7 @@ describe('fuelView', () => {
       need: { label: 'Para meta', value: '56.8', unit: 'L' },
       add: { label: 'Repostar', value: '+4.9', unit: 'L' },
       addTone: 'neutral',
-      box: { text: `caja${NB}20${NB}L`, tone: 'good' }
+      box: { text: `menú${NB}20${NB}L`, tone: 'good' }
     })
     expect(v.window).toEqual({
       label: 'Ventana',
@@ -233,12 +233,12 @@ describe('fuelView', () => {
     // Need beyond a full tank: no tick on the gauge.
     expect(v.gauge?.need).toBeNull()
     expect(fuelView(data({ boxL: 0 }), ALL_ON, ES).finish?.box).toEqual({
-      text: `caja${NB}0${NB}L`,
+      text: `menú${NB}0${NB}L`,
       tone: 'warn'
     })
     expect(fuelView(data({ boxL: null }), ALL_ON, ES).finish?.box).toBeNull()
     expect(fuelView(data({ boxL: 4.9 }), ALL_ON, ES).finish?.box).toEqual({
-      text: `caja${NB}4.9${NB}L`,
+      text: `menú${NB}4.9${NB}L`,
       tone: 'good'
     })
     expect(fuelView(data({ boxL: 4.8 }), ALL_ON, ES).finish?.box?.tone).toBe('warn')

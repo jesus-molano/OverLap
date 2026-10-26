@@ -12,7 +12,8 @@
  *
  * The clean laps are kept per car and track: a new session of the same car and track (practice,
  * then the race) starts with the last session's laps as an estimate ("carried") until it has
- * one of its own. Replay frames are not yours: they only break the lap in progress.
+ * one of its own. The laps are your own car's (resolvePlayerCarIdx), never the one on camera the
+ * race view follows at a replay's live point; replay frames only break the lap in progress.
  *
  * Tyres: iRacing measures the tread only while the car sits in its pit stall. The reading of a
  * stay is the most worn one seen during it that differs from what the variables held when the
@@ -20,6 +21,7 @@
  */
 import { isFiniteNumber } from '../num'
 import type { RaceView } from '../race/raceView'
+import { resolvePlayerCarIdx } from '../sessionInfo'
 import { isReplayPlaying } from '../simScreen'
 import type { TelemetryFrame } from '../telemetry'
 import type { SessionMeta, TyreReading } from '../types'
@@ -165,7 +167,7 @@ export class FuelTracker {
       this.breakLap()
       return
     }
-    const player = race.playerCarIdx
+    const player = resolvePlayerCarIdx(frame, session)
     const car = player >= 0 ? race.car(player) : undefined
     this.follow(session, player, frame.SessionNum[0])
     const fuel = frame.FuelLevel[0]

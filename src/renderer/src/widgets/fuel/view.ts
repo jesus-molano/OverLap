@@ -5,7 +5,7 @@
  *   38.4 L  12.9 v                         QUEDAN 18.4 v
  *   [===================------------|----]         the tank, marked where you need to be
  *   CONSUMO   2.96 L/v   últ. 3.02 · máx. 3.10
- *   PARA META 54.1 L          REPOSTAR +15.7 L  caja 20 L
+ *   PARA META 54.1 L          REPOSTAR +15.7 L  menú 20 L
  *   VENTANA   V15–V28                     1 parada
  *   AHORRO    2.71 L/v   sin parar
  *   NEUM. V13  DI 78  DD 74  TI 86  TD 82
@@ -69,7 +69,7 @@ export interface FinishView {
   /** 'REPOSTAR +15.7 L', 'REPOSTAR LLENO', 'SOBRAN 2.3 L' or, on the last lap, 'FALTAN 0.4 L'. */
   readonly add: ReadingView
   readonly addTone: Tone
-  /** What the pit menu adds, next to it ('caja 20 L'); null without a stop or unknown. */
+  /** What the pit menu adds, next to it ('menú 20 L'); null without a stop or unknown. */
   readonly box: { readonly text: string; readonly tone: Tone } | null
 }
 

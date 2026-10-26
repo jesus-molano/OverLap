@@ -6,8 +6,10 @@
  * ('V12' is the lap from distance 11 to 12). "Stopping on lap n" is entering the pits at the end
  * of it, at distance n: the fuel must last that far, and the stop's lap is counted as driven.
  *
- * - You take the flag at distance F = floor(d) + lapsRemaining (RaceView.lapsRemaining counts
- *   the lap in progress), with marginLaps of fuel left.
+ * - You take the flag at distance F = L + lapsRemaining, with marginLaps of fuel left: L is the
+ *   laps completed, floor(d), and RaceView.lapsRemaining counts the lap in progress. On the grid
+ *   or in the pit lane before the start (lap -1) the run to the line completes no lap, and
+ *   lapsRemaining does not count it either: L is 0 there and the first lap is lap 1.
  * - Stops are made at lap ends, F - 1 the last one (a stop at the end of the last lap comes after
  *   the flag). On the last lap there is none left to make: all that is left to say is whether
  *   the fuel reaches the flag, and the margin buys nothing.
@@ -121,8 +123,10 @@ export function fuelStrategy(i: StrategyInput): FuelFinish | null {
   }
   const fuel = Math.max(0, fuelL)
   const eps = FUEL_STRATEGY.eps
-  const current = Math.floor(distance) + 1
-  const finishD = Math.floor(distance) + lapsRemaining
+  // Before the line on the grid or in the pit lane (lap -1) no lap is done yet.
+  const done = Math.max(0, Math.floor(distance))
+  const current = done + 1
+  const finishD = done + lapsRemaining
   const lapsLeft = Math.max(0, finishD - distance)
   if (lapsRemaining <= 0 || lapsLeft <= 0) {
     return {

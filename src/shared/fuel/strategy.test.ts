@@ -150,6 +150,23 @@ const CASES: readonly {
     want: { stops: 2, fill: true, addL: 36, window: { from: 6, to: 15 }, saveL: 1.86 }
   },
   {
+    // On the grid, 0.1 laps behind the line: the run to it is no lap, and the 24 laps the race
+    // model counts from there end at distance 24 (not 23). 24.1 laps at 3 L is 72.3 L, 72 L fall
+    // short; the first lap a stop can end is lap 1, the last one 23 (72 L reach 23.9).
+    name: 'from the grid: the run to the line is no lap, the first stop ends lap 1',
+    input: { fuelL: 72, distance: -0.1, lapsRemaining: 24 },
+    want: {
+      lap: 1,
+      lapsLeft: 24.1,
+      needL: 73.8,
+      deficitL: 1.8,
+      short: true,
+      stops: 1,
+      addL: 1.8,
+      window: { from: 1, to: 23 }
+    }
+  },
+  {
     name: 'without a known tank, a single stop holds what is missing',
     input: { tankL: null },
     want: { stops: 1, addL: 15, fill: false, window: { from: 11, to: 20 } }
