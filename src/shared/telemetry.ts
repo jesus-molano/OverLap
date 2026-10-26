@@ -150,7 +150,7 @@ export const TELEMETRY_VARS = {
   TireSetsAvailable: 'number',
   TireSetsUsed: 'number',
   /**
-   * Tread left per tyre and band (left, middle, right), '%' read as 0..1 (fuel/tyres.ts);
+   * Tread left per tyre and band (left, middle, right), '%' read as 0..1 (fuel/tracker.ts);
    * only updated while the car sits in its pit stall.
    */
   LFwearL: 'number',

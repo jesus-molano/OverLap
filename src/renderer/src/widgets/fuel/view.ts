@@ -66,7 +66,7 @@ export interface PerLapView extends ReadingView {
 
 export interface FinishView {
   readonly need: ReadingView
-  /** 'REPOSTAR +15.7 L', 'REPOSTAR LLENO' or 'SOBRAN 2.3 L'. */
+  /** 'REPOSTAR +15.7 L', 'REPOSTAR LLENO', 'SOBRAN 2.3 L' or, on the last lap, 'FALTAN 0.4 L'. */
   readonly add: ReadingView
   readonly addTone: Tone
   /** What the pit menu adds, next to it ('caja 20 L'); null without a stop or unknown. */
@@ -126,7 +126,7 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 
 /** The fuel lasts to the flag (good), is short and under two laps (bad), or neither. */
 export function fuelTone(lapsOfFuel: number | null, finish: FuelFinish | null): Tone {
-  if (finish !== null && finish.stops === 0) return 'good'
+  if (finish !== null && finish.stops === 0 && !finish.short) return 'good'
   if (lapsOfFuel !== null && lapsOfFuel < FUEL_ALERT.lowLaps) return 'bad'
   return 'neutral'
 }
@@ -141,12 +141,20 @@ function finishView(d: FuelData, finish: FuelFinish, o: FuelViewOptions, m: Mess
   const f = m.widgets.fuel
   const need: ReadingView = { label: f.need, value: fixed(finish.needL, 1), unit: LITRES }
   if (finish.stops === 0) {
-    return {
-      need,
-      add: { label: f.spare, value: fixed(Math.max(0, -finish.deficitL), 1), unit: LITRES },
-      addTone: 'good',
-      box: null
-    }
+    // On the last lap no stop is left: short of the flag is all there is to say.
+    return finish.short
+      ? {
+          need,
+          add: { label: f.short, value: fixed(Math.max(0, finish.deficitL), 1), unit: LITRES },
+          addTone: 'bad',
+          box: null
+        }
+      : {
+          need,
+          add: { label: f.spare, value: fixed(Math.max(0, -finish.deficitL), 1), unit: LITRES },
+          addTone: 'good',
+          box: null
+        }
   }
   const add: ReadingView = finish.fill
     ? { label: f.add, value: f.fill, unit: '' }
@@ -172,7 +180,8 @@ function windowView(finish: FuelFinish, m: Messages): WindowView {
       unit: '',
       tone: 'neutral',
       stops: f.noStop,
-      stopsTone: 'good'
+      // No stop left on the last lap is no good news when the fuel falls short.
+      stopsTone: finish.short ? 'neutral' : 'good'
     }
   }
   const tone: Tone = w.to <= finish.lap ? 'bad' : w.from <= finish.lap ? 'good' : 'neutral'

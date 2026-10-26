@@ -35,6 +35,7 @@ const NO_STOP: FuelFinish = {
   lapsLeft: 4.6,
   needL: 15.1,
   deficitL: -5.7,
+  short: false,
   stops: 0,
   addL: 0,
   fill: false,
@@ -180,6 +181,42 @@ describe('fuelView', () => {
     expect(v.gauge?.tone).toBe('good')
   })
 
+  it('on the last lap, says how short of the flag the fuel falls instead of a stop', () => {
+    // 1.8 L at 3 L a lap from distance 19.2 of 20: 2.4 L to the flag and no stop left to make.
+    const finish = fuelStrategy({
+      fuelL: 1.8,
+      avgL: 3,
+      tankL: 85,
+      distance: 19.2,
+      lapsRemaining: 1,
+      marginLaps: 0.5
+    })
+    const v = fuelView(data({ fuelL: 1.8, lapsOfFuel: 0.6, finish }), ALL_ON, ES)
+    expect(v.hero?.tone).toBe('bad')
+    expect(v.finish).toEqual({
+      need: { label: 'Para meta', value: '2.4', unit: 'L' },
+      add: { label: 'Faltan', value: '0.6', unit: 'L' },
+      addTone: 'bad',
+      box: null
+    })
+    expect(v.window).toMatchObject({ value: '—', stops: 'sin parar', stopsTone: 'neutral' })
+    expect(v.save).toBeNull()
+    expect(fuelView(data({ fuelL: 1.8, finish }), ALL_ON, EN).finish?.add.label).toBe('Short')
+    // 3.6 L reach it (the margin no longer counts there): spare, in green.
+    const enough = fuelStrategy({
+      fuelL: 3.6,
+      avgL: 3,
+      tankL: 85,
+      distance: 19.2,
+      lapsRemaining: 1,
+      marginLaps: 0.5
+    })
+    const w = fuelView(data({ fuelL: 3.6, lapsOfFuel: 1.2, finish: enough }), ALL_ON, ES)
+    expect(w.hero?.tone).toBe('good')
+    expect(w.finish?.add).toEqual({ label: 'Sobran', value: '1.2', unit: 'L' })
+    expect(w.window).toMatchObject({ stops: 'sin parar', stopsTone: 'good' })
+  })
+
   it('fills the tank when one stop is not enough, and flags a pit menu that falls short', () => {
     const finish = fuelStrategy({
       fuelL: 10,
@@ -244,6 +281,8 @@ describe('fuelTone', () => {
   it('is good when the fuel reaches the flag, bad under two laps and short', () => {
     expect(fuelTone(7, NO_STOP)).toBe('good')
     expect(fuelTone(1.5, NO_STOP)).toBe('good')
+    // The last lap: no stop to make, and short of the flag.
+    expect(fuelTone(0.6, { ...NO_STOP, deficitL: 0.6, short: true })).toBe('bad')
     expect(fuelTone(1.5, PREVIEW_FUEL.finish)).toBe('bad')
     expect(fuelTone(1.5, null)).toBe('bad')
     expect(fuelTone(5, PREVIEW_FUEL.finish)).toBe('neutral')

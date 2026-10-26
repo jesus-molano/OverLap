@@ -544,8 +544,7 @@ export const settingsEs = {
     fuelLowHelp: (laps: number) =>
       `Con menos de ${laps}${NB}vueltas de gasolina y sin llegar a meta: «COMBUSTIBLE · 1.6 V»`,
     boxThisLap: 'Entra esta vuelta',
-    boxThisLapHelp:
-      'La ventana de boxes se cierra en esta vuelta. Con el consumo y el margen del widget Combustible',
+    boxThisLapHelp: 'La ventana de boxes se cierra en esta vuelta y con tu media no llegas a meta',
     holdHelp: 'Un aviso breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerlo'
   },
   delta: {
@@ -664,7 +663,7 @@ export const settingsEs = {
     limitsHelp:
       'Las reparaciones rápidas y los juegos de neumáticos que te quedan, si la sesión los limita',
     calc: 'Cálculo',
-    calcNote: 'También los usan los avisos de combustible',
+    calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
     avgLapsHelp: 'Cuántas de tus últimas vueltas limpias se promedian',
     margin: 'Margen',
@@ -1212,7 +1211,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `Under ${laps}${NB}laps of fuel and not enough to finish: “FUEL · 1.6 LAPS”`,
     boxThisLap: 'Box this lap',
     boxThisLapHelp:
-      'The pit window closes on this lap. With the Fuel widget’s consumption and margin',
+      'The pit window closes on this lap and at your average you will not reach the flag',
     holdHelp: 'A brief alert stays on screen at least this long, so there is time to read it'
   },
   delta: {
@@ -1323,7 +1322,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     limits: 'Repairs and tyre sets',
     limitsHelp: 'The fast repairs and tyre sets you have left, when the session limits them',
     calc: 'Calculation',
-    calcNote: 'The fuel alerts use them too',
+    calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',
     margin: 'Margin',

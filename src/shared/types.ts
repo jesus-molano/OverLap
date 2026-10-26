@@ -713,22 +713,30 @@ export interface FuelFinish {
   lap: number
   /** Laps still to drive, the lap in progress counted from where you are, to 0.1. */
   lapsLeft: number
-  /** Litres to take the flag with the margin, to 0.1. */
+  /** Litres to take the flag with the margin (none on the last lap), to 0.1. */
   needL: number
-  /** needL - the fuel you have: + short (a stop), - spare, to 0.1. */
+  /** needL - the fuel you have: + short, - spare, to 0.1. */
   deficitL: number
-  /** Stops still needed, 0 when the fuel you have reaches the flag. */
+  /**
+   * The fuel does not reach the flag at the average, margin aside: the fuel alerts' "not enough
+   * to finish" (a stop for the margin alone is the plan's, not an alarm).
+   */
+  short: boolean
+  /**
+   * Stops still needed: 0 when the fuel reaches the flag with the margin, and on the last lap
+   * (no stop is left to make; `short` says whether it reaches the flag).
+   */
   stops: number
   /**
    * Litres to add at the next stop, rounded up to 0.1 (0 without one): what is missing when it
-   * fits in the tank, else the room the tank has at the end of this lap (a full tank).
+   * fits in the tank, else the room the tank has at the window's first lap (a full tank).
    */
   addL: number
   /** The next stop fills the tank (it alone cannot cover the rest). */
   fill: boolean
   /**
    * First and last lap you can stop at the end of and still finish with `stops` stops; null
-   * without a stop. `to` is never before the lap in progress.
+   * without a stop. `to` is never before the lap in progress, nor after the lap before the last.
    */
   window: { readonly from: number; readonly to: number } | null
   /** Litres per lap that would save one stop, to 0.01; null without a stop or out of reach. */
@@ -1115,7 +1123,7 @@ export interface ConditionsOptions {
 
 /**
  * The fuel widget: the fuel left and the laps it lasts are always drawn, every other line is a
- * toggle. The average and the margin change what is computed (the alerts band uses them too).
+ * toggle. The average and the margin change what is computed (the alerts band uses the average).
  */
 export interface FuelOptions {
   /** Header band with the widget's name (and the SIM tag). */

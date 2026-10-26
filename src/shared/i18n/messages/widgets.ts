@@ -352,6 +352,8 @@ export const widgetsEs = {
     need: 'Para meta',
     add: 'Repostar',
     spare: 'Sobran',
+    /** On the last lap, the litres the fuel falls short of the flag (no stop is left). */
+    short: 'Faltan',
     window: 'Ventana',
     save: 'Ahorro',
     tyres: 'Neum.',
@@ -615,6 +617,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     need: 'To finish',
     add: 'Add',
     spare: 'Spare',
+    short: 'Short',
     window: 'Window',
     save: 'Save',
     tyres: 'Tyres',

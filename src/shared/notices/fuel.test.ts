@@ -8,7 +8,7 @@ import { FUEL_ALERT, fuelNotices, type FuelAlertInput } from './fuel'
 
 const input = (o: Partial<FuelAlertInput> = {}): FuelAlertInput => ({
   lapsOfFuel: 5,
-  stops: 1,
+  short: true,
   closesThisLap: false,
   ...o
 })
@@ -24,10 +24,10 @@ describe('fuelNotices', () => {
     expect(fuelNotices(input({ lapsOfFuel: 1.96 }), false, true)).toEqual([
       { kind: 'fuelLow', laps: 1.9 }
     ])
-    // Enough to finish: nothing to do.
-    expect(fuelNotices(input({ lapsOfFuel: 1.2, stops: 0 }), false, true)).toEqual([])
+    // Enough to finish (with or without the margin): nothing to do.
+    expect(fuelNotices(input({ lapsOfFuel: 1.2, short: false }), false, true)).toEqual([])
     // A session without an end (practice): it still runs dry.
-    expect(fuelNotices(input({ lapsOfFuel: 1.2, stops: null }), false, true)).toEqual([
+    expect(fuelNotices(input({ lapsOfFuel: 1.2, short: null }), false, true)).toEqual([
       { kind: 'fuelLow', laps: 1.2 }
     ])
     expect(fuelNotices(input({ lapsOfFuel: 2 }), false, true)).toEqual([])
@@ -42,6 +42,14 @@ describe('fuelNotices', () => {
       { kind: 'boxThisLap' },
       { kind: 'fuelLow', laps: 0.8 }
     ])
+  })
+
+  it('does not call you in for a stop the margin alone asks for', () => {
+    // The window of a margin splash closes, but the fuel reaches the flag at your average.
+    const margin = input({ closesThisLap: true, lapsOfFuel: 1.9, short: false })
+    expect(fuelNotices(margin, false, true)).toEqual([])
+    // Without an end there is no window to close.
+    expect(fuelNotices(input({ closesThisLap: true, short: null }), false, true)).toEqual([])
   })
 
   it('stays quiet on pit road and out of the car', () => {

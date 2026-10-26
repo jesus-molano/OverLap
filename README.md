@@ -405,14 +405,18 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   no basta) junto a lo que tienes en el menú de boxes (`PitSvFuel`, naranja si no llega), ventana
   `V24–V28` y paradas, ahorro por vuelta para quitarte una parada (si es un 10 % o menos), la última
   lectura de neumáticos y las reparaciones rápidas y juegos que quedan si la sesión los limita.
+- El plan cuenta paradas al final de vuelta (la última, en la penúltima vuelta) y relevos de vueltas
+  enteras, y parte del combustible con el que empezó la vuelta: no baila dentro de la vuelta. En la
+  última ya no hay parada: solo dice si llegas (`SOBRAN`) o no (`FALTAN`).
 - Capacidad: `DriverCarFuelMaxLtr` por el menor de `DriverCarMaxFuelPct` y `CarClassMaxFuelPct` (el
   BoP). Litros siempre.
 - Neumáticos: iRacing solo mide el desgaste (`LFwearL`… `RRwearR`) con el coche parado en tu box, así
   que en pista no hay desgaste en directo; se muestra la lectura de la última parada (lo que queda de
   la banda más gastada de cada rueda) y la vuelta.
 - En Avisos, dos más (activados por defecto): `ENTRA ESTA VUELTA` cuando, en carrera, la ventana se
-  cierra en esta vuelta y `COMBUSTIBLE · 1.6 V` con menos de 2 vueltas de gasolina sin llegar a meta.
-  Usan el mismo consumo y margen; ninguno en el pit lane.
+  cierra en esta vuelta y `COMBUSTIBLE · 1.6 V` con menos de 2 vueltas de gasolina, los dos solo si
+  con tu media no llegas a meta (una parada que solo pide el margen no es una alarma). Usan el mismo
+  consumo; ninguno en el pit lane ni en una repetición.
 - Sin confirmar en una sesión real: la escala de los `%` de capacidad y desgaste, si `FuelLevel`
   sigue al coche con un compañero al volante y cuándo exactamente se actualiza el desgaste en el box
   (`src/shared/fuel/`).

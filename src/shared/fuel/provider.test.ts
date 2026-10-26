@@ -4,17 +4,27 @@ import type { RaceView } from '../race/raceView'
 import { createDefaultSettings } from '../settings'
 import type { FuelOptions, PitSpec, TyreReading } from '../types'
 import { computeFuel, consumption, fuelAlertInput, fuelEqual } from './provider'
-import type { FuelSamples, FuelTracker } from './tracker'
+import type { FuelSamples, FuelTracker, LapStart } from './tracker'
 
 const OPTS: FuelOptions = createDefaultSettings().fuel
 const SPEC: PitSpec = { fuelMaxL: 100, maxFuelFrac: 0.85, fastRepairsLimit: 1, tyreSetLimit: 4 }
 
 function tracker(
   laps: readonly number[],
-  o: { carried?: boolean; last?: number | null; tyres?: TyreReading | null } = {}
+  o: {
+    carried?: boolean
+    last?: number | null
+    tyres?: TyreReading | null
+    start?: LapStart | null
+  } = {}
 ): FuelTracker {
   const samples: FuelSamples = { laps, carried: o.carried ?? false }
-  return { samples, lastLapL: o.last ?? null, tyres: o.tyres ?? null } as unknown as FuelTracker
+  return {
+    samples,
+    lastLapL: o.last ?? null,
+    tyres: o.tyres ?? null,
+    lapStart: o.start ?? null
+  } as unknown as FuelTracker
 }
 
 /** You at `distance` with `left` laps to go (RaceView.lapsRemaining). */
@@ -164,11 +174,49 @@ describe('computeFuel', () => {
   })
 })
 
+describe('the plan through a lap', () => {
+  // Lap 20 of a race to 35 (distance 19.5, 16 laps to go) at 3 L a lap. It started at the line
+  // with 6.06 L: to distance 21.02, so the end of lap 21 is the last stop. Half a lap later the
+  // first half burnt 1.61 L instead of 1.5 (full throttle first, braking later): 4.45 L now.
+  const start: LapStart = { lap: 19, fuelL: 6.06 }
+  const now = frame({ FuelLevel: 4.45 })
+
+  it('plans from the fuel the lap started with, so the window holds still', () => {
+    const d = computeFuel(now, session, race(19.5, 16), tracker([3], { start }), OPTS)
+    expect(d.finish?.window).toEqual({ from: 20, to: 21 })
+    // The fuel of the moment is still what the hero line reads.
+    expect(d).toMatchObject({ fuelL: 4.5, lapsOfFuel: 1.5 })
+    // The fuel of the moment alone would reach only 20.98 and close the window on this lap.
+    const live = computeFuel(now, session, race(19.5, 16), tracker([3]), OPTS)
+    expect(live.finish?.window).toEqual({ from: 20, to: 20 })
+  })
+
+  it('does not call you in a lap early on an uneven half lap', () => {
+    const steady = fuelAlertInput(now, session, race(19.5, 16), tracker([3], { start }), OPTS)
+    expect(steady).toMatchObject({ short: true, closesThisLap: false })
+    const live = fuelAlertInput(now, session, race(19.5, 16), tracker([3]), OPTS)
+    expect(live).toMatchObject({ closesThisLap: true })
+  })
+
+  it('uses the fuel of the moment when the start is another lap', () => {
+    const stale = tracker([3], { start: { lap: 18, fuelL: 9.06 } })
+    expect(computeFuel(now, session, race(19.5, 16), stale, OPTS).finish?.window?.to).toBe(20)
+  })
+})
+
+describe('in a replay', () => {
+  it('shows nothing: the car on camera is not the fuel you have', () => {
+    const replay = frame({ IsReplayPlaying: true })
+    expect(computeFuel(replay, session, race(10.5, 15), tracker([3]), OPTS).visible).toBe(false)
+    expect(fuelAlertInput(replay, session, race(10.5, 15), tracker([3]), OPTS)).toBeNull()
+  })
+})
+
 describe('fuelAlertInput', () => {
   it('says when the window closes on the lap in progress', () => {
     // 30 L at 3 L from distance 19.5 reach the end of lap 29... in a race to 35 + margin.
     const open = fuelAlertInput(frame(), session, race(19.5, 16), tracker([3]), OPTS)
-    expect(open).toEqual({ lapsOfFuel: 10, stops: 1, closesThisLap: false })
+    expect(open).toEqual({ lapsOfFuel: 10, short: true, closesThisLap: false })
     const closing = fuelAlertInput(
       frame({ FuelLevel: 4 }),
       session,
@@ -176,7 +224,7 @@ describe('fuelAlertInput', () => {
       tracker([3]),
       OPTS
     )
-    expect(closing).toMatchObject({ stops: 1, closesThisLap: true })
+    expect(closing).toMatchObject({ short: true, closesThisLap: true })
     expect(closing?.lapsOfFuel).toBeCloseTo(4 / 3)
     // A practice to the end of its clock: nobody has to stop for that.
     const practice = fuelAlertInput(
@@ -186,12 +234,33 @@ describe('fuelAlertInput', () => {
       tracker([3]),
       OPTS
     )
-    expect(practice).toMatchObject({ stops: 1, closesThisLap: false })
+    expect(practice).toMatchObject({ short: true, closesThisLap: false })
   })
 
-  it('has no stops to count without an end, and none once you took the flag', () => {
-    expect(fuelAlertInput(frame(), session, race(1, null), tracker([3]), OPTS)?.stops).toBeNull()
-    expect(fuelAlertInput(frame(), session, race(1, 0), tracker([3]), OPTS)?.stops).toBe(0)
+  it('never closes the window on the last lap, nor sounds short when the flag is in reach', () => {
+    // Lap 20 of 20 with 3.6 L at 3 L from distance 19.2: the flag (2.4 L) but not the margin.
+    const last = fuelAlertInput(
+      frame({ FuelLevel: 3.6 }),
+      session,
+      race(19.2, 1),
+      tracker([3]),
+      OPTS
+    )
+    expect(last).toMatchObject({ short: false, closesThisLap: false })
+    // Lap 19 of 20 with 6.3 L: the margin's window closes now, but the flag is in reach.
+    const before = fuelAlertInput(
+      frame({ FuelLevel: 6.3 }),
+      session,
+      race(18.2, 2),
+      tracker([3]),
+      OPTS
+    )
+    expect(before).toMatchObject({ short: false, closesThisLap: true })
+  })
+
+  it('knows nothing of the flag without an end, and is not short once you took it', () => {
+    expect(fuelAlertInput(frame(), session, race(1, null), tracker([3]), OPTS)?.short).toBeNull()
+    expect(fuelAlertInput(frame(), session, race(1, 0), tracker([3]), OPTS)?.short).toBe(false)
     expect(fuelAlertInput(frame(), session, race(1, 5), tracker([]), OPTS)?.lapsOfFuel).toBeNull()
     const none = frame()
     none.FuelLevel.length = 0

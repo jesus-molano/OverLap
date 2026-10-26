@@ -341,7 +341,7 @@ export const OPTION_SCHEMA = {
     showRubber: { kind: 'bool', default: true, displayOnly: true }
   },
   // The provider sends every line: each is drawn or not. The average and the margin change what
-  // it computes (and the alerts band's fuel alerts).
+  // it computes (the average also the alerts band's fuel alerts).
   fuel: {
     showHeader: { kind: 'bool', default: false, displayOnly: true },
     showGauge: { kind: 'bool', default: true, displayOnly: true },
