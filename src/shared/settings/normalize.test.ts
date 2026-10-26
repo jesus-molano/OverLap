@@ -5,6 +5,7 @@ import type {
   BattleOptions,
   ConditionsOptions,
   DeltaOptions,
+  FuelOptions,
   InputsOptions,
   OverlaySettings,
   RadarOptions,
@@ -161,6 +162,8 @@ const DEFAULT_ALERTS: AlertsOptions = {
   showStalled: true,
   showEngineWarnings: true,
   showEngineTrend: true,
+  showBoxThisLap: true,
+  showFuelLow: true,
   holdS: 3
 }
 const DEFAULT_SHORTCUTS: ShortcutSettings = {
@@ -187,6 +190,19 @@ const DEFAULT_CONDITIONS: ConditionsOptions = {
   showDeclaredWet: true,
   showSkies: true,
   showRubber: true
+}
+const DEFAULT_FUEL: FuelOptions = {
+  showHeader: false,
+  showGauge: true,
+  showPerLap: true,
+  showFinish: true,
+  showBox: true,
+  showWindow: true,
+  showSave: true,
+  showTyres: true,
+  showLimits: true,
+  avgLaps: 5,
+  marginLaps: 0.5
 }
 
 function defaultWidget(id: WidgetId): WidgetSettings {
@@ -227,6 +243,7 @@ describe('DEFAULT_SETTINGS', () => {
       alerts: DEFAULT_ALERTS,
       delta: DEFAULT_DELTA,
       conditions: DEFAULT_CONDITIONS,
+      fuel: DEFAULT_FUEL,
       shortcuts: DEFAULT_SHORTCUTS
     })
   })
@@ -239,6 +256,15 @@ describe('DEFAULT_SETTINGS', () => {
     expect(DEFAULT_SETTINGS.widgets.conditions.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.relative.autoHeight).toBe(false)
     expect(DEFAULT_SETTINGS.widgets.battle.showIn).toEqual({
+      practice: false,
+      qualify: false,
+      race: true
+    })
+  })
+
+  it('makes the fuel widget auto-height and race-only', () => {
+    expect(DEFAULT_SETTINGS.widgets.fuel.autoHeight).toBe(true)
+    expect(DEFAULT_SETTINGS.widgets.fuel.showIn).toEqual({
       practice: false,
       qualify: false,
       race: true
@@ -388,7 +414,7 @@ describe('normalizeSettings: basics', () => {
 
   it('drops unknown widget ids and keys', () => {
     const s = normalizeSettings({
-      widgets: { fuel: { visible: true }, radar: { color: 'red' } },
+      widgets: { pitboard: { visible: true }, radar: { color: 'red' } },
       appearance: { theme: 'dark' },
       battle: { extra: 1 },
       inputs: { color: 'red' },
@@ -397,7 +423,7 @@ describe('normalizeSettings: basics', () => {
       delta: { mode: 'bar' }
     })
     expect(Object.keys(s.widgets).sort()).toEqual([...WIDGET_IDS].sort())
-    expect('fuel' in s.widgets).toBe(false)
+    expect('pitboard' in s.widgets).toBe(false)
     expect('color' in s.widgets.radar).toBe(false)
     expect('theme' in s.appearance).toBe(false)
     expect('extra' in s.battle).toBe(false)

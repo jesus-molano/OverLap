@@ -113,13 +113,13 @@ describe('applySettingsPatch', () => {
     const out = applySettingsPatch(current, {
       version: 1,
       foo: 'bar',
-      widgets: { fuel: { visible: true }, radar: { color: 'red' } },
+      widgets: { pitboard: { visible: true }, radar: { color: 'red' } },
       appearance: { theme: 'light' },
       relative: { rows: 9 },
       radar: { zoom: 2 }
     })
     expect(out).toEqual(current)
-    expect('fuel' in out.widgets).toBe(false)
+    expect('pitboard' in out.widgets).toBe(false)
   })
 
   it('never changes bounds', () => {
@@ -399,7 +399,7 @@ describe('resetWidgetBounds', () => {
 
   it('returns an unchanged copy for an unknown id', () => {
     const current = customSettings()
-    const out = resetWidgetBounds(current, 'fuel' as WidgetId)
+    const out = resetWidgetBounds(current, 'pitboard' as WidgetId)
     expect(out).toEqual(current)
     expect(out).not.toBe(current)
   })
@@ -434,7 +434,8 @@ describe('resetWidgetOptions', () => {
       'traffic',
       'alerts',
       'delta',
-      'conditions'
+      'conditions',
+      'fuel'
     ] as const) {
       const out = resetWidgetOptions(current, id)
       expect(out[id]).toEqual(DEFAULT_SETTINGS[id])
@@ -476,7 +477,7 @@ describe('resetWidgetOptions', () => {
     const snapshot = JSON.parse(JSON.stringify(current))
     resetWidgetOptions(current, 'battle')
     expect(current).toEqual(snapshot)
-    const out = resetWidgetOptions(current, 'fuel' as WidgetId)
+    const out = resetWidgetOptions(current, 'pitboard' as WidgetId)
     expect(out).toEqual(current)
     expect(out).not.toBe(current)
   })

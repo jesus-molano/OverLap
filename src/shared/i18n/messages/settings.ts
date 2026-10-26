@@ -568,6 +568,13 @@ export const settingsEs = {
     engineTrend: 'Temperatura al alza',
     engineTrendHelp:
       'Agua o aceite muy por encima de tu media en vueltas limpias; avisa si puede ser el rebufo',
+    fuelGroup: 'Combustible',
+    /** `laps`: FUEL_ALERT.lowLaps. */
+    fuelLow: 'Combustible bajo',
+    fuelLowHelp: (laps: number) =>
+      `Con menos de ${laps}${NB}vueltas de gasolina y sin llegar a meta: «COMBUSTIBLE · 1.6 V»`,
+    boxThisLap: 'Entra esta vuelta',
+    boxThisLapHelp: 'La ventana de boxes se cierra en esta vuelta y con tu media no llegas a meta',
     holdHelp: 'Un aviso breve sigue en pantalla al menos este tiempo, para que dé tiempo a leerlo'
   },
   delta: {
@@ -655,6 +662,44 @@ export const settingsEs = {
     skiesHelp: 'Despejado, nuboso o cubierto',
     rubber: 'Goma',
     rubberHelp: 'La goma que había en la pista al empezar la sesión'
+  },
+  fuel: {
+    note: 'Lo que gastas en cada vuelta limpia: sin boxes, amarilla, grúa ni la primera de la carrera',
+    header: 'Cabecera',
+    headerHelp: 'Una banda con el nombre del widget y la etiqueta SIM',
+    /** The hero line is always drawn; these are the others. */
+    lines: 'Líneas',
+    gauge: 'Depósito',
+    gaugeHelp: 'Barra del combustible frente a lo que cabe, con una marca en lo que necesitas',
+    perLap: 'Consumo por vuelta',
+    perLapHelp: 'La media de tus últimas vueltas limpias, la última y la que más gastó',
+    finish: 'Para meta y repostar',
+    finishHelp:
+      'Lo que necesitas hasta la bandera con el margen y lo que echar en la próxima parada',
+    box: 'Menú de boxes',
+    boxHelp:
+      'La gasolina puesta en el menú de boxes, junto a lo que hay que echar; en naranja si no llega',
+    window: 'Ventana de boxes',
+    windowHelp:
+      'La primera y la última vuelta en que puedes parar y terminar, y las paradas que quedan',
+    save: 'Ahorro',
+    /** `pct`: FUEL_STRATEGY.saveReach as a whole percentage. */
+    saveHelp: (pct: number) =>
+      `Lo que gastar por vuelta para ahorrarte una parada, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
+    tyres: 'Neumáticos',
+    tyresHelp:
+      'El desgaste que midió el equipo en tu última parada: iRacing solo lo mide en el box',
+    limits: 'Reparaciones y juegos',
+    limitsHelp:
+      'Las reparaciones rápidas y los juegos de neumáticos que te quedan, si la sesión los limita',
+    calc: 'Cálculo',
+    calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
+    avgLaps: 'Vueltas para la media',
+    avgLapsHelp: 'Cuántas de tus últimas vueltas limpias se promedian',
+    margin: 'Margen',
+    marginHelp: 'Vueltas de combustible de sobra al cruzar la meta',
+    /** The margin's readout ('0.5 v'). */
+    marginValue: (laps: string) => `${laps}${NB}v`
   },
   personalBests: {
     title: 'Récords personales',
@@ -1214,6 +1259,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
     engineTrend: 'Rising temperature',
     engineTrendHelp:
       'Water or oil well above your clean-lap average; says when slipstreaming may be why',
+    fuelGroup: 'Fuel',
+    fuelLow: 'Low fuel',
+    fuelLowHelp: (laps) =>
+      `Under ${laps}${NB}laps of fuel and not enough to finish: “FUEL · 1.6 LAPS”`,
+    boxThisLap: 'Box this lap',
+    boxThisLapHelp:
+      'The pit window closes on this lap and at your average you will not reach the flag',
     holdHelp: 'A brief alert stays on screen at least this long, so there is time to read it'
   },
   delta: {
@@ -1299,6 +1351,37 @@ export const settingsEn: Dict<typeof settingsEs> = {
     skiesHelp: 'Clear, cloudy or overcast',
     rubber: 'Rubber',
     rubberHelp: 'The rubber on the track when the session started'
+  },
+  fuel: {
+    note: 'What you burn on each clean lap: no pit lane, caution, tow or the race’s first lap',
+    header: 'Header',
+    headerHelp: 'A band with the widget’s name and the SIM tag',
+    lines: 'Lines',
+    gauge: 'Tank',
+    gaugeHelp: 'A bar of the fuel against what the tank holds, marked where you need it',
+    perLap: 'Use per lap',
+    perLapHelp: 'The average of your last clean laps, the last one and the thirstiest',
+    finish: 'To finish and to add',
+    finishHelp: 'What you need to the flag with the margin, and what to add at the next stop',
+    box: 'Pit menu',
+    boxHelp: 'The fuel set in the pit menu, next to what to add; orange when it falls short',
+    window: 'Pit window',
+    windowHelp: 'The first and last lap you can stop on and still finish, and the stops left',
+    save: 'Saving',
+    saveHelp: (pct) =>
+      `What to burn per lap to save a stop, when within reach (up to ${pct}% less)`,
+    tyres: 'Tyres',
+    tyresHelp:
+      'The wear the crew measured at your last stop: iRacing only measures it in the stall',
+    limits: 'Repairs and tyre sets',
+    limitsHelp: 'The fast repairs and tyre sets you have left, when the session limits them',
+    calc: 'Calculation',
+    calcNote: 'The fuel alerts use the same average, without the margin',
+    avgLaps: 'Laps to average',
+    avgLapsHelp: 'How many of your last clean laps are averaged',
+    margin: 'Margin',
+    marginHelp: 'Laps of fuel to spare as you cross the line',
+    marginValue: (laps) => `${laps}${NB}laps`
   },
   personalBests: {
     title: 'Personal bests',

@@ -8,10 +8,14 @@ const en = messagesFor('en')
 
 describe('replay rule wording', () => {
   it('lists the widgets with your car’s data only, joined like each language lists things', () => {
-    expect(liveOnlyWidgets(es, LOCALES.es)).toBe('Radar, Pedales, Avisos, Delta y Condiciones')
-    expect(liveOnlyWidgets(en, LOCALES.en)).toBe('Radar, Inputs, Alerts, Delta and Conditions')
+    expect(liveOnlyWidgets(es, LOCALES.es)).toBe(
+      'Radar, Pedales, Avisos, Delta, Condiciones y Combustible'
+    )
+    expect(liveOnlyWidgets(en, LOCALES.en)).toBe(
+      'Radar, Inputs, Alerts, Delta, Conditions and Fuel'
+    )
     expect(es.settings.appearance.screen.replaysHelp(liveOnlyWidgets(es, LOCALES.es))).toBe(
-      'En directo siguen al coche que miras; Radar, Pedales, Avisos, Delta y Condiciones solo tienen datos de tu coche y se ocultan si miras otro'
+      'En directo siguen al coche que miras; Radar, Pedales, Avisos, Delta, Condiciones y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
     )
   })
 

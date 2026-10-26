@@ -263,6 +263,7 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 | Radar       | `radar`      | 60 Hz      | 120 x 140     |
 | Delta       | `delta`      | 30 Hz      | 200 x 48      |
 | Condiciones | `conditions` | 1 Hz       | 180 x 40      |
+| Combustible | `fuel`       | 2 Hz       | 180 x 40      |
 
 ### Relativo
 
@@ -481,6 +482,39 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   cerca de su sitio por defecto, para no tapar lo que ya tenías colocado.
 - En modo mock la pista se calienta, se queda estable y se enfría, el viento cambia un poco y a los
   21 min pasa un chubasco que la moja y la declara mojada.
+
+### Combustible
+
+- Para carreras largas; por defecto solo en carrera. En grande, los litros (`FuelLevel`) y las
+  vueltas que te dan (verde si llegas a meta, rojo con menos de 2 y sin llegar) y, a la derecha, las
+  vueltas que quedan (las del modelo de carrera: en carreras a tiempo, con el ritmo del líder).
+- El consumo se mide en cada paso por meta, solo en vueltas limpias: sin pit lane, amarilla, grúa,
+  reinicio ni salida de pista, ni la primera de la carrera, ni las que no conduces tú. Media de las
+  últimas `fuel.avgLaps` (5), la última y la que más gastó; «midiendo…» hasta la primera. Entre
+  sesiones del mismo coche y circuito (práctica → carrera) se aprovecha la media anterior hasta tener
+  una propia.
+- Líneas, cada una con su opción (`fuel.*`): depósito (barra con una marca en lo que necesitas),
+  consumo, para meta y repostar (con `fuel.marginLaps` vueltas de margen, 0.5; `LLENO` si una parada
+  no basta) junto a lo que tienes en el menú de boxes (`PitSvFuel`, naranja si no llega), ventana
+  `V24–V28` y paradas, ahorro por vuelta para quitarte una parada (si es un 10 % o menos), la última
+  lectura de neumáticos y las reparaciones rápidas y juegos que quedan si la sesión los limita.
+- El plan cuenta paradas al final de vuelta (la última, en la penúltima vuelta) y relevos de vueltas
+  enteras, y parte del combustible con el que empezó la vuelta: no baila dentro de la vuelta. En la
+  última ya no hay parada: solo dice si llegas (`SOBRAN`) o no (`FALTAN`).
+- Capacidad: `DriverCarFuelMaxLtr` por el menor de `DriverCarMaxFuelPct` y `CarClassMaxFuelPct` (el
+  BoP). Litros siempre.
+- Neumáticos: iRacing solo mide el desgaste (`LFwearL`… `RRwearR`) con el coche parado en tu box, así
+  que en pista no hay desgaste en directo; se muestra la lectura de la última parada (lo que queda de
+  la banda más gastada de cada rueda) y la vuelta.
+- En Avisos, dos más (activados por defecto): `ENTRA ESTA VUELTA` cuando, en carrera, la ventana se
+  cierra en esta vuelta y `COMBUSTIBLE · 1.6 V` con menos de 2 vueltas de gasolina, los dos solo si
+  con tu media no llegas a meta (una parada que solo pide el margen no es una alarma). Usan el mismo
+  consumo; ninguno en el pit lane ni en una repetición.
+- Sin confirmar en una sesión real: la escala de los `%` de capacidad y desgaste, si `FuelLevel`
+  sigue al coche con un compañero al volante y cuándo exactamente se actualiza el desgaste en el box
+  (`src/shared/fuel/`).
+- En modo mock el coche gasta ~2.95 L por vuelta con un depósito de 85 L, llega justo a su parada
+  (los dos avisos salen antes), echa 20 L, cambia neumáticos y termina con margen.
 
 ## Arquitectura
 

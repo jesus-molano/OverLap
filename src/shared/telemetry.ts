@@ -139,7 +139,41 @@ export const TELEMETRY_VARS = {
   /** The stewards allow rain tyres. */
   WeatherDeclaredWet: 'boolean',
   /** 0 clear, 1 partly cloudy, 2 mostly cloudy, 3 overcast. */
-  Skies: 'number'
+  Skies: 'number',
+
+  // --- v2.4: fuel and pit strategy (shared/fuel; the player's car only) ---
+  /** Litres in the tank. */
+  FuelLevel: 'number',
+  /** 0..1 of the tank: what it holds when the session YAML does not say (FuelLevel / it). */
+  FuelLevelPct: 'number',
+  /** Litres the pit menu adds (counted only with its fuel box ticked, PitSvFlags 0x10). */
+  PitSvFuel: 'number',
+  /** irsdk_PitSvFlags of the pit menu: tyres 0x01..0x08, fuel 0x10, fast repair 0x40. */
+  PitSvFlags: 'number',
+  /** In your pit stall: the only place iRacing measures the tyres. */
+  PlayerCarInPitStall: 'boolean',
+  /** Fast repairs left, 255 when unlimited. */
+  FastRepairAvailable: 'number',
+  FastRepairUsed: 'number',
+  /** Tyre sets left, 255 when unlimited. */
+  TireSetsAvailable: 'number',
+  TireSetsUsed: 'number',
+  /**
+   * Tread left per tyre and band (left, middle, right), '%' read as 0..1 (fuel/tracker.ts);
+   * only updated while the car sits in its pit stall.
+   */
+  LFwearL: 'number',
+  LFwearM: 'number',
+  LFwearR: 'number',
+  RFwearL: 'number',
+  RFwearM: 'number',
+  RFwearR: 'number',
+  LRwearL: 'number',
+  LRwearM: 'number',
+  LRwearR: 'number',
+  RRwearL: 'number',
+  RRwearM: 'number',
+  RRwearR: 'number'
 } as const satisfies Partial<Record<keyof TelemetryVarList, 'number' | 'boolean'>>
 
 export type TelemetryVarName = keyof typeof TELEMETRY_VARS
