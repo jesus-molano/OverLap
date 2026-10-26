@@ -11,7 +11,9 @@ type Rules = TelemetryConfig['rules']
 type Rule = Rules[WidgetId]
 type Config = Pick<TelemetryConfig, 'rules' | 'visibility'>
 
+/** The defaults but replays following the camera (the frames are in the car unless said). */
 const VISIBILITY: VisibilityOptions = {
+  showWhen: 'car',
   hideWithSimUi: true,
   hideInGarage: true,
   hideOnSessionScreen: true,
@@ -274,5 +276,82 @@ describe('AutoHide: what the sim shows', () => {
     expect(changes).toEqual([])
     auto.update(old, replay(5), SESSION, 'tape')
     expect(latest(changes)).toEqual(new Map(OFF_TAPE.map((id) => [id, 'replay-player'])))
+  })
+})
+
+describe('AutoHide: when to show the overlay', () => {
+  const kept = rules({ standings: rule({ showOnSessionScreen: true }) })
+  const defaults = (r: Rules = kept): Config => config(r, { replays: 'hide' })
+  /** Out of the car (IsOnTrack false) on the session screen, at the replay's live point. */
+  const sessionScreen = replay(3, (f) => {
+    f.IsOnTrack[0] = false
+    f.CamCameraState[0] = 81
+  })
+
+  it('hides every widget out of the car but the standings on the session screen', () => {
+    const { auto, changes } = harness()
+    auto.update(defaults(), sessionScreen, SESSION, 'live')
+    expect(latest(changes)).toEqual(
+      new Map(WIDGET_IDS.filter((id) => id !== 'standings').map((id) => [id, 'out-of-car']))
+    )
+    // The camera on another car out of the car: the standings too.
+    auto.update(
+      defaults(),
+      replay(5, (f) => (f.IsOnTrack[0] = false)),
+      SESSION,
+      'live'
+    )
+    expect(latest(changes).get('standings')).toBe('out-of-car')
+    // Back in the car: everything.
+    auto.update(defaults(), frame(0), SESSION, 'none')
+    expect(WIDGET_IDS.some((id) => auto.isHidden(id))).toBe(false)
+  })
+
+  it('reads you in the car from the live frame, or from the loop’s held value', () => {
+    const { auto, changes } = harness()
+    const out = frame(0, (f) => (f.IsOnTrack[0] = false))
+    // The loop still holds you in the car for a moment.
+    auto.update(defaults(), out, SESSION, 'none', out, true)
+    expect(changes).toEqual([])
+    auto.update(defaults(), out, SESSION, 'none', out, false)
+    expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'out-of-car'])))
+    // Unknown never hides.
+    auto.update(defaults(), out, SESSION, 'none', out, null)
+    expect(WIDGET_IDS.some((id) => auto.isHidden(id))).toBe(false)
+  })
+
+  it('in races only: nothing in practice or qualifying, from the live frame’s session', () => {
+    const { auto, changes } = harness()
+    const raceOnly = config(kept, { showWhen: 'race' })
+    auto.update(raceOnly, frame(1), SESSION, 'none')
+    expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'not-race'])))
+    auto.update(raceOnly, frame(2), SESSION, 'none')
+    expect(changes).toHaveLength(WIDGET_IDS.length)
+    auto.update(raceOnly, frame(0), SESSION, 'none')
+    expect(WIDGET_IDS.some((id) => auto.isHidden(id))).toBe(false)
+    // The tape of practice while the race goes on live: the live session counts.
+    const tape = replay(5, (f) => (f.SessionNum[0] = 1))
+    auto.update(config(kept, { showWhen: 'race' }), tape, SESSION, 'tape', frame(0))
+    expect(latest(changes).get('standings')).toBe('shown')
+  })
+
+  it('the per-widget rules still apply on top', () => {
+    const { auto, changes } = harness()
+    const r = rules({ battle: rule({ showIn: { practice: false, qualify: false, race: true } }) })
+    auto.update(config(r, { showWhen: 'always' }), frame(1), SESSION, 'none')
+    expect(changes).toEqual([['battle', true, 'practice']])
+  })
+
+  it('follows the car on camera from out of the car when replays follow it', () => {
+    const { auto, changes } = harness()
+    const watching = replay(5, (f) => (f.IsOnTrack[0] = false))
+    auto.update(config(kept), watching, SESSION, 'live')
+    // Only the widgets with your own car's data hide: the camera is on car 5.
+    expect(latest(changes)).toEqual(new Map(LIVE_ONLY.map((id) => [id, 'camera-other'])))
+    auto.update(config(kept), watching, SESSION, 'tape')
+    expect(latest(changes)).toEqual(new Map(OFF_TAPE.map((id) => [id, 'replay-player'])))
+    // Replays hidden (the default): out of the car on the tape says replay.
+    auto.update(defaults(), watching, SESSION, 'tape')
+    expect(latest(changes)).toEqual(new Map(WIDGET_IDS.map((id) => [id, 'replay'])))
   })
 })

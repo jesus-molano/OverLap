@@ -2,10 +2,11 @@
 import { computed, useId } from 'vue'
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from '@shared/i18n'
 import { FONT_SCALE_MAX, FONT_SCALE_MIN } from '@shared/settings'
-import { ACCENT_PRESETS, OPTION_SCHEMA } from '@shared/settingsSchema'
+import { ACCENT_PRESETS, OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema'
+import type { ShowWhen } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
-import { useOptions } from '../../composables/useWidgetSettings'
+import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import LicenseChip from '../../ui/LicenseChip.vue'
 import NumberBadge from '../../ui/NumberBadge.vue'
 import { createDriverStyles } from '../../view/styles'
@@ -15,20 +16,21 @@ import { densityChoices, nameExample, nameFormatChoices } from '../controls/choi
 import ColorControl from '../controls/ColorControl.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter, resetAppearance } from '../editor'
+import { optionSetter, resetAppearance, widgetSetter } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
-import { liveOnlyWidgets } from '../replayWidgets'
+import { replaysHelp as replaysHelpText, sessionScreenRuleOn } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { formatPercent } from '../values'
 
 /**
- * Global look shared by every widget (settings.appearance), and when they all hide with what
- * iRacing shows (settings.visibility): live preview (fixed), then the options (they scroll).
- * The default slot closes the scrolling part (the window's foot).
+ * Global look shared by every widget (settings.appearance), and when the overlay shows and hides
+ * with what iRacing shows (settings.visibility, plus the standings' session-screen exception):
+ * live preview (fixed), then the options (they scroll). The default slot closes the scrolling
+ * part (the window's foot).
  */
 const appearance = useAppearance()
 const visibility = useOptions('visibility')
@@ -37,6 +39,9 @@ const locale = useLocale()
 const titleId = useId()
 const set = optionSetter('appearance')
 const setVisibility = optionSetter('visibility')
+/** The standings' own session-screen exception (also in their Ventana section). */
+const standings = useWidgetSettings('standings')
+const setKeepStandings = widgetSetter('standings')('showOnSessionScreen')
 
 const A = OPTION_SCHEMA.appearance
 /** Slider readout in the current language; a new function only when the language changes. */
@@ -67,15 +72,26 @@ const numberChoices = computed(() =>
 const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
 )
+/** The tray's words for each choice (core.showWhen), with this page's tooltips. */
+const showWhenChoices = computed<ChoiceOption<ShowWhen>[]>(() =>
+  SHOW_WHEN.map((value) => ({
+    value,
+    label: t.value.core.showWhen[value],
+    hint: t.value.settings.appearance.screen.showWhenHints[value]
+  }))
+)
+const showWhenHelp = computed(
+  () => t.value.settings.appearance.screen.showWhenHelp[visibility.value.showWhen]
+)
+/** Off when nothing hides on the session screen: then the standings show there anyway. */
+const keepStandingsRule = computed(() => sessionScreenRuleOn(visibility.value))
 const replayChoices = computed(() =>
   choiceOptions(
     OPTION_SCHEMA.visibility.replays.values,
     t.value.settings.appearance.screen.replayChoices
   )
 )
-const replaysHelp = computed(() =>
-  t.value.settings.appearance.screen.replaysHelp(liveOnlyWidgets(t.value, locale.value))
-)
+const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 const FONT_PRESETS = [90, 100, 115, 130] as const
 
 const styles = createDriverStyles()
@@ -209,6 +225,33 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
     </PageSection>
 
     <PageSection :title="t.settings.appearance.screen.title">
+      <ChoiceControl
+        stack
+        :label="t.settings.appearance.screen.showWhen"
+        :help="showWhenHelp"
+        :current="visibility.showWhen"
+        :options="showWhenChoices"
+        :apply="setVisibility('showWhen')"
+      />
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.appearance.screen.keepStandings"
+        :help="
+          keepStandingsRule
+            ? t.settings.appearance.screen.keepStandingsHelp
+            : t.settings.appearance.screen.keepStandingsOff
+        "
+        :current="standings.showOnSessionScreen || !keepStandingsRule"
+        :disabled="!keepStandingsRule"
+        :apply="setKeepStandings"
+      />
+      <ChoiceControl
+        :label="t.settings.appearance.screen.replays"
+        :help="replaysHelp"
+        :current="visibility.replays"
+        :options="replayChoices"
+        :apply="setVisibility('replays')"
+      />
       <ToggleControl
         kind="switch"
         :label="t.settings.appearance.screen.simUi"
@@ -229,13 +272,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         :help="t.settings.appearance.screen.sessionScreenHelp"
         :current="visibility.hideOnSessionScreen"
         :apply="setVisibility('hideOnSessionScreen')"
-      />
-      <ChoiceControl
-        :label="t.settings.appearance.screen.replays"
-        :help="replaysHelp"
-        :current="visibility.replays"
-        :options="replayChoices"
-        :apply="setVisibility('replays')"
       />
       <ToggleControl
         kind="switch"

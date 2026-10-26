@@ -50,15 +50,19 @@ describe('toTelemetryConfig', () => {
 
   it('carries the global visibility rules, as a copy', () => {
     const s = createDefaultSettings()
-    s.visibility.replays = 'hide'
-    const c = toTelemetryConfig(s)
-    expect(c.visibility).toEqual({
+    // Only in the car and no replays by default.
+    expect(toTelemetryConfig(s).visibility).toEqual({
+      showWhen: 'car',
       hideWithSimUi: true,
       hideInGarage: true,
       hideOnSessionScreen: true,
       replays: 'hide',
       showWhileWaiting: false
     })
+    s.visibility.showWhen = 'race'
+    s.visibility.replays = 'follow'
+    const c = toTelemetryConfig(s)
+    expect(c.visibility).toMatchObject({ showWhen: 'race', replays: 'follow' })
     c.visibility.hideInGarage = false
     expect(s.visibility.hideInGarage).toBe(true)
   })

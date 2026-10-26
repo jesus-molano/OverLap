@@ -12,6 +12,7 @@ import type {
   NameFormat,
   OverlaySettings,
   ShowInSessions,
+  ShowWhen,
   StandingsColumn,
   StandingsColumnId,
   TelemetryConfig,
@@ -104,6 +105,9 @@ export type OptionSchema = {
 const NAME_FORMATS = ['full', 'abbr', 'surname', 'tv'] as const satisfies readonly NameFormat[]
 const NAME_FORMATS_INHERIT = ['inherit', ...NAME_FORMATS] as const
 
+/** When the overlay is shown (VisibilityOptions.showWhen), in UI order: the default first. */
+export const SHOW_WHEN = ['car', 'race', 'always'] as const satisfies readonly ShowWhen[]
+
 /** Right-hand standings columns in their default order. */
 export const STANDINGS_COLUMN_IDS = [
   'gained',
@@ -177,12 +181,14 @@ export const OPTION_SCHEMA = {
     language: { kind: 'enum', values: LANGUAGES, default: DEFAULT_LANGUAGE, displayOnly: true }
   },
   // Evaluated by the telemetry process (a hidden widget is not computed), except the waiting
-  // panels, which only the overlay windows draw.
+  // panels, which only the overlay windows draw. The overlay only while you drive, and no
+  // replays, by default.
   visibility: {
+    showWhen: { kind: 'enum', values: SHOW_WHEN, default: 'car' },
     hideWithSimUi: { kind: 'bool', default: true },
     hideInGarage: { kind: 'bool', default: true },
     hideOnSessionScreen: { kind: 'bool', default: true },
-    replays: { kind: 'enum', values: ['follow', 'hide'], default: 'follow' },
+    replays: { kind: 'enum', values: ['hide', 'follow'], default: 'hide' },
     showWhileWaiting: { kind: 'bool', default: false, displayOnly: true }
   },
   relative: {
