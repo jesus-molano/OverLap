@@ -155,6 +155,7 @@ const SAME_IN_ENGLISH = new Set([
   'widgets.standings.heads.stint',
   'widgets.battle.stake',
   'widgets.inputs.abs',
+  'widgets.lights.seconds',
   'settings.nav.widgets',
   'settings.visibility.label',
   'settings.common.iRating',

@@ -7,6 +7,8 @@ import { computeFuel, fuelAlertInput, fuelEqual } from './fuel/provider'
 import { FuelTracker } from './fuel/tracker'
 import { incidentCountEqual } from './incidents/count'
 import { computeInputs } from './inputs'
+import { LightsProvider, lightsEqual } from './lights'
+import { EngineMonitor } from './notices/engine'
 import type { RaceView } from './race/raceView'
 import { computeRadar } from './radar'
 import { computeRelative } from './relative'
@@ -55,7 +57,10 @@ export function createProviders(): ProviderSet {
   const standings = new StandingsProvider()
   const battle = new BattleProvider()
   const traffic = new TrafficProvider()
-  const alerts = new AlertsProvider()
+  // Fed on every tick: the alerts band and the warning lights read the same engine state.
+  const engine = new EngineMonitor()
+  const alerts = new AlertsProvider(engine)
+  const lights = new LightsProvider(engine)
   const delta = new DeltaProvider()
   const conditions = new ConditionsProvider()
   // Fed on every tick: the fuel widget and the alerts band plan with the same laps.
@@ -80,9 +85,11 @@ export function createProviders(): ProviderSet {
       delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta),
       // Its options only choose what is drawn: every reading is sent.
       conditions: (ctx) => conditions.compute(ctx.frame, ctx.session),
-      fuel: (ctx) => computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel)
+      fuel: (ctx) => computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel),
+      lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights)
     },
     observe: (frame, session, race) => {
+      engine.observe(frame)
       alerts.observe(frame, session, race)
       fuel.observe(frame, session, race)
     },
@@ -90,7 +97,9 @@ export function createProviders(): ProviderSet {
       standings.reset()
       battle.reset()
       traffic.reset()
+      engine.reset()
       alerts.reset()
+      lights.reset()
       delta.reset()
       conditions.reset()
       fuel.reset()
@@ -133,5 +142,7 @@ export const SKIP_EMIT: {
   conditions: (payload, prev) => prev !== null && conditionsEqual(payload, prev),
   // A tenth of a litre every few seconds: most ticks change nothing shown.
   fuel: (payload, prev) =>
-    prev !== null && ((!payload.visible && !prev.visible) || fuelEqual(payload, prev))
+    prev !== null && ((!payload.visible && !prev.visible) || fuelEqual(payload, prev)),
+  // A light or a shown reading changes now and then: most ticks change nothing.
+  lights: (payload, prev) => prev !== null && lightsEqual(payload, prev)
 }

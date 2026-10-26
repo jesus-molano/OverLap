@@ -13,13 +13,7 @@ import type { AlertNotice, AlertsData, FlagKind, IncidentAlert } from '@shared/t
 const FLAGS: readonly FlagKind[] = Object.freeze(['yellow', 'blue'])
 const NOTICES: readonly AlertNotice[] = Object.freeze([
   Object.freeze<AlertNotice>({ kind: 'lapsToGo', laps: 5 }),
-  Object.freeze<AlertNotice>({
-    kind: 'engineTrend',
-    fluid: 'water',
-    tempC: 98,
-    deltaC: 6,
-    draft: true
-  })
+  Object.freeze<AlertNotice>({ kind: 'fuelLow', laps: 1.6 })
 ])
 
 const INCIDENT: IncidentAlert = Object.freeze({
@@ -49,13 +43,9 @@ const GALLERY_NOTICES: readonly AlertNotice[] = Object.freeze([
       { kind: 'pitEntry' },
       { kind: 'stalled' },
       { kind: 'oilPressure' },
-      { kind: 'water' },
-      { kind: 'oilTemp' },
-      { kind: 'fuelPressure' },
       { kind: 'tow', seconds: 42 },
-      { kind: 'damage', mandatory: true },
-      { kind: 'boxThisLap' },
-      { kind: 'fuelLow', laps: 1.6 }
+      { kind: 'damage' },
+      { kind: 'boxThisLap' }
     ] satisfies AlertNotice[]
   ).map((n) => Object.freeze<AlertNotice>(n)),
   ...NOTICES

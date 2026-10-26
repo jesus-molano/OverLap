@@ -1,16 +1,16 @@
 /**
- * The player's own alerts in every mock session, so each case of the alerts widget shows up at
- * least once: the furled black flag, the water slowly running hot (the trend against your own
+ * The player's own alerts in every mock session, so each case of the alerts widget and of the
+ * warning lights shows up at least once: the furled black flag, the water slowly running hot (the trend against your own
  * average), the water and oil temperature lights, the oil and fuel pressure lights, a stall,
- * damage (optional repairs, then mandatory ones), a stretch the wrong way and a tow. The pit
+ * damage (optional repairs, then mandatory ones, with the time each takes), a stretch the wrong way and a tow. The pit
  * limiter reminder and the laps to go come from the race itself (race.ts: the pit lead-in
  * surface; the RaceModel: the laps left).
  *
  * All of it happens between minute 15 and minute 22 (MOCK_ALERTS_TIMELINE): after the stretches
  * the other mock tests read (the first ten minutes end to end, 15 minutes of MockRace) and before
  * the late join of the end-to-end run. Only the player's own variables change (its
- * CarIdxSessionFlags and EngineWarnings bits, the tow, the temperatures, the revs and
- * LapDistPct), never its motion: the wrong way is LapDistPct alone running backwards, so the
+ * CarIdxSessionFlags and EngineWarnings bits, the tow, the temperatures, the revs, the repair
+ * times and LapDistPct), never its motion: the wrong way is LapDistPct alone running backwards, so the
  * timing, the scripted cars and the other widgets see the same race as without it.
  * Deterministic: the race's state only.
  */
@@ -70,6 +70,9 @@ const MAX_RPM = 8000
 /** With the warning light on. */
 const WATER_LIGHT_C = 116
 const OIL_LIGHT_C = 128
+/** PitRepairLeft and PitOptRepairLeft while the damage lasts (s). */
+export const MOCK_REPAIR_S = 42
+export const MOCK_OPT_REPAIR_S = 38
 /** The wrong way starts this far from the S/F line at least (lap fraction): never across it. */
 const WRONG_WAY_MID = 0.25
 
@@ -119,10 +122,12 @@ export class MockPlayerAlerts {
     if (inSpan(t, tl.fuelPressureLight)) bits |= EngineWarning.FuelPressure
     const stalled = inSpan(t, tl.stall)
     if (stalled) bits |= EngineWarning.Stalled
-    if (inSpan(t, tl.damage)) {
-      bits |= EngineWarning.OptionalRepairs
-      if (t >= tl.damage[0] + 1) bits |= EngineWarning.MandatoryRepairs
-    }
+    const damaged = inSpan(t, tl.damage)
+    const mandatory = damaged && t >= tl.damage[0] + 1
+    if (damaged) bits |= EngineWarning.OptionalRepairs
+    if (mandatory) bits |= EngineWarning.MandatoryRepairs
+    v.PitRepairLeft[0] = mandatory ? MOCK_REPAIR_S : 0
+    v.PitOptRepairLeft[0] = damaged ? MOCK_OPT_REPAIR_S : 0
     v.EngineWarnings[0] = (v.EngineWarnings[0] ?? 0) | bits
     const speed = Math.abs(v.Speed[0] ?? 0)
     v.RPM[0] = stalled ? 0 : Math.min(MAX_RPM, MOCK_IDLE_RPM + RPM_PER_MS * speed)

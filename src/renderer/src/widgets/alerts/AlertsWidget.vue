@@ -77,14 +77,7 @@ const shownFilter = computed<AlertFilter>((prev) => {
 // Both keep their objects while equal: a speed change on pit road re-renders the limiter only.
 // The flag views are frozen per language: a new language swaps them all at once.
 const flags = computed<FlagsView>((prev) =>
-  toFlagsView(
-    content.value ?? { flags: [] },
-    shownFilter.value,
-    appearance.value.units,
-    t.value,
-    prev,
-    maxChips
-  )
+  toFlagsView(content.value ?? { flags: [] }, shownFilter.value, t.value, prev, maxChips)
 )
 const limiter = computed<LimiterView | null>((prev) => {
   const d = content.value

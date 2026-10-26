@@ -76,9 +76,24 @@ describe('EngineTrend', () => {
     expect(d.run(ENGINE_TREND.sustainS, { water: 96 })).toBeNull()
     const n = d.run(10, { water: 96 })
     expect(n).toEqual({ kind: 'engineTrend', fluid: 'water', tempC: 96, deltaC: 8, draft: false })
-    // Oil further above its own reference wins the band.
+    // Oil further above its own reference is the one said.
     d.run(40, { water: 96, oil: 112 })
     expect(d.last).toMatchObject({ fluid: 'oil', tempC: 112, deltaC: 12 })
+  })
+
+  it('keeps each fluid’s notice, so both lights can be up at once', () => {
+    const d = warmed()
+    d.run(ENGINE_TREND.sustainS + 6, { water: 96, oil: 107 })
+    // update() says the hotter one; notice() has each.
+    expect(d.last).toMatchObject({ fluid: 'water', deltaC: 8 })
+    expect(d.e.notice('water')).toBe(d.last)
+    expect(d.e.notice('oil')).toMatchObject({ kind: 'engineTrend', fluid: 'oil', deltaC: 7 })
+    d.run(20)
+    expect([d.e.notice('water'), d.e.notice('oil')]).toEqual([null, null])
+    d.run(ENGINE_TREND.sustainS + 6, { oil: 107 })
+    expect(d.e.notice('oil')).not.toBeNull()
+    d.e.resume()
+    expect(d.e.notice('oil')).toBeNull()
   })
 
   it('ignores a short spike and ends below clearC', () => {

@@ -26,7 +26,8 @@ import type {
   TrafficData,
   AlertsData,
   ConditionsData,
-  FuelData
+  FuelData,
+  LightsData
 } from '@shared/types'
 import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
@@ -276,6 +277,7 @@ const FUEL: FuelData = {
   fastRepairs: null,
   tyreSets: null
 }
+const LIGHTS: LightsData = { visible: false, lights: [] }
 
 interface Call<P> {
   ctx: ProviderContext
@@ -372,7 +374,8 @@ function setup(
       return DELTA
     },
     conditions: () => CONDITIONS,
-    fuel: () => FUEL
+    fuel: () => FUEL,
+    lights: () => LIGHTS
   }
 
   const loop = new TelemetryLoop(source, (msg) => out.push(msg), {

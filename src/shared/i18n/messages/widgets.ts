@@ -221,15 +221,6 @@ export const widgetsEs = {
       pitEntry: { label: 'PON LIMITADOR', short: '', note: 'entrada a boxes', chip: '' },
       stalled: { label: 'CALADO', short: '', note: 'arranca el motor', chip: '' },
       oilPressure: { label: 'PRESIÓN ACEITE', short: 'P. ACEITE', note: 'baja', chip: 'P. ACEITE' },
-      // 'TEMP.' like 'P. ACEITE': a bare 'ACEITE' chip next to it, or 'AGUA +6 °C', is ambiguous.
-      water: { label: 'TEMP. AGUA', short: '', note: 'alta', chip: '' },
-      oilTemp: { label: 'TEMP. ACEITE', short: '', note: 'alta', chip: '' },
-      fuelPressure: {
-        label: 'PRESIÓN GASOLINA',
-        short: 'P. GASOLINA',
-        note: 'baja',
-        chip: 'P. GASOLINA'
-      },
       // The pit window closes on this lap: stop at the end of it or run dry.
       boxThisLap: {
         label: 'ENTRA ESTA VUELTA',
@@ -245,13 +236,10 @@ export const widgetsEs = {
     tow: (clock: string) => `GRÚA${NB}${clock}`,
     towNote: 'hasta poder salir',
     /**
-     * The car is damaged (the band and its note; the chip is the band): repairs it must make
-     * before racing on (the meatball follows) or only optional ones.
+     * Mandatory repairs pending (the band and its note; the chip is the band): pit for them
+     * before racing on (the meatball follows). Optional ones are the warning lights' alone.
      */
-    damage: {
-      mandatory: { label: 'DAÑOS', note: 'reparación obligatoria' },
-      optional: { label: 'DAÑOS LEVES', note: 'reparación opcional' }
-    },
+    damage: { label: 'DAÑO', note: 'reparación obligatoria en boxes' },
     /** Under two laps of fuel: 'COMBUSTIBLE · 1.6 V' (`laps` written with its decimal). */
     fuelLow: (laps: string) => `COMBUSTIBLE${NB}·${NB}${laps}${NB}V`,
     /** Narrow windows and the chip. */
@@ -260,29 +248,45 @@ export const widgetsEs = {
     /** Laps to the end of the race ('QUEDAN 5 V', like the headers): it says "to go" as a chip. */
     lapsToGo: (n: number) => `QUEDAN${NB}${n}${NB}V`,
     lapsToGoNote: 'para el final',
-    /** Water or oil above your own average: 'AGUA 98 °C ↑' + '+6 vs tu media (¿rebufo?)'. */
-    trend: {
-      label: {
-        water: (temp: string) => `AGUA ${temp} ↑`,
-        oil: (temp: string) => `ACEITE ${temp} ↑`
-      },
-      /** The narrow-window label, without the arrow. */
-      short: {
-        water: (temp: string) => `AGUA ${temp}`,
-        oil: (temp: string) => `ACEITE ${temp}`
-      },
-      note: (delta: string) => `${delta} vs tu media`,
-      chip: {
-        water: (delta: string) => `AGUA ${delta}`,
-        oil: (delta: string) => `ACEITE ${delta}`
-      },
-      /** You spent most of the time close behind another car. */
-      draft: '(¿rebufo?)'
-    },
     /** The pit limiter line. */
     limiterOn: 'LIMITADOR',
     limiterOff: 'LIMITADOR OFF',
     speeding: 'EXCESO'
+  },
+  lights: {
+    /**
+     * The short word after each icon (lights.showCaptions), drawn as written. 'P.' and 'T.' tell
+     * the two oil lights apart.
+     */
+    captions: {
+      oilPressure: 'P. ACEITE',
+      fuelPressure: 'GASOLINA',
+      stalled: 'CALADO',
+      repair: 'REPARAR',
+      repairOptional: 'OPC.',
+      water: 'AGUA',
+      oilTemp: 'T. ACEITE',
+      pitLimiter: 'LIMITADOR',
+      revLimiter: 'CORTE'
+    },
+    /** Each light's name (its accessible name, the settings toggles and the legend). */
+    names: {
+      oilPressure: 'Presión de aceite',
+      fuelPressure: 'Presión de gasolina',
+      stalled: 'Motor calado',
+      repair: 'Reparación obligatoria',
+      repairOptional: 'Reparación opcional',
+      water: 'Temperatura del agua',
+      oilTemp: 'Temperatura del aceite',
+      pitLimiter: 'Limitador de boxes',
+      revLimiter: 'Corte de revoluciones'
+    },
+    /** How long the repairs take: '42 s' ('REPARAR · 42 s'). */
+    seconds: (s: number) => `${s}${NB}s`,
+    /** The trend while you spent most of it close behind another car (with the captions). */
+    draft: '¿rebufo?',
+    /** After the name, for the accessible name: off, lit, above your own average. */
+    states: { off: 'apagado', on: 'encendido', trend: 'por encima de tu media' }
   },
   inputs: {
     /** Pedal bar keys. */
@@ -543,41 +547,46 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       pitEntry: { label: 'LIMITER OFF', short: '', note: 'pit entry ahead', chip: '' },
       stalled: { label: 'STALLED', short: '', note: 'restart the engine', chip: '' },
       oilPressure: { label: 'OIL PRESSURE', short: '', note: 'low', chip: 'OIL PRESS.' },
-      water: { label: 'WATER TEMP', short: '', note: 'too hot', chip: '' },
-      oilTemp: { label: 'OIL TEMP', short: '', note: 'too hot', chip: '' },
-      fuelPressure: { label: 'FUEL PRESSURE', short: '', note: 'low', chip: 'FUEL PRESS.' },
       boxThisLap: { label: 'BOX THIS LAP', short: '', note: 'pit window closes', chip: '' }
     },
     tow: (clock) => `TOW${NB}${clock}`,
     towNote: 'until you can drive',
-    damage: {
-      mandatory: { label: 'DAMAGE', note: 'repairs required' },
-      optional: { label: 'MINOR DAMAGE', note: 'optional repairs' }
-    },
+    damage: { label: 'DAMAGE', note: 'pit for mandatory repairs' },
     fuelLow: (laps) => `FUEL${NB}·${NB}${laps}${NB}LAPS`,
     fuelLowShort: (laps) => `FUEL${NB}${laps}${NB}LAPS`,
     fuelLowNote: 'pit to refuel',
     lapsToGo: (n) => `${n}${NB}TO GO`,
     lapsToGoNote: 'laps left',
-    trend: {
-      label: {
-        water: (temp) => `WATER ${temp} ↑`,
-        oil: (temp) => `OIL ${temp} ↑`
-      },
-      short: {
-        water: (temp) => `WATER ${temp}`,
-        oil: (temp) => `OIL ${temp}`
-      },
-      note: (delta) => `${delta} vs your average`,
-      chip: {
-        water: (delta) => `WATER ${delta}`,
-        oil: (delta) => `OIL ${delta}`
-      },
-      draft: '(slipstream?)'
-    },
     limiterOn: 'PIT LIMITER',
     limiterOff: 'LIMITER OFF',
     speeding: 'SPEEDING'
+  },
+  lights: {
+    captions: {
+      oilPressure: 'OIL P.',
+      fuelPressure: 'FUEL',
+      stalled: 'STALL',
+      repair: 'REPAIR',
+      repairOptional: 'OPT.',
+      water: 'WATER',
+      oilTemp: 'OIL T.',
+      pitLimiter: 'LIMITER',
+      revLimiter: 'REV LIM.'
+    },
+    names: {
+      oilPressure: 'Oil pressure',
+      fuelPressure: 'Fuel pressure',
+      stalled: 'Engine stalled',
+      repair: 'Mandatory repairs',
+      repairOptional: 'Optional repairs',
+      water: 'Water temperature',
+      oilTemp: 'Oil temperature',
+      pitLimiter: 'Pit limiter',
+      revLimiter: 'Rev limiter'
+    },
+    seconds: (s) => `${s}${NB}s`,
+    draft: 'slipstream?',
+    states: { off: 'off', on: 'on', trend: 'above your average' }
   },
   inputs: {
     clutch: 'C',

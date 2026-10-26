@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { Rect } from '../types'
 import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { createDefaultSettings, normalizeSettings } from '.'
-import { DEFAULT_AREA, HIDDEN_WHEN_ADDED, freeSpot } from './migrate'
+import {
+  DEFAULT_AREA,
+  HIDDEN_WHEN_ADDED,
+  SHOWN_WHEN_ADDED,
+  freeSpot,
+  migrateSection
+} from './migrate'
 
 const overlaps = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
@@ -98,6 +104,35 @@ describe('a widget newer than the settings file (Q5)', () => {
     expect(normalizeSettings({}).widgets.fuel).toEqual(createDefaultSettings().widgets.fuel)
   })
 
+  it('shows the warning lights of a file from before them, in a free spot near their default', () => {
+    expect(SHOWN_WHEN_ADDED).toEqual(['lights'])
+    // Their default (under the delta) sits on the radar and the alerts moved there.
+    const def = WIDGET_DEFS.lights.defaultBounds
+    expect(overlaps(def, RACE_LAYOUT.radar as Rect)).toBe(true)
+
+    const s = normalizeSettings(fileBeforeConditions())
+    const l = s.widgets.lights
+    // Shown: the temperature lights left the alerts band for them.
+    expect(l.visible).toBe(true)
+    expect(l.bounds).toMatchObject({ width: def.width, height: def.height })
+    for (const id of WIDGET_IDS) {
+      if (id === 'lights') continue
+      const b = s.widgets[id].bounds
+      const room = id === 'alerts' ? { ...b, height: Math.max(b.height, ALERTS_DEFAULT_ROOM) } : b
+      expect(overlaps(l.bounds, room), id).toBe(false)
+    }
+    // With no free spot they wait hidden at their default, like the hidden ones.
+    const wall = { x: 0, y: 0, width: 1920, height: 1080 }
+    const full = normalizeSettings({ widgets: { standings: { visible: true, bounds: wall } } })
+    expect(full.widgets.lights).toMatchObject({ visible: false, bounds: def })
+    // A file that has them, and a fresh start, keep theirs.
+    const raw = fileBeforeConditions()
+    const saved = { x: 100, y: 900, width: 200, height: 40 }
+    ;(raw.widgets as Record<string, unknown>).lights = { visible: false, bounds: saved }
+    expect(normalizeSettings(raw).widgets.lights).toMatchObject({ visible: false, bounds: saved })
+    expect(normalizeSettings({}).widgets.lights).toEqual(createDefaultSettings().widgets.lights)
+  })
+
   it('finds the free spot nearest the default, on its grid and with room around', () => {
     const near = { x: 60, y: 90 }
     expect(freeSpot({ width: 100, height: 50 }, near, [], DEFAULT_AREA)).toEqual(near)
@@ -105,5 +140,32 @@ describe('a widget newer than the settings file (Q5)', () => {
     const spot = freeSpot({ width: 100, height: 50 }, near, [block], DEFAULT_AREA)
     // Below the block (y 210, 10 px clear of it) is nearer to (60,90) than right of it (x 410).
     expect(spot).toEqual({ x: 60, y: 210 })
+  })
+})
+
+describe('the alerts band before the warning lights', () => {
+  it('turns its engine warnings into the oil pressure it keeps', () => {
+    const off = normalizeSettings({ alerts: { showEngineWarnings: false } }).alerts
+    expect(off.showOilPressure).toBe(false)
+    expect('showEngineWarnings' in off).toBe(false)
+    expect(normalizeSettings({ alerts: { showEngineWarnings: true } }).alerts.showOilPressure).toBe(
+      true
+    )
+    // A file with the new option keeps it; one without either gets the default.
+    const both = { alerts: { showEngineWarnings: false, showOilPressure: true } }
+    expect(normalizeSettings(both).alerts.showOilPressure).toBe(true)
+    expect(normalizeSettings({ alerts: { showStalled: false } }).alerts.showOilPressure).toBe(true)
+  })
+
+  it('carries a trend turned off in the band to the lights, where it went', () => {
+    const s = normalizeSettings({ alerts: { showEngineTrend: false } })
+    expect(s.lights.showTrend).toBe(false)
+    expect('showEngineTrend' in s.alerts).toBe(false)
+    expect(normalizeSettings({ alerts: { showEngineTrend: true } }).lights.showTrend).toBe(true)
+    // A file with the lights says what it wants of them.
+    const both = { alerts: { showEngineTrend: false }, lights: { showTrend: true } }
+    expect(normalizeSettings(both).lights.showTrend).toBe(true)
+    expect(migrateSection('lights', undefined, { alerts: 'junk' })).toBeUndefined()
+    expect(migrateSection('lights', undefined)).toBeUndefined()
   })
 })

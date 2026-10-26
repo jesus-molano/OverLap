@@ -38,6 +38,11 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
   traffic: [{ d: 'M4 10 8 6.5l4 3.5M4 14l4-3.5 4 3.5' }, { d: 'M6.5 1.5h3v3.25h-3z', fill: true }],
   // Flag on a pole.
   alerts: [{ d: 'M3.75 14.25V2' }, { d: 'M3.75 2.75h8.75L10.5 5.9l2 3.1H3.75' }],
+  // An engine block, the dashboard's engine light.
+  lights: [
+    { d: 'M4.5 6.5h7v6h-7zM11.5 8.25h2.25v2.75H11.5M4.5 9.75H2.25M2.25 8v3.5' },
+    { d: 'M6.25 4.25h3.5v2.25h-3.5zM8 2.25v2' }
+  ],
   // Stopwatch.
   delta: [{ d: 'M3 9.25a5 5 0 1 0 10 0 5 5 0 1 0-10 0M6.5 1.75h3M8 1.75v2.5M8 9.25l2-2' }],
   // Thermometer beside two gusts of wind.

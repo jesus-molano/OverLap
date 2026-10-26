@@ -79,7 +79,8 @@ const CONFIG_SECTIONS = [
   'alerts',
   'delta',
   'conditions',
-  'fuel'
+  'fuel',
+  'lights'
 ] as const satisfies readonly ConfigSection[]
 
 /**
@@ -101,7 +102,8 @@ export const DISPLAY_ONLY: { readonly [K in ConfigSection]: readonly string[] } 
   alerts: displayOnlyFields('alerts').map(String),
   delta: displayOnlyFields('delta').map(String),
   conditions: displayOnlyFields('conditions').map(String),
-  fuel: displayOnlyFields('fuel').map(String)
+  fuel: displayOnlyFields('fuel').map(String),
+  lights: displayOnlyFields('lights').map(String)
 }
 
 /** The telemetry config without the display-only options. */
