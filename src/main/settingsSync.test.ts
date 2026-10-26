@@ -324,6 +324,18 @@ describe('diffSettings and the widget options', () => {
     expect(configChanged((s) => (s.fuel.avgLaps = 3))).toBe(true)
     expect(configChanged((s) => (s.fuel.marginLaps = 1))).toBe(true)
   })
+
+  it('the warning lights: layout and captions are drawing, what is sent goes to the process', () => {
+    expect(
+      configChanged((s) => {
+        s.lights.layout = 'column'
+        s.lights.showCaptions = true
+      })
+    ).toBe(false)
+    expect(configChanged((s) => (s.lights.onlyWhenLit = true))).toBe(true)
+    expect(configChanged((s) => (s.lights.showTemps = true))).toBe(true)
+    expect(configChanged((s) => (s.lights.showRevLimiter = true))).toBe(true)
+  })
 })
 
 describe('DISPLAY_ONLY / computedConfig', () => {

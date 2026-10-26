@@ -6,6 +6,7 @@ import ConditionsSettings from './ConditionsSettings.vue'
 import DeltaSettings from './DeltaSettings.vue'
 import FuelSettings from './FuelSettings.vue'
 import InputsSettings from './InputsSettings.vue'
+import LightsSettings from './LightsSettings.vue'
 import RadarSettings from './RadarSettings.vue'
 import RelativeSettings from './RelativeSettings.vue'
 import StandingsSettings from './StandingsSettings.vue'
@@ -24,6 +25,7 @@ export const WIDGET_OPTIONS: Partial<Record<WidgetId, Component>> = {
   inputs: InputsSettings,
   traffic: TrafficSettings,
   alerts: AlertsSettings,
+  lights: LightsSettings,
   delta: DeltaSettings,
   conditions: ConditionsSettings,
   fuel: FuelSettings

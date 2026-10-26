@@ -57,6 +57,9 @@ export interface MockVars extends MockWeatherVars, MockFuelVars {
   WaterTemp: number[]
   OilTemp: number[]
   RPM: number[]
+  /** The repairs' time while the scripted damage lasts (playerAlerts.ts). */
+  PitRepairLeft: number[]
+  PitOptRepairLeft: number[]
   /** Live driving: no replay, the camera on the player, the UI shown (screen.ts changes them). */
   IsReplayPlaying: boolean[]
   /** At the live point (0) unless screen.ts plays the tape. */
@@ -114,6 +117,8 @@ export class MockFrameBuffer {
     WaterTemp: [0],
     OilTemp: [0],
     RPM: [0],
+    PitRepairLeft: [0],
+    PitOptRepairLeft: [0],
     IsReplayPlaying: [false],
     ReplayFrameNumEnd: [0],
     ReplaySessionNum: [0],

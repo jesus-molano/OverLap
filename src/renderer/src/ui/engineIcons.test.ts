@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ENGINE_ICONS, ENGINE_ICON_NAMES } from './engineIcons'
-import { ICON_NAMES, type IconShape } from './icons'
+import { ENGINE_ICONS, ENGINE_ICON_NAMES, iconShapes, isEngineIcon } from './engineIcons'
+import { ICONS, ICON_NAMES, type IconShape } from './icons'
 
 const PATH_RE = /^[MmLlHhVvCcSsQqTtAaZz0-9.,\s-]+$/
 
@@ -23,6 +23,14 @@ describe('engine icons', () => {
 
   it('shares no name with the main set, so the two registries merge', () => {
     for (const name of ENGINE_ICON_NAMES) expect(ICON_NAMES as string[], name).not.toContain(name)
+  })
+
+  it('draws both registries through one lookup (Icon.vue)', () => {
+    expect(iconShapes('oil-pressure')).toBe(ENGINE_ICONS['oil-pressure'])
+    expect(iconShapes('pit')).toBe(ICONS.pit)
+    expect(isEngineIcon('engine')).toBe(true)
+    expect(isEngineIcon('pit')).toBe(false)
+    expect(isEngineIcon('toString')).toBe(false)
   })
 
   it('draws in currentColor only, so a light takes its severity colour', () => {

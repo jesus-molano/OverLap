@@ -65,6 +65,7 @@ export function createDefaultSettings(): OverlaySettings {
     delta: defaultOptions('delta'),
     conditions: defaultOptions('conditions'),
     fuel: defaultOptions('fuel'),
+    lights: defaultOptions('lights'),
     shortcuts: defaultOptions('shortcuts')
   }
 }

@@ -7,6 +7,7 @@ import type {
   DeltaOptions,
   FuelOptions,
   InputsOptions,
+  LightsOptions,
   OverlaySettings,
   RadarOptions,
   RelativeOptions,
@@ -156,12 +157,11 @@ const DEFAULT_ALERTS: AlertsOptions = {
   showPitEntry: true,
   showLapsToGo: true,
   showTow: true,
-  showDamage: true,
   showWrongWay: true,
   showIncidents: true,
   showStalled: true,
-  showEngineWarnings: true,
-  showEngineTrend: true,
+  showOilPressure: true,
+  showDamage: true,
   showBoxThisLap: true,
   showFuelLow: true,
   holdS: 3
@@ -204,6 +204,23 @@ const DEFAULT_FUEL: FuelOptions = {
   avgLaps: 5,
   marginLaps: 0.5
 }
+const DEFAULT_LIGHTS: LightsOptions = {
+  layout: 'row',
+  onlyWhenLit: false,
+  showCaptions: false,
+  showTemps: false,
+  showRepairTime: true,
+  showOilPressure: true,
+  showFuelPressure: true,
+  showStalled: true,
+  showRepair: true,
+  showRepairOptional: true,
+  showWater: true,
+  showOilTemp: true,
+  showTrend: true,
+  showPitLimiter: false,
+  showRevLimiter: false
+}
 
 function defaultWidget(id: WidgetId): WidgetSettings {
   const def = WIDGET_DEFS[id]
@@ -244,6 +261,7 @@ describe('DEFAULT_SETTINGS', () => {
       delta: DEFAULT_DELTA,
       conditions: DEFAULT_CONDITIONS,
       fuel: DEFAULT_FUEL,
+      lights: DEFAULT_LIGHTS,
       shortcuts: DEFAULT_SHORTCUTS
     })
   })
@@ -260,6 +278,15 @@ describe('DEFAULT_SETTINGS', () => {
       qualify: false,
       race: true
     })
+  })
+
+  it('makes the warning lights small, auto-height and shown in every session', () => {
+    const w = DEFAULT_SETTINGS.widgets.lights
+    expect(w.visible).toBe(true)
+    expect(w.autoHeight).toBe(true)
+    expect(w.showIn).toEqual({ practice: true, qualify: true, race: true })
+    expect(w.bounds.width).toBeLessThanOrEqual(300)
+    expect(w.bounds.height).toBeLessThanOrEqual(60)
   })
 
   it('makes the fuel widget auto-height and race-only', () => {

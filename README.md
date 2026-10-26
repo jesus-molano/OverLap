@@ -192,14 +192,14 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
   (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados. Radar,
-  Pedales y Delta no la tienen: fuera del coche no tienen datos.
+  Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos.
 - iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
   o salta).
 - En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
-  él; Radar, Pedales, Avisos, Delta, Condiciones y Combustible solo tienen datos de tu coche y se
-  ocultan.
+  él; Radar, Pedales, Avisos, Testigos, Delta, Condiciones y Combustible solo tienen datos de tu
+  coche y se ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
   y Clasificación se queda con la carrera en directo tal como estaba. El cronometraje no cuenta
   vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta que la
@@ -262,6 +262,7 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 | ----------- | ------------ | ---------- | ------------- |
 | Relativo    | `relative`   | 10 Hz      | 300 x 150     |
 | Radar       | `radar`      | 60 Hz      | 120 x 140     |
+| Testigos    | `lights`     | 10 Hz      | 40 x 24       |
 | Delta       | `delta`      | 30 Hz      | 200 x 48      |
 | Condiciones | `conditions` | 1 Hz       | 180 x 40      |
 | Combustible | `fuel`       | 2 Hz       | 180 x 40      |
@@ -417,26 +418,45 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
     todo; la reparación (meatball) va al lado y, en tu box, sin «entra en boxes». **Motor calado**
     (solo dentro del coche) y **sentido contrario**: tu `LapDistPct` va hacia atrás mientras avanzas
     en marcha; no cuentan la marcha atrás, el pit lane ni el cruce de meta.
-  - **Daños** (`EngineWarnings`): `DAÑOS · reparación obligatoria` mientras esté pendiente, hasta que
-    sale la bandera de reparación; `DAÑOS LEVES` unos segundos. Opción `alerts.showDamage`.
   - **Incidentes**: `+2x Pérdida de control · V5 · S3 · grava` al sumar puntos (ver Incidentes).
-  - **Testigos del motor** de `EngineWarnings`: presión de aceite y de gasolina (`P. ACEITE`, solo con
-    el motor en marcha: a más de 5 m/s o al 80 % del ralentí, `DriverCarIdleRPM`) y temperatura del
-    agua y del aceite (`TEMP. AGUA`). Las temperaturas pueden seguir encendidas vueltas enteras: van
-    detrás de las banderas amarilla y azul, que no se quedan en un chip por ellas.
-  - Ningún aviso del motor (calado, testigos, daños) durante la grúa, en tu box, con el coche fuera
-    del mundo, los 2 s después de reaparecer ni los 3 s después de subir al coche: ahí parpadean con
-    el coche parado. Un testigo que venía de antes no se mantiene en ese rato.
-  - **Temperatura al alza**: `AGUA 98 °C ↑ +6 vs tu media` cuando el agua o el aceite siguen 20 s
-    por encima de tu media de vueltas limpias de la sesión, con `(¿rebufo?)` si ibas pegado a otro
-    coche. Solo cuentan vueltas a 1 °C o menos de la anterior (no las de calentamiento), y la media
-    empieza de cero tras una grúa o un salto de más de 5 °C (una reparación). `WaterTemp` y `OilTemp`
-    dependen del coche: si no los tiene, este aviso no sale.
-  - **Combustible** (ver Combustible): `ENTRA ESTA VUELTA` va justo detrás de los testigos de
-    presión y no espera a una bandera; `COMBUSTIBLE · 1.6 V`, detrás de las banderas amarilla y azul,
-    como las temperaturas. Ninguno durante la grúa ni en el pit lane.
+  - **Motor**, solo lo crítico (cada uno con su opción): **motor calado**, **presión de aceite**
+    (`PRESIÓN ACEITE · baja`) y **daños**: `DAÑO · reparación obligatoria en boxes` mientras esté
+    pendiente, hasta que sale la bandera de reparación. Las temperaturas, su tendencia, la gasolina y
+    las reparaciones opcionales están en **Testigos**, con las mismas reglas.
+  - **Combustible** (ver Combustible): `ENTRA ESTA VUELTA` va justo detrás de la presión de aceite y
+    no espera a una bandera; `COMBUSTIBLE · 1.6 V`, detrás de las banderas amarilla y azul, que no se
+    quedan en un chip por él. Ninguno durante la grúa ni en el pit lane.
+- En un `settings.json` de antes de Testigos, «Testigos del motor» pasa a «Presión de aceite» y una
+  «Temperatura al alza» apagada sigue apagada en Testigos.
 - En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
   limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
+
+### Testigos
+
+- Los testigos del motor como en un salpicadero, en fila (si no caben, siguen debajo) o en columna:
+  presión de aceite, presión de gasolina, motor calado, reparación obligatoria, reparación opcional,
+  temperatura del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones.
+  Pequeño por defecto, visible en todas las sesiones, bajo el Delta.
+- Apagados en gris; encendidos, cada gravedad con su color y su forma (se lee sin el color): rojo
+  relleno (actúa ya), naranja con borde (el testigo del propio coche, daños leves), amarillo subrayado
+  (agua o aceite muy por encima de tu media, antes de su testigo: `+6°`) y azul con raya (limitador).
+- Opciones (`lights.*`): cada testigo, `Solo encendidos` (se oculta mientras no hay ninguno),
+  rótulos (`AGUA`, `REPARAR`…), la temperatura junto a agua y aceite (`98°`) y el tiempo de
+  reparación: `REPARAR · 42 s` (`PitRepairLeft`), `OPC. · 38 s` (`PitOptRepairLeft`), solo si es
+  mayor que 0. Su página de Ajustes tiene una leyenda: qué es cada testigo y qué hacer.
+- Las reglas son las de Avisos, en un solo sitio (`src/shared/notices/engine.ts`): nada durante la
+  grúa, en tu box, con el coche fuera del mundo, los 2 s después de reaparecer ni los 3 s después de
+  subir al coche (ahí parpadean con el coche parado); las presiones, solo con el motor en marcha (a
+  más de 5 m/s o al 80 % del ralentí, `DriverCarIdleRPM`) y sin calar. Las reparaciones siguen
+  encendidas en el box y durante la grúa: ahí se hacen. Un testigo que parpadea se queda 1 s.
+- La tendencia: el agua o el aceite 20 s por encima de tu media de vueltas limpias de la sesión; solo
+  cuentan vueltas a 1 °C o menos de la anterior, y la media empieza de cero tras una grúa o un salto de
+  más de 5 °C (una reparación). Con rótulos dice `¿rebufo?` si ibas pegado a otro coche.
+  `WaterTemp` y `OilTemp` dependen del coche: si no los tiene, no hay tendencia ni temperatura.
+- En un `settings.json` de antes de este widget, Testigos empieza **visible** en un hueco libre cerca
+  de su sitio (oculto si no hay ninguno): se lleva lo que antes salía en Avisos.
+- En modo mock cada testigo se enciende al menos una vez entre los minutos 15 y 22 (las reparaciones
+  con 42 y 38 s), y el limitador en tu parada.
 
 ### Incidentes
 

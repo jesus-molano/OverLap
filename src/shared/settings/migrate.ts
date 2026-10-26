@@ -6,7 +6,9 @@
  * only lack the traffic and alerts (delta) widgets and sections, and older v4
  * files the shortcuts or visibility section: no version bump, they get their
  * defaults like any missing section. A file from before the conditions or the
- * fuel widget gets it hidden, in a free spot (`placeNewWidget`).
+ * fuel widget gets it hidden, in a free spot (`placeNewWidget`); one from before
+ * the warning lights gets them shown in a free spot, and the alerts band's old
+ * engine options moved to where those lights went (`migrateSection`).
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type {
@@ -28,6 +30,14 @@ import { isRecord } from './fields'
  * with its ghost's eye in edit mode.
  */
 export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['conditions', 'fuel'])
+
+/**
+ * Widgets added after settings files existed that such a file gets shown, in the free spot
+ * nearest their default (hidden like the others when there is none): the warning lights took the
+ * temperature lights and the trend from the alerts band, so hiding them would drop what the band
+ * showed until then.
+ */
+export const SHOWN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['lights'])
 
 /** Where `freeSpot` looks: the default layout's display (1920 x 1080 without the taskbar). */
 export const DEFAULT_AREA: Rect = Object.freeze({ x: 0, y: 0, width: 1920, height: 1040 })
@@ -73,17 +83,18 @@ function footprint(id: WidgetId, r: Rect): Rect {
 }
 
 /**
- * A HIDDEN_WHEN_ADDED widget the existing file `out` was read from had no entry for: hidden,
- * and moved to the free spot nearest its default when there is one (so its edit-mode ghost
- * and the first time it is shown cover nothing). Its size stays the default.
+ * A widget the existing file `out` was read from had no entry for, moved to the free spot
+ * nearest its default when there is one (so its edit-mode ghost and the first time it is shown
+ * cover nothing). Its size stays the default. A HIDDEN_WHEN_ADDED one is hidden; with `shown`
+ * (SHOWN_WHEN_ADDED) it keeps its default visibility, unless there is no free spot.
  */
-export function placeNewWidget(out: OverlaySettings, id: WidgetId): void {
+export function placeNewWidget(out: OverlaySettings, id: WidgetId, shown = false): void {
   const w = out.widgets[id]
-  w.visible = false
   const taken = WIDGET_IDS.filter((o) => o !== id).map((o) => footprint(o, out.widgets[o].bounds))
   const def = WIDGET_DEFS[id].defaultBounds
   const spot = freeSpot(w.bounds, def, taken, DEFAULT_AREA)
   if (spot !== null) w.bounds = { ...w.bounds, x: spot.x, y: spot.y }
+  if (!shown || spot === null) w.visible = false
 }
 
 /** v3 flag -> v4 column (someone who hid the last lap does not want the best one either). */
@@ -123,7 +134,39 @@ export function migrateStandings(raw: Record<string, unknown>): Record<string, u
   return out
 }
 
-/** Section-level migrations, keyed by section; untouched sections pass through. */
-export function migrateSection(section: string, raw: unknown): unknown {
-  return section === 'standings' && isRecord(raw) ? migrateStandings(raw) : raw
+/**
+ * The alerts band before the warning lights: `showEngineWarnings` (all four lights) becomes
+ * `showOilPressure`, the one light the band keeps; `showEngineTrend` went to the lights
+ * (migrateLights).
+ */
+export function migrateAlerts(raw: Record<string, unknown>): Record<string, unknown> {
+  const old = raw.showEngineWarnings
+  if (typeof old !== 'boolean' || typeof raw.showOilPressure === 'boolean') return raw
+  return { ...raw, showOilPressure: old }
+}
+
+/**
+ * The warning lights of a file from before them (no lights section): a trend turned off in the
+ * alerts band (`alerts.showEngineTrend` false) stays off in the lights, where it went.
+ */
+export function migrateLights(raw: unknown, file: Record<string, unknown>): unknown {
+  if (raw !== undefined) return raw
+  const alerts = file.alerts
+  if (!isRecord(alerts) || typeof alerts.showEngineTrend !== 'boolean') return raw
+  return { showTrend: alerts.showEngineTrend }
+}
+
+/**
+ * Section-level migrations, keyed by section; untouched sections pass through. `file` is the
+ * whole file, for an option that moved from one section to another.
+ */
+export function migrateSection(
+  section: string,
+  raw: unknown,
+  file: Record<string, unknown> = {}
+): unknown {
+  if (section === 'lights') return migrateLights(raw, file)
+  if (!isRecord(raw)) return raw
+  if (section === 'standings') return migrateStandings(raw)
+  return section === 'alerts' ? migrateAlerts(raw) : raw
 }
