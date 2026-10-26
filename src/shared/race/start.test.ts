@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { SessionFlag } from '../flags'
 import { SessionState } from '../telemetry'
 import { LAP_S, Sim, V, car, makeDriver, makeSession } from './testing/raceSim'
 import type { Cars } from './testing/raceSim'
@@ -30,6 +31,28 @@ describe('RaceModel standing start', () => {
     sim.run(LAP_S, 60, cars)
     expect(car(sim.view, 0).laps[0]).toMatchObject({ lap: 2, clean: true })
     expect(car(sim.view, 0).laps[0]?.time).toBeCloseTo(LAP_S, 2)
+  })
+
+  it('times it from the green light when it comes on before SessionState reads Racing', () => {
+    // Online: the lights went green at 105.42 and SessionState read Racing at 106.47; iRacing's
+    // lap 1 (1:17.440) runs from the lights, the cars still pulling away from the grid then.
+    const sim = new Sim(makeSession(1), { state: SessionState.ParadeLaps })
+    sim.run(2, 60, () => ({ 0: { d: -0.011 } }))
+    sim.frame.SessionFlags[0] = SessionFlag.Green | 0x80000000
+    sim.run(1.05, 60, () => ({ 0: { d: -0.011 } }))
+    sim.state = SessionState.Racing
+    const go = sim.t
+    sim.run(LAP_S + 1, 60, (t) => ({ 0: { d: -0.011 + V * (t - go) } }))
+    expect(car(sim.view, 0).laps[0]?.lap).toBe(1)
+    expect(car(sim.view, 0).laps[0]?.time).toBeCloseTo(1.05 + 1.011 / V, 1)
+    // Green lights long before the state changes are no start signal: from the state then.
+    const late = new Sim(makeSession(1), { state: SessionState.ParadeLaps })
+    late.frame.SessionFlags[0] = SessionFlag.Green
+    late.run(10, 60, () => ({ 0: { d: -0.011 } }))
+    late.state = SessionState.Racing
+    const green = late.t
+    late.run(LAP_S + 2, 60, (t) => ({ 0: { d: -0.011 + V * (t - green) } }))
+    expect(car(late.view, 0).laps[0]?.time).toBeCloseTo(1.011 / V, 1)
   })
 
   it('counts no stint lap for the run from the grid to the line', () => {

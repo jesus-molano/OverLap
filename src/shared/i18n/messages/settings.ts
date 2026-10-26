@@ -356,8 +356,7 @@ export const settingsEs = {
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche',
     incidents: 'Incidentes en la cabecera',
-    incidentsHelp:
-      'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · pen. a 17x»'
+    incidentsHelp: 'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · DQ a 17x»'
   },
   radar: {
     range: 'Alcance',
@@ -394,7 +393,7 @@ export const settingsEs = {
       'Tu iRating y SR proyectados, con el margen de incidentes (estimación, solo en carrera)',
     safetyRating: 'Safety rating',
     incidents: 'Incidentes',
-    incidentsHelp: 'En cualquier sesión, con el próximo límite: «3x · pen. a 17x»',
+    incidentsHelp: 'En cualquier sesión, con el próximo límite: «3x · DQ a 17x»',
     classLine: 'Línea de clase',
     sof: 'SoF',
     carCount: 'Número de coches'
@@ -1009,7 +1008,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     tyreHelp:
       'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model',
     incidents: 'Incidents in the header',
-    incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · pen. at 17x”'
+    incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · DQ at 17x”'
   },
   radar: {
     range: 'Range',
@@ -1044,7 +1043,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     headerHelp: 'Your projected iRating and SR, with the incident margin (estimate, race only)',
     safetyRating: 'Safety Rating',
     incidents: 'Incidents',
-    incidentsHelp: 'In every session, with the next limit: “3x · pen. at 17x”',
+    incidentsHelp: 'In every session, with the next limit: “3x · DQ at 17x”',
     classLine: 'Class line',
     sof: 'SoF',
     carCount: 'Car count'
