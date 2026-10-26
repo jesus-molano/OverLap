@@ -1,6 +1,6 @@
 import { AlertsProvider, alertsEqual } from './alerts'
 import { BattleProvider, battleEqual } from './battle'
-import { ConditionsProvider, conditionsEqual } from './conditions'
+import { ConditionsFeed, footerConditionsEqual } from './conditions'
 import { DeltaProvider, deltaEqual } from './delta/delta'
 import type { PersonalBestStore } from './delta/references'
 import { computeFuel, fuelAlertInput, fuelEqual } from './fuel/provider'
@@ -16,7 +16,13 @@ import { StandingsProvider } from './standings'
 import { standingsEqual } from './standingsEqual'
 import { TrafficProvider, trafficEqual } from './traffic'
 import type { TelemetryFrame } from './telemetry'
-import type { SessionMeta, TelemetryConfig, WidgetPayloads } from './types'
+import type {
+  ConditionsData,
+  ConditionsFooterOptions,
+  SessionMeta,
+  TelemetryConfig,
+  WidgetPayloads
+} from './types'
 import type { WidgetId } from './widgets'
 
 export interface ProviderContext {
@@ -53,6 +59,15 @@ export interface ProviderSet {
   reset(): void
 }
 
+/** A table payload with its footer's readings filled in (the providers build it with null). */
+function withConditions<T extends { conditions: ConditionsData | null }>(
+  payload: T,
+  conditions: ConditionsData | null
+): T {
+  payload.conditions = conditions
+  return payload
+}
+
 export function createProviders(): ProviderSet {
   const standings = new StandingsProvider()
   const battle = new BattleProvider()
@@ -62,14 +77,26 @@ export function createProviders(): ProviderSet {
   const alerts = new AlertsProvider(engine)
   const lights = new LightsProvider(engine)
   const delta = new DeltaProvider()
-  const conditions = new ConditionsProvider()
+  // The footers of the relative and the standings: one reading a second for both, only while
+  // one of them is on.
+  const conditions = new ConditionsFeed()
+  const footer = (ctx: ProviderContext, o: ConditionsFooterOptions): ConditionsData | null =>
+    o.conditionsFooter ? conditions.get(ctx.frame, ctx.session) : null
   // Fed on every tick: the fuel widget and the alerts band plan with the same laps.
   const fuel = new FuelTracker()
   return {
     run: {
-      relative: (ctx) => computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race),
+      relative: (ctx) =>
+        withConditions(
+          computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race),
+          footer(ctx, ctx.config.relative)
+        ),
       radar: (ctx, prev) => computeRadar(ctx.frame, ctx.session, ctx.config.radar, prev),
-      standings: (ctx) => standings.compute(ctx.frame, ctx.session, ctx.race, ctx.config.standings),
+      standings: (ctx) =>
+        withConditions(
+          standings.compute(ctx.frame, ctx.session, ctx.race, ctx.config.standings),
+          footer(ctx, ctx.config.standings)
+        ),
       battle: (ctx, prev) => battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
       inputs: (ctx) => computeInputs(ctx.frame),
       traffic: (ctx, prev) =>
@@ -83,8 +110,6 @@ export function createProviders(): ProviderSet {
           fuelAlertInput(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel)
         ),
       delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta),
-      // Its options only choose what is drawn: every reading is sent.
-      conditions: (ctx) => conditions.compute(ctx.frame, ctx.session),
       fuel: (ctx) => computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel),
       lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights)
     },
@@ -116,7 +141,7 @@ export function createProviders(): ProviderSet {
 export const SKIP_EMIT: {
   readonly [K in WidgetId]?: (payload: WidgetPayloads[K], prev: WidgetPayloads[K] | null) => boolean
 } = {
-  // Out of the car the relative is an empty, unchanging table (its header still counts).
+  // Out of the car the relative is an empty, unchanging table (its header and footer still count).
   relative: (payload, prev) =>
     prev !== null &&
     payload.playerRow < 0 &&
@@ -124,9 +149,10 @@ export const SKIP_EMIT: {
     payload.slotsAhead === prev.slotsAhead &&
     payload.slotsBehind === prev.slotsBehind &&
     payload.sessionType === prev.sessionType &&
-    incidentCountEqual(payload.incidents, prev.incidents),
+    incidentCountEqual(payload.incidents, prev.incidents) &&
+    footerConditionsEqual(payload.conditions, prev.conditions),
   radar: (payload, prev) => !payload.visible && prev !== null && !prev.visible,
-  // Quantised payloads: an unchanged table is not re-sent.
+  // Quantised payloads: an unchanged table (and footer, standingsEqual) is not re-sent.
   standings: (payload, prev) => prev !== null && standingsEqual(payload, prev),
   // A hidden card draws nothing, whatever its laps left or your last laps say.
   battle: (payload, prev) =>
@@ -138,8 +164,6 @@ export const SKIP_EMIT: {
   alerts: (payload, prev) => prev !== null && alertsEqual(payload, prev),
   delta: (payload, prev) =>
     prev !== null && ((!payload.visible && !prev.visible) || deltaEqual(payload, prev)),
-  // Weather moves slowly: most seconds change nothing shown.
-  conditions: (payload, prev) => prev !== null && conditionsEqual(payload, prev),
   // A tenth of a litre every few seconds: most ticks change nothing shown.
   fuel: (payload, prev) =>
     prev !== null && ((!payload.visible && !prev.visible) || fuelEqual(payload, prev)),

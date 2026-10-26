@@ -101,7 +101,8 @@ solo.
   **opacidad del fondo** (0–100 %: solo el panel; el texto y los coches siguen nítidos, y con poca
   opacidad el texto lleva un contorno para leerse sobre el juego) y restablecer posición y tamaño.
 - **Relativo**: coches delante y detrás (0–10), columnas opcionales (posición en clase, licencia,
-  iRating, neumático, vueltas del stint) y banderas de penalización tras el nombre.
+  iRating, neumático, vueltas del stint), banderas de penalización tras el nombre y el
+  [pie de condiciones](#pie-de-condiciones-relativo-y-clasificación) (también en Clasificación).
 - **Radar**: alcance (5–100 m, con atajos 10/20/30/50) y mostrar u ocultar las distancias.
 - **Idioma** (en Apariencia): español (por defecto) o inglés. Cambia al momento los widgets, la
   ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja
@@ -198,8 +199,8 @@ En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.js
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
   o salta).
 - En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
-  él; Radar, Pedales, Avisos, Testigos, Delta, Condiciones y Combustible solo tienen datos de tu
-  coche y se ocultan.
+  él; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se
+  ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
   y Clasificación se queda con la carrera en directo tal como estaba. El cronometraje no cuenta
   vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta que la
@@ -258,14 +259,13 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 
 ## Widgets
 
-| Widget      | Id           | Frecuencia | Tamaño mínimo |
-| ----------- | ------------ | ---------- | ------------- |
-| Relativo    | `relative`   | 10 Hz      | 300 x 150     |
-| Radar       | `radar`      | 60 Hz      | 120 x 140     |
-| Testigos    | `lights`     | 10 Hz      | 40 x 24       |
-| Delta       | `delta`      | 30 Hz      | 200 x 48      |
-| Condiciones | `conditions` | 1 Hz       | 180 x 40      |
-| Combustible | `fuel`       | 2 Hz       | 180 x 40      |
+| Widget      | Id         | Frecuencia | Tamaño mínimo |
+| ----------- | ---------- | ---------- | ------------- |
+| Relativo    | `relative` | 10 Hz      | 300 x 150     |
+| Radar       | `radar`    | 60 Hz      | 120 x 140     |
+| Testigos    | `lights`   | 10 Hz      | 40 x 24       |
+| Delta       | `delta`    | 30 Hz      | 200 x 48      |
+| Combustible | `fuel`     | 2 Hz       | 180 x 40      |
 
 ### Relativo
 
@@ -479,31 +479,29 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   confirmarlo en una carrera oficial.
 - Solo los tuyos: iRacing no da incidentes de los demás pilotos.
 
-### Condiciones
+### Pie de condiciones (Relativo y Clasificación)
 
-- Las condiciones de ahora mismo, una vez por segundo (iRacing no da pronóstico):
-  - temperatura de la pista (`TrackTempCrew`) con una flecha si sube o baja en los últimos 5 min, y
-    la del aire (`AirTemp`);
-  - viento (`WindVel`) y de dónde sopla respecto a tu coche (`WindDir` − `YawNorth`): una flecha en
-    un dial apunta a tu coche desde ese lado, con «de cara», «de cola» o «por la izq./dcha.». Solo al
-    volante;
-  - lo mojado que está el asfalto (`TrackWetness`, 7 niveles; «—» si iRacing no lo sabe, nunca
-    «Seco»; el medidor va vacío en seco y lleno encharcado), la lluvia (`Precipitation`) y la banda
-    **DECLARADA MOJADA** (`WeatherDeclaredWet`);
-  - el cielo (`Skies`) y la goma al empezar la sesión (`SessionTrackRubberState` del YAML). Si
-    iRacing dice «carry over», se muestra el último estado real de una sesión anterior con
-    «(heredada)»: «Media-alta (heredada)».
-- Temperaturas en grados enteros (`TrackTempCrew` va en pasos de 1 °F). La flecha de tendencia no
-  cuenta los primeros 10 s de cada sesión: la primera lectura puede ser aún la de la sesión anterior.
-- El viento es la **media del último minuto**: el valor instantáneo cambia casi cada segundo y el
-  panel de iRacing también lo da estable. La flecha usa la dirección media contra tu rumbo de ese
-  momento.
-- Cada parte se activa o desactiva en su página de Ajustes (`conditions.*`); la cabecera va apagada
-  por defecto. Grados y velocidad según `appearance.units` (°C y km/h por defecto).
+- Ya no es un widget aparte: es una línea opcional bajo la tabla del Relativo y de la
+  Clasificación, cada una con su interruptor y sus datos (`relative.conditions*`,
+  `standings.conditions*`). Por defecto está **activado en la Clasificación**, que crece una línea,
+  y **desactivado en el Relativo**: su ventana tiene tamaño fijo y la línea quita alto a las filas.
+- En este orden (iRacing no da pronóstico):
+  - temperatura de la pista (`TrackTempCrew`, en grados enteros: va en pasos de 1 °F) con una
+    flecha si sube o baja en los últimos 5 min (sin contar los primeros 10 s de cada sesión);
+  - el agua, solo si la hay: **DECLARADA MOJADA** (`WeatherDeclaredWet`), el medidor de
+    `TrackWetness` desde «Casi seco» y la lluvia (`Precipitation`) desde el 1 %;
+  - el viento medio del último minuto, con un dial que apunta a tu coche desde donde sopla
+    (`WindDir` − `YawNorth`, solo al volante);
+  - el aire (`AirTemp`) y la goma al empezar la sesión (`SessionTrackRubberState`; un «carry over»
+    muestra el último estado real: «Media-alta (heredada)»).
+- En una tabla estrecha los datos del final se quitan enteros (primero la goma) y el medidor pierde su
+  palabra; nunca se corta un texto. Grados y velocidad según `appearance.units`.
+- Se calcula una vez por segundo y solo con algún pie activado; las tablas lo llevan en sus datos y el
+  pie solo se vuelve a dibujar cuando cambia lo que muestra.
 - Confirmado en una carrera: `WindDir` es de dónde viene el viento y `YawNorth` gira en sentido
   horario. Falta confirmar la escala de `Precipitation` (se lee 0..1; `src/shared/conditions.ts`).
-- En un `settings.json` de antes de este widget, Condiciones empieza **oculto** y en un hueco libre
-  cerca de su sitio por defecto, para no tapar lo que ya tenías colocado.
+- Un `settings.json` con el antiguo widget Condiciones se carga sin él: se descartan su posición y
+  sus opciones, y lo demás queda igual.
 - En modo mock la pista se calienta, se queda estable y se enfría, el viento cambia un poco y a los
   21 min pasa un chubasco que la moja y la declara mojada.
 
@@ -537,7 +535,7 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   con tu media no llegas a meta (una parada que solo pide el margen no es una alarma). Usan el mismo
   consumo; ninguno en el pit lane ni en una repetición.
 - En un `settings.json` de antes de este widget, Combustible empieza **oculto** y en un hueco libre
-  cerca de su sitio por defecto, como Condiciones.
+  cerca de su sitio por defecto, para no tapar lo que ya tenías colocado.
 - Sin confirmar en una sesión real: la escala de los `%` de capacidad y desgaste, si `FuelLevel`
   sigue al coche con un compañero al volante y cuándo exactamente se actualiza el desgaste en el box
   (`src/shared/fuel/`).

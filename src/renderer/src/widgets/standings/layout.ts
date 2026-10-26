@@ -7,6 +7,7 @@
  */
 import type { StandingsClassBlock, StandingsRow } from '@shared/types'
 import { DENSITY_EM, type Density } from '@renderer/view/appearance'
+import { FOOTER_EM, FOOTER_RULE_PX } from '@renderer/view/conditions'
 import { BORDER_PX } from './columns'
 
 export type DisplayRow = StandingsClassBlock['rows'][number]
@@ -17,7 +18,7 @@ export const HEAD_LINE1_EM = 1.5
 export const HEAD_LINE2_EM = 1.35
 /** Rule under the header. */
 export const HEAD_RULE_PX = 1
-/** Below the last line. */
+/** Below the last line (the conditions footer, when drawn, takes its place: it ends the panel). */
 export const BOTTOM_PAD_EM = 0.25
 /** Offline status line and the "no data yet" placeholder. */
 export const STATUS_EM = 2.8
@@ -47,21 +48,44 @@ export function headEm(lines: HeadLines): number {
   return 2 * HEAD_PAD_EM + HEAD_LINE1_EM + (lines === 2 ? HEAD_LINE2_EM : 0)
 }
 
-/**
- * Height (CSS px) of the whole panel for `bodyEm` of lines below a header of `headLines`.
- * Takes no window size: equal inputs give equal heights, so reporting it cannot feed back.
- */
-export function panelHeightPx(bodyEm: number, headLines: HeadLines, fontPx: number): number {
-  if (!(fontPx > 0) || !Number.isFinite(bodyEm)) return 0
-  const em = headEm(headLines) + Math.max(0, bodyEm) + BOTTOM_PAD_EM
-  return em * fontPx + BORDER_PX + HEAD_RULE_PX + LAYOUT_SLACK_PX
+/** Below the lines: the bottom padding, or the conditions footer (em, then its rule in px). */
+function bottomEm(footer: boolean): number {
+  return footer ? FOOTER_EM : BOTTOM_PAD_EM
 }
 
-/** Em left for lines in a window `heightPx` tall (Infinity while it is not measured). */
-export function lineBudgetEm(heightPx: number, fontPx: number, headLines: HeadLines): number {
+function bottomPx(footer: boolean): number {
+  return footer ? FOOTER_RULE_PX : 0
+}
+
+/**
+ * Height (CSS px) of the whole panel for `bodyEm` of lines below a header of `headLines`, and
+ * above the conditions footer when `footer`. Takes no window size: equal inputs give equal
+ * heights, so reporting it cannot feed back.
+ */
+export function panelHeightPx(
+  bodyEm: number,
+  headLines: HeadLines,
+  fontPx: number,
+  footer = false
+): number {
+  if (!(fontPx > 0) || !Number.isFinite(bodyEm)) return 0
+  const em = headEm(headLines) + Math.max(0, bodyEm) + bottomEm(footer)
+  return em * fontPx + BORDER_PX + HEAD_RULE_PX + bottomPx(footer) + LAYOUT_SLACK_PX
+}
+
+/**
+ * Em left for lines in a window `heightPx` tall (Infinity while it is not measured), with the
+ * conditions footer drawn when `footer` (it stays: rows go first).
+ */
+export function lineBudgetEm(
+  heightPx: number,
+  fontPx: number,
+  headLines: HeadLines,
+  footer = false
+): number {
   if (!(heightPx > 0) || !(fontPx > 0)) return Infinity
-  const em = (heightPx - BORDER_PX - HEAD_RULE_PX) / fontPx - headEm(headLines) - BOTTOM_PAD_EM
-  return Math.max(0, em)
+  const px = heightPx - BORDER_PX - HEAD_RULE_PX - bottomPx(footer)
+  return Math.max(0, px / fontPx - headEm(headLines) - bottomEm(footer))
 }
 
 // ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import {
 } from '@shared/widgets'
 
 /**
- * 'Radar, Pedales, Avisos, Delta y Condiciones': the widgets with your own car's data only (or
+ * 'Radar, Pedales, Avisos, Delta y Combustible': the widgets with your own car's data only (or
  * the track's seen from it), which hide in every replay and while the camera is on another car,
  * in sidebar order and joined the way `locale` lists things.
  */

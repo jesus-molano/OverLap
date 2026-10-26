@@ -4,6 +4,7 @@ import { formatSessionType } from '@shared/format'
 import { clampRelativeSlots } from '@shared/relative'
 import type { RelativeData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
+import { useConditionsFooter } from '@renderer/composables/useConditionsFooter'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
@@ -11,6 +12,7 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
+import ConditionsFooter from '@renderer/ui/ConditionsFooter.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import IncidentCount from '@renderer/ui/IncidentCount.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
@@ -19,6 +21,7 @@ import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import TyreChip from '@renderer/ui/TyreChip.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
+import { FOOTER_EM, hasFooter } from '@renderer/view/conditions'
 import { toIncidentCountView, type IncidentCountView } from '@renderer/view/incidents'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
@@ -65,6 +68,13 @@ const incidents = computed<IncidentCountView | null>((prev) =>
   )
 )
 
+/**
+ * The conditions footer under the rows (its option, off by default): the same object while it
+ * reads the same, so the 10 Hz payloads that carry it re-render nothing there.
+ */
+const footer = useConditionsFooter(ID, () => source.value?.conditions ?? null)
+const footed = computed(() => phase.value !== 'offline' && hasFooter(footer.value))
+
 const styles = createDriverStyles()
 // Slots are keyed by index and an unchanged slot keeps its object, so a 10 Hz payload only
 // rewrites the slots whose car or values changed: no row element is ever reordered.
@@ -86,12 +96,14 @@ const cols = computed<RelativeColumns>((prev) => {
   return prev !== undefined && prev.key === next.key ? prev : next
 })
 
-// Every row inherits --rl-slots, --rl-cols and --rl-fit; written only when one of them changes.
+// Every row inherits --rl-slots, --rl-cols, --rl-fit and --rl-foot (the footer's em, 0 without
+// it); written only when one of them changes.
 const panelStyle = computed<InlineStyle>(() => ({
   ...surfaceStyle.value,
   '--rl-slots': String(slots.value.length),
   '--rl-cols': cols.value.template,
-  '--rl-fit': String(cols.value.fitEm)
+  '--rl-fit': String(cols.value.fitEm),
+  '--rl-foot': footed.value ? String(FOOTER_EM) : '0'
 }))
 </script>
 
@@ -144,6 +156,8 @@ const panelStyle = computed<InlineStyle>(() => ({
           </template>
         </div>
       </div>
+
+      <ConditionsFooter v-if="footed" :view="footer" />
     </WidgetPanel>
   </div>
 </template>
@@ -154,11 +168,18 @@ const panelStyle = computed<InlineStyle>(() => ({
   container-type: size;
 }
 
-/* About half a row high, capped by the width so the columns always fit (--rl-fit: view.ts). */
+/*
+ * About half a row high, capped by the width so the columns always fit (--rl-fit: view.ts). The
+ * footer's line is counted in the height: with it the rows keep their proportions, a notch
+ * smaller.
+ */
 .rl-panel {
   font-size: clamp(
     var(--ov-min-text),
-    min(calc(100cqh / (var(--rl-slots) * 2 + 1.8)), calc(100cqw / var(--rl-fit, 27))),
+    min(
+      calc(100cqh / (var(--rl-slots) * 2 + 1.8 + var(--rl-foot, 0))),
+      calc(100cqw / var(--rl-fit, 27))
+    ),
     30px
   );
 }

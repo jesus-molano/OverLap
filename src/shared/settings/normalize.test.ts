@@ -3,7 +3,6 @@ import type {
   AlertsOptions,
   AppearanceSettings,
   BattleOptions,
-  ConditionsOptions,
   DeltaOptions,
   FuelOptions,
   InputsOptions,
@@ -81,7 +80,16 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   showTyre: false,
   showFlags: true,
   nameFormat: 'inherit',
-  showIncidents: true
+  showIncidents: true,
+  // The conditions footer: off in the relative (a free-size window), every reading on.
+  conditionsFooter: false,
+  conditionsTrackTemp: true,
+  conditionsTrend: true,
+  conditionsWet: true,
+  conditionsWind: true,
+  conditionsWindDirection: true,
+  conditionsAirTemp: true,
+  conditionsRubber: true
 }
 const DEFAULT_RADAR: RadarOptions = { rangeM: 20, showRangeLabels: true }
 const DEFAULT_COLUMNS: StandingsColumn[] = [
@@ -113,7 +121,16 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   showSof: true,
   showCarCount: true,
   showFlags: true,
-  density: 'inherit'
+  density: 'inherit',
+  // The conditions footer: on in the standings (it grows by the line), every reading on.
+  conditionsFooter: true,
+  conditionsTrackTemp: true,
+  conditionsTrend: true,
+  conditionsWet: true,
+  conditionsWind: true,
+  conditionsWindDirection: true,
+  conditionsAirTemp: true,
+  conditionsRubber: true
 }
 const DEFAULT_BATTLE: BattleOptions = {
   thresholdS: 1.5,
@@ -177,19 +194,6 @@ const DEFAULT_DELTA: DeltaOptions = {
   showPredicted: true,
   showSectors: true,
   showTrend: true
-}
-const DEFAULT_CONDITIONS: ConditionsOptions = {
-  showHeader: false,
-  showTrackTemp: true,
-  showTrend: true,
-  showAirTemp: true,
-  showWind: true,
-  showWindDirection: true,
-  showWetness: true,
-  showPrecipitation: true,
-  showDeclaredWet: true,
-  showSkies: true,
-  showRubber: true
 }
 const DEFAULT_FUEL: FuelOptions = {
   showHeader: false,
@@ -259,19 +263,18 @@ describe('DEFAULT_SETTINGS', () => {
       traffic: DEFAULT_TRAFFIC,
       alerts: DEFAULT_ALERTS,
       delta: DEFAULT_DELTA,
-      conditions: DEFAULT_CONDITIONS,
       fuel: DEFAULT_FUEL,
       lights: DEFAULT_LIGHTS,
       shortcuts: DEFAULT_SHORTCUTS
     })
   })
 
-  it('makes standings, battle, traffic, alerts and conditions auto-height and battle race-only', () => {
+  it('makes standings, battle, traffic, alerts and fuel auto-height and battle race-only', () => {
     expect(DEFAULT_SETTINGS.widgets.standings.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.battle.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.traffic.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.alerts.autoHeight).toBe(true)
-    expect(DEFAULT_SETTINGS.widgets.conditions.autoHeight).toBe(true)
+    expect(DEFAULT_SETTINGS.widgets.fuel.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.relative.autoHeight).toBe(false)
     expect(DEFAULT_SETTINGS.widgets.battle.showIn).toEqual({
       practice: false,

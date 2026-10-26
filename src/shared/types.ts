@@ -286,6 +286,8 @@ export interface RelativeData {
   sessionType: string | null
   /** Your incident count for the header, null when unknown (no player car). */
   incidents: IncidentCount | null
+  /** The conditions footer's readings (ConditionsFeed, ~1 Hz); null while the footer is off. */
+  conditions: ConditionsData | null
 }
 
 // ---------------------------------------------------------------------------
@@ -461,6 +463,8 @@ export interface StandingsData {
   header: StandingsHeader
   /** Player's class first, then the others by class speed. */
   classes: StandingsClassBlock[]
+  /** The conditions footer's readings (ConditionsFeed, ~1 Hz); null while the footer is off. */
+  conditions: ConditionsData | null
 }
 
 // ---------------------------------------------------------------------------
@@ -762,14 +766,14 @@ export interface DeltaData {
 }
 
 // ---------------------------------------------------------------------------
-// Conditions widget payload (v2.3, 1 Hz)
+// Track conditions: the footer of the relative and the standings (1 Hz)
 // ---------------------------------------------------------------------------
 
 /** How the track temperature moved over the last minutes (CONDITIONS in conditions.ts). */
 export type TempTrend = 'up' | 'down' | 'steady'
 
 export interface ConditionsData {
-  /** False while the sim sends no weather at all: the widget fades out. */
+  /** False while the sim sends no weather at all: no footer is drawn. */
   visible: boolean
   /** TrackTempCrew in °C, to 0.1; null when missing. */
   trackTempC: number | null
@@ -897,7 +901,6 @@ export interface WidgetPayloads {
   traffic: TrafficData
   alerts: AlertsData
   delta: DeltaData
-  conditions: ConditionsData
   fuel: FuelData
   lights: LightsData
 }
@@ -1056,7 +1059,29 @@ export interface AppearanceSettings {
   language: Language
 }
 
-export interface RelativeOptions {
+/**
+ * The conditions footer of a table (the relative and the standings each have their own): a line
+ * under it with the track conditions, each reading a toggle. Only the switch reaches the
+ * telemetry process (the readings are computed while it is on); the rest is drawing.
+ */
+export interface ConditionsFooterOptions {
+  /** The footer line under the table. */
+  conditionsFooter: boolean
+  conditionsTrackTemp: boolean
+  /** Arrow after the track temperature: rising or falling over the last minutes. */
+  conditionsTrend: boolean
+  /** Only when relevant: the stewards' wet call, how wet the track is (past dry), the rain. */
+  conditionsWet: boolean
+  /** The wind's mean speed over the last minute. */
+  conditionsWind: boolean
+  /** Where the wind comes from relative to your car: the dial's arrow. */
+  conditionsWindDirection: boolean
+  conditionsAirTemp: boolean
+  /** The rubber laid down when the session started. */
+  conditionsRubber: boolean
+}
+
+export interface RelativeOptions extends ConditionsFooterOptions {
   carsAhead: number
   carsBehind: number
   /** Optional columns (display only; the telemetry process ignores them). */
@@ -1108,7 +1133,7 @@ export interface StandingsColumn {
   visible: boolean
 }
 
-export interface StandingsOptions {
+export interface StandingsOptions extends ConditionsFooterOptions {
   /** compact: top rows + window around you + other class leaders; full: every car of every class. */
   mode: 'compact' | 'full'
   /** Compact: leading rows of your class (0..10). */
@@ -1238,25 +1263,6 @@ export interface DeltaOptions {
   showTrend: boolean
 }
 
-/** Every part of the conditions widget is a toggle; the provider sends them all. */
-export interface ConditionsOptions {
-  /** Header band with the widget's name (and the SIM tag). */
-  showHeader: boolean
-  showTrackTemp: boolean
-  /** Arrow after the track temperature: rising or falling over the last minutes. */
-  showTrend: boolean
-  showAirTemp: boolean
-  showWind: boolean
-  /** Where the wind comes from relative to your car: the arrow and its words. */
-  showWindDirection: boolean
-  showWetness: boolean
-  showPrecipitation: boolean
-  /** 'DECLARADA MOJADA' while the stewards allow rain tyres. */
-  showDeclaredWet: boolean
-  showSkies: boolean
-  showRubber: boolean
-}
-
 /**
  * The fuel widget: the fuel left and the laps it lasts are always drawn, every other line is a
  * toggle. The average and the margin change what is computed (the alerts band uses the average).
@@ -1328,7 +1334,6 @@ export interface OverlaySettings {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
-  conditions: ConditionsOptions
   fuel: FuelOptions
   lights: LightsOptions
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
@@ -1369,7 +1374,6 @@ export interface SettingsPatch {
   traffic?: Partial<TrafficOptions>
   alerts?: Partial<AlertsOptions>
   delta?: Partial<DeltaOptions>
-  conditions?: Partial<ConditionsOptions>
   fuel?: Partial<FuelOptions>
   lights?: Partial<LightsOptions>
   /** A combination another action has is refused (the current one is kept). */
@@ -1400,7 +1404,6 @@ export interface TelemetryConfig {
   traffic: TrafficOptions
   alerts: AlertsOptions
   delta: DeltaOptions
-  conditions: ConditionsOptions
   fuel: FuelOptions
   lights: LightsOptions
 }

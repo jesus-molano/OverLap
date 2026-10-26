@@ -317,24 +317,15 @@ export const widgetsEs = {
     /** The best sectors of your class, joined (nobody's lap). */
     classOptimal: 'Óptima de la clase'
   },
+  /** The conditions footer of the relative and the standings. */
   conditions: {
     /** Captions before each reading (drawn in caps). */
     track: 'Pista',
     air: 'Aire',
+    /** Only without the dial (the dial says it is the wind). */
     wind: 'Viento',
-    surface: 'Asfalto',
     rain: 'Lluvia',
-    sky: 'Cielo',
     rubber: 'Goma',
-    /** Where the wind comes from, relative to your car. */
-    windFrom: {
-      head: 'de cara',
-      tail: 'de cola',
-      left: 'por la izq.',
-      right: 'por la dcha.'
-    },
-    /** Too little wind to have a direction. */
-    calm: 'en calma',
     /** irsdk_TrackWetness 1..7 (the asphalt: masculine). */
     wetness: [
       'Seco',
@@ -345,8 +336,6 @@ export const widgetsEs = {
       'Muy mojado',
       'Encharcado'
     ],
-    /** Skies 0..3. */
-    skies: ['Despejado', 'Poco nuboso', 'Muy nuboso', 'Cubierto'],
     /** SessionTrackRubberState (the rubber: feminine); anything else is shown as iRacing writes it. */
     rubberStates: {
       clean: 'Limpia',
@@ -359,9 +348,8 @@ export const widgetsEs = {
     },
     /** A 'carry over' resolved to an earlier session's state: 'Media-alta (heredada)'. */
     carried: (state: string) => `${state} (heredada)`,
-    /** The stewards allow rain tyres (WeatherDeclaredWet). */
-    declaredWet: 'DECLARADA MOJADA',
-    declaredWetNote: 'neumáticos de lluvia permitidos'
+    /** The stewards allow rain tyres (WeatherDeclaredWet): a plate. */
+    declaredWet: 'DECLARADA MOJADA'
   },
   fuel: {
     /** After a number of laps ('12.9 v'). */
@@ -612,17 +600,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     track: 'Track',
     air: 'Air',
     wind: 'Wind',
-    surface: 'Surface',
     rain: 'Rain',
-    sky: 'Sky',
     rubber: 'Rubber',
-    windFrom: {
-      head: 'headwind',
-      tail: 'tailwind',
-      left: 'from left',
-      right: 'from right'
-    },
-    calm: 'calm',
     wetness: [
       'Dry',
       'Mostly dry',
@@ -632,7 +611,6 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       'Very wet',
       'Extremely wet'
     ],
-    skies: ['Clear', 'Partly cloudy', 'Mostly cloudy', 'Overcast'],
     rubberStates: {
       clean: 'Clean',
       low: 'Low',
@@ -643,8 +621,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       carryOver: 'Carried over'
     },
     carried: (state) => `${state} (carried over)`,
-    declaredWet: 'DECLARED WET',
-    declaredWetNote: 'rain tyres allowed'
+    declaredWet: 'DECLARED WET'
   },
   fuel: {
     laps: 'laps',

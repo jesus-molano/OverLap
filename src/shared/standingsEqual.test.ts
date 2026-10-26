@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { SafetyRatingProjection, StandingsClassBlock, StandingsData } from './types'
+import type {
+  ConditionsData,
+  SafetyRatingProjection,
+  StandingsClassBlock,
+  StandingsData
+} from './types'
 import { standingsEqual } from './standingsEqual'
 
 type Row = StandingsClassBlock['rows'][number]
@@ -79,7 +84,25 @@ function state(): StandingsData {
         isPlayerClass: false,
         rows: [row(10)]
       }
-    ]
+    ],
+    conditions: weather()
+  }
+}
+
+function weather(): ConditionsData {
+  return {
+    visible: true,
+    trackTempC: 31.2,
+    trackTempTrend: 'up',
+    airTempC: 22,
+    windKmh: 14,
+    windFromDeg: -60,
+    wetness: 1,
+    precipPct: 0,
+    declaredWet: false,
+    skies: 1,
+    rubberState: 'moderate usage',
+    rubberCarried: false
   }
 }
 
@@ -171,5 +194,19 @@ describe('standingsEqual', () => {
     const fewerClasses = state()
     fewerClasses.classes.pop()
     expect(standingsEqual(a, fewerClasses)).toBe(false)
+  })
+
+  it('detects a change of the conditions footer, and the footer turned on or off', () => {
+    const a = state()
+    for (const key of Object.keys(weather()) as (keyof ConditionsData)[]) {
+      const b = state()
+      const c = b.conditions as unknown as Record<string, unknown>
+      c[key] = key === 'trackTempTrend' ? 'down' : changed(c[key])
+      expect(standingsEqual(a, b), key).toBe(false)
+    }
+    const off = { ...state(), conditions: null }
+    expect(standingsEqual(a, off)).toBe(false)
+    expect(standingsEqual(off, a)).toBe(false)
+    expect(standingsEqual(off, { ...state(), conditions: null })).toBe(true)
   })
 })

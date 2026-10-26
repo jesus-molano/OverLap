@@ -4,6 +4,7 @@ import { normalizeHexColor } from './colors'
 import { LANGUAGES, messagesFor } from './i18n'
 import {
   ACCENT_PRESETS,
+  CONDITIONS_FOOTER_FIELDS,
   OPTION_SCHEMA,
   PEDAL_COLOR_PRESETS,
   STANDINGS_COLUMN_IDS,
@@ -122,7 +123,15 @@ describe('displayOnlyFields', () => {
       'showTyre',
       'showFlags',
       'nameFormat',
-      'showIncidents'
+      'showIncidents',
+      // The footer's readings (its switch decides whether the feed runs).
+      'conditionsTrackTemp',
+      'conditionsTrend',
+      'conditionsWet',
+      'conditionsWind',
+      'conditionsWindDirection',
+      'conditionsAirTemp',
+      'conditionsRubber'
     ])
     expect(displayOnlyFields('radar')).toEqual(['showRangeLabels'])
     expect(displayOnlyFields('standings')).toEqual([
@@ -132,7 +141,14 @@ describe('displayOnlyFields', () => {
       'showSof',
       'showCarCount',
       'showFlags',
-      'density'
+      'density',
+      'conditionsTrackTemp',
+      'conditionsTrend',
+      'conditionsWet',
+      'conditionsWind',
+      'conditionsWindDirection',
+      'conditionsAirTemp',
+      'conditionsRubber'
     ])
     expect(displayOnlyFields('battle')).toEqual(['layout', 'nameFormat'])
     expect(displayOnlyFields('inputs')).toEqual(Object.keys(OPTION_SCHEMA.inputs))
@@ -146,14 +162,44 @@ describe('displayOnlyFields', () => {
       'showSectors',
       'showTrend'
     ])
-    // The conditions provider sends every reading: its options only choose what is drawn.
-    expect(displayOnlyFields('conditions')).toEqual(Object.keys(OPTION_SCHEMA.conditions))
     // The fuel provider sends every line; the average and the margin are what it plans with.
     expect(displayOnlyFields('fuel')).toEqual(
       Object.keys(OPTION_SCHEMA.fuel).filter((k) => k !== 'avgLaps' && k !== 'marginLaps')
     )
     // The lights provider leaves out what is not shown; the layout and the captions are drawing.
     expect(displayOnlyFields('lights')).toEqual(['layout', 'showCaptions'])
+  })
+})
+
+describe('the conditions footers (v2.5)', () => {
+  it('gives the relative and the standings the same footer options, in the line order', () => {
+    for (const section of ['relative', 'standings'] as const) {
+      const specs = OPTION_SCHEMA[section] as Record<string, OptionSpec>
+      for (const f of CONDITIONS_FOOTER_FIELDS) expect(specs[f]?.kind, f).toBe('bool')
+    }
+    expect(CONDITIONS_FOOTER_FIELDS).toEqual([
+      'conditionsFooter',
+      'conditionsTrackTemp',
+      'conditionsTrend',
+      'conditionsWet',
+      'conditionsWind',
+      'conditionsWindDirection',
+      'conditionsAirTemp',
+      'conditionsRubber'
+    ])
+  })
+
+  it('shows the footer under the standings and not under the relative, every reading on', () => {
+    expect(OPTION_SCHEMA.standings.conditionsFooter.default).toBe(true)
+    expect(OPTION_SCHEMA.relative.conditionsFooter.default).toBe(false)
+    for (const f of CONDITIONS_FOOTER_FIELDS.slice(1)) {
+      expect(OPTION_SCHEMA.standings[f].default, f).toBe(true)
+      expect(OPTION_SCHEMA.relative[f].default, f).toBe(true)
+    }
+  })
+
+  it('has no conditions section any more', () => {
+    expect('conditions' in OPTION_SCHEMA).toBe(false)
   })
 })
 

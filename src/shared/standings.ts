@@ -485,7 +485,8 @@ export class StandingsProvider {
       // Every session type, not only rated races; headerIncidents is display only.
       incidents: ownCar ? incidentCount(frame, session) : null
     }
-    return { header, classes }
+    // The conditions footer's readings are the provider set's (ConditionsFeed).
+    return { header, classes, conditions: null }
   }
 
   /**

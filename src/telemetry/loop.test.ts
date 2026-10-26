@@ -25,7 +25,6 @@ import type {
   TelemetryConfig,
   TrafficData,
   AlertsData,
-  ConditionsData,
   FuelData,
   LightsData
 } from '@shared/types'
@@ -204,7 +203,8 @@ const STANDINGS: StandingsData = {
     safetyRating: null,
     incidents: null
   },
-  classes: []
+  classes: [],
+  conditions: null
 }
 const BATTLE: BattleData = {
   visible: false,
@@ -246,20 +246,6 @@ const DELTA: DeltaData = {
   predictedLap: null,
   sectors: [],
   lapState: 'none'
-}
-const CONDITIONS: ConditionsData = {
-  visible: false,
-  trackTempC: null,
-  trackTempTrend: null,
-  airTempC: null,
-  windKmh: null,
-  windFromDeg: null,
-  wetness: null,
-  precipPct: null,
-  declaredWet: false,
-  skies: null,
-  rubberState: '',
-  rubberCarried: false
 }
 const FUEL: FuelData = {
   visible: false,
@@ -342,7 +328,8 @@ function setup(
         slotsAhead: ctx.config.relative.carsAhead,
         slotsBehind: ctx.config.relative.carsBehind,
         sessionType: null,
-        incidents: null
+        incidents: null,
+        conditions: null
       }
       calls.relative.push({ ctx, prev, at: clock.t, payload })
       return payload
@@ -373,7 +360,6 @@ function setup(
       calls.delta.push({ ctx, prev, at: clock.t, payload: DELTA })
       return DELTA
     },
-    conditions: () => CONDITIONS,
     fuel: () => FUEL,
     lights: () => LIGHTS
   }
@@ -557,8 +543,18 @@ describe('TelemetryLoop', () => {
       showTyre: false,
       showFlags: true,
       nameFormat: 'inherit',
-      showIncidents: true
+      showIncidents: true,
+      // The conditions footer: off under the relative by default.
+      conditionsFooter: false,
+      conditionsTrackTemp: true,
+      conditionsTrend: true,
+      conditionsWet: true,
+      conditionsWind: true,
+      conditionsWindDirection: true,
+      conditionsAirTemp: true,
+      conditionsRubber: true
     })
+    expect(config?.standings.conditionsFooter).toBe(true)
     expect(config?.rules.battle).toEqual({
       showIn: { practice: false, qualify: false, race: true },
       hideInPits: false,
