@@ -228,6 +228,40 @@ describe('RaceModel player distance (SR corners)', () => {
     expect(sim.view.playerDistanceDriven).toBeCloseTo(21.25, 2)
   })
 
+  it('seeds from your own car when it starts at a replay live point on another car', () => {
+    // The camera on car 1, a lap and a half ahead of you, then you drive (from the review's
+    // replay of the Lime Rock race: "margin 1x" instead of none).
+    const watching = (ownInWorld: boolean): Sim => {
+      const sim = new Sim(makeSession(2), { sessionNum: PRACTICE })
+      sim.t = 1800
+      sim.frame.IsReplayPlaying[0] = true
+      sim.frame.CamCarIdx[0] = 1
+      sim.frame.IsOnTrack[0] = false
+      sim.run(3, 60, (t) => ({
+        0: ownInWorld ? { d: 20.25 + V * (t - 1800) } : null,
+        1: { d: 21.75 + V * (t - 1800) }
+      }))
+      expect(sim.view.playerCarIdx).toBe(1)
+      sim.frame.IsReplayPlaying[0] = false
+      sim.frame.IsOnTrack[0] = true
+      return sim
+    }
+    const cars = (t: number): Cars => ({
+      0: { d: 20.25 + V * (t - 1800) },
+      1: { d: 21.75 + V * (t - 1800) }
+    })
+    const seen = watching(true)
+    expect(seen.view.playerDistanceDriven).toBeCloseTo(20.25, 2)
+    seen.run(30, 60, cars)
+    expect(seen.view.playerCarIdx).toBe(0)
+    expect(seen.view.playerDistanceDriven).toBeCloseTo(21.25, 2)
+    // Out of the world while watching: seeded when your car is first seen.
+    const away = watching(false)
+    expect(away.view.playerDistanceDriven).toBe(0)
+    away.run(30, 60, cars)
+    expect(away.view.playerDistanceDriven).toBeCloseTo(20.25 + 3 * V + 1, 2)
+  })
+
   it('does not seed from the grid or from a team car', () => {
     const grid = new Sim(makeSession(1), { state: SessionState.GetInCar })
     grid.run(1, 60, () => ({ 0: { d: 0.98, lap: 0 } }))

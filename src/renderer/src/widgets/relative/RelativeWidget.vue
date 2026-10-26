@@ -128,7 +128,8 @@ const panelStyle = computed<InlineStyle>(() => ({
               <span v-if="cols.flags && slot.penalty" class="rl-flag"
                 ><PenaltyIcon :penalty="slot.penalty"
               /></span>
-              <Badge v-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
+              <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{ t.widgets.common.tow }}</Badge>
+              <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
             </DriverCell>
             <span v-if="cols.lic" class="c-lic"
               ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"

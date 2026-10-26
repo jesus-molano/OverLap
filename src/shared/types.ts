@@ -242,6 +242,8 @@ export interface RelativeRow {
   lapRelation: LapRelation
   /** On pit road or in the pit stall: rendered dimmed. */
   inPits: boolean
+  /** In the pits around a tow (showsTow, as in the standings): a tow badge instead of PIT. */
+  towed: boolean
   /** Laps of the car's current stint (RaceCarState.stintLaps), null when unknown (a replay). */
   stintLaps: number | null
   /** Its tyre compound's name ('Hard'), null when unknown (tyreCompoundOf in tyres.ts). */
@@ -356,7 +358,10 @@ export interface StandingsRow {
   lastPitLap: number | null
   /** On the first lap after leaving the pits ("OUT"). */
   outLap: boolean
-  /** In the pits after a tow or reset (RaceCarState.towed): a tow badge instead of PIT. */
+  /**
+   * In the pits around a tow or reset (RaceCarState.towed, while its countdown runs: showsTow):
+   * a tow badge instead of PIT.
+   */
   towed: boolean
   /** Laps of the current stint (RaceCarState.stintLaps); null if unknown (replay) or not shown. */
   stintLaps: number | null
@@ -523,10 +528,16 @@ export interface InputsData {
  */
 export type TrafficKind = 'faster' | 'slower' | 'hazard'
 export type HazardKind = 'stopped' | 'slow' | 'off-track'
+/**
+ * Why a faster car is listed whatever its pace (B08): `lap`, your class a lap or more ahead
+ * coming to lap you; `blue`, passing you while you are shown the blue flag.
+ */
+export type TrafficPassing = 'lap' | 'blue'
 
 export interface TrafficEntry {
   driver: DriverIdentity
   kind: TrafficKind
+  /** Class short name; '' when every entry of the session is in one class. */
   className: string
   /** Seconds of road between you and it: + ahead of you, - behind. */
   gapS: number
@@ -541,6 +552,8 @@ export interface TrafficEntry {
   meetSector: number | null
   /** On a different lap: the faster car is lapping you / you are lapping the slower one. */
   lapping: boolean
+  /** Faster cars passing you (TrafficPassing), null for the others. */
+  passing: TrafficPassing | null
   /** Hazards only. */
   hazard: HazardKind | null
 }
@@ -585,7 +598,7 @@ export type AlertNotice =
   /** Just into the pit lead-in from the track, limiter off. */
   | { kind: 'pitEntry' }
   | { kind: EngineWarningKind }
-  /** Being towed to the pits: whole seconds left. */
+  /** Towed: the countdown in your box until you can drive (PlayerCarTowTime), whole seconds left. */
   | { kind: 'tow'; seconds: number }
   /**
    * The car is damaged (EngineWarnings): `mandatory` repairs before you may race on (the

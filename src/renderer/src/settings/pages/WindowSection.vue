@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { WIDGET_SCALE_MAX, WIDGET_SCALE_MIN, WIDGET_SCALE_STEP } from '@shared/settings'
 import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
-import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
+import { WIDGET_DEFS, inCarOnly, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import CheckGroup from '../controls/CheckGroup.vue'
@@ -42,6 +42,8 @@ const visibility = useOptions('visibility')
 const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value.replays))
 /** The session-screen exception only means something while the global rule hides there. */
 const sessionScreenRule = computed(() => visibility.value.hideOnSessionScreen)
+/** Out of the car it has nothing to show: no session-screen switch (its replay note says so). */
+const sessionScreenSwitch = computed(() => !inCarOnly(props.widgetId))
 
 const HEIGHT_VALUES: readonly BoolChoice[] = ['on', 'off']
 const heightChoices = computed(() =>
@@ -125,6 +127,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :apply="set('hideInPits')"
     />
     <ToggleControl
+      v-if="sessionScreenSwitch"
       kind="switch"
       :label="t.settings.window.sessionScreen"
       :help="

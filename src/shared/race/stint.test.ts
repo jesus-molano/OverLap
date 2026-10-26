@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { SessionState } from '../telemetry'
-import { PRACTICE, Sim, V, car, makeSession, type Cars } from './testing/raceSim'
+import { LAP_S, PRACTICE, Sim, V, car, makeSession, type Cars } from './testing/raceSim'
 
 describe('RaceModel stints', () => {
   it('counts from the green flag when it saw it', () => {
@@ -37,6 +37,27 @@ describe('RaceModel stints', () => {
     sim.run(20, 60, cars) // crossed 14.0 at t = 51
     expect(car(sim.view, 0).stintLaps).toBe(1)
     expect(car(sim.view, 1).stintLaps).toBe(13)
+  })
+
+  it('keeps the laps driven across frames it did not see: a replay, a reconnect, a gap', () => {
+    const cars = (t: number): Cars => ({ 0: { d: 3.6 + V * t }, 1: { d: 2.2 + V * t } })
+    const stints = (gap: 'none' | 'replay' | 'reconnect' | 'frames', missedS: number): number[] => {
+      const sim = new Sim(makeSession(2))
+      sim.run(5, 60, cars)
+      if (gap === 'replay') sim.model.breakContinuity()
+      if (gap === 'reconnect') sim.model.reset()
+      // Both cars cross a line meanwhile (car 0 at 4.0, car 1 at 3.0; LAP_S: a whole lap).
+      sim.t += missedS
+      sim.run(40 - missedS, 60, cars)
+      return [car(sim.view, 0).stintLaps, car(sim.view, 1).stintLaps]
+    }
+    const plain = stints('none', 0)
+    expect(plain).toEqual([5, 3])
+    for (const gap of ['replay', 'reconnect', 'frames'] as const) {
+      expect(stints(gap, 12)).toEqual(plain)
+      // Back where it was a whole lap later: it drove that lap, it was not credited.
+      expect(stints(gap, LAP_S)).toEqual(plain)
+    }
   })
 
   it('outside races, counts from when it first saw the car', () => {

@@ -24,6 +24,7 @@ import { createDriverStyles } from '@renderer/view/styles'
 import { PREVIEW_TRAFFIC, previewOptions } from './preview'
 import TrafficKindIcon from './TrafficKindIcon.vue'
 import {
+  hasClasses,
   hasSectors,
   hasTraffic,
   layoutKey,
@@ -79,6 +80,7 @@ const slots = computed<readonly TrafficSlotView[]>((prev) => {
   return reuseViews(prev, toSlots(d, o, styles, t.value))
 })
 const sectors = computed(() => hasSectors(slots.value))
+const classes = computed(() => hasClasses(slots.value))
 
 const preview = computed(() => phase.value === 'preview')
 const wanted = computed(
@@ -106,7 +108,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       v-if="slots.length > 0"
       ref="panel"
       class="tr-panel"
-      :class="{ 'has-sectors': sectors }"
+      :class="{ 'has-sectors': sectors, 'has-classes': classes }"
       :surface="surfaceStyle"
       :halo="halo"
       :fill="!autoHeight"
@@ -284,6 +286,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .tr-cls--none {
   visibility: hidden;
+}
+
+/* No line names a class (one class in the session): the column goes, the names get its room. */
+.tr-panel:not(.has-classes) .tr-cls {
+  display: none;
 }
 
 /* Clipped, so even a squeezed number chip never runs into the value on its right. */

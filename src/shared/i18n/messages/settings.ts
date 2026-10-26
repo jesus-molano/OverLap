@@ -341,6 +341,9 @@ export const settingsEs = {
       keepsLive: 'En directo sigue al coche que miras; al rebobinar mantiene la carrera en directo',
       follows: 'En directo sigue al coche que miras; al rebobinar una repetición se oculta',
       liveOnly: 'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche',
+      /** The radar, the pedals, the delta: no session-screen switch either. */
+      inCarOnly:
+        'Solo tiene datos de tu coche y desde dentro: se oculta fuera del coche (también en la pantalla de sesión), en repeticiones y si miras otro coche',
       hidden:
         'Al rebobinar se oculta (Apariencia > Visibilidad); en directo sigue al coche que miras'
     }
@@ -549,7 +552,7 @@ export const settingsEs = {
     lapsToGo: '10 y 5 vueltas',
     lapsToGoHelp: 'Unos segundos al quedar 10 y 5 vueltas para el final de la carrera',
     tow: 'Grúa',
-    towHelp: 'Cuenta atrás hasta llegar a boxes',
+    towHelp: 'Cuenta atrás de la grúa: tiempo hasta poder salir de tu box',
     damage: 'Daños',
     damageHelp: 'Al dañarse el coche, antes de la bandera de reparación; los leves, unos segundos',
     wrongWay: 'Sentido contrario',
@@ -994,6 +997,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'Live, it follows the car you are watching; when you rewind, it keeps the live race',
       follows: 'Live, it follows the car you are watching; hidden when you rewind a replay',
       liveOnly: 'Only your car’s data: hidden in replays and when you watch another car',
+      inCarOnly:
+        'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car',
       hidden: 'Hidden when you rewind (Appearance > Visibility); live, it follows the car you watch'
     }
   },
@@ -1194,7 +1199,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     lapsToGo: '10 and 5 laps to go',
     lapsToGoHelp: 'A few seconds as 10 and 5 laps of the race remain',
     tow: 'Tow',
-    towHelp: 'Countdown until you reach the pits',
+    towHelp: 'Tow countdown: time until you can leave your box',
     damage: 'Damage',
     damageHelp: 'When the car is damaged, before the meatball flag; minor damage for a few seconds',
     wrongWay: 'Wrong way',

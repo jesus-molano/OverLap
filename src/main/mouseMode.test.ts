@@ -78,12 +78,26 @@ describe('mouseMode', () => {
     expect(mouseMode(inputs({ panels: [locked], cursor: near, current: 'capture' }))).toBe(
       'capture'
     )
-    // A panel on top covers the chip below it, as it does on screen.
-    const top: HitPanel = { rect: { x: 190, y: 140, width: 50, height: 50 }, locked: true }
-    expect(mouseMode(inputs({ panels: [top, locked], cursor: { x: 210, y: 160 } }))).toBe('forward')
-    expect(mouseMode(inputs({ panels: [top, locked], cursor: { x: 260, y: 160 } }))).toBe('capture')
     // No chip reported: a locked panel never takes the mouse.
     expect(mouseMode(inputs({ panels: [LOCKED], cursor: { x: 210, y: 160 } }))).toBe('forward')
+  })
+
+  it('captures over a chip a panel painted later covers: the chips are drawn above them all', () => {
+    // From a saved layout: the alerts' chip under the radar, the battle's under a fitted sample.
+    const chip = { x: 200, y: 154, width: 100, height: 20 }
+    const under: HitPanel = { ...LOCKED, chip }
+    const lockedTop: HitPanel = { rect: { x: 190, y: 140, width: 50, height: 50 }, locked: true }
+    const top: HitPanel = { ...lockedTop, locked: false }
+    for (const cover of [lockedTop, top]) {
+      expect(mouseMode(inputs({ panels: [cover, under], cursor: { x: 210, y: 160 } }))).toBe(
+        'capture'
+      )
+    }
+    // Off the chip the panel on top decides: a locked one gives the mouse to the game.
+    expect(mouseMode(inputs({ panels: [lockedTop, under], cursor: { x: 210, y: 185 } }))).toBe(
+      'forward'
+    )
+    expect(mouseMode(inputs({ panels: [top, under], cursor: { x: 210, y: 185 } }))).toBe('capture')
   })
 
   it('lets the mouse through a ghost to the panels below it, but over its chip', () => {

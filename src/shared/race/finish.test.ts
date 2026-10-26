@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SessionState } from '../telemetry'
+import { SessionState, TrackLocation } from '../telemetry'
 import { Sim, V, car, makeSession } from './testing/raceSim'
 import type { Cars } from './testing/raceSim'
 
@@ -151,6 +151,27 @@ describe('RaceModel race finish', () => {
     expect(sim.view.lapSectors(0, 6)).toBeNull()
     expect(car(sim.view, 0).stintLaps).toBe(stint)
     expect(car(sim.view, 0).bestLapTime).toBeCloseTo(30, 2)
+  })
+
+  // From the Lime Rock race: a car parked in its box from early on never took the flag, and read
+  // "Última vuelta" for good, also in the cool-down.
+  it('leaves no lap to a car parked in its box once the race cools down', () => {
+    const sim = new Sim(makeSession(2))
+    const cars = (t: number): Cars => ({
+      0: { d: 3.01, pit: true, surface: TrackLocation.InPitStall },
+      1: { d: 4.6 + V * t }
+    })
+    sim.run(10, 60, cars)
+    sim.state = SessionState.Checkered
+    sim.run(10, 60, cars) // car 1 takes the flag at t = 12
+    expect(car(sim.view, 1).finished).toBe(true)
+    // It could still drive out and take the flag.
+    expect(sim.view.lapsRemaining(0)).toBe(1)
+    sim.state = SessionState.CoolDown
+    sim.run(1, 60, cars)
+    expect(car(sim.view, 0).finished).toBe(false)
+    expect(sim.view.lapsRemaining(0)).toBe(0)
+    expect(sim.view.lapsRemaining(1)).toBe(0)
   })
 
   it('finishes a winner who parks out of the world right after the line', () => {

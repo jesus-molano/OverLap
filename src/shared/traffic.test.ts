@@ -56,6 +56,7 @@ function carState(carIdx: number, s: CarSpec): RaceCarState {
     pitStops: 0,
     towStops: 0,
     towed: false,
+    towedAt: NaN,
     lastPitLap: null,
     outLap: false,
     stintLaps: 0,
@@ -196,6 +197,7 @@ describe('faster cars behind', () => {
         meetPct: 0.95,
         meetSector: 3,
         lapping: false,
+        passing: null,
         hazard: null
       }
     ])
@@ -402,9 +404,17 @@ describe('classes and options', () => {
     const only = compute(w)
     expect(only.faster).toEqual([expect.objectContaining({ lapping: true, etaS: 95 })])
     expect(only.slower).toEqual([])
+    // One class in the session: no line names it.
     const d = compute(w, { onlyMulticlass: false })
-    expect(d.faster[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 95 })
-    expect(d.slower[0]).toMatchObject({ className: 'GT3', lapping: true, etaS: 105 })
+    expect(d.faster[0]).toMatchObject({ className: '', lapping: true, etaS: 95 })
+    expect(d.slower[0]).toMatchObject({ className: '', lapping: true, etaS: 105 })
+  })
+
+  it('names the class when the session has more than one, even with none of them near', () => {
+    // A GT4 entered but in the pits: still a multiclass session.
+    const drivers = [0, 1].map((i) => gt3(i)).concat(makeDriver(2, { ...GT4 }))
+    const w = new World(drivers).set(0, { pct: 0.5 }).set(1, { pct: 0.45, pace: 95, lap: 11 })
+    expect(compute(w).faster[0]).toMatchObject({ className: 'GT3', lapping: true })
   })
 
   it('a car of another class in the world makes it multiclass (only you in your class)', () => {
@@ -446,6 +456,7 @@ describe('classes and options', () => {
       const d = compute(w)
       expect(ids(d.faster)).toEqual([1])
       expect(d.faster[0]?.lapping).toBe(true)
+      expect(d.faster[0]?.passing).toBe('lap')
       expect(d.faster[0]?.gapS).toBeCloseTo(-0.05 * pace, 0)
       // Closing only when it is quicker: 1 % quicker reaches you in ~8 minutes.
       expect(d.faster[0]?.etaS === null).toBe(pace >= 100)
@@ -474,6 +485,7 @@ describe('classes and options', () => {
     expect(compute(w).visible).toBe(false)
     w.frame.SessionFlags[0] = SessionFlag.Blue
     expect(ids(compute(w).faster)).toEqual([3])
+    expect(compute(w).faster[0]?.passing).toBe('blue')
     // A high bit (the SDK's signed Int32) does not hide the flag.
     w.frame.SessionFlags[0] = SessionFlag.Blue | 0x80000000
     expect(ids(compute(w).faster)).toEqual([3])

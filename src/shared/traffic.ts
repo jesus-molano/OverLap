@@ -12,8 +12,8 @@
  * (CarClassRelSpeed); a car of your own class only counts in a race when it is on another lap.
  * A car coming to lap you (your class, a lap or more ahead) and, while you are shown the blue
  * flag, any car behind that can be passing you, are listed as faster whatever "Multiclass only"
- * and the pace margin say (B08). Nothing in a lone session: the other cars there are not on
- * track with you (B11).
+ * and the pace margin say (B08), marked as passing you. Nothing in a lone session: the other
+ * cars there are not on track with you (B11). With one class in the session no line names it.
  */
 import { driverIdentity, identityEqual } from './driver'
 import { arrayEqual } from './equal'
@@ -36,7 +36,8 @@ import type {
   TrafficData,
   TrafficEntry,
   TrafficKind,
-  TrafficOptions
+  TrafficOptions,
+  TrafficPassing
 } from './types'
 
 export const TRAFFIC = {
@@ -123,6 +124,8 @@ interface Run {
   caution: boolean
   /** You are shown the blue flag: a car behind is passing, or lapping, you. */
   blue: boolean
+  /** Every entry of the session is in one class: no line names it. */
+  oneClass: boolean
 }
 
 /**
@@ -167,7 +170,8 @@ function candidate(
   gapS: number,
   etaS: number | null,
   lap: boolean,
-  hazard: HazardKind | null
+  hazard: HazardKind | null,
+  passing: TrafficPassing | null = null
 ): Candidate {
   const eta = etaS !== null && Number.isFinite(etaS) && etaS <= TRAFFIC.maxEtaS ? etaS : null
   let meetPct: number | null = null
@@ -184,12 +188,13 @@ function candidate(
     entry: {
       driver: driverIdentity(d),
       kind,
-      className: d.classShortName,
+      className: run.oneClass ? '' : d.classShortName,
       gapS: quantise(gapS, 10),
       etaS: qEta,
       meetPct,
       meetSector,
       lapping: lap,
+      passing,
       hazard
     },
     eta: qEta ?? Infinity
@@ -328,7 +333,8 @@ export class TrafficProvider {
         if (!this.keep('faster', car.carIdx, gap <= behindS, run, null)) continue
         const closing = 1 / theirPace - 1 / run.myPace
         const eta = closing > 0 && !run.caution ? -dPct / closing : null
-        faster.push(candidate(run, d, 'faster', -gap, eta, laps >= 1, null))
+        const why: TrafficPassing | null = !passing ? null : run.blue ? 'blue' : 'lap'
+        faster.push(candidate(run, d, 'faster', -gap, eta, laps >= 1, null, why))
       }
     }
     this.sweep()
@@ -423,7 +429,19 @@ function begin(
       ? frame.SessionFlags[0]
       : frame.CarIdxSessionFlags[idx]
   const blue = (((flags ?? 0) >>> 0) & SessionFlag.Blue) !== 0
-  return { frame, session, race, prev, now, me, myDriver, myPct, myPace, caution, blue }
+  const oneClass = singleClass(session)
+  return { frame, session, race, prev, now, me, myDriver, myPct, myPace, caution, blue, oneClass }
+}
+
+/** Every entry of the session (not the pace car nor a spectator) is in the same class. */
+function singleClass(session: SessionMeta): boolean {
+  let cls: number | null = null
+  for (const [idx, d] of session.drivers) {
+    if (d.isPaceCar || d.isSpectator || idx === session.paceCarIdx) continue
+    if (cls === null) cls = d.classId
+    else if (d.classId !== cls) return false
+  }
+  return true
 }
 
 /** More than one class among the cars in the world, you included. */
@@ -445,6 +463,7 @@ function entryEqual(a: TrafficEntry, b: TrafficEntry): boolean {
     a.meetPct === b.meetPct &&
     a.meetSector === b.meetSector &&
     a.lapping === b.lapping &&
+    a.passing === b.passing &&
     a.hazard === b.hazard &&
     a.className === b.className &&
     identityEqual(a.driver, b.driver)

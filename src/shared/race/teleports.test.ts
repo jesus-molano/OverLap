@@ -121,12 +121,15 @@ describe('RaceModel tow stops', () => {
     })
     sim.run(20, 60, cars)
     expect(car(sim.view, 1)).toMatchObject({ pitStops: 0, towStops: 1, towed: true, inPits: true })
+    // When it landed in its box (the tick after its one out of the world).
+    expect(car(sim.view, 1).towedAt).toBeCloseTo(10.03, 1)
     leaveAt = sim.t
     sim.run(5, 60, cars)
     expect(car(sim.view, 1)).toMatchObject({
       pitStops: 0,
       towStops: 1,
       towed: false,
+      towedAt: NaN,
       outLap: true,
       lastPitLap: null
     })

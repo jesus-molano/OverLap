@@ -181,6 +181,19 @@ describe('toHeaderView', () => {
     const spectating = [{ ...block([1, 2], {}, 2), rows: [makeRow({ status: 'finished' })] }]
     expect(toHeaderView(input({ classes: spectating })).finished).toBe(true)
     expect(toHeaderView(input({ classes: done, race: false })).finished).toBe(false)
+    // Parked in your box for good: in the cool-down no lap is left, the race is over for you.
+    const parked = [
+      {
+        ...block([1, 2], {}, 2),
+        rows: [
+          makeRow({ status: 'finished' }),
+          makeRow({ classPosition: 2, isPlayer: true, status: 'pits' })
+        ]
+      }
+    ]
+    expect(toHeaderView(input({ header: lastLap, classes: parked })).finished).toBe(false)
+    const over = header({ lapsRemaining: 0, timeRemainingS: null })
+    expect(toHeaderView(input({ header: over, classes: parked })).finished).toBe(true)
     // A clock still running keeps it with the laps.
     expect(
       toHeaderView(input({ header: header({ lapsRemaining: 1, timeRemainingS: 45 }) })).remaining

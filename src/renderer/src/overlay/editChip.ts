@@ -1,8 +1,9 @@
 /**
  * The edit chip of a panel (EditFrame's logic, kept out of the SFC so it can be tested): what
  * its eye and padlock send to main, where the chip is relative to its panel (main takes the
- * mouse over it, so its buttons work on locked panels and ghosts), and which panels clash with
- * the radar, painted above all of them (report B05). Pure.
+ * mouse over it, so its buttons work on locked panels, ghosts and panels painted under another),
+ * which hint fits the panel, and which panels clash with the radar, painted above all of them
+ * (report B05). Pure.
  */
 import type { WidgetToggleMessage } from '@shared/ipc'
 import type { Rect } from '@shared/types'
@@ -24,6 +25,16 @@ export function toggleMessage(
   if (!editing || !Number.isSafeInteger(session) || session < 1) return null
   const value = field === 'visible' ? slot.ghost.value : !slot.locked.value
   return { session, widget: slot.id, field, value }
+}
+
+/** Panel widths (px) from which the hover hint can be the short one, and the long one. */
+export const HINT_SHORT_PX = 230
+export const HINT_LONG_PX = 330
+
+/** Which hover hint fits a panel `width` px wide: the long one, the short one or the keys. */
+export function hintTier(width: number): 'long' | 'short' | 'tiny' {
+  if (width >= HINT_LONG_PX) return 'long'
+  return width >= HINT_SHORT_PX ? 'short' : 'tiny'
 }
 
 /** The fields of a DOMRect read here. */

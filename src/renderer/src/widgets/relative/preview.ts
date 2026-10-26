@@ -46,6 +46,7 @@ function row(s: Seed, i: number, isPlayer = false): RelativeRow {
     gapS: s.gap,
     lapRelation: s.lap ?? 'same',
     inPits: s.pits === true,
+    towed: false,
     stintLaps: s.stint ?? STINT,
     tyre: s.tyre !== undefined ? s.tyre : s.cls === LMP2 ? null : 'Hard',
     penalty: s.penalty ?? null

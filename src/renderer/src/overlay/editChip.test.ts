@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { radarClashes, rectsOverlap, relativeRect, toggleMessage } from './editChip'
+import {
+  HINT_LONG_PX,
+  HINT_SHORT_PX,
+  hintTier,
+  radarClashes,
+  rectsOverlap,
+  relativeRect,
+  toggleMessage
+} from './editChip'
 import { createFakeSlot } from './testing/fakeEdit'
+
+describe('hintTier', () => {
+  it('the longest hover hint that fits the panel width', () => {
+    expect(hintTier(HINT_LONG_PX)).toBe('long')
+    expect(hintTier(HINT_LONG_PX - 1)).toBe('short')
+    expect(hintTier(HINT_SHORT_PX)).toBe('short')
+    expect(hintTier(HINT_SHORT_PX - 1)).toBe('tiny')
+    expect(hintTier(120)).toBe('tiny')
+  })
+})
 
 describe('toggleMessage', () => {
   it('asks for the opposite of what the panel is now', () => {

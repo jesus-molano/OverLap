@@ -10,8 +10,10 @@ import WidgetSlot from './WidgetSlot.vue'
  * Root of an overlay window (`?view=overlay`, one per display): every enabled widget main
  * places on this display (in edit mode the disabled ones too, as ghosts), each as an absolutely
  * positioned panel of this one document, in PAINT_ORDER (later ones on top, the radar above
- * all, as main hit-tests them). Nothing until the first layout. In edit mode, while the game
- * hides the mouse cursor (you are in the car), a note says how to get it back.
+ * all, as main hit-tests them). Above them all, the chip layer (CHIP_LAYER): the panels' edit
+ * chips, so none is ever under another panel (main tests every chip before any panel). Nothing
+ * until the first layout. In edit mode, while the game hides the mouse cursor (you are in the
+ * car), a note says how to get it back.
  */
 const { editMode, cursorHidden } = useOverlayState()
 const t = useI18n()
@@ -24,6 +26,7 @@ const widgets = registry.widgets
 <template>
   <div class="ov-overlay" :class="{ 'is-editing': editMode }">
     <WidgetSlot v-for="id in widgets" :key="id" :widget="id" />
+    <div class="ov-chips" data-ov-chips />
     <div v-if="editMode && cursorHidden" class="ov-cursor-hint" role="status">
       <Icon name="alert" class="ov-cursor-hint__icon" />
       <span class="ov-cursor-hint__text">
@@ -44,14 +47,25 @@ const widgets = registry.widgets
 }
 
 /*
- * Above every panel, top centre of the display, never in the way of a click (main gives the
- * window the mouse only over panels and chips, and this takes none).
+ * The edit chips, above every panel (also the one being dragged, z-index 1). It takes no pointer
+ * itself: only the chips in it do.
+ */
+.ov-chips {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/*
+ * Above every panel and chip, top centre of the display, never in the way of a click (main
+ * gives the window the mouse only over panels and chips, and this takes none).
  */
 .ov-cursor-hint {
   position: absolute;
   top: 9%;
   left: 50%;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: flex-start;
   gap: 10px;

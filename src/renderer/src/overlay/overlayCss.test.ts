@@ -86,11 +86,12 @@ describe('overlay window CSS', () => {
     expect(painted).toEqual([])
   })
 
-  it('never paints the overlay root or a panel container', () => {
+  it('never paints the overlay root, a panel container or the chip layer', () => {
     const containers = OVERLAY_RULES.filter((r) =>
-      r.selectors.some((s) => /\.ov-(overlay|slot)\b/.test(subject(s)))
+      r.selectors.some((s) => /\.ov-(overlay|slot|chips)\b/.test(subject(s)))
     )
     expect(containers.length).toBeGreaterThan(0)
+    expect(containers.some((r) => r.selectors.includes('.ov-chips'))).toBe(true)
     const painted = containers.flatMap((r) =>
       backgrounds(r).map((v) => `${r.file}: ${r.selectors.join(', ')} { background: ${v} }`)
     )

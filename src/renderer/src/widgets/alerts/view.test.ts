@@ -217,7 +217,7 @@ describe('notice views', () => {
       'CALADO · arranca el motor',
       'PRESIÓN ACEITE · baja',
       'PRESIÓN GASOLINA · baja',
-      `GRÚA${NB}0:42 · a boxes`,
+      `GRÚA${NB}0:42 · hasta poder salir`,
       'DAÑOS · reparación obligatoria',
       'TEMP. AGUA · alta',
       'TEMP. ACEITE · alta',
@@ -233,7 +233,7 @@ describe('notice views', () => {
       'STALLED · restart the engine',
       'OIL PRESSURE · low',
       'FUEL PRESSURE · low',
-      `TOW${NB}0:42 · to the pits`,
+      `TOW${NB}0:42 · until you can drive`,
       'DAMAGE · repairs required',
       'WATER TEMP · too hot',
       'OIL TEMP · too hot',
@@ -475,7 +475,7 @@ describe('toFlagsView', () => {
       'metric',
       ES
     )
-    expect(text(v.primary as FlagView)).toBe(`GRÚA${NB}0:42 · a boxes`)
+    expect(text(v.primary as FlagView)).toBe(`GRÚA${NB}0:42 · hasta poder salir`)
     expect(v.secondary).toEqual([meatballInBoxView(ES)])
     // Without the tow notice the meatball takes the band, still without the fixed note.
     const alone = toFlagsView(towed, filter({ showTow: false }), 'metric', EN)

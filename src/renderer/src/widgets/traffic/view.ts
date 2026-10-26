@@ -5,7 +5,8 @@
  *
  * Groups go top to bottom as on track: what is ahead (hazards, slower cars), then the faster
  * cars behind. Urgency (by ETA) always comes with the kind icon and words, never colour alone.
- * Words come from the dictionary `m` (messagesFor(lang)).
+ * A car passing you at about your pace (TrafficEntry.passing) reads how far behind it is, its
+ * urgency by that gap under the blue flag. Words come from the dictionary `m` (messagesFor(lang)).
  */
 import type { Messages } from '@shared/i18n'
 import type { HazardKind, NameFormat, TrafficData, TrafficEntry, TrafficKind } from '@shared/types'
@@ -19,6 +20,17 @@ export type Urgency = 'bad' | 'warn' | 'normal' | 'idle'
 
 export const URGENT_S = 3
 export const SOON_S = 8
+
+/**
+ * A car passing you (TrafficEntry.passing) reads how far behind it is, not when it gets to you,
+ * this close (s of road: alongside, the ETA counts down the pass itself)...
+ */
+export const PASSING_GAP_S = 3
+/** ...or when it closes in this slowly (s: same-class pace, the ETA reads minutes). */
+export const PASSING_ETA_S = 30
+/** Under the blue flag a car passing you is urgent by its gap: closer than 1 s bad, 2 s warn. */
+export const BLUE_BAD_S = 1
+export const BLUE_WARN_S = 2
 
 /** Top to bottom: what is ahead of you first, the faster cars behind last. */
 export const GROUP_ORDER: readonly TrafficKind[] = ['hazard', 'slower', 'faster']
@@ -87,7 +99,7 @@ export interface RowSlotView {
   readonly urgency: Urgency
   /** `--cls` / `--cls-fg` of the car's class (one shared object per colour). */
   readonly clsStyle: InlineStyle
-  /** Class name shown before the car ('GT3' from 'GT3 Class'), '' when unknown. */
+  /** Class name shown before the car ('GT3' from 'GT3 Class'), '' when unknown or one class. */
   readonly cls: string
   /** Car number, '' when unknown. */
   readonly number: string
@@ -122,6 +134,32 @@ export function urgency(etaS: number | null): Urgency {
   if (etaS < URGENT_S) return 'bad'
   if (etaS < SOON_S) return 'warn'
   return 'normal'
+}
+
+/** Urgency of a car passing you under the blue flag, by the road gap to it. */
+export function blueUrgency(gapS: number): Urgency {
+  const s = Math.abs(gapS)
+  if (!Number.isFinite(s)) return 'normal'
+  if (s < BLUE_BAD_S) return 'bad'
+  if (s < BLUE_WARN_S) return 'warn'
+  return 'normal'
+}
+
+const SEVERITY: Readonly<Record<Urgency, number>> = { idle: 0, normal: 1, warn: 2, bad: 3 }
+
+/** The more urgent of two. */
+export function worseUrgency(a: Urgency, b: Urgency): Urgency {
+  return SEVERITY[b] > SEVERITY[a] ? b : a
+}
+
+/**
+ * Whether a faster line shows the road gap rather than the ETA: a car passing you that is
+ * close (PASSING_GAP_S) or closing slowly (PASSING_ETA_S, or not at all).
+ */
+export function showsPassingGap(e: Pick<TrafficEntry, 'passing' | 'gapS' | 'etaS'>): boolean {
+  if (e.passing === null) return false
+  if (!finite(e.etaS) || e.etaS > PASSING_ETA_S) return true
+  return finite(e.gapS) && Math.abs(e.gapS) < PASSING_GAP_S
 }
 
 /**
@@ -181,9 +219,13 @@ export function toRowSlot(
     group !== 'hazard' ? null : e.hazard === null ? badges.unknown : badges.kinds[e.hazard]
   // A hazard line has one tone, its tag's included (never a red tag on an orange rail).
   const tone = hazard === null ? null : hazardTone(urgency(e.etaS), hazard.tone)
-  const u = tone ?? urgency(e.etaS)
-  // A hazard reads 'a 3.2 s' (how far); traffic reads when you meet, or how far while not closing.
-  const eta = hazard === null && finite(e.etaS) ? e.etaS : null
+  const passing = hazard === null && group === 'faster' ? e.passing : null
+  let u = tone ?? urgency(e.etaS)
+  if (passing === 'blue') u = worseUrgency(u, blueUrgency(e.gapS))
+  // A hazard reads 'a 3.2 s' (how far); traffic reads when you meet, or how far while not closing
+  // or while a car passing you is close.
+  const roadGap = passing !== null && showsPassingGap({ passing, gapS: e.gapS, etaS: e.etaS })
+  const eta = hazard === null && finite(e.etaS) && !roadGap ? e.etaS : null
   const value = eta !== null ? etaParts(eta) : gapParts(finite(e.gapS) ? e.gapS : 0)
   const lap = hazard !== null || !e.lapping ? null : group === 'faster' ? 'ahead' : 'behind'
   let css = `tr-row tr-row--${group}`
@@ -280,6 +322,11 @@ export function layoutKey(slots: readonly TrafficSlotView[]): string {
   let key = ''
   for (const s of slots) key += s.kind === 'caption' ? 'c' : 'r'
   return key
+}
+
+/** Whether any line names a class (otherwise the column is dropped: a single-class session). */
+export function hasClasses(slots: readonly TrafficSlotView[]): boolean {
+  return slots.some((s) => s.kind === 'row' && s.cls !== '')
 }
 
 /** Whether any line shows a sector (otherwise the column is dropped). */
