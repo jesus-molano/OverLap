@@ -434,7 +434,6 @@ describe('resetWidgetOptions', () => {
       'traffic',
       'alerts',
       'delta',
-      'conditions',
       'fuel'
     ] as const) {
       const out = resetWidgetOptions(current, id)

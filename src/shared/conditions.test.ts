@@ -1,11 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   CONDITIONS,
+  ConditionsFeed,
   ConditionsProvider,
   TempTrendTracker,
   WIND_CONVENTION,
   WindAverager,
   conditionsEqual,
+  footerConditionsEqual,
   precipitationPct,
   rubberOf,
   stepDeg,
@@ -13,7 +15,6 @@ import {
   windFromRelDeg,
   wrapDeg
 } from './conditions'
-import { SKIP_EMIT } from './providers'
 import { PRACTICE, RACE, makeFrame, makeSession } from './race/testing/raceSim'
 import type { MutableFrame } from './race/testing/raceSim'
 import type { ConditionsData, SessionDetails, SessionMeta, TempTrend } from './types'
@@ -260,16 +261,112 @@ describe('ConditionsProvider', () => {
   })
 })
 
-describe('SKIP_EMIT.conditions', () => {
-  it('re-sends only a changed payload', () => {
-    const skip = SKIP_EMIT.conditions
-    if (!skip) throw new Error('no conditions rule')
+describe('conditionsEqual', () => {
+  it('tells readings apart by every shown field', () => {
     const a = new ConditionsProvider().compute(weatherFrame(), session())
-    expect(skip(a, null)).toBe(false)
-    expect(skip(structuredClone(a), a)).toBe(true)
-    expect(skip({ ...a, windFromDeg: 95 }, a)).toBe(false)
-    expect(skip({ ...a, trackTempTrend: 'up' }, a)).toBe(false)
+    expect(conditionsEqual(structuredClone(a), a)).toBe(true)
+    expect(conditionsEqual({ ...a, windFromDeg: 95 }, a)).toBe(false)
+    expect(conditionsEqual({ ...a, trackTempTrend: 'up' }, a)).toBe(false)
     expect(conditionsEqual(a, { ...a, rubberState: 'carry over' })).toBe(false)
+    expect(conditionsEqual(a, { ...a, declaredWet: true })).toBe(false)
+  })
+
+  it('compares the footers as sent: off (null) only equals off', () => {
+    const a = new ConditionsProvider().compute(weatherFrame(), session())
+    expect(footerConditionsEqual(null, null)).toBe(true)
+    expect(footerConditionsEqual(a, structuredClone(a))).toBe(true)
+    expect(footerConditionsEqual(a, null)).toBe(false)
+    expect(footerConditionsEqual(null, a)).toBe(false)
+    expect(footerConditionsEqual(a, { ...a, airTempC: 25 })).toBe(false)
+  })
+})
+
+describe('ConditionsFeed', () => {
+  it('computes once a second of session time, whoever asks: the same object in between', () => {
+    const feed = new ConditionsFeed()
+    const compute = vi.spyOn(ConditionsProvider.prototype, 'compute')
+    try {
+      const f = weatherFrame()
+      const first = feed.get(f, session())
+      // The relative at 10 Hz and the standings at 4 Hz, for one second: no new computation.
+      for (let k = 1; k < 10; k++) {
+        f.SessionTime[0] = 1000 + k / 10
+        f.AirTemp[0] = 30
+        expect(feed.get(f, session())).toBe(first)
+      }
+      expect(compute).toHaveBeenCalledTimes(1)
+      f.SessionTime[0] = 1000 + CONDITIONS.feedIntervalS
+      const next = feed.get(f, session())
+      expect(compute).toHaveBeenCalledTimes(2)
+      expect(next).not.toBe(first)
+      expect(next.airTempC).toBe(30)
+    } finally {
+      compute.mockRestore()
+    }
+  })
+
+  it('keeps the last object while a new computation reads the same', () => {
+    const feed = new ConditionsFeed()
+    const f = weatherFrame()
+    const first = feed.get(f, session())
+    for (let s = 1; s <= 5; s++) {
+      f.SessionTime[0] = 1000 + s
+      expect(feed.get(f, session())).toBe(first)
+    }
+  })
+
+  it('computes at once when the clock goes back, and on every ask without a clock', () => {
+    const feed = new ConditionsFeed()
+    const compute = vi.spyOn(ConditionsProvider.prototype, 'compute')
+    try {
+      const f = weatherFrame()
+      feed.get(f, session())
+      f.SessionTime[0] = 999.5
+      f.AirTemp[0] = 12
+      expect(feed.get(f, session()).airTempC).toBe(12)
+      expect(compute).toHaveBeenCalledTimes(2)
+      f.SessionTime[0] = Number.NaN
+      feed.get(f, session())
+      feed.get(f, session())
+      expect(compute).toHaveBeenCalledTimes(4)
+    } finally {
+      compute.mockRestore()
+    }
+  })
+
+  it('feeds the trend and the wind mean at 1 Hz however often the tables ask', () => {
+    // 300 s of a slowly warming track asked at 10 Hz reads as the same trend as at 1 Hz.
+    const feed = new ConditionsFeed()
+    const once = new ConditionsProvider()
+    const f = weatherFrame()
+    let fed: ConditionsData | null = null
+    let direct: ConditionsData | null = null
+    const compute = vi.spyOn(ConditionsProvider.prototype, 'compute')
+    try {
+      for (let k = 0; k <= 3000; k++) {
+        f.SessionTime[0] = 1000 + k / 10
+        f.TrackTempCrew[0] = 30 + (0.2 * k) / 600
+        f.WindVel[0] = 4 + (k % 20 === 0 ? 2 : 0)
+        fed = feed.get(f, session())
+        if (k % 10 === 0) direct = once.compute(f, session())
+      }
+      // One computation a second for the feed, as many for the direct provider.
+      expect(compute).toHaveBeenCalledTimes(2 * 301)
+    } finally {
+      compute.mockRestore()
+    }
+    expect(fed?.trackTempTrend).toBe('up')
+    expect(fed).toEqual(direct)
+  })
+
+  it('forgets the readings and their history on reset()', () => {
+    const feed = new ConditionsFeed()
+    const f = weatherFrame()
+    const first = feed.get(f, session())
+    feed.reset()
+    const again = feed.get(f, session())
+    expect(again).not.toBe(first)
+    expect(again).toEqual(first)
   })
 })
 

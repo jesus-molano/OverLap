@@ -155,17 +155,6 @@ export const WIDGET_DEFS = {
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
   },
-  // Weather moves slowly: once a second is plenty. Top left, above the relative.
-  conditions: {
-    id: 'conditions',
-    hz: 1,
-    defaultBounds: { x: 60, y: 90, width: 320, height: 130 },
-    minSize: { width: 180, height: 40 },
-    defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
-    sizeModel: 'auto-height',
-    defaultShowIn: { practice: true, qualify: true, race: true }
-  },
   // Fuel moves a tenth of a litre every few seconds: twice a second is plenty (the laps are
   // measured on every tick anyway). Bottom right, beside the pedals and under the traffic; races
   // only by default, like the battle.

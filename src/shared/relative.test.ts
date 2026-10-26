@@ -141,7 +141,15 @@ const OPTS: RelativeOptions = {
   showStint: true,
   showTyre: true,
   showFlags: true,
-  nameFormat: 'full'
+  nameFormat: 'full',
+  conditionsFooter: false,
+  conditionsTrackTemp: true,
+  conditionsTrend: true,
+  conditionsWet: true,
+  conditionsWind: true,
+  conditionsWindDirection: true,
+  conditionsAirTemp: true,
+  conditionsRubber: true
 }
 
 const ids = (data: RelativeData): number[] => data.rows.map((r) => r.carIdx)

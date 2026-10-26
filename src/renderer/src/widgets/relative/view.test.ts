@@ -53,7 +53,8 @@ function data(ahead: number, behind: number, slots = 3): RelativeData {
     slotsAhead: slots,
     slotsBehind: slots,
     sessionType: 'Race',
-    incidents: null
+    incidents: null,
+    conditions: null
   }
 }
 

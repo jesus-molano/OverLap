@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
-import { OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
+import { CONDITIONS_FOOTER_FIELDS, OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
 import type { OverlaySettings, StandingsColumn } from '@shared/types'
 import { WIDGET_DEFS, WIDGET_IDS } from '@shared/widgets'
 import {
@@ -295,16 +295,21 @@ describe('diffSettings and the widget options', () => {
     ).toBe(false)
   })
 
-  it('no conditions option goes to the telemetry process; its visibility rule does', () => {
-    expect(
-      configChanged((s) => {
-        for (const key of Object.keys(s.conditions) as (keyof typeof s.conditions)[]) {
-          s.conditions[key] = !s.conditions[key]
-        }
-        s.widgets.conditions.scale = 140
-      })
-    ).toBe(false)
-    expect(configChanged((s) => (s.widgets.conditions.showIn.race = false))).toBe(true)
+  it('the conditions footers: their switches go to the telemetry process, their readings not', () => {
+    for (const section of ['relative', 'standings'] as const) {
+      expect(
+        configChanged((s) => {
+          for (const key of CONDITIONS_FOOTER_FIELDS) {
+            if (key !== 'conditionsFooter') s[section][key] = !s[section][key]
+          }
+        }),
+        section
+      ).toBe(false)
+      expect(
+        configChanged((s) => (s[section].conditionsFooter = !s[section].conditionsFooter)),
+        section
+      ).toBe(true)
+    }
   })
 
   it('the fuel lines are drawing only; the average and the margin go to the telemetry process', () => {

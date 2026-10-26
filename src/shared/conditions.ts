@@ -1,19 +1,20 @@
 /**
- * Conditions widget ('Condiciones'): track and air temperature, how the track temperature is
- * moving, the wind against your car, how wet the track is, the rain, the stewards' wet call, the
- * sky and the rubber laid down. iRacing has no forecast, so there is none here. Runs at 1 Hz;
- * readings are quantised to what the widget shows, so SKIP_EMIT drops the ticks where nothing
- * shown changed. The trend's and the wind's history live in one ConditionsProvider per telemetry
- * loop.
+ * Track conditions, the footer line of the relative and the standings: track and air
+ * temperature, how the track temperature is moving, the wind against your car, how wet the
+ * track is, the rain, the stewards' wet call, the sky and the rubber laid down. iRacing has no
+ * forecast, so there is none here. Computed about once a second (ConditionsFeed), whatever the
+ * tables' own rates, and only while one of their footers is on; readings are quantised to what
+ * the footer shows, so an unchanged second keeps the same object. The trend's and the wind's
+ * history live in one ConditionsProvider per telemetry loop.
  *
  * What a live race confirmed (report Q11):
  * - The wind: WindDir is where the wind blows FROM (258° read as W, as iRacing's own panel) and
  *   YawNorth is the car's heading clockwise from north (YawNorth + Yaw = TrackNorthOffset), so
  *   the wind relative to your nose is WindDir - YawNorth (WIND_CONVENTION). The instant wind
- *   changes almost every second while iRacing's panel shows a steady value: this widget shows
+ *   changes almost every second while iRacing's panel shows a steady value: the footer shows
  *   the mean of the last minute (WindAverager).
  * - TrackTempCrew moves in steps of 1 °F, and the first reading of a session can still be the
- *   last session's: the trend waits CONDITIONS.trendSettleS, and the widget shows whole degrees.
+ *   last session's: the trend waits CONDITIONS.trendSettleS, and the footer shows whole degrees.
  * - SessionTrackRubberState 'carry over' is followed back to the last real state (rubberOf).
  *
  * Still unverified: Precipitation's unit is '%', read as 0..1 like every other '%' variable
@@ -48,7 +49,12 @@ export const CONDITIONS = {
    * with the instant WindVel the shown km/h changed in 30 % of the race's seconds, with this
    * mean in 5 %.
    */
-  windMeanS: 60
+  windMeanS: 60,
+  /**
+   * The feed computes at most this often (s of session time): weather moves slowly, and the
+   * trend and the wind mean were tuned on one reading a second (the old widget's 1 Hz).
+   */
+  feedIntervalS: 1
 } as const
 
 /** How WindDir and YawNorth are read (confirmed live: see the top of this file). */
@@ -252,7 +258,10 @@ export function rubberOf(
   return { state: own, carried: false }
 }
 
-/** One per telemetry loop. compute() runs at the widget rate; reset() on a reconnect or a new session. */
+/**
+ * One per telemetry loop (inside its ConditionsFeed). compute() runs at the feed's rate; reset() on
+ * a reconnect or a new session.
+ */
 export class ConditionsProvider {
   private readonly trend = new TempTrendTracker()
   private readonly wind = new WindAverager()
@@ -305,7 +314,7 @@ export class ConditionsProvider {
   }
 }
 
-/** Structural equality of two payloads (for SKIP_EMIT). */
+/** Structural equality of two readings (the feed keeps the last object while they are equal). */
 export function conditionsEqual(a: ConditionsData, b: ConditionsData): boolean {
   return (
     a.visible === b.visible &&
@@ -321,4 +330,50 @@ export function conditionsEqual(a: ConditionsData, b: ConditionsData): boolean {
     a.rubberState === b.rubberState &&
     a.rubberCarried === b.rubberCarried
   )
+}
+
+/** The footers' readings as sent: both null (footer off), or equal. For the tables' SKIP_EMIT. */
+export function footerConditionsEqual(a: ConditionsData | null, b: ConditionsData | null): boolean {
+  return a === b || (a !== null && b !== null && conditionsEqual(a, b))
+}
+
+/** Slack on the feed interval (s). */
+const FEED_EPS_S = 1e-6
+
+/**
+ * The readings both table footers share (the relative's and the standings'): one
+ * ConditionsProvider, computed at most once per CONDITIONS.feedIntervalS of session time by
+ * whichever table asks first (the relative runs at 10 Hz, the standings at 4 Hz); every other ask
+ * gets the same object, so a footer costs a table one comparison per tick. The clock going back
+ * (a new session, a replay) computes at once; so does every ask without a clock (nothing to pace
+ * it by). A computation that reads as the last one keeps the last object. A new session info
+ * (its rubber state) shows on the next computation, within the interval. Asked only while a
+ * footer is on and its table is shown: otherwise nothing is computed, and the trend's history
+ * spans the gap, as it did when a rule hid the old conditions widget.
+ */
+export class ConditionsFeed {
+  private readonly provider = new ConditionsProvider()
+  private last: ConditionsData | null = null
+  /** Session time of the last computation (NaN: none, or no clock then). */
+  private lastT = Number.NaN
+
+  /** A reconnect or a new session: the provider's history and the last readings go. */
+  reset(): void {
+    this.provider.reset()
+    this.last = null
+    this.lastT = Number.NaN
+  }
+
+  get(frame: TelemetryFrame, session: SessionMeta): ConditionsData {
+    const t = finiteOr(frame.SessionTime[0], Number.NaN)
+    const last = this.last
+    // NaN compares false: without a clock (now or at the last computation) it computes. A hair
+    // under the interval counts as due (session times are sums of float ticks).
+    const due = CONDITIONS.feedIntervalS - FEED_EPS_S
+    if (last !== null && t >= this.lastT && t - this.lastT < due) return last
+    const next = this.provider.compute(frame, session)
+    this.lastT = t
+    this.last = last !== null && conditionsEqual(last, next) ? last : next
+    return this.last
+  }
 }

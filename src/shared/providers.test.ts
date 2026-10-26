@@ -3,7 +3,8 @@
  * and the battle widget agree on, what they show around the chequered flag, the traffic and
  * alerts providers on the model's pace and speed, and the delta on its lap profiles.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { ConditionsFeed } from './conditions'
 import { DELTA } from './delta/delta'
 import { createMemoryStore, personalBestKey } from './delta/references'
 import type { PersonalBestStore } from './delta/references'
@@ -17,6 +18,7 @@ import { SessionState } from './telemetry'
 import type {
   AlertsData,
   BattleData,
+  ConditionsData,
   DeltaData,
   DeltaOptions,
   DeltaReference,
@@ -27,6 +29,22 @@ import type {
   TrafficData,
   TrafficEntry
 } from './types'
+
+/** Footer readings of a dry afternoon. */
+const WEATHER: ConditionsData = {
+  visible: true,
+  trackTempC: 31.2,
+  trackTempTrend: null,
+  airTempC: 22,
+  windKmh: 14,
+  windFromDeg: 90,
+  wetness: 1,
+  precipPct: 0,
+  declaredWet: false,
+  skies: 1,
+  rubberState: 'moderate usage',
+  rubberCarried: false
+}
 
 function config(): TelemetryConfig {
   const c = toTelemetryConfig(createDefaultSettings())
@@ -171,7 +189,8 @@ describe('SKIP_EMIT', () => {
       slotsAhead: 3,
       slotsBehind: 3,
       sessionType: 'Race',
-      incidents: { mine: 2, team: null, limit: null }
+      incidents: { mine: 2, team: null, limit: null },
+      conditions: null
     }
     expect(skip(empty, null)).toBe(false)
     expect(skip(structuredClone(empty), empty)).toBe(true)
@@ -180,6 +199,11 @@ describe('SKIP_EMIT', () => {
     expect(skip({ ...empty, sessionType: 'Practice' }, empty)).toBe(false)
     expect(skip({ ...empty, incidents: { mine: 3, team: null, limit: null } }, empty)).toBe(false)
     expect(skip({ ...empty, incidents: null }, empty)).toBe(false)
+    // ...and its conditions footer: turned on, or a reading that moved.
+    const footed: RelativeData = { ...empty, conditions: WEATHER }
+    expect(skip(footed, empty)).toBe(false)
+    expect(skip(structuredClone(footed), footed)).toBe(true)
+    expect(skip({ ...empty, conditions: { ...WEATHER, airTempC: 19 } }, footed)).toBe(false)
     // A live table is always sent.
     expect(skip({ ...empty, playerRow: 0 }, empty)).toBe(false)
   })
@@ -307,6 +331,87 @@ describe('SKIP_EMIT', () => {
     const again = p.run.standings(ctx, null)
     expect(again.header.iRating).not.toBe(first.header.iRating)
     expect(again.header.iRating).toEqual(first.header.iRating)
+  })
+})
+
+describe('the conditions footers of the relative and the standings', () => {
+  function footers(relative: boolean, standingsOn: boolean): TelemetryConfig {
+    const c = config()
+    return {
+      ...c,
+      relative: { ...c.relative, conditionsFooter: relative },
+      standings: { ...c.standings, conditionsFooter: standingsOn }
+    }
+  }
+
+  function weatherSim(): Sim {
+    const sim = new Sim(session3())
+    sim.run(5, 60, racing)
+    const f = sim.frame
+    f.TrackTempCrew[0] = 31.2
+    f.AirTemp[0] = 22
+    f.WindVel[0] = 4
+    f.TrackWetness[0] = 1
+    return sim
+  }
+
+  it('carry the readings with the footer on: by default the standings, not the relative', () => {
+    const p = createProviders()
+    const ctx = ctxOf(weatherSim(), session3(), config())
+    expect(p.run.standings(ctx, null).conditions).toMatchObject({ trackTempC: 31.2 })
+    expect(p.run.relative(ctx, null).conditions).toBeNull()
+  })
+
+  it('share one reading a second: both tables get the same object between computations', () => {
+    const p = createProviders()
+    const sim = weatherSim()
+    const ctx = ctxOf(sim, session3(), footers(true, true))
+    const a = p.run.relative(ctx, null).conditions
+    expect(a).not.toBeNull()
+    expect(p.run.standings(ctx, null).conditions).toBe(a)
+    sim.frame.AirTemp[0] = 25
+    sim.run(0.5, 60, racing)
+    expect(p.run.relative(ctx, null).conditions).toBe(a)
+    sim.run(0.5, 60, racing)
+    const b = p.run.standings(ctx, null).conditions
+    expect(b).not.toBe(a)
+    expect(b?.airTempC).toBe(25)
+    expect(p.run.relative(ctx, null).conditions).toBe(b)
+  })
+
+  it('compute nothing while both footers are off', () => {
+    const get = vi.spyOn(ConditionsFeed.prototype, 'get')
+    try {
+      const p = createProviders()
+      const ctx = ctxOf(weatherSim(), session3(), footers(false, false))
+      expect(p.run.relative(ctx, null).conditions).toBeNull()
+      expect(p.run.standings(ctx, null).conditions).toBeNull()
+      expect(get).not.toHaveBeenCalled()
+    } finally {
+      get.mockRestore()
+    }
+  })
+
+  it('send an unchanged table again when only its footer moved', () => {
+    const skip = SKIP_EMIT.standings
+    if (!skip) throw new Error('no standings rule')
+    const p = createProviders()
+    const sim = weatherSim()
+    const ctx = ctxOf(sim, session3(), config())
+    const a = p.run.standings(ctx, null)
+    expect(skip({ ...a }, a)).toBe(true)
+    expect(skip({ ...a, conditions: { ...WEATHER, airTempC: 30 } }, a)).toBe(false)
+    expect(skip({ ...a, conditions: null }, a)).toBe(false)
+  })
+
+  it('forget the readings on reset()', () => {
+    const p = createProviders()
+    const ctx = ctxOf(weatherSim(), session3(), config())
+    const a = p.run.standings(ctx, null).conditions
+    p.reset()
+    const b = p.run.standings(ctx, null).conditions
+    expect(b).not.toBe(a)
+    expect(b).toEqual(a)
   })
 })
 
