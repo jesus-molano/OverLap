@@ -1,7 +1,7 @@
 /**
- * The mock's track conditions (the conditions widget's variables), a pure function of the time
- * into the session, plus the player's heading by lap position (YawNorth), so the wind turns
- * around the car as it laps.
+ * The mock's track conditions (the variables of the tables' conditions footer), a pure function
+ * of the time into the session, plus the player's heading by lap position (YawNorth), so the wind
+ * turns around the car as it laps.
  *
  * Each session: the track warms for the first ~20 min and then cools (the trend arrow goes up,
  * steady, down), the wind wanders a little around a south-westerly, and a shower comes through

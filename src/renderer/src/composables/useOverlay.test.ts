@@ -25,7 +25,8 @@ const STANDINGS: StandingsData = {
     safetyRating: null,
     incidents: null
   },
-  classes: []
+  classes: [],
+  conditions: null
 }
 
 const BATTLE: BattleData = {

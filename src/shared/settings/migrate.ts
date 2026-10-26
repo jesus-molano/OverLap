@@ -5,8 +5,11 @@
  * column list and the two header toggles. v4 files written before v2.1 (v2.2)
  * only lack the traffic and alerts (delta) widgets and sections, and older v4
  * files the shortcuts or visibility section: no version bump, they get their
- * defaults like any missing section. A file from before the conditions or the
- * fuel widget gets it hidden, in a free spot (`placeNewWidget`).
+ * defaults like any missing section. A file from before the fuel widget gets it
+ * hidden, in a free spot (`placeNewWidget`). The conditions widget became the
+ * footer of the relative and the standings: what a file saved for it
+ * (REMOVED_WIDGETS) is dropped like any unknown key, the rest of the file
+ * untouched, and the footers start with their own defaults.
  */
 import { OPTION_SCHEMA } from '../settingsSchema'
 import type {
@@ -22,12 +25,21 @@ import { isRecord } from './fields'
 
 /**
  * Widgets added after settings files already existed that such a file gets hidden: the user
- * has moved the others, and the newcomer's default place may sit on one of them (the
- * conditions default would cover a standings moved to the top left, report Q5; the fuel default
- * a relative moved to the bottom right). The user turns it on from the tray or the settings, or
- * with its ghost's eye in edit mode.
+ * has moved the others, and the newcomer's default place may sit on one of them (the old
+ * conditions widget's default covered a standings moved to the top left, report Q5; the fuel
+ * default a relative moved to the bottom right). The user turns it on from the tray or the
+ * settings, or with its ghost's eye in edit mode.
  */
-export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['conditions', 'fuel'])
+export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['fuel'])
+
+/**
+ * Widgets that existed and are gone: their `widgets` entry and option section in an old file
+ * are dropped on load (normalizeSettings only reads WIDGET_IDS and OPTION_SECTIONS) and are not
+ * written back. 'conditions' (v2.3) is now the footer of the relative and the standings
+ * (ConditionsFooterOptions), with its own defaults: the old options chose readings for a panel
+ * that no longer exists.
+ */
+export const REMOVED_WIDGETS: readonly string[] = Object.freeze(['conditions'])
 
 /** Where `freeSpot` looks: the default layout's display (1920 x 1080 without the taskbar). */
 export const DEFAULT_AREA: Rect = Object.freeze({ x: 0, y: 0, width: 1920, height: 1040 })

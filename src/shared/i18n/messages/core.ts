@@ -20,7 +20,6 @@ export const coreEs = {
     traffic: 'Tráfico',
     alerts: 'Avisos',
     delta: 'Delta',
-    conditions: 'Condiciones',
     fuel: 'Combustible'
   },
   status: {
@@ -149,7 +148,6 @@ export const coreEn: Dict<typeof coreEs> = {
     traffic: 'Traffic',
     alerts: 'Alerts',
     delta: 'Delta',
-    conditions: 'Conditions',
     fuel: 'Fuel'
   },
   status: {

@@ -2,9 +2,11 @@
  * Sample relative for edit mode: invented drivers around you, with a car lapping you, a lapped
  * car, one in the pits, two classes and every flag badge, so name format, licence style and
  * columns are judged on realistic rows. Tyres are named for your car model (the GT3s) only. As
- * many cars as the options ask for, and your incident count. Pure.
+ * many cars as the options ask for, your incident count and the conditions footer's readings
+ * (drawn only with the footer on). Pure.
  */
 import type { CarPenalty, LapRelation, RelativeData, RelativeRow } from '@shared/types'
+import { PREVIEW_CONDITIONS } from '@renderer/view/conditions'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 
 const GT3 = '#33ceff'
@@ -282,6 +284,7 @@ export function previewRelative(ahead: number, behind: number): RelativeData {
     slotsAhead: ahead,
     slotsBehind: behind,
     sessionType: 'Race',
-    incidents: PREVIEW_INCIDENTS
+    incidents: PREVIEW_INCIDENTS,
+    conditions: PREVIEW_CONDITIONS
   }
 }

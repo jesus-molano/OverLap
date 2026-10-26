@@ -63,7 +63,6 @@ export function createDefaultSettings(): OverlaySettings {
     traffic: defaultOptions('traffic'),
     alerts: defaultOptions('alerts'),
     delta: defaultOptions('delta'),
-    conditions: defaultOptions('conditions'),
     fuel: defaultOptions('fuel'),
     shortcuts: defaultOptions('shortcuts')
   }

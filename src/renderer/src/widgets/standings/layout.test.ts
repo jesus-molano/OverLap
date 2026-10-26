@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FOOTER_EM, FOOTER_RULE_PX } from '@renderer/view/conditions'
 import { BORDER_PX } from './columns'
 import {
   BOTTOM_PAD_EM,
@@ -43,6 +44,22 @@ describe('panelHeightPx', () => {
     expect(panelHeightPx(10, 1, 13)).toBeLessThan(px)
   })
 
+  it('puts the conditions footer, with its rule, in the bottom padding’s place', () => {
+    const px = panelHeightPx(10, 2, 13, true)
+    expect(px).toBeCloseTo(
+      (headEm(2) + 10 + FOOTER_EM) * 13 +
+        BORDER_PX +
+        HEAD_RULE_PX +
+        FOOTER_RULE_PX +
+        LAYOUT_SLACK_PX,
+      9
+    )
+    expect(px - panelHeightPx(10, 2, 13)).toBeCloseTo((FOOTER_EM - BOTTOM_PAD_EM) * 13 + 1, 9)
+    // About one more line of the table (a compact row is 1.5 em).
+    expect(FOOTER_EM).toBeGreaterThan(1.4)
+    expect(FOOTER_EM).toBeLessThan(1.8)
+  })
+
   it('takes no window size: equal inputs, equal heights (no feedback loop possible)', () => {
     expect(panelHeightPx.length).toBe(3)
     expect(panelHeightPx(7.5, 1, 15)).toBe(panelHeightPx(7.5, 1, 15))
@@ -83,6 +100,19 @@ describe('lineBudgetEm', () => {
 
   it('never goes negative', () => {
     expect(lineBudgetEm(10, 13, 2)).toBe(0)
+    expect(lineBudgetEm(30, 13, 2, true)).toBe(0)
+  })
+
+  it('keeps the footer: a window sized with it fits its lines, the footer’s room taken first', () => {
+    for (const body of [0, 3.5, 12.25, 30]) {
+      for (const lines of [1, 2] as const) {
+        const h = Math.ceil(panelHeightPx(body, lines, 13, true))
+        expect(lineBudgetEm(h, 13, lines, true)).toBeGreaterThanOrEqual(body)
+        expect(lineBudgetEm(h, 13, lines, true)).toBeLessThan(body + 0.2)
+        // The same window without the footer has its room for rows.
+        expect(lineBudgetEm(h, 13, lines)).toBeGreaterThan(body + FOOTER_EM - BOTTOM_PAD_EM)
+      }
+    }
   })
 })
 

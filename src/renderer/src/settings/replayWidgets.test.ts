@@ -8,14 +8,10 @@ const en = messagesFor('en')
 
 describe('replay rule wording', () => {
   it('lists the widgets with your car’s data only, joined like each language lists things', () => {
-    expect(liveOnlyWidgets(es, LOCALES.es)).toBe(
-      'Radar, Pedales, Avisos, Delta, Condiciones y Combustible'
-    )
-    expect(liveOnlyWidgets(en, LOCALES.en)).toBe(
-      'Radar, Inputs, Alerts, Delta, Conditions and Fuel'
-    )
+    expect(liveOnlyWidgets(es, LOCALES.es)).toBe('Radar, Pedales, Avisos, Delta y Combustible')
+    expect(liveOnlyWidgets(en, LOCALES.en)).toBe('Radar, Inputs, Alerts, Delta and Fuel')
     expect(es.settings.appearance.screen.replaysHelp(liveOnlyWidgets(es, LOCALES.es))).toBe(
-      'En directo siguen al coche que miras; Radar, Pedales, Avisos, Delta, Condiciones y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
+      'En directo siguen al coche que miras; Radar, Pedales, Avisos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
     )
   })
 
@@ -35,7 +31,7 @@ describe('replay rule wording', () => {
       expect(replayNote(es, 'alerts', replays)).toBe(
         'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche'
       )
-      expect(replayNote(en, 'conditions', replays)).toBe(
+      expect(replayNote(en, 'fuel', replays)).toBe(
         'Only your car’s data: hidden in replays and when you watch another car'
       )
       // The ones with data only from inside the car: out of it too (no session-screen switch).

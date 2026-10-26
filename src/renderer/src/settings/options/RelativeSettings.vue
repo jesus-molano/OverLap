@@ -12,6 +12,7 @@ import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
+import ConditionsFooterSection from './ConditionsFooterSection.vue'
 
 const opts = useOptions('relative')
 const appearance = useAppearance()
@@ -92,4 +93,6 @@ const nameHelp = computed(() =>
       :apply="set('nameFormat')"
     />
   </PageSection>
+
+  <ConditionsFooterSection section="relative" />
 </template>
