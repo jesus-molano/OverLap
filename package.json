@@ -4,6 +4,14 @@
   "description": "OverLap: overlay de sim racing para iRacing (relativo, radar, clasificación, batalla, delta y más)",
   "main": "./out/main/index.js",
   "author": "jessumolano",
+  "homepage": "https://github.com/jesus-molano/OverLap#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesus-molano/OverLap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jesus-molano/OverLap/issues"
+  },
   "scripts": {
     "format": "prettier --write .",
     "icons": "electron scripts/icons.mjs",
