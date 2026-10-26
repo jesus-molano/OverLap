@@ -142,6 +142,9 @@ describe('MockSource sessions', () => {
     expect(await src.connect()).toBe(true)
     expect(src.isConnected()).toBe(true)
     const t0 = src.readFrame().SessionTime[0] ?? 0
+    // The first call returns at once when connecting took longer than a tick (a busy
+    // machine running the whole suite); the next one must wait for its own tick.
+    expect(src.waitForTick(100)).toBe(true)
     const start = performance.now()
     expect(src.waitForTick(100)).toBe(true)
     expect(performance.now() - start).toBeGreaterThanOrEqual(5)
