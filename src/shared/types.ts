@@ -129,6 +129,26 @@ export interface SessionMeta {
   trackConfig: string
   /** WeekendInfo.WeekendOptions incident limits (all null when 'unlimited' or missing). */
   incidentLimits: IncidentLimits
+  /**
+   * Your car's tank and the session's pit limits (fuel/spec.ts). parseSessionMeta always sets
+   * it; a session built by hand (tests) may leave it out, which reads as all unknown.
+   */
+  pitSpec?: PitSpec
+}
+
+/** Your car's tank and the session's pit limits, from the session YAML (fuel/spec.ts). */
+export interface PitSpec {
+  /** DriverCarFuelMaxLtr: the tank in litres; null when unknown. */
+  fuelMaxL: number | null
+  /**
+   * The part of the tank you may fill, 0..1: the smaller of DriverCarMaxFuelPct and your class's
+   * CarClassMaxFuelPct (the BoP cap); null when neither is known.
+   */
+  maxFuelFrac: number | null
+  /** WeekendOptions FastRepairsLimit; null when unlimited or unknown. */
+  fastRepairsLimit: number | null
+  /** Your class's CarClassDryTireSetLimit; null when unlimited (0) or unknown. */
+  tyreSetLimit: number | null
 }
 
 // ---------------------------------------------------------------------------
@@ -576,6 +596,13 @@ export type AlertNotice =
    * most of that time close behind another car, which heats the engine without any damage.
    */
   | { kind: 'engineTrend'; fluid: 'water' | 'oil'; tempC: number; deltaC: number; draft: boolean }
+  /**
+   * Fuel for fewer than FUEL_ALERT.lowLaps laps (to 0.1) and not enough to finish
+   * (notices/fuel.ts).
+   */
+  | { kind: 'fuelLow'; laps: number }
+  /** The pit window closes on this lap: stop at the end of it or run dry (notices/fuel.ts). */
+  | { kind: 'boxThisLap' }
 
 export type NoticeKind = AlertNotice['kind']
 
@@ -673,6 +700,83 @@ export interface ConditionsData {
   rubberState: string
 }
 
+// ---------------------------------------------------------------------------
+// Fuel widget payload (v2.4, 2 Hz)
+// ---------------------------------------------------------------------------
+
+/**
+ * To the end of the session (fuel/strategy.ts). Laps are lap numbers as the widgets write them
+ * ('V12': the twelfth lap); "stopping on lap n" is entering the pits at the end of it.
+ */
+export interface FuelFinish {
+  /** The lap in progress. */
+  lap: number
+  /** Laps still to drive, the lap in progress counted from where you are, to 0.1. */
+  lapsLeft: number
+  /** Litres to take the flag with the margin, to 0.1. */
+  needL: number
+  /** needL - the fuel you have: + short (a stop), - spare, to 0.1. */
+  deficitL: number
+  /** Stops still needed, 0 when the fuel you have reaches the flag. */
+  stops: number
+  /**
+   * Litres to add at the next stop, rounded up to 0.1 (0 without one): what is missing when it
+   * fits in the tank, else the room the tank has at the end of this lap (a full tank).
+   */
+  addL: number
+  /** The next stop fills the tank (it alone cannot cover the rest). */
+  fill: boolean
+  /**
+   * First and last lap you can stop at the end of and still finish with `stops` stops; null
+   * without a stop. `to` is never before the lap in progress.
+   */
+  window: { readonly from: number; readonly to: number } | null
+  /** Litres per lap that would save one stop, to 0.01; null without a stop or out of reach. */
+  saveL: number | null
+}
+
+/** The last tyre reading (iRacing only measures the tread in the pit stall). */
+export interface TyreReading {
+  /** Laps completed when it was taken (the stop's lap, 'V13'). */
+  lap: number
+  /** Tread left per tyre, whole %: front left, front right, rear left, rear right. */
+  wearPct: readonly [number, number, number, number]
+}
+
+export interface FuelData {
+  /** False while the sim sends no fuel level (not in a car): the widget fades out. */
+  visible: boolean
+  /** FuelLevel in litres, to 0.1; null when missing. */
+  fuelL: number | null
+  /** What you may carry (the tank and its BoP cap), litres to 0.1; null when unknown. */
+  tankL: number | null
+  /** Laps the fuel lasts at avgL, to 0.1; null while measuring. */
+  lapsOfFuel: number | null
+  /** Litres per lap over your last FuelOptions.avgLaps clean laps, to 0.01; null while measuring. */
+  avgL: number | null
+  /** Litres of your last lap driven without a refuel, tow or reset (clean or not), to 0.01. */
+  lastL: number | null
+  /** The most of those clean laps, to 0.01. */
+  maxL: number | null
+  /** Clean laps behind avgL (0: measuring). */
+  samples: number
+  /** avgL comes from an earlier session with the same car and track (none of this one's yet). */
+  carried: boolean
+  /** Null when the laps left are unknown (unlimited session) or while measuring. */
+  finish: FuelFinish | null
+  /**
+   * PitSvFuel: litres the pit menu adds (to 0.1) while its fuel box is ticked, 0 when unticked;
+   * null when unknown.
+   */
+  boxL: number | null
+  /** Null until a stop of this session measured the tyres. */
+  tyres: TyreReading | null
+  /** Fast repairs left when the session limits them, else null. */
+  fastRepairs: number | null
+  /** Dry tyre sets left when the session limits them, else null. */
+  tyreSets: number | null
+}
+
 export interface WidgetPayloads {
   relative: RelativeData
   radar: RadarData
@@ -683,6 +787,7 @@ export interface WidgetPayloads {
   alerts: AlertsData
   delta: DeltaData
   conditions: ConditionsData
+  fuel: FuelData
 }
 
 /** Distributive union `{ widget: 'relative', payload: RelativeData } | ...`. */
@@ -967,6 +1072,10 @@ export interface AlertsOptions {
   showEngineWarnings: boolean
   /** Water or oil well above your own average this session. */
   showEngineTrend: boolean
+  /** 'ENTRA ESTA VUELTA': the pit window closes on this lap. */
+  showBoxThisLap: boolean
+  /** 'COMBUSTIBLE · 1.6 V': under two laps of fuel and not enough to finish. */
+  showFuelLow: boolean
   /** Keep an alert shown at least this long (s, 0..10) so a flicker is readable. */
   holdS: number
 }
@@ -1004,6 +1113,35 @@ export interface ConditionsOptions {
   showRubber: boolean
 }
 
+/**
+ * The fuel widget: the fuel left and the laps it lasts are always drawn, every other line is a
+ * toggle. The average and the margin change what is computed (the alerts band uses them too).
+ */
+export interface FuelOptions {
+  /** Header band with the widget's name (and the SIM tag). */
+  showHeader: boolean
+  /** A bar of the fuel against what the tank holds. */
+  showGauge: boolean
+  /** Litres per lap: the average, the last lap and the most. */
+  showPerLap: boolean
+  /** What you need to the flag and what to add at the next stop. */
+  showFinish: boolean
+  /** The pit menu's fuel next to what to add, flagged when it is short. */
+  showBox: boolean
+  /** The pit window ('V24–V28') and the stops left. */
+  showWindow: boolean
+  /** The litres per lap that would save a stop, when within reach. */
+  showSave: boolean
+  /** The tread of the last stop's tyre reading. */
+  showTyres: boolean
+  /** Fast repairs and tyre sets left, when the session limits them. */
+  showLimits: boolean
+  /** Clean laps averaged for the consumption (2..10). */
+  avgLaps: number
+  /** Laps of fuel to keep at the flag (0..3). */
+  marginLaps: number
+}
+
 export interface OverlaySettings {
   /** 4 added appearance and per-widget scale/auto-height/visibility rules; v1..v3 files are migrated. */
   version: 4
@@ -1019,6 +1157,7 @@ export interface OverlaySettings {
   alerts: AlertsOptions
   delta: DeltaOptions
   conditions: ConditionsOptions
+  fuel: FuelOptions
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
   shortcuts: ShortcutSettings
 }
@@ -1057,6 +1196,7 @@ export interface SettingsPatch {
   alerts?: Partial<AlertsOptions>
   delta?: Partial<DeltaOptions>
   conditions?: Partial<ConditionsOptions>
+  fuel?: Partial<FuelOptions>
   /** A combination another action has is refused (the current one is kept). */
   shortcuts?: Partial<ShortcutSettings>
 }
@@ -1083,4 +1223,5 @@ export interface TelemetryConfig {
   alerts: AlertsOptions
   delta: DeltaOptions
   conditions: ConditionsOptions
+  fuel: FuelOptions
 }

@@ -3,6 +3,8 @@ import { BattleProvider, battleEqual } from './battle'
 import { ConditionsProvider, conditionsEqual } from './conditions'
 import { DeltaProvider, deltaEqual } from './delta/delta'
 import type { PersonalBestStore } from './delta/references'
+import { computeFuel, fuelAlertInput, fuelEqual } from './fuel/provider'
+import { FuelTracker } from './fuel/tracker'
 import { incidentCountEqual } from './incidents/count'
 import { computeInputs } from './inputs'
 import type { RaceView } from './race/raceView'
@@ -56,6 +58,8 @@ export function createProviders(): ProviderSet {
   const alerts = new AlertsProvider()
   const delta = new DeltaProvider()
   const conditions = new ConditionsProvider()
+  // Fed on every tick: the fuel widget and the alerts band plan with the same laps.
+  const fuel = new FuelTracker()
   return {
     run: {
       relative: (ctx) => computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race),
@@ -65,12 +69,23 @@ export function createProviders(): ProviderSet {
       inputs: (ctx) => computeInputs(ctx.frame),
       traffic: (ctx, prev) =>
         traffic.compute(ctx.frame, ctx.session, ctx.race, ctx.config.traffic, prev),
-      alerts: (ctx) => alerts.compute(ctx.frame, ctx.session, ctx.race, ctx.config.alerts),
+      alerts: (ctx) =>
+        alerts.compute(
+          ctx.frame,
+          ctx.session,
+          ctx.race,
+          ctx.config.alerts,
+          fuelAlertInput(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel)
+        ),
       delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta),
       // Its options only choose what is drawn: every reading is sent.
-      conditions: (ctx) => conditions.compute(ctx.frame, ctx.session)
+      conditions: (ctx) => conditions.compute(ctx.frame, ctx.session),
+      fuel: (ctx) => computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel)
     },
-    observe: (frame, session, race) => alerts.observe(frame, session, race),
+    observe: (frame, session, race) => {
+      alerts.observe(frame, session, race)
+      fuel.observe(frame, session, race)
+    },
     reset: () => {
       standings.reset()
       battle.reset()
@@ -78,6 +93,7 @@ export function createProviders(): ProviderSet {
       alerts.reset()
       delta.reset()
       conditions.reset()
+      fuel.reset()
     }
   }
 }
@@ -114,5 +130,8 @@ export const SKIP_EMIT: {
   delta: (payload, prev) =>
     prev !== null && ((!payload.visible && !prev.visible) || deltaEqual(payload, prev)),
   // Weather moves slowly: most seconds change nothing shown.
-  conditions: (payload, prev) => prev !== null && conditionsEqual(payload, prev)
+  conditions: (payload, prev) => prev !== null && conditionsEqual(payload, prev),
+  // A tenth of a litre every few seconds: most ticks change nothing shown.
+  fuel: (payload, prev) =>
+    prev !== null && ((!payload.visible && !prev.visible) || fuelEqual(payload, prev))
 }

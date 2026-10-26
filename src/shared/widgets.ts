@@ -146,6 +146,19 @@ export const WIDGET_DEFS = {
     defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true }
+  },
+  // Fuel moves a tenth of a litre every few seconds: twice a second is plenty (the laps are
+  // measured on every tick anyway). Bottom right, beside the pedals and under the traffic; races
+  // only by default, like the battle.
+  fuel: {
+    id: 'fuel',
+    hz: 2,
+    defaultBounds: { x: 1200, y: 820, width: 320, height: 170 },
+    minSize: { width: 180, height: 40 },
+    defaultVisible: true,
+    defaultBackgroundOpacity: 0.8,
+    sizeModel: 'auto-height',
+    defaultShowIn: { practice: false, qualify: false, race: true }
   }
 } as const satisfies Record<string, WidgetDef>
 

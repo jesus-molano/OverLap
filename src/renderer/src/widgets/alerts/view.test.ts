@@ -64,6 +64,8 @@ const EVERY_NOTICE: AlertNotice[] = [
   { kind: 'oilPressure' },
   { kind: 'fuelPressure' },
   { kind: 'tow', seconds: 42 },
+  { kind: 'boxThisLap' },
+  { kind: 'fuelLow', laps: 1.6 },
   { kind: 'water' },
   { kind: 'oilTemp' },
   { kind: 'lapsToGo', laps: 10 },
@@ -215,6 +217,8 @@ describe('notice views', () => {
       'PRESIÓN ACEITE · baja',
       'PRESIÓN GASOLINA · baja',
       `GRÚA${NB}0:42 · a boxes`,
+      'ENTRA ESTA VUELTA · se cierra la ventana',
+      `COMBUSTIBLE${NB}·${NB}1.6${NB}V · para a repostar`,
       'TEMP. AGUA · alta',
       'TEMP. ACEITE · alta',
       `QUEDAN${NB}10${NB}V · para el final`,
@@ -230,6 +234,8 @@ describe('notice views', () => {
       'OIL PRESSURE · low',
       'FUEL PRESSURE · low',
       `TOW${NB}0:42 · to the pits`,
+      'BOX THIS LAP · pit window closes',
+      `FUEL${NB}·${NB}1.6${NB}LAPS · pit to refuel`,
       'WATER TEMP · too hot',
       'OIL TEMP · too hot',
       `10${NB}TO GO · laps left`,
@@ -275,6 +281,8 @@ describe('notice views', () => {
       oilTemp: 'alarm',
       fuelPressure: 'alarm',
       tow: 'warn',
+      boxThisLap: 'alarm',
+      fuelLow: 'warn',
       lapsToGo: 'info',
       engineTrend: 'warn'
     })
@@ -424,11 +432,15 @@ describe('shownNotices', () => {
     expect(off({ showTow: false })).not.toContain('tow')
     expect(off({ showLapsToGo: false })).not.toContain('lapsToGo')
     expect(off({ showEngineTrend: false })).not.toContain('engineTrend')
+    expect(off({ showFuelLow: false })).not.toContain('fuelLow')
+    expect(off({ showBoxThisLap: false })).not.toContain('boxThisLap')
     expect(off({ showEngineWarnings: false })).toEqual([
       'wrongWay',
       'pitEntry',
       'stalled',
       'tow',
+      'boxThisLap',
+      'fuelLow',
       'lapsToGo',
       'engineTrend'
     ])

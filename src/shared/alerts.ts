@@ -1,7 +1,8 @@
 /**
  * Alerts widget: the flags that apply to you, the other alerts (wrong way, engine stalled, the
  * engine warning lights, the pit limiter reminder before the pit entry, tow, laps to go, an
- * engine running hot against your own average), most important first, the pit limiter while
+ * engine running hot against your own average, the stop and the low fuel of the fuel plan in
+ * notices/fuel.ts), most important first, the pit limiter while
  * you are on pit road (on / OFF / over the limit, with it off or on) and your last incident for
  * a few seconds. Runs at 10 Hz; the payload only changes when something shown changes (the speed
  * is 0 off pit road), so SKIP_EMIT drops the rest. The state (when each alert was last seen, the
@@ -14,6 +15,7 @@ import { incidentAlert, incidentAlertEqual } from './incidents/alert'
 import { IncidentTracker } from './incidents/tracker'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { EngineTrend } from './notices/engineTrend'
+import { fuelNotices, type FuelAlertInput } from './notices/fuel'
 import { LAPS_TO_GO, LapsToGo } from './notices/lapsToGo'
 import { PitEntryReminder } from './notices/pitEntry'
 import { WrongWayDetector } from './notices/wrongWay'
@@ -80,7 +82,8 @@ export const FLAG_BITS: Readonly<Record<FlagKind, number>> = {
 
 /**
  * Most important first: the pressures (the engine is about to fail) before the tow and the
- * temperatures (a light that can stay on for laps, and nothing to do about it at once).
+ * temperatures (a light that can stay on for laps, and nothing to do about it at once). The stop
+ * the fuel needs this lap comes right after the tow, the low fuel with the temperatures.
  */
 export const NOTICE_ORDER = [
   'wrongWay',
@@ -89,6 +92,8 @@ export const NOTICE_ORDER = [
   'oilPressure',
   'fuelPressure',
   'tow',
+  'boxThisLap',
+  'fuelLow',
   'water',
   'oilTemp',
   'lapsToGo',
@@ -102,6 +107,7 @@ export type AlertKind = FlagKind | NoticeKind
  * shown, the chips the next. Each list keeps its own order inside it (FLAG_ORDER, NOTICE_ORDER).
  * The temperature lights come after the yellow and the blue flags: they can stay on for laps,
  * and a flag that asks for something now must not shrink to a chip under them all that time.
+ * So does the low fuel; the stop the fuel needs this lap does not wait behind a passing flag.
  */
 export const ALERT_ORDER = [
   'disqualified',
@@ -115,10 +121,12 @@ export const ALERT_ORDER = [
   'oilPressure',
   'fuelPressure',
   'tow',
+  'boxThisLap',
   'yellow',
   'debris',
   'furled',
   'blue',
+  'fuelLow',
   'water',
   'oilTemp',
   'white',
@@ -155,6 +163,8 @@ export const NOTICE_OPTION: Readonly<Record<NoticeKind, AlertToggle>> = {
   oilTemp: 'showEngineWarnings',
   fuelPressure: 'showEngineWarnings',
   tow: 'showTow',
+  boxThisLap: 'showBoxThisLap',
+  fuelLow: 'showFuelLow',
   lapsToGo: 'showLapsToGo',
   engineTrend: 'showEngineTrend'
 }
@@ -304,11 +314,13 @@ export class AlertsProvider {
     this.engineTrend.resume()
   }
 
+  /** `fuel`: the fuel plan (fuel/provider.ts fuelAlertInput), null without one. */
   compute(
     frame: TelemetryFrame,
     session: SessionMeta,
     race: RaceView,
-    opts: AlertsOptions
+    opts: AlertsOptions,
+    fuel: FuelAlertInput | null = null
   ): AlertsData {
     const now = finiteOr(frame.SessionTime[0], Number.NaN)
     // The clock went back (a replay) or the widget was off for a while: nothing held is valid.
@@ -333,7 +345,7 @@ export class AlertsProvider {
           opts.showPitOverspeed
         )
       : null
-    const notices = this.notices(frame, session, race, player, onPitRoad, now, holdS, opts)
+    const notices = this.notices(frame, session, race, player, onPitRoad, now, holdS, opts, fuel)
     const incident = opts.showIncidents ? incidentAlert(this.incidents.latest, now, holdS) : null
 
     return {
@@ -404,9 +416,10 @@ export class AlertsProvider {
     onPitRoad: boolean,
     now: number,
     holdS: number,
-    opts: AlertsOptions
+    opts: AlertsOptions,
+    fuel: FuelAlertInput | null
   ): AlertNotice[] {
-    const raw = this.detect(frame, session, race, player, onPitRoad, now, holdS)
+    const raw = this.detect(frame, session, race, player, onPitRoad, now, holdS, fuel)
     const out: AlertNotice[] = []
     for (const kind of NOTICE_ORDER) {
       if (!opts[NOTICE_OPTION[kind]]) continue
@@ -430,7 +443,8 @@ export class AlertsProvider {
     player: number,
     onPitRoad: boolean,
     now: number,
-    holdS: number
+    holdS: number,
+    fuel: FuelAlertInput | null
   ): Map<NoticeKind, AlertNotice> {
     const on = new Map<NoticeKind, AlertNotice>()
     const add = (n: AlertNotice): void => {
@@ -468,6 +482,7 @@ export class AlertsProvider {
 
     const towS = finiteOr(frame.PlayerCarTowTime[0], 0)
     if (towS > 0) add({ kind: 'tow', seconds: Math.ceil(towS) })
+    for (const n of fuelNotices(fuel, onPitRoad, inCar && towS <= 0)) add(n)
 
     const state = finiteOr(frame.SessionState[0], Number.NaN)
     const left =

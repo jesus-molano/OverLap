@@ -148,6 +148,10 @@ describe('displayOnlyFields', () => {
     ])
     // The conditions provider sends every reading: its options only choose what is drawn.
     expect(displayOnlyFields('conditions')).toEqual(Object.keys(OPTION_SCHEMA.conditions))
+    // The fuel provider sends every line; the average and the margin are what it plans with.
+    expect(displayOnlyFields('fuel')).toEqual(
+      Object.keys(OPTION_SCHEMA.fuel).filter((k) => k !== 'avgLaps' && k !== 'marginLaps')
+    )
   })
 })
 

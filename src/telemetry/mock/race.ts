@@ -29,6 +29,7 @@ import type { MockCast } from './field'
 import { RaceFinish, SESSION_STATE_OF } from './finish'
 import type { MockRacePhase } from './finish'
 import { MockFrameBuffer } from './frameBuffer'
+import { MockFuel, startFuelL } from './fuel'
 import { PlayerInputs } from './inputs'
 import { approach, crossedPct, insertionSort } from './math'
 import {
@@ -150,6 +151,7 @@ export class MockRace {
   private readonly pitStop = new PlayerPitStop()
   private readonly inputs = new PlayerInputs()
   private readonly playerAlerts = new MockPlayerAlerts()
+  private readonly fuel: MockFuel
   private readonly out = new MockFrameBuffer()
 
   constructor(opts: MockRaceOptions = {}) {
@@ -164,6 +166,9 @@ export class MockRace {
     this.player = field.player
     this.cast = field.cast
     this.playerStartDist = field.playerStartDist
+    this.fuel = new MockFuel(
+      startFuelL(this.playerStartDist, this.player.baseLapS, MOCK_TIMELINE.playerPitS)
+    )
     this.battleCars = this.cars.filter((c) => c.role === 'battle')
     this.escortCars = this.cars.filter((c) => c.role === 'escort')
     this.byClass = this.cars.slice()
@@ -231,6 +236,13 @@ export class MockRace {
     }
     this.movePlayer(dtS)
     const player = this.player
+    this.fuel.step(dtS, {
+      fromDist: player.prevDist,
+      toDist: player.dist,
+      caution: this.caution,
+      onPitRoad: this.pitStop.onPitRoad,
+      stallS: this.pitStop.inStall ? this.pitStop.phaseS : -1
+    })
     // Free cars only move off the line of a player that is on track.
     const lineDist = this.pitStop.onPitRoad ? Number.NaN : player.dist
     for (const car of this.cars) {
@@ -678,6 +690,7 @@ export class MockRace {
     v.BrakeABSactive[0] = inp.abs
     this.playerAlerts.apply(v, this.elapsedS, this.playerIdx)
     writeWeather(v, this.elapsedS, this.sessionIndex, frac(player.dist))
+    this.fuel.write(v, this.pitStop.inStall)
   }
 }
 

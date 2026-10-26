@@ -6,8 +6,16 @@ import {
   MOCK_SUBSESSION_ID,
   MOCK_TRACK_LENGTH_M
 } from './constants'
-import { MOCK_CLASSES, MOCK_PACE_CAR_IDX, licColorOf, licLevelOf, licSubLevelOf } from './drivers'
+import {
+  MOCK_CLASSES,
+  MOCK_PACE_CAR_IDX,
+  isRaceDriver,
+  licColorOf,
+  licLevelOf,
+  licSubLevelOf
+} from './drivers'
 import type { MockDriver } from './drivers'
+import { MOCK_FUEL } from './fuel'
 import { MOCK_INCIDENT_LIMITS } from './playerIncidents'
 import type { Rng } from './rng'
 import { MOCK_CORNERS, MOCK_SECTOR_STARTS } from './track'
@@ -32,6 +40,9 @@ export interface MockYamlDriver {
   CarClassRelSpeed: number
   CarClassColor: number
   CarClassEstLapTime: number
+  /** As iRacing writes them: '0.850 %' (a fraction despite the sign), '4 %' (dry sets). */
+  CarClassMaxFuelPct: string
+  CarClassDryTireSetLimit: string
   IRating: number
   LicLevel: number
   LicSubLevel: number
@@ -75,8 +86,10 @@ export interface MockSessionInfo {
     NumCarClasses: number
     /** 1 when drivers share cars. */
     TeamRacing: number
-    /** Only the incident limits (text or number in iRacing's YAML). */
-    WeekendOptions: Record<keyof typeof MOCK_INCIDENT_LIMITS, number | string>
+    /** Only the incident and fast repair limits (text or number in iRacing's YAML). */
+    WeekendOptions: Record<keyof typeof MOCK_INCIDENT_LIMITS, number | string> & {
+      FastRepairsLimit: number | string
+    }
   }
   SessionInfo: {
     Sessions: {
@@ -100,6 +113,10 @@ export interface MockSessionInfo {
     DriverUserID: number
     PaceCarIdx: number
     DriverCarEstLapTime: number
+    /** The player's tank (fuel.ts): litres, the part of it allowed, kg per litre. */
+    DriverCarFuelMaxLtr: number
+    DriverCarMaxFuelPct: number
+    DriverCarFuelKgPerLtr: number
     /** The player's car model's compounds (tyres.ts). */
     DriverTires: MockDriverTire[]
     Drivers: MockYamlDriver[]
@@ -139,7 +156,7 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       Category: 'Road',
       NumCarClasses: 2,
       TeamRacing: 0,
-      WeekendOptions: { ...MOCK_INCIDENT_LIMITS }
+      WeekendOptions: { ...MOCK_INCIDENT_LIMITS, FastRepairsLimit: MOCK_FUEL.fastRepairs }
     },
     SessionInfo: {
       Sessions: [
@@ -162,6 +179,9 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       DriverUserID: me?.userId ?? -1,
       PaceCarIdx: MOCK_PACE_CAR_IDX,
       DriverCarEstLapTime: me ? MOCK_CLASSES[me.classKey].estLapTimeS : 0,
+      DriverCarFuelMaxLtr: MOCK_FUEL.tankL,
+      DriverCarMaxFuelPct: MOCK_FUEL.maxFuelFrac,
+      DriverCarFuelKgPerLtr: MOCK_FUEL.kgPerL,
       DriverTires: mockDriverTires(),
       Drivers: input.roster.map(toYamlDriver)
     }
@@ -233,6 +253,9 @@ function toYamlDriver(d: MockDriver): MockYamlDriver {
     CarClassRelSpeed: cls.relSpeed,
     CarClassColor: cls.color,
     CarClassEstLapTime: cls.estLapTimeS,
+    // The GT3s carry 85 % of their tank (a BoP cap); race cars get the session's dry sets.
+    CarClassMaxFuelPct: d.classKey === 'GT3' ? `${MOCK_FUEL.maxFuelFrac.toFixed(3)} %` : '1.000 %',
+    CarClassDryTireSetLimit: isRaceDriver(d) ? `${MOCK_FUEL.tyreSets} %` : '0 %',
     IRating: d.iRating,
     LicLevel: licLevelOf(d.licString),
     LicSubLevel: licSubLevelOf(d.licString),

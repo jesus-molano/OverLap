@@ -3,6 +3,7 @@
  * Per-tick facts derived from it (player, session type) live in sessionInfo.ts.
  */
 import { classColorToCss, licenseColor } from './colors'
+import { NO_PIT_SPEC, parsePitSpec } from './fuel/spec'
 import { NO_INCIDENT_LIMITS, parseIncidentLimits } from './incidents/limits'
 import { finiteOr } from './num'
 import { MAX_CARS } from './telemetry'
@@ -31,7 +32,8 @@ export const EMPTY_SESSION: SessionMeta = Object.freeze({
   pitSpeedLimitKmh: null,
   trackId: 0,
   trackConfig: '',
-  incidentLimits: NO_INCIDENT_LIMITS
+  incidentLimits: NO_INCIDENT_LIMITS,
+  pitSpec: NO_PIT_SPEC
 })
 
 /** Sector starts closer than this (lap fraction, ~7 mm on a 7 km track) are the same line. */
@@ -299,6 +301,7 @@ export function parseSessionMeta(raw: unknown): SessionMeta {
     trackId: nonNegIntOr0(weekend?.TrackID),
     // A track without layouts writes `TrackConfigName:` (null): ''.
     trackConfig: text(weekend?.TrackConfigName).trim(),
-    incidentLimits: parseIncidentLimits(weekend?.WeekendOptions)
+    incidentLimits: parseIncidentLimits(weekend?.WeekendOptions),
+    pitSpec: parsePitSpec(driverInfo, weekend?.WeekendOptions)
   }
 }
