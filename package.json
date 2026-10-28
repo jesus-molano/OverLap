@@ -25,6 +25,7 @@
   "dependencies": {
     "@irsdk-node/native": "^5.4.0",
     "@irsdk-node/types": "^4.0.5",
+    "country-flag-icons": "1.6.20",
     "irsdk-node": "^4.4.0",
     "js-yaml": "^4.3.2",
     "koffi": "^3.3.3"
