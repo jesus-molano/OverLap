@@ -9,7 +9,7 @@ import { useOptions } from '../../composables/useWidgetSettings'
 import { inherit } from '../../view/appearance'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
+import { densityChoicesInherit, nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
@@ -46,6 +46,7 @@ const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(()
     stint: { label: base.stint.label, hint: r.stintHelp }
   }
 })
+const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
 const brandChoices = computed(() =>
   choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
 )
@@ -81,6 +82,12 @@ const brandChoices = computed(() =>
       :current="opts.nameFormat"
       :options="nameChoices"
       :apply="set('nameFormat')"
+    />
+    <ChoiceControl
+      :label="t.settings.common.density"
+      :current="opts.density"
+      :options="densityChoices"
+      :apply="set('density')"
     />
   </PageSection>
 

@@ -12,6 +12,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **«Clasificación» pasa a llamarse «Posiciones»** en español (barra lateral, bandeja, título del
   widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En
   inglés sigue siendo «Standings». Los ajustes guardados no cambian.
+- **Relativo sigue la densidad**, como ya decía Apariencia, y tiene en su página el mismo selector
+  «Global / Cómoda / Compacta» que Posiciones. «Cómoda» (la de siempre) lo dibuja igual que antes;
+  «Compacta» junta las filas y agranda el texto en la misma ventana.
 
 ### Corregido
 

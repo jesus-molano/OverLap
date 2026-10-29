@@ -1361,6 +1361,11 @@ export interface RelativeOptions {
   showFlags: boolean
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
+  /**
+   * Row height for the text ('inherit', default, = appearance.density). The relative fits its
+   * rows to its window: 'compact' gives the text more of each row (RELATIVE_ROW_EM).
+   */
+  density: 'inherit' | 'comfortable' | 'compact'
 }
 
 export interface RadarOptions {

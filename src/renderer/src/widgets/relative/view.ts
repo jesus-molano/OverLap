@@ -18,6 +18,7 @@ import type {
   RelativeData,
   RelativeRow
 } from '@shared/types'
+import type { Density } from '@renderer/view/appearance'
 import { stintCell, tyreCell } from '@renderer/view/carExtras'
 import { relativeHead, type ColumnHead } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
@@ -238,6 +239,20 @@ export function relativeHeads(
 export const HEADS_EM = 1.1
 /** Slack kept under the rows whatever the bars (today's header was 1.6em of line + this). */
 export const CHROME_BASE_EM = 0.2
+
+/**
+ * A row's height in em of the row font, per density: 'comfortable' is the relative as it always
+ * was (the text half a row high); 'compact' the same 1.2 step the standings take (DENSITY_EM).
+ */
+export const RELATIVE_ROW_EM = {
+  comfortable: 2,
+  compact: 1.65
+} as const satisfies Record<Density, number>
+
+/** The row height (em) for `density`, the comfortable one for anything else. */
+export function relativeRowEm(density: unknown): number {
+  return density === 'compact' ? RELATIVE_ROW_EM.compact : RELATIVE_ROW_EM.comfortable
+}
 
 /** The panel's lines besides the rows: what the font fit divides the height by, with the rows. */
 export interface ChromeParts {

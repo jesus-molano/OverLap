@@ -429,6 +429,14 @@ export const OPTION_SCHEMA = {
       values: NAME_FORMATS_INHERIT,
       default: 'inherit',
       displayOnly: true
+    },
+    // 'inherit': the global density, which drew the relative as it always was while it was the
+    // default ('comfortable'); 'compact' tightens the rows around a bigger text.
+    density: {
+      kind: 'enum',
+      values: ['inherit', 'comfortable', 'compact'],
+      default: 'inherit',
+      displayOnly: true
     }
   },
   radar: {
