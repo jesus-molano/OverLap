@@ -21,7 +21,7 @@
  *     https://commons.wikimedia.org/wiki/File:Audi-Logo_2016.svg
  *   bmw:
  *     https://worldvectorlogo.com/logo/bmw-2
- *   buick (tri-shield roundel, square and wordmark left out):
+ *   buick (tri-shield roundel, square and wordmark left out; shields red, white and blue as on the cars):
  *     https://worldvectorlogo.com/logo/buick
  *   cadillac (crest, wreath and script left out):
  *     https://worldvectorlogo.com/logo/cadillac-1
@@ -69,7 +69,7 @@
  *     https://commons.wikimedia.org/wiki/File:Ruf_Automobile_logo.svg
  *   skip-barber (badge):
  *     https://commons.wikimedia.org/wiki/File:Skip_Barber_Racing_School_logo.svg
- *   subaru (oval, square backing left out):
+ *   subaru (oval, square backing left out; stars white and rim silver as on the cars):
  *     https://commons.wikimedia.org/wiki/File:Subaru_Logo_alt.svg
  *   tatuus (emblem, wordmark left out):
  *     https://www.tatuus.it/tatuus-logo-korus-group.svg
@@ -199,9 +199,19 @@ export const COLOR_LOGOS: Readonly<Partial<Record<KnownBrandId, ColorLogo>>> = {
         d: 'M27.8 10.5v3h-8.9v3.1h-9v11.2c0 5.6 2.4 8.7 5.3 13.5 2.3-3.7 4.2-6.4 5-10 .9 2.3 2.3 4.4 3.9 7 2.3-3.7 4.2-6.4 5-10.1 .9 2.3 2.3 4.4 3.9 7 3-4.8 5.3-7.9 5.3-13.5v-11.2h-10.5z'
       },
       {
+        fill: '#c8102e',
+        evenOdd: true,
+        d: 'M18.9 28.5c0 3.2-1.9 6.9-3.7 9.8-1.8-2.9-3.6-6.6-3.6-9.8v-10.3h7.3v10.3z'
+      },
+      {
         fill: '#ffffff',
         evenOdd: true,
-        d: 'M18.9 28.5c0 3.2-1.9 6.9-3.7 9.8-1.8-2.9-3.6-6.6-3.6-9.8v-10.3h7.3v10.3zm8.9-3c0 3.1-1.9 6.9-3.7 9.7-1.8-2.8-3.6-6.6-3.6-9.7v-10.3h7.3v10.3zm8.9-3.1c0 3.2-1.8 6.9-3.7 9.8-1.8-2.9-3.6-6.6-3.6-9.8v-10.3h7.3v10.3z'
+        d: 'M27.8 25.5c0 3.1-1.9 6.9-3.7 9.7-1.8-2.8-3.6-6.6-3.6-9.7v-10.3h7.3v10.3z'
+      },
+      {
+        fill: '#2a5fc1',
+        evenOdd: true,
+        d: 'M36.7 22.4c0 3.2-1.8 6.9-3.7 9.8-1.8-2.9-3.6-6.6-3.6-9.8v-10.3h7.3v10.3z'
       },
       {
         fill: '#000000',
@@ -969,33 +979,33 @@ export const COLOR_LOGOS: Readonly<Partial<Record<KnownBrandId, ColorLogo>>> = {
   subaru: {
     viewBox: '0 0 48 28.3',
     layers: [
-      { fill: '#0c2577', d: 'M.4 14.1a23.6 13.7 0 1 0 47.2 0a23.6 13.7 0 1 0-47.2 0z' },
+      { fill: '#1a4b9b', d: 'M.4 14.1a23.6 13.7 0 1 0 47.2 0a23.6 13.7 0 1 0-47.2 0z' },
       {
-        fill: '#ffe812',
+        fill: '#c4c8ce',
         d: 'M0 14.1c0 7.9 10.7 14.2 24 14.2 13.3 0 24-6.3 24-14.2 0-7.8-10.7-14.1-24-14.1-13.3 0-24 6.3-24 14.1z'
       },
       {
-        fill: '#0c2577',
+        fill: '#1a4b9b',
         d: 'M1.3 14.1c0 7.2 10.2 12.9 22.7 12.9 12.5 0 22.7-5.7 22.7-12.9 0-7.1-10.2-12.8-22.7-12.8-12.5 0-22.7 5.7-22.7 12.8z'
       },
       {
-        fill: '#ffe812',
+        fill: '#ffffff',
         d: 'M7.6 10.3l-4.6.6-.1.2 .1.1 9.2 1.3c.5 0 .9.4 1.1.9l1.6 5.5 .2.1 .2-.1 1.6-5.5c.1-.5.6-.9 1-.9l9.3-1.3 .1-.1-.1-.2-9.3-1.2c-.4-.1-.9-.5-1-.9l-1.7-5.6-.1-.1c-.1 0-.2 0-.2.1l-1.7 5.6c-.1.4-.5.8-1 .9l-4.6.6z'
       },
       {
-        fill: '#ffe812',
+        fill: '#ffffff',
         d: 'M16.8 22.5l2.1.4c.2 0 .5.3.5.5l.7 2.5 .1 0 .1-.1 .6-2.4c.1-.2.3-.5.6-.5l4.1-.7 0-.1 0-.1-4.1-.6c-.3-.1-.5-.3-.6-.6l-.6-2.4-.1-.1-.1.1-.7 2.4c0 .3-.3.5-.5.6l-4.1.6-.1.1 .1.1 2 .3zm12.2-1.7l-2.2.3-.1.1 .1.1 4.3.7c.3.1.5.3.6.6l.7 2.5c0 .1.1.1.2.1l.1-.1 .7-2.5c0-.3.3-.5.5-.6l4.4-.7 .1-.1-.1-.1-4.4-.7c-.2-.1-.5-.3-.5-.6l-.7-2.5-.1-.1-.2.1-.7 2.5c-.1.3-.3.5-.6.6l-2.1.4z'
       },
       {
-        fill: '#ffe812',
+        fill: '#ffffff',
         d: 'M31.8 16.2l2-.3 .1-.1-.1-.1-4-.7c-.3-.1-.5-.3-.6-.5l-.6-2.4c0-.1-.1-.1-.2-.1l-.1.1-.6 2.4c-.1.2-.3.4-.6.5l-4 .7-.1.1 .1.1 4 .6c.3.1.5.3.6.6l.6 2.4 .1.1c.1 0 .2 0 .2-.1l.6-2.4c.1-.3.3-.5.6-.6l2-.3z'
       },
       {
-        fill: '#ffe812',
+        fill: '#ffffff',
         d: 'M33.3 7.9l-2 .4-.1 0 .1.1 4 .7c.3.1.6.3.6.6l.7 2.4 .1.1 .1-.1 .6-2.4c.1-.3.3-.5.6-.6l4.1-.7 0-.1-4.1-.7c-.3-.1-.5-.3-.6-.6l-.6-2.4-.1-.1-.1.1-.7 2.4c0 .3-.3.5-.6.6l-2 .3z'
       },
       {
-        fill: '#ffe812',
+        fill: '#ffffff',
         d: 'M37.2 15.3l-2 .4-.1.1 .1.1 4 .6c.3.1.5.3.6.6l.6 2.4 .1.1c.1 0 .2 0 .2-.1l.6-2.4c.1-.3.4-.5.6-.6l4-.6 .1-.1-.1-.1-4-.7c-.2-.1-.5-.3-.6-.5l-.6-2.4c0-.1-.1-.1-.2-.1l-.1.1-.6 2.4c-.1.2-.3.4-.6.5l-2 .3z'
       }
     ]
