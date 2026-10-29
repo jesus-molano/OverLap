@@ -6,7 +6,7 @@ import { ACCENT_PRESETS, OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema
 import type { ShowWhen } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
-import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
+import { useOptions } from '../../composables/useWidgetSettings'
 import BrandMark from '../../ui/BrandMark.vue'
 import LicenseChip from '../../ui/LicenseChip.vue'
 import NumberBadge from '../../ui/NumberBadge.vue'
@@ -17,18 +17,13 @@ import { densityChoices, nameExample, nameFormatChoices } from '../controls/choi
 import ColorControl from '../controls/ColorControl.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter, resetAppearance, widgetSetter } from '../editor'
+import { optionSetter, resetAppearance } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { fontScaleHelp as fontScaleHelpText } from '../appearanceHelp'
-import {
-  outOfCarHidesSessionScreen,
-  replaysHelp as replaysHelpText,
-  sessionScreenRuleOn,
-  sessionScreenWidgets
-} from '../replayWidgets'
+import { outOfCarHidesSessionScreen, replaysHelp as replaysHelpText } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { dayUnreadable } from '../opacityNote'
@@ -47,9 +42,6 @@ const locale = useLocale()
 const titleId = useId()
 const set = optionSetter('appearance')
 const setVisibility = optionSetter('visibility')
-/** The standings' own session-screen exception (also in their Ventana section). */
-const standings = useWidgetSettings('standings')
-const setKeepStandings = widgetSetter('standings')('showOnSessionScreen')
 
 const A = OPTION_SCHEMA.appearance
 /** Slider readout in the current language; a new function only when the language changes. */
@@ -94,23 +86,12 @@ const showWhenChoices = computed<ChoiceOption<ShowWhen>[]>(() =>
 const showWhenHelp = computed(
   () => t.value.settings.appearance.screen.showWhenHelp[visibility.value.showWhen]
 )
-/** Off when nothing hides on the session screen: then the standings show there anyway. */
-const keepStandingsRule = computed(() => sessionScreenRuleOn(visibility.value))
-const keepStandingsHelp = computed(() => {
-  const s = t.value.settings.appearance.screen
-  if (!keepStandingsRule.value) return s.keepStandingsOff
-  return s.keepStandingsHelp(sessionScreenWidgets(t.value, locale.value))
-})
 /**
  * Hiding on the session screen changes nothing while out of the car hides it already (the
- * overlay only for the car, replays hidden): shown on and greyed, saying so.
+ * overlay only for the car, replays hidden): then it is not offered. Each widget's own
+ * "Mostrar en la pantalla de sesión" is on its page.
  */
-const sessionScreenHidden = computed(() => outOfCarHidesSessionScreen(visibility.value))
-const sessionScreenHelp = computed(() => {
-  const s = t.value.settings.appearance.screen
-  if (!sessionScreenHidden.value) return s.sessionScreenHelp
-  return s.sessionScreenAlready(t.value.core.showWhen[visibility.value.showWhen])
-})
+const sessionScreenOffered = computed(() => !outOfCarHidesSessionScreen(visibility.value))
 const replayChoices = computed(() =>
   choiceOptions(
     OPTION_SCHEMA.visibility.replays.values,
@@ -304,23 +285,14 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :options="replayChoices"
           :apply="setVisibility('replays')"
         />
-        <!-- The session screen: whether it hides (after the two rules that decide it), then the
-           standings' exception. -->
+        <!-- The session screen, after the two rules that decide whether it hides already. -->
         <ToggleControl
+          v-if="sessionScreenOffered"
           kind="switch"
           :label="t.settings.appearance.screen.sessionScreen"
-          :help="sessionScreenHelp"
-          :current="visibility.hideOnSessionScreen || sessionScreenHidden"
-          :disabled="sessionScreenHidden"
+          :help="t.settings.appearance.screen.sessionScreenHelp"
+          :current="visibility.hideOnSessionScreen"
           :apply="setVisibility('hideOnSessionScreen')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.screen.keepStandings"
-          :help="keepStandingsHelp"
-          :current="standings.showOnSessionScreen || !keepStandingsRule"
-          :disabled="!keepStandingsRule"
-          :apply="setKeepStandings"
         />
         <ToggleControl
           kind="switch"

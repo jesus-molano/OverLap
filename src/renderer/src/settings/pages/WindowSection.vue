@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { WIDGET_SCALE_MAX, WIDGET_SCALE_MIN, WIDGET_SCALE_STEP } from '@shared/settings'
 import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
-import { WIDGET_DEFS, canShowOnSessionScreen, type WidgetId } from '@shared/widgets'
+import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import { useAppearance } from '../../composables/useAppearance'
@@ -20,7 +20,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
-import { replayNote, sessionScreenRuleOn } from '../replayWidgets'
+import { replayNote, sessionScreenSwitch } from '../replayWidgets'
 import { dayUnreadable } from '../opacityNote'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
@@ -91,13 +91,13 @@ const showInHelp = computed(() => {
   if (nowhere.value) return w.showInNowhere
   return visibility.value.showWhen === 'race' ? w.showInRaceOnly : w.showInHelp
 })
-/** The session-screen exception only means something while a global rule hides there. */
-const sessionScreenRule = computed(() => sessionScreenRuleOn(visibility.value))
 /**
- * Nothing to show on the session screen (out of the car, or with the replay system on): no
- * session-screen switch (its replay note says so).
+ * The same switch on every page. Nothing to show on the session screen (out of the car, or with
+ * the replay system on): off and disabled, saying why; nothing hides there: on and disabled.
  */
-const sessionScreenSwitch = computed(() => canShowOnSessionScreen(props.widgetId))
+const sessionScreen = computed(() =>
+  sessionScreenSwitch(t.value, props.widgetId, visibility.value, prefs.value.showOnSessionScreen)
+)
 
 const HEIGHT_VALUES: readonly BoolChoice[] = ['on', 'off']
 const heightChoices = computed(() =>
@@ -180,14 +180,11 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :apply="set('hideInPits')"
     />
     <ToggleControl
-      v-if="sessionScreenSwitch"
       kind="switch"
       :label="t.settings.window.sessionScreen"
-      :help="
-        sessionScreenRule ? t.settings.window.sessionScreenHelp : t.settings.window.sessionScreenOff
-      "
-      :current="prefs.showOnSessionScreen || !sessionScreenRule"
-      :disabled="!sessionScreenRule"
+      :help="sessionScreen.help"
+      :current="sessionScreen.on"
+      :disabled="sessionScreen.disabled"
       :apply="set('showOnSessionScreen')"
     />
     <p class="st-row st-help replay-note">{{ replay }}</p>

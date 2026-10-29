@@ -27,15 +27,6 @@ export function liveOnlyWidgets(m: Messages, locale: string): string {
 }
 
 /**
- * 'Relativo, Batalla, Tráfico y Avisos': the widgets besides the standings that have a
- * session-screen exception of their own (canShowOnSessionScreen), in their Ventana section.
- */
-export function sessionScreenWidgets(m: Messages, locale: string): string {
-  const ids = WIDGET_IDS.filter((id) => id !== 'standings' && canShowOnSessionScreen(id))
-  return widgetList(m, locale, ids)
-}
-
-/**
  * The help line of Apariencia > Visibilidad > En repeticiones, for the current choices: with
  * replays hidden and the overlay only in the car, watching from out of it hides them too; with
  * the overlay always on, the live point stays live.
@@ -86,4 +77,31 @@ export function sessionScreenRuleOn(
   v: Pick<VisibilityOptions, 'hideOnSessionScreen' | 'replays' | 'showWhen'>
 ): boolean {
   return v.hideOnSessionScreen || outOfCarHidesSessionScreen(v)
+}
+
+/** The "Mostrar en la pantalla de sesión" switch of a widget page: what it shows. */
+export interface SessionScreenSwitch {
+  readonly help: string
+  readonly on: boolean
+  readonly disabled: boolean
+}
+
+/**
+ * The same switch on every widget page (R17). A widget with nothing to show there (out of the
+ * car, or with the replay system on) has it off and disabled, saying why; with nothing hiding on
+ * the session screen it is on and disabled; otherwise it is the widget's own exception.
+ */
+export function sessionScreenSwitch(
+  m: Messages,
+  id: WidgetId,
+  v: Pick<VisibilityOptions, 'hideOnSessionScreen' | 'replays' | 'showWhen'>,
+  own: boolean
+): SessionScreenSwitch {
+  const w = m.settings.window
+  if (!canShowOnSessionScreen(id)) {
+    const help = inCarOnly(id) ? w.sessionScreenNoData : w.sessionScreenNoReplay
+    return { help, on: false, disabled: true }
+  }
+  if (!sessionScreenRuleOn(v)) return { help: w.sessionScreenOff, on: true, disabled: true }
+  return { help: w.sessionScreenHelp, on: own, disabled: false }
 }
