@@ -79,6 +79,12 @@ export const coreEs = {
     rangeMeters: (m: number) => `${m} m`,
     /** The submenu with the showWhen choices. */
     showWhen: 'Mostrar el overlay',
+    /** The submenu with the saved layouts (the one in use checked). */
+    layouts: 'Disposición',
+    /** Its last item: the settings window's layouts page. */
+    manageLayouts: 'Gestionar disposiciones…',
+    /** A layout linked to the car you are in (automatic mode): 'Mazda · coche actual'. */
+    layoutForCar: (name: string) => `${name} · coche actual`,
     editMode: 'Modo edición',
     hideOverlay: 'Ocultar overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
@@ -93,6 +99,11 @@ export const coreEs = {
      * coche').
      */
     tooltipAutoHidden: (status: string, hiddenNote: string) => `OverLap · ${hiddenNote} · ${status}`
+  },
+  /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
+  layoutFiles: {
+    filter: 'Disposición de OverLap',
+    importedName: 'Importada'
   },
   windowTitles: {
     /** The settings window's title bar. */
@@ -214,6 +225,9 @@ export const coreEn: Dict<typeof coreEs> = {
     radarRange: 'Radar range',
     rangeMeters: (m) => `${m} m`,
     showWhen: 'Show the overlay',
+    layouts: 'Layout',
+    manageLayouts: 'Manage layouts…',
+    layoutForCar: (name) => `${name} · current car`,
     editMode: 'Edit mode',
     hideOverlay: 'Hide overlay',
     openSettingsFolder: 'Open settings folder',
@@ -222,6 +236,10 @@ export const coreEn: Dict<typeof coreEs> = {
     tooltip: (status) => `OverLap · ${status}`,
     tooltipHidden: (status) => `OverLap · Overlay hidden · ${status}`,
     tooltipAutoHidden: (status, hiddenNote) => `OverLap · ${hiddenNote} · ${status}`
+  },
+  layoutFiles: {
+    filter: 'OverLap layout',
+    importedName: 'Imported'
   },
   windowTitles: {
     settings: 'OverLap — Settings',

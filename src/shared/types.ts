@@ -1569,6 +1569,52 @@ export interface SettingsWindowOptions {
   stageScene: 'dark' | 'light'
 }
 
+/** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */
+export interface LayoutOptions {
+  /**
+   * Getting in a car model linked to a layout applies that layout (a car without a link keeps
+   * the last one used). Off: only the tray, the shortcut and the settings window switch.
+   */
+  autoSwitch: boolean
+}
+
+/** What a saved layout keeps of one widget: where it is, its size and scale, shown and locked. */
+export type LayoutWidget = Pick<WidgetSettings, 'bounds' | 'scale' | 'visible' | 'locked'>
+
+/** A named layout ('Principal', 'Mazda MX-5'): every widget's LayoutWidget. */
+export interface SavedLayout {
+  /** Stable id ('layout-1'), never shown. */
+  id: string
+  name: string
+  widgets: Record<WidgetId, LayoutWidget>
+}
+
+/** A car model as the session names it (DriverInfo CarID and CarScreenName). */
+export interface CarRef {
+  carId: number
+  carName: string
+}
+
+/** Getting in `carId` applies `layoutId` (LayoutOptions.autoSwitch). */
+export interface CarLayoutLink extends CarRef {
+  layoutId: string
+}
+
+/**
+ * The saved layouts (src/shared/layouts.ts). The active one always equals the widgets' own
+ * bounds, scale, visibility and lock (normalisation copies them in), so moving a widget changes
+ * the layout in use; applying another copies its fields into the widgets.
+ */
+export interface LayoutLibrary {
+  activeId: string
+  /** In the user's order (the tray's, the 'next layout' shortcut's). */
+  list: SavedLayout[]
+  /** One per car model at most. */
+  links: CarLayoutLink[]
+  /** The car models you got in lately, the latest first (to link one you are not in now). */
+  seenCars: CarRef[]
+}
+
 export interface OverlaySettings {
   /**
    * 5 (v2.6) made the licence 'outline' and the pedals auto height (older files are migrated
@@ -1592,6 +1638,9 @@ export interface OverlaySettings {
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
   shortcuts: ShortcutSettings
   settingsWindow: SettingsWindowOptions
+  layouts: LayoutOptions
+  /** Not an option section: changed by the settings window's layout commands only. */
+  savedLayouts: LayoutLibrary
 }
 
 /**
@@ -1633,6 +1682,7 @@ export interface SettingsPatch {
   /** A combination another action has is refused (the current one is kept). */
   shortcuts?: Partial<ShortcutSettings>
   settingsWindow?: Partial<SettingsWindowOptions>
+  layouts?: Partial<LayoutOptions>
 }
 
 /** What main tells the telemetry process. */

@@ -139,6 +139,37 @@ describe('isSettingsCommand', () => {
       expect(isSettingsCommand(raw)).toBe(false)
     }
   })
+
+  it('validates the layout commands', () => {
+    const car = { carId: 67, carName: 'Mazda' }
+    for (const raw of [
+      { type: 'layout-save', name: 'Mazda' },
+      { type: 'layout-apply', id: 'layout-2' },
+      { type: 'layout-duplicate', id: 'layout-2', name: 'Copia' },
+      { type: 'layout-rename', id: 'layout-2', name: '' },
+      { type: 'layout-delete', id: 'layout-2' },
+      { type: 'layout-move', id: 'layout-2', step: -1 },
+      { type: 'layout-export', id: 'layout-2' },
+      { type: 'layout-import' },
+      { type: 'layout-link-car', car, layoutId: 'layout-2' },
+      { type: 'layout-link-car', car, layoutId: null }
+    ]) {
+      expect(isSettingsCommand(raw), raw.type).toBe(true)
+    }
+    for (const raw of [
+      { type: 'layout-save' },
+      { type: 'layout-save', name: 'x'.repeat(1001) },
+      { type: 'layout-apply', id: '../x' },
+      { type: 'layout-apply', id: 7 },
+      { type: 'layout-duplicate', id: 'layout-2' },
+      { type: 'layout-move', id: 'layout-2', step: 2 },
+      { type: 'layout-link-car', car: { carId: 0 }, layoutId: null },
+      { type: 'layout-link-car', car, layoutId: 'bad id' },
+      { type: 'layout-link-car', car }
+    ]) {
+      expect(isSettingsCommand(raw), JSON.stringify(raw)).toBe(false)
+    }
+  })
 })
 
 describe('diffSettings', () => {

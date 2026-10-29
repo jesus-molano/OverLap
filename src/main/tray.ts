@@ -14,6 +14,7 @@ import {
   widgetTitle,
   type Language
 } from '@shared/i18n'
+import { linkedLayoutId } from '@shared/layouts'
 import { RADAR_RANGE_PRESETS_M } from '@shared/settings'
 import { SHOW_WHEN } from '@shared/settingsSchema'
 import type { HiddenReason, OverlaySettings, OverlayStatus, ShowWhen } from '@shared/types'
@@ -51,10 +52,14 @@ export interface TrayState {
   overlayHidden: boolean
   /** Why each widget a visibility rule hides right now is hidden (null: no known reason). */
   autoHidden: Partial<Record<WidgetId, HiddenReason | null>>
+  /** The car model you are in now (null: none), to mark the layout linked to it. */
+  carId?: number | null
 }
 
 export interface TrayActions {
   openSettings(): void
+  /** Makes a saved layout the one in use (settings.savedLayouts). */
+  applyLayout(id: string): void
   setWidgetVisible(id: WidgetId, visible: boolean): void
   setRadarRange(rangeM: number): void
   /** When the overlay is shown (settings.visibility.showWhen). */
@@ -113,6 +118,7 @@ export function updateTray(state: TrayState): void {
     state.settings.shortcuts,
     state.settings.radar.rangeM,
     state.settings.visibility.showWhen,
+    layoutsKey(state),
     // '' shown, '-' hidden for no known reason (JSON would turn both undefined and null into null).
     WIDGET_IDS.map((id) => [state.settings.widgets[id].visible, hiddenKey(state.autoHidden[id])])
   ])
@@ -128,6 +134,39 @@ export function updateTray(state: TrayState): void {
       : t.tooltip(status)
   tray.setToolTip(tooltip.slice(0, TOOLTIP_MAX))
   tray.setContextMenu(Menu.buildFromTemplate(buildMenu(state, status, actions)))
+}
+
+/** What the layouts submenu shows: names, order, the one in use and the current car's. */
+function layoutsKey(state: TrayState): unknown {
+  const lib = state.settings.savedLayouts
+  return [lib.activeId, lib.list.map((l) => [l.id, l.name]), currentCarLayout(state)]
+}
+
+/** The layout linked to the car you are in, while the automatic mode is on (null: none). */
+function currentCarLayout(state: TrayState): string | null {
+  const carId = state.carId ?? null
+  if (carId === null || !state.settings.layouts.autoSwitch) return null
+  return linkedLayoutId(state.settings.savedLayouts, carId)
+}
+
+/**
+ * The layouts submenu: one radio item per saved layout, in the user's order (the one in use
+ * checked; the one linked to the car you are in marked), then the settings window's page.
+ */
+export function layoutsMenu(state: TrayState, act: TrayActions): MenuItemConstructorOptions[] {
+  const lib = state.settings.savedLayouts
+  const t = messagesFor(state.settings.appearance.language).core.tray
+  const carLayout = currentCarLayout(state)
+  return [
+    ...lib.list.map((l): MenuItemConstructorOptions => ({
+      label: l.id === carLayout ? t.layoutForCar(l.name) : l.name,
+      type: 'radio',
+      checked: l.id === lib.activeId,
+      click: () => act.applyLayout(l.id)
+    })),
+    { type: 'separator' },
+    { label: t.manageLayouts, click: () => act.openSettings() }
+  ]
 }
 
 function hiddenKey(hidden: HiddenReason | null | undefined): string {
@@ -219,6 +258,7 @@ function buildMenu(
         click: () => act.setShowWhen(value)
       }))
     },
+    { label: t.layouts, submenu: layoutsMenu(state, act) },
     { type: 'separator' },
     {
       label: t.hideOverlay,

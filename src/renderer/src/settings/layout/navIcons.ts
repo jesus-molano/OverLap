@@ -24,6 +24,8 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
     },
     { d: 'M4 6.75h.01M6.67 6.75h.01M9.33 6.75h.01M12 6.75h.01M5.5 9.25h5' }
   ],
+  // Panels placed on a screen: a layout.
+  layouts: [{ d: 'M2.25 2.75h5v5h-5zM9.75 2.75h4v3h-4zM9.75 8.25h4v5h-4zM2.25 10.25h5v3h-5z' }],
   // Rows around a highlighted one.
   relative: [{ d: 'M3 3.5h10M3 12.5h10' }, { d: 'M2.5 6.25h11v3.5h-11z', fill: true }],
   // Car between two side alerts.

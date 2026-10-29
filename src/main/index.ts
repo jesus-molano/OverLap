@@ -1,6 +1,7 @@
 import {
   Menu,
   app,
+  dialog,
   globalShortcut,
   ipcMain,
   screen,
@@ -8,10 +9,13 @@ import {
   shell,
   type WebContents
 } from 'electron'
+import { readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { PersonalBestList } from '@shared/delta/references'
+import { messagesFor } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
+import { LAYOUT_FILE_EXTENSION } from '@shared/layouts'
 import { stepScale } from '@shared/panelGeometry'
 import {
   applySettingsPatch,
@@ -26,6 +30,8 @@ import type { SessionKind } from '@shared/sessionInfo'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
+import { LayoutControl, isLayoutCommand } from './layoutControl'
+import type { LayoutFileDeps } from './layoutFiles'
 import { SettingsStore } from './settingsStore'
 import { diffSettings, isSettingsCommand, viewOfSender } from './settingsSync'
 import {
@@ -34,6 +40,7 @@ import {
   isSettingsWindowFocused,
   onSettingsWindowInactive,
   openSettingsWindow,
+  openSettingsWindowHandle,
   sendToSettingsWindow,
   setSettingsWindowLanguage
 } from './settingsWindow'
@@ -165,6 +172,54 @@ function start(): void {
     cursorShowing: createCursorProbe()
   })
 
+  // The saved layouts: the tray, the shortcut, the settings window and the automatic switch.
+  const layouts = new LayoutControl({
+    getSettings: () => store.settings,
+    update: (mutate) => void store.update(mutate),
+    sync: (prev) => syncSettings(prev),
+    reloadBounds: (ids) => windows.reloadBoundsOf(ids),
+    isEditing: () => windows.editMode,
+    notify: (notice) => sendToSettingsWindow(IPC.layoutNotice, notice),
+    carChanged: (car) => {
+      sendToSettingsWindow(IPC.currentCar, car)
+      refreshTray()
+    },
+    files: layoutFileDeps,
+    importedName: () =>
+      messagesFor(store.settings.appearance.language).core.layoutFiles.importedName,
+    log: (message) => console.log(message)
+  })
+
+  /** The system's file dialogs for a layout export or import, over the settings window. */
+  function layoutFileDeps(): LayoutFileDeps {
+    const parent = openSettingsWindowHandle()
+    const t = messagesFor(store.settings.appearance.language).core.layoutFiles
+    const filters = [{ name: t.filter, extensions: [LAYOUT_FILE_EXTENSION] }]
+    return {
+      pickSavePath: async (name) => {
+        const options = { defaultPath: join(app.getPath('documents'), name), filters }
+        const r = parent
+          ? await dialog.showSaveDialog(parent, options)
+          : await dialog.showSaveDialog(options)
+        return r.canceled || !r.filePath ? null : r.filePath
+      },
+      pickOpenPath: async () => {
+        const options = {
+          defaultPath: app.getPath('documents'),
+          filters,
+          properties: ['openFile' as const]
+        }
+        const r = parent
+          ? await dialog.showOpenDialog(parent, options)
+          : await dialog.showOpenDialog(options)
+        return r.canceled ? null : (r.filePaths[0] ?? null)
+      },
+      writeText: (path, text) => writeFileSync(path, text, 'utf8'),
+      sizeOf: (path) => statSync(path).size,
+      readText: (path) => readFileSync(path, 'utf8')
+    }
+  }
+
   const telemetry = new TelemetryHost({
     source,
     getConfig: () => toTelemetryConfig(store.settings),
@@ -180,7 +235,8 @@ function start(): void {
     },
     onSessionKind: (kind) => {
       sessionKindNow = kind
-    }
+    },
+    onPlayerCar: (car) => layouts.onCar(car)
   })
 
   /**
@@ -212,6 +268,9 @@ function start(): void {
         case 'cycleDeltaReference':
           cycleDeltaReference()
           break
+        case 'nextLayout':
+          layouts.next()
+          break
       }
     },
     onExitEdit: () => setEditMode(false),
@@ -226,7 +285,8 @@ function start(): void {
       settings: store.settings,
       editMode: windows.editMode,
       overlayHidden: windows.userHidden,
-      autoHidden: windows.autoHiddenReasons()
+      autoHidden: windows.autoHiddenReasons(),
+      carId: layouts.car?.carId ?? null
     }
   }
 
@@ -347,6 +407,8 @@ function start(): void {
       // whose monitor is disconnected, so it would never return there.
       if (!editing) store.flush()
       console.log(`[main] edit mode ${editing ? 'on' : 'off'}`)
+      // A car's layout that waited for the editing to end.
+      if (!editing) layouts.onEditEnd()
     }
     if (hidden !== wasHidden) {
       sendToSettingsWindow(IPC.overlayHidden, hidden)
@@ -376,19 +438,28 @@ function start(): void {
       autoHidden: overlay ? windows.autoHiddenMap() : {},
       overlayHidden: windows.userHidden,
       shortcutStatus: shortcuts.status,
-      cursorHidden: windows.cursorHidden
+      cursorHidden: windows.cursorHidden,
+      currentCar: layouts.car
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown): OverlaySettings => {
     if (!isSettingsSender(event.sender)) {
       throw new Error(`${IPC.updateSettings} is only accepted from the settings window`)
     }
-    return changeSettings((s) => {
+    const prev = store.settings
+    changeSettings((s) => {
       Object.assign(s, applySettingsPatch(s, patch))
     })
+    // Turning the automatic layout on applies the car's at once.
+    layouts.afterChange(prev)
+    return store.settings
   })
   ipcMain.on(IPC.command, (event, raw: unknown) => {
     if (!isSettingsSender(event.sender) || !isSettingsCommand(raw)) return
+    if (isLayoutCommand(raw)) {
+      layouts.command(raw).catch((err: unknown) => console.error('[main] layout command:', err))
+      return
+    }
     switch (raw.type) {
       case 'set-edit-mode':
         setEditMode(raw.on)
@@ -429,6 +500,7 @@ function start(): void {
   telemetry.start()
   createTray(trayState(), {
     openSettings: openSettingsWindow,
+    applyLayout: (id) => void layouts.choose(id),
     setWidgetVisible,
     setRadarRange,
     setShowWhen,

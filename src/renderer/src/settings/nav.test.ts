@@ -31,9 +31,9 @@ const throwing: PageStorage = {
 }
 
 describe('settings pages', () => {
-  it('lists the appearance, then the shortcuts, then every widget once', () => {
-    expect(SETTINGS_PAGES.slice(0, 2)).toEqual(['appearance', 'shortcuts'])
-    expect(SETTINGS_PAGES.slice(2)).toEqual(WIDGET_IDS)
+  it('lists the appearance, the shortcuts, the layouts, then every widget once', () => {
+    expect(SETTINGS_PAGES.slice(0, 3)).toEqual(['appearance', 'shortcuts', 'layouts'])
+    expect(SETTINGS_PAGES.slice(3)).toEqual(WIDGET_IDS)
     expect(new Set(SETTINGS_PAGES).size).toBe(SETTINGS_PAGES.length)
   })
 
@@ -41,6 +41,7 @@ describe('settings pages', () => {
     const es = messagesFor('es')
     expect(pageTitle(es, 'appearance')).toBe('Apariencia')
     expect(pageTitle(es, 'shortcuts')).toBe('Atajos de teclado')
+    expect(pageTitle(es, 'layouts')).toBe('Disposiciones')
     expect(pageTitle(es, 'standings')).toBe('Clasificación')
     expect(pageTitle(es, 'inputs')).toBe('Pedales')
   })

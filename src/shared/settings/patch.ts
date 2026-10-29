@@ -5,6 +5,7 @@ import { WIDGET_DEFS, WIDGET_IDS, isWidgetId, type WidgetId } from '../widgets'
 import { OPTION_SECTIONS, defaultOptions, defaultWidgetSettings, sectionSpecs } from './defaults'
 import { isRecord, mergeSection, mergeWidgetFields, revertDuplicateAccelerators } from './fields'
 import { defaultBoundsIn } from './geometry'
+import { syncActiveLayout } from './layouts'
 import { normalizeSettings } from './normalize'
 
 /**
@@ -34,6 +35,7 @@ export function applySettingsPatch(current: OverlaySettings, patch: unknown): Ov
     mergeSection(out[section], p, sectionSpecs(section))
     revertDuplicateAccelerators(out[section], before, sectionSpecs(section))
   }
+  syncActiveLayout(out)
   return out
 }
 
@@ -51,6 +53,7 @@ export function resetWidgetBounds(
   if (!isWidgetId(id)) return out
   const def = WIDGET_DEFS[id].defaultBounds
   out.widgets[id].bounds = area !== undefined ? defaultBoundsIn(def, area) : { ...def }
+  syncActiveLayout(out)
   return out
 }
 
@@ -63,6 +66,7 @@ export function placeDefaultLayout(current: OverlaySettings, area: Rect): Overla
   for (const id of WIDGET_IDS) {
     out.widgets[id].bounds = defaultBoundsIn(WIDGET_DEFS[id].defaultBounds, area)
   }
+  syncActiveLayout(out)
   return out
 }
 
@@ -78,6 +82,7 @@ export function resetWidgetOptions(current: OverlaySettings, id: WidgetId): Over
   const { bounds, visible, locked } = out.widgets[id]
   out.widgets[id] = { ...defaultWidgetSettings(id), bounds, visible, locked }
   setSection(out, id, defaultOptions(id))
+  syncActiveLayout(out)
   return out
 }
 

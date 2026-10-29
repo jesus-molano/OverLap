@@ -18,7 +18,9 @@
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
 import type { ShortcutStatusMap } from './shortcuts'
+import type { LayoutFileError } from './layouts'
 import type {
+  CarRef,
   HiddenReason,
   OverlaySettings,
   OverlayStatus,
@@ -57,6 +59,12 @@ export type TelemetryOutMessage =
    * delta's cycle shortcut only while there is one. Null when unknown (no session).
    */
   | { type: 'session-kind'; kind: SessionKind | null }
+  /**
+   * The car model you are registered in (DriverInfo CarID and CarScreenName of your own car,
+   * live frames only), on change: the automatic layout and the settings window's car links.
+   * Null without a session or a known car.
+   */
+  | { type: 'player-car'; car: CarRef | null }
 
 export type TelemetryInMessage =
   | { type: 'config'; config: TelemetryConfig }
@@ -114,8 +122,19 @@ export const IPC = {
    * main -> every overlay window, `boolean`: while editing, the game hides the mouse cursor (a
    * driver in the car), so nothing can be dragged until another window frees it.
    */
-  cursorHidden: 'overlay:cursor-hidden'
+  cursorHidden: 'overlay:cursor-hidden',
+  /** main -> settings window, `CarRef | null`: the car you are in now (layout links). */
+  currentCar: 'overlay:current-car',
+  /** main -> settings window, `LayoutNotice`: how an export or an import went. */
+  layoutNotice: 'overlay:layout-notice'
 } as const
+
+/** What became of a layout export or import (the settings window words it). */
+export type LayoutNotice =
+  | { kind: 'exported'; name: string }
+  | { kind: 'export-failed'; name: string }
+  | { kind: 'imported'; name: string }
+  | { kind: 'import-failed'; error: LayoutFileError | 'read' | 'full' }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -305,6 +324,21 @@ export type SettingsCommand =
    * settings window loses focus, hides, closes, reloads or crashes.
    */
   | { type: 'capture-shortcuts'; on: boolean }
+  /**
+   * The saved layouts (layouts.ts). 'layout-save' adds one equal to the widgets now and makes it
+   * the one in use; 'layout-duplicate' copies one (not applied); names are made unique by main.
+   * 'layout-export' and 'layout-import' open a file dialog; main answers on IPC.layoutNotice.
+   * 'layout-link-car' links a car model to a layout (`layoutId` null: unlinks it).
+   */
+  | { type: 'layout-save'; name: string }
+  | { type: 'layout-apply'; id: string }
+  | { type: 'layout-duplicate'; id: string; name: string }
+  | { type: 'layout-rename'; id: string; name: string }
+  | { type: 'layout-delete'; id: string }
+  | { type: 'layout-move'; id: string; step: -1 | 1 }
+  | { type: 'layout-export'; id: string }
+  | { type: 'layout-import' }
+  | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
 
 export interface InitialState {
   view: RendererView
@@ -321,6 +355,8 @@ export interface InitialState {
   shortcutStatus: ShortcutStatusMap
   /** Edit mode with the mouse cursor hidden by the game (see `IPC.cursorHidden`). */
   cursorHidden: boolean
+  /** The car you are in now (see `IPC.currentCar`). */
+  currentCar: CarRef | null
 }
 
 export type Unsubscribe = () => void
@@ -344,6 +380,10 @@ export interface OverlayApi {
   onShortcutStatus(cb: (status: ShortcutStatusMap) => void): Unsubscribe
   /** Overlay windows: edit mode with the cursor hidden by the game, or not any more. */
   onCursorHidden(cb: (hidden: boolean) => void): Unsubscribe
+  /** Settings window only: the car you are in now changed. */
+  onCurrentCar(cb: (car: CarRef | null) => void): Unsubscribe
+  /** Settings window only: how a layout export or import went. */
+  onLayoutNotice(cb: (notice: LayoutNotice) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */
