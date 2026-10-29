@@ -278,7 +278,9 @@ export const widgetsEs = {
     clutch: 'E',
     brake: 'F',
     throttle: 'A',
-    abs: 'ABS'
+    abs: 'ABS',
+    /** The car block's keys (the dash's own abbreviations). */
+    car: { rpm: 'RPM', bias: 'BB', tc: 'TC', ffb: 'FFB' }
   },
   delta: {
     gaining: 'ganando',
@@ -616,7 +618,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     clutch: 'C',
     brake: 'B',
     throttle: 'T',
-    abs: 'ABS'
+    abs: 'ABS',
+    car: { rpm: 'RPM', bias: 'BB', tc: 'TC', ffb: 'FFB' }
   },
   delta: {
     gaining: 'gaining',

@@ -8,6 +8,7 @@ import { classColorToCss, licenseColor } from './colors'
 import { NO_PIT_SPEC, parsePitSpec } from './fuel/spec'
 import { NO_INCIDENT_LIMITS, parseIncidentLimits } from './incidents/limits'
 import { finiteOr } from './num'
+import { parseShiftRpm } from './shiftLights'
 import { MAX_CARS } from './telemetry'
 import { parseTrackLength } from './trackLength'
 import type { DriverEntry, GridEntry, SessionDetails, SessionMeta } from './types'
@@ -19,6 +20,7 @@ export const EMPTY_SESSION: SessionMeta = Object.freeze({
   paceCarIdx: -1,
   driverCarEstLapTime: 0,
   driverCarIdleRpm: 0,
+  shiftRpm: null,
   trackLengthM: null,
   trackName: '',
   drivers: new Map<number, DriverEntry>(),
@@ -300,6 +302,7 @@ export function parseSessionMeta(raw: unknown): SessionMeta {
     paceCarIdx: carIdxOr(driverInfo?.PaceCarIdx, -1),
     driverCarEstLapTime: positiveOr0(driverInfo?.DriverCarEstLapTime),
     driverCarIdleRpm: positiveOr0(driverInfo?.DriverCarIdleRPM),
+    shiftRpm: parseShiftRpm(driverInfo),
     trackLengthM: parseTrackLength(weekend?.TrackLength),
     trackName: text(weekend?.TrackDisplayName) || text(weekend?.TrackName),
     drivers,

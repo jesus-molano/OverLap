@@ -31,7 +31,7 @@ describe('customizeZones', () => {
   it("keeps the schema's order for every other list", () => {
     expect(customizeZones('battle')).toEqual(['lanes', 'rows', 'parts'])
     expect(customizeZones('delta')).toEqual(['rows', 'top', 'laps'])
-    expect(customizeZones('inputs')).toEqual(['sections', 'bars', 'info'])
+    expect(customizeZones('inputs')).toEqual(['sections', 'bars', 'info', 'car'])
   })
 
   it('lists every element list of the section exactly once, and none of another', () => {

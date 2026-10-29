@@ -227,7 +227,17 @@ const INPUTS: InputsData = {
   speedKmh: 0,
   abs: false,
   active: true,
-  t: 1
+  t: 1,
+  steeringDeg: 0,
+  rpm: 0,
+  slFirst: 0,
+  slShift: 0,
+  slLast: 0,
+  slBlink: 0,
+  brakeBias: null,
+  tc: null,
+  ffb: null,
+  ffbClip: false
 }
 const TRAFFIC: TrafficData = { visible: false, faster: [], slower: [], hazards: [] }
 const ALERTS: AlertsData = {

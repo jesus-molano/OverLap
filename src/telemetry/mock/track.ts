@@ -55,7 +55,7 @@ const VMAX_MS = 72
 const BRAKE_MS2 = 14
 const LAT_ACCEL_MS2 = 16
 /** Wheel angle (rad) x corner radius (m): ~3 rad in a hairpin, ~0.4 rad in a fast sweeper. */
-const STEER_K = 90
+export const STEER_K = 90
 const TURN_IN_M = 15
 const UNWIND_M = 25
 /** Throttle goes from the corner-exit value to full over this distance. */
@@ -76,7 +76,7 @@ const ABS_MIN_PEAK = 0.85
 const ABS_FROM = 0.03
 const ABS_TO = 0.22
 /** Upshift points (km/h) from 2nd gear (1st is only for pulling away). */
-const UPSHIFT_KMH = [112, 148, 185, 222] as const
+export const UPSHIFT_KMH = [112, 148, 185, 222] as const
 
 function accelMs2(v: number): number {
   return Math.max(0.6, 9.5 - 0.115 * v)

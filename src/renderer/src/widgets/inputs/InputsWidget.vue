@@ -2,6 +2,8 @@
 import { computed, onMounted, useTemplateRef, watch } from 'vue'
 import { deepEqual } from '@shared/equal'
 import { speedUnit } from '@shared/format'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import { SHIFT_LEDS, ledBand, shiftLit, shiftPhase } from '@shared/shiftLights'
 import type { InputsData } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
 import { useAppearance } from '@renderer/composables/useAppearance'
@@ -18,38 +20,46 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
+import { hexOr } from '@renderer/view/color'
 import { reuseView } from '@renderer/view/reuse'
+import type { InlineStyle } from '@renderer/view/styles'
 import { orderStyle } from '../orderStyle'
 import { pedalPalette, type PedalPalette } from './palette'
 import {
   ClassSlot,
+  NumberSlot,
   PREVIEW_READOUT,
   TextSlot,
   TransformSlot,
   barTransform,
+  biasLabel,
+  degreesLabel,
+  ffbLabel,
   gearKind,
   gearLabel,
   pedalPercent,
+  rpmLabel,
   speedLabel,
   steerTransform,
-  wheelTransform
+  tcLabel,
+  wheelRotation
 } from './readout'
 import { inputsLayout, sameInputsLayout, type InputsLayout } from './sections'
+import SteeringWheel from './SteeringWheel.vue'
 import { clampTraceSeconds, clampTraceWidth } from './trace'
 import { TraceController, type TraceSettings } from './traceController'
-import {
-  WHEEL_HUB_R,
-  WHEEL_MARKER,
-  WHEEL_MARKER_W,
-  WHEEL_RIM_R,
-  WHEEL_RIM_W,
-  WHEEL_SPOKES,
-  WHEEL_SPOKE_W
-} from './wheel'
+import { WHEEL_SIZE_EM, type WheelStyle } from './wheel'
 
 /** No payload for this long while active fades the widget out (the SDK can go silent). */
 const STALE_MS = 500
 const HZ = WIDGET_DEFS.inputs.hz
+/** A clipping moment stays lit at least this long, so a single tick still reads. */
+const FFB_FLASH_MS = 300
+/** Half a blink of the shift lights over the blink RPM (about 5 a second). */
+const BLINK_HALF_MS = 90
+const LEDS: readonly ('green' | 'yellow' | 'red')[] = Array.from({ length: SHIFT_LEDS }, (_, i) =>
+  ledBand(i)
+)
 
 const options = useOptions('inputs')
 const appearance = useAppearance()
@@ -65,7 +75,7 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const preview = computed(() => phase.value === 'preview')
 
 // Each read keeps its value while equal: only a change of what it shows re-renders anything.
-/** The blocks, bars and readouts shown, each with its place (inputs.sections, .bars, .info). */
+/** The blocks, bars and readouts shown, each with its place (inputs.sections, .bars, .info, .car). */
 const layout = computed<InputsLayout>((prev) => {
   const next = inputsLayout(options.value)
   return prev !== undefined && sameInputsLayout(prev, next) ? prev : next
@@ -75,8 +85,26 @@ const showClutch = computed(() => layout.value.clutch)
 const showSteering = computed(() => layout.value.steering)
 const showGear = computed(() => layout.value.gear)
 const showSpeed = computed(() => layout.value.speed)
+const showShift = computed(() => options.value.shiftLights)
+const showDegrees = computed(() => showSteering.value && options.value.steeringDegrees)
+/** The car's controls: a car without them (an empty var) shows no row; the preview shows all. */
+const hasBias = computed(() => preview.value || (data.value?.brakeBias ?? null) !== null)
+const hasTc = computed(() => preview.value || (data.value?.tc ?? null) !== null)
+const hasFfb = computed(() => preview.value || (data.value?.ffb ?? null) !== null)
 const autoHeight = useAutoHeight('inputs')
-const asWheel = computed(() => options.value.steeringStyle === 'wheel')
+/** The wheel drawn, null for the bar. */
+const wheel = computed<WheelStyle | null>(() => {
+  const s = options.value.steeringStyle
+  return s === 'bar' ? null : s
+})
+/** The wheel's accent and size (wheel.ts WHEEL_SIZE_EM), on its box. */
+const wheelStyle = computed<InlineStyle>((prev) => {
+  const accent = hexOr(options.value.wheelColor, OPTION_SCHEMA.inputs.wheelColor.default)
+  const size = `${WHEEL_SIZE_EM[options.value.wheelSize] ?? WHEEL_SIZE_EM.medium}em`
+  return prev?.['--wheel-accent'] === accent && prev['--wheel-size'] === size
+    ? prev
+    : Object.freeze({ '--wheel-accent': accent, '--wheel-size': size })
+})
 const units = computed(() => appearance.value.units)
 const unitLabel = computed(() => speedUnit(units.value))
 /** One source for the bars (CSS variables on the root) and the canvas. */
@@ -124,6 +152,13 @@ const gearEl = useTemplateRef<HTMLElement>('gear')
 const speedEl = useTemplateRef<HTMLElement>('speed')
 const steerFillEl = useTemplateRef<HTMLElement>('steerFill')
 const wheelEl = useTemplateRef<HTMLElement>('steerWheel')
+const degEl = useTemplateRef<HTMLElement>('deg')
+const shiftEl = useTemplateRef<HTMLElement>('shift')
+const rpmEl = useTemplateRef<HTMLElement>('rpm')
+const biasEl = useTemplateRef<HTMLElement>('bias')
+const tcEl = useTemplateRef<HTMLElement>('tc')
+const ffbEl = useTemplateRef<HTMLElement>('ffb')
+const ffbRowEl = useTemplateRef<HTMLElement>('ffbRow')
 
 const slots = {
   throttlePct: new TextSlot(),
@@ -138,14 +173,39 @@ const slots = {
   gearReverse: new ClassSlot('gear--reverse'),
   speed: new TextSlot(),
   steer: new TransformSlot(),
-  wheel: new TransformSlot()
+  wheel: new TransformSlot(),
+  deg: new TextSlot(),
+  rpm: new TextSlot(),
+  bias: new NumberSlot(biasLabel),
+  tc: new NumberSlot(tcLabel),
+  ffb: new TextSlot(),
+  ffbClip: new ClassSlot('car-row--clip'),
+  shiftOn: new ClassSlot('shift--on'),
+  blinkOff: new ClassSlot('shift--blink-off'),
+  leds: Array.from({ length: SHIFT_LEDS }, () => new ClassSlot('led--on'))
 }
 
 /** Last readout shown (live sample or preview), re-applied to elements a v-if re-creates. */
 let readout: Readonly<InputsData> | null = null
+/** performance.now() of the last clipping tick. */
+let clipAtMs = -Infinity
+
+/** The strip: lit up to the RPM, all of it from the shift point, blinking from the blink RPM. */
+function writeShift(d: Readonly<InputsData>, nowMs: number): void {
+  const strip = shiftEl.value
+  const p = shiftPhase(d.rpm, d.slFirst, d.slShift, d.slBlink)
+  const lit = p === 'fill' ? shiftLit(d.rpm, d.slFirst, d.slLast) : SHIFT_LEDS
+  const leds = strip?.children
+  for (let i = 0; i < SHIFT_LEDS; i++) {
+    slots.leds[i]?.set((leds?.[i] as HTMLElement | undefined) ?? null, i < lit)
+  }
+  slots.shiftOn.set(strip, p !== 'fill')
+  slots.blinkOff.set(strip, p === 'blink' && Math.floor(nowMs / BLINK_HALF_MS) % 2 === 1)
+}
 
 function writeReadout(d: Readonly<InputsData>): void {
   readout = d
+  const nowMs = performance.now()
   slots.throttlePct.set(throttlePctEl.value, String(pedalPercent(d.throttle)))
   slots.throttleFill.set(throttleFillEl.value, barTransform(d.throttle))
   slots.brakePct.set(brakePctEl.value, String(pedalPercent(d.brake)))
@@ -165,8 +225,16 @@ function writeReadout(d: Readonly<InputsData>): void {
   slots.speed.set(speed, speed === null ? '' : speedLabel(d.speedKmh, units.value))
   const steer = steerFillEl.value
   slots.steer.set(steer, steer === null ? '' : steerTransform(d.steering))
-  const wheel = wheelEl.value
-  slots.wheel.set(wheel, wheel === null ? '' : wheelTransform(d.steering))
+  // Cached strings (readout.ts): turning the wheel allocates nothing.
+  slots.wheel.set(wheelEl.value, wheelRotation(d.steeringDeg))
+  slots.deg.set(degEl.value, degreesLabel(d.steeringDeg))
+  slots.rpm.set(rpmEl.value, rpmLabel(d.rpm))
+  slots.bias.set(biasEl.value, d.brakeBias ?? Number.NaN)
+  slots.tc.set(tcEl.value, d.tc ?? Number.NaN)
+  slots.ffb.set(ffbEl.value, ffbLabel(d.ffb ?? 0))
+  if (d.ffbClip) clipAtMs = nowMs
+  slots.ffbClip.set(ffbRowEl.value, d.ffbClip || nowMs - clipAtMs < FFB_FLASH_MS)
+  writeShift(d, nowMs)
 }
 
 // ---- Data -------------------------------------------------------------------
@@ -194,6 +262,7 @@ watch(
 
 function showPreview(): void {
   trace.preview()
+  clipAtMs = -Infinity
   writeReadout(PREVIEW_READOUT)
 }
 
@@ -213,7 +282,7 @@ watch(traceSettings, (s) => {
 
 // Elements re-created by their v-if (and a new speed unit) get the current values.
 watch(
-  [layout, asWheel, units],
+  [layout, wheel, showShift, showDegrees, hasBias, hasTc, hasFfb, units],
   () => {
     if (readout !== null) writeReadout(readout)
   },
@@ -236,12 +305,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
     :class="{
       'is-shown': shown,
       'inputs--trace': hasTrace,
+      'inputs--car': layout.car,
+      'inputs--shift': showShift,
       'inputs--auto': autoHeight,
       'is-bottom': bottomAnchored
     }"
   >
-    <!-- Blocks, bars and readouts take their place by CSS order (inputs.sections, .bars,
-         .info): a reorder never re-creates the canvas or a readout. -->
     <WidgetPanel
       ref="panel"
       class="inputs__panel"
@@ -249,76 +318,119 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :halo="halo"
       :fill="!autoHeight"
     >
-      <div v-if="hasTrace" v-inline-style="orderStyle(layout.order.trace)" class="plot">
-        <div class="grid" aria-hidden="true" />
-        <canvas ref="canvas" class="trace" aria-hidden="true" />
-        <PreviewTag v-if="preview" class="plot__tag" />
+      <!-- The LEDs light by writeShift(), the template never binds them. -->
+      <div v-if="showShift" ref="shift" class="shift" aria-hidden="true">
+        <span v-for="(band, i) in LEDS" :key="i" class="led" :class="`led--${band}`" />
       </div>
 
-      <!-- The numbers, fills, gear and the ABS state are written by writeReadout(): the
-           template never binds them, so a 60 Hz sample re-renders nothing. -->
-      <div v-inline-style="orderStyle(layout.order.bars)" class="bars">
-        <div
-          v-if="showClutch"
-          v-inline-style="orderStyle(layout.order.clutch)"
-          class="bar bar--clutch"
-        >
-          <span ref="clutchPct" class="pct" />
-          <span class="track"><span ref="clutchFill" class="fill" /></span>
-          <span class="key"
-            ><span class="key-main">{{ t.widgets.inputs.clutch }}</span></span
-          >
+      <!-- Blocks, bars and readouts take their place by CSS order (inputs.sections, .bars,
+           .info, .car): a reorder never re-creates the canvas or a readout. -->
+      <div class="inputs__row">
+        <div v-if="hasTrace" v-inline-style="orderStyle(layout.order.trace)" class="plot">
+          <div class="grid" aria-hidden="true" />
+          <canvas ref="canvas" class="trace" aria-hidden="true" />
+          <PreviewTag v-if="preview" class="plot__tag" />
         </div>
-        <div ref="brakeBar" v-inline-style="orderStyle(layout.order.brake)" class="bar bar--brake">
-          <span ref="brakePct" class="pct" />
-          <span class="track"><span ref="brakeFill" class="fill" /></span>
-          <span class="key">
-            <span class="key-main">{{ t.widgets.inputs.brake }}</span>
-            <span class="key-abs">{{ t.widgets.inputs.abs }}</span>
+
+        <!-- The numbers, fills, gear and the ABS state are written by writeReadout(): the
+             template never binds them, so a 60 Hz sample re-renders nothing. -->
+        <div v-inline-style="orderStyle(layout.order.bars)" class="bars">
+          <div
+            v-if="showClutch"
+            v-inline-style="orderStyle(layout.order.clutch)"
+            class="bar bar--clutch"
+          >
+            <span ref="clutchPct" class="pct" />
+            <span class="track"><span ref="clutchFill" class="fill" /></span>
+            <span class="key"
+              ><span class="key-main">{{ t.widgets.inputs.clutch }}</span></span
+            >
+          </div>
+          <div
+            ref="brakeBar"
+            v-inline-style="orderStyle(layout.order.brake)"
+            class="bar bar--brake"
+          >
+            <span ref="brakePct" class="pct" />
+            <span class="track"><span ref="brakeFill" class="fill" /></span>
+            <span class="key">
+              <span class="key-main">{{ t.widgets.inputs.brake }}</span>
+              <span class="key-abs">{{ t.widgets.inputs.abs }}</span>
+            </span>
+          </div>
+          <div v-inline-style="orderStyle(layout.order.throttle)" class="bar bar--throttle">
+            <span ref="throttlePct" class="pct" />
+            <span class="track"><span ref="throttleFill" class="fill" /></span>
+            <span class="key"
+              ><span class="key-main">{{ t.widgets.inputs.throttle }}</span></span
+            >
+          </div>
+        </div>
+
+        <div v-if="layout.info" v-inline-style="orderStyle(layout.order.info)" class="info">
+          <span
+            v-if="showGear"
+            ref="gear"
+            v-inline-style="orderStyle(layout.order.gear)"
+            class="gear ov-t-hero"
+          />
+          <span v-if="showSpeed" v-inline-style="orderStyle(layout.order.speed)" class="speed">
+            <span ref="speed" class="speed-num" />
+            <span class="unit">{{ unitLabel }}</span>
+          </span>
+          <span
+            v-if="showSteering"
+            v-inline-style="orderStyle(layout.order.steering)"
+            class="steering"
+          >
+            <!-- Static drawing turned as a whole on its own layer: a turn is a transform. -->
+            <span
+              v-if="wheel !== null"
+              ref="steerWheel"
+              v-inline-style="wheelStyle"
+              class="wheel"
+              aria-hidden="true"
+            >
+              <SteeringWheel :wheel="wheel" />
+            </span>
+            <span v-else class="steer" aria-hidden="true">
+              <span ref="steerFill" class="steer-fill" />
+            </span>
+            <span v-if="showDegrees" ref="deg" class="deg" />
           </span>
         </div>
-        <div v-inline-style="orderStyle(layout.order.throttle)" class="bar bar--throttle">
-          <span ref="throttlePct" class="pct" />
-          <span class="track"><span ref="throttleFill" class="fill" /></span>
-          <span class="key"
-            ><span class="key-main">{{ t.widgets.inputs.throttle }}</span></span
-          >
-        </div>
-      </div>
 
-      <div v-if="layout.info" v-inline-style="orderStyle(layout.order.info)" class="info">
-        <span
-          v-if="showGear"
-          ref="gear"
-          v-inline-style="orderStyle(layout.order.gear)"
-          class="gear ov-t-hero"
-        />
-        <span v-if="showSpeed" v-inline-style="orderStyle(layout.order.speed)" class="speed">
-          <span ref="speed" class="speed-num" />
-          <span class="unit">{{ unitLabel }}</span>
-        </span>
-        <span
-          v-if="showSteering && asWheel"
-          ref="steerWheel"
-          v-inline-style="orderStyle(layout.order.steering)"
-          class="wheel"
-          aria-hidden="true"
-        >
-          <svg v-once class="wheel__svg" viewBox="-10 -10 20 20">
-            <circle class="wheel__part" :r="WHEEL_RIM_R" :stroke-width="WHEEL_RIM_W" />
-            <path class="wheel__part" :d="WHEEL_SPOKES" :stroke-width="WHEEL_SPOKE_W" />
-            <circle class="wheel__hub" :r="WHEEL_HUB_R" />
-            <path class="wheel__marker" :d="WHEEL_MARKER" :stroke-width="WHEEL_MARKER_W" />
-          </svg>
-        </span>
-        <span
-          v-else-if="showSteering"
-          v-inline-style="orderStyle(layout.order.steering)"
-          class="steer"
-          aria-hidden="true"
-        >
-          <span ref="steerFill" class="steer-fill" />
-        </span>
+        <div v-if="layout.car" v-inline-style="orderStyle(layout.order.car)" class="car">
+          <span v-if="layout.rpm" v-inline-style="orderStyle(layout.order.rpm)" class="car-row">
+            <span class="car-key">{{ t.widgets.inputs.car.rpm }}</span>
+            <span ref="rpm" class="car-val car-val--rpm" />
+          </span>
+          <span
+            v-if="layout.bias && hasBias"
+            v-inline-style="orderStyle(layout.order.bias)"
+            class="car-row"
+          >
+            <span class="car-key">{{ t.widgets.inputs.car.bias }}</span>
+            <span ref="bias" class="car-val" />
+          </span>
+          <span
+            v-if="layout.tc && hasTc"
+            v-inline-style="orderStyle(layout.order.tc)"
+            class="car-row"
+          >
+            <span class="car-key">{{ t.widgets.inputs.car.tc }}</span>
+            <span ref="tc" class="car-val" />
+          </span>
+          <span
+            v-if="layout.ffb && hasFfb"
+            ref="ffbRow"
+            v-inline-style="orderStyle(layout.order.ffb)"
+            class="car-row car-row--ffb"
+          >
+            <span class="car-key">{{ t.widgets.inputs.car.ffb }}</span>
+            <span ref="ffb" class="car-val" />
+          </span>
+        </div>
       </div>
     </WidgetPanel>
   </div>
@@ -331,24 +443,61 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 /* Fixed height: the font follows the window (9 px floor), the plot takes the spare width. */
 .inputs__panel {
-  flex-direction: row;
-  gap: 0.5em;
+  flex-direction: column;
+  gap: 0.35em;
   padding: 0.4em 0.5em;
   font-size: clamp(9px, min(100cqh / 9, 100cqw / 26), 15px);
   line-height: 1.15;
 }
 
+/* The shift lights take a row of their own: a little less font for the same window. */
+.inputs--shift .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 10, 100cqw / 26), 15px);
+}
+
+.inputs--car .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 9, 100cqw / 30), 15px);
+}
+
+.inputs--car.inputs--shift .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 10, 100cqw / 30), 15px);
+}
+
+/* The blocks side by side. */
+.inputs__row {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.5em;
+  min-height: 0;
+}
+
 /* No trace: bars and info centred, sized for a small square window. */
-.inputs:not(.inputs--trace) .inputs__panel {
+.inputs:not(.inputs--trace) .inputs__row {
   justify-content: center;
+}
+
+.inputs:not(.inputs--trace) .inputs__panel {
   font-size: clamp(9px, min(100cqh / 9, 100cqw / 12.5), 15px);
+}
+
+.inputs--shift:not(.inputs--trace) .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 10, 100cqw / 12.5), 15px);
+}
+
+.inputs--car:not(.inputs--trace) .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 9, 100cqw / 17), 15px);
+}
+
+.inputs--car.inputs--shift:not(.inputs--trace) .inputs__panel {
+  font-size: clamp(9px, min(100cqh / 10, 100cqw / 17), 15px);
 }
 
 /*
  * Auto height (the default): the panel is its content, the font the scale's (--ov-fs), so
  * nothing depends on the window's height (no cqh) and the fitted height cannot feed back. The
  * bars set the row's height, the trace and the readouts take it: with the panel's 0.4 em paddings
- * and 1 px borders the panel is today's 120 px at the default 13 px (9.23 em). Only the width is a container then.
+ * and 1 px borders the panel is today's 120 px at the default 13 px (9.23 em), the shift lights
+ * add their row. Only the width is a container then.
  */
 .inputs--auto {
   container-type: inline-size;
@@ -372,6 +521,54 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .inputs--auto .bars {
   height: calc(8.43em - 2px);
+}
+
+/* ---- Shift lights --------------------------------------------------------- */
+
+/*
+ * One LED per tenth of the band, green, yellow then red (shiftLights.ts). Off, each is a dim well
+ * of its colour; lit, the colour itself. From the shift point every LED is lit in red; over the
+ * blink RPM the strip goes dark every other moment (written per sample, no CSS animation).
+ */
+.shift {
+  flex: none;
+  display: flex;
+  gap: 0.2em;
+  height: 0.55em;
+  contain: strict;
+}
+
+.led {
+  flex: 1 1 0;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--led) 16%, var(--ov-well));
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.led--green {
+  --led: var(--ov-good);
+}
+
+.led--yellow {
+  --led: #ffd23f;
+}
+
+.led--red {
+  --led: var(--ov-alert);
+}
+
+.led--on {
+  background: var(--led);
+  box-shadow: 0 0 2px var(--led);
+}
+
+.shift--on .led {
+  --led: var(--ov-alert);
+}
+
+.shift--blink-off .led {
+  background: color-mix(in srgb, var(--led) 16%, var(--ov-well));
+  box-shadow: none;
 }
 
 /* ---- Trace ---------------------------------------------------------------- */
@@ -534,7 +731,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   inset: 0;
 }
 
-/* ABS: a solid plate (act now), the only one in the widget. */
+/* ABS: a solid plate (act now). */
 .key-abs {
   border-radius: var(--ov-radius-chip);
   background: var(--ov-abs);
@@ -610,6 +807,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   color: var(--ov-fg-dim);
 }
 
+/* The bar or the wheel, and the degrees under it. */
+.steering {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  width: 100%;
+}
+
 /* Steering: a recessed well with a graduated centre. */
 .steer {
   position: relative;
@@ -648,50 +854,102 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   will-change: transform;
 }
 
-/* Static drawing rotated as a whole on its own layer: a turn is a transform, no repaint. */
+/* A static drawing rotated as a whole on its own layer (wheel.ts WHEEL_SIZE_EM). */
 .wheel {
   flex: none;
-  width: 2.1em;
-  height: 2.1em;
-  margin-top: 0.1em;
+  width: var(--wheel-size);
+  height: var(--wheel-size);
   contain: strict;
   transform: rotate(0deg);
   will-change: transform;
 }
 
-.wheel__svg {
-  display: block;
+/* Fixed box: a changing angle re-lays out only itself. */
+.deg {
+  flex: none;
   width: 100%;
-  height: 100%;
-  overflow: visible;
+  height: 1.3em;
+  contain: strict;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-tag);
+  font-weight: var(--ov-w-strong);
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ov-fg-muted);
 }
 
-.wheel__part {
-  fill: none;
-  stroke: color-mix(in srgb, var(--ov-fg) 70%, transparent);
-  stroke-linecap: round;
+/* ---- Car block: revs, bias, TC, force feedback ---------------------------- */
+
+.car {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3em;
+  width: 5.2em;
+  min-height: 0;
 }
 
-.wheel__hub {
-  fill: color-mix(in srgb, var(--ov-fg) 70%, transparent);
+/* A key and its value on one line, the value's box fixed (it changes every sample). */
+.car-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3em;
+  padding: 0 0.25em;
+  border-radius: var(--ov-radius-chip);
 }
 
-.wheel__marker {
-  fill: none;
-  stroke: var(--ov-fg);
+.car-key {
+  flex: none;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-tag);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
+  color: var(--ov-fg-dim);
+}
+
+.car-val {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 1.25em;
+  contain: strict;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-plate);
+  font-weight: var(--ov-w-strong);
+  line-height: 1.25;
+  text-align: right;
+}
+
+.car-val--rpm {
+  font-size: var(--ov-t-lead);
+}
+
+/* Clipping: a solid plate for a moment (act now: the wheel gives no more). */
+.car-row--clip {
+  background: var(--ov-alert);
+  color: var(--ov-on-solid);
+  text-shadow: none;
+}
+
+.car-row--clip .car-key {
+  color: inherit;
 }
 
 /* ---- Small windows -------------------------------------------------------- */
 
 @container inputs (max-width: 250px) {
-  .inputs--trace .info {
+  .inputs--trace .info,
+  .inputs--trace .car {
     display: none;
   }
 }
 
 @container inputs (max-height: 85px) {
   .key,
-  .unit {
+  .unit,
+  .deg {
     display: none;
   }
 

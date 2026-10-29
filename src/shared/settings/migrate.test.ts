@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { setElementVisible } from '../elements'
 import type { OverlaySettings, Rect } from '../types'
 import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { createDefaultSettings, normalizeSettings } from '.'
@@ -351,8 +352,17 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       lights: { showOilPressure: true, showPitLimiter: false, showRevLimiter: false }
     }
     const s = normalizeSettings({ ...old, version: 5 })
+    // What came after those toggles stays off: the pedals' car block and shift lights.
+    const expected = {
+      ...d,
+      inputs: {
+        ...d.inputs,
+        sections: setElementVisible(d.inputs.sections, 'car', false),
+        shiftLights: false
+      }
+    }
     for (const section of Object.keys(old) as (keyof typeof old)[]) {
-      expect(s[section], section).toEqual(d[section])
+      expect(s[section], section).toEqual(expected[section])
     }
   })
 
@@ -402,10 +412,12 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       normalizeSettings({ inputs: { layout } }).inputs.sections.map(
         (e) => `${e.visible ? '+' : '-'}${e.id}`
       )
-    expect(order('trace-bars-info')).toEqual(['+trace', '+bars', '+info'])
-    expect(order('info-bars-trace')).toEqual(['+info', '+bars', '+trace'])
-    expect(order('bars')).toEqual(['-trace', '+bars', '+info'])
-    expect(order('sideways')).toEqual(['+trace', '+bars', '+info'])
+    // The car block came later: hidden in a file of then.
+    expect(order('trace-bars-info')).toEqual(['+trace', '+bars', '+info', '-car'])
+    expect(order('info-bars-trace')).toEqual(['+info', '+bars', '+trace', '-car'])
+    expect(order('bars')).toEqual(['-trace', '+bars', '+info', '-car'])
+    // No old layout (and no list): the default blocks, the car block hidden all the same.
+    expect(order('sideways')).toEqual(['+trace', '+bars', '+info', '-car'])
     for (const [detail, sectors, laps] of [
       ['none', false, false],
       ['sectors', true, false],
@@ -476,5 +488,47 @@ describe('version 5: new defaults over old saved ones, once', () => {
     expect(normalizeSettings({ delta: { reference: 'fastest' } }).delta.referenceRace).toBe(
       'optimal'
     )
+  })
+})
+
+describe('the pedals before the wheel styles and the shift lights', () => {
+  it('the old wheel is the realistic one; the shift lights stay off for a file of before', () => {
+    const old = normalizeSettings({
+      version: 5,
+      inputs: { steeringStyle: 'wheel', traceSeconds: 6 }
+    })
+    expect(old.inputs).toMatchObject({ steeringStyle: 'realistic', shiftLights: false })
+    expect(normalizeSettings({ inputs: { steeringStyle: 'bar' } }).inputs.steeringStyle).toBe('bar')
+    // Written since: kept as chosen.
+    const now = normalizeSettings({ inputs: { steeringStyle: 'formula', shiftLights: true } })
+    expect(now.inputs).toMatchObject({ steeringStyle: 'formula', shiftLights: true })
+    // No pedals section at all: the defaults (a new install).
+    expect(normalizeSettings({}).inputs.shiftLights).toBe(true)
+  })
+
+  it('the car block and its readouts come hidden in a saved list of before, shown when new', () => {
+    const before = normalizeSettings({
+      inputs: {
+        sections: [
+          { id: 'trace', visible: true },
+          { id: 'bars', visible: true },
+          { id: 'info', visible: true }
+        ],
+        shiftLights: false
+      }
+    })
+    expect(before.inputs.sections.at(-1)).toEqual({ id: 'car', visible: false })
+    expect(normalizeSettings({}).inputs.sections.map((e) => e.visible)).toEqual([
+      true,
+      true,
+      true,
+      true
+    ])
+    expect(normalizeSettings({}).inputs.car.every((e) => e.visible)).toBe(true)
+  })
+
+  it('reads the same twice (one-way)', () => {
+    const once = normalizeSettings({ inputs: { steeringStyle: 'wheel' } })
+    expect(normalizeSettings(JSON.parse(JSON.stringify(once)))).toEqual(once)
   })
 })

@@ -84,6 +84,13 @@ export const TELEMETRY_VARS = {
   /** m/s. */
   Speed: 'number',
   BrakeABSactive: 'boolean',
+  // The pedals' car block (shared/inputs.ts): per car model, an empty array when the car has none.
+  /** The brake bias as the car's display shows it (most cars: % front; some an offset). */
+  dcBrakeBias: 'number',
+  /** The traction-control setting (no car exposes TC acting live). */
+  dcTractionControl: 'number',
+  /** Force-feedback torque on the steering shaft, '%' read as 0..1: 1 is clipping (unverified). */
+  SteeringWheelPctTorque: 'number',
 
   // --- v2.1: alerts (player only) ---
   /** irsdk_EngineWarnings bits: pit speed limiter 0x10, engine stalled 0x08, ... */

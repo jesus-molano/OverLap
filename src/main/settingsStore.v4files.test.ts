@@ -41,7 +41,15 @@ describe('the untouched v4 file', () => {
     expect(DEFAULT_V4.appearance.licenseStyle).toBe('soft')
     expect(DEFAULT_V4.delta.reference).toBe('pb')
     const s = load(DEFAULT_V4).settings
-    expect(s).toEqual(DEFAULT_SETTINGS)
+    // What came after it stays off: the pedals' car block and shift lights.
+    expect(s).toEqual({
+      ...DEFAULT_SETTINGS,
+      inputs: {
+        ...DEFAULT_SETTINGS.inputs,
+        sections: DEFAULT_SETTINGS.inputs.sections.map((b) => ({ ...b, visible: b.id !== 'car' })),
+        shiftLights: false
+      }
+    })
     // The changes of default, applied once.
     expect(s.appearance.licenseStyle).toBe('outline')
     expect([s.delta.referencePractice, s.delta.referenceQualify, s.delta.referenceRace]).toEqual([
@@ -141,7 +149,8 @@ describe('a customised v4 file', () => {
     expect(s.battle.parts.find((p) => p.id === 'stake')?.visible).toBe(false)
     expect(s.battle).toMatchObject({ layout: 'side', thresholdS: 1 })
 
-    expect(ids(s.inputs.sections)).toEqual(['info', 'bars', 'trace'])
+    expect(ids(s.inputs.sections)).toEqual(['info', 'bars', 'trace', '-car'])
+    expect(s.inputs.shiftLights).toBe(false)
     expect(ids(s.inputs.bars)).toEqual(['-clutch', 'brake', 'throttle'])
     expect(ids(s.inputs.info)).toEqual(['gear', 'speed', '-steering'])
     expect(s.inputs.traceSeconds).toBe(8)
