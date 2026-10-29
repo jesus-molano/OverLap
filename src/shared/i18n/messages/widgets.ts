@@ -266,8 +266,17 @@ export const widgetsEs = {
       pitLimiter: 'Limitador de boxes',
       revLimiter: 'Corte de revoluciones'
     },
-    /** How long the repairs take: '42 s' ('REPARAR · 42 s'). */
+    /** How long the repairs take: '42 s' ('REPARAR · 42 s'), the crew's time without its tag. */
     seconds: (s: number) => `${s}${NB}s`,
+    /**
+     * The crew's time, tagged (lights.repairCrewTag): iRacing's figure runs at the crew's pace,
+     * not the clock's. The short form in narrow windows.
+     */
+    crewSeconds: (s: number) => `${s}${NB}s${NB}(equipo)`,
+    crewSecondsShort: (s: number) => `${s}${NB}s${NB}eq.`,
+    /** The real seconds left, estimated in the stall (lights.repairRealTime); tagged and short. */
+    realSeconds: (s: number) => `≈${NB}${s}${NB}s${NB}(real)`,
+    realSecondsShort: (s: number) => `≈${NB}${s}${NB}s`,
     /** The trend while you spent most of it close behind another car (with the captions). */
     draft: '¿rebufo?',
     /** After the name, for the accessible name: off, lit, above your own average. */
@@ -611,6 +620,10 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
       revLimiter: 'Rev limiter'
     },
     seconds: (s) => `${s}${NB}s`,
+    crewSeconds: (s) => `${s}${NB}s${NB}(crew)`,
+    crewSecondsShort: (s) => `${s}${NB}s${NB}crew`,
+    realSeconds: (s) => `≈${NB}${s}${NB}s${NB}(real)`,
+    realSecondsShort: (s) => `≈${NB}${s}${NB}s`,
     draft: 'slipstream?',
     states: { off: 'off', on: 'on', trend: 'above your average' }
   },

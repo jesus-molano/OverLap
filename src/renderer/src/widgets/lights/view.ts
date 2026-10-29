@@ -39,7 +39,13 @@ export const LIGHT_ICONS: Readonly<Record<LightKind, EngineIconName>> = {
 export type LightsFilter = Readonly<
   Pick<
     LightsOptions,
-    'onlyWhenLit' | 'showCaptions' | 'showTemps' | 'showRepairTime' | 'icons' | 'showTrend'
+    | 'onlyWhenLit'
+    | 'showCaptions'
+    | 'showTemps'
+    | 'showRepairTime'
+    | 'repairCrewTag'
+    | 'icons'
+    | 'showTrend'
   >
 >
 
@@ -50,6 +56,7 @@ export function lightsFilter(o: LightsOptions): LightsFilter {
     showCaptions: o.showCaptions,
     showTemps: o.showTemps,
     showRepairTime: o.showRepairTime,
+    repairCrewTag: o.repairCrewTag,
     // The options are stable objects (useOptions): the list keeps its identity while equal.
     icons: o.icons,
     showTrend: o.showTrend
@@ -73,8 +80,10 @@ export interface LightView {
   readonly kind: LightKind
   readonly icon: EngineIconName
   readonly level: LightLevel
-  /** What follows the icon: 'REPARAR · 42 s', '104° +6°'; '' for the icon alone. */
+  /** What follows the icon: 'REPARAR · 42 s (equipo)', '104° +6°'; '' for the icon alone. */
   readonly text: string
+  /** The same in narrow windows ('REPARAR · 42 s eq.'); '' when it is the text itself. */
+  readonly short: string
   /** Accessible name: 'Temperatura del agua: encendido'. */
   readonly label: string
 }
@@ -96,6 +105,8 @@ function validReading(raw: unknown): LightReading | null {
   const v = raw as Record<string, unknown>
   if (!KINDS.has(v.kind) || !LEVELS.has(v.level)) return null
   if (!finiteOrNull(v.tempC) || !finiteOrNull(v.riseC) || !finiteOrNull(v.seconds)) return null
+  // An older payload without it: the crew's time.
+  if (v.realTime !== undefined && typeof v.realTime !== 'boolean') return null
   return raw as LightReading
 }
 
@@ -111,6 +122,21 @@ export function formatRise(c: number, units: AppearanceSettings['units']): strin
 
 /** Between the caption and each reading: 'REPARAR · 42 s'. */
 const DOT = ' · '
+
+/**
+ * A repair time as written, wide and narrow: the real seconds estimated in the stall always
+ * with their '≈' ('≈ 30 s (real)'), the crew's with their tag when lights.repairCrewTag is on
+ * ('42 s (equipo)'), bare without it ('42 s').
+ */
+function repairTimeTexts(
+  s: number,
+  realTime: boolean,
+  tagged: boolean,
+  t: Messages['widgets']['lights']
+): readonly [wide: string, narrow: string] {
+  if (realTime) return [tagged ? t.realSeconds(s) : t.realSecondsShort(s), t.realSecondsShort(s)]
+  return tagged ? [t.crewSeconds(s), t.crewSecondsShort(s)] : [t.seconds(s), t.seconds(s)]
+}
 
 /** One light's view; null when the options leave it out. */
 function lightView(
@@ -128,22 +154,28 @@ function lightView(
   // The rise is a value too: it follows the values toggle (the yellow light stays without it).
   if (o.showTemps && r.tempC !== null) readings.push(formatDegrees(r.tempC, units))
   if (o.showTemps && trend && r.riseC !== null) readings.push(formatRise(r.riseC, units))
-  const seconds =
+  const [seconds, secondsShort] =
     o.showRepairTime && level !== 'off' && r.seconds !== null && r.seconds > 0
-      ? t.seconds(Math.ceil(r.seconds))
-      : ''
-  const parts = [
-    o.showCaptions ? t.captions[r.kind] : '',
-    readings.join(' '),
-    seconds,
-    o.showCaptions && trend && r.draft ? t.draft : ''
-  ].filter((p) => p !== '')
+      ? repairTimeTexts(Math.ceil(r.seconds), r.realTime === true, o.repairCrewTag, t)
+      : ['', '']
+  const join = (time: string): string =>
+    [
+      o.showCaptions ? t.captions[r.kind] : '',
+      readings.join(' '),
+      time,
+      o.showCaptions && trend && r.draft ? t.draft : ''
+    ]
+      .filter((p) => p !== '')
+      .join(DOT)
+  const text = join(seconds)
+  const short = join(secondsShort)
   const state = level === 'off' ? t.states.off : level === 'caution' ? t.states.trend : t.states.on
   return {
     kind: r.kind,
     icon: LIGHT_ICONS[r.kind],
     level,
-    text: parts.join(DOT),
+    text,
+    short: short === text ? '' : short,
     label: `${t.names[r.kind]}: ${state}`
   }
 }
@@ -189,5 +221,5 @@ export function previewFilter(sample: LightsData, o: LightsFilter, m: Messages):
 
 /** Everything the strip's height depends on besides the width and the font. */
 export function layoutKey(views: readonly LightView[], layout: LightsOptions['layout']): string {
-  return `${layout}|${views.map((v) => `${v.kind}:${v.text.length}`).join(',')}`
+  return `${layout}|${views.map((v) => `${v.kind}:${v.text.length}:${v.short.length}`).join(',')}`
 }

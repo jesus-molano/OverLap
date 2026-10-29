@@ -264,6 +264,8 @@ const DEFAULT_LIGHTS: LightsOptions = {
   showCaptions: false,
   showTemps: false,
   showRepairTime: true,
+  repairCrewTag: true,
+  repairRealTime: false,
   icons: list(
     [
       'oilPressure',

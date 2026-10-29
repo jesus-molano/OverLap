@@ -631,6 +631,10 @@ export const OPTION_SCHEMA = {
     showCaptions: { kind: 'bool', default: false, displayOnly: true },
     showTemps: { kind: 'bool', default: false },
     showRepairTime: { kind: 'bool', default: true },
+    // The repair times read as the crew's ('42 s (equipo)'), and the real countdown estimated in
+    // the stall (notices/repairClock.ts), off until a live stop confirms it.
+    repairCrewTag: { kind: 'bool', default: true, displayOnly: true },
+    repairRealTime: { kind: 'bool', default: false },
     icons: elements(LIGHT_IDS, { hidden: ['pitLimiter', 'revLimiter'] }),
     showTrend: { kind: 'bool', default: true }
   },

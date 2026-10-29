@@ -163,6 +163,8 @@ export const TELEMETRY_VARS = {
   PitSvFlags: 'number',
   /** In your pit stall: the only place iRacing measures the tyres. */
   PlayerCarInPitStall: 'boolean',
+  /** The crew is servicing the car (the repairs' real-time estimate, notices/repairClock.ts). */
+  PitstopActive: 'boolean',
   /** Fast repairs left, 255 when unlimited. */
   FastRepairAvailable: 'number',
   FastRepairUsed: 'number',

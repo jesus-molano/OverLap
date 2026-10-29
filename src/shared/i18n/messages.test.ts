@@ -174,6 +174,8 @@ const SAME_IN_ENGLISH = new Set([
   'widgets.inputs.car.tc',
   'widgets.inputs.car.ffb',
   'widgets.lights.seconds',
+  'widgets.lights.realSeconds',
+  'widgets.lights.realSecondsShort',
   'settings.nav.widgets',
   'settings.visibility.label',
   'settings.common.iRating',
