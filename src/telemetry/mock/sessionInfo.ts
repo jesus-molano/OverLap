@@ -36,6 +36,8 @@ export interface MockYamlDriver {
   CarNumber: string
   /** Car model: with the track and its layout, the key of the personal bests. */
   CarID: number
+  /** Only when a car cycle seats the player in another model (carCycle.ts). */
+  CarScreenName?: string
   CarScreenNameShort: string
   CarClassID: number
   CarClassShortName: string
