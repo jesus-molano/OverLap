@@ -11,7 +11,7 @@ import {
   replayNote,
   replaysHelp,
   sessionScreenRuleOn,
-  sessionScreenWidgets
+  sessionScreenSwitch
 } from './replayWidgets'
 
 const es = messagesFor('es')
@@ -100,8 +100,6 @@ describe('replay rule wording', () => {
       'traffic',
       'alerts'
     ])
-    expect(sessionScreenWidgets(es, LOCALES.es)).toBe('Relativo, Batalla, Tráfico y Avisos')
-    expect(sessionScreenWidgets(en, LOCALES.en)).toBe('Relative, Battle, Traffic and Alerts')
   })
 
   it('keeps the session-screen exception meaningful unless nothing hides there', () => {
@@ -143,5 +141,39 @@ describe('replay rule wording', () => {
         }
       }
     }
+  })
+})
+
+describe('sessionScreenSwitch', () => {
+  const v = { hideOnSessionScreen: true, replays: 'hide', showWhen: 'car' } as const
+  it('is on every page: the widget’s own exception where it applies', () => {
+    expect(sessionScreenSwitch(es, 'relative', v, false)).toEqual({
+      help: es.settings.window.sessionScreenHelp,
+      on: false,
+      disabled: false
+    })
+    expect(sessionScreenSwitch(es, 'standings', v, true).on).toBe(true)
+  })
+
+  it('is off and disabled, saying why, where it cannot apply', () => {
+    for (const id of ['radar', 'inputs', 'lights', 'delta'] as const) {
+      expect(sessionScreenSwitch(es, id, v, true), id).toEqual({
+        help: 'No aplica: solo tiene datos dentro del coche',
+        on: false,
+        disabled: true
+      })
+    }
+    expect(sessionScreenSwitch(es, 'fuel', v, true).help).toBe(
+      'No aplica: con las repeticiones activas no muestra nada'
+    )
+  })
+
+  it('is on and disabled while nothing hides on the session screen', () => {
+    const open = { hideOnSessionScreen: false, replays: 'follow', showWhen: 'always' } as const
+    expect(sessionScreenSwitch(es, 'battle', open, false)).toEqual({
+      help: es.settings.window.sessionScreenOff,
+      on: true,
+      disabled: true
+    })
   })
 })

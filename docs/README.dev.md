@@ -119,15 +119,14 @@ overlay** también está en la bandeja):
 En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Mostrar el
 overlay** también está en la bandeja):
 
-| Opción                                                   | Por defecto                           | Qué hace                                                                       |
-| -------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
-| Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre  |
-| En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda Posiciones        |
-| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                       |
-| Posiciones en la pantalla de sesión                      | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
-| Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                   |
-| Ocultar en el garaje (`hideInGarage`)                    | Sí                                    | Mientras está abierta la pantalla del garaje                                   |
-| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Posiciones siguen con el aviso                         |
+| Opción                                                   | Por defecto                           | Qué hace                                                                      |
+| -------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------- |
+| Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre |
+| En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda Posiciones       |
+| Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                      |
+| Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                  |
+| Ocultar en el garaje (`hideInGarage`)                    | Sí                                    | Mientras está abierta la pantalla del garaje                                  |
+| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Posiciones siguen con el aviso                        |
 
 - **En el coche** es `IsOnTrack` (tú dentro, con la física en marcha). Fuera del coche (garaje,
   pantalla de sesión, mirando la carrera, el turno de un compañero en una carrera por equipos) no se
@@ -146,11 +145,12 @@ overlay** también está en la bandeja):
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana y visibilidad** de su página
   (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados. Radar,
-  Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos; Combustible tampoco: no
-  muestra nada con el sistema de repeticiones activo, y lo está en la pantalla de sesión. Con «Solo
+  Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen datos;
+  Combustible también: no muestra nada con el sistema de repeticiones activo, y lo está en la
+  pantalla de sesión. Con «Solo
   cuando estás en el coche» (o «Solo en carrera») y las repeticiones ocultas, la pantalla de sesión
-  ya se oculta por estar fuera del coche: «Ocultar en la pantalla de sesión» sale gris y activado, y
-  solo cuentan las excepciones. Con «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es
+  ya se oculta por estar fuera del coche: Apariencia no ofrece «Ocultar en la pantalla de sesión», y
+  solo cuentan las excepciones de cada widget. Con «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es
   el punto en directo de las repeticiones, donde los widgets siguen al coche.
 - iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no

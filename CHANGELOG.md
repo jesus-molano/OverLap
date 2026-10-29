@@ -28,6 +28,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   («Global (80 %)») o usa una opacidad propia, con los mismos botones. En una instalación nueva
   todos usan el global; si ya tenías ajustes, cada widget conserva su opacidad (antes había 75, 78,
   80 y 85 % sin motivo). La ayuda ya no habla de «coches» en widgets sin coches.
+- **Pantalla de sesión, en un solo sitio**: cada página de widget tiene el mismo interruptor
+  «Mostrar en la pantalla de sesión»; en Radar, Pedales, Testigos, Delta y Combustible sale
+  desactivado con el motivo. Apariencia ya no repite el de Posiciones y solo ofrece «Ocultar en la
+  pantalla de sesión» cuando cambia algo (con «Siempre» o siguiendo las repeticiones).
 
 ### Corregido
 
