@@ -114,6 +114,8 @@ export const settingsEs = {
     customColorLabel: (label: string) => `${label}: color personalizado`,
     hexLabel: (label: string) => `${label}: código hexadecimal`,
     presetsLabel: (label: string) => `${label}: valores rápidos`,
+    /** A help line's ⓘ (HelpText): the rest of the help. */
+    moreInfo: 'Más información',
     decrease: 'Reducir',
     increase: 'Aumentar'
   },
@@ -157,7 +159,9 @@ export const settingsEs = {
     example: (sample: string, formatted: string) => `Ejemplo: ${sample} → ${formatted}`
   },
   appearance: {
-    sub: 'El aspecto común de todos los widgets. En su página, cada uno puede cambiar el formato de nombre o la densidad si los usa.',
+    /** One line under the title; the rest behind its ⓘ (`…More`, as every long help here). */
+    sub: 'El aspecto común de todos los widgets',
+    subMore: 'En su página, cada uno puede cambiar el formato de nombre o la densidad si los usa.',
     language: {
       title: 'Idioma',
       label: 'Idioma',
@@ -189,8 +193,8 @@ export const settingsEs = {
        * `scaled`: the widgets whose text it changes (auto height: 'Posiciones, Batalla…'); `free`:
        * those that fit their text to their window instead ('Relativo, Radar y Delta').
        */
-      fontScaleHelp: (scaled: string, free: string) =>
-        `Cambia el texto de ${scaled}. ${free} no: ajustan el texto al tamaño de su ventana`,
+      fontScaleHelp: (scaled: string) => `Cambia ${scaled}`,
+      fontScaleMore: (free: string) => `${free} no: ajustan el texto al tamaño de su ventana.`,
       halo: 'Contorno del texto',
       haloHelp: 'Un borde oscuro fino para leer el texto sobre el juego',
       haloChoices: {
@@ -246,7 +250,7 @@ export const settingsEs = {
       showWhen: 'Mostrar el overlay',
       /** The help line under it, for the current choice. */
       showWhenHelp: {
-        car: 'Mientras conduces; fuera del coche (garaje, pantalla de sesión, el turno de un compañero) se oculta',
+        car: 'Mientras conduces; fuera del coche (garaje, pantalla de sesión…) se oculta',
         race: 'Mientras conduces en una sesión de carrera; en práctica y clasificación no se ve',
         always: 'También fuera del coche; solo lo ocultan las reglas de abajo y las de cada widget'
       },
@@ -272,12 +276,13 @@ export const settingsEs = {
       /** The help line under it, for the current choice. */
       replaysHelp: {
         /** With showWhen 'car' or 'race'. */
-        hide: 'Ningún widget mientras ves una repetición, ni al mirar a otros coches en directo desde fuera del coche',
+        hide: 'Ningún widget en las repeticiones ni al mirar otros coches desde fuera del coche',
         /** With showWhen 'always': the live point is live. */
         hideAlways: 'Al rebobinar no se ve ningún widget; en directo siguen al coche que miras',
+        follow: 'Siguen al coche que miras; al rebobinar solo queda Posiciones, en directo',
         /** `widgets`: the names of the widgets with your car's data only ('Radar, Pedales y Delta'). */
-        follow: (widgets: string) =>
-          `Siguen al coche que miras y, al rebobinar, solo queda Posiciones, con la carrera en directo; ${widgets} solo tienen datos de tu coche y se ocultan si miras otro`
+        followMore: (widgets: string) =>
+          `${widgets} solo tienen datos de tu coche y se ocultan si miras otro.`
       },
       replayChoices: {
         hide: { label: 'Ocultar', hint: 'Ningún widget mientras ves una repetición' },
@@ -287,8 +292,7 @@ export const settingsEs = {
         }
       },
       waiting: 'Mantener «Esperando a iRacing»',
-      waitingHelp:
-        'Sin iRacing, Posiciones y Relativo se ocultan a los pocos segundos; activado, siguen con el aviso'
+      waitingHelp: 'Sin iRacing, Posiciones y Relativo siguen con el aviso en vez de ocultarse'
     },
     reset: {
       label: 'Restablecer apariencia',
@@ -298,7 +302,8 @@ export const settingsEs = {
   },
   /** "Atajos" page: key combinations and controller buttons. */
   shortcuts: {
-    sub: 'Combinaciones de teclas o botones del volante, la button box o los pedales que funcionan en todo Windows, también con iRacing en primer plano. Hasta tres por acción.',
+    sub: 'Teclas o botones del volante que funcionan en todo Windows, también con iRacing delante',
+    subMore: 'También botones de la button box o los pedales. Hasta tres atajos por acción.',
     section: 'Atajos globales',
     actions: {
       toggleOverlay: {
@@ -336,8 +341,7 @@ export const settingsEs = {
     },
     unavailableHelp:
       'Otra aplicación ya usa esta combinación. Elige otra, o ciérrala y vuelve a asignarla aquí',
-    disconnectedHelp:
-      'Ese dispositivo no está conectado. Al enchufarlo, el botón vuelve a funcionar sin tocar nada aquí',
+    disconnectedHelp: 'No está conectado: al enchufarlo, el botón vuelve a funcionar solo',
     /** A controller's button in the field: 'Botón 12' then the controller's name. */
     buttonAria: (button: string, device: string) => `${button} de ${device}`,
     /** Records one more binding for the action (up to three). */
@@ -394,19 +398,20 @@ export const settingsEs = {
     disabled: 'Desactivado: esta acción ya no tiene atajo',
     warnings: {
       altgr:
-        'En un teclado español, Ctrl+Alt es AltGr: puede impedir escribir @, # o € mientras OverLap esté abierto'
+        'En teclado español, Ctrl+Alt es AltGr: con OverLap abierto puede impedir escribir @, # o €'
     },
     notes: {
       title: 'Cómo funcionan',
       focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
-      several:
-        'Cada acción admite hasta tres atajos a la vez, por ejemplo una combinación de teclas y un botón del volante: cualquiera la ejecuta. Pulsa uno para cambiarlo y × para quitarlo.',
-      exclusive:
-        'Una combinación de teclas asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
-      buttons:
-        'Los botones del volante, la button box o los pedales solo se leen: se comparten con iRacing y no se bloquea nada, así que la pulsación también le llega. Elige un botón que no tengas asignado en iRacing. Las crucetas (D-pad) y los hats no se pueden asignar.',
-      buttonBox:
-        'Consejo: F13–F24 (las envían muchas button box y teclados de macros) funcionan sin Ctrl ni Alt.'
+      several: 'Hasta tres atajos por acción: cualquiera la ejecuta.',
+      severalMore:
+        'Por ejemplo, una combinación de teclas y un botón del volante. Pulsa uno para cambiarlo y × para quitarlo.',
+      exclusive: 'Una combinación asignada deja de llegar a los demás programas, iRacing incluido.',
+      exclusiveMore: 'No elijas una que uses en el simulador.',
+      buttons: 'Los botones solo se leen: iRacing también recibe la pulsación.',
+      buttonsMore:
+        'Volante, button box o pedales: no se bloquea nada, así que elige un botón que no tengas asignado en iRacing. Las crucetas (D-pad) y los hats no se pueden asignar.',
+      buttonBox: 'Consejo: F13–F24 (muchas button box y teclados de macros) van sin Ctrl ni Alt.'
     },
     resetAll: {
       label: 'Restablecer atajos',
@@ -1250,7 +1255,9 @@ export const settingsEs = {
   },
   /** The saved layouts page (pages/LayoutsPage.vue). */
   layouts: {
-    sub: 'Guarda con un nombre dónde está cada widget, su tamaño, su escala, si se ve y si está bloqueado, y también sus opciones (columnas, elementos, referencias del delta, opacidad…): una para el Mazda, otra para el GT3. Una de «Solo posición» usa las opciones comunes. La apariencia, la visibilidad y los atajos son siempre los mismos.',
+    sub: 'Guarda dónde está cada widget y, si quieres, sus opciones: una para cada coche',
+    subMore:
+      'Su tamaño, escala, si se ve y si está bloqueado, y sus opciones (columnas, elementos, referencias del delta, opacidad…). Una de «Solo posición» usa las opciones comunes. La apariencia, la visibilidad y los atajos son siempre los mismos.',
     listTitle: 'Disposiciones guardadas',
     listNote: 'La que está en uso se actualiza sola al mover los widgets o cambiar sus opciones',
     inUse: 'En uso',
@@ -1318,7 +1325,9 @@ export const settingsEs = {
     full: (max: number) => `Has llegado al máximo de ${max} disposiciones`,
     filesTitle: 'Archivos',
     filesHelp:
-      'Exporta una disposición a un archivo .json para guardarla o compartirla, con sus opciones si las tiene; al importarla se añade a la lista, sin aplicarla. Si el archivo es de una versión anterior y no trae opciones, se le ponen las opciones comunes',
+      'Exporta una disposición a un .json para guardarla o compartirla; importarla no la aplica',
+    filesMore:
+      'Lleva sus opciones si las tiene. Un archivo de una versión anterior, sin opciones, recibe las opciones comunes.',
     import: 'Importar…',
     notices: {
       exported: (name: string) => `Exportada: ${name}`,
@@ -1336,8 +1345,9 @@ export const settingsEs = {
     },
     autoTitle: 'Cambio automático',
     auto: 'Según el coche',
-    autoHelp:
-      'Al subirte a un coche vinculado se aplica su disposición; con uno sin vincular se queda la última que usaste. Mientras editas espera a que salgas',
+    autoHelp: 'Al subirte a un coche vinculado se aplica su disposición',
+    autoMore:
+      'Con uno sin vincular se queda la última que usaste. Mientras editas, espera a que salgas.',
     currentCar: 'Coche actual',
     noCar: 'Ningún coche ahora: entra en una sesión de iRacing para vincular el tuyo',
     seenCars: 'Otros coches recientes',
@@ -1435,6 +1445,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     customColorLabel: (label) => `${label}: custom colour`,
     hexLabel: (label) => `${label}: hex code`,
     presetsLabel: (label) => `${label}: presets`,
+    moreInfo: 'More information',
     decrease: 'Decrease',
     increase: 'Increase'
   },
@@ -1470,7 +1481,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     example: (sample, formatted) => `Example: ${sample} → ${formatted}`
   },
   appearance: {
-    sub: 'The look shared by every widget. On its page, each one can change the name format or the density if it uses them.',
+    sub: 'The look shared by every widget',
+    subMore: 'On its page, each one can change the name format or the density if it uses them.',
     language: {
       title: 'Language',
       label: 'Language',
@@ -1497,8 +1509,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     text: {
       title: 'Text',
       fontScale: 'Text size',
-      fontScaleHelp: (scaled, free) =>
-        `Changes the text of ${scaled}. Not ${free}: they fit their text to their window`,
+      fontScaleHelp: (scaled) => `Changes ${scaled}`,
+      fontScaleMore: (free) => `Not ${free}: they fit their text to their window.`,
       halo: 'Text outline',
       haloHelp: 'A thin dark edge that keeps text readable over the game',
       haloChoices: {
@@ -1566,10 +1578,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'They keep clear of the results and chat; each widget can stay, from its page',
       replays: 'In replays',
       replaysHelp: {
-        hide: 'No widgets while you watch a replay, nor while you watch other cars live from out of the car',
+        hide: 'No widgets in replays, nor when you watch other cars from out of the car',
         hideAlways: 'No widgets when you rewind; live, they follow the car you are watching',
-        follow: (widgets) =>
-          `They follow the car you are watching and, when you rewind, only the live standings stay; ${widgets} only have your car’s data and hide when you watch another`
+        follow:
+          'They follow the car you are watching; when you rewind, only the live standings stay',
+        followMore: (widgets) =>
+          `${widgets} only have your car’s data and hide when you watch another.`
       },
       replayChoices: {
         hide: { label: 'Hide', hint: 'No widgets while you watch a replay' },
@@ -1579,8 +1593,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         }
       },
       waiting: 'Keep “Waiting for iRacing”',
-      waitingHelp:
-        'Without iRacing, Standings and Relative hide after a few seconds; on, they keep the notice'
+      waitingHelp: 'Without iRacing, Standings and Relative keep the notice instead of hiding'
     },
     reset: {
       label: 'Reset appearance',
@@ -1589,7 +1602,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   shortcuts: {
-    sub: 'Key combinations or buttons of your wheel, button box or pedals that work all over Windows, with iRacing in front too. Up to three per action.',
+    sub: 'Keys or wheel buttons that work all over Windows, with iRacing in front too',
+    subMore: 'Button box or pedal buttons too. Up to three shortcuts per action.',
     section: 'Global shortcuts',
     actions: {
       toggleOverlay: {
@@ -1624,9 +1638,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       disconnected: 'Disconnected'
     },
     unavailableHelp:
-      'Another app already uses this combination. Pick another, or close that app and assign it again here',
-    disconnectedHelp:
-      'That device isn’t connected. Once you plug it in, the button works again without touching anything here',
+      'Another app uses this combination: pick another, or close that app and assign it',
+    disconnectedHelp: 'Not connected: once you plug it in, the button works again by itself',
     buttonAria: (button, device) => `${button} of ${device}`,
     add: 'Add',
     cancel: 'Cancel',
@@ -1660,18 +1673,19 @@ export const settingsEn: Dict<typeof settingsEs> = {
     removed: (keys) => `Removed: ${keys}`,
     disabled: 'Off: this action has no shortcut now',
     warnings: {
-      altgr:
-        'On a Spanish keyboard, Ctrl+Alt is AltGr: it may stop you typing @, # or € while OverLap is open'
+      altgr: 'On a Spanish keyboard Ctrl+Alt is AltGr: with OverLap open you may not type @, # or €'
     },
     notes: {
       title: 'How they work',
       focus: 'They work while iRacing has focus, without leaving the game.',
-      several:
-        'Each action takes up to three shortcuts at once, say a key combination and a button on your wheel: any of them runs it. Click one to change it and × to remove it.',
-      exclusive:
-        'An assigned key combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
-      buttons:
-        'Buttons of your wheel, button box or pedals are only read: they are shared with iRacing and nothing is blocked, so iRacing gets the press too. Pick a button you haven’t assigned in iRacing. D-pads and hats can’t be assigned.',
+      several: 'Up to three shortcuts per action: any of them runs it.',
+      severalMore:
+        'Say a key combination and a button on your wheel. Click one to change it and × to remove it.',
+      exclusive: 'An assigned key combination no longer reaches other programs, iRacing included.',
+      exclusiveMore: 'Don’t pick one you use in the sim.',
+      buttons: 'Buttons are only read: iRacing gets the press too.',
+      buttonsMore:
+        'Wheel, button box or pedals: nothing is blocked, so pick a button you haven’t assigned in iRacing. D-pads and hats can’t be assigned.',
       buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
     },
     resetAll: {
@@ -2418,7 +2432,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
   },
   layouts: {
-    sub: 'Save under a name where each widget is, its size, its scale, whether it shows and whether it is locked, and its options too (columns, elements, delta references, opacity…): one for the Mazda, another for the GT3. A “Position only” one uses the shared options. Appearance, visibility and shortcuts are always the same.',
+    sub: 'Save where each widget is and, if you like, its options: one for each car',
+    subMore:
+      'Its size, scale, whether it shows and whether it is locked, and its options (columns, elements, delta references, opacity…). A “Position only” one uses the shared options. Appearance, visibility and shortcuts are always the same.',
     listTitle: 'Saved layouts',
     listNote: 'The one in use updates itself as you move the widgets or change their options',
     inUse: 'In use',
@@ -2480,7 +2496,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     full: (max) => `You have reached the maximum of ${max} layouts`,
     filesTitle: 'Files',
     filesHelp:
-      'Export a layout to a .json file to keep or share it, with its options if it has them; importing one adds it to the list, without applying it. If the file comes from an older version without options, it gets the shared options',
+      'Export a layout to a .json file to keep or share it; importing one does not apply it',
+    filesMore:
+      'It carries its options if it has them. A file from an older version, without options, gets the shared options.',
     import: 'Import…',
     notices: {
       exported: (name) => `Exported: ${name}`,
@@ -2498,8 +2516,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     autoTitle: 'Automatic switch',
     auto: 'By car',
-    autoHelp:
-      'Getting in a linked car applies its layout; a car without a link keeps the last one you used. While editing it waits until you leave',
+    autoHelp: 'Getting in a linked car applies its layout',
+    autoMore:
+      'A car without a link keeps the last one you used. While editing, it waits until you leave.',
     currentCar: 'Current car',
     noCar: 'No car now: join an iRacing session to link yours',
     seenCars: 'Other recent cars',

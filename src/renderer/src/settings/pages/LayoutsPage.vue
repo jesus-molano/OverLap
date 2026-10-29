@@ -7,6 +7,7 @@ import type { LayoutMode, LayoutSort } from '@shared/types'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
+import HelpText from '../controls/HelpText.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter } from '../editor'
 import PageFrame from '../layout/PageFrame.vue'
@@ -161,7 +162,12 @@ function onLink(car: CarRow, e: Event): void {
     <template #top>
       <header class="page-head">
         <h1 :id="titleId" class="page-title">{{ t.settings.nav.layouts }}</h1>
-        <p class="page-sub">{{ t.settings.layouts.sub }}</p>
+        <HelpText
+          tag="p"
+          class="page-sub"
+          :text="t.settings.layouts.sub"
+          :more="t.settings.layouts.subMore"
+        />
       </header>
     </template>
 
@@ -312,6 +318,7 @@ function onLink(car: CarRow, e: Event): void {
           kind="switch"
           :label="t.settings.layouts.auto"
           :help="t.settings.layouts.autoHelp"
+          :more="t.settings.layouts.autoMore"
           :current="options.autoSwitch"
           :apply="setAutoSwitch"
         />
@@ -360,7 +367,11 @@ function onLink(car: CarRow, e: Event): void {
 
       <PageSection :title="t.settings.layouts.filesTitle">
         <div class="st-row st-row-wrap">
-          <span class="st-help files-help">{{ t.settings.layouts.filesHelp }}</span>
+          <HelpText
+            class="st-help files-help"
+            :text="t.settings.layouts.filesHelp"
+            :more="t.settings.layouts.filesMore"
+          />
         </div>
         <div class="st-row st-row-wrap">
           <div class="mode import-mode">

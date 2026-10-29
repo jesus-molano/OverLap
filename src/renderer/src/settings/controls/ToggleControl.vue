@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { useId } from 'vue'
 import { useDraft } from '../useDraft'
+import HelpText from './HelpText.vue'
 
 const props = withDefaults(
   defineProps<{
     label: string
     help?: string
+    /** The rest of the help, behind its ⓘ (HelpText). */
+    more?: string
     current: boolean
     apply: (value: boolean) => Promise<unknown>
     /** `switch`: row with the label on the left; `checkbox`: compact, label after the box. */
@@ -14,7 +17,7 @@ const props = withDefaults(
     /** Help shown in the warning colour (e.g. a rule that hides the widget everywhere). */
     warn?: boolean
   }>(),
-  { help: undefined, kind: 'checkbox', disabled: false, warn: false }
+  { help: undefined, more: undefined, kind: 'checkbox', disabled: false, warn: false }
 )
 
 const id = useId()
@@ -33,9 +36,14 @@ function onChange(e: Event): void {
   <div v-if="kind === 'switch'" class="st-row">
     <label :for="id" class="st-row-text" :class="{ 'st-disabled': disabled }">
       <span class="st-label">{{ label }}</span>
-      <span v-if="help" :id="helpId" class="st-help" :class="{ 'st-help-warn': warn }">{{
-        help
-      }}</span>
+      <HelpText
+        v-if="help"
+        :id="helpId"
+        class="st-help"
+        :class="{ 'st-help-warn': warn }"
+        :text="help"
+        :more="more"
+      />
     </label>
     <input
       :id="id"
@@ -58,9 +66,14 @@ function onChange(e: Event): void {
     />
     <span class="st-check-text">
       <span>{{ label }}</span>
-      <span v-if="help" :id="helpId" class="st-help" :class="{ 'st-help-warn': warn }">{{
-        help
-      }}</span>
+      <HelpText
+        v-if="help"
+        :id="helpId"
+        class="st-help"
+        :class="{ 'st-help-warn': warn }"
+        :text="help"
+        :more="more"
+      />
     </span>
   </label>
 </template>

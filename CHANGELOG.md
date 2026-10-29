@@ -54,6 +54,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Bandeja más clara**: la casilla «Ocultar overlay» pasa a ser «Mostrar el overlay», marcada
   cuando se ve, como las de los widgets; el submenú de cuándo se ve se llama «Cuándo mostrar» y el
   del radar «Alcance del radar».
+- **Ayudas de una línea** en Apariencia, Atajos y Disposiciones: cada ayuda cabe en una línea (unos
+  90 caracteres) y el resto está tras su ⓘ, que la despliega debajo. Los subtítulos de Atajos y
+  Disposiciones y las notas de «Cómo funcionan» pasan de párrafos a una línea.
 
 ### Corregido
 

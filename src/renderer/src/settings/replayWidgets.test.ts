@@ -33,16 +33,17 @@ describe('replay rule wording', () => {
   })
 
   it('words the replays help for the current choices', () => {
-    expect(replaysHelp(es, LOCALES.es, FOLLOW)).toBe(
-      'Siguen al coche que miras y, al rebobinar, solo queda Posiciones, con la carrera en directo; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
-    )
-    expect(replaysHelp(es, LOCALES.es, HIDE)).toBe(
-      'Ningún widget mientras ves una repetición, ni al mirar a otros coches en directo desde fuera del coche'
-    )
+    expect(replaysHelp(es, LOCALES.es, FOLLOW)).toEqual({
+      help: 'Siguen al coche que miras; al rebobinar solo queda Posiciones, en directo',
+      more: 'Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro.'
+    })
+    expect(replaysHelp(es, LOCALES.es, HIDE)).toEqual({
+      help: 'Ningún widget en las repeticiones ni al mirar otros coches desde fuera del coche'
+    })
     // Always shown: the live point is live, only the tape hides.
-    expect(replaysHelp(en, LOCALES.en, HIDE_ALWAYS)).toBe(
-      'No widgets when you rewind; live, they follow the car you are watching'
-    )
+    expect(replaysHelp(en, LOCALES.en, HIDE_ALWAYS)).toEqual({
+      help: 'No widgets when you rewind; live, they follow the car you are watching'
+    })
   })
 
   it('tells each widget page what a replay does to it', () => {
