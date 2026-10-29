@@ -208,7 +208,7 @@ const rootClass = computed(() => ({
 <template>
   <div class="delta ov-root ov-fade" :class="rootClass">
     <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
-      <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top">
+      <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top" data-el="delta.rows.top">
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
           <!-- The sign as a shape too: ▼ faster, ▲ slower (colour-blind safe). -->
           <span class="dl-hero__sym">
@@ -224,7 +224,7 @@ const rootClass = computed(() => ({
           <span class="dl-note__text">{{ note }}</span>
         </p>
         <template v-else>
-          <div v-memo="[state, preview]" class="dl-state">
+          <div v-memo="[state, preview]" class="dl-state" data-el="delta.top.state">
             <span
               v-if="state.kind !== 'none'"
               class="dl-state__line"
@@ -247,11 +247,16 @@ const rootClass = computed(() => ({
           </div>
 
           <div v-if="showPredicted || showReference" class="dl-info">
-            <div v-if="showPredicted" class="dl-pred">
+            <div v-if="showPredicted" class="dl-pred" data-el="delta.top.predicted">
               <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
               <span class="dl-pred__time">{{ predicted }}</span>
             </div>
-            <div v-if="showReference" v-memo="[reference, temporary]" class="dl-ref">
+            <div
+              v-if="showReference"
+              v-memo="[reference, temporary]"
+              class="dl-ref"
+              data-el="delta.top.reference"
+            >
               <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
               <span class="dl-ref__label">{{ reference.label }}</span>
               <!-- The cycle shortcut's choice: this session only, never saved. -->
@@ -268,6 +273,7 @@ const rootClass = computed(() => ({
         v-inline-style="orderStyle(place.bar ?? 0)"
         class="dl-bar"
         :class="barClass"
+        data-el="delta.rows.bar"
         aria-hidden="true"
       >
         <span v-inline-style="bar.fill" class="dl-bar__fill" />
@@ -283,8 +289,15 @@ const rootClass = computed(() => ({
         v-inline-style="orderStyle(place.laps ?? 0)"
         v-memo="[lapTimes, place.laps]"
         class="dl-laps"
+        data-el="delta.rows.laps"
       >
-        <span v-for="l in lapTimes" :key="l.id" class="dl-lap" :class="{ 'dl-lap--ref': l.isRef }">
+        <span
+          v-for="l in lapTimes"
+          :key="l.id"
+          class="dl-lap"
+          :class="{ 'dl-lap--ref': l.isRef }"
+          :data-el="`delta.laps.${l.id}`"
+        >
           <span class="dl-lap__cap">{{ l.caption }}</span>
           <span class="dl-lap__time">{{ l.time }}</span>
           <span
@@ -302,6 +315,7 @@ const rootClass = computed(() => ({
         v-inline-style="orderStyle(place.sectors ?? 0)"
         class="dl-sectors"
         :class="`dl-sectors--${density}`"
+        data-el="delta.rows.sectors"
       >
         <span
           v-for="c in chips"

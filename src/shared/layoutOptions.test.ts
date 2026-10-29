@@ -481,6 +481,22 @@ describe('what the renderers receive', () => {
     expect(s.savedLayouts.list.every((l) => l.options !== undefined)).toBe(true)
   })
 
+  it("sends the overlays no settings window's options: folding a panel changes nothing there", () => {
+    const s = createDefaultSettings()
+    const folded = applySettingsPatch(s, {
+      settingsWindow: {
+        customizeOpen: s.settingsWindow.customizeOpen.map((e) => ({ ...e, visible: !e.visible })),
+        stageScene: 'light'
+      }
+    })
+    expect(folded.settingsWindow).not.toEqual(s.settingsWindow)
+    expect(deepEqual(rendererSettings(folded, 'overlay'), rendererSettings(s, 'overlay'))).toBe(
+      true
+    )
+    // The settings window keeps them.
+    expect(rendererSettings(folded, 'settings').settingsWindow).toEqual(folded.settingsWindow)
+  })
+
   it('stays small with 30 full layouts (the store has them all)', () => {
     const s = thirty()
     const size = (x: unknown): number => JSON.stringify(x).length

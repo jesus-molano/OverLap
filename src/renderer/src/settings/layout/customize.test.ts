@@ -9,9 +9,18 @@ import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
 import { renderToString, type SSRContext } from 'vue/server-renderer'
 import { messagesFor, type Language } from '@shared/i18n'
-import { elementFields, type OptionSection } from '@shared/settingsSchema'
+import {
+  CUSTOMIZE_FIRST_ZONES,
+  CUSTOMIZE_ZONE_IDS,
+  OPTION_SCHEMA,
+  elementFields,
+  isLayoutSection,
+  type OptionSection
+} from '@shared/settingsSchema'
+import { WIDGET_IDS } from '@shared/widgets'
 import * as customize from './customize'
 import { LEADING_ZONES, customizeAppendixId, customizeTargetId, customizeZones } from './customize'
+import * as zonesOpen from './zonesOpen'
 import SOURCE from './CustomizeSection.vue?raw'
 import WIDGET_PAGE from '../pages/WidgetPage.vue?raw'
 
@@ -37,6 +46,7 @@ describe('customizeZones', () => {
   it('lists every element list of the section exactly once, and none of another', () => {
     const sections = new Set(elementFields().map(([s]) => s))
     for (const section of sections) {
+      if (!isLayoutSection(section)) continue
       const own = elementFields()
         .filter(([s]) => s === section)
         .map(([, f]) => f)
@@ -49,8 +59,55 @@ describe('customizeZones', () => {
   })
 
   it('gives nothing for a section without lists', () => {
-    const none: OptionSection[] = ['appearance', 'shortcuts', 'settingsWindow', 'visibility']
+    const none: OptionSection[] = ['appearance', 'shortcuts', 'visibility', 'layouts']
     for (const section of none) expect(customizeZones(section)).toEqual([])
+  })
+
+  it("gives nothing for the settings window's own list (the accordions' state is no zone)", () => {
+    expect(elementFields().some(([s, f]) => s === 'settingsWindow' && f === 'customizeOpen')).toBe(
+      true
+    )
+    expect(customizeZones('settingsWindow')).toEqual([])
+  })
+})
+
+describe('the accordions of "Personalizar"', () => {
+  it("are every widget page's zones, page by page in its editors' order", () => {
+    const zones = WIDGET_IDS.flatMap((id) => customizeZones(id).map((f) => `${id}.${f}`))
+    expect([...CUSTOMIZE_ZONE_IDS].sort()).toEqual([...zones].sort())
+    for (const id of WIDGET_IDS) {
+      const own = CUSTOMIZE_ZONE_IDS.filter((z) => z.startsWith(`${id}.`))
+      expect(own, id).toEqual(customizeZones(id).map((f) => `${id}.${f}`))
+    }
+  })
+
+  it('open on the first zone of each page only', () => {
+    const firsts = WIDGET_IDS.filter((id) => customizeZones(id).length > 0).map(
+      (id) => `${id}.${customizeZones(id)[0]}`
+    )
+    expect([...CUSTOMIZE_FIRST_ZONES].sort()).toEqual(firsts.sort())
+    const open = OPTION_SCHEMA.settingsWindow.customizeOpen.default.filter((e) => e.visible)
+    expect(open.map((e) => e.id)).toEqual(CUSTOMIZE_FIRST_ZONES)
+  })
+
+  it("find an editor's zone by its spec, none for a list no page has", () => {
+    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.standings.footerBar)).toBe('standings.footerBar')
+    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.relative.footerBar)).toBe('relative.footerBar')
+    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.traffic.header)).toBe('traffic.header')
+    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.settingsWindow.customizeOpen)).toBeNull()
+    expect(zonesOpen.zoneOfSpec({})).toBeNull()
+  })
+
+  it('open or close several at once, leaving the others as they were', () => {
+    const list = OPTION_SCHEMA.settingsWindow.customizeOpen.default
+    const next = zonesOpen.withZonesOpen(list, ['fuel.lines', 'relative.columns'], false)
+    expect(next.find((e) => e.id === 'relative.columns')?.visible).toBe(false)
+    expect(next.find((e) => e.id === 'fuel.lines')?.visible).toBe(false)
+    expect(next.find((e) => e.id === 'radar.parts')?.visible).toBe(true)
+    expect(next.map((e) => e.id)).toEqual(list.map((e) => e.id))
+    const all = zonesOpen.withZonesOpen(list, CUSTOMIZE_ZONE_IDS, true)
+    expect(all.every((e) => e.visible)).toBe(true)
+    expect(list.filter((e) => e.visible).length).toBe(CUSTOMIZE_FIRST_ZONES.length)
   })
 })
 
@@ -106,6 +163,7 @@ function compileSection(lang: Language): vue.Component {
   const modules: Readonly<Record<string, unknown>> = {
     vue,
     './customize': customize,
+    './zonesOpen': zonesOpen,
     '../../composables/useI18n': { useI18n: () => vue.computed(() => messagesFor(lang)) }
   }
   const exports: { default?: vue.Component } = {}

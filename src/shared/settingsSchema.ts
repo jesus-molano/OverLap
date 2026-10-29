@@ -14,6 +14,7 @@ import type {
   BattleLaneId,
   BattlePartId,
   BattleRowId,
+  CustomizeZoneId,
   DeltaLapId,
   DeltaReference,
   DeltaRowId,
@@ -314,6 +315,44 @@ const CONDITIONS_FOOTER: readonly InfoBarEntryId[] = [
   'rubber',
   'split'
 ]
+
+/**
+ * The "Personalizar" zones of the widget pages ('section.field' of each element list), page by
+ * page in the order of its editors (the settings window's customizeZones).
+ */
+export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
+  'relative.columns',
+  'relative.headerBar',
+  'relative.footerBar',
+  'radar.parts',
+  'standings.columns',
+  'standings.headerBar',
+  'standings.subheaderBar',
+  'standings.footerBar',
+  'standings.classLine',
+  'battle.lanes',
+  'battle.rows',
+  'battle.parts',
+  'inputs.sections',
+  'inputs.bars',
+  'inputs.info',
+  'inputs.car',
+  'traffic.groups',
+  'traffic.parts',
+  'traffic.header',
+  'alerts.parts',
+  'delta.rows',
+  'delta.top',
+  'delta.laps',
+  'fuel.headerBar',
+  'fuel.lines',
+  'lights.icons'
+])
+
+/** The first zone of each page: open until you close it. */
+export const CUSTOMIZE_FIRST_ZONES: readonly CustomizeZoneId[] = CUSTOMIZE_ZONE_IDS.filter(
+  (id, i) => i === 0 || id.split('.')[0] !== CUSTOMIZE_ZONE_IDS[i - 1]?.split('.')[0]
+)
 
 export const OPTION_SCHEMA = {
   appearance: {
@@ -654,7 +693,13 @@ export const OPTION_SCHEMA = {
   },
   // The settings window's own; nothing else reads them.
   settingsWindow: {
-    stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true }
+    stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true },
+    // Each page opens on its first zone; a zone added later starts closed.
+    customizeOpen: elements(CUSTOMIZE_ZONE_IDS, {
+      hidden: CUSTOMIZE_ZONE_IDS.filter((id) => !CUSTOMIZE_FIRST_ZONES.includes(id)),
+      fixedOrder: true,
+      displayOnly: true
+    })
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.

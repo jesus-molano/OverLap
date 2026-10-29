@@ -1621,10 +1621,44 @@ export interface LightsOptions {
   showTrend: boolean
 }
 
+/**
+ * A widget page's "Personalizar" zone, 'section.field' of its element list: the key of its
+ * accordion (SettingsWindowOptions.customizeOpen).
+ */
+export type CustomizeZoneId =
+  | 'relative.columns'
+  | 'relative.headerBar'
+  | 'relative.footerBar'
+  | 'radar.parts'
+  | 'standings.columns'
+  | 'standings.headerBar'
+  | 'standings.subheaderBar'
+  | 'standings.footerBar'
+  | 'standings.classLine'
+  | 'battle.lanes'
+  | 'battle.rows'
+  | 'battle.parts'
+  | 'inputs.sections'
+  | 'inputs.bars'
+  | 'inputs.info'
+  | 'inputs.car'
+  | 'traffic.groups'
+  | 'traffic.parts'
+  | 'traffic.header'
+  | 'alerts.parts'
+  | 'delta.rows'
+  | 'delta.top'
+  | 'delta.laps'
+  | 'fuel.headerBar'
+  | 'fuel.lines'
+  | 'lights.icons'
+
 /** The settings window's own preferences (nothing else reads them). */
 export interface SettingsWindowOptions {
   /** The scene behind the widget previews: a night track or a bright day one. */
   stageScene: 'dark' | 'light'
+  /** Which "Personalizar" accordions are open (visible = open), every zone once. */
+  customizeOpen: ElementList<CustomizeZoneId>
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

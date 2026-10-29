@@ -11,9 +11,14 @@ defineProps<{ heads: HeadsView }>()
 
 <template>
   <div class="sd-heads" aria-hidden="true">
-    <span v-for="h in heads" :key="h.id" class="sd-hcell" :class="`is-${h.align}`">{{
-      h.label
-    }}</span>
+    <span
+      v-for="h in heads"
+      :key="h.id"
+      class="sd-hcell"
+      :class="`is-${h.align}`"
+      :data-el="h.el"
+      >{{ h.label }}</span
+    >
   </div>
 </template>
 

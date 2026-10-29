@@ -11,7 +11,7 @@ import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter } from '../editor'
+import { elementToggle, listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
@@ -74,13 +74,28 @@ const parts = computed(() => ({
   title: zoneTitle(t.value, 'traffic', 'parts'),
   labels: elementTexts(t.value, 'traffic', 'parts')
 }))
-const header = computed(() => ({
-  title: zoneTitle(t.value, 'traffic', 'header'),
-  labels: elementTexts(t.value, 'traffic', 'header')
-}))
+// The header's title is its switch, as on the other widgets' bars ("Mostrar cabecera": the
+// header is that title and the SIM tag); the group captions stay a row of the list, its hint
+// saying they are drawn over the groups whatever the switch says.
+const titleShown = computed(() => isElementVisible(opts.value.header, 'title'))
+const header = computed(() => {
+  const l = elementTexts(t.value, 'traffic', 'header')
+  return {
+    title: zoneTitle(t.value, 'traffic', 'header'),
+    labels: {
+      title: l.title,
+      captions: { label: l.captions.label, hint: t.value.settings.traffic.captionsHelp }
+    },
+    summary: titleShown.value
+      ? t.value.settings.infoBar.summaryOn
+      : t.value.settings.infoBar.summaryOff
+  }
+})
 const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
 const setHeader = listSetter('traffic', 'header')
+const setTitleShown = elementToggle('traffic', 'header', 'title')
+const HEADER_OMIT = ['title'] as const
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
@@ -175,6 +190,17 @@ const nameHelp = computed(() =>
       :spec="S.header"
       :labels="header.labels"
       :apply="setHeader"
-    />
+      :omit="HEADER_OMIT"
+      :summary="header.summary"
+    >
+      <template #head>
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.infoBar.show.headerBar"
+          :current="titleShown"
+          :apply="setTitleShown"
+        />
+      </template>
+    </ElementEditor>
   </CustomizeSection>
 </template>

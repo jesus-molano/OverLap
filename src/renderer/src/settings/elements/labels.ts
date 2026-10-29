@@ -4,10 +4,16 @@
  * new list, or a new id in one, without its words here (and in both dictionaries) does not
  * compile. The settings pages pass these to ElementEditor.vue.
  */
-import type { Messages } from '@shared/i18n'
+import { widgetTitle, type Messages } from '@shared/i18n'
 import { INFO_BAR_ENTRY_IDS } from '@shared/infoBar'
-import type { ElementField, ElementIdOf, OptionSection } from '@shared/settingsSchema'
-import type { InfoBarEntryId, LightKind, StandingsColumnId } from '@shared/types'
+import {
+  CUSTOMIZE_ZONE_IDS,
+  type ElementField,
+  type ElementIdOf,
+  type OptionSection
+} from '@shared/settingsSchema'
+import type { CustomizeZoneId, InfoBarEntryId, LightKind, StandingsColumnId } from '@shared/types'
+import type { WidgetId } from '@shared/widgets'
 import type { ElementText } from './listOps'
 
 type Texts<Id extends string> = Readonly<Record<Id, ElementText>>
@@ -58,6 +64,17 @@ function lights(m: Messages): Texts<LightKind> {
   const out = {} as Record<LightKind, ElementText>
   for (const id of Object.keys(names) as LightKind[]) {
     out[id] = { label: names[id], hint: help[id] }
+  }
+  return out
+}
+
+/** The accordions' zones by page and name: 'Relativo · Columnas'. */
+function customizeZoneTexts(m: Messages): Texts<CustomizeZoneId> {
+  const out = {} as Record<CustomizeZoneId, ElementText>
+  for (const id of CUSTOMIZE_ZONE_IDS) {
+    const [section, field] = id.split('.') as [WidgetId, string]
+    const zones = ZONES[section] as Readonly<Record<string, { title: (m: Messages) => string }>>
+    out[id] = { label: `${widgetTitle(m, section)} · ${zones[field]?.title(m) ?? field}` }
   }
   return out
 }
@@ -166,7 +183,12 @@ const ZONES: ZoneWords = {
     icons: { title: (m) => m.settings.zones.lights.icons, items: lights }
   },
   shortcuts: {},
-  settingsWindow: {},
+  settingsWindow: {
+    customizeOpen: {
+      title: (m) => m.settings.zones.settingsWindow.customizeOpen,
+      items: customizeZoneTexts
+    }
+  },
   layouts: {}
 }
 

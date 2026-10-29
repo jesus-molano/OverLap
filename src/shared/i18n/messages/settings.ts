@@ -95,6 +95,9 @@ export const settingsEs = {
     /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
     customize: 'Personalizar',
     customizeNote: 'Orden y visibilidad de cada parte',
+    /** Every accordion of "Personalizar" at once. */
+    expandAll: 'Expandir todo',
+    collapseAll: 'Contraer todo',
     show: 'Mostrar',
     layout: 'Disposición',
     keepVisible: 'Mantener visible',
@@ -580,6 +583,8 @@ export const settingsEs = {
     fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
     slowerHelp: 'Una clase más lenta a la que alcanzas',
     hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
+    /** The header's captions row: drawn over each group, whatever the header's switch says. */
+    captionsHelp: 'PELIGRO, DELANTE, POR DETRÁS sobre cada grupo; aunque no se muestre la cabecera',
     behind: 'Mirar atrás',
     behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
     ahead: 'Mirar delante',
@@ -908,6 +913,20 @@ export const settingsEs = {
       after: 'o usa ↑ ↓ para ordenar; el ojo muestra u oculta cada elemento en el widget.'
     },
     introFixed: 'El ojo muestra u oculta cada elemento en el widget; su orden es fijo.',
+    /** An info bar's list, split around the drag handle glyph and the side button's. */
+    introSides: {
+      before: 'Arrastra',
+      middle: 'o usa ↑ ↓ para ordenar, y',
+      after: 'para pasar al otro lado; el ojo muestra u oculta cada elemento.'
+    },
+    /** An info bar's two ends: what goes at the start of the line, what at its far end. */
+    sides: { left: 'Izquierda', right: 'Derecha' },
+    sidesHelp: { left: 'Al principio de la línea', right: 'Al final de la línea' },
+    sideEmpty: 'Nada a este lado: arrastra aquí un elemento',
+    toLeft: (item: string) => `Pasar ${item} a la izquierda`,
+    toRight: (item: string) => `Pasar ${item} a la derecha`,
+    movedLeft: (item: string) => `${item}: a la izquierda.`,
+    movedRight: (item: string) => `${item}: a la derecha.`,
     count: (visible: number, total: number) => `${visible} de ${total} visibles`,
     move: (item: string) => `Mover ${item}`,
     moveUp: (item: string) => `Subir ${item}`,
@@ -950,7 +969,9 @@ export const settingsEs = {
     alerts: { parts: 'Extras' },
     delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
     fuel: { headerBar: 'Cabecera', lines: 'Líneas' },
-    lights: { icons: 'Testigos' }
+    lights: { icons: 'Testigos' },
+    /** The accordions' open state (no editor of its own): named for completeness. */
+    settingsWindow: { customizeOpen: 'Secciones abiertas de Personalizar' }
   },
   /**
    * Each element's name (and a hint where it helps), per widget and zone, for the zones no other
@@ -1076,6 +1097,18 @@ export const settingsEs = {
     },
     split: 'A la derecha',
     splitHint: 'Lo que va después se alinea al otro extremo',
+    /** The bar's switch, at the top of its editor (off: the size 'off'). */
+    show: {
+      headerBar: 'Mostrar cabecera',
+      subheaderBar: 'Mostrar segunda línea',
+      footerBar: 'Mostrar pie'
+    },
+    /** A closed accordion's summary: 'Normal · 4 de 15 visibles'; 'No se muestra' when off. */
+    summary: (size: string, visible: number, total: number) =>
+      `${size} · ${visible} de ${total} visibles`,
+    summaryOff: 'No se muestra',
+    /** A shown header without a size of its own (the traffic's). */
+    summaryOn: 'Se muestra',
     size: 'Tamaño',
     sizeChoices: {
       off: { label: 'Oculta' },
@@ -1279,6 +1312,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     content: 'Content',
     customize: 'Customise',
     customizeNote: 'Order and visibility of each part',
+    expandAll: 'Expand all',
+    collapseAll: 'Collapse all',
     show: 'Show',
     layout: 'Layout',
     keepVisible: 'Keep visible',
@@ -1720,6 +1755,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fasterHelp: 'Catching you from behind: how soon and where',
     slowerHelp: 'A slower class you are catching',
     hazardsHelp: 'Stopped, very slow or off-track cars ahead',
+    captionsHelp: 'HAZARD, AHEAD, BEHIND over each group; even with the header hidden',
     behind: 'Look behind',
     behindHelp: 'Faster cars up to this far behind you',
     ahead: 'Look ahead',
@@ -2008,6 +2044,18 @@ export const settingsEn: Dict<typeof settingsEs> = {
       after: 'or use ↑ ↓ to reorder; the eye shows or hides each element in the widget.'
     },
     introFixed: 'The eye shows or hides each element in the widget; their order is fixed.',
+    introSides: {
+      before: 'Drag',
+      middle: 'or use ↑ ↓ to reorder, and',
+      after: 'to move to the other side; the eye shows or hides each element.'
+    },
+    sides: { left: 'Left', right: 'Right' },
+    sidesHelp: { left: 'At the start of the line', right: 'At the end of the line' },
+    sideEmpty: 'Nothing on this side: drag an element here',
+    toLeft: (item) => `Move ${item} to the left`,
+    toRight: (item) => `Move ${item} to the right`,
+    movedLeft: (item) => `${item}: on the left.`,
+    movedRight: (item) => `${item}: on the right.`,
     count: (visible, total) => `${visible} of ${total} shown`,
     move: (item) => `Move ${item}`,
     moveUp: (item) => `Move ${item} up`,
@@ -2042,7 +2090,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     alerts: { parts: 'Extras' },
     delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
     fuel: { headerBar: 'Header', lines: 'Lines' },
-    lights: { icons: 'Lights' }
+    lights: { icons: 'Lights' },
+    settingsWindow: { customizeOpen: 'Open sections of Customise' }
   },
   items: {
     relative: {
@@ -2157,6 +2206,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     split: 'On the right',
     splitHint: 'What follows lines up at the other end',
+    show: {
+      headerBar: 'Show header',
+      subheaderBar: 'Show second line',
+      footerBar: 'Show footer'
+    },
+    summary: (size, visible, total) => `${size} · ${visible} of ${total} shown`,
+    summaryOff: 'Not shown',
+    summaryOn: 'Shown',
     size: 'Size',
     sizeChoices: {
       off: { label: 'Hidden' },
