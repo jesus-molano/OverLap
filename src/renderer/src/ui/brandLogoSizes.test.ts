@@ -3,7 +3,7 @@ import type { KnownBrandId } from '@shared/carBrands'
 import { BRAND_LOGOS } from './brandLogos'
 import { COLOR_LOGOS } from './brandLogosColor'
 import { brandDrawing } from './brandDrawing'
-import { SCALE_MAX, fitLogo, measureInk, outline, type InkShape } from './brandLogoInk'
+import { SCALE_MAX, SLOT_ASPECT, fitLogo, measureInk, outline, type InkShape } from './brandLogoInk'
 import { LOGO_SCALE_COLOR, LOGO_SCALE_MONO } from './brandLogoSizes'
 
 const COLOR = Object.entries(COLOR_LOGOS).map(([id, l]) => ({
@@ -64,6 +64,15 @@ describe('logo sizes', () => {
     expect(LOGO_SCALE_COLOR.ferrari).toBeGreaterThan(1)
     expect(LOGO_SCALE_COLOR.dallara).toBe(1)
     expect(LOGO_SCALE_MONO['aston-martin']).toBe(1)
+  })
+
+  it('grows a small mark in a nearly slot-shaped box up to the width, not back to 1', () => {
+    // A 17:10 box meets the slot's width at about 1.05 slot heights; its small ink asks for more.
+    const fit = fitLogo('0 0 17 10', { box: [5, 3, 12, 7], area: 28 })
+    expect(fit.scale).toBe(Math.round(Math.max(1, SLOT_ASPECT / 1.7) * 100) / 100)
+    expect(fit.scale).toBeGreaterThan(1)
+    // A wide mark already held by the width keeps the size it had.
+    expect(fitLogo('0 0 40 10', { box: [0, 4, 40, 6], area: 80 }).scale).toBe(1)
   })
 
   it('reaches BrandMark through the drawing, in both styles', () => {
