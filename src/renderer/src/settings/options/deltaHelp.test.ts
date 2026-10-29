@@ -9,7 +9,7 @@ describe('referenceRowHelp', () => {
   it('gives each session its own chain, not the race’s', () => {
     // The defaults: Práctica on the record, Clasificación and Carrera on the optimal.
     expect(referenceRowHelp('pb', true, ES)).toBe(
-      `${ES.settings.delta.references.pb.hint} · Si no existe: Mejor → Mejor de clase`
+      `${ES.settings.delta.references.pb.hint} · Si no existe: Mejor → Vuelta rápida de clase`
     )
     expect(referenceRowHelp('optimal', true, ES)).toBe(
       `${ES.settings.delta.references.optimal.hint} · Si no existe: Récord → Óptima de clase`

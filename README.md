@@ -93,7 +93,7 @@ solo cuando no hay nadie cerca.
 
 Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o completo. Columnas que
 se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados, iRating,
-licencia, Δ iRating, hueco al de delante y al líder, última y mejor vuelta (en morado la más rápida
+licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la más rápida
 de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de sesión, tus
 incidentes y tu iRating y SR proyectados; pie con las condiciones de pista (temperatura y su
 tendencia, agua y lluvia, viento con un dial que apunta a tu coche, aire y goma).

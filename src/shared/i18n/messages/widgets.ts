@@ -114,7 +114,7 @@ export const widgetsEs = {
     budgetUnknown: 'margen —',
     /** The fastest lap of the class: the row's tag (a stopwatch's word) and its full name. */
     fastestTag: 'VR',
-    fastestName: 'Vuelta rápida de la clase'
+    fastestName: 'Vuelta rápida de clase'
   },
   battle: {
     ahead: 'DELANTE',
@@ -311,7 +311,7 @@ export const widgetsEs = {
     /** The class best is your own lap. */
     self: 'Tú',
     /** The class best of a driver not in the session info any more. */
-    classBest: 'Mejor de la clase',
+    classBest: 'Vuelta rápida de clase',
     /** The best sectors of your class, joined (nobody's lap). */
     classOptimal: 'Óptima de la clase',
     /** The lap times line (delta.laps): short captions before each time. */
@@ -526,7 +526,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     noBudget: 'no margin',
     budgetUnknown: 'margin —',
     fastestTag: 'FL',
-    fastestName: 'Fastest lap of the class'
+    fastestName: 'Class fastest lap'
   },
   battle: {
     ahead: 'AHEAD',
@@ -648,7 +648,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     session: 'Session best',
     optimal: 'Optimal lap',
     self: 'You',
-    classBest: 'Class best',
+    classBest: 'Class fastest lap',
     classOptimal: 'Class optimal',
     laps: { last: 'Last', best: 'Best', optimal: 'Opt.', pb: 'PB' },
     refMark: 'Δ',

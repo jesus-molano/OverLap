@@ -101,7 +101,7 @@ export function lapTimesView(
   }))
 }
 
-/** A reference's own name ('Vuelta óptima', 'Mejor de la clase'): nobody's lap, no driver. */
+/** A reference's own name ('Vuelta óptima', 'Vuelta rápida de clase'): nobody's lap, no driver. */
 export const referenceNames = perDictionary((m): Readonly<Record<DeltaReference, string>> => {
   const t = m.widgets.delta
   return Object.freeze({
