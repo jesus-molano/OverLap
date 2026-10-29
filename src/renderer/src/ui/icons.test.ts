@@ -24,7 +24,8 @@ describe('icons', () => {
       'wheel',
       'eye',
       'eye-off',
-      'unlock'
+      'unlock',
+      'save'
     ]) {
       expect(ICON_NAMES).toContain(name)
     }

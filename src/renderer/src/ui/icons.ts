@@ -63,6 +63,14 @@ export const ICONS = {
       d: 'M4.6 7h6.8A1.6 1.6 0 0 1 13 8.6v4.3a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 12.9V8.6A1.6 1.6 0 0 1 4.6 7z'
     }
   ],
+  /** Saved to (settings: where a widget's options are kept): a floppy disk, label and shutter. */
+  save: [
+    {
+      d: 'M3.5 2h7.4L14 5.1v7.4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-9A1.5 1.5 0 0 1 3.5 2z',
+      kind: 'stroke'
+    },
+    { d: 'M5 2v3.25h5V2M5 14v-4h6v4', kind: 'stroke' }
+  ],
   /** Unlocked widget (the edit chip's padlock, open): the shackle swung up off its right post. */
   unlock: [
     { d: 'M5.25 7V4.75a2.75 2.75 0 0 1 5.35-.9', kind: 'stroke' },

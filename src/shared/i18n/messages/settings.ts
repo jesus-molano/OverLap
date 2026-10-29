@@ -357,7 +357,7 @@ export const settingsEs = {
     },
     /** Where this page's changes are kept (layout/OptionsTarget.vue). */
     target: {
-      savingIn: 'Guardando en:',
+      savingIn: 'Guardando en',
       shared: 'Opciones comunes',
       layoutHelp: 'Lo que cambies aquí solo cambia la disposición en uso',
       /** The Ventana section (place, size, scale, lock) is always the layout's own. */
@@ -1501,7 +1501,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       description: 'Moves the widget back to its default position and size'
     },
     target: {
-      savingIn: 'Saving to:',
+      savingIn: 'Saving to',
       shared: 'Shared options',
       layoutHelp: 'What you change here only changes the layout in use',
       sharedHelp: (name) =>
