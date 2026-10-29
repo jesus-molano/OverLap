@@ -259,6 +259,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   margin-top: auto;
 }
 
+/* The title keeps the line of the panel header it used to have (PanelHeader's 1.3), so a
+   traffic panel reads to the pixel as it did before its header became an info bar. */
+.tr-panel :deep(.ov-ibar--head .ib-title) {
+  line-height: 1.3;
+}
+
 /*
  * Fixed heights, never sized by content, so contain: strict is safe: a 4 Hz text change
  * re-lays out its own line only.

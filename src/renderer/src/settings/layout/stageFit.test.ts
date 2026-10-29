@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fitScale, stageFit } from './stageFit'
+import { editingLimit, fitScale, stageFit } from './stageFit'
 
 describe('fitScale', () => {
   it('never enlarges what already fits', () => {
@@ -56,5 +56,18 @@ describe('stageFit', () => {
 
   it('reports 0 for an unknown side and does not scale', () => {
     expect(stageFit({ w: 0, h: 0 }, { w: 600, h: 250 })).toEqual({ scale: 1, width: 0, height: 0 })
+  })
+})
+
+describe('editingLimit', () => {
+  it('keeps the sample at its resting height while ghosts add lines', () => {
+    expect(editingLimit(300, 253)).toBe(253)
+    expect(editingLimit(200, 253)).toBe(200)
+    expect(editingLimit(0, 253)).toBe(253)
+    expect(editingLimit(300, 0)).toBe(300)
+    // 36 px of ghost rows on a 253 px sample: drawn smaller, the same height.
+    const fit = stageFit({ w: 400, h: 289 }, { w: 400, h: editingLimit(300, 253) })
+    expect(fit.height).toBe(253)
+    expect(fit.scale).toBeCloseTo(253 / 289)
   })
 })

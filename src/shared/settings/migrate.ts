@@ -650,5 +650,28 @@ export function migrateSection(
   // Only a lights section the file saved (not the one migrateLights makes from the band).
   else if (section === 'lights' && isRecord(raw)) out = migrateLightsCrewTag(out)
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
+  else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
   return migrateLists(section, out)
+}
+
+/** Accordions of "Personalizar" that were renamed: the old id and the one that took its place. */
+const RENAMED_ZONES: readonly (readonly [string, string])[] = [
+  // The traffic's title band and captions became its header bar (and a switch under Grupos).
+  ['traffic.header', 'traffic.headerBar']
+]
+
+/**
+ * The settings window's open accordions with each renamed zone under its new id, open or closed
+ * as it was; only while the list lacks the new id. `raw` itself when there is nothing to do.
+ */
+export function migrateCustomizeOpen(raw: Record<string, unknown>): Record<string, unknown> {
+  const list = raw.customizeOpen
+  if (!Array.isArray(list)) return raw
+  const has = (id: string): boolean => list.some((e) => isRecord(e) && e.id === id)
+  let next: unknown[] | null = null
+  for (const [from, to] of RENAMED_ZONES) {
+    if (!has(from) || has(to)) continue
+    next = (next ?? list).map((e) => (isRecord(e) && e.id === from ? { ...e, id: to } : e))
+  }
+  return next === null ? raw : { ...raw, customizeOpen: next }
 }

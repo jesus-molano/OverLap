@@ -44,6 +44,8 @@ export interface ZoneHandle {
   setVisible(id: string, visible: boolean): void
   /** Sends a reordered list as a drag of the list would (the announcement, the patch). */
   commit(next: ElementEntry<string>[], id: string): void
+  /** Sends `next`, where hidden `id` is shown at a new place: a ghost dropped (one patch). */
+  showAt(next: ElementEntry<string>[], id: string): void
   /** Opens the zone's accordion and brings `id`'s row into view. */
   reveal(id: string): void
 }

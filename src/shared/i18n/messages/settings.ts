@@ -86,6 +86,8 @@ export const settingsEs = {
     /** Above the preview until dismissed (settingsWindow.previewHint). */
     hint: 'Arrastra en la vista previa para ordenar; clic para mostrar u ocultar',
     hintMore: 'Los ocultos se ven translúcidos mientras editas, donde caben.',
+    /** The same on a page whose preview draws no ghosts (previewEdit.ts GHOST_ZONES). */
+    hintMoreList: 'Lo que ocultes vuelve desde su lista, debajo.',
     hintDismiss: 'Entendido',
     hintDismissLabel: 'Ocultar este consejo',
     /** Under an element's name on hover: what the pointer does to it. */
@@ -94,16 +96,16 @@ export const settingsEs = {
       hide: 'Clic para ocultar · su orden es fijo',
       'move-required': 'Arrastra para mover · siempre visible',
       required: 'Siempre visible y en orden fijo',
-      show: 'Oculto · clic para mostrar'
+      show: 'Oculto · clic o arrastra para mostrarlo'
     },
     /** A click or a drag that the rules refuse. */
     refused: {
       required: (item: string) => `${item} está siempre visible: no se puede ocultar`,
       fixed: (zone: string) => `${zone} tiene un orden fijo: no se reordena`
     },
-    /** While dragging: what the drop does. */
-    moving: (item: string) => `Mover ${item}`,
-    movingSide: (item: string, side: string) => `Mover ${item} · ${side}`,
+    /** While dragging, under the element's name: what the drop does (and on which side). */
+    moving: 'Suelta para colocarlo aquí',
+    movingSide: (side: string) => `Suelta para colocarlo aquí · ${side}`,
     /** After hiding an element the preview cannot draw ghosted. */
     hiddenNote: (item: string) => `${item} oculto: vuelve a mostrarlo desde su lista`
   },
@@ -1120,7 +1122,7 @@ export const settingsEs = {
       rubber: 'Goma'
     },
     hints: {
-      title: 'El rótulo «RELATIVO» o «CLASIFICACIÓN» con el que empieza la cabecera',
+      title: 'El nombre del widget en mayúsculas: «RELATIVO», «TRÁFICO»…',
       remaining: '«38:19  ≈19 v», «Quedan 12 v»; «Final» tras tu bandera',
       sof: 'La de tu clase',
       carCount: 'Los inscritos en tu clase',
@@ -1340,6 +1342,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   preview: {
     hint: 'Drag in the preview to reorder; click to show or hide',
     hintMore: 'Hidden elements show translucent while you edit, where they fit.',
+    hintMoreList: 'What you hide comes back from its list, below.',
     hintDismiss: 'Got it',
     hintDismissLabel: 'Hide this tip',
     actions: {
@@ -1347,14 +1350,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
       hide: 'Click to hide · its order is fixed',
       'move-required': 'Drag to move · always shown',
       required: 'Always shown, in a fixed order',
-      show: 'Hidden · click to show'
+      show: 'Hidden · click or drag to show it'
     },
     refused: {
       required: (item) => `${item} is always shown: it cannot be hidden`,
       fixed: (zone) => `${zone} has a fixed order: it cannot be reordered`
     },
-    moving: (item) => `Move ${item}`,
-    movingSide: (item, side) => `Move ${item} · ${side}`,
+    moving: 'Drop to place it here',
+    movingSide: (side) => `Drop to place it here · ${side}`,
     hiddenNote: (item) => `${item} hidden: show it again from its list`
   },
   controls: {
@@ -2257,7 +2260,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       rubber: 'Rubber'
     },
     hints: {
-      title: 'The “RELATIVE” or “STANDINGS” label the header starts with',
+      title: 'The widget’s name in capitals: “RELATIVE”, “TRAFFIC”…',
       remaining: '“38:19  ≈19 laps”, “12 laps to go”; “Finished” after your flag',
       sof: 'Of your class',
       carCount: 'The entries of your class',

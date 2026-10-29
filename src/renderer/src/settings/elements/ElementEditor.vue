@@ -485,6 +485,10 @@ if (preview !== null) {
           })
           announceMove(id as Id, before, next as ElementEntry<Id>[])
         },
+        showAt: (next, id) => {
+          void send(next as ElementEntry<Id>[], { kind: 'visible', id: id as Id, visible: true })
+          say(visibilityMessage(t.value, labelOf(id as Id), true))
+        },
         reveal: (id) => reveal(id as Id)
       }
       onCleanup(preview.register(handle))
