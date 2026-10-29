@@ -1008,6 +1008,17 @@ export const settingsEs = {
     shown: (item: string) => `${item} visible.`,
     hidden: (item: string) => `${item} oculto.`,
     resetDone: (zone: string) => `${zone}: por defecto.`,
+    /** The toast after hiding or moving an element (settings/undo/UndoToast.vue). */
+    undo: {
+      hidden: (item: string) => `«${item}» oculto`,
+      moved: (item: string) => `«${item}» movido`,
+      action: 'Deshacer',
+      dismiss: 'Cerrar aviso',
+      /** After the announcement, for screen readers. */
+      keyHint: 'Ctrl+Z para deshacer.',
+      /** The toast's name (its buttons are read with it). */
+      group: 'Deshacer el último cambio'
+    },
     /** Under a zone with nothing shown that the widget draws without. */
     empty: 'Sin nada visible no se dibuja',
     /** Under a zone whose widget hides with nothing shown (the battle's rivals...). */
@@ -2177,6 +2188,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     shown: (item) => `${item} shown.`,
     hidden: (item) => `${item} hidden.`,
     resetDone: (zone) => `${zone}: defaults.`,
+    undo: {
+      hidden: (item) => `“${item}” hidden`,
+      moved: (item) => `“${item}” moved`,
+      action: 'Undo',
+      dismiss: 'Dismiss',
+      keyHint: 'Ctrl+Z to undo.',
+      group: 'Undo the last change'
+    },
     empty: 'With nothing shown it is not drawn',
     emptyHides: 'With nothing shown the widget does not show'
   },
