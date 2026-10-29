@@ -529,7 +529,11 @@ function start(): void {
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown, forLayout: unknown) => {
+    // One line per change from the settings window: what it touched, and whether it was taken.
+    const keys =
+      patch !== null && typeof patch === 'object' ? Object.keys(patch).join(',') : typeof patch
     if (!isSettingsSender(event.sender)) {
+      console.warn(`[settings] change refused (not the settings window): ${keys}`)
       throw new Error(`${IPC.updateSettings} is only accepted from the settings window`)
     }
     const prev = store.settings
@@ -537,6 +541,9 @@ function start(): void {
     changeSettings((s) => {
       Object.assign(s, applySettingsPatchFor(s, patch, forLayout))
     })
+    console.log(
+      `[settings] change: ${keys}${typeof forLayout === 'string' ? ` (layout ${forLayout})` : ''}`
+    )
     // Turning the automatic layout on applies the car's at once.
     layouts.afterChange(prev)
     return rendererSettings(store.settings, 'settings')
