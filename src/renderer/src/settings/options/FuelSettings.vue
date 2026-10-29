@@ -83,11 +83,11 @@ const setLines = listSetter('fuel', 'lines')
     >
       <template #footer>
         <ToggleControl
+          v-if="finishShown"
           kind="switch"
           :label="t.settings.fuel.box"
           :help="t.settings.fuel.boxHelp"
           :current="opts.showBox"
-          :disabled="!finishShown"
           :apply="set('showBox')"
         />
       </template>

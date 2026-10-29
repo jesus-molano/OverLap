@@ -10,7 +10,13 @@ import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter } from '../editor'
+import { listSetter, optionSetter, updateSection } from '../editor'
+import {
+  captionsChoice,
+  captionsPatch,
+  captionsValues,
+  type CaptionsChoice
+} from './lightsCaptions'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
@@ -30,12 +36,18 @@ const labelSideChoices = computed(() =>
   choiceOptions(OPTION_SCHEMA.lights.labelSide.values, t.value.settings.lights.labelSideChoices)
 )
 const column = computed(() => opts.value.layout === 'column')
-/** No caption, value nor repair time anywhere: the side of the texts has nothing to place. */
+/**
+ * "Rótulos: No / Derecha / Izquierda" (in a column; "No / Sí" in a row, where they go under the
+ * icons): the captions switch and their side as one choice (lightsCaptions.ts).
+ */
+const captions = computed(() => captionsChoice(opts.value))
+const captionsChoices = computed(() =>
+  choiceOptions(captionsValues(opts.value.layout), t.value.settings.lights.captionsChoices)
+)
+const setCaptions = (v: CaptionsChoice): Promise<void> => updateSection('lights', captionsPatch(v))
+/** Values (temperatures, repair times) without captions in a column: their side on its own. */
 const hasTexts = computed(() => hasLightTexts(lightsFilter(opts.value)))
-const labelSideHelp = computed(() => {
-  if (!column.value) return t.value.settings.lights.labelSideOff
-  return hasTexts.value ? undefined : t.value.settings.lights.labelSideNoText
-})
+const sideOnItsOwn = computed(() => column.value && !opts.value.showCaptions && hasTexts.value)
 const shown = (kind: LightKind): boolean => isElementVisible(opts.value.icons, kind)
 /** The trend lights the two temperature lights: nothing to light without them. */
 const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
@@ -53,11 +65,17 @@ const setIcons = listSetter('lights', 'icons')
       :apply="set('layout')"
     />
     <ChoiceControl
+      :label="t.settings.lights.captions"
+      :help="t.settings.lights.captionsHelp"
+      :current="captions"
+      :options="captionsChoices"
+      :apply="setCaptions"
+    />
+    <ChoiceControl
+      v-if="sideOnItsOwn"
       :label="t.settings.lights.labelSide"
-      :help="labelSideHelp"
       :current="opts.labelSide"
       :options="labelSideChoices"
-      :disabled="!column || !hasTexts"
       :apply="set('labelSide')"
     />
     <ToggleControl
@@ -67,43 +85,37 @@ const setIcons = listSetter('lights', 'icons')
       :current="opts.onlyWhenLit"
       :apply="set('onlyWhenLit')"
     />
+
     <ToggleControl
-      kind="switch"
-      :label="t.settings.lights.captions"
-      :help="t.settings.lights.captionsHelp"
-      :current="opts.showCaptions"
-      :apply="set('showCaptions')"
-    />
-    <ToggleControl
+      v-if="!noTemps"
       kind="switch"
       :label="t.settings.lights.temps"
       :help="t.settings.lights.tempsHelp"
       :current="opts.showTemps"
-      :disabled="noTemps"
       :apply="set('showTemps')"
     />
     <ToggleControl
+      v-if="!noRepairs"
       kind="switch"
       :label="t.settings.lights.repairTime"
       :help="t.settings.lights.repairTimeHelp"
       :current="opts.showRepairTime"
-      :disabled="noRepairs"
       :apply="set('showRepairTime')"
     />
     <ToggleControl
+      v-if="!noRepairs && opts.showRepairTime"
       kind="switch"
       :label="t.settings.lights.repairCrewTag"
       :help="t.settings.lights.repairCrewTagHelp"
       :current="opts.repairCrewTag"
-      :disabled="noRepairs || !opts.showRepairTime"
       :apply="set('repairCrewTag')"
     />
     <ToggleControl
+      v-if="!noRepairs && opts.showRepairTime"
       kind="switch"
       :label="t.settings.lights.repairRealTime"
       :help="t.settings.lights.repairRealTimeHelp(REPAIR_CLOCK.windowS)"
       :current="opts.repairRealTime"
-      :disabled="noRepairs || !opts.showRepairTime"
       :apply="set('repairRealTime')"
     />
   </PageSection>
@@ -119,11 +131,11 @@ const setIcons = listSetter('lights', 'icons')
     >
       <template #footer>
         <ToggleControl
+          v-if="!noTemps"
           kind="switch"
           :label="t.settings.lights.trend"
           :help="t.settings.lights.trendHelp(ENGINE_TREND.sustainS)"
           :current="opts.showTrend"
-          :disabled="noTemps"
           :apply="set('showTrend')"
         />
       </template>

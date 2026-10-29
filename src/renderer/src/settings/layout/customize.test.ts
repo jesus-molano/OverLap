@@ -191,6 +191,12 @@ describe('the widget pages', () => {
     }
   })
 
+  it('hide the options that do not apply instead of greying them out', () => {
+    for (const [path, source] of Object.entries(PAGES)) {
+      expect(source, path).not.toMatch(/:disabled=|<fieldset[^>]*disabled/)
+    }
+  })
+
   it('give the zone options to the editor (one look on every page), not a wrapper of their own', () => {
     for (const [path, source] of Object.entries(PAGES)) {
       expect(source, path).not.toMatch(/<template #footer>\s*<div/)

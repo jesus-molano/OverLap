@@ -84,6 +84,7 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
 <template>
   <PageSection :title="t.settings.common.content">
     <SliderControl
+      v-if="showFaster"
       :label="t.settings.traffic.behind"
       :help="t.settings.traffic.behindHelp"
       :current="opts.behindS"
@@ -92,10 +93,10 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
       :step="BEHIND.step"
       :format="BEHIND.format"
       :presets="BEHIND.presets"
-      :disabled="!showFaster"
       :apply="set('behindS')"
     />
     <SliderControl
+      v-if="showSlower"
       :label="t.settings.traffic.ahead"
       :help="t.settings.traffic.aheadHelp"
       :current="opts.aheadS"
@@ -104,10 +105,10 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
       :step="AHEAD.step"
       :format="AHEAD.format"
       :presets="AHEAD.presets"
-      :disabled="!showSlower"
       :apply="set('aheadS')"
     />
     <SliderControl
+      v-if="showHazards"
       :label="t.settings.traffic.hazardRange"
       :help="t.settings.traffic.hazardRangeHelp"
       :current="opts.hazardS"
@@ -116,24 +117,23 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
       :step="HAZARD.step"
       :format="HAZARD.format"
       :presets="HAZARD.presets"
-      :disabled="!showHazards"
       :apply="set('hazardS')"
     />
     <StepperControl
+      v-if="!nothing"
       :label="t.settings.traffic.entries"
       :help="t.settings.traffic.entriesHelp"
       :current="opts.maxEntries"
       :min="ENTRIES.min"
       :max="ENTRIES.max"
-      :disabled="nothing"
       :apply="set('maxEntries')"
     />
     <ToggleControl
+      v-if="!noClasses"
       kind="switch"
       :label="t.settings.traffic.multiclass"
       :help="t.settings.traffic.multiclassHelp"
       :current="opts.onlyMulticlass"
-      :disabled="noClasses"
       :apply="set('onlyMulticlass')"
     />
     <ChoiceControl
@@ -156,11 +156,11 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
     >
       <template #footer>
         <ToggleControl
+          v-if="!nothing"
           kind="switch"
           :label="t.settings.traffic.captions"
           :help="t.settings.traffic.captionsHelp"
           :current="opts.captions"
-          :disabled="nothing"
           :apply="set('captions')"
         />
       </template>
