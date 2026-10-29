@@ -22,6 +22,15 @@ const css = [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
 /** The cells of a line: the `c-*` classes on the template's elements. */
 const cells = [...new Set([...template.matchAll(/class="(c-[\w-]+)"/g)].map((m) => m[1] ?? ''))]
 
+/**
+ * Whether a state's rules dim this cell. The other class's leader cell is display: contents, so its
+ * rule dims its children (class tag and driver cell) instead.
+ */
+function dims(state: string, cell: string): boolean {
+  const own = `.is-${state} > .${cell}`
+  return selectors.includes(own) || (cell === 'c-lead' && selectors.includes(`${own} > *`))
+}
+
 /** Selectors of every rule (comma-separated lists split). */
 const selectors = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap((m) =>
   (m[1] ?? '').split(',').map((s) => s.trim().replace(/\s+/g, ' '))
@@ -38,14 +47,14 @@ describe('standings row states', () => {
   })
 
   it('dims every cell of a car in the pits but its pit state and driver', () => {
-    const dimmed = cells.filter((c) => selectors.includes(`.is-pits > .${c}`))
+    const dimmed = cells.filter((c) => dims('pits', c))
     expect(dimmed.sort()).toEqual(cells.filter((c) => c !== 'c-pit' && c !== 'c-driver').sort())
     // The driver's plate and name step back too, its state icons stay.
     expect(selectors).toContain('.is-pits > .c-driver > :deep(:not(.sd-icons))')
   })
 
   it('dims every cell of a disconnected car', () => {
-    const dimmed = cells.filter((c) => selectors.includes(`.is-disconnected > .${c}`))
+    const dimmed = cells.filter((c) => dims('disconnected', c))
     expect(dimmed.sort()).toEqual([...cells].sort())
   })
 })

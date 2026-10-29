@@ -68,10 +68,13 @@ const shape = computed(() =>
   font-weight: var(--ov-w-strong);
 }
 
-/* '#23' beside a class stripe. */
+/*
+ * '#23' beside a class stripe. Always as wide as '#' and three digits (tabular), so the make, the
+ * flag and the name after it line up down a column whatever the number.
+ */
 .ov-num--plain {
   justify-content: flex-start;
-  min-width: 0;
+  min-width: 4ch;
   padding: 0;
   color: var(--ov-fg-muted);
   font-weight: var(--ov-w-name);

@@ -318,12 +318,18 @@ export function countryName(code: string): string {
 }
 
 /**
+ * The global flag: a driver who flies no country ('-none-', a flair that is no country, such as
+ * the neutral one drivers under a national ban race with, or one this table does not know).
+ * CountryFlag.vue draws it as a globe of OverLap's own, not a country-flag-icons flag.
+ */
+export const GLOBAL_FLAG = 'GLOBAL'
+
+/**
  * The flag code of a FlairName ('Spain' -> 'ES', 'United Kingdom' -> 'GB', 'Scotland' ->
- * 'GB-SCT'); '' for none ('-none-', 'None', ''), a flair that is no country, or one this table
- * does not know.
+ * 'GB-SCT'); GLOBAL_FLAG for none ('-none-', 'None'), a flair that is no country, or one this
+ * table does not know; '' when there is no flair at all (an empty or missing FlairName).
  */
 export function countryOfFlair(name: string): string {
-  const key = flairKey(name)
-  if (key === '' || key === 'none') return ''
-  return BY_NAME.get(key) ?? ''
+  if (name.trim() === '') return ''
+  return BY_NAME.get(flairKey(name)) ?? GLOBAL_FLAG
 }
