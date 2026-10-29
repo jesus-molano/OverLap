@@ -185,33 +185,36 @@ const rangeLabels = computed(() => {
       <path v-once class="radar__bezel-top" :d="BEZEL_TOP_PATH" />
 
       <g :clip-path="clipUrl">
-        <g v-if="showGuides" v-memo="[guides]" class="radar__guides" data-el="radar.parts.guides">
-          <line x1="0" :y1="-BG_HALF" x2="0" :y2="BG_HALF" />
-          <line :x1="-BG_HALF" y1="0" :x2="BG_HALF" y2="0" />
-          <line
-            class="radar__guide-half"
-            :x1="-BG_HALF"
-            :y1="guides.halfY"
-            :x2="BG_HALF"
-            :y2="guides.halfY"
-          />
-          <line
-            class="radar__guide-half"
-            :x1="-BG_HALF"
-            :y1="-guides.halfY"
-            :x2="BG_HALF"
-            :y2="-guides.halfY"
-          />
-          <line
-            v-for="(y, i) in guides.ticksY"
-            :key="i"
-            class="radar__tick"
-            x1="-1.4"
-            :y1="y"
-            x2="1.4"
-            :y2="y"
-          />
-        </g>
+        <!-- The v-if on a wrapper, never on the memoized element itself (see memoSafety.test.ts). -->
+        <template v-if="showGuides">
+          <g v-memo="[guides]" class="radar__guides" data-el="radar.parts.guides">
+            <line x1="0" :y1="-BG_HALF" x2="0" :y2="BG_HALF" />
+            <line :x1="-BG_HALF" y1="0" :x2="BG_HALF" y2="0" />
+            <line
+              class="radar__guide-half"
+              :x1="-BG_HALF"
+              :y1="guides.halfY"
+              :x2="BG_HALF"
+              :y2="guides.halfY"
+            />
+            <line
+              class="radar__guide-half"
+              :x1="-BG_HALF"
+              :y1="-guides.halfY"
+              :x2="BG_HALF"
+              :y2="-guides.halfY"
+            />
+            <line
+              v-for="(y, i) in guides.ticksY"
+              :key="i"
+              class="radar__tick"
+              x1="-1.4"
+              :y1="y"
+              x2="1.4"
+              :y2="y"
+            />
+          </g>
+        </template>
         <!-- Editing in the settings sample only: the hairlines are hard to point at, so a wide,
              invisible copy takes the pointer for them (the side alerts, drawn later, win). -->
         <g v-if="showGuides && editable" class="radar__guides-hit" data-el="radar.parts.guides">
