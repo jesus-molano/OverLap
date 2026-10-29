@@ -369,14 +369,39 @@ export function tipPlace(el: Box, widget: Box, stage: Box): TipPlace {
 /** How far the outline of a lit element stands outside its box (px): it never covers it. */
 export const MARK_OUTSET = 2
 
-/** The outline box of an element's `box` in the stage (px), just outside it. */
-export function markBox(box: Box, stage: Box): Box {
+/** The outline box of an element's `box` in the stage (px), `outset` px outside it. */
+export function markBox(box: Box, stage: Box, outset = MARK_OUTSET): Box {
   return {
-    left: box.left - stage.left - MARK_OUTSET,
-    top: box.top - stage.top - MARK_OUTSET,
-    right: box.right - stage.left + MARK_OUTSET,
-    bottom: box.bottom - stage.top + MARK_OUTSET
+    left: box.left - stage.left - outset,
+    top: box.top - stage.top - outset,
+    right: box.right - stage.left + outset,
+    bottom: box.bottom - stage.top + outset
   }
+}
+
+/**
+ * How far a ghost's dashed outline stands outside its box (px): its 1 px line where the old
+ * `outline-offset: 1px` drew it, never over its text.
+ */
+export const GHOST_OUTSET = 2
+
+/**
+ * The outline boxes (stage px, markBox) of the drawn copies of an element (client px): the
+ * empty ones (not drawn: an item its bar had no room for) skipped, at most `max`.
+ */
+export function outlineBoxes(
+  rects: readonly Box[],
+  stage: Box,
+  outset: number,
+  max: number
+): Box[] {
+  const out: Box[] = []
+  for (const r of rects) {
+    if (out.length >= max) break
+    if (r.right - r.left <= 0 || r.bottom - r.top <= 0) continue
+    out.push(markBox(r, stage, outset))
+  }
+  return out
 }
 
 /** The points around a pointer tried when it is on nothing (px): small targets of a scaled sample. */
@@ -503,27 +528,25 @@ export interface Marks {
 }
 
 const SAFE = /^[a-zA-Z.]+$/
+
+/** A plain `data-el` value (safe in a selector). */
+export const isPlainKey = (key: string): boolean => SAFE.test(key)
+
 const sel = (scope: string, key: string): string => `${scope} [data-el="${key}"]`
 
 /**
  * The rules for `marks` under `scope` (the sample's root selector), by attribute, so nothing in
- * the sample is queried or touched for them: ghosts are translucent with a dashed outline just
- * outside them (never over their text), the dragged element fades. The hovered element and the
- * one lit from the list are outlined by the layer over the sample instead (litKeys): an outline
- * here would be clipped by the bars and the cells around it, or cover the element's text. Keys
- * that are not plain data-el values are skipped.
+ * the sample is queried or touched for them: ghosts are translucent, the dragged element fades.
+ * Every outline (a ghost's dashed one, the hovered and the lit element's) is a box in the layer
+ * over the sample instead (outlineBoxes, litKeys): one here would be clipped by the bars (an info
+ * bar and its groups clip what overflows them) and the cells around it, or cover the element's
+ * text. Keys that are not plain data-el values are skipped.
  */
 export function marksCss(scope: string, marks: Marks): string {
   const rules: string[] = []
-  const ghosts = marks.ghosts.filter((k) => SAFE.test(k))
+  const ghosts = marks.ghosts.filter(isPlainKey)
   if (ghosts.length > 0) {
-    rules.push(
-      `${ghosts.map((k) => sel(scope, k)).join(',\n')} {\n` +
-        '  opacity: 0.42;\n' +
-        '  outline: 1px dashed rgba(255, 255, 255, 0.85);\n' +
-        '  outline-offset: 1px;\n' +
-        '}'
-    )
+    rules.push(`${ghosts.map((k) => sel(scope, k)).join(',\n')} {\n` + '  opacity: 0.42;\n}')
   }
   if (marks.dragged !== null && SAFE.test(elKey(marks.dragged))) {
     rules.push(`${sel(scope, elKey(marks.dragged))} {\n  opacity: 0.3;\n}`)
