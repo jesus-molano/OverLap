@@ -14,6 +14,7 @@ import { optionSetOf } from '@shared/layouts'
 import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@shared/settings'
 import { syncActiveLayout } from '@shared/settings/layouts'
 import type { ElementEntry } from '@shared/types'
+import { WIDGET_IDS } from '@shared/widgets'
 import DEFAULT_V4 from './fixtures/settings-v4-default.json'
 import CUSTOM_V4 from './fixtures/settings-v4-customised.json'
 import { SettingsStore } from './settingsStore'
@@ -54,6 +55,11 @@ describe('the untouched v4 file', () => {
       },
       lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false }
     })
+    // Its own background opacities stay (the old per-widget defaults, saved): only a fresh
+    // install follows the global one.
+    for (const id of WIDGET_IDS) {
+      expected.widgets[id].backgroundOpacity = DEFAULT_V4.widgets[id].backgroundOpacity
+    }
     // Its one layout, and the shared options, have the options as loaded.
     syncActiveLayout(expected)
     expected.savedLayouts.shared = optionSetOf(expected)

@@ -97,6 +97,7 @@ function bar(shown: readonly InfoBarEntryId[]): ElementEntry<InfoBarEntryId>[] {
 const DEFAULT_APPEARANCE: AppearanceSettings = {
   accent: '#ffc400',
   fontScale: 100,
+  backgroundOpacity: 0.8,
   density: 'comfortable',
   nameFormat: 'abbr',
   licenseStyle: 'outline',
@@ -366,7 +367,8 @@ function defaultWidget(id: WidgetId): WidgetSettings {
     visible: def.defaultVisible,
     bounds: { ...def.defaultBounds },
     locked: false,
-    backgroundOpacity: def.defaultBackgroundOpacity,
+    // Every widget follows the global background (Apariencia) on a fresh install.
+    backgroundOpacity: 'inherit',
     scale: 100,
     autoHeight: def.sizeModel === 'auto-height',
     anchor: 'top',
@@ -502,7 +504,7 @@ describe('DEFAULT_SETTINGS', () => {
       const def = WIDGET_DEFS[id]
       expect(w.bounds).toEqual(def.defaultBounds)
       expect(w.visible).toBe(def.defaultVisible)
-      expect(w.backgroundOpacity).toBe(def.defaultBackgroundOpacity)
+      expect(w.backgroundOpacity).toBe('inherit')
       expect(w.showIn).toEqual(def.defaultShowIn)
     }
   })
@@ -537,10 +539,13 @@ describe('DEFAULT_SETTINGS', () => {
     expect(battle.thresholdS).toBeLessThanOrEqual(BATTLE_THRESHOLD_MAX_S)
     expect(inputs.traceSeconds).toBeGreaterThanOrEqual(INPUTS_TRACE_MIN_S)
     expect(inputs.traceSeconds).toBeLessThanOrEqual(INPUTS_TRACE_MAX_S)
+    const bg = DEFAULT_SETTINGS.appearance.backgroundOpacity
+    expect(bg).toBe(0.8)
+    expect(bg).toBeGreaterThanOrEqual(BACKGROUND_OPACITY_MIN)
+    expect(bg).toBeLessThanOrEqual(BACKGROUND_OPACITY_MAX)
     for (const id of WIDGET_IDS) {
       const w = widgets[id]
-      expect(w.backgroundOpacity).toBeGreaterThanOrEqual(BACKGROUND_OPACITY_MIN)
-      expect(w.backgroundOpacity).toBeLessThanOrEqual(BACKGROUND_OPACITY_MAX)
+      expect(w.backgroundOpacity).toBe('inherit')
       expect(w.scale).toBeGreaterThanOrEqual(WIDGET_SCALE_MIN)
       expect(w.scale).toBeLessThanOrEqual(WIDGET_SCALE_MAX)
     }
@@ -752,14 +757,17 @@ describe('normalizeSettings: widget fields', () => {
   const widget = (id: WidgetId, raw: Record<string, unknown>): WidgetSettings =>
     normalizeSettings({ widgets: { [id]: raw } }).widgets[id]
 
-  it('clamps the background opacity, defaulting non-numbers', () => {
-    const opacity = (value: unknown): number =>
+  it('clamps the background opacity, keeps "inherit", defaulting anything else to it', () => {
+    const opacity = (value: unknown): number | 'inherit' =>
       widget('radar', { backgroundOpacity: value }).backgroundOpacity
     expect(opacity(-1)).toBe(0)
     expect(opacity(2)).toBe(1)
     expect(opacity(0.35)).toBe(0.35)
+    // A file's own number stays, the old per-widget defaults included (lossless).
+    expect(opacity(0.78)).toBe(0.78)
+    expect(opacity('inherit')).toBe('inherit')
     for (const bad of [Number.NaN, Infinity, '0.5', null, true, {}]) {
-      expect(opacity(bad)).toBe(WIDGET_DEFS.radar.defaultBackgroundOpacity)
+      expect(opacity(bad)).toBe('inherit')
     }
   })
 

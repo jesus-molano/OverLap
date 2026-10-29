@@ -31,7 +31,7 @@ import {
 } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
-import { formatPercent } from '../values'
+import { formatPercent, fromPercent, toPercent } from '../values'
 
 /**
  * Global look shared by every widget (settings.appearance), and when the overlay shows and hides
@@ -118,6 +118,8 @@ const replayChoices = computed(() =>
 )
 const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 const FONT_PRESETS = [90, 100, 115, 130] as const
+const OPACITY_PRESETS = [25, 50, 80, 100] as const
+const setBackground = (pct: number): Promise<void> => set('backgroundOpacity')(fromPercent(pct))
 /** Which widgets the text size changes, by name (the auto-height ones). */
 const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
 
@@ -165,6 +167,16 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :current="appearance.accent"
           :presets="accentPresets"
           :apply="set('accent')"
+        />
+        <SliderControl
+          :label="t.settings.appearance.color.background"
+          :help="t.settings.appearance.color.backgroundHelp"
+          :current="toPercent(appearance.backgroundOpacity)"
+          :min="0"
+          :max="100"
+          :presets="OPACITY_PRESETS"
+          :format="percent"
+          :apply="setBackground"
         />
         <ToggleControl
           kind="switch"

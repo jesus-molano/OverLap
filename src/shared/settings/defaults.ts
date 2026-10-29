@@ -44,7 +44,7 @@ export function defaultWidgetSettings(id: WidgetId): WidgetSettings {
     visible: def.defaultVisible,
     bounds: { ...def.defaultBounds },
     locked: false,
-    backgroundOpacity: def.defaultBackgroundOpacity,
+    backgroundOpacity: 'inherit',
     scale: WIDGET_FIELD_SCHEMA.scale.default,
     autoHeight: def.sizeModel === 'auto-height',
     anchor: WIDGET_FIELD_SCHEMA.anchor.default,

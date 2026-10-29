@@ -181,8 +181,8 @@ Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arranc
 `--settings` (útil para un acceso directo). Todo se aplica **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día.
 
-- **Por widget**: visible, bloqueado, opacidad del fondo (solo el panel: el texto sigue nítido y,
-  con poca opacidad, lleva contorno), escala, alto automático o fijo, en qué sesiones se muestra,
+- **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
+  panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala, alto automático o fijo, en qué sesiones se muestra,
   ocultar en boxes y restablecer posición u opciones.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
@@ -193,7 +193,8 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se encoge. Delta,
   Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra solo les
   añadiría altura.
-- **Apariencia**: idioma, color de acento (te marca a ti y nada más), paleta para daltónicos (azul
+- **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
+  por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
   formato del nombre, estilo de la licencia y del número, logos de marca en color o monocromo y
   unidades métricas o imperiales.

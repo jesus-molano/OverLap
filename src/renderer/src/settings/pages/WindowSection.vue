@@ -5,9 +5,17 @@ import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
 import { WIDGET_DEFS, canShowOnSessionScreen, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
+import { useAppearance } from '../../composables/useAppearance'
+import { widgetOpacity } from '../../composables/useWidgetSurface'
 import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
-import { choiceOptions, fromChoice, toChoice, type BoolChoice } from '../controls/choice'
+import {
+  choiceOptions,
+  fromChoice,
+  toChoice,
+  type BoolChoice,
+  type ChoiceOption
+} from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
@@ -28,6 +36,32 @@ const autoModel = computed(() => def.value.sizeModel === 'auto-height')
 
 const set = widgetSetter(props.widgetId)
 const setOpacity: Setter<number> = (pct) => set('backgroundOpacity')(fromPercent(pct))
+/** The global background (Apariencia), what 'inherit' draws. */
+const appearance = useAppearance()
+const globalOpacity = computed(() => widgetOpacity('inherit', appearance.value.backgroundOpacity))
+const ownOpacity = computed(() => prefs.value.backgroundOpacity !== 'inherit')
+/** The slider's value: the widget's own, or the global one it follows. */
+const opacityNow = computed(() =>
+  widgetOpacity(prefs.value.backgroundOpacity, appearance.value.backgroundOpacity)
+)
+type BgChoice = 'inherit' | 'own'
+const bgChoices = computed<ChoiceOption<BgChoice>[]>(() => {
+  const w = t.value.settings.window
+  return [
+    {
+      value: 'inherit',
+      label: t.value.settings.choices.inherit(
+        formatPercent(t.value, toPercent(globalOpacity.value))
+      ),
+      hint: w.backgroundInheritHint
+    },
+    { value: 'own', label: w.backgroundOwn.label, hint: w.backgroundOwn.hint }
+  ]
+})
+/** "Propio" starts from the value it showed (the global one); "Global" follows Apariencia. */
+const setBackground: Setter<BgChoice> = (v) =>
+  set('backgroundOpacity')(v === 'inherit' ? 'inherit' : globalOpacity.value)
+const OPACITY_PRESETS = [25, 50, 80, 100] as const
 const setAutoHeight: Setter<BoolChoice> = (v) => set('autoHeight')(fromChoice(v))
 
 const showIn = computed(() => {
@@ -102,12 +136,21 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
     <p v-else class="st-row st-help size-note">
       {{ t.settings.window.sizeNote }}
     </p>
+    <ChoiceControl
+      :label="t.settings.window.background"
+      :help="ownOpacity ? undefined : t.settings.window.opacityHelp"
+      :current="ownOpacity ? 'own' : 'inherit'"
+      :options="bgChoices"
+      :apply="setBackground"
+    />
     <SliderControl
+      v-if="ownOpacity"
       :label="t.settings.window.opacity"
       :help="t.settings.window.opacityHelp"
-      :current="toPercent(prefs.backgroundOpacity)"
+      :current="toPercent(opacityNow)"
       :min="0"
       :max="100"
+      :presets="OPACITY_PRESETS"
       :format="percent"
       :apply="setOpacity"
     />

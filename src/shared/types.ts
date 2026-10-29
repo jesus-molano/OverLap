@@ -1088,8 +1088,11 @@ export interface WidgetSettings {
    * in edit mode, so it cannot be nudged by accident.
    */
   locked: boolean
-  /** Opacity of the widget's background panel, 0..1. Text and cars stay fully opaque. */
-  backgroundOpacity: number
+  /**
+   * Opacity of the widget's background panel, 0..1, or 'inherit' (the default since 2.3):
+   * appearance.backgroundOpacity. Text and cars stay fully opaque. A file's own number stays.
+   */
+  backgroundOpacity: number | 'inherit'
   /** Content scale in % (60..200, default 100); multiplies appearance.fontScale. */
   scale: number
   /**
@@ -1166,6 +1169,8 @@ export interface AppearanceSettings {
   accent: string
   /** Global text scale in % (80..150). */
   fontScale: number
+  /** Background opacity (0..1) of every widget whose own is 'inherit'. */
+  backgroundOpacity: number
   density: 'comfortable' | 'compact'
   nameFormat: NameFormat
   licenseStyle: LicenseStyle

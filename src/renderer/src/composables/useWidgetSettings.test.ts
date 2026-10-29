@@ -178,6 +178,14 @@ describe('clampOpacity / haloOn', () => {
     expect(haloOn('on', 1)).toBe(true)
     expect(haloOn('off', 0)).toBe(false)
   })
+
+  it('give a widget its own opacity, or the global one for "inherit"', async () => {
+    const { widgetOpacity } = await import('./useWidgetSurface')
+    expect(widgetOpacity('inherit', 0.6)).toBe(0.6)
+    expect(widgetOpacity(0.3, 0.6)).toBe(0.3)
+    expect(widgetOpacity('inherit', undefined)).toBe(0.8)
+    expect(widgetOpacity(Number.NaN, 0.6)).toBe(0.6)
+  })
 })
 
 describe('startAppearance', () => {

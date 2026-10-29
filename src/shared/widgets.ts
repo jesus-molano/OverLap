@@ -9,8 +9,6 @@ export interface WidgetDef {
   readonly defaultBounds: Rect
   readonly minSize: Size
   readonly defaultVisible: boolean
-  /** Background panel opacity on first run, 0..1. */
-  readonly defaultBackgroundOpacity: number
   /**
    * 'auto-height': the height follows the content (the widget reports it and
    * its overlay panel fits to it), the user sets the width; text size comes
@@ -75,7 +73,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 60, y: 260, width: 460, height: 252 },
     minSize: { width: 300, height: 150 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.78,
     sizeModel: 'free',
     defaultShowIn: { practice: true, qualify: true, race: true },
     followsCamera: true
@@ -87,7 +84,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 540, y: 260, width: 220, height: 260 },
     minSize: { width: 120, height: 140 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'free',
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
@@ -98,7 +94,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 1340, y: 120, width: 540, height: 470 },
     minSize: { width: 240, height: 60 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.78,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
     followsCamera: true,
@@ -111,7 +106,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 60, y: 540, width: 380, height: 190 },
     minSize: { width: 220, height: 60 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: false, qualify: false, race: true },
     followsCamera: true
@@ -123,7 +117,6 @@ export const WIDGET_DEFS = {
     // Narrow enough for the bars-only layout (~140 x 110 is a common placement).
     minSize: { width: 120, height: 70 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.75,
     // The panel fits its content (v2.6): no empty glass around the trace, bars and readouts.
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
@@ -137,7 +130,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 1340, y: 620, width: 400, height: 210 },
     minSize: { width: 220, height: 60 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
     followsCamera: true
@@ -149,7 +141,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 760, y: 90, width: 400, height: 70 },
     minSize: { width: 200, height: 50 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.85,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true }
   },
@@ -164,7 +155,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 760, y: 320, width: 300, height: 54 },
     minSize: { width: 40, height: 24 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
@@ -175,7 +165,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 760, y: 90 + ALERTS_DEFAULT_ROOM, width: 400, height: 80 },
     minSize: { width: 200, height: 48 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'free',
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
@@ -190,7 +179,6 @@ export const WIDGET_DEFS = {
     defaultBounds: { x: 1200, y: 840, width: 320, height: 190 },
     minSize: { width: 180, height: 40 },
     defaultVisible: true,
-    defaultBackgroundOpacity: 0.8,
     sizeModel: 'auto-height',
     defaultShowIn: { practice: false, qualify: false, race: true },
     noSessionScreen: true
