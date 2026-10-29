@@ -142,7 +142,17 @@ describe('useWidgetPhase', () => {
         speedKmh: 0,
         abs: false,
         active: true,
-        t: 0
+        t: 0,
+        steeringDeg: 0,
+        rpm: 0,
+        slFirst: 0,
+        slShift: 0,
+        slLast: 0,
+        slBlink: 0,
+        brakeBias: null,
+        tc: null,
+        ffb: null,
+        ffbClip: false
       }
     })
     expect(phase.value).toBe('live')

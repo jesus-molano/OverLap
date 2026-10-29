@@ -4,16 +4,22 @@ import {
   PREVIEW_READOUT,
   TextSlot,
   TransformSlot,
-  WHEEL_LOCK_DEG,
+  MAX_WHEEL_DEG,
+  NumberSlot,
   barTransform,
+  biasLabel,
+  degreesLabel,
+  ffbLabel,
   fillPreview,
   gearKind,
   gearLabel,
   pedalPercent,
   previewSample,
+  rpmLabel,
   speedLabel,
   steerTransform,
-  wheelTransform
+  tcLabel,
+  wheelRotation
 } from './readout'
 import { CH_ABS, CH_BRAKE, CH_CLUTCH, CH_THROTTLE, SampleRing } from './trace'
 
@@ -59,13 +65,38 @@ describe('formatting', () => {
     expect(steerTransform(NaN)).toBe('scaleX(0)')
   })
 
-  it('wheelTransform turns left (positive) anticlockwise, whole degrees, clamped', () => {
-    expect(wheelTransform(0.35)).toBe(`rotate(${-Math.round(0.35 * WHEEL_LOCK_DEG)}deg)`)
-    expect(wheelTransform(-0.5)).toBe(`rotate(${0.5 * WHEEL_LOCK_DEG}deg)`)
-    expect(wheelTransform(0)).toBe('rotate(0deg)')
-    expect(wheelTransform(-0.001)).toBe('rotate(0deg)')
-    expect(wheelTransform(5)).toBe(`rotate(${-WHEEL_LOCK_DEG}deg)`)
-    expect(wheelTransform(NaN)).toBe('rotate(0deg)')
+  it('wheelRotation turns left (positive) anticlockwise by the real angle, one string each', () => {
+    expect(wheelRotation(60)).toBe('rotate(-60deg)')
+    expect(wheelRotation(-270)).toBe('rotate(270deg)')
+    expect(wheelRotation(0)).toBe('rotate(0deg)')
+    expect(wheelRotation(-0.4)).toBe('rotate(0deg)')
+    expect(wheelRotation(NaN)).toBe('rotate(0deg)')
+    expect(wheelRotation(5000)).toBe(`rotate(${-MAX_WHEEL_DEG}deg)`)
+    // Built once: the same string object every sample (no allocation on the 60 Hz path).
+    expect(wheelRotation(123)).toBe(wheelRotation(123.2))
+  })
+
+  it('degreesLabel says which way, rpmLabel to the ten', () => {
+    expect(degreesLabel(45)).toBe('‹ 45°')
+    expect(degreesLabel(-92)).toBe('92° ›')
+    expect(degreesLabel(0)).toBe('0°')
+    expect(degreesLabel(-0.2)).toBe('0°')
+    expect(rpmLabel(7454)).toBe('7450')
+    expect(rpmLabel(7456)).toBe('7460')
+    expect(rpmLabel(0)).toBe('0')
+    expect(rpmLabel(NaN)).toBe('0')
+    expect(rpmLabel(-5)).toBe('0')
+  })
+
+  it('the car controls and the force feedback', () => {
+    expect(biasLabel(54.5)).toBe('54.5')
+    expect(biasLabel(-1)).toBe('-1.0')
+    expect(biasLabel(NaN)).toBe('')
+    expect(tcLabel(3)).toBe('3')
+    expect(tcLabel(NaN)).toBe('')
+    expect(ffbLabel(0.724)).toBe('72')
+    expect(ffbLabel(1)).toBe('100')
+    expect(ffbLabel(-0.2)).toBe('0')
   })
 })
 
@@ -114,6 +145,23 @@ describe('DOM slots', () => {
     cls.set(null, true)
     cls.set(target, true)
     expect(toggles).toBe(2)
+  })
+
+  it('NumberSlot formats only when the number changes, or on a new element', () => {
+    let formats = 0
+    const fmt = (n: number): string => (formats++, String(n))
+    const slot = new NumberSlot(fmt)
+    const el = { textContent: null as string | null }
+    slot.set(el, 54.5)
+    slot.set(el, 54.5)
+    expect(formats).toBe(1)
+    expect(el.textContent).toBe('54.5')
+    slot.set(el, NaN)
+    slot.set(el, NaN)
+    expect(formats).toBe(2)
+    slot.set(null, 1)
+    slot.set(el, NaN)
+    expect(formats).toBe(3)
   })
 
   it('TransformSlot writes only on change', () => {

@@ -113,7 +113,7 @@ export function createProviders(): ProviderSet {
         return withInfo(p, info(ctx, sectionInfoItems('standings', ctx.config.standings), known))
       },
       battle: (ctx, prev) => battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
-      inputs: (ctx) => computeInputs(ctx.frame),
+      inputs: (ctx) => computeInputs(ctx.frame, ctx.session),
       traffic: (ctx, prev) =>
         traffic.compute(ctx.frame, ctx.session, ctx.race, ctx.config.traffic, prev),
       alerts: (ctx) =>

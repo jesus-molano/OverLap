@@ -17,6 +17,7 @@
 import { EngineWarning, SessionFlag } from '@shared/flags'
 import { isValidPct } from '@shared/lapDist'
 import { frac } from '@shared/num'
+import { mockRpm } from './cockpit'
 import type { MockVars } from './frameBuffer'
 import { smooth01 } from './math'
 import { TRACK_LENGTH_M } from './track'
@@ -63,10 +64,8 @@ export const MOCK_ALERTS_TIMELINE: MockAlertsTimeline = {
 /** Normal readings (°C), each with a slow wobble of a few tenths. */
 export const MOCK_WATER_C = 88
 export const MOCK_OIL_C = 102
-/** DriverCarIdleRPM of the mock's cars, and the revs per m/s above it (one gear for all). */
+/** DriverCarIdleRPM of the mock's cars (the revs by gear are cockpit.ts's). */
 export const MOCK_IDLE_RPM = 900
-const RPM_PER_MS = 110
-const MAX_RPM = 8000
 /** With the warning light on. */
 const WATER_LIGHT_C = 116
 const OIL_LIGHT_C = 128
@@ -130,7 +129,7 @@ export class MockPlayerAlerts {
     v.PitOptRepairLeft[0] = damaged ? MOCK_OPT_REPAIR_S : 0
     v.EngineWarnings[0] = (v.EngineWarnings[0] ?? 0) | bits
     const speed = Math.abs(v.Speed[0] ?? 0)
-    v.RPM[0] = stalled ? 0 : Math.min(MAX_RPM, MOCK_IDLE_RPM + RPM_PER_MS * speed)
+    v.RPM[0] = mockRpm(v.Gear[0] ?? 0, speed, MOCK_IDLE_RPM, stalled)
 
     if (inSpan(t, tl.furled)) {
       v.CarIdxSessionFlags[playerIdx] = (v.CarIdxSessionFlags[playerIdx] ?? 0) | SessionFlag.Furled

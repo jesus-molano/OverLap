@@ -518,8 +518,23 @@ export const settingsEs = {
     steeringStyle: 'Estilo del volante',
     steeringChoices: {
       bar: { label: 'Barra' },
-      wheel: { label: 'Volante', hint: 'Un aro que gira con el volante' }
+      minimal: { label: 'Minimalista', hint: 'Un aro fino con la marca del centro' },
+      realistic: { label: 'Realista', hint: 'Un volante de GT, con radios y la marca arriba' },
+      formula: { label: 'Fórmula', hint: 'Un volante rectangular con empuñaduras' }
     },
+    wheelSize: 'Tamaño del volante',
+    wheelSizeChoices: {
+      small: { label: 'Pequeño' },
+      medium: { label: 'Mediano' },
+      large: { label: 'Grande' }
+    },
+    wheelColor: 'Color de la marca',
+    wheelColorHelp: 'La marca del centro del volante, arriba cuando vas recto',
+    steeringDegrees: 'Grados del volante',
+    steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
+    shiftLights: 'Luces de cambio',
+    shiftLightsHelp:
+      'Se encienden con las revoluciones hasta el punto de cambio del coche y parpadean al pasarlo',
     colors: 'Colores',
     colorsNote: 'Colores opacos: la traza los superpone',
     pedals: {
@@ -881,7 +896,7 @@ export const settingsEs = {
       classLine: 'Línea de clase'
     },
     battle: { lanes: 'Rivales', rows: 'Filas', parts: 'Detalles' },
-    inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos' },
+    inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos', car: 'Coche' },
     traffic: { groups: 'Grupos', parts: 'Columnas', header: 'Cabecera' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
@@ -924,9 +939,20 @@ export const settingsEs = {
       }
     },
     inputs: {
-      sections: { trace: 'Traza', bars: 'Barras', info: 'Marcha, velocidad y volante' },
+      sections: {
+        trace: 'Traza',
+        bars: 'Barras',
+        info: 'Marcha, velocidad y volante',
+        car: 'Revoluciones, reparto, TC y FFB'
+      },
       bars: { clutch: 'Embrague', brake: 'Freno', throttle: 'Acelerador' },
-      info: { gear: 'Marcha', speed: 'Velocidad', steering: 'Volante' }
+      info: { gear: 'Marcha', speed: 'Velocidad', steering: 'Volante' },
+      car: {
+        rpm: 'Revoluciones',
+        bias: 'Reparto de frenada',
+        tc: 'Control de tracción',
+        ffb: 'Fuerza del volante (FFB)'
+      }
     },
     traffic: {
       groups: { hazard: 'Peligros', slower: 'Tráfico lento', faster: 'Clase más rápida' },
@@ -1486,8 +1512,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
     steeringStyle: 'Steering style',
     steeringChoices: {
       bar: { label: 'Bar' },
-      wheel: { label: 'Wheel', hint: 'A rim that turns with your wheel' }
+      minimal: { label: 'Minimal', hint: 'A thin ring with the centre mark' },
+      realistic: { label: 'Realistic', hint: 'A GT wheel, with spokes and the mark on top' },
+      formula: { label: 'Formula', hint: 'A rectangular wheel with grips' }
     },
+    wheelSize: 'Wheel size',
+    wheelSizeChoices: {
+      small: { label: 'Small' },
+      medium: { label: 'Medium' },
+      large: { label: 'Large' }
+    },
+    wheelColor: 'Mark colour',
+    wheelColorHelp: "The wheel's centre mark, on top when you drive straight",
+    steeringDegrees: 'Steering angle',
+    steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
+    shiftLights: 'Shift lights',
+    shiftLightsHelp: "Light up with the revs to the car's shift point and blink past it",
     colors: 'Colours',
     colorsNote: 'Solid colours only, as the traces overlap',
     pedals: {
@@ -1807,7 +1847,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       classLine: 'Class line'
     },
     battle: { lanes: 'Rivals', rows: 'Rows', parts: 'Details' },
-    inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts' },
+    inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
     traffic: { groups: 'Groups', parts: 'Columns', header: 'Header' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
@@ -1845,9 +1885,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
       }
     },
     inputs: {
-      sections: { trace: 'Trace', bars: 'Bars', info: 'Gear, speed and steering' },
+      sections: {
+        trace: 'Trace',
+        bars: 'Bars',
+        info: 'Gear, speed and steering',
+        car: 'Revs, bias, TC and FFB'
+      },
       bars: { clutch: 'Clutch', brake: 'Brake', throttle: 'Throttle' },
-      info: { gear: 'Gear', speed: 'Speed', steering: 'Steering' }
+      info: { gear: 'Gear', speed: 'Speed', steering: 'Steering' },
+      car: {
+        rpm: 'Revs',
+        bias: 'Brake bias',
+        tc: 'Traction control',
+        ffb: 'Force feedback (FFB)'
+      }
     },
     traffic: {
       groups: { hazard: 'Hazards', slower: 'Slower traffic', faster: 'Faster class' },

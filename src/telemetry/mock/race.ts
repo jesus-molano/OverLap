@@ -15,6 +15,7 @@ import { CarLeftRight, TrackLocation } from '@shared/telemetry'
 import type { TelemetryFrame } from '@shared/telemetry'
 import { lapTimeS } from './car'
 import type { CarIncident, SimCar } from './car'
+import { mockBrakeBias, mockFfbTorque, mockTractionControl } from './cockpit'
 import { CLOCK_LEFT_AT_START_S, START_SESSION_TIME_S } from './constants'
 import {
   DEFAULT_PLAYER_CAR_IDX,
@@ -688,6 +689,9 @@ export class MockRace {
     v.Gear[0] = inp.gear
     v.Speed[0] = inp.speed
     v.BrakeABSactive[0] = inp.abs
+    v.dcBrakeBias[0] = mockBrakeBias(this.elapsedS)
+    v.dcTractionControl[0] = mockTractionControl(this.elapsedS)
+    v.SteeringWheelPctTorque[0] = mockFfbTorque(inp.steer, inp.speed)
     this.playerAlerts.apply(v, this.elapsedS, this.playerIdx)
     writeWeather(v, this.elapsedS, this.sessionIndex, frac(player.dist))
     this.fuel.write(v, this.pitStop.inStall)

@@ -74,17 +74,20 @@ describe('MockPlayerAlerts', () => {
     expect(times(dmgAt + dmgFor)).toEqual([0, 0])
   })
 
-  it('revs: the idle stopped, more with speed, none while stalled', () => {
+  it('revs: the idle stopped or in neutral, more with speed in gear, none while stalled', () => {
     const a = new MockPlayerAlerts()
-    const rpm = (t: number, speedMs: number): number => {
+    const rpm = (t: number, speedMs: number, gear = 3): number => {
       const v = new MockFrameBuffer().vars
       v.CarIdxLapDistPct[P] = 0.5
       v.Speed[0] = speedMs
+      v.Gear[0] = gear
       a.apply(v, t, P)
       return at(v.RPM, 0)
     }
     expect(rpm(100, 0)).toBe(MOCK_IDLE_RPM)
+    expect(rpm(100, 40, 0)).toBe(MOCK_IDLE_RPM)
     expect(rpm(100, 40)).toBeGreaterThan(MOCK_IDLE_RPM)
+    expect(rpm(100, 40, 4)).toBeLessThan(rpm(100, 40, 3))
     expect(rpm(TL.stall[0] + 1, 40)).toBe(0)
   })
 
