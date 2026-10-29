@@ -22,10 +22,59 @@ export const settingsEs = {
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
     /** Main could not write settings.json; it keeps retrying. */
     saveError:
-      'Los cambios no se están guardando en el disco (se reintenta solo). Si sigue, cierra OverLap desde la bandeja y vuelve a abrirlo; el detalle está en overlap.log, en «Abrir carpeta de ajustes».',
+      'Los cambios no se están guardando en el disco (se reintenta solo). Si sigue, cierra OverLap desde la bandeja y vuelve a abrirlo.',
+    /** The telemetry cannot load the iRacing SDK module: nothing gets data (R35). */
+    nativeMissing:
+      'No se pudo cargar el módulo nativo del SDK de iRacing: los widgets no recibirán datos. Vuelve a descargar OverLap; si sigue, copia el diagnóstico.',
     loading: 'Cargando ajustes…',
     footNote: 'Los cambios se aplican al momento y se guardan solos.',
     openFolder: 'Abrir carpeta de ajustes'
+  },
+  /**
+   * The status chip (sidebar, narrow top bar) and its panel (R35): the connection, what is
+   * hidden now and why, what does not work, «Copiar diagnóstico» and the log.
+   */
+  status: {
+    /** The chip's accessible name: 'Estado: Simulación. Ver detalles'. */
+    chipAria: (label: string) => `Estado: ${label}. Ver detalles`,
+    title: 'Estado',
+    /** The chip's second line: what is hidden now. */
+    sub: {
+      overlayHidden: 'Overlay oculto',
+      noneOn: 'Ningún widget activado',
+      hiddenNow: (n: number) => (n === 1 ? '1 widget oculto ahora' : `${n} widgets ocultos ahora`),
+      shortcuts: (n: number) => (n === 1 ? '1 atajo no funciona' : `${n} atajos no funcionan`)
+    },
+    /** What the connection state means for you, under it. */
+    advice: {
+      starting: 'Arrancando la lectura de la telemetría.',
+      waiting: 'Abre iRacing y entra en una sesión: los widgets salen al subirte al coche.',
+      connected: 'Recibiendo datos de iRacing.',
+      mock: 'Datos de ejemplo, sin iRacing.',
+      restarting: 'La telemetría se reinicia sola en unos segundos.',
+      error: 'Si no se arregla solo, copia el diagnóstico y mira el registro.',
+      nativeMissing: 'Sin él no hay datos de iRacing. Vuelve a descargar OverLap.'
+    },
+    overlayHidden: 'Has ocultado el overlay.',
+    /** With the show / hide shortcut: 'Ctrl+Shift+H lo muestra'. */
+    overlayKeys: (keys: string) => `${keys} lo muestra.`,
+    show: 'Mostrar',
+    enabled: (on: number, total: number) => `${on} de ${total} widgets activados`,
+    hiddenTitle: 'Ocultos ahora por una regla',
+    /** One rule hides every enabled widget: 'Todos los activados · Oculto: fuera del coche'. */
+    allHidden: (caption: string) => `Todos los activados · ${caption}`,
+    hiddenOne: (widget: string, caption: string) => `${widget} · ${caption}`,
+    noneHidden: 'Ninguno: se ven todos los activados (si estás en pista).',
+    shortcutsFailing: (n: number) =>
+      n === 1 ? '1 atajo no funciona.' : `${n} atajos no funcionan.`,
+    openShortcuts: 'Ver Atajos',
+    saveFailing: 'Los cambios no se están guardando en el disco.',
+    copy: 'Copiar diagnóstico',
+    copyHelp:
+      'Versiones, estado, pantallas y atajos, sin nombres: para pegarlo en un informe de error.',
+    copied: 'Copiado',
+    openLog: 'Abrir registro',
+    openLogHelp: 'overlap.log, lo que pasó en esta sesión y la anterior.'
   },
   nav: {
     title: 'Ajustes',
@@ -61,11 +110,17 @@ export const settingsEs = {
     enter: 'Modo edición',
     exit: 'Salir de edición'
   },
-  /** Sidebar dot that shows or hides a widget. */
+  /** Sidebar eye that shows or hides a widget. */
   visibility: {
     label: (widget: string) => `${widget} visible`,
     hide: (widget: string) => `Ocultar ${widget}`,
-    show: (widget: string) => `Mostrar ${widget}`
+    show: (widget: string) => `Mostrar ${widget}`,
+    /**
+     * On, but a rule hides it now (R35): 'Batalla: activado, pero ahora no se ve (oculto en
+     * práctica). Clic para desactivarlo'. `caption` is hiddenText in lower case, as in the tray.
+     */
+    held: (widget: string, caption: string) =>
+      `${widget}: activado, pero ahora no se ve (${caption}). Clic para desactivarlo`
   },
   confirm: {
     /** Screen-reader text while a ConfirmButton is armed. */
@@ -484,6 +539,8 @@ export const settingsEs = {
     sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
     visible: 'Visible',
     hiddenNote: 'Oculto: no se dibuja ni se calcula. Actívalo para verlo sobre el juego.',
+    /** On, but a rule hides it now (R35): 'Activado, pero ahora no se ve: oculto en práctica.' */
+    heldNote: (caption: string) => `Activado, pero ahora no se ve: ${caption}.`,
     /**
      * The page's resets (R24): a menu at the top and an icon in each section's head. One click,
      * then "Deshacer" (the toast names the layout).
@@ -1530,10 +1587,48 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     updateError: 'Couldn’t apply the change. Please try again.',
     saveError:
-      'Changes are not being saved to disk (retrying on its own). If it goes on, quit OverLap from the tray and open it again; the details are in overlap.log, under “Open settings folder”.',
+      'Changes are not being saved to disk (retrying on its own). If it goes on, quit OverLap from the tray and open it again.',
+    nativeMissing:
+      'Couldn’t load the native iRacing SDK module: the widgets will get no data. Download OverLap again; if it goes on, copy the diagnostics.',
     loading: 'Loading settings…',
     footNote: 'Changes apply instantly and are saved automatically.',
     openFolder: 'Open settings folder'
+  },
+  status: {
+    chipAria: (label) => `Status: ${label}. Show details`,
+    title: 'Status',
+    sub: {
+      overlayHidden: 'Overlay hidden',
+      noneOn: 'No widget turned on',
+      hiddenNow: (n) => (n === 1 ? '1 widget hidden now' : `${n} widgets hidden now`),
+      shortcuts: (n) => (n === 1 ? '1 shortcut not working' : `${n} shortcuts not working`)
+    },
+    advice: {
+      starting: 'Starting to read the telemetry.',
+      waiting: 'Open iRacing and join a session: the widgets appear when you get in the car.',
+      connected: 'Receiving data from iRacing.',
+      mock: 'Sample data, without iRacing.',
+      restarting: 'The telemetry restarts on its own in a few seconds.',
+      error: 'If it doesn’t fix itself, copy the diagnostics and check the log.',
+      nativeMissing: 'Without it there is no iRacing data. Download OverLap again.'
+    },
+    overlayHidden: 'You hid the overlay.',
+    overlayKeys: (keys) => `${keys} shows it.`,
+    show: 'Show',
+    enabled: (on, total) => `${on} of ${total} widgets turned on`,
+    hiddenTitle: 'Hidden now by a rule',
+    allHidden: (caption) => `Every one turned on · ${caption}`,
+    hiddenOne: (widget, caption) => `${widget} · ${caption}`,
+    noneHidden: 'None: every widget turned on shows (when you are on track).',
+    shortcutsFailing: (n) =>
+      n === 1 ? '1 shortcut is not working.' : `${n} shortcuts are not working.`,
+    openShortcuts: 'Open Shortcuts',
+    saveFailing: 'Changes are not being saved to disk.',
+    copy: 'Copy diagnostics',
+    copyHelp: 'Versions, status, displays and shortcuts, no names: to paste into a bug report.',
+    copied: 'Copied',
+    openLog: 'Open log',
+    openLogHelp: 'overlap.log, what happened in this session and the one before.'
   },
   nav: {
     title: 'Settings',
@@ -1564,7 +1659,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
   visibility: {
     label: (widget) => `${widget} visible`,
     hide: (widget) => `Hide ${widget}`,
-    show: (widget) => `Show ${widget}`
+    show: (widget) => `Show ${widget}`,
+    held: (widget, caption) =>
+      `${widget}: on, but not showing now (${caption}). Click to turn it off`
   },
   confirm: {
     pressAgain: (description) => `Press again to confirm: ${description}`,
@@ -1899,6 +1996,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
     visible: 'Visible',
     hiddenNote: 'Hidden: not drawn or computed. Turn it on to see it over the game.',
+    heldNote: (caption) => `On, but not showing now: ${caption}.`,
     reset: {
       menu: 'Reset…',
       menuLabel: (widget) => `Reset ${widget}`,

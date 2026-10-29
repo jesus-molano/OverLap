@@ -4,7 +4,7 @@ import { computed, onUnmounted, shallowRef, useId } from 'vue'
 import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
-import { updateFailed } from './editor'
+import { sendCommand, updateFailed } from './editor'
 import EditModeButton from './layout/EditModeButton.vue'
 import OverlayHiddenNote from './layout/OverlayHiddenNote.vue'
 import SettingsFooter from './layout/SettingsFooter.vue'
@@ -25,9 +25,11 @@ import LayoutsPage from './pages/LayoutsPage.vue'
 import ShortcutsPage from './pages/ShortcutsPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 import UndoToast from './undo/UndoToast.vue'
+import { provideNavigate } from './navigate'
+import { useSaveFailing } from './saveFailing'
 
 // Main is the source of truth: these follow its broadcasts (and the replies to our updates).
-const { editMode, settings } = useOverlayState()
+const { editMode, settings, status } = useOverlayState()
 const t = useI18n()
 const lang = useLanguage()
 
@@ -73,14 +75,21 @@ const stopPageRequests = window.overlay.onSettingsPage((p) => {
 onUnmounted(stopPageRequests)
 
 /** Main could not write settings.json: the changes are kept in memory and retried. */
-const saveFailing = shallowRef(false)
-const stopSaveFailing = window.overlay.onSaveFailing((failing) => {
-  saveFailing.value = failing
-})
-void window.overlay.getInitialState().then((s) => {
-  if (s.saveFailing === true) saveFailing.value = true
-})
-onUnmounted(stopSaveFailing)
+const saveFailing = useSaveFailing()
+/** The telemetry cannot load the iRacing SDK module: said on every page, not only the tray (R35). */
+const nativeMissing = computed(
+  () => status.value?.state === 'error' && status.value.note === 'native-missing'
+)
+// Pages and panels go to another page through this (the status panel, a search result…).
+provideNavigate((next) => select(next))
+
+function copyDiagnostics(): void {
+  sendCommand({ type: 'copy-diagnostics' })
+}
+
+function openLog(): void {
+  sendCommand({ type: 'open-log' })
+}
 </script>
 
 <template>
@@ -120,9 +129,21 @@ onUnmounted(stopSaveFailing)
         <p v-if="updateFailed" class="banner banner-error" role="alert">
           {{ t.settings.app.updateError }}
         </p>
-        <p v-if="saveFailing" class="banner banner-error" role="alert">
-          {{ t.settings.app.saveError }}
-        </p>
+        <div v-if="nativeMissing" class="banner banner-error banner-actions" role="alert">
+          <p class="banner-text">{{ t.settings.app.nativeMissing }}</p>
+          <button type="button" class="st-btn st-btn-sm" @click="copyDiagnostics">
+            {{ t.settings.status.copy }}
+          </button>
+          <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="openLog">
+            {{ t.settings.status.openLog }}
+          </button>
+        </div>
+        <div v-if="saveFailing" class="banner banner-error banner-actions" role="alert">
+          <p class="banner-text">{{ t.settings.app.saveError }}</p>
+          <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="openLog">
+            {{ t.settings.status.openLog }}
+          </button>
+        </div>
       </div>
 
       <main class="content">
@@ -176,6 +197,19 @@ onUnmounted(stopSaveFailing)
   background: color-mix(in srgb, var(--ov-edit) 10%, var(--st-bg));
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* A banner with buttons: the text, then them at its end (they wrap under it when narrow). */
+.banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.banner-text {
+  flex: 1 1 24em;
+  min-width: 0;
 }
 
 .banner-error {

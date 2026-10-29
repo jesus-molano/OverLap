@@ -1,6 +1,7 @@
 import {
   Menu,
   app,
+  clipboard,
   dialog,
   globalShortcut,
   ipcMain,
@@ -11,6 +12,7 @@ import {
 } from 'electron'
 import { readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { release as osRelease, type as osType } from 'node:os'
 
 import {
   boundControllers,
@@ -40,6 +42,7 @@ import { everyBinding, shortcutBindings } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
+import { diagnosticsText } from './diagnostics'
 import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
@@ -250,6 +253,12 @@ function start(): void {
     onData: (msg) => windows.sendData(msg),
     onAutoHidden: (id, state) => {
       windows.setAutoHidden(id, state)
+      // The settings window says it too: the sidebar's eye, the status chip (R35).
+      sendToSettingsWindow(IPC.autoHidden, {
+        widget: id,
+        hidden: state.hidden,
+        reason: state.hidden ? state.reason : null
+      })
       refreshTray()
     },
     onBests: (list) => {
@@ -474,6 +483,43 @@ function start(): void {
     })
   }
 
+  /** overlap.log, in the system's text viewer (the folder when there is no log yet). */
+  function openLog(): void {
+    const file = join(userData, 'overlap.log')
+    void shell.openPath(file).then((err) => {
+      if (!err) return
+      console.warn(`[main] could not open ${file}: ${err}`)
+      openSettingsFolder()
+    })
+  }
+
+  /** What support needs to know, on the clipboard (the settings window's «Copiar diagnóstico»). */
+  function copyDiagnostics(): void {
+    clipboard.writeText(
+      diagnosticsText({
+        version: app.getVersion(),
+        versions: process.versions,
+        os: `${osType()} ${osRelease()} ${process.arch}`,
+        status,
+        editMode: windows.editMode,
+        overlayHidden: windows.userHidden,
+        settings: store.settings,
+        autoHidden: windows.autoHiddenReasons(),
+        shortcuts: shortcuts.report,
+        displays: screen.getAllDisplays().map((d) => ({
+          bounds: d.bounds,
+          scaleFactor: d.scaleFactor,
+          primary: d.id === screen.getPrimaryDisplay().id
+        })),
+        saveFailing: store.saveFailing,
+        settingsFile: store.file,
+        logFile: join(userData, 'overlap.log'),
+        home: app.getPath('home')
+      })
+    )
+    console.log('[main] diagnostics copied to the clipboard')
+  }
+
   /** Tray, shortcut, settings window: entering edit mode shows a hidden overlay first. */
   function setEditMode(on: boolean): void {
     changeModes(() => windows.setEditMode(on))
@@ -532,7 +578,7 @@ function start(): void {
       status,
       settings: rendererSettings(store.settings, view.kind),
       layout: overlay ? windows.layoutFor(event.sender) : null,
-      autoHidden: overlay ? windows.autoHiddenMap() : {},
+      autoHidden: windows.autoHiddenMap(),
       overlayHidden: windows.userHidden,
       shortcutStatus: shortcuts.report,
       cursorHidden: windows.cursorHidden,
@@ -590,6 +636,12 @@ function start(): void {
         break
       case 'open-settings-folder':
         openSettingsFolder()
+        break
+      case 'open-log':
+        openLog()
+        break
+      case 'copy-diagnostics':
+        copyDiagnostics()
         break
       case 'refresh-personal-bests':
         sendPersonalBests()

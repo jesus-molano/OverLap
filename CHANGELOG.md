@@ -7,7 +7,24 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Añadido
+
+- **El estado, fuera de la bandeja**: el chip de estado de los Ajustes dice debajo qué está oculto
+  ahora y por qué («Oculto: fuera del coche», «2 widgets ocultos ahora», «Overlay oculto») o qué
+  falla («1 atajo no funciona»). Con un clic abre un panel con la línea de estado entera y qué
+  hacer, qué widgets oculta una regla y por qué, los atajos que no funcionan (con «Ver Atajos») y
+  los botones **Copiar diagnóstico** (versiones, estado, pantallas y atajos, sin nombres ni tu
+  usuario) y **Abrir registro** (`overlap.log`). Si no se puede cargar el módulo nativo del SDK de
+  iRacing, lo dice un aviso en todas las páginas, con los mismos botones; el aviso de que no se
+  guarda también abre el registro en vez de explicar dónde está.
+
 ### Cambiado
+
+- **El ojo es el símbolo de la visibilidad**: en la barra lateral, cada widget tiene un ojo (como
+  en la etiqueta del modo edición) en vez de un punto: abierto si está activado, tachado si no, y
+  tenue con un círculo discontinuo si está activado pero una regla lo oculta ahora; al pasar el
+  ratón dice por qué («activado, pero ahora no se ve (oculto en práctica)»). La página del widget
+  lo dice también bajo su título.
 
 - **Widgets agrupados**: la barra lateral de los Ajustes, su selector en una ventana estrecha y la
   bandeja ordenan los diez widgets en tres grupos: **Pista y rivales** (Relativo, Posiciones,

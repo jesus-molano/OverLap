@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { widgetTitle } from '@shared/i18n'
-import { WIDGET_GROUPS, WIDGET_IDS } from '@shared/widgets'
-import { useI18n } from '../../composables/useI18n'
+import { LOCALES, hiddenText, widgetTitle } from '@shared/i18n'
+import { WIDGET_GROUPS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
+import { useI18n, useLanguage } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
@@ -18,8 +18,9 @@ import VisibilityDot from './VisibilityDot.vue'
 defineProps<{ page: SettingsPage }>()
 const emit = defineEmits<{ select: [page: SettingsPage] }>()
 
-const { settings } = useOverlayState()
+const { settings, autoHiddenOf } = useOverlayState()
 const t = useI18n()
+const lang = useLanguage()
 const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
 const globalItems = computed(() =>
@@ -31,6 +32,14 @@ const keys = computed(() => sidebarKeys(t.value, shortcuts.value, deviceNames.va
 const visibleKey = computed(() =>
   WIDGET_IDS.map((id) => (settings.value?.widgets[id].visible === false ? '0' : '1')).join('')
 )
+/** On but hidden now by a rule: why, in lower case as in the tray ('oculto en práctica'). */
+function heldOf(id: WidgetId): string | null {
+  const a = autoHiddenOf[id].value
+  if (!a.hidden) return null
+  const caption = hiddenText(t.value, a.reason)
+  return caption.charAt(0).toLocaleLowerCase(LOCALES[lang.value]) + caption.slice(1)
+}
+
 /** The widgets in their groups (R42): the track and rivals, your lap, your car. */
 const groups = computed(() =>
   WIDGET_GROUPS.map((g) => ({
@@ -40,6 +49,7 @@ const groups = computed(() =>
       id,
       title: widgetTitle(t.value, id),
       visible: visibleKey.value[WIDGET_IDS.indexOf(id)] === '1',
+      held: heldOf(id),
       setVisible: (on: boolean) => setWidgetVisible(id, on)
     }))
   }))
@@ -84,7 +94,12 @@ function openSettingsFolder(): void {
               <NavIcon :page="item.id" />
               <span class="nav-text">{{ item.title }}</span>
             </button>
-            <VisibilityDot :title="item.title" :current="item.visible" :apply="item.setVisible" />
+            <VisibilityDot
+              :title="item.title"
+              :current="item.visible"
+              :held="item.held"
+              :apply="item.setVisible"
+            />
           </li>
         </ul>
       </template>

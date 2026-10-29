@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, provide, useId } from 'vue'
-import { widgetTitle } from '@shared/i18n'
+import { LOCALES, hiddenText, widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
-import { useI18n } from '../../composables/useI18n'
+import { useI18n, useLanguage } from '../../composables/useI18n'
+import Icon from '../../ui/Icon.vue'
 import { useWidgetSettings } from '../../composables/useWidgetSettings'
 import { hasOptionPart, type OptionPart } from '@shared/settings'
 import {
@@ -60,7 +61,15 @@ const setVisible = (on: boolean): Promise<void> => setWidgetVisible(props.widget
 // Its sections' reset icons (PageSection) reset this widget.
 provide(WIDGET_PAGE, props.widgetId)
 
-const { settings } = useOverlayState()
+const { settings, autoHiddenOf } = useOverlayState()
+const lang = useLanguage()
+/** On, but a rule hides it now: why, in lower case ('oculto en práctica'), as the sidebar's eye. */
+const held = computed(() => {
+  const a = autoHiddenOf[props.widgetId].value
+  if (!a.hidden) return null
+  const caption = hiddenText(t.value, a.reason)
+  return caption.charAt(0).toLocaleLowerCase(LOCALES[lang.value]) + caption.slice(1)
+})
 const bounds = computed(
   () => settings.value?.widgets[props.widgetId].bounds ?? def.value.defaultBounds
 )
@@ -121,7 +130,12 @@ const resetItems = computed<ResetItem[]>(() => {
       </header>
 
       <p v-if="!prefs.visible" class="hidden-note" role="status">
+        <Icon name="eye-off" class="note-eye" />
         {{ t.settings.widgetPage.hiddenNote }}
+      </p>
+      <p v-else-if="held" class="hidden-note" role="status">
+        <Icon name="eye" class="note-eye" />
+        {{ t.settings.widgetPage.heldNote(held) }}
       </p>
 
       <PreviewHint />
@@ -193,6 +207,9 @@ const resetItems = computed<ResetItem[]>(() => {
 }
 
 .hidden-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
   padding: 8px 12px;
   border: 1px solid var(--st-border-hi);

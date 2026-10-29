@@ -377,6 +377,10 @@ export type SettingsCommand =
   | { type: 'set-edit-mode'; on: boolean }
   | { type: 'reset-widget-bounds'; widgetId: WidgetId }
   | { type: 'open-settings-folder' }
+  /** overlap.log in the system's viewer (R35). */
+  | { type: 'open-log' }
+  /** What support needs (versions, status, displays, shortcuts...) on the clipboard (R35). */
+  | { type: 'copy-diagnostics' }
   /** `part`: what of it (WidgetResetPart: 'all' when absent). */
   | { type: 'reset-widget-options'; widgetId: WidgetId; part?: WidgetResetPart }
   /** The widget's bounds set to `bounds` (a reset undone, a free widget's «Escala»). */
@@ -426,7 +430,7 @@ export interface InitialState {
   settings: OverlaySettings
   /** Overlay windows: what this window hosts (null for the settings window). */
   layout: OverlayLayout | null
-  /** Overlay windows: every widget a visibility rule hides right now ({} elsewhere). */
+  /** Every widget a visibility rule hides right now (the settings window says it too). */
   autoHidden: AutoHiddenMap
   /** The user hid every overlay window (not saved: the app always starts shown). */
   overlayHidden: boolean
