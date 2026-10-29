@@ -237,7 +237,8 @@ const DEFAULT_SHORTCUTS: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Shift+H',
   toggleEditMode: 'Ctrl+Shift+E',
   cycleDeltaReference: '',
-  nextLayout: ''
+  nextLayout: '',
+  openSettings: 'Ctrl+Shift+O'
 }
 const DEFAULT_DELTA: DeltaOptions = {
   referencePractice: 'pb',
@@ -1271,7 +1272,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleOverlay: 'Ctrl+Alt+Shift+O',
       toggleEditMode: '',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
     })
   })
 
@@ -1315,18 +1317,26 @@ describe('normalizeSettings: shortcuts', () => {
       toggleOverlay: 'Ctrl+Alt+F9',
       toggleEditMode: '',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
     })
     // A default counts: an edited first action that takes the second's default wins it.
     expect(normalizeSettings({ shortcuts: { toggleOverlay: 'Ctrl+Shift+E' } }).shortcuts).toEqual({
       toggleOverlay: 'Ctrl+Shift+E',
       toggleEditMode: '',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
     })
     expect(
       normalizeSettings({ shortcuts: { toggleOverlay: '', toggleEditMode: '' } }).shortcuts
-    ).toEqual({ toggleOverlay: '', toggleEditMode: '', cycleDeltaReference: '', nextLayout: '' })
+    ).toEqual({
+      toggleOverlay: '',
+      toggleEditMode: '',
+      cycleDeltaReference: '',
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
+    })
   })
 
   it('round-trips through the file', () => {
@@ -1335,7 +1345,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleOverlay: 'F13',
       toggleEditMode: 'Ctrl+Alt+PageUp',
       cycleDeltaReference: 'Ctrl+Alt+D',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: ''
     }
     expect(normalizeSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved)
   })

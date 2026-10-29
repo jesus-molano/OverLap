@@ -18,13 +18,15 @@ const custom: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Alt+PageDown',
   toggleEditMode: '',
   cycleDeltaReference: 'Ctrl+Alt+D',
-  nextLayout: ''
+  nextLayout: '',
+  openSettings: ''
 }
 const OK = {
   toggleOverlay: 'ok',
   toggleEditMode: 'ok',
   cycleDeltaReference: 'ok',
-  nextLayout: 'ok'
+  nextLayout: 'ok',
+  openSettings: 'ok'
 } as const
 
 function row(shortcuts: ShortcutSettings, i: number): ShortcutRowView {
@@ -40,7 +42,8 @@ describe('shortcutRows', () => {
       'toggleOverlay',
       'toggleEditMode',
       'cycleDeltaReference',
-      'nextLayout'
+      'nextLayout',
+      'openSettings'
     ])
     expect(rows[0]).toMatchObject({
       label: 'Mostrar u ocultar el overlay',

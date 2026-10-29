@@ -643,12 +643,14 @@ export const OPTION_SCHEMA = {
     showTrend: { kind: 'bool', default: true }
   },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them. The
-  // delta's cycle and the next layout have none until you give them one.
+  // delta's cycle and the next layout have none until you give them one; the settings window
+  // opens with Ctrl+Shift+O (O for opciones / options).
   shortcuts: {
     toggleOverlay: { kind: 'accelerator', default: 'Ctrl+Shift+H', displayOnly: true },
     toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true },
     cycleDeltaReference: { kind: 'accelerator', default: '', displayOnly: true },
-    nextLayout: { kind: 'accelerator', default: '', displayOnly: true }
+    nextLayout: { kind: 'accelerator', default: '', displayOnly: true },
+    openSettings: { kind: 'accelerator', default: 'Ctrl+Shift+O', displayOnly: true }
   },
   // The settings window's own; nothing else reads them.
   settingsWindow: {

@@ -275,6 +275,9 @@ function start(): void {
         case 'nextLayout':
           layouts.next()
           break
+        case 'openSettings':
+          openSettingsWindow()
+          break
       }
     },
     onExitEdit: () => setEditMode(false),

@@ -282,6 +282,10 @@ export const settingsEs = {
       nextLayout: {
         label: 'Siguiente disposición',
         help: 'Aplica la siguiente disposición guardada, en el orden de la lista, y la recuerda'
+      },
+      openSettings: {
+        label: 'Abrir los ajustes',
+        help: 'Abre esta ventana, o la trae al frente si ya está abierta; también con iRacing delante'
       }
     },
     /** The fixed Esc row. */
@@ -1432,6 +1436,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
       nextLayout: {
         label: 'Next layout',
         help: 'Applies the next saved layout, in the list’s order, and remembers it'
+      },
+      openSettings: {
+        label: 'Open settings',
+        help: 'Opens this window, or brings it to the front if it is open; also with iRacing in front'
       }
     },
     escape: {

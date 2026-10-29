@@ -217,8 +217,8 @@ describe('useShortcutCapture: refusals', () => {
     expect(saved).toEqual([])
     expect(commands).toEqual([true])
 
-    pressCtrlShift('O', 'KeyO')
-    expect(saved).toEqual([['toggleOverlay', 'Ctrl+Shift+O']])
+    pressCtrlShift('U', 'KeyU')
+    expect(saved).toEqual([['toggleOverlay', 'Ctrl+Shift+U']])
   })
 
   it("takes the action's own combination again", () => {
@@ -315,7 +315,8 @@ describe('useShortcutCapture: buttons', () => {
       toggleOverlay: 'F13',
       toggleEditMode: 'Ctrl+Shift+H',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: ''
     }
     expect(capture.assign('toggleOverlay', 'Ctrl+Shift+H')).toBe(false)
     expect(saved).toEqual([])

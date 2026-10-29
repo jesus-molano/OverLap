@@ -97,7 +97,8 @@ describe('useOverlayState', () => {
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled'
+      nextLayout: 'disabled',
+      openSettings: 'disabled'
     })
     await flush()
     expect(s.status.value).toEqual(WAITING_STATUS)
@@ -107,7 +108,8 @@ describe('useOverlayState', () => {
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled'
+      nextLayout: 'disabled',
+      openSettings: 'disabled'
     })
   })
 
@@ -118,7 +120,8 @@ describe('useOverlayState', () => {
         toggleOverlay: 'ok',
         toggleEditMode: 'disabled',
         cycleDeltaReference: 'disabled',
-        nextLayout: 'disabled'
+        nextLayout: 'disabled',
+        openSettings: 'disabled'
       }
     })
     const s = mod.useOverlayState()
@@ -130,7 +133,8 @@ describe('useOverlayState', () => {
       toggleOverlay: 'ok',
       toggleEditMode: 'disabled',
       cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled'
+      nextLayout: 'disabled',
+      openSettings: 'disabled'
     })
     fake.overlayHidden.emit(false)
     expect(s.overlayHidden.value).toBe(false)

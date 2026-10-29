@@ -109,7 +109,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled'
+      nextLayout: 'disabled',
+      openSettings: 'disabled'
     },
     cursorHidden: false,
     currentCar: null,

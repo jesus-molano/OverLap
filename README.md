@@ -244,6 +244,7 @@ Son globales: funcionan con iRacing en primer plano.
 | ------------------- | ----------------------------------------------------------- |
 | `Ctrl+Shift+H`      | Mostrar u ocultar todo el overlay de golpe                  |
 | `Ctrl+Shift+E`      | Entrar o salir del modo edición                             |
+| `Ctrl+Shift+O`      | Abrir los Ajustes (o traerlos al frente)                    |
 | (sin asignar)       | Siguiente disposición                                       |
 | (sin asignar)       | Cambiar la referencia del delta                             |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |

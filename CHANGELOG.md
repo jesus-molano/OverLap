@@ -5,6 +5,11 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+- Atajo para abrir los Ajustes (`Ctrl+Shift+O` por defecto, la O de opciones): los abre o los trae
+  al frente, también con iRacing delante. Se cambia o se desactiva en **Ajustes > Atajos de teclado**.
+
 ## [2.1.0] - 2026-10-29
 
 ### Disposiciones
