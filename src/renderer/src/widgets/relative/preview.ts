@@ -45,7 +45,7 @@ const FLAGS: Readonly<Record<string, string>> = {
   '61': 'ES',
   '51': 'IT',
   '8': 'GB-SCT',
-  '9': 'NO',
+  '9': 'GLOBAL',
   '23': 'US',
   '88': 'BR',
   '14': 'JP',

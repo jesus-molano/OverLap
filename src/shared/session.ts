@@ -156,7 +156,11 @@ function parseDriver(d: Obj, carIdx: number): DriverEntry {
     isAI: flag(d.CarIsAI),
     brand: brandOfCar(carIdentityOf(d)),
     // FlairName replaced ClubName (now 'None') as where the driver races from.
-    country: flag(d.CarIsPaceCar) || flag(d.IsSpectator) ? '' : countryOfFlair(text(d.FlairName))
+    // The pace car, spectators and AI drivers race from nowhere: no flag, not even the global one.
+    country:
+      flag(d.CarIsPaceCar) || flag(d.IsSpectator) || flag(d.CarIsAI)
+        ? ''
+        : countryOfFlair(text(d.FlairName))
   }
 }
 
