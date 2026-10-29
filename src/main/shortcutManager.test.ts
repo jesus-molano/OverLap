@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SHORTCUT_CAPTURE_LEASE_MS } from '@shared/ipc'
-import type { ShortcutAction, ShortcutSettings, ShortcutStatusMap } from '@shared/shortcuts'
+import {
+  emptyMoreShortcuts,
+  type ShortcutAction,
+  type ShortcutSettings,
+  type ShortcutStatusMap,
+  type ShortcutStatusReport
+} from '@shared/shortcuts'
 import { REPEAT_GUARD_MS, ShortcutManager } from './shortcutManager'
 import { FakeGlobalShortcut } from './testing/fakeElectron'
 
@@ -16,6 +22,7 @@ let registry: FakeGlobalShortcut
 let actions: ShortcutAction[]
 let exits: number
 let statuses: ShortcutStatusMap[]
+let reports: ShortcutStatusReport[]
 let manager: ShortcutManager
 
 beforeEach(() => {
@@ -26,11 +33,15 @@ beforeEach(() => {
   actions = []
   exits = 0
   statuses = []
+  reports = []
   manager = new ShortcutManager({
     registry,
     onAction: (a) => actions.push(a),
     onExitEdit: () => exits++,
-    onStatus: (s) => statuses.push(s)
+    onStatus: (s) => {
+      statuses.push(s.actions)
+      reports.push(s)
+    }
   })
 })
 
@@ -339,7 +350,10 @@ describe('ShortcutManager controller buttons', () => {
       registry,
       onAction: (a) => actions.push(a),
       onExitEdit: () => exits++,
-      onStatus: (s) => statuses.push(s),
+      onStatus: (s) => {
+        statuses.push(s.actions)
+        reports.push(s)
+      },
       onButtonsWanted
     })
     return manager
@@ -365,7 +379,10 @@ describe('ShortcutManager controller buttons', () => {
       registry,
       onAction: (a) => actions.push(a),
       onExitEdit: () => exits++,
-      onStatus: (s) => statuses.push(s),
+      onStatus: (s) => {
+        statuses.push(s.actions)
+        reports.push(s)
+      },
       onCaptureStart: () => starts++
     })
     manager.configure(BUTTONS)
@@ -458,6 +475,87 @@ describe('ShortcutManager controller buttons', () => {
     manager.configure(DEFAULTS)
     manager.startCapture()
     vi.advanceTimersByTime(SHORTCUT_CAPTURE_LEASE_MS)
+    expect(wanted).toEqual([true, false])
+  })
+})
+
+describe('ShortcutManager several bindings per action', () => {
+  const G29 = 'joy:046d:c24f:0'
+  const BOX = 'joy:1dd2:2201:0'
+  const more = (
+    extra: Partial<Record<ShortcutAction, string[]>>
+  ): Record<ShortcutAction, string[]> => ({
+    ...emptyMoreShortcuts(),
+    ...extra
+  })
+
+  it('registers every combination of every action and runs the same action from each', () => {
+    manager.configure(DEFAULTS, more({ toggleOverlay: ['F13', `${G29}:24`], nextLayout: ['F14'] }))
+    expect(registry.registered()).toEqual(['Ctrl+Shift+E', 'Ctrl+Shift+H', 'F13', 'F14'])
+    expect(press('Ctrl+Shift+H')).toBe(true)
+    expect(press('F13')).toBe(true)
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    expect(manager.pressButton(G29, 24)).toBe('toggleOverlay')
+    // nextLayout's only binding is an extra one ('' first): normalised settings never do
+    // that, but it still counts.
+    expect(press('F14')).toBe(true)
+    expect(actions).toEqual(['toggleOverlay', 'toggleOverlay', 'toggleOverlay', 'nextLayout'])
+  })
+
+  it('changes only the binding that differs', () => {
+    manager.configure(DEFAULTS, more({ toggleOverlay: ['F13'] }))
+    registry.register.mockClear()
+    manager.configure(DEFAULTS, more({ toggleOverlay: ['F13'] }))
+    expect(registry.register).not.toHaveBeenCalled()
+    manager.configure(DEFAULTS, more({ toggleOverlay: ['F15'] }))
+    expect(registry.unregister.mock.calls).toEqual([['F13']])
+    expect(registry.register.mock.calls.map((c) => c[0])).toEqual(['F15'])
+    expect(registry.registered()).toEqual(['Ctrl+Shift+E', 'Ctrl+Shift+H', 'F15'])
+  })
+
+  it('reports each binding that does not work, and the action as unavailable', () => {
+    registry.taken.add('F13')
+    manager.configure(
+      DEFAULTS,
+      more({ toggleOverlay: ['F13', `${G29}:24`], nextLayout: [`${BOX}:3`] })
+    )
+    // Controllers not known yet: only the refused combination.
+    expect(manager.unavailableBindings).toEqual(['F13'])
+    manager.setControllers([G29])
+    expect(manager.unavailableBindings).toEqual(['F13', `${BOX}:3`])
+    expect(manager.status).toMatchObject({
+      toggleOverlay: 'unavailable',
+      toggleEditMode: 'ok',
+      nextLayout: 'unavailable'
+    })
+    expect(reports.at(-1)).toEqual({
+      actions: manager.status,
+      unavailable: ['F13', `${BOX}:3`]
+    })
+    // The working ones still work beside them.
+    expect(press('Ctrl+Shift+H')).toBe(true)
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    expect(manager.pressButton(G29, 24)).toBe('toggleOverlay')
+    manager.setControllers([G29, BOX])
+    registry.taken.delete('F13')
+    manager.setEditing(true)
+    expect(reports.at(-1)?.unavailable).toEqual([])
+    expect(manager.status.toggleOverlay).toBe('ok')
+  })
+
+  it('wants the controllers read while any binding, not only the first, is a button', () => {
+    const wanted: boolean[] = []
+    manager.dispose()
+    manager = new ShortcutManager({
+      registry,
+      onAction: (a) => actions.push(a),
+      onExitEdit: () => exits++,
+      onStatus: () => {},
+      onButtonsWanted: (on) => wanted.push(on)
+    })
+    manager.configure(DEFAULTS, more({ toggleEditMode: [`${G29}:5`] }))
+    expect(wanted).toEqual([true])
+    manager.configure(DEFAULTS, more({ toggleEditMode: ['F13'] }))
     expect(wanted).toEqual([true, false])
   })
 })

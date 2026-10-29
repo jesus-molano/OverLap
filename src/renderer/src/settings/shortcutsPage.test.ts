@@ -36,25 +36,39 @@ describe('shortcuts page', () => {
     expect(PAGE).toContain('useShortcutCapture(windowCaptureDeps())')
   })
 
-  it('gives each row a polite live region and cancels when its button loses the focus', () => {
+  it('gives each row a polite live region and cancels when the recording button loses the focus', () => {
     const t = templateOf(ROW)
     expect(t).toMatch(/<p :id="msgId" class="sc-msg" aria-live="polite">/)
-    expect(t).toMatch(/@blur="onChangeBlur"/)
-    expect(t).toMatch(/@click="capture\.toggle\(row\.action\)"/)
-    // One button for change and cancel: the focus stays on it while recording.
+    // Two ways to record (over a chip, or one more), each cancelling on blur and on a second click.
+    expect(t.match(/@blur="onRecorderBlur"/g)).toHaveLength(2)
+    expect(t).toMatch(/@click="onChip\(\$event, b\.slot\)"/)
+    expect(ROW).toMatch(/function onChip[\s\S]*?props\.capture\.toggle\(props\.row\.action, slot\)/)
+    expect(t).toMatch(/@click="capture\.toggle\(row\.action, row\.bindings\.length\)"/)
     expect(t.match(/capture\.toggle/g)).toHaveLength(1)
   })
 
-  it('keeps the keys field one width in every row: the "in use" badge sits by the name', () => {
+  it('shows the bindings as chips, each with its own ×, and "add" only while there is room', () => {
     const t = templateOf(ROW)
-    const field = /<div\s+class="sc-keys"[\s\S]*?<\/div>/.exec(t)?.[0] ?? ''
-    expect(field).toContain('<Keycaps')
-    expect(field).not.toMatch(/sc-badge/)
+    expect(t).toMatch(/<li\s+v-for="b in row\.bindings"[\s\S]*?class="sc-chip"/)
+    expect(t).toMatch(/class="sc-chip-x"[\s\S]*?@click="capture\.remove\(row\.action, b\.slot\)"/)
+    expect(t).toMatch(/v-if="row\.canAdd"/)
+    // Keyed by the binding: a chip that moves up is not the removed one's element (nor its focus).
+    expect(t).toMatch(/v-for="b in row\.bindings"\s+:key="b\.accelerator"/)
+    // "+ Añadir" wraps with the chips; Reset stays at the end of the title line, only disabled
+    // while recording (nothing moves under the driver's hands).
+    const list = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
+    expect(list).toContain('class="st-btn st-btn-sm sc-add"')
+    expect(t).toMatch(/<div class="sc-head">[\s\S]*?sc-reset"\s+:disabled="recording !== null"/)
+    // Recording over a chip: its × cancels, and the prompt is the short one.
+    expect(t).toMatch(/sc-chip-cancel"[\s\S]*?@click="capture\.cancel\(\)"/)
+    expect(t).toContain('t.settings.shortcuts.capture.promptShort')
+    // The "in use" badge sits by the name, not in a chip, so the chips stay one size.
+    const chips = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
+    expect(chips).toContain('<Keycaps')
+    expect(chips).not.toMatch(/sc-badge/)
     expect(t).toMatch(/<span class="sc-title">[\s\S]*class="sc-badge-unavailable"[\s\S]*?<\/span>/)
-    expect(ROW).toMatch(/\.sc-keys \{[^}]*min-width: 15em;/)
-    // A button's field is exactly as wide (its controller cut on a second line), not wider.
-    expect(ROW).toMatch(/\.sc-keys\.has-button \{[^}]*width: 15em;/)
-    expect(ROW).not.toMatch(/24em/)
+    // No coloured rail on a chip: a warning outline at most.
+    expect(ROW).not.toMatch(/border-left:/)
   })
 
   it('lists the configured keys in the sidebar instead of fixed ones', () => {

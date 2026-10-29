@@ -87,7 +87,7 @@ function openSettingsFolder(): void {
       <dl class="keys">
         <template v-for="k in keys" :key="k.id">
           <dt>
-            <span v-if="k.button" class="key-button" :title="k.keys">
+            <span v-if="k.button" class="key-button" :title="k.title">
               <Icon name="wheel" class="key-button-icon" />
               <span class="key-button-text">{{ k.keys }}</span>
             </span>

@@ -702,3 +702,95 @@ describe('applySettingsPatch: controller buttons', () => {
     expect(out.buttonDeviceNames).toEqual({})
   })
 })
+
+describe('applySettingsPatch: several bindings per action', () => {
+  const G29 = 'joy:046d:c24f:0'
+  const BOX = 'joy:1dd2:2201:0'
+
+  it('replaces all of an action’s bindings: the first in shortcuts, the others in shortcutsMore', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcutBindings: { toggleOverlay: ['ctrl+shift+h', `${G29}:24`, 'F13'] }
+    })
+    expect(out.shortcuts.toggleOverlay).toBe('Ctrl+Shift+H')
+    expect(out.shortcutsMore.toggleOverlay).toEqual([`${G29}:24`, 'F13'])
+    expect(out.shortcuts.toggleEditMode).toBe('Ctrl+Shift+E')
+    // [] turns it off.
+    const off = applySettingsPatch(out, { shortcutBindings: { toggleOverlay: [] } })
+    expect(off.shortcuts.toggleOverlay).toBe('')
+    expect(off.shortcutsMore.toggleOverlay).toEqual([])
+  })
+
+  it('refuses a list with an invalid binding, a repeat, or more than three, whole', () => {
+    const current = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcutBindings: { toggleOverlay: ['Ctrl+Shift+H', 'F13'] }
+    })
+    for (const bad of [
+      ['Ctrl+Shift+H', 'Ctrl+C'],
+      ['F13', 'f13'],
+      ['F13', 'F14', 'F15', 'F16'],
+      ['F13', ''],
+      'F13',
+      [7]
+    ]) {
+      const out = applySettingsPatch(current, { shortcutBindings: { toggleOverlay: bad } })
+      expect(out.shortcuts, JSON.stringify(bad)).toEqual(current.shortcuts)
+      expect(out.shortcutsMore, JSON.stringify(bad)).toEqual(current.shortcutsMore)
+    }
+  })
+
+  it('refuses a binding another action has in any slot: the action keeps its current ones', () => {
+    const current = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcutBindings: { toggleOverlay: ['Ctrl+Shift+H', `${G29}:24`] }
+    })
+    const taken = applySettingsPatch(current, {
+      shortcutBindings: { nextLayout: ['F15', `${G29}:24`] }
+    })
+    expect(taken.shortcuts.nextLayout).toBe('')
+    expect(taken.shortcutsMore.nextLayout).toEqual([])
+    // Through the first binding too.
+    const first = applySettingsPatch(current, { shortcuts: { nextLayout: `${G29}:24` } })
+    expect(first.shortcuts.nextLayout).toBe('')
+    // Moving it between two actions in one patch is fine.
+    const moved = applySettingsPatch(current, {
+      shortcutBindings: { toggleOverlay: ['Ctrl+Shift+H'], nextLayout: [`${G29}:24`] }
+    })
+    expect(moved.shortcuts.nextLayout).toBe(`${G29}:24`)
+    expect(moved.shortcutsMore.toggleOverlay).toEqual([])
+  })
+
+  it('removing the first binding (an empty first one) moves the next one up', () => {
+    const current = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcutBindings: { toggleEditMode: ['Ctrl+Shift+E', `${BOX}:3`, 'F13'] }
+    })
+    const out = applySettingsPatch(current, { shortcuts: { toggleEditMode: '' } })
+    expect(out.shortcuts.toggleEditMode).toBe(`${BOX}:3`)
+    expect(out.shortcutsMore.toggleEditMode).toEqual(['F13'])
+    // A new first one keeps the others (one equal to it is not repeated).
+    const swapped = applySettingsPatch(current, { shortcuts: { toggleEditMode: 'F13' } })
+    expect(swapped.shortcuts.toggleEditMode).toBe('F13')
+    expect(swapped.shortcutsMore.toggleEditMode).toEqual([`${BOX}:3`])
+  })
+
+  it('a reset of every action to its factory binding alone removes the extra ones', () => {
+    const current = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcutBindings: {
+        toggleOverlay: ['F13', `${G29}:24`, 'Ctrl+Shift+E'],
+        toggleEditMode: ['Ctrl+Shift+H']
+      }
+    })
+    // Both moved at once (a swap through the extra slots).
+    expect(current.shortcuts.toggleEditMode).toBe('Ctrl+Shift+H')
+    expect(current.shortcutsMore.toggleOverlay).toEqual([`${G29}:24`, 'Ctrl+Shift+E'])
+    const out = applySettingsPatch(current, {
+      shortcutBindings: {
+        toggleOverlay: ['Ctrl+Shift+H'],
+        toggleEditMode: ['Ctrl+Shift+E'],
+        cycleDeltaReference: [],
+        nextLayout: [],
+        openSettings: ['Ctrl+Shift+O']
+      }
+    })
+    expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
+    expect(out.shortcutsMore).toEqual(DEFAULT_SETTINGS.shortcutsMore)
+  })
+})

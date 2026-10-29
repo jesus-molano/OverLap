@@ -1,5 +1,6 @@
 /** Defensive load of anything read from disk. */
 import { boundControllers, normalizeDeviceNames } from '../controllers'
+import { everyBinding } from '../shortcuts'
 import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
 import { OPTION_SECTIONS, createDefaultSettings, sectionSpecs } from './defaults'
@@ -11,6 +12,7 @@ import {
   normalizeBounds
 } from './fields'
 import { normalizeLayoutLibrary } from './layouts'
+import { bindingsOf, settleShortcuts } from './shortcuts'
 import {
   HIDDEN_WHEN_ADDED,
   SHOWN_WHEN_ADDED,
@@ -24,8 +26,9 @@ import {
  * Merges anything read from disk with the defaults. Never throws: unknown
  * widget ids and keys are dropped, missing widgets and fields get their
  * defaults, invalid values are replaced and numbers are clamped to their
- * ranges; a shortcut combination repeated on disk stays with the first action
- * only. The `version` field is not trusted: v1/v2/v3 files are recognised by
+ * ranges; a shortcut binding repeated on disk stays with the first action (and slot)
+ * only, and each action's extra bindings (settings.shortcutsMore, settleShortcuts) are valid
+ * and unique too. The `version` field is not trusted: v1/v2/v3 files are recognised by
  * their fields (see migrate.ts), and files from before v5 get its changed defaults once (the
  * only use of the version); the result is always the current version. A
  * file with widgets saved but not a HIDDEN_WHEN_ADDED one gets that one hidden,
@@ -60,10 +63,12 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     mergeSection(out[section], r, sectionSpecs(section))
     disableDuplicateAccelerators(out[section], sectionSpecs(section))
   }
+  // After the shortcuts section: its first bindings take part.
+  settleShortcuts(out, raw.shortcutsMore)
   // Only the names of the controllers the final shortcuts use.
   out.buttonDeviceNames = normalizeDeviceNames(
     raw.buttonDeviceNames,
-    boundControllers(Object.values(out.shortcuts))
+    boundControllers(everyBinding(bindingsOf(out)))
   )
   // Last: against the final widgets, named in the final language.
   out.savedLayouts = normalizeLayoutLibrary(

@@ -5,6 +5,7 @@ import {
   type OptionSection,
   type OptionSpec
 } from '../settingsSchema'
+import { emptyMoreShortcuts } from '../shortcuts'
 import type { OverlaySettings, WidgetSettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, shownOnSessionScreen, type WidgetId } from '../widgets'
 import { defaultLayoutLibrary, type LiveSettings } from './layouts'
@@ -75,6 +76,7 @@ export function createDefaultSettings(): OverlaySettings {
     shortcuts: defaultOptions('shortcuts'),
     settingsWindow: defaultOptions('settingsWindow'),
     layouts: defaultOptions('layouts'),
+    shortcutsMore: emptyMoreShortcuts(),
     buttonDeviceNames: {}
   }
   return { ...live, savedLayouts: defaultLayoutLibrary(live, appearance.language) }

@@ -6,7 +6,7 @@ import type { BrandId, BrandMarkMode } from './carBrands'
 import type { DriverIdentity } from './driver'
 import type { Language } from './i18n/language'
 import type { LayoutSection, WIDGET_OPTION_FIELDS } from './settingsSchema'
-import type { ShortcutSettings } from './shortcuts'
+import type { MoreShortcuts, ShortcutAction, ShortcutSettings } from './shortcuts'
 import type { WidgetId } from './widgets'
 
 export interface Size {
@@ -1805,10 +1805,16 @@ export interface OverlaySettings {
   fuel: FuelOptions
   lights: LightsOptions
   /**
-   * Global shortcuts, a key combination or a controller's button per action (main registers
-   * the combinations and listens to the buttons; nothing else acts on them).
+   * Global shortcuts: the first binding of each action, a key combination or a controller's
+   * button (main registers the combinations and listens to the buttons; nothing else acts on
+   * them). What a version before 2.2 reads.
    */
   shortcuts: ShortcutSettings
+  /**
+   * Not an option section: each action's bindings after the first one (at most two), unique
+   * across every action and slot (shortcuts.ts settleBindings). Absent in older files.
+   */
+  shortcutsMore: MoreShortcuts
   settingsWindow: SettingsWindowOptions
   layouts: LayoutOptions
   /** Not an option section: changed by the settings window's layout commands only. */
@@ -1857,8 +1863,17 @@ export interface SettingsPatch {
   delta?: Partial<DeltaOptions>
   fuel?: Partial<FuelOptions>
   lights?: Partial<LightsOptions>
-  /** A combination another action has is refused (the current one is kept). */
+  /**
+   * The first binding of an action ('' removes it: the next one moves up). A combination
+   * another action has is refused (the current one is kept).
+   */
   shortcuts?: Partial<ShortcutSettings>
+  /**
+   * Every binding of an action, in order (at most MAX_BINDINGS, [] for none): replaces its
+   * current ones. Refused whole (the current ones kept) when one is not valid or another action
+   * has it.
+   */
+  shortcutBindings?: Partial<Record<ShortcutAction, string[]>>
   settingsWindow?: Partial<SettingsWindowOptions>
   layouts?: Partial<LayoutOptions>
 }
