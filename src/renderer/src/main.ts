@@ -8,7 +8,7 @@ import OverlayApp from './overlay/OverlayApp.vue'
 import { startPerfProbe } from './overlay/perfProbe'
 
 // Every window loads this entry; main picks the page with `?view=overlay` (one window per
-// display, every widget of it) or `?view=settings`.
+// display, every widget of it), `?view=settings` or `?view=osd` (the shortcut confirmation).
 const params = new URLSearchParams(location.search)
 const view = params.get('view')
 
@@ -61,6 +61,13 @@ if (view === 'overlay') {
       showBootError((m) => m.core.boot.settingsFailed, lang)
     }
   )
+} else if (view === 'osd') {
+  // The confirmation over the game when a shortcut runs (main/osdWindow.ts): no Vue, no state.
+  document.documentElement.classList.add('ov-osd')
+  void import('./osd/osd').then(({ startOsd }) => {
+    const root = document.getElementById('app')
+    if (root) startOsd(root)
+  })
 } else if (view !== null) {
   showBootError((m) => m.core.boot.unknownView(view))
 } else {

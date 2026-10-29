@@ -258,6 +258,22 @@ describe('tray menu', () => {
     expect(menu[first + 12]).toEqual({ type: 'separator' })
   })
 
+  it('says under the status how many shortcuts do not work, to their page (R37)', () => {
+    const openSettings = vi.fn()
+    createTray(
+      { ...state(createDefaultSettings()), shortcutsFailing: 2 },
+      { ...ACTIONS, openSettings }
+    )
+    const menu = fake.menus.at(-1) ?? []
+    expect(menu[1]?.label).toBe('2 atajos no funcionan…')
+    menu[1]?.click?.({ checked: false })
+    expect(openSettings).toHaveBeenCalledWith('shortcuts')
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Modo simulado (mock) · 2 atajos no funcionan')
+    updateTray({ ...state(createDefaultSettings()), shortcutsFailing: 0 })
+    expect((fake.menus.at(-1) ?? []).some((i) => i.label?.includes('atajo'))).toBe(false)
+    expect(fake.tooltips.at(-1)).toBe('OverLap · Modo simulado (mock)')
+  })
+
   it('rebuilds the menu only when a rule note changes', () => {
     const settings = createDefaultSettings()
     createTray(state(settings), ACTIONS)

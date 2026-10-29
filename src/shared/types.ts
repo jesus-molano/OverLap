@@ -1713,6 +1713,8 @@ export interface SettingsWindowOptions {
   customizeOpen: ElementList<CustomizeZoneId>
   /** The hint above a widget page's preview (editing in it) is shown: until you dismiss it. */
   previewHint: boolean
+  /** A short confirmation over the game when a shortcut runs (main shows it, R37). */
+  shortcutToasts: boolean
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

@@ -19,7 +19,7 @@
 import type { ControllerInfo } from './controllers'
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
-import type { ShortcutStatusReport } from './shortcuts'
+import type { ShortcutAction, ShortcutStatusReport } from './shortcuts'
 import type { LayoutFileError } from './layouts'
 import type {
   CarRef,
@@ -161,8 +161,18 @@ export const IPC = {
    * main -> settings window, `ControllerPress`: a controller's button went down while the
    * shortcuts page records a binding (no action runs then).
    */
-  controllerPress: 'overlay:controller-press'
+  controllerPress: 'overlay:controller-press',
+  /** main -> settings window, `ShortcutAction`: a shortcut ran (its row says so, R37). */
+  shortcutUsed: 'overlay:shortcut-used',
+  /** main -> the confirmation window over the game, `OsdMessage` (R37). */
+  osd: 'overlay:osd'
 } as const
+
+/** What the confirmation over the game says: a line, and a smaller one under it. */
+export interface OsdMessage {
+  text: string
+  detail: string
+}
 
 /**
  * A button pressed while recording: its binding (controllers.ts) and its controller's name.
@@ -179,7 +189,7 @@ export interface ControllerPress {
  * A page main opens the settings window on: sent on IPC.settingsPage to an open window, or as
  * `?page=` in the URL of a new one (the renderer checks it like any page id).
  */
-export type SettingsWindowPage = 'layouts'
+export type SettingsWindowPage = 'layouts' | 'shortcuts' | WidgetId
 
 /** What became of a layout export or import (the settings window words it). */
 export type LayoutFileNotice =
@@ -475,6 +485,10 @@ export interface OverlayApi {
   onSaveFailing(cb: (failing: boolean) => void): Unsubscribe
   /** Settings window only: a controller's button went down while recording a shortcut. */
   onControllerPress(cb: (press: ControllerPress) => void): Unsubscribe
+  /** Settings window only: a shortcut ran. */
+  onShortcutUsed(cb: (action: ShortcutAction) => void): Unsubscribe
+  /** The confirmation window over the game only: what to say now. */
+  onOsd(cb: (msg: OsdMessage) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */

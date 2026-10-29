@@ -173,6 +173,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onSettingsPage: (cb) => settingsPage.on(cb),
     onSaveFailing: (cb) => saveFailing.on(cb),
     onControllerPress: (cb) => controllerPress.on(cb),
+    onShortcutUsed: () => () => {},
+    onOsd: () => () => {},
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),
     dragState: (msg) => void sent.dragState.push(msg),

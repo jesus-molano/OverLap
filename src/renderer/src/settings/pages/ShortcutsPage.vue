@@ -15,6 +15,10 @@ import PageFrame from '../layout/PageFrame.vue'
 import ShortcutRow from '../layout/ShortcutRow.vue'
 import { buttonBindingCount, shortcutRows } from '../shortcutsView'
 import { useShortcutCapture, windowCaptureDeps } from '../useShortcutCapture'
+import ToggleControl from '../controls/ToggleControl.vue'
+import { optionSetter } from '../editor'
+import { useOptions } from '../../composables/useWidgetSettings'
+import { usedAgo, useShortcutUsed } from '../shortcutUsed'
 
 /**
  * The global shortcuts (settings.shortcuts and settings.shortcutsMore) as a table, the controls
@@ -30,6 +34,9 @@ const titleId = useId()
 const shortcuts = useShortcuts()
 const { settings, shortcutStatus } = useOverlayState()
 const capture = useShortcutCapture(windowCaptureDeps())
+/** When each shortcut last ran: its row says so, to test it (R37). */
+const { usedAt, now } = useShortcutUsed()
+const windowOptions = useOptions('settingsWindow')
 
 /** The controllers' names: the saved ones, and those of the buttons just pressed here. */
 const names = computed(() => ({
@@ -109,6 +116,7 @@ const resetItems = computed<ResetItem[]>(() => [
         :row="row"
         :capture="capture"
         :names="names"
+        :used="usedAgo(usedAt[row.action], now)"
       />
       <!-- Esc: a row like the others, its first cell fixed. -->
       <div class="sc-item sc-fixed" role="row">
@@ -138,6 +146,17 @@ const resetItems = computed<ResetItem[]>(() => [
       {{ t.settings.shortcuts.legend.clear }} · <Keycaps :keys="escapeCaps" />
       {{ t.settings.shortcuts.legend.esc }} · {{ t.settings.shortcuts.legend.any }}
     </p>
+    <p class="sc-legend">{{ t.settings.shortcuts.test }}</p>
+
+    <div class="sc-toasts">
+      <ToggleControl
+        kind="switch"
+        :label="t.settings.shortcuts.toasts.label"
+        :help="t.settings.shortcuts.toasts.help"
+        :current="windowOptions.shortcutToasts"
+        :apply="optionSetter('settingsWindow')('shortcutToasts')"
+      />
+    </div>
 
     <details class="sc-notes">
       <summary>
@@ -284,6 +303,15 @@ const resetItems = computed<ResetItem[]>(() => [
   color: var(--ov-fg-muted);
   font-size: 12px;
   line-height: 1.8;
+}
+
+/* The confirmation over the game: a switch of its own under the table. */
+.sc-toasts {
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  background: var(--st-surface);
 }
 
 .sc-notes {
@@ -702,6 +730,31 @@ const resetItems = computed<ResetItem[]>(() => [
   from {
     border-color: var(--st-focus);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-focus) 35%, transparent);
+  }
+}
+
+/* «Pulsado hace 3 s» (R37): the shortcut works; a new press lights it up again (keyed). */
+.sc-table .sc-used {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 0 6px;
+  border-radius: var(--st-radius-sm);
+  background: color-mix(in srgb, var(--st-ok) 14%, transparent);
+  color: var(--st-ok);
+  font-size: 11.5px;
+  font-weight: var(--ov-w-strong);
+  animation: sc-used 900ms ease-out 1;
+}
+
+@keyframes sc-used {
+  from {
+    background: color-mix(in srgb, var(--st-ok) 45%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-table .sc-used {
+    animation: none;
   }
 }
 
