@@ -17,6 +17,8 @@ export const widgetsEs = {
     /** Pill while the data is simulated (ui/SimPill.vue) and its tooltip. */
     sim: 'SIM',
     simTitle: 'Datos simulados',
+    /** Name of the global flag (a driver who flies no country). */
+    noCountry: 'Sin país',
     /** Badges: in the pits, towed to its box, on an out lap. */
     pit: 'PIT',
     tow: 'GRÚA',
@@ -459,6 +461,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     preview: 'PREVIEW',
     sim: 'SIM',
     simTitle: 'Simulated data',
+    noCountry: 'No country',
     pit: 'PIT',
     tow: 'TOW',
     out: 'OUT',
