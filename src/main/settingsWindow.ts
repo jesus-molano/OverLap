@@ -164,6 +164,13 @@ function createWindow(page: SettingsWindowPage | undefined): BrowserWindow {
   })
   const wc = w.webContents
 
+  // The window's own warnings and errors go to the app log (overlap.log): a change it could not
+  // send is otherwise invisible from a desktop launch.
+  wc.on('console-message', (event) => {
+    if (event.level === 'warning' || event.level === 'error') {
+      console.warn(`[settings-window] ${event.level}: ${event.message}`)
+    }
+  })
   wc.on('will-navigate', (event) => event.preventDefault())
   wc.on('will-attach-webview', (event) => event.preventDefault())
   wc.setWindowOpenHandler(() => ({ action: 'deny' }))

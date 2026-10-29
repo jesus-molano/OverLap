@@ -316,8 +316,9 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
 }
 
 /**
- * `next` with every part equal to the one of `prev` replaced by that previous object, so a
- * v-memo on a part skips it while it is unchanged; `prev` itself when nothing changed at all.
+ * `next` with every part equal to the one of `prev` replaced by that previous object, so the
+ * components of an unchanged part see the same props; `prev` itself when nothing changed at all.
+ * (No v-memo on the lines: each is a v-if in WidgetPanel's slot, see ui/memoSafety.test.ts.)
  */
 export function reuseParts(prev: FuelView | undefined, next: FuelView): FuelView {
   if (prev === undefined) return next

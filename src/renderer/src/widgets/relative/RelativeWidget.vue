@@ -151,7 +151,7 @@ const panelStyle = computed<InlineStyle>(() => ({
       <div v-if="phase === 'offline'" class="rl-status"><StatusMessage /></div>
 
       <template v-else>
-        <div v-if="heads" v-memo="[headViews]" class="rl-heads" aria-hidden="true">
+        <div v-if="heads" class="rl-heads" aria-hidden="true">
           <span
             v-for="h in headViews"
             :key="h.id"

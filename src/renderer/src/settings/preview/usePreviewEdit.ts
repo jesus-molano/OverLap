@@ -17,6 +17,7 @@ import {
   onBeforeUnmount,
   provide,
   shallowRef,
+  watch,
   type ComputedRef,
   type InjectionKey,
   type ShallowRef
@@ -25,7 +26,15 @@ import type { OptionSection } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import { useOptions } from '../../composables/useWidgetSettings'
 import type { List, SpecRules } from '../elements/listOps'
-import { ghostZones, sameEl, withGhosts, type ElRef, type PreviewZoneId } from './previewEdit'
+import {
+  ghostZones,
+  quietAfterLit,
+  sameEl,
+  withGhosts,
+  type ElRef,
+  type PreviewZoneId,
+  type QuietEl
+} from './previewEdit'
 
 /** One zone's editor, as the sample acts on it (ElementEditor registers it). */
 export interface ZoneHandle {
@@ -63,6 +72,11 @@ export interface PreviewEdit {
   setInside(inside: boolean): void
   /** A list row is lit (`el`) or not (null): debounced, so moving between rows never flickers. */
   lightFromList(el: ElRef | null): void
+  /**
+   * `el` was just hidden from its list row (its eye): not ghosted while the list stays on its
+   * zone, so the sample shows it gone (previewEdit.ts quietAfterLit says until when).
+   */
+  hiddenFromList(el: ElRef): void
   /** The `data-el`s the sample draws ghosted now. */
   readonly ghosts: ComputedRef<readonly string[]>
   /** `options` of `section` as the sample draws them now (the ghosts shown). */
@@ -102,7 +116,20 @@ export function providePreviewEdit(section: OptionSection): PreviewEdit {
       : next
   })
 
-  const ghosts = computed<readonly string[]>(() => withGhosts(raw.value, ghosted.value).ghosts)
+  /** An element just hidden from its row: left hidden, not ghosted (see hiddenFromList). */
+  const quiet = shallowRef<QuietEl | null>(null)
+  watch(lit, (next) => (quiet.value = quietAfterLit(quiet.value, next)), { flush: 'sync' })
+  /** The `data-el`s kept out of the ghosts: none while you edit in the stage (or drag). */
+  const except = computed<readonly string[]>((prev) => {
+    const q = quiet.value
+    const next =
+      q === null || inside.value || dragged.value !== null ? [] : [`${q.el.zone}.${q.el.id}`]
+    return prev !== undefined && prev.length === next.length && prev[0] === next[0] ? prev : next
+  })
+
+  const ghosts = computed<readonly string[]>(
+    () => withGhosts(raw.value, ghosted.value, except.value).ghosts
+  )
 
   const edit: PreviewEdit = {
     section,
@@ -134,10 +161,13 @@ export function providePreviewEdit(section: OptionSection): PreviewEdit {
         listTimer = setTimeout(() => (lit.value = null), LIST_GRACE_MS)
       }
     },
+    hiddenFromList(el) {
+      quiet.value = { el, left: false }
+    },
     ghosts,
     viewOptions(s, options) {
       if (s !== section) return options
-      return withGhosts(options, ghosted.value).options
+      return withGhosts(options, ghosted.value, except.value).options
     }
   }
   provide(KEY, edit)
