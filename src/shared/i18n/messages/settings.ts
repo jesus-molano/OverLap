@@ -727,7 +727,14 @@ export const settingsEs = {
     temps: 'Temperaturas',
     tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
-    repairTimeHelp: 'Lo que tardarán en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
+    repairTimeHelp: 'Lo que tardará el equipo en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
+    repairCrewTag: 'Marcar tiempo del equipo',
+    repairCrewTagHelp:
+      'iRacing da el tiempo de los mecánicos, que puede correr más despacio que el reloj: «42 s (equipo)», «42 s eq.» si la ventana es estrecha',
+    repairRealTime: 'Cuenta atrás real (estimada)',
+    /** `s`: REPAIR_CLOCK.windowS. */
+    repairRealTimeHelp: (s: number) =>
+      `Parado en tu box con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s y muestra los segundos reales que faltan: «≈ 30 s (real)». Hasta saberlo, remolcado o fuera del box, la del equipo. Nunca sube ni pasa de 0`,
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
@@ -770,7 +777,7 @@ export const settingsEs = {
       repair: {
         meaning:
           'Daños que hay que reparar para seguir en carrera; llegará la bandera de reparación',
-        action: 'Entra en boxes. «REPARAR · 42 s» es lo que tardarán'
+        action: 'Entra en boxes. «REPARAR · 42 s (equipo)» es lo que tardará el equipo'
       },
       repairOptional: {
         meaning: 'Daños leves: puedes seguir con ellos',
@@ -1671,7 +1678,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
     temps: 'Temperatures',
     tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',
-    repairTimeHelp: 'How long they take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
+    repairTimeHelp: 'How long the crew will take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
+    repairCrewTag: 'Mark as crew time',
+    repairCrewTagHelp:
+      'iRacing gives the mechanics’ time, which can run slower than the clock: “42 s (crew)”, “42 s crew” in a narrow window',
+    repairRealTime: 'Real countdown (estimated)',
+    repairRealTimeHelp: (s) =>
+      `Stopped in your stall with the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s and shows the real seconds left: “≈ 30 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0`,
     trend: 'Rising temperature',
     trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average`,
     help: {
@@ -1708,7 +1721,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       repair: {
         meaning: 'Damage you must repair to race on; the meatball flag will follow',
-        action: 'Pit now. “REPAIR · 42 s” is how long it takes'
+        action: 'Pit now. “REPAIR · 42 s (crew)” is the crew’s time'
       },
       repairOptional: {
         meaning: 'Minor damage: you can race on with it',

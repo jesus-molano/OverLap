@@ -170,6 +170,8 @@ const SAME_IN_ENGLISH = new Set([
   'widgets.battle.stake',
   'widgets.inputs.abs',
   'widgets.lights.seconds',
+  'widgets.lights.realSeconds',
+  'widgets.lights.realSecondsShort',
   'settings.nav.widgets',
   'settings.visibility.label',
   'settings.common.iRating',

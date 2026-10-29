@@ -181,7 +181,12 @@ describe('displayOnlyFields', () => {
       'showBox'
     ])
     // The lights provider leaves out what is not shown; layout, side and captions are drawing.
-    expect(displayOnlyFields('lights')).toEqual(['layout', 'labelSide', 'showCaptions'])
+    expect(displayOnlyFields('lights')).toEqual([
+      'layout',
+      'labelSide',
+      'showCaptions',
+      'repairCrewTag'
+    ])
   })
 })
 
