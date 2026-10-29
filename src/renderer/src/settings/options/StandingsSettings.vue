@@ -13,7 +13,13 @@ import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import { inherit } from '../../view/appearance'
-import { columnsEditPatch, deltaAllPatch, fixedColumns, gapModePatch } from '../columns'
+import {
+  columnsEditPatch,
+  deltaAllDroppedAfter,
+  deltaAllPatch,
+  fixedColumns,
+  gapModePatch
+} from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import { densityChoicesInherit, nameExample, nameFormatChoicesInherit } from '../controls/choices'
@@ -52,12 +58,20 @@ const gapChoices = computed(() =>
 // Options that also change the column list (settings/columns.ts).
 const setGapMode: Setter<O['gapMode']> = (gapMode) =>
   updateSection('standings', gapModePatch(opts.value, gapMode))
-const setDeltaAll: Setter<boolean> = (on) =>
-  updateSection('standings', deltaAllPatch(opts.value, on))
+/** A hide of the delta column turned "Δ iRating de todos" off: its "Deshacer" turns it back on. */
+let deltaAllDropped = false
+const setDeltaAll: Setter<boolean> = (on) => {
+  deltaAllDropped = false
+  return updateSection('standings', deltaAllPatch(opts.value, on))
+}
 const applyColumns = (
   next: ElementEntry<StandingsColumnId>[],
   change: ElementChange<StandingsColumnId>
-): Promise<void> => updateSection('standings', columnsEditPatch(opts.value, next, change))
+): Promise<void> => {
+  const patch = columnsEditPatch(opts.value, next, change, deltaAllDropped)
+  deltaAllDropped = deltaAllDroppedAfter(deltaAllDropped, change, patch)
+  return updateSection('standings', patch)
+}
 
 const compactOff = computed(() => opts.value.mode === 'full')
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))

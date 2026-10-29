@@ -69,6 +69,24 @@ export function columnVisiblePatch(
   return { columns }
 }
 
+/**
+ * Whether the last hide of the delta column turned "Δ iRating de todos" off (`prev`, then after
+ * `change` patched as `patch`): what columnsEditPatch's `deltaAllDropped` needs for that hide's
+ * "Deshacer". Other edits keep it; the delta column shown or hidden again, or a reset, end it
+ * (the page also ends it when the option itself is set).
+ */
+export function deltaAllDroppedAfter(
+  prev: boolean,
+  change: ElementChange<StandingsColumnId>,
+  patch: Partial<StandingsOptions>
+): boolean {
+  if (change.kind === 'reset') return false
+  if (change.kind === 'visible' && change.id === 'delta') {
+    return !change.visible && patch.iRatingDeltaAll === false
+  }
+  return prev
+}
+
 /** Patch for "Δ iRating de todos": turning it on also shows the delta column. */
 export function deltaAllPatch(opts: ColumnOpts, on: boolean): Partial<StandingsOptions> {
   if (on && !isColumnVisible(opts.columns, 'delta')) {
@@ -86,11 +104,17 @@ export function deltaAllPatch(opts: ColumnOpts, on: boolean): Partial<StandingsO
 export function columnsEditPatch(
   opts: ColumnOpts,
   next: readonly StandingsColumn[],
-  change: ElementChange<StandingsColumnId>
+  change: ElementChange<StandingsColumnId>,
+  deltaAllDropped = false
 ): Partial<StandingsOptions> {
   const columns = next.map((c) => ({ id: c.id, visible: c.visible }))
   if (change.kind === 'visible') {
-    return columnVisiblePatch({ ...opts, columns }, change.id, change.visible)
+    const patch = columnVisiblePatch({ ...opts, columns }, change.id, change.visible)
+    // "Deshacer" after hiding the delta column: the option that hide turned off comes back.
+    if (change.undo === true && change.id === 'delta' && change.visible && deltaAllDropped) {
+      return { ...patch, iRatingDeltaAll: true }
+    }
+    return patch
   }
   if (change.kind === 'move') return { columns }
   const patch: Partial<StandingsOptions> = { columns }
