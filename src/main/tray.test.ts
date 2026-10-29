@@ -116,7 +116,7 @@ function state(settings: OverlaySettings, autoHidden: TrayState['autoHidden'] = 
   }
 }
 
-const MODE_LABELS = new Set(['Modo edición', 'Edit mode', 'Ocultar overlay', 'Hide overlay'])
+const MODE_LABELS = new Set(['Modo edición', 'Edit mode', 'Mostrar el overlay', 'Show the overlay'])
 
 function widgetItems(): MenuItem[] {
   return (fake.menus.at(-1) ?? []).filter(
@@ -258,7 +258,7 @@ describe('tray menu', () => {
       'Ajustes…',
       'Relativo',
       'Batalla (oculto en práctica)',
-      'Radar: alcance',
+      'Alcance del radar',
       'Modo edición',
       'Abrir carpeta de ajustes',
       'Salir'
@@ -308,11 +308,11 @@ describe('tray menu', () => {
 })
 
 describe('tray menu: hiding the overlay and the shortcuts', () => {
-  it('has a hide checkbox next to edit mode, both labelled with their shortcuts only', () => {
+  it('has a show checkbox (checked: shown, as the widgets) next to edit mode, with shortcuts', () => {
     createTray(state(createDefaultSettings()), ACTIONS)
-    expect(item('Ocultar overlay')).toMatchObject({
+    expect(item('Mostrar el overlay')).toMatchObject({
       type: 'checkbox',
-      checked: false,
+      checked: true,
       accelerator: 'Ctrl+Shift+H',
       registerAccelerator: false
     })
@@ -323,19 +323,19 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
       registerAccelerator: false
     })
     const all = labels()
-    expect(all.indexOf('Ocultar overlay')).toBe(all.indexOf('Modo edición') - 1)
+    expect(all.indexOf('Mostrar el overlay')).toBe(all.indexOf('Modo edición') - 1)
   })
 
-  it('checks it while hidden and says so in the tooltip', () => {
+  it('unchecks it while hidden and says so in the tooltip', () => {
     const s = state(createDefaultSettings())
     s.overlayHidden = true
     createTray(s, ACTIONS)
-    expect(item('Ocultar overlay').checked).toBe(true)
+    expect(item('Mostrar el overlay').checked).toBe(false)
     expect(fake.tooltips.at(-1)).toBe('OverLap · Overlay oculto · Modo simulado (mock)')
     const en = state(english(createDefaultSettings()))
     en.overlayHidden = true
     updateTray(en)
-    expect(item('Hide overlay').checked).toBe(true)
+    expect(item('Show the overlay').checked).toBe(false)
     expect(fake.tooltips.at(-1)).toBe('OverLap · Overlay hidden · Simulated mode (mock)')
   })
 
@@ -349,7 +349,7 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
       openSettings: ''
     }
     createTray(state(settings), ACTIONS)
-    expect(item('Ocultar overlay')).toMatchObject({
+    expect(item('Mostrar el overlay')).toMatchObject({
       accelerator: 'F13',
       registerAccelerator: false
     })
@@ -368,14 +368,17 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
     changed.shortcuts.toggleOverlay = 'Ctrl+Alt+H'
     updateTray({ ...hidden, settings: changed })
     expect(fake.menus).toHaveLength(3)
-    expect(item('Ocultar overlay').accelerator).toBe('Ctrl+Alt+H')
+    expect(item('Mostrar el overlay').accelerator).toBe('Ctrl+Alt+H')
   })
 
   it('hides and shows through the action', () => {
     const setOverlayHidden = vi.fn()
     createTray(state(createDefaultSettings()), { ...ACTIONS, setOverlayHidden })
-    item('Ocultar overlay').click?.({ checked: true })
-    expect(setOverlayHidden).toHaveBeenCalledWith(true)
+    // Unchecked: hidden; checked again: shown.
+    item('Mostrar el overlay').click?.({ checked: false })
+    expect(setOverlayHidden).toHaveBeenLastCalledWith(true)
+    item('Mostrar el overlay').click?.({ checked: true })
+    expect(setOverlayHidden).toHaveBeenLastCalledWith(false)
   })
 })
 
@@ -393,7 +396,7 @@ describe('tray menu: when to show the overlay', () => {
   it('offers the three choices, the current one checked, and sets them through the action', () => {
     const setShowWhen = vi.fn()
     createTray(state(createDefaultSettings()), { ...ACTIONS, setShowWhen })
-    const menu = item('Mostrar el overlay')
+    const menu = item('Cuándo mostrar')
     expect(menu.submenu?.map((i) => [i.label, i.type, i.checked])).toEqual([
       ['Solo cuando estás en el coche', 'radio', true],
       ['Solo en carrera', 'radio', false],
@@ -401,17 +404,17 @@ describe('tray menu: when to show the overlay', () => {
     ])
     menu.submenu?.[2]?.click?.({ checked: true })
     expect(setShowWhen).toHaveBeenCalledWith('always')
-    // After the radar range, before hiding the overlay.
+    // After the radar range, before the show checkbox.
     const all = labels()
-    expect(all.indexOf('Mostrar el overlay')).toBeGreaterThan(all.indexOf('Radar: alcance'))
-    expect(all.indexOf('Mostrar el overlay')).toBeLessThan(all.indexOf('Ocultar overlay'))
+    expect(all.indexOf('Cuándo mostrar')).toBeGreaterThan(all.indexOf('Alcance del radar'))
+    expect(all.indexOf('Cuándo mostrar')).toBeLessThan(all.indexOf('Mostrar el overlay'))
   })
 
   it('checks the choice of the settings and speaks English', () => {
     const settings = english(createDefaultSettings())
     settings.visibility.showWhen = 'race'
     createTray(state(settings), ACTIONS)
-    expect(item('Show the overlay').submenu?.map((i) => [i.label, i.checked])).toEqual([
+    expect(item('When to show').submenu?.map((i) => [i.label, i.checked])).toEqual([
       ['Only when you are in the car', false],
       ['Races only', true],
       ['Always', false]
@@ -471,7 +474,7 @@ describe('tray menu: when to show the overlay', () => {
     changed.visibility.showWhen = 'always'
     updateTray(state(changed))
     expect(fake.menus).toHaveLength(2)
-    expect(item('Mostrar el overlay').submenu?.[2]?.checked).toBe(true)
+    expect(item('Cuándo mostrar').submenu?.[2]?.checked).toBe(true)
   })
 })
 
@@ -506,7 +509,7 @@ describe('tray layouts submenu', () => {
     sub.at(-1)?.click?.({ checked: false })
     expect(openSettings).toHaveBeenCalledExactlyOnceWith('layouts')
     const labels = (fake.menus.at(-1) ?? []).map((i) => i.label)
-    expect(labels.indexOf('Disposición')).toBe(labels.indexOf('Mostrar el overlay') + 1)
+    expect(labels.indexOf('Disposición')).toBe(labels.indexOf('Cuándo mostrar') + 1)
   })
 
   it('marks the layout of the car you are in while the automatic mode is on', () => {

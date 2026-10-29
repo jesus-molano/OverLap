@@ -75,10 +75,10 @@ export const coreEs = {
   /** The tray icon's menu and tooltip. */
   tray: {
     settings: 'Ajustes…',
-    radarRange: 'Radar: alcance',
+    radarRange: 'Alcance del radar',
     rangeMeters: (m: number) => `${m} m`,
     /** The submenu with the showWhen choices. */
-    showWhen: 'Mostrar el overlay',
+    showWhen: 'Cuándo mostrar',
     /** The submenu with the saved layouts (the one in use checked). */
     layouts: 'Disposición',
     /** Its last item: the settings window's layouts page. */
@@ -88,7 +88,8 @@ export const coreEs = {
     /** A layout linked to the car you are in (automatic mode): 'Mazda · coche actual'. */
     layoutForCar: (name: string) => `${name} · coche actual`,
     editMode: 'Modo edición',
-    hideOverlay: 'Ocultar overlay',
+    /** Checked while the overlay is shown (the user's own hide, as the shortcut). */
+    showOverlay: 'Mostrar el overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
     quit: 'Salir',
     /** A widget a rule hides right now: 'Batalla (oculto en práctica)'. */
@@ -228,13 +229,13 @@ export const coreEn: Dict<typeof coreEs> = {
     settings: 'Settings…',
     radarRange: 'Radar range',
     rangeMeters: (m) => `${m} m`,
-    showWhen: 'Show the overlay',
+    showWhen: 'When to show',
     layouts: 'Layout',
     manageLayouts: 'Manage layouts…',
     moreLayouts: 'More…',
     layoutForCar: (name) => `${name} · current car`,
     editMode: 'Edit mode',
-    hideOverlay: 'Hide overlay',
+    showOverlay: 'Show the overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',
     widgetHidden: (title, hiddenNote) => `${title} (${hiddenNote})`,

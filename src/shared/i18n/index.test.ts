@@ -144,9 +144,11 @@ describe('shortcut texts', () => {
     expect(en.core.editFrame.hintShortNoKey).toBe('Scroll: size')
   })
 
-  it('name the hide item and the hidden tooltip in both languages', () => {
-    expect(es.core.tray.hideOverlay).toBe('Ocultar overlay')
-    expect(en.core.tray.hideOverlay).toBe('Hide overlay')
+  it('name the show item and the hidden tooltip in both languages', () => {
+    expect(es.core.tray.showOverlay).toBe('Mostrar el overlay')
+    expect(en.core.tray.showOverlay).toBe('Show the overlay')
+    expect(es.core.tray.showWhen).toBe('Cuándo mostrar')
+    expect(es.core.tray.radarRange).toBe('Alcance del radar')
     expect(es.core.tray.tooltipHidden('Conectado a iRacing')).toBe(
       'OverLap · Overlay oculto · Conectado a iRacing'
     )
