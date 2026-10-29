@@ -572,7 +572,8 @@ function onCancel(e: PointerEvent): void {
         <slot name="head" />
       </div>
 
-      <p :id="helpId" class="st-help ed-intro">
+      <!-- In "Personalizar" the page says it once: here only for screen readers. -->
+      <p :id="helpId" class="st-help ed-intro" :class="{ 'st-sr-only': registry !== null }">
         <template v-if="sortable && split !== undefined">
           {{ t.settings.elements.introSides.before }}
           <span class="ed-grip-inline" aria-hidden="true">⠿</span>

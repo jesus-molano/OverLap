@@ -5,9 +5,8 @@ import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import { inherit } from '../../view/appearance'
 import ChoiceControl from '../controls/ChoiceControl.vue'
-import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
+import { nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -80,9 +79,6 @@ const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
-const nameHelp = computed(() =>
-  nameExample(t.value, inherit(opts.value.nameFormat, appearance.value.nameFormat))
-)
 </script>
 
 <template>
@@ -142,7 +138,6 @@ const nameHelp = computed(() =>
     />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
-      :help="nameHelp"
       stack
       :current="opts.nameFormat"
       :options="nameChoices"

@@ -45,6 +45,24 @@ export function zoneOfSpec(spec: object): CustomizeZoneId | null {
   return zoneBySpec.get(spec) ?? null
 }
 
+/** The info bars' zones: their lists have two sides (an item changes side with ← →). */
+const BAR_FIELDS: readonly string[] = ['headerBar', 'subheaderBar', 'footerBar']
+
+/**
+ * Which explanation the page's "Personalizar" gives once for its zones: 'sides' with an info bar,
+ * 'sortable' with a list that can be reordered, 'fixed' when every list keeps its order.
+ */
+export function pageIntro(zones: readonly CustomizeZoneId[]): 'sides' | 'sortable' | 'fixed' {
+  if (zones.some((z) => BAR_FIELDS.includes(z.split('.')[1] ?? ''))) return 'sides'
+  if (zones.length === 0) return 'sortable'
+  const fixed = zones.every((z) => {
+    const [section, field] = z.split('.') as [OptionSection, string]
+    const spec = (OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>)[field]
+    return spec?.kind === 'elements' && spec.fixedOrder === true
+  })
+  return fixed ? 'fixed' : 'sortable'
+}
+
 /** `list` with every zone of `zones` opened or closed (new entries; the others copied). */
 export function withZonesOpen(
   list: OpenList,

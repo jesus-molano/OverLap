@@ -122,9 +122,7 @@ export const settingsEs = {
     content: 'Contenido',
     /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
     customize: 'Personalizar',
-    customizeNote: 'Orden y visibilidad de cada parte',
-    /** The pages of the widgets without info bars (infoBar.ts NO_BAR_SECTIONS). */
-    noBars: 'Sin cabecera ni pie: es una lectura compacta y una barra solo le añadiría altura',
+
     /** Every accordion of "Personalizar" at once. */
     expandAll: 'Expandir todo',
     collapseAll: 'Contraer todo',
@@ -208,7 +206,7 @@ export const settingsEs = {
       title: 'Filas y pilotos',
       densityHelp: 'Alto de las filas en Posiciones y Relativo',
       stripes: 'Filas alternas',
-      stripesHelp: 'Sombrea una fila de cada dos',
+
       licenseChoices: {
         outline: { label: 'Contorno', hint: 'Borde fino del color de la licencia, sin fondo' },
         soft: { label: 'Suave', hint: 'Letra del color de la licencia, sin borde' },
@@ -1437,8 +1435,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
   common: {
     content: 'Content',
     customize: 'Customise',
-    customizeNote: 'Order and visibility of each part',
-    noBars: 'No header or footer: it is a compact readout, and a bar would only add height',
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     show: 'Show',
@@ -1512,7 +1508,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'Rows and drivers',
       densityHelp: 'Row height in Standings and Relative',
       stripes: 'Alternating rows',
-      stripesHelp: 'Shades every other row',
+
       licenseChoices: {
         outline: { label: 'Outline', hint: 'A thin border in the licence colour, no fill' },
         soft: { label: 'Soft', hint: 'The letter in the licence colour, no border' },

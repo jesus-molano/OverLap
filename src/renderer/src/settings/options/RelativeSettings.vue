@@ -6,10 +6,9 @@ import type { RelativeColumnId } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import { inherit } from '../../view/appearance'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { densityChoicesInherit, nameExample, nameFormatChoicesInherit } from '../controls/choices'
+import { densityChoicesInherit, nameFormatChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
@@ -32,9 +31,6 @@ const set = optionSetter('relative')
 const R = OPTION_SCHEMA.relative
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
-const nameHelp = computed(() =>
-  nameExample(t.value, inherit(opts.value.nameFormat, appearance.value.nameFormat))
-)
 
 /** The columns' labels, with the hints of the two that need one. */
 const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(() => {
@@ -77,7 +73,6 @@ const brandChoices = computed(() =>
     />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
-      :help="nameHelp"
       stack
       :current="opts.nameFormat"
       :options="nameChoices"

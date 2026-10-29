@@ -12,7 +12,6 @@ import type { ElementEntry, StandingsColumnId, StandingsOptions } from '@shared/
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import { inherit } from '../../view/appearance'
 import {
   columnsEditPatch,
   deltaAllDroppedAfter,
@@ -22,7 +21,7 @@ import {
 } from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { densityChoicesInherit, nameExample, nameFormatChoicesInherit } from '../controls/choices'
+import { densityChoicesInherit, nameFormatChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
@@ -50,7 +49,6 @@ type O = StandingsOptions
 const modeChoices = computed(() =>
   choiceOptions(STANDINGS_MODES, t.value.settings.standings.modeChoices)
 )
-const modeHelp = computed(() => t.value.settings.standings.modeChoices[opts.value.mode].hint)
 const gapChoices = computed(() =>
   choiceOptions(STANDINGS_GAP_MODES, t.value.settings.standings.gapChoices)
 )
@@ -75,9 +73,6 @@ const applyColumns = (
 
 const compactOff = computed(() => opts.value.mode === 'full')
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
-const nameHelp = computed(() =>
-  nameExample(t.value, inherit(opts.value.nameFormat, appearance.value.nameFormat))
-)
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
 const brandChoices = computed(() =>
   choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
@@ -89,7 +84,6 @@ const fixed = computed(() => fixedColumns(t.value))
   <PageSection :title="t.settings.common.content">
     <ChoiceControl
       :label="t.settings.standings.mode"
-      :help="modeHelp"
       :current="opts.mode"
       :options="modeChoices"
       :apply="set('mode')"
@@ -151,7 +145,6 @@ const fixed = computed(() => fixedColumns(t.value))
     />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
-      :help="nameHelp"
       stack
       :current="opts.nameFormat"
       :options="nameChoices"

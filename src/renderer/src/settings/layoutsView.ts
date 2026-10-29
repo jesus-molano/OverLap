@@ -188,6 +188,14 @@ export interface OptionsTarget {
   canApplyToAll: boolean
 }
 
+/**
+ * Whether a widget page says where its changes go: with two or more layouts, or while a "Solo
+ * posición" one is in use (they go to the shared options). One layout: nothing to tell apart.
+ */
+export function targetShown(layouts: number, shared: boolean): boolean {
+  return shared || layouts >= 2
+}
+
 export function optionsTarget(lib: LayoutLibrary): OptionsTarget {
   const active = lib.list.find((l) => l.id === lib.activeId)
   const shared = active?.mode === 'position'

@@ -176,7 +176,7 @@ describe('the widget pages', () => {
     }
   })
 
-  it('say on the pages of the widgets without bars that they have none, and only there', () => {
+  it('edit info bars only on the widgets that have them, and never explain their absence', () => {
     const PAGE_OF: Readonly<Record<string, string>> = {
       delta: 'Delta',
       inputs: 'Inputs',
@@ -184,16 +184,10 @@ describe('the widget pages', () => {
       lights: 'Lights',
       alerts: 'Alerts'
     }
-    const noBars = Object.entries(PAGES)
-      .filter(([, source]) => source.includes('<CustomizeSection no-bars>'))
-      .map(([path]) => path)
-      .sort()
-    expect(noBars).toEqual(
-      NO_BAR_SECTIONS.map((s) => `../options/${PAGE_OF[s] ?? s}Settings.vue`).sort()
-    )
+    const noBars = NO_BAR_SECTIONS.map((s) => `../options/${PAGE_OF[s] ?? s}Settings.vue`)
     for (const [path, source] of Object.entries(PAGES)) {
-      const bars = source.includes('<InfoBarEditor')
-      expect(bars, path).toBe(!noBars.includes(path))
+      expect(source.includes('<InfoBarEditor'), path).toBe(!noBars.includes(path))
+      expect(source, path).not.toContain('no-bars')
     }
   })
 
@@ -255,7 +249,8 @@ describe('CustomizeSection', () => {
     const moved = ctx.teleports?.[`#${customizeTargetId('page')}`] ?? ''
     expect(moved).toContain('COLUMNAS')
     expect(moved).toContain('Personalizar')
-    expect(moved).toContain('Orden y visibilidad de cada parte')
+    // The page's one drag and eye explanation.
+    expect(moved).toContain('para ordenar; el ojo muestra u oculta')
   })
 
   it('stays where it is outside a widget page, titled in the language', async () => {
@@ -278,5 +273,14 @@ describe('CustomizeSection', () => {
     expect(window).toBeGreaterThan(target)
     expect(window).toBeLessThan(template.indexOf('class="page-foot"'))
     expect(WIDGET_PAGE).toMatch(/provideCustomizeHost\(/)
+  })
+})
+
+describe('pageIntro', () => {
+  it('explains the sides on a page with info bars, the order elsewhere, nothing to drag if fixed', () => {
+    expect(zonesOpen.pageIntro(['relative.columns', 'relative.headerBar'])).toBe('sides')
+    expect(zonesOpen.pageIntro(['delta.rows', 'delta.top', 'delta.laps'])).toBe('sortable')
+    expect(zonesOpen.pageIntro(['radar.parts'])).toBe('fixed')
+    expect(zonesOpen.pageIntro(['alerts.parts'])).toBe('fixed')
   })
 })

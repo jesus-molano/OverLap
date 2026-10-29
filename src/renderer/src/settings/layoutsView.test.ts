@@ -14,6 +14,7 @@ import {
   optionsTarget,
   revealOffset,
   rowToReveal,
+  targetShown,
   type LayoutListOptions
 } from './layoutsView'
 
@@ -274,5 +275,13 @@ describe('optionsTarget', () => {
     // From a full one, the position-only ones are reached through the shared options.
     setLayoutMode(s, 'layout-3', 'full')
     expect(optionsTarget(s.savedLayouts).canApplyToAll).toBe(true)
+  })
+})
+
+describe('targetShown', () => {
+  it('says where changes go only with two layouts or more, or a "Solo posición" one in use', () => {
+    expect(targetShown(1, false)).toBe(false)
+    expect(targetShown(2, false)).toBe(true)
+    expect(targetShown(1, true)).toBe(true)
   })
 })
