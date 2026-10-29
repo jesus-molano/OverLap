@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { isElementVisible } from '@shared/elements'
+import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
+import { deepEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
+import type { TrafficPartId } from '@shared/types'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
@@ -48,16 +50,24 @@ const title = useWidgetTitle(ID)
 
 // Options are stable objects (useOptions); the view input keeps its identity while equal, so a
 // look-ahead change (provider side) or a drag re-renders nothing.
-// Until the widget draws its lists in order (package P3): the groups it has today.
 const viewOptions = computed<TrafficViewOptions>((prev) =>
-  reuseView(prev, {
-    showFaster: isElementVisible(options.value.groups, 'faster'),
-    showSlower: isElementVisible(options.value.groups, 'slower'),
-    showHazards: isElementVisible(options.value.groups, 'hazard'),
-    maxEntries: clampOption(OPTION_SCHEMA.traffic.maxEntries, options.value.maxEntries),
-    nameFormat: nameFormat.value
-  })
+  reuseView(
+    prev,
+    {
+      groups: visibleIds(options.value.groups),
+      captions: isElementVisible(options.value.header, 'captions'),
+      maxEntries: clampOption(OPTION_SCHEMA.traffic.maxEntries, options.value.maxEntries),
+      nameFormat: nameFormat.value
+    },
+    deepEqual
+  )
 )
+/** The cells of a car line, left to right (traffic.parts; the driver and the value always). */
+const parts = computed<readonly TrafficPartId[]>((prev) =>
+  reuseView(prev, visibleIds(options.value.parts, OPTION_SCHEMA.traffic.parts.ids), deepEqual)
+)
+const titleShown = computed(() => isElementVisible(options.value.header, 'title'))
+const leadShown = computed(() => parts.value.includes('lead'))
 
 // Look-ahead windows and 'Solo en multiclase' are the provider's: it simply sends no entries.
 const { data, phase } = useWidgetPhase(ID, {
@@ -78,7 +88,10 @@ const content = useShownContent(
 const slots = computed<readonly TrafficSlotView[]>((prev) => {
   const d = content.value
   if (d === null) return prev ?? NO_SLOTS
-  const o = d === PREVIEW_TRAFFIC ? previewOptions(viewOptions.value) : viewOptions.value
+  const o =
+    d === PREVIEW_TRAFFIC
+      ? previewOptions(viewOptions.value, elementOrder(options.value.groups))
+      : viewOptions.value
   return reuseViews(prev, toSlots(d, o, styles, t.value))
 })
 const sectors = computed(() => hasSectors(slots.value))
@@ -88,9 +101,19 @@ const preview = computed(() => phase.value === 'preview')
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && slots.value.length > 0
 )
+/** Where the VISTA PREVIA tag goes: the header, else the first caption, else the first line. */
+const previewTag = computed(() =>
+  !preview.value
+    ? null
+    : titleShown.value
+      ? 'header'
+      : viewOptions.value.captions
+        ? 'caption'
+        : 'row'
+)
 const shown = useReveal(
   () => wanted.value,
-  () => layoutKey(slots.value),
+  () => `${titleShown.value ? 'h' : ''}${layoutKey(slots.value)}`,
   { fit: () => autoHeight.value }
 )
 
@@ -115,49 +138,63 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :halo="halo"
       :fill="!autoHeight"
     >
-      <template #header>
+      <template v-if="titleShown" #header>
         <PanelHeader :title="title">
-          <PreviewTag v-if="preview" />
+          <PreviewTag v-if="previewTag === 'header'" />
         </PanelHeader>
       </template>
 
       <div
         v-for="(slot, i) in slots"
         :key="i"
-        v-memo="[slot]"
+        v-memo="[slot, parts, i === 0 ? previewTag : null]"
         v-inline-style="slot.kind === 'row' ? slot.clsStyle : undefined"
         :class="slot.css"
       >
-        <span v-if="slot.kind === 'caption'" class="tr-cap__text">{{ slot.text }}</span>
+        <template v-if="slot.kind === 'caption'">
+          <span class="tr-cap__text">{{ slot.text }}</span>
+          <PreviewTag v-if="i === 0 && previewTag === 'caption'" class="tr-preview" />
+        </template>
         <!-- One plate per line, the car number (plus a hazard tag): class, lap state and
-             sector are text. -->
+             sector are text. The cells in traffic.parts' order. -->
         <template v-else>
-          <TrafficKindIcon class="tr-icon" :kind="slot.group" />
-          <span v-if="slot.cls" class="tr-cls">{{ slot.cls }}</span>
-          <span v-else class="tr-cls tr-cls--none" />
-          <DriverCell
-            class="tr-who"
-            :number="slot.number"
-            :name="slot.name"
-            :name-unknown="slot.nameUnknown"
-            :lap="slot.lap"
-          >
-            <Badge
-              v-if="slot.lapBadge"
-              class="tr-lap"
-              :class="`tr-lap--${slot.lap}`"
-              variant="text"
-              >{{ slot.lapBadge }}</Badge
+          <template v-for="part in parts" :key="part">
+            <TrafficKindIcon v-if="part === 'icon'" class="tr-icon" :kind="slot.group" />
+            <template v-else-if="part === 'cls'">
+              <span v-if="slot.cls" class="tr-cls">{{ slot.cls }}</span>
+              <span v-else class="tr-cls tr-cls--none" />
+            </template>
+            <template v-else-if="part === 'driver'">
+              <DriverCell
+                class="tr-who"
+                :number="slot.number"
+                :name="slot.name"
+                :name-unknown="slot.nameUnknown"
+                :lap="slot.lap"
+              >
+                <Badge
+                  v-if="slot.lapBadge"
+                  class="tr-lap"
+                  :class="`tr-lap--${slot.lap}`"
+                  variant="text"
+                  >{{ slot.lapBadge }}</Badge
+                >
+              </DriverCell>
+              <!-- What a hazard is stays said without the words around the value. -->
+              <Badge v-if="slot.hazard && !leadShown" class="tr-hazard" :tone="slot.hazardTone">{{
+                slot.hazard
+              }}</Badge>
+            </template>
+            <span v-else-if="part === 'lead'" class="tr-lead">
+              <Badge v-if="slot.hazard" :tone="slot.hazardTone">{{ slot.hazard }}</Badge>
+              <span class="tr-verb">{{ slot.lead }}</span>
+            </span>
+            <span v-else-if="part === 'value'" class="tr-num"
+              >{{ slot.num }}<span class="tr-unit ov-unit">{{ slot.unit }}</span></span
             >
-          </DriverCell>
-          <span class="tr-lead">
-            <Badge v-if="slot.hazard" :tone="slot.hazardTone">{{ slot.hazard }}</Badge>
-            <span class="tr-verb">{{ slot.lead }}</span>
-          </span>
-          <span class="tr-num"
-            >{{ slot.num }}<span class="tr-unit ov-unit">{{ slot.unit }}</span></span
-          >
-          <span class="tr-sector">{{ slot.sector }}</span>
+            <span v-else-if="part === 'sector'" class="tr-sector">{{ slot.sector }}</span>
+          </template>
+          <PreviewTag v-if="i === 0 && previewTag === 'row'" class="tr-preview" />
         </template>
       </div>
     </WidgetPanel>
@@ -244,6 +281,20 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 /* Stripes off: a hairline between lines instead of bands. */
 .tr-row + .tr-row {
   box-shadow: inset 0 1px 0 var(--ov-row-rule);
+}
+
+/* No group captions: a group's first line below another one carries the separator. */
+.tr-row.is-break {
+  box-shadow: inset 0 1px 0 var(--ov-sep);
+}
+
+/* The VISTA PREVIA tag at the end of a caption or a line (no header to hold it). */
+.tr-preview {
+  margin-left: auto;
+}
+
+.tr-hazard {
+  flex: none;
 }
 
 /* Colour-blind mode needs nothing here: the theme's warn steps away from its orange "bad". */
