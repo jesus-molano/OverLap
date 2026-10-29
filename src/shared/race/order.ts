@@ -11,10 +11,11 @@ const POSITION_HOLD_S = 0.5
 const POSITION_FORCE_S = 2
 
 /**
- * How cars are ranked: `race` by distance (finishers frozen by finishing lap,
- * then crossing time), `grid` by starting position before the green, `best`
- * by best lap (practice/qualifying; a car without a lap time is not
- * classified: position 0, listed last).
+ * How cars are ranked: `race` by distance (CarTrack.orderD: on pit road only the
+ * distance driven there counts; finishers frozen by finishing lap, then crossing
+ * time), `grid` by starting position before the green, `best` by best lap
+ * (practice/qualifying; a car without a lap time is not classified: position 0,
+ * listed last).
  */
 export type OrderMode = 'race' | 'grid' | 'best'
 
@@ -74,7 +75,7 @@ export class RaceOrder {
   private setKeys(i: number, track: CarTrack, mode: OrderMode, grid: number): void {
     const st = track.state
     if (mode === 'race') {
-      this.key1[i] = st.finished ? -track.finishLap : -track.lastD
+      this.key1[i] = st.finished ? -track.finishLap : -track.orderD
       this.key2[i] = st.finished ? track.finishT : Infinity
     } else if (mode === 'grid') {
       this.key1[i] = grid
