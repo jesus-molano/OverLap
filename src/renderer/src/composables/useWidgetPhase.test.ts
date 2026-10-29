@@ -83,7 +83,8 @@ describe('useWidgetPhase', () => {
     playerLastLaps: [],
     ahead: null,
     behind: null,
-    multiBrand: false
+    multiBrand: false,
+    info: null
   }
 
   beforeEach(() => {

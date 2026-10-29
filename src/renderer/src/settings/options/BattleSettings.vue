@@ -18,6 +18,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
@@ -116,6 +117,8 @@ const setParts = listSetter('battle', 'parts')
   </PageSection>
 
   <CustomizeSection>
+    <InfoBarEditor section="battle" field="headerBar" />
+    <InfoBarEditor section="battle" field="footerBar" />
     <ElementEditor
       :title="lanes.title"
       :items="opts.lanes"

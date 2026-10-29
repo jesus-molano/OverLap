@@ -4,6 +4,7 @@
  * makes, so the brand marks show in 'auto' mode.
  */
 import type { BattleData, BattleOpponent } from '@shared/types'
+import { PREVIEW_INFO } from '@renderer/view/infoBar'
 
 const AHEAD: BattleOpponent = Object.freeze({
   inPits: false,
@@ -53,7 +54,9 @@ export const PREVIEW_BATTLE: BattleData = Object.freeze({
   playerLastLaps: [98.452, 98.63, 98.519],
   ahead: AHEAD,
   behind: BEHIND,
-  multiBrand: true
+  multiBrand: true,
+  // The info bars' sample (every item has something to show).
+  info: PREVIEW_INFO
 })
 
 const ONLY_AHEAD: BattleData = Object.freeze({ ...PREVIEW_BATTLE, behind: null })

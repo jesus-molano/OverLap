@@ -19,6 +19,7 @@ import { driverIdentity, identityEqual } from './driver'
 import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
 import { CAUTION_FLAGS, SessionFlag } from './flags'
+import { infoBarDataEqual } from './infoFeed'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { finiteOr, frac, quantise } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
@@ -278,7 +279,7 @@ export class TrafficProvider {
     const showHazards = isElementVisible(opts.groups, 'hazard')
     if (!run || (!showFaster && !showSlower && !showHazards)) {
       this.clearHolds()
-      return { visible: false, faster: [], slower: [], hazards: [] }
+      return { visible: false, faster: [], slower: [], hazards: [], info: null }
     }
     const behindS = finiteOr(opts.behindS, 0)
     const aheadS = finiteOr(opts.aheadS, 0)
@@ -347,7 +348,9 @@ export class TrafficProvider {
       visible: false,
       faster: closest(faster, max),
       slower: closest(slower, max),
-      hazards: closest(hazards, max)
+      hazards: closest(hazards, max),
+      // The info bars' data is the provider set's (InfoFeed).
+      info: null
     }
     result.visible =
       result.faster.length > 0 || result.slower.length > 0 || result.hazards.length > 0
@@ -479,6 +482,7 @@ export function trafficEqual(a: TrafficData, b: TrafficData): boolean {
     a.visible === b.visible &&
     arrayEqual(a.faster, b.faster, entryEqual) &&
     arrayEqual(a.slower, b.slower, entryEqual) &&
-    arrayEqual(a.hazards, b.hazards, entryEqual)
+    arrayEqual(a.hazards, b.hazards, entryEqual) &&
+    infoBarDataEqual(a.info, b.info)
   )
 }

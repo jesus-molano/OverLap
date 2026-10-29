@@ -121,6 +121,8 @@ export const settingsEs = {
     /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
     customize: 'Personalizar',
     customizeNote: 'Orden y visibilidad de cada parte',
+    /** The pages of the widgets without info bars (infoBar.ts NO_BAR_SECTIONS). */
+    noBars: 'Sin cabecera ni pie: es una lectura compacta y una barra solo le añadiría altura',
     /** Every accordion of "Personalizar" at once. */
     expandAll: 'Expandir todo',
     collapseAll: 'Contraer todo',
@@ -609,7 +611,8 @@ export const settingsEs = {
     fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
     slowerHelp: 'Una clase más lenta a la que alcanzas',
     hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
-    /** The header's captions row: drawn over each group, whatever the header's switch says. */
+    /** The groups' captions switch: drawn over each group, whatever the header's switch says. */
+    captions: 'Rótulos de los grupos',
     captionsHelp: 'PELIGRO, DELANTE, POR DETRÁS sobre cada grupo; aunque no se muestre la cabecera',
     behind: 'Mirar atrás',
     behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
@@ -994,12 +997,18 @@ export const settingsEs = {
       footerBar: 'Pie',
       classLine: 'Línea de clase'
     },
-    battle: { lanes: 'Rivales', rows: 'Filas', parts: 'Detalles' },
+    battle: {
+      lanes: 'Rivales',
+      rows: 'Filas',
+      parts: 'Detalles',
+      headerBar: 'Cabecera',
+      footerBar: 'Pie'
+    },
     inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos', car: 'Coche' },
-    traffic: { groups: 'Grupos', parts: 'Columnas', header: 'Cabecera' },
+    traffic: { groups: 'Grupos', parts: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
-    fuel: { headerBar: 'Cabecera', lines: 'Líneas' },
+    fuel: { headerBar: 'Cabecera', lines: 'Líneas', footerBar: 'Pie' },
     lights: { icons: 'Testigos' },
     /** The accordions' open state (no editor of its own): named for completeness. */
     settingsWindow: { customizeOpen: 'Secciones abiertas de Personalizar' }
@@ -1064,8 +1073,7 @@ export const settingsEs = {
         lead: 'Texto antes del tiempo',
         value: 'Tiempo',
         sector: 'Sector'
-      },
-      header: { title: 'Título del widget', captions: 'Rótulos de los grupos' }
+      }
     },
     alerts: { parts: { notes: 'Qué hacer, tras cada aviso', chips: 'Otros avisos en chips' } },
     delta: {
@@ -1138,8 +1146,6 @@ export const settingsEs = {
     summary: (size: string, visible: number, total: number) =>
       `${size} · ${visible} de ${total} visibles`,
     summaryOff: 'No se muestra',
-    /** A shown header without a size of its own (the traffic's). */
-    summaryOn: 'Se muestra',
     size: 'Tamaño',
     sizeChoices: {
       off: { label: 'Oculta' },
@@ -1363,6 +1369,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     content: 'Content',
     customize: 'Customise',
     customizeNote: 'Order and visibility of each part',
+    noBars: 'No header or footer: it is a compact readout, and a bar would only add height',
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     show: 'Show',
@@ -1806,6 +1813,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fasterHelp: 'Catching you from behind: how soon and where',
     slowerHelp: 'A slower class you are catching',
     hazardsHelp: 'Stopped, very slow or off-track cars ahead',
+    captions: 'Group captions',
     captionsHelp: 'HAZARD, AHEAD, BEHIND over each group; even with the header hidden',
     behind: 'Look behind',
     behindHelp: 'Faster cars up to this far behind you',
@@ -2138,12 +2146,18 @@ export const settingsEn: Dict<typeof settingsEs> = {
       footerBar: 'Footer',
       classLine: 'Class line'
     },
-    battle: { lanes: 'Rivals', rows: 'Rows', parts: 'Details' },
+    battle: {
+      lanes: 'Rivals',
+      rows: 'Rows',
+      parts: 'Details',
+      headerBar: 'Header',
+      footerBar: 'Footer'
+    },
     inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
-    traffic: { groups: 'Groups', parts: 'Columns', header: 'Header' },
+    traffic: { groups: 'Groups', parts: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
-    fuel: { headerBar: 'Header', lines: 'Lines' },
+    fuel: { headerBar: 'Header', lines: 'Lines', footerBar: 'Footer' },
     lights: { icons: 'Lights' },
     settingsWindow: { customizeOpen: 'Open sections of Customise' }
   },
@@ -2202,8 +2216,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         lead: 'Words before the time',
         value: 'Time',
         sector: 'Sector'
-      },
-      header: { title: 'Widget title', captions: 'Group captions' }
+      }
     },
     alerts: { parts: { notes: 'What to do, after each alert', chips: 'Other alerts as chips' } },
     delta: {
@@ -2267,7 +2280,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     summary: (size, visible, total) => `${size} · ${visible} of ${total} shown`,
     summaryOff: 'Not shown',
-    summaryOn: 'Shown',
     size: 'Size',
     sizeChoices: {
       off: { label: 'Hidden' },

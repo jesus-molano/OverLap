@@ -108,7 +108,7 @@ la pantalla de sesión.
 Tu rival de clase de delante y el de detrás mientras estén a menos del hueco que elijas (1,5 s por
 defecto): el hueco y su tendencia, la predicción («Le alcanzas en ~4 v de 19»), la diferencia por
 sector y por vuelta y el iRating en juego. Uno encima del otro o lado a lado. Por defecto, solo en
-carrera.
+carrera. Opcionales: cabecera y pie con datos de la sesión (ver más abajo).
 
 ### Pedales
 
@@ -126,7 +126,8 @@ minimalista, realista (GT) o de fórmula que gira los grados reales.
 Los coches más rápidos que te alcanzan por detrás (en cuánto tiempo y en qué sector), el tráfico
 lento al que alcanzas y los peligros de delante (coches parados, muy lentos o fuera de pista). Quien
 te dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca. Se
-desvanece cuando no hay nadie cerca.
+desvanece cuando no hay nadie cerca. La cabecera (el título) admite más datos, y hay un pie
+opcional.
 
 ### Avisos
 
@@ -170,7 +171,7 @@ marca de lo que necesitas, consumo (media, última y máximo), lo que falta para
 echar junto a lo que tienes en el menú de boxes, la ventana de parada («V17–V33»), el ahorro por
 vuelta que te quita una parada, la última lectura de neumáticos y las reparaciones rápidas y juegos
 que quedan si la sesión los limita. Solo mide vueltas limpias, y el plan no cambia dentro de la
-vuelta. Por defecto, solo en carrera.
+vuelta. Por defecto, solo en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
 ## Ajustes y personalización
 
@@ -185,6 +186,13 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   ocultar en boxes y restablecer posición u opciones.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
+- **Cabecera y pie**: Relativo, Clasificación, Combustible, Tráfico y Batalla tienen los mismos:
+  un interruptor, un tamaño (pequeña, normal o grande) y las cajas Izquierda y Derecha con los datos que
+  quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
+  iRating y SR proyectados, vuelta rápida, vueltas de combustible, pista, agua, viento, aire,
+  goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se encoge. Delta,
+  Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra solo les
+  añadiría altura.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
   formato del nombre, estilo de la licencia y del número, logos de marca en color o monocromo y

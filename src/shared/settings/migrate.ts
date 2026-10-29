@@ -17,7 +17,9 @@
  * Files from before the customisable widgets (v2.6) had one boolean or choice per element
  * where the lists are now (the headers and the conditions footers became info bars): each list
  * and scalar is read from them (`LIST_MIGRATIONS`, `VALUE_MIGRATIONS`), so an upgrade draws the
- * same; the old fields are dropped on the next save (one-way). Version 5 marks the files
+ * same; the old fields are dropped on the next save (one-way). The traffic's `header` list (its
+ * title band and group captions, up to 2.1.1) is read the same way into its header bar's size
+ * and the `captions` switch. Version 5 marks the files
  * written since: older ones get the new defaults that replaced a saved old one (the 'outline'
  * licence, the pedals' auto height) once.
  */
@@ -507,6 +509,42 @@ function deltaReference(raw: Readonly<Record<string, unknown>>): unknown {
   return typeof ref === 'string' && ref !== 'pb' ? ref : undefined
 }
 
+/** The traffic's old `header` list (v2.6 to 2.1.1): its title band and its group captions. */
+const TRAFFIC_HEADER_IDS = ['title', 'captions'] as const
+const TRAFFIC_HEADER_DEFAULT = TRAFFIC_HEADER_IDS.map((id) => ({ id, visible: true }))
+
+/**
+ * Whether the traffic's old `header` list showed `id`, read as that version normalised it
+ * (unknown entries dropped, a missing id hidden, a list without one valid entry the default);
+ * undefined when the file has no such list.
+ */
+function trafficHeaderShows(
+  raw: Readonly<Record<string, unknown>>,
+  id: (typeof TRAFFIC_HEADER_IDS)[number]
+): boolean | undefined {
+  if (!Array.isArray(raw.header)) return undefined
+  const list = normalizeElements(raw.header, TRAFFIC_HEADER_DEFAULT, {
+    ids: TRAFFIC_HEADER_IDS,
+    required: [],
+    fixedOrder: true
+  })
+  return list.find((e) => e.id === id)?.visible === true
+}
+
+/**
+ * The traffic's title band became its header bar (the widget's name and the SIM tag, as the
+ * band drew them): shown at the normal size, or off, as the old list's `title` said.
+ */
+function trafficHeaderSize(raw: Readonly<Record<string, unknown>>): unknown {
+  const v = trafficHeaderShows(raw, 'title')
+  return v === undefined ? undefined : v ? 'normal' : 'off'
+}
+
+/** The old list's `captions`: now a switch of its own (the groups' captions). */
+function trafficCaptions(raw: Readonly<Record<string, unknown>>): unknown {
+  return trafficHeaderShows(raw, 'captions')
+}
+
 /** One scalar option of a section and how it is read from the fields it replaced. */
 export interface ValueMigration {
   readonly field: string
@@ -518,6 +556,10 @@ export const VALUE_MIGRATIONS: { readonly [S in OptionSection]?: readonly ValueM
   relative: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
   standings: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
   fuel: [{ field: 'headerBarSize', read: sizeFromSwitch('showHeader') }],
+  traffic: [
+    { field: 'headerBarSize', read: trafficHeaderSize },
+    { field: 'captions', read: trafficCaptions }
+  ],
   delta: [
     { field: 'referencePractice', read: deltaReference },
     { field: 'referenceQualify', read: deltaReference },

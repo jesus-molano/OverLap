@@ -4,6 +4,7 @@ import { brandMarksOn } from '@shared/carBrands'
 import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
+import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useElementSize } from '@renderer/composables/useElementSize'
@@ -14,6 +15,7 @@ import Badge from '@renderer/ui/Badge.vue'
 import Chip from '@renderer/ui/Chip.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import Icon from '@renderer/ui/Icon.vue'
+import InfoBar from '@renderer/ui/InfoBar.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
@@ -89,6 +91,15 @@ const lanes = computed<readonly LaneView[]>((prev) => {
   )
 })
 
+/**
+ * The header and footer info bars (battle.headerBar / footerBar), both off by default: the card
+ * is the lanes alone, as before the bars.
+ */
+const head = useInfoBar('battle', 'headerBar', () => content.value?.info ?? null)
+const foot = useInfoBar('battle', 'footerBar', () => content.value?.info ?? null)
+const headShown = computed(() => head.shown.value)
+const footShown = computed(() => foot.shown.value)
+
 const preview = computed(() => phase.value === 'preview')
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && lanes.value.length > 0
@@ -100,10 +111,17 @@ const widthEm = computed(() => (rootSize.value.w > 0 ? rootSize.value.w / fontPx
 const layout = computed(() => arrangement(options.value.layout, lanes.value.length, widthEm.value))
 /** Everything the panel height depends on besides the width and the font. */
 const layoutKey = computed(
-  () => `${lanes.value.length}|${layout.value}|${rows.value.order.join(',')}`
+  () =>
+    `${lanes.value.length}|${layout.value}|${rows.value.order.join(',')}|` +
+    `${headShown.value ? 'h' : ''}${footShown.value ? 'f' : ''}`
 )
-/** Where the VISTA PREVIA tag goes: the last lane's prediction row, else its trend row. */
-const previewTag = computed(() => (preview.value ? (rows.value.catch ? 'catch' : 'trend') : null))
+/**
+ * Where the VISTA PREVIA tag goes: the header when shown, else the last lane's prediction row,
+ * else its trend row.
+ */
+const previewTag = computed(() =>
+  !preview.value ? null : headShown.value ? 'head' : rows.value.catch ? 'catch' : 'trend'
+)
 
 const shown = useReveal(
   () => wanted.value,
@@ -124,97 +142,122 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
       v-if="lanes.length > 0"
       ref="panel"
       class="battle__panel"
-      :class="[`battle__panel--${layout}`, { 'battle__panel--fixed': !autoHeight }]"
+      :class="[
+        `battle__panel--${layout}`,
+        { 'battle__panel--fixed': !autoHeight, 'battle__panel--bars': headShown || footShown }
+      ]"
       :surface="surfaceStyle"
       :halo="halo"
       :fill="!autoHeight"
     >
-      <section
-        v-for="(lane, i) in lanes"
-        :key="lane.side"
-        v-memo="[lane, rows, layout, i === lanes.length - 1 ? previewTag : null, t]"
-        class="lane"
-        :class="[`lane--${lane.tone}`, { 'lane--pit': lane.inPits }]"
-        :data-el="`battle.lanes.${lane.side}`"
-      >
-        <span class="lane__tag"><Icon :name="lane.tagIcon" />{{ lane.tag }}</span>
-        <DriverCell
-          class="lane__who"
-          v-bind="lane.driver"
-          :with-rating="lane.driver.withRating && layout !== 'side'"
-          rating-el="battle.parts.rating"
-          license-el="battle.parts.license"
-        >
-          <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
-        </DriverCell>
+      <template v-if="headShown" #header>
+        <InfoBar
+          :view="head.view.value"
+          :size="head.size.value"
+          place="head"
+          sim
+          :preview="previewTag === 'head'"
+          zone="battle.headerBar"
+        />
+      </template>
 
-        <span class="lane__gap ov-t-hero"
-          >{{ lane.gap.value
-          }}<span v-if="lane.gap.unit" class="lane__unit ov-unit">{{ lane.gap.unit }}</span></span
+      <!-- The lanes, stacked or side by side, between the bars. -->
+      <div class="battle__lanes">
+        <section
+          v-for="(lane, i) in lanes"
+          :key="lane.side"
+          v-memo="[lane, rows, layout, i === lanes.length - 1 ? previewTag : null, t]"
+          class="lane"
+          :class="[`lane--${lane.tone}`, { 'lane--pit': lane.inPits }]"
+          :data-el="`battle.lanes.${lane.side}`"
         >
-        <span class="lane__trend">
-          <span class="lane__trend-value" :class="`ov-tone-${lane.trend.tone}`">
-            <Icon v-if="lane.trend.icon" :name="lane.trend.icon" />{{ lane.trend.text }}
-          </span>
-          <span v-if="lane.trend.note" class="lane__note" data-el="battle.parts.trendNote">{{
-            lane.trend.note
-          }}</span>
-          <span v-if="lane.stake" class="lane__stake" data-el="battle.parts.stake"
-            ><b>{{ lane.stake }}</b
-            >&nbsp;{{ t.widgets.battle.stake }}</span
+          <span class="lane__tag"><Icon :name="lane.tagIcon" />{{ lane.tag }}</span>
+          <DriverCell
+            class="lane__who"
+            v-bind="lane.driver"
+            :with-rating="lane.driver.withRating && layout !== 'side'"
+            rating-el="battle.parts.rating"
+            license-el="battle.parts.license"
           >
-          <PreviewTag
-            v-if="previewTag === 'trend' && i === lanes.length - 1"
-            class="lane__preview"
-          />
-        </span>
+            <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
+          </DriverCell>
 
-        <!-- The rows under the headline in battle.rows' order (the grid places them in turn). -->
-        <template v-for="row in rows.order" :key="row">
-          <div v-if="row === 'prediction'" class="lane__catch" data-el="battle.rows.prediction">
-            <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
-            <template v-else-if="lane.catch">
-              <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
-                <Icon :name="lane.catch.icon" />
-                <span class="lane__verdict-text">{{ lane.catch.text }}</span>
-              </span>
-              <span v-if="lane.catch.note" class="lane__note">{{ lane.catch.note }}</span>
-            </template>
+          <span class="lane__gap ov-t-hero"
+            >{{ lane.gap.value
+            }}<span v-if="lane.gap.unit" class="lane__unit ov-unit">{{ lane.gap.unit }}</span></span
+          >
+          <span class="lane__trend">
+            <span class="lane__trend-value" :class="`ov-tone-${lane.trend.tone}`">
+              <Icon v-if="lane.trend.icon" :name="lane.trend.icon" />{{ lane.trend.text }}
+            </span>
+            <span v-if="lane.trend.note" class="lane__note" data-el="battle.parts.trendNote">{{
+              lane.trend.note
+            }}</span>
+            <span v-if="lane.stake" class="lane__stake" data-el="battle.parts.stake"
+              ><b>{{ lane.stake }}</b
+              >&nbsp;{{ t.widgets.battle.stake }}</span
+            >
             <PreviewTag
-              v-if="previewTag === 'catch' && i === lanes.length - 1"
+              v-if="previewTag === 'trend' && i === lanes.length - 1"
               class="lane__preview"
             />
-          </div>
-          <div
-            v-else-if="row === 'sectors' && lane.sectors"
-            class="lane__chips"
-            data-el="battle.rows.sectors"
-          >
-            <Chip
-              v-for="c in lane.sectors"
-              :key="c.label"
-              class="lane__chip"
-              :label="c.label"
-              :tone="c.tone"
-              >{{ c.text }}</Chip
+          </span>
+
+          <!-- The rows under the headline in battle.rows' order (the grid places them in turn). -->
+          <template v-for="row in rows.order" :key="row">
+            <div v-if="row === 'prediction'" class="lane__catch" data-el="battle.rows.prediction">
+              <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
+              <template v-else-if="lane.catch">
+                <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
+                  <Icon :name="lane.catch.icon" />
+                  <span class="lane__verdict-text">{{ lane.catch.text }}</span>
+                </span>
+                <span v-if="lane.catch.note" class="lane__note">{{ lane.catch.note }}</span>
+              </template>
+              <PreviewTag
+                v-if="previewTag === 'catch' && i === lanes.length - 1"
+                class="lane__preview"
+              />
+            </div>
+            <div
+              v-else-if="row === 'sectors' && lane.sectors"
+              class="lane__chips"
+              data-el="battle.rows.sectors"
             >
-          </div>
-          <div
-            v-else-if="row === 'laps' && lane.laps"
-            class="lane__chips"
-            data-el="battle.rows.laps"
-          >
-            <Chip
-              v-for="c in lane.laps"
-              :key="c.label"
-              class="lane__chip"
-              :label="c.label"
-              :tone="c.tone"
-              >{{ c.text }}</Chip
+              <Chip
+                v-for="c in lane.sectors"
+                :key="c.label"
+                class="lane__chip"
+                :label="c.label"
+                :tone="c.tone"
+                >{{ c.text }}</Chip
+              >
+            </div>
+            <div
+              v-else-if="row === 'laps' && lane.laps"
+              class="lane__chips"
+              data-el="battle.rows.laps"
             >
-          </div>
-        </template>
-      </section>
+              <Chip
+                v-for="c in lane.laps"
+                :key="c.label"
+                class="lane__chip"
+                :label="c.label"
+                :tone="c.tone"
+                >{{ c.text }}</Chip
+              >
+            </div>
+          </template>
+        </section>
+      </div>
+
+      <InfoBar
+        v-if="footShown"
+        :view="foot.view.value"
+        :size="foot.size.value"
+        place="foot"
+        zone="battle.footerBar"
+      />
     </WidgetPanel>
   </div>
 </template>
@@ -230,7 +273,32 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   container: battle / inline-size;
 }
 
+/*
+ * Without bars the lanes are the panel's own items, as they always were (the wrapper draws no
+ * box): a file from before the bars draws the same pixels. With a bar the panel stacks the bars
+ * and the wrapper, and the wrapper lays the lanes out, filling what the bars leave.
+ */
+.battle__lanes {
+  display: contents;
+}
+
 .battle__panel--side {
+  flex-direction: row;
+}
+
+.battle__panel--bars {
+  flex-direction: column;
+}
+
+.battle__panel--bars .battle__lanes {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.battle__panel--bars.battle__panel--side .battle__lanes {
   flex-direction: row;
 }
 
