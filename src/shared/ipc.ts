@@ -222,6 +222,8 @@ export type LayoutFileNotice =
 export type LayoutNotice =
   | LayoutFileNotice
   | { kind: 'options-copied'; widgetId: WidgetId; result: 'copied' | 'unchanged' | 'stale' }
+  /** «Traer todos los widgets a esta pantalla» (R51): how many moved (0: all were there). */
+  | { kind: 'gathered'; count: number }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -408,6 +410,11 @@ export type SettingsCommand =
   | { type: 'open-log' }
   /** What support needs (versions, status, displays, shortcuts...) on the clipboard (R35). */
   | { type: 'copy-diagnostics' }
+  /**
+   * Every widget on another display (or one unplugged) to the display of the settings window
+   * (R51); main answers on IPC.layoutNotice ('gathered').
+   */
+  | { type: 'gather-widgets' }
   /** `part`: what of it (WidgetResetPart: 'all' when absent). */
   | { type: 'reset-widget-options'; widgetId: WidgetId; part?: WidgetResetPart }
   /** The widget's bounds set to `bounds` (a reset undone, a free widget's «Escala»). */

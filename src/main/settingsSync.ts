@@ -50,6 +50,7 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'open-settings-folder':
     case 'open-log':
     case 'copy-diagnostics':
+    case 'gather-widgets':
     case 'refresh-personal-bests':
     case 'clear-personal-bests':
       return true

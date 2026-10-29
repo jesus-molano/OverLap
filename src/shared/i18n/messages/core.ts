@@ -99,6 +99,8 @@ export const coreEs = {
     /** A layout linked to the car you are in (automatic mode): 'Mazda · coche actual'. */
     layoutForCar: (name: string) => `${name} · coche actual`,
     editMode: 'Modo edición',
+    /** Every widget to the display where the cursor is (R51). */
+    gatherWidgets: 'Traer todos los widgets a esta pantalla',
     /** Checked while the overlay is shown (the user's own hide, as the shortcut). */
     showOverlay: 'Mostrar el overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
@@ -282,6 +284,7 @@ export const coreEn: Dict<typeof coreEs> = {
     moreLayouts: 'More…',
     layoutForCar: (name) => `${name} · current car`,
     editMode: 'Edit mode',
+    gatherWidgets: 'Bring every widget to this screen',
     showOverlay: 'Show the overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',

@@ -39,10 +39,11 @@ import {
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
 import { everyBinding, shortcutBindings, type ShortcutAction } from '@shared/shortcuts'
-import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
-import type { WidgetId } from '@shared/widgets'
+import type { OverlaySettings, OverlayStatus, Rect, ShowWhen, SourceKind } from '@shared/types'
+import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
 import { diagnosticsText } from './diagnostics'
+import { gatherBounds } from './gather'
 import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
@@ -518,6 +519,54 @@ function start(): void {
     })
   }
 
+  /**
+   * «Traer todos los widgets a esta pantalla» (R51): every widget on another display, or left on
+   * one that is unplugged, to the display at `point` (the tray: where the cursor is; the
+   * settings window: its own), at the same relative place. One change, then the windows move;
+   * the settings window is told how many moved.
+   */
+  function gatherWidgets(point: { x: number; y: number }): void {
+    const all = screen.getAllDisplays().map((d) => ({
+      id: d.id,
+      bounds: d.bounds,
+      workArea: d.workArea,
+      scaleFactor: d.scaleFactor
+    }))
+    const near = screen.getDisplayNearestPoint(point)
+    const target = all.find((d) => d.id === near.id)
+    if (!target) return
+    const s = store.settings
+    const moved = gatherBounds(
+      Object.fromEntries(WIDGET_IDS.map((id) => [id, s.widgets[id].bounds])) as Record<
+        WidgetId,
+        Rect
+      >,
+      all,
+      target
+    )
+    const ids = Object.keys(moved) as WidgetId[]
+    if (ids.length > 0) {
+      const prev = store.settings
+      store.update((draft) => {
+        let next = draft
+        for (const id of ids) next = setWidgetBounds(next, id, moved[id])
+        Object.assign(draft, next)
+      })
+      windows.reloadBoundsOf(ids)
+      syncSettings(prev)
+    }
+    console.log(`[main] gathered ${ids.length} widget(s) on display ${target.id}`)
+    sendToSettingsWindow(IPC.layoutNotice, { kind: 'gathered', count: ids.length })
+  }
+
+  /** The centre of the settings window (the primary display's when it is not open). */
+  function settingsWindowPoint(): { x: number; y: number } {
+    const w = openSettingsWindowHandle()
+    if (!w) return screen.getPrimaryDisplay().workArea
+    const b = w.getBounds()
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2 }
+  }
+
   /** overlap.log, in the system's text viewer (the folder when there is no log yet). */
   function openLog(): void {
     const file = join(userData, 'overlap.log')
@@ -680,6 +729,9 @@ function start(): void {
       case 'copy-diagnostics':
         copyDiagnostics()
         break
+      case 'gather-widgets':
+        gatherWidgets(settingsWindowPoint())
+        break
       case 'refresh-personal-bests':
         sendPersonalBests()
         break
@@ -705,6 +757,7 @@ function start(): void {
     setEditMode,
     setOverlayHidden,
     openSettingsFolder,
+    gatherWidgets: () => gatherWidgets(screen.getCursorScreenPoint()),
     quit: () => app.quit()
   })
   // `--settings` (e.g. a desktop shortcut) opens the settings window on start.

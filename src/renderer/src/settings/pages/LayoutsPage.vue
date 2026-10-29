@@ -3,13 +3,15 @@ import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef,
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
 import { LAYOUT_SORTS } from '@shared/settingsSchema'
-import type { LayoutMode, LayoutSort } from '@shared/types'
+import type { LayoutMode, LayoutSort, Rect } from '@shared/types'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
 import HelpText from '../controls/HelpText.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { optionSetter, sendCommand } from '../editor'
+import { offerRestore } from '../undo/restore'
+import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import {
@@ -150,6 +152,43 @@ watch(
   { flush: 'post' }
 )
 onBeforeUnmount(() => boxSizes.disconnect())
+
+/**
+ * «Traer aquí» (R51): main moves every widget on another display to this window's one and says
+ * how many; when some moved, "Deshacer" puts each back where it was.
+ */
+let gatherSnapshot: Partial<Record<WidgetId, Rect>> | null = null
+
+function gather(): void {
+  const s = settings.value
+  if (!s) return
+  gatherSnapshot = Object.fromEntries(WIDGET_IDS.map((id) => [id, { ...s.widgets[id].bounds }]))
+  layoutNotice.value = null
+  sendCommand({ type: 'gather-widgets' })
+}
+
+const gatheredText = computed(() => {
+  const n = layoutNotice.value
+  if (n === null || n.kind !== 'gathered') return null
+  const g = t.value.settings.layouts.screens
+  return n.count > 0 ? g.gathered(n.count) : g.none
+})
+
+watch(layoutNotice, (n) => {
+  if (n === null || n.kind !== 'gathered') return
+  const before = gatherSnapshot
+  gatherSnapshot = null
+  if (before === null || n.count === 0) return
+  offerRestore(
+    (m) => m.settings.layouts.screens.undo,
+    () => {
+      for (const id of WIDGET_IDS) {
+        const bounds = before[id]
+        if (bounds) sendCommand({ type: 'set-widget-bounds', widgetId: id, bounds })
+      }
+    }
+  )
+})
 
 function onLink(car: CarRow, e: Event): void {
   const v = e.target instanceof HTMLSelectElement ? e.target.value : ''
@@ -363,6 +402,19 @@ function onLink(car: CarRow, e: Event): void {
         <p v-if="!options.autoSwitch && lib.links.length > 0" class="st-row st-help st-help-warn">
           {{ t.settings.layouts.autoOff }}
         </p>
+      </PageSection>
+
+      <PageSection :title="t.settings.layouts.screens.title">
+        <div class="st-row st-row-wrap">
+          <div class="st-row-text">
+            <span class="st-label">{{ t.settings.layouts.screens.gather }}</span>
+            <span class="st-help">{{ t.settings.layouts.screens.gatherHelp }}</span>
+          </div>
+          <button type="button" class="st-btn" @click="gather">
+            {{ t.settings.layouts.screens.button }}
+          </button>
+        </div>
+        <p v-if="gatheredText" class="st-row st-help" role="status">{{ gatheredText }}</p>
       </PageSection>
 
       <PageSection :title="t.settings.layouts.filesTitle">
