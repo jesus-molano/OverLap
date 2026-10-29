@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, shallowRef, useId, watch, watchEffect } from 'vue'
+import {
+  onBeforeUnmount,
+  onMounted,
+  shallowRef,
+  useId,
+  useTemplateRef,
+  watch,
+  watchEffect
+} from 'vue'
 import type { CustomizeZoneId } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import type { InlineStyle } from '../../view/styles'
@@ -271,8 +279,14 @@ const actionOf = (h: Hit): ElAction => elAction(h.handle.spec, h.handle.list(), 
 
 // ---- Positions (client px to the stage's) --------------------------------------------------
 
+/**
+ * The origin of what this layer draws: its own box, which its children are placed from. The
+ * stage's border box would put every outline, line and tip 1 px right and down (the stage's
+ * border). The stage's box until the layer is mounted.
+ */
+const layerEl = useTemplateRef<HTMLElement>('layer')
 function stageBox(): DOMRect | null {
-  return props.stage?.getBoundingClientRect() ?? null
+  return (layerEl.value ?? props.stage)?.getBoundingClientRect() ?? null
 }
 
 /** The widget's own box in the sample (the box its window stands in), else the sample's. */
@@ -591,7 +605,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="pe" aria-hidden="true">
+  <div ref="layer" class="pe" aria-hidden="true">
     <div v-for="(m, i) in ghostMarks" :key="`g${i}`" class="pe-ghost" :style="m" />
     <div v-if="lineStyle" class="pe-line" :style="lineStyle" />
     <div v-for="(m, i) in marks" :key="i" class="pe-mark" :style="m" />
