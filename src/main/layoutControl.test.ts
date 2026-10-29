@@ -317,6 +317,22 @@ describe('LayoutControl: commands', () => {
     expect(h.calls).not.toContain('reload')
   })
 
+  it('brings the last layout deleted back ("Deshacer"), once', async () => {
+    await h.control.command({ type: 'layout-save', name: 'GT3' })
+    const names = (): string[] => h.settings().savedLayouts.list.map((l) => l.name)
+    const before = names()
+    await h.control.command({ type: 'layout-delete', id: 'layout-2' })
+    expect(names()).not.toContain('Mazda')
+    // Only the last one deleted.
+    await h.control.command({ type: 'layout-restore', id: 'layout-1' })
+    await h.control.command({ type: 'layout-restore', id: 'layout-2' })
+    expect(names()).toEqual(before)
+    await h.control.command({ type: 'layout-delete', id: 'layout-2' })
+    await h.control.command({ type: 'layout-restore', id: 'layout-2' })
+    await h.control.command({ type: 'layout-restore', id: 'layout-2' })
+    expect(names()).toEqual(before)
+  })
+
   it('exports a layout where the user chooses', async () => {
     await h.control.command({ type: 'layout-export', id: 'layout-2' })
     expect(h.files.pickSavePath).toHaveBeenCalledWith('Mazda.overlap-layout.json')

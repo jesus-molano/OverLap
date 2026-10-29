@@ -102,6 +102,19 @@ describe('isSettingsCommand', () => {
     expect(isSettingsCommand({ type: 'capture-shortcuts', on: false })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-bounds', widgetId: 'relative' })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-options', widgetId: 'standings' })).toBe(true)
+    // A part of the page (R24), and bounds put back by an undo (R11).
+    expect(
+      isSettingsCommand({ type: 'reset-widget-options', widgetId: 'standings', part: 'window' })
+    ).toBe(true)
+    expect(
+      isSettingsCommand({ type: 'reset-widget-options', widgetId: 'standings', part: 'nope' })
+    ).toBe(false)
+    const bounds = { x: 1, y: 2, width: 300, height: 200 }
+    expect(isSettingsCommand({ type: 'set-widget-bounds', widgetId: 'radar', bounds })).toBe(true)
+    expect(
+      isSettingsCommand({ type: 'set-widget-bounds', widgetId: 'radar', bounds: { x: 1 } })
+    ).toBe(false)
+    expect(isSettingsCommand({ type: 'layout-restore', id: 'layout-2' })).toBe(true)
     expect(isSettingsCommand({ type: 'open-settings-folder' })).toBe(true)
     expect(isSettingsCommand({ type: 'refresh-personal-bests' })).toBe(true)
     expect(isSettingsCommand({ type: 'clear-personal-bests' })).toBe(true)

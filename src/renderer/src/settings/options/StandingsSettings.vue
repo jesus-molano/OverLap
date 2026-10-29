@@ -84,7 +84,7 @@ const fixed = computed(() => fixedColumns(t.value))
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content">
+  <PageSection :title="t.settings.common.content" resets="options">
     <ChoiceControl
       :label="t.settings.standings.mode"
       :current="opts.mode"

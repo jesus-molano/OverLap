@@ -168,10 +168,11 @@ describe('shortcut texts', () => {
       'Controller found: press the button again'
     )
     expect(s.resetAll.descriptionButtons(1)).toContain('quita el botón asignado')
-    expect(s.resetAll.confirmButtons(3)).toBe('¿Quitar 3 botones asignados? Pulsa otra vez')
-    expect(en.settings.shortcuts.resetAll.confirmButtons(1)).toBe(
-      'Remove the assigned button? Click again'
+    // One click, then "Deshacer" (R11): no "press again".
+    expect(es.settings.elements.undo.reset(es.settings.elements.undo.whatShortcuts, '')).toBe(
+      'Restablecido: atajos'
     )
+    expect(es.settings.elements.undo.inLayout('Principal')).toBe(' · en «Principal»')
     expect(s.status).toEqual({
       disabled: 'Desactivado',
       unavailable: 'En uso por otra aplicación',

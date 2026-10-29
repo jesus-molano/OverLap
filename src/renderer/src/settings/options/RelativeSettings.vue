@@ -49,7 +49,7 @@ const brandChoices = computed(() =>
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content">
+  <PageSection :title="t.settings.common.content" resets="options">
     <StepperControl
       :label="t.settings.relative.carsAhead"
       :current="opts.carsAhead"

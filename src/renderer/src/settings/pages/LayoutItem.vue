@@ -3,8 +3,8 @@ import { nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { MAX_LAYOUT_NAME, layoutName } from '@shared/layouts'
 import type { LayoutMode } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
-import ConfirmButton from '../layout/ConfirmButton.vue'
 import { layoutCommands as cmd, type LayoutRow } from '../layoutsView'
+import { deleteLayout } from '../undo/restore'
 import LayoutModeChoice from './LayoutModeChoice.vue'
 
 /**
@@ -56,8 +56,9 @@ function commit(): void {
   emit('rename', false)
 }
 
+/** One click, then "Deshacer" in the toast (R11): main keeps the last layout deleted. */
 function remove(): void {
-  cmd.remove(props.row.id)
+  deleteLayout(props.row.id, props.row.name)
 }
 </script>
 
@@ -178,14 +179,15 @@ function remove(): void {
       >
         {{ t.settings.layouts.export }}
       </button>
-      <ConfirmButton
+      <button
         v-if="row.canDelete"
-        small
-        :label="t.settings.layouts.delete.label"
-        :confirm-label="t.settings.layouts.delete.confirm"
-        :description="t.settings.layouts.delete.description(row.name)"
-        :action="remove"
-      />
+        type="button"
+        class="st-btn st-btn-sm"
+        :title="t.settings.layouts.delete.description(row.name)"
+        @click="remove"
+      >
+        {{ t.settings.layouts.delete.label }}
+      </button>
       <button
         v-else
         type="button"

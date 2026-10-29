@@ -12,7 +12,8 @@ import {
   normalizeSettings,
   placeDefaultLayout,
   resetWidgetBounds,
-  resetWidgetOptions
+  resetWidgetOptions,
+  setWidgetBounds
 } from '.'
 import { syncActiveLayout } from './layouts'
 
@@ -474,6 +475,21 @@ describe('resetWidgetBounds', () => {
 })
 
 describe('resetWidgetOptions', () => {
+  it('resets only the part asked for (R24): the options, or the window', () => {
+    const current = customSettings()
+    const options = resetWidgetOptions(current, 'standings', 'options')
+    expect(options.standings).toEqual(defaultOptions('standings'))
+    expect(options.widgets.standings).toEqual(current.widgets.standings)
+    const window = resetWidgetOptions(current, 'standings', 'window')
+    expect(window.standings).toEqual(current.standings)
+    expect(window.widgets.standings).toEqual({
+      ...defaultWidgetSettings('standings'),
+      bounds: current.widgets.standings.bounds,
+      visible: current.widgets.standings.visible,
+      locked: current.widgets.standings.locked
+    })
+  })
+
   it('resets the options and look of one widget, keeping bounds, visibility and lock', () => {
     const current = customSettings()
     const out = resetWidgetOptions(current, 'standings')
@@ -792,5 +808,32 @@ describe('applySettingsPatch: several bindings per action', () => {
     })
     expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
     expect(out.shortcutsMore).toEqual(DEFAULT_SETTINGS.shortcutsMore)
+  })
+})
+
+describe('setWidgetBounds', () => {
+  it('sets the bounds as a saved file would have them: whole, at least the minimum size', () => {
+    const out = setWidgetBounds(createDefaultSettings(), 'radar', {
+      x: 10.4,
+      y: 20,
+      width: 50,
+      height: 300.6
+    })
+    expect(out.widgets.radar.bounds).toEqual({
+      x: 10,
+      y: 20,
+      width: WIDGET_DEFS.radar.minSize.width,
+      height: 301
+    })
+    // The layout in use follows.
+    const active = out.savedLayouts.list.find((l) => l.id === out.savedLayouts.activeId)
+    expect(active?.widgets.radar.bounds).toEqual(out.widgets.radar.bounds)
+  })
+
+  it('keeps the bounds for anything that is not a rect', () => {
+    const current = createDefaultSettings()
+    expect(setWidgetBounds(current, 'radar', 'nope').widgets.radar.bounds).toEqual(
+      current.widgets.radar.bounds
+    )
   })
 })

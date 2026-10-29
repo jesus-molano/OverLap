@@ -20,8 +20,8 @@ import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
-import { optionSetter, resetAppearance, updateSettings } from '../editor'
-import ConfirmButton from '../layout/ConfirmButton.vue'
+import { optionSetter, updateSettings } from '../editor'
+import { resetAppearance } from '../undo/restore'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
@@ -362,12 +362,15 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
     </div>
 
     <footer class="page-foot">
-      <ConfirmButton
-        :label="t.settings.appearance.reset.label"
-        :confirm-label="t.settings.confirm.reset"
-        :description="t.settings.appearance.reset.description"
-        :action="resetAppearance"
-      />
+      <!-- One click, then "Deshacer" in the toast (R11). -->
+      <button
+        type="button"
+        class="st-btn"
+        :title="t.settings.appearance.reset.description"
+        @click="resetAppearance"
+      >
+        {{ t.settings.appearance.reset.label }}
+      </button>
     </footer>
 
     <template #foot>

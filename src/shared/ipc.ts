@@ -34,6 +34,7 @@ import type {
   TelemetryConfig,
   WidgetDataMessage
 } from './types'
+import type { WidgetResetPart } from './settings/patch'
 import type { WidgetId } from './widgets'
 
 // ---------------------------------------------------------------------------
@@ -376,7 +377,10 @@ export type SettingsCommand =
   | { type: 'set-edit-mode'; on: boolean }
   | { type: 'reset-widget-bounds'; widgetId: WidgetId }
   | { type: 'open-settings-folder' }
-  | { type: 'reset-widget-options'; widgetId: WidgetId }
+  /** `part`: what of it (WidgetResetPart: 'all' when absent). */
+  | { type: 'reset-widget-options'; widgetId: WidgetId; part?: WidgetResetPart }
+  /** The widget's bounds set to `bounds` (a reset undone, a free widget's «Escala»). */
+  | { type: 'set-widget-bounds'; widgetId: WidgetId; bounds: Rect }
   /** Send me the personal bests (main answers on IPC.personalBests). */
   | { type: 'refresh-personal-bests' }
   | { type: 'delete-personal-bests'; keys: string[] }
@@ -406,6 +410,8 @@ export type SettingsCommand =
   | { type: 'layout-duplicate'; id: string; name: string }
   | { type: 'layout-rename'; id: string; name: string }
   | { type: 'layout-delete'; id: string }
+  /** The layout deleted last, back ("Deshacer"): only while it is the last one deleted. */
+  | { type: 'layout-restore'; id: string }
   | { type: 'layout-move'; id: string; step: -1 | 1; aroundActive?: boolean }
   | { type: 'layout-export'; id: string }
   | { type: 'layout-import'; mode?: LayoutMode }

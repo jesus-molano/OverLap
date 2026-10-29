@@ -1,8 +1,9 @@
 /**
  * "Deshacer" after hiding or moving an element (a misclick in the live sample, an eye clicked by
- * mistake): the pure parts, tested without a DOM, and the window's one undo slot (UndoToast.vue
- * shows it). One action at a time: a newer one replaces the offer, and undo only ever reverts
- * the last one.
+ * mistake), and after the big changes (R11): a reset (a list, a widget's options, its window or
+ * position, the appearance, the shortcuts), hiding a widget, deleting a layout. The pure parts,
+ * tested without a DOM, and the window's one undo slot (UndoToast.vue shows it). One action at a
+ * time: a newer one replaces the offer, and undo only ever reverts the last one.
  *
  * The undo goes through the editor that made the change (its optimistic list, its patch, its
  * announcement), so it reads exactly as the opposite edit would. It never reverts anything else:
@@ -15,10 +16,10 @@ import { setElementVisible } from '@shared/elements'
 import type { ElementEntry } from '@shared/types'
 import type { List } from '../elements/listOps'
 
-/** What an offer undoes: `id` hidden (shown back), or moved (put back). */
+/** What a list offer undoes: `id` hidden (shown back), or moved (put back). */
 export type UndoKind = 'hide' | 'move'
 
-export interface UndoOffer {
+export interface ListUndoOffer {
   /** Whose offer it is (its editor): withdrawn with it. */
   readonly owner: object
   readonly kind: UndoKind
@@ -33,6 +34,23 @@ export interface UndoOffer {
   /** Sends the undone list through the editor's own path (its patch, its announcement). */
   apply(next: ElementEntry<string>[]): void
 }
+
+/**
+ * A bigger change undone as a whole: what it did is put back as it was before (restore.ts builds
+ * them: a patch with the values before, a layout back, a widget's bounds back).
+ */
+export interface RestoreOffer {
+  readonly owner: object
+  readonly kind: 'restore'
+  /** What happened, for the toast: '«Columnas» restablecidas en «Principal»'. */
+  text(): string
+  /** False when undoing it would now do something else (another layout is in use): it goes. */
+  alive(): boolean
+  /** Puts it back. */
+  restore(): void
+}
+
+export type UndoOffer = ListUndoOffer | RestoreOffer
 
 const copy = (list: List<string>): ElementEntry<string>[] =>
   list.map((e) => ({ id: e.id, visible: e.visible }))
@@ -56,7 +74,7 @@ const sameOrder = (a: List<string>, b: List<string>): boolean =>
  *   arrangement, which a put-back would undo too.
  */
 export function undoneList(
-  offer: Pick<UndoOffer, 'kind' | 'id' | 'before' | 'after'>,
+  offer: Pick<ListUndoOffer, 'kind' | 'id' | 'before' | 'after'>,
   current: List<string>
 ): ElementEntry<string>[] | null {
   if (sameList(current, offer.after)) {
@@ -205,10 +223,16 @@ export function createUndoSlot(timers: Timers = realTimers, ms = UNDO_MS): UndoS
     undo() {
       const s = shown.value
       if (s === null) return false
-      const next = undoneList(s.offer, s.offer.current())
+      const offer = s.offer
       dismiss()
+      if (offer.kind === 'restore') {
+        if (!offer.alive()) return false
+        offer.restore()
+        return true
+      }
+      const next = undoneList(offer, offer.current())
       if (next === null) return false
-      s.offer.apply(next)
+      offer.apply(next)
       return true
     },
     dismiss,

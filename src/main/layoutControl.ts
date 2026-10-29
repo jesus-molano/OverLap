@@ -16,6 +16,7 @@ import {
   applyWidgetOptionsToAll,
   deleteLayout,
   duplicateLayout,
+  type DeletedLayout,
   findLayout,
   hasLayout,
   importLayout,
@@ -25,6 +26,7 @@ import {
   normalizeCarRef,
   noteSeenCar,
   renameLayout,
+  restoreLayout,
   saveLayoutAs,
   setLayoutMode,
   sharedOptions,
@@ -68,6 +70,8 @@ export interface LayoutControlDeps {
 
 export class LayoutControl {
   private readonly auto = new LayoutAutoSwitch()
+  /** The layout deleted last, for its "Deshacer" ('layout-restore'); one at a time. */
+  private lastDeleted: DeletedLayout | null = null
 
   constructor(private readonly deps: LayoutControlDeps) {}
 
@@ -141,8 +145,17 @@ export class LayoutControl {
         this.change((s) => void renameLayout(s, cmd.id, cmd.name))
         break
       case 'layout-delete':
-        this.change((s) => void deleteLayout(s, cmd.id))
+        this.change((s) => {
+          this.lastDeleted = deleteLayout(s, cmd.id)
+        })
         break
+      case 'layout-restore': {
+        const gone = this.lastDeleted
+        if (gone?.layout.id !== cmd.id) return
+        this.lastDeleted = null
+        this.change((s) => void restoreLayout(s, gone))
+        break
+      }
       case 'layout-move':
         this.change((s) => void moveLayout(s, cmd.id, cmd.step, cmd.aroundActive === true))
         break

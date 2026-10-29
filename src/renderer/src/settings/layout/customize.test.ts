@@ -284,7 +284,7 @@ describe('CustomizeSection', () => {
     expect(html).toContain(`aria-labelledby="${id}"`)
   })
 
-  it('is placed by WidgetPage after the content, before the window section and the resets', () => {
+  it('is placed by WidgetPage after the content, before the window section', () => {
     const template = /<template>([\s\S]*)<\/template>/.exec(WIDGET_PAGE)?.[1] ?? ''
     const opts = template.indexOf('<component :is="options"')
     const target = template.indexOf(':id="customize.targetId"')
@@ -292,7 +292,9 @@ describe('CustomizeSection', () => {
     expect(opts).toBeGreaterThan(-1)
     expect(target).toBeGreaterThan(opts)
     expect(window).toBeGreaterThan(target)
-    expect(window).toBeLessThan(template.indexOf('class="page-foot"'))
+    // The resets: a menu at the top (R24), none at the foot of the page.
+    expect(template.indexOf('<ResetMenu')).toBeLessThan(opts)
+    expect(template).not.toContain('class="page-foot"')
     expect(WIDGET_PAGE).toMatch(/provideCustomizeHost\(/)
   })
 })

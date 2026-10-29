@@ -7,9 +7,11 @@ import {
   isTextTarget,
   isUndoKey,
   sameList,
+  UNDO_MS,
   undoneList,
   type Timers,
-  type UndoOffer
+  type ListUndoOffer,
+  type RestoreOffer
 } from './undo'
 
 const L = (spec: string): ElementEntry<string>[] =>
@@ -166,8 +168,8 @@ describe('countdown', () => {
 
 describe('createUndoSlot', () => {
   function offerOf(
-    over: Partial<UndoOffer> & { list: { value: List<string> }; applied: List<string>[] }
-  ): UndoOffer {
+    over: Partial<ListUndoOffer> & { list: { value: List<string> }; applied: List<string>[] }
+  ): ListUndoOffer {
     const { list, applied, ...rest } = over
     return {
       owner: {},
@@ -220,7 +222,7 @@ describe('createUndoSlot', () => {
     expect(slot.shown.value?.seq).not.toBe(first)
     // The first offer's countdown no longer closes the second.
     timers.tick(600)
-    expect(slot.shown.value?.offer.id).toBe('gap')
+    expect(slot.shown.value?.offer).toMatchObject({ id: 'gap' })
     slot.undo()
     expect(applied).toEqual([L('pos -sof gap')])
   })
@@ -294,5 +296,50 @@ describe('the undo key', () => {
 
   it('treats no target as a text field without a DOM', () => {
     expect(isTextTarget(null)).toBe(false)
+  })
+})
+
+describe('restore offers (R11: resets, hiding a widget, deleting a layout)', () => {
+  it('puts back what the change did, once, while it still applies', () => {
+    const timers = fakeTimers()
+    const slot = createUndoSlot(timers)
+    slot.attach()
+    const restored: string[] = []
+    let alive = true
+    const offer = {
+      owner: {},
+      kind: 'restore',
+      text: () => 'Restablecido: Columnas',
+      alive: () => alive,
+      restore: () => restored.push('columns')
+    } as const
+    expect(slot.offer(offer)).toBe(true)
+    expect(slot.undo()).toBe(true)
+    expect(restored).toEqual(['columns'])
+    // Shown once: a second undo has nothing.
+    expect(slot.undo()).toBe(false)
+    // Another layout applied since: undoing would change that one, so nothing is done.
+    slot.offer(offer)
+    alive = false
+    expect(slot.undo()).toBe(false)
+    expect(restored).toEqual(['columns'])
+  })
+
+  it('is replaced by a newer offer and closes after its time', () => {
+    const timers = fakeTimers()
+    const slot = createUndoSlot(timers)
+    slot.attach()
+    const make = (text: string): RestoreOffer => ({
+      owner: {},
+      kind: 'restore',
+      text: () => text,
+      alive: () => true,
+      restore: () => undefined
+    })
+    slot.offer(make('a'))
+    slot.offer(make('b'))
+    expect(slot.shown.value?.offer.kind === 'restore' && slot.shown.value.offer.text()).toBe('b')
+    timers.tick(UNDO_MS)
+    expect(slot.shown.value).toBeNull()
   })
 })

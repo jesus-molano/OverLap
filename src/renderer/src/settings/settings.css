@@ -291,6 +291,39 @@ html.ov-settings .st-section-note {
   font-size: 12px;
 }
 
+/* A part's reset as an icon (layout/ResetIcon.vue): quiet until hovered or focused. */
+html.ov-settings .st-reset-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--st-radius-sm);
+  background: transparent;
+  color: var(--ov-fg-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+html.ov-settings .st-reset-icon:hover:not(:disabled) {
+  background: var(--st-hover);
+  color: var(--ov-fg);
+}
+
+html.ov-settings .st-reset-icon:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* In a section's head, beside its title. */
+html.ov-settings .st-section-head .st-reset-icon {
+  align-self: center;
+  margin: -6px 0 -6px auto;
+}
+
 html.ov-settings .st-card {
   padding: 2px 16px;
   border: 1px solid var(--st-border);

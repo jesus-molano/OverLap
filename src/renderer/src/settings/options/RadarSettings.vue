@@ -28,7 +28,7 @@ const setParts = listSetter('radar', 'parts')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content">
+  <PageSection :title="t.settings.common.content" resets="options">
     <SliderControl
       :label="t.settings.radar.range"
       :help="t.settings.radar.rangeHelp"

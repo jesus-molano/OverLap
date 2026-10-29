@@ -111,7 +111,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
 </script>
 
 <template>
-  <PageSection :title="t.settings.window.title">
+  <PageSection :title="t.settings.window.title" resets="window">
     <template v-if="autoModel">
       <SliderControl
         :label="t.settings.window.scale"

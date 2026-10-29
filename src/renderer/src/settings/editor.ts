@@ -6,7 +6,7 @@
 import { shallowRef } from 'vue'
 import { setElementVisible } from '@shared/elements'
 import type { SettingsCommand } from '@shared/ipc'
-import { DEFAULT_SETTINGS } from '@shared/settings'
+import { DEFAULT_SETTINGS, type WidgetResetPart } from '@shared/settings'
 import type { ElementField, ElementIdOf, OptionSection } from '@shared/settingsSchema'
 import { SHORTCUT_ACTIONS, type ShortcutAction } from '@shared/shortcuts'
 import type {
@@ -233,9 +233,12 @@ export function sendCommand(cmd: SettingsCommand): void {
   window.overlay.command(cmd)
 }
 
-/** The widget's options and look back to their defaults; position, visibility and lock stay. */
-export function resetWidgetOptions(widgetId: WidgetId): void {
-  sendCommand({ type: 'reset-widget-options', widgetId })
+/**
+ * The widget's options and look (`part` of them) back to their defaults; position, visibility
+ * and lock stay.
+ */
+export function resetWidgetOptions(widgetId: WidgetId, part: WidgetResetPart = 'all'): void {
+  sendCommand({ type: 'reset-widget-options', widgetId, part })
 }
 
 export function resetWidgetBounds(widgetId: WidgetId): void {
