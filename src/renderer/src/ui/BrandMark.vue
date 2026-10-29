@@ -43,6 +43,7 @@ const logo = computed(() =>
       v-if="logo"
       class="ov-brand__logo"
       :viewBox="logo.viewBox"
+      :style="{ '--ov-brand-scale': logo.scale }"
       focusable="false"
       aria-hidden="true"
     >
@@ -78,13 +79,15 @@ const logo = computed(() =>
 }
 
 /*
- * Fitted inside the slot (wide logos to its width, tall ones to 85 % of its height). A colour
- * logo's paths carry their own fills; the monochrome path takes the text colour.
+ * Fitted inside the slot, centred: wide logos to its width at most, the rest to their own
+ * height, a fraction of 85 % of the slot's (--ov-brand-scale, from brandLogoSizes.ts) so that
+ * a wide swoosh and a round badge read at about the same size. A colour logo's paths carry
+ * their own fills; the monochrome path takes the text colour.
  */
 .ov-brand__logo {
   display: block;
   width: 100%;
-  height: 85%;
+  height: calc(85% * var(--ov-brand-scale, 1));
   fill: currentColor;
 }
 

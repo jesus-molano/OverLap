@@ -50,6 +50,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   conserva cómo los tenías, y la sección «Cabecera» abierta o cerrada como estaba.
 - En las listas de cabecera, segunda línea y pie, los elementos ocultos ya no llenan la caja
   «Derecha»: van en un grupo «Ocultos» plegado debajo; al mostrar uno, va al final de su lado.
+- **Logos de marca del mismo tamaño**: en Relativo, Clasificación y Batalla los logos anchos
+  (McLaren, Hyundai, Subaru, Ford...) ya no se ven mucho más grandes que los redondos (BMW) o los
+  escudos (Ferrari, Porsche): cada uno se dibuja a una escala medida de su propio trazo, en color
+  y en monocromo, centrado en el mismo hueco para que la columna siga alineada.
 
 ## [2.1.1] - 2026-10-29
 

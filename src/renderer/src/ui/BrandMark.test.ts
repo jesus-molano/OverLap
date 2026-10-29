@@ -15,6 +15,7 @@ import * as brandDrawingModule from './brandDrawing'
 import type { BrandLogoStyle, BrandSurface } from './brandDrawing'
 import { BRAND_LOGOS } from './brandLogos'
 import { BADGE_ONLY, COLOR_LOGOS } from './brandLogosColor'
+import { LOGO_SCALE_COLOR, LOGO_SCALE_MONO } from './brandLogoSizes'
 
 const appearance = vue.ref<{ brandLogos: BrandLogoStyle }>({ brandLogos: 'color' })
 
@@ -141,6 +142,15 @@ describe('BrandMark', () => {
         expect(html, id).toContain(BADGE_ONLY[id] ? `>${carBrands.BRANDS[id].badge}<` : '<svg')
       }
     }
+  })
+
+  it('draws each logo at its own scale of the slot, so they read the same size', async () => {
+    const mclaren = await render({ brand: 'mclaren' })
+    expect(mclaren).toContain(`style="--ov-brand-scale:${LOGO_SCALE_COLOR.mclaren};"`)
+    const bmw = await render({ brand: 'bmw', logos: 'mono' })
+    expect(bmw).toContain(`style="--ov-brand-scale:${LOGO_SCALE_MONO.bmw};"`)
+    const css = /<style>([\s\S]*?)<\/style>/.exec(SOURCE)?.[1] ?? ''
+    expect(css).toMatch(/\.ov-brand__logo \{[^}]*height: calc\(85% \* var\(--ov-brand-scale, 1\)\)/)
   })
 
   it('sizes the slot by the row: plate height, a fixed width never under a badge', () => {
