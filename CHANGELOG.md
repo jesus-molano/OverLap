@@ -48,6 +48,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oculta en vez de quedarse en gris: el modo compacto de Posiciones en modo completo, el tamaño y
   el color del volante con el estilo Barra, «Crece hacia» con alto fijo, las opciones de un grupo
   oculto en Tráfico, etc. Lo guardado no cambia.
+- **Avisos ya no se oculta en boxes**: su página no ofrece «Ocultar en boxes», porque ocultaba
+  también los avisos del limitador, del exceso de velocidad y de la entrada a boxes. Si lo tenías
+  activado, se ignora (el valor se conserva).
 
 ### Corregido
 

@@ -183,7 +183,8 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
   panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala, alto automático o fijo, en qué sesiones se muestra,
-  ocultar en boxes y restablecer posición u opciones.
+  ocultar en boxes (salvo Avisos, que avisa del limitador y de la entrada a boxes) y restablecer
+  posición u opciones.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:

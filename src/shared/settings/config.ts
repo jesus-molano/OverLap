@@ -1,7 +1,7 @@
 /** What the telemetry process receives. */
 import type { ConfigSection } from '../settingsSchema'
 import type { OverlaySettings, TelemetryConfig } from '../types'
-import { WIDGET_IDS, type WidgetId } from '../widgets'
+import { WIDGET_IDS, canHideInPits, type WidgetId } from '../widgets'
 import { sectionSpecs } from './defaults'
 import { isRecord } from './fields'
 
@@ -35,7 +35,7 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
     const w = settings.widgets[id]
     rules[id] = {
       showIn: { ...w.showIn },
-      hideInPits: w.hideInPits,
+      hideInPits: w.hideInPits && canHideInPits(id),
       showOnSessionScreen: w.showOnSessionScreen
     }
   }

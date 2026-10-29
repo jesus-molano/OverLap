@@ -681,7 +681,7 @@ export const settingsEs = {
   },
   alerts: {
     nothing: 'Sin ningún aviso marcado el widget no se muestra',
-    limiterHidden: 'Con «Ocultar en boxes» (Ventana) el limitador no llega a verse',
+
     /** Groups of toggles after the flags ('Mostrar'). */
     pitGroup: 'Boxes',
     raceGroup: 'Durante la carrera',
@@ -1926,7 +1926,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   alerts: {
     nothing: 'With no alert selected, the widget never shows',
-    limiterHidden: 'With “Hide in the pits” (Window) the limiter never shows',
+
     pitGroup: 'Pit lane',
     raceGroup: 'During the race',
     engineGroup: 'Engine',
