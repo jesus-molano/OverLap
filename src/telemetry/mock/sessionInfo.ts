@@ -14,6 +14,7 @@ import {
   licLevelOf,
   licSubLevelOf
 } from './drivers'
+import { MOCK_REDLINE_RPM, MOCK_SHIFT_RPM } from './cockpit'
 import type { MockDriver } from './drivers'
 import { MOCK_FUEL } from './fuel'
 import { MOCK_IDLE_RPM } from './playerAlerts'
@@ -116,6 +117,12 @@ export interface MockSessionInfo {
     DriverCarEstLapTime: number
     /** The revs the mock's engine idles at (playerAlerts.ts writes RPM from it). */
     DriverCarIdleRPM: number
+    /** The shift lights and the redline (cockpit.ts: the revs climb to them in every gear). */
+    DriverCarSLFirstRPM: number
+    DriverCarSLShiftRPM: number
+    DriverCarSLLastRPM: number
+    DriverCarSLBlinkRPM: number
+    DriverCarRedLine: number
     /** The player's tank (fuel.ts): litres, the part of it allowed, kg per litre. */
     DriverCarFuelMaxLtr: number
     DriverCarMaxFuelPct: number
@@ -183,6 +190,11 @@ export function buildSessionInfo(input: SessionInfoInput): MockSessionInfo {
       PaceCarIdx: MOCK_PACE_CAR_IDX,
       DriverCarEstLapTime: me ? MOCK_CLASSES[me.classKey].estLapTimeS : 0,
       DriverCarIdleRPM: MOCK_IDLE_RPM,
+      DriverCarSLFirstRPM: MOCK_SHIFT_RPM.first,
+      DriverCarSLShiftRPM: MOCK_SHIFT_RPM.shift,
+      DriverCarSLLastRPM: MOCK_SHIFT_RPM.last,
+      DriverCarSLBlinkRPM: MOCK_SHIFT_RPM.blink,
+      DriverCarRedLine: MOCK_REDLINE_RPM,
       DriverCarFuelMaxLtr: MOCK_FUEL.tankL,
       DriverCarMaxFuelPct: MOCK_FUEL.maxFuelFrac,
       DriverCarFuelKgPerLtr: MOCK_FUEL.kgPerL,

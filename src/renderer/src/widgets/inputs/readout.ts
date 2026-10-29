@@ -51,16 +51,73 @@ export function steerTransform(steering: number): string {
   return `scaleX(${k})`
 }
 
-/**
- * Wheel rotation at full lock. The payload is relative to SteeringWheelAngleMax, which it does
- * not carry; half a turn reads as a wheel while the usual corner inputs stay well inside it.
- */
-export const WHEEL_LOCK_DEG = 180
+// ---------------------------------------------------------------------------
+// Strings of the 60 Hz readouts, built once per value: a new sample allocates nothing.
+// ---------------------------------------------------------------------------
 
-/** Steering wheel rotation, whole degrees: positive steering (left) turns it anticlockwise. */
-export function wheelTransform(steering: number): string {
-  const deg = Math.round(-steeringRatio(steering) * WHEEL_LOCK_DEG) || 0
-  return `rotate(${deg}deg)`
+/** The widest wheel angle the cache holds (degrees each way): no car turns further. */
+export const MAX_WHEEL_DEG = 1440
+
+/** A string per whole number in [-max, max], built on first use. */
+class StringTable {
+  private readonly cells: (string | undefined)[]
+
+  constructor(
+    private readonly max: number,
+    private readonly build: (n: number) => string
+  ) {
+    this.cells = new Array<string | undefined>(2 * max + 1)
+  }
+
+  get(n: number): string {
+    const k = Number.isFinite(n) ? Math.round(n) : 0
+    const i = (k > this.max ? this.max : k < -this.max ? -this.max : k) + this.max
+    return (this.cells[i] ??= this.build(i - this.max || 0))
+  }
+}
+
+const ROTATIONS = new StringTable(MAX_WHEEL_DEG, (deg) => `rotate(${-deg || 0}deg)`)
+
+/**
+ * The wheel's rotation for its angle (whole degrees, positive = left): left turns it
+ * anticlockwise, like the real one, as far as the car's lock (the payload's angle is within it).
+ */
+export function wheelRotation(deg: number): string {
+  return ROTATIONS.get(deg)
+}
+
+const DEGREES = new StringTable(MAX_WHEEL_DEG, (deg) =>
+  deg > 0 ? `‹ ${deg}°` : deg < 0 ? `${-deg}° ›` : '0°'
+)
+
+/** The wheel's angle as read under it: '‹ 45°' turning left, '45° ›' right, '0°' straight. */
+export function degreesLabel(deg: number): string {
+  return DEGREES.get(deg)
+}
+
+/** Revs to the ten (the last digit would only flicker), up to 25 000. */
+const RPM_TENS = new StringTable(2500, (tens) => String(Math.max(0, tens) * 10))
+
+/** '7450'; 0 or unknown read '0'. */
+export function rpmLabel(rpm: number): string {
+  return RPM_TENS.get(Number.isFinite(rpm) && rpm > 0 ? rpm / 10 : 0)
+}
+
+/** '54.5': the bias as the car shows it (built only when it changes, NumberSlot). */
+export function biasLabel(bias: number): string {
+  return Number.isFinite(bias) ? bias.toFixed(1) : ''
+}
+
+/** The TC setting, whole. */
+export function tcLabel(tc: number): string {
+  return Number.isFinite(tc) ? String(Math.round(tc)) : ''
+}
+
+const PERCENT = new StringTable(100, (p) => String(Math.max(0, p)))
+
+/** The force feedback in whole percent of its maximum ('100' when clipping). */
+export function ffbLabel(ffb: number): string {
+  return PERCENT.get(pedalPercent(ffb))
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +158,29 @@ export class TransformSlot {
   }
 }
 
+/**
+ * A number shown as text, formatted only when it changes (a new element always gets written):
+ * a readout that changes now and then builds its string only then. `format` is a module
+ * function, not a closure per call.
+ */
+export class NumberSlot {
+  private el: { textContent: string | null } | null = null
+  private value = Number.NaN
+
+  constructor(private readonly format: (n: number) => string) {}
+
+  set(el: { textContent: string | null } | null, value: number): void {
+    if (el === null) {
+      this.el = null
+      return
+    }
+    if (el === this.el && Object.is(value, this.value)) return
+    el.textContent = this.format(value)
+    this.el = el
+    this.value = value
+  }
+}
+
 export class ClassSlot {
   private el: { classList: { toggle(token: string, force?: boolean): boolean } } | null = null
   private on = false
@@ -135,7 +215,18 @@ export const PREVIEW_READOUT: Readonly<InputsData> = Object.freeze({
   speedKmh: 112,
   abs: false,
   active: true,
-  t: 0
+  t: 0,
+  // Turning in, the revs a little past half the lights, a GT3's bias and TC.
+  steeringDeg: 60,
+  rpm: 6900,
+  slFirst: 5800,
+  slShift: 7400,
+  slLast: 7600,
+  slBlink: 7800,
+  brakeBias: 54.5,
+  tc: 4,
+  ffb: 0.72,
+  ffbClip: false
 })
 
 /** Linear from v0 at t0 to v1 at t1, flat outside. */

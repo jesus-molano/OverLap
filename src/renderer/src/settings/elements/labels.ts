@@ -115,6 +115,10 @@ const ZONES: ZoneWords = {
     info: {
       title: (m) => m.settings.zones.inputs.info,
       items: (m) => plain(m.settings.items.inputs.info)
+    },
+    car: {
+      title: (m) => m.settings.zones.inputs.car,
+      items: (m) => plain(m.settings.items.inputs.car)
     }
   },
   traffic: {

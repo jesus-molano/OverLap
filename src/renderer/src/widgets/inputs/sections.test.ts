@@ -25,14 +25,17 @@ describe('inputsLayout', () => {
   })
 
   it('follows the order and the eyes of every list', () => {
-    const o: Pick<InputsOptions, 'sections' | 'bars' | 'info'> = {
-      sections: list(['info', true], ['bars', true], ['trace', false]),
+    const o: Pick<InputsOptions, 'sections' | 'bars' | 'info' | 'car'> = {
+      sections: list(['car', true], ['info', true], ['bars', true], ['trace', false]),
       bars: list(['throttle', true], ['brake', true], ['clutch', false]),
-      info: list(['steering', true], ['gear', false], ['speed', true])
+      info: list(['steering', true], ['gear', false], ['speed', true]),
+      car: list(['ffb', true], ['rpm', true], ['tc', false], ['bias', true])
     }
     const l = inputsLayout(o)
     expect(l).toMatchObject({ trace: false, clutch: false, gear: false, speed: true })
-    expect(l.order).toMatchObject({ info: 0, bars: 1, throttle: 0, brake: 1, steering: 0 })
+    expect(l.order).toMatchObject({ car: 0, info: 1, bars: 2, throttle: 0, brake: 1, steering: 0 })
+    expect(l).toMatchObject({ car: true, rpm: true, bias: true, tc: false, ffb: true })
+    expect(l.order).toMatchObject({ ffb: 0, rpm: 1, tc: 2, bias: 3 })
   })
 
   it('a hidden info block, or one with nothing in it, draws no readout', () => {
@@ -46,6 +49,26 @@ describe('inputsLayout', () => {
       info: list(['gear', false], ['speed', false], ['steering', false])
     })
     expect(empty.info).toBe(false)
+  })
+
+  it('the car block: shown with its readouts, none of them with the block hidden', () => {
+    expect(inputsLayout(D)).toMatchObject({ car: true, rpm: true, bias: true, tc: true, ffb: true })
+    const hidden = inputsLayout({
+      ...D,
+      sections: list(['trace', true], ['bars', true], ['info', true], ['car', false])
+    })
+    expect(hidden).toMatchObject({ car: false, rpm: false, bias: false, tc: false, ffb: false })
+    const empty = inputsLayout({
+      ...D,
+      car: list(['rpm', false], ['bias', false], ['tc', false], ['ffb', false])
+    })
+    expect(empty.car).toBe(false)
+    expect(sameInputsLayout(inputsLayout(D), empty)).toBe(false)
+    const moved = inputsLayout({
+      ...D,
+      car: list(['ffb', true], ['rpm', true], ['bias', true], ['tc', true])
+    })
+    expect(sameInputsLayout(inputsLayout(D), moved)).toBe(false)
   })
 
   it('the key changes with anything drawn, and only then', () => {

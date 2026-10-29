@@ -108,6 +108,11 @@ export interface SessionMeta {
    * lights need the engine running). Optional: hand-built sessions (tests) may leave it out.
    */
   driverCarIdleRpm?: number
+  /**
+   * Your car's shift lights (DriverInfo DriverCarSL*RPM, else from DriverCarRedLine), null when
+   * the YAML gives neither. Optional like driverCarIdleRpm.
+   */
+  shiftRpm?: ShiftRpm | null
   /** Parsed WeekendInfo.TrackLength in metres, null when missing or unparseable. */
   trackLengthM: number | null
   trackName: string
@@ -550,6 +555,14 @@ export interface BattleData {
 // Inputs widget payload (60 Hz, player only)
 // ---------------------------------------------------------------------------
 
+/** A car's shift lights, RPM: the first light, the shift point, the last light, the blink. */
+export interface ShiftRpm {
+  first: number
+  shift: number
+  last: number
+  blink: number
+}
+
 export interface InputsData {
   /** 0..1, quantised to 0.01. */
   throttle: number
@@ -564,6 +577,23 @@ export interface InputsData {
   abs: boolean
   /** False when the player is not in the car: the widget fades out. */
   active: boolean
+  /** The wheel's angle in whole degrees (positive = left), within the car's lock; 0 when unknown. */
+  steeringDeg: number
+  /** Engine revs, whole; 0 when unknown. */
+  rpm: number
+  /** The car's shift lights (SessionMeta.shiftRpm), RPM; all 0 when unknown (no lights lit). */
+  slFirst: number
+  slShift: number
+  slLast: number
+  slBlink: number
+  /** dcBrakeBias as the car shows it (one decimal), null when the car has no such control. */
+  brakeBias: number | null
+  /** dcTractionControl (the TC setting, whole), null when the car has none. */
+  tc: number | null
+  /** Force-feedback torque 0..1 (SteeringWheelPctTorque, 0.01), null when unknown. */
+  ffb: number | null
+  /** The force feedback is at its maximum (clipping) on this tick. */
+  ffbClip: boolean
   /**
    * SessionTime of the sample (s), so the trace can be spaced by time, not by sample; NaN when
    * unknown (the trace then spaces samples by period).
@@ -1181,9 +1211,14 @@ export type TrafficPartId = 'icon' | 'cls' | 'driver' | 'lead' | 'value' | 'sect
 /** The panel's header band and the caption line of each group. */
 export type TrafficHeaderId = 'title' | 'captions'
 /** The pedals' blocks, in reading order (the trace hidden is the old 'bars' layout). */
-export type InputsSectionId = 'trace' | 'bars' | 'info'
+export type InputsSectionId = 'trace' | 'bars' | 'info' | 'car'
 export type InputsBarId = 'clutch' | 'brake' | 'throttle'
 export type InputsInfoId = 'gear' | 'speed' | 'steering'
+/** The car block's readouts: revs, brake bias, traction control, force feedback (clipping). */
+export type InputsCarId = 'rpm' | 'bias' | 'tc' | 'ffb'
+/** How the steering is drawn: the bar, or one of the wheels. */
+export type SteeringStyle = 'bar' | 'minimal' | 'realistic' | 'formula'
+export type WheelSize = 'small' | 'medium' | 'large'
 /**
  * The delta's rows: the top line (its hero number always stays), the bar, the sectors, and the
  * lap times line (DeltaLapId, off by default).
@@ -1430,7 +1465,17 @@ export interface InputsOptions {
   traceWidth: number
   /** Pedal colours (#rrggbb). */
   colors: { throttle: string; brake: string; clutch: string }
-  steeringStyle: 'bar' | 'wheel'
+  steeringStyle: SteeringStyle
+  /** The wheel's size (the bar keeps its own). */
+  wheelSize: WheelSize
+  /** The wheel's accent: its straight-ahead mark (#rrggbb). */
+  wheelColor: string
+  /** The wheel's angle in degrees, under the wheel or the bar. */
+  steeringDegrees: boolean
+  /** The shift-light strip across the top. */
+  shiftLights: boolean
+  /** The car block's readouts, top to bottom. */
+  car: ElementList<InputsCarId>
 }
 
 export interface TrafficOptions {

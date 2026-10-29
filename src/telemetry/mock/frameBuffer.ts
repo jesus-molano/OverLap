@@ -47,6 +47,10 @@ export interface MockVars extends MockWeatherVars, MockFuelVars {
   Gear: number[]
   Speed: number[]
   BrakeABSactive: boolean[]
+  /** The car block (cockpit.ts): the bias and TC dialled in, the force feedback. */
+  dcBrakeBias: number[]
+  dcTractionControl: number[]
+  SteeringWheelPctTorque: number[]
   /** irsdk_EngineWarnings of the player (pit limiter 0x10). */
   EngineWarnings: number[]
   /** The player is on pit road (same as its CarIdxOnPitRoad). */
@@ -110,6 +114,9 @@ export class MockFrameBuffer {
     Gear: [0],
     Speed: [0],
     BrakeABSactive: [false],
+    dcBrakeBias: [0],
+    dcTractionControl: [0],
+    SteeringWheelPctTorque: [0],
     EngineWarnings: [0],
     OnPitRoad: [false],
     LapDistPct: [0],

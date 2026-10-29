@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { computeInputs } from './inputs'
+import { FFB_CLIP_AT, computeInputs } from './inputs'
+import { EMPTY_SESSION } from './session'
 import { TELEMETRY_VAR_NAMES } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { InputsData } from './types'
@@ -36,7 +37,17 @@ describe('computeInputs', () => {
       speedKmh: 150,
       abs: false,
       active: true,
-      t: 1234.5678
+      t: 1234.5678,
+      steeringDeg: -69,
+      rpm: 0,
+      slFirst: 0,
+      slShift: 0,
+      slLast: 0,
+      slBlink: 0,
+      brakeBias: null,
+      tc: null,
+      ffb: null,
+      ffbClip: false
     })
   })
 
@@ -50,7 +61,17 @@ describe('computeInputs', () => {
       speedKmh: 0,
       abs: false,
       active: false,
-      t: Number.NaN
+      t: Number.NaN,
+      steeringDeg: 0,
+      rpm: 0,
+      slFirst: 0,
+      slShift: 0,
+      slLast: 0,
+      slBlink: 0,
+      brakeBias: null,
+      tc: null,
+      ffb: null,
+      ffbClip: false
     })
   })
 
@@ -111,6 +132,66 @@ describe('computeInputs', () => {
   it('stamps the sample with SessionTime (NaN when unknown)', () => {
     expect(computeInputs(makeFrame({ SessionTime: [61.25] })).t).toBe(61.25)
     expect(computeInputs(makeFrame({ SessionTime: [NaN] })).t).toBeNaN()
+  })
+
+  it("reads the wheel angle in whole degrees, within the car's lock", () => {
+    const deg = (angle: number, max?: number): number =>
+      computeInputs(
+        makeFrame({
+          SteeringWheelAngle: [angle],
+          ...(max !== undefined ? { SteeringWheelAngleMax: [max] } : {})
+        })
+      ).steeringDeg
+    expect(deg(Math.PI / 2, 4.71)).toBe(90)
+    expect(deg(-Math.PI, 4.71)).toBe(-180)
+    // Past the lock (a glitch, a car change): held at the lock, 270 degrees each way here.
+    expect(deg(6, 4.712389)).toBe(270)
+    expect(deg(-6, 4.712389)).toBe(-270)
+    // No lock known: the angle as it is.
+    expect(deg(6)).toBe(344)
+    expect(deg(NaN, 4.71)).toBe(0)
+    expect(Object.is(deg(-0.001, 4.71), 0)).toBe(true)
+  })
+
+  it('reads the revs and the shift lights of the session', () => {
+    const session = {
+      ...EMPTY_SESSION,
+      shiftRpm: { first: 6200, shift: 7400, last: 7600, blink: 7800 }
+    }
+    const d = computeInputs(makeFrame({ RPM: [7012.6] }), session)
+    expect(d).toMatchObject({
+      rpm: 7013,
+      slFirst: 6200,
+      slShift: 7400,
+      slLast: 7600,
+      slBlink: 7800
+    })
+    expect(computeInputs(makeFrame({ RPM: [NaN] }), EMPTY_SESSION)).toMatchObject({
+      rpm: 0,
+      slFirst: 0,
+      slBlink: 0
+    })
+  })
+
+  it('reads brake bias and TC only when the car has them', () => {
+    const d = computeInputs(makeFrame({ dcBrakeBias: [54.4999], dcTractionControl: [3.0] }))
+    expect(d).toMatchObject({ brakeBias: 54.5, tc: 3 })
+    // Missing (an empty array): null, the readout hides.
+    expect(computeInputs(makeFrame())).toMatchObject({ brakeBias: null, tc: null })
+    expect(computeInputs(makeFrame({ dcBrakeBias: [NaN] })).brakeBias).toBeNull()
+    expect(computeInputs(makeFrame({ dcBrakeBias: [-1.5] })).brakeBias).toBe(-1.5)
+  })
+
+  it('flags force-feedback clipping at the maximum torque', () => {
+    const ffb = (v: number): Pick<InputsData, 'ffb' | 'ffbClip'> => {
+      const d = computeInputs(makeFrame({ SteeringWheelPctTorque: [v] }))
+      return { ffb: d.ffb, ffbClip: d.ffbClip }
+    }
+    expect(ffb(0.42)).toEqual({ ffb: 0.42, ffbClip: false })
+    expect(ffb(FFB_CLIP_AT - 0.01)).toEqual({ ffb: 0.99, ffbClip: false })
+    expect(ffb(1)).toEqual({ ffb: 1, ffbClip: true })
+    expect(ffb(1.3)).toEqual({ ffb: 1, ffbClip: true })
+    expect(ffb(NaN)).toEqual({ ffb: null, ffbClip: false })
   })
 
   it('returns a fresh payload on every call', () => {
