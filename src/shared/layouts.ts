@@ -1,31 +1,45 @@
 /**
  * Saved layouts: named sets of every widget's place, size, scale, visibility and lock
  * (settings.savedLayouts), so a layout for the Mazda and another for a GT3 are one click (or a
- * shortcut, or getting in the car) apart. Per-widget options are never part of one.
+ * shortcut, or getting in the car) apart. A 'full' layout ("Posición y opciones") also carries
+ * every widget's options (LAYOUT_SECTIONS and WIDGET_OPTION_FIELDS in settingsSchema.ts); a
+ * 'position' one ("Solo posición") uses the shared options (LayoutLibrary.shared). The look,
+ * the units, the visibility rules and the shortcuts are global, never part of one.
  *
  * The active layout always equals the widgets (settings/layouts.ts syncActiveLayout): moving a
- * widget changes the layout in use, and applying another copies its fields into the widgets.
+ * widget or changing an option changes the layout in use (or the shared options), and applying
+ * another copies its places and options into the widgets, in one change.
  * The commands below mutate a settings draft (main runs them inside SettingsStore.update, which
  * normalises the result) and say whether they changed anything. Pure, but for the clock: a
  * layout that becomes the one in use is stamped (SavedLayout.usedAt) with `now`, Date.now() unless
  * given.
  */
+import { copyData } from './copy'
+import { deepEqual } from './equal'
+import { SETTINGS_VERSION } from './settings/defaults'
 import {
   MAX_CAR_LINKS,
   MAX_LAYOUTS,
   MAX_SEEN_CARS,
+  copyWidgetOptions,
   isLayoutId,
   layoutName,
   layoutWidgetOf,
   nextLayoutId,
   normalizeLayoutWidgets,
+  normalizeOptionSet,
+  optionSetOf,
   snapshotWidgets,
+  syncActiveLayout,
   uniqueLayoutName,
-  withoutControls
+  withoutControls,
+  writeOptionSet
 } from './settings/layouts'
 import type {
   CarRef,
   LayoutLibrary,
+  LayoutMode,
+  LayoutOptionSet,
   LayoutSort,
   LayoutWidget,
   OverlaySettings,
@@ -35,12 +49,14 @@ import { WIDGET_IDS, type WidgetId } from './widgets'
 
 export {
   DEFAULT_LAYOUT_NAMES,
+  LAYOUT_MODES,
   MAX_LAYOUTS,
   MAX_LAYOUT_NAME,
   isLayoutId,
   layoutName,
   nextLayoutId,
   normalizeCarRef,
+  optionSetOf,
   snapshotWidgets,
   uniqueLayoutName
 } from './settings/layouts'
@@ -58,10 +74,22 @@ export function canAddLayout(lib: LayoutLibrary): boolean {
   return lib.list.length < MAX_LAYOUTS
 }
 
+/**
+ * The shared options as they are now: the ones in effect while a 'position' layout is in use
+ * (they are its options), else LayoutLibrary.shared. A copy.
+ */
+export function sharedOptions(s: OverlaySettings): LayoutOptionSet {
+  const lib = s.savedLayouts
+  const shared = lib.shared
+  if (shared === undefined || activeLayout(lib)?.mode === 'position') return optionSetOf(s)
+  return copyData(shared)
+}
+
 function addLayout(
   s: OverlaySettings,
   name: unknown,
   widgets: Record<WidgetId, LayoutWidget>,
+  options: LayoutOptionSet | null,
   after?: string
 ): string | null {
   const lib = s.savedLayouts
@@ -70,7 +98,9 @@ function addLayout(
   const layout: SavedLayout = {
     id: nextLayoutId(lib.list),
     name: uniqueLayoutName(clean, lib.list),
-    widgets
+    mode: options === null ? 'position' : 'full',
+    widgets,
+    ...(options === null ? {} : { options })
   }
   const at = after === undefined ? -1 : lib.list.findIndex((l) => l.id === after)
   if (at < 0) lib.list.push(layout)
@@ -80,12 +110,23 @@ function addLayout(
 
 /**
  * "Guardar como": a new layout equal to the widgets now, which becomes the one in use (what you
- * move next changes it, not the one you started from). Null: no name, or no room.
+ * move or change next changes it, not the one you started from). A 'full' one keeps the options
+ * in effect: nothing changes. A 'position' one uses the shared options, which take effect (they
+ * differ from those in effect when a 'full' layout was in use). Null: no name, or no room.
  */
-export function saveLayoutAs(s: OverlaySettings, name: unknown, now = Date.now()): string | null {
-  const id = addLayout(s, name, snapshotWidgets(s.widgets))
+export function saveLayoutAs(
+  s: OverlaySettings,
+  name: unknown,
+  now = Date.now(),
+  mode: LayoutMode = 'full'
+): string | null {
+  // What is in effect belongs to the layout being left (main's drafts already are in line).
+  syncActiveLayout(s)
+  const shared = sharedOptions(s)
+  const id = addLayout(s, name, snapshotWidgets(s.widgets), mode === 'full' ? optionSetOf(s) : null)
   if (id === null) return null
   s.savedLayouts.activeId = id
+  if (mode === 'position') writeOptionSet(s, shared)
   stampUsed(s.savedLayouts, id, now)
   return id
 }
@@ -96,13 +137,65 @@ function stampUsed(lib: LayoutLibrary, id: string, now: number): void {
   if (layout && Number.isFinite(now) && now >= 0) layout.usedAt = Math.floor(now)
 }
 
-/** A copy of layout `id` named `name`, right after it, not applied. */
+/** A copy of layout `id` named `name`, right after it, not applied: same mode, same options. */
 export function duplicateLayout(s: OverlaySettings, id: string, name: unknown): string | null {
+  syncActiveLayout(s)
   const source = findLayout(s.savedLayouts, id)
   if (!source) return null
   const widgets = {} as Record<WidgetId, LayoutWidget>
   for (const w of WIDGET_IDS) widgets[w] = layoutWidgetOf(source.widgets[w])
-  return addLayout(s, name, widgets, id)
+  const options = source.mode === 'full' ? optionsOf(s, source) : null
+  return addLayout(s, name, widgets, options, id)
+}
+
+/** A 'full' layout's options, a copy (the ones in effect when it is a copy of nothing yet). */
+function optionsOf(s: OverlaySettings, layout: SavedLayout): LayoutOptionSet {
+  return layout.options ? copyData(layout.options) : optionSetOf(s)
+}
+
+/**
+ * Changes what layout `id` restores. To 'full' it takes a copy of the shared options (nothing
+ * changes now); to 'position' its own options are dropped and, for the one in use, the shared
+ * ones take effect. False when it is unknown or already in that mode.
+ */
+export function setLayoutMode(s: OverlaySettings, id: string, mode: LayoutMode): boolean {
+  syncActiveLayout(s)
+  const layout = findLayout(s.savedLayouts, id)
+  if (!layout || layout.mode === mode) return false
+  const shared = sharedOptions(s)
+  const active = id === s.savedLayouts.activeId
+  layout.mode = mode
+  if (mode === 'full') {
+    layout.options = shared
+    // In use, 'position' until now: the shared options are kept apart from its own from now on.
+    if (active) s.savedLayouts.shared = copyData(shared)
+  } else {
+    delete layout.options
+    if (active) writeOptionSet(s, shared)
+  }
+  return true
+}
+
+/**
+ * "Aplicar a todas las disposiciones": widget `id`'s options in effect (its section and its
+ * fields) copied into every 'full' layout and the shared options. False when they all had them.
+ */
+export function applyWidgetOptionsToAll(s: OverlaySettings, id: WidgetId): boolean {
+  syncActiveLayout(s)
+  const lib = s.savedLayouts
+  const now = optionSetOf(s)
+  let changed = false
+  // A stored set may be sealed (frozen, settings/layouts.ts): a changed one is replaced.
+  const withThese = (set: LayoutOptionSet): LayoutOptionSet => {
+    const next = copyData(set)
+    copyWidgetOptions(next, now, id)
+    if (deepEqual(next, set)) return set
+    changed = true
+    return next
+  }
+  for (const l of lib.list) if (l.mode === 'full' && l.options) l.options = withThese(l.options)
+  lib.shared = withThese(lib.shared ?? now)
+  return changed
 }
 
 export function renameLayout(s: OverlaySettings, id: string, name: unknown): boolean {
@@ -160,14 +253,18 @@ export function moveLayout(
 
 /**
  * Makes layout `id` the one in use: every widget takes its bounds, scale, visibility and lock,
- * and the layout is stamped used at `now`; nothing else changes. False when it is unknown or
- * already in use.
+ * and its options (a 'full' one) or the shared ones (a 'position' one), all in this one change;
+ * the layout is stamped used at `now`. What was in effect stays with the layout left (or with
+ * the shared options). False when it is unknown or already in use.
  */
 export function applyLayout(s: OverlaySettings, id: string, now = Date.now()): boolean {
   const lib = s.savedLayouts
   const layout = findLayout(lib, id)
   if (!layout || id === lib.activeId) return false
+  syncActiveLayout(s)
+  const options = layout.mode === 'full' ? optionsOf(s, layout) : sharedOptions(s)
   for (const w of WIDGET_IDS) Object.assign(s.widgets[w], layoutWidgetOf(layout.widgets[w]))
+  writeOptionSet(s, options)
   lib.activeId = id
   stampUsed(lib, id, now)
   return true
@@ -302,29 +399,40 @@ export function linkableCars(lib: LayoutLibrary, current: CarRef | null): CarRef
 
 /** `format` of a layout file: anything else is not one. */
 export const LAYOUT_FILE_FORMAT = 'overlap-layout'
-/** The file version written; a newer one is refused (it may mean something else). */
-export const LAYOUT_FILE_VERSION = 1
-/** Larger files are refused unread (a layout is a few kB). */
+/**
+ * The file version written; a newer one is refused (it may mean something else). 1: the places
+ * only; 2 (layouts carrying options): also the options of a 'full' layout.
+ */
+export const LAYOUT_FILE_VERSION = 2
+/** Larger files are refused unread (a layout with its options is a few tens of kB). */
 export const MAX_LAYOUT_FILE_BYTES = 256 * 1024
 /** The extension offered by the dialogs. */
 export const LAYOUT_FILE_EXTENSION = 'json'
 
-/** What an exported file holds: the layout's fields only, no option of any widget. */
+/**
+ * What an exported file holds: the layout's places and, for a 'full' one, every widget's options
+ * (only the per-widget ones: nothing of the look, the shortcuts or the visibility rules), with
+ * the settings version they were written in (to migrate them on import, as a settings file).
+ */
 export interface LayoutFile {
   format: typeof LAYOUT_FILE_FORMAT
   version: typeof LAYOUT_FILE_VERSION
   name: string
   widgets: Record<WidgetId, LayoutWidget>
+  settingsVersion?: number
+  options?: LayoutOptionSet
 }
 
 export function layoutFileOf(layout: SavedLayout): LayoutFile {
   const widgets = {} as Record<WidgetId, LayoutWidget>
   for (const id of WIDGET_IDS) widgets[id] = layoutWidgetOf(layout.widgets[id])
+  const options = layout.mode === 'full' ? layout.options : undefined
   return {
     format: LAYOUT_FILE_FORMAT,
     version: LAYOUT_FILE_VERSION,
     name: layout.name,
-    widgets
+    widgets,
+    ...(options ? { settingsVersion: SETTINGS_VERSION, options: copyData(options) } : {})
   }
 }
 
@@ -339,18 +447,30 @@ export function layoutFileText(layout: SavedLayout): string {
 export type LayoutFileError = 'json' | 'format' | 'version' | 'empty' | 'too-big'
 
 export type LayoutImport =
-  | { ok: true; name: string | null; widgets: Record<WidgetId, LayoutWidget> }
+  | {
+      ok: true
+      name: string | null
+      widgets: Record<WidgetId, LayoutWidget>
+      /** The file's options, normalised; null for a file without them (version 1, 'position'). */
+      options: LayoutOptionSet | null
+    }
   | { ok: false; error: LayoutFileError }
 
+/** What an import falls back on for what the file lacks or gets wrong. */
+export interface LayoutImportFallback {
+  /** The widgets' places as they are now. */
+  widgets: Readonly<Record<WidgetId, LayoutWidget>>
+  /** The shared options (sharedOptions). */
+  options: Readonly<LayoutOptionSet>
+}
+
 /**
- * Validates an untrusted file. Only the layout fields of known widgets are read (unknown keys
- * and widgets are ignored, values are clamped like on load); a widget the file lacks keeps
- * `fallback`'s fields (the widgets as they are now). `name` is null when the file's is unusable.
+ * Validates an untrusted file. Only the layout fields of known widgets and the per-widget option
+ * sections are read, through the schema (unknown keys, sections and widgets are ignored, values
+ * are clamped like on load, older options migrated); a widget the file lacks keeps `fallback`'s
+ * places, an option it lacks the fallback's. `name` is null when the file's is unusable.
  */
-export function parseLayoutFile(
-  text: string,
-  fallback: Readonly<Record<WidgetId, LayoutWidget>>
-): LayoutImport {
+export function parseLayoutFile(text: string, fallback: LayoutImportFallback): LayoutImport {
   if (text.length > MAX_LAYOUT_FILE_BYTES) return { ok: false, error: 'too-big' }
   let raw: unknown
   try {
@@ -375,19 +495,58 @@ export function parseLayoutFile(
   if (!WIDGET_IDS.some((id) => typeof w[id] === 'object' && w[id] !== null)) {
     return { ok: false, error: 'empty' }
   }
-  return { ok: true, name: layoutName(r.name), widgets: normalizeLayoutWidgets(w, fallback) }
+  const hasOptions = r.version >= 2 && typeof r.options === 'object' && r.options !== null
+  return {
+    ok: true,
+    name: layoutName(r.name),
+    widgets: normalizeLayoutWidgets(w, fallback.widgets),
+    options: hasOptions ? normalizeOptionSet(r.options, fallback.options, r.settingsVersion) : null
+  }
 }
 
 /**
  * Adds an imported layout (not applied), named as in the file or `fallbackName`, made unique.
- * Null when there is no room.
+ * 'full': with the file's options, or a copy of the shared ones for a file without any (version
+ * 1); 'position': without options. Null when there is no room.
  */
 export function importLayout(
   s: OverlaySettings,
   imported: Extract<LayoutImport, { ok: true }>,
-  fallbackName: string
+  fallbackName: string,
+  mode: LayoutMode = 'full'
 ): string | null {
-  return addLayout(s, imported.name ?? fallbackName, imported.widgets)
+  const options = mode === 'full' ? (imported.options ?? sharedOptions(s)) : null
+  return addLayout(s, imported.name ?? fallbackName, imported.widgets, options)
+}
+
+// ---------------------------------------------------------------------------
+// What the renderers receive
+// ---------------------------------------------------------------------------
+
+/**
+ * The settings without what a renderer never reads, so that a broadcast stays small however
+ * many 'full' layouts there are (each is about 10 kB of options): the options in effect are the
+ * top-level ones. 'settings' (the settings window): every layout, without its options, and no
+ * shared ones. 'overlay': only the layout in use, likewise, and no cars.
+ */
+export function rendererSettings(
+  s: OverlaySettings,
+  view: 'settings' | 'overlay'
+): OverlaySettings {
+  const lib = s.savedLayouts
+  const slim = (l: SavedLayout): SavedLayout => {
+    const rest = { ...l }
+    delete rest.options
+    return rest
+  }
+  const list = view === 'overlay' ? lib.list.filter((l) => l.id === lib.activeId) : lib.list
+  const out: LayoutLibrary = {
+    activeId: lib.activeId,
+    list: list.map(slim),
+    links: view === 'overlay' ? [] : lib.links,
+    seenCars: view === 'overlay' ? [] : lib.seenCars
+  }
+  return { ...s, savedLayouts: out }
 }
 
 /** A file name for an exported layout: the name without characters Windows refuses. */

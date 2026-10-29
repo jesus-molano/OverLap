@@ -15,7 +15,8 @@ import { join } from 'node:path'
 import type { PersonalBestList } from '@shared/delta/references'
 import { messagesFor } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
-import { LAYOUT_FILE_EXTENSION } from '@shared/layouts'
+import { deepEqual } from '@shared/equal'
+import { LAYOUT_FILE_EXTENSION, rendererSettings } from '@shared/layouts'
 import { stepScale } from '@shared/panelGeometry'
 import {
   applySettingsPatch,
@@ -147,6 +148,8 @@ function start(): void {
   let personalBests: PersonalBestList | null = null
   /** The kind of session the telemetry process reports (the delta cycle shortcut acts on it). */
   let sessionKindNow: SessionKind | null = null
+  /** The overlays' copy of the settings last broadcast (syncSettings). */
+  let overlaySettingsSent: OverlaySettings | null = null
   console.log(`[main] source: ${source}, settings: ${store.file}`)
   setSettingsWindowLanguage(store.settings.appearance.language)
 
@@ -327,8 +330,14 @@ function start(): void {
     // A new interface language: window titles here, the tray below, every renderer on its own.
     setSettingsWindowLanguage(store.settings.appearance.language)
     windows.applySettings(store.settings)
-    windows.broadcastSettings(store.settings)
-    sendToSettingsWindow(IPC.settings, store.settings)
+    // The renderers' copies leave out the layouts' options (rendererSettings); the overlays'
+    // is not sent again when none of it changed (a rename, a car link, another layout's options).
+    const forOverlays = rendererSettings(store.settings, 'overlay')
+    if (!deepEqual(forOverlays, overlaySettingsSent)) {
+      overlaySettingsSent = forOverlays
+      windows.broadcastSettings(forOverlays)
+    }
+    sendToSettingsWindow(IPC.settings, rendererSettings(store.settings, 'settings'))
     shortcuts.configure(store.settings.shortcuts)
     refreshTray()
   }
@@ -434,7 +443,7 @@ function start(): void {
       view,
       editMode: windows.editMode,
       status,
-      settings: store.settings,
+      settings: rendererSettings(store.settings, view.kind),
       layout: overlay ? windows.layoutFor(event.sender) : null,
       autoHidden: overlay ? windows.autoHiddenMap() : {},
       overlayHidden: windows.userHidden,
@@ -453,7 +462,7 @@ function start(): void {
     })
     // Turning the automatic layout on applies the car's at once.
     layouts.afterChange(prev)
-    return store.settings
+    return rendererSettings(store.settings, 'settings')
   })
   ipcMain.on(IPC.command, (event, raw: unknown) => {
     if (!isSettingsSender(event.sender) || !isSettingsCommand(raw)) return

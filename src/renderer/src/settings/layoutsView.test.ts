@@ -10,6 +10,7 @@ import {
   layoutMatches,
   linkOptions,
   noticeText,
+  optionsTarget,
   revealOffset,
   rowToReveal,
   type LayoutListOptions
@@ -65,6 +66,7 @@ describe('layoutList', () => {
         canDelete: true,
         canMoveUp: false,
         canMoveDown: true,
+        mode: 'full',
         cars: ''
       },
       {
@@ -74,6 +76,7 @@ describe('layoutList', () => {
         canDelete: false,
         canMoveUp: true,
         canMoveDown: false,
+        mode: 'full',
         cars: 'Coches: Mazda MX-5 Cup, Coche 9'
       }
     ])
@@ -227,5 +230,22 @@ describe('noticeText', () => {
       expect(n.error).toBe(true)
       expect(n.text.length, error).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('optionsTarget', () => {
+  it('names the layout in use, or says the shared options for a "Solo posición" one', () => {
+    const s = createDefaultSettings()
+    expect(optionsTarget(s.savedLayouts)).toEqual({
+      name: 'Principal',
+      shared: false,
+      canApplyToAll: false
+    })
+    saveLayoutAs(s, 'Óvalo', 1, 'position')
+    expect(optionsTarget(s.savedLayouts)).toEqual({
+      name: 'Óvalo',
+      shared: true,
+      canApplyToAll: true
+    })
   })
 })

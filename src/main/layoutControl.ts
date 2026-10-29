@@ -3,15 +3,17 @@
  * shortcut's switch, and the automatic layout (the player's car from the telemetry process).
  * Electron-free: main injects the store, the windows and the file dialogs.
  *
- * Applying a layout takes the same path as resetting a widget's bounds: the store first, then
- * every widget is moved to its saved bounds (pending wheel and fit saves written first, into
- * the layout being left; a drag in progress cancelled), then windows, telemetry, renderers and tray follow. It works in edit
- * mode too (it is what you asked for); only the automatic switch waits for edit mode to end.
+ * Applying a layout takes the same path as resetting a widget's bounds: pending wheel and fit
+ * saves written first (into the layout being left), then one store change with the places and
+ * the options (applyLayout), every widget moved to its saved bounds (a drag in progress
+ * cancelled), then windows, telemetry, renderers and tray follow, with one broadcast. It works in
+ * edit mode too (it is what you asked for); only the automatic switch waits for edit mode to end.
  */
 import type { LayoutNotice, SettingsCommand } from '@shared/ipc'
 import { LayoutAutoSwitch } from '@shared/layoutAuto'
 import {
   applyLayout,
+  applyWidgetOptionsToAll,
   deleteLayout,
   duplicateLayout,
   findLayout,
@@ -24,9 +26,12 @@ import {
   noteSeenCar,
   renameLayout,
   saveLayoutAs,
+  setLayoutMode,
+  sharedOptions,
   snapshotWidgets
 } from '@shared/layouts'
-import type { CarRef, OverlaySettings } from '@shared/types'
+import { settingsDraft } from '@shared/settings'
+import type { CarRef, LayoutMode, OverlaySettings } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { exportLayout, readLayoutFile, type LayoutFileDeps } from './layoutFiles'
 
@@ -86,7 +91,7 @@ export class LayoutControl {
   /** The telemetry process told the player's car (null: none). */
   onCar(car: CarRef | null): void {
     if (car !== null) {
-      const probe = structuredClone(this.deps.getSettings())
+      const probe = settingsDraft(this.deps.getSettings())
       if (noteSeenCar(probe, car)) this.change((s) => void noteSeenCar(s, car))
     }
     const id = this.auto.onCar(car, this.context())
@@ -113,7 +118,18 @@ export class LayoutControl {
       case 'layout-save':
         // The new one is in use: nothing moves, and nothing pending should replace it.
         this.auto.onManualSwitch()
-        this.change((s) => void saveLayoutAs(s, cmd.name, this.now()))
+        this.change((s) => void saveLayoutAs(s, cmd.name, this.now(), cmd.mode ?? 'full'))
+        break
+      case 'layout-set-mode':
+        // The one in use turning 'position' takes the shared options: what waits is written
+        // first, as before applying a layout.
+        if (cmd.id === this.deps.getSettings().savedLayouts.activeId) {
+          this.deps.flushPendingSaves()
+        }
+        this.change((s) => void setLayoutMode(s, cmd.id, cmd.mode))
+        break
+      case 'layout-options-to-all':
+        this.change((s) => void applyWidgetOptionsToAll(s, cmd.widgetId))
         break
       case 'layout-apply':
         this.choose(cmd.id)
@@ -142,7 +158,7 @@ export class LayoutControl {
         await this.exportOne(cmd.id)
         break
       case 'layout-import':
-        await this.importOne()
+        await this.importOne(cmd.mode ?? 'full')
         break
     }
   }
@@ -154,8 +170,12 @@ export class LayoutControl {
     if (notice) this.deps.notify(notice)
   }
 
-  private async importOne(): Promise<void> {
-    const fallback = snapshotWidgets(this.deps.getSettings().widgets)
+  private async importOne(mode: LayoutMode): Promise<void> {
+    const settings = this.deps.getSettings()
+    const fallback = {
+      widgets: snapshotWidgets(settings.widgets),
+      options: sharedOptions(settings)
+    }
     const result = await readLayoutFile(fallback, this.deps.files())
     if (result === null) return
     if (!result.ok) {
@@ -164,7 +184,7 @@ export class LayoutControl {
     }
     let added: string | null = null
     this.change((s) => {
-      added = importLayout(s, result, this.deps.importedName())
+      added = importLayout(s, result, this.deps.importedName(), mode)
     })
     const layout =
       added === null ? undefined : findLayout(this.deps.getSettings().savedLayouts, added)

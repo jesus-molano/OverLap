@@ -13,6 +13,7 @@ import {
   resetWidgetBounds,
   resetWidgetOptions
 } from '.'
+import { syncActiveLayout } from './layouts'
 
 /** A non-default, already normalised state to patch. */
 function customSettings(): OverlaySettings {
@@ -109,10 +110,13 @@ describe('applySettingsPatch', () => {
   it('applies only the given widget fields', () => {
     const current = customSettings()
     const out = applySettingsPatch(current, { widgets: { radar: { backgroundOpacity: 0.5 } } })
-    expect(out).toEqual({
+    const expected = structuredClone({
       ...current,
       widgets: { ...current.widgets, radar: { ...current.widgets.radar, backgroundOpacity: 0.5 } }
     })
+    // An option: into the layout in use too.
+    syncActiveLayout(expected)
+    expect(out).toEqual(expected)
     const out2 = applySettingsPatch(current, {
       widgets: {
         standings: { scale: 85, anchor: 'top', showIn: { practice: true }, hideInPits: false }

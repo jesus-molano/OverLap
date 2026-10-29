@@ -216,12 +216,20 @@ todos los clics al juego.
 ![Ajustes: Disposiciones](docs/screenshots/ajustes-disposiciones.png)
 
 Una disposición guarda, con un nombre, dónde está cada widget (en cada pantalla), su tamaño, su
-escala, si se ve y si está bloqueado: una para el Mazda, otra para el GT3. Las opciones de cada
-widget (columnas, colores…) no cambian con la disposición.
+escala, si se ve y si está bloqueado, y también las opciones de cada widget: columnas y su orden,
+elementos, barras de información, referencias del delta, estilo del volante, opacidad, en qué
+sesiones se ve… Una para el Mazda, otra para el GT3. La apariencia (idioma, unidades, color,
+tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mismos.
 
-- En **Ajustes > Disposiciones** guardas la actual con un nombre y aplicas, renombras, duplicas,
-  ordenas, exportas a un `.json`, importas o eliminas.
-- **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget.
+- Cada disposición es **Posición y opciones** (de serie) o **Solo posición**: esta solo mueve los
+  widgets y usa las **opciones comunes**, compartidas por todas las de solo posición. Lo eliges al
+  guardarla o importarla, y lo cambias luego con **Editar**.
+- En **Ajustes > Disposiciones** guardas la actual con un nombre y aplicas, editas, duplicas,
+  ordenas, exportas a un `.json` (con sus opciones), importas o eliminas.
+- **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget y
+  al cambiar sus opciones. Arriba de la página de cada widget pone dónde se guarda lo que cambias
+  (**Guardando en:** la disposición, u **Opciones comunes**), con **Aplicar a todas las
+  disposiciones** para copiar las opciones de ese widget a todas.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás o a

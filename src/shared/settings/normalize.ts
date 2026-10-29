@@ -30,8 +30,8 @@ import {
  * file with widgets saved but not a HIDDEN_WHEN_ADDED one gets that one hidden,
  * in a free spot (`placeNewWidget`); a SHOWN_WHEN_ADDED one, in a free spot and
  * shown unless the file says it would be new to its driver (`shownWhenAdded`). A file without
- * saved layouts gets one equal to its widgets; the active layout always takes the widgets'
- * fields (layouts.ts).
+ * saved layouts gets one equal to its widgets and options; the active layout always takes the
+ * widgets' fields and the options in effect (layouts.ts).
  */
 export function normalizeSettings(raw: unknown): OverlaySettings {
   const out = createDefaultSettings()
@@ -60,6 +60,11 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     disableDuplicateAccelerators(out[section], sectionSpecs(section))
   }
   // Last: against the final widgets, named in the final language.
-  out.savedLayouts = normalizeLayoutLibrary(raw.savedLayouts, out.widgets, out.appearance.language)
+  out.savedLayouts = normalizeLayoutLibrary(
+    raw.savedLayouts,
+    out,
+    out.appearance.language,
+    raw.version
+  )
   return out
 }

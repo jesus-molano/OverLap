@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { createDefaultSettings, normalizeSettings } from '@shared/settings'
+import { createDefaultSettings, normalizeSettings, settingsDraft } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
 
 const DEFAULT_SAVE_DELAY_MS = 500
@@ -10,7 +10,8 @@ const READ_RETRY_DELAY_MS = 50
 
 /**
  * Settings JSON on disk (`settings.json` in userData). Reads and writes are
- * synchronous on purpose: the file is a few hundred bytes, and `flush()` must
+ * synchronous on purpose: the file is small (up to about 1 MB with 30 layouts and
+ * their options, written at most every half second), and `flush()` must
  * complete inside `before-quit`.
  */
 export class SettingsStore {
@@ -45,9 +46,12 @@ export class SettingsStore {
     return this.current
   }
 
-  /** Applies `mutate` to a copy, re-normalizes it and schedules a save. */
+  /**
+   * Applies `mutate` to a copy, re-normalizes it and schedules a save. The layouts' options are
+   * not copied (settingsDraft): frozen, they are replaced by whatever changes one.
+   */
   update(mutate: (draft: OverlaySettings) => void): OverlaySettings {
-    const draft = structuredClone(this.current)
+    const draft = settingsDraft(this.current)
     mutate(draft)
     this.current = normalizeSettings(draft)
     this.scheduleSave()

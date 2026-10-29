@@ -6,7 +6,7 @@
 import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
-import { isLayoutId, normalizeCarRef } from '@shared/layouts'
+import { LAYOUT_MODES, isLayoutId, normalizeCarRef } from '@shared/layouts'
 import { toTelemetryConfig } from '@shared/settings'
 import {
   OPTION_SCHEMA,
@@ -15,7 +15,7 @@ import {
   type ElementsSpec,
   type OptionSpec
 } from '@shared/settingsSchema'
-import type { ElementEntry, OverlaySettings } from '@shared/types'
+import type { ElementEntry, LayoutMode, OverlaySettings } from '@shared/types'
 import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
 
 export interface SenderLookup<S> {
@@ -51,11 +51,15 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return isPersonalBestKeys(cmd.keys)
     // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.
     case 'layout-save':
-      return isName(cmd.name)
+      return isName(cmd.name) && isModeOrAbsent(cmd.mode)
     case 'layout-apply':
     case 'layout-delete':
     case 'layout-export':
       return isLayoutId(cmd.id)
+    case 'layout-set-mode':
+      return isLayoutId(cmd.id) && isLayoutMode(cmd.mode)
+    case 'layout-options-to-all':
+      return isWidgetId(cmd.widgetId)
     case 'layout-duplicate':
     case 'layout-rename':
       return isLayoutId(cmd.id) && isName(cmd.name)
@@ -66,7 +70,7 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
         (cmd.aroundActive === undefined || typeof cmd.aroundActive === 'boolean')
       )
     case 'layout-import':
-      return true
+      return isModeOrAbsent(cmd.mode)
     case 'layout-link-car':
       return (
         normalizeCarRef(cmd.car) !== null && (cmd.layoutId === null || isLayoutId(cmd.layoutId))
@@ -74,6 +78,14 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     default:
       return false
   }
+}
+
+function isLayoutMode(v: unknown): v is LayoutMode {
+  return (LAYOUT_MODES as readonly unknown[]).includes(v)
+}
+
+function isModeOrAbsent(v: unknown): boolean {
+  return v === undefined || isLayoutMode(v)
 }
 
 /** A name as sent (cleaned later); longer than any sane one is refused outright. */

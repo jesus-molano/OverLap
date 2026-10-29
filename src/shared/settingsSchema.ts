@@ -678,6 +678,61 @@ export const WIDGET_FIELD_SCHEMA = {
   >
 }
 
+/**
+ * What a saved layout carries besides the places (src/shared/layouts.ts) and what stays the same
+ * whatever layout is in use. Every option section is in exactly one of the two lists, and every
+ * widget field in a layout's places or in WIDGET_OPTION_FIELDS (settingsSchema.test.ts): a new
+ * section or field fails the tests until it is classified here.
+ *
+ * - Per layout: each widget's own section, named after it (columns and their order, element
+ *   lists, info bars, the delta's references per session, the wheel style...), and the widget's
+ *   fields outside any section (WIDGET_OPTION_FIELDS: background opacity, the auto height and
+ *   its anchor, the sessions it shows in, hiding in the pits, the session screen).
+ * - Global: the look and the units of every widget (appearance: language, units, accent, the
+ *   colour-blind palette, text size, licences, brand logos...), when the overlay shows at all
+ *   (visibility), the shortcuts, the settings window's own options and the layouts' own
+ *   (autoSwitch, sort). Nor are the personal bests or the layouts themselves (savedLayouts).
+ */
+export const LAYOUT_SECTIONS = [
+  'relative',
+  'radar',
+  'standings',
+  'battle',
+  'inputs',
+  'traffic',
+  'alerts',
+  'delta',
+  'fuel',
+  'lights'
+] as const satisfies readonly OptionSection[]
+
+/** See LAYOUT_SECTIONS. */
+export const GLOBAL_SECTIONS = [
+  'appearance',
+  'visibility',
+  'shortcuts',
+  'settingsWindow',
+  'layouts'
+] as const satisfies readonly OptionSection[]
+
+/** An option section a layout carries. */
+export type LayoutSection = (typeof LAYOUT_SECTIONS)[number]
+
+/** A widget's fields a layout carries as options (its places are LayoutWidget's). */
+export const WIDGET_OPTION_FIELDS = [
+  'backgroundOpacity',
+  'autoHeight',
+  'anchor',
+  'showIn',
+  'hideInPits',
+  'showOnSessionScreen'
+] as const satisfies readonly (keyof WidgetSettings)[]
+
+/** Whether option section `section` is carried by the layouts (LAYOUT_SECTIONS). */
+export function isLayoutSection(section: string): section is LayoutSection {
+  return (LAYOUT_SECTIONS as readonly string[]).includes(section)
+}
+
 /** Session kinds of the "Mostrar en" rule, in UI order. */
 export const SHOW_IN_KINDS = [
   'practice',

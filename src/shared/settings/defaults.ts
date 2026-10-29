@@ -7,7 +7,7 @@ import {
 } from '../settingsSchema'
 import type { OverlaySettings, WidgetSettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, shownOnSessionScreen, type WidgetId } from '../widgets'
-import { defaultLayoutLibrary } from './layouts'
+import { defaultLayoutLibrary, type LiveSettings } from './layouts'
 
 export const SETTINGS_VERSION = 5
 
@@ -52,7 +52,7 @@ export function createDefaultSettings(): OverlaySettings {
   const widgets = {} as Record<WidgetId, WidgetSettings>
   for (const id of WIDGET_IDS) widgets[id] = defaultWidgetSettings(id)
   const appearance = defaultOptions('appearance')
-  return {
+  const live: LiveSettings = {
     version: SETTINGS_VERSION,
     appearance,
     visibility: defaultOptions('visibility'),
@@ -69,9 +69,9 @@ export function createDefaultSettings(): OverlaySettings {
     lights: defaultOptions('lights'),
     shortcuts: defaultOptions('shortcuts'),
     settingsWindow: defaultOptions('settingsWindow'),
-    layouts: defaultOptions('layouts'),
-    savedLayouts: defaultLayoutLibrary(widgets, appearance.language)
+    layouts: defaultOptions('layouts')
   }
+  return { ...live, savedLayouts: defaultLayoutLibrary(live, appearance.language) }
 }
 
 /** Frozen: use `createDefaultSettings()` for a mutable copy. */
