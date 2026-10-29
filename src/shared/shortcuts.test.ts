@@ -128,3 +128,26 @@ describe('keycaps', () => {
     expect(acceleratorText(es, '')).toBe('')
   })
 })
+
+describe('checkShortcut: controller buttons', () => {
+  it('accepts a button no other action has, refuses a duplicate', () => {
+    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:7', defaults)).toEqual({
+      ok: true,
+      accelerator: 'joy:046d:c24f:0:7'
+    })
+    expect(
+      checkShortcut('nextLayout', 'joy:046d:c24f:0:7', {
+        ...defaults,
+        toggleOverlay: 'joy:046d:c24f:0:7'
+      })
+    ).toMatchObject({ ok: false, error: 'duplicate', conflict: 'toggleOverlay' })
+    // The same button on another controller is another binding.
+    expect(
+      checkShortcut('nextLayout', 'joy:046d:c24f:0:7', {
+        ...defaults,
+        toggleOverlay: 'joy:1dd2:2201:0:7'
+      }).ok
+    ).toBe(true)
+    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:0', defaults).ok).toBe(false)
+  })
+})

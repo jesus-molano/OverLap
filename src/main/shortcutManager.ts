@@ -1,12 +1,15 @@
 /**
- * The global keyboard shortcuts (Windows RegisterHotKey through Electron's globalShortcut):
- * one per configured action (settings.shortcuts) plus Escape while editing. Electron is
- * injected, so tests pass a double and never touch the operating system's shortcuts.
+ * The global shortcuts: the key combinations (Windows RegisterHotKey through Electron's
+ * globalShortcut), one per configured action (settings.shortcuts) plus Escape while editing,
+ * and the controllers' buttons, whose presses the input process reports (inputHost.ts).
+ * Electron is injected, so tests pass a double and never touch the operating system's shortcuts.
  *
  * A registered combination is taken from every other program while the app runs (iRacing
- * included): that is how a shortcut works over a focused game without touching its process.
+ * included): that is how a shortcut works over a focused game without touching its process. A
+ * button is only read: iRacing still gets it.
  */
 import type { GlobalShortcut } from 'electron'
+import { buttonBinding, isButtonBinding, parseButtonBinding } from '@shared/controllers'
 import { SHORTCUT_CAPTURE_LEASE_MS } from '@shared/ipc'
 import {
   EXIT_EDIT_ACCELERATOR,
@@ -35,8 +38,18 @@ export interface ShortcutManagerOptions {
   onAction(action: ShortcutAction): void
   /** Escape was pressed while editing. */
   onExitEdit(): void
-  /** Some action's status changed (registered, turned off, refused by Windows). */
+  /** Some action's status changed (registered, turned off, refused by Windows, unplugged). */
   onStatus(status: ShortcutStatusMap): void
+  /**
+   * Whether the controllers must be read now (some action has a button, or the settings page
+   * records one), on change: main starts or stops the input process.
+   */
+  onButtonsWanted?(wanted: boolean): void
+  /**
+   * A capture started (after onButtonsWanted): main lets a reader that stopped trying (it kept
+   * crashing, or controllers could not be read) try again.
+   */
+  onCaptureStart?(): void
 }
 
 type Binding = ShortcutAction | 'exitEdit'
@@ -49,7 +62,7 @@ type Binding = ShortcutAction | 'exitEdit'
 export class ShortcutManager {
   private config: ShortcutSettings | null = null
   private editing = false
-  private capturing = false
+  private capturingNow = false
   private leaseTimer: ReturnType<typeof setTimeout> | null = null
   /** What is registered now, by combination. */
   private readonly registered = new Map<string, Binding>()
@@ -59,18 +72,69 @@ export class ShortcutManager {
   private readonly lastPress = new Map<Binding, number>()
   private lastStatus = ''
   private disposed = false
+  /** The controllers connected now; null while unknown (the input process starting). */
+  private controllers: ReadonlySet<string> | null = null
+  private buttonsWanted = false
 
   constructor(private readonly opts: ShortcutManagerOptions) {}
 
-  /** 'disabled' without a combination, 'unavailable' when Windows refused it, else 'ok'. */
+  /**
+   * 'disabled' without a binding; 'unavailable' when Windows refused the combination, or the
+   * button's controller is not connected; else 'ok' (a button too while the connected
+   * controllers are not known yet).
+   */
   get status(): ShortcutStatusMap {
     const out = {} as ShortcutStatusMap
     for (const action of SHORTCUT_ACTIONS) {
-      const accelerator = this.config?.[action] ?? ''
+      const binding = this.config?.[action] ?? ''
+      const button = parseButtonBinding(binding)
       out[action] =
-        accelerator === '' ? 'disabled' : this.refused.has(accelerator) ? 'unavailable' : 'ok'
+        binding === ''
+          ? 'disabled'
+          : button
+            ? this.controllers === null || this.controllers.has(button.device)
+              ? 'ok'
+              : 'unavailable'
+            : this.refused.has(binding)
+              ? 'unavailable'
+              : 'ok'
     }
     return out
+  }
+
+  /** The settings page records a binding: button presses go to it instead (main forwards them). */
+  get capturing(): boolean {
+    return this.capturingNow
+  }
+
+  /** Whether the controllers must be read (see onButtonsWanted). */
+  get wantsButtons(): boolean {
+    return this.buttonsWanted
+  }
+
+  /**
+   * The controllers connected now (their ids), as the input process reports them; null when
+   * not known (no process): every button counts as working then. [] when they cannot be read.
+   */
+  setControllers(ids: readonly string[] | null): void {
+    if (this.disposed) return
+    this.controllers = ids === null ? null : new Set(ids)
+    this.publishStatus()
+  }
+
+  /**
+   * A controller's button went down (not while held: the input process reports each press
+   * once). Runs the action bound to it, through the same burst guard as a hot key (a switch
+   * that bounces). Nothing while the settings page records a binding. The action bound to it
+   * (for the log; the burst guard may still have swallowed it), or null.
+   */
+  pressButton(device: string, button: number): ShortcutAction | null {
+    if (this.disposed || this.capturingNow) return null
+    const binding = buttonBinding(device, button)
+    const action = SHORTCUT_ACTIONS.find((a) => this.config?.[a] === binding)
+    if (action === undefined) return null
+    this.fire(action)
+    return action
   }
 
   /** The settings' shortcuts (already normalised: canonical and unique). Same ones: no-op. */
@@ -101,17 +165,19 @@ export class ShortcutManager {
       console.warn('[shortcuts] the settings page stopped renewing its capture: resuming')
       this.stopCapture()
     }, SHORTCUT_CAPTURE_LEASE_MS)
-    if (this.capturing) return
-    this.capturing = true
+    if (this.capturingNow) return
+    this.capturingNow = true
     this.opts.registry.setSuspended(true)
+    this.updateButtonsWanted()
+    this.opts.onCaptureStart?.()
   }
 
   /** Resumes the shortcuts and applies whatever changed while suspended. */
   stopCapture(): void {
     if (this.leaseTimer) clearTimeout(this.leaseTimer)
     this.leaseTimer = null
-    if (!this.capturing || this.disposed) return
-    this.capturing = false
+    if (!this.capturingNow || this.disposed) return
+    this.capturingNow = false
     this.opts.registry.setSuspended(false)
     this.apply()
   }
@@ -121,20 +187,25 @@ export class ShortcutManager {
     if (this.disposed) return
     if (this.leaseTimer) clearTimeout(this.leaseTimer)
     this.leaseTimer = null
-    if (this.capturing) this.opts.registry.setSuspended(false)
-    this.capturing = false
+    if (this.capturingNow) this.opts.registry.setSuspended(false)
+    this.capturingNow = false
     this.disposed = true
     this.opts.registry.unregisterAll()
     this.registered.clear()
     this.refused.clear()
+    if (this.buttonsWanted) {
+      this.buttonsWanted = false
+      this.opts.onButtonsWanted?.(false)
+    }
   }
 
-  /** Combination -> what it does, as the settings and edit mode ask for now. */
+  /** Combination -> what it does, as the settings and edit mode ask for now (no buttons). */
   private wanted(): Map<string, Binding> {
     const out = new Map<string, Binding>()
     for (const action of SHORTCUT_ACTIONS) {
       const accelerator = this.config?.[action] ?? ''
-      if (accelerator !== '' && !out.has(accelerator)) out.set(accelerator, action)
+      if (accelerator === '' || isButtonBinding(accelerator)) continue
+      if (!out.has(accelerator)) out.set(accelerator, action)
     }
     if (this.editing) out.set(EXIT_EDIT_ACCELERATOR, 'exitEdit')
     return out
@@ -152,7 +223,7 @@ export class ShortcutManager {
     for (const accelerator of [...this.refused]) {
       if (!wanted.has(accelerator)) this.refused.delete(accelerator)
     }
-    if (!this.capturing) {
+    if (!this.capturingNow) {
       for (const [accelerator, binding] of [...this.registered]) {
         if (wanted.get(accelerator) === binding) continue
         this.opts.registry.unregister(accelerator)
@@ -170,6 +241,16 @@ export class ShortcutManager {
       }
     }
     this.publishStatus()
+    this.updateButtonsWanted()
+  }
+
+  private updateButtonsWanted(): void {
+    if (this.disposed) return
+    const wanted =
+      this.capturingNow || SHORTCUT_ACTIONS.some((a) => isButtonBinding(this.config?.[a]))
+    if (wanted === this.buttonsWanted) return
+    this.buttonsWanted = wanted
+    this.opts.onButtonsWanted?.(wanted)
   }
 
   private register(accelerator: string, binding: Binding): boolean {

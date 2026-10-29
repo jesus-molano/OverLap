@@ -1,8 +1,9 @@
 /**
- * Message contracts between the three kinds of process:
+ * Message contracts between the kinds of process:
  *
  *   telemetry (utilityProcess) --TelemetryOutMessage--> main --IPC--> overlay windows
  *   telemetry <--TelemetryInMessage-- main <--IPC-- settings window
+ *   input (utilityProcess, only while a shortcut is a button) --InputOutMessage--> main
  *
  * One overlay window per display hosts every enabled widget placed on that display, each as
  * an absolutely positioned panel of one document. Main owns where every widget is (screen
@@ -15,6 +16,7 @@
  * settings window asks main, main asks the telemetry process, and the updated
  * list comes back the same way.
  */
+import type { ControllerInfo } from './controllers'
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
 import type { ShortcutStatusMap } from './shortcuts'
@@ -81,6 +83,28 @@ export type TelemetryInMessage =
   | { type: 'cycle-delta-reference' }
 
 // ---------------------------------------------------------------------------
+// Input process <-> main (utilityProcess parentPort messages)
+// ---------------------------------------------------------------------------
+
+/**
+ * The input process (src/input) reads the game controllers' buttons, passively, while some
+ * shortcut is a button or the shortcuts page records one (main/inputHost.ts).
+ */
+export type InputOutMessage =
+  /** The controllers connected now: once at start, then on every arrival or removal. */
+  | { type: 'devices'; list: ControllerInfo[] }
+  /**
+   * A button went down (once per press: holding it sends nothing more). `first`: in the
+   * controller's first report since it arrived, so it may be resting down rather than pressed.
+   */
+  | { type: 'press'; device: string; button: number; first: boolean }
+  /** Controllers cannot be read at all (not Windows, no Raw Input): `detail` says why. */
+  | { type: 'unavailable'; detail: string }
+  | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string }
+
+export type InputInMessage = { type: 'shutdown' }
+
+// ---------------------------------------------------------------------------
 // Main <-> renderer (ipcMain / ipcRenderer channels)
 // ---------------------------------------------------------------------------
 
@@ -131,8 +155,24 @@ export const IPC = {
   /** main -> settings window, `SettingsWindowPage`: show this page (the tray's "Más…"). */
   settingsPage: 'overlay:settings-page',
   /** main -> settings window: the settings stopped (true) or started again (false) saving. */
-  saveFailing: 'overlay:save-failing'
+  saveFailing: 'overlay:save-failing',
+  /**
+   * main -> settings window, `ControllerPress`: a controller's button went down while the
+   * shortcuts page records a binding (no action runs then).
+   */
+  controllerPress: 'overlay:controller-press'
 } as const
+
+/**
+ * A button pressed while recording: its binding (controllers.ts) and its controller's name.
+ * `first`: from the controller's first report since it arrived (InputOutMessage 'press'): it
+ * may be a button resting down, so the page asks for the press again instead of saving it.
+ */
+export interface ControllerPress {
+  binding: string
+  name: string
+  first: boolean
+}
 
 /**
  * A page main opens the settings window on: sent on IPC.settingsPage to an open window, or as
@@ -423,6 +463,8 @@ export interface OverlayApi {
   onSettingsPage(cb: (page: SettingsWindowPage) => void): Unsubscribe
   /** Settings window only: saving to disk stopped (true) or works again (false). */
   onSaveFailing(cb: (failing: boolean) => void): Unsubscribe
+  /** Settings window only: a controller's button went down while recording a shortcut. */
+  onControllerPress(cb: (press: ControllerPress) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */

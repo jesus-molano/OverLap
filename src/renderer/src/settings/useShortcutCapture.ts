@@ -6,7 +6,8 @@ import {
   type HeldModifiers,
   type KeyInput
 } from '@shared/accelerator'
-import { SHORTCUT_CAPTURE_RENEW_MS } from '@shared/ipc'
+import { isButtonBinding } from '@shared/controllers'
+import { SHORTCUT_CAPTURE_RENEW_MS, type ControllerPress, type Unsubscribe } from '@shared/ipc'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { checkShortcut, type ShortcutAction, type ShortcutSettings } from '@shared/shortcuts'
 import { useOverlayState } from '../composables/useOverlay'
@@ -26,6 +27,11 @@ export interface CaptureDeps {
   /** Tells main the page records keys (true, then renewed) or no longer does (false). */
   capture(on: boolean): void
   source: KeySource
+  /**
+   * The controllers' buttons pressed while recording (main sends them instead of running
+   * their actions); absent: keys only.
+   */
+  onButton?(cb: (press: ControllerPress) => void): Unsubscribe
 }
 
 export interface ShortcutCapture {
@@ -34,6 +40,11 @@ export interface ShortcutCapture {
   /** The modifiers held right now while recording (the live keycaps). */
   readonly held: Readonly<Ref<Readonly<HeldModifiers>>>
   readonly feedback: Readonly<Ref<CaptureFeedback | null>>
+  /**
+   * The names of the controllers whose buttons were pressed while recording (id -> name):
+   * the page names a new binding before main has saved its controller's name.
+   */
+  readonly pressedNames: Readonly<Ref<Readonly<Record<string, string>>>>
   /** Starts recording on the row of `action`, or cancels when that row already is. */
   toggle(action: ShortcutAction): void
   start(action: ShortcutAction): void
@@ -78,9 +89,10 @@ function isClearKey(e: KeyInput): boolean {
 }
 
 /**
- * Recording a new combination on the shortcuts page, one row at a time. While it runs, main
- * suspends its global shortcuts so the keys reach this page (the 'capture-shortcuts' command,
- * renewed every SHORTCUT_CAPTURE_RENEW_MS), and every way out releases them: a combination
+ * Recording a new combination, or a controller's button, on the shortcuts page, one row at a
+ * time. While it runs, main suspends its global shortcuts so the keys reach this page, and
+ * sends it the buttons pressed instead of running their actions (the 'capture-shortcuts'
+ * command, renewed every SHORTCUT_CAPTURE_RENEW_MS), and every way out releases them: a combination
  * saved, Backspace / Delete (turns it off), Esc, Tab, the window losing focus, cancel() (the
  * row's button losing focus, another click on it) and the owning scope going away (the page
  * left). A refused combination is reported and the recording goes on.
@@ -89,7 +101,9 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
   const active = shallowRef<ShortcutAction | null>(null)
   const held = shallowRef<Readonly<HeldModifiers>>(NO_MODIFIERS)
   const feedback = shallowRef<CaptureFeedback | null>(null)
+  const pressedNames = shallowRef<Readonly<Record<string, string>>>({})
   let renew: ReturnType<typeof setInterval> | null = null
+  let stopButtons: Unsubscribe | null = null
 
   function listen(on: boolean): void {
     const { source } = deps
@@ -98,10 +112,13 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
       source.addEventListener('keydown', onKeyDown, true)
       source.addEventListener('keyup', onKeyUp, true)
       source.addEventListener('blur', cancel)
+      stopButtons = deps.onButton?.(onButton) ?? null
     } else {
       source.removeEventListener('keydown', onKeyDown, true)
       source.removeEventListener('keyup', onKeyUp, true)
       source.removeEventListener('blur', cancel)
+      stopButtons?.()
+      stopButtons = null
     }
   }
 
@@ -141,7 +158,8 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
         action,
         kind: 'refused',
         error: check.error ?? 'invalid',
-        conflict: check.conflict
+        conflict: check.conflict,
+        ...(isButtonBinding(accelerator) ? { button: accelerator } : {})
       }
       return false
     }
@@ -184,6 +202,27 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
     if (assign(action, reading.accelerator)) cancel()
   }
 
+  /**
+   * A controller's button while recording: it becomes the row's binding (refused like a
+   * combination when another action has it). Holding a modifier changes nothing. One from the
+   * controller's first report is not saved: it may be resting down (a rotary's position, a
+   * latched switch) beside the one pressed, so the row asks for the press again, and the next
+   * time the button goes down it is a press for sure.
+   */
+  function onButton(press: ControllerPress): void {
+    const action = active.value
+    if (action === null || !isButtonBinding(press.binding)) return
+    const device = press.binding.slice(0, press.binding.lastIndexOf(':'))
+    if (pressedNames.value[device] !== press.name) {
+      pressedNames.value = { ...pressedNames.value, [device]: press.name }
+    }
+    if (press.first) {
+      feedback.value = { action, kind: 'again' }
+      return
+    }
+    if (assign(action, press.binding)) cancel()
+  }
+
   /** A modifier let go: the live keycaps follow (the event's flags no longer have it). */
   function onKeyUp(evt: Event): void {
     if (active.value === null || !isKeyEvent(evt)) return
@@ -198,6 +237,7 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
     active: readonly(active),
     held: readonly(held),
     feedback: readonly(feedback),
+    pressedNames: readonly(pressedNames),
     toggle,
     start,
     cancel,
@@ -213,6 +253,7 @@ export function windowCaptureDeps(): CaptureDeps {
     current: () => settings.value?.shortcuts ?? DEFAULT_SETTINGS.shortcuts,
     save: (action, accelerator) => void set(action)(accelerator),
     capture: (on) => sendCommand({ type: 'capture-shortcuts', on }),
-    source: window
+    source: window,
+    onButton: (cb) => window.overlay.onControllerPress(cb)
   }
 }

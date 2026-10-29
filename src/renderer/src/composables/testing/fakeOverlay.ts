@@ -5,6 +5,7 @@
 import type {
   AutoHiddenMessage,
   BoundsCommit,
+  ControllerPress,
   DragStateMessage,
   EditChipsMessage,
   InitialState,
@@ -64,6 +65,7 @@ export interface FakeOverlay extends OverlayApi {
   readonly layoutNotice: Channel<LayoutNotice>
   readonly settingsPage: Channel<SettingsWindowPage>
   readonly saveFailing: Channel<boolean>
+  readonly controllerPress: Channel<ControllerPress>
   readonly sent: {
     commitBounds: BoundsCommit[]
     scaleStep: ScaleStepMessage[]
@@ -91,6 +93,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const layoutNotice = new Channel<LayoutNotice>()
   const settingsPage = new Channel<SettingsWindowPage>()
   const saveFailing = new Channel<boolean>()
+  const controllerPress = new Channel<ControllerPress>()
   const sent: FakeOverlay['sent'] = {
     commitBounds: [],
     scaleStep: [],
@@ -133,6 +136,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     layoutNotice,
     settingsPage,
     saveFailing,
+    controllerPress,
     sent,
     listenerCount: () =>
       data.listeners.size +
@@ -148,7 +152,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       currentCar.listeners.size +
       layoutNotice.listeners.size +
       settingsPage.listeners.size +
-      saveFailing.listeners.size,
+      saveFailing.listeners.size +
+      controllerPress.listeners.size,
     getInitialState: () => Promise.resolve(initial),
     onData: (cb) => data.on(cb),
     onStatus: (cb) => status.on(cb),
@@ -164,6 +169,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onLayoutNotice: (cb) => layoutNotice.on(cb),
     onSettingsPage: (cb) => settingsPage.on(cb),
     onSaveFailing: (cb) => saveFailing.on(cb),
+    onControllerPress: (cb) => controllerPress.on(cb),
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),
     dragState: (msg) => void sent.dragState.push(msg),

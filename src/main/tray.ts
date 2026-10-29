@@ -14,6 +14,7 @@ import {
   widgetTitle,
   type Language
 } from '@shared/i18n'
+import { isButtonBinding } from '@shared/controllers'
 import type { SettingsWindowPage } from '@shared/ipc'
 import { linkedLayoutId, recentLayouts } from '@shared/layouts'
 import { RADAR_RANGE_PRESETS_M } from '@shared/settings'
@@ -303,12 +304,14 @@ function buildMenu(
 
 /**
  * A configured shortcut, shown next to its item. Only the label: the real shortcut is a
- * globalShortcut registered by main (shortcutManager.ts). None when it is turned off ('').
+ * globalShortcut registered by main (shortcutManager.ts). None when it is turned off ('') or
+ * is a controller's button (a menu shows key combinations only).
  */
 function acceleratorLabel(
   accelerator: string
 ): Pick<MenuItemConstructorOptions, 'accelerator' | 'registerAccelerator'> {
-  return accelerator === '' ? {} : { accelerator, registerAccelerator: false }
+  if (accelerator === '' || isButtonBinding(accelerator)) return {}
+  return { accelerator, registerAccelerator: false }
 }
 
 /**

@@ -47,8 +47,14 @@ import type {
   WidgetSettings
 } from './types'
 
-/** Option sections of OverlaySettings (everything but version, widgets and the saved layouts). */
-export type OptionSection = Exclude<keyof OverlaySettings, 'version' | 'widgets' | 'savedLayouts'>
+/**
+ * Option sections of OverlaySettings (everything but version, widgets, the saved layouts and
+ * the controllers' names).
+ */
+export type OptionSection = Exclude<
+  keyof OverlaySettings,
+  'version' | 'widgets' | 'savedLayouts' | 'buttonDeviceNames'
+>
 /** Option sections the telemetry process receives. */
 export type ConfigSection = Exclude<keyof TelemetryConfig, 'enabledWidgets' | 'rules'>
 
@@ -121,8 +127,9 @@ export interface ElementsSpec<Id extends string = string> extends SpecBase {
   readonly computed?: readonly Id[]
 }
 /**
- * A global shortcut: an assignable combination in its canonical spelling (accelerator.ts), or
- * '' when turned off. The accelerator fields of a section never share a combination.
+ * A global shortcut: an assignable combination in its canonical spelling (accelerator.ts), a
+ * controller's button (controllers.ts), or '' when turned off. The accelerator fields of a
+ * section never share a binding.
  */
 export interface AcceleratorSpec extends SpecBase {
   readonly kind: 'accelerator'

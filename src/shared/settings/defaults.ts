@@ -74,7 +74,8 @@ export function createDefaultSettings(): OverlaySettings {
     lights: defaultOptions('lights'),
     shortcuts: defaultOptions('shortcuts'),
     settingsWindow: defaultOptions('settingsWindow'),
-    layouts: defaultOptions('layouts')
+    layouts: defaultOptions('layouts'),
+    buttonDeviceNames: {}
   }
   return { ...live, savedLayouts: defaultLayoutLibrary(live, appearance.language) }
 }

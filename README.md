@@ -238,7 +238,9 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 
 ## Atajos de teclado
 
-Son globales: funcionan con iRacing en primer plano.
+Son globales: funcionan con iRacing en primer plano. Cada acción puede ir en una combinación de
+teclas o en un botón del volante, la button box, los pedales o el cambio (ver
+[Botones del volante](#botones-del-volante)).
 
 | Atajo (por defecto) | Acción                                                      |
 | ------------------- | ----------------------------------------------------------- |
@@ -251,14 +253,36 @@ Son globales: funcionan con iRacing en primer plano.
 
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
-- Se cambian en **Ajustes > Atajos de teclado**: pulsa **Cambiar** y luego la combinación. También
-  se pueden desactivar o restablecer.
+- Se cambian en **Ajustes > Atajos**: pulsa **Cambiar** y luego la combinación (o un botón del
+  volante). También se pueden desactivar o restablecer.
 - **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras
   OverLap está abierto: no elijas una que uses en el simulador. Si otra aplicación ya la tiene, la
   página lo dice.
 - Necesitan `Ctrl` o `Alt`, salvo `F13`–`F24`, que envían muchas button box y teclados de macros.
   `Ctrl+Alt` equivale a `AltGr` en un teclado español: se permite, pero avisa de que puede impedir
   escribir `@`, `#` o `€`.
+
+### Botones del volante
+
+- En **Ajustes > Atajos**, pulsa **Cambiar** y luego el botón: vale cualquier botón de un volante
+  o su aro, una button box, unos pedales, un cambio o un freno de mano que Windows vea como mando
+  de juego, también los de más de 32 botones. Se ve como «Botón 12 · G29 Driving Force Racing
+  Wheel».
+- **Solo se leen**: el botón se comparte con iRacing y no se bloquea nada, así que **iRacing
+  también recibe la pulsación**. Elige uno que no tengas asignado en iRacing.
+- Mantenerlo pulsado cuenta como una sola pulsación.
+- Las crucetas (D-pad) y los hats no se pueden asignar: solo los botones.
+- Si la página pide **pulsar el botón otra vez**, es que acaba de empezar a leer ese mando y no
+  sabe qué botones estaban ya abajo (un selector giratorio o un interruptor fijo); la segunda
+  pulsación es la que se guarda.
+- Si el dispositivo está desenchufado, el atajo sigue guardado y la página dice **Desconectado**;
+  al enchufarlo vuelve a funcionar solo.
+- Dos dispositivos idénticos (mismo modelo) comparten los botones: cualquiera de los dos sirve.
+- `Esc` para salir del modo edición sigue siendo solo de teclado.
+- Los botones solo se leen mientras algún atajo es un botón (o mientras eliges uno): sin ninguno,
+  OverLap no lee los mandos.
+- Si vuelves a la versión 2.1.1, los atajos que estaban en un botón vuelven a su combinación de
+  fábrica.
 
 ## Cuándo se ve el overlay
 
@@ -282,7 +306,9 @@ o la captura de pantalla.
   lectura, igual que cualquier herramienta de telemetría. **No inyecta nada** en el proceso del juego
   (iRacing usa EasyAntiCheat) ni escribe en esa memoria.
 - Los widgets son ventanas propias, transparentes, que no cogen el foco ni envían nada al juego. Los
-  atajos usan el registro de teclas de Windows: no hay ganchos de teclado.
+  atajos usan el registro de teclas de Windows: no hay ganchos de teclado. Los botones del volante
+  se leen con Raw Input de Windows, como SimHub o Crew Chief: compartidos con iRacing, sin
+  bloquear ni abrir el dispositivo, sin ganchos y sin enviarle nada.
 - **Sin red**: no se conecta a internet, no tiene cuentas ni envía datos a ningún sitio. Tus ajustes
   y récords se quedan en tu equipo.
 - No activa la grabación de telemetría `.ibt` de iRacing.

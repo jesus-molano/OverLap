@@ -11,23 +11,43 @@ import Keycaps from '../layout/Keycaps.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import ShortcutRow from '../layout/ShortcutRow.vue'
-import { shortcutRows } from '../shortcutsView'
+import { buttonBindingCount, shortcutRows } from '../shortcutsView'
 import { useShortcutCapture, windowCaptureDeps } from '../useShortcutCapture'
 
 /**
- * The global keyboard shortcuts (settings.shortcuts): one row per action, recorded by pressing
- * the combination, then the fixed Esc and how shortcuts behave over the game. Recording ends
+ * The global shortcuts (settings.shortcuts): one row per action, recorded by pressing the
+ * combination or a controller's button, then the fixed Esc and how shortcuts behave over the
+ * game. Recording ends
  * whenever this page goes away (the capture's scope is the page's). No live preview: there is
  * nothing to draw.
  */
 const t = useI18n()
 const titleId = useId()
 const shortcuts = useShortcuts()
-const { shortcutStatus } = useOverlayState()
+const { settings, shortcutStatus } = useOverlayState()
 const capture = useShortcutCapture(windowCaptureDeps())
 
-const rows = computed(() => shortcutRows(t.value, shortcuts.value, shortcutStatus.value))
+/** The controllers' names: the saved ones, and those of the buttons just pressed here. */
+const names = computed(() => ({
+  ...settings.value?.buttonDeviceNames,
+  ...capture.pressedNames.value
+}))
+const rows = computed(() =>
+  shortcutRows(t.value, shortcuts.value, shortcutStatus.value, names.value)
+)
 const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
+
+/** The reset removes every button (none is a default): its description and confirmation say so. */
+const buttonCount = computed(() => buttonBindingCount(shortcuts.value))
+const resetDescription = computed(() => {
+  const r = t.value.settings.shortcuts.resetAll
+  return buttonCount.value > 0 ? r.descriptionButtons(buttonCount.value) : r.description
+})
+const resetConfirm = computed(() =>
+  buttonCount.value > 0
+    ? t.value.settings.shortcuts.resetAll.confirmButtons(buttonCount.value)
+    : t.value.settings.confirm.reset
+)
 </script>
 
 <template>
@@ -42,7 +62,13 @@ const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
     <!-- The actions, and the notes beside them in a wide window (settings.css .st-cols). -->
     <div class="st-cols">
       <PageSection :title="t.settings.shortcuts.section">
-        <ShortcutRow v-for="row in rows" :key="row.action" :row="row" :capture="capture" />
+        <ShortcutRow
+          v-for="row in rows"
+          :key="row.action"
+          :row="row"
+          :capture="capture"
+          :names="names"
+        />
         <div class="st-row st-row-stack">
           <div class="st-row-text">
             <span class="st-label">{{ t.settings.shortcuts.escape.label }}</span>
@@ -58,6 +84,7 @@ const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
       <PageSection :title="t.settings.shortcuts.notes.title">
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.focus }}</p>
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.exclusive }}</p>
+        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttons }}</p>
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>
       </PageSection>
     </div>
@@ -65,8 +92,8 @@ const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
     <footer class="page-foot">
       <ConfirmButton
         :label="t.settings.shortcuts.resetAll.label"
-        :confirm-label="t.settings.confirm.reset"
-        :description="t.settings.shortcuts.resetAll.description"
+        :confirm-label="resetConfirm"
+        :description="resetDescription"
         :action="resetShortcuts"
       />
     </footer>
