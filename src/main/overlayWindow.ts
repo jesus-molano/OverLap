@@ -223,14 +223,29 @@ export class OverlayWindow {
   show(): void {
     if (this.destroyed) return
     this.win.showInactive()
+    // Back to full rate only once shown: see hide().
+    this.setThrottled(false)
     this.win.setAlwaysOnTop(true, 'screen-saver')
     this.win.moveTop()
     this.applyMode(this.mode, true)
     this.keepBounds()
   }
 
+  /**
+   * Throttled while hidden. Measured on Electron 44 / Windows 11: with backgroundThrottling off,
+   * Chromium does not show its input child window (Chrome_RenderWidgetHostHWND) again after a
+   * hide() and showInactive(), so every press lands on the non-focusable top-level window, which
+   * answers WM_MOUSEACTIVATE with MA_NOACTIVATEANDEAT: Windows drops every click (drags, eye,
+   * padlock) until the window is recreated. Throttled while it hides, the child comes back.
+   */
   hide(): void {
-    if (this.isVisible()) this.win.hide()
+    if (!this.isVisible()) return
+    this.setThrottled(true)
+    this.win.hide()
+  }
+
+  private setThrottled(throttled: boolean): void {
+    if (!this.wc.isDestroyed()) this.wc.setBackgroundThrottling(throttled)
   }
 
   setTitle(title: string): void {
