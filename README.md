@@ -426,6 +426,24 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - Se desvanece cuando no hay nadie cerca ni al lado, con histéresis para que no parpadee en el límite
   del alcance.
 - Si la longitud de pista falta o viene rara, solo se muestran los avisos laterales.
+- **Personalizar** (Ajustes > Tráfico): grupos (`traffic.groups`: orden y cuáles; uno oculto no se
+  busca), columnas de cada línea (`traffic.parts`: piloto y tiempo siempre) y cabecera
+  (`traffic.header`: nombre del widget y rótulos de grupo). Sin rótulos, una raya separa los grupos;
+  sin el texto «te alcanza en», un peligro conserva su etiqueta («Parado»).
+
+### Batalla: personalizar
+
+En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
+
+- **Rivales** (`battle.lanes`): el de delante y el de detrás, en el orden que elijas (arriba o a
+  la izquierda el primero); uno oculto no se busca y sin ninguno el widget no sale.
+- **Filas** (`battle.rows`): predicción, sectores y vueltas, en orden; las vueltas van ocultas por
+  defecto. La línea del rival y la del hueco son fijas.
+- **Detalles** (`battle.parts`): iRating y licencia del rival, texto de la tendencia e iRating en
+  juego. El iRating no sale lado a lado.
+- **Logotipo de la marca** (`battle.brandMarks`, Auto: solo con varias marcas en la sesión) y
+  **bandera del país** (`battle.countryFlags`, desactivada): delante del nombre; por debajo de
+  ~20 em de ancho se ocultan para dejar sitio al nombre.
 
 ### Delta
 
