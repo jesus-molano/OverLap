@@ -44,7 +44,7 @@ export class ButtonTracker {
   private lastList = ''
 
   constructor(
-    private readonly onPress: (device: string, button: number) => void,
+    private readonly onPress: (device: string, button: number, first: boolean) => void,
     private readonly onDevices: (list: ControllerInfo[]) => void
   ) {}
 
@@ -87,16 +87,23 @@ export class ButtonTracker {
     }
   }
 
+  /**
+   * The buttons of a report that were not down before are pressed. In the first copy of a
+   * report since the controller arrived they are `first`: nothing was known before it, so a
+   * button may simply be resting down (a rotary's position, a latched toggle) next to the one
+   * the user pressed (main/index.ts: recording ignores them).
+   */
   private report(handle: string, reportId: number, pressed: readonly number[]): void {
     const c = this.connected.get(handle)
     if (!c) return
+    const first = !c.reports.has(reportId)
     const before = this.down(c)
     c.reports.set(reportId, new Set(pressed))
     const seen = new Set<number>()
     for (const button of pressed) {
       if (seen.has(button)) continue
       seen.add(button)
-      if (!before.has(button)) this.onPress(c.device.id, button)
+      if (!before.has(button)) this.onPress(c.device.id, button, first)
     }
   }
 
@@ -110,7 +117,8 @@ export class ButtonTracker {
 
 export interface ButtonReaderOptions {
   source: ControllerSource
-  onPress(device: string, button: number): void
+  /** `first`: in the first report since the controller arrived (ButtonTracker.report). */
+  onPress(device: string, button: number, first: boolean): void
   onDevices(list: ControllerInfo[]): void
   /** A source that threw while polling: the reader stops (the process exits and restarts). */
   onError(err: unknown): void

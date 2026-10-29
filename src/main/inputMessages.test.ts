@@ -6,8 +6,16 @@ describe('parseInputMessage', () => {
     expect(parseInputMessage({ type: 'press', device: 'joy:046d:c24f:0', button: 7 })).toEqual({
       type: 'press',
       device: 'joy:046d:c24f:0',
-      button: 7
+      button: 7,
+      first: false
     })
+    // From the controller's first report: only a real true counts.
+    expect(
+      parseInputMessage({ type: 'press', device: 'joy:046d:c24f:0', button: 7, first: true })
+    ).toMatchObject({ first: true })
+    expect(
+      parseInputMessage({ type: 'press', device: 'joy:046d:c24f:0', button: 7, first: 'yes' })
+    ).toMatchObject({ first: false })
   })
 
   it('refuses a press with a bad controller or button', () => {

@@ -271,12 +271,18 @@ teclas o en un botón del volante, la button box, los pedales o el cambio (ver
 - **Solo se leen**: el botón se comparte con iRacing y no se bloquea nada, así que **iRacing
   también recibe la pulsación**. Elige uno que no tengas asignado en iRacing.
 - Mantenerlo pulsado cuenta como una sola pulsación.
+- Las crucetas (D-pad) y los hats no se pueden asignar: solo los botones.
+- Si la página pide **pulsar el botón otra vez**, es que acaba de empezar a leer ese mando y no
+  sabe qué botones estaban ya abajo (un selector giratorio o un interruptor fijo); la segunda
+  pulsación es la que se guarda.
 - Si el dispositivo está desenchufado, el atajo sigue guardado y la página dice **Desconectado**;
   al enchufarlo vuelve a funcionar solo.
 - Dos dispositivos idénticos (mismo modelo) comparten los botones: cualquiera de los dos sirve.
 - `Esc` para salir del modo edición sigue siendo solo de teclado.
 - Los botones solo se leen mientras algún atajo es un botón (o mientras eliges uno): sin ninguno,
   OverLap no lee los mandos.
+- Si vuelves a la versión 2.1.1, los atajos que estaban en un botón vuelven a su combinación de
+  fábrica.
 
 ## Cuándo se ve el overlay
 

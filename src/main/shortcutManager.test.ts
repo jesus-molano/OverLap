@@ -349,12 +349,33 @@ describe('ShortcutManager controller buttons', () => {
     manager.configure(BUTTONS)
     expect(registry.registered()).toEqual(['Ctrl+Shift+E'])
     vi.advanceTimersByTime(REPEAT_GUARD_MS)
-    manager.pressButton(G29, 7)
-    manager.pressButton(BOX, 40)
+    // Each says what it is bound to (main logs it).
+    expect(manager.pressButton(G29, 7)).toBe('toggleOverlay')
+    expect(manager.pressButton(BOX, 40)).toBe('nextLayout')
     // Another button, another controller with that button: nothing.
-    manager.pressButton(G29, 8)
-    manager.pressButton(BOX, 7)
+    expect(manager.pressButton(G29, 8)).toBeNull()
+    expect(manager.pressButton(BOX, 7)).toBeNull()
     expect(actions).toEqual(['toggleOverlay', 'nextLayout'])
+  })
+
+  it('says when a capture starts (main lets a reader that stopped trying go again)', () => {
+    let starts = 0
+    manager.dispose()
+    manager = new ShortcutManager({
+      registry,
+      onAction: (a) => actions.push(a),
+      onExitEdit: () => exits++,
+      onStatus: (s) => statuses.push(s),
+      onCaptureStart: () => starts++
+    })
+    manager.configure(BUTTONS)
+    manager.startCapture()
+    // Renewed: not a new capture.
+    manager.startCapture()
+    expect(starts).toBe(1)
+    manager.stopCapture()
+    manager.startCapture()
+    expect(starts).toBe(2)
   })
 
   it('keeps keyboard shortcuts working beside buttons', () => {

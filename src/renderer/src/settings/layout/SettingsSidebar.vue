@@ -4,7 +4,8 @@ import { widgetTitle } from '@shared/i18n'
 import { WIDGET_IDS } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
-import { useShortcuts } from '../../composables/useShortcuts'
+import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
+import Icon from '../../ui/Icon.vue'
 import StatusChip from '../StatusChip.vue'
 import { sendCommand, widgetSetter } from '../editor'
 import { GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
@@ -19,11 +20,12 @@ const emit = defineEmits<{ select: [page: SettingsPage] }>()
 const { settings } = useOverlayState()
 const t = useI18n()
 const shortcuts = useShortcuts()
+const deviceNames = useDeviceNames()
 const globalItems = computed(() =>
   GLOBAL_PAGES.map((page) => ({ page, title: pageTitle(t.value, page) }))
 )
 /** The shortcuts at the foot, as configured (one turned off is left out). */
-const keys = computed(() => sidebarKeys(t.value, shortcuts.value))
+const keys = computed(() => sidebarKeys(t.value, shortcuts.value, deviceNames.value))
 // A string, so dragging a widget (a settings broadcast per frame) re-renders nothing here.
 const visibleKey = computed(() =>
   WIDGET_IDS.map((id) => (settings.value?.widgets[id].visible === false ? '0' : '1')).join('')
@@ -85,7 +87,11 @@ function openSettingsFolder(): void {
       <dl class="keys">
         <template v-for="k in keys" :key="k.id">
           <dt>
-            <kbd>{{ k.keys }}</kbd>
+            <span v-if="k.button" class="key-button" :title="k.keys">
+              <Icon name="wheel" class="key-button-icon" />
+              <span class="key-button-text">{{ k.keys }}</span>
+            </span>
+            <kbd v-else>{{ k.keys }}</kbd>
           </dt>
           <dd>{{ k.label }}</dd>
         </template>
@@ -234,6 +240,30 @@ function openSettingsFolder(): void {
 
 .keys dd {
   margin: 0;
+}
+
+.keys dt {
+  min-width: 0;
+}
+
+/* A controller's button: the wheel glyph, not a key; its controller cut to the column. */
+.key-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 8em;
+  color: var(--ov-fg-muted);
+}
+
+.key-button-icon {
+  flex: none;
+}
+
+.key-button-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .folder {

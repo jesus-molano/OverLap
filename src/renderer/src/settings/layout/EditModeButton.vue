@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
-import { useShortcuts } from '../../composables/useShortcuts'
+import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { sendCommand } from '../editor'
 import { editModeTooltip } from '../shortcutsView'
 
@@ -12,7 +12,8 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 const { editMode } = useOverlayState()
 const t = useI18n()
 const shortcuts = useShortcuts()
-const tooltip = computed(() => editModeTooltip(t.value, shortcuts.value))
+const deviceNames = useDeviceNames()
+const tooltip = computed(() => editModeTooltip(t.value, shortcuts.value, deviceNames.value))
 
 function toggle(): void {
   sendCommand({ type: 'set-edit-mode', on: !editMode.value })

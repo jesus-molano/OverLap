@@ -44,6 +44,8 @@ class FakeSource implements ControllerSource {
 
 let source: FakeSource
 let presses: string[]
+/** The presses that came from their controller's first report (ButtonTracker.report). */
+let firsts: string[]
 let lists: ControllerInfo[][]
 let errors: unknown[]
 let reader: ButtonReader
@@ -56,11 +58,15 @@ beforeEach(() => {
   vi.useFakeTimers()
   source = new FakeSource()
   presses = []
+  firsts = []
   lists = []
   errors = []
   reader = new ButtonReader({
     source,
-    onPress: (device, button) => presses.push(`${device}:${button}`),
+    onPress: (device, button, first) => {
+      presses.push(`${device}:${button}`)
+      if (first) firsts.push(`${device}:${button}`)
+    },
     onDevices: (list) => lists.push(list),
     onError: (err) => errors.push(err)
   })
@@ -109,6 +115,33 @@ describe('ButtonReader', () => {
     source.report('1', [7])
     tick()
     expect(presses).toEqual(['joy:046d:c24f:0:7', 'joy:046d:c24f:0:3', 'joy:046d:c24f:0:7'])
+  })
+
+  it('marks the presses of the first report since arrival: they may be resting down', () => {
+    source.plug('1', BOX_A)
+    reader.start()
+    // A button box reports only on change: its first report is a rotary resting on 3 and the
+    // press of 17, together.
+    source.report('1', [3, 17])
+    tick()
+    expect(presses).toEqual(['joy:1dd2:2201:0:3', 'joy:1dd2:2201:0:17'])
+    expect(firsts).toEqual(['joy:1dd2:2201:0:3', 'joy:1dd2:2201:0:17'])
+    // 17 let go and pressed again: a real press, not first; 3 never again while it rests.
+    source.report('1', [3])
+    source.report('1', [3, 17])
+    tick()
+    expect(presses.at(-1)).toBe('joy:1dd2:2201:0:17')
+    expect(firsts).toHaveLength(2)
+    // Another report id is new too: its first copy is marked.
+    source.report('1', [40], 2)
+    tick()
+    expect(firsts.at(-1)).toBe('joy:1dd2:2201:0:40')
+    // Unplugged and plugged back: first again.
+    source.unplug('1')
+    source.plug('1', BOX_A)
+    source.report('1', [3])
+    tick()
+    expect(firsts.at(-1)).toBe('joy:1dd2:2201:0:3')
   })
 
   it('reports nothing on a release', () => {

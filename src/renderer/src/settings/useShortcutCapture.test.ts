@@ -4,7 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope } from 'vue'
-import { SHORTCUT_CAPTURE_RENEW_MS } from '@shared/ipc'
+import { SHORTCUT_CAPTURE_RENEW_MS, type ControllerPress } from '@shared/ipc'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { ShortcutAction, ShortcutSettings } from '@shared/shortcuts'
 import { useShortcutCapture, type ShortcutCapture } from './useShortcutCapture'
@@ -331,7 +331,7 @@ describe('useShortcutCapture: buttons', () => {
 
 describe('useShortcutCapture: controller buttons', () => {
   const G29 = 'joy:046d:c24f:0'
-  let presses: ((press: { binding: string; name: string }) => void)[]
+  let presses: ((press: ControllerPress) => void)[]
   let unsubscribed: number
 
   beforeEach(() => {
@@ -360,8 +360,12 @@ describe('useShortcutCapture: controller buttons', () => {
     stop = () => scope.stop()
   })
 
-  function pressButton(binding: string, name = 'G29 Driving Force Racing Wheel'): void {
-    for (const cb of [...presses]) cb({ binding, name })
+  function pressButton(
+    binding: string,
+    name = 'G29 Driving Force Racing Wheel',
+    first = false
+  ): void {
+    for (const cb of [...presses]) cb({ binding, name, first })
   }
 
   it('listens for buttons only while recording', () => {
@@ -397,10 +401,27 @@ describe('useShortcutCapture: controller buttons', () => {
     expect(capture.feedback.value).toMatchObject({
       kind: 'refused',
       error: 'duplicate',
-      conflict: 'toggleOverlay'
+      conflict: 'toggleOverlay',
+      // The refusal names the button pressed (unlabelled on the rim).
+      button: `${G29}:12`
     })
     pressButton(`${G29}:13`)
     expect(saved).toEqual([['nextLayout', `${G29}:13`]])
+  })
+
+  it('does not save a button from the first report: it asks for the press again', () => {
+    capture.start('nextLayout')
+    // A rotary resting on 3 and the press of 17, in the controller's first report.
+    pressButton(`${G29}:3`, 'Box', true)
+    pressButton(`${G29}:17`, 'Box', true)
+    expect(saved).toEqual([])
+    expect(capture.active.value).toBe('nextLayout')
+    expect(capture.feedback.value).toEqual({ action: 'nextLayout', kind: 'again' })
+    expect(capture.pressedNames.value).toEqual({ [G29]: 'Box' })
+    // Pressed again: a press for sure.
+    pressButton(`${G29}:17`, 'Box')
+    expect(saved).toEqual([['nextLayout', `${G29}:17`]])
+    expect(capture.active.value).toBeNull()
   })
 
   it('ignores a malformed press, and presses after the page went away', () => {

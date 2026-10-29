@@ -18,6 +18,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   iRacing, que también recibe la pulsación, y no se bloquea nada. Mantener pulsado cuenta una vez.
 - Un dispositivo desenchufado conserva su atajo y la página dice «Desconectado»; al enchufarlo
   vuelve a funcionar solo. Sin ningún atajo en un botón, OverLap no lee los mandos.
+- Las crucetas (D-pad) y los hats no se pueden asignar. Volver a la 2.1.1 devuelve a su
+  combinación de fábrica los atajos que estaban en un botón.
 
 ## [2.1.1] - 2026-10-29
 

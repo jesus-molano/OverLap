@@ -44,7 +44,7 @@ export function parseInputMessage(raw: unknown): InputOutMessage | null {
   switch (raw.type) {
     case 'press':
       return isControllerId(raw.device) && isButton(raw.button)
-        ? { type: 'press', device: raw.device, button: raw.button }
+        ? { type: 'press', device: raw.device, button: raw.button, first: raw.first === true }
         : null
     case 'devices': {
       if (!Array.isArray(raw.list)) return null

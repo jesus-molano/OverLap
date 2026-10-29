@@ -11,6 +11,14 @@ const BACKOFF_MAX_MS = 10_000
 /** A process that lived this long counts as healthy: the next crash restarts fast again. */
 const STABLE_AFTER_MS = 10_000
 const SHUTDOWN_GRACE_MS = 1_000
+/**
+ * Crashes in a row, each before STABLE_AFTER_MS, after which it is not restarted any more
+ * (every start describes each controller again, asking it for its name): the buttons show as
+ * not working until retry() or it is wanted again.
+ */
+export const MAX_QUICK_CRASHES = 5
+/** A process that said controllers cannot be read is tried once more after this. */
+export const UNAVAILABLE_RETRY_MS = 30_000
 
 export interface InputHostOptions {
   /**
@@ -18,14 +26,16 @@ export interface InputHostOptions {
    * starting), [] when they cannot be read at all.
    */
   onDevices(list: readonly ControllerInfo[] | null): void
-  /** A button went down (once per press). */
-  onPress(device: string, button: number): void
+  /** A button went down (once per press); `first`: see InputOutMessage 'press'. */
+  onPress(device: string, button: number, first: boolean): void
 }
 
 /**
  * Owns the input utilityProcess (src/input): running only while wanted (setWanted), restarted
- * with exponential backoff if it dies. A process that says controllers cannot be read (not
- * Windows, Raw Input refused) is not restarted until it is wanted again.
+ * with exponential backoff if it dies, up to MAX_QUICK_CRASHES quick crashes in a row. A
+ * process that says controllers cannot be read (not Windows, Raw Input refused) is tried once
+ * more after UNAVAILABLE_RETRY_MS. After either, retry() (the shortcuts page starts recording)
+ * or being wanted again starts it afresh.
  */
 export class InputHost {
   private child: UtilityProcess | null = null
@@ -37,6 +47,12 @@ export class InputHost {
   private unavailable: UtilityProcess | null = null
   private invalidMessages = 0
   private disposed = false
+  /** Crashes in a row, each before STABLE_AFTER_MS. */
+  private quickCrashes = 0
+  /** The once-more try after 'unavailable' is spent. */
+  private unavailableRetried = false
+  /** restartTimer is that once-more try (retry() may start it at once). */
+  private waitingUnavailable = false
 
   constructor(private readonly opts: InputHostOptions) {}
 
@@ -49,11 +65,31 @@ export class InputHost {
     if (this.disposed || on === this.wanted) return
     this.wanted = on
     if (on) {
-      this.backoffMs = BACKOFF_MIN_MS
+      this.resetTries()
       if (!this.child && !this.restartTimer) this.spawn()
     } else {
       this.halt()
     }
+  }
+
+  /**
+   * Wanted, but not running (it gave up after crashing, or controllers could not be read):
+   * starts it now, every try counted afresh. Running or about to restart: nothing.
+   */
+  retry(): void {
+    if (this.disposed || !this.wanted || this.child) return
+    if (this.restartTimer && !this.waitingUnavailable) return
+    if (this.restartTimer) clearTimeout(this.restartTimer)
+    console.log('[input] trying again')
+    this.resetTries()
+    this.spawn()
+  }
+
+  private resetTries(): void {
+    this.backoffMs = BACKOFF_MIN_MS
+    this.quickCrashes = 0
+    this.unavailableRetried = false
+    this.waitingUnavailable = false
   }
 
   /** On quit: stops the process and never starts it again. */
@@ -66,6 +102,7 @@ export class InputHost {
   private halt(): void {
     if (this.restartTimer) clearTimeout(this.restartTimer)
     this.restartTimer = null
+    this.waitingUnavailable = false
     const child = this.child
     this.child = null
     if (child) {
@@ -79,6 +116,7 @@ export class InputHost {
 
   private spawn(): void {
     this.restartTimer = null
+    this.waitingUnavailable = false
     this.spawnedAt = 0
     let child: UtilityProcess
     try {
@@ -118,13 +156,32 @@ export class InputHost {
     this.child = null
     if (this.unavailable === child) {
       this.unavailable = null
+      // Once more, later: a window or a registration refused once may work then.
+      if (this.wanted && !this.disposed && !this.unavailableRetried) {
+        this.unavailableRetried = true
+        this.waitingUnavailable = true
+        this.restartTimer = setTimeout(() => this.spawn(), UNAVAILABLE_RETRY_MS)
+      }
+      return
+    }
+    if (!this.wanted || this.disposed) {
+      this.opts.onDevices(null)
+      return
+    }
+    if (this.spawnedAt > 0 && Date.now() - this.spawnedAt >= STABLE_AFTER_MS) {
+      this.backoffMs = BACKOFF_MIN_MS
+      this.quickCrashes = 0
+    }
+    this.quickCrashes++
+    if (this.quickCrashes >= MAX_QUICK_CRASHES) {
+      console.error(
+        `[input] exited with code ${code}, ${this.quickCrashes} times in a row: not restarting`
+      )
+      // Not readable: the button shortcuts show as not working until retry().
+      this.opts.onDevices([])
       return
     }
     this.opts.onDevices(null)
-    if (!this.wanted || this.disposed) return
-    if (this.spawnedAt > 0 && Date.now() - this.spawnedAt >= STABLE_AFTER_MS) {
-      this.backoffMs = BACKOFF_MIN_MS
-    }
     console.warn(`[input] exited with code ${code}, restarting in ${this.backoffMs} ms`)
     this.restartLater()
   }
@@ -146,7 +203,7 @@ export class InputHost {
         this.opts.onDevices(msg.list)
         break
       case 'press':
-        this.opts.onPress(msg.device, msg.button)
+        this.opts.onPress(msg.device, msg.button, msg.first)
         break
       case 'unavailable':
         console.warn(`[input] controllers cannot be read: ${msg.detail}`)

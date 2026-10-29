@@ -319,8 +319,14 @@ export const settingsEs = {
     disableLabel: (action: string) => `Desactivar: ${action}`,
     resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
     capture: {
-      prompt: 'Pulsa una combinación o un botón del volante… (Esc cancela)',
-      clearHint: 'Retroceso o Supr lo desactivan'
+      /** In the field while recording: short, so the field keeps its width. */
+      prompt: 'Pulsa las teclas o un botón…',
+      clearHint: 'Esc cancela · Retroceso o Supr lo desactivan',
+      /**
+       * A button from a controller's first report since the reader started (or it was
+       * plugged in): it may be resting down (a rotary, a latched switch), so it is not saved.
+       */
+      pressAgain: 'Mando detectado: pulsa el botón otra vez'
     },
     /** Why a combination was refused (accelerator.ts). */
     errors: {
@@ -330,7 +336,9 @@ export const settingsEs = {
       meta: 'La tecla Windows no se puede usar',
       needsModifier: 'Añade Ctrl o Alt: sin ellas solo valen F13–F24',
       reserved: 'Windows o los programas ya usan esa combinación',
-      duplicate: (action: string) => `Ya lo usa «${action}»`
+      duplicate: (action: string) => `Ya lo usa «${action}»`,
+      /** A button another action has: which one was pressed ('Botón 12 · G29 …'), and by whom. */
+      duplicateButton: (button: string, action: string) => `${button} ya lo usa «${action}»`
     },
     saved: (keys: string) => `Guardado: ${keys}`,
     disabled: 'Desactivado: esta acción ya no tiene atajo',
@@ -344,13 +352,22 @@ export const settingsEs = {
       exclusive:
         'Una combinación de teclas asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
       buttons:
-        'Los botones del volante, la button box o los pedales solo se leen: se comparten con iRacing y no se bloquea nada, así que la pulsación también le llega. Elige un botón que no tengas asignado en iRacing.',
+        'Los botones del volante, la button box o los pedales solo se leen: se comparten con iRacing y no se bloquea nada, así que la pulsación también le llega. Elige un botón que no tengas asignado en iRacing. Las crucetas (D-pad) y los hats no se pueden asignar.',
       buttonBox:
         'Consejo: F13–F24 (las envían muchas button box y teclados de macros) funcionan sin Ctrl ni Alt.'
     },
     resetAll: {
       label: 'Restablecer atajos',
-      description: 'Vuelve todos los atajos a los de fábrica (los botones asignados se quitan)'
+      description: 'Vuelve todos los atajos a los de fábrica',
+      /** With `n` controller buttons assigned: they are removed (no button is a default). */
+      descriptionButtons: (n: number) =>
+        n === 1
+          ? 'Vuelve todos los atajos a los de fábrica y quita el botón asignado'
+          : `Vuelve todos los atajos a los de fábrica y quita los ${n} botones asignados`,
+      confirmButtons: (n: number) =>
+        n === 1
+          ? '¿Quitar el botón asignado? Pulsa otra vez'
+          : `¿Quitar ${n} botones asignados? Pulsa otra vez`
     }
   },
   /** One widget's page: header, hidden note and resets. */
@@ -1483,8 +1500,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     disableLabel: (action) => `Disable: ${action}`,
     resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
     capture: {
-      prompt: 'Press a combination or a wheel button… (Esc cancels)',
-      clearHint: 'Backspace or Delete turns it off'
+      prompt: 'Press the keys or a button…',
+      clearHint: 'Esc cancels · Backspace or Delete turns it off',
+      pressAgain: 'Controller found: press the button again'
     },
     errors: {
       invalid: 'That isn’t a valid combination',
@@ -1493,7 +1511,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       meta: 'The Windows key can’t be used',
       needsModifier: 'Add Ctrl or Alt: only F13–F24 work alone',
       reserved: 'Windows or other programs already use that combination',
-      duplicate: (action) => `Already used by “${action}”`
+      duplicate: (action) => `Already used by “${action}”`,
+      duplicateButton: (button, action) => `${button} is already used by “${action}”`
     },
     saved: (keys) => `Saved: ${keys}`,
     disabled: 'Off: this action has no shortcut now',
@@ -1507,12 +1526,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
       exclusive:
         'An assigned key combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
       buttons:
-        'Buttons of your wheel, button box or pedals are only read: they are shared with iRacing and nothing is blocked, so iRacing gets the press too. Pick a button you haven’t assigned in iRacing.',
+        'Buttons of your wheel, button box or pedals are only read: they are shared with iRacing and nothing is blocked, so iRacing gets the press too. Pick a button you haven’t assigned in iRacing. D-pads and hats can’t be assigned.',
       buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
     },
     resetAll: {
       label: 'Reset shortcuts',
-      description: 'Returns every shortcut to its default (assigned buttons are removed)'
+      description: 'Returns every shortcut to its default',
+      descriptionButtons: (n) =>
+        n === 1
+          ? 'Returns every shortcut to its default and removes the assigned button'
+          : `Returns every shortcut to its default and removes the ${n} assigned buttons`,
+      confirmButtons: (n) =>
+        n === 1
+          ? 'Remove the assigned button? Click again'
+          : `Remove ${n} assigned buttons? Click again`
     }
   },
   widgetPage: {

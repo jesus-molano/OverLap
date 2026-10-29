@@ -11,8 +11,9 @@ import Keycaps from './Keycaps.vue'
  * One configurable shortcut: the label (with a badge when another application holds the
  * combination, or the button's controller is unplugged), then a field with its keys or its
  * button and controller (the keys being pressed while recording, "Off" when it has none) and
- * Change / Disable / Reset beside it. The field has one width in every
- * row, so the buttons line up. The Change button keeps the focus while recording: leaving it
+ * Change / Disable / Reset beside it. The field keeps one width in every row and while
+ * recording (a button's controller goes on a second line, cut when long; the prompt is short),
+ * so the buttons line up and nothing moves when recording starts. The Change button keeps the focus while recording: leaving it
  * (Tab, a click elsewhere) cancels.
  */
 const props = defineProps<{ row: ShortcutRowView; capture: ShortcutCapture; names: DeviceNames }>()
@@ -43,7 +44,10 @@ function onChangeBlur(): void {
         <span class="st-help">{{ row.help }}</span>
       </div>
       <div class="sc-bind">
-        <div class="sc-keys" :class="{ 'is-recording': recording }">
+        <div
+          class="sc-keys"
+          :class="{ 'is-recording': recording, 'has-button': row.button && !recording }"
+        >
           <template v-if="recording">
             <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
             <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
@@ -55,8 +59,12 @@ function onChangeBlur(): void {
             :aria-label="t.settings.shortcuts.buttonAria(row.button.button, row.button.device)"
           >
             <Icon name="wheel" class="sc-button-icon" />
-            <span class="sc-button-name">{{ row.button.button }}</span>
-            <span class="sc-button-device" :title="row.button.device">{{ row.button.device }}</span>
+            <span class="sc-button-text">
+              <span class="sc-button-name">{{ row.button.button }}</span>
+              <span class="sc-button-device" :title="row.button.device">{{
+                row.button.device
+              }}</span>
+            </span>
           </span>
           <Keycaps v-else-if="row.keys.length > 0" :keys="row.keys" />
           <span v-else class="sc-off">{{ row.badge }}</span>
@@ -148,15 +156,27 @@ function onChangeBlur(): void {
   font-size: 12.5px;
 }
 
-/* A controller's button: the wheel glyph, the button, then its controller (cut when long). */
+/* A button's field: the keys' width exactly, whatever its controller's name. */
+.sc-keys.has-button {
+  width: 15em;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+
+/* A controller's button: the wheel glyph, the button, and its controller under it. */
 .sc-button {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
-  /* A long controller name is cut (its full name is in the title and the saved line). */
-  max-width: min(100%, 24em);
   font-size: 12.5px;
+}
+
+.sc-button-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .sc-button-icon {
@@ -171,16 +191,14 @@ function onChangeBlur(): void {
   white-space: nowrap;
 }
 
+/* A long controller name is cut (its full name is in the title and the saved line). */
 .sc-button-device {
   min-width: 0;
   overflow: hidden;
   color: var(--ov-fg-muted);
+  font-size: 11.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.sc-button-device::before {
-  content: '· ';
 }
 
 /* Its controller is unplugged: kept, but dimmed (the badge says why). */
