@@ -175,6 +175,23 @@ describe('fitInfoItems', () => {
     expect(width(steps[0] ?? [])).toBeLessThanOrEqual(31.6)
   })
 
+  it('drops the ghosts of the settings preview before anything really shown', () => {
+    const real: InfoItemId[] = ['session', 'rubber', 'incidents']
+    // 'clock' and 'sof' are ghosts: the room is the real items' and one ghost's.
+    const ids: InfoItemId[] = ['session', 'clock', 'rubber', 'sof', 'incidents']
+    const ghosts = new Set<InfoItemId>(['clock', 'sof'])
+    const room = width([...real, 'clock'])
+    const out = fitInfoItems(ids, room, INFO_ITEM_GAP_EM, 0, ghosts)
+    for (const id of real) expect(out).toContain(id)
+    expect(out.filter((id) => ghosts.has(id))).toHaveLength(1)
+    // With no room for any ghost, exactly what the bar draws without them.
+    expect(fitInfoItems(ids, width(real), INFO_ITEM_GAP_EM, 0, ghosts)).toEqual(
+      fitInfoItems(real, width(real))
+    )
+    // A measured overflow drops a ghost first too.
+    expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 2, ghosts)).toEqual(real)
+  })
+
   it('returns a new list in the given order', () => {
     const ids: InfoItemId[] = ['remaining', 'session']
     const out = fitInfoItems(ids, 100)

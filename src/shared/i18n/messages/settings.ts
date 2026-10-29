@@ -81,6 +81,32 @@ export const settingsEs = {
       light: { label: 'Día', hint: 'El widget sobre una escena clara' }
     }
   },
+  /** Editing in a widget page's preview (settings/preview/PreviewEditLayer.vue). */
+  preview: {
+    /** Above the preview until dismissed (settingsWindow.previewHint). */
+    hint: 'Arrastra en la vista previa para ordenar; clic para mostrar u ocultar',
+    hintMore: 'Los ocultos se ven translúcidos mientras editas, donde caben.',
+    hintDismiss: 'Entendido',
+    hintDismissLabel: 'Ocultar este consejo',
+    /** Under an element's name on hover: what the pointer does to it. */
+    actions: {
+      'move-hide': 'Arrastra para mover · clic para ocultar',
+      hide: 'Clic para ocultar · su orden es fijo',
+      'move-required': 'Arrastra para mover · siempre visible',
+      required: 'Siempre visible y en orden fijo',
+      show: 'Oculto · clic para mostrar'
+    },
+    /** A click or a drag that the rules refuse. */
+    refused: {
+      required: (item: string) => `${item} está siempre visible: no se puede ocultar`,
+      fixed: (zone: string) => `${zone} tiene un orden fijo: no se reordena`
+    },
+    /** While dragging: what the drop does. */
+    moving: (item: string) => `Mover ${item}`,
+    movingSide: (item: string, side: string) => `Mover ${item} · ${side}`,
+    /** After hiding an element the preview cannot draw ghosted. */
+    hiddenNote: (item: string) => `${item} oculto: vuelve a mostrarlo desde su lista`
+  },
   controls: {
     customColor: 'Color personalizado',
     customColorLabel: (label: string) => `${label}: color personalizado`,
@@ -923,6 +949,11 @@ export const settingsEs = {
     sides: { left: 'Izquierda', right: 'Derecha' },
     sidesHelp: { left: 'Al principio de la línea', right: 'Al final de la línea' },
     sideEmpty: 'Nada a este lado: arrastra aquí un elemento',
+    /** An info bar's hidden items, in their own collapsed group under the two boxes. */
+    hiddenGroup: (n: number) => `Ocultos (${n})`,
+    hiddenGroupHelp: 'Al mostrar uno, va al final de su lado',
+    /** A hidden item's side, after its name. */
+    hiddenSide: { left: 'Izquierda', right: 'Derecha' },
     toLeft: (item: string) => `Pasar ${item} a la izquierda`,
     toRight: (item: string) => `Pasar ${item} a la derecha`,
     movedLeft: (item: string) => `${item}: a la izquierda.`,
@@ -1299,6 +1330,26 @@ export const settingsEn: Dict<typeof settingsEs> = {
       dark: { label: 'Night', hint: 'The widget over dark asphalt' },
       light: { label: 'Day', hint: 'The widget over a bright scene' }
     }
+  },
+  preview: {
+    hint: 'Drag in the preview to reorder; click to show or hide',
+    hintMore: 'Hidden elements show translucent while you edit, where they fit.',
+    hintDismiss: 'Got it',
+    hintDismissLabel: 'Hide this tip',
+    actions: {
+      'move-hide': 'Drag to move · click to hide',
+      hide: 'Click to hide · its order is fixed',
+      'move-required': 'Drag to move · always shown',
+      required: 'Always shown, in a fixed order',
+      show: 'Hidden · click to show'
+    },
+    refused: {
+      required: (item) => `${item} is always shown: it cannot be hidden`,
+      fixed: (zone) => `${zone} has a fixed order: it cannot be reordered`
+    },
+    moving: (item) => `Move ${item}`,
+    movingSide: (item, side) => `Move ${item} · ${side}`,
+    hiddenNote: (item) => `${item} hidden: show it again from its list`
   },
   controls: {
     customColor: 'Custom colour',
@@ -2052,6 +2103,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sides: { left: 'Left', right: 'Right' },
     sidesHelp: { left: 'At the start of the line', right: 'At the end of the line' },
     sideEmpty: 'Nothing on this side: drag an element here',
+    hiddenGroup: (n) => `Hidden (${n})`,
+    hiddenGroupHelp: 'Shown again, an element goes to the end of its side',
+    hiddenSide: { left: 'Left', right: 'Right' },
     toLeft: (item) => `Move ${item} to the left`,
     toRight: (item) => `Move ${item} to the right`,
     movedLeft: (item) => `${item}: on the left.`,

@@ -56,7 +56,12 @@ export function useAutoHeight(id: WidgetId = injectWidgetId()): ComputedRef<bool
 /** One option section, e.g. `useOptions('standings')`. */
 export function useOptions<K extends OptionSection>(section: K): ComputedRef<OverlaySettings[K]> {
   const { settings } = useOverlayState()
-  return computed((prev) => stable(prev, settings.value?.[section] ?? DEFAULT_SETTINGS[section]))
+  // The settings window's sample while you edit in it draws its hidden elements ghosted.
+  const view = injectSampleHost()?.viewOptions
+  return computed((prev) => {
+    const own = settings.value?.[section] ?? DEFAULT_SETTINGS[section]
+    return stable(prev, view ? view(section, own) : own)
+  })
 }
 
 /** One option, e.g. `useOption('battle', 'thresholdS')`. */

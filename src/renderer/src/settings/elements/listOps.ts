@@ -243,3 +243,119 @@ export function visibilityMessage(m: Messages, label: string, visible: boolean):
   const e = m.settings.elements
   return visible ? e.shown(label) : e.hidden(label)
 }
+
+// ---- Places by neighbour (the preview's drop, a list whose hidden rows are elsewhere) -------
+
+/**
+ * Where a moved element goes, by a neighbour that stays put: just before or just after `id`.
+ * Hidden entries between two shown ones never matter to what the widget draws, so a place by
+ * neighbour reads the same whatever is hidden around it.
+ */
+export type Place<Id extends string> =
+  { readonly kind: 'before'; readonly id: Id } | { readonly kind: 'after'; readonly id: Id }
+
+/**
+ * The list with `id` taken out and put back just before or just after the neighbour of
+ * `place`; a copy unchanged for a fixed order, an unknown id or itself as the neighbour.
+ */
+export function placedAt<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  place: Place<Id>
+): ElementEntry<Id>[] {
+  const from = list.findIndex((e) => e.id === id)
+  if (spec.fixedOrder || from < 0 || place.id === id) return list.map((e) => ({ ...e }))
+  const rest = list.filter((_, i) => i !== from).map((e) => ({ id: e.id, visible: e.visible }))
+  const at = rest.findIndex((e) => e.id === place.id)
+  if (at < 0) return list.map((e) => ({ ...e }))
+  const moved = list[from] as Readonly<ElementEntry<Id>>
+  rest.splice(place.kind === 'before' ? at : at + 1, 0, { id: moved.id, visible: moved.visible })
+  return rest
+}
+
+/**
+ * The place of a dragged row among the rows drawn (`stops`, in list order, the dragged one
+ * among them): `slot` of the others is before which it lands (dropIndex), past the last one
+ * after it. Null with no other stop.
+ */
+export function placeOfSlot<Id extends string>(
+  stops: readonly Id[],
+  id: Id,
+  slot: number
+): Place<Id> | null {
+  const others = stops.filter((s) => s !== id)
+  const last = others[others.length - 1]
+  if (last === undefined) return null
+  const before = others[Math.max(0, slot)]
+  return before !== undefined ? { kind: 'before', id: before } : { kind: 'after', id: last }
+}
+
+/**
+ * The list with `id` moved one stop up (`delta` < 0) or down: past the next entry `isStop`
+ * accepts (an info bar's shown items and its marker; the hidden ones are in their own group),
+ * whatever hidden entries lie between. Null when there is no stop that way (or a fixed order).
+ */
+export function movedPast<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  delta: -1 | 1,
+  isStop: (e: Readonly<ElementEntry<Id>>) => boolean
+): ElementEntry<Id>[] | null {
+  const from = list.findIndex((e) => e.id === id)
+  if (spec.fixedOrder || from < 0) return null
+  for (let i = from + delta; i >= 0 && i < list.length; i += delta) {
+    const e = list[i]
+    if (e !== undefined && isStop(e)) {
+      return placedAt(spec, list, id, { kind: delta < 0 ? 'before' : 'after', id: e.id })
+    }
+  }
+  return null
+}
+
+/** An info bar's stops: its shown items and the marker (what the two boxes draw). */
+export function barStop<Id extends string>(split: Id): (e: Readonly<ElementEntry<Id>>) => boolean {
+  return (e) => e.visible || e.id === split
+}
+
+/**
+ * An info bar's rows as the editor draws them: the shown items of each side in its box, the
+ * hidden ones (either side) in the "Ocultos" group, each with its index in `list` and its side.
+ */
+export function barRows<Id extends string>(
+  list: List<Id>,
+  split: Id
+): {
+  readonly left: IndexedEntry<Id>[]
+  readonly right: IndexedEntry<Id>[]
+  readonly hidden: (IndexedEntry<Id> & { readonly side: Side })[]
+} {
+  const all = sides(list, split)
+  return {
+    left: all.left.filter((r) => r.entry.visible),
+    right: all.right.filter((r) => r.entry.visible),
+    hidden: [
+      ...all.left.filter((r) => !r.entry.visible).map((r) => ({ ...r, side: 'left' as const })),
+      ...all.right.filter((r) => !r.entry.visible).map((r) => ({ ...r, side: 'right' as const }))
+    ].sort((a, b) => a.index - b.index)
+  }
+}
+
+/**
+ * The list with the hidden `id` shown at the end of the side it is on (where the bar draws it
+ * last): just before the marker on the left, last of all on the right. The marker stays where
+ * it is, so the stored format is the same. A copy shown in place without a marker.
+ */
+export function shownAtSideEnd<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  split: Id
+): ElementEntry<Id>[] {
+  const shown = toggled(spec, list, id, true)
+  if (spec.fixedOrder || !shown.some((e) => e.id === split)) return shown
+  if (sideOf(shown, id, split) === 'left')
+    return placedAt(spec, shown, id, { kind: 'before', id: split })
+  return movedTo(spec, shown, id, shown.length - 1)
+}

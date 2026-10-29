@@ -1659,6 +1659,8 @@ export interface SettingsWindowOptions {
   stageScene: 'dark' | 'light'
   /** Which "Personalizar" accordions are open (visible = open), every zone once. */
   customizeOpen: ElementList<CustomizeZoneId>
+  /** The hint above a widget page's preview (editing in it) is shown: until you dismiss it. */
+  previewHint: boolean
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

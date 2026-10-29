@@ -10,6 +10,7 @@ import {
 } from '@shared/infoBar'
 import type { InfoBarSize, InfoItemId } from '@shared/types'
 import { useElementSize } from '../composables/useElementSize'
+import { injectSampleHost } from '../composables/widgetContext'
 import { vInlineStyle } from '../directives/inlineStyle'
 import type { InfoBarView, InfoItemView } from '../view/infoBar'
 import type { InlineStyle } from '../view/styles'
@@ -90,8 +91,24 @@ watch([ids, widthEm], () => {
   extra.value = 0
 })
 
+/**
+ * The settings preview's ghosts in this bar (hidden items drawn while you edit there): they go
+ * first when the bar has no room, so what is really shown is drawn as without them. None over
+ * the game.
+ */
+const host = injectSampleHost()
+const ghosts = computed<ReadonlySet<InfoItemId>>(() => {
+  const all = host?.ghosts?.value
+  const out = new Set<InfoItemId>()
+  if (all === undefined || all.length === 0) return out
+  for (const id of ids.value) if (all.includes(itemEls.value[id] ?? '')) out.add(id)
+  return out
+})
+
 const kept = computed<ReadonlySet<InfoItemId>>((prev) => {
-  const next = new Set(fitInfoItems(ids.value, widthEm.value, gapEm.value, extra.value))
+  const next = new Set(
+    fitInfoItems(ids.value, widthEm.value, gapEm.value, extra.value, ghosts.value)
+  )
   return prev !== undefined && prev.size === next.size && [...next].every((id) => prev.has(id))
     ? prev
     : next

@@ -699,7 +699,9 @@ export const OPTION_SCHEMA = {
       hidden: CUSTOMIZE_ZONE_IDS.filter((id) => !CUSTOMIZE_FIRST_ZONES.includes(id)),
       fixedOrder: true,
       displayOnly: true
-    })
+    }),
+    // The hint above a widget page's preview ("Arrastra en la vista previa…") until dismissed.
+    previewHint: { kind: 'bool', default: true, displayOnly: true }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.
