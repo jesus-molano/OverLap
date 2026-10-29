@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { isElementVisible } from '@shared/elements'
+import { brandMarksOn } from '@shared/carBrands'
+import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -21,8 +22,10 @@ import { previewBattle } from './preview'
 import {
   arrangement,
   hasOpponents,
+  laneParts,
   laneRows,
   toLaneViews,
+  type BattleSide,
   type LaneOptions,
   type LaneRows,
   type LaneView
@@ -39,22 +42,6 @@ const { data, phase } = useWidgetPhase('battle', { showsOffline: false, hasConte
 const styles = createDriverStyles()
 const t = useI18n()
 
-// Options are stable objects (useOptions); each view input keeps its identity while equal, so
-// a threshold change or a drag re-renders nothing.
-// Until the lanes draw their lists in order (package P3): the rows and parts they have today.
-const laneOptions = computed<LaneOptions>((prev) => {
-  const o = options.value
-  const sectors = isElementVisible(o.rows, 'sectors')
-  const laps = isElementVisible(o.rows, 'laps')
-  return reuseView(prev, {
-    detail: sectors && laps ? 'both' : sectors ? 'sectors' : laps ? 'laps' : 'none',
-    showPrediction: isElementVisible(o.rows, 'prediction'),
-    showStake: isElementVisible(o.parts, 'stake'),
-    nameFormat: nameFormat.value
-  })
-})
-const rows = computed<LaneRows>((prev) => reuseView(prev, laneRows(laneOptions.value)))
-
 /** Live data, the sample in edit mode, or what was shown last (kept through the fade-out). */
 const content = useShownContent(
   () => phase.value,
@@ -66,11 +53,40 @@ const content = useShownContent(
     )
 )
 
+// Options are stable objects (useOptions); each view input keeps its identity while equal, so
+// a threshold change or a drag re-renders nothing.
+const multiBrand = computed(() => content.value?.multiBrand === true)
+const laneOptions = computed<LaneOptions>((prev) => {
+  const o = options.value
+  return reuseView(
+    prev,
+    {
+      rows: visibleIds(o.rows),
+      parts: laneParts((id) => isElementVisible(o.parts, id)),
+      brand: brandMarksOn(o.brandMarks, multiBrand.value),
+      flag: o.countryFlags,
+      nameFormat: nameFormat.value
+    },
+    deepEqual
+  )
+})
+const rows = computed<LaneRows>((prev) =>
+  reuseView(prev, laneRows(laneOptions.value.rows), deepEqual)
+)
+/** Top (or left) lane first, as battle.lanes orders them. */
+const laneOrder = computed<readonly BattleSide[]>((prev) =>
+  reuseView(prev, elementOrder(options.value.lanes), deepEqual)
+)
+
 /** Lanes keep their objects while equal, so each lane's v-memo skips unchanged ones. */
 const lanes = computed<readonly LaneView[]>((prev) => {
   const d = content.value
   if (d === null) return prev ?? NO_LANES
-  return reuseViews(prev, toLaneViews(d, laneOptions.value, styles, t.value), deepEqual)
+  return reuseViews(
+    prev,
+    toLaneViews(d, laneOptions.value, styles, t.value, laneOrder.value),
+    deepEqual
+  )
 })
 
 const preview = computed(() => phase.value === 'preview')
@@ -83,10 +99,9 @@ const rootSize = useElementSize(root)
 const widthEm = computed(() => (rootSize.value.w > 0 ? rootSize.value.w / fontPx.value : Infinity))
 const layout = computed(() => arrangement(options.value.layout, lanes.value.length, widthEm.value))
 /** Everything the panel height depends on besides the width and the font. */
-const layoutKey = computed(() => {
-  const r = rows.value
-  return `${lanes.value.length}|${layout.value}|${r.catch}|${r.sectors}|${r.laps}`
-})
+const layoutKey = computed(
+  () => `${lanes.value.length}|${layout.value}|${rows.value.order.join(',')}`
+)
 /** Where the VISTA PREVIA tag goes: the last lane's prediction row, else its trend row. */
 const previewTag = computed(() => (preview.value ? (rows.value.catch ? 'catch' : 'trend') : null))
 
@@ -125,8 +140,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
         <DriverCell
           class="lane__who"
           v-bind="lane.driver"
-          :with-rating="layout !== 'side'"
-          with-license
+          :with-rating="lane.driver.withRating && layout !== 'side'"
         >
           <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
         </DriverCell>
@@ -139,7 +153,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
           <span class="lane__trend-value" :class="`ov-tone-${lane.trend.tone}`">
             <Icon v-if="lane.trend.icon" :name="lane.trend.icon" />{{ lane.trend.text }}
           </span>
-          <span class="lane__note">{{ lane.trend.note }}</span>
+          <span v-if="lane.trend.note" class="lane__note">{{ lane.trend.note }}</span>
           <span v-if="lane.stake" class="lane__stake"
             ><b>{{ lane.stake }}</b
             >&nbsp;{{ t.widgets.battle.stake }}</span
@@ -150,41 +164,43 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
           />
         </span>
 
-        <div v-if="rows.catch" class="lane__catch">
-          <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
-          <template v-else-if="lane.catch">
-            <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
-              <Icon :name="lane.catch.icon" />
-              <span class="lane__verdict-text">{{ lane.catch.text }}</span>
-            </span>
-            <span v-if="lane.catch.note" class="lane__note">{{ lane.catch.note }}</span>
-          </template>
-          <PreviewTag
-            v-if="previewTag === 'catch' && i === lanes.length - 1"
-            class="lane__preview"
-          />
-        </div>
-
-        <div v-if="lane.sectors" class="lane__chips">
-          <Chip
-            v-for="c in lane.sectors"
-            :key="c.label"
-            class="lane__chip"
-            :label="c.label"
-            :tone="c.tone"
-            >{{ c.text }}</Chip
-          >
-        </div>
-        <div v-if="lane.laps" class="lane__chips">
-          <Chip
-            v-for="c in lane.laps"
-            :key="c.label"
-            class="lane__chip"
-            :label="c.label"
-            :tone="c.tone"
-            >{{ c.text }}</Chip
-          >
-        </div>
+        <!-- The rows under the headline in battle.rows' order (the grid places them in turn). -->
+        <template v-for="row in rows.order" :key="row">
+          <div v-if="row === 'prediction'" class="lane__catch">
+            <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
+            <template v-else-if="lane.catch">
+              <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
+                <Icon :name="lane.catch.icon" />
+                <span class="lane__verdict-text">{{ lane.catch.text }}</span>
+              </span>
+              <span v-if="lane.catch.note" class="lane__note">{{ lane.catch.note }}</span>
+            </template>
+            <PreviewTag
+              v-if="previewTag === 'catch' && i === lanes.length - 1"
+              class="lane__preview"
+            />
+          </div>
+          <div v-else-if="row === 'sectors' && lane.sectors" class="lane__chips">
+            <Chip
+              v-for="c in lane.sectors"
+              :key="c.label"
+              class="lane__chip"
+              :label="c.label"
+              :tone="c.tone"
+              >{{ c.text }}</Chip
+            >
+          </div>
+          <div v-else-if="row === 'laps' && lane.laps" class="lane__chips">
+            <Chip
+              v-for="c in lane.laps"
+              :key="c.label"
+              class="lane__chip"
+              :label="c.label"
+              :tone="c.tone"
+              >{{ c.text }}</Chip
+            >
+          </div>
+        </template>
       </section>
     </WidgetPanel>
   </div>
@@ -288,6 +304,12 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
 .lane__who :deep(.ov-driver__name) {
   font-weight: var(--ov-w-strong);
+}
+
+/* The make and the flag never squeeze: the name gives way first. */
+.lane__who :deep(.ov-brand),
+.lane__who :deep(.ov-flag) {
+  flex: none;
 }
 
 /* ---- Headline: hero gap and trend --------------------------------------------- */
@@ -408,6 +430,8 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
 @container battle (max-width: 20em) {
   .lane__who :deep(.ov-lic),
+  .lane__who :deep(.ov-brand),
+  .lane__who :deep(.ov-flag),
   .lane__trend > .lane__note {
     display: none;
   }

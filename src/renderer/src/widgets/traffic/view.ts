@@ -3,8 +3,8 @@
  * car, flat and keyed by index, so an unchanged slot keeps its object (`reuseViews`) for v-memo
  * and no DOM node is ever reordered. Pure.
  *
- * Groups go top to bottom as on track: what is ahead (hazards, slower cars), then the faster
- * cars behind. Urgency (by ETA) always comes with the kind icon and words, never colour alone.
+ * Groups go in traffic.groups' order, by default top to bottom as on track: what is ahead
+ * (hazards, slower cars), then the faster cars behind. Urgency (by ETA) always comes with the kind icon and words, never colour alone.
  * A car passing you at about your pace (TrafficEntry.passing) reads how far behind it is, its
  * urgency by that gap under the blue flag. Words come from the dictionary `m` (messagesFor(lang)).
  */
@@ -32,7 +32,7 @@ export const PASSING_ETA_S = 30
 export const BLUE_BAD_S = 1
 export const BLUE_WARN_S = 2
 
-/** Top to bottom: what is ahead of you first, the faster cars behind last. */
+/** The default order, top to bottom: what is ahead of you first, the faster cars behind last. */
 export const GROUP_ORDER: readonly TrafficKind[] = ['hazard', 'slower', 'faster']
 
 /** Caption of a group ('PELIGRO', 'DELANTE', 'POR DETRÁS'). */
@@ -69,9 +69,10 @@ const hazardBadges = perDictionary((m): HazardBadges => {
 
 /** What the widget draws of each group (display side; the provider applies them too). */
 export interface TrafficViewOptions {
-  readonly showFaster: boolean
-  readonly showSlower: boolean
-  readonly showHazards: boolean
+  /** The groups drawn, top to bottom (traffic.groups' shown ids, in order). */
+  readonly groups: readonly TrafficKind[]
+  /** A caption line above each group (traffic.header 'captions'). */
+  readonly captions: boolean
   /** Lines per group, already clamped to the option's range. */
   readonly maxEntries: number
   readonly nameFormat: NameFormat
@@ -203,14 +204,18 @@ export function sectorLabel(sector: number | null, m: Messages): string {
   return finite(sector) && sector >= 1 ? m.widgets.common.sector(Math.round(sector)) : ''
 }
 
-/** The line of one car of `group` (the array it came in, whatever its own `kind` says). */
+/**
+ * The line of one car of `group` (the array it came in, whatever its own `kind` says). `breaks`:
+ * the first line of a group below another one with no caption between them (a rule above it).
+ */
 export function toRowSlot(
   e: TrafficEntry,
   group: TrafficKind,
   index: number,
   styles: DriverStyles,
   nameFormat: NameFormat,
-  m: Messages
+  m: Messages,
+  breaks = false
 ): RowSlotView {
   const t = m.widgets.traffic
   const driver = toDriverCell(e.driver, styles, nameFormat, m)
@@ -230,6 +235,7 @@ export function toRowSlot(
   const lap = hazard !== null || !e.lapping ? null : group === 'faster' ? 'ahead' : 'behind'
   let css = `tr-row tr-row--${group}`
   if (index % 2 === 1) css += ' is-alt'
+  if (breaks) css += ' is-break'
   if (u !== 'normal') css += ` is-${u}`
   return {
     kind: 'row',
@@ -256,22 +262,18 @@ function groupEntries(d: TrafficData, group: TrafficKind): readonly TrafficEntry
   return group === 'faster' ? d.faster : group === 'slower' ? d.slower : d.hazards
 }
 
-function groupShown(o: TrafficViewOptions, group: TrafficKind): boolean {
-  return group === 'faster' ? o.showFaster : group === 'slower' ? o.showSlower : o.showHazards
-}
-
 export interface VisibleGroup {
   readonly group: TrafficKind
   readonly entries: readonly TrafficEntry[]
 }
 
-/** The entries of each group the widget draws, in GROUP_ORDER (empty groups left out). */
+/** The entries of each group the widget draws, in the options' order (empty groups left out). */
 export function visibleGroups(d: TrafficData, o: TrafficViewOptions): VisibleGroup[] {
   const out: VisibleGroup[] = []
   if (!d.visible) return out
   const max = Math.max(1, Math.floor(o.maxEntries))
-  for (const group of GROUP_ORDER) {
-    if (!groupShown(o, group)) continue
+  for (const group of o.groups) {
+    if (out.some((g) => g.group === group)) continue
     const entries = groupEntries(d, group)
     if (entries.length > 0) out.push({ group, entries: entries.slice(0, max) })
   }
@@ -301,7 +303,10 @@ const captions = perDictionary((m): Captions => ({
   faster: captionPair('faster', m)
 }))
 
-/** Every line, top to bottom: each group's caption followed by its cars. */
+/**
+ * Every line, top to bottom: each group's caption (when shown) followed by its cars. Without
+ * captions a group's first line below another group carries the separator instead.
+ */
 export function toSlots(
   d: TrafficData,
   o: TrafficViewOptions,
@@ -311,8 +316,11 @@ export function toSlots(
   const out: TrafficSlotView[] = []
   const caps = captions(m)
   for (const { group, entries } of visibleGroups(d, o)) {
-    out.push(caps[group][out.length === 0 ? 0 : 1])
-    entries.forEach((e, i) => out.push(toRowSlot(e, group, i, styles, o.nameFormat, m)))
+    const later = out.length > 0
+    if (o.captions) out.push(caps[group][later ? 1 : 0])
+    entries.forEach((e, i) =>
+      out.push(toRowSlot(e, group, i, styles, o.nameFormat, m, !o.captions && later && i === 0))
+    )
   }
   return out
 }

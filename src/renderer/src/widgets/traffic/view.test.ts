@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { visibleIds } from '@shared/elements'
 import { messagesFor } from '@shared/i18n'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { TrafficData, TrafficEntry } from '@shared/types'
 import { reuseViews, shallowEqual } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
@@ -68,9 +70,8 @@ function traffic(over: Partial<TrafficData> = {}): TrafficData {
 }
 
 const OPTS: TrafficViewOptions = {
-  showFaster: true,
-  showSlower: true,
-  showHazards: true,
+  groups: ['hazard', 'slower', 'faster'],
+  captions: true,
   maxEntries: 3,
   nameFormat: 'abbr'
 }
@@ -421,14 +422,34 @@ describe('groups and slots', () => {
 
   it('ahead first (hazards, slower), the faster cars behind last', () => {
     expect(GROUP_ORDER).toEqual(['hazard', 'slower', 'faster'])
+    // The defaults draw today's widget: every group in that order, captions and title, every cell.
+    const S = OPTION_SCHEMA.traffic
+    expect(visibleIds(S.groups.default)).toEqual(GROUP_ORDER)
+    expect(visibleIds(S.header.default)).toEqual(['title', 'captions'])
+    expect(visibleIds(S.parts.default)).toEqual([
+      'icon',
+      'cls',
+      'driver',
+      'lead',
+      'value',
+      'sector'
+    ])
     expect(visibleGroups(full, OPTS).map((g) => g.group)).toEqual(['hazard', 'slower', 'faster'])
   })
 
   it('follows the group toggles and the entry limit', () => {
-    const g = visibleGroups(full, { ...OPTS, showHazards: false, maxEntries: 2 })
+    const g = visibleGroups(full, { ...OPTS, groups: ['slower', 'faster'], maxEntries: 2 })
     expect(g.map((x) => x.group)).toEqual(['slower', 'faster'])
     expect(g[1]?.entries).toHaveLength(2)
     expect(visibleGroups(full, { ...OPTS, maxEntries: 0 })[2]?.entries).toHaveLength(1)
+  })
+
+  it('in the groups order (each once)', () => {
+    const order = (groups: TrafficViewOptions['groups']): string[] =>
+      visibleGroups(full, { ...OPTS, groups }).map((g) => g.group)
+    expect(order(['faster', 'hazard', 'slower'])).toEqual(['faster', 'hazard', 'slower'])
+    expect(order(['faster', 'faster', 'slower'])).toEqual(['faster', 'slower'])
+    expect(order([])).toEqual([])
   })
 
   it('nothing to draw: hidden payload, empty groups or every group off', () => {
@@ -436,8 +457,24 @@ describe('groups and slots', () => {
     expect(hasTraffic({ ...full, visible: false }, OPTS)).toBe(false)
     expect(hasTraffic(traffic(), OPTS)).toBe(false)
     const onlyFaster = traffic({ faster: [entry()] })
-    expect(hasTraffic(onlyFaster, { ...OPTS, showFaster: false })).toBe(false)
-    expect(hasTraffic(onlyFaster, { ...OPTS, showSlower: false, showHazards: false })).toBe(true)
+    expect(hasTraffic(onlyFaster, { ...OPTS, groups: ['hazard', 'slower'] })).toBe(false)
+    expect(hasTraffic(onlyFaster, { ...OPTS, groups: ['faster'] })).toBe(true)
+  })
+
+  it('without captions: the lines only, a rule above each later group', () => {
+    const slots = toSlots(full, { ...OPTS, captions: false }, styles, ES)
+    expect(layoutKey(slots)).toBe('rrrrr')
+    expect(rows(slots).map((r) => r.css.includes('is-break'))).toEqual([
+      false,
+      true,
+      true,
+      false,
+      false
+    ])
+    // With captions the caption is the separator.
+    expect(rows(toSlots(full, OPTS, styles, ES)).some((r) => r.css.includes('is-break'))).toBe(
+      false
+    )
   })
 
   it('a caption per group, then its cars; only the first caption has no separator', () => {
@@ -535,11 +572,15 @@ describe('preview', () => {
 
   it('follows the options; every group when all of them are off', () => {
     expect(previewOptions(OPTS)).toBe(OPTS)
-    const some = { ...OPTS, showFaster: false, showHazards: false }
+    const some: TrafficViewOptions = { ...OPTS, groups: ['slower'] }
     expect(previewOptions(some)).toBe(some)
-    expect(
-      previewOptions({ ...OPTS, showFaster: false, showSlower: false, showHazards: false })
-    ).toEqual(OPTS)
+    expect(previewOptions({ ...OPTS, groups: [] })).toEqual(OPTS)
+    // Every group, in the list's own order.
+    expect(previewOptions({ ...OPTS, groups: [] }, ['faster', 'slower', 'hazard']).groups).toEqual([
+      'faster',
+      'slower',
+      'hazard'
+    ])
     const one = rows(toSlots(PREVIEW_TRAFFIC, { ...OPTS, maxEntries: 1 }, styles, ES))
     expect(one).toHaveLength(3)
   })
