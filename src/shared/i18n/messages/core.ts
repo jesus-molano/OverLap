@@ -14,7 +14,7 @@ export const coreEs = {
   widgetTitles: {
     relative: 'Relativo',
     radar: 'Radar',
-    standings: 'Clasificación',
+    standings: 'Posiciones',
     battle: 'Batalla',
     inputs: 'Pedales',
     traffic: 'Tráfico',

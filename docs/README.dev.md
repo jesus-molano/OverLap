@@ -67,7 +67,7 @@ Fuera de Windows se puede desarrollar con `npm run dev:mock` (Linux/macOS).
 ./dist/OverLap-2.2.0-portable.exe --mock
 ```
 
-Si iRacing no está abierto, Relativo y Clasificación muestran **"Esperando a iRacing…"** unos 8 s y
+Si iRacing no está abierto, Relativo y Posiciones muestran **"Esperando a iRacing…"** unos 8 s y
 luego se ocultan, para no quedarse sobre el escritorio al cerrar el simulador (en modo edición siguen
 para colocarlos; `visibility.showWhileWaiting` los mantiene; un error de telemetría se queda a la
 vista). El radar sigue oculto, igual que cuando no hay nadie cerca, y se reintenta la conexión cada
@@ -96,18 +96,18 @@ portable; `app.setPath('userData', ...)` en `src/main/index.ts` la fija). Junto 
 
 ## Widgets
 
-| Widget        | Id          | Frecuencia | Tamaño mínimo |
-| ------------- | ----------- | ---------- | ------------- |
-| Relativo      | `relative`  | 10 Hz      | 300 x 150     |
-| Radar         | `radar`     | 60 Hz      | 120 x 140     |
-| Clasificación | `standings` | 4 Hz       | 240 x 60      |
-| Batalla       | `battle`    | 4 Hz       | 220 x 60      |
-| Pedales       | `inputs`    | 60 Hz      | 120 x 70      |
-| Tráfico       | `traffic`   | 4 Hz       | 220 x 60      |
-| Avisos        | `alerts`    | 10 Hz      | 200 x 50      |
-| Testigos      | `lights`    | 10 Hz      | 40 x 24       |
-| Delta         | `delta`     | 30 Hz      | 200 x 48      |
-| Combustible   | `fuel`      | 2 Hz       | 180 x 40      |
+| Widget      | Id          | Frecuencia | Tamaño mínimo |
+| ----------- | ----------- | ---------- | ------------- |
+| Relativo    | `relative`  | 10 Hz      | 300 x 150     |
+| Radar       | `radar`     | 60 Hz      | 120 x 140     |
+| Posiciones  | `standings` | 4 Hz       | 240 x 60      |
+| Batalla     | `battle`    | 4 Hz       | 220 x 60      |
+| Pedales     | `inputs`    | 60 Hz      | 120 x 70      |
+| Tráfico     | `traffic`   | 4 Hz       | 220 x 60      |
+| Avisos      | `alerts`    | 10 Hz      | 200 x 50      |
+| Testigos    | `lights`    | 10 Hz      | 40 x 24       |
+| Delta       | `delta`     | 30 Hz      | 200 x 48      |
+| Combustible | `fuel`      | 2 Hz       | 180 x 40      |
 
 Las definiciones están en `WIDGET_DEFS` (`src/shared/widgets.ts`).
 
@@ -122,16 +122,16 @@ overlay** también está en la bandeja):
 | Opción                                                   | Por defecto                           | Qué hace                                                                       |
 | -------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
 | Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre  |
-| En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda la clasificación  |
+| En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda Posiciones        |
 | Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                       |
-| Clasificación en la pantalla de sesión                   | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
+| Posiciones en la pantalla de sesión                      | Sí                                    | Fuera del coche se queda con los resultados (`showOnSessionScreen` del widget) |
 | Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                   |
 | Ocultar en el garaje (`hideInGarage`)                    | Sí                                    | Mientras está abierta la pantalla del garaje                                   |
-| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Clasificación siguen con el aviso                      |
+| Mantener «Esperando a iRacing» (`showWhileWaiting`)      | No                                    | Sin iRacing, Relativo y Posiciones siguen con el aviso                         |
 
 - **En el coche** es `IsOnTrack` (tú dentro, con la física en marcha). Fuera del coche (garaje,
   pantalla de sesión, mirando la carrera, el turno de un compañero en una carrera por equipos) no se
-  ve nada, salvo Clasificación en la pantalla de sesión. Un instante fuera (≤ 1 s: un reset, el
+  ve nada, salvo Posiciones en la pantalla de sesión. Un instante fuera (≤ 1 s: un reset, el
   principio de una grúa) no hace parpadear el overlay; al subir al coche vuelve en el acto.
 - **Solo en carrera** oculta también la práctica y la clasificación enteras, dentro del coche.
 - **Repeticiones**: por defecto no se ve ningún widget. Con «Seguir al coche en cámara» (`follow`),
@@ -145,7 +145,7 @@ overlay** también está en la bandeja):
   valor por defecto de entonces).
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
-  (`showOnSessionScreen`); por defecto solo se queda Clasificación, con los resultados. Radar,
+  (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados. Radar,
   Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos; Combustible tampoco: no
   muestra nada con el sistema de repeticiones activo, y lo está en la pantalla de sesión. Con «Solo
   cuando estás en el coche» (o «Solo en carrera») y las repeticiones ocultas, la pantalla de sesión
@@ -156,11 +156,11 @@ overlay** también está en la bandeja):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
   o salta).
-- En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
+- En directo con la cámara en otro coche, Relativo, Posiciones, Batalla y Tráfico se centran en
   él; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se
   ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
-  y Clasificación (con `follow`) se queda con la carrera en directo tal como estaba. El cronometraje
+  y Posiciones (con `follow`) se queda con la carrera en directo tal como estaba. El cronometraje
   no cuenta vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta
   que la repetición partió no se cronometra). La línea de SR y el contador de incidentes solo salen
   con tu coche.
@@ -197,7 +197,7 @@ en una sesión real.
     los datos menos importantes; el texto nunca baja del mínimo.
   - Las barras y las cabeceras de columna cuentan en el alto: con ellas el texto de las filas
     encoge un poco; los logotipos y banderas cuentan en el ancho.
-- **Posición**: la misma que la Clasificación (la del modelo de carrera, no `CarIdxClassPosition`,
+- **Posición**: la misma que en Posiciones (la del modelo de carrera, no `CarIdxClassPosition`,
   que iRacing solo actualiza en meta). La de parrilla solo en carrera antes de la verde; fuera de
   carrera, sin tiempo no hay posición.
 - **Gap**: a partir de `CarIdxEstTime`, normalizado a la clase del jugador y corregido en el cruce de
@@ -208,7 +208,7 @@ en una sesión real.
 - Atenuados los coches en boxes (pit road o puesto).
 - Excluye pace car, espectadores y coches fuera del mundo.
 
-### Clasificación: parrilla, huecos y lo que queda
+### Posiciones: parrilla, huecos y lo que queda
 
 - **Antes de la verde**: la parrilla entera (`QualifyResultsInfo`), también los coches que aún
   cargan; sin puestos ganados, iRating proyectado con todos de salida y «N coches» = inscritos.
@@ -217,7 +217,7 @@ en una sesión real.
   (tuyo o el mejor de tu clase); `CarClassEstLapTime` solo como último recurso.
 - **Grúa o reset**: el hueco se mide desde donde queda el coche (nunca un «+0.0» falso); sale
   **GRÚA** en boxes mientras dura la cuenta atrás (la tuya, `PlayerCarTowTime`; la de los demás no
-  se publica: un minuto) y luego **PIT**, igual en Clasificación y Relativo; no cuenta como parada,
+  se publica: un minuto) y luego **PIT**, igual en Posiciones y Relativo; no cuenta como parada,
   y la vuelta que iRacing le acredita en el box no suma al stint. Las vueltas que se dan mientras
   OverLap no ve la carrera (una repetición, una reconexión) sí suman. Si no se sabe el intervalo y la columna de hueco al líder ya lo dice, «—» (no «+1L» dos
   veces).
@@ -230,9 +230,9 @@ en una sesión real.
   ti. Las vueltas que quedan no suben al salir del coche; con límite de vueltas y de tiempo, también
   sale el reloj.
 
-### Clasificación: personalizar
+### Posiciones: personalizar
 
-En Ajustes → Clasificación, un editor por zona (arrastra ⠿ o ↑ ↓ para ordenar, el ojo muestra u
+En Ajustes → Posiciones, un editor por zona (arrastra ⠿ o ↑ ↓ para ordenar, el ojo muestra u
 oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia al momento:
 
 - **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
@@ -253,7 +253,7 @@ oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia a
 - **Vuelta rápida**: la mejor vuelta de cada clase va en una placa morada que llena su celda, y su
   fila lleva la etiqueta «VR» junto al nombre.
 
-### Clasificación y relativo: mejor vuelta, stint, neumático y banderas
+### Posiciones y relativo: mejor vuelta, stint, neumático y banderas
 
 Lo que el overlay nativo no da, cada cosa como opción propia:
 
@@ -483,7 +483,7 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 
 ### Incidentes
 
-- **Contador siempre visible** en la cabecera del Relativo y de la Clasificación, en cualquier tipo de
+- **Contador siempre visible** en la cabecera del Relativo y de Posiciones, en cualquier tipo de
   sesión: `3x` (`PlayerCarMyIncidentCount`), en carreras por equipos también el del equipo
   (`3x · eq. 7x`), y el próximo límite de la sesión si lo hay (`11x · pen. a 17x`, `DQ a 25x`). Se
   pone naranja a 4x o menos del límite. Opciones `relative.showIncidents` y
@@ -505,9 +505,9 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 ### Condiciones de pista (barras de información)
 
 - Ya no es un widget aparte ni una línea fija: pista, agua, viento, aire y goma son elementos de las
-  barras de información, que van en la cabecera o en el pie del Relativo, la Clasificación o el
+  barras de información, que van en la cabecera o en el pie del Relativo, Posiciones o el
   Combustible (Ajustes → Personalizar; `*.headerBar`, `*.footerBar`). Por defecto el pie está
-  **visible en la Clasificación**, que crece una línea, y **oculto en el Relativo**, donde quitaría
+  **visible en Posiciones**, que crece una línea, y **oculto en el Relativo**, donde quitaría
   alto a las filas. La flecha de la pista y el dial del viento se activan en la fila de su elemento,
   en cualquier barra (`conditionsTrend`, `conditionsWindDirection`).
 - Los datos (iRacing no da pronóstico):
@@ -543,7 +543,7 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   sesiones del mismo coche y circuito (práctica → carrera) se aprovecha la media anterior hasta tener
   una propia.
 - Cabecera opcional (`fuel.headerBar`, oculta por defecto): una barra de datos como las del Relativo
-  y la Clasificación (nombre, vueltas de combustible, hora, sesión…), en tamaño pequeño, normal o
+  y Posiciones (nombre, vueltas de combustible, hora, sesión…), en tamaño pequeño, normal o
   grande.
 - Líneas, cada una con su ojo y en el orden que quieras (`fuel.lines`; la principal siempre): depósito (barra con una marca en lo que necesitas),
   consumo, para meta y repostar (con `fuel.marginLaps` vueltas de margen, 0.5; `LLENO` si una parada

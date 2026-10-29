@@ -34,7 +34,7 @@ describe('replay rule wording', () => {
 
   it('words the replays help for the current choices', () => {
     expect(replaysHelp(es, LOCALES.es, FOLLOW)).toBe(
-      'Siguen al coche que miras y, al rebobinar, solo queda la clasificación en directo; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
+      'Siguen al coche que miras y, al rebobinar, solo queda Posiciones, con la carrera en directo; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro'
     )
     expect(replaysHelp(es, LOCALES.es, HIDE)).toBe(
       'Ningún widget mientras ves una repetición, ni al mirar a otros coches en directo desde fuera del coche'

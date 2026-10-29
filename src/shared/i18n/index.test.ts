@@ -33,7 +33,7 @@ describe('messagesFor', () => {
 
 describe('widgetTitle', () => {
   it('names every widget in both languages', () => {
-    expect(widgetTitle(es, 'standings')).toBe('Clasificación')
+    expect(widgetTitle(es, 'standings')).toBe('Posiciones')
     expect(widgetTitle(en, 'standings')).toBe('Standings')
     expect(widgetTitle(es, 'inputs')).toBe('Pedales')
     expect(widgetTitle(en, 'inputs')).toBe('Inputs')
@@ -41,6 +41,16 @@ describe('widgetTitle', () => {
       expect(widgetTitle(es, id)).not.toBe('')
       expect(widgetTitle(en, id)).not.toBe('')
     }
+  })
+
+  it('never names a widget like a session (the qualifying session keeps its name)', () => {
+    for (const m of [es, en]) {
+      const sessions = Object.values(m.settings.window.showInKinds).map((s) => s.toLowerCase())
+      for (const id of WIDGET_IDS) {
+        expect(sessions, id).not.toContain(widgetTitle(m, id).toLowerCase())
+      }
+    }
+    expect(es.settings.window.showInKinds.qualify).toBe('Clasificación')
   })
 })
 
