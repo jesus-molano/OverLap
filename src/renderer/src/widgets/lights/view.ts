@@ -1,13 +1,14 @@
 /**
  * LightsData to what the warning lights strip draws. Pure.
  *
- * Every light keeps its place on the strip (LIGHT_ORDER) and its own pictogram (ui/engineIcons);
+ * Every light keeps its place on the strip (lights.icons, the user's order; LIGHT_ORDER by
+ * default) and its own pictogram (ui/engineIcons);
  * lit, it takes its severity's colour and its own shape (a solid tile, a ring, a key line, a
  * rail: LightsWidget.vue), so it reads without its colour, colour-blind or not. The options apply
  * here as well as in the provider, so an option shows at once and on the samples. Words come
  * from the dictionary `m` (messagesFor(lang)).
  */
-import { isElementVisible } from '@shared/elements'
+import { visibleIds } from '@shared/elements'
 import { LIGHT_ORDER } from '@shared/lights'
 import { tempDeltaIn, tempIn } from '@shared/format'
 import type { Messages } from '@shared/i18n'
@@ -133,7 +134,7 @@ function lightView(
   }
 }
 
-/** The lights to draw, in LIGHT_ORDER, each once, with the options applied. */
+/** The lights to draw, in the user's order (lights.icons), each once, with the options applied. */
 export function lightsView(
   d: Pick<LightsData, 'lights'>,
   o: LightsFilter,
@@ -147,10 +148,9 @@ export function lightsView(
     if (r && !byKind.has(r.kind)) byKind.set(r.kind, r)
   }
   const out: LightView[] = []
-  for (const kind of LIGHT_ORDER) {
+  for (const kind of visibleIds(o.icons)) {
     const r = byKind.get(kind)
-    // Until the strip draws the list in its order (package P4): LIGHT_ORDER, the list's shown.
-    if (r === undefined || !isElementVisible(o.icons, kind)) continue
+    if (r === undefined) continue
     const v = lightView(r, o, units, m)
     if (v !== null) out.push(v)
   }
@@ -169,10 +169,11 @@ export function hasLights(d: LightsData, o: LightsFilter, m: Messages): boolean 
  */
 export function previewFilter(sample: LightsData, o: LightsFilter, m: Messages): LightsFilter {
   if (lightsView(sample, o, 'metric', m).length > 0) return o
-  return { ...o, onlyWhenLit: false, icons: LIGHT_ORDER.map((id) => ({ id, visible: true })) }
+  // Every light, in the user's order.
+  return { ...o, onlyWhenLit: false, icons: o.icons.map((e) => ({ id: e.id, visible: true })) }
 }
 
 /** Everything the strip's height depends on besides the width and the font. */
 export function layoutKey(views: readonly LightView[], layout: LightsOptions['layout']): string {
-  return `${layout}|${views.length}|${views.map((v) => v.text.length).join(',')}`
+  return `${layout}|${views.map((v) => `${v.kind}:${v.text.length}`).join(',')}`
 }
