@@ -220,12 +220,16 @@ watch(
   border-top: 1px solid var(--ov-rule);
 }
 
+/* Clipped (an item cut by its edge is measured and dropped above), with 1 px to spare: the
+   first glyph's ClearType fringe sits just left of the group's box, and a plain clip shaved it.
+   The margin only paints; the layout is the same. */
 .ov-ibar__group {
   display: flex;
   align-items: center;
   gap: var(--ib-gap);
   min-width: 0;
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 1px;
 }
 
 /* Both groups may shrink, so neither collapses the other to nothing: an overflowing group is
