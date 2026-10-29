@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { modifierCaps } from '@shared/accelerator'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
-import { rowMessages, type DeviceNames, type ShortcutRowView } from '../shortcutsView'
+import { focusAfter, rowMessages, type DeviceNames, type ShortcutRowView } from '../shortcutsView'
 import type { ShortcutCapture } from '../useShortcutCapture'
 import Keycaps from './Keycaps.vue'
 
 /**
  * One configurable shortcut: the label (with a badge when it is off, or one of its bindings
- * does not work), then its bindings side by side as chips (up to three: keycaps, or a button
- * and its controller), each one a button that records over it and a × that removes it, then
- * "+ Añadir", which records one more, and Reset. While recording, the chip recorded over (or a
- * new one after the others) shows the keys being pressed. The button that started the
+ * does not work) and Reset at the end of that line, then its bindings side by side as chips
+ * (up to three: keycaps, or a button and its controller), each one a button that records over
+ * it and a × that removes it, then "+ Añadir", which records one more and wraps like a chip.
+ * While recording, the chip recorded over keeps its width (a short prompt, its × a Cancel), or
+ * a new one after the others shows the keys being pressed. The button that started the
  * recording keeps the focus (it turns into Cancel when it is "+ Añadir"): leaving it (Tab, a
- * click elsewhere) cancels.
+ * click elsewhere) cancels. A change that takes the focused button away (a chip removed or
+ * recorded over, the row full, Reset done) moves the focus to the chip now in its place, or to
+ * "+ Añadir".
  */
 const props = defineProps<{ row: ShortcutRowView; capture: ShortcutCapture; names: DeviceNames }>()
 
 const t = useI18n()
 const msgId = useId()
+const rowEl = useTemplateRef<HTMLElement>('rowEl')
 /** The slot recorded on this row, null when none is. */
 const recording = computed(() => {
   const a = props.capture.active.value
@@ -32,91 +36,142 @@ const heldCaps = computed(() =>
 const messages = computed(() =>
   rowMessages(t.value, props.row, props.capture.feedback.value, recording.value, props.names)
 )
+/** The width of the chip recorded over, as it was: it keeps it while recording. */
+const lockedWidth = shallowRef<number | null>(null)
 
 function onRecorderBlur(): void {
   if (recording.value !== null) props.capture.cancel()
 }
+
+function onChip(evt: MouseEvent, slot: number): void {
+  const chip = (evt.currentTarget as HTMLElement | null)?.closest('li')
+  lockedWidth.value = recording.value === slot ? null : (chip?.offsetWidth ?? null)
+  props.capture.toggle(props.row.action, slot)
+}
+
+function chipStyle(slot: number): Record<string, string> | undefined {
+  if (recording.value !== slot || lockedWidth.value === null) return undefined
+  return { minWidth: `${lockedWidth.value}px` }
+}
+
+/** The focused button went away with a change on this row: the focus goes to what replaced it. */
+watch(
+  () => props.capture.feedback.value,
+  (feedback) => {
+    void nextTick(() => {
+      const target = focusAfter(feedback, props.row)
+      const el = rowEl.value
+      const lost = document.activeElement === null || document.activeElement === document.body
+      if (target === null || el === null || !lost) return
+      const chips = el.querySelectorAll<HTMLElement>('button.sc-chip-main')
+      const next = target === 'add' ? el.querySelector<HTMLElement>('.sc-add') : chips[target.slot]
+      next?.focus()
+    })
+  }
+)
 </script>
 
 <template>
-  <div class="sc-item">
+  <div ref="rowEl" class="sc-item">
     <div class="st-row st-row-stack">
-      <div class="st-row-text">
-        <span class="sc-title">
-          <span class="st-label">{{ row.label }}</span>
-          <span v-if="row.status === 'unavailable'" class="sc-badge-unavailable">{{
-            row.badge
-          }}</span>
-        </span>
-        <span class="st-help">{{ row.help }}</span>
+      <div class="sc-head">
+        <div class="st-row-text">
+          <span class="sc-title">
+            <span class="st-label">{{ row.label }}</span>
+            <span v-if="row.status === 'unavailable'" class="sc-badge-unavailable">{{
+              row.badge
+            }}</span>
+          </span>
+          <span class="st-help">{{ row.help }}</span>
+        </div>
+        <button
+          v-if="row.canReset"
+          type="button"
+          class="st-btn st-btn-ghost st-btn-sm sc-reset"
+          :disabled="recording !== null"
+          :aria-label="t.settings.shortcuts.resetLabel(row.label, row.defaultKeys)"
+          :title="row.defaultKeys"
+          @click="capture.reset(row.action)"
+        >
+          {{ t.settings.shortcuts.reset }}
+        </button>
       </div>
-      <div class="sc-bind">
-        <ul class="sc-chips" :aria-label="row.label">
-          <li
-            v-for="b in row.bindings"
-            :key="b.slot"
-            class="sc-chip"
-            :class="{
-              'is-recording': recording === b.slot,
-              'is-off': b.off && recording !== b.slot,
-              'is-button': b.button !== null && recording !== b.slot
-            }"
-          >
-            <button
-              type="button"
-              class="sc-chip-main"
-              :aria-label="
-                recording === b.slot
-                  ? t.settings.shortcuts.cancelLabel(row.label)
-                  : t.settings.shortcuts.changeLabel(b.text, row.label)
-              "
-              :aria-describedby="msgId"
-              :title="b.off ? row.badge : undefined"
-              @click="capture.toggle(row.action, b.slot)"
-              @blur="onRecorderBlur"
-            >
-              <template v-if="recording === b.slot">
-                <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
-                <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
-              </template>
-              <span
-                v-else-if="b.button"
-                class="sc-button"
-                :aria-label="t.settings.shortcuts.buttonAria(b.button.button, b.button.device)"
-              >
-                <Icon name="wheel" class="sc-button-icon" />
-                <span class="sc-button-text">
-                  <span class="sc-button-name">{{ b.button.button }}</span>
-                  <span class="sc-button-device" :title="b.button.device">{{
-                    b.button.device
-                  }}</span>
-                </span>
-              </span>
-              <Keycaps v-else :keys="b.keys" />
-              <Icon v-if="b.off && recording !== b.slot" name="warning" class="sc-off-icon" />
-            </button>
-            <button
-              v-if="recording !== b.slot"
-              type="button"
-              class="sc-chip-x"
-              :aria-label="t.settings.shortcuts.removeLabel(b.text, row.label)"
-              :title="t.settings.shortcuts.removeLabel(b.text, row.label)"
-              @click="capture.remove(row.action, b.slot)"
-            >
-              <Icon name="close" />
-            </button>
-          </li>
-          <li v-if="adding" class="sc-chip is-recording is-new">
-            <span class="sc-chip-main">
-              <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
-              <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
-            </span>
-          </li>
-          <li v-if="row.bindings.length === 0 && !adding" class="sc-off">{{ row.badge }}</li>
-        </ul>
-        <div class="sc-actions">
+      <ul class="sc-chips" :aria-label="row.label">
+        <li
+          v-for="b in row.bindings"
+          :key="b.accelerator"
+          class="sc-chip"
+          :class="{
+            'is-recording': recording === b.slot,
+            'is-off': b.off && recording !== b.slot,
+            'is-button': b.button !== null && recording !== b.slot
+          }"
+          :style="chipStyle(b.slot)"
+        >
           <button
-            v-if="row.canAdd"
+            type="button"
+            class="sc-chip-main"
+            :aria-label="
+              recording === b.slot
+                ? t.settings.shortcuts.cancelLabel(row.label)
+                : t.settings.shortcuts.changeLabel(b.text, row.label)
+            "
+            :aria-describedby="msgId"
+            :title="b.off ? row.badge : undefined"
+            @click="onChip($event, b.slot)"
+            @blur="onRecorderBlur"
+          >
+            <template v-if="recording === b.slot">
+              <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
+              <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.promptShort }}</span>
+            </template>
+            <span
+              v-else-if="b.button"
+              class="sc-button"
+              :aria-label="t.settings.shortcuts.buttonAria(b.button.button, b.button.device)"
+            >
+              <Icon name="wheel" class="sc-button-icon" />
+              <span class="sc-button-text">
+                <span class="sc-button-name">{{ b.button.button }}</span>
+                <span class="sc-button-device" :title="b.button.device">{{ b.button.device }}</span>
+              </span>
+            </span>
+            <Keycaps v-else :keys="b.keys" />
+            <Icon v-if="b.off && recording !== b.slot" name="warning" class="sc-off-icon" />
+          </button>
+          <!-- Recording over it, its × cancels (pressing it keeps the focus on the chip). -->
+          <button
+            v-if="recording === b.slot"
+            type="button"
+            class="sc-chip-x sc-chip-cancel"
+            tabindex="-1"
+            :aria-label="t.settings.shortcuts.cancelLabel(row.label)"
+            :title="t.settings.shortcuts.cancel"
+            @mousedown.prevent
+            @click="capture.cancel()"
+          >
+            <Icon name="close" />
+          </button>
+          <button
+            v-else
+            type="button"
+            class="sc-chip-x"
+            :aria-label="t.settings.shortcuts.removeLabel(b.text, row.label)"
+            :title="t.settings.shortcuts.removeLabel(b.text, row.label)"
+            @click="capture.remove(row.action, b.slot)"
+          >
+            <Icon name="close" />
+          </button>
+        </li>
+        <li v-if="adding" class="sc-chip is-recording is-new">
+          <span class="sc-chip-main">
+            <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
+            <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
+          </span>
+        </li>
+        <li v-if="row.bindings.length === 0 && !adding" class="sc-off">{{ row.badge }}</li>
+        <li v-if="row.canAdd" class="sc-add-li">
+          <button
             type="button"
             class="st-btn st-btn-sm sc-add"
             :aria-label="
@@ -133,18 +188,8 @@ function onRecorderBlur(): void {
               <Icon name="plus" class="sc-add-icon" />{{ t.settings.shortcuts.add }}
             </template>
           </button>
-          <button
-            v-if="row.canReset && recording === null"
-            type="button"
-            class="st-btn st-btn-ghost st-btn-sm"
-            :aria-label="t.settings.shortcuts.resetLabel(row.label, row.defaultKeys)"
-            :title="row.defaultKeys"
-            @click="capture.reset(row.action)"
-          >
-            {{ t.settings.shortcuts.reset }}
-          </button>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
     <!-- Always in the page (a live region must exist before it speaks); empty, it has no height. -->
     <p :id="msgId" class="sc-msg" aria-live="polite">
@@ -164,14 +209,18 @@ function onRecorderBlur(): void {
 </template>
 
 <style scoped>
-.sc-bind {
+/* The name and its help, Reset at the end of the line: the same place on every row. */
+.sc-head {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-/* The bindings side by side, wrapping in a narrow window. */
+.sc-reset {
+  flex: none;
+}
+
+/* The bindings side by side, then "+ Añadir", wrapping together in a narrow window. */
 .sc-chips {
   display: flex;
   flex-wrap: wrap;
@@ -242,13 +291,17 @@ function onRecorderBlur(): void {
   background: color-mix(in srgb, var(--st-focus) 8%, var(--st-field));
 }
 
+/* Recorded over: the chip keeps its width (set while recording), the prompt short in it. */
 .sc-chip.is-recording .sc-chip-main {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
+/* One more: room for the full prompt. */
+.sc-chip.is-new .sc-chip-main {
   min-width: 13em;
   padding-right: 8px;
   border-radius: var(--st-radius-sm);
-}
-
-.sc-chip.is-new .sc-chip-main {
   cursor: default;
 }
 
@@ -348,10 +401,9 @@ function onRecorderBlur(): void {
   white-space: nowrap;
 }
 
-.sc-actions {
+.sc-add-li {
   display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  align-items: center;
 }
 
 .sc-add {

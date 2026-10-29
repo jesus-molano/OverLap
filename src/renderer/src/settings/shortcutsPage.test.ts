@@ -41,9 +41,10 @@ describe('shortcuts page', () => {
     expect(t).toMatch(/<p :id="msgId" class="sc-msg" aria-live="polite">/)
     // Two ways to record (over a chip, or one more), each cancelling on blur and on a second click.
     expect(t.match(/@blur="onRecorderBlur"/g)).toHaveLength(2)
-    expect(t).toMatch(/@click="capture\.toggle\(row\.action, b\.slot\)"/)
+    expect(t).toMatch(/@click="onChip\(\$event, b\.slot\)"/)
+    expect(ROW).toMatch(/function onChip[\s\S]*?props\.capture\.toggle\(props\.row\.action, slot\)/)
     expect(t).toMatch(/@click="capture\.toggle\(row\.action, row\.bindings\.length\)"/)
-    expect(t.match(/capture\.toggle/g)).toHaveLength(2)
+    expect(t.match(/capture\.toggle/g)).toHaveLength(1)
   })
 
   it('shows the bindings as chips, each with its own ×, and "add" only while there is room', () => {
@@ -51,6 +52,16 @@ describe('shortcuts page', () => {
     expect(t).toMatch(/<li\s+v-for="b in row\.bindings"[\s\S]*?class="sc-chip"/)
     expect(t).toMatch(/class="sc-chip-x"[\s\S]*?@click="capture\.remove\(row\.action, b\.slot\)"/)
     expect(t).toMatch(/v-if="row\.canAdd"/)
+    // Keyed by the binding: a chip that moves up is not the removed one's element (nor its focus).
+    expect(t).toMatch(/v-for="b in row\.bindings"\s+:key="b\.accelerator"/)
+    // "+ Añadir" wraps with the chips; Reset stays at the end of the title line, only disabled
+    // while recording (nothing moves under the driver's hands).
+    const list = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
+    expect(list).toContain('class="st-btn st-btn-sm sc-add"')
+    expect(t).toMatch(/<div class="sc-head">[\s\S]*?sc-reset"\s+:disabled="recording !== null"/)
+    // Recording over a chip: its × cancels, and the prompt is the short one.
+    expect(t).toMatch(/sc-chip-cancel"[\s\S]*?@click="capture\.cancel\(\)"/)
+    expect(t).toContain('t.settings.shortcuts.capture.promptShort')
     // The "in use" badge sits by the name, not in a chip, so the chips stay one size.
     const chips = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
     expect(chips).toContain('<Keycaps')

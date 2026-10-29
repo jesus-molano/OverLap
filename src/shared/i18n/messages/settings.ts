@@ -325,9 +325,16 @@ export const settingsEs = {
     addLabel: (action: string) => `Añadir otro atajo: ${action}`,
     cancelLabel: (action: string) => `Cancelar el cambio: ${action}`,
     resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
+    /**
+     * An action's bindings inside a sentence, any of them does it: 'Ctrl+Shift+H o Botón 24',
+     * 'Ctrl+Shift+E, Botón 3 o F13' (`first`: the others but the last, joined by commas).
+     */
+    anyOf: (first: string, last: string) => `${first} o ${last}`,
     capture: {
-      /** In the field while recording: short, so the field keeps its width. */
+      /** In a new chip while recording. */
       prompt: 'Pulsa las teclas o un botón…',
+      /** In a chip recorded over: short, so the chip keeps its width (the line below explains). */
+      promptShort: 'Pulsa…',
       /** Recording over a binding: Backspace removes it. */
       clearHint: 'Esc cancela · Retroceso o Supr lo quitan',
       /** Recording one more. */
@@ -1548,8 +1555,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     addLabel: (action) => `Add another shortcut: ${action}`,
     cancelLabel: (action) => `Cancel the change: ${action}`,
     resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
+    anyOf: (first, last) => `${first} or ${last}`,
     capture: {
       prompt: 'Press the keys or a button…',
+      promptShort: 'Press…',
       clearHint: 'Esc cancels · Backspace or Delete remove it',
       addHint: 'Esc cancels',
       pressAgain: 'Controller found: press the button again'

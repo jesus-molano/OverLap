@@ -1,4 +1,4 @@
-import { onScopeDispose, readonly, shallowRef, type Ref } from 'vue'
+import { computed, onScopeDispose, readonly, shallowRef, type ComputedRef, type Ref } from 'vue'
 import {
   NO_MODIFIERS,
   heldModifiers,
@@ -30,8 +30,11 @@ export type KeySource = Pick<EventTarget, 'addEventListener' | 'removeEventListe
 export interface CaptureDeps {
   /** Every action's bindings now: one another action, or slot, has is refused. */
   current(): Readonly<ShortcutBindings>
-  /** Saves all the bindings of `action` ([] turns it off). */
-  save(action: ShortcutAction, bindings: string[]): void
+  /**
+   * Saves all the bindings of `action` ([] turns it off). A promise settles once main has
+   * replied and `current()` has its answer: until then the capture works on the list it sent.
+   */
+  save(action: ShortcutAction, bindings: string[]): void | Promise<unknown>
   /** Tells main the page records keys (true, then renewed) or no longer does (false). */
   capture(on: boolean): void
   source: KeySource
@@ -49,6 +52,11 @@ export interface CaptureTarget {
 }
 
 export interface ShortcutCapture {
+  /**
+   * Every action's bindings as the page should draw them: `current()`, with the lists sent and
+   * not answered yet in their place (a second click acts on what the first one did).
+   */
+  readonly bindings: ComputedRef<Readonly<ShortcutBindings>>
   /** The binding recording now; null when none is. */
   readonly active: Readonly<Ref<Readonly<CaptureTarget> | null>>
   /** The modifiers held right now while recording (the live keycaps). */
@@ -130,6 +138,33 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
   const pressedNames = shallowRef<Readonly<Record<string, string>>>({})
   let renew: ReturnType<typeof setInterval> | null = null
   let stopButtons: Unsubscribe | null = null
+  /** The lists saved and not answered yet, and which save each one is (the last one wins). */
+  const pending = shallowRef<Readonly<Partial<Record<ShortcutAction, string[]>>>>({})
+  const pendingSave = new Map<ShortcutAction, number>()
+  let saves = 0
+
+  /** Every action's bindings now: main's, or the list this page sent and main has not answered. */
+  function now(): Readonly<ShortcutBindings> {
+    const sent = pending.value
+    return Object.keys(sent).length === 0 ? deps.current() : { ...deps.current(), ...sent }
+  }
+
+  function save(action: ShortcutAction, list: string[]): void {
+    const mine = ++saves
+    pendingSave.set(action, mine)
+    pending.value = { ...pending.value, [action]: list }
+    const settle = (): void => {
+      if (pendingSave.get(action) !== mine) return
+      pendingSave.delete(action)
+      const rest = { ...pending.value }
+      delete rest[action]
+      pending.value = rest
+    }
+    const reply = deps.save(action, list)
+    // Saved at once (no reply to wait for): main's list is the one sent.
+    if (reply === undefined) settle()
+    else void Promise.resolve(reply).finally(settle)
+  }
 
   function listen(on: boolean): void {
     const { source } = deps
@@ -150,7 +185,7 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
 
   /** `slot` within what the action has, its count at most (a new binding), when there is room. */
   function slotFor(action: ShortcutAction, slot: number | undefined): number | null {
-    const count = deps.current()[action].length
+    const count = now()[action].length
     const s = slot ?? count
     if (!Number.isInteger(s) || s < 0 || s > count || s >= MAX_BINDINGS) return null
     return s
@@ -183,14 +218,14 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
   }
 
   function toggle(action: ShortcutAction, slot?: number): void {
-    const now = active.value
-    const s = slot ?? deps.current()[action].length
-    if (now !== null && now.action === action && now.slot === s) cancel()
+    const recording = active.value
+    const s = slot ?? now()[action].length
+    if (recording !== null && recording.action === action && recording.slot === s) cancel()
     else start(action, s)
   }
 
   function assign(action: ShortcutAction, slot: number, accelerator: string): boolean {
-    const current = deps.current()
+    const current = now()
     const list = current[action]
     const check = checkShortcut(action, accelerator, current, slot)
     if (!check.ok) {
@@ -211,16 +246,23 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
         action,
         kind: 'saved',
         accelerator: check.accelerator,
-        warning: check.warning
+        warning: check.warning,
+        slot
       }
       return true
     }
-    deps.save(action, next)
+    save(action, next)
     const removed = list[slot] ?? ''
     feedback.value =
       check.accelerator === ''
-        ? { action, kind: 'removed', accelerator: removed }
-        : { action, kind: 'saved', accelerator: check.accelerator, warning: check.warning }
+        ? { action, kind: 'removed', accelerator: removed, slot }
+        : {
+            action,
+            kind: 'saved',
+            accelerator: check.accelerator,
+            warning: check.warning,
+            slot: next.indexOf(check.accelerator)
+          }
     return true
   }
 
@@ -230,7 +272,7 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
 
   function reset(action: ShortcutAction): boolean {
     const factory = DEFAULT_SETTINGS.shortcuts[action]
-    const current = deps.current()
+    const current = now()
     if (factory !== '') {
       const check = checkShortcut(action, factory, { ...current, [action]: [] }, 0)
       if (!check.ok) {
@@ -244,11 +286,11 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
       }
     }
     const next = factory === '' ? [] : [factory]
-    deps.save(action, next)
+    save(action, next)
     feedback.value =
       factory === ''
-        ? { action, kind: 'removed', accelerator: current[action][0] ?? '' }
-        : { action, kind: 'saved', accelerator: factory }
+        ? { action, kind: 'removed', accelerator: current[action][0] ?? '', slot: 0 }
+        : { action, kind: 'saved', accelerator: factory, slot: 0 }
     return true
   }
 
@@ -272,7 +314,7 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
     if (isClearKey(input)) {
       // A new binding has nothing to remove. The patch goes first: main applies it once the
       // capture below has ended.
-      if (slot < deps.current()[action].length) remove(action, slot)
+      if (slot < now()[action].length) remove(action, slot)
       cancel()
       return
     }
@@ -318,6 +360,7 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
 
   onScopeDispose(cancel)
   return {
+    bindings: computed(now),
     active: readonly(active),
     held: readonly(held),
     feedback: readonly(feedback),
@@ -339,7 +382,7 @@ export function windowCaptureDeps(): CaptureDeps {
       const s = settings.value ?? DEFAULT_SETTINGS
       return shortcutBindings(s.shortcuts, s.shortcutsMore)
     },
-    save: (action, bindings) => void updateSettings({ shortcutBindings: { [action]: bindings } }),
+    save: (action, bindings) => updateSettings({ shortcutBindings: { [action]: bindings } }),
     capture: (on) => sendCommand({ type: 'capture-shortcuts', on }),
     source: window,
     onButton: (cb) => window.overlay.onControllerPress(cb)

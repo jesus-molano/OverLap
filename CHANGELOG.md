@@ -26,6 +26,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   **×** para quitarlo, y **+ Añadir** graba otro; pulsar uno lo cambia. Quitar el primero sube el
   siguiente. Un atajo que ya tiene otra acción (o la misma) se rechaza y la página dice quién lo
   tiene; uno que no funciona (desconectado, o en uso por otra aplicación) se marca él solo.
+  Donde una frase nombra los atajos de una acción (el aviso de overlay oculto, el delta, el modo
+  edición) aparecen como «Ctrl+Shift+H o Botón 24».
 - Los ajustes de antes se cargan igual. La 2.1.1 sigue funcionando con el primer atajo de cada
   acción; los demás se pierden si guarda los ajustes.
 

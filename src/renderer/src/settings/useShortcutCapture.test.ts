@@ -259,7 +259,8 @@ describe('useShortcutCapture: ways out', () => {
     expect(capture.feedback.value).toEqual({
       action: 'toggleOverlay',
       kind: 'removed',
-      accelerator: 'Ctrl+Shift+H'
+      accelerator: 'Ctrl+Shift+H',
+      slot: 0
     })
     expect(capture.active.value).toBeNull()
     capture.start('toggleEditMode', 0)
@@ -405,7 +406,8 @@ describe('useShortcutCapture: controller buttons', () => {
       action: 'nextLayout',
       kind: 'saved',
       accelerator: `${G29}:12`,
-      warning: undefined
+      warning: undefined,
+      slot: 0
     })
     expect(capture.pressedNames.value).toEqual({ [G29]: 'G29 Driving Force Racing Wheel' })
   })
@@ -516,9 +518,20 @@ describe('useShortcutCapture: several bindings per action', () => {
     expect(capture.feedback.value).toEqual({
       action: 'toggleOverlay',
       kind: 'removed',
-      accelerator: 'Ctrl+Shift+H'
+      accelerator: 'Ctrl+Shift+H',
+      slot: 0
     })
     expect(capture.remove('toggleOverlay', 5)).toBe(false)
+  })
+
+  it('says where a saved binding is now (the focus goes there)', () => {
+    current = { ...current, toggleOverlay: ['Ctrl+Shift+H', 'F13'] }
+    capture.start('toggleOverlay')
+    down('F14', 'F14')
+    expect(capture.feedback.value).toMatchObject({ kind: 'saved', accelerator: 'F14', slot: 2 })
+    capture.start('toggleOverlay', 1)
+    down('F15', 'F15')
+    expect(capture.feedback.value).toMatchObject({ kind: 'saved', accelerator: 'F15', slot: 1 })
   })
 
   it('Backspace over a binding removes it; while adding one it only cancels', () => {
@@ -569,5 +582,76 @@ describe('useShortcutCapture: several bindings per action', () => {
       kind: 'refused',
       conflict: 'toggleEditMode'
     })
+  })
+})
+
+describe('useShortcutCapture: changes sent before main replies', () => {
+  const G29 = 'joy:046d:c24f:0'
+  /** Main's list stays the old one until `reply()`: the window of one IPC round trip. */
+  let replies: (() => void)[]
+  /** Main answering without applying it (refused): its list stays. */
+  let refusals: (() => void)[]
+  let lists: Record<ShortcutAction, string[]>
+  let sent: [ShortcutAction, string[]][]
+  let slow: ShortcutCapture
+  let stopSlow: () => void
+
+  beforeEach(() => {
+    replies = []
+    refusals = []
+    sent = []
+    lists = {
+      ...shortcutBindings(DEFAULT_SETTINGS.shortcuts),
+      toggleOverlay: ['Ctrl+Shift+H', `${G29}:24`, 'F13']
+    }
+    const scope = effectScope()
+    slow = scope.run(() =>
+      useShortcutCapture({
+        current: () => lists,
+        save: (action, bindings) => {
+          sent.push([action, bindings])
+          return new Promise<void>((resolve) => {
+            replies.push(() => {
+              lists = { ...lists, [action]: bindings }
+              resolve()
+            })
+            refusals.push(resolve)
+          })
+        },
+        capture: () => undefined,
+        source: new EventTarget()
+      })
+    ) as ShortcutCapture
+    stopSlow = () => scope.stop()
+  })
+
+  afterEach(() => stopSlow())
+
+  it('removes twice in a row from the list it sent, not the stale one', async () => {
+    expect(slow.remove('toggleOverlay', 0)).toBe(true)
+    expect(slow.bindings.value.toggleOverlay).toEqual([`${G29}:24`, 'F13'])
+    expect(slow.remove('toggleOverlay', 0)).toBe(true)
+    expect(sent.map(([, b]) => b)).toEqual([[`${G29}:24`, 'F13'], ['F13']])
+    for (const reply of replies) reply()
+    await vi.runAllTimersAsync()
+    expect(lists.toggleOverlay).toEqual(['F13'])
+    expect(slow.bindings.value.toggleOverlay).toEqual(['F13'])
+  })
+
+  it('adds one more after the one just added, not over it', () => {
+    lists = { ...lists, toggleOverlay: ['Ctrl+Shift+H'] }
+    expect(slow.assign('toggleOverlay', 1, 'F14')).toBe(true)
+    slow.start('toggleOverlay')
+    expect(slow.active.value).toEqual({ action: 'toggleOverlay', slot: 2 })
+    slow.cancel()
+  })
+
+  it("goes back to main's list once it answers (a refusal included)", async () => {
+    slow.remove('toggleOverlay', 2)
+    expect(slow.bindings.value.toggleOverlay).toEqual(['Ctrl+Shift+H', `${G29}:24`])
+    // Main refused it: once it has answered, the page shows its list again.
+    refusals[0]?.()
+    await vi.runAllTimersAsync()
+    expect(slow.bindings.value.toggleOverlay).toEqual(['Ctrl+Shift+H', `${G29}:24`, 'F13'])
   })
 })

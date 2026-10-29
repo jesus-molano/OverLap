@@ -72,7 +72,7 @@ const fallbackHelp = computed(() => {
 
 /** The cycle shortcut's keys, or where to give it some. */
 const cycleText = computed(() => {
-  // 'Ctrl+Alt+D', 'Botón 7 · G29 …' for a controller's button, 'Ctrl+Alt+D · Botón 7'.
+  // 'Ctrl+Alt+D', 'Botón 7 de G29 …' for a controller's button, 'Ctrl+Alt+D o Botón 7'.
   const keys = bindingsText(t.value, shortcuts.value.cycleDeltaReference, deviceNames.value)
   return keys !== '' ? t.value.settings.delta.cycleKeys(keys) : t.value.settings.delta.cycleNoKeys
 })
