@@ -11,7 +11,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 - **Atajos en los botones del volante**: cualquier atajo puede ir en un botón del volante o su aro,
   una button box, los pedales, el cambio o el freno de mano, en vez de en una combinación de
-  teclas. En **Ajustes > Atajos** (antes «Atajos de teclado»), **Cambiar** espera una combinación
+  teclas. En **Ajustes > Atajos** (antes «Atajos de teclado»), **+ Añadir** espera una combinación
   o un botón; se ve como «Botón 12 · G29 Driving Force Racing Wheel», con más de 32 botones
   también.
 - Los botones solo se leen (Raw Input de Windows, como SimHub o Crew Chief): se comparten con
@@ -20,6 +20,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   vuelve a funcionar solo. Sin ningún atajo en un botón, OverLap no lee los mandos.
 - Las crucetas (D-pad) y los hats no se pueden asignar. Volver a la 2.1.1 devuelve a su
   combinación de fábrica los atajos que estaban en un botón.
+- **Varios atajos por acción**: hasta tres a la vez, mezclando combinaciones de teclas y botones
+  (por ejemplo `Ctrl+Shift+H` y «Botón 24 · G29», o un botón en cada volante); cualquiera la
+  ejecuta. En **Ajustes > Atajos** cada acción los muestra uno al lado del otro, cada uno con su
+  **×** para quitarlo, y **+ Añadir** graba otro; pulsar uno lo cambia. Quitar el primero sube el
+  siguiente. Un atajo que ya tiene otra acción (o la misma) se rechaza y la página dice quién lo
+  tiene; uno que no funciona (desconectado, o en uso por otra aplicación) se marca él solo.
+- Los ajustes de antes se cargan igual. La 2.1.1 sigue funcionando con el primer atajo de cada
+  acción; los demás se pierden si guarda los ajustes.
 
 ## [2.1.1] - 2026-10-29
 

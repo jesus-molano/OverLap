@@ -238,9 +238,10 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 
 ## Atajos de teclado
 
-Son globales: funcionan con iRacing en primer plano. Cada acción puede ir en una combinación de
-teclas o en un botón del volante, la button box, los pedales o el cambio (ver
-[Botones del volante](#botones-del-volante)).
+Son globales: funcionan con iRacing en primer plano. Cada acción puede tener **hasta tres atajos a
+la vez**, cada uno una combinación de teclas o un botón del volante, la button box, los pedales o
+el cambio (ver [Botones del volante](#botones-del-volante)): por ejemplo `Ctrl+Shift+H` y el
+botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la acción.
 
 | Atajo (por defecto) | Acción                                                      |
 | ------------------- | ----------------------------------------------------------- |
@@ -253,8 +254,13 @@ teclas o en un botón del volante, la button box, los pedales o el cambio (ver
 
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
-- Se cambian en **Ajustes > Atajos**: pulsa **Cambiar** y luego la combinación (o un botón del
-  volante). También se pueden desactivar o restablecer.
+- Se cambian en **Ajustes > Atajos**, donde cada acción muestra sus atajos uno al lado del otro:
+  **+ Añadir** espera una combinación (o un botón del volante) y la pone junto a los demás; pulsar
+  un atajo lo cambia por otro, y su **×** lo quita (si era el primero, el siguiente pasa a serlo).
+  Sin ninguno, la acción queda desactivada. **Restablecer** la deja solo con el de fábrica. `Esc`
+  cancela, y `Retroceso` o `Supr` quitan el atajo que estás cambiando.
+- Un mismo atajo no puede estar en dos acciones (ni dos veces en la misma): la página dice quién
+  lo tiene ya.
 - **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras
   OverLap está abierto: no elijas una que uses en el simulador. Si otra aplicación ya la tiene, la
   página lo dice.
@@ -264,10 +270,10 @@ teclas o en un botón del volante, la button box, los pedales o el cambio (ver
 
 ### Botones del volante
 
-- En **Ajustes > Atajos**, pulsa **Cambiar** y luego el botón: vale cualquier botón de un volante
-  o su aro, una button box, unos pedales, un cambio o un freno de mano que Windows vea como mando
-  de juego, también los de más de 32 botones. Se ve como «Botón 12 · G29 Driving Force Racing
-  Wheel».
+- En **Ajustes > Atajos**, pulsa **+ Añadir** (o el atajo que quieras cambiar) y luego el botón:
+  vale cualquier botón de un volante o su aro, una button box, unos pedales, un cambio o un freno
+  de mano que Windows vea como mando de juego, también los de más de 32 botones. Se ve como «Botón
+  12 · G29 Driving Force Racing Wheel».
 - **Solo se leen**: el botón se comparte con iRacing y no se bloquea nada, así que **iRacing
   también recibe la pulsación**. Elige uno que no tengas asignado en iRacing.
 - Mantenerlo pulsado cuenta como una sola pulsación.
@@ -275,14 +281,15 @@ teclas o en un botón del volante, la button box, los pedales o el cambio (ver
 - Si la página pide **pulsar el botón otra vez**, es que acaba de empezar a leer ese mando y no
   sabe qué botones estaban ya abajo (un selector giratorio o un interruptor fijo); la segunda
   pulsación es la que se guarda.
-- Si el dispositivo está desenchufado, el atajo sigue guardado y la página dice **Desconectado**;
-  al enchufarlo vuelve a funcionar solo.
+- Si el dispositivo está desenchufado, el atajo sigue guardado y la página dice **Desconectado**
+  (marcado con un aviso, si la acción tiene otros, que siguen funcionando); al enchufarlo vuelve a
+  funcionar solo.
 - Dos dispositivos idénticos (mismo modelo) comparten los botones: cualquiera de los dos sirve.
 - `Esc` para salir del modo edición sigue siendo solo de teclado.
 - Los botones solo se leen mientras algún atajo es un botón (o mientras eliges uno): sin ninguno,
   OverLap no lee los mandos.
-- Si vuelves a la versión 2.1.1, los atajos que estaban en un botón vuelven a su combinación de
-  fábrica.
+- Si vuelves a la versión 2.1.1, cada acción conserva solo su primer atajo (los demás se pierden al
+  guardar), y si era un botón vuelve a su combinación de fábrica.
 
 ## Cuándo se ve el overlay
 

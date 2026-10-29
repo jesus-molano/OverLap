@@ -1,20 +1,31 @@
 import { computed, type ComputedRef } from 'vue'
 import { DEFAULT_SETTINGS } from '@shared/settings'
-import type { ShortcutSettings } from '@shared/shortcuts'
+import {
+  SHORTCUT_ACTIONS,
+  sameList,
+  shortcutBindings,
+  type ShortcutBindings
+} from '@shared/shortcuts'
 import { shallowEqual } from '../view/reuse'
 import { overlayState, useOverlayState } from './useOverlay'
 
 /**
- * settings.shortcuts, keeping its previous object while the combinations are equal (settings
- * are replaced whole on every change, bounds too). Module-level: one per window.
+ * Every binding of each action (settings.shortcuts and settings.shortcutsMore), keeping its
+ * previous object while they are equal (settings are replaced whole on every change, bounds
+ * too). Module-level: one per window.
  */
-const shortcuts: ComputedRef<ShortcutSettings> = computed((prev) => {
-  const next = overlayState.settings.value?.shortcuts ?? DEFAULT_SETTINGS.shortcuts
-  return prev !== undefined && shallowEqual(prev, next) ? prev : next
+const shortcuts: ComputedRef<ShortcutBindings> = computed((prev) => {
+  const s = overlayState.settings.value ?? DEFAULT_SETTINGS
+  const next = shortcutBindings(s.shortcuts, s.shortcutsMore)
+  const same = prev !== undefined && SHORTCUT_ACTIONS.every((a) => sameList(prev[a], next[a]))
+  return same ? prev : next
 })
 
-/** The configured global shortcuts (defaults until the initial state arrives). */
-export function useShortcuts(): ComputedRef<ShortcutSettings> {
+/**
+ * The configured global shortcuts: each action's bindings, the first one first (defaults until
+ * the initial state arrives).
+ */
+export function useShortcuts(): ComputedRef<ShortcutBindings> {
   useOverlayState()
   return shortcuts
 }

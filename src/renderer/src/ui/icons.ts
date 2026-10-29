@@ -103,6 +103,10 @@ export const ICONS = {
   check: [{ d: 'M3 8.5l3.2 3.2L13 4.8', kind: 'stroke' }],
   /** Won't reach. */
   minus: [{ d: 'M3.5 8h9', kind: 'stroke' }],
+  /** Add one more (a shortcut's binding). */
+  plus: [{ d: 'M8 3.5v9M3.5 8h9', kind: 'stroke' }],
+  /** Remove this one (a shortcut's binding). */
+  close: [{ d: 'M4.5 4.5l7 7M11.5 4.5l-7 7', kind: 'stroke' }],
   /** Gaining / up (replaces the ▲ glyph next to other icons). */
   'arrow-up': [{ d: 'M8 3.5l5.5 7h-11z' }],
   /** Losing / down. */

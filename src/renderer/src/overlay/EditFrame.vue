@@ -15,8 +15,8 @@
  * its chip is (useEditSession).
  */
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
-import { isButtonBinding } from '@shared/controllers'
 import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
+import { firstCombination } from '@shared/shortcuts'
 import { TOPMOST_WIDGET, WIDGET_DEFS } from '@shared/widgets'
 import { useI18n } from '../composables/useI18n'
 import { useShortcuts } from '../composables/useShortcuts'
@@ -59,14 +59,13 @@ const hiddenNote = computed(() => hiddenText(t.value, autoHidden.value.reason))
 const handles = computed(() => handlesFor(autoHeight.value))
 
 /**
- * How to use and leave edit mode, by panel width; the shortcut is left out when it has none,
- * or when it is a controller's button ('Botón 3' beside the mouse wheel's "Rueda" says nothing
- * clear, and the controller's name does not fit).
+ * How to use and leave edit mode, by panel width, with the shortcut's first key combination; left
+ * out when it has none, only controller buttons ('Botón 3' beside the mouse wheel's "Rueda" says
+ * nothing clear, and the controller's name does not fit).
  */
 const hint = computed(() => {
   const f = t.value.core.editFrame
-  const binding = shortcuts.value.toggleEditMode
-  const keys = isButtonBinding(binding) ? '' : acceleratorText(t.value, binding)
+  const keys = acceleratorText(t.value, firstCombination(shortcuts.value.toggleEditMode))
   const tier = hintTier(slot.rect.value.width)
   if (keys === '') return tier === 'long' ? f.hintLongNoKey : f.hintShortNoKey
   return tier === 'long' ? f.hintLong(keys) : tier === 'short' ? f.hintShort(keys) : keys

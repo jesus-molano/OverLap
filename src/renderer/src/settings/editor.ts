@@ -8,6 +8,7 @@ import { setElementVisible } from '@shared/elements'
 import type { SettingsCommand } from '@shared/ipc'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { ElementField, ElementIdOf, OptionSection } from '@shared/settingsSchema'
+import { SHORTCUT_ACTIONS, type ShortcutAction } from '@shared/shortcuts'
 import type {
   AppearanceSettings,
   ElementEntry,
@@ -252,9 +253,17 @@ export function resetAppearance(): Promise<void> {
   return updateSettings({ appearance: look })
 }
 
-/** Every shortcut back to its factory combination, all in one patch (so none collides). */
+/**
+ * Every shortcut back to its factory combination alone (its extra bindings removed), all in one
+ * patch (so none collides).
+ */
 export function resetShortcuts(): Promise<void> {
-  return updateSettings({ shortcuts: { ...DEFAULT_SETTINGS.shortcuts } })
+  const shortcutBindings: Partial<Record<ShortcutAction, string[]>> = {}
+  for (const action of SHORTCUT_ACTIONS) {
+    const factory = DEFAULT_SETTINGS.shortcuts[action]
+    shortcutBindings[action] = factory === '' ? [] : [factory]
+  }
+  return updateSettings({ shortcutBindings })
 }
 
 /** Shows or hides every overlay window, like the tray checkbox. */
