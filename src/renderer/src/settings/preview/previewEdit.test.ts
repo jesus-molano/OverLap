@@ -15,8 +15,10 @@ import {
   ghostZones,
   isDragDistance,
   litKeys,
+  GHOST_OUTSET,
   markBox,
   marksCss,
+  outlineBoxes,
   parseEl,
   pickEl,
   sameEl,
@@ -299,7 +301,7 @@ describe('the tooltip', () => {
 
 describe('the sample stylesheet', () => {
   const S = '[data-pe="x"]'
-  it('ghosts and fades by attribute, scoped; the ghost outline stays outside the element', () => {
+  it('ghosts and fades by attribute, scoped; outlines nothing (a bar would clip it)', () => {
     const marks = {
       hover: { zone: 'relative.columns', id: 'gap' },
       lit: { zone: 'relative.columns', id: 'gap' },
@@ -308,9 +310,7 @@ describe('the sample stylesheet', () => {
     } as const
     const css = marksCss(S, marks)
     expect(css).toContain(`${S} [data-el="relative.headerBar.clock"] {`)
-    expect(css).toContain('outline: 1px dashed')
-    expect(css).toContain('outline-offset: 1px')
-    expect(css).not.toMatch(/outline-offset: -|inset/)
+    expect(css).not.toContain('outline')
     expect(css).toContain('opacity: 0.42')
     // The hovered and lit element are outlined by the layer, not here.
     expect(css).not.toContain('relative.columns.gap')
@@ -336,6 +336,22 @@ describe('the sample stylesheet', () => {
 
   it('draws the outline just outside the element, in stage px', () => {
     expect(markBox(box(110, 60, 20, 10), box(100, 50, 400, 200))).toEqual(box(8, 8, 24, 14))
+  })
+
+  it("outlines a ghost's drawn copies just outside them, skipping the undrawn, up to a cap", () => {
+    const stage = box(100, 50, 400, 200)
+    const drawn = box(110, 60, 20, 10)
+    const undrawn = box(300, 60, 0, 10)
+    const flat = box(200, 60, 20, 0)
+    expect(GHOST_OUTSET).toBe(2)
+    expect(outlineBoxes([undrawn, drawn, flat], stage, GHOST_OUTSET, 10)).toEqual([
+      box(8, 8, 24, 14)
+    ])
+    expect(outlineBoxes([drawn, drawn, drawn], stage, 1, 2)).toEqual([
+      box(9, 9, 22, 12),
+      box(9, 9, 22, 12)
+    ])
+    expect(outlineBoxes([], stage, GHOST_OUTSET, 10)).toEqual([])
   })
 
   it('skips anything that is not a plain data-el', () => {

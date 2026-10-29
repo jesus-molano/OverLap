@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, shallowRef, useId, watch, watchEffect } from 'vue'
+import {
+  onBeforeUnmount,
+  onMounted,
+  shallowRef,
+  useId,
+  useTemplateRef,
+  watch,
+  watchEffect
+} from 'vue'
 import type { CustomizeZoneId } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import type { InlineStyle } from '../../view/styles'
 import type { Side } from '../elements/listOps'
 import {
+  GHOST_OUTSET,
   GHOST_ZONES,
+  MARK_OUTSET,
   canDrag,
   dropInBar,
   dropInLine,
@@ -13,9 +23,10 @@ import {
   elAction,
   NEAR_OFFSETS,
   isDragDistance,
+  isPlainKey,
   litKeys,
-  markBox,
   marksCss,
+  outlineBoxes,
   pickEl,
   sameEl,
   shownDropList,
@@ -36,11 +47,13 @@ import { injectPreviewEdit, type ZoneHandle } from './usePreviewEdit'
  * (one set, by delegation: what is under the pointer is the nearest `data-el` of a zone with an
  * editor; on nothing, an element a few px away), the outline of the hovered element with its
  * name and what a click or a drag does (beside the widget: tipPlace), the drop line of a drag,
- * and a short note when the rules refuse something. The ghosts and the dragged element's fade
+ * and a short note when the rules refuse something. The ghosts' and the dragged element's fade
  * are one stylesheet over the sample (marksCss); the outlines are boxes in this layer just
- * outside each copy of the element (litKeys, markBox), measured when what is lit changes or the
- * sample redraws, so they cover no text and no bar clips them. A drag measures its zone once,
- * when it starts.
+ * outside each copy of the element (litKeys, outlineBoxes), so they cover no text and no bar
+ * clips them: the hovered and the lit element's measured when what is lit changes or the sample
+ * redraws, the ghosts' dashed ones when the ghosts come, go or change (entering the stage, a
+ * setting) and when the sample or a ghost resizes, never per frame. A drag measures its zone
+ * once, when it starts.
  *
  * A press that does not travel is a click: it shows or hides the element (a ghost is shown
  * where it is drawn). One that travels is a drag: the element lands before or after its
@@ -71,6 +84,8 @@ interface Tip {
 const tip = shallowRef<Tip | null>(null)
 /** The outlines of the hovered and the lit element (every copy it draws), in the stage. */
 const marks = shallowRef<readonly InlineStyle[]>([])
+/** The dashed outlines of the ghosts (every copy each draws), in the stage. */
+const ghostMarks = shallowRef<readonly InlineStyle[]>([])
 const lineStyle = shallowRef<InlineStyle | null>(null)
 const note = shallowRef<string | null>(null)
 let noteTimer: ReturnType<typeof setTimeout> | undefined
@@ -107,29 +122,35 @@ const MAX_MARKS = 80
 let marksFrame = 0
 let litNow: readonly string[] = []
 
-function measureMarks(): void {
-  marksFrame = 0
+const boxStyle = (b: Box): InlineStyle => ({
+  left: `${b.left}px`,
+  top: `${b.top}px`,
+  width: `${b.right - b.left}px`,
+  height: `${b.bottom - b.top}px`
+})
+
+/** The outlines of every copy of `keys` in the sample, `outset` px outside each (and the nodes). */
+function outlinesOf(
+  keys: readonly string[],
+  outset: number
+): { styles: InlineStyle[]; nodes: Element[] } {
   const root = props.sample
   const s = stageBox()
-  if (root === null || s === null || litNow.length === 0) {
-    if (marks.value.length > 0) marks.value = []
-    return
-  }
-  const out: InlineStyle[] = []
-  for (const key of litNow) {
-    for (const node of root.querySelectorAll(`[data-el="${key}"]`)) {
-      const r = node.getBoundingClientRect()
-      if (r.width <= 0 || r.height <= 0 || out.length >= MAX_MARKS) continue
-      const b = markBox(r, s)
-      out.push({
-        left: `${b.left}px`,
-        top: `${b.top}px`,
-        width: `${b.right - b.left}px`,
-        height: `${b.bottom - b.top}px`
-      })
-    }
-  }
-  marks.value = out
+  if (root === null || s === null || keys.length === 0) return { styles: [], nodes: [] }
+  const nodes = keys.flatMap((key) => [...root.querySelectorAll(`[data-el="${key}"]`)])
+  const boxes = outlineBoxes(
+    nodes.map((n) => n.getBoundingClientRect()),
+    s,
+    outset,
+    MAX_MARKS
+  )
+  return { styles: boxes.map(boxStyle), nodes }
+}
+
+function measureMarks(): void {
+  marksFrame = 0
+  const out = outlinesOf(litNow, MARK_OUTSET).styles
+  if (out.length > 0 || marks.value.length > 0) marks.value = out
 }
 
 /** Measures the outlines on the next frame (once, however many changes come before it). */
@@ -156,6 +177,51 @@ watch(
 )
 // Ghosts that come or go move what is outlined.
 watch(() => pe?.ghosts.value, scheduleMarks, { flush: 'post' })
+
+// ---- The ghosts' dashed outlines -------------------------------------------------------------
+
+let ghostFrame = 0
+let ghostsNow: readonly string[] = []
+let ghostNodes: readonly Element[] = []
+let ghostObserver: ResizeObserver | null = null
+
+/**
+ * Measures the ghosts' outlines, and while there are ghosts watches the sizes of the sample, the
+ * stage and each ghost (a resize, a ghost the bar's fit drops or brings back), never per frame.
+ */
+function measureGhosts(): void {
+  ghostFrame = 0
+  const { styles, nodes } = outlinesOf(ghostsNow, GHOST_OUTSET)
+  if (styles.length > 0 || ghostMarks.value.length > 0) ghostMarks.value = styles
+  if (ghostsNow.length === 0) {
+    ghostObserver?.disconnect()
+    ghostObserver = null
+    ghostNodes = []
+    return
+  }
+  const same = nodes.length === ghostNodes.length && nodes.every((n, i) => n === ghostNodes[i])
+  if (same && ghostObserver !== null) return
+  ghostObserver?.disconnect()
+  // A first callback for each target observed: one more measure, the same nodes, no new observe.
+  ghostObserver = new ResizeObserver(scheduleGhosts)
+  if (props.sample !== null) ghostObserver.observe(props.sample)
+  if (props.stage !== null) ghostObserver.observe(props.stage)
+  for (const n of nodes) ghostObserver.observe(n)
+  ghostNodes = nodes
+}
+
+function scheduleGhosts(): void {
+  if (ghostFrame === 0) ghostFrame = requestAnimationFrame(measureGhosts)
+}
+
+watch(
+  () => pe?.ghosts.value ?? [],
+  (keys) => {
+    ghostsNow = keys.filter(isPlainKey)
+    scheduleGhosts()
+  },
+  { flush: 'post', immediate: true }
+)
 
 /** While something is outlined: whatever the sample redraws or resizes moves the outlines. */
 let sampleObservers: { mo: MutationObserver; ro: ResizeObserver } | null = null
@@ -213,8 +279,14 @@ const actionOf = (h: Hit): ElAction => elAction(h.handle.spec, h.handle.list(), 
 
 // ---- Positions (client px to the stage's) --------------------------------------------------
 
+/**
+ * The origin of what this layer draws: its own box, which its children are placed from. The
+ * stage's border box would put every outline, line and tip 1 px right and down (the stage's
+ * border). The stage's box until the layer is mounted.
+ */
+const layerEl = useTemplateRef<HTMLElement>('layer')
 function stageBox(): DOMRect | null {
-  return props.stage?.getBoundingClientRect() ?? null
+  return (layerEl.value ?? props.stage)?.getBoundingClientRect() ?? null
 }
 
 /** The widget's own box in the sample (the box its window stands in), else the sample's. */
@@ -520,6 +592,9 @@ onBeforeUnmount(() => {
   clearTimeout(noteTimer)
   sheet?.remove()
   cancelAnimationFrame(marksFrame)
+  cancelAnimationFrame(ghostFrame)
+  ghostObserver?.disconnect()
+  ghostObserver = null
   watchSample(false)
   sheet = null
   if (pe !== null) {
@@ -530,7 +605,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="pe" aria-hidden="true">
+  <div ref="layer" class="pe" aria-hidden="true">
+    <div v-for="(m, i) in ghostMarks" :key="`g${i}`" class="pe-ghost" :style="m" />
     <div v-if="lineStyle" class="pe-line" :style="lineStyle" />
     <div v-for="(m, i) in marks" :key="i" class="pe-mark" :style="m" />
     <div
@@ -573,6 +649,16 @@ onBeforeUnmount(() => {
   border: 2px solid rgba(255, 255, 255, 0.95);
   border-radius: 3px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65);
+}
+
+/*
+ * A ghost's dashed ring, 1 px just outside its box (outlineBoxes), drawn here so no info bar or
+ * group clips it. As faint as the old outline on the translucent element: 0.85 at its 0.42.
+ */
+.pe-ghost {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed rgba(255, 255, 255, 0.36);
 }
 
 /* Beside the widget (or in the margin above or below it): never over what it is about. */
