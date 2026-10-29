@@ -89,3 +89,15 @@ describe('reuseHeads', () => {
     expect(reuseHeads(undefined, a)).toBe(a)
   })
 })
+
+describe('the heads of the columns', () => {
+  it('carry their data-el, the fixed ones none', () => {
+    const v = toHeadsView({ cells: ['ir', 'gap'] }, RACE, ES)
+    expect(v.map((h) => h.el)).toEqual([
+      undefined,
+      undefined,
+      'standings.columns.ir',
+      'standings.columns.gap'
+    ])
+  })
+})

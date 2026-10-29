@@ -112,6 +112,67 @@ export function dropIndex(centres: readonly number[], from: number, pointerY: nu
   return n
 }
 
+// ---- Two sides (an info bar: what follows its `split` marker lines up at the far end) ----
+
+export type Side = 'left' | 'right'
+
+/** A row of the editor: an entry and its index in the whole list. */
+export interface IndexedEntry<Id extends string> {
+  readonly entry: Readonly<ElementEntry<Id>>
+  readonly index: number
+}
+
+/**
+ * The entries before the marker (left) and after it (right), each with its index in `list`; the
+ * marker itself in neither. Without the marker in the list, everything is on the left.
+ */
+export function sides<Id extends string>(
+  list: List<Id>,
+  split: Id
+): { readonly left: IndexedEntry<Id>[]; readonly right: IndexedEntry<Id>[] } {
+  const at = list.findIndex((e) => e.id === split)
+  const left: IndexedEntry<Id>[] = []
+  const right: IndexedEntry<Id>[] = []
+  list.forEach((entry, index) => {
+    if (entry.id === split) return
+    if (at < 0 || index < at) left.push({ entry, index })
+    else right.push({ entry, index })
+  })
+  return { left, right }
+}
+
+/** Which side of the marker `id` is on (left without a marker). */
+export function sideOf<Id extends string>(list: List<Id>, id: Id, split: Id): Side {
+  const at = list.findIndex((e) => e.id === split)
+  const i = list.findIndex((e) => e.id === id)
+  return at >= 0 && i > at ? 'right' : 'left'
+}
+
+/**
+ * The list with `id` on the other side of the marker, the side nearest it: the end of the left
+ * one or the start of the right one (a single step over the marker, so the order the bar draws
+ * the others in never changes). A copy unchanged for the marker itself or a list without it.
+ */
+export function movedAcross<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  split: Id
+): ElementEntry<Id>[] {
+  const at = list.findIndex((e) => e.id === split)
+  const from = list.findIndex((e) => e.id === id)
+  if (at < 0 || from < 0 || id === split) return list.map((e) => ({ ...e }))
+  // Taken out, then put back where the marker was: just after it from the left, just before
+  // it from the right.
+  return movedTo(spec, list, id, at)
+}
+
+/** 'Incidentes: a la derecha.' */
+export function sideMessage(m: Messages, label: string, side: Side): string {
+  const e = m.settings.elements
+  return side === 'right' ? e.movedRight(label) : e.movedLeft(label)
+}
+
 /** What a key on a row's handle does: a move by places, to an end, or nothing. */
 export type KeyAction =
   | { readonly kind: 'by'; readonly delta: number }

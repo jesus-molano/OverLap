@@ -42,8 +42,13 @@ const props = withDefaults(
     sim?: boolean
     /** The 'VISTA PREVIA' tag at the end (edit-mode samples). */
     preview?: boolean
+    /**
+     * The bar's zone ('relative.headerBar'): the bar's `data-zone`, and each item's `data-el`
+     * ('relative.headerBar.sof'), for the settings window's preview. Attributes only.
+     */
+    zone?: string
   }>(),
-  { sim: false, preview: false }
+  { sim: false, preview: false, zone: undefined }
 )
 
 const root = useTemplateRef<HTMLElement>('root')
@@ -69,6 +74,14 @@ const ids = computed<readonly InfoItemId[]>((prev) => {
   return prev !== undefined && prev.length === next.length && prev.every((id, i) => id === next[i])
     ? prev
     : next
+})
+
+/** Each item's `data-el` ('relative.headerBar.sof'), built once per zone and item list. */
+const itemEls = computed<Readonly<Partial<Record<InfoItemId, string>>>>(() => {
+  const zone = props.zone
+  const out: Partial<Record<InfoItemId, string>> = {}
+  if (zone !== undefined) for (const id of ids.value) out[id] = `${zone}.${id}`
+  return out
 })
 
 /** Items dropped beyond the estimates because the drawn bar overflowed. */
@@ -130,19 +143,30 @@ watch(
 </script>
 
 <template>
-  <div ref="root" v-inline-style="style" class="ov-ibar" :class="`ov-ibar--${place}`">
-    <span class="ov-ibar__group">
+  <div
+    ref="root"
+    v-inline-style="style"
+    class="ov-ibar"
+    :class="`ov-ibar--${place}`"
+    :data-zone="zone"
+  >
+    <span class="ov-ibar__group" :data-side="zone && 'left'">
       <template v-for="(item, i) in start" :key="item.id">
-        <InfoBarItem :item="item" :lead="i === 0" />
+        <InfoBarItem :item="item" :lead="i === 0" :data-el="itemEls[item.id]" />
         <SimPill v-if="sim && i === 0" />
       </template>
     </span>
-    <span v-if="end.length > 0 || preview" class="ov-ibar__group ov-ibar__end">
+    <span
+      v-if="end.length > 0 || preview"
+      class="ov-ibar__group ov-ibar__end"
+      :data-side="zone && 'right'"
+    >
       <InfoBarItem
         v-for="(item, i) in end"
         :key="item.id"
         :item="item"
         :lead="start.length === 0 && i === 0"
+        :data-el="itemEls[item.id]"
       />
       <PreviewTag v-if="preview" />
     </span>

@@ -1,9 +1,11 @@
 <script setup lang="ts" generic="Id extends string">
-import { computed, nextTick, shallowRef, useId } from 'vue'
-import type { ElementEntry } from '@shared/types'
+import { computed, nextTick, onBeforeUnmount, shallowRef, useId, watch } from 'vue'
+import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
+import AccordionSection from '../layout/AccordionSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
 import { useOptimistic } from '../useOptimistic'
 import {
   blockedBy,
@@ -12,14 +14,20 @@ import {
   isDefault,
   isRequired,
   keyAction,
+  movedAcross,
   movedBy,
   movedTo,
   movedMessage,
   shownCount,
+  sideMessage,
+  sideOf,
+  sides,
   toggled,
   visibilityMessage,
   type ElementChange,
   type ElementText,
+  type IndexedEntry,
+  type Side,
   type SpecRules
 } from './listOps'
 
@@ -30,6 +38,12 @@ import {
  * whose parent is hidden greys its eye out; a fixed-order list has no handles. Every change is
  * shown at once (useOptimistic) and announced to screen readers; the widget's live sample on the
  * page shows it too. Coupled options are the page's: `apply` gets the new list and the change.
+ *
+ * A list that is a page's zone (its spec is one of CUSTOMIZE_ZONE_IDS) is an accordion of
+ * "Personalizar" (AccordionSection, open state in zonesOpen.ts), its summary the count of what is
+ * shown; any other list is a plain section. With `split` (an info bar's marker) the list is two
+ * boxes, "Izquierda" and "Derecha": the marker is no row; an element changes side by a drag, by
+ * ↑ ↓ over the boundary or by its ← → button, and the stored list keeps the marker as it was.
  *
  *   <ElementEditor
  *     :title="zoneTitle(t, 'relative', 'columns')"
@@ -57,11 +71,30 @@ const props = withDefaults(
     fixedAfter?: readonly { readonly key: string; readonly label: string }[]
     /** A short note about the whole list, under it. */
     note?: string
+    /** The marker that splits the list into two sides (an info bar's 'split'). */
+    split?: Id
+    /** Ids that are no row (the zone's switch in the `head` slot shows them). */
+    omit?: readonly Id[]
+    /** The accordion's summary instead of the count ('Normal · 4 elementos'). */
+    summary?: string
+    /** The zone is switched off: its list is greyed out (still editable, for when it is on). */
+    dim?: boolean
   }>(),
-  { emptyHides: false, fixedBefore: () => [], fixedAfter: () => [], note: undefined }
+  {
+    emptyHides: false,
+    fixedBefore: () => [],
+    fixedAfter: () => [],
+    note: undefined,
+    split: undefined,
+    omit: () => [],
+    summary: undefined,
+    dim: false
+  }
 )
 
 defineSlots<{
+  /** Above the list: the zone's switch (an info bar's "Mostrar cabecera" and its size). */
+  head?(): unknown
   /** Options of one row after its label (the trend arrow of 'trackTemp'...). */
   extra?(p: { id: Id; visible: boolean }): unknown
   /** Below the list (the zone's own options: size, logos...), ruled off from it, one per row. */
@@ -86,11 +119,72 @@ const shown = computed<readonly Readonly<ElementEntry<Id>>[]>(
   () => dragOrder.value ?? current.value
 )
 const sortable = computed(() => !props.spec.fixedOrder && shown.value.length > 1)
+
+/** One box of rows: the whole list, or one side of the marker. */
+interface Box {
+  readonly side: Side | null
+  readonly rows: readonly IndexedEntry<Id>[]
+}
+
+const boxes = computed<readonly Box[]>(() => {
+  const list = shown.value
+  if (props.split !== undefined) {
+    const { left, right } = sides(list, props.split)
+    return [
+      { side: 'left', rows: left },
+      { side: 'right', rows: right }
+    ]
+  }
+  const rows = list
+    .map((entry, index) => ({ entry, index }))
+    .filter((r) => !props.omit.includes(r.entry.id))
+  return [{ side: null, rows }]
+})
+
+/** The rows drawn (no marker, nothing omitted): what the count counts. */
+const rowEntries = computed(() => boxes.value.flatMap((b) => b.rows.map((r) => r.entry)))
 const countNote = computed(() =>
-  t.value.settings.elements.count(shownCount(shown.value), shown.value.length)
+  t.value.settings.elements.count(shownCount(rowEntries.value), rowEntries.value.length)
 )
-const empty = computed(() => shownCount(current.value) === 0)
+const empty = computed(() => shownCount(rowEntries.value) === 0)
 const atDefault = computed(() => isDefault(props.spec, current.value))
+
+// ---- The accordion ---------------------------------------------------------------------
+
+const zone = computed<CustomizeZoneId | null>(() => zoneOfSpec(props.spec))
+const open = computed(() => zone.value === null || isZoneOpen(zone.value))
+const registry = injectZoneRegistry()
+watch(
+  zone,
+  (next, prev) => {
+    if (prev) registry?.remove(prev)
+    if (next) registry?.add(next)
+  },
+  { immediate: true }
+)
+onBeforeUnmount(() => {
+  if (zone.value) registry?.remove(zone.value)
+})
+
+function toggleOpen(next: boolean): void {
+  if (zone.value) void setZonesOpen([zone.value], next)
+}
+
+const frame = computed(() =>
+  zone.value === null
+    ? { is: PageSection, props: { title: props.title, card: false, note: countNote.value } }
+    : {
+        is: AccordionSection,
+        props: {
+          title: props.title,
+          summary: props.summary ?? countNote.value,
+          open: open.value,
+          onToggle: toggleOpen
+        }
+      }
+)
+
+// ---- Edits -----------------------------------------------------------------------------
 
 const message = shallowRef('')
 function say(text: string): void {
@@ -105,37 +199,61 @@ function setVisible(id: Id, visible: boolean): void {
   say(visibilityMessage(t.value, labelOf(id), visible))
 }
 
-type FocusTarget = 'handle' | 'up' | 'down'
+type FocusTarget = 'handle' | 'up' | 'down' | 'side'
 
 /** Keeps keyboard focus on the moved row's control (its buttons may have become disabled). */
 async function refocus(id: Id, target: FocusTarget): Promise<void> {
   await nextTick()
-  const row = listEl.value?.querySelector<HTMLElement>(`[data-el="${id}"]`)
+  const row = listEl.value?.querySelector<HTMLElement>(`li[data-row="${id}"]`)
   const want = row?.querySelector<HTMLButtonElement>(`[data-focus="${target}"]`)
   const el =
     want && !want.disabled ? want : row?.querySelector<HTMLElement>('[data-focus="handle"]')
   el?.focus()
 }
 
-function announceMove(id: Id, next: readonly Readonly<ElementEntry<Id>>[]): void {
+/** 'iRating: posición 3 de 8.', or the new side when it changed ('SoF: a la derecha.'). */
+function announceMove(
+  id: Id,
+  before: readonly Readonly<ElementEntry<Id>>[],
+  next: readonly Readonly<ElementEntry<Id>>[]
+): void {
+  if (props.split !== undefined) {
+    const side = sideOf(next, id, props.split)
+    if (side !== sideOf(before, id, props.split)) {
+      say(sideMessage(t.value, labelOf(id), side))
+      return
+    }
+  }
   const to = next.findIndex((e) => e.id === id)
   say(movedMessage(t.value, labelOf(id), to, next.length))
 }
 
 function move(id: Id, delta: number, target: FocusTarget): void {
-  const next = movedBy(props.spec, current.value, id, delta)
+  const before = current.value
+  const next = movedBy(props.spec, before, id, delta)
   const to = next.findIndex((e) => e.id === id)
-  if (to === current.value.findIndex((e) => e.id === id)) return
+  if (to === before.findIndex((e) => e.id === id)) return
   void send(next, { kind: 'move', id, to })
-  announceMove(id, next)
+  announceMove(id, before, next)
   void refocus(id, target)
 }
 
 function moveTo(id: Id, index: number): void {
-  const next = movedTo(props.spec, current.value, id, index)
+  const before = current.value
+  const next = movedTo(props.spec, before, id, index)
   void send(next, { kind: 'move', id, to: index })
-  announceMove(id, next)
+  announceMove(id, before, next)
   void refocus(id, 'handle')
+}
+
+/** To the other side of the marker, at its nearest end. */
+function moveAcross(id: Id): void {
+  if (props.split === undefined) return
+  const before = current.value
+  const next = movedAcross(props.spec, before, id, props.split)
+  void send(next, { kind: 'move', id, to: next.findIndex((e) => e.id === id) })
+  announceMove(id, before, next)
+  void refocus(id, 'side')
 }
 
 function reset(): void {
@@ -151,7 +269,13 @@ function onHandleKey(e: KeyboardEvent, id: Id, index: number): void {
   else moveTo(id, action.index)
 }
 
-// ---- Pointer drag (captured by the list, which never moves) ------------------------------
+/** The words of a row's ← → button. */
+function sideLabel(id: Id, side: Side): string {
+  const e = t.value.settings.elements
+  return side === 'left' ? e.toRight(labelOf(id)) : e.toLeft(labelOf(id))
+}
+
+// ---- Pointer drag (captured by the lists, which never move) ------------------------------
 
 interface Drag {
   pointerId: number
@@ -163,20 +287,29 @@ interface Drag {
 }
 let drag: Drag | null = null
 
-function onHandleDown(e: PointerEvent, id: Id): void {
-  const list = listEl.value
-  if (e.button !== 0 || list === null || drag !== null || !sortable.value) return
-  const base = current.value.map((c) => ({ id: c.id, visible: c.visible }))
-  const from = base.findIndex((c) => c.id === id)
-  if (from < 0) return
-  const rows = Array.from(list.querySelectorAll<HTMLElement>('[data-el]'))
-  const centres = rows.map((el) => {
+/**
+ * Each entry's slot centre (px) in list order: its row, or for the marker the heading of the
+ * right box, which sits where the marker is in the list.
+ */
+function slotCentres(lists: HTMLElement, base: readonly ElementEntry<Id>[]): number[] {
+  return base.map((e) => {
+    const el = lists.querySelector<HTMLElement>(`[data-row="${e.id}"]`)
+    if (el === null) return Number.NaN
     const r = el.getBoundingClientRect()
     return r.top + r.height / 2
   })
+}
+
+function onHandleDown(e: PointerEvent, id: Id): void {
+  const lists = listEl.value
+  if (e.button !== 0 || lists === null || drag !== null || !sortable.value) return
+  const base = current.value.map((c) => ({ id: c.id, visible: c.visible }))
+  const from = base.findIndex((c) => c.id === id)
+  if (from < 0) return
+  const centres = slotCentres(lists, base)
   e.preventDefault()
   try {
-    list.setPointerCapture(e.pointerId)
+    lists.setPointerCapture(e.pointerId)
   } catch {
     // Without capture, leaving the list cancels (pointerleave).
   }
@@ -206,7 +339,7 @@ function onUp(e: PointerEvent): void {
   if (to === from) return
   const next = movedTo(props.spec, base, id, to)
   void send(next, { kind: 'move', id, to })
-  announceMove(id, next)
+  announceMove(id, base, next)
 }
 
 function onCancel(e: PointerEvent): void {
@@ -215,10 +348,21 @@ function onCancel(e: PointerEvent): void {
 </script>
 
 <template>
-  <PageSection :title="title" :card="false" :note="countNote">
-    <div class="ed">
+  <component :is="frame.is" v-bind="frame.props">
+    <div class="ed" :class="{ 'in-acc': zone !== null, 'is-dim': dim }">
+      <div v-if="$slots.head" class="ed-head">
+        <slot name="head" />
+      </div>
+
       <p :id="helpId" class="st-help ed-intro">
-        <template v-if="sortable">
+        <template v-if="sortable && split !== undefined">
+          {{ t.settings.elements.introSides.before }}
+          <span class="ed-grip-inline" aria-hidden="true">⠿</span>
+          {{ t.settings.elements.introSides.middle }}
+          <span class="ed-grip-inline" aria-hidden="true">← →</span>
+          {{ t.settings.elements.introSides.after }}
+        </template>
+        <template v-else-if="sortable">
           {{ t.settings.elements.intro.before }}
           <span class="ed-grip-inline" aria-hidden="true">⠿</span>
           {{ t.settings.elements.intro.after }}
@@ -234,96 +378,129 @@ function onCancel(e: PointerEvent): void {
         </li>
       </ul>
 
-      <ol
+      <div
         ref="listEl"
-        class="ed-list"
-        :class="{ dragging: dragId !== null }"
-        :aria-label="title"
+        class="ed-lists"
+        :class="{ dragging: dragId !== null, 'has-sides': split !== undefined }"
         @pointermove="onMove"
         @pointerup="onUp"
         @pointercancel="onCancel"
         @lostpointercapture="onCancel"
         @pointerleave="onCancel"
       >
-        <li
-          v-for="(e, i) in shown"
-          :key="e.id"
-          class="ed-row"
-          :class="{
-            'is-dragged': dragId === e.id,
-            'is-off': !e.visible,
-            'is-blocked': blockedBy(spec, shown, e.id) !== null
-          }"
-          :data-el="e.id"
+        <div
+          v-for="box in boxes"
+          :key="box.side ?? 'all'"
+          class="ed-box"
+          :class="box.side ? `ed-box--${box.side}` : undefined"
         >
-          <button
-            v-if="sortable"
-            type="button"
-            class="ed-handle"
-            data-focus="handle"
-            :aria-label="t.settings.elements.move(labelOf(e.id))"
-            :aria-describedby="helpId"
-            @pointerdown="onHandleDown($event, e.id)"
-            @keydown="onHandleKey($event, e.id, i)"
+          <!-- The right box's heading is the marker's slot: a drag measures it as one. -->
+          <div v-if="box.side" class="ed-side" :data-row="box.side === 'right' ? split : undefined">
+            <span class="ed-side-name">{{ t.settings.elements.sides[box.side] }}</span>
+            <span class="ed-side-help">{{ t.settings.elements.sidesHelp[box.side] }}</span>
+          </div>
+          <ol
+            class="ed-list"
+            :aria-label="box.side ? `${title}: ${t.settings.elements.sides[box.side]}` : title"
           >
-            <span aria-hidden="true">⠿</span>
-          </button>
-          <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ i + 1 }}</span>
-          <span
-            v-if="isRequired(spec, e.id)"
-            class="ed-eye is-locked"
-            :title="t.settings.elements.required"
-          >
-            <Icon name="lock" :label="t.settings.elements.required" />
-          </span>
-          <button
-            v-else
-            type="button"
-            class="ed-eye"
-            :aria-pressed="e.visible"
-            :aria-label="
-              e.visible
-                ? t.settings.elements.hide(labelOf(e.id))
-                : t.settings.elements.show(labelOf(e.id))
-            "
-            @click="setVisible(e.id, !e.visible)"
-          >
-            <Icon :name="e.visible ? 'eye' : 'eye-off'" />
-          </button>
-          <span class="ed-text">
-            <span class="ed-name">{{ labelOf(e.id) }}</span>
-            <span v-if="blockedBy(spec, shown, e.id) !== null" class="ed-hint">{{
-              t.settings.elements.needsParent(labelOf(blockedBy(spec, shown, e.id) as Id))
-            }}</span>
-            <span v-else-if="labels[e.id]?.hint" class="ed-hint">{{ labels[e.id]?.hint }}</span>
-          </span>
-          <span v-if="$slots.extra" class="ed-extra"
-            ><slot :id="e.id" name="extra" :visible="e.visible"
-          /></span>
-          <span v-if="sortable" class="ed-arrows">
-            <button
-              type="button"
-              class="st-btn st-btn-icon st-btn-ghost"
-              data-focus="up"
-              :aria-label="t.settings.elements.moveUp(labelOf(e.id))"
-              :disabled="i === 0 || dragId !== null"
-              @click="move(e.id, -1, 'up')"
+            <li
+              v-for="(r, n) in box.rows"
+              :key="r.entry.id"
+              class="ed-row"
+              :class="{
+                'is-dragged': dragId === r.entry.id,
+                'is-off': !r.entry.visible,
+                'is-blocked': blockedBy(spec, shown, r.entry.id) !== null
+              }"
+              :data-row="r.entry.id"
             >
-              ↑
-            </button>
-            <button
-              type="button"
-              class="st-btn st-btn-icon st-btn-ghost"
-              data-focus="down"
-              :aria-label="t.settings.elements.moveDown(labelOf(e.id))"
-              :disabled="i === shown.length - 1 || dragId !== null"
-              @click="move(e.id, 1, 'down')"
-            >
-              ↓
-            </button>
-          </span>
-        </li>
-      </ol>
+              <button
+                v-if="sortable"
+                type="button"
+                class="ed-handle"
+                data-focus="handle"
+                :aria-label="t.settings.elements.move(labelOf(r.entry.id))"
+                :aria-describedby="helpId"
+                @pointerdown="onHandleDown($event, r.entry.id)"
+                @keydown="onHandleKey($event, r.entry.id, r.index)"
+              >
+                <span aria-hidden="true">⠿</span>
+              </button>
+              <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
+              <span
+                v-if="isRequired(spec, r.entry.id)"
+                class="ed-eye is-locked"
+                :title="t.settings.elements.required"
+              >
+                <Icon name="lock" :label="t.settings.elements.required" />
+              </span>
+              <button
+                v-else
+                type="button"
+                class="ed-eye"
+                :aria-pressed="r.entry.visible"
+                :aria-label="
+                  r.entry.visible
+                    ? t.settings.elements.hide(labelOf(r.entry.id))
+                    : t.settings.elements.show(labelOf(r.entry.id))
+                "
+                @click="setVisible(r.entry.id, !r.entry.visible)"
+              >
+                <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
+              </button>
+              <span class="ed-text">
+                <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
+                <span v-if="blockedBy(spec, shown, r.entry.id) !== null" class="ed-hint">{{
+                  t.settings.elements.needsParent(labelOf(blockedBy(spec, shown, r.entry.id) as Id))
+                }}</span>
+                <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
+                  labels[r.entry.id]?.hint
+                }}</span>
+              </span>
+              <span v-if="$slots.extra" class="ed-extra"
+                ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
+              /></span>
+              <span v-if="sortable" class="ed-arrows">
+                <button
+                  v-if="box.side"
+                  type="button"
+                  class="st-btn st-btn-icon st-btn-ghost"
+                  data-focus="side"
+                  :aria-label="sideLabel(r.entry.id, box.side)"
+                  :title="sideLabel(r.entry.id, box.side)"
+                  :disabled="dragId !== null"
+                  @click="moveAcross(r.entry.id)"
+                >
+                  {{ box.side === 'left' ? '→' : '←' }}
+                </button>
+                <button
+                  type="button"
+                  class="st-btn st-btn-icon st-btn-ghost"
+                  data-focus="up"
+                  :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
+                  :disabled="r.index === 0 || dragId !== null"
+                  @click="move(r.entry.id, -1, 'up')"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="st-btn st-btn-icon st-btn-ghost"
+                  data-focus="down"
+                  :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
+                  :disabled="r.index === shown.length - 1 || dragId !== null"
+                  @click="move(r.entry.id, 1, 'down')"
+                >
+                  ↓
+                </button>
+              </span>
+            </li>
+            <li v-if="box.side && box.rows.length === 0" class="ed-row is-empty">
+              {{ t.settings.elements.sideEmpty }}
+            </li>
+          </ol>
+        </div>
+      </div>
 
       <ul v-if="fixedAfter.length > 0" class="ed-list ed-after">
         <li v-for="f in fixedAfter" :key="f.key" class="ed-row is-fixed">
@@ -356,7 +533,7 @@ function onCancel(e: PointerEvent): void {
       </div>
       <p class="st-sr-only" aria-live="polite">{{ message }}</p>
     </div>
-  </PageSection>
+  </component>
 </template>
 
 <style scoped>
@@ -366,6 +543,32 @@ function onCancel(e: PointerEvent): void {
   border-radius: var(--st-radius);
   background: var(--st-surface);
   box-shadow: var(--st-lit);
+}
+
+/* In an accordion the accordion is the card. */
+.ed.in-acc {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The zone's switch (and its size): ruled rows above the list, ruled off from it. */
+.ed-head {
+  display: flex;
+  flex-direction: column;
+  margin: -6px 0 10px;
+  border-bottom: 1px solid var(--st-border);
+}
+
+.ed-head > :deep(* + *) {
+  border-top: 1px solid var(--st-border);
+}
+
+/* Switched off: the list stays editable, quieter. */
+.ed.is-dim .ed-lists,
+.ed.is-dim .ed-intro {
+  opacity: 0.55;
 }
 
 .ed-intro {
@@ -385,9 +588,46 @@ function onCancel(e: PointerEvent): void {
   list-style: none;
 }
 
-.ed-list + .ed-list,
+.ed-list + .ed-lists,
+.ed-lists + .ed-list,
 .ed-after {
   margin-top: 4px;
+}
+
+/* Two sides: a box each, its heading in caps (said, not tinted). */
+.ed-lists.has-sides {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.has-sides .ed-box {
+  padding: 8px;
+  border: 1px solid var(--st-border-hi);
+  border-radius: var(--st-radius);
+  background: var(--st-field);
+}
+
+.ed-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 2px 4px 8px;
+}
+
+.ed-side-name {
+  color: var(--ov-fg);
+  font-family: var(--ov-font-small);
+  font-size: 11px;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+}
+
+.ed-side-help {
+  color: var(--ov-fg-dim);
+  font-size: 12px;
 }
 
 .ed-row {
@@ -408,6 +648,15 @@ function onCancel(e: PointerEvent): void {
   color: var(--ov-fg-dim);
 }
 
+/* An empty side: where a dragged element can go. */
+.ed-row.is-empty {
+  justify-content: center;
+  border-style: dashed;
+  background: transparent;
+  color: var(--ov-fg-dim);
+  font-size: 12.5px;
+}
+
 .ed-row.is-off .ed-name,
 .ed-row.is-off .ed-pos {
   color: var(--ov-fg-dim);
@@ -423,8 +672,8 @@ function onCancel(e: PointerEvent): void {
   background: var(--st-hover);
 }
 
-.ed-list.dragging,
-.ed-list.dragging * {
+.ed-lists.dragging,
+.ed-lists.dragging * {
   cursor: grabbing;
 }
 

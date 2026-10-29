@@ -178,14 +178,22 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
           <span v-if="flags.primary.short" class="flag__label flag__label--short">{{
             flags.primary.short
           }}</span>
-          <span v-if="showNotes && flags.primary.note" class="flag__note">{{
-            flags.primary.note
-          }}</span>
+          <span
+            v-if="showNotes && flags.primary.note"
+            class="flag__note"
+            data-el="alerts.parts.notes"
+            >{{ flags.primary.note }}</span
+          >
         </span>
         <PreviewTag v-if="previewTag === 'flag'" class="alerts__preview" />
       </div>
 
-      <div v-if="chips.length > 0" v-memo="[chips, previewTag === 'chips']" class="chips">
+      <div
+        v-if="chips.length > 0"
+        v-memo="[chips, previewTag === 'chips']"
+        class="chips"
+        data-el="alerts.parts.chips"
+      >
         <span v-for="f in chips" :key="f.kind" class="chip">
           <span class="chip__mark al-tile" :class="[`al-fill-${f.fill}`, `al-tile--${f.mark}`]" />
           <span class="chip__text">{{ f.chip }}</span>
@@ -214,7 +222,9 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
       >
         <span class="limiter__mark"><Icon :name="limiter.icon" class="limiter__icon" /></span>
         <span class="limiter__label">{{ limiter.label }}</span>
-        <span v-if="showNotes && limiter.note" class="limiter__note">{{ limiter.note }}</span>
+        <span v-if="showNotes && limiter.note" class="limiter__note" data-el="alerts.parts.notes">{{
+          limiter.note
+        }}</span>
         <span class="limiter__speed"
           >{{ limiter.speed
           }}<span class="limiter__unit ov-unit">&nbsp;{{ limiter.unit }}</span></span

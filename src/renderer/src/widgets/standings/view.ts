@@ -106,6 +106,14 @@ export interface ClassLineView {
   name: string
   /** 'SoF 2.1k', '12 coches' (en-spaced), in the class line's order; '' if nothing to say. */
   meta: string
+  /**
+   * The same part by part, each drawn in its own span (data-el) with the en space between them:
+   * 'SoF 2.1k', '12 coches' ('' when hidden or unknown), the car count first or not. Plain
+   * strings, so equal lines stay equal (reuseViews).
+   */
+  metaSof: string
+  metaCars: string
+  metaCarsFirst: boolean
 }
 
 export type LineView = CarLineView | ClassLineView
@@ -290,6 +298,35 @@ function toCarView(
   }
 }
 
+/** One part of a class line's meta: 'SoF 2.1k' (each drawn in its own span, data-el). */
+export interface ClassMetaPart {
+  readonly id: StandingsClassLineId
+  readonly text: string
+}
+
+/** The parts of a class line's meta in the order of `parts` (the visible and known ones). */
+export function classMetaParts(
+  block: Pick<StandingsClassBlock, 'sof' | 'carCount'>,
+  parts: readonly Readonly<ElementEntry<StandingsClassLineId>>[],
+  m: Messages
+): ClassMetaPart[] {
+  const t = m.widgets.standings
+  const out: ClassMetaPart[] = []
+  for (const p of parts) {
+    if (!p.visible) continue
+    if (p.id === 'sof') {
+      const sof = formatIRating(block.sof)
+      if (sof !== '') out.push({ id: 'sof', text: t.sof(sof) })
+    } else if (block.carCount > 0) {
+      out.push({ id: 'carCount', text: t.cars(block.carCount) })
+    }
+  }
+  return out
+}
+
+/** Between two parts of the meta. */
+export const CLASS_META_SEP = META_SEP
+
 /**
  * 'SoF 2.1k', '12 coches' in the order of `parts` (the visible ones), en-spaced; '' when none is
  * shown or known.
@@ -299,18 +336,9 @@ export function classMeta(
   parts: readonly Readonly<ElementEntry<StandingsClassLineId>>[],
   m: Messages
 ): string {
-  const t = m.widgets.standings
-  const out: string[] = []
-  for (const p of parts) {
-    if (!p.visible) continue
-    if (p.id === 'sof') {
-      const sof = formatIRating(block.sof)
-      if (sof !== '') out.push(t.sof(sof))
-    } else if (block.carCount > 0) {
-      out.push(t.cars(block.carCount))
-    }
-  }
-  return out.join(META_SEP)
+  return classMetaParts(block, parts, m)
+    .map((p) => p.text)
+    .join(META_SEP)
 }
 
 /** The class's short name, or 'Clase 30' when the session info gives it none. */
@@ -322,12 +350,16 @@ export function className(
 }
 
 function toClassView(block: StandingsClassBlock, ctx: LineContext): ClassLineView {
+  const metaParts = classMetaParts(block, ctx.classLine, ctx.m)
   return {
     kind: 'class',
     css: block.isPlayerClass ? 'sd-line sd-class is-own' : 'sd-line sd-class',
     clsStyle: ctx.styles.cls(block.classColor),
     name: className(block, ctx.m),
-    meta: classMeta(block, ctx.classLine, ctx.m)
+    meta: metaParts.map((p) => p.text).join(META_SEP),
+    metaSof: metaParts.find((p) => p.id === 'sof')?.text ?? '',
+    metaCars: metaParts.find((p) => p.id === 'carCount')?.text ?? '',
+    metaCarsFirst: metaParts[0]?.id === 'carCount'
   }
 }
 

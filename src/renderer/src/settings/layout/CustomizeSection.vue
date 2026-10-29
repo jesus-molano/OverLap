@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useId } from 'vue'
+import { computed, onBeforeUnmount, onMounted, useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { injectCustomizeHost } from './customize'
+import { isZoneOpen, provideZoneRegistry, setZonesOpen } from './zonesOpen'
 
 /**
  * "Personalizar": a widget page's element editors (ElementEditor, one per zone, in the order of
- * customizeZones). A page's options component puts them here after its "Contenido":
+ * customizeZones), each an accordion. A page's options component puts them here after its
+ * "Contenido":
  *
  *   <PageSection :title="t.settings.common.content">…</PageSection>
  *   <CustomizeSection>
@@ -13,11 +15,18 @@ import { injectCustomizeHost } from './customize'
  *   </CustomizeSection>
  *
  * On a widget page they move to the page's own place for them (WidgetPage: below the options,
- * or a column of their own in a wide window); anywhere else they stay where they are.
+ * or a column of their own in a wide window); anywhere else they stay where they are. The
+ * editors join its registry, so "Expandir todo / Contraer todo" opens or closes them all.
  */
 const t = useI18n()
 const host = injectCustomizeHost()
 const titleId = useId()
+const registry = provideZoneRegistry()
+
+const anyClosed = computed(() => registry.zones.value.some((z) => !isZoneOpen(z)))
+const anyOpen = computed(() => registry.zones.value.some((z) => isZoneOpen(z)))
+const expandAll = (): void => void setZonesOpen(registry.zones.value, true)
+const collapseAll = (): void => void setZonesOpen(registry.zones.value, false)
 
 onMounted(() => {
   if (host) host.count.value += 1
@@ -34,6 +43,24 @@ onBeforeUnmount(() => {
       <header class="cz-head">
         <h2 :id="titleId" class="cz-title">{{ t.settings.common.customize }}</h2>
         <p class="cz-note">{{ t.settings.common.customizeNote }}</p>
+        <span v-if="registry.zones.value.length > 1" class="cz-all">
+          <button
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost"
+            :disabled="!anyClosed"
+            @click="expandAll"
+          >
+            {{ t.settings.common.expandAll }}
+          </button>
+          <button
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost"
+            :disabled="!anyOpen"
+            @click="collapseAll"
+          >
+            {{ t.settings.common.collapseAll }}
+          </button>
+        </span>
       </header>
       <div class="cz-body">
         <slot />
@@ -68,6 +95,14 @@ onBeforeUnmount(() => {
 .cz-note {
   color: var(--ov-fg-dim);
   font-size: 12px;
+}
+
+/* Every accordion at once, at the far end of the heading. */
+.cz-all {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  align-self: center;
 }
 
 .cz-body {

@@ -131,6 +131,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           place="head"
           sim
           :preview="preview"
+          zone="fuel.headerBar"
         />
       </template>
 
@@ -139,6 +140,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.hero"
         v-inline-style="orderStyle(place.hero ?? 0)"
         v-memo="[view.hero, tagLine, place.hero]"
+        data-el="fuel.lines.hero"
         class="fu-hero"
       >
         <span class="fu-big">
@@ -164,6 +166,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       <div
         v-if="view.gauge"
         v-inline-style="orderStyle(place.gauge ?? 0)"
+        data-el="fuel.lines.gauge"
         class="fu-gauge"
         aria-hidden="true"
       >
@@ -181,6 +184,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.perLap"
         v-inline-style="orderStyle(place.perLap ?? 0)"
         v-memo="[view.perLap, tagLine, place.perLap]"
+        data-el="fuel.lines.perLap"
         class="fu-line"
       >
         <span class="fu-read">
@@ -201,6 +205,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.finish"
         v-inline-style="orderStyle(place.finish ?? 0)"
         v-memo="[view.finish, tagLine, place.finish]"
+        data-el="fuel.lines.finish"
         class="fu-line"
       >
         <span class="fu-read">
@@ -233,6 +238,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.window"
         v-inline-style="orderStyle(place.window ?? 0)"
         v-memo="[view.window, tagLine, place.window]"
+        data-el="fuel.lines.window"
         class="fu-line"
       >
         <span class="fu-read">
@@ -251,6 +257,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.save"
         v-inline-style="orderStyle(place.save ?? 0)"
         v-memo="[view.save, tagLine, place.save]"
+        data-el="fuel.lines.save"
         class="fu-line"
       >
         <span class="fu-read">
@@ -269,6 +276,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.tyres"
         v-inline-style="orderStyle(place.tyres ?? 0)"
         v-memo="[view.tyres, tagLine, place.tyres]"
+        data-el="fuel.lines.tyres"
         class="fu-line"
       >
         <span class="fu-read">
@@ -289,6 +297,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-if="view.limits"
         v-inline-style="orderStyle(place.limits ?? 0)"
         v-memo="[view.limits, tagLine, place.limits]"
+        data-el="fuel.lines.limits"
         class="fu-line"
       >
         <span v-if="view.limits.repairs" class="fu-read">

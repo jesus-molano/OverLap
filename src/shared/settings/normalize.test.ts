@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type {
   AlertsOptions,
   AppearanceSettings,
+  CustomizeZoneId,
   ElementEntry,
   InfoBarEntryId,
   InfoItemId,
@@ -285,7 +286,54 @@ const DEFAULT_LIGHTS: LightsOptions = {
   ),
   showTrend: true
 }
-const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = { stageScene: 'dark' }
+/** Every page's "Personalizar" zones, in order: the first of each page open. */
+const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
+  'relative.columns',
+  'relative.headerBar',
+  'relative.footerBar',
+  'radar.parts',
+  'standings.columns',
+  'standings.headerBar',
+  'standings.subheaderBar',
+  'standings.footerBar',
+  'standings.classLine',
+  'battle.lanes',
+  'battle.rows',
+  'battle.parts',
+  'inputs.sections',
+  'inputs.bars',
+  'inputs.info',
+  'inputs.car',
+  'traffic.groups',
+  'traffic.parts',
+  'traffic.header',
+  'alerts.parts',
+  'delta.rows',
+  'delta.top',
+  'delta.laps',
+  'fuel.headerBar',
+  'fuel.lines',
+  'lights.icons'
+]
+const FIRST_ZONES: readonly CustomizeZoneId[] = [
+  'relative.columns',
+  'radar.parts',
+  'standings.columns',
+  'battle.lanes',
+  'inputs.sections',
+  'traffic.groups',
+  'alerts.parts',
+  'delta.rows',
+  'fuel.headerBar',
+  'lights.icons'
+]
+const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = {
+  stageScene: 'dark',
+  customizeOpen: list(
+    CUSTOMIZE_ZONES,
+    CUSTOMIZE_ZONES.filter((id) => !FIRST_ZONES.includes(id))
+  )
+}
 
 /** Visibility of `id` in a list (the tests read the lists through this). */
 function shown(l: readonly ElementEntry[], id: string): boolean {
@@ -555,7 +603,10 @@ describe('normalizeSettings: basics', () => {
       countryFlags: false
     }
     s.lights = { ...DEFAULT_LIGHTS, layout: 'column', labelSide: 'left' }
-    s.settingsWindow = { stageScene: 'light' }
+    s.settingsWindow = {
+      stageScene: 'light',
+      customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines'])
+    }
     s.shortcuts = { ...DEFAULT_SHORTCUTS, cycleDeltaReference: 'Ctrl+Alt+D' }
     s.widgets.traffic = { ...s.widgets.traffic, anchor: 'bottom', scale: 90, hideInPits: true }
     s.widgets.alerts = { ...s.widgets.alerts, visible: false, backgroundOpacity: 0.5 }
@@ -586,6 +637,25 @@ describe('normalizeSettings: basics', () => {
     const raw = JSON.parse(JSON.stringify(s))
     expect(normalizeSettings(raw)).toEqual(s)
     expect(normalizeSettings(normalizeSettings(raw))).toEqual(s)
+  })
+
+  it("opens each page's first accordion for a file from before them, keeps a file's own", () => {
+    expect(normalizeSettings({ settingsWindow: { stageScene: 'light' } }).settingsWindow).toEqual({
+      ...DEFAULT_SETTINGS_WINDOW,
+      stageScene: 'light'
+    })
+    // A zone the file does not know yet starts closed; an unknown one is dropped.
+    const own = normalizeSettings({
+      settingsWindow: {
+        customizeOpen: [
+          { id: 'fuel.lines', visible: true },
+          { id: 'relative.columns', visible: false },
+          { id: 'gone.zone', visible: true }
+        ]
+      }
+    }).settingsWindow.customizeOpen
+    expect(own.map((e) => e.id)).toEqual(CUSTOMIZE_ZONES)
+    expect(own.filter((e) => e.visible).map((e) => e.id)).toEqual(['fuel.lines'])
   })
 
   it('drops unknown widget ids and keys', () => {

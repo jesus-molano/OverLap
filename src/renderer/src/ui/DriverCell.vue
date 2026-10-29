@@ -43,6 +43,9 @@ const props = withDefaults(
     brand?: BrandId
     /** The driver's flag code (CountryFlag); undefined: no slot. */
     country?: string
+    /** The iR's and the licence's `data-el' (the battle's parts), for the settings preview. */
+    ratingEl?: string
+    licenseEl?: string
   }>(),
   { nameUnknown: false, lap: null, player: false, withRating: false, withLicense: false }
 )
@@ -76,12 +79,15 @@ const shownName = computed(() =>
     <CountryFlag v-if="country !== undefined" :code="country" />
     <span class="ov-driver__name">{{ shownName }}</span>
     <slot />
-    <span v-if="withRating && iRating" class="ov-driver__ir">{{ iRating }}</span>
+    <span v-if="withRating && iRating" class="ov-driver__ir" :data-el="ratingEl">{{
+      iRating
+    }}</span>
     <LicenseChip
       v-if="withLicense && lic && licStyle"
       :text="lic"
       :colors="licStyle"
       :variant="licenseStyle"
+      :data-el="licenseEl"
     />
   </span>
 </template>
