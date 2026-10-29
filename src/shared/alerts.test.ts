@@ -7,6 +7,7 @@ import {
   FLAG_ORDER,
   NOTICE_OPTION,
   NOTICE_ORDER,
+  alertToggleOf,
   alertsEqual,
   pitLimiterState
 } from './alerts'
@@ -876,5 +877,17 @@ describe('alertsEqual', () => {
     const a = k.run()
     k.frame.Speed[0] = 60
     expect(alertsEqual(a, k.run())).toBe(true)
+  })
+})
+
+describe('alertToggleOf (an alert clicked in the preview, R12)', () => {
+  it('names the switch that shows each alert', () => {
+    expect(alertToggleOf('tow')).toBe('showTow')
+    expect(alertToggleOf('pitEntry')).toBe('showPitEntry')
+    expect(alertToggleOf('blue')).toBe('showBlue')
+    expect(alertToggleOf('furled')).toBe('showFurled')
+    expect(alertToggleOf('yellow')).toBe('showFlags')
+    expect(alertToggleOf('checkered')).toBe('showFlags')
+    for (const kind of ALERT_ORDER) expect(typeof alertToggleOf(kind)).toBe('string')
   })
 })

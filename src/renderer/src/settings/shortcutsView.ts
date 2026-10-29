@@ -370,6 +370,9 @@ export function rowMessages(
     const at = row.bindings.find((b) => b.accelerator === mine.accelerator)
     if (at) out.push({ text: warningText(m, mine.warning), tone: 'warn', slot: at.slot })
   }
+  // What a warning cell means, under it: a narrow cell only has room for its icon (R58).
+  const unplugged = row.bindings.find((b) => b.off && b.button !== null)
+  if (unplugged) out.push({ text: t.disconnectedHelp, tone: 'warn', slot: unplugged.slot })
   const taken = row.bindings.find((b) => b.off && b.button === null)
   if (taken) out.push({ text: t.unavailableHelp, tone: 'warn', slot: taken.slot })
   return out

@@ -33,13 +33,14 @@ const t = useI18n()
 const set = optionSetter('relative')
 const R = OPTION_SCHEMA.relative
 
-/** The columns' labels, with the hints of the two that need one. */
+/** The columns' labels, with the hints of those that need one. */
 const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(() => {
   const base = elementTexts(t.value, 'relative', 'columns')
   const r = t.value.settings.relative
   return {
     ...base,
     pos: { label: base.pos.label, hint: r.posHelp },
+    driver: { label: base.driver.label, hint: r.driverHelp },
     pit: { label: base.pit.label, hint: r.pitHelp },
     tyre: { label: base.tyre.label, hint: r.tyreHelp },
     stint: { label: base.stint.label, hint: r.stintHelp }
@@ -64,7 +65,7 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" resets="options">
+  <PageSection :title="t.settings.common.content" resets="content">
     <StepperControl
       :label="t.settings.relative.carsAhead"
       :current="opts.carsAhead"

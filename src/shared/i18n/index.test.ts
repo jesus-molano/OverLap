@@ -170,8 +170,12 @@ describe('shortcut texts', () => {
     expect(s.resetAll.descriptionButtons(1)).toContain('quita el botón asignado')
     // One click, then "Deshacer" (R11): no "press again".
     expect(es.settings.elements.undo.reset(es.settings.elements.undo.whatShortcuts, '')).toBe(
-      'Restablecido: atajos'
+      'Restablecido: Atajos (todos)'
     )
+    // Toasts that agree with any widget's name (R11): no «Posiciones oculto».
+    expect(es.settings.elements.undo.widgetHidden('Posiciones')).toBe('Ocultado: Posiciones')
+    expect(es.settings.elements.undo.hidden('Licencia')).toBe('Ocultado: «Licencia»')
+    expect(es.settings.elements.undo.whatAll('Pedales')).toBe('Pedales (todo)')
     expect(es.settings.elements.undo.inLayout('Principal')).toBe(' · en «Principal»')
     expect(s.status).toEqual({
       disabled: 'Desactivado',
@@ -195,7 +199,20 @@ describe('shortcut texts', () => {
     )
     expect(s.removed('Botón 24 · G29')).toBe('Quitado: Botón 24 · G29')
     expect(s.errors.duplicateSame).toBe('Esta acción ya tiene esa combinación')
-    expect(s.resetAll.label).toBe('Restablecer atajos')
+    // The one item of the page's "Restablecer…" (R24).
+    expect(s.resetAll.label).toBe('Todos los atajos')
+    expect(s.resetAll.menuLabel).toBe('Restablecer Atajos')
     expect(es.settings.nav.hidden.press('Ctrl+Shift+H')).toBe('Ctrl+Shift+H lo muestra')
+  })
+})
+
+describe('the «Escala» help (R09)', () => {
+  it('names the mouse wheel in edit mode on every widget, free-size or not', () => {
+    for (const lang of LANGUAGES) {
+      const w = messagesFor(lang).settings.window
+      const wheel = lang === 'es' ? 'rueda del ratón en modo edición' : 'mouse wheel in edit mode'
+      expect(w.scaleHelp, lang).toContain(wheel)
+      expect(w.scaleFreeHelp, lang).toContain(wheel)
+    }
   })
 })

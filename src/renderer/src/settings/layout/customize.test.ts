@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
 import { renderToString, type SSRContext } from 'vue/server-renderer'
+import * as i18n from '@shared/i18n'
 import { messagesFor, type Language } from '@shared/i18n'
 import { NO_BAR_SECTIONS } from '@shared/infoBar'
 import {
@@ -234,6 +235,10 @@ function compileSection(lang: Language): vue.Component {
     vue,
     './customize': customize,
     './zonesOpen': zonesOpen,
+    '@shared/i18n': i18n,
+    './ResetIcon.vue': { default: vue.defineComponent({ render: () => null }) },
+    // Outside a widget page (no WIDGET_PAGE provided): no ↺.
+    '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
     '../../composables/useI18n': { useI18n: () => vue.computed(() => messagesFor(lang)) }
   }
   const exports: { default?: vue.Component } = {}

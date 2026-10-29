@@ -25,11 +25,11 @@ import type { OptionSection } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import { useOptions } from '../../composables/useWidgetSettings'
 import type { List, SpecRules } from '../elements/listOps'
-import { ghostZones, sameEl, withGhosts, type ElRef } from './previewEdit'
+import { ghostZones, sameEl, withGhosts, type ElRef, type PreviewZoneId } from './previewEdit'
 
 /** One zone's editor, as the sample acts on it (ElementEditor registers it). */
 export interface ZoneHandle {
-  readonly zone: CustomizeZoneId
+  readonly zone: PreviewZoneId
   readonly spec: SpecRules<string>
   /** An info bar's side marker. */
   readonly split: string | undefined
@@ -52,7 +52,7 @@ export interface ZoneHandle {
 
 export interface PreviewEdit {
   readonly section: OptionSection
-  readonly zones: ShallowRef<ReadonlyMap<CustomizeZoneId, ZoneHandle>>
+  readonly zones: ShallowRef<ReadonlyMap<PreviewZoneId, ZoneHandle>>
   register(handle: ZoneHandle): () => void
   /** The element under the pointer in the sample. */
   readonly hover: ShallowRef<ElRef | null>
@@ -77,7 +77,7 @@ const LIST_GRACE_MS = 140
 const LEAVE_GRACE_MS = 260
 
 export function providePreviewEdit(section: OptionSection): PreviewEdit {
-  const zones = shallowRef<ReadonlyMap<CustomizeZoneId, ZoneHandle>>(new Map())
+  const zones = shallowRef<ReadonlyMap<PreviewZoneId, ZoneHandle>>(new Map())
   const hover = shallowRef<ElRef | null>(null)
   const lit = shallowRef<ElRef | null>(null)
   const dragged = shallowRef<ElRef | null>(null)

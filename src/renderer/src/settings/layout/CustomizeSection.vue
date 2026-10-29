@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useId } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, useId } from 'vue'
+import { widgetTitle } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
+import { WIDGET_PAGE, resetWidget } from '../undo/restore'
+import ResetIcon from './ResetIcon.vue'
 import { injectCustomizeHost } from './customize'
 import { isZoneOpen, pageIntro, provideZoneRegistry, setZonesOpen } from './zonesOpen'
 
@@ -18,12 +21,22 @@ import { isZoneOpen, pageIntro, provideZoneRegistry, setZonesOpen } from './zone
  * or a column of their own in a wide window); anywhere else they stay where they are. The
  * editors join its registry, so "Expandir todo / Contraer todo" opens or closes them all.
  * The heading says once how the lists are edited (dragging, ↑ ↓, the sides of the info bars, the
- * eye), for the zones the page has (pageIntro); the lists themselves no longer repeat it.
+ * eye), for the zones the page has (pageIntro); the lists themselves no longer repeat it. On a
+ * widget page its ↺ resets every list and what goes with them (R24), as its "Restablecer…" item.
  */
 const t = useI18n()
 const host = injectCustomizeHost()
 const titleId = useId()
 const registry = provideZoneRegistry()
+const widget = inject(WIDGET_PAGE, null)
+const resetLabel = computed(() => {
+  if (widget === null) return null
+  const r = t.value.settings.widgetPage.reset
+  return r.sectionLabel(r.customize.label, widgetTitle(t.value, widget))
+})
+function onReset(): void {
+  if (widget !== null) resetWidget(widget, 'customize')
+}
 
 const intro = computed(() => pageIntro(registry.zones.value))
 const anyClosed = computed(() => registry.zones.value.some((z) => !isZoneOpen(z)))
@@ -85,6 +98,7 @@ onBeforeUnmount(() => {
             {{ t.settings.common.collapseAll }}
           </button>
         </span>
+        <ResetIcon v-if="resetLabel" class="cz-reset" :label="resetLabel" @reset="onReset" />
       </header>
       <div class="cz-body">
         <slot />
@@ -127,6 +141,16 @@ onBeforeUnmount(() => {
   gap: 2px;
   margin-left: auto;
   align-self: center;
+}
+
+/* Its ↺ at the very end, after "Expandir todo" when there is one. */
+.cz-reset {
+  margin-left: auto;
+  align-self: center;
+}
+
+.cz-all + .cz-reset {
+  margin-left: 0;
 }
 
 .cz-glyph {

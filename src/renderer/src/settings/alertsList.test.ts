@@ -5,7 +5,14 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
-import { ALERT_GROUPS, alertItems, alertPatch } from './alertsList'
+import {
+  ALERTS_SPEC,
+  ALERT_GROUPS,
+  ALERT_GROUP_HEADS,
+  alertItems,
+  alertPatch,
+  allAlertItems
+} from './alertsList'
 import ALERTS from './options/AlertsSettings.vue?raw'
 import LIGHTS from './options/LightsSettings.vue?raw'
 import STANDINGS from './options/StandingsSettings.vue?raw'
@@ -41,10 +48,34 @@ describe('Avisos as eye lists', () => {
   })
 })
 
+describe('Avisos as one list (R12)', () => {
+  it('lists the fifteen alerts in their groups, each group named above its first alert', () => {
+    expect(ALERTS_SPEC.ids).toEqual(ALERT_GROUPS.flatMap((g) => g.spec.ids))
+    expect(ALERTS_SPEC.fixedOrder).toBe(true)
+    expect(ALERTS_SPEC.parents).toEqual({
+      showBlue: 'showFlags',
+      showFurled: 'showFlags',
+      showPitOverspeed: 'showPitLimiter'
+    })
+    expect(ALERT_GROUP_HEADS).toEqual([
+      ['showFlags', 'flags'],
+      ['showPitLimiter', 'pit'],
+      ['showLapsToGo', 'race'],
+      ['showStalled', 'engine'],
+      ['showBoxThisLap', 'fuel']
+    ])
+    expect(allAlertItems(DEFAULT_SETTINGS.alerts)).toEqual(ALERTS_SPEC.default)
+  })
+})
+
 describe('the Contenido / Personalizar rule', () => {
   it('keeps the switches of what is drawn out of Contenido', () => {
     expect(contentOf(ALERTS)).not.toMatch(/set\('show/)
-    expect(ALERTS).toMatch(/<AccordionSection[\s\S]*?v-for="g in groups"/)
+    // One list in groups: one reset, one help, a click on an alert in the preview hides it.
+    expect(ALERTS).toMatch(
+      /<AccordionSection[\s\S]*?:groups="groupHeads"[\s\S]*?preview-zone="alerts.alerts"/
+    )
+    expect(ALERTS.match(/<ElementEditor/g)).toHaveLength(2)
     const lights = contentOf(LIGHTS)
     for (const f of [
       'showTemps',

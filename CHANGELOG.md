@@ -13,14 +13,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   columna (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como en la pantalla de controles de
   un juego, así que los atajos quedan alineados entre filas. La casilla es el control: clic para
   cambiar, **×** o `Supr` para quitar, **+ Asignar** en la primera libre. Los avisos están en su
-  casilla («Desconectado», «En uso por otra app») y la frase que haga falta sale debajo de esa
-  columna; «Guardado» y «Quitado» ya no empujan la página (los lectores de pantalla los siguen
-  oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
+  casilla («Desconectado», «En uso por otra app»; en una ventana estrecha, solo su icono) y la
+  frase que lo explica sale debajo de esa columna; «Guardado» y «Quitado» ya no empujan la página (los lectores de pantalla los siguen
+  oyendo). Restablecer es un icono ↺ en su propia columna (con «Deshacer»), `Esc` es una fila
+  más, con el mismo candado que lo fijo en las listas, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
 - **Contenido para el comportamiento, Personalizar para lo que se ve**: Avisos elige sus avisos
-  con una lista con ojo, agrupada (Banderas, Boxes, Durante la carrera, Motor, Combustible), como
-  Testigos y Radar, en vez de 15 casillas en Contenido; las banderas azul y enrollada dependen de
+  con una sola lista con ojo, con subtítulos por grupo (Banderas, Boxes, Durante la carrera, Motor,
+  Combustible), un solo «Restablecer» y una sola ayuda, como Testigos y Radar, en vez de 15
+  casillas en Contenido; un clic en un aviso de la vista previa lo oculta, como su ojo; las banderas azul y enrollada dependen de
   las banderas, y el exceso del limitador. En Testigos, rótulos, temperaturas y tiempos de
   reparación pasan junto a la lista de testigos, con «Temperatura al alza». En Posiciones, «iRating
   en juego de todos» está en la fila de su columna. Lo guardado no cambia.
@@ -31,20 +33,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lleva el número de coches al pie; Relativo deja de repetir los incidentes. Cada cabecera y pie
   tiene **«Copiar a»** para pasarlo, con su tamaño, a otro widget (con «Deshacer»), y Combustible ya
   no ofrece «Vueltas de combustible» en sus barras, porque las dice en grande (si la tenías, se
-  quita). Si ya tenías ajustes, tus barras no cambian.
+  quita). Si ya tenías ajustes, tus barras no cambian (un archivo sin versión cuenta como
+  anterior). En Posiciones, el SoF y los coches de la cabecera y el pie dicen que, con varias
+  clases, van en la línea de clase.
 - **Delta en una sola lista**: Personalizar tiene solo «Líneas»; la línea superior y los tiempos
   de vuelta se despliegan en su propia fila para mostrar sus partes («3 de 3 partes»), en vez de
   tres acordeones que dependían entre sí. Las referencias se llaman por su nombre completo
   («Récord personal», «Mejor vuelta de la sesión», «Vuelta óptima»…), con lo que es cada una, y
   la vista previa dibuja la de la sesión que acabas de cambiar y lo dice debajo («La vista previa
-  usa la de Carrera: Vuelta óptima»).
+  usa la de Carrera: Vuelta óptima»). La cadena «Si no existe: …» y las partes de los tiempos de
+  vuelta usan esos mismos nombres.
 - **Lo oculto se ve igual en todas las vistas previas**: con el ratón sobre la vista previa, lo
   que tengas oculto en cualquier lista (columnas, capas, testigos, avisos, líneas…) se dibuja
   translúcido donde iría, y un clic lo vuelve a mostrar; antes solo pasaba con las barras de datos
-  y algunas listas, y en el resto había que buscarlo debajo. Un solo texto de ayuda en todas.
+  y algunas listas, y en el resto había que buscarlo debajo. La ayuda de encima de la vista previa
+  solo promete lo que la página permite: «Arrastra… para ordenar» donde una lista se puede
+  ordenar, y en Avisos dice que un aviso oculto vuelve desde su lista.
 - **Las columnas de Relativo y Posiciones se llaman y editan igual**: «Posición» (en tu clase) y
-  «Piloto» en las dos (Posiciones decía «Nombre» y Relativo «Posición en clase»), el mismo
-  candado, en el sitio del ojo, para lo que siempre se ve (Posiciones ponía «Fijo»), iRating
+  «Piloto», con el número del coche, en las dos (Posiciones decía «Nombre» y tenía una fila
+  «Número» aparte; Relativo decía «Posición en clase»), el mismo candado, en el sitio del ojo, para
+  lo que siempre se ve (Posiciones ponía «Fijo»), «Hueco» se puede ocultar en las dos, iRating
   antes que la licencia en las dos y una columna «Boxes» también en Relativo (oculta, la etiqueta
   PIT sigue tras el nombre, como en Posiciones sin la suya). Cada tabla tiene **«Igualar con
   Posiciones / Relativo»**, que copia el orden y el ojo de las columnas que comparten, con
@@ -60,24 +68,29 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   «Color del logo». **En una instalación nueva** los cuatro siguen el global (Batalla enseña ahora
   la bandera del país, antes apagada, y Tráfico los logos y las banderas); **si ya tenías
   ajustes**, cada widget dibuja lo mismo que antes (lo que nunca dibujaba queda apagado) y
-  Apariencia ofrece «Usar el global en todos». Si vuelves a una versión anterior, lo que esté en
+  Apariencia ofrece «Usar «Global» en todos» (con «Deshacer»). Si vuelves a una versión anterior, lo que esté en
   «Global» toma el valor por defecto de esa versión.
 - **El mismo bloque «Ventana y visibilidad» en los diez widgets**: Relativo, Radar y Delta tienen
   ya «Escala», con los mismos botones 80/100/125/150 %: es el tamaño de su ventana respecto al de
   fábrica (lo mismo que hace la rueda en modo edición, que ahora significa «escala» en todos), y
-  el chip del modo edición muestra ese mismo porcentaje. La fila «Alto» sale en todos, apagada con
+  el chip del modo edición muestra ese mismo porcentaje; restablecer «Ventana y visibilidad» la
+  vuelve al 100 %. La fila «Alto» sale en todos, apagada con
   su motivo donde no se aplica, así que las filas están en el mismo sitio en cada página.
-- **Deshacer también los cambios grandes**: restablecer (una lista, las opciones de un widget, su
-  ventana o su posición, la apariencia, los atajos), ocultar un widget y eliminar una disposición
+- **Deshacer también los cambios grandes**: restablecer (una lista, una sección de un widget, su
+  posición, una sección de Apariencia o toda, todos los atajos o los de una acción), «Usar «Global»
+  en todos», ocultar un widget y eliminar una disposición
   se hacen con un clic y muestran el mismo aviso que ocultar un elemento, con **Deshacer** (o
   `Ctrl+Z`). Ya no piden «Pulsa otra vez»; solo borrar récords personales lo sigue pidiendo,
   porque no se puede deshacer.
-- **Restablecer dice qué y dónde**: en cada página de widget, un menú **Restablecer…** arriba,
-  junto a «Visible», con lo que devuelve cada opción (Contenido y Personalizar, Ventana y
-  visibilidad, Posición y tamaño, o todo el widget), y un icono ↺ en la cabecera de Contenido y de
-  Ventana y visibilidad. Antes eran dos botones al final de la página, y «Restablecer opciones»
+- **Restablecer dice qué y dónde**: en cada página, un menú **Restablecer…** arriba con lo que
+  devuelve cada opción, y un icono ↺ en la cabecera de cada sección que restablece solo esa
+  sección: en un widget, Contenido, Piloto, Personalizar y Ventana y visibilidad (más Posición y
+  tamaño, o todo el widget, en el menú); en Apariencia, Color, Texto, Filas y pilotos, Visibilidad
+  y Otros (o toda la página, que ahora incluye Visibilidad; el idioma no cambia); en Atajos, todos
+  (cada fila tiene su ↺). Antes eran botones al final de la página, y «Restablecer opciones»
   tocaba también la escala, el fondo y las reglas. Con dos disposiciones o más, el aviso nombra
-  la disposición («Restablecido: ventana de Relativo · en «Principal»»).
+  la disposición («Restablecido: Ventana y visibilidad de Relativo · en «Principal»»), y los
+  avisos se leen bien con cualquier widget («Ocultado: Posiciones», «Posiciones (todo)»).
 - **Un solo formato de números en Ajustes**: sin «,0» de sobra («1 s», no «1.0 s» en Batalla y
   Avisos) y con coma decimal en español («1,5 s», «0,5 v», «1,5 px»); los widgets mantienen el
   punto del simulador, como los tiempos de vuelta. **Una sola escalera de botones rápidos** para

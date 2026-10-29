@@ -259,6 +259,18 @@ describe('relativeColumns', () => {
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
   })
 
+  it('hides the gap like any column, as the standings do (R10)', () => {
+    const list = DEF.map((e) => (e.id === 'gap' ? { ...e, visible: false } : e))
+    const c = relativeColumns(list, plain)
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic'])
+    // A list that never had it (not normalised) still draws it at the end.
+    const none = relativeColumns(
+      DEF.filter((e) => e.id !== 'gap'),
+      plain
+    )
+    expect(none.cells.at(-1)).toBe('gap')
+  })
+
   it('gives the PIT badge a column of its own when it is shown (R10)', () => {
     const list = DEF.map((e) => (e.id === 'pit' ? { ...e, visible: true } : e))
     const c = relativeColumns(list, plain)

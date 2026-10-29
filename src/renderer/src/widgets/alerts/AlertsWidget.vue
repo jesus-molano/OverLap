@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { alertToggleOf, type AlertKind } from '@shared/alerts'
 import { isElementVisible } from '@shared/elements'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useContentSize } from '@renderer/composables/useContentSize'
@@ -104,6 +105,17 @@ const chips = computed(() =>
 )
 
 const hero = computed(() => limiterHero(flags.value, limiter.value))
+/**
+ * Each alert's element for the settings page's preview (R12): a click hides it as its eye in
+ * Avisos › Personalizar does ('alerts.alerts.showBlue'). The limiter over the limit without it is
+ * the overspeed's.
+ */
+const alertEl = (kind: AlertKind): string => `alerts.alerts.${alertToggleOf(kind)}`
+const limiterEl = computed(() =>
+  limiter.value?.state === 'offSpeeding'
+    ? 'alerts.alerts.showPitOverspeed'
+    : 'alerts.alerts.showPitLimiter'
+)
 const incidentBig = computed(() => incidentHero(flags.value, incident.value, limiter.value))
 
 /** The panel has a row to draw (live, the sample, or the last ones kept while hidden). */
@@ -158,6 +170,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         v-if="flags.primary"
         v-memo="[flags.primary, previewTag === 'flag', showNotes]"
         class="flag"
+        :data-el="alertEl(flags.primary.kind)"
         :class="[
           `al-fill-${flags.primary.fill}`,
           `al-ink-${flags.primary.ink}`,
@@ -194,7 +207,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         class="chips"
         data-el="alerts.parts.chips"
       >
-        <span v-for="f in chips" :key="f.kind" class="chip">
+        <span v-for="f in chips" :key="f.kind" class="chip" :data-el="alertEl(f.kind)">
           <span class="chip__mark al-tile" :class="[`al-fill-${f.fill}`, `al-tile--${f.mark}`]" />
           <span class="chip__text">{{ f.chip }}</span>
         </span>
@@ -203,6 +216,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
 
       <IncidentLine
         v-if="incident"
+        data-el="alerts.alerts.showIncidents"
         :view="incident"
         :hero="incidentBig"
         :preview="previewTag === 'incident'"
@@ -211,6 +225,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
       <div
         v-if="limiter"
         class="limiter"
+        :data-el="limiterEl"
         :class="[
           `limiter--${limiter.state}`,
           {

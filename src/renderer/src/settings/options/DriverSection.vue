@@ -43,7 +43,7 @@ const penaltyChoices = computed(() => flagChoicesInherit(t.value, appearance.val
 </script>
 
 <template>
-  <PageSection :title="t.settings.driverBlock.title">
+  <PageSection :title="t.settings.driverBlock.title" resets="driver">
     <ChoiceControl
       :label="t.settings.common.nameFormat"
       stack

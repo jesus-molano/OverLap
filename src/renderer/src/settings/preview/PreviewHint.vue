@@ -4,12 +4,14 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
+import { previewHintOf } from './previewEdit'
 import { injectPreviewEdit } from './usePreviewEdit'
 
 /**
- * The line above a widget page's preview that says it is editable ("Arrastra en la vista
- * previa para ordenar; clic para mostrar u ocultar"), on a page with element lists, until you
- * dismiss it (settingsWindow.previewHint, remembered across reopenings).
+ * The line above a widget page's preview that says it is editable, on a page with element lists,
+ * until you dismiss it (settingsWindow.previewHint, remembered across reopenings). It promises
+ * only what the page's lists allow (previewHintOf): "Arrastra… para ordenar" where one can be
+ * reordered, the translucent hidden elements where they are drawn.
  */
 const t = useI18n()
 const edit = injectPreviewEdit()
@@ -18,15 +20,35 @@ const hint = useDraft<boolean>(
   () => windowOptions.value.previewHint,
   optionSetter('settingsWindow')('previewHint')
 )
-const shown = computed(() => hint.value.value && edit !== null && edit.zones.value.size > 0)
+const kind = computed(() =>
+  edit === null
+    ? null
+    : previewHintOf(
+        [...edit.zones.value.values()].map((h) => ({
+          zone: h.zone,
+          fixedOrder: h.spec.fixedOrder,
+          off: h.off()
+        }))
+      )
+)
+const texts = computed(() => {
+  const p = t.value.settings.preview
+  const k = kind.value
+  if (k === null) return null
+  return {
+    main: k.sortable ? p.hint : p.hintFixed,
+    more: k.ghosts === 'all' ? p.hintMore : k.ghosts === 'some' ? p.hintMoreSome : p.hintMoreNone
+  }
+})
+const shown = computed(() => hint.value.value && texts.value !== null)
 </script>
 
 <template>
   <div v-if="shown" class="pe-hint">
-    <span class="pe-hint-icon" aria-hidden="true">⠿</span>
+    <span class="pe-hint-icon" aria-hidden="true">{{ kind?.sortable ? '⠿' : '◉' }}</span>
     <p class="pe-hint-text">
-      <span class="pe-hint-main">{{ t.settings.preview.hint }}</span>
-      <span class="pe-hint-more">{{ t.settings.preview.hintMore }}</span>
+      <span class="pe-hint-main">{{ texts?.main }}</span>
+      <span class="pe-hint-more">{{ texts?.more }}</span>
     </p>
     <button
       type="button"

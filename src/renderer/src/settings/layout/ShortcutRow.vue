@@ -13,6 +13,7 @@ import {
   type ShortcutRowView
 } from '../shortcutsView'
 import type { ShortcutCapture } from '../useShortcutCapture'
+import { resetShortcut } from '../undo/restore'
 import Keycaps from './Keycaps.vue'
 
 /**
@@ -173,7 +174,9 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
           <span class="sc-lines">
             <span class="sc-button-name">{{ cell.binding.button.button }}</span>
             <span v-if="cell.binding.off" class="sc-tag sc-tag-warn"
-              ><Icon name="warning" />{{ t.settings.shortcuts.status.disconnected }}</span
+              ><Icon name="warning" /><span class="sc-tag-text">{{
+                t.settings.shortcuts.status.disconnected
+              }}</span></span
             >
             <span v-else class="sc-sub">{{ cell.binding.button.device }}</span>
           </span>
@@ -184,7 +187,9 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
             <Icon v-if="warned === cell.slot" name="warning" class="sc-warn-icon" />
           </span>
           <span v-if="cell.binding.off" class="sc-tag sc-tag-warn"
-            ><Icon name="warning" />{{ t.settings.shortcuts.status.unavailableShort }}</span
+            ><Icon name="warning" /><span class="sc-tag-text">{{
+              t.settings.shortcuts.status.unavailableShort
+            }}</span></span
           >
         </span>
       </button>
@@ -211,7 +216,7 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
         :disabled="recording !== null"
         :aria-label="t.settings.shortcuts.resetLabel(row.label, row.defaultKeys)"
         :title="t.settings.shortcuts.resetLabel(row.label, row.defaultKeys)"
-        @click="capture.reset(row.action)"
+        @click="resetShortcut(row.action, row.label, capture.reset)"
       >
         <Icon name="reset" />
       </button>

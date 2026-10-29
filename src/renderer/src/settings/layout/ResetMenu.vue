@@ -1,36 +1,30 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue'
-import { widgetTitle } from '@shared/i18n'
-import type { WidgetId } from '@shared/widgets'
+import { shallowRef, useTemplateRef } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
-import { resetBounds, resetWidget, resetWidgetAll } from '../undo/restore'
+import type { ResetItem } from './resetItems'
 
 /**
- * A widget page's "Restablecer…" (R24), at the top beside "Visible": what each item resets, by
- * the name of its section, and one click each (the toast offers "Deshacer" and names the layout).
- * The same resets as the icons in the sections' heads, plus the position and everything at once.
- * A disclosure: Escape or a click elsewhere closes it, the focus goes back to its button.
+ * A page's "Restablecer…" (R24), at the end of its title line on every page that resets something
+ * (a widget, Apariencia, Atajos): what each item resets, by the name of its section, and one click
+ * each (the toast offers "Deshacer" and names the layout). The same resets as the icons in the
+ * sections' heads, plus the page's "everything". A disclosure: Escape or a click elsewhere closes
+ * it, the focus goes back to its button.
  */
-const props = defineProps<{ widgetId: WidgetId }>()
+defineProps<{
+  /** The menu's name for screen readers ('Restablecer Relativo'). */
+  label: string
+  items: readonly ResetItem[]
+}>()
 
 const t = useI18n()
 const open = shallowRef(false)
 const root = useTemplateRef<HTMLElement>('root')
 const toggle = useTemplateRef<HTMLButtonElement>('toggle')
 
-type Item = 'options' | 'window' | 'bounds' | 'all'
-const ITEMS: readonly Item[] = ['options', 'window', 'bounds', 'all']
-const items = computed(() => {
-  const r = t.value.settings.widgetPage.reset
-  return ITEMS.map((id) => ({ id, label: r[id].label, description: r[id].description }))
-})
-
-function run(item: Item): void {
+function run(item: ResetItem): void {
   close(true)
-  if (item === 'bounds') resetBounds(props.widgetId)
-  else if (item === 'all') resetWidgetAll(props.widgetId)
-  else resetWidget(props.widgetId, item)
+  item.run()
 }
 
 function close(refocus: boolean): void {
@@ -52,14 +46,14 @@ function onFocusOut(e: FocusEvent): void {
       type="button"
       class="st-btn st-btn-sm st-btn-ghost reset-toggle"
       :aria-expanded="open"
-      :aria-label="t.settings.widgetPage.reset.menuLabel(widgetTitle(t, widgetId))"
+      :aria-label="label"
       @click="open = !open"
     >
       <Icon name="reset" />{{ t.settings.widgetPage.reset.menu }}
     </button>
     <ul v-if="open" class="reset-list">
       <li v-for="item in items" :key="item.id">
-        <button type="button" class="reset-item" @click="run(item.id)">
+        <button type="button" class="reset-item" @click="run(item)">
           <span class="reset-label">{{ item.label }}</span>
           <span class="reset-desc">{{ item.description }}</span>
         </button>

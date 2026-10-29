@@ -21,8 +21,15 @@ import {
 // ---- Hit-testing --------------------------------------------------------------------------
 
 /** One element as the sample draws it: its zone ('relative.columns') and id ('gap'). */
+/**
+ * The zones of the preview: Personalizar's (CUSTOMIZE_ZONE_IDS), and the lists that are kept as
+ * switches rather than as one list (the alerts, R12), clicked in the sample to hide one but never
+ * ghosted (they have no list to draw them from).
+ */
+export type PreviewZoneId = CustomizeZoneId | 'alerts.alerts'
+
 export interface ElRef {
-  readonly zone: CustomizeZoneId
+  readonly zone: PreviewZoneId
   readonly id: string
 }
 
@@ -32,7 +39,7 @@ const EL = /^([a-z]+\.[a-zA-Z]+)\.([a-zA-Z]+)$/
 export function parseEl(value: string | null | undefined): ElRef | null {
   const m = typeof value === 'string' ? EL.exec(value) : null
   if (m === null || m[1] === undefined || m[2] === undefined) return null
-  return { zone: m[1] as CustomizeZoneId, id: m[2] }
+  return { zone: m[1] as PreviewZoneId, id: m[2] }
 }
 
 /**
@@ -42,7 +49,7 @@ export function parseEl(value: string | null | undefined): ElRef | null {
  */
 export function pickEl(
   chain: readonly (string | null | undefined)[],
-  known: (zone: CustomizeZoneId) => boolean
+  known: (zone: PreviewZoneId) => boolean
 ): ElRef | null {
   for (const v of chain) {
     const el = parseEl(v)
@@ -426,6 +433,32 @@ export const NEAR_OFFSETS: readonly (readonly [number, number])[] = [
 export const GHOST_ZONES: ReadonlySet<CustomizeZoneId> = new Set<CustomizeZoneId>(
   CUSTOMIZE_ZONE_IDS
 )
+
+/**
+ * What the line above a page's preview can promise (PreviewHint, R41): a drag only where a zone
+ * the page shows can be reordered; the translucent hidden elements for every zone, some of them
+ * (the rest come back from their list) or none.
+ */
+export interface PreviewHintKind {
+  readonly sortable: boolean
+  readonly ghosts: 'all' | 'some' | 'none'
+}
+
+export function previewHintOf(
+  zones: readonly {
+    readonly zone: PreviewZoneId
+    readonly fixedOrder: boolean
+    readonly off: boolean
+  }[]
+): PreviewHintKind | null {
+  const on = zones.filter((z) => !z.off)
+  if (on.length === 0) return null
+  const ghosted = on.filter((z) => (GHOST_ZONES as ReadonlySet<string>).has(z.zone)).length
+  return {
+    sortable: on.some((z) => !z.fixedOrder),
+    ghosts: ghosted === on.length ? 'all' : ghosted === 0 ? 'none' : 'some'
+  }
+}
 
 /** The size field of an info bar zone ('relative.headerBar' → 'headerBarSize'), else null. */
 function barSizeField(zone: CustomizeZoneId): string | null {

@@ -4,7 +4,15 @@ import { widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useWidgetSettings } from '../../composables/useWidgetSettings'
-import { WIDGET_PAGE, setWidgetVisible } from '../undo/restore'
+import { hasOptionPart, type OptionPart } from '@shared/settings'
+import {
+  WIDGET_PAGE,
+  resetBounds,
+  resetWidget,
+  resetWidgetAll,
+  setWidgetVisible
+} from '../undo/restore'
+import type { ResetItem } from '../layout/resetItems'
 import ResetMenu from '../layout/ResetMenu.vue'
 import { provideCustomizeHost } from '../layout/customize'
 import OptionsTarget from '../layout/OptionsTarget.vue'
@@ -68,6 +76,25 @@ const subtitle = computed(() => {
   return prefs.value.autoHeight ? w.sizeAuto(width.value, scale) : w.sizeFixed(size.value, scale)
 })
 const options = computed(() => WIDGET_OPTIONS[props.widgetId])
+
+/**
+ * "Restablecer…": each section of the page that the widget has, in the page's order, then its
+ * position and everything at once. The same resets as the ↺ in the sections' heads.
+ */
+const resetItems = computed<ResetItem[]>(() => {
+  const r = t.value.settings.widgetPage.reset
+  const id = props.widgetId
+  const parts: OptionPart[] = ['content', 'driver', 'customize']
+  const items: ResetItem[] = parts
+    .filter((p) => hasOptionPart(id, p))
+    .map((p) => ({ id: p, ...r[p], run: () => resetWidget(id, p) }))
+  items.push(
+    { id: 'window', ...r.window, run: () => resetWidget(id, 'window') },
+    { id: 'bounds', ...r.bounds, run: () => resetBounds(id) },
+    { id: 'all', ...r.all, run: () => resetWidgetAll(id) }
+  )
+  return items
+})
 </script>
 
 <template>
@@ -78,7 +105,11 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
           <h1 :id="titleId" class="page-title">{{ title }}</h1>
           <p class="page-sub">{{ subtitle }}</p>
         </div>
-        <ResetMenu :widget-id="widgetId" class="reset" />
+        <ResetMenu
+          :label="t.settings.widgetPage.reset.menuLabel(title)"
+          :items="resetItems"
+          class="reset"
+        />
         <div class="visible-toggle">
           <ToggleControl
             kind="switch"

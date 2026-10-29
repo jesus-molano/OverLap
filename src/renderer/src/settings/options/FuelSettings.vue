@@ -52,7 +52,7 @@ const setLines = listSetter('fuel', 'lines')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" resets="options" :note="t.settings.fuel.calcNote">
+  <PageSection :title="t.settings.common.content" resets="content" :note="t.settings.fuel.calcNote">
     <StepperControl
       :label="t.settings.fuel.avgLaps"
       :help="t.settings.fuel.avgLapsHelp"

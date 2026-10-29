@@ -1,8 +1,9 @@
+import { DEFAULT_SETTINGS } from '@shared/settings'
 import { describe, expect, it } from 'vitest'
 import { LANGUAGES, messagesFor } from '@shared/i18n'
 import { elementFields, elementsSpec } from '@shared/settingsSchema'
 import type { ElementField, OptionSection } from '@shared/settingsSchema'
-import { elementTexts, infoBarTexts, zoneTitle } from './labels'
+import { barItemTexts, elementTexts, infoBarTexts, zoneTitle } from './labels'
 
 describe('the words of every element list', () => {
   it('a title for every zone and a label for every id, in every language', () => {
@@ -36,5 +37,25 @@ describe('the words of every element list', () => {
     const m = messagesFor('es')
     expect(elementTexts(m, 'standings', 'columns').gap.label).toBe(m.settings.columns.labels.gap)
     expect(elementTexts(m, 'lights', 'icons').water.label).toBe(m.widgets.lights.names.water)
+  })
+})
+
+describe('barItemTexts (R13)', () => {
+  it('says which standings items the class lines show instead', () => {
+    const es = messagesFor('es')
+    const st = barItemTexts(es, 'standings', DEFAULT_SETTINGS.standings as never)
+    expect(st.sof.hint).toBe(es.settings.standings.inClassLine)
+    expect(st.carCount.hint).toBe(es.settings.standings.inClassLine)
+    const noLine = barItemTexts(es, 'standings', {
+      ...DEFAULT_SETTINGS.standings,
+      classLine: [
+        { id: 'sof', visible: false },
+        { id: 'carCount', visible: true }
+      ]
+    } as never)
+    expect(noLine.sof.hint).not.toBe(es.settings.standings.inClassLine)
+    expect(barItemTexts(es, 'relative', DEFAULT_SETTINGS.relative as never).sof.hint).not.toBe(
+      es.settings.standings.inClassLine
+    )
   })
 })
