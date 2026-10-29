@@ -9,7 +9,9 @@ import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettin
 import CheckGroup from '../controls/CheckGroup.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { listSetter, optionSetter } from '../editor'
+import ElementEditor from '../elements/ElementEditor.vue'
+import { elementTexts, zoneTitle } from '../elements/labels'
 import PageSection from '../layout/PageSection.vue'
 import { formatSeconds } from '../values'
 
@@ -38,6 +40,9 @@ const holds = computed(
     opts.value.showStalled ||
     opts.value.showOilPressure
 )
+
+const partTexts = computed(() => elementTexts(t.value, 'alerts', 'parts'))
+const setParts = listSetter('alerts', 'parts')
 </script>
 
 <template>
@@ -166,4 +171,12 @@ const holds = computed(
       :apply="set('holdS')"
     />
   </PageSection>
+
+  <ElementEditor
+    :title="zoneTitle(t, 'alerts', 'parts')"
+    :items="opts.parts"
+    :spec="OPTION_SCHEMA.alerts.parts"
+    :labels="partTexts"
+    :apply="setParts"
+  />
 </template>

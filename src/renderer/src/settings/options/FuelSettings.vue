@@ -1,94 +1,62 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { FUEL_STRATEGY } from '@shared/fuel/strategy'
+import { INFO_BAR_SIZES } from '@shared/infoBar'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import CheckGroup from '../controls/CheckGroup.vue'
+import ChoiceControl from '../controls/ChoiceControl.vue'
+import { choiceOptions } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { elementToggle, optionSetter, type Setter } from '../editor'
+import { listSetter, optionSetter } from '../editor'
+import ElementEditor from '../elements/ElementEditor.vue'
+import { elementTexts, zoneTitle } from '../elements/labels'
 import PageSection from '../layout/PageSection.vue'
 
 const opts = useOptions('fuel')
 const set = optionSetter('fuel')
 const t = useI18n()
+const S = OPTION_SCHEMA.fuel
 
-const AVG: NumericSpec = OPTION_SCHEMA.fuel.avgLaps
-const MARGIN: NumericSpec = OPTION_SCHEMA.fuel.marginLaps
+const AVG: NumericSpec = S.avgLaps
+const MARGIN: NumericSpec = S.marginLaps
 const MARGIN_STEP = MARGIN.step ?? 0.1
 const MARGIN_PRESETS = [0, 0.5, 1, 2].filter((v) => v >= MARGIN.min && v <= MARGIN.max)
 /** '0.5 v' / '0.5 laps'. */
 const marginText = (v: number): string => t.value.settings.fuel.marginValue(v.toFixed(1))
 /** How much less per lap still counts as within reach, as a whole percentage. */
 const SAVE_PCT = Math.round(FUEL_STRATEGY.saveReach * 100)
-/** The header is an info bar now: until the page gets its editor (package P4), on or off. */
-const setHeader: Setter<boolean> = (on) => set('headerBarSize')(on ? 'normal' : 'off')
+
+const sizeChoices = computed(() =>
+  choiceOptions(INFO_BAR_SIZES, t.value.settings.infoBar.sizeChoices)
+)
+const headTexts = computed(() => elementTexts(t.value, 'fuel', 'headerBar'))
+
+/** Every line's words, with the hint each had as a switch. */
+const lineTexts = computed(() => {
+  const f = t.value.settings.fuel
+  const base = elementTexts(t.value, 'fuel', 'lines')
+  return {
+    ...base,
+    gauge: { label: base.gauge.label, hint: f.gaugeHelp },
+    perLap: { label: base.perLap.label, hint: f.perLapHelp },
+    finish: { label: base.finish.label, hint: f.finishHelp },
+    window: { label: base.window.label, hint: f.windowHelp },
+    save: { label: base.save.label, hint: f.saveHelp(SAVE_PCT) },
+    tyres: { label: base.tyres.label, hint: f.tyresHelp },
+    limits: { label: base.limits.label, hint: f.limitsHelp }
+  }
+})
+const finishShown = computed(() => isElementVisible(opts.value.lines, 'finish'))
+
+const setHeader = listSetter('fuel', 'headerBar')
+const setLines = listSetter('fuel', 'lines')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" :note="t.settings.fuel.note">
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.fuel.header"
-      :help="t.settings.fuel.headerHelp"
-      :current="opts.headerBarSize !== 'off'"
-      :apply="setHeader"
-    />
-    <CheckGroup :legend="t.settings.fuel.lines">
-      <ToggleControl
-        :label="t.settings.fuel.gauge"
-        :help="t.settings.fuel.gaugeHelp"
-        :current="isElementVisible(opts.lines, 'gauge')"
-        :apply="elementToggle('fuel', 'lines', 'gauge')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.perLap"
-        :help="t.settings.fuel.perLapHelp"
-        :current="isElementVisible(opts.lines, 'perLap')"
-        :apply="elementToggle('fuel', 'lines', 'perLap')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.finish"
-        :help="t.settings.fuel.finishHelp"
-        :current="isElementVisible(opts.lines, 'finish')"
-        :apply="elementToggle('fuel', 'lines', 'finish')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.box"
-        :help="t.settings.fuel.boxHelp"
-        :current="opts.showBox"
-        :disabled="!isElementVisible(opts.lines, 'finish')"
-        :apply="set('showBox')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.window"
-        :help="t.settings.fuel.windowHelp"
-        :current="isElementVisible(opts.lines, 'window')"
-        :apply="elementToggle('fuel', 'lines', 'window')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.save"
-        :help="t.settings.fuel.saveHelp(SAVE_PCT)"
-        :current="isElementVisible(opts.lines, 'save')"
-        :apply="elementToggle('fuel', 'lines', 'save')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.tyres"
-        :help="t.settings.fuel.tyresHelp"
-        :current="isElementVisible(opts.lines, 'tyres')"
-        :apply="elementToggle('fuel', 'lines', 'tyres')"
-      />
-      <ToggleControl
-        :label="t.settings.fuel.limits"
-        :help="t.settings.fuel.limitsHelp"
-        :current="isElementVisible(opts.lines, 'limits')"
-        :apply="elementToggle('fuel', 'lines', 'limits')"
-      />
-    </CheckGroup>
-  </PageSection>
-
   <PageSection :title="t.settings.fuel.calc" :note="t.settings.fuel.calcNote">
     <StepperControl
       :label="t.settings.fuel.avgLaps"
@@ -110,4 +78,56 @@ const setHeader: Setter<boolean> = (on) => set('headerBarSize')(on ? 'normal' : 
       :apply="set('marginLaps')"
     />
   </PageSection>
+
+  <ElementEditor
+    :title="zoneTitle(t, 'fuel', 'headerBar')"
+    :items="opts.headerBar"
+    :spec="S.headerBar"
+    :labels="headTexts"
+    :apply="setHeader"
+  >
+    <template #footer>
+      <div class="st-card fu-extras">
+        <ChoiceControl
+          :label="t.settings.infoBar.size"
+          :help="t.settings.infoBar.fitNote"
+          :current="opts.headerBarSize"
+          :options="sizeChoices"
+          :apply="set('headerBarSize')"
+        />
+      </div>
+    </template>
+  </ElementEditor>
+
+  <ElementEditor
+    :title="zoneTitle(t, 'fuel', 'lines')"
+    :items="opts.lines"
+    :spec="S.lines"
+    :labels="lineTexts"
+    :apply="setLines"
+  >
+    <template #footer>
+      <p class="st-help fu-note">{{ t.settings.fuel.note }}</p>
+      <div class="st-card fu-extras">
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.fuel.box"
+          :help="t.settings.fuel.boxHelp"
+          :current="opts.showBox"
+          :disabled="!finishShown"
+          :apply="set('showBox')"
+        />
+      </div>
+    </template>
+  </ElementEditor>
 </template>
+
+<style scoped>
+.fu-note {
+  margin-top: 8px;
+}
+
+.fu-extras {
+  margin-top: 10px;
+}
+</style>

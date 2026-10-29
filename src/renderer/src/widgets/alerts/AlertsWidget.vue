@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -34,6 +35,8 @@ import {
   type FlagsView,
   type LimiterView
 } from './view'
+
+const NO_CHIPS: FlagsView['secondary'] = Object.freeze([])
 
 const options = useOptions('alerts')
 const prefs = useWidgetSettings('alerts')
@@ -94,6 +97,12 @@ const incident = computed<IncidentLineView | null>((prev) =>
   )
 )
 
+// The band's extras (alerts.parts): what to do after each alert, the other flags as chips.
+const showNotes = computed(() => isElementVisible(options.value.parts, 'notes'))
+const chips = computed(() =>
+  isElementVisible(options.value.parts, 'chips') ? flags.value.secondary : NO_CHIPS
+)
+
 const hero = computed(() => limiterHero(flags.value, limiter.value))
 const incidentBig = computed(() => incidentHero(flags.value, incident.value, limiter.value))
 
@@ -110,7 +119,7 @@ const wanted = computed(
  */
 const previewTag = computed<'flag' | 'chips' | 'limiter' | 'incident' | null>(() => {
   if (!preview.value) return null
-  if (flags.value.secondary.length > 0) return 'chips'
+  if (chips.value.length > 0) return 'chips'
   if (limiter.value !== null) return 'limiter'
   return incident.value !== null ? 'incident' : 'flag'
 })
@@ -147,7 +156,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
     >
       <div
         v-if="flags.primary"
-        v-memo="[flags.primary, previewTag === 'flag']"
+        v-memo="[flags.primary, previewTag === 'flag', showNotes]"
         class="flag"
         :class="[
           `al-fill-${flags.primary.fill}`,
@@ -166,17 +175,15 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
           <span v-if="flags.primary.short" class="flag__label flag__label--short">{{
             flags.primary.short
           }}</span>
-          <span v-if="flags.primary.note" class="flag__note">{{ flags.primary.note }}</span>
+          <span v-if="showNotes && flags.primary.note" class="flag__note">{{
+            flags.primary.note
+          }}</span>
         </span>
         <PreviewTag v-if="previewTag === 'flag'" class="alerts__preview" />
       </div>
 
-      <div
-        v-if="flags.secondary.length > 0"
-        v-memo="[flags.secondary, previewTag === 'chips']"
-        class="chips"
-      >
-        <span v-for="f in flags.secondary" :key="f.kind" class="chip">
+      <div v-if="chips.length > 0" v-memo="[chips, previewTag === 'chips']" class="chips">
+        <span v-for="f in chips" :key="f.kind" class="chip">
           <span class="chip__mark al-tile" :class="[`al-fill-${f.fill}`, `al-tile--${f.mark}`]" />
           <span class="chip__text">{{ f.chip }}</span>
         </span>
@@ -200,7 +207,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
       >
         <span class="limiter__mark"><Icon :name="limiter.icon" class="limiter__icon" /></span>
         <span class="limiter__label">{{ limiter.label }}</span>
-        <span v-if="limiter.note" class="limiter__note">{{ limiter.note }}</span>
+        <span v-if="showNotes && limiter.note" class="limiter__note">{{ limiter.note }}</span>
         <span class="limiter__speed"
           >{{ limiter.speed
           }}<span class="limiter__unit ov-unit">&nbsp;{{ limiter.unit }}</span></span

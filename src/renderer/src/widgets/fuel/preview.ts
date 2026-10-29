@@ -2,10 +2,11 @@
  * Edit-mode sample of the fuel widget: mid-race, a little short with one stop to go and the
  * saving to skip it within reach, after a stop that measured the tyres in a session that limits
  * repairs and sets, so every line is filled and the window is placed and sized on its tallest
- * content. The options still apply to it. Consistent with fuel/strategy.ts: 52 L at 2.96 L/v
+ * content (and the header bar, when on, has every item's data). The options still apply to it. Consistent with fuel/strategy.ts: 52 L at 2.96 L/v
  * with 18.7 laps to go and a 0.5 lap margin need 56.8 L.
  */
 import type { FuelData } from '@shared/types'
+import { PREVIEW_INFO } from '@renderer/view/infoBar'
 
 export const PREVIEW_FUEL: FuelData = Object.freeze({
   visible: true,
@@ -33,5 +34,6 @@ export const PREVIEW_FUEL: FuelData = Object.freeze({
   tyres: Object.freeze({ lap: 13, wearPct: Object.freeze([78, 74, 86, 82] as const) }),
   fastRepairs: 1,
   tyreSets: 2,
-  info: null
+  // The header bar's sample: the info bars' one, with this tank's laps of fuel.
+  info: Object.freeze({ ...PREVIEW_INFO, fuelLaps: 17.6 })
 })
