@@ -29,6 +29,7 @@ export const settingsEs = {
     sections: 'Secciones de ajustes',
     appearance: 'Apariencia',
     shortcuts: 'Atajos de teclado',
+    layouts: 'Disposiciones',
     widgets: 'Widgets',
     /** What each shortcut at the foot of the sidebar does. */
     keys: {
@@ -277,6 +278,10 @@ export const settingsEs = {
       cycleDeltaReference: {
         label: 'Cambiar la referencia del delta',
         help: 'Pasa a la siguiente solo en esta sesión (no se guarda); se aplica al empezar la vuelta'
+      },
+      nextLayout: {
+        label: 'Siguiente disposición',
+        help: 'Aplica la siguiente disposición guardada, en el orden de la lista, y la recuerda'
       }
     },
     /** The fixed Esc row. */
@@ -1029,6 +1034,72 @@ export const settingsEs = {
     countryFlagsHelp: 'La que cada piloto eligió en iRacing; nada si no eligió ninguna',
     columnHeads: 'Cabeceras de columna',
     columnHeadsHelp: 'Una fila con el nombre de cada columna: «POS», «PILOTO», «iR»…'
+  },
+  /** The saved layouts page (pages/LayoutsPage.vue). */
+  layouts: {
+    sub: 'Guarda con un nombre dónde está cada widget, su tamaño, su escala, si se ve y si está bloqueado: una para el Mazda, otra para el GT3. Las opciones de cada widget no cambian.',
+    listTitle: 'Disposiciones guardadas',
+    listNote: 'La que está en uso se actualiza sola al mover los widgets',
+    inUse: 'En uso',
+    apply: 'Aplicar',
+    applyLabel: (name: string) => `Aplicar ${name}`,
+    rename: 'Renombrar',
+    renameLabel: (name: string) => `Renombrar ${name}`,
+    nameLabel: 'Nombre',
+    saveName: 'Guardar',
+    cancel: 'Cancelar',
+    duplicate: 'Duplicar',
+    duplicateLabel: (name: string) => `Duplicar ${name}`,
+    /** The name of a copy (main makes it unique: 'Mazda (copia) (2)'). */
+    copyName: (name: string) => `${name} (copia)`,
+    export: 'Exportar…',
+    exportLabel: (name: string) => `Exportar ${name} a un archivo`,
+    moveUp: (name: string) => `Subir ${name}`,
+    moveDown: (name: string) => `Bajar ${name}`,
+    delete: {
+      label: 'Eliminar',
+      confirm: '¿Eliminar? Pulsa otra vez',
+      description: (name: string) => `Elimina la disposición ${name} y sus coches vinculados`
+    },
+    deleteActive: 'Aplica otra antes de eliminar la que está en uso',
+    /** The cars linked to a layout: 'Coches: Mazda MX-5 Cup, BMW M2'. */
+    cars: (list: string) => `Coches: ${list}`,
+    saveTitle: 'Guardar la actual',
+    saveHelp: 'Una disposición nueva igual a lo que ves ahora; pasa a ser la que está en uso',
+    savePlaceholder: 'Mazda MX-5, GT3, Resistencia…',
+    save: 'Guardar como nueva',
+    full: (max: number) => `Has llegado al máximo de ${max} disposiciones`,
+    filesTitle: 'Archivos',
+    filesHelp:
+      'Exporta una disposición a un archivo .json para guardarla o compartirla; al importarla se añade a la lista, sin aplicarla',
+    import: 'Importar…',
+    notices: {
+      exported: (name: string) => `Exportada: ${name}`,
+      exportFailed: (name: string) => `No se pudo guardar el archivo de ${name}`,
+      imported: (name: string) => `Importada: ${name}. Aplícala cuando quieras`,
+      importFailed: {
+        json: 'El archivo no es un JSON válido',
+        format: 'No es un archivo de disposición de OverLap',
+        version: 'El archivo es de una versión más nueva de OverLap',
+        empty: 'El archivo no tiene ningún widget conocido',
+        tooBig: 'El archivo es demasiado grande para ser una disposición',
+        read: 'No se pudo leer el archivo',
+        full: 'No caben más disposiciones: elimina alguna antes'
+      }
+    },
+    autoTitle: 'Cambio automático',
+    auto: 'Según el coche',
+    autoHelp:
+      'Al subirte a un coche vinculado se aplica su disposición; con uno sin vincular se queda la última que usaste. Mientras editas espera a que salgas',
+    currentCar: 'Coche actual',
+    noCar: 'Ningún coche ahora: entra en una sesión de iRacing para vincular el tuyo',
+    seenCars: 'Otros coches recientes',
+    noSeenCars: 'Los coches a los que te subas aparecerán aquí',
+    noLink: 'Sin vincular',
+    linkLabel: (car: string) => `Disposición para ${car}`,
+    /** A car the session gave no name. */
+    unknownCar: (id: number) => `Coche ${id}`,
+    autoOff: 'Activa «Según el coche» para que los vínculos se apliquen'
   }
 } as const
 
@@ -1051,6 +1122,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sections: 'Settings sections',
     appearance: 'Appearance',
     shortcuts: 'Keyboard shortcuts',
+    layouts: 'Layouts',
     widgets: 'Widgets',
     keys: {
       editMode: 'edit mode',
@@ -1262,6 +1334,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
       cycleDeltaReference: {
         label: 'Next delta reference',
         help: 'Moves to the next one for this session only (not saved); applied when the next lap starts'
+      },
+      nextLayout: {
+        label: 'Next layout',
+        help: 'Applies the next saved layout, in the list’s order, and remembers it'
       }
     },
     escape: {
@@ -1941,5 +2017,67 @@ export const settingsEn: Dict<typeof settingsEs> = {
     countryFlagsHelp: 'The one each driver chose in iRacing; nothing when they chose none',
     columnHeads: 'Column headers',
     columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
+  },
+  layouts: {
+    sub: 'Save under a name where each widget is, its size, its scale, whether it shows and whether it is locked: one for the Mazda, another for the GT3. Each widget’s options don’t change.',
+    listTitle: 'Saved layouts',
+    listNote: 'The one in use updates itself as you move the widgets',
+    inUse: 'In use',
+    apply: 'Apply',
+    applyLabel: (name) => `Apply ${name}`,
+    rename: 'Rename',
+    renameLabel: (name) => `Rename ${name}`,
+    nameLabel: 'Name',
+    saveName: 'Save',
+    cancel: 'Cancel',
+    duplicate: 'Duplicate',
+    duplicateLabel: (name) => `Duplicate ${name}`,
+    copyName: (name) => `${name} (copy)`,
+    export: 'Export…',
+    exportLabel: (name) => `Export ${name} to a file`,
+    moveUp: (name) => `Move ${name} up`,
+    moveDown: (name) => `Move ${name} down`,
+    delete: {
+      label: 'Delete',
+      confirm: 'Delete? Press again',
+      description: (name) => `Deletes the layout ${name} and its linked cars`
+    },
+    deleteActive: 'Apply another one before deleting the one in use',
+    cars: (list) => `Cars: ${list}`,
+    saveTitle: 'Save the current one',
+    saveHelp: 'A new layout equal to what you see now; it becomes the one in use',
+    savePlaceholder: 'Mazda MX-5, GT3, Endurance…',
+    save: 'Save as new',
+    full: (max) => `You have reached the maximum of ${max} layouts`,
+    filesTitle: 'Files',
+    filesHelp:
+      'Export a layout to a .json file to keep or share it; importing one adds it to the list, without applying it',
+    import: 'Import…',
+    notices: {
+      exported: (name) => `Exported: ${name}`,
+      exportFailed: (name) => `Could not save the file of ${name}`,
+      imported: (name) => `Imported: ${name}. Apply it whenever you like`,
+      importFailed: {
+        json: 'The file is not valid JSON',
+        format: 'It is not an OverLap layout file',
+        version: 'The file comes from a newer version of OverLap',
+        empty: 'The file has no widget this version knows',
+        tooBig: 'The file is too large to be a layout',
+        read: 'Could not read the file',
+        full: 'No room for more layouts: delete one first'
+      }
+    },
+    autoTitle: 'Automatic switch',
+    auto: 'By car',
+    autoHelp:
+      'Getting in a linked car applies its layout; a car without a link keeps the last one you used. While editing it waits until you leave',
+    currentCar: 'Current car',
+    noCar: 'No car now: join an iRacing session to link yours',
+    seenCars: 'Other recent cars',
+    noSeenCars: 'The cars you get in will show up here',
+    noLink: 'Not linked',
+    linkLabel: (car) => `Layout for ${car}`,
+    unknownCar: (id) => `Car ${id}`,
+    autoOff: 'Turn “By car” on for the links to apply'
   }
 }

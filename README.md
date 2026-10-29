@@ -107,6 +107,7 @@ solo.
   ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja
   (`appearance.language`: `"es"` o `"en"` en `settings.json`).
 - **Atajos de teclado** (justo debajo de Apariencia): ver [Atajos de teclado](#atajos-de-teclado).
+- **Disposiciones** (debajo de los atajos): ver [Disposiciones](#disposiciones).
 - Botón de modo edición y acceso a la carpeta de ajustes.
 - **Vista previa**: cada página dibuja el widget real con datos de ejemplo sobre un fondo de
   circuito. El interruptor **Fondo** (abajo a la izquierda) cambia entre **Noche** (asfalto oscuro,
@@ -129,11 +130,12 @@ Es una ventana normal y sí coge el foco al abrirla (lo pides tú); los widgets 
 
 Son globales: funcionan aunque iRacing esté en primer plano, sin salir del juego.
 
-| Atajo (por defecto) | Acción                                                    |
-| ------------------- | --------------------------------------------------------- |
-| `Ctrl+Shift+H`      | Mostrar / ocultar el overlay (todos los widgets de golpe) |
-| `Ctrl+Shift+E`      | Entrar / salir del modo edición                           |
-| `Esc`               | Salir del modo edición (solo mientras editas; fijo)       |
+| Atajo (por defecto) | Acción                                                      |
+| ------------------- | ----------------------------------------------------------- |
+| `Ctrl+Shift+H`      | Mostrar / ocultar el overlay (todos los widgets de golpe)   |
+| `Ctrl+Shift+E`      | Entrar / salir del modo edición                             |
+| (sin asignar)       | Siguiente disposición (ver [Disposiciones](#disposiciones)) |
+| `Esc`               | Salir del modo edición (solo mientras editas; fijo)         |
 
 - **Ocultar el overlay** esconde todas las ventanas de los widgets al instante; la telemetría sigue
   funcionando, así que al mostrarlo vuelven con los datos al día. No se guarda: la app siempre
@@ -186,6 +188,29 @@ todos dejan pasar los clics al juego. Posición, tamaño y visibilidad se guarda
 - Con iRacing delante y tú en el coche, iRacing **oculta el cursor** y no se puede arrastrar nada:
   el overlay lo avisa. Abre los Ajustes desde la bandeja (su botón de modo edición) o pulsa
   `Alt+Tab` al escritorio para recuperar el cursor.
+
+### Disposiciones
+
+Una disposición guarda, con un nombre, dónde está cada widget (en cada pantalla), su tamaño, su
+escala, si se ve y si está bloqueado: una para el Mazda, otra para el GT3. Las opciones de cada
+widget (columnas, colores, reglas...) no forman parte de ella y no cambian al cambiar de disposición.
+
+- **Ajustes > Disposiciones**: guardar la actual con un nombre (pasa a ser la que está en uso),
+  aplicar, renombrar, duplicar, ordenar, exportar a un `.json` y eliminar (la que está en uso no:
+  aplica otra antes). **Importar…** añade la del archivo a la lista sin aplicarla; solo se leen los
+  campos de disposición, y un archivo de otra cosa o de una versión más nueva se rechaza.
+- **La que está en uso se actualiza sola**: mover, redimensionar, escalar, ocultar o bloquear un
+  widget la cambia. Al empezar con esta versión tienes una, **Principal**, igual a lo que ya tenías.
+- **Cambiar**: desde la bandeja (submenú **Disposición**, la actual marcada), con el atajo
+  **Siguiente disposición** (sin combinación de serie; se asigna en **Atajos de teclado**) o desde
+  los Ajustes. El cambio se guarda. Funciona también en modo edición: un arrastre en curso se
+  cancela.
+- **Según el coche** (`layouts.autoSwitch`, desactivado de serie): vincula una disposición al
+  coche en el que estás ahora o a uno de los recientes; al subirte a ese modelo se aplica sola. Un
+  coche sin vínculo se queda con la última que usaste, y una elegida a mano se respeta hasta que
+  cambies de coche. Mientras editas no cambia: espera a que salgas del modo edición.
+- En `settings.json` están en `savedLayouts` (lista, la activa, los vínculos y los coches
+  recientes); hay un máximo de 30.
 
 ### Cuándo se ve el overlay
 
@@ -247,7 +272,8 @@ overlay** también está en la bandeja):
 ### Bandeja del sistema
 
 Desde el icono de la bandeja: **Ajustes…**, mostrar/ocultar cada widget, alcance del radar
-(10 / 20 / 30 / 50 m), **Mostrar el overlay** (en el coche / en carrera / siempre), ocultar el
+(10 / 20 / 30 / 50 m), **Mostrar el overlay** (en el coche / en carrera / siempre), la
+**Disposición** en uso (con «coche actual» junto a la del coche en el que estás), ocultar el
 overlay, entrar en modo edición (estos dos con su atajo al lado), abrir la carpeta de ajustes y
 salir. Mientras el overlay está oculto, el texto del icono lo dice; si una regla oculta todos los
 widgets (_Oculto: fuera del coche_), lo dice una vez bajo el estado y en el texto del icono.

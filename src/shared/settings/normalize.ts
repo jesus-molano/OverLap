@@ -1,14 +1,15 @@
 /** Defensive load of anything read from disk. */
-import type { OverlaySettings, Rect, Size } from '../types'
+import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
 import { OPTION_SECTIONS, createDefaultSettings, sectionSpecs } from './defaults'
 import {
   disableDuplicateAccelerators,
-  isFiniteNumber,
   isRecord,
   mergeSection,
-  mergeWidgetFields
+  mergeWidgetFields,
+  normalizeBounds
 } from './fields'
+import { normalizeLayoutLibrary } from './layouts'
 import {
   HIDDEN_WHEN_ADDED,
   SHOWN_WHEN_ADDED,
@@ -17,9 +18,6 @@ import {
   placeNewWidget,
   shownWhenAdded
 } from './migrate'
-
-/** Upper bound for a widget dimension; anything larger is a corrupt file. */
-const MAX_WIDGET_DIMENSION = 10_000
 
 /**
  * Merges anything read from disk with the defaults. Never throws: unknown
@@ -31,7 +29,9 @@ const MAX_WIDGET_DIMENSION = 10_000
  * only use of the version); the result is always the current version. A
  * file with widgets saved but not a HIDDEN_WHEN_ADDED one gets that one hidden,
  * in a free spot (`placeNewWidget`); a SHOWN_WHEN_ADDED one, in a free spot and
- * shown unless the file says it would be new to its driver (`shownWhenAdded`).
+ * shown unless the file says it would be new to its driver (`shownWhenAdded`). A file without
+ * saved layouts gets one equal to its widgets; the active layout always takes the widgets'
+ * fields (layouts.ts).
  */
 export function normalizeSettings(raw: unknown): OverlaySettings {
   const out = createDefaultSettings()
@@ -59,19 +59,7 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     mergeSection(out[section], r, sectionSpecs(section))
     disableDuplicateAccelerators(out[section], sectionSpecs(section))
   }
+  // Last: against the final widgets, named in the final language.
+  out.savedLayouts = normalizeLayoutLibrary(raw.savedLayouts, out.widgets, out.appearance.language)
   return out
-}
-
-/** Field by field: an invalid coordinate falls back to the default one. */
-function normalizeBounds(raw: unknown, fallback: Rect, minSize: Size): Rect {
-  if (!isRecord(raw)) return { ...fallback }
-  const pick = (v: unknown, def: number): number => (isFiniteNumber(v) ? Math.round(v) : def)
-  const size = (v: unknown, def: number, min: number): number =>
-    isFiniteNumber(v) && v > 0 ? Math.min(MAX_WIDGET_DIMENSION, Math.max(min, Math.round(v))) : def
-  return {
-    x: pick(raw.x, fallback.x),
-    y: pick(raw.y, fallback.y),
-    width: size(raw.width, fallback.width, minSize.width),
-    height: size(raw.height, fallback.height, minSize.height)
-  }
 }

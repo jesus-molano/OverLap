@@ -60,6 +60,11 @@ export function isSettingsSender(sender: WebContents): boolean {
   return win !== null && !win.isDestroyed() && win.webContents.id === sender.id
 }
 
+/** The settings window while it is open (the parent of its file dialogs), else null. */
+export function openSettingsWindowHandle(): BrowserWindow | null {
+  return win && !win.isDestroyed() ? win : null
+}
+
 /** Sends to the settings window if it is open (no-op otherwise). */
 export function sendToSettingsWindow(channel: string, value: unknown): void {
   if (!win || win.isDestroyed()) return

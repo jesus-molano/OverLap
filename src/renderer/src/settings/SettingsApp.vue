@@ -19,6 +19,7 @@ import {
   type SettingsPage
 } from './nav'
 import AppearancePage from './pages/AppearancePage.vue'
+import LayoutsPage from './pages/LayoutsPage.vue'
 import ShortcutsPage from './pages/ShortcutsPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 
@@ -86,6 +87,7 @@ function onSelectChange(e: Event): void {
         </div>
         <AppearancePage v-else-if="page === 'appearance'"><SettingsFooter /></AppearancePage>
         <ShortcutsPage v-else-if="page === 'shortcuts'"><SettingsFooter /></ShortcutsPage>
+        <LayoutsPage v-else-if="page === 'layouts'"><SettingsFooter /></LayoutsPage>
         <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>
       </main>
     </div>

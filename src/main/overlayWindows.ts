@@ -404,11 +404,19 @@ export class OverlayWindows implements OverlayWindowHost {
    * dropped and an interaction in progress on it is cancelled (`placement`), so the reset wins.
    */
   reloadBounds(id: WidgetId): void {
-    this.wheelSaves.cancel(id)
-    this.fitSaves.cancel(id)
-    if (!this.started || this.disposed) return
-    this.rects.set(id, this.place(id, this.opts.getSettings()))
-    this.syncWindows(new Set([id]))
+    this.reloadBoundsOf([id])
+  }
+
+  /** `reloadBounds` for several widgets at once (a layout applied), with one window sync. */
+  reloadBoundsOf(ids: readonly WidgetId[]): void {
+    for (const id of ids) {
+      this.wheelSaves.cancel(id)
+      this.fitSaves.cancel(id)
+    }
+    if (!this.started || this.disposed || ids.length === 0) return
+    const settings = this.opts.getSettings()
+    for (const id of ids) this.rects.set(id, this.place(id, settings))
+    this.syncWindows(new Set(ids))
   }
 
   /**

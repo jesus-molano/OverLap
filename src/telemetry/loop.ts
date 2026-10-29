@@ -23,6 +23,7 @@ import { createDefaultSettings, toTelemetryConfig } from '@shared/settings'
 import { InCarHold, ReplayPoint, type ReplayMode } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
+  CarRef,
   ConnectionState,
   SessionMeta,
   StatusNote,
@@ -152,6 +153,19 @@ function dataMessage<K extends WidgetId>(
   return { type: 'data', widget, payload } as TelemetryOutMessage
 }
 
+/** The car model the player is registered in (null: no player, or the session has no CarID). */
+export function playerCar(session: SessionMeta, player: number): CarRef | null {
+  if (player < 0) return null
+  const d = session.drivers.get(player)
+  if (!d || d.carId <= 0) return null
+  return { carId: d.carId, carName: d.carName }
+}
+
+function sameCar(a: CarRef | null, b: CarRef | null): boolean {
+  if (a === null || b === null) return a === b
+  return a.carId === b.carId && a.carName === b.carName
+}
+
 /**
  * Drives a TelemetrySource: connects (retrying), reads ticks, re-parses the
  * session when its version changes, applies the visibility rules and runs
@@ -232,6 +246,8 @@ export class TelemetryLoop {
   private currentTarget: PersonalBestTarget | null = null
   private targetSession: SessionMeta | null = null
   private targetPlayer = -1
+  /** The player's car model last told to main (undefined: nothing told yet). */
+  private lastCar: CarRef | null | undefined = undefined
 
   constructor(
     private readonly source: TelemetrySource,
@@ -548,6 +564,15 @@ export class TelemetryLoop {
     this.targetSession = session
     this.targetPlayer = player
     this.setTarget(personalBestTarget(session, player), now)
+    this.followCar(playerCar(session, player))
+  }
+
+  /** Tells main the player's car model when it changes (the automatic layout follows it). */
+  private followCar(car: CarRef | null): void {
+    const last = this.lastCar
+    if (last !== undefined && sameCar(last, car)) return
+    this.lastCar = car
+    this.emit({ type: 'player-car', car })
   }
 
   private setTarget(target: PersonalBestTarget | null, now: number): void {
@@ -690,6 +715,7 @@ export class TelemetryLoop {
     this.followKind(null)
     this.targetSession = null
     this.setTarget(null, now)
+    if (this.lastCar !== undefined) this.followCar(null)
   }
 
   /** Tells main the kind of session when it changes (the delta's cycle shortcut needs one). */

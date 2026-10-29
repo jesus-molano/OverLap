@@ -8,9 +8,15 @@ import { checkAccelerator, type AcceleratorCheck } from './accelerator'
 /**
  * Actions a shortcut can run, in priority order: when the file on disk gives two of them the
  * same combination, the first keeps it. `cycleDeltaReference` moves the delta's reference of the
- * current kind of session to the next one (delta/choice.ts), from the next lap on.
+ * current kind of session to the next one (delta/choice.ts), from the next lap on; `nextLayout`
+ * applies the saved layout after the one in use (layouts.ts), and that choice is saved.
  */
-export const SHORTCUT_ACTIONS = ['toggleOverlay', 'toggleEditMode', 'cycleDeltaReference'] as const
+export const SHORTCUT_ACTIONS = [
+  'toggleOverlay',
+  'toggleEditMode',
+  'cycleDeltaReference',
+  'nextLayout'
+] as const
 
 export type ShortcutAction = (typeof SHORTCUT_ACTIONS)[number]
 

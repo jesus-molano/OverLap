@@ -1,9 +1,12 @@
-/** Pages of the settings window: appearance, keyboard shortcuts, then one per widget. Pure. */
+/**
+ * Pages of the settings window: appearance, keyboard shortcuts, saved layouts, then one per
+ * widget. Pure.
+ */
 import { widgetTitle, type Messages } from '@shared/i18n'
 import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
 
 /** The pages that are not a widget's, in sidebar order. */
-export const GLOBAL_PAGES = ['appearance', 'shortcuts'] as const
+export const GLOBAL_PAGES = ['appearance', 'shortcuts', 'layouts'] as const
 
 export type GlobalPage = (typeof GLOBAL_PAGES)[number]
 
@@ -23,10 +26,11 @@ export function isSettingsPage(value: unknown): value is SettingsPage {
   return (GLOBAL_PAGES as readonly unknown[]).includes(value) || isWidgetId(value)
 }
 
-/** 'Apariencia', 'Atajos de teclado', or the widget's name, in the language of `m`. */
+/** 'Apariencia', 'Atajos de teclado', 'Disposiciones' or the widget's name, in `m`'s language. */
 export function pageTitle(m: Messages, page: SettingsPage): string {
   if (page === 'appearance') return m.settings.nav.appearance
   if (page === 'shortcuts') return m.settings.nav.shortcuts
+  if (page === 'layouts') return m.settings.nav.layouts
   return widgetTitle(m, page)
 }
 
