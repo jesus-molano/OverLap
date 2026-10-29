@@ -168,13 +168,16 @@ describe('useWidgetSurface', () => {
 
 describe('clampOpacity / haloOn', () => {
   it('are pure', async () => {
-    const { clampOpacity, haloOn, LOW_BG_ALPHA } = await import('./useWidgetSurface')
+    const { clampOpacity, haloOn, HALO_AUTO_ALPHA } = await import('./useWidgetSurface')
     expect(clampOpacity(1.5, 0.5)).toBe(1)
     expect(clampOpacity(-1, 0.5)).toBe(0)
     expect(clampOpacity(Number.NaN, 0.5)).toBe(0.5)
     expect(clampOpacity(undefined, 0.5)).toBe(0.5)
-    expect(haloOn('auto', LOW_BG_ALPHA - 0.01)).toBe(true)
-    expect(haloOn('auto', LOW_BG_ALPHA)).toBe(false)
+    expect(HALO_AUTO_ALPHA).toBe(0.65)
+    expect(haloOn('auto', 0.5)).toBe(true)
+    expect(haloOn('auto', HALO_AUTO_ALPHA - 0.01)).toBe(true)
+    expect(haloOn('auto', HALO_AUTO_ALPHA)).toBe(false)
+    expect(haloOn('auto', 0.8)).toBe(false)
     expect(haloOn('on', 1)).toBe(true)
     expect(haloOn('off', 0)).toBe(false)
   })

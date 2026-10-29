@@ -31,6 +31,7 @@ import {
 } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
+import { dayUnreadable } from '../opacityNote'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
 /**
@@ -119,6 +120,13 @@ const replayChoices = computed(() =>
 const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 const FONT_PRESETS = [90, 100, 115, 130] as const
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
+/** The preview on «Día» shows the global background hard to read: said under it. */
+const windowOptions = useOptions('settingsWindow')
+const dayNote = computed(() =>
+  dayUnreadable(windowOptions.value.stageScene, appearance.value.backgroundOpacity)
+    ? t.value.settings.window.dayUnreadable
+    : undefined
+)
 const setBackground = (pct: number): Promise<void> => set('backgroundOpacity')(fromPercent(pct))
 /** Which widgets the text size changes, by name (the auto-height ones). */
 const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
@@ -178,6 +186,9 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :format="percent"
           :apply="setBackground"
         />
+        <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">
+          {{ dayNote }}
+        </p>
         <ToggleControl
           kind="switch"
           :label="t.settings.appearance.color.colorBlind"
@@ -390,6 +401,10 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 
 .stage {
   margin-bottom: 22px;
+}
+
+.day-note {
+  display: block;
 }
 
 .opt-chip {

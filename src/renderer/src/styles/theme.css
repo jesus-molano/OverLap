@@ -94,7 +94,7 @@
   /* Text tiers (contrast at the default opacity over a white sky / dark asphalt). */
   --ov-fg: #f3f5f8; /* 9.1 / 16.7 */
   --ov-fg-muted: #aeb7c4; /* 4.9 / 9.0 */
-  --ov-fg-dim: #8e97a6; /* 3.4 / 6.2, 3.1 on a band: units, placeholders, known labels only */
+  --ov-fg-dim: #9aa3b1; /* 3.9 / 7.2 over the sky / asphalt: units, placeholders, known labels */
 
   /*
    * Faces: system fonts only (nothing bundled, no network requests). Segoe UI Variable Text for
