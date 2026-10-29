@@ -4,7 +4,7 @@ import { widgetCaption } from '../view/caption'
 import { useI18n, useLocale } from './useI18n'
 
 /**
- * The widget's caps header caption in the current language ('CLASIFICACIÓN'). Changes only when
+ * The widget's caps header caption in the current language ('POSICIONES'). Changes only when
  * the language does.
  */
 export function useWidgetTitle(id: WidgetId): ComputedRef<string> {

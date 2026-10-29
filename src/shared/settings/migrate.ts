@@ -640,7 +640,12 @@ export function migrateSection(
   raw: unknown,
   file: Record<string, unknown> = {}
 ): unknown {
-  const r = section === 'lights' ? migrateLights(raw, file) : raw
+  const r =
+    section === 'lights'
+      ? migrateLights(raw, file)
+      : section === 'relative'
+        ? migrateRelativeDensity(raw, file)
+        : raw
   if (!isRecord(r)) return r
   let out = r
   if (section === 'standings') out = migrateStandings(out)
@@ -652,6 +657,20 @@ export function migrateSection(
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
   return migrateLists(section, out)
+}
+
+/**
+ * The relative follows the density since 2.3 ('inherit', R05); before, it drew comfortable rows
+ * whatever the global one. A file saved before has no `relative.density`: with a compact global
+ * density it gets 'comfortable', so it looks as it did (the same for a file without a relative
+ * section). A layout's sections carry no appearance: their missing density is the file's, already
+ * migrated (normalizeOptionSet's fallback). `raw` itself when there is nothing to do.
+ */
+export function migrateRelativeDensity(raw: unknown, file: Record<string, unknown>): unknown {
+  const appearance = isRecord(file.appearance) ? file.appearance : {}
+  if (appearance.density !== 'compact') return raw
+  if (!isRecord(raw)) return { density: 'comfortable' }
+  return 'density' in raw ? raw : { ...raw, density: 'comfortable' }
 }
 
 /** Accordions of "Personalizar" that were renamed: the old id and the one that took its place. */

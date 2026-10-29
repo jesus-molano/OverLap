@@ -48,11 +48,12 @@ const PEDAL_SETTERS: Readonly<Record<Pedal, Setter<string>>> = {
 }
 const pedals = computed(() => {
   const names = t.value.settings.inputs.pedals
+  const colorNames = t.value.settings.inputs.pedalColors
   return PEDALS.map((key) => {
     const label = names[key]
     return {
       key,
-      label,
+      label: colorNames[key],
       presets: PEDAL_COLOR_PRESETS[key].map((value, i) => ({ value, label: `${label} ${i + 1}` })),
       apply: PEDAL_SETTERS[key]
     }
@@ -169,6 +170,15 @@ const setCar = listSetter('inputs', 'car')
       :current="opts.shiftLights"
       :apply="set('shiftLights')"
     />
+    <ColorControl
+      v-for="p in pedals"
+      :key="p.key"
+      :label="p.label"
+      :current="opts.colors[p.key]"
+      :presets="p.presets"
+      :apply="p.apply"
+    />
+    <p class="st-row st-help in-colors-note">{{ t.settings.inputs.colorsNote }}</p>
   </PageSection>
 
   <CustomizeSection>
@@ -201,15 +211,10 @@ const setCar = listSetter('inputs', 'car')
       :apply="setCar"
     />
   </CustomizeSection>
-
-  <PageSection :title="t.settings.inputs.colors" :note="t.settings.inputs.colorsNote">
-    <ColorControl
-      v-for="p in pedals"
-      :key="p.key"
-      :label="p.label"
-      :current="opts.colors[p.key]"
-      :presets="p.presets"
-      :apply="p.apply"
-    />
-  </PageSection>
 </template>
+
+<style scoped>
+.in-colors-note {
+  display: block;
+}
+</style>

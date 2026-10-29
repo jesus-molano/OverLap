@@ -10,6 +10,7 @@ import {
   SHOWN_WHEN_ADDED,
   freeSpot,
   migrateCustomizeOpen,
+  migrateRelativeDensity,
   migrateSection
 } from './migrate'
 
@@ -608,5 +609,32 @@ describe('the pedals before the wheel styles and the shift lights', () => {
   it('reads the same twice (one-way)', () => {
     const once = normalizeSettings({ inputs: { steeringStyle: 'wheel' } })
     expect(normalizeSettings(JSON.parse(JSON.stringify(once)))).toEqual(once)
+  })
+})
+
+describe('the relative before it followed the density (2.3, R05)', () => {
+  it('keeps its comfortable rows in a file whose global density is compact', () => {
+    const file = { version: 6, appearance: { density: 'compact' }, relative: { carsAhead: 3 } }
+    expect(migrateRelativeDensity(file.relative, file)).toEqual({
+      carsAhead: 3,
+      density: 'comfortable'
+    })
+    expect(migrateRelativeDensity(undefined, file)).toEqual({ density: 'comfortable' })
+    const s = normalizeSettings(file)
+    expect(s.relative.density).toBe('comfortable')
+    expect(s.relative.carsAhead).toBe(3)
+  })
+
+  it('changes nothing with the comfortable density, or a density the file chose', () => {
+    const comfortable = { appearance: { density: 'comfortable' }, relative: {} }
+    expect(migrateRelativeDensity(comfortable.relative, comfortable)).toBe(comfortable.relative)
+    expect(normalizeSettings(comfortable).relative.density).toBe('inherit')
+    const chosen = { appearance: { density: 'compact' }, relative: { density: 'inherit' } }
+    expect(migrateRelativeDensity(chosen.relative, chosen)).toBe(chosen.relative)
+    expect(normalizeSettings(chosen).relative.density).toBe('inherit')
+    // A new install writes the density: it loads as it was saved.
+    const fresh = createDefaultSettings()
+    fresh.appearance.density = 'compact'
+    expect(normalizeSettings(JSON.parse(JSON.stringify(fresh))).relative.density).toBe('inherit')
   })
 })

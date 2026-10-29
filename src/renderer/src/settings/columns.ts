@@ -6,7 +6,7 @@
  * Coupled options:
  * - the 'gapLeader' column is visible exactly when gapMode is 'both' (choosing "Ambos" shows
  *   it, hiding the column goes back to the interval);
- * - turning on "Δ iRating de todos" also shows the 'delta' column, which would otherwise
+ * - turning on "iRating en juego de todos" also shows the 'delta' column, which would otherwise
  *   leave the option without any visible effect; hiding the column turns it off.
  */
 import { setElementVisible } from '@shared/elements'
@@ -51,7 +51,7 @@ export function gapModePatch(
 
 /**
  * Patch for one column's visibility. The gapLeader column switches gapMode ('both', or back to
- * the interval); hiding the delta column also drops "Δ iRating de todos".
+ * the interval); hiding the delta column also drops "iRating en juego de todos".
  */
 export function columnVisiblePatch(
   opts: ColumnOpts,
@@ -70,9 +70,9 @@ export function columnVisiblePatch(
 }
 
 /**
- * Whether the last hide of the delta column turned "Δ iRating de todos" off (`prev`, then after
- * `change` patched as `patch`): what columnsEditPatch's `deltaAllDropped` needs for that hide's
- * "Deshacer". Other edits keep it; the delta column shown or hidden again, or a reset, end it
+ * Whether the last hide of the delta column turned "iRating en juego de todos" off (`prev`, then
+ * after `change` patched as `patch`): what columnsEditPatch's `deltaAllDropped` needs for that
+ * hide's "Deshacer". Other edits keep it; the delta column shown or hidden again, or a reset, end it
  * (the page also ends it when the option itself is set).
  */
 export function deltaAllDroppedAfter(
@@ -87,7 +87,7 @@ export function deltaAllDroppedAfter(
   return prev
 }
 
-/** Patch for "Δ iRating de todos": turning it on also shows the delta column. */
+/** Patch for "iRating en juego de todos": turning it on also shows the delta column. */
 export function deltaAllPatch(opts: ColumnOpts, on: boolean): Partial<StandingsOptions> {
   if (on && !isColumnVisible(opts.columns, 'delta')) {
     return { iRatingDeltaAll: true, columns: setColumnVisible(opts.columns, 'delta', true) }
@@ -98,8 +98,8 @@ export function deltaAllPatch(opts: ColumnOpts, on: boolean): Partial<StandingsO
 /**
  * Patch for the columns editor (ElementEditor's apply): the new list `next`, with the options
  * that go with what changed. A move changes the order only; showing or hiding a column couples
- * as columnVisiblePatch does; a reset (the default list) brings gapMode and "Δ iRating de todos"
- * in line with the gapLeader and delta columns it leaves.
+ * as columnVisiblePatch does; a reset (the default list) brings gapMode and "iRating en juego de
+ * todos" in line with the gapLeader and delta columns it leaves.
  */
 export function columnsEditPatch(
   opts: ColumnOpts,

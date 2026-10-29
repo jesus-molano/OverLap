@@ -197,8 +197,8 @@ const isReference = (v: unknown): v is DeltaReference =>
 export interface RefView {
   readonly kind: DeltaReference
   /**
-   * 'Récord personal', 'Mejor vuelta', 'Vuelta óptima', 'Tú', '#44 J. Lindqvist', 'Mejor de la
-   * clase' or 'Óptima de la clase'.
+   * 'Récord personal', 'Mejor vuelta', 'Vuelta óptima', 'Tú', '#44 J. Lindqvist',
+   * 'Vuelta rápida de clase' or 'Óptima de clase'.
    */
   readonly label: string
   /** '2:16.089', '—' when unknown. */

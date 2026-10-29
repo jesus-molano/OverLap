@@ -283,7 +283,8 @@ function buildMenu(
     },
     { label: t.layouts, submenu: layoutsMenu(state, act) },
     { type: 'separator' },
-    // Checked means shown, as the widgets' checkboxes above.
+    // Checked means not hidden by you (its shortcut), as the widgets' checkboxes above mean
+    // enabled: a rule hiding them all right now is said once, under the status (commonHiddenReason).
     {
       label: t.showOverlay,
       type: 'checkbox',

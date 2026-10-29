@@ -242,10 +242,8 @@ describe('reference and predicted lap', () => {
       label: 'Vuelta óptima',
       time: '2:15.671'
     })
-    expect(refView(ref('classOptimal'), ES).label).toBe('Óptima de la clase')
-    expect(refView(ref('classOptimal', '#44 J. Lindqvist', true), ES).label).toBe(
-      'Óptima de la clase'
-    )
+    expect(refView(ref('classOptimal'), ES).label).toBe('Óptima de clase')
+    expect(refView(ref('classOptimal', '#44 J. Lindqvist', true), ES).label).toBe('Óptima de clase')
   })
 
   it('names them in English; driver names stay as they are', () => {

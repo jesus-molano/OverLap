@@ -118,6 +118,22 @@ describe('a customised v4 file', () => {
     expect(s.shortcuts).toEqual({ ...DEFAULT_SETTINGS.shortcuts, ...CUSTOM_V4.shortcuts })
   })
 
+  it('draws every widget as before: its own background, and the relative’s comfortable rows', () => {
+    const store = load(CUSTOM_V4)
+    const s = store.settings
+    const saved = CUSTOM_V4.widgets as Record<string, { backgroundOpacity: number }>
+    for (const id of WIDGET_IDS) {
+      expect(s.widgets[id].backgroundOpacity, id).toBe(saved[id]?.backgroundOpacity)
+    }
+    // Before 2.3 the relative ignored the global density; with this file's 'compact' it would
+    // follow it ('inherit') and tighten: it keeps the rows it had.
+    expect(s.appearance.density).toBe('compact')
+    expect(s.relative.density).toBe('comfortable')
+    // So does the layout the file is given (its options are the file's own).
+    const active = s.savedLayouts.list.find((l) => l.id === s.savedLayouts.activeId)
+    expect(active?.options?.sections.relative.density).toBe('comfortable')
+  })
+
   it('turns the relative’s switches into its columns and bars', () => {
     const r = load(CUSTOM_V4).settings.relative
     expect(ids(r.columns)).toEqual(['-pos', 'driver', '-lic', 'ir', 'tyre', 'stint', 'gap'])

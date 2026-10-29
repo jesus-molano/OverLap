@@ -31,7 +31,7 @@ describe('previewDelta', () => {
     expect(refView(previewDelta('session'), ES).label).toBe('Mejor vuelta')
     expect(refView(previewDelta('optimal'), ES).label).toBe('Vuelta óptima')
     expect(refView(previewDelta('class'), ES).label).toBe('#44 J. Lindqvist')
-    expect(refView(previewDelta('classOptimal'), ES).label).toBe('Óptima de la clase')
+    expect(refView(previewDelta('classOptimal'), ES).label).toBe('Óptima de clase')
     expect(refView(previewDelta('session'), messagesFor('en')).label).toBe('Session best')
     // An optimal lap is faster than the best lap it is made of.
     const time = (r: DeltaReference): number => previewDelta(r).refLapTime ?? 0

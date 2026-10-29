@@ -18,6 +18,7 @@ import {
 } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
+import { bgChoiceOf, storedBackground, type BgChoice } from '../backgrounds'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import { replayNote, sessionScreenSwitch } from '../replayWidgets'
@@ -40,12 +41,11 @@ const setOpacity: Setter<number> = (pct) => set('backgroundOpacity')(fromPercent
 /** The global background (Apariencia), what 'inherit' draws. */
 const appearance = useAppearance()
 const globalOpacity = computed(() => widgetOpacity('inherit', appearance.value.backgroundOpacity))
-const ownOpacity = computed(() => prefs.value.backgroundOpacity !== 'inherit')
+const ownOpacity = computed(() => bgChoiceOf(prefs.value.backgroundOpacity) === 'own')
 /** The slider's value: the widget's own, or the global one it follows. */
 const opacityNow = computed(() =>
   widgetOpacity(prefs.value.backgroundOpacity, appearance.value.backgroundOpacity)
 )
-type BgChoice = 'inherit' | 'own'
 const bgChoices = computed<ChoiceOption<BgChoice>[]>(() => {
   const w = t.value.settings.window
   return [
@@ -61,7 +61,7 @@ const bgChoices = computed<ChoiceOption<BgChoice>[]>(() => {
 })
 /** "Propio" starts from the value it showed (the global one); "Global" follows Apariencia. */
 const setBackground: Setter<BgChoice> = (v) =>
-  set('backgroundOpacity')(v === 'inherit' ? 'inherit' : globalOpacity.value)
+  set('backgroundOpacity')(storedBackground(v, globalOpacity.value))
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
 /** The preview on «Día» shows this background hard to read: said under the control. */
 const windowOptions = useOptions('settingsWindow')

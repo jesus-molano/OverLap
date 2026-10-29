@@ -139,6 +139,27 @@ describe('useWidgetSurface', () => {
     scope.stop()
   })
 
+  it("draws Apariencia's sample with the global background, whatever the widget's own", async () => {
+    vi.doMock('./widgetContext', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('./widgetContext')>()),
+      injectSampleHost: () => ({ reportHeight: () => {}, globalAppearance: true })
+    }))
+    const { useWidgetSurface } = await import('./useWidgetSurface')
+    const scope = effectScope()
+    const surface = scope.run(() => useWidgetSurface('standings'))!
+    // A file from 2.2: the widget keeps its own 78 %, the global slider says 25 %.
+    fake.settings.emit(
+      settingsWith(base, (n) => {
+        n.widgets.standings.backgroundOpacity = 0.78
+        n.appearance.backgroundOpacity = 0.25
+      })
+    )
+    expect(surface.bgAlpha.value).toBe(0.25)
+    expect(surface.halo.value).toBe(true)
+    scope.stop()
+    vi.doUnmock('./widgetContext')
+  })
+
   it('gives auto-height widgets their font from the scale settings', async () => {
     const { useWidgetSurface } = await import('./useWidgetSurface')
     const scope = effectScope()

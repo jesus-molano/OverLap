@@ -75,8 +75,8 @@ azul los doblados y atenuados los que están en boxes. En la cabecera, tus incid
 límite de la sesión («3x · DQ a 17x»).
 
 Opcionales: columnas de neumático y de vueltas del stint, banderas de penalización tras el nombre,
-cabeceras de columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating y
-SR proyectados, condiciones de pista…).
+títulos de columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
+juego, SR proyectado, condiciones de pista…).
 
 ### Radar
 
@@ -93,10 +93,10 @@ solo cuando no hay nadie cerca.
 
 Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o completo. Columnas que
 se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados, iRating,
-licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la más rápida
-de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de sesión, tus
-incidentes y tu iRating y SR proyectados; pie con las condiciones de pista (temperatura y su
-tendencia, agua y lluvia, viento con un dial que apunta a tu coche, aire y goma).
+licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la
+más rápida de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de
+sesión, tus incidentes, tu iRating en juego y tu SR proyectado; pie con las condiciones de pista
+(temperatura y su tendencia, agua y lluvia, viento con un dial que apunta a tu coche, aire y goma).
 
 Antes de la verde muestra la parrilla entera, y al acabar la sesión se queda con los resultados en
 la pantalla de sesión.
@@ -182,18 +182,18 @@ Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arranc
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día.
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
-  panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala, alto automático o fijo, en qué sesiones se muestra,
-  ocultar en boxes (salvo Avisos, que avisa del limitador y de la entrada a boxes) y restablecer
-  posición u opciones.
+  panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala, alto automático o
+  fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
+  entrada a boxes) y restablecer posición u opciones.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
-  iRating y SR proyectados, vuelta rápida, vueltas de combustible, pista, agua, viento, aire,
-  goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se encoge. Delta,
-  Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra solo les
-  añadiría altura.
+  iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
+  viento, aire, goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se
+  encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
+  solo les añadiría altura.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
@@ -306,8 +306,8 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 
 En **Ajustes > Apariencia > Visibilidad**:
 
-- **Mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o siempre.
-  Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
+- **Cuándo mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o
+  siempre. Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
 - **Repeticiones**: ocultas por defecto; con «Seguir al coche en cámara», los widgets siguen al coche
   que miras.
 - Se ocultan también con la interfaz de iRacing oculta, en el garaje y en la pantalla de sesión

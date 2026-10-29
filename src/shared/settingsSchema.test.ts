@@ -89,7 +89,7 @@ describe('OPTION_SCHEMA', () => {
     }
   })
 
-  it('has the standings column defaults (Δ iRating, gap to leader and the stint extras off)', () => {
+  it('has the standings column defaults (iRating en juego, gap to leader and the stint extras off)', () => {
     const hidden = OPTION_SCHEMA.standings.columns.default
       .filter((c) => !c.visible)
       .map((c) => c.id)

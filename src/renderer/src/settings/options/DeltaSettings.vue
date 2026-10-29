@@ -129,10 +129,7 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
 </script>
 
 <template>
-  <PageSection
-    :title="t.settings.delta.referenceBySession"
-    :note="t.settings.delta.referenceBySessionNote"
-  >
+  <PageSection :title="t.settings.common.content" :note="t.settings.delta.referenceBySessionNote">
     <ChoiceControl
       v-for="k in kinds"
       :key="k.kind"
@@ -151,9 +148,6 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
       :apply="set('fallback')"
     />
     <p class="st-row st-help dl-cycle">{{ cycleText }}</p>
-  </PageSection>
-
-  <PageSection :title="t.settings.common.content" :note="t.settings.delta.referenceNote">
     <SliderControl
       v-if="isElementVisible(opts.rows, 'bar')"
       :label="t.settings.delta.range"

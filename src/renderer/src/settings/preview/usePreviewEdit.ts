@@ -38,8 +38,8 @@ export interface ZoneHandle {
   /** The list as the editor shows it (its optimistic value). */
   list(): List<string>
   label(id: string): string
-  /** The zone is switched off (an info bar that is not shown). */
-  dim(): boolean
+  /** The zone is switched off (an info bar that is not shown): its editor shows no list. */
+  off(): boolean
   /** Shows or hides `id` as its eye does (the rules, the announcement, the patch). */
   setVisible(id: string, visible: boolean): void
   /** Sends a reordered list as a drag of the list would (the announcement, the patch). */
