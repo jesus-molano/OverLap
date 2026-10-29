@@ -253,6 +253,7 @@ const DELTA: DeltaData = {
   lapState: 'none',
   preferred: 'pb',
   pending: null,
+  temporary: false,
   laps: { last: null, best: null, optimal: null, pb: null }
 }
 const FUEL: FuelData = {
@@ -457,6 +458,17 @@ function lcg(seed: number): () => number {
 }
 
 describe('TelemetryLoop', () => {
+  it('passes the delta cycle shortcut to the providers (nothing in the config changes)', () => {
+    const cycle = vi.fn(() => true)
+    const h = setup('iracing', {}, undefined, {
+      createProviders: () => ({ run: {} as never, reset: () => {}, cycleDeltaReference: cycle })
+    })
+    h.loop.cycleDeltaReference()
+    expect(cycle).toHaveBeenCalledTimes(1)
+    // A set without one is fine too.
+    expect(() => setup().loop.cycleDeltaReference()).not.toThrow()
+  })
+
   it('reports waiting and retries connect() after sleep(retryMs)', async () => {
     const h = setup()
     h.source.connectResults = [false, false, new Error('no sim'), true]

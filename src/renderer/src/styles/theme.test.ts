@@ -260,7 +260,31 @@ describe('theme tokens', () => {
     expect(layers.match(/var\(--ov-accent\)/g)).toHaveLength(2)
     expect(layers.match(/100% 1px no-repeat/g)).toHaveLength(2)
     expect(before.has('opacity')).toBe(false)
-    expect(rule('.ov-player::after').get('background')).toBe('var(--ov-accent)')
+    // No rail on the left edge (B13).
+    expect(RULES.has('.ov-player::after')).toBe(false)
+  })
+
+  it('shows a state as a tint of its panel or band, never as a left rail (B13)', () => {
+    const tint = rule('.ov-state::before').get('background') ?? ''
+    // The lit top edge across the width, and a wash down: no narrow left-edge layer.
+    expect(tint).toMatch(/left top \/ 100% var\(--ov-key-w\) no-repeat/)
+    expect(tint).toMatch(/linear-gradient\(180deg, color-mix\(in srgb, var\(--ov-state\)/)
+    expect(rule('.ov-state').get('--ov-state')).toBe('transparent')
+    // No component paints a coloured strip of the rail's width on a left edge any more, except
+    // the warning lights' info tile (a tile's own shape, theme "key" and "ring" siblings).
+    const rails = Object.entries(SOURCES).filter(
+      ([file, src]) =>
+        !file.includes('LightTile') &&
+        /inset:\s*0 auto 0 0;[^}]*width:\s*var\(--ov-bar-w\)/.test(uncommented(src))
+    )
+    expect(rails.map(([file]) => file)).toEqual([])
+  })
+
+  it('lights the glass and the header band with static gradients only', () => {
+    expect(rule('.ov-panel').get('background')).toBe('var(--ov-glass-grad), var(--ov-bg)')
+    for (const t of ['--ov-glass-grad', '--ov-head-grad']) {
+      expect(SURFACE.get(t), t).toMatch(/^linear-gradient\( ?180deg, rgba\(255, 255, 255, calc\(/)
+    }
   })
 })
 

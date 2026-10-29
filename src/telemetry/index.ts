@@ -86,6 +86,7 @@ function parseInMessage(data: unknown): TelemetryInMessage | 'invalid-config' | 
   if (!isObject(data)) return null
   if (data.type === 'shutdown') return { type: 'shutdown' }
   if (data.type === 'clear-bests') return { type: 'clear-bests' }
+  if (data.type === 'cycle-delta-reference') return { type: 'cycle-delta-reference' }
   if (data.type === 'delete-bests') {
     return isPersonalBestKeys(data.keys) ? { type: 'delete-bests', keys: [...data.keys] } : null
   }
@@ -234,6 +235,11 @@ function run(port: ParentPort): void {
       dying = true
       release()
       exitAfterFlush(0, 0)
+      return
+    }
+    if (msg.type === 'cycle-delta-reference') {
+      // Not connected yet: no session to cycle in.
+      loop?.cycleDeltaReference()
       return
     }
     if (msg.type === 'delete-bests' || msg.type === 'clear-bests') {

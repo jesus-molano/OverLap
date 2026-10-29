@@ -134,7 +134,10 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
         :key="lane.side"
         v-memo="[lane, rows, layout, i === lanes.length - 1 ? previewTag : null, t]"
         class="lane"
-        :class="[`lane--${lane.tone}`, { 'lane--pit': lane.inPits }]"
+        :class="[
+          `lane--${lane.tone}`,
+          { 'lane--pit': lane.inPits, 'ov-state': lane.tone === 'good' || lane.tone === 'bad' }
+        ]"
       >
         <span class="lane__tag"><Icon :name="lane.tagIcon" />{{ lane.tag }}</span>
         <DriverCell
@@ -254,25 +257,18 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 }
 
 /*
- * The rail: the trend's state on the lane's left edge, full height, square and flush (always with
- * the chevron and the words, never colour alone). A rail means state, so a lane with no direction
- * yet (neutral, unknown) has none. Changes with the trend's sign only: no transition.
+ * The trend's state: the lane's tint in its tone (theme.css .ov-state), always with the chevron
+ * and the words, never colour alone. A lane with no direction yet (neutral, unknown) has none.
+ * Changes with the trend's sign only: no transition.
  */
-.lane--good::before,
-.lane--bad::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
-  background: var(--lane-tone);
-}
-
 .lane--good {
   --lane-tone: var(--ov-good);
+  --ov-state: var(--lane-tone);
 }
 
 .lane--bad {
   --lane-tone: var(--ov-bad);
+  --ov-state: var(--lane-tone);
 }
 
 /* Opponent in the pits: still there, but not the fight right now. */

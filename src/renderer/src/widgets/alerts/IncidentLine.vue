@@ -12,7 +12,10 @@ defineProps<{ view: IncidentLineView; hero: boolean; preview: boolean }>()
 </script>
 
 <template>
-  <div class="al-incident" :class="[`ov-tone-${view.tone}`, { 'al-incident--hero': hero }]">
+  <div
+    class="al-incident ov-state"
+    :class="[`ov-tone-${view.tone}`, { 'al-incident--hero': hero }]"
+  >
     <span class="al-incident__mark"><Icon name="warning" class="al-incident__icon" /></span>
     <span class="al-incident__points">{{ view.points }}</span>
     <span v-if="view.label" class="al-incident__label">{{ view.label }}</span>
@@ -23,7 +26,7 @@ defineProps<{ view: IncidentLineView; hero: boolean; preview: boolean }>()
 
 <style scoped>
 /*
- * A quiet band (the limiter's when it is on), keyed by the rail in the tone: an incident is
+ * A quiet band (the limiter's when it is on), tinted in the tone (theme.css .ov-state): an incident is
  * news about you, not an order like a flag. The tone (warn, bad from 4x) only repeats what the
  * points say, and the colour-blind palette redefines both tokens.
  */
@@ -46,12 +49,8 @@ defineProps<{ view: IncidentLineView; hero: boolean; preview: boolean }>()
   box-shadow: inset 0 1px 0 var(--ov-edge-out);
 }
 
-.al-incident::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
-  background: var(--ov-tone);
+.al-incident {
+  --ov-state: var(--ov-tone);
 }
 
 /* The flag mark's slot, so the label starts where a flag's does. */

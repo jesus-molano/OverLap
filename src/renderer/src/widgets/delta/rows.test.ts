@@ -95,35 +95,64 @@ describe('lapTimesView', () => {
 })
 
 describe('referenceNote', () => {
-  const none = { preferred: null, pending: null }
+  const none = { preferred: null, pending: null, temporary: false }
 
   it('chosen mid-lap: from the next lap; then its name when it takes over', () => {
     const pending = referenceNote(
-      { preferred: 'pb', pending: null },
-      { preferred: 'pb', pending: 'optimal' },
+      { preferred: 'pb', pending: null, temporary: false },
+      { preferred: 'pb', pending: 'optimal', temporary: false },
       ES
     )
     expect(pending).toBe('Vuelta óptima desde la próxima vuelta')
     expect(
       referenceNote(
-        { preferred: 'pb', pending: 'optimal' },
-        { preferred: 'optimal', pending: null },
+        { preferred: 'pb', pending: 'optimal', temporary: false },
+        { preferred: 'optimal', pending: null, temporary: false },
         ES
       )
     ).toBe('Vuelta óptima')
     // Applied at once (no reference in use, or at the line).
     expect(
-      referenceNote({ preferred: 'pb', pending: null }, { preferred: 'class', pending: null }, EN)
+      referenceNote(
+        { preferred: 'pb', pending: null, temporary: false },
+        { preferred: 'class', pending: null, temporary: false },
+        EN
+      )
     ).toBe(referenceNames(EN).class)
+  })
+
+  it('the cycle shortcut’s choice is named as temporary', () => {
+    expect(
+      referenceNote(
+        { preferred: 'pb', pending: null, temporary: false },
+        { preferred: 'pb', pending: 'optimal', temporary: true },
+        ES
+      )
+    ).toBe('Vuelta óptima (temporal) desde la próxima vuelta')
+    expect(
+      referenceNote(
+        { preferred: 'pb', pending: 'optimal', temporary: true },
+        { preferred: 'optimal', pending: null, temporary: true },
+        EN
+      )
+    ).toBe('Optimal lap (temporary)')
   })
 
   it('taken back before the line: the label goes; the first payload says nothing', () => {
     expect(
-      referenceNote({ preferred: 'pb', pending: 'session' }, { preferred: 'pb', pending: null }, ES)
+      referenceNote(
+        { preferred: 'pb', pending: 'session', temporary: false },
+        { preferred: 'pb', pending: null, temporary: false },
+        ES
+      )
     ).toBe('')
-    expect(referenceNote(none, { preferred: 'pb', pending: null }, ES)).toBeNull()
+    expect(referenceNote(none, { preferred: 'pb', pending: null, temporary: false }, ES)).toBeNull()
     expect(
-      referenceNote({ preferred: 'pb', pending: null }, { preferred: 'pb', pending: null }, ES)
+      referenceNote(
+        { preferred: 'pb', pending: null, temporary: false },
+        { preferred: 'pb', pending: null, temporary: false },
+        ES
+      )
     ).toBeNull()
   })
 

@@ -114,9 +114,11 @@ const style = computed(() => (top.value ? TOP_BOXES : BOXES)[props.size])
 const overflows = (el: HTMLElement | null): boolean =>
   el !== null && el.scrollWidth > el.clientWidth + 1
 
-// After each drawing of new values (or a new fit): an item cut by the edge goes instead.
+// After each drawing of new values (or a new fit, or one more drop): an item cut by the edge goes
+// instead. Each step drops one more item (fitInfoItems), so this ends with nothing overflowing or
+// a single item left.
 watch(
-  [() => props.view, kept],
+  [() => props.view, kept, extra],
   () => {
     const el = root.value
     if (el === null || widthEm.value <= 0 || kept.value.size <= 1) return
@@ -162,7 +164,7 @@ watch(
   height: calc(var(--ib-h) + 1px);
   padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
   overflow: hidden;
-  background: var(--ov-bg-head);
+  background: var(--ov-head-grad), var(--ov-bg-head);
   font-size: max(var(--ov-min-text), calc(var(--ib-scale) * 1em));
   line-height: 1.2;
   white-space: nowrap;
@@ -185,8 +187,10 @@ watch(
   overflow: hidden;
 }
 
+/* Both groups may shrink, so neither collapses the other to nothing: an overflowing group is
+   measured above and loses its least important item. */
 .ov-ibar__end {
-  flex: none;
+  flex: 0 1 auto;
   margin-left: auto;
 }
 </style>

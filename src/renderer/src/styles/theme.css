@@ -5,11 +5,13 @@
  * data-stripes (view/appearance.ts).
  *
  * Every widget is one instrument of the same dashboard at night: near-black glass in a two-tone
- * bezel whose top edge catches the light, recessed wells behind gauges, one plate height, one
- * rail, one key. The visual grammar:
+ * bezel whose top edge catches the light (the glass a touch brighter under it, the header band
+ * lit from above: static gradients), recessed wells behind gauges, one plate height, one key.
+ * The visual grammar:
  *
  *   Drawn as                            Means
- *   Rail (3 px, left, full height) ..... state: you, trend, urgency, limiter on, delta sign
+ *   Tint (lit top edge + wash) ......... state: trend, urgency, limiter on, delta sign
+ *   Bracket (hairlines + lift) ......... you
  *   Filled plate ....................... identity of a car (class number), or you (position)
  *   Solid fill ......................... act now: PIT, hazard, alarm, flags (exception: the
  *                                        purple fastest-lap plate, a racing convention)
@@ -18,6 +20,8 @@
  *   Key (2 px bottom line) ............. notable value, or the class of a line
  *   Coloured text ...................... direction, lap relation, licence
  *   Grey ............................... context
+ *
+ * No coloured left-edge rails: a state tints the panel or band it belongs to (.ov-state).
  *
  * GPU budget (enforced by ui/styleBudget.test.ts): no filters or backdrop filters, no blurred
  * shadows (edges, rings, keys and lips are 0-blur), no infinite animations, transitions on
@@ -142,7 +146,7 @@
   --ov-radius: 6px;
   --ov-radius-inner: 3px; /* inset wells inside a padded panel (plot), edit chip */
   --ov-radius-chip: 2px; /* every plate, tag, tile, cell */
-  --ov-bar-w: 3px; /* the rail */
+  --ov-bar-w: 3px; /* the content inset at a row's left edge (where the rail used to be) */
   --ov-key-w: 2px; /* the key line */
 
   /* Density (data-density): the row height of CSS-sized tables (the standings size theirs in
@@ -217,6 +221,18 @@
   --ov-chip-faint: rgba(255, 255, 255, calc(0.06 * max(var(--ov-bg-alpha), 0.5)));
   --ov-tick: rgba(255, 255, 255, calc(0.12 * max(var(--ov-bg-alpha), 0.6))); /* graduations */
   --ov-tick-major: rgba(255, 255, 255, calc(0.24 * max(var(--ov-bg-alpha), 0.6)));
+  /* Static gradients, painted once: the glass a touch brighter under its lit top edge, the
+     header band lit from above. Scaled by the opacity like the rest of the glass. */
+  --ov-glass-grad: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, calc(0.045 * var(--ov-bg-alpha))),
+    rgba(255, 255, 255, 0) 2.6em
+  );
+  --ov-head-grad: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, calc(0.05 * var(--ov-bg-alpha))),
+    rgba(255, 255, 255, 0)
+  );
 }
 
 /* Stripes off: ruled rows instead of bands (appearance.stripes). */
@@ -301,7 +317,7 @@ body {
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  background: var(--ov-bg);
+  background: var(--ov-glass-grad), var(--ov-bg);
   border: 1px solid var(--ov-edge-out); /* 1 px: columns.ts BORDER_PX holds */
   border-radius: var(--ov-radius);
   box-shadow:
@@ -329,10 +345,11 @@ body {
 }
 
 /*
- * You: a bracket of light. An accent rail on the left plus two 1 px accent hairlines that fade
- * out to the right, over a neutral lift. No accent fill (a yellow wash reads olive on the dark
- * glass) and no opacity group; it stays crisp at 0 % background. The marks sit behind the
- * row's content (isolated stacking context), above the row's own background.
+ * You: a bracket of light. Two 1 px accent hairlines that fade out to the right, over a neutral
+ * lift that is brightest where they start (no rail on the left edge: your name's weight and the
+ * lift say it without colour). No accent fill (a yellow wash reads olive on the dark glass) and
+ * no opacity group; it stays crisp at 0 % background. The marks sit behind the row's content
+ * (isolated stacking context), above the row's own background.
  */
 .ov-player {
   position: relative;
@@ -348,16 +365,33 @@ body {
   background:
     linear-gradient(90deg, var(--ov-accent), transparent 55%) left top / 100% 1px no-repeat,
     linear-gradient(90deg, var(--ov-accent), transparent 55%) left bottom / 100% 1px no-repeat,
+    linear-gradient(90deg, var(--ov-lift), transparent 70%),
     var(--ov-lift);
 }
 
-.ov-player::after {
+/*
+ * State: the panel or band it belongs to is tinted in its tone (--ov-state, set by the widget):
+ * the top edge lit in the tone, fading out at both ends, and a wash of it down into the glass.
+ * Never a rail on the left edge, and never colour alone (the number, arrow, chevron or words say
+ * it too). Static gradients behind the content (isolated stacking context); the host is
+ * positioned. Without a tone it paints nothing.
+ */
+.ov-state {
+  --ov-state: transparent;
+  isolation: isolate;
+}
+
+.ov-state::before {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   pointer-events: none;
-  background: var(--ov-accent);
+  background:
+    linear-gradient(90deg, transparent, var(--ov-state) 18%, var(--ov-state) 82%, transparent) left
+      top / 100% var(--ov-key-w) no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--ov-state) 17%, transparent), transparent 80%);
 }
 
 /* ---- Numerals ---------------------------------------------------------------- */

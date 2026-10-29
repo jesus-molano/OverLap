@@ -32,6 +32,7 @@ function sample(reference: DeltaReference): DeltaData {
     lapState: 'valid',
     preferred: reference,
     pending: null,
+    temporary: false,
     // Last a little slower than the best, the optimal under it, the record the fastest of yours.
     laps: Object.freeze({ last: 136.731, best: 136.412, optimal: 135.958, pb: 136.089 })
   })

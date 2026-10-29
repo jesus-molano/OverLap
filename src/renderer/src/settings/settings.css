@@ -7,9 +7,10 @@
  *
  * Same material as the widgets: graphite surfaces with no blue cast, cards with a lit top edge,
  * captions in the Small face, titles and readouts in the Display face. Every control is drawn
- * here (no native look). Selection is neutral ink (--st-sel): a light key under a lifted fill,
- * never the accent. The accent means "you", so in this window it appears only in the live
- * samples, the accent picker and the "now" personal record.
+ * here (no native look). Selection is neutral ink (--st-sel); a chosen segment or preset is a
+ * raised key (--st-raised: a lighter fill lit on top, ringed, standing off the field) in bright,
+ * stronger text, never an underline nor the accent. The accent means "you", so in this window it
+ * appears only in the live samples, the accent picker and the "now" personal record.
  *
  * Transitions stay at 120 ms or less and stop under reduced motion.
  */
@@ -32,6 +33,11 @@ html.ov-settings {
   --st-sel: #e9edf3;
   --st-sel-fg: #0e1014;
   --st-sel-bg: #2b313a;
+  /* A chosen segment or preset: raised off the field (0-blur edges only). */
+  --st-raised-bg: linear-gradient(180deg, #3b424d, #2c323b);
+  --st-raised:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.55);
   /* Empty switch and slider track, and the switch knob when off. */
   --st-track: #2a2f37;
   --st-knob: #8a93a2;
@@ -243,12 +249,12 @@ html.ov-settings .st-presets {
   gap: 6px;
 }
 
-/* Selected preset: the ink key (after the hover rule, which it overrides). */
+/* Selected preset: raised, like a chosen segment (after the hover rule, which it overrides). */
 html.ov-settings .st-presets .st-btn[aria-pressed='true'] {
   border-color: var(--st-border-strong);
-  background: var(--st-sel-bg);
-  box-shadow: inset 0 -2px 0 var(--st-sel);
-  color: var(--ov-fg);
+  background: var(--st-raised-bg);
+  box-shadow: var(--st-raised);
+  color: #ffffff;
   font-weight: var(--ov-w-strong);
 }
 
@@ -467,13 +473,12 @@ html.ov-settings .st-seg-item:hover .st-seg-input:not(:disabled, :checked) + .st
   color: var(--ov-fg);
 }
 
-/* Selected segment: the ink key on a lifted, ringed fill. */
+/* Selected segment: a raised key standing off the field, in bright, stronger text (no line under
+   it: the fill, its lit edge and the weight tell it apart without colour). */
 html.ov-settings .st-seg-input:checked + .st-seg-text {
-  background: var(--st-sel-bg);
-  box-shadow:
-    inset 0 0 0 1px var(--st-border-strong),
-    inset 0 -2px 0 var(--st-sel);
-  color: var(--ov-fg);
+  background: var(--st-raised-bg);
+  box-shadow: var(--st-raised);
+  color: #ffffff;
   font-weight: var(--ov-w-strong);
 }
 

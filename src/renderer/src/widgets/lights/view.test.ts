@@ -9,6 +9,7 @@ import {
   LIGHT_ICONS,
   formatDegrees,
   formatRise,
+  hasLightTexts,
   hasLights,
   layoutKey,
   lightsFilter,
@@ -53,7 +54,7 @@ describe('lightsView', () => {
     expect(new Set(Object.values(LIGHT_ICONS)).size).toBe(LIGHT_ORDER.length)
   })
 
-  it('icons alone by default; the repair time and the rise as the light says them', () => {
+  it('icons alone by default; the repair time as the light says it, the trend light yellow', () => {
     const v = lightsView(PREVIEW_LIGHTS, DEFAULTS, 'metric', ES)
     expect(texts(v)).toEqual([
       'oilPressure=',
@@ -61,7 +62,7 @@ describe('lightsView', () => {
       'stalled=',
       `repair=42${NB}s`,
       `repairOptional=38${NB}s`,
-      'water=+6°',
+      'water=',
       'oilTemp='
     ])
     expect(v.map((l) => l.level)).toEqual(['off', 'off', 'off', 'alarm', 'warn', 'caution', 'off'])
@@ -108,8 +109,31 @@ describe('lightsView', () => {
     expect(lightsView(data([w]), o, 'imperial', EN)[0]?.text).toBe('208° +11°')
     expect(formatDegrees(98, 'metric')).toBe('98°')
     expect(formatRise(-2, 'metric')).toBe('+0°')
-    // Without showTemps, the reading goes; the rise is what the yellow light says.
-    expect(lightsView(data([w]), ALL, 'metric', ES)[0]?.text).toBe('+6°')
+    // Without showTemps the reading and its rise go: icons only; the yellow light still says it.
+    expect(lightsView(data([w]), ALL, 'metric', ES)[0]).toMatchObject({
+      text: '',
+      level: 'caution'
+    })
+  })
+
+  it('knows when no light shows any text (the column’s text side does nothing then)', () => {
+    const icons = { ...DEFAULTS, showCaptions: false, showTemps: false, showRepairTime: false }
+    expect(hasLightTexts(icons)).toBe(false)
+    // The trend alone is a yellow light, not a text.
+    expect(hasLightTexts({ ...icons, showTrend: true })).toBe(false)
+    expect(hasLightTexts({ ...icons, showCaptions: true })).toBe(true)
+    expect(hasLightTexts({ ...ALL, ...icons, showTemps: true })).toBe(true)
+    expect(hasLightTexts(without({ ...ALL, ...icons, showTemps: true }, 'water', 'oilTemp'))).toBe(
+      false
+    )
+    expect(hasLightTexts({ ...ALL, ...icons, showRepairTime: true })).toBe(true)
+  })
+
+  it('values off and the trend on: no number at all, only the yellow light', () => {
+    const w = reading({ kind: 'water', level: 'caution', tempC: 98, riseC: 6 })
+    const o = { ...ALL, showTemps: false, showTrend: true, showCaptions: false }
+    expect(lightsView(data([w]), o, 'metric', ES)[0]).toMatchObject({ text: '', level: 'caution' })
+    expect(lightsView(data([w]), { ...o, showTemps: true }, 'metric', ES)[0]?.text).toBe('98° +6°')
   })
 
   it('draws the lights in the order of lights.icons', () => {

@@ -299,6 +299,7 @@ describe('SKIP_EMIT', () => {
       lapState: 'none',
       preferred: 'pb',
       pending: null,
+      temporary: false,
       laps: NO_LAPS
     }
     const live: DeltaData = {
@@ -314,6 +315,7 @@ describe('SKIP_EMIT', () => {
       lapState: 'valid',
       preferred: 'pb',
       pending: null,
+      temporary: false,
       laps: NO_LAPS
     }
     expect(skip(hidden, null)).toBe(false)

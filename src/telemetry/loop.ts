@@ -264,6 +264,14 @@ export class TelemetryLoop {
     }
   }
 
+  /**
+   * The delta's cycle shortcut (from main): the provider keeps the new reference for this
+   * session only; the delta is computed again on the next tick.
+   */
+  cycleDeltaReference(): void {
+    if (this.providers.cycleDeltaReference?.() === true) this.nextDue.delta = -Infinity
+  }
+
   /** Runs until stop(). */
   async start(): Promise<void> {
     if (this.running) return
@@ -684,7 +692,7 @@ export class TelemetryLoop {
     this.setTarget(null, now)
   }
 
-  /** Tells main the kind of session when it changes (the delta's cycle shortcut acts on it). */
+  /** Tells main the kind of session when it changes (the delta's cycle shortcut needs one). */
   private followKind(kind: SessionKind | null): void {
     if (kind === this.lastKind) return
     this.lastKind = kind

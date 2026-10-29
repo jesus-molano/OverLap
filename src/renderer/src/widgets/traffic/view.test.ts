@@ -192,7 +192,7 @@ describe('toRowSlot', () => {
     expect(s).toMatchObject({
       kind: 'row',
       group: 'faster',
-      css: 'tr-row tr-row--faster is-warn',
+      css: 'tr-row tr-row--faster is-warn ov-state',
       urgency: 'warn',
       cls: 'GTP',
       number: '7',
@@ -223,7 +223,7 @@ describe('toRowSlot', () => {
   it('faster car lapping you: lap colour and "te dobla"', () => {
     const s = toRowSlot(entry({ lapping: true, etaS: 1.4 }), 'faster', 1, styles, 'full', ES)
     expect(s).toMatchObject({
-      css: 'tr-row tr-row--faster is-alt is-bad',
+      css: 'tr-row tr-row--faster is-alt is-bad ov-state',
       lap: 'ahead',
       lapBadge: 'Te dobla',
       lead: 'te alcanza en',
@@ -248,7 +248,7 @@ describe('toRowSlot', () => {
     // Under it, 1 s: warn; 0.3 s: bad; alongside, the ETA of the pass counts down: bad too.
     expect(lapping(-1, 146, 'blue')).toMatchObject({ urgency: 'warn', lead: 'a', num: '1.0' })
     expect(lapping(-0.3, 50.9, 'blue')).toMatchObject({
-      css: 'tr-row tr-row--faster is-bad',
+      css: 'tr-row tr-row--faster is-bad ov-state',
       urgency: 'bad',
       num: '0.3'
     })
@@ -340,21 +340,21 @@ describe('toRowSlot', () => {
       toRowSlot({ ...base, hazard, etaS }, 'hazard', 0, styles, 'abbr', ES)
     // Stopped is red on rail, icon, number and tag, even 5 s away (the ETA alone says warn).
     expect(line('stopped', 5)).toMatchObject({
-      css: 'tr-row tr-row--hazard is-bad',
+      css: 'tr-row tr-row--hazard is-bad ov-state',
       urgency: 'bad',
       hazardTone: 'bad'
     })
     // A slow car under 3 s: red everywhere, its tag included.
     expect(line('slow', 2.1)).toMatchObject({
-      css: 'tr-row tr-row--hazard is-bad',
+      css: 'tr-row tr-row--hazard is-bad ov-state',
       urgency: 'bad',
       hazardTone: 'bad'
     })
     expect(line('slow', 5)).toMatchObject({ urgency: 'warn', hazardTone: 'warn' })
     // Far away, or with no ETA at all: still the warning rail, never idle.
-    expect(line('slow', 20)).toMatchObject({ css: 'tr-row tr-row--hazard is-warn' })
+    expect(line('slow', 20)).toMatchObject({ css: 'tr-row tr-row--hazard is-warn ov-state' })
     expect(line('off-track', null)).toMatchObject({
-      css: 'tr-row tr-row--hazard is-warn',
+      css: 'tr-row tr-row--hazard is-warn ov-state',
       urgency: 'warn',
       hazardTone: 'warn'
     })

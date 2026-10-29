@@ -161,7 +161,10 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         :class="[
           `al-fill-${flags.primary.fill}`,
           `al-ink-${flags.primary.ink}`,
-          { 'ov-solid': !isQuiet(flags.primary.fill), 'flag--quiet': isQuiet(flags.primary.fill) }
+          {
+            'ov-solid': !isQuiet(flags.primary.fill),
+            'flag--quiet ov-state': isQuiet(flags.primary.fill)
+          }
         ]"
       >
         <span v-if="flags.primary.icon" class="flag__mark flag__mark--icon"
@@ -202,7 +205,11 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         class="limiter"
         :class="[
           `limiter--${limiter.state}`,
-          { 'limiter--hero': hero, 'ov-solid': limiter.state !== 'on' }
+          {
+            'limiter--hero': hero,
+            'ov-solid': limiter.state !== 'on',
+            'ov-state': limiter.state === 'on'
+          }
         ]"
       >
         <span class="limiter__mark"><Icon :name="limiter.icon" class="limiter__icon" /></span>
@@ -406,22 +413,15 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
 }
 
 /*
- * Warn / info alerts (tow, laps to go, the engine trend): a quiet band on the glass with the
- * tone as a rail and on the icon, like the limiter when it is on. Never a solid block: those
- * are the flags and the alarms.
+ * Warn / info alerts (tow, laps to go, the engine trend): a quiet band on the glass tinted in the
+ * tone (theme.css .ov-state) and with it on the icon, like the limiter when it is on. Never a
+ * solid block: those are the flags and the alarms.
  */
 .flag.flag--quiet {
   --al-ink: var(--ov-fg);
+  --ov-state: var(--al-fill);
   position: relative;
   background: var(--ov-chip-faint);
-}
-
-.flag--quiet::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
-  background: var(--al-fill);
 }
 
 .flag--quiet .flag__mark--icon {
@@ -561,17 +561,11 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
   contain: layout paint style;
 }
 
-/* On: a quiet band with the "for you" rail and the check (state is a rail, never a block). */
+/* On: a quiet band tinted in the "for you" tone (theme.css .ov-state) with the check; state is a
+   tint, never a block. */
 .limiter--on {
+  --ov-state: var(--ov-good);
   background: var(--ov-chip-faint);
-}
-
-.limiter--on::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
-  background: var(--ov-good);
 }
 
 .limiter--on .limiter__icon {

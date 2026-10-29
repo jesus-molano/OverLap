@@ -308,7 +308,11 @@ export const widgetsEs = {
     /** Its accessible name. */
     refMarkName: 'referencia del delta',
     /** For a moment after another reference is chosen: 'Vuelta óptima desde la próxima vuelta'. */
-    nextLap: (reference: string) => `${reference} desde la próxima vuelta`
+    nextLap: (reference: string) => `${reference} desde la próxima vuelta`,
+    /** The tag after the reference while the cycle shortcut's choice is in force (this session only). */
+    temporary: 'temporal',
+    /** The cycle shortcut's choice in the brief label: 'Vuelta óptima (temporal)'. */
+    temporaryRef: (reference: string) => `${reference} (temporal)`
   },
   /** The conditions footer of the relative and the standings. */
   conditions: {
@@ -630,7 +634,9 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     laps: { last: 'Last', best: 'Best', optimal: 'Opt.', pb: 'PB' },
     refMark: 'Δ',
     refMarkName: 'delta reference',
-    nextLap: (reference) => `${reference} from the next lap`
+    nextLap: (reference) => `${reference} from the next lap`,
+    temporary: 'temporary',
+    temporaryRef: (reference) => `${reference} (temporary)`
   },
   conditions: {
     track: 'Track',
