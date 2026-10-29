@@ -5,10 +5,15 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [2.1.0] - 2026-10-29
 
 ### Disposiciones
 
+- Con muchas disposiciones (hasta 30): buscador por nombre o coche (sin distinguir mayúsculas ni
+  acentos) a partir de 9, la lista con su propio scroll y la que está en uso fija arriba, y orden
+  personalizado, por nombre o por uso reciente. Los coches del cambio automático salen por nombre.
+- La bandeja muestra la que está en uso, la del coche actual y las más recientes (5 como mucho) y
+  «Más…», que abre Ajustes directamente en Disposiciones (también «Gestionar disposiciones…").
 - Las disposiciones guardan también las opciones de cada widget (columnas y su orden, elementos,
   barras de información, referencias del delta, estilo del volante, opacidad, sesiones en que se
   ve…), y al aplicar una vuelven junto con las posiciones, de una vez. La apariencia, la
@@ -23,6 +28,22 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Los ajustes pasan a la versión 6. La 2.0.0 los abre, pero sin las opciones de cada
   disposición; por eso, la primera vez que esta versión guarda los ajustes de una anterior, deja
   una copia en `settings.json.v5.bak` para poder volver atrás.
+
+### Widgets
+
+- Delta y Batalla sin el borde de color del estado: el número, las flechas y el texto lo dicen.
+  La disposición en uso tampoco lleva franja lateral, solo la etiqueta «EN USO».
+- Número, logotipo, bandera y nombre alineados en todas las filas del Relativo, la Clasificación y
+  la Batalla, también en la fila del líder de otra clase («LMP2» se lee entero).
+- Un globo en el hueco de la bandera para quien no corre por ningún país («-none-» o una bandera
+  que no es de un país); el coche de seguridad, los espectadores y la IA siguen sin bandera.
+
+### Calidad
+
+- Prueba de memoria de más de 20 minutos con cambios de coche cada 3 s, Ajustes abriéndose y
+  cerrándose, modo edición y cambios de disposición: sin fugas en el código de OverLap, CPU por
+  debajo del 0,3 %. El cambio automático por coche, probado con miles de ciclos: una sola vez por
+  cambio real, nunca en modo edición y sin bucles.
 
 ## [2.0.0] - 2026-10-29
 
@@ -254,4 +275,5 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[2.1.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.0
 [2.0.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.0.0
