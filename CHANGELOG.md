@@ -26,6 +26,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   se dibujan translúcidos donde caben, para poder recuperarlos: un clic los muestra en su sitio y
   arrastrarlos los muestra donde los sueltes. La lista y la vista previa se señalan una a otra, y
   al tocar algo en la vista previa se abre su sección.
+- **Deshacer al ocultar o mover**: al ocultar un elemento (con un clic en la vista previa o con su
+  ojo en la lista) o al arrastrarlo a otro sitio en la vista previa, aparece abajo durante unos
+  segundos un aviso «SoF» oculto con **Deshacer**, por si fue sin querer. Con el ratón encima o el
+  foco dentro no se va; **Ctrl+Z** también deshace mientras se ve. Solo deshace el último cambio,
+  y nunca lo que hayas tocado después.
 - **Cabecera y pie en todos los paneles**: Combustible, Tráfico y Batalla tienen ahora la misma
   cabecera y el mismo pie que Relativo y Clasificación, con el mismo catálogo de datos (tiempo
   restante, SoF, vueltas de combustible, temperatura de pista…), interruptor, tamaño y cajas
