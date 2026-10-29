@@ -328,3 +328,95 @@ describe('useShortcutCapture: buttons', () => {
     })
   })
 })
+
+describe('useShortcutCapture: controller buttons', () => {
+  const G29 = 'joy:046d:c24f:0'
+  let presses: ((press: { binding: string; name: string }) => void)[]
+  let unsubscribed: number
+
+  beforeEach(() => {
+    stop()
+    presses = []
+    unsubscribed = 0
+    const scope = effectScope()
+    capture = scope.run(() =>
+      useShortcutCapture({
+        current: () => current,
+        save: (action, accelerator) => {
+          saved.push([action, accelerator])
+          current = { ...current, [action]: accelerator }
+        },
+        capture: (on) => commands.push(on),
+        source,
+        onButton: (cb) => {
+          presses.push(cb)
+          return () => {
+            unsubscribed++
+            presses = presses.filter((p) => p !== cb)
+          }
+        }
+      })
+    ) as ShortcutCapture
+    stop = () => scope.stop()
+  })
+
+  function pressButton(binding: string, name = 'G29 Driving Force Racing Wheel'): void {
+    for (const cb of [...presses]) cb({ binding, name })
+  }
+
+  it('listens for buttons only while recording', () => {
+    expect(presses).toHaveLength(0)
+    capture.start('nextLayout')
+    expect(presses).toHaveLength(1)
+    capture.cancel()
+    expect(presses).toHaveLength(0)
+    expect(unsubscribed).toBe(1)
+  })
+
+  it('saves a pressed button as the binding and stops recording', () => {
+    capture.start('nextLayout')
+    pressButton(`${G29}:12`)
+    expect(saved).toEqual([['nextLayout', `${G29}:12`]])
+    expect(capture.active.value).toBeNull()
+    expect(commands).toEqual([true, false])
+    expect(capture.feedback.value).toEqual({
+      action: 'nextLayout',
+      kind: 'saved',
+      accelerator: `${G29}:12`,
+      warning: undefined
+    })
+    expect(capture.pressedNames.value).toEqual({ [G29]: 'G29 Driving Force Racing Wheel' })
+  })
+
+  it('refuses a button another action has, and keeps recording', () => {
+    current = { ...current, toggleOverlay: `${G29}:12` }
+    capture.start('nextLayout')
+    pressButton(`${G29}:12`)
+    expect(saved).toEqual([])
+    expect(capture.active.value).toBe('nextLayout')
+    expect(capture.feedback.value).toMatchObject({
+      kind: 'refused',
+      error: 'duplicate',
+      conflict: 'toggleOverlay'
+    })
+    pressButton(`${G29}:13`)
+    expect(saved).toEqual([['nextLayout', `${G29}:13`]])
+  })
+
+  it('ignores a malformed press, and presses after the page went away', () => {
+    capture.start('nextLayout')
+    pressButton('joy:nope')
+    expect(saved).toEqual([])
+    stop()
+    expect(unsubscribed).toBe(1)
+    pressButton(`${G29}:12`)
+    expect(saved).toEqual([])
+  })
+
+  it('still records a key combination', () => {
+    capture.start('nextLayout')
+    pressCtrlShift('N', 'KeyN')
+    expect(saved).toEqual([['nextLayout', 'Ctrl+Shift+N']])
+    expect(presses).toHaveLength(0)
+  })
+})

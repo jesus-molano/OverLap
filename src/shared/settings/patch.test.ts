@@ -680,3 +680,25 @@ describe('the default layout for the primary work area', () => {
     expect(placeDefaultLayout(s, { x: 0, y: 0, width: 1920, height: 1040 })).toEqual(s)
   })
 })
+
+describe('applySettingsPatch: controller buttons', () => {
+  const G29 = 'joy:046d:c24f:0'
+
+  it('assigns a button, and refuses one another action has', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, { shortcuts: { nextLayout: `${G29}:12` } })
+    expect(out.shortcuts.nextLayout).toBe(`${G29}:12`)
+    const taken = applySettingsPatch(out, { shortcuts: { toggleOverlay: `${G29}:12` } })
+    expect(taken.shortcuts.toggleOverlay).toBe('Ctrl+Shift+H')
+    // Back to a combination.
+    const keys = applySettingsPatch(out, { shortcuts: { nextLayout: 'Ctrl+Alt+N' } })
+    expect(keys.shortcuts.nextLayout).toBe('Ctrl+Alt+N')
+  })
+
+  it('never takes the controllers names from the settings window', () => {
+    const out = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { nextLayout: `${G29}:12` },
+      buttonDeviceNames: { [G29]: 'Fake' }
+    })
+    expect(out.buttonDeviceNames).toEqual({})
+  })
+})

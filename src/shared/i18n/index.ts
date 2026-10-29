@@ -9,6 +9,7 @@
  * applies at once everywhere without the telemetry process knowing.
  */
 import { modifierCaps, parseAccelerator } from '../accelerator'
+import { parseButtonBinding } from '../controllers'
 import type { HiddenReason, OverlayStatus } from '../types'
 import type { WidgetId } from '../widgets'
 import type { Dict } from './dict'
@@ -101,15 +102,20 @@ export function keyLabel(m: Messages, key: string): string {
   }
 }
 
-/** The keycaps of a combination: ['Ctrl', 'Shift', 'Re Pág']; [] when it has none (''). */
+/**
+ * The keycaps of a combination: ['Ctrl', 'Shift', 'Re Pág']; one for a controller's button
+ * (['Botón 7']); [] when it has none ('').
+ */
 export function keycaps(m: Messages, accelerator: string): string[] {
   if (accelerator === '') return []
+  const button = parseButtonBinding(accelerator)
+  if (button) return [m.core.keys.button(button.button)]
   const parsed = parseAccelerator(accelerator)
   if (!parsed.ok) return [accelerator]
   return [...modifierCaps(parsed.value), keyLabel(m, parsed.value.key)]
 }
 
-/** A combination as one text: 'Ctrl+Shift+E', 'Alt+Av Pág'; '' when it has none. */
+/** A binding as one text: 'Ctrl+Shift+E', 'Alt+Av Pág', 'Botón 7'; '' when it has none. */
 export function acceleratorText(m: Messages, accelerator: string): string {
   return keycaps(m, accelerator).join('+')
 }

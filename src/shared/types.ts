@@ -1736,12 +1736,21 @@ export interface OverlaySettings {
   delta: DeltaOptions
   fuel: FuelOptions
   lights: LightsOptions
-  /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
+  /**
+   * Global shortcuts, a key combination or a controller's button per action (main registers
+   * the combinations and listens to the buttons; nothing else acts on them).
+   */
   shortcuts: ShortcutSettings
   settingsWindow: SettingsWindowOptions
   layouts: LayoutOptions
   /** Not an option section: changed by the settings window's layout commands only. */
   savedLayouts: LayoutLibrary
+  /**
+   * Not an option section: the last name seen of each controller a button shortcut uses
+   * (controllers.ts id -> 'G29 Driving Force Racing Wheel'), so the page names it while it is
+   * unplugged. Written by main alone; absent in older files ({}).
+   */
+  buttonDeviceNames: Record<string, string>
 }
 
 /**

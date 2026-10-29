@@ -323,3 +323,120 @@ describe('ShortcutManager capture', () => {
     expect(registry.suspended).toBe(false)
   })
 })
+
+describe('ShortcutManager controller buttons', () => {
+  const G29 = 'joy:046d:c24f:0'
+  const BOX = 'joy:1dd2:2201:0'
+  const BUTTONS: ShortcutSettings = {
+    ...DEFAULTS,
+    toggleOverlay: `${G29}:7`,
+    nextLayout: `${BOX}:40`
+  }
+
+  function make(onButtonsWanted: (on: boolean) => void): ShortcutManager {
+    manager.dispose()
+    manager = new ShortcutManager({
+      registry,
+      onAction: (a) => actions.push(a),
+      onExitEdit: () => exits++,
+      onStatus: (s) => statuses.push(s),
+      onButtonsWanted
+    })
+    return manager
+  }
+
+  it('runs the action bound to a button; never registers it as a hot key', () => {
+    manager.configure(BUTTONS)
+    expect(registry.registered()).toEqual(['Ctrl+Shift+E'])
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    manager.pressButton(G29, 7)
+    manager.pressButton(BOX, 40)
+    // Another button, another controller with that button: nothing.
+    manager.pressButton(G29, 8)
+    manager.pressButton(BOX, 7)
+    expect(actions).toEqual(['toggleOverlay', 'nextLayout'])
+  })
+
+  it('keeps keyboard shortcuts working beside buttons', () => {
+    manager.configure(BUTTONS)
+    expect(press('Ctrl+Shift+E')).toBe(true)
+    expect(actions).toEqual(['toggleEditMode'])
+    expect(registry.press('Ctrl+Shift+H')).toBe(false)
+  })
+
+  it('counts a bouncing switch (presses less than the guard apart) as one press', () => {
+    manager.configure(BUTTONS)
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    manager.pressButton(G29, 7)
+    vi.advanceTimersByTime(15)
+    manager.pressButton(G29, 7)
+    expect(actions).toEqual(['toggleOverlay'])
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    manager.pressButton(G29, 7)
+    expect(actions).toEqual(['toggleOverlay', 'toggleOverlay'])
+  })
+
+  it('runs nothing while the settings page records a binding', () => {
+    manager.configure(BUTTONS)
+    manager.startCapture()
+    expect(manager.capturing).toBe(true)
+    vi.advanceTimersByTime(REPEAT_GUARD_MS)
+    manager.pressButton(G29, 7)
+    expect(actions).toEqual([])
+    manager.stopCapture()
+    expect(manager.capturing).toBe(false)
+    manager.pressButton(G29, 7)
+    expect(actions).toEqual(['toggleOverlay'])
+  })
+
+  it('a button whose controller is unplugged is unavailable, and ok again once it is back', () => {
+    manager.configure(BUTTONS)
+    // Not known yet (the input process starting): ok.
+    expect(manager.status.toggleOverlay).toBe('ok')
+    manager.setControllers([G29])
+    expect(manager.status).toMatchObject({ toggleOverlay: 'ok', nextLayout: 'unavailable' })
+    manager.setControllers([])
+    expect(manager.status).toMatchObject({
+      toggleOverlay: 'unavailable',
+      nextLayout: 'unavailable'
+    })
+    manager.setControllers([G29, BOX])
+    expect(manager.status).toMatchObject({ toggleOverlay: 'ok', nextLayout: 'ok' })
+    expect(statuses.at(-1)).toMatchObject({ toggleOverlay: 'ok', nextLayout: 'ok' })
+    // The keyboard ones do not depend on it.
+    manager.setControllers([])
+    expect(manager.status.toggleEditMode).toBe('ok')
+  })
+
+  it('wants the controllers read only while some action has a button or a binding is recorded', () => {
+    const wanted: boolean[] = []
+    make((on) => wanted.push(on))
+    manager.configure(DEFAULTS)
+    expect(wanted).toEqual([])
+    expect(manager.wantsButtons).toBe(false)
+    manager.startCapture()
+    expect(wanted).toEqual([true])
+    manager.stopCapture()
+    expect(wanted).toEqual([true, false])
+    manager.configure(BUTTONS)
+    expect(wanted).toEqual([true, false, true])
+    // Recording with buttons already bound changes nothing.
+    manager.startCapture()
+    manager.stopCapture()
+    expect(wanted).toEqual([true, false, true])
+    manager.configure(DEFAULTS)
+    expect(wanted).toEqual([true, false, true, false])
+    manager.configure(BUTTONS)
+    manager.dispose()
+    expect(wanted.at(-1)).toBe(false)
+  })
+
+  it('a capture that the page stops renewing stops wanting the controllers', () => {
+    const wanted: boolean[] = []
+    make((on) => wanted.push(on))
+    manager.configure(DEFAULTS)
+    manager.startCapture()
+    vi.advanceTimersByTime(SHORTCUT_CAPTURE_LEASE_MS)
+    expect(wanted).toEqual([true, false])
+  })
+})

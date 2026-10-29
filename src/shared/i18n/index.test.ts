@@ -4,8 +4,10 @@ import { WIDGET_IDS } from '../widgets'
 import {
   DEFAULT_LANGUAGE,
   LANGUAGES,
+  acceleratorText,
   hiddenText,
   isLanguage,
+  keycaps,
   messagesFor,
   statusText,
   widgetTitle,
@@ -142,10 +144,21 @@ describe('shortcut texts', () => {
 
   it('word the shortcuts page in both languages', () => {
     const s = es.settings.shortcuts
-    expect(es.settings.nav.shortcuts).toBe('Atajos de teclado')
-    expect(en.settings.nav.shortcuts).toBe('Keyboard shortcuts')
-    expect(s.capture.prompt).toBe('Pulsa la combinación… (Esc cancela)')
-    expect(s.status).toEqual({ disabled: 'Desactivado', unavailable: 'En uso por otra aplicación' })
+    expect(es.settings.nav.shortcuts).toBe('Atajos')
+    expect(en.settings.nav.shortcuts).toBe('Shortcuts')
+    expect(s.capture.prompt).toBe('Pulsa una combinación o un botón del volante… (Esc cancela)')
+    expect(en.settings.shortcuts.capture.prompt).toBe(
+      'Press a combination or a wheel button… (Esc cancels)'
+    )
+    expect(s.status).toEqual({
+      disabled: 'Desactivado',
+      unavailable: 'En uso por otra aplicación',
+      disconnected: 'Desconectado'
+    })
+    expect(es.core.keys.button(12)).toBe('Botón 12')
+    expect(en.core.keys.button(12)).toBe('Button 12')
+    expect(acceleratorText(es, 'joy:046d:c24f:0:7')).toBe('Botón 7')
+    expect(keycaps(en, 'joy:046d:c24f:0:7')).toEqual(['Button 7'])
     expect([s.change, s.disable, s.reset]).toEqual(['Cambiar', 'Desactivar', 'Restablecer'])
     expect([en.settings.shortcuts.change, en.settings.shortcuts.disable]).toEqual([
       'Change',

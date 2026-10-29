@@ -31,7 +31,7 @@ export const settingsEs = {
     title: 'Ajustes',
     sections: 'Secciones de ajustes',
     appearance: 'Apariencia',
-    shortcuts: 'Atajos de teclado',
+    shortcuts: 'Atajos',
     layouts: 'Disposiciones',
     widgets: 'Widgets',
     /** What each shortcut at the foot of the sidebar does. */
@@ -265,9 +265,9 @@ export const settingsEs = {
         'Vuelve la apariencia a los valores por defecto; el idioma, la visibilidad y las opciones de cada widget no cambian'
     }
   },
-  /** "Atajos de teclado" page. */
+  /** "Atajos" page: key combinations and controller buttons. */
   shortcuts: {
-    sub: 'Combinaciones de teclas que funcionan en todo Windows, también con iRacing en primer plano.',
+    sub: 'Combinaciones de teclas o botones del volante, la button box o los pedales que funcionan en todo Windows, también con iRacing en primer plano.',
     section: 'Atajos globales',
     actions: {
       toggleOverlay: {
@@ -299,10 +299,16 @@ export const settingsEs = {
     },
     status: {
       disabled: 'Desactivado',
-      unavailable: 'En uso por otra aplicación'
+      unavailable: 'En uso por otra aplicación',
+      /** A button whose controller is not connected (the binding is kept). */
+      disconnected: 'Desconectado'
     },
     unavailableHelp:
       'Otra aplicación ya usa esta combinación. Elige otra, o ciérrala y vuelve a asignarla aquí',
+    disconnectedHelp:
+      'Ese dispositivo no está conectado. Al enchufarlo, el botón vuelve a funcionar sin tocar nada aquí',
+    /** A controller's button in the field: 'Botón 12' then the controller's name. */
+    buttonAria: (button: string, device: string) => `${button} de ${device}`,
     change: 'Cambiar',
     cancel: 'Cancelar',
     disable: 'Desactivar',
@@ -313,7 +319,7 @@ export const settingsEs = {
     disableLabel: (action: string) => `Desactivar: ${action}`,
     resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
     capture: {
-      prompt: 'Pulsa la combinación… (Esc cancela)',
+      prompt: 'Pulsa una combinación o un botón del volante… (Esc cancela)',
       clearHint: 'Retroceso o Supr lo desactivan'
     },
     /** Why a combination was refused (accelerator.ts). */
@@ -324,7 +330,7 @@ export const settingsEs = {
       meta: 'La tecla Windows no se puede usar',
       needsModifier: 'Añade Ctrl o Alt: sin ellas solo valen F13–F24',
       reserved: 'Windows o los programas ya usan esa combinación',
-      duplicate: (action: string) => `Ya la usa «${action}»`
+      duplicate: (action: string) => `Ya lo usa «${action}»`
     },
     saved: (keys: string) => `Guardado: ${keys}`,
     disabled: 'Desactivado: esta acción ya no tiene atajo',
@@ -336,13 +342,15 @@ export const settingsEs = {
       title: 'Cómo funcionan',
       focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
       exclusive:
-        'Una combinación asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
+        'Una combinación de teclas asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
+      buttons:
+        'Los botones del volante, la button box o los pedales solo se leen: se comparten con iRacing y no se bloquea nada, así que la pulsación también le llega. Elige un botón que no tengas asignado en iRacing.',
       buttonBox:
         'Consejo: F13–F24 (las envían muchas button box y teclados de macros) funcionan sin Ctrl ni Alt.'
     },
     resetAll: {
       label: 'Restablecer atajos',
-      description: 'Vuelve todos los atajos de teclado a los de fábrica'
+      description: 'Vuelve todos los atajos a los de fábrica (los botones asignados se quitan)'
     }
   },
   /** One widget's page: header, hidden note and resets. */
@@ -657,7 +665,7 @@ export const settingsEs = {
     },
     /** The cycle shortcut, under the selector: 'Ctrl+Alt+D pasa a la siguiente en la sesión'. */
     cycleKeys: (keys: string) => `${keys} pasa a la siguiente solo en esta sesión, sin guardarla`,
-    cycleNoKeys: 'Con un atajo en «Atajos de teclado» la cambias sin salir del coche',
+    cycleNoKeys: 'Con un atajo en «Atajos» la cambias sin salir del coche',
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
@@ -1228,7 +1236,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     title: 'Settings',
     sections: 'Settings sections',
     appearance: 'Appearance',
-    shortcuts: 'Keyboard shortcuts',
+    shortcuts: 'Shortcuts',
     layouts: 'Layouts',
     widgets: 'Widgets',
     keys: {
@@ -1427,7 +1435,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   shortcuts: {
-    sub: 'Key combinations that work all over Windows, with iRacing in front too.',
+    sub: 'Key combinations or buttons of your wheel, button box or pedals that work all over Windows, with iRacing in front too.',
     section: 'Global shortcuts',
     actions: {
       toggleOverlay: {
@@ -1458,10 +1466,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     status: {
       disabled: 'Off',
-      unavailable: 'Used by another app'
+      unavailable: 'Used by another app',
+      disconnected: 'Disconnected'
     },
     unavailableHelp:
       'Another app already uses this combination. Pick another, or close that app and assign it again here',
+    disconnectedHelp:
+      'That device isn’t connected. Once you plug it in, the button works again without touching anything here',
+    buttonAria: (button, device) => `${button} of ${device}`,
     change: 'Change',
     cancel: 'Cancel',
     disable: 'Disable',
@@ -1471,7 +1483,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     disableLabel: (action) => `Disable: ${action}`,
     resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
     capture: {
-      prompt: 'Press the combination… (Esc cancels)',
+      prompt: 'Press a combination or a wheel button… (Esc cancels)',
       clearHint: 'Backspace or Delete turns it off'
     },
     errors: {
@@ -1493,12 +1505,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'How they work',
       focus: 'They work while iRacing has focus, without leaving the game.',
       exclusive:
-        'An assigned combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
+        'An assigned key combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
+      buttons:
+        'Buttons of your wheel, button box or pedals are only read: they are shared with iRacing and nothing is blocked, so iRacing gets the press too. Pick a button you haven’t assigned in iRacing.',
       buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
     },
     resetAll: {
       label: 'Reset shortcuts',
-      description: 'Returns every keyboard shortcut to its default'
+      description: 'Returns every shortcut to its default (assigned buttons are removed)'
     }
   },
   widgetPage: {
@@ -1792,7 +1806,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       classOptimal: 'Class optimal'
     },
     cycleKeys: (keys) => `${keys} moves to the next one for this session only, not saved`,
-    cycleNoKeys: 'Give it a shortcut in “Keyboard shortcuts” to change it from the car',
+    cycleNoKeys: 'Give it a shortcut in “Shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
     lapTimesRowOff: 'The lap times line is hidden in “Rows”; showing a time here shows the line',
