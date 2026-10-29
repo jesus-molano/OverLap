@@ -15,7 +15,10 @@ import PageSection from '../layout/PageSection.vue'
 import { replayNote, sessionScreenRuleOn } from '../replayWidgets'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
-/** "Ventana": how the widget's window looks, sizes itself and when it is shown. */
+/**
+ * "Ventana y visibilidad", the same order on every page: its size (scale, height, the edge it
+ * grows from, or the free-size note), its background, when it is shown, and the lock last.
+ */
 const props = defineProps<{ widgetId: WidgetId }>()
 
 const t = useI18n()
@@ -68,22 +71,6 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
 
 <template>
   <PageSection :title="t.settings.window.title">
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.window.locked"
-      :help="t.settings.window.lockedHelp"
-      :current="prefs.locked"
-      :apply="set('locked')"
-    />
-    <SliderControl
-      :label="t.settings.window.opacity"
-      :help="t.settings.window.opacityHelp"
-      :current="toPercent(prefs.backgroundOpacity)"
-      :min="0"
-      :max="100"
-      :format="percent"
-      :apply="setOpacity"
-    />
     <template v-if="autoModel">
       <SliderControl
         :label="t.settings.window.scale"
@@ -115,6 +102,15 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
     <p v-else class="st-row st-help size-note">
       {{ t.settings.window.sizeNote }}
     </p>
+    <SliderControl
+      :label="t.settings.window.opacity"
+      :help="t.settings.window.opacityHelp"
+      :current="toPercent(prefs.backgroundOpacity)"
+      :min="0"
+      :max="100"
+      :format="percent"
+      :apply="setOpacity"
+    />
     <CheckGroup :legend="t.settings.window.showIn" :help="showInHelp" :warn="nowhere">
       <ToggleControl
         v-for="s in showIn"
@@ -143,6 +139,13 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :apply="set('showOnSessionScreen')"
     />
     <p class="st-row st-help replay-note">{{ replay }}</p>
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.window.locked"
+      :help="t.settings.window.lockedHelp"
+      :current="prefs.locked"
+      :apply="set('locked')"
+    />
   </PageSection>
 </template>
 

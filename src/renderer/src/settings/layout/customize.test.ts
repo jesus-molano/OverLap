@@ -268,14 +268,15 @@ describe('CustomizeSection', () => {
     expect(html).toContain(`aria-labelledby="${id}"`)
   })
 
-  it('is placed by WidgetPage after the window and content options, before the resets', () => {
+  it('is placed by WidgetPage after the content, before the window section and the resets', () => {
     const template = /<template>([\s\S]*)<\/template>/.exec(WIDGET_PAGE)?.[1] ?? ''
     const opts = template.indexOf('<component :is="options"')
     const target = template.indexOf(':id="customize.targetId"')
-    expect(template.indexOf('<WindowSection')).toBeLessThan(opts)
+    const window = template.indexOf('<WindowSection')
     expect(opts).toBeGreaterThan(-1)
     expect(target).toBeGreaterThan(opts)
-    expect(target).toBeLessThan(template.indexOf('class="page-foot"'))
+    expect(window).toBeGreaterThan(target)
+    expect(window).toBeLessThan(template.indexOf('class="page-foot"'))
     expect(WIDGET_PAGE).toMatch(/provideCustomizeHost\(/)
   })
 })

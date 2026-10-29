@@ -467,9 +467,9 @@ export const settingsEs = {
       }
     }
   },
-  /** "Ventana" section of every widget page. */
+  /** "Ventana y visibilidad" section of every widget page, after its content and editors. */
   window: {
-    title: 'Ventana',
+    title: 'Ventana y visibilidad',
     locked: 'Bloqueado',
     lockedHelp: 'No se mueve ni se redimensiona, ni siquiera en modo edición',
     opacity: 'Opacidad del fondo',
@@ -1718,7 +1718,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   window: {
-    title: 'Window',
+    title: 'Window and visibility',
     locked: 'Locked',
     lockedHelp: 'Can’t be moved or resized, not even in edit mode',
     opacity: 'Background opacity',

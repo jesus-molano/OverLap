@@ -20,15 +20,15 @@ import { formatPercent } from '../values'
 import WindowSection from './WindowSection.vue'
 
 /**
- * One widget's page: the live preview (fixed), then where its changes are kept (OptionsTarget,
- * first of what scrolls, so a small window keeps room for the options), the window and content
- * options, the "Personalizar" editors and the resets (they scroll).
+ * One widget's page: the live preview (fixed), then, in what scrolls, the same order on every
+ * page: where its changes are kept (OptionsTarget), what the widget shows ("Contenido"), the
+ * "Personalizar" editors, the reference sections, "Ventana y visibilidad" and the resets.
  * Keyed by the id. The default slot closes the scrolling part (the window's foot).
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
  * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
- * the window and content options; a page without editors spreads its options over both columns.
- * Reference sections (a legend, the saved records) follow the editors (PageAppendix moves them).
+ * the content options; a page without editors spreads its options over both columns. Reference
+ * sections (a legend, the saved records) follow the editors (PageAppendix moves them).
  * The live sample is editable in place for the page's element lists (settings/preview).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
@@ -89,12 +89,14 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 
     <div class="opts" :class="{ 'has-custom': hasCustom }">
       <div class="opts-main st-cols">
-        <WindowSection :widget-id="widgetId" />
         <component :is="options" v-if="options" />
       </div>
       <div :id="customize.targetId" class="opts-custom" />
     </div>
     <div :id="customize.appendixId" class="opts-appendix" />
+    <div class="opts-window st-cols">
+      <WindowSection :widget-id="widgetId" />
+    </div>
 
     <footer class="page-foot">
       <ConfirmButton
@@ -205,6 +207,11 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 
 /* Reference sections after the editors, over the whole width. */
 .opts-appendix:not(:empty) {
+  margin-top: 26px;
+}
+
+/* The window and its visibility rules close the options, over the whole width. */
+.opts-window {
   margin-top: 26px;
 }
 
