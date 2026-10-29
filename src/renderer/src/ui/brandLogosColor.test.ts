@@ -4,6 +4,7 @@ import SOURCE from './brandLogosColor.ts?raw'
 import { BADGE_ONLY, COLOR_LOGOS, colorLogo, type ColorLogo } from './brandLogosColor'
 import { brandDrawing, greyOf, luminance } from './brandDrawing'
 import { brandLogo } from './brandLogos'
+import { LOGO_SCALE_MONO } from './brandLogoSizes'
 
 const LOGOS = Object.entries(COLOR_LOGOS) as [KnownBrandId, ColorLogo][]
 
@@ -186,7 +187,8 @@ describe('brandDrawing', () => {
     expect(porsche).toEqual({
       viewBox: brandLogo('porsche')?.viewBox,
       paths: [{ d: brandLogo('porsche')?.d }],
-      colored: false
+      colored: false,
+      scale: LOGO_SCALE_MONO.porsche
     })
   })
 
