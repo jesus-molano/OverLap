@@ -63,6 +63,7 @@ export interface FakeOverlay extends OverlayApi {
   readonly currentCar: Channel<CarRef | null>
   readonly layoutNotice: Channel<LayoutNotice>
   readonly settingsPage: Channel<SettingsWindowPage>
+  readonly saveFailing: Channel<boolean>
   readonly sent: {
     commitBounds: BoundsCommit[]
     scaleStep: ScaleStepMessage[]
@@ -89,6 +90,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const currentCar = new Channel<CarRef | null>()
   const layoutNotice = new Channel<LayoutNotice>()
   const settingsPage = new Channel<SettingsWindowPage>()
+  const saveFailing = new Channel<boolean>()
   const sent: FakeOverlay['sent'] = {
     commitBounds: [],
     scaleStep: [],
@@ -130,6 +132,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     currentCar,
     layoutNotice,
     settingsPage,
+    saveFailing,
     sent,
     listenerCount: () =>
       data.listeners.size +
@@ -144,7 +147,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       cursorHidden.listeners.size +
       currentCar.listeners.size +
       layoutNotice.listeners.size +
-      settingsPage.listeners.size,
+      settingsPage.listeners.size +
+      saveFailing.listeners.size,
     getInitialState: () => Promise.resolve(initial),
     onData: (cb) => data.on(cb),
     onStatus: (cb) => status.on(cb),
@@ -159,6 +163,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onCurrentCar: (cb) => currentCar.on(cb),
     onLayoutNotice: (cb) => layoutNotice.on(cb),
     onSettingsPage: (cb) => settingsPage.on(cb),
+    onSaveFailing: (cb) => saveFailing.on(cb),
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),
     dragState: (msg) => void sent.dragState.push(msg),

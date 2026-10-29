@@ -59,6 +59,16 @@ const stopPageRequests = window.overlay.onSettingsPage((p) => {
   if (isSettingsPage(p)) select(p)
 })
 onUnmounted(stopPageRequests)
+
+/** Main could not write settings.json: the changes are kept in memory and retried. */
+const saveFailing = shallowRef(false)
+const stopSaveFailing = window.overlay.onSaveFailing((failing) => {
+  saveFailing.value = failing
+})
+void window.overlay.getInitialState().then((s) => {
+  if (s.saveFailing === true) saveFailing.value = true
+})
+onUnmounted(stopSaveFailing)
 </script>
 
 <template>
@@ -90,6 +100,9 @@ onUnmounted(stopPageRequests)
         <OverlayHiddenNote />
         <p v-if="updateFailed" class="banner banner-error" role="alert">
           {{ t.settings.app.updateError }}
+        </p>
+        <p v-if="saveFailing" class="banner banner-error" role="alert">
+          {{ t.settings.app.saveError }}
         </p>
       </div>
 

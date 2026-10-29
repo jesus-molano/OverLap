@@ -51,6 +51,7 @@ const api: OverlayApi = {
   onCurrentCar: (cb) => subscribe<CarRef | null>(IPC.currentCar, cb),
   onLayoutNotice: (cb) => subscribe<LayoutNotice>(IPC.layoutNotice, cb),
   onSettingsPage: (cb) => subscribe<SettingsWindowPage>(IPC.settingsPage, cb),
+  onSaveFailing: (cb) => subscribe<boolean>(IPC.saveFailing, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),

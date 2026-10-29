@@ -44,6 +44,7 @@ import {
   sendToSettingsWindow,
   setSettingsWindowLanguage
 } from './settingsWindow'
+import { installLogFile } from './logFile'
 import { ShortcutManager } from './shortcutManager'
 import { resolveSource } from './sourceFlag'
 import { TelemetryHost } from './telemetryHost'
@@ -97,6 +98,8 @@ if (!app.requestSingleInstanceLock()) {
   console.log('[main] another instance is already running, exiting')
   app.quit()
 } else {
+  // Next to settings.json: what went wrong in a session started from the desktop (no console).
+  installLogFile(join(app.getPath('userData'), 'overlap.log'))
   app.setAppUserModelId(APP_USER_MODEL_ID)
   // No window has a menu bar; skip building the default one.
   Menu.setApplicationMenu(null)
@@ -133,6 +136,8 @@ function start(): void {
 
   const userData = app.getPath('userData')
   const store = SettingsStore.load(join(userData, 'settings.json'))
+  // Changes that only live in memory: the settings window says so until a write works again.
+  store.onSaveFailing = (failing) => sendToSettingsWindow(IPC.saveFailing, failing)
   // A first run on an ultrawide screen: the default layout in its middle, not at its left edge.
   const primaryArea = screen.getPrimaryDisplay().workArea
   if (store.fresh && defaultLayoutOffsetX(primaryArea) > 0) {
@@ -452,7 +457,8 @@ function start(): void {
       overlayHidden: windows.userHidden,
       shortcutStatus: shortcuts.status,
       cursorHidden: windows.cursorHidden,
-      currentCar: layouts.car
+      currentCar: layouts.car,
+      saveFailing: store.saveFailing
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown, forLayout: unknown) => {
