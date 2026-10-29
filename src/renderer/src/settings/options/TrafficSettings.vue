@@ -75,15 +75,22 @@ const parts = computed(() => ({
   labels: elementTexts(t.value, 'traffic', 'parts')
 }))
 // The header's title is its switch, as on the other widgets' bars ("Mostrar cabecera": the
-// header is that title and the SIM tag); the group captions stay a row of the list.
+// header is that title and the SIM tag); the group captions stay a row of the list, its hint
+// saying they are drawn over the groups whatever the switch says.
 const titleShown = computed(() => isElementVisible(opts.value.header, 'title'))
-const header = computed(() => ({
-  title: zoneTitle(t.value, 'traffic', 'header'),
-  labels: elementTexts(t.value, 'traffic', 'header'),
-  summary: titleShown.value
-    ? t.value.settings.infoBar.summaryOn
-    : t.value.settings.infoBar.summaryOff
-}))
+const header = computed(() => {
+  const l = elementTexts(t.value, 'traffic', 'header')
+  return {
+    title: zoneTitle(t.value, 'traffic', 'header'),
+    labels: {
+      title: l.title,
+      captions: { label: l.captions.label, hint: t.value.settings.traffic.captionsHelp }
+    },
+    summary: titleShown.value
+      ? t.value.settings.infoBar.summaryOn
+      : t.value.settings.infoBar.summaryOff
+  }
+})
 const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
 const setHeader = listSetter('traffic', 'header')
