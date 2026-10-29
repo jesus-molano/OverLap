@@ -30,6 +30,7 @@ const emit = defineEmits<{ rename: [open: boolean] }>()
 const t = useI18n()
 const inputId = useId()
 const modeId = useId()
+const tagId = useId()
 const input = useTemplateRef<HTMLInputElement>('input')
 const draft = shallowRef('')
 const draftMode = shallowRef<LayoutMode>('full')
@@ -98,11 +99,14 @@ function remove(): void {
       @keydown.esc.stop="emit('rename', false)"
     >
       <div class="rename-line">
+        <!-- Still the one in use while it is edited: the tag stays. -->
+        <span v-if="row.active" :id="tagId" class="tag">{{ t.settings.layouts.inUse }}</span>
         <label :for="inputId" class="st-sr-only">{{ t.settings.layouts.nameLabel }}</label>
         <input
           :id="inputId"
           ref="input"
           v-model="draft"
+          :aria-describedby="row.active ? tagId : undefined"
           type="text"
           class="st-field name-field"
           :maxlength="MAX_LAYOUT_NAME"
@@ -117,11 +121,12 @@ function remove(): void {
         </button>
       </div>
       <div class="rename-line">
-        <span :id="modeId" class="st-help">{{ t.settings.layouts.modeLabel }}</span>
+        <span :id="modeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
         <LayoutModeChoice v-model="draftMode" :labelledby="modeId" />
+        <span class="st-help">{{ t.settings.layouts.modeHints[draftMode] }}</span>
       </div>
       <p v-if="row.mode === 'full' && draftMode === 'position'" class="st-help st-help-warn">
-        {{ t.settings.layouts.dropOptions }}
+        {{ row.active ? t.settings.layouts.dropOptionsActive : t.settings.layouts.dropOptions }}
       </p>
     </form>
     <div v-else class="st-row-text">
@@ -130,7 +135,7 @@ function remove(): void {
         {{ row.name }}
       </span>
       <span class="st-help meta" :title="row.cars || undefined">
-        {{ t.settings.layouts.rowModes[row.mode]
+        {{ t.settings.layouts.modes[row.mode]
         }}<template v-if="row.cars"> · {{ row.cars }}</template>
       </span>
     </div>

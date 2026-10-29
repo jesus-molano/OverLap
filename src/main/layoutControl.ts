@@ -129,7 +129,7 @@ export class LayoutControl {
         this.change((s) => void setLayoutMode(s, cmd.id, cmd.mode))
         break
       case 'layout-options-to-all':
-        this.change((s) => void applyWidgetOptionsToAll(s, cmd.widgetId))
+        this.optionsToAll(cmd.widgetId, cmd.layoutId)
         break
       case 'layout-apply':
         this.choose(cmd.id)
@@ -161,6 +161,22 @@ export class LayoutControl {
         await this.importOne(cmd.mode ?? 'full')
         break
     }
+  }
+
+  /**
+   * The options shown when the button was armed are layout `layoutId`'s: another one
+   * applied since (the tray, a shortcut, the car) copies nothing, and the page says so.
+   */
+  private optionsToAll(widgetId: WidgetId, layoutId: string): void {
+    let result: 'copied' | 'unchanged' | 'stale' = 'stale'
+    if (layoutId === this.deps.getSettings().savedLayouts.activeId) {
+      let changed = false
+      this.change((s) => {
+        changed = applyWidgetOptionsToAll(s, widgetId)
+      })
+      result = changed ? 'copied' : 'unchanged'
+    }
+    this.deps.notify({ kind: 'options-copied', widgetId, result })
   }
 
   private async exportOne(id: string): Promise<void> {

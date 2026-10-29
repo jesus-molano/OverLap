@@ -26,6 +26,7 @@ import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { syncActiveLayout } from './layouts'
 import {
   ALERTS_HOLD_MAX_S,
+  SETTINGS_VERSION,
   ALERTS_HOLD_MIN_S,
   BACKGROUND_OPACITY_MAX,
   BACKGROUND_OPACITY_MIN,
@@ -339,9 +340,9 @@ const cols = (s: OverlaySettings): string[] =>
   s.standings.columns.map((c) => `${c.visible ? '+' : '-'}${c.id}`)
 
 describe('DEFAULT_SETTINGS', () => {
-  it('is the documented v5 defaults, built from WIDGET_DEFS', () => {
+  it('is the documented v6 defaults, built from WIDGET_DEFS', () => {
     expect(DEFAULT_SETTINGS).toEqual<OverlaySettings>({
-      version: 5,
+      version: 6,
       appearance: DEFAULT_APPEARANCE,
       visibility: DEFAULT_VISIBILITY,
       widgets: Object.fromEntries(WIDGET_IDS.map((id) => [id, defaultWidget(id)])) as Record<
@@ -621,7 +622,7 @@ describe('normalizeSettings: basics', () => {
       radar: { rangeM: Infinity }
     })
     const def = WIDGET_DEFS.relative.defaultBounds
-    expect(s.version).toBe(5)
+    expect(s.version).toBe(SETTINGS_VERSION)
     expect(s.widgets.relative.visible).toBe(WIDGET_DEFS.relative.defaultVisible)
     expect(s.widgets.relative.bounds).toEqual({
       x: def.x,
@@ -1045,7 +1046,7 @@ describe('normalizeSettings: migration', () => {
       radar: { rangeM: 30 }
     }
     const s = normalizeSettings(v1)
-    expect(s.version).toBe(5)
+    expect(s.version).toBe(SETTINGS_VERSION)
     expect(s.widgets.relative).toEqual({
       ...defaultWidget('relative'),
       visible: false,
@@ -1094,7 +1095,7 @@ describe('normalizeSettings: migration', () => {
     delete widgets.alerts
     const s = normalizeSettings(raw)
     expect(s).toEqual(before)
-    expect(s.version).toBe(5)
+    expect(s.version).toBe(SETTINGS_VERSION)
     expect(s.widgets.traffic).toEqual(defaultWidget('traffic'))
     expect(s.widgets.alerts).toEqual(defaultWidget('alerts'))
     expect(s.traffic).toEqual(DEFAULT_TRAFFIC)

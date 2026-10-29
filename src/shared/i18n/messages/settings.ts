@@ -360,13 +360,20 @@ export const settingsEs = {
       savingIn: 'Guardando en:',
       shared: 'Opciones comunes',
       layoutHelp: 'Lo que cambies aquí solo cambia la disposición en uso',
+      /** The Ventana section (place, size, scale, lock) is always the layout's own. */
       sharedHelp: (name: string) =>
-        `${name} es de solo posición: estos cambios valen para todas las de solo posición`,
+        `${name} es de solo posición: las opciones de este widget son las comunes a todas las de solo posición; posición, tamaño, escala y bloqueo son solo de ${name}`,
       toAll: {
-        label: 'Aplicar a todas las disposiciones',
-        confirm: '¿Aplicar a todas? Pulsa otra vez',
+        label: 'Copiar estas opciones a todas',
+        confirm: '¿Copiarlas a todas? Pulsa otra vez',
         description:
-          'Copia las opciones de este widget a todas las disposiciones con opciones y a las opciones comunes; las posiciones no cambian'
+          'Copia las opciones de este widget a todas las disposiciones con opciones y a las opciones comunes; las posiciones no cambian',
+        /** Main's answer (LayoutNotice 'options-copied'). */
+        done: {
+          copied: 'Copiadas a todas las disposiciones',
+          unchanged: 'Todas las disposiciones ya tenían estas opciones',
+          stale: 'La disposición en uso cambió: no se ha copiado nada'
+        }
       }
     }
   },
@@ -1123,17 +1130,15 @@ export const settingsEs = {
       position: 'Solo posición'
     },
     modeHints: {
-      full: 'Vuelven también las opciones de cada widget, las suyas propias',
+      full: 'Guarda y restaura también las opciones de cada widget',
       position: 'Solo se mueven los widgets; usan las opciones comunes'
-    },
-    /** Under a layout's name in the list. */
-    rowModes: {
-      full: 'Posición y opciones',
-      position: 'Solo posición · opciones comunes'
     },
     modeLabel: 'Al aplicarla',
     importMode: 'Importar como',
     dropOptions: 'Sus opciones propias se descartarán: pasará a usar las opciones comunes',
+    /** The same, for the layout in use: its widgets change as soon as it is saved. */
+    dropOptionsActive:
+      'Sus opciones propias se descartarán y los widgets cambiarán ahora a las opciones comunes',
     nameLabel: 'Nombre',
     saveName: 'Guardar',
     cancel: 'Cancelar',
@@ -1160,7 +1165,7 @@ export const settingsEs = {
     full: (max: number) => `Has llegado al máximo de ${max} disposiciones`,
     filesTitle: 'Archivos',
     filesHelp:
-      'Exporta una disposición a un archivo .json para guardarla o compartirla, con sus opciones si las tiene; al importarla se añade a la lista, sin aplicarla. Un archivo sin opciones importado con ellas toma las comunes',
+      'Exporta una disposición a un archivo .json para guardarla o compartirla, con sus opciones si las tiene; al importarla se añade a la lista, sin aplicarla. Si el archivo es de una versión anterior y no trae opciones, se le ponen las opciones comunes',
     import: 'Importar…',
     notices: {
       exported: (name: string) => `Exportada: ${name}`,
@@ -1500,12 +1505,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
       shared: 'Shared options',
       layoutHelp: 'What you change here only changes the layout in use',
       sharedHelp: (name) =>
-        `${name} is position only: these changes apply to every position-only layout`,
+        `${name} is position only: this widget’s options are shared by every position-only layout; position, size, scale and lock stay ${name}’s own`,
       toAll: {
-        label: 'Apply to all layouts',
-        confirm: 'Apply to all? Click again',
+        label: 'Copy these options to all layouts',
+        confirm: 'Copy to all? Click again',
         description:
-          'Copies this widget’s options to every layout with options and to the shared options; positions don’t change'
+          'Copies this widget’s options to every layout with options and to the shared options; positions don’t change',
+        done: {
+          copied: 'Copied to every layout',
+          unchanged: 'Every layout already had these options',
+          stale: 'The layout in use changed: nothing was copied'
+        }
       }
     }
   },
@@ -2186,16 +2196,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
       position: 'Position only'
     },
     modeHints: {
-      full: 'Each widget’s options come back too, its very own',
+      full: 'Also saves and restores each widget’s options',
       position: 'Only the widgets move; they use the shared options'
-    },
-    rowModes: {
-      full: 'Position and options',
-      position: 'Position only · shared options'
     },
     modeLabel: 'When applied',
     importMode: 'Import as',
     dropOptions: 'Its own options will be discarded: it will use the shared options',
+    dropOptionsActive:
+      'Its own options will be discarded and the widgets switch to the shared options now',
     nameLabel: 'Name',
     saveName: 'Save',
     cancel: 'Cancel',
@@ -2220,7 +2228,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     full: (max) => `You have reached the maximum of ${max} layouts`,
     filesTitle: 'Files',
     filesHelp:
-      'Export a layout to a .json file to keep or share it, with its options if it has them; importing one adds it to the list, without applying it. A file without options imported with them takes the shared ones',
+      'Export a layout to a .json file to keep or share it, with its options if it has them; importing one adds it to the list, without applying it. If the file comes from an older version without options, it gets the shared options',
     import: 'Import…',
     notices: {
       exported: (name) => `Exported: ${name}`,

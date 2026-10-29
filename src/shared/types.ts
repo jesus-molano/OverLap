@@ -1717,11 +1717,12 @@ export interface LayoutLibrary {
 
 export interface OverlaySettings {
   /**
-   * 5 (v2.6) made the licence 'outline' and the pedals auto height (older files are migrated
-   * once, recognised by their version); 4 added appearance and per-widget
-   * scale/auto-height/visibility rules; v1..v3 files are migrated.
+   * 6 gave the layouts their options (an older version drops them: SETTINGS_VERSION); 5 (v2.6)
+   * made the licence 'outline' and the pedals auto height (older files are migrated once,
+   * recognised by their version); 4 added appearance and per-widget scale/auto-height/visibility
+   * rules; v1..v3 files are migrated.
    */
-  version: 5
+  version: 6
   appearance: AppearanceSettings
   visibility: VisibilityOptions
   widgets: Record<WidgetId, WidgetSettings>

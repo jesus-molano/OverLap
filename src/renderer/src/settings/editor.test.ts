@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { effectScope } from 'vue'
+import { saveLayoutAs } from '@shared/layouts'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings, SettingsPatch } from '@shared/types'
 import {
@@ -10,6 +12,7 @@ import {
 
 interface Deferred {
   patch: SettingsPatch
+  forLayout: string | undefined
   resolve: (s: OverlaySettings) => void
   reject: (err: unknown) => void
 }
@@ -21,9 +24,9 @@ beforeEach(() => {
   vi.resetModules()
   calls = []
   fake = createFakeOverlay()
-  fake.updateSettings = (patch) =>
+  fake.updateSettings = (patch, forLayout) =>
     new Promise<OverlaySettings>((resolve, reject) => {
-      calls.push({ patch, resolve, reject })
+      calls.push({ patch, forLayout, resolve, reject })
     })
   vi.stubGlobal('window', { overlay: fake })
   vi.spyOn(console, 'error').mockImplementation(() => undefined)
@@ -128,5 +131,66 @@ describe('commands', () => {
     expect(language).toBe('es')
     expect(calls[0]!.patch).toEqual({ appearance: look })
     expect('language' in calls[0]!.patch.appearance!).toBe(false)
+  })
+})
+
+describe('the layout a change was made for', () => {
+  /** Principal (layout-1) and Mazda (layout-2), `activeId` in use. */
+  function twoLayouts(activeId: string): OverlaySettings {
+    return settingsWith(createDefaultSettings(), (s) => {
+      saveLayoutAs(s, 'Mazda', 1)
+      s.savedLayouts.activeId = activeId
+    })
+  }
+
+  it('goes with every patch: the one in use, or the one sendingFor says', async () => {
+    const { editor } = await load()
+    fake.settings.emit(twoLayouts('layout-1'))
+    void editor.optionSetter('radar')('rangeM')(40)
+    editor.sendingFor('layout-2', () => void editor.optionSetter('radar')('rangeM')(50))
+    void editor.optionSetter('radar')('rangeM')(60)
+    expect(calls.map((c) => c.forLayout)).toEqual(['layout-1', 'layout-2', 'layout-1'])
+  })
+
+  it('a slider value that waited for the throttle keeps the layout it was set in', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    try {
+      const { editor } = await load()
+      const { useDraft, SETTINGS_THROTTLE_MS } = await import('./useDraft')
+      fake.settings.emit(twoLayouts('layout-1'))
+      const scope = effectScope()
+      const draft = scope.run(() => useDraft(() => 0, editor.optionSetter('radar')('rangeM')))!
+      draft.input(30)
+      draft.commit(60)
+      // The tray applies Mazda before the throttle lets the 60 go.
+      fake.settings.emit(twoLayouts('layout-2'))
+      vi.advanceTimersByTime(SETTINGS_THROTTLE_MS)
+      expect(calls.map((c) => [c.patch.radar?.rangeM, c.forLayout])).toEqual([
+        [30, 'layout-1'],
+        [60, 'layout-1']
+      ])
+      scope.stop()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('a list sent on the layout left is not built on in the next one', async () => {
+    const { editor, state } = await load()
+    fake.settings.emit(twoLayouts('layout-1'))
+    void editor.elementToggle('standings', 'columns', 'lic')(false)
+    const sent = calls[0]!.patch.standings?.columns
+    expect(editor.currentList('standings', 'columns')).toBe(sent)
+    // Mazda applied while that reply is out: its own list, not Principal's as sent.
+    const mazda = twoLayouts('layout-2')
+    fake.settings.emit(mazda)
+    expect(editor.currentList('standings', 'columns')).toBe(
+      state.overlayState.settings.value?.standings.columns
+    )
+    void editor.elementToggle('standings', 'columns', 'ir')(false)
+    const next = calls[1]!
+    expect(next.forLayout).toBe('layout-2')
+    expect(next.patch.standings?.columns?.find((c) => c.id === 'lic')?.visible).toBe(true)
   })
 })

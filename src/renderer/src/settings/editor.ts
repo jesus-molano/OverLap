@@ -26,16 +26,41 @@ export const updateFailed = shallowRef(false)
 
 let seq = 0
 
+/** The layout in use as this window last heard (undefined before the first settings). */
+export function layoutInUse(): string | undefined {
+  return overlayState.settings.value?.savedLayouts.activeId
+}
+
+/** Set while `sendingFor` runs: the layout the patches sent now were made for. */
+let madeFor: string | undefined
+
 /**
- * Sends a patch to main. Never rejects: a failure is shown in the window and the controls
- * fall back to the current settings. Only the reply to the latest request is applied, so an
- * older reply arriving late never overwrites newer settings.
+ * Runs `send` with the patches it sends marked as made while `layoutId` was in use: a slider's
+ * value that waited for the throttle goes out after the change that made it (useDraft).
+ */
+export function sendingFor<T>(layoutId: string | undefined, send: () => T): T {
+  const before = madeFor
+  madeFor = layoutId
+  try {
+    return send()
+  } finally {
+    madeFor = before
+  }
+}
+
+/**
+ * Sends a patch to main, with the layout in use it was made for (sendingFor, else the one in
+ * use now): one applied meanwhile (the tray, a shortcut, the car) never takes it. Never
+ * rejects: a failure is shown in the window and the controls fall back to the current
+ * settings. Only the reply to the latest request is applied, so an older reply arriving late
+ * never overwrites newer settings.
  */
 export async function updateSettings(patch: SettingsPatch): Promise<void> {
   useOverlayState()
   const mine = ++seq
+  const forLayout = madeFor ?? layoutInUse()
   try {
-    const next = await window.overlay.updateSettings(patch)
+    const next = await window.overlay.updateSettings(patch, forLayout)
     // Main broadcasts the same object; the reply only wins while no newer request is out.
     if (mine === seq) overlayState.settings.value = next
     updateFailed.value = false
@@ -92,17 +117,28 @@ export function optionSetter<S extends OptionSection>(
   }
 }
 
-/** A list sent and not answered yet, per 'section.field': the next change builds on it. */
-const pendingLists = new Map<string, { readonly list: readonly ElementEntry[] }>()
+/**
+ * A list sent and not answered yet, per 'section.field', with the layout in use it was made
+ * for: the next change in that layout builds on it.
+ */
+const pendingLists = new Map<
+  string,
+  { readonly list: readonly ElementEntry[]; readonly layoutId: string | undefined }
+>()
 const listSetters = new Map<string, Setter<never>>()
 
-/** The list of `section.field` as last sent, or as the settings have it. */
+/**
+ * The list of `section.field` as last sent, or as the settings have it. One sent for a layout no
+ * longer in use is not built on: another layout's columns never replace this one's.
+ */
 export function currentList<S extends OptionSection, F extends ElementField<S>>(
   section: S,
   field: F
 ): readonly ElementEntry<ElementIdOf<S, F>>[] {
   const pending = pendingLists.get(`${section}.${field}`)
-  if (pending !== undefined) return pending.list as readonly ElementEntry<ElementIdOf<S, F>>[]
+  if (pending !== undefined && pending.layoutId === layoutInUse()) {
+    return pending.list as readonly ElementEntry<ElementIdOf<S, F>>[]
+  }
   const options = overlayState.settings.value?.[section] ?? DEFAULT_SETTINGS[section]
   return options[field] as unknown as readonly ElementEntry<ElementIdOf<S, F>>[]
 }
@@ -120,7 +156,7 @@ export function listSetter<S extends OptionSection, F extends ElementField<S>>(
   let set = listSetters.get(key) as Setter<ElementEntry<ElementIdOf<S, F>>[]> | undefined
   if (set === undefined) {
     set = async (list) => {
-      const mine = { list }
+      const mine = { list, layoutId: madeFor ?? layoutInUse() }
       pendingLists.set(key, mine)
       const fields: Partial<OverlaySettings[S]> = {}
       ;(fields as Record<string, unknown>)[field] = list

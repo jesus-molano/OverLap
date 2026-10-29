@@ -227,9 +227,9 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 - En **Ajustes > Disposiciones** guardas la actual con un nombre y aplicas, editas, duplicas,
   ordenas, exportas a un `.json` (con sus opciones), importas o eliminas.
 - **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget y
-  al cambiar sus opciones. Arriba de la página de cada widget pone dónde se guarda lo que cambias
-  (**Guardando en:** la disposición, u **Opciones comunes**), con **Aplicar a todas las
-  disposiciones** para copiar las opciones de ese widget a todas.
+  al cambiar sus opciones. En la página de cada widget, bajo la vista previa, pone dónde se guarda
+  lo que cambias (**Guardando en:** la disposición, u **Opciones comunes**), con **Copiar estas
+  opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás o a

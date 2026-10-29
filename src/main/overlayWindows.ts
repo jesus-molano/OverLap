@@ -137,6 +137,8 @@ export class OverlayWindows implements OverlayWindowHost {
   private readonly chips = new Map<OverlayWindow, { session: number; rects: Map<WidgetId, Rect> }>()
   /** Last `OverlayLayout.revision` sent to any window. */
   private revision = 0
+  /** During reloadBoundsOf for a layout applied (OverlayLayout.settingsFollow). */
+  private settingsFollow = false
   private editing = false
   /** Edit mode with the cursor hidden by the game (`IPC.cursorHidden`). */
   private cursorHiddenNow = false
@@ -415,8 +417,12 @@ export class OverlayWindows implements OverlayWindowHost {
     this.flushSaves()
   }
 
-  /** `reloadBounds` for several widgets at once (a layout applied), with one window sync. */
-  reloadBoundsOf(ids: readonly WidgetId[]): void {
+  /**
+   * `reloadBounds` for several widgets at once (a layout applied), with one window sync.
+   * `settingsFollow`: new settings are broadcast right after (a layout's options), so the layouts
+   * sent now say so (OverlayLayout.settingsFollow) and the windows show both together.
+   */
+  reloadBoundsOf(ids: readonly WidgetId[], settingsFollow = false): void {
     for (const id of ids) {
       this.wheelSaves.cancel(id)
       this.fitSaves.cancel(id)
@@ -424,7 +430,12 @@ export class OverlayWindows implements OverlayWindowHost {
     if (!this.started || this.disposed || ids.length === 0) return
     const settings = this.opts.getSettings()
     for (const id of ids) this.rects.set(id, this.place(id, settings))
-    this.syncWindows(new Set(ids))
+    this.settingsFollow = settingsFollow
+    try {
+      this.syncWindows(new Set(ids))
+    } finally {
+      this.settingsFollow = false
+    }
   }
 
   /**
@@ -664,6 +675,7 @@ export class OverlayWindows implements OverlayWindowHost {
     const next = this.layoutOf(w, 0)
     if (w.lastLayout && sameLayoutContent(w.lastLayout, next)) return
     next.revision = ++this.revision
+    if (this.settingsFollow) next.settingsFollow = true
     w.noteLayoutSent(next)
     w.send(IPC.layout, next)
   }

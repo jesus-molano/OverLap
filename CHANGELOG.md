@@ -16,10 +16,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Cada una es «Posición y opciones» o «Solo posición» (usa las opciones comunes); se elige al
   guardarla o importarla y se cambia con «Editar».
 - Cada página de widget dice dónde se guardan sus cambios («Guardando en: …» u «Opciones
-  comunes») y ofrece «Aplicar a todas las disposiciones».
+  comunes») y ofrece «Copiar estas opciones a todas».
 - Los archivos exportados (versión 2) llevan las opciones; los de la versión 1 se siguen
   importando. Tus disposiciones pasan a «Posición y opciones» con las opciones de ahora: nada
   cambia.
+- Los ajustes pasan a la versión 6. La 2.0.0 los abre, pero sin las opciones de cada
+  disposición; por eso, la primera vez que esta versión guarda los ajustes de una anterior, deja
+  una copia en `settings.json.v5.bak` para poder volver atrás.
 
 ## [2.0.0] - 2026-10-29
 

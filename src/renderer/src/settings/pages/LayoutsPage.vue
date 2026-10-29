@@ -14,6 +14,7 @@ import PageSection from '../layout/PageSection.vue'
 import {
   carRows,
   layoutCommands as cmd,
+  isFileNotice,
   layoutList,
   linkOptions,
   noticeText,
@@ -63,7 +64,10 @@ const currentRow = computed<CarRow | null>(() => cars.value.find((c) => c.curren
 const otherCars = computed(() => cars.value.filter((c) => !c.current))
 const links = computed(() => linkOptions(lib.value, locale.value))
 const roomLeft = computed(() => canAddLayout(lib.value))
-const notice = computed(() => (layoutNotice.value ? noticeText(t.value, layoutNotice.value) : null))
+const notice = computed(() => {
+  const n = layoutNotice.value
+  return n !== null && isFileNotice(n) ? noticeText(t.value, n) : null
+})
 
 const newName = shallowRef('')
 /** What the next layout saved, and the next one imported, restore. */
@@ -366,6 +370,7 @@ function onLink(car: CarRow, e: Event): void {
               :labelledby="importModeId"
               :disabled="!roomLeft"
             />
+            <span class="st-help">{{ t.settings.layouts.modeHints[importMode] }}</span>
           </div>
           <button
             type="button"

@@ -4,6 +4,7 @@ import {
   LAYOUT_FILE_FORMAT,
   MAX_LAYOUTS,
   applyLayout,
+  applySettingsPatchFor,
   applyWidgetOptionsToAll,
   duplicateLayout,
   importLayout,
@@ -196,6 +197,65 @@ describe('live: changing an option', () => {
   })
 })
 
+describe('a patch made for a layout no longer in use', () => {
+  /** The settings window's slider value or list, sent after the tray applied another layout. */
+  function late(s: OverlaySettings, patch: unknown, forLayout: string): OverlaySettings {
+    const draft = settingsDraft(s)
+    Object.assign(draft, applySettingsPatchFor(draft, patch, forLayout))
+    return normalizeSettings(draft)
+  }
+
+  it('goes into that layout, never into the one in use, and nothing in effect changes', () => {
+    // Principal in use, the radar at 30 m; the slider's last value (60) waits for the throttle.
+    let s = change(withMazda(), (d) => void applyLayout(d, 'layout-1', 5))
+    s = change(s, (d) => void (d.radar.rangeM = 30))
+    // Mazda applied (the tray, a shortcut, the car), then the 60 arrives.
+    s = change(s, (d) => void applyLayout(d, 'layout-2', 6))
+    const before = optionSetOf(s)
+    s = late(s, { radar: { rangeM: 60 }, widgets: { radar: { locked: true } } }, 'layout-1')
+    expect(layout(s, 'Principal').options?.sections.radar.rangeM).toBe(60)
+    expect(layout(s, 'Principal').widgets.radar.locked).toBe(true)
+    expect(layout(s, 'Mazda').options?.sections.radar.rangeM).toBe(DEFAULTS.radar.rangeM)
+    expect(s.savedLayouts.activeId).toBe('layout-2')
+    expect(optionSetOf(s)).toEqual(before)
+    expect(s.widgets.radar.locked).toBe(false)
+    // The use stamps stay: the tray's recent list does not change.
+    expect(layout(s, 'Mazda').usedAt).toBe(6)
+    expect(layout(s, 'Principal').usedAt).toBe(5)
+  })
+
+  it('for a "Solo posición" layout, into the shared options; the global sections apply', () => {
+    let s = change(withMazda(), (d) => void saveLayoutAs(d, 'Óvalo', 2, 'position'))
+    s = change(s, (d) => void applyLayout(d, 'layout-2', 3))
+    s = late(s, { fuel: { avgLaps: 9 }, appearance: { units: 'imperial' } }, 'layout-3')
+    expect(s.savedLayouts.shared?.sections.fuel.avgLaps).toBe(9)
+    expect(layout(s, 'Mazda').options?.sections.fuel.avgLaps).toBe(DEFAULTS.fuel.avgLaps)
+    expect(s.fuel.avgLaps).toBe(DEFAULTS.fuel.avgLaps)
+    expect(s.appearance.units).toBe('imperial')
+    expect(layout(s, 'Óvalo')).not.toHaveProperty('options')
+  })
+
+  it('a list made on the layout left replaces only that layout’s list', () => {
+    let s = change(withMazda(), (d) => void applyLayout(d, 'layout-1', 5))
+    const mazdaColumns = layout(s, 'Mazda').options?.sections.standings.columns
+    const columns = s.standings.columns.map((c) => (c.id === 'lic' ? { ...c, visible: false } : c))
+    s = change(s, (d) => void applyLayout(d, 'layout-2', 6))
+    s = late(s, { standings: { columns } }, 'layout-1')
+    expect(layout(s, 'Principal').options?.sections.standings.columns).toEqual(columns)
+    expect(layout(s, 'Mazda').options?.sections.standings.columns).toEqual(mazdaColumns)
+    expect(s.standings.columns).toEqual(mazdaColumns)
+  })
+
+  it('made for the layout in use, or for none known, is a plain patch', () => {
+    const s = withMazda()
+    for (const forLayout of ['layout-2', undefined, 'layout-9', '../x', 7]) {
+      expect(applySettingsPatchFor(s, { radar: { rangeM: 44 } }, forLayout)).toEqual(
+        applySettingsPatch(s, { radar: { rangeM: 44 } })
+      )
+    }
+  })
+})
+
 describe('applying a layout', () => {
   it('swaps the options with the places, in one change, and back', () => {
     const mazda = withMazda()
@@ -288,7 +348,7 @@ describe('modes', () => {
   })
 })
 
-describe('"Aplicar a todas las disposiciones"', () => {
+describe('"Copiar estas opciones a todas"', () => {
   it('copies one widget’s options into every full layout and the shared ones, nothing else', () => {
     let s = withMazda()
     s = change(s, (d) => void saveLayoutAs(d, 'Óvalo', 2, 'position'))
