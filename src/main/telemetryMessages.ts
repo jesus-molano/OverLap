@@ -6,6 +6,7 @@ import {
   type PersonalBestTarget
 } from '@shared/delta/references'
 import type { TelemetryOutMessage } from '@shared/ipc'
+import { normalizeCarRef } from '@shared/layouts'
 import type { SessionKind } from '@shared/sessionInfo'
 import { SHOW_IN_KINDS } from '@shared/settingsSchema'
 import type {
@@ -102,6 +103,11 @@ export function parseTelemetryMessage(raw: unknown): TelemetryOutMessage | null 
       const { kind } = raw
       if (kind !== null && !includes(SESSION_KINDS, kind)) return null
       return { type: 'session-kind', kind }
+    }
+    case 'player-car': {
+      if (raw.car === null) return { type: 'player-car', car: null }
+      const car = normalizeCarRef(raw.car)
+      return car ? { type: 'player-car', car } : null
     }
     default:
       return null

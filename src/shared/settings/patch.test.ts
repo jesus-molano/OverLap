@@ -483,7 +483,9 @@ describe('resetWidgetOptions', () => {
     expect(out).toEqual({
       ...current,
       widgets: { ...current.widgets, standings: out.widgets.standings },
-      standings: out.standings
+      standings: out.standings,
+      // The layout in use follows the widget (its scale).
+      savedLayouts: out.savedLayouts
     })
   })
 
@@ -549,7 +551,7 @@ describe('resetWidgetOptions', () => {
 describe('applySettingsPatch: shortcuts', () => {
   function withShortcuts(toggleOverlay: string, toggleEditMode: string): OverlaySettings {
     const s = createDefaultSettings()
-    s.shortcuts = { toggleOverlay, toggleEditMode, cycleDeltaReference: '' }
+    s.shortcuts = { toggleOverlay, toggleEditMode, cycleDeltaReference: '', nextLayout: '' }
     return s
   }
 
@@ -557,7 +559,8 @@ describe('applySettingsPatch: shortcuts', () => {
   const keys = (toggleOverlay: string, toggleEditMode: string): OverlaySettings['shortcuts'] => ({
     toggleOverlay,
     toggleEditMode,
-    cycleDeltaReference: ''
+    cycleDeltaReference: '',
+    nextLayout: ''
   })
 
   it('assigns a valid combination in its canonical spelling', () => {
@@ -661,7 +664,7 @@ describe('the default layout for the primary work area', () => {
       expect(out.widgets[id].bounds.x - s.widgets[id].bounds.x, id).toBe(1600)
       expect(out.widgets[id].bounds.y, id).toBe(s.widgets[id].bounds.y)
     }
-    expect({ ...out, widgets: s.widgets }).toEqual(s)
+    expect({ ...out, widgets: s.widgets, savedLayouts: s.savedLayouts }).toEqual(s)
     expect(placeDefaultLayout(s, { x: 0, y: 0, width: 1920, height: 1040 })).toEqual(s)
   })
 })

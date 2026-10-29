@@ -17,9 +17,15 @@ const defaults = DEFAULT_SETTINGS.shortcuts
 const custom: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Alt+PageDown',
   toggleEditMode: '',
-  cycleDeltaReference: 'Ctrl+Alt+D'
+  cycleDeltaReference: 'Ctrl+Alt+D',
+  nextLayout: ''
 }
-const OK = { toggleOverlay: 'ok', toggleEditMode: 'ok', cycleDeltaReference: 'ok' } as const
+const OK = {
+  toggleOverlay: 'ok',
+  toggleEditMode: 'ok',
+  cycleDeltaReference: 'ok',
+  nextLayout: 'ok'
+} as const
 
 function row(shortcuts: ShortcutSettings, i: number): ShortcutRowView {
   const r = shortcutRows(es, shortcuts, null)[i]
@@ -33,7 +39,8 @@ describe('shortcutRows', () => {
     expect(rows.map((r) => r.action)).toEqual([
       'toggleOverlay',
       'toggleEditMode',
-      'cycleDeltaReference'
+      'cycleDeltaReference',
+      'nextLayout'
     ])
     expect(rows[0]).toMatchObject({
       label: 'Mostrar u ocultar el overlay',

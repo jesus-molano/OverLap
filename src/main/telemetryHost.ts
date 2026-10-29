@@ -3,7 +3,13 @@ import { createInterface } from 'node:readline'
 import type { PersonalBestList } from '@shared/delta/references'
 import type { SessionKind } from '@shared/sessionInfo'
 import type { AutoHiddenState, TelemetryInMessage } from '@shared/ipc'
-import type { OverlayStatus, SourceKind, TelemetryConfig, WidgetDataMessage } from '@shared/types'
+import type {
+  CarRef,
+  OverlayStatus,
+  SourceKind,
+  TelemetryConfig,
+  WidgetDataMessage
+} from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 // electron-vite bundles the telemetry entry as its own chunk and gives us its path.
 import telemetryEntry from '../telemetry/index?modulePath'
@@ -39,6 +45,8 @@ export interface TelemetryHostOptions {
    * exits: its successor reports it again).
    */
   onSessionKind?(kind: SessionKind | null): void
+  /** The player's car model, on change (null too when the process exits, like the kind). */
+  onPlayerCar?(car: CarRef | null): void
 }
 
 /**
@@ -235,11 +243,15 @@ export class TelemetryHost {
       case 'session-kind':
         this.opts.onSessionKind?.(msg.kind)
         break
+      case 'player-car':
+        this.opts.onPlayerCar?.(msg.car)
+        break
     }
   }
 
   private releaseHidden(): void {
     this.opts.onSessionKind?.(null)
+    this.opts.onPlayerCar?.(null)
     const ids = [...this.hidden]
     this.hidden.clear()
     for (const id of ids) this.opts.onAutoHidden(id, { hidden: false, reason: null })

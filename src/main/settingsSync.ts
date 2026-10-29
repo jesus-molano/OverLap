@@ -6,6 +6,7 @@
 import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
+import { isLayoutId, normalizeCarRef } from '@shared/layouts'
 import { toTelemetryConfig } from '@shared/settings'
 import {
   OPTION_SCHEMA,
@@ -48,9 +49,32 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return true
     case 'delete-personal-bests':
       return isPersonalBestKeys(cmd.keys)
+    // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.
+    case 'layout-save':
+      return isName(cmd.name)
+    case 'layout-apply':
+    case 'layout-delete':
+    case 'layout-export':
+      return isLayoutId(cmd.id)
+    case 'layout-duplicate':
+    case 'layout-rename':
+      return isLayoutId(cmd.id) && isName(cmd.name)
+    case 'layout-move':
+      return isLayoutId(cmd.id) && (cmd.step === -1 || cmd.step === 1)
+    case 'layout-import':
+      return true
+    case 'layout-link-car':
+      return (
+        normalizeCarRef(cmd.car) !== null && (cmd.layoutId === null || isLayoutId(cmd.layoutId))
+      )
     default:
       return false
   }
+}
+
+/** A name as sent (cleaned later); longer than any sane one is refused outright. */
+function isName(v: unknown): v is string {
+  return typeof v === 'string' && v.length <= 1000
 }
 
 export interface SettingsDiff {

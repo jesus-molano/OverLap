@@ -8,6 +8,7 @@ import type {
   DragStateMessage,
   EditChipsMessage,
   InitialState,
+  LayoutNotice,
   OverlayApi,
   OverlayLayout,
   ScaleStepMessage,
@@ -17,7 +18,7 @@ import type {
 import type { PersonalBestList } from '@shared/delta/references'
 import type { ShortcutStatusMap } from '@shared/shortcuts'
 import { createDefaultSettings } from '@shared/settings'
-import type { OverlaySettings, OverlayStatus, WidgetDataMessage } from '@shared/types'
+import type { CarRef, OverlaySettings, OverlayStatus, WidgetDataMessage } from '@shared/types'
 
 type Listener<T> = (value: T) => void
 
@@ -58,6 +59,8 @@ export interface FakeOverlay extends OverlayApi {
   readonly overlayHidden: Channel<boolean>
   readonly shortcutStatus: Channel<ShortcutStatusMap>
   readonly cursorHidden: Channel<boolean>
+  readonly currentCar: Channel<CarRef | null>
+  readonly layoutNotice: Channel<LayoutNotice>
   readonly sent: {
     commitBounds: BoundsCommit[]
     scaleStep: ScaleStepMessage[]
@@ -81,6 +84,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const overlayHidden = new Channel<boolean>()
   const shortcutStatus = new Channel<ShortcutStatusMap>()
   const cursorHidden = new Channel<boolean>()
+  const currentCar = new Channel<CarRef | null>()
+  const layoutNotice = new Channel<LayoutNotice>()
   const sent: FakeOverlay['sent'] = {
     commitBounds: [],
     scaleStep: [],
@@ -97,8 +102,14 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     layout: null,
     autoHidden: {},
     overlayHidden: false,
-    shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'ok', cycleDeltaReference: 'disabled' },
+    shortcutStatus: {
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
+    },
     cursorHidden: false,
+    currentCar: null,
     ...init
   }
   return {
@@ -112,6 +123,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     overlayHidden,
     shortcutStatus,
     cursorHidden,
+    currentCar,
+    layoutNotice,
     sent,
     listenerCount: () =>
       data.listeners.size +
@@ -123,7 +136,9 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       personalBests.listeners.size +
       overlayHidden.listeners.size +
       shortcutStatus.listeners.size +
-      cursorHidden.listeners.size,
+      cursorHidden.listeners.size +
+      currentCar.listeners.size +
+      layoutNotice.listeners.size,
     getInitialState: () => Promise.resolve(initial),
     onData: (cb) => data.on(cb),
     onStatus: (cb) => status.on(cb),
@@ -135,6 +150,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onOverlayHidden: (cb) => overlayHidden.on(cb),
     onShortcutStatus: (cb) => shortcutStatus.on(cb),
     onCursorHidden: (cb) => cursorHidden.on(cb),
+    onCurrentCar: (cb) => currentCar.on(cb),
+    onLayoutNotice: (cb) => layoutNotice.on(cb),
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),
     dragState: (msg) => void sent.dragState.push(msg),

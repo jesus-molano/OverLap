@@ -94,7 +94,8 @@ describe('useOverlayState', () => {
     fake.shortcutStatus.emit({
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     await flush()
     expect(s.status.value).toEqual(WAITING_STATUS)
@@ -103,7 +104,8 @@ describe('useOverlayState', () => {
     expect(s.shortcutStatus.value).toEqual({
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 
@@ -113,7 +115,8 @@ describe('useOverlayState', () => {
       shortcutStatus: {
         toggleOverlay: 'ok',
         toggleEditMode: 'disabled',
-        cycleDeltaReference: 'disabled'
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled'
       }
     })
     const s = mod.useOverlayState()
@@ -124,7 +127,8 @@ describe('useOverlayState', () => {
     expect(s.shortcutStatus.value).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'disabled',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     fake.overlayHidden.emit(false)
     expect(s.overlayHidden.value).toBe(false)

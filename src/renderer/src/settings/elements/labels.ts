@@ -162,7 +162,8 @@ const ZONES: ZoneWords = {
     icons: { title: (m) => m.settings.zones.lights.icons, items: lights }
   },
   shortcuts: {},
-  settingsWindow: {}
+  settingsWindow: {},
+  layouts: {}
 }
 
 /** The zone's title ('Columnas', 'Cabecera'). */
