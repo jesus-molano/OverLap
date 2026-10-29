@@ -5,8 +5,8 @@
  * closing rates (a GTP gains ~0.1 s of road per second on a GT3).
  */
 import type { DriverIdentity } from '@shared/driver'
-import type { TrafficData, TrafficEntry } from '@shared/types'
-import type { TrafficViewOptions } from './view'
+import type { TrafficData, TrafficEntry, TrafficKind } from '@shared/types'
+import { GROUP_ORDER, type TrafficViewOptions } from './view'
 
 const GTP = '#ff5888'
 const GT3 = '#ffda59'
@@ -106,10 +106,13 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
 })
 
 /**
- * The options the sample is drawn with: the widget's own, or every group when all of them are
- * off (there would be nothing to place otherwise).
+ * The options the sample is drawn with: the widget's own, or every group in the list's order
+ * when all of them are off (there would be nothing to place otherwise).
  */
-export function previewOptions(o: TrafficViewOptions): TrafficViewOptions {
-  if (o.showFaster || o.showSlower || o.showHazards) return o
-  return { ...o, showFaster: true, showSlower: true, showHazards: true }
+export function previewOptions(
+  o: TrafficViewOptions,
+  every: readonly TrafficKind[] = GROUP_ORDER
+): TrafficViewOptions {
+  if (o.groups.length > 0) return o
+  return { ...o, groups: every }
 }

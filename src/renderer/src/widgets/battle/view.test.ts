@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
 import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { BattleData, BattleOpponent } from '@shared/types'
 import { createDriverStyles } from '@renderer/view/styles'
 import { PREVIEW_BATTLE, previewBattle } from './preview'
@@ -14,6 +16,8 @@ import {
   isLastLap,
   lapChips,
   lapDelta,
+  LANE_ORDER,
+  laneParts,
   laneRows,
   sectorChips,
   stakeText,
@@ -65,32 +69,51 @@ function battle(over: Partial<BattleData> = {}): BattleData {
   }
 }
 
+const ALL_PARTS = { rating: true, license: true, trendNote: true, stake: true } as const
+
+// The defaults: prediction and sectors, every part, no make or flag.
 const OPTS: LaneOptions = {
-  detail: 'sectors',
-  showPrediction: true,
-  showStake: true,
+  rows: ['prediction', 'sectors'],
+  parts: ALL_PARTS,
+  brand: false,
+  flag: false,
   nameFormat: 'abbr'
 }
 
 describe('rows and arrangement', () => {
-  it('rows follow the options only', () => {
-    expect(laneRows({ detail: 'none', showPrediction: false })).toEqual({
-      catch: false,
-      sectors: false,
-      laps: false
-    })
-    expect(laneRows({ detail: 'sectors', showPrediction: true })).toEqual({
+  it('rows follow the options only, in their order', () => {
+    expect(laneRows([])).toEqual({ order: [], catch: false, sectors: false, laps: false })
+    expect(laneRows(['prediction', 'sectors'])).toEqual({
+      order: ['prediction', 'sectors'],
       catch: true,
       sectors: true,
       laps: false
     })
-    expect(laneRows({ detail: 'laps', showPrediction: true })).toMatchObject({
-      sectors: false,
-      laps: true
-    })
-    expect(laneRows({ detail: 'both', showPrediction: true })).toMatchObject({
+    expect(laneRows(['laps'])).toMatchObject({ catch: false, sectors: false, laps: true })
+    expect(laneRows(['laps', 'sectors', 'prediction'])).toEqual({
+      order: ['laps', 'sectors', 'prediction'],
+      catch: true,
       sectors: true,
       laps: true
+    })
+    // A repeated id (a hand-built list) is drawn once.
+    expect(laneRows(['sectors', 'sectors']).order).toEqual(['sectors'])
+  })
+
+  it("the defaults draw today's lanes", () => {
+    const S = OPTION_SCHEMA.battle
+    expect(visibleIds(S.rows.default)).toEqual(OPTS.rows)
+    expect(elementOrder(S.lanes.default)).toEqual(LANE_ORDER)
+    expect(laneParts((id) => isElementVisible(S.parts.default, id))).toEqual(ALL_PARTS)
+  })
+
+  it('reads every part as a flag', () => {
+    expect(laneParts(() => true)).toEqual(ALL_PARTS)
+    expect(laneParts((id) => id === 'stake')).toEqual({
+      rating: false,
+      license: false,
+      trendNote: false,
+      stake: true
     })
   })
 
@@ -331,18 +354,68 @@ describe('toLaneView', () => {
       op,
       'behind',
       d,
-      { ...OPTS, detail: 'none', showPrediction: false, showStake: false },
+      { ...OPTS, rows: [], parts: { ...ALL_PARTS, stake: false } },
       styles,
       ES
     )
     expect(none).toMatchObject({ catch: null, stake: null, sectors: null, laps: null })
-    const both = toLaneView(op, 'behind', d, { ...OPTS, detail: 'both' }, styles, ES)
-    // 'both': the laps row has V-1, so the sectors row has no Últ.
+    const both = toLaneView(
+      op,
+      'behind',
+      d,
+      { ...OPTS, rows: ['laps', 'prediction', 'sectors'] },
+      styles,
+      ES
+    )
+    // Both chip rows: the laps row has V-1, so the sectors row has no Últ.
     expect(both.sectors?.map((c) => c.label)).toEqual(['Sectores'])
     expect(both.laps?.map((c) => c.text)).toEqual([`${M}0.50`, '+0.50', '+1.50'])
     expect(toLaneView(op, 'ahead', d, { ...OPTS, nameFormat: 'tv' }, styles, ES).driver.name).toBe(
       'LOP'
     )
+  })
+
+  it('the parts: rating, licence and trend words on the rival as asked', () => {
+    const d = { lapsRemaining: 19, playerLastLaps: [] }
+    const op = opponent({ trendSPerLap: 0.15 })
+    expect(toLaneView(op, 'ahead', d, OPTS, styles, ES)).toMatchObject({
+      driver: { withRating: true, withLicense: true },
+      trend: { note: 'le recortas' }
+    })
+    const bare = toLaneView(
+      op,
+      'ahead',
+      d,
+      { ...OPTS, parts: { rating: false, license: false, trendNote: false, stake: true } },
+      styles,
+      ES
+    )
+    expect(bare.driver).toMatchObject({ withRating: false, withLicense: false })
+    // Without its words the trend keeps its chevron, number and tone.
+    expect(bare.trend).toEqual({ icon: 'arrow-up', text: `+0.15${NB}s/v`, note: '', tone: 'good' })
+  })
+
+  it('the make and the flag only when on and known', () => {
+    const d = { lapsRemaining: 19, playerLastLaps: [] }
+    const off = toLaneView(opponent(), 'ahead', d, OPTS, styles, ES).driver
+    expect('brand' in off || 'country' in off).toBe(false)
+    const on = { ...OPTS, brand: true, flag: true }
+    expect(toLaneView(opponent(), 'ahead', d, on, styles, ES).driver).toMatchObject({
+      brand: 'porsche',
+      country: 'ES'
+    })
+    const unknown = toLaneView(
+      opponent({ brand: 'unknown', country: '' }),
+      'ahead',
+      d,
+      on,
+      styles,
+      ES
+    )
+    expect('brand' in unknown.driver || 'country' in unknown.driver).toBe(false)
+    expect(
+      toLaneView(opponent(), 'ahead', d, { ...OPTS, flag: true }, styles, ES).driver
+    ).not.toHaveProperty('brand')
   })
 
   it("names an opponent iRacing wrote as '?' by car number, dim", () => {
@@ -376,7 +449,7 @@ describe('toLaneView', () => {
       lastLap: true,
       catch: null
     })
-    expect(toLaneView(op, 'ahead', d, { ...OPTS, showPrediction: false }, styles, ES).lastLap).toBe(
+    expect(toLaneView(op, 'ahead', d, { ...OPTS, rows: ['sectors'] }, styles, ES).lastLap).toBe(
       false
     )
   })
@@ -420,6 +493,21 @@ describe('toLaneViews / hasOpponents', () => {
       toLaneViews(battle({ behind: opponent() }), OPTS, styles, ES).map((l) => l.side)
     ).toEqual(['behind'])
     expect(toLaneViews(battle(), OPTS, styles, ES)).toEqual([])
+  })
+
+  it('in battle.lanes order; a side the order misses goes last', () => {
+    const d = battle({ ahead: opponent(), behind: opponent({ carIdx: 9 }) })
+    const sides = (order: readonly ('ahead' | 'behind')[]): string[] =>
+      toLaneViews(d, OPTS, styles, ES, order).map((l) => l.side)
+    expect(sides(LANE_ORDER)).toEqual(['ahead', 'behind'])
+    expect(sides(['behind', 'ahead'])).toEqual(['behind', 'ahead'])
+    expect(sides(['behind'])).toEqual(['behind', 'ahead'])
+    expect(sides(['behind', 'behind'])).toEqual(['behind', 'ahead'])
+    expect(
+      toLaneViews(battle({ ahead: opponent() }), OPTS, styles, ES, ['behind', 'ahead']).map(
+        (l) => l.side
+      )
+    ).toEqual(['ahead'])
   })
 
   it('a payload is drawn only when visible with an opponent', () => {
@@ -487,7 +575,12 @@ describe('preview', () => {
   const styles = createDriverStyles()
 
   it('fills every row of both lanes', () => {
-    const lanes = toLaneViews(PREVIEW_BATTLE, { ...OPTS, detail: 'both' }, styles, ES)
+    const lanes = toLaneViews(
+      PREVIEW_BATTLE,
+      { ...OPTS, rows: ['prediction', 'sectors', 'laps'], brand: true, flag: true },
+      styles,
+      ES
+    )
     expect(lanes).toHaveLength(2)
     for (const l of lanes) {
       expect(l.catch).not.toBeNull()
@@ -495,7 +588,11 @@ describe('preview', () => {
       expect(l.sectors?.every((c) => c.text !== '—')).toBe(true)
       expect(l.laps?.every((c) => c.text !== '—')).toBe(true)
       expect(l.trend.tone).not.toBe('dim')
+      // Two makes and two flags, so the sample shows both extras when they are on.
+      expect(l.driver.brand).toBeDefined()
+      expect(l.driver.country).toBeDefined()
     }
+    expect(PREVIEW_BATTLE.multiBrand).toBe(true)
   })
 
   it('follows the side options; both when both are off', () => {

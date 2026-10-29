@@ -6,13 +6,14 @@ import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import { inherit } from '../../view/appearance'
-import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { elementToggle, optionSetter } from '../editor'
+import { listSetter, optionSetter } from '../editor'
+import ElementEditor from '../elements/ElementEditor.vue'
+import { elementTexts, zoneTitle } from '../elements/labels'
 import PageSection from '../layout/PageSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
 
@@ -48,12 +49,37 @@ const AHEAD = secondsSlider(S.aheadS, [4, 8, 15, 30])
 const HAZARD = secondsSlider(S.hazardS, [3, 5, 8, 12])
 const ENTRIES: NumericSpec = S.maxEntries
 
-// Until this page gets the element editors (package P3): one toggle per group.
 const showFaster = computed(() => isElementVisible(opts.value.groups, 'faster'))
 const showSlower = computed(() => isElementVisible(opts.value.groups, 'slower'))
 const showHazards = computed(() => isElementVisible(opts.value.groups, 'hazard'))
 const nothing = computed(() => !showFaster.value && !showSlower.value && !showHazards.value)
 const noClasses = computed(() => !showFaster.value && !showSlower.value)
+
+// One editor per zone: the groups (a hidden one is not looked for), the cells of a car line and
+// the header. The groups keep the hints their toggles had.
+const groups = computed(() => {
+  const tr = t.value.settings.traffic
+  const l = elementTexts(t.value, 'traffic', 'groups')
+  return {
+    title: zoneTitle(t.value, 'traffic', 'groups'),
+    labels: {
+      hazard: { label: l.hazard.label, hint: tr.hazardsHelp },
+      slower: { label: l.slower.label, hint: tr.slowerHelp },
+      faster: { label: l.faster.label, hint: tr.fasterHelp }
+    }
+  }
+})
+const parts = computed(() => ({
+  title: zoneTitle(t.value, 'traffic', 'parts'),
+  labels: elementTexts(t.value, 'traffic', 'parts')
+}))
+const header = computed(() => ({
+  title: zoneTitle(t.value, 'traffic', 'header'),
+  labels: elementTexts(t.value, 'traffic', 'header')
+}))
+const setGroups = listSetter('traffic', 'groups')
+const setParts = listSetter('traffic', 'parts')
+const setHeader = listSetter('traffic', 'header')
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
@@ -63,30 +89,6 @@ const nameHelp = computed(() =>
 
 <template>
   <PageSection :title="t.settings.common.content">
-    <CheckGroup
-      :legend="t.settings.traffic.warnAbout"
-      :help="nothing ? t.settings.traffic.nothing : undefined"
-      :warn="nothing"
-    >
-      <ToggleControl
-        :label="t.settings.traffic.faster"
-        :help="t.settings.traffic.fasterHelp"
-        :current="showFaster"
-        :apply="elementToggle('traffic', 'groups', 'faster')"
-      />
-      <ToggleControl
-        :label="t.settings.traffic.slower"
-        :help="t.settings.traffic.slowerHelp"
-        :current="showSlower"
-        :apply="elementToggle('traffic', 'groups', 'slower')"
-      />
-      <ToggleControl
-        :label="t.settings.traffic.hazards"
-        :help="t.settings.traffic.hazardsHelp"
-        :current="showHazards"
-        :apply="elementToggle('traffic', 'groups', 'hazard')"
-      />
-    </CheckGroup>
     <SliderControl
       :label="t.settings.traffic.behind"
       :help="t.settings.traffic.behindHelp"
@@ -149,4 +151,27 @@ const nameHelp = computed(() =>
       :apply="set('nameFormat')"
     />
   </PageSection>
+
+  <ElementEditor
+    :title="groups.title"
+    :items="opts.groups"
+    :spec="S.groups"
+    :labels="groups.labels"
+    :apply="setGroups"
+    empty-hides
+  />
+  <ElementEditor
+    :title="parts.title"
+    :items="opts.parts"
+    :spec="S.parts"
+    :labels="parts.labels"
+    :apply="setParts"
+  />
+  <ElementEditor
+    :title="header.title"
+    :items="opts.header"
+    :spec="S.header"
+    :labels="header.labels"
+    :apply="setHeader"
+  />
 </template>

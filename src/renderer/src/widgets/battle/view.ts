@@ -8,18 +8,37 @@
  *
  * Words come from the dictionary `m` (messagesFor(lang)); the examples are the Spanish ones.
  */
+import type { BrandId } from '@shared/carBrands'
 import { NBSP, formatGap, formatLaps, formatTrend, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import type { BattleData, BattleOpponent, BattleOptions, NameFormat } from '@shared/types'
-
-/** The old detail choice (BattleWidget reads it from battle.rows until the lanes draw the list). */
-export type LaneDetail = 'none' | 'sectors' | 'laps' | 'both'
+import type {
+  BattleData,
+  BattleLaneId,
+  BattleOpponent,
+  BattleOptions,
+  BattlePartId,
+  BattleRowId,
+  NameFormat
+} from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import type { Tone } from '@renderer/ui/tones'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
 
-export type BattleSide = 'ahead' | 'behind'
+export type BattleSide = BattleLaneId
+
+/**
+ * The rival's driver cell: the shared cell plus what this widget adds to it. `brand` and
+ * `country` are present only when drawn (DriverCell draws a slot for each one given).
+ */
+export interface LaneDriverView extends DriverCellView {
+  readonly brand?: BrandId
+  readonly country?: string
+  /** The rival's iRating after the name (battle.parts 'rating'; never side by side). */
+  readonly withRating: boolean
+  /** The rival's licence after the name (battle.parts 'license'). */
+  readonly withLicense: boolean
+}
 
 /** The hero gap split in number and unit ('0.6' + 's'; '1:05' needs no unit). */
 export interface GapView {
@@ -57,7 +76,7 @@ export interface LaneView {
   readonly carIdx: number
   readonly tag: string
   readonly tagIcon: IconName
-  readonly driver: DriverCellView
+  readonly driver: LaneDriverView
   /** On pit road or in the stall: the lane is dimmed, with a PIT badge after the name. */
   readonly inPits: boolean
   readonly gap: GapView
@@ -73,22 +92,29 @@ export interface LaneView {
   readonly catch: CatchView | null
   /** Last lap of the race: the catch row shows ÚLTIMA VUELTA instead. */
   readonly lastLap: boolean
-  /** Sector deltas (+ = you were faster), null when the detail option hides the row. */
+  /** Sector deltas (+ = you were faster), null when battle.rows hides the row. */
   readonly sectors: readonly DeltaChipView[] | null
-  /** Lap deltas V-1..V-3, null when the detail option hides the row. */
+  /** Lap deltas V-1..V-3, null when battle.rows hides the row. */
   readonly laps: readonly DeltaChipView[] | null
 }
 
-/** The options a lane reads (display side; the provider may also skip what is off). */
+/** The options a lane reads (display side; the provider also skips what is off). */
 export interface LaneOptions {
-  readonly detail: LaneDetail
-  readonly showPrediction: boolean
-  readonly showStake: boolean
+  /** The rows under the headline, top to bottom (battle.rows' shown ids, in order). */
+  readonly rows: readonly BattleRowId[]
+  /** What the lane adds to the rival (battle.parts). */
+  readonly parts: Readonly<Record<BattlePartId, boolean>>
+  /** The car's make before the name (brandMarksOn(battle.brandMarks, multiBrand)). */
+  readonly brand: boolean
+  /** The driver's flag before the name (battle.countryFlags). */
+  readonly flag: boolean
   readonly nameFormat: NameFormat
 }
 
 /** The rows every lane has with these options. */
 export interface LaneRows {
+  /** The rows drawn under the headline, top to bottom (each once). */
+  readonly order: readonly BattleRowId[]
   readonly catch: boolean
   readonly sectors: boolean
   readonly laps: boolean
@@ -120,11 +146,26 @@ const toneOf = (v: number | null, decimals: number): Tone => {
   return s === null ? 'dim' : s > 0 ? 'good' : s < 0 ? 'bad' : 'neutral'
 }
 
-export function laneRows(o: Pick<LaneOptions, 'detail' | 'showPrediction'>): LaneRows {
+/** The rows a lane draws, in the order given (a repeated id counts once). */
+export function laneRows(rows: readonly BattleRowId[]): LaneRows {
+  const order = rows.filter((r, i) => rows.indexOf(r) === i)
   return {
-    catch: o.showPrediction,
-    sectors: o.detail === 'sectors' || o.detail === 'both',
-    laps: o.detail === 'laps' || o.detail === 'both'
+    order,
+    catch: order.includes('prediction'),
+    sectors: order.includes('sectors'),
+    laps: order.includes('laps')
+  }
+}
+
+/** battle.parts as one flag per part. */
+export function laneParts(
+  shown: (id: BattlePartId) => boolean
+): Readonly<Record<BattlePartId, boolean>> {
+  return {
+    rating: shown('rating'),
+    license: shown('license'),
+    trendNote: shown('trendNote'),
+    stake: shown('stake')
   }
 }
 
@@ -273,6 +314,25 @@ export function stakeText(iRatingAtStake: number | null): string | null {
   return r > 0 ? `±${r}` : null
 }
 
+/**
+ * The rival's cell: the make and the flag only when on and known (a card has no column of them
+ * to keep aligned), the rating and the licence as battle.parts says.
+ */
+export function laneDriver(
+  op: BattleOpponent,
+  o: LaneOptions,
+  styles: DriverStyles,
+  m: Messages
+): LaneDriverView {
+  return {
+    ...toDriverCell(op, styles, o.nameFormat, m),
+    ...(o.brand && op.brand !== 'unknown' ? { brand: op.brand } : {}),
+    ...(o.flag && op.country !== '' ? { country: op.country } : {}),
+    withRating: o.parts.rating,
+    withLicense: o.parts.license
+  }
+}
+
 export function toLaneView(
   op: BattleOpponent,
   side: BattleSide,
@@ -281,7 +341,7 @@ export function toLaneView(
   styles: DriverStyles,
   m: Messages
 ): LaneView {
-  const rows = laneRows(o)
+  const rows = laneRows(o.rows)
   const trend = trendView(op.trendSPerLap, side, m)
   const lastLap = rows.catch && isLastLap(d.lapsRemaining)
   return {
@@ -289,12 +349,13 @@ export function toLaneView(
     carIdx: op.carIdx,
     tag: m.widgets.battle[side],
     tagIcon: TAG_ICONS[side],
-    driver: toDriverCell(op, styles, o.nameFormat, m),
+    driver: laneDriver(op, o, styles, m),
     inPits: op.inPits,
     gap: gapView(op.gapS),
-    trend,
+    // Without its words the trend keeps the chevron and the number (never colour alone).
+    trend: o.parts.trendNote ? trend : { ...trend, note: '' },
     tone: op.inPits ? 'dim' : trend.tone,
-    stake: o.showStake ? stakeText(op.iRatingAtStake) : null,
+    stake: o.parts.stake ? stakeText(op.iRatingAtStake) : null,
     catch: rows.catch && !lastLap ? catchView(op, side, d.lapsRemaining, m) : null,
     lastLap,
     sectors: rows.sectors
@@ -308,16 +369,26 @@ export function toLaneView(
   }
 }
 
-/** The lanes to draw, ahead first. */
+/** The default lane order: ahead on top, as on track. */
+export const LANE_ORDER: readonly BattleSide[] = ['ahead', 'behind']
+
+/**
+ * The lanes to draw, top (or left) first: in `order` (battle.lanes' order, shown or not), a
+ * side it misses after them; only the opponents present.
+ */
 export function toLaneViews(
   d: BattleData,
   o: LaneOptions,
   styles: DriverStyles,
-  m: Messages
+  m: Messages,
+  order: readonly BattleSide[] = LANE_ORDER
 ): LaneView[] {
   const out: LaneView[] = []
-  if (d.ahead) out.push(toLaneView(d.ahead, 'ahead', d, o, styles, m))
-  if (d.behind) out.push(toLaneView(d.behind, 'behind', d, o, styles, m))
+  for (const side of [...order, ...LANE_ORDER]) {
+    if (out.some((l) => l.side === side)) continue
+    const op = side === 'ahead' ? d.ahead : d.behind
+    if (op) out.push(toLaneView(op, side, d, o, styles, m))
+  }
   return out
 }
 
