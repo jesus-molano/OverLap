@@ -146,29 +146,30 @@ const inlinePit = computed(() =>
   overflow: hidden;
 }
 
-/* Another class's leader: its class name where the position goes, the name after it. */
+/*
+ * Another class's leader: its class name in the position column, its driver cell in the name
+ * column, so the number, make, flag and name line up with every other row.
+ */
 .c-lead {
-  grid-column: 1 / span 2;
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-  min-width: 0;
-  overflow: hidden;
+  display: contents;
 }
 
-/* Class name in the class ink, no fill: the filled number plate next to it carries the class. */
+/*
+ * Class name in the class ink, no fill: the filled number plate next to it carries the class. It sits
+ * in the position column, set a touch smaller and untracked, its right edge on the column's and free
+ * to reach into the row's left padding, so 'LMP2' or 'GT3' fits whole.
+ */
 .sd-tag {
-  flex: none;
-  min-width: 2.4em;
-  max-width: 6em;
+  align-self: center;
+  justify-self: end;
+  max-width: calc(100% + 0.5em);
   overflow: hidden;
   font-family: var(--ov-font-small);
-  font-size: max(var(--ov-min-text), 0.68em);
+  font-size: max(var(--ov-min-text), 0.6em);
   font-weight: var(--ov-w-strong);
   line-height: 1.45;
-  letter-spacing: var(--ov-track-tag);
-  text-align: left;
-  text-overflow: ellipsis;
+  letter-spacing: 0;
+  text-overflow: clip;
   text-transform: uppercase;
   color: var(--cls-ink, var(--ov-fg-muted));
 }
@@ -373,7 +374,7 @@ const inlinePit = computed(() =>
  * Pits dim everything but the pit state (and the driver's icons).
  */
 .is-pits > .c-pos,
-.is-pits > .c-lead,
+.is-pits > .c-lead > *,
 .is-pits > .c-gained,
 .is-pits > .c-ir,
 .is-pits > .c-lic,
@@ -389,7 +390,7 @@ const inlinePit = computed(() =>
 }
 
 .is-disconnected > .c-pos,
-.is-disconnected > .c-lead,
+.is-disconnected > .c-lead > *,
 .is-disconnected > .c-driver,
 .is-disconnected > .c-gained,
 .is-disconnected > .c-ir,
