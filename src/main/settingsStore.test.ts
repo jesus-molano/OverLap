@@ -10,6 +10,10 @@ const lock = vi.hoisted(() => ({
   path: '',
   failReads: 0,
   failCopies: 0,
+  /** Writes to the file or its temp file that fail (EBUSY). */
+  failWrites: 0,
+  /** Writes to the temp file only that fail. */
+  failTmpWrites: 0,
   reads: 0
 }))
 
@@ -35,6 +39,20 @@ vi.mock('node:fs', async (importOriginal) => {
         throw busy()
       }
       actual.copyFileSync(...args)
+    },
+    writeFileSync: (...args: Parameters<typeof actual.writeFileSync>) => {
+      const target = String(args[0])
+      if (lock.path !== '' && target.startsWith(lock.path)) {
+        if (lock.failWrites > 0) {
+          lock.failWrites--
+          throw busy()
+        }
+        if (target.endsWith('.tmp') && lock.failTmpWrites > 0) {
+          lock.failTmpWrites--
+          throw busy()
+        }
+      }
+      actual.writeFileSync(...args)
     }
   }
 })
@@ -45,7 +63,14 @@ let file: string
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'overlay-settings-'))
   file = join(dir, 'nested', 'settings.json')
-  Object.assign(lock, { path: '', failReads: 0, failCopies: 0, reads: 0 })
+  Object.assign(lock, {
+    path: '',
+    failReads: 0,
+    failCopies: 0,
+    failWrites: 0,
+    failTmpWrites: 0,
+    reads: 0
+  })
   vi.spyOn(console, 'warn').mockImplementation(() => {})
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
@@ -210,6 +235,36 @@ describe('SettingsStore with a locked file', () => {
     store.update((s) => (s.radar.rangeM = 50))
     expect(store.flush()).toBe(true)
     expect(existsSync(`${file}.bak`)).toBe(false)
+    expect(JSON.parse(readFileSync(file, 'utf8')).radar.rangeM).toBe(50)
+  })
+
+  it('writes the file directly when its temp file is locked', () => {
+    const store = SettingsStore.load(file)
+    lock.failTmpWrites = 1
+    store.update((s) => (s.radar.rangeM = 50))
+    expect(store.flush()).toBe(true)
+    expect(JSON.parse(readFileSync(file, 'utf8')).radar.rangeM).toBe(50)
+    expect(store.saveFailing).toBe(false)
+  })
+
+  it('says when saving stops, keeps retrying, and says when it works again', () => {
+    vi.useFakeTimers()
+    const store = SettingsStore.load(file, 100)
+    const said: boolean[] = []
+    store.onSaveFailing = (failing) => said.push(failing)
+    lock.failWrites = Infinity
+    store.update((s) => (s.radar.rangeM = 50))
+    vi.advanceTimersByTime(100)
+    expect(store.saveFailing).toBe(true)
+    // Retried on its own, and said once however many tries fail.
+    vi.advanceTimersByTime(3_000 * 3)
+    expect(said).toEqual([true])
+    expect(readFileSync(file, 'utf8')).toBe(saved)
+
+    lock.failWrites = 0
+    vi.advanceTimersByTime(3_000)
+    expect(said).toEqual([true, false])
+    expect(store.saveFailing).toBe(false)
     expect(JSON.parse(readFileSync(file, 'utf8')).radar.rangeM).toBe(50)
   })
 })

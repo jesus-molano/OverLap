@@ -9,6 +9,8 @@ import {
 import type { OverlaySettings } from '@shared/types'
 
 const DEFAULT_SAVE_DELAY_MS = 500
+/** After a failed write, the next try (antivirus, cloud sync and indexers free files soon). */
+const RETRY_SAVE_DELAY_MS = 3_000
 /** A file briefly locked at startup (antivirus, cloud sync) usually frees up within this. */
 const READ_RETRIES = 5
 const READ_RETRY_DELAY_MS = 50
@@ -23,6 +25,14 @@ export class SettingsStore {
   private current: OverlaySettings
   private timer: ReturnType<typeof setTimeout> | null = null
   private dirty = false
+  private failing = false
+  /** Called when saving starts failing (true) and when it works again (false). */
+  onSaveFailing: ((failing: boolean) => void) | null = null
+
+  /** The last write failed and the changes since are only in memory (retried every few s). */
+  get saveFailing(): boolean {
+    return this.failing
+  }
 
   private constructor(
     readonly file: string,
@@ -94,16 +104,37 @@ export class SettingsStore {
       this.timer = null
     }
     if (!this.dirty) return true
-    if (this.loadFailed && !this.backUpUnreadFile()) return false
+    if (this.loadFailed && !this.backUpUnreadFile()) return this.failed()
     if (this.olderFile) this.backUpOlderFile()
     try {
       writeAtomic(this.file, JSON.stringify(this.current, null, 2) + '\n')
       this.dirty = false
+      this.setFailing(false)
       return true
     } catch (err) {
       console.error(`[settings] could not save ${this.file}:`, err)
-      return false
+      return this.failed()
     }
+  }
+
+  /** A write that did not happen: said once, and tried again later (the changes are kept). */
+  private failed(): false {
+    this.setFailing(true)
+    if (this.timer === null) {
+      this.timer = setTimeout(() => {
+        this.timer = null
+        this.flush()
+      }, RETRY_SAVE_DELAY_MS)
+    }
+    return false
+  }
+
+  private setFailing(failing: boolean): void {
+    if (this.failing === failing) return
+    this.failing = failing
+    if (failing) console.error(`[settings] changes are not being saved to ${this.file}; retrying`)
+    else console.log(`[settings] saving to ${this.file} works again`)
+    this.onSaveFailing?.(failing)
   }
 
   /** Once: a copy of the older version's file, kept for going back to that version. */
@@ -189,16 +220,25 @@ function sleepSync(ms: number): void {
 function writeAtomic(file: string, data: string): void {
   mkdirSync(dirname(file), { recursive: true })
   const tmp = `${file}.tmp`
-  writeFileSync(tmp, data, 'utf8')
   try {
+    writeFileSync(tmp, data, 'utf8')
     renameSync(tmp, file)
   } catch (err) {
-    // Windows: the target can be briefly locked (antivirus, indexer). Fall back to a direct write.
-    const code = errorCode(err)
-    if (code !== 'EPERM' && code !== 'EBUSY' && code !== 'EACCES') throw err
+    // Windows: the target or a stale temp file can be briefly locked (antivirus, indexer,
+    // cloud sync). Fall back to a direct write.
+    if (!isLockError(err)) throw err
     writeFileSync(file, data, 'utf8')
-    rmSync(tmp, { force: true })
+    try {
+      rmSync(tmp, { force: true })
+    } catch {
+      // A leftover temp file is harmless: the settings themselves are written.
+    }
   }
+}
+
+function isLockError(err: unknown): boolean {
+  const code = errorCode(err)
+  return code === 'EPERM' || code === 'EBUSY' || code === 'EACCES'
 }
 
 function errorCode(err: unknown): string | undefined {

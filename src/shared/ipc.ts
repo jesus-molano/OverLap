@@ -129,7 +129,9 @@ export const IPC = {
   /** main -> settings window, `LayoutNotice`: how an export or an import went. */
   layoutNotice: 'overlay:layout-notice',
   /** main -> settings window, `SettingsWindowPage`: show this page (the tray's "Más…"). */
-  settingsPage: 'overlay:settings-page'
+  settingsPage: 'overlay:settings-page',
+  /** main -> settings window: the settings stopped (true) or started again (false) saving. */
+  saveFailing: 'overlay:save-failing'
 } as const
 
 /**
@@ -388,6 +390,8 @@ export interface InitialState {
   cursorHidden: boolean
   /** The car you are in now (see `IPC.currentCar`). */
   currentCar: CarRef | null
+  /** Settings window: changes are not reaching the disk (see `IPC.saveFailing`). */
+  saveFailing?: boolean
 }
 
 export type Unsubscribe = () => void
@@ -417,6 +421,8 @@ export interface OverlayApi {
   onLayoutNotice(cb: (notice: LayoutNotice) => void): Unsubscribe
   /** Settings window only: main asks for a page (opened from the tray). */
   onSettingsPage(cb: (page: SettingsWindowPage) => void): Unsubscribe
+  /** Settings window only: saving to disk stopped (true) or works again (false). */
+  onSaveFailing(cb: (failing: boolean) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */

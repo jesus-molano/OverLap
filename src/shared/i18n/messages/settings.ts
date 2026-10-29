@@ -20,6 +20,9 @@ export const settingsEs = {
         'desactiva el imán. Los bloqueados no se mueven; el ojo y el candado de cada widget lo ocultan o lo bloquean.'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
+    /** Main could not write settings.json; it keeps retrying. */
+    saveError:
+      'Los cambios no se están guardando en el disco (se reintenta solo). Si sigue, cierra OverLap desde la bandeja y vuelve a abrirlo; el detalle está en overlap.log, en «Abrir carpeta de ajustes».',
     loading: 'Cargando ajustes…',
     footNote: 'Los cambios se aplican al momento y se guardan solos.',
     openFolder: 'Abrir carpeta de ajustes'
@@ -1215,6 +1218,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'turns off snapping. Locked widgets stay put; each widget’s eye and padlock hide or lock it.'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
+    saveError:
+      'Changes are not being saved to disk (retrying on its own). If it goes on, quit OverLap from the tray and open it again; the details are in overlap.log, under “Open settings folder”.',
     loading: 'Loading settings…',
     footNote: 'Changes apply instantly and are saved automatically.',
     openFolder: 'Open settings folder'
