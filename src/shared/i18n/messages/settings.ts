@@ -184,7 +184,7 @@ export const settingsEs = {
       title: 'Texto',
       fontScale: 'Tamaño del texto',
       fontScaleHelp:
-        'Multiplica la escala de Clasificación y Batalla; los demás ajustan el texto a su ventana',
+        'Multiplica la escala de Posiciones y Batalla; los demás ajustan el texto a su ventana',
       halo: 'Contorno del texto',
       haloHelp: 'Un borde oscuro fino para leer el texto sobre el juego',
       haloChoices: {
@@ -198,7 +198,7 @@ export const settingsEs = {
     },
     rows: {
       title: 'Filas y pilotos',
-      densityHelp: 'Alto de las filas en clasificación y relativo',
+      densityHelp: 'Alto de las filas en Posiciones y Relativo',
       stripes: 'Filas alternas',
       stripesHelp: 'Sombrea una fila de cada dos',
       licenseChoices: {
@@ -213,7 +213,7 @@ export const settingsEs = {
         stripe: { label: 'Franja', hint: 'Franja del color de la clase y número en texto' }
       },
       brandLogos: 'Logos de marca',
-      brandLogosHelp: 'La marca de cada coche en relativo, clasificación y batalla',
+      brandLogosHelp: 'La marca de cada coche en Relativo, Posiciones y Batalla',
       brandLogoChoices: {
         color: {
           label: 'Color',
@@ -252,7 +252,7 @@ export const settingsEs = {
           'También fuera del coche: pantalla de sesión, el turno de un compañero y mirando la carrera'
       },
       /** widgets.standings.showOnSessionScreen, also in the standings' Ventana section. */
-      keepStandings: 'Clasificación en la pantalla de sesión',
+      keepStandings: 'Posiciones en la pantalla de sesión',
       /** `widgets`: the others with this exception ('Relativo, Batalla, Tráfico y Avisos'). */
       keepStandingsHelp: (widgets: string) =>
         `Fuera del coche se queda con los resultados; ${widgets} también pueden quedarse (en su sección Ventana)`,
@@ -279,18 +279,18 @@ export const settingsEs = {
         hideAlways: 'Al rebobinar no se ve ningún widget; en directo siguen al coche que miras',
         /** `widgets`: the names of the widgets with your car's data only ('Radar, Pedales y Delta'). */
         follow: (widgets: string) =>
-          `Siguen al coche que miras y, al rebobinar, solo queda la clasificación en directo; ${widgets} solo tienen datos de tu coche y se ocultan si miras otro`
+          `Siguen al coche que miras y, al rebobinar, solo queda Posiciones, con la carrera en directo; ${widgets} solo tienen datos de tu coche y se ocultan si miras otro`
       },
       replayChoices: {
         hide: { label: 'Ocultar', hint: 'Ningún widget mientras ves una repetición' },
         follow: {
           label: 'Seguir al coche en cámara',
-          hint: 'Los widgets siguen al coche que miras; al rebobinar queda la clasificación de la carrera en directo'
+          hint: 'Los widgets siguen al coche que miras; al rebobinar queda Posiciones, con la carrera en directo'
         }
       },
       waiting: 'Mantener «Esperando a iRacing»',
       waitingHelp:
-        'Sin iRacing, Clasificación y Relativo se ocultan a los pocos segundos; activado, siguen con el aviso'
+        'Sin iRacing, Posiciones y Relativo se ocultan a los pocos segundos; activado, siguen con el aviso'
     },
     reset: {
       label: 'Restablecer apariencia',

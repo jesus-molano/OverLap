@@ -1,7 +1,7 @@
 # OverLap
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja diez
-widgets encima del juego: relativo, radar, clasificación, batalla, pedales, tráfico, avisos,
+widgets encima del juego: relativo, radar, posiciones, batalla, pedales, tráfico, avisos,
 testigos, delta y combustible. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar una disposición distinta para cada coche.
 
@@ -11,7 +11,7 @@ guardar una disposición distinta para cada coche.
   los clics al juego.
 - En español (por defecto) o en inglés.
 
-![Relativo, delta, radar, testigos y clasificación de OverLap](docs/screenshots/overlap.png)
+![Relativo, delta, radar, testigos y posiciones de OverLap](docs/screenshots/overlap.png)
 
 _Todas las capturas usan los datos de ejemplo de la propia app (pilotos inventados) sobre fondo
 transparente; en pista, el panel deja ver el juego a través según la opacidad que elijas._
@@ -53,7 +53,7 @@ OverLap se queda en la **bandeja del sistema** (junto al reloj). Desde su icono 
 la disposición en uso, entras en modo edición, abres la carpeta de ajustes o sales. Volver a abrir
 el `.exe` con OverLap ya en marcha abre los Ajustes.
 
-Si iRacing no está abierto, Relativo y Clasificación muestran «Esperando a iRacing…» unos segundos y
+Si iRacing no está abierto, Relativo y Posiciones muestran «Esperando a iRacing…» unos segundos y
 se ocultan; OverLap se conecta solo en cuanto arranca el simulador.
 
 Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes > Abrir carpeta de ajustes**).
@@ -87,9 +87,9 @@ aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m 
 coche que te acaba de pasar conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta
 solo cuando no hay nadie cerca.
 
-### Clasificación
+### Posiciones
 
-<img src="docs/screenshots/clasificacion.png" alt="Clasificación" width="540">
+<img src="docs/screenshots/clasificacion.png" alt="Posiciones" width="540">
 
 Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o completo. Columnas que
 se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados, iRating,
@@ -186,7 +186,7 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   ocultar en boxes y restablecer posición u opciones.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
-- **Cabecera y pie**: Relativo, Clasificación, Combustible, Tráfico y Batalla tienen los mismos:
+- **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un interruptor, un tamaño (pequeña, normal o grande) y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
   iRating y SR proyectados, vuelta rápida, vueltas de combustible, pista, agua, viento, aire,
@@ -305,7 +305,7 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 En **Ajustes > Apariencia > Visibilidad**:
 
 - **Mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o siempre.
-  Fuera del coche solo se queda la Clasificación en la pantalla de sesión, con los resultados.
+  Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
 - **Repeticiones**: ocultas por defecto; con «Seguir al coche en cámara», los widgets siguen al coche
   que miras.
 - Se ocultan también con la interfaz de iRacing oculta, en el garaje y en la pantalla de sesión

@@ -44,7 +44,7 @@ describe('settings pages', () => {
     expect(pageTitle(es, 'appearance')).toBe('Apariencia')
     expect(pageTitle(es, 'shortcuts')).toBe('Atajos')
     expect(pageTitle(es, 'layouts')).toBe('Disposiciones')
-    expect(pageTitle(es, 'standings')).toBe('Clasificación')
+    expect(pageTitle(es, 'standings')).toBe('Posiciones')
     expect(pageTitle(es, 'inputs')).toBe('Pedales')
   })
 

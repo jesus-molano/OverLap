@@ -5,6 +5,14 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Cambiado
+
+- **«Clasificación» pasa a llamarse «Posiciones»** en español (barra lateral, bandeja, título del
+  widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En
+  inglés sigue siendo «Standings». Los ajustes guardados no cambian.
+
 ## [2.2.0] - 2026-10-29
 
 ### Añadido

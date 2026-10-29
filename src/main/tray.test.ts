@@ -445,7 +445,7 @@ describe('tray menu: when to show the overlay', () => {
     createTray(s, ACTIONS)
     expect(fake.menus.at(-1)?.[1]).toEqual({ type: 'separator' })
     expect(labels()).toContain('Relativo (oculto: fuera del coche)')
-    expect(labels()).toContain('Clasificación')
+    expect(labels()).toContain('Posiciones')
     expect(fake.tooltips.at(-1)).toBe('OverLap · Modo simulado (mock)')
   })
 
