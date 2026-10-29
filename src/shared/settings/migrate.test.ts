@@ -352,14 +352,16 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       lights: { showOilPressure: true, showPitLimiter: false, showRevLimiter: false }
     }
     const s = normalizeSettings({ ...old, version: 5 })
-    // What came after those toggles stays off: the pedals' car block and shift lights.
+    // What came after those toggles stays off: the pedals' car block and shift lights, the
+    // repair's crew-time tag.
     const expected = {
       ...d,
       inputs: {
         ...d.inputs,
         sections: setElementVisible(d.inputs.sections, 'car', false),
         shiftLights: false
-      }
+      },
+      lights: { ...d.lights, repairCrewTag: false }
     }
     for (const section of Object.keys(old) as (keyof typeof old)[]) {
       expect(s[section], section).toEqual(expected[section])
@@ -488,6 +490,19 @@ describe('version 5: new defaults over old saved ones, once', () => {
     expect(normalizeSettings({ delta: { reference: 'fastest' } }).delta.referenceRace).toBe(
       'optimal'
     )
+  })
+})
+
+describe('the warning lights before the crew-time tag', () => {
+  it('keeps the tag off for a saved lights section of before, on when new or chosen', () => {
+    const old = normalizeSettings({ version: 5, lights: { repairRealTime: false } })
+    expect(old.lights.repairCrewTag).toBe(false)
+    expect(normalizeSettings({ lights: { repairCrewTag: true } }).lights.repairCrewTag).toBe(true)
+    // A new install, and a file from before the lights (its strip is new anyway).
+    expect(normalizeSettings({}).lights.repairCrewTag).toBe(true)
+    expect(normalizeSettings({ version: 5, alerts: {} }).lights.repairCrewTag).toBe(true)
+    // Lossless: what a load writes loads the same.
+    expect(normalizeSettings(JSON.parse(JSON.stringify(old))).lights).toEqual(old.lights)
   })
 })
 

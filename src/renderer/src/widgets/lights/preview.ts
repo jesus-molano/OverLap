@@ -35,13 +35,14 @@ export const PREVIEW_LIGHTS: LightsData = Object.freeze({
 
 /**
  * The sample with lights.repairRealTime: the mandatory repairs as the real seconds estimated in
- * the stall ('≈ 31 s'), the optional ones still the crew's, so both forms show.
+ * the stall, longer than the crew's 42 s as the crew's figure runs slower than the clock
+ * ('≈ 95 s'), the optional ones still the crew's, so both forms show.
  */
 export const PREVIEW_LIGHTS_REAL: LightsData = Object.freeze({
   visible: true,
   lights: Object.freeze(
     PREVIEW_LIGHTS.lights.map((l) =>
-      l.kind === 'repair' ? light({ ...l, seconds: 31, realTime: true }) : l
+      l.kind === 'repair' ? light({ ...l, seconds: 95, realTime: true }) : l
     )
   ) as LightReading[]
 })

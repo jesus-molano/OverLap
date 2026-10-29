@@ -70,13 +70,36 @@ describe('steering wheel geometry', () => {
     expect(Number(m![2])).toBeCloseTo(-inner)
   })
 
-  it('the formula wheel: grips each side, the display and the mark centred on top', () => {
+  it('the formula wheel: one outline flaring into handles, grips inside, the mark on top', () => {
+    // One closed outline: the handles are part of the body, not shapes standing off it.
+    expect(FORMULA.body.match(/M/g)).toHaveLength(1)
+    const p = points(FORMULA.body)
+    const xs = p.map((q) => q[0])
+    const ys = p.map((q) => q[1])
+    expect(Math.max(...xs)).toBeCloseTo(FORMULA.bodyHalfW)
+    expect(Math.min(...xs)).toBeCloseTo(-FORMULA.bodyHalfW)
+    // The handles hang below the body between them: an open bottom, a flat top.
+    expect(Math.max(...ys)).toBeGreaterThan(FORMULA.bodyBottom + 2)
+    expect(Math.min(...ys)).toBeCloseTo(FORMULA.bodyTop)
     const [left, right] = FORMULA.grips
-    expect(left!.x + left!.w).toBeLessThan(-FORMULA.bodyHalfW + left!.w)
+    for (const g of [left!, right!]) {
+      expect(Math.abs(g.x + g.w / 2)).toBeGreaterThan(FORMULA.handleIn)
+      expect(Math.max(Math.abs(g.x), Math.abs(g.x + g.w))).toBeLessThan(FORMULA.bodyHalfW)
+      expect(g.y).toBeGreaterThan(FORMULA.bodyTop)
+      expect(g.y + g.h).toBeLessThan(Math.max(...ys))
+    }
     expect(right!.x).toBeCloseTo(-(left!.x + left!.w))
     expect(FORMULA.screen.x).toBeCloseTo(-(FORMULA.screen.x + FORMULA.screen.w))
+    // Few buttons, none in the handles: four at most, between the display and the handles.
+    expect(FORMULA.buttons.length).toBeLessThanOrEqual(4)
+    for (const [x, , r] of FORMULA.buttons) {
+      expect(Math.abs(x) + r).toBeLessThan(FORMULA.handleIn)
+      expect(Math.abs(x) - r).toBeGreaterThan(FORMULA.screen.x + FORMULA.screen.w)
+    }
+    // The mark is centred and stands above the top edge.
     expect(FORMULA.mark.x).toBeCloseTo(-(FORMULA.mark.x + FORMULA.mark.w))
-    expect(FORMULA.mark.y).toBeLessThan(FORMULA.screen.y)
+    expect(FORMULA.mark.y).toBeLessThan(FORMULA.bodyTop)
+    expect(FORMULA.mark.w).toBeGreaterThanOrEqual(3)
   })
 
   it('a size per option, medium about the wheel of before, all within the info column', () => {

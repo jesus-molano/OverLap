@@ -4,8 +4,8 @@
  * Electron-free: main injects the store, the windows and the file dialogs.
  *
  * Applying a layout takes the same path as resetting a widget's bounds: the store first, then
- * every widget is moved to its saved bounds (pending wheel and fit saves dropped, a drag in
- * progress cancelled), then windows, telemetry, renderers and tray follow. It works in edit
+ * every widget is moved to its saved bounds (pending wheel and fit saves written first, into
+ * the layout being left; a drag in progress cancelled), then windows, telemetry, renderers and tray follow. It works in edit
  * mode too (it is what you asked for); only the automatic switch waits for edit mode to end.
  */
 import type { LayoutNotice, SettingsCommand } from '@shared/ipc'
@@ -45,6 +45,8 @@ export interface LayoutControlDeps {
   sync(prev: OverlaySettings): void
   /** OverlayWindows.reloadBoundsOf. */
   reloadBounds(ids: readonly WidgetId[]): void
+  /** OverlayWindows.flushPendingSaves: pending wheel and fit saves into the store (synced). */
+  flushPendingSaves(): void
   isEditing(): boolean
   /** To the settings window (IPC.layoutNotice). */
   notify(notice: LayoutNotice): void
@@ -186,6 +188,11 @@ export class LayoutControl {
 
   /** The store, then every widget to its saved bounds, then the rest (see the file's comment). */
   private apply(id: string, how: 'manual' | 'auto' = 'manual'): boolean {
+    const before = this.deps.getSettings()
+    if (!hasLayout(before.savedLayouts, id) || id === before.savedLayouts.activeId) return false
+    // A wheel resize still waiting belongs to the layout in use: into the store (so into that
+    // layout) before the widgets take the next one's fields.
+    this.deps.flushPendingSaves()
     const prev = this.deps.getSettings()
     if (!hasLayout(prev.savedLayouts, id) || id === prev.savedLayouts.activeId) return false
     this.deps.update((s) => void applyLayout(s, id))

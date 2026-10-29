@@ -407,6 +407,14 @@ export class OverlayWindows implements OverlayWindowHost {
     this.reloadBoundsOf([id])
   }
 
+  /**
+   * Writes the pending wheel and auto-height saves to the store now (a layout about to be
+   * applied: they belong to the layout in use, not to the next one).
+   */
+  flushPendingSaves(): void {
+    this.flushSaves()
+  }
+
   /** `reloadBounds` for several widgets at once (a layout applied), with one window sync. */
   reloadBoundsOf(ids: readonly WidgetId[]): void {
     for (const id of ids) {

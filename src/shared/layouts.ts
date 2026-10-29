@@ -15,8 +15,10 @@ import {
   isLayoutId,
   layoutName,
   layoutWidgetOf,
+  nextLayoutId,
   normalizeLayoutWidgets,
   snapshotWidgets,
+  uniqueLayoutName,
   withoutControls
 } from './settings/layouts'
 import type { CarRef, LayoutLibrary, LayoutWidget, OverlaySettings, SavedLayout } from './types'
@@ -28,8 +30,10 @@ export {
   MAX_LAYOUT_NAME,
   isLayoutId,
   layoutName,
+  nextLayoutId,
   normalizeCarRef,
-  snapshotWidgets
+  snapshotWidgets,
+  uniqueLayoutName
 } from './settings/layouts'
 
 export function findLayout(lib: LayoutLibrary, id: string): SavedLayout | undefined {
@@ -38,33 +42,6 @@ export function findLayout(lib: LayoutLibrary, id: string): SavedLayout | undefi
 
 export function activeLayout(lib: LayoutLibrary): SavedLayout | undefined {
   return findLayout(lib, lib.activeId)
-}
-
-/** A free id: 'layout-' and one more than the highest number in use. */
-export function nextLayoutId(list: readonly SavedLayout[]): string {
-  let max = 0
-  for (const l of list) {
-    const m = /^layout-(\d+)$/.exec(l.id)
-    if (m) max = Math.max(max, Number(m[1]))
-  }
-  return `layout-${max + 1}`
-}
-
-/**
- * `name`, or 'name (2)', 'name (3)'... when another layout (not `exceptId`) already has it
- * (case does not matter).
- */
-export function uniqueLayoutName(
-  name: string,
-  list: readonly SavedLayout[],
-  exceptId?: string
-): string {
-  const taken = new Set(list.filter((l) => l.id !== exceptId).map((l) => l.name.toLowerCase()))
-  if (!taken.has(name.toLowerCase())) return name
-  for (let n = 2; ; n++) {
-    const candidate = `${name} (${n})`
-    if (!taken.has(candidate.toLowerCase())) return candidate
-  }
 }
 
 /** Room for another layout. */

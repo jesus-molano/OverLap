@@ -98,39 +98,73 @@ export const REALISTIC = Object.freeze({
   markW: 1.8
 })
 
-// ---- Fórmula: a rectangular yoke with grips --------------------------------
+// ---- Fórmula: a yoke, one outline that flares into the handles -----------
 
-const BODY_W = 7.6
-const BODY_TOP = -4.6
-const BODY_BOTTOM = 4.2
+/** Half the width across the handles, the top edge and the handles' bottom. */
+const YOKE_W = 10.2
+const YOKE_TOP = -5.2
+const YOKE_BOTTOM = 5.8
+/** Where each handle starts (its inner side) and how low the body between them comes. */
+const HANDLE_IN = 7.2
+const BODY_BOTTOM = 2.6
+/** Corner rounding. */
+const CR = 1.6
 
-/** The yoke's body: flat on top, its lower corners rounded off, a shallow cut under the display. */
-const BODY =
-  `M${-BODY_W} ${BODY_TOP + 1.2}Q${-BODY_W} ${BODY_TOP} ${-BODY_W + 1.2} ${BODY_TOP}` +
-  `H${BODY_W - 1.2}Q${BODY_W} ${BODY_TOP} ${BODY_W} ${BODY_TOP + 1.2}` +
-  `V${r2(BODY_BOTTOM - 2.4)}Q${BODY_W} ${BODY_BOTTOM} ${r2(BODY_W - 2.6)} ${BODY_BOTTOM}` +
-  `H3.4Q2.4 ${BODY_BOTTOM} 2 ${r2(BODY_BOTTOM - 1)}H-2Q-2.4 ${BODY_BOTTOM} -3.4 ${BODY_BOTTOM}` +
-  `H${r2(-BODY_W + 2.6)}Q${-BODY_W} ${BODY_BOTTOM} ${-BODY_W} ${r2(BODY_BOTTOM - 2.4)}Z`
+/** A closed path from its commands, every number rounded (points, never single H/V numbers). */
+function yokePath(cmds: readonly (readonly [string, ...number[]])[]): string {
+  return cmds.map(([c, ...n]) => `${c}${n.map(r2).join(' ')}`).join('') + 'Z'
+}
+
+/**
+ * The yoke as one outline, as on a real formula or GT wheel: a straight top edge from handle to
+ * handle, the handles hanging lower than the body between them, so it keeps a clear "up" (a
+ * flat top, an open bottom) whichever way it is turned.
+ */
+const YOKE = yokePath([
+  // Up the left side, along the top edge, down the right handle.
+  ['M', -YOKE_W, YOKE_TOP + CR],
+  ['Q', -YOKE_W, YOKE_TOP, -YOKE_W + CR, YOKE_TOP],
+  ['L', YOKE_W - CR, YOKE_TOP],
+  ['Q', YOKE_W, YOKE_TOP, YOKE_W, YOKE_TOP + CR],
+  ['L', YOKE_W, YOKE_BOTTOM - CR],
+  ['Q', YOKE_W, YOKE_BOTTOM, YOKE_W - CR, YOKE_BOTTOM],
+  ['Q', HANDLE_IN, YOKE_BOTTOM, HANDLE_IN, YOKE_BOTTOM - CR],
+  // Up the handle's inner side, under the body, down the left handle.
+  ['L', HANDLE_IN, BODY_BOTTOM + 1],
+  ['Q', HANDLE_IN, BODY_BOTTOM, HANDLE_IN - 1, BODY_BOTTOM],
+  ['L', -HANDLE_IN + 1, BODY_BOTTOM],
+  ['Q', -HANDLE_IN, BODY_BOTTOM, -HANDLE_IN, BODY_BOTTOM + 1],
+  ['L', -HANDLE_IN, YOKE_BOTTOM - CR],
+  ['Q', -HANDLE_IN, YOKE_BOTTOM, -YOKE_W + CR, YOKE_BOTTOM],
+  ['Q', -YOKE_W, YOKE_BOTTOM, -YOKE_W, YOKE_BOTTOM - CR]
+])
+
+const GRIP_W = 2.2
+const gripX = (YOKE_W + HANDLE_IN) / 2
 
 export const FORMULA = Object.freeze({
-  body: BODY,
-  bodyHalfW: BODY_W,
-  /** The grips stand out of each side, taller than the body. */
-  grips: Object.freeze([rect(-9, 0.4, 3.2, 10, 1.6), rect(9, 0.4, 3.2, 10, 1.6)]),
+  body: YOKE,
+  bodyHalfW: YOKE_W,
+  bodyTop: YOKE_TOP,
+  /** The handles' inner side and the body's lower edge between them. */
+  handleIn: HANDLE_IN,
+  bodyBottom: BODY_BOTTOM,
+  /** The rubber of each handle: inside the outline, a shade lighter. */
+  grips: Object.freeze([rect(-gripX, 1.3, GRIP_W, 7.8, 1.1), rect(gripX, 1.3, GRIP_W, 7.8, 1.1)]),
+  /** The top edge, drawn brighter: it says which way is up. */
+  topEdge: `M${r2(-YOKE_W + CR)} ${YOKE_TOP}H${r2(YOKE_W - CR)}`,
+  topEdgeW: 0.9,
   /** The dash display in the middle. */
-  screen: rect(0, -1.3, 7, 4, 0.7),
-  /** Rotaries and buttons each side of the display. */
+  screen: rect(0, -1.5, 7, 3.6, 0.7),
+  /** A rotary each side of the display, and smaller buttons under them. */
   buttons: Object.freeze([
-    [-5.3, -2.4],
-    [5.3, -2.4],
-    [-5.3, 0.6],
-    [5.3, 0.6],
-    [-3.2, 2.6],
-    [3.2, 2.6]
+    [-5.3, -2.6, 0.8],
+    [5.3, -2.6, 0.8],
+    [-5.3, 0.4, 0.55],
+    [5.3, 0.4, 0.55]
   ] as const),
-  buttonR: 0.8,
-  /** The 12 o'clock mark: a short bar on the top edge. */
-  mark: rect(0, BODY_TOP, 2.2, 1.2, 0.4)
+  /** The 12 o'clock mark: a bar standing on the top edge. */
+  mark: rect(0, YOKE_TOP - 0.2, 3, 1.8, 0.45)
 })
 
 /** The wheel's box, em of the info column's font, by size (medium is about the wheel of before). */

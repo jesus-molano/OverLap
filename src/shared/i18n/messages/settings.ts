@@ -533,13 +533,13 @@ export const settingsEs = {
       medium: { label: 'Mediano' },
       large: { label: 'Grande' }
     },
-    wheelColor: 'Color de la marca',
+    wheelColor: 'Color de la marca central',
     wheelColorHelp: 'La marca del centro del volante, arriba cuando vas recto',
     steeringDegrees: 'Grados del volante',
     steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
     shiftLights: 'Luces de cambio',
     shiftLightsHelp:
-      'Se encienden con las revoluciones hasta el punto de cambio del coche y parpadean al pasarlo',
+      'Se encienden con las revoluciones hasta el punto de cambio del coche, donde se ponen todas en rojo, y parpadean si te pasas',
     colors: 'Colores',
     colorsNote: 'Colores opacos: la traza los superpone',
     pedals: {
@@ -747,14 +747,15 @@ export const settingsEs = {
     temps: 'Temperaturas',
     tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
-    repairTimeHelp: 'Lo que tardará el equipo en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
+    repairTimeHelp:
+      'Lo que tardará el equipo en boxes: «REPARAR · 42 s (equipo)», «OPC. · 38 s (equipo)»',
     repairCrewTag: 'Marcar tiempo del equipo',
     repairCrewTagHelp:
       'iRacing da el tiempo de los mecánicos, que puede correr más despacio que el reloj: «42 s (equipo)», «42 s eq.» si la ventana es estrecha',
     repairRealTime: 'Cuenta atrás real (estimada)',
     /** `s`: REPAIR_CLOCK.windowS. */
     repairRealTimeHelp: (s: number) =>
-      `Parado en tu box con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s y muestra los segundos reales que faltan: «≈ 30 s (real)». Hasta saberlo, remolcado o fuera del box, la del equipo. Nunca sube ni pasa de 0`,
+      `Parado en tu box con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s y muestra los segundos reales que faltan, a menudo más: «42 s (equipo)» puede ser «≈ 95 s (real)». Hasta saberlo, remolcado o fuera del box, la del equipo. Nunca sube ni pasa de 0`,
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
@@ -797,11 +798,16 @@ export const settingsEs = {
       repair: {
         meaning:
           'Daños que hay que reparar para seguir en carrera; llegará la bandera de reparación',
-        action: 'Entra en boxes. «REPARAR · 42 s (equipo)» es lo que tardará el equipo'
+        /** `example`: the light as the strip writes it (the crew's time). */
+        action: (example: string) => `Entra en boxes. «${example}» es lo que tardará el equipo`,
+        /** With lights.repairRealTime: `example` is the real seconds estimated in the stall. */
+        actionReal: (example: string) =>
+          `Entra en boxes. «${example}» son los segundos reales que faltan, estimados parado en tu box; antes, la cifra del equipo`
       },
       repairOptional: {
         meaning: 'Daños leves: puedes seguir con ellos',
-        action: 'Arréglalos en tu próxima parada si compensa: «OPC. · 38 s (equipo)»'
+        /** `example`: the light as the strip writes it. */
+        action: (example: string) => `Arréglalos en tu próxima parada si compensa: «${example}»`
       },
       water: {
         meaning: 'Agua demasiado caliente: el testigo del propio coche',
@@ -1605,12 +1611,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
       medium: { label: 'Medium' },
       large: { label: 'Large' }
     },
-    wheelColor: 'Mark colour',
+    wheelColor: 'Centre mark colour',
     wheelColorHelp: "The wheel's centre mark, on top when you drive straight",
     steeringDegrees: 'Steering angle',
     steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
     shiftLights: 'Shift lights',
-    shiftLightsHelp: "Light up with the revs to the car's shift point and blink past it",
+    shiftLightsHelp:
+      "Light up with the revs to the car's shift point, all red there, and blink if you go past it",
     colors: 'Colours',
     colorsNote: 'Solid colours only, as the traces overlap',
     pedals: {
@@ -1794,13 +1801,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     temps: 'Temperatures',
     tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',
-    repairTimeHelp: 'How long the crew will take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
+    repairTimeHelp:
+      'How long the crew will take in the pits: “REPAIR · 42 s (crew)”, “OPT. · 38 s (crew)”',
     repairCrewTag: 'Mark as crew time',
     repairCrewTagHelp:
       'iRacing gives the mechanics’ time, which can run slower than the clock: “42 s (crew)”, “42 s crew” in a narrow window',
     repairRealTime: 'Real countdown (estimated)',
     repairRealTimeHelp: (s) =>
-      `Stopped in your stall with the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s and shows the real seconds left: “≈ 30 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0`,
+      `Stopped in your stall with the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s and shows the real seconds left, often more: “42 s (crew)” can be “≈ 95 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0`,
     trend: 'Rising temperature',
     trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average`,
     help: {
@@ -1837,11 +1845,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       repair: {
         meaning: 'Damage you must repair to race on; the meatball flag will follow',
-        action: 'Pit now. “REPAIR · 42 s (crew)” is the crew’s time'
+        action: (example) => `Pit now. “${example}” is the crew’s time`,
+        actionReal: (example) =>
+          `Pit now. “${example}” is the real seconds left, estimated stopped in your stall; before that, the crew’s figure`
       },
       repairOptional: {
         meaning: 'Minor damage: you can race on with it',
-        action: 'Fix it at your next stop if it pays off: “OPT. · 38 s (crew)”'
+        action: (example) => `Fix it at your next stop if it pays off: “${example}”`
       },
       water: {
         meaning: 'Water too hot: the car’s own warning light',

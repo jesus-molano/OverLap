@@ -178,6 +178,7 @@ function start(): void {
     update: (mutate) => void store.update(mutate),
     sync: (prev) => syncSettings(prev),
     reloadBounds: (ids) => windows.reloadBoundsOf(ids),
+    flushPendingSaves: () => windows.flushPendingSaves(),
     isEditing: () => windows.editMode,
     notify: (notice) => sendToSettingsWindow(IPC.layoutNotice, notice),
     carChanged: (car) => {

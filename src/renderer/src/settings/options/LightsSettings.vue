@@ -131,6 +131,6 @@ const setIcons = listSetter('lights', 'icons')
   </CustomizeSection>
 
   <PageAppendix>
-    <LightsLegend />
+    <LightsLegend :opts="opts" />
   </PageAppendix>
 </template>

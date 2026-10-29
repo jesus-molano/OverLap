@@ -605,10 +605,10 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Tiempo de reparación: la cifra de iRacing es el tiempo **del equipo**, que en una parada real
   bajó ~1 s cada varios segundos (OverLap la muestra en ≤ 100 ms). Por eso sale marcada
   `42 s (equipo)` (`42 s eq.` en ventanas estrechas; `lights.repairCrewTag`, activado). Con
-  `lights.repairCrewTag` apagado vuelve a `42 s`.
+  `lights.repairCrewTag` apagado vuelve a `42 s`; un archivo de ajustes de antes de la marca la deja apagada, para que tras actualizar se lea lo mismo.
 - `Cuenta atrás real (estimada)` (`lights.repairRealTime`, **apagado** por defecto): parado en tu box
   con el servicio en marcha (`PitstopActive`), mide cuánto baja la cifra en los últimos 3 s (al menos
-  2 s seguidos bajando) y muestra los segundos reales que faltan, cifra / ritmo: `≈ 30 s (real)`.
+  2 s seguidos bajando) y muestra los segundos reales que faltan, cifra / ritmo, a menudo más que la del equipo: `42 s (equipo)` puede ser `≈ 95 s (real)`.
   Una pausa (1 s sin bajar) congela la estimación; nunca sube ni baja de 0. Hasta saberlo, remolcado,
   fuera del box o en una repetición, sale la del equipo. Si la cifra solo baja a saltos de más de 1 s,
   no hay estimación (`src/shared/notices/repairClock.ts`).
