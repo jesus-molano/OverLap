@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
 import { elementOrder, visibleIds } from '@shared/elements'
+import { brandMarksOn } from '@shared/carBrands'
 import { deepEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
 import type { TrafficPartId } from '@shared/types'
@@ -11,6 +12,7 @@ import { useReveal } from '@renderer/composables/useReveal'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import {
   useAutoHeight,
+  useDriverBlock,
   useNameFormat,
   useOptions,
   useWidgetSettings
@@ -19,6 +21,7 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
+import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
@@ -27,6 +30,8 @@ import { createDriverStyles } from '@renderer/view/styles'
 import { PREVIEW_TRAFFIC, previewOptions } from './preview'
 import TrafficKindIcon from './TrafficKindIcon.vue'
 import {
+  NO_DRIVER_EXTRAS,
+  type DriverExtras,
   hasClasses,
   hasSectors,
   hasTraffic,
@@ -41,6 +46,8 @@ const NO_SLOTS: readonly TrafficSlotView[] = Object.freeze([])
 
 const options = useOptions(ID)
 const nameFormat = useNameFormat(ID)
+/** Makes, flags and penalty badges: the «Piloto» block (own or Apariencia's). */
+const block = useDriverBlock(ID)
 const prefs = useWidgetSettings(ID)
 const autoHeight = useAutoHeight(ID)
 const { surfaceStyle, halo } = useWidgetSurface(ID)
@@ -56,7 +63,9 @@ const viewOptions = computed<TrafficViewOptions>((prev) =>
       groups: visibleIds(options.value.groups),
       captions: options.value.captions !== false,
       maxEntries: clampOption(OPTION_SCHEMA.traffic.maxEntries, options.value.maxEntries),
-      nameFormat: nameFormat.value
+      nameFormat: nameFormat.value,
+      // The block's, per payload (the makes' 'auto' needs the field): in `slots`.
+      extras: NO_DRIVER_EXTRAS
     },
     deepEqual
   )
@@ -99,7 +108,13 @@ const slots = computed<readonly TrafficSlotView[]>((prev) => {
     d === PREVIEW_TRAFFIC
       ? previewOptions(viewOptions.value, elementOrder(options.value.groups))
       : viewOptions.value
-  return reuseViews(prev, toSlots(d, o, styles, t.value))
+  const b = block.value
+  const extras: DriverExtras = {
+    brand: brandMarksOn(b.brandMarks, d.multiBrand),
+    flag: b.countryFlags,
+    penalties: b.showFlags
+  }
+  return reuseViews(prev, toSlots(d, { ...o, extras }, styles, t.value))
 })
 const sectors = computed(() => hasSectors(slots.value))
 const classes = computed(() => hasClasses(slots.value))
@@ -190,7 +205,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
                 :name="slot.name"
                 :name-unknown="slot.nameUnknown"
                 :lap="slot.lap"
+                :brand="slot.brand"
+                :country="slot.country"
               >
+                <span v-if="slot.penalty" class="tr-flag"
+                  ><PenaltyIcon :penalty="slot.penalty"
+                /></span>
                 <Badge
                   v-if="slot.lapBadge"
                   class="tr-lap"
@@ -388,6 +408,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .tr-who {
   flex: 1 1 auto;
   overflow: hidden;
+}
+
+/* The flag badge after the name, as in the relative. */
+.tr-flag {
+  display: inline-flex;
+  flex: none;
+  font-size: 0.85em;
 }
 
 /* Lapping you / lapped: a caps text tag in the lap colours of the relative (the number plate

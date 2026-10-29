@@ -537,6 +537,8 @@ export interface BattleOpponent {
   sectorDeltas: number[] | null
   /** iRating swing between finishing ahead of or behind this car (race only), null when not computed. */
   iRatingAtStake: number | null
+  /** Its flag badge (black, meatball, furled), as in the relative and the standings. */
+  penalty: CarPenalty | null
 }
 
 export interface BattleData {
@@ -643,6 +645,8 @@ export interface TrafficEntry {
   passing: TrafficPassing | null
   /** Hazards only. */
   hazard: HazardKind | null
+  /** Its flag badge (black, meatball, furled), as in the relative and the standings. */
+  penalty: CarPenalty | null
 }
 
 export interface TrafficData {
@@ -652,6 +656,8 @@ export interface TrafficData {
   faster: TrafficEntry[]
   slower: TrafficEntry[]
   hazards: TrafficEntry[]
+  /** More than one make in the whole field (RelativeData.multiBrand). */
+  multiBrand: boolean
   /** What its header and footer bars show (InfoFeed); null while no bar item needs data. */
   info: InfoBarData | null
 }
@@ -1177,6 +1183,10 @@ export interface AppearanceSettings {
   numberStyle: 'chip' | 'stripe'
   /** Car makes in their own colours, or one ink like the text (BrandMark). */
   brandLogos: 'color' | 'mono'
+  /** The «Piloto» block's globals (R08), what a driver widget on 'inherit' draws. */
+  brandMarks: BrandMarkMode
+  countryFlags: boolean
+  penaltyFlags: boolean
   /** Colour-blind-safe palette (blue/orange instead of green/red; shapes always present). */
   colorBlind: boolean
   units: 'metric' | 'imperial'
@@ -1358,12 +1368,10 @@ export interface RelativeOptions {
   conditionsWindDirection: boolean
   /** A row of column headings ('POS', 'PILOTO', 'iR'...) under the header. */
   columnHeads: boolean
-  /** The car's make in the driver cell. */
-  brandMarks: BrandMarkMode
-  /** The driver's country flag in the driver cell (nothing for none or unknown). */
-  countryFlags: boolean
-  /** Black flag, meatball and furled black flag badges after the name. */
-  showFlags: boolean
+  /** The «Piloto» block (DriverBlockOptions). */
+  brandMarks: BrandMarkMode | 'inherit'
+  countryFlags: boolean | 'inherit'
+  showFlags: boolean | 'inherit'
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
   /**
@@ -1434,16 +1442,14 @@ export interface StandingsOptions {
   classLine: ElementList<StandingsClassLineId>
   /** A row of column headings under the header ('POS', 'PILOTO', 'INT.'...). */
   columnHeads: boolean
-  /** The car's make on each row and leader line. */
-  brandMarks: BrandMarkMode
-  /** The driver's country flag on each row and leader line. */
-  countryFlags: boolean
+  /** The «Piloto» block (DriverBlockOptions), on each row and leader line. */
+  brandMarks: BrandMarkMode | 'inherit'
+  countryFlags: boolean | 'inherit'
+  showFlags: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
   /** Projected iRating change on every row (otherwise only on yours and in the header). */
   iRatingDeltaAll: boolean
-  /** Black flag, meatball and furled black flag badges after the name (as in the relative). */
-  showFlags: boolean
   /** 'inherit' = appearance.density. */
   density: 'inherit' | 'comfortable' | 'compact'
 }
@@ -1470,10 +1476,10 @@ export interface BattleOptions {
   parts: ElementList<BattlePartId>
   /** Keep an opponent shown this long (s, 0..10) after it leaves the threshold. */
   holdS: number
-  /** The car's make in the rival's cell. */
-  brandMarks: BrandMarkMode
-  /** The rival's country flag (off by default). */
-  countryFlags: boolean
+  /** The «Piloto» block (DriverBlockOptions), in the rival's cell. */
+  brandMarks: BrandMarkMode | 'inherit'
+  countryFlags: boolean | 'inherit'
+  showFlags: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
 }
@@ -1536,6 +1542,10 @@ export interface TrafficOptions {
   captions: boolean
   /** Faster/slower traffic only in multiclass sessions (hazards always). */
   onlyMulticlass: boolean
+  /** The «Piloto» block (DriverBlockOptions), in each car line. */
+  brandMarks: BrandMarkMode | 'inherit'
+  countryFlags: boolean | 'inherit'
+  showFlags: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
 }

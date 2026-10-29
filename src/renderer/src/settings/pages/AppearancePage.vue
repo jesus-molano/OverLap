@@ -20,6 +20,7 @@ import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
+import { inheritDriverBlocks, ownDriverBlocks } from '@shared/driverBlock'
 import { optionSetter, updateSettings } from '../editor'
 import { resetAppearance } from '../undo/restore'
 import PageFrame from '../layout/PageFrame.vue'
@@ -72,6 +73,9 @@ const licenseChoices = computed(() =>
 const numberChoices = computed(() =>
   choiceOptions(A.numberStyle.values, t.value.settings.appearance.rows.numberChoices)
 )
+const brandMarkChoices = computed(() =>
+  choiceOptions(A.brandMarks.values, t.value.settings.driverCell.brandChoices)
+)
 const brandLogoChoices = computed(() =>
   choiceOptions(A.brandLogos.values, t.value.settings.appearance.rows.brandLogoChoices)
 )
@@ -121,6 +125,16 @@ const followedMsg = ref('')
 async function followGlobal(): Promise<void> {
   await updateSettings(followGlobalPatch(ownBg.value))
   followedMsg.value = t.value.settings.appearance.color.followGlobalDone
+}
+/**
+ * The driver widgets with a «Piloto» block of their own (all of them after an update: what they
+ * drew stays) do not follow the rows above: said, with one button to set them all to «Global».
+ */
+const ownBlocks = computed(() => (settings.value ? ownDriverBlocks(settings.value) : []))
+const followedBlocksMsg = ref('')
+async function followBlocks(): Promise<void> {
+  await updateSettings(inheritDriverBlocks(ownBlocks.value))
+  followedBlocksMsg.value = t.value.settings.appearance.rows.followGlobalDone
 }
 /** Which widgets the text size changes, by name (the auto-height ones). */
 const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
@@ -218,13 +232,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :apply="set('fontScale')"
         />
         <ChoiceControl
-          :label="t.settings.common.nameFormat"
-          :help="example"
-          :current="appearance.nameFormat"
-          :options="nameChoices"
-          :apply="set('nameFormat')"
-        />
-        <ChoiceControl
           :label="t.settings.appearance.text.halo"
           :help="t.settings.appearance.text.haloHelp"
           :current="appearance.textHalo"
@@ -280,6 +287,42 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
             {{ option.label }}
           </template>
         </ChoiceControl>
+        <!-- The «Piloto» block's globals (R08): what each driver widget on «Global» draws. -->
+        <ChoiceControl
+          :label="t.settings.common.nameFormat"
+          :help="example"
+          :current="appearance.nameFormat"
+          :options="nameChoices"
+          :apply="set('nameFormat')"
+        />
+        <ChoiceControl
+          :label="t.settings.driverCell.brandMarks"
+          :help="t.settings.appearance.rows.blockHelp"
+          :current="appearance.brandMarks"
+          :options="brandMarkChoices"
+          :apply="set('brandMarks')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.driverCell.countryFlags"
+          :help="t.settings.driverCell.countryFlagsHelp"
+          :current="appearance.countryFlags"
+          :apply="set('countryFlags')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.common.penaltyFlags"
+          :help="t.settings.common.penaltyFlagsHelp"
+          :current="appearance.penaltyFlags"
+          :apply="set('penaltyFlags')"
+        />
+        <div v-if="ownBlocks.length > 0" class="st-row own-bg">
+          <p class="st-help">{{ t.settings.appearance.rows.ownBlocks(ownBlocks.length) }}</p>
+          <button type="button" class="st-btn st-btn-sm" @click="followBlocks">
+            {{ t.settings.appearance.rows.followGlobal }}
+          </button>
+        </div>
+        <p class="st-sr-only" aria-live="polite">{{ followedBlocksMsg }}</p>
         <ChoiceControl
           :label="t.settings.appearance.rows.brandLogos"
           :help="t.settings.appearance.rows.brandLogosHelp"

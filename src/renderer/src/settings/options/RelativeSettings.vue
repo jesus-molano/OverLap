@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RELATIVE_CARS_MAX, RELATIVE_CARS_MIN } from '@shared/settings'
-import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { RelativeColumnId } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
-import { choiceOptions } from '../controls/choice'
-import { densityChoicesInherit, nameFormatChoicesInherit } from '../controls/choices'
+import { densityChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
@@ -18,6 +17,7 @@ import { elementTexts, zoneTitle } from '../elements/labels'
 import type { ElementText } from '../elements/listOps'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import DriverSection from './DriverSection.vue'
 
 /**
  * The relative's page: how many cars, then one editor per zone (the columns, then the header and
@@ -30,8 +30,6 @@ const t = useI18n()
 const set = optionSetter('relative')
 const R = OPTION_SCHEMA.relative
 
-const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
-
 /** The columns' labels, with the hints of the two that need one. */
 const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(() => {
   const base = elementTexts(t.value, 'relative', 'columns')
@@ -43,9 +41,6 @@ const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(()
   }
 })
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
-const brandChoices = computed(() =>
-  choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
-)
 </script>
 
 <template>
@@ -64,20 +59,6 @@ const brandChoices = computed(() =>
       :max="RELATIVE_CARS_MAX"
       :apply="set('carsBehind')"
     />
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.common.penaltyFlags"
-      :help="t.settings.common.penaltyFlagsHelp"
-      :current="opts.showFlags"
-      :apply="set('showFlags')"
-    />
-    <ChoiceControl
-      :label="t.settings.common.nameFormat"
-      stack
-      :current="opts.nameFormat"
-      :options="nameChoices"
-      :apply="set('nameFormat')"
-    />
     <ChoiceControl
       :label="t.settings.common.density"
       :current="opts.density"
@@ -85,6 +66,9 @@ const brandChoices = computed(() =>
       :apply="set('density')"
     />
   </PageSection>
+
+  <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
+  <DriverSection section="relative" />
 
   <CustomizeSection>
     <ElementEditor
@@ -101,20 +85,6 @@ const brandChoices = computed(() =>
           :help="t.settings.driverCell.columnHeadsHelp"
           :current="opts.columnHeads"
           :apply="set('columnHeads')"
-        />
-        <ChoiceControl
-          :label="t.settings.driverCell.brandMarks"
-          :help="t.settings.driverCell.brandMarksHelp"
-          :current="opts.brandMarks"
-          :options="brandChoices"
-          :apply="set('brandMarks')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.driverCell.countryFlags"
-          :help="t.settings.driverCell.countryFlagsHelp"
-          :current="opts.countryFlags"
-          :apply="set('countryFlags')"
         />
       </template>
     </ElementEditor>

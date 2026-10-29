@@ -363,7 +363,10 @@ describe('the element lists from the options they replaced (v2.6)', () => {
         sections: setElementVisible(d.inputs.sections, 'car', false),
         shiftLights: false
       },
-      lights: { ...d.lights, repairCrewTag: false }
+      lights: { ...d.lights, repairCrewTag: false },
+      // What the «Piloto» block added stays off (migrateDriverBlock).
+      battle: { ...d.battle, showFlags: false, countryFlags: false },
+      traffic: { ...d.traffic, brandMarks: 'off', countryFlags: false, showFlags: false }
     }
     for (const section of Object.keys(old) as (keyof typeof old)[]) {
       expect(s[section], section).toEqual(expected[section])

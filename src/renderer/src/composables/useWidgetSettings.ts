@@ -5,6 +5,7 @@
  */
 import { computed, type ComputedRef } from 'vue'
 import { deepEqual } from '@shared/equal'
+import { driverBlock, type DriverBlock, type DriverBlockSection } from '@shared/driverBlock'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { OptionSection } from '@shared/settingsSchema'
 import type { NameFormat, OverlaySettings, WidgetSettings } from '@shared/types'
@@ -93,4 +94,14 @@ export function useDensity(section?: DensitySection): ComputedRef<Density> {
   const appearance = useAppearance()
   const own = section !== undefined && ownOptionsApply() ? useOption(section, 'density') : null
   return computed(() => inherit(own?.value, appearance.value.density))
+}
+
+/**
+ * The «Piloto» block a driver widget draws (R08): its own values, or Apariencia's where it says
+ * 'inherit' (Apariencia's own sample: always Apariencia's).
+ */
+export function useDriverBlock(section: DriverBlockSection): ComputedRef<DriverBlock> {
+  const appearance = useAppearance()
+  const own = ownOptionsApply() ? useOptions(section) : null
+  return computed((prev) => stable(prev, driverBlock(own?.value ?? {}, appearance.value)))
 }

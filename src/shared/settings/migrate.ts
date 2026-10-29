@@ -656,7 +656,32 @@ export function migrateSection(
   else if (section === 'lights' && isRecord(raw)) out = migrateLightsCrewTag(out)
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
+  else if (section === 'battle' || section === 'traffic') out = migrateDriverBlock(section, out)
   return migrateLists(section, out)
+}
+
+/**
+ * The «Piloto» block (R08, 2.3) gave the battle its penalty flags and the traffic its makes,
+ * flags and penalties, following Apariencia by default. A section saved before draws as it did:
+ * what it never drew is off (the battle's penalties, and its flag where the file has none: its
+ * old default; the traffic's three). Its own values stay.
+ */
+export function migrateDriverBlock(
+  section: 'battle' | 'traffic',
+  raw: Record<string, unknown>
+): Record<string, unknown> {
+  const out = { ...raw }
+  let changed = false
+  const off = (field: string, value: unknown): void => {
+    if (field in out) return
+    out[field] = value
+    changed = true
+  }
+  off('showFlags', false)
+  // The battle's flag was off by default; the traffic drew neither makes nor flags.
+  off('countryFlags', false)
+  if (section === 'traffic') off('brandMarks', 'off')
+  return changed ? out : raw
 }
 
 /**

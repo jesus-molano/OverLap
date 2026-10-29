@@ -11,6 +11,7 @@ import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
 import { infoBarDataEqual } from './infoFeed'
 import { quantise } from './num'
+import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { classRatingField } from './ratings/field'
 import type { RatingField } from './ratings/field'
@@ -335,7 +336,8 @@ export class BattleProvider {
       neededSPerLap,
       lastLaps: alignedLapTimes(player, car),
       sectorDeltas: sectorDeltas(race, player, car),
-      iRatingAtStake: run.stake(car.carIdx)
+      iRatingAtStake: run.stake(car.carIdx),
+      penalty: penaltyOf(car.sessionFlags, car.finished)
     }
   }
 
@@ -379,6 +381,7 @@ function opponentEqual(a: BattleOpponent | null, b: BattleOpponent | null): bool
     a.catchesBeforeEnd === b.catchesBeforeEnd &&
     a.neededSPerLap === b.neededSPerLap &&
     a.iRatingAtStake === b.iRatingAtStake &&
+    a.penalty === b.penalty &&
     arrayEqual(a.lastLaps, b.lastLaps) &&
     arrayEqual(a.sectorDeltas, b.sectorDeltas)
   )

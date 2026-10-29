@@ -163,8 +163,8 @@ describe('displayOnlyFields', () => {
       'columnHeads',
       'brandMarks',
       'countryFlags',
-      'nameFormat',
       'showFlags',
+      'nameFormat',
       'density'
     ])
     expect(displayOnlyFields('battle')).toEqual([
@@ -173,6 +173,7 @@ describe('displayOnlyFields', () => {
       'layout',
       'brandMarks',
       'countryFlags',
+      'showFlags',
       'nameFormat'
     ])
     expect(displayOnlyFields('inputs')).toEqual(Object.keys(OPTION_SCHEMA.inputs))
@@ -182,6 +183,9 @@ describe('displayOnlyFields', () => {
       'conditionsTrend',
       'conditionsWindDirection',
       'captions',
+      'brandMarks',
+      'countryFlags',
+      'showFlags',
       'nameFormat'
     ])
     expect(displayOnlyFields('alerts')).toEqual(['parts'])
@@ -343,14 +347,19 @@ describe('info bars (v2.6)', () => {
 })
 
 describe('driver cell extras and the outline licence (v2.6)', () => {
-  it('brand marks auto, flags on in the tables and off in the battle, no column heads', () => {
-    for (const s of ['relative', 'standings', 'battle'] as const) {
-      expect(OPTION_SCHEMA[s].brandMarks.default, s).toBe('auto')
-      expect(OPTION_SCHEMA[s].brandMarks.values, s).toEqual(['auto', 'on', 'off'])
+  it('one «Piloto» block (R08): the same fields and Global defaults in the four driver widgets', () => {
+    for (const s of ['relative', 'standings', 'battle', 'traffic'] as const) {
+      expect(OPTION_SCHEMA[s].brandMarks.default, s).toBe('inherit')
+      expect(OPTION_SCHEMA[s].brandMarks.values, s).toEqual(['inherit', 'auto', 'on', 'off'])
+      expect(OPTION_SCHEMA[s].countryFlags, s).toEqual(OPTION_SCHEMA.relative.countryFlags)
+      expect(OPTION_SCHEMA[s].showFlags, s).toEqual(OPTION_SCHEMA.relative.showFlags)
+      expect(OPTION_SCHEMA[s].nameFormat, s).toEqual(OPTION_SCHEMA.relative.nameFormat)
     }
-    expect(OPTION_SCHEMA.relative.countryFlags.default).toBe(true)
-    expect(OPTION_SCHEMA.standings.countryFlags.default).toBe(true)
-    expect(OPTION_SCHEMA.battle.countryFlags.default).toBe(false)
+    expect(OPTION_SCHEMA.relative.countryFlags).toMatchObject({ kind: 'flag', default: 'inherit' })
+    // Apariencia's: makes when several, flags and penalties on.
+    expect(OPTION_SCHEMA.appearance.brandMarks.default).toBe('auto')
+    expect(OPTION_SCHEMA.appearance.countryFlags.default).toBe(true)
+    expect(OPTION_SCHEMA.appearance.penaltyFlags.default).toBe(true)
     expect(OPTION_SCHEMA.relative.columnHeads.default).toBe(false)
     expect(OPTION_SCHEMA.standings.columnHeads.default).toBe(false)
   })

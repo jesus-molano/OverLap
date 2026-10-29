@@ -240,7 +240,14 @@ const INPUTS: InputsData = {
   ffb: null,
   ffbClip: false
 }
-const TRAFFIC: TrafficData = { visible: false, faster: [], slower: [], hazards: [], info: null }
+const TRAFFIC: TrafficData = {
+  visible: false,
+  faster: [],
+  slower: [],
+  hazards: [],
+  multiBrand: false,
+  info: null
+}
 const ALERTS: AlertsData = {
   visible: false,
   flags: [],
@@ -569,7 +576,7 @@ describe('TelemetryLoop', () => {
     expect(config?.relative).toMatchObject({
       carsAhead: 3,
       carsBehind: 3,
-      showFlags: true,
+      showFlags: 'inherit',
       nameFormat: 'inherit',
       // The footer bar (the conditions): off under the relative by default.
       footerBarSize: 'off',

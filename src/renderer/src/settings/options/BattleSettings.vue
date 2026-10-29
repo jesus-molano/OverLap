@@ -6,25 +6,22 @@ import {
   BATTLE_THRESHOLD_MAX_S,
   BATTLE_THRESHOLD_MIN_S
 } from '@shared/settings'
-import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
-import { useAppearance } from '../../composables/useAppearance'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
-import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import DriverSection from './DriverSection.vue'
 import { formatSeconds } from '../values'
 
 const opts = useOptions('battle')
-const appearance = useAppearance()
 const t = useI18n()
 const set = optionSetter('battle')
 
@@ -36,10 +33,6 @@ const B = OPTION_SCHEMA.battle
 const layoutChoices = computed(() =>
   choiceOptions(B.layout.values, t.value.settings.battle.layoutChoices)
 )
-const brandChoices = computed(() =>
-  choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
-)
-const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 
 // One editor per zone: the rivals (a hidden one is not looked for), the rows under the headline
 // and the extras of each lane.
@@ -102,14 +95,10 @@ const setParts = listSetter('battle', 'parts')
       :options="layoutChoices"
       :apply="set('layout')"
     />
-    <ChoiceControl
-      :label="t.settings.common.nameFormat"
-      stack
-      :current="opts.nameFormat"
-      :options="nameChoices"
-      :apply="set('nameFormat')"
-    />
   </PageSection>
+
+  <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
+  <DriverSection section="battle" />
 
   <CustomizeSection>
     <ElementEditor
@@ -134,22 +123,7 @@ const setParts = listSetter('battle', 'parts')
       :labels="parts.labels"
       :apply="setParts"
     >
-      <template #footer>
-        <ChoiceControl
-          :label="t.settings.driverCell.brandMarks"
-          :help="t.settings.driverCell.brandMarksHelp"
-          :current="opts.brandMarks"
-          :options="brandChoices"
-          :apply="set('brandMarks')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.driverCell.countryFlags"
-          :help="t.settings.driverCell.countryFlagsHelp"
-          :current="opts.countryFlags"
-          :apply="set('countryFlags')"
-        />
-      </template>
+      <template #footer> </template>
     </ElementEditor>
     <InfoBarEditor section="battle" field="headerBar" />
     <InfoBarEditor section="battle" field="footerBar" />

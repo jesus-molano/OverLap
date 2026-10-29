@@ -32,6 +32,7 @@ import {
   visibleGroups,
   worseUrgency,
   type RowSlotView,
+  NO_DRIVER_EXTRAS,
   type TrafficSlotView,
   type TrafficViewOptions
 } from './view'
@@ -61,19 +62,29 @@ function entry(over: Partial<TrafficEntry> = {}): TrafficEntry {
     lapping: false,
     passing: null,
     hazard: null,
+    penalty: null,
     ...over
   }
 }
 
 function traffic(over: Partial<TrafficData> = {}): TrafficData {
-  return { visible: true, faster: [], slower: [], hazards: [], info: null, ...over }
+  return {
+    visible: true,
+    faster: [],
+    slower: [],
+    hazards: [],
+    multiBrand: false,
+    info: null,
+    ...over
+  }
 }
 
 const OPTS: TrafficViewOptions = {
   groups: ['hazard', 'slower', 'faster'],
   captions: true,
   maxEntries: 3,
-  nameFormat: 'abbr'
+  nameFormat: 'abbr',
+  extras: NO_DRIVER_EXTRAS
 }
 
 const rows = (slots: readonly TrafficSlotView[]): RowSlotView[] =>
@@ -585,5 +596,25 @@ describe('preview', () => {
     ])
     const one = rows(toSlots(PREVIEW_TRAFFIC, { ...OPTS, maxEntries: 1 }, styles, ES))
     expect(one).toHaveLength(3)
+  })
+})
+
+describe('the «Piloto» block in a car line (R08)', () => {
+  it('draws the make, the flag and the penalty badge only when the block says so', () => {
+    const e = entry({
+      driver: { ...entry().driver, brand: 'porsche', country: 'FR' },
+      penalty: 'black'
+    })
+    const styles = createDriverStyles()
+    const off = toRowSlot(e, 'faster', 0, styles, 'abbr', ES)
+    expect(off).toMatchObject({ penalty: null })
+    expect(off.brand).toBeUndefined()
+    expect(off.country).toBeUndefined()
+    const on = toRowSlot(e, 'faster', 0, styles, 'abbr', ES, false, {
+      brand: true,
+      flag: true,
+      penalties: true
+    })
+    expect(on).toMatchObject({ brand: 'porsche', country: 'FR', penalty: 'black' })
   })
 })

@@ -2,11 +2,8 @@
 import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
-import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import ChoiceControl from '../controls/ChoiceControl.vue'
-import { nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -16,10 +13,10 @@ import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import DriverSection from './DriverSection.vue'
 import { formatSeconds } from '../values'
 
 const opts = useOptions('traffic')
-const appearance = useAppearance()
 const t = useI18n()
 const set = optionSetter('traffic')
 
@@ -76,8 +73,6 @@ const parts = computed(() => ({
 }))
 const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
-
-const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 </script>
 
 <template>
@@ -135,14 +130,10 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
       :current="opts.onlyMulticlass"
       :apply="set('onlyMulticlass')"
     />
-    <ChoiceControl
-      :label="t.settings.common.nameFormat"
-      stack
-      :current="opts.nameFormat"
-      :options="nameChoices"
-      :apply="set('nameFormat')"
-    />
   </PageSection>
+
+  <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
+  <DriverSection section="traffic" />
 
   <CustomizeSection>
     <ElementEditor

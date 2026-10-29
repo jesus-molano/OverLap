@@ -24,7 +24,8 @@ const AHEAD: BattleOpponent = Object.freeze({
   neededSPerLap: null,
   lastLaps: [98.621, 98.512, 98.774],
   sectorDeltas: [0.09, 0.02, 0.06],
-  iRatingAtStake: 17
+  iRatingAtStake: 17,
+  penalty: null
 })
 
 const BEHIND: BattleOpponent = Object.freeze({
@@ -45,7 +46,9 @@ const BEHIND: BattleOpponent = Object.freeze({
   neededSPerLap: null,
   lastLaps: [98.411, 98.655, 98.402],
   sectorDeltas: [0.03, -0.09, 0.02],
-  iRatingAtStake: 16
+  iRatingAtStake: 16,
+  // A rival on the furled flag: the «Piloto» block's badge in the sample.
+  penalty: 'furled'
 })
 
 export const PREVIEW_BATTLE: BattleData = Object.freeze({

@@ -12,6 +12,7 @@ import type { BrandId } from '@shared/carBrands'
 import { NBSP, formatGap, formatLaps, formatTrend, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
+  CarPenalty,
   BattleData,
   BattleLaneId,
   BattleOpponent,
@@ -38,6 +39,8 @@ export interface LaneDriverView extends DriverCellView {
   readonly withRating: boolean
   /** The rival's licence after the name (battle.parts 'license'). */
   readonly withLicense: boolean
+  /** Its flag badge after the name, while the «Piloto» block shows them (null: none). */
+  readonly penalty: CarPenalty | null
 }
 
 /** The hero gap split in number and unit ('0.6' + 's'; '1:05' needs no unit). */
@@ -106,8 +109,10 @@ export interface LaneOptions {
   readonly parts: Readonly<Record<BattlePartId, boolean>>
   /** The car's make before the name (brandMarksOn(battle.brandMarks, multiBrand)). */
   readonly brand: boolean
-  /** The driver's flag before the name (battle.countryFlags). */
+  /** The driver's flag before the name (the «Piloto» block's countryFlags). */
   readonly flag: boolean
+  /** The black flag, meatball and furled flag badges (the «Piloto» block's showFlags). */
+  readonly penalties: boolean
   readonly nameFormat: NameFormat
 }
 
@@ -329,7 +334,8 @@ export function laneDriver(
     ...(o.brand && op.brand !== 'unknown' ? { brand: op.brand } : {}),
     ...(o.flag && op.country !== '' ? { country: op.country } : {}),
     withRating: o.parts.rating,
-    withLicense: o.parts.license
+    withLicense: o.parts.license,
+    penalty: o.penalties ? op.penalty : null
   }
 }
 

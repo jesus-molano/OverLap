@@ -132,6 +132,7 @@ const SAME_IN_ENGLISH = new Set([
   // 'No' reads the same in both.
   'settings.infoBar.sizeChoices.off.label',
   'settings.lights.captionsChoices.off.label',
+  'settings.choices.onOff.off.label',
   'core.widgetTitles.radar',
   'core.widgetTitles.delta',
   'core.tray.rangeMeters',
