@@ -20,6 +20,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   del contenido y al final Cabecera, Segunda línea y Pie. Batalla, Tráfico y Combustible ya no se
   abren en una cabecera apagada. Las «Filas» de Batalla y Delta se llaman «Líneas», como en
   Combustible. Las secciones que tenías abiertas siguen abiertas.
+- **Lo del widget primero** en cada página: Contenido, Personalizar y, al final, «Ventana y
+  visibilidad» (tamaño, fondo, cuándo se muestra y bloqueo, en ese orden) antes de los botones de
+  restablecer. Antes la ventana ocupaba hasta diez filas por encima de lo que hace el widget.
 
 ### Corregido
 

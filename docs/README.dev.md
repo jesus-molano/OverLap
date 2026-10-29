@@ -144,7 +144,7 @@ overlay** también está en la bandeja):
 - Un archivo de ajustes de antes de esta opción pasa a «Ocultar» repeticiones (su `follow` era el
   valor por defecto de entonces).
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
-  botones de iRacing. Cada widget tiene su excepción en la sección **Ventana** de su página
+  botones de iRacing. Cada widget tiene su excepción en la sección **Ventana y visibilidad** de su página
   (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados. Radar,
   Pedales, Testigos y Delta no la tienen: fuera del coche no tienen datos; Combustible tampoco: no
   muestra nada con el sistema de repeticiones activo, y lo está en la pantalla de sesión. Con «Solo
