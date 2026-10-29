@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { injectCustomizeHost } from './customize'
-import { isZoneOpen, provideZoneRegistry, setZonesOpen } from './zonesOpen'
+import { isZoneOpen, pageIntro, provideZoneRegistry, setZonesOpen } from './zonesOpen'
 
 /**
  * "Personalizar": a widget page's element editors (ElementEditor, one per zone, in the order of
@@ -17,15 +17,15 @@ import { isZoneOpen, provideZoneRegistry, setZonesOpen } from './zonesOpen'
  * On a widget page they move to the page's own place for them (WidgetPage: below the options,
  * or a column of their own in a wide window); anywhere else they stay where they are. The
  * editors join its registry, so "Expandir todo / Contraer todo" opens or closes them all.
- * `no-bars`: the page of a widget without info bars (infoBar.ts NO_BAR_SECTIONS) says so and why,
- * under the heading.
+ * The heading says once how the lists are edited (dragging, ↑ ↓, the sides of the info bars, the
+ * eye), for the zones the page has (pageIntro); the lists themselves no longer repeat it.
  */
-const props = withDefaults(defineProps<{ noBars?: boolean }>(), { noBars: false })
 const t = useI18n()
 const host = injectCustomizeHost()
 const titleId = useId()
 const registry = provideZoneRegistry()
 
+const intro = computed(() => pageIntro(registry.zones.value))
 const anyClosed = computed(() => registry.zones.value.some((z) => !isZoneOpen(z)))
 const anyOpen = computed(() => registry.zones.value.some((z) => isZoneOpen(z)))
 // With nothing to do a button says so (aria-disabled) but keeps the focus it has: a disabled
@@ -51,7 +51,22 @@ onBeforeUnmount(() => {
     <section class="cz" :aria-labelledby="titleId">
       <header class="cz-head">
         <h2 :id="titleId" class="cz-title">{{ t.settings.common.customize }}</h2>
-        <p class="cz-note">{{ t.settings.common.customizeNote }}</p>
+        <!-- The page's one drag and eye explanation (each list keeps it for screen readers). -->
+        <p class="cz-note">
+          <template v-if="intro === 'sides'">
+            {{ t.settings.elements.introSides.before }}
+            <span class="cz-glyph" aria-hidden="true">⠿</span>
+            {{ t.settings.elements.introSides.middle }}
+            <span class="cz-glyph" aria-hidden="true">← →</span>
+            {{ t.settings.elements.introSides.after }}
+          </template>
+          <template v-else-if="intro === 'sortable'">
+            {{ t.settings.elements.intro.before }}
+            <span class="cz-glyph" aria-hidden="true">⠿</span>
+            {{ t.settings.elements.intro.after }}
+          </template>
+          <template v-else>{{ t.settings.elements.introFixed }}</template>
+        </p>
         <span v-if="registry.zones.value.length > 1" class="cz-all">
           <button
             type="button"
@@ -71,7 +86,6 @@ onBeforeUnmount(() => {
           </button>
         </span>
       </header>
-      <p v-if="props.noBars" class="cz-nobars">{{ t.settings.common.noBars }}</p>
       <div class="cz-body">
         <slot />
       </div>
@@ -115,11 +129,8 @@ onBeforeUnmount(() => {
   align-self: center;
 }
 
-/* A quiet line, the page's own note: no box, no rule. */
-.cz-nobars {
-  margin: -6px 0 14px;
-  color: var(--ov-fg-dim);
-  font-size: 12px;
+.cz-glyph {
+  color: var(--ov-fg);
 }
 
 .cz-body {

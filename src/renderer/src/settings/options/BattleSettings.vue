@@ -10,10 +10,9 @@ import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import { inherit } from '../../view/appearance'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
+import { nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
@@ -41,9 +40,6 @@ const brandChoices = computed(() =>
   choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
 )
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
-const nameHelp = computed(() =>
-  nameExample(t.value, inherit(opts.value.nameFormat, appearance.value.nameFormat))
-)
 
 // One editor per zone: the rivals (a hidden one is not looked for), the rows under the headline
 // and the extras of each lane.
@@ -108,7 +104,6 @@ const setParts = listSetter('battle', 'parts')
     />
     <ChoiceControl
       :label="t.settings.common.nameFormat"
-      :help="nameHelp"
       stack
       :current="opts.nameFormat"
       :options="nameChoices"

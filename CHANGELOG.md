@@ -37,6 +37,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   Testigos (no confunde con las disposiciones), «Títulos de columna» (no confunde con la cabecera),
   «Banderas de carrera» en Avisos y su grupo «Durante la carrera». En inglés, el lado de los textos
   de Testigos es «Text side» (antes, dos controles se llamaban «Captions»).
+- **Menos notas repetidas**: «Guardando en» solo aparece con dos disposiciones o más (o con una de
+  «Solo posición» en uso); la nota «Sin cabecera ni pie» ya no sale; cómo arrastrar y el ojo se
+  explica una vez por página, en Personalizar, y no en cada lista; y se quitan las ayudas que
+  repetían lo que ya dice la opción (el ejemplo del formato de nombre en cada widget, la del modo de
+  Posiciones y la de «Filas alternas»).
 
 ### Corregido
 

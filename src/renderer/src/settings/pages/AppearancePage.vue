@@ -218,7 +218,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         <ToggleControl
           kind="switch"
           :label="t.settings.appearance.rows.stripes"
-          :help="t.settings.appearance.rows.stripesHelp"
           :current="appearance.stripes"
           :apply="set('stripes')"
         />

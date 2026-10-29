@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
-import { layoutCommands, optionsTarget, useLayoutState } from '../layoutsView'
+import { layoutCommands, optionsTarget, targetShown, useLayoutState } from '../layoutsView'
 import Icon from '../../ui/Icon.vue'
 import ConfirmButton from './ConfirmButton.vue'
 
@@ -26,6 +26,14 @@ const target = computed(() =>
   optionsTarget(settings.value?.savedLayouts ?? DEFAULT_SETTINGS.savedLayouts)
 )
 const text = computed(() => t.value.settings.widgetPage.target)
+/**
+ * Said only when it tells something: with one layout every change goes to it anyway. Shown with
+ * two or more, or while the one in use is a "Solo posición" one (the shared options).
+ */
+const shown = computed(() => {
+  const lib = settings.value?.savedLayouts ?? DEFAULT_SETTINGS.savedLayouts
+  return targetShown(lib.list.length, target.value.shared)
+})
 
 /** Main's answer to this page's copy, worded; '' for none. */
 const done = computed(() => {
@@ -48,7 +56,7 @@ function toAll(): void {
 </script>
 
 <template>
-  <div class="target" :class="{ 'is-shared': target.shared }" role="note">
+  <div v-if="shown" class="target" :class="{ 'is-shared': target.shared }" role="note">
     <Icon name="save" class="icon" />
     <div class="where">
       <span class="label">{{ text.savingIn }}</span>

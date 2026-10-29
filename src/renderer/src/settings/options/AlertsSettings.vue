@@ -173,7 +173,7 @@ const setParts = listSetter('alerts', 'parts')
     />
   </PageSection>
 
-  <CustomizeSection no-bars>
+  <CustomizeSection>
     <ElementEditor
       :title="zoneTitle(t, 'alerts', 'parts')"
       :items="opts.parts"
