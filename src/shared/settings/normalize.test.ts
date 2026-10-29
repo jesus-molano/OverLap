@@ -22,6 +22,7 @@ import type {
 } from '../types'
 import type { ShortcutSettings } from '../shortcuts'
 import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
+import { syncActiveLayout } from './layouts'
 import {
   ALERTS_HOLD_MAX_S,
   ALERTS_HOLD_MIN_S,
@@ -228,7 +229,8 @@ const DEFAULT_ALERTS: AlertsOptions = {
 const DEFAULT_SHORTCUTS: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Shift+H',
   toggleEditMode: 'Ctrl+Shift+E',
-  cycleDeltaReference: ''
+  cycleDeltaReference: '',
+  nextLayout: ''
 }
 const DEFAULT_DELTA: DeltaOptions = {
   referencePractice: 'pb',
@@ -320,7 +322,25 @@ describe('DEFAULT_SETTINGS', () => {
       fuel: DEFAULT_FUEL,
       lights: DEFAULT_LIGHTS,
       shortcuts: DEFAULT_SHORTCUTS,
-      settingsWindow: DEFAULT_SETTINGS_WINDOW
+      settingsWindow: DEFAULT_SETTINGS_WINDOW,
+      layouts: { autoSwitch: false },
+      savedLayouts: {
+        activeId: 'layout-1',
+        list: [
+          {
+            id: 'layout-1',
+            name: 'Principal',
+            widgets: Object.fromEntries(
+              WIDGET_IDS.map((id) => {
+                const { bounds, scale, visible, locked } = defaultWidget(id)
+                return [id, { bounds, scale, visible, locked }]
+              })
+            ) as OverlaySettings['savedLayouts']['list'][number]['widgets']
+          }
+        ],
+        links: [],
+        seenCars: []
+      }
     })
   })
 
@@ -519,6 +539,8 @@ describe('normalizeSettings: basics', () => {
       top: list(['state', 'predicted', 'reference'], ['predicted', 'state']),
       laps: list(['optimal', 'pb', 'last', 'best'])
     }
+    // The layout in use is the widgets (layouts.ts).
+    syncActiveLayout(s)
     const raw = JSON.parse(JSON.stringify(s))
     expect(normalizeSettings(raw)).toEqual(s)
     expect(normalizeSettings(normalizeSettings(raw))).toEqual(s)
@@ -997,6 +1019,7 @@ describe('normalizeSettings: migration', () => {
     const before = createDefaultSettings()
     before.widgets.alerts = { ...before.widgets.alerts, scale: 120, anchor: 'bottom' }
     before.alerts = { ...before.alerts, holdS: 5 }
+    syncActiveLayout(before)
     const raw = JSON.parse(JSON.stringify(before)) as Record<string, unknown>
     delete raw.delta
     delete (raw.widgets as Record<string, unknown>).delta
@@ -1010,6 +1033,7 @@ describe('normalizeSettings: migration', () => {
     const before = createDefaultSettings()
     before.widgets.standings = { ...before.widgets.standings, scale: 120, locked: true }
     before.battle = { ...before.battle, thresholdS: 2.5 }
+    syncActiveLayout(before)
     const raw = JSON.parse(JSON.stringify(before)) as Record<string, unknown>
     delete raw.traffic
     delete raw.alerts
@@ -1190,7 +1214,8 @@ describe('normalizeSettings: shortcuts', () => {
     expect(s.shortcuts).toEqual({
       toggleOverlay: 'Ctrl+Alt+Shift+O',
       toggleEditMode: '',
-      cycleDeltaReference: ''
+      cycleDeltaReference: '',
+      nextLayout: ''
     })
   })
 
@@ -1230,16 +1255,22 @@ describe('normalizeSettings: shortcuts', () => {
       normalizeSettings({
         shortcuts: { toggleOverlay: 'Ctrl+Alt+F9', toggleEditMode: 'ctrl+alt+f9' }
       }).shortcuts
-    ).toEqual({ toggleOverlay: 'Ctrl+Alt+F9', toggleEditMode: '', cycleDeltaReference: '' })
+    ).toEqual({
+      toggleOverlay: 'Ctrl+Alt+F9',
+      toggleEditMode: '',
+      cycleDeltaReference: '',
+      nextLayout: ''
+    })
     // A default counts: an edited first action that takes the second's default wins it.
     expect(normalizeSettings({ shortcuts: { toggleOverlay: 'Ctrl+Shift+E' } }).shortcuts).toEqual({
       toggleOverlay: 'Ctrl+Shift+E',
       toggleEditMode: '',
-      cycleDeltaReference: ''
+      cycleDeltaReference: '',
+      nextLayout: ''
     })
     expect(
       normalizeSettings({ shortcuts: { toggleOverlay: '', toggleEditMode: '' } }).shortcuts
-    ).toEqual({ toggleOverlay: '', toggleEditMode: '', cycleDeltaReference: '' })
+    ).toEqual({ toggleOverlay: '', toggleEditMode: '', cycleDeltaReference: '', nextLayout: '' })
   })
 
   it('round-trips through the file', () => {
@@ -1247,7 +1278,8 @@ describe('normalizeSettings: shortcuts', () => {
     saved.shortcuts = {
       toggleOverlay: 'F13',
       toggleEditMode: 'Ctrl+Alt+PageUp',
-      cycleDeltaReference: 'Ctrl+Alt+D'
+      cycleDeltaReference: 'Ctrl+Alt+D',
+      nextLayout: ''
     }
     expect(normalizeSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved)
   })

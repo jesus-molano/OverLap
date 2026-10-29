@@ -7,7 +7,8 @@ import { FakeGlobalShortcut } from './testing/fakeElectron'
 const DEFAULTS: ShortcutSettings = {
   toggleOverlay: 'Ctrl+Shift+H',
   toggleEditMode: 'Ctrl+Shift+E',
-  cycleDeltaReference: ''
+  cycleDeltaReference: '',
+  nextLayout: ''
 }
 
 let registry: FakeGlobalShortcut
@@ -53,7 +54,8 @@ describe('ShortcutManager registration', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 
@@ -100,12 +102,14 @@ describe('ShortcutManager registration', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'disabled',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     expect(statuses.at(-1)).toEqual({
       toggleOverlay: 'disabled',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 
@@ -115,10 +119,16 @@ describe('ShortcutManager registration', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     expect(statuses).toEqual([
-      { toggleOverlay: 'unavailable', toggleEditMode: 'ok', cycleDeltaReference: 'disabled' }
+      {
+        toggleOverlay: 'unavailable',
+        toggleEditMode: 'ok',
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled'
+      }
     ])
     expect(console.warn).toHaveBeenCalledOnce()
 
@@ -132,12 +142,14 @@ describe('ShortcutManager registration', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     expect(statuses.at(-1)).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
     expect(press('Ctrl+Shift+H')).toBe(true)
   })
@@ -158,7 +170,8 @@ describe('ShortcutManager registration', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 })
@@ -184,7 +197,8 @@ describe('ShortcutManager Escape', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 })
@@ -235,7 +249,8 @@ describe('ShortcutManager capture', () => {
     expect(manager.status).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
 
     manager.stopCapture()
@@ -255,7 +270,8 @@ describe('ShortcutManager capture', () => {
     expect(statuses.at(-1)).toEqual({
       toggleOverlay: 'unavailable',
       toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled'
+      cycleDeltaReference: 'disabled',
+      nextLayout: 'disabled'
     })
   })
 

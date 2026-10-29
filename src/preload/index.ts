@@ -6,6 +6,7 @@ import {
   type DragStateMessage,
   type EditChipsMessage,
   type InitialState,
+  type LayoutNotice,
   type OverlayApi,
   type OverlayLayout,
   type ScaleStepMessage,
@@ -15,6 +16,7 @@ import {
 import type { PersonalBestList } from '@shared/delta/references'
 import type { ShortcutStatusMap } from '@shared/shortcuts'
 import type {
+  CarRef,
   OverlaySettings,
   OverlayStatus,
   SettingsPatch,
@@ -45,6 +47,8 @@ const api: OverlayApi = {
   onOverlayHidden: (cb) => subscribe<boolean>(IPC.overlayHidden, cb),
   onShortcutStatus: (cb) => subscribe<ShortcutStatusMap>(IPC.shortcutStatus, cb),
   onCursorHidden: (cb) => subscribe<boolean>(IPC.cursorHidden, cb),
+  onCurrentCar: (cb) => subscribe<CarRef | null>(IPC.currentCar, cb),
+  onLayoutNotice: (cb) => subscribe<LayoutNotice>(IPC.layoutNotice, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),

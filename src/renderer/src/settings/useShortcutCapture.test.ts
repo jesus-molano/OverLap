@@ -311,7 +311,12 @@ describe('useShortcutCapture: buttons', () => {
   })
 
   it('refuses a reset to a combination another action has now', () => {
-    current = { toggleOverlay: 'F13', toggleEditMode: 'Ctrl+Shift+H', cycleDeltaReference: '' }
+    current = {
+      toggleOverlay: 'F13',
+      toggleEditMode: 'Ctrl+Shift+H',
+      cycleDeltaReference: '',
+      nextLayout: ''
+    }
     expect(capture.assign('toggleOverlay', 'Ctrl+Shift+H')).toBe(false)
     expect(saved).toEqual([])
     expect(capture.feedback.value).toMatchObject({

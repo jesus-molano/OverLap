@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { linkCar, renameLayout, saveLayoutAs } from '@shared/layouts'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
 import { WIDGET_IDS } from '@shared/widgets'
@@ -6,6 +7,7 @@ import {
   commonHiddenReason,
   createTray,
   destroyTray,
+  layoutsMenu,
   loadIcon,
   taskbarTheme,
   updateTray,
@@ -94,6 +96,7 @@ vi.mock('../../resources/tray/tray-light-32.png?asset', () => ({ default: 'light
 
 const ACTIONS = {
   openSettings: () => {},
+  applyLayout: () => {},
   setWidgetVisible: () => {},
   setRadarRange: () => {},
   setShowWhen: () => {},
@@ -338,7 +341,12 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
 
   it('shows the configured combinations, and none for a shortcut turned off', () => {
     const settings = createDefaultSettings()
-    settings.shortcuts = { toggleOverlay: 'F13', toggleEditMode: '', cycleDeltaReference: '' }
+    settings.shortcuts = {
+      toggleOverlay: 'F13',
+      toggleEditMode: '',
+      cycleDeltaReference: '',
+      nextLayout: ''
+    }
     createTray(state(settings), ACTIONS)
     expect(item('Ocultar overlay')).toMatchObject({
       accelerator: 'F13',
@@ -463,5 +471,69 @@ describe('tray menu: when to show the overlay', () => {
     updateTray(state(changed))
     expect(fake.menus).toHaveLength(2)
     expect(item('Mostrar el overlay').submenu?.[2]?.checked).toBe(true)
+  })
+})
+
+describe('tray layouts submenu', () => {
+  function withLayouts(): OverlaySettings {
+    const s = createDefaultSettings()
+    saveLayoutAs(s, 'Mazda')
+    saveLayoutAs(s, 'GT3')
+    s.savedLayouts.activeId = 'layout-2'
+    return s
+  }
+
+  it('lists the layouts in order, the one in use checked, then the settings page', () => {
+    const s = withLayouts()
+    const menu = layoutsMenu(state(s), ACTIONS)
+    expect(menu.map((i) => [i.label, i.type, i.checked])).toEqual([
+      ['Principal', 'radio', false],
+      ['Mazda', 'radio', true],
+      ['GT3', 'radio', false],
+      [undefined, 'separator', undefined],
+      ['Gestionar disposiciones…', undefined, undefined]
+    ])
+  })
+
+  it('is in the menu, after the show-when choices, and applies the clicked layout', () => {
+    const applyLayout = vi.fn()
+    const openSettings = vi.fn()
+    createTray(state(withLayouts()), { ...ACTIONS, applyLayout, openSettings })
+    const sub = item('Disposición').submenu ?? []
+    sub[2]?.click?.({ checked: true })
+    expect(applyLayout).toHaveBeenCalledWith('layout-3')
+    sub.at(-1)?.click?.({ checked: false })
+    expect(openSettings).toHaveBeenCalledOnce()
+    const labels = (fake.menus.at(-1) ?? []).map((i) => i.label)
+    expect(labels.indexOf('Disposición')).toBe(labels.indexOf('Mostrar el overlay') + 1)
+  })
+
+  it('marks the layout of the car you are in while the automatic mode is on', () => {
+    const s = withLayouts()
+    linkCar(s, { carId: 67, carName: 'Mazda MX-5 Cup' }, 'layout-2')
+    const labels = (st: TrayState): (string | undefined)[] =>
+      layoutsMenu(st, ACTIONS).map((i) => i.label)
+    expect(labels({ ...state(s), carId: 67 })[1]).toBe('Mazda')
+    s.layouts.autoSwitch = true
+    expect(labels({ ...state(s), carId: 67 })[1]).toBe('Mazda · coche actual')
+    expect(labels({ ...state(s), carId: 99 })[1]).toBe('Mazda')
+    s.appearance.language = 'en'
+    expect(layoutsMenu({ ...state(s), carId: 67 }, ACTIONS).at(-1)?.label).toBe('Manage layouts…')
+  })
+
+  it('rebuilds the menu when a layout is renamed, added or applied, not otherwise', () => {
+    const s = withLayouts()
+    createTray(state(s), ACTIONS)
+    updateTray(state(structuredClone(s)))
+    expect(fake.menus).toHaveLength(1)
+    const renamed = structuredClone(s)
+    renameLayout(renamed, 'layout-3', 'GT3 R')
+    updateTray(state(renamed))
+    const applied = structuredClone(renamed)
+    applied.savedLayouts.activeId = 'layout-1'
+    updateTray(state(applied))
+    expect(fake.menus).toHaveLength(3)
+    expect(item('Disposición').submenu?.[0]?.checked).toBe(true)
+    expect(item('Disposición').submenu?.[2]?.label).toBe('GT3 R')
   })
 })

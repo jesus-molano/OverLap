@@ -42,8 +42,8 @@ import type {
   WidgetSettings
 } from './types'
 
-/** Option sections of OverlaySettings (everything but version and widgets). */
-export type OptionSection = Exclude<keyof OverlaySettings, 'version' | 'widgets'>
+/** Option sections of OverlaySettings (everything but version, widgets and the saved layouts). */
+export type OptionSection = Exclude<keyof OverlaySettings, 'version' | 'widgets' | 'savedLayouts'>
 /** Option sections the telemetry process receives. */
 export type ConfigSection = Exclude<keyof TelemetryConfig, 'enabledWidgets' | 'rules'>
 
@@ -611,15 +611,21 @@ export const OPTION_SCHEMA = {
     showTrend: { kind: 'bool', default: true }
   },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them. The
-  // delta's cycle has none until you give it one.
+  // delta's cycle and the next layout have none until you give them one.
   shortcuts: {
     toggleOverlay: { kind: 'accelerator', default: 'Ctrl+Shift+H', displayOnly: true },
     toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true },
-    cycleDeltaReference: { kind: 'accelerator', default: '', displayOnly: true }
+    cycleDeltaReference: { kind: 'accelerator', default: '', displayOnly: true },
+    nextLayout: { kind: 'accelerator', default: '', displayOnly: true }
   },
   // The settings window's own; nothing else reads them.
   settingsWindow: {
     stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true }
+  },
+  // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
+  // changes only when you change it.
+  layouts: {
+    autoSwitch: { kind: 'bool', default: false, displayOnly: true }
   }
 } as const satisfies OptionSchema
 

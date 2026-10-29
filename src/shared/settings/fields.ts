@@ -12,7 +12,7 @@ import {
   type ElementsSpec,
   type OptionSpec
 } from '../settingsSchema'
-import type { ElementEntry, StandingsColumn, WidgetSettings } from '../types'
+import type { ElementEntry, Rect, Size, StandingsColumn, WidgetSettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -230,4 +230,21 @@ export function mergeWidgetFields(
   }
   target.hideInPits = pickBoolean(raw.hideInPits, target.hideInPits)
   target.showOnSessionScreen = pickBoolean(raw.showOnSessionScreen, target.showOnSessionScreen)
+}
+
+/** Upper bound for a widget dimension; anything larger is a corrupt file. */
+const MAX_WIDGET_DIMENSION = 10_000
+
+/** Field by field: an invalid coordinate falls back to the default one. */
+export function normalizeBounds(raw: unknown, fallback: Rect, minSize: Size): Rect {
+  if (!isRecord(raw)) return { ...fallback }
+  const pick = (v: unknown, def: number): number => (isFiniteNumber(v) ? Math.round(v) : def)
+  const size = (v: unknown, def: number, min: number): number =>
+    isFiniteNumber(v) && v > 0 ? Math.min(MAX_WIDGET_DIMENSION, Math.max(min, Math.round(v))) : def
+  return {
+    x: pick(raw.x, fallback.x),
+    y: pick(raw.y, fallback.y),
+    width: size(raw.width, fallback.width, minSize.width),
+    height: size(raw.height, fallback.height, minSize.height)
+  }
 }

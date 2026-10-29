@@ -87,6 +87,19 @@ describe('parseTelemetryMessage', () => {
     }
   })
 
+  it('parses the player car, null included, and nothing malformed', () => {
+    expect(
+      parseTelemetryMessage({ type: 'player-car', car: { carId: 67, carName: 'Mazda', x: 1 } })
+    ).toEqual({ type: 'player-car', car: { carId: 67, carName: 'Mazda' } })
+    expect(parseTelemetryMessage({ type: 'player-car', car: null })).toEqual({
+      type: 'player-car',
+      car: null
+    })
+    for (const car of [undefined, {}, { carId: 0 }, { carId: -3 }, { carId: 1.5 }, 'Mazda']) {
+      expect(parseTelemetryMessage({ type: 'player-car', car })).toBeNull()
+    }
+  })
+
   it('drops extra fields from status', () => {
     expect(
       parseStatus({ state: 'mock', source: 'mock', note: 'none', detail: '', message: 'x' })
