@@ -151,8 +151,12 @@ describe('settings window: wide and ultrawide', () => {
   it('wraps the options of every page in the columns, below the fixed top', () => {
     for (const page of [APPEARANCE_PAGE, SHORTCUTS_PAGE, WIDGET_PAGE]) {
       const t = templateOf(page)
-      // A widget page: its content, then its window section, each in the columns.
-      expect(tagsWith(t, 'st-cols')).toHaveLength(page === WIDGET_PAGE ? 2 : 1)
+      // A widget page: its content, then its window section, each in the columns. The
+      // shortcuts are one table over the whole width (its own maximum, ShortcutsPage .sc-page).
+      expect(tagsWith(t, 'st-cols')).toHaveLength(
+        page === WIDGET_PAGE ? 2 : page === SHORTCUTS_PAGE ? 0 : 1
+      )
+      if (page === SHORTCUTS_PAGE) continue
       expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('<template #top>'))
       expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('</template>'))
     }

@@ -158,9 +158,10 @@ describe('shortcut texts', () => {
     const s = es.settings.shortcuts
     expect(es.settings.nav.shortcuts).toBe('Atajos')
     expect(en.settings.nav.shortcuts).toBe('Shortcuts')
-    // Short (the field keeps its width while recording), and not only the wheel's buttons.
-    expect(s.capture.prompt).toBe('Pulsa las teclas o un botón…')
-    expect(en.settings.shortcuts.capture.prompt).toBe('Press the keys or a button…')
+    // Short (a cell of the table), and not only the wheel's buttons; how to cancel under it.
+    expect(s.capture.prompt).toBe('Pulsa tecla o botón…')
+    expect(en.settings.shortcuts.capture.prompt).toBe('Press a key or button…')
+    expect(s.capture.escHint).toBe('Esc cancela')
     expect(s.capture.clearHint).toBe('Esc cancela · Retroceso o Supr lo quitan')
     expect(s.capture.pressAgain).toBe('Mando detectado: pulsa el botón otra vez')
     expect(en.settings.shortcuts.capture.pressAgain).toBe(
@@ -174,14 +175,20 @@ describe('shortcut texts', () => {
     expect(s.status).toEqual({
       disabled: 'Desactivado',
       unavailable: 'En uso por otra aplicación',
+      unavailableShort: 'En uso por otra app',
       disconnected: 'Desconectado'
     })
     expect(es.core.keys.button(12)).toBe('Botón 12')
     expect(en.core.keys.button(12)).toBe('Button 12')
     expect(acceleratorText(es, 'joy:046d:c24f:0:7')).toBe('Botón 7')
     expect(keycaps(en, 'joy:046d:c24f:0:7')).toEqual(['Button 7'])
-    expect([s.add, s.cancel, s.reset]).toEqual(['Añadir', 'Cancelar', 'Restablecer'])
-    expect([en.settings.shortcuts.add, en.settings.shortcuts.cancel]).toEqual(['Add', 'Cancel'])
+    expect([s.assign, s.cancel, s.reset]).toEqual(['Asignar', 'Cancelar', 'Restablecer'])
+    expect([en.settings.shortcuts.assign, en.settings.shortcuts.cancel]).toEqual([
+      'Assign',
+      'Cancel'
+    ])
+    expect(s.addLabel(2, 'Modo edición')).toBe('Asignar el atajo 2: Modo edición')
+    expect(s.columns.slot(3)).toBe('Atajo 3')
     expect(s.removeLabel('Ctrl+Shift+E', 'Modo edición')).toBe(
       'Quitar Ctrl+Shift+E de Modo edición'
     )

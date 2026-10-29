@@ -192,6 +192,28 @@ export function shortcutRows(
   })
 }
 
+/**
+ * One cell of the shortcuts table (a column per binding): a binding, the cell being recorded,
+ * the first empty one ("+ Asignar", which records there), or an empty one after it ("—": the
+ * list has no gaps, so the third is never assigned while the second is empty).
+ */
+export type ShortcutCell =
+  | { slot: number; kind: 'binding'; binding: BindingView }
+  | { slot: number; kind: 'recording'; binding: BindingView | null }
+  | { slot: number; kind: 'assign' }
+  | { slot: number; kind: 'empty' }
+
+/** The row's MAX_BINDINGS cells, in their columns; `recording`: the slot recorded, or null. */
+export function rowCells(row: ShortcutRowView, recording: number | null): ShortcutCell[] {
+  const count = row.bindings.length
+  return Array.from({ length: MAX_BINDINGS }, (_, slot): ShortcutCell => {
+    const binding = row.bindings[slot] ?? null
+    if (recording === slot) return { slot, kind: 'recording', binding }
+    if (binding !== null) return { slot, kind: 'binding', binding }
+    return slot === count ? { slot, kind: 'assign' } : { slot, kind: 'empty' }
+  })
+}
+
 /** How many controller buttons the actions have, all their bindings counted. */
 export function buttonBindingCount(bindings: Readonly<ShortcutBindings>): number {
   return SHORTCUT_ACTIONS.reduce((n, a) => n + bindings[a].filter(isButtonBinding).length, 0)
@@ -290,59 +312,103 @@ export function warningText(m: Messages, warning: AcceleratorWarning): string {
 export interface RowMessage {
   text: string
   tone: 'info' | 'warn' | 'error'
+  /**
+   * The cell it is about (its column: the line starts under it), null for the row as a whole
+   * (it starts under the first cell).
+   */
+  slot: number | null
 }
 
+/** The refusal of the row's last attempt, the button named without its controller. */
+function refusalOf(
+  m: Messages,
+  mine: Extract<CaptureFeedback, { kind: 'refused' }>,
+  action: ShortcutAction,
+  button: (binding: string) => string
+): string {
+  return refusalText(
+    m,
+    mine.error,
+    mine.conflict,
+    mine.button === undefined ? undefined : button(mine.button),
+    action
+  )
+}
+
+const feedbackOf = (
+  row: ShortcutRowView,
+  feedback: CaptureFeedback | null
+): CaptureFeedback | null => (feedback !== null && feedback.action === row.action ? feedback : null)
+
 /**
- * The lines under a row: while recording (`recording`: the slot recorded, null when not), why
- * the last binding was refused, or how to cancel (and remove the binding being replaced);
- * otherwise what the last attempt on it did, and why some binding does not work. "Saved" and
- * "removed" only while the bindings still are what they say (a reset of every shortcut, say,
- * makes them stale).
+ * The lines drawn under a row, each starting under the cell it is about: why the last binding
+ * was refused (under the cell recorded), "press it again" for a controller's first report, the
+ * AltGr warning of the binding just saved, and why a key combination does not work (another
+ * application holds it). Nothing else: "saved" and "removed" show in the cell itself, an
+ * unplugged button says so in its cell (the sentence is its tooltip), and how to record is the
+ * legend under the table; screen readers hear them all (rowAnnouncement).
  */
 export function rowMessages(
   m: Messages,
   row: ShortcutRowView,
   feedback: CaptureFeedback | null,
-  recording: number | null,
-  names: DeviceNames = {}
+  recording: number | null
 ): RowMessage[] {
   const t = m.settings.shortcuts
-  const mine = feedback !== null && feedback.action === row.action ? feedback : null
-  const refused =
-    mine?.kind === 'refused'
-      ? refusalText(
-          m,
-          mine.error,
-          mine.conflict,
-          mine.button === undefined ? undefined : bindingText(m, mine.button, names),
-          row.action
-        )
-      : ''
-  if (recording !== null) {
-    if (mine?.kind === 'refused') return [{ text: refused, tone: 'error' }]
-    if (mine?.kind === 'again') return [{ text: t.capture.pressAgain, tone: 'info' }]
-    const replacing = recording < row.bindings.length
-    return [{ text: replacing ? t.capture.clearHint : t.capture.addHint, tone: 'info' }]
-  }
-  const has = (b: string): boolean => row.bindings.some((c) => c.accelerator === b)
-  const out: RowMessage[] = []
+  const mine = feedbackOf(row, feedback)
+  const short = (b: string): string => shortBindingText(m, b)
   if (mine?.kind === 'refused') {
-    out.push({ text: refused, tone: 'error' })
-  } else if (mine?.kind === 'saved' && has(mine.accelerator)) {
-    out.push({ text: t.saved(bindingText(m, mine.accelerator, names)), tone: 'info' })
-    if (mine.warning) out.push({ text: warningText(m, mine.warning), tone: 'warn' })
-  } else if (mine?.kind === 'removed' && !has(mine.accelerator)) {
-    const text =
-      row.bindings.length === 0 ? t.disabled : t.removed(bindingText(m, mine.accelerator, names))
-    out.push({ text, tone: 'info' })
+    return [{ text: refusalOf(m, mine, row.action, short), tone: 'error', slot: recording }]
   }
-  if (row.bindings.some((b) => b.off && b.button !== null)) {
-    out.push({ text: t.disconnectedHelp, tone: 'warn' })
+  if (recording !== null) {
+    return mine?.kind === 'again'
+      ? [{ text: t.capture.pressAgain, tone: 'info', slot: recording }]
+      : []
   }
-  if (row.bindings.some((b) => b.off && b.button === null)) {
-    out.push({ text: t.unavailableHelp, tone: 'warn' })
+  const out: RowMessage[] = []
+  if (mine?.kind === 'saved' && mine.warning) {
+    const at = row.bindings.find((b) => b.accelerator === mine.accelerator)
+    if (at) out.push({ text: warningText(m, mine.warning), tone: 'warn', slot: at.slot })
   }
+  const taken = row.bindings.find((b) => b.off && b.button === null)
+  if (taken) out.push({ text: t.unavailableHelp, tone: 'warn', slot: taken.slot })
   return out
+}
+
+/**
+ * What a screen reader hears from a row's live region: everything rowMessages draws, with a
+ * refused button named in full, and what the cells only show: how to cancel (and remove) while
+ * recording, what was saved or removed (while the bindings still are what it says: a reset of
+ * every shortcut makes it stale), and an unplugged controller.
+ */
+export function rowAnnouncement(
+  m: Messages,
+  row: ShortcutRowView,
+  feedback: CaptureFeedback | null,
+  recording: number | null,
+  names: DeviceNames = {}
+): string {
+  const t = m.settings.shortcuts
+  const mine = feedbackOf(row, feedback)
+  const full = (b: string): string => bindingText(m, b, names)
+  const out: string[] = []
+  if (mine?.kind === 'refused') {
+    out.push(refusalOf(m, mine, row.action, full))
+  } else if (recording !== null) {
+    if (mine?.kind === 'again') out.push(t.capture.pressAgain)
+    else out.push(recording < row.bindings.length ? t.capture.clearHint : t.capture.addHint)
+  } else {
+    const has = (b: string): boolean => row.bindings.some((c) => c.accelerator === b)
+    if (mine?.kind === 'saved' && has(mine.accelerator)) {
+      out.push(t.saved(full(mine.accelerator)))
+      if (mine.warning) out.push(warningText(m, mine.warning))
+    } else if (mine?.kind === 'removed' && !has(mine.accelerator)) {
+      out.push(row.bindings.length === 0 ? t.disabled : t.removed(full(mine.accelerator)))
+    }
+    if (row.bindings.some((b) => b.off && b.button !== null)) out.push(t.disconnectedHelp)
+    if (row.bindings.some((b) => b.off && b.button === null)) out.push(t.unavailableHelp)
+  }
+  return out.join('. ')
 }
 
 /** Where the focus goes on a row once a change has redrawn it: a chip's slot, or "add". */

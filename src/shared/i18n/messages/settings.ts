@@ -306,39 +306,46 @@ export const settingsEs = {
   /** "Atajos" page: key combinations and controller buttons. */
   shortcuts: {
     sub: 'Teclas o botones del volante que funcionan en todo Windows, también con iRacing delante',
-    subMore: 'También botones de la button box o los pedales. Hasta tres atajos por acción.',
-    section: 'Atajos globales',
+    subMore: 'También botones de la button box o los pedales.',
+    /** The table's column heads: the action, then one column per binding (1 is what 2.1 reads). */
+    columns: {
+      action: 'Acción',
+      slot: (n: number) => `Atajo ${n}`,
+      primary: 'principal'
+    },
     actions: {
       toggleOverlay: {
         label: 'Mostrar u ocultar el overlay',
-        help: 'Oculta todos los widgets de golpe; la telemetría sigue, así que vuelven al instante'
+        help: 'Oculta todos los widgets; vuelven al instante'
       },
       toggleEditMode: {
         label: 'Modo edición',
-        help: 'Entra o sale del modo edición para mover y redimensionar los widgets'
+        help: 'Mover y redimensionar los widgets'
       },
       cycleDeltaReference: {
         label: 'Cambiar la referencia del delta',
-        help: 'Pasa a la siguiente solo en esta sesión (no se guarda); se aplica al empezar la vuelta'
+        help: 'Solo esta sesión; cambia al empezar la vuelta'
       },
       nextLayout: {
         label: 'Siguiente disposición',
-        help: 'Aplica la siguiente disposición guardada, en el orden de la lista, y la recuerda'
+        help: 'Aplica la siguiente disposición guardada'
       },
       openSettings: {
         label: 'Abrir los ajustes',
-        help: 'Abre esta ventana, o la trae al frente si ya está abierta; también con iRacing delante'
+        help: 'Abre esta ventana o la trae al frente'
       }
     },
     /** The fixed Esc row. */
     escape: {
       label: 'Salir del modo edición',
-      help: 'Solo mientras editas; no se puede cambiar',
+      help: 'Solo mientras editas',
       tag: 'Fijo'
     },
     status: {
       disabled: 'Desactivado',
       unavailable: 'En uso por otra aplicación',
+      /** In a cell (about 135 px wide): the long form is its tooltip. */
+      unavailableShort: 'En uso por otra app',
       /** A button whose controller is not connected (the binding is kept). */
       disconnected: 'Desconectado'
     },
@@ -347,17 +354,18 @@ export const settingsEs = {
     disconnectedHelp: 'No está conectado: al enchufarlo, el botón vuelve a funcionar solo',
     /** A controller's button in the field: 'Botón 12' then the controller's name. */
     buttonAria: (button: string, device: string) => `${button} de ${device}`,
-    /** Records one more binding for the action (up to three). */
-    add: 'Añadir',
+    /** The first empty cell of a row: records there. */
+    assign: 'Asignar',
     cancel: 'Cancelar',
     reset: 'Restablecer',
     /**
-     * Button names for screen readers: a chip ('Cambiar Ctrl+Shift+E: Modo edición'), its ×
-     * ('Quitar Ctrl+Shift+E de Modo edición'), the add button.
+     * Cell names for screen readers: a binding ('Atajo 2 de Modo edición: Botón 3 de G29…,
+     * pulsa para cambiar'), its × ('Quitar Ctrl+Shift+E de Modo edición'), the first empty one.
      */
-    changeLabel: (keys: string, action: string) => `Cambiar ${keys}: ${action}`,
+    changeLabel: (n: number, action: string, keys: string) =>
+      `Atajo ${n} de ${action}: ${keys}, pulsa para cambiar`,
     removeLabel: (keys: string, action: string) => `Quitar ${keys} de ${action}`,
-    addLabel: (action: string) => `Añadir otro atajo: ${action}`,
+    addLabel: (n: number, action: string) => `Asignar el atajo ${n}: ${action}`,
     cancelLabel: (action: string) => `Cancelar el cambio: ${action}`,
     resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
     /**
@@ -366,13 +374,14 @@ export const settingsEs = {
      */
     anyOf: (first: string, last: string) => `${first} o ${last}`,
     capture: {
-      /** In a new chip while recording. */
-      prompt: 'Pulsa las teclas o un botón…',
-      /** In a chip recorded over: short, so the chip keeps its width (the line below explains). */
+      /** The first line of the cell recorded (the short one in a narrow cell). */
+      prompt: 'Pulsa tecla o botón…',
       promptShort: 'Pulsa…',
-      /** Recording over a binding: Backspace removes it. */
+      /** Its second line. */
+      escHint: 'Esc cancela',
+      /** Said to screen readers when recording over a binding: Backspace removes it. */
       clearHint: 'Esc cancela · Retroceso o Supr lo quitan',
-      /** Recording one more. */
+      /** Said when recording one more. */
       addHint: 'Esc cancela',
       /**
        * A button from a controller's first report since the reader started (or it was
@@ -403,14 +412,23 @@ export const settingsEs = {
       altgr:
         'En teclado español, Ctrl+Alt es AltGr: con OverLap abierto puede impedir escribir @, # o €'
     },
+    /** Under the table: how a cell is used (the keys between the parts are keycaps). */
+    legend: {
+      click: 'Haz clic en una casilla para asignar o cambiar',
+      clear: 'o × la vacían',
+      esc: 'cancela',
+      any: 'cualquiera de los tres ejecuta la acción'
+    },
+    /** Above the table: the one thing that can break something in iRacing. */
+    exclusive: {
+      lead: 'Teclas, exclusivas:',
+      text: 'una combinación asignada deja de llegar a iRacing y a los demás programas',
+      more: 'Los botones del volante no: se comparten, iRacing también recibe la pulsación.'
+    },
     notes: {
       title: 'Cómo funcionan',
-      focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
-      several: 'Hasta tres atajos por acción: cualquiera la ejecuta.',
-      severalMore:
-        'Por ejemplo, una combinación de teclas y un botón del volante. Pulsa uno para cambiarlo y × para quitarlo.',
-      exclusive: 'Una combinación asignada deja de llegar a los demás programas, iRacing incluido.',
-      exclusiveMore: 'No elijas una que uses en el simulador.',
+      /** After the title of the closed block: what is inside. */
+      summary: 'botones del volante, button box, F13–F24',
       buttons: 'Los botones solo se leen: iRacing también recibe la pulsación.',
       buttonsMore:
         'Volante, button box o pedales: no se bloquea nada, así que elige un botón que no tengas asignado en iRacing. Las crucetas (D-pad) y los hats no se pueden asignar.',
@@ -1614,56 +1632,62 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   shortcuts: {
     sub: 'Keys or wheel buttons that work all over Windows, with iRacing in front too',
-    subMore: 'Button box or pedal buttons too. Up to three shortcuts per action.',
-    section: 'Global shortcuts',
+    subMore: 'Button box or pedal buttons too.',
+    columns: {
+      action: 'Action',
+      slot: (n) => `Shortcut ${n}`,
+      primary: 'main'
+    },
     actions: {
       toggleOverlay: {
         label: 'Show or hide the overlay',
-        help: 'Hides every widget at once; telemetry keeps running, so they come back instantly'
+        help: 'Hides every widget; they come back instantly'
       },
       toggleEditMode: {
         label: 'Edit mode',
-        help: 'Enters or leaves edit mode to move and resize the widgets'
+        help: 'Move and resize the widgets'
       },
       cycleDeltaReference: {
         label: 'Next delta reference',
-        help: 'Moves to the next one for this session only (not saved); applied when the next lap starts'
+        help: 'This session only; changes when the lap starts'
       },
       nextLayout: {
         label: 'Next layout',
-        help: 'Applies the next saved layout, in the list’s order, and remembers it'
+        help: 'Applies the next saved layout'
       },
       openSettings: {
         label: 'Open settings',
-        help: 'Opens this window, or brings it to the front if it is open; also with iRacing in front'
+        help: 'Opens this window or brings it to the front'
       }
     },
     escape: {
       label: 'Leave edit mode',
-      help: 'Only while editing; it can’t be changed',
+      help: 'Only while editing',
       tag: 'Fixed'
     },
     status: {
       disabled: 'Off',
       unavailable: 'Used by another app',
+      unavailableShort: 'Used by another app',
       disconnected: 'Disconnected'
     },
     unavailableHelp:
       'Another app uses this combination: pick another, or close that app and assign it',
     disconnectedHelp: 'Not connected: once you plug it in, the button works again by itself',
     buttonAria: (button, device) => `${button} of ${device}`,
-    add: 'Add',
+    assign: 'Assign',
     cancel: 'Cancel',
     reset: 'Reset',
-    changeLabel: (keys, action) => `Change ${keys}: ${action}`,
+    changeLabel: (n, action, keys) => `Shortcut ${n} of ${action}: ${keys}, press to change`,
     removeLabel: (keys, action) => `Remove ${keys} from ${action}`,
-    addLabel: (action) => `Add another shortcut: ${action}`,
+    addLabel: (n, action) => `Assign shortcut ${n}: ${action}`,
     cancelLabel: (action) => `Cancel the change: ${action}`,
     resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
     anyOf: (first, last) => `${first} or ${last}`,
     capture: {
-      prompt: 'Press the keys or a button…',
+      prompt: 'Press a key or button…',
       promptShort: 'Press…',
+      escHint: 'Esc cancels',
       clearHint: 'Esc cancels · Backspace or Delete remove it',
       addHint: 'Esc cancels',
       pressAgain: 'Controller found: press the button again'
@@ -1686,14 +1710,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
     warnings: {
       altgr: 'On a Spanish keyboard Ctrl+Alt is AltGr: with OverLap open you may not type @, # or €'
     },
+    legend: {
+      click: 'Click a cell to assign or change it',
+      clear: 'or × empty it',
+      esc: 'cancels',
+      any: 'any of the three runs the action'
+    },
+    exclusive: {
+      lead: 'Keys are exclusive:',
+      text: 'an assigned combination no longer reaches iRacing or other programs',
+      more: 'Wheel buttons don’t: they are shared, iRacing gets the press too.'
+    },
     notes: {
       title: 'How they work',
-      focus: 'They work while iRacing has focus, without leaving the game.',
-      several: 'Up to three shortcuts per action: any of them runs it.',
-      severalMore:
-        'Say a key combination and a button on your wheel. Click one to change it and × to remove it.',
-      exclusive: 'An assigned key combination no longer reaches other programs, iRacing included.',
-      exclusiveMore: 'Don’t pick one you use in the sim.',
+      summary: 'wheel buttons, button box, F13–F24',
       buttons: 'Buttons are only read: iRacing gets the press too.',
       buttonsMore:
         'Wheel, button box or pedals: nothing is blocked, so pick a button you haven’t assigned in iRacing. D-pads and hats can’t be assigned.',

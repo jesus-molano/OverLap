@@ -26,7 +26,7 @@ const templateOf = (sfc: string): string => /<template>([\s\S]*)<\/template>/.ex
 describe('shortcuts page', () => {
   it('is framed like the other pages, named by its title', () => {
     const t = templateOf(PAGE)
-    expect(t).toMatch(/<PageFrame :labelledby="titleId">/)
+    expect(t).toMatch(/<PageFrame class="sc-page" :labelledby="titleId">/)
     expect(t).toMatch(/<h1 :id="titleId"/)
     expect(t).toContain('<template #foot>')
     expect(templateOf(APP)).toMatch(/<ShortcutsPage v-else-if="page === 'shortcuts'">/)
@@ -36,39 +36,40 @@ describe('shortcuts page', () => {
     expect(PAGE).toContain('useShortcutCapture(windowCaptureDeps())')
   })
 
-  it('gives each row a polite live region and cancels when the recording button loses the focus', () => {
+  it('gives each row a polite live region and cancels when the recording cell loses the focus', () => {
     const t = templateOf(ROW)
-    expect(t).toMatch(/<p :id="msgId" class="sc-msg" aria-live="polite">/)
-    // Two ways to record (over a chip, or one more), each cancelling on blur and on a second click.
-    expect(t.match(/@blur="onRecorderBlur"/g)).toHaveLength(2)
-    expect(t).toMatch(/@click="onChip\(\$event, b\.slot\)"/)
-    expect(ROW).toMatch(/function onChip[\s\S]*?props\.capture\.toggle\(props\.row\.action, slot\)/)
-    expect(t).toMatch(/@click="capture\.toggle\(row\.action, row\.bindings\.length\)"/)
-    expect(t.match(/capture\.toggle/g)).toHaveLength(1)
+    expect(t).toMatch(/<span :id="liveId" class="st-sr-only" aria-live="polite">/)
+    // One button per cell, the same element whether it holds a binding, the recording or
+    // "+ Asignar" (the focus stays on it), cancelling on blur and on a second click.
+    expect(t.match(/class="sc-cell-main"/g)).toHaveLength(1)
+    expect(t.match(/@blur="onRecorderBlur"/g)).toHaveLength(1)
+    expect(t).toMatch(/@click="record\(cell\.slot\)"/)
+    expect(ROW).toMatch(/function record[\s\S]*?props\.capture\.toggle\(props\.row\.action, slot\)/)
   })
 
-  it('shows the bindings as chips, each with its own ×, and "add" only while there is room', () => {
+  it('is a table: a column per binding, Reset in a column kept for it, Esc a row like the others', () => {
     const t = templateOf(ROW)
-    expect(t).toMatch(/<li\s+v-for="b in row\.bindings"[\s\S]*?class="sc-chip"/)
-    expect(t).toMatch(/class="sc-chip-x"[\s\S]*?@click="capture\.remove\(row\.action, b\.slot\)"/)
-    expect(t).toMatch(/v-if="row\.canAdd"/)
-    // Keyed by the binding: a chip that moves up is not the removed one's element (nor its focus).
-    expect(t).toMatch(/v-for="b in row\.bindings"\s+:key="b\.accelerator"/)
-    // "+ Añadir" wraps with the chips; Reset stays at the end of the title line, only disabled
-    // while recording (nothing moves under the driver's hands).
-    const list = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
-    expect(list).toContain('class="st-btn st-btn-sm sc-add"')
-    expect(t).toMatch(/<div class="sc-head">[\s\S]*?sc-reset"\s+:disabled="recording !== null"/)
-    // Recording over a chip: its × cancels, and the prompt is the short one.
-    expect(t).toMatch(/sc-chip-cancel"[\s\S]*?@click="capture\.cancel\(\)"/)
-    expect(t).toContain('t.settings.shortcuts.capture.promptShort')
-    // The "in use" badge sits by the name, not in a chip, so the chips stay one size.
-    const chips = /<ul class="sc-chips"[\s\S]*?<\/ul>/.exec(t)?.[0] ?? ''
-    expect(chips).toContain('<Keycaps')
-    expect(chips).not.toMatch(/sc-badge/)
-    expect(t).toMatch(/<span class="sc-title">[\s\S]*class="sc-badge-unavailable"[\s\S]*?<\/span>/)
-    // No coloured rail on a chip: a warning outline at most.
-    expect(ROW).not.toMatch(/border-left:/)
+    expect(t).toMatch(/v-for="cell in cells"\s+:key="cell\.slot"/)
+    expect(ROW).toContain('rowCells(props.row, recording.value)')
+    // The ×, and Delete / Backspace on the cell, empty it.
+    expect(t).toMatch(/class="sc-x"[\s\S]*?@click="capture\.remove\(row\.action, cell\.slot\)"/)
+    expect(ROW).toMatch(/e.key !== 'Delete' && e.key !== 'Backspace'/)
+    // Reset: an icon in its own cell, there even when it has nothing to reset.
+    expect(t).toMatch(/<div class="sc-reset-cell" role="cell">\s*<button\s+v-if="row\.canReset"/)
+    expect(t).toMatch(/sc-reset"\s+:disabled="recording !== null"/)
+    // A line about a cell starts under it.
+    expect(t).toContain(':class="[`at-${line.slot ?? 0}`')
+    // No badge by the name: the cell says what is wrong.
+    expect(t).not.toMatch(/sc-badge/)
+    const page = templateOf(PAGE)
+    expect(page).toMatch(/<div class="sc-table" role="table"/)
+    expect(page).toMatch(/v-for="n in MAX_BINDINGS"/)
+    expect(page).toMatch(/<div class="sc-item sc-fixed" role="row">/)
+    expect(page).toMatch(/<details class="sc-notes">/)
+    // No second column of notes beside the table.
+    expect(page).not.toContain('st-cols')
+    // No coloured rail on a cell: a warning outline at most.
+    expect(ROW + PAGE).not.toMatch(/border-left:/)
   })
 
   it('lists the configured keys in the sidebar instead of fixed ones', () => {
