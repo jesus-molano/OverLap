@@ -110,6 +110,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           v-memo="[light]"
           class="wl-light"
           :class="`wl-light--${light.level}`"
+          :data-el="`lights.icons.${light.kind}`"
         >
           <LightTile :icon="light.icon" :level="light.level" :label="light.label" />
           <template v-if="light.text">

@@ -8,10 +8,14 @@ import {
   isDefault,
   isRequired,
   keyAction,
+  movedAcross,
   movedBy,
   movedMessage,
   movedTo,
   shownCount,
+  sideMessage,
+  sideOf,
+  sides,
   toggled,
   visibilityMessage
 } from './listOps'
@@ -88,5 +92,68 @@ describe('announcements', () => {
     expect(movedMessage(EN, 'iRating', 0, 8)).toBe('iRating: position 1 of 8.')
     expect(visibilityMessage(ES, 'Goma', false)).toBe('Goma oculto.')
     expect(visibilityMessage(EN, 'Rubber', true)).toBe('Rubber shown.')
+  })
+})
+
+describe('two sides of an info bar', () => {
+  type B = 'x' | 'y' | 'split' | 'z' | 'w'
+  const BAR = elements<B>(['x', 'y', 'split', 'z', 'w'], { required: ['split'], hidden: ['w'] })
+  const ids = (l: readonly { id: string }[]): string[] => l.map((e) => e.id)
+
+  it('puts what is before the marker on the left, what follows on the right, with indexes', () => {
+    const { left, right } = sides(defaults(BAR), 'split')
+    expect(left.map((r) => [r.entry.id, r.index])).toEqual([
+      ['x', 0],
+      ['y', 1]
+    ])
+    expect(right.map((r) => [r.entry.id, r.index])).toEqual([
+      ['z', 3],
+      ['w', 4]
+    ])
+    // Without the marker everything is on the left.
+    const none = sides(defaults(SPEC), 'split' as Id)
+    expect(none.left.length).toBe(3)
+    expect(none.right).toEqual([])
+  })
+
+  it('says the side of an element', () => {
+    const list = defaults(BAR)
+    expect(sideOf(list, 'y', 'split')).toBe('left')
+    expect(sideOf(list, 'z', 'split')).toBe('right')
+  })
+
+  it('moves an element over the marker to the nearest end of the other side', () => {
+    const list = defaults(BAR)
+    expect(ids(movedAcross(BAR, list, 'y', 'split'))).toEqual(['x', 'split', 'y', 'z', 'w'])
+    expect(ids(movedAcross(BAR, list, 'x', 'split'))).toEqual(['y', 'split', 'x', 'z', 'w'])
+    expect(ids(movedAcross(BAR, list, 'z', 'split'))).toEqual(['x', 'y', 'z', 'split', 'w'])
+    expect(ids(movedAcross(BAR, list, 'w', 'split'))).toEqual(['x', 'y', 'w', 'split', 'z'])
+    // Its visibility goes with it; the marker itself does not move.
+    expect(movedAcross(BAR, list, 'w', 'split').find((e) => e.id === 'w')?.visible).toBe(false)
+    expect(movedAcross(BAR, list, 'split', 'split')).toEqual(list)
+    // There and back is where it was.
+    const back = movedAcross(BAR, movedAcross(BAR, list, 'y', 'split'), 'y', 'split')
+    expect(back).toEqual(list)
+  })
+
+  it('crosses the marker one step at a time with the arrows too', () => {
+    const list = defaults(BAR)
+    expect(sideOf(movedBy(BAR, list, 'y', 1), 'y', 'split')).toBe('right')
+    expect(sideOf(movedBy(BAR, list, 'z', -1), 'z', 'split')).toBe('left')
+  })
+
+  it('announces the new side in each language', () => {
+    expect(sideMessage(ES, 'Incidentes', 'right')).toBe('Incidentes: a la derecha.')
+    expect(sideMessage(ES, 'SoF', 'left')).toBe('SoF: a la izquierda.')
+    expect(sideMessage(EN, 'SoF', 'right')).toBe('SoF: on the right.')
+  })
+
+  it('lands a drag on the other side through the marker slot (the right box heading)', () => {
+    // Slots: x, y, [Derecha heading = split], z, w.
+    const centres = [10, 60, 110, 160, 210]
+    const list = defaults(BAR)
+    const to = dropIndex(centres, 1, 170)
+    expect(ids(movedTo(BAR, list, 'y', to))).toEqual(['x', 'split', 'z', 'y', 'w'])
+    expect(sideOf(movedTo(BAR, list, 'z', dropIndex(centres, 3, 50)), 'z', 'split')).toBe('left')
   })
 })
