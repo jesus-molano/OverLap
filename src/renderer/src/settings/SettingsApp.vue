@@ -83,6 +83,10 @@ const nativeMissing = computed(
 // Pages and panels go to another page through this (the status panel, a search result…).
 provideNavigate((next) => select(next))
 
+function exitEdit(): void {
+  sendCommand({ type: 'set-edit-mode', on: false })
+}
+
 function copyDiagnostics(): void {
   sendCommand({ type: 'copy-diagnostics' })
 }
@@ -121,10 +125,18 @@ function openLog(): void {
           <EditModeButton compact />
         </div>
 
-        <p v-if="editMode" class="banner" role="status">
-          {{ t.settings.app.editBanner.before }} <kbd>Alt</kbd>
-          {{ t.settings.app.editBanner.after }}
-        </p>
+        <div v-if="editMode" class="banner banner-actions banner-edit" role="status">
+          <p class="banner-text edit-keys">
+            <strong>{{ t.settings.app.editBanner.title }}</strong>
+            <span v-for="k in t.settings.app.editBanner.keys" :key="k.key" class="edit-key">
+              <kbd>{{ k.key }}</kbd> {{ k.text }}
+            </span>
+            <span class="edit-chip">{{ t.settings.app.editBanner.chip }}</span>
+          </p>
+          <button type="button" class="st-btn st-btn-sm" @click="exitEdit">
+            {{ t.settings.app.editBanner.exit }}
+          </button>
+        </div>
         <OverlayHiddenNote />
         <p v-if="updateFailed" class="banner banner-error" role="alert">
           {{ t.settings.app.updateError }}
@@ -210,6 +222,22 @@ function openLog(): void {
 .banner-text {
   flex: 1 1 24em;
   min-width: 0;
+}
+
+/* Edit mode: its keys on one line, each a keycap and what it does. */
+.edit-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+}
+
+.edit-key {
+  white-space: nowrap;
+}
+
+.edit-chip {
+  color: var(--ov-fg-muted);
 }
 
 .banner-error {

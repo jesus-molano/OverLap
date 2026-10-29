@@ -4,6 +4,7 @@ import {
   parseDragState,
   parseEditChips,
   parseScaleStep,
+  parseOpenWidgetPage,
   parseWidgetToggle
 } from './overlayMessages'
 
@@ -140,6 +141,27 @@ describe('parseDragState', () => {
       { dragging: true }
     ]) {
       expect(parseDragState(raw), JSON.stringify(raw)).toBeNull()
+    }
+  })
+})
+
+describe('parseOpenWidgetPage (R25)', () => {
+  it('accepts one widget of a document, dropping extra fields', () => {
+    expect(parseOpenWidgetPage({ session: 2, widget: 'fuel', x: 1 })).toEqual({
+      session: 2,
+      widget: 'fuel'
+    })
+  })
+
+  it('rejects anything else', () => {
+    for (const raw of [
+      null,
+      [],
+      { session: 2 },
+      { session: 0, widget: 'fuel' },
+      { session: 2, widget: 'x' }
+    ]) {
+      expect(parseOpenWidgetPage(raw)).toBeNull()
     }
   })
 })

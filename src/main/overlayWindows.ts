@@ -50,6 +50,7 @@ import {
   parseDragState,
   parseEditChips,
   parseScaleStep,
+  parseOpenWidgetPage,
   parseWidgetToggle
 } from './overlayMessages'
 import { MainPerfLog, perfEnabled } from './overlayPerf'
@@ -80,6 +81,8 @@ export interface OverlayWindowsOptions {
    * the settings window do (the change comes back through setVisible / applySettings).
    */
   onWidgetToggle(id: WidgetId, field: 'visible' | 'locked', value: boolean): void
+  /** An edit chip's ⚙ in edit mode: open that widget's settings page (R25). Absent: ignored. */
+  onOpenWidgetPage?(id: WidgetId): void
   /**
    * Whether the mouse cursor shows now (null: unknown), read only while editing: the game hides
    * it while you drive, and the overlay then says how to free it. Absent: never hidden.
@@ -191,6 +194,7 @@ export class OverlayWindows implements OverlayWindowHost {
     ipcMain.on(IPC.dragState, this.onDragState)
     ipcMain.on(IPC.widgetToggle, this.onWidgetToggle)
     ipcMain.on(IPC.editChips, this.onEditChips)
+    ipcMain.on(IPC.openWidgetPage, this.onOpenWidgetPage)
     screen.on('display-added', this.onDisplayAdded)
     screen.on('display-removed', this.onDisplayRemoved)
     screen.on('display-metrics-changed', this.onDisplayMetricsChanged)
@@ -240,6 +244,7 @@ export class OverlayWindows implements OverlayWindowHost {
     ipcMain.removeListener(IPC.dragState, this.onDragState)
     ipcMain.removeListener(IPC.widgetToggle, this.onWidgetToggle)
     ipcMain.removeListener(IPC.editChips, this.onEditChips)
+    ipcMain.removeListener(IPC.openWidgetPage, this.onOpenWidgetPage)
     screen.removeListener('display-added', this.onDisplayAdded)
     screen.removeListener('display-removed', this.onDisplayRemoved)
     screen.removeListener('display-metrics-changed', this.onDisplayMetricsChanged)
@@ -900,6 +905,24 @@ export class OverlayWindows implements OverlayWindowHost {
     if (!msg || !w || msg.session !== w.session || !this.editing) return
     if (this.owner.get(msg.widget) !== w) return
     this.opts.onWidgetToggle(msg.widget, msg.field, msg.value)
+  }
+
+  /** An edit chip's ⚙: only in edit mode, from the current document hosting that widget. */
+  private readonly onOpenWidgetPage = (event: IpcMainEvent, raw: unknown): void => {
+    const msg = parseOpenWidgetPage(raw)
+    const w = msg ? this.windowOf(event.sender) : undefined
+    if (!msg || !w || msg.session !== w.session || !this.editing) return
+    if (this.owner.get(msg.widget) !== w) return
+    this.opts.onOpenWidgetPage?.(msg.widget)
+  }
+
+  /**
+   * Edit mode entered from a widget's page («Editar posición», R25): every window is told, and
+   * the one hosting it points its panel out. Nothing outside edit mode.
+   */
+  focusWidget(id: WidgetId): void {
+    if (!this.editing || !this.started || this.disposed) return
+    this.broadcast(IPC.editFocus, id)
   }
 
   /** Where a window's edit chips are (edit mode, its current document only). */

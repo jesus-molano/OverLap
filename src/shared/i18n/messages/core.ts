@@ -174,6 +174,8 @@ export const coreEs = {
     hide: (widget: string) => `Ocultar ${widget}`,
     lock: (widget: string) => `Bloquear ${widget}`,
     unlock: (widget: string) => `Desbloquear ${widget}`,
+    /** The chip's ⚙ (R25): its page in the settings window. */
+    settings: (widget: string) => `Ajustes de ${widget}`,
     /** The radar is painted above every panel: on it, the panels it covers ('Avisos, Delta'). */
     coversPanels: (names: string) => `Tapa: ${names}`,
     /** On a panel under the radar. */
@@ -329,6 +331,7 @@ export const coreEn: Dict<typeof coreEs> = {
     hide: (widget) => `Hide ${widget}`,
     lock: (widget) => `Lock ${widget}`,
     unlock: (widget) => `Unlock ${widget}`,
+    settings: (widget) => `${widget} settings`,
     coversPanels: (names) => `Covers: ${names}`,
     underRadar: 'The radar covers it',
     cursorHidden: {

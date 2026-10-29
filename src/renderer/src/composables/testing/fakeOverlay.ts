@@ -174,6 +174,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onSaveFailing: (cb) => saveFailing.on(cb),
     onControllerPress: (cb) => controllerPress.on(cb),
     onShortcutUsed: () => () => {},
+    onEditFocus: () => () => {},
+    openWidgetPage: () => {},
     onOsd: () => () => {},
     commitBounds: (msg) => void sent.commitBounds.push(msg),
     scaleStep: (msg) => void sent.scaleStep.push(msg),

@@ -12,12 +12,22 @@ export const settingsEs = {
   /** Window frame: top bar, banners, footer. */
   app: {
     pageSelect: 'Sección',
-    /** Split around the <kbd>Alt</kbd> key. */
+    /**
+     * The edit-mode banner (R25): one line of keys and what each does, instead of two lines of
+     * text. `key` is drawn as a keycap.
+     */
     editBanner: {
-      before:
-        'Modo edición: arrastra los widgets para moverlos y usa sus bordes para cambiar el ancho; la rueda del ratón los escala y',
-      after:
-        'desactiva el imán. Los bloqueados no se mueven; el ojo y el candado de cada widget lo ocultan o lo bloquean.'
+      title: 'Modo edición',
+      keys: [
+        { key: 'Arrastra', text: 'mover' },
+        { key: 'Bordes', text: 'ancho' },
+        { key: 'Rueda', text: 'escala' },
+        { key: 'Alt', text: 'sin imán' },
+        { key: 'Esc', text: 'salir' }
+      ],
+      /** The chip of each widget: what its buttons do. */
+      chip: 'En la etiqueta: ojo, candado y ⚙ (sus ajustes)',
+      exit: 'Salir'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
     /** Main could not write settings.json; it keeps retrying. */
@@ -547,6 +557,10 @@ export const settingsEs = {
     sizeAuto: (width: number, scale: string) => `Alto automático · ${width} px de ancho · ${scale}`,
     sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
     visible: 'Visible',
+    /** Beside «Visible» (R25): edit mode, with this widget pointed out over the game. */
+    editPosition: 'Editar posición',
+    editPositionHelp: (widget: string) =>
+      `Entra en modo edición y señala ${widget} sobre el juego para moverlo o cambiar su tamaño`,
     hiddenNote: 'Oculto: no se dibuja ni se calcula. Actívalo para verlo sobre el juego.',
     /** On, but a rule hides it now (R35): 'Activado, pero ahora no se ve: oculto en práctica.' */
     heldNote: (caption: string) => `Activado, pero ahora no se ve: ${caption}.`,
@@ -1589,10 +1603,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
   app: {
     pageSelect: 'Section',
     editBanner: {
-      before:
-        'Edit mode: drag a widget to move it and drag its edges to change its width; the mouse wheel scales it and holding',
-      after:
-        'turns off snapping. Locked widgets stay put; each widget’s eye and padlock hide or lock it.'
+      title: 'Edit mode',
+      keys: [
+        { key: 'Drag', text: 'move' },
+        { key: 'Edges', text: 'width' },
+        { key: 'Wheel', text: 'scale' },
+        { key: 'Alt', text: 'no snap' },
+        { key: 'Esc', text: 'exit' }
+      ],
+      chip: 'On the label: eye, padlock and ⚙ (its settings)',
+      exit: 'Exit'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
     saveError:
@@ -2010,6 +2030,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sizeAuto: (width, scale) => `Auto height · ${width} px wide · ${scale}`,
     sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
     visible: 'Visible',
+    editPosition: 'Edit position',
+    editPositionHelp: (widget) =>
+      `Enters edit mode and points out ${widget} over the game, to move or resize it`,
     hiddenNote: 'Hidden: not drawn or computed. Turn it on to see it over the game.',
     heldNote: (caption) => `On, but not showing now: ${caption}.`,
     reset: {

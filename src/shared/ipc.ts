@@ -165,8 +165,24 @@ export const IPC = {
   /** main -> settings window, `ShortcutAction`: a shortcut ran (its row says so, R37). */
   shortcutUsed: 'overlay:shortcut-used',
   /** main -> the confirmation window over the game, `OsdMessage` (R37). */
-  osd: 'overlay:osd'
+  osd: 'overlay:osd',
+  /**
+   * main -> every overlay window, `WidgetId`: edit mode was entered from that widget's page
+   * («Editar posición», R25); its panel is pointed out for a moment.
+   */
+  editFocus: 'overlay:edit-focus',
+  /** overlay window -> main (send), `OpenWidgetPageMessage`: an edit chip's ⚙ (R25). */
+  openWidgetPage: 'overlay:open-widget-page'
 } as const
+
+/**
+ * `IPC.openWidgetPage`, edit mode only: the ⚙ of a widget's edit chip, from the window hosting
+ * it. Main opens the settings window on that widget's page.
+ */
+export interface OpenWidgetPageMessage {
+  session: number
+  widget: WidgetId
+}
 
 /** What the confirmation over the game says: a line, and a smaller one under it. */
 export interface OsdMessage {
@@ -384,7 +400,8 @@ export type RendererView = { kind: 'overlay' } | { kind: 'settings' }
 
 /** One-shot actions from the settings window. */
 export type SettingsCommand =
-  | { type: 'set-edit-mode'; on: boolean }
+  /** `focus`: entered from that widget's page («Editar posición»): its panel is pointed out. */
+  | { type: 'set-edit-mode'; on: boolean; focus?: WidgetId }
   | { type: 'reset-widget-bounds'; widgetId: WidgetId }
   | { type: 'open-settings-folder' }
   /** overlap.log in the system's viewer (R35). */
@@ -499,6 +516,10 @@ export interface OverlayApi {
   widgetToggle(msg: WidgetToggleMessage): void
   /** Overlay windows, edit mode: where this window's edit chips are now. */
   editChips(msg: EditChipsMessage): void
+  /** Overlay windows, edit mode: an edit chip's ⚙ (open that widget's settings page). */
+  openWidgetPage(msg: OpenWidgetPageMessage): void
+  /** Overlay windows: edit mode entered from a widget's page; point that panel out. */
+  onEditFocus(cb: (widget: WidgetId) => void): Unsubscribe
   /**
    * Settings window only (main rejects it from overlay windows). `forLayout`: the layout in use
    * when the change was made; main keeps it in that layout if another is in use by the time it

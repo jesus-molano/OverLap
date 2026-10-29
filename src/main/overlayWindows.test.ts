@@ -786,6 +786,43 @@ describe('OverlayWindows edit chips', () => {
     expect(w.mouse).toEqual(CAPTURE)
   })
 
+  it('opens a widget page from the ⚙ of the hosting window, in edit mode only (R25)', () => {
+    const opened: WidgetId[] = []
+    windows.dispose()
+    windows = new OverlayWindows({
+      getSettings: () => settings,
+      onBoundsCommitted: () => {},
+      onScaleStep: () => {},
+      onWidgetToggle: () => {},
+      onOpenWidgetPage: (id) => opened.push(id)
+    })
+    useTwoDisplays()
+    start()
+    const w1 = display(1)
+    const w2 = display(2)
+    const open = (w: FakeBrowserWindow, widget: string, session = layoutOf(w).session): void =>
+      fakeIpcMain.send(IPC.openWidgetPage, w.webContents, { session, widget })
+    open(w1, 'relative')
+    expect(opened).toEqual([])
+    windows.setEditMode(true)
+    open(w2, 'relative') // not its window
+    open(w1, 'relative', layoutOf(w1).session + 1) // another document
+    open(w1, 'nope')
+    expect(opened).toEqual([])
+    open(w1, 'relative')
+    expect(opened).toEqual(['relative'])
+  })
+
+  it('points a widget out to every window, in edit mode only (R25)', () => {
+    start()
+    const w = only()
+    windows.focusWidget('fuel')
+    expect(w.webContents.sentOn(IPC.editFocus)).toEqual([])
+    windows.setEditMode(true)
+    windows.focusWidget('fuel')
+    expect(w.webContents.sentOn(IPC.editFocus)).toEqual(['fuel'])
+  })
+
   it('applies the eye and the padlock from the hosting window, in edit mode only', () => {
     useTwoDisplays()
     start()

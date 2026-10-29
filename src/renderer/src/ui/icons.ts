@@ -131,6 +131,15 @@ export const ICONS = {
     { d: 'M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4z' },
     { d: 'M2.5 13.5l11-11', kind: 'stroke' }
   ],
+  /** Settings: a gear (an edit chip's way to the widget's page, R25). */
+  gear: [
+    { d: 'M8 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', kind: 'stroke' },
+    { d: 'M8 6.25a1.75 1.75 0 1 1 0 3.5 1.75 1.75 0 0 1 0-3.5z', kind: 'stroke' },
+    {
+      d: 'M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4',
+      kind: 'stroke'
+    }
+  ],
   /** Steering wheel. */
   wheel: [
     { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },

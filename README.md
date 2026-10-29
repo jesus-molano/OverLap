@@ -235,14 +235,17 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 
 ## Modo edición
 
-Entra con `Ctrl+Shift+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes.
+Entra con `Ctrl+Shift+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
+página de un widget, **Editar posición** (junto a «Visible») entra y señala ese widget sobre el
+juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
   ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o `Shift`
   pulsado, no).
 - Arrástralo fuera de su pantalla para llevarlo a otra.
-- La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar) y un **candado** (bloquear). Un
-  widget oculto se ve como un hueco discontinuo para poder recuperarlo.
+- La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar), un **candado** (bloquear) y un
+  **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
+  poder recuperarlo.
 - Sal con `Esc`, con el mismo atajo o desde la bandeja. Salir en mitad de un arrastre lo cancela.
 - Con iRacing delante y tú en el coche, el simulador oculta el cursor: abre los Ajustes desde la
   bandeja o pulsa `Alt+Tab` para recuperarlo. Lo más cómodo es colocar los widgets en el garaje o en

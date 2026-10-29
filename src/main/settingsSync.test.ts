@@ -100,6 +100,10 @@ describe('viewOfSender', () => {
 describe('isSettingsCommand', () => {
   it('accepts the known commands', () => {
     expect(isSettingsCommand({ type: 'set-edit-mode', on: true })).toBe(true)
+    // «Editar posición» names the widget to point out (R25); the status panel's buttons (R35).
+    expect(isSettingsCommand({ type: 'set-edit-mode', on: true, focus: 'fuel' })).toBe(true)
+    expect(isSettingsCommand({ type: 'open-log' })).toBe(true)
+    expect(isSettingsCommand({ type: 'copy-diagnostics' })).toBe(true)
     expect(isSettingsCommand({ type: 'set-overlay-hidden', hidden: true })).toBe(true)
     expect(isSettingsCommand({ type: 'capture-shortcuts', on: false })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-bounds', widgetId: 'relative' })).toBe(true)
@@ -133,6 +137,7 @@ describe('isSettingsCommand', () => {
       {},
       { type: 'set-edit-mode' },
       { type: 'set-edit-mode', on: 'yes' },
+      { type: 'set-edit-mode', on: true, focus: 'nope' },
       { type: 'set-overlay-hidden' },
       { type: 'set-overlay-hidden', hidden: 1 },
       { type: 'set-overlay-hidden', on: true },

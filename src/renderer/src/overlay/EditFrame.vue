@@ -31,6 +31,7 @@ import { createPanelEdit } from './panelEdit'
 import { slotStyle } from './slotGeometry'
 import { ANIMATION_FRAMES } from './timers'
 import { injectEditSession } from './useEditSession'
+import { useEditFocus } from './editFocus'
 
 const slot = injectSlot()
 const session = injectEditSession()
@@ -121,6 +122,24 @@ const clashNote = computed(() => {
   if (slot.id !== TOPMOST_WIDGET) return f.underRadar
   return f.coversPanels(list.map((id) => widgetTitle(t.value, id)).join(', '))
 })
+
+/** The chip's ⚙: this widget's page in the settings window (R25). */
+const pageLabel = computed(() => t.value.core.editFrame.settings(title.value))
+
+function openPage(): void {
+  const s = session.session()
+  if (!editMode.value || !Number.isSafeInteger(s) || s < 1) return
+  window.overlay.openWidgetPage({ session: s, widget: slot.id })
+}
+
+/**
+ * «Editar posición» on this widget's page (R25): a ring pulses round the panel for a moment
+ * (keyed by the request, so pressing it again pulses again).
+ */
+const editFocus = useEditFocus()
+const focusN = computed(() =>
+  editMode.value && editFocus.value?.widget === slot.id ? editFocus.value.n : 0
+)
 
 function toggle(field: ToggleField): void {
   const msg = toggleMessage(slot, field, session.session(), editMode.value)
@@ -272,8 +291,19 @@ onBeforeUnmount(() => {
           >
             <Icon :name="locked ? 'lock' : 'unlock'" />
           </button>
+          <button
+            type="button"
+            class="chip-btn"
+            :title="pageLabel"
+            :aria-label="pageLabel"
+            @pointerdown.stop
+            @click.stop="openPage"
+          >
+            <Icon name="gear" />
+          </button>
         </span>
       </div>
+      <div v-if="focusN > 0" :key="focusN" class="focus-ring" aria-hidden="true" />
       <div v-if="crossing" class="chip chip-drop" aria-hidden="true">
         <span class="chip-meta">{{ t.core.editFrame.dropOnOtherDisplay }}</span>
       </div>
@@ -314,6 +344,30 @@ onBeforeUnmount(() => {
 }
 
 /* ---- Edit mode ---------------------------------------------------------- */
+
+/* «Editar posición» from the widget's page: a ring round the panel pulses three times. */
+.focus-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--ov-edit);
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  animation: ov-focus-ring 700ms ease-in-out 3;
+}
+
+@keyframes ov-focus-ring {
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-ring {
+    opacity: 1;
+    animation: none;
+  }
+}
 
 .frame.editing {
   cursor: move;
