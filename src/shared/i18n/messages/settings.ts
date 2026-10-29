@@ -747,9 +747,9 @@ export const settingsEs = {
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
-    /** Under the lap times list while their row is off in Filas. */
+    /** Under the lap times list while their row is off in Líneas. */
     lapTimesRowOff:
-      'La línea de tiempos está oculta en «Filas»; al mostrar aquí un tiempo, se muestra la línea',
+      'La línea de tiempos está oculta en «Líneas»; al mostrar aquí un tiempo, se muestra la línea',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1062,7 +1062,7 @@ export const settingsEs = {
     },
     battle: {
       lanes: 'Rivales',
-      rows: 'Filas',
+      rows: 'Líneas',
       parts: 'Detalles',
       headerBar: 'Cabecera',
       footerBar: 'Pie'
@@ -1070,7 +1070,7 @@ export const settingsEs = {
     inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos', car: 'Coche' },
     traffic: { groups: 'Grupos', parts: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
     alerts: { parts: 'Extras' },
-    delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
+    delta: { rows: 'Líneas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
     fuel: { headerBar: 'Cabecera', lines: 'Líneas', footerBar: 'Pie' },
     lights: { icons: 'Testigos' },
     /** The accordions' open state (no editor of its own): named for completeness. */
@@ -1978,7 +1978,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     cycleNoKeys: 'Give it a shortcut in “Shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
-    lapTimesRowOff: 'The lap times line is hidden in “Rows”; showing a time here shows the line',
+    lapTimesRowOff: 'The lap times line is hidden in “Lines”; showing a time here shows the line',
     references: {
       pb: {
         label: 'Personal best',
@@ -2244,7 +2244,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     battle: {
       lanes: 'Rivals',
-      rows: 'Rows',
+      rows: 'Lines',
       parts: 'Details',
       headerBar: 'Header',
       footerBar: 'Footer'
@@ -2252,7 +2252,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
     traffic: { groups: 'Groups', parts: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     alerts: { parts: 'Extras' },
-    delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
+    delta: { rows: 'Lines', top: 'Top line', laps: 'Lap times' },
     fuel: { headerBar: 'Header', lines: 'Lines', footerBar: 'Footer' },
     lights: { icons: 'Lights' },
     settingsWindow: { customizeOpen: 'Open sections of Customise' }

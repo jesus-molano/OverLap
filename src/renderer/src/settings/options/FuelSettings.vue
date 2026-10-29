@@ -73,9 +73,6 @@ const setLines = listSetter('fuel', 'lines')
   </PageSection>
 
   <CustomizeSection>
-    <InfoBarEditor section="fuel" field="headerBar" />
-    <InfoBarEditor section="fuel" field="footerBar" />
-
     <ElementEditor
       :title="zoneTitle(t, 'fuel', 'lines')"
       :items="opts.lines"
@@ -95,5 +92,7 @@ const setLines = listSetter('fuel', 'lines')
         />
       </template>
     </ElementEditor>
+    <InfoBarEditor section="fuel" field="headerBar" />
+    <InfoBarEditor section="fuel" field="footerBar" />
   </CustomizeSection>
 </template>

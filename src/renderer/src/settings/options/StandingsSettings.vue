@@ -35,9 +35,9 @@ import PageSection from '../layout/PageSection.vue'
 
 /**
  * The standings' page: what the table shows (mode, rows, gap, names), then one editor per zone
- * in the widget's order: the columns (with the column heads, the makes and the flags), the
- * header, its second line and the footer (the info bars, each with its size), and the class
- * line. The live sample beside it shows every change.
+ * in every page's order (customizeZones): the columns (with the column heads, the makes and the
+ * flags), the class line, then the header, its second line and the footer (the info bars). The
+ * live sample beside it shows every change.
  */
 const opts = useOptions('standings')
 const appearance = useAppearance()
@@ -199,19 +199,19 @@ const fixed = computed(() => fixedColumns(t.value))
       </template>
     </ElementEditor>
 
-    <InfoBarEditor
-      v-for="[field] in INFO_BARS.standings"
-      :key="field"
-      section="standings"
-      :field="field"
-    />
-
     <ElementEditor
       :title="zoneTitle(t, 'standings', 'classLine')"
       :items="opts.classLine"
       :spec="S.classLine"
       :labels="elementTexts(t, 'standings', 'classLine')"
       :apply="listSetter('standings', 'classLine')"
+    />
+
+    <InfoBarEditor
+      v-for="[field] in INFO_BARS.standings"
+      :key="field"
+      section="standings"
+      :field="field"
     />
   </CustomizeSection>
 </template>

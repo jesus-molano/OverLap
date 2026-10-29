@@ -332,34 +332,34 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'relative.footerBar',
   'radar.parts',
   'standings.columns',
+  'standings.classLine',
   'standings.headerBar',
   'standings.subheaderBar',
   'standings.footerBar',
-  'standings.classLine',
-  'battle.headerBar',
-  'battle.footerBar',
   'battle.lanes',
   'battle.rows',
   'battle.parts',
+  'battle.headerBar',
+  'battle.footerBar',
   'inputs.sections',
   'inputs.bars',
   'inputs.info',
   'inputs.car',
-  'traffic.headerBar',
-  'traffic.footerBar',
   'traffic.groups',
   'traffic.parts',
+  'traffic.headerBar',
+  'traffic.footerBar',
   'alerts.parts',
   'delta.rows',
   'delta.top',
   'delta.laps',
+  'fuel.lines',
   'fuel.headerBar',
   'fuel.footerBar',
-  'fuel.lines',
   'lights.icons'
 ])
 
-/** The first zone of each page: open until you close it. */
+/** The first zone of each page (its main list): open until you close it. */
 export const CUSTOMIZE_FIRST_ZONES: readonly CustomizeZoneId[] = CUSTOMIZE_ZONE_IDS.filter(
   (id, i) => i === 0 || id.split('.')[0] !== CUSTOMIZE_ZONE_IDS[i - 1]?.split('.')[0]
 )

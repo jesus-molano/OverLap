@@ -15,6 +15,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Relativo sigue la densidad**, como ya decía Apariencia, y tiene en su página el mismo selector
   «Global / Cómoda / Compacta» que Posiciones. «Cómoda» (la de siempre) lo dibuja igual que antes;
   «Compacta» junta las filas y agranda el texto en la misma ventana.
+- **Personalizar en el mismo orden en todos los widgets**: primero la lista principal (Columnas,
+  Rivales, Grupos, Líneas…), que es la que se abre en una instalación nueva, luego las demás listas
+  del contenido y al final Cabecera, Segunda línea y Pie. Batalla, Tráfico y Combustible ya no se
+  abren en una cabecera apagada. Las «Filas» de Batalla y Delta se llaman «Líneas», como en
+  Combustible. Las secciones que tenías abiertas siguen abiertas.
 
 ### Corregido
 
