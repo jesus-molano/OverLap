@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SAMPLE_MAX_HEIGHT_PX, sampleBox } from './sampleBox'
+import { SAMPLE_MAX_HEIGHT_PX, SAMPLE_ZOOM, sampleBox, sampleZoom } from './sampleBox'
 
 describe('sampleBox', () => {
   it('draws the widget at its real size when the page has room', () => {
@@ -19,6 +19,19 @@ describe('sampleBox', () => {
     expect(box.scale).toBeCloseTo(450 / 540, 6)
     expect(box.outerWidth).toBe(450)
     expect(box.outerHeight).toBe(250)
+  })
+
+  it('stays 1:1 at the normal window size and grows in a wide one (A11)', () => {
+    // The 880 px window's stage (~800 px): the real size.
+    expect(sampleBox(460, 296, 800).scale).toBe(1)
+    expect(sampleZoom(SAMPLE_ZOOM.fromPx)).toBe(1)
+    // A maximised 1920 px window (~1480 px of stage): about 1.5x, never cut by the width.
+    const wide = sampleBox(460, 296, 1480)
+    expect(wide.scale).toBeCloseTo(1.48, 6)
+    expect(wide.outerWidth).toBe(680)
+    // Ultrawide: capped, and never wider than the page.
+    expect(sampleBox(460, 296, 3000).scale).toBe(SAMPLE_ZOOM.max)
+    expect(sampleBox(1600, 296, 1700).scale).toBeCloseTo(1700 / 1600, 6)
   })
 
   it('caps the height, like a short window would', () => {

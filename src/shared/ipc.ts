@@ -53,8 +53,8 @@ export type TelemetryOutMessage =
    */
   | { type: 'bests'; list: PersonalBestList }
   /**
-   * The kind of session being driven or watched (sessionKind), on change: main applies the
-   * delta's cycle shortcut to that kind's reference. Null when unknown (no session).
+   * The kind of session being driven or watched (sessionKind), on change: main sends the
+   * delta's cycle shortcut only while there is one. Null when unknown (no session).
    */
   | { type: 'session-kind'; kind: SessionKind | null }
 
@@ -65,6 +65,11 @@ export type TelemetryInMessage =
   | { type: 'delete-bests'; keys: string[] }
   /** From the settings window: delete every personal best. */
   | { type: 'clear-bests' }
+  /**
+   * The delta's cycle shortcut: the next reference for the current session only. The settings
+   * are never changed by it (the DeltaProvider keeps it).
+   */
+  | { type: 'cycle-delta-reference' }
 
 // ---------------------------------------------------------------------------
 // Main <-> renderer (ipcMain / ipcRenderer channels)

@@ -74,6 +74,14 @@ export class TelemetryHost {
     return this.alive && this.post({ type: 'delete-bests', keys })
   }
 
+  /**
+   * The delta's cycle shortcut: the process moves the reference for this session only (nothing
+   * is saved); false when none is running.
+   */
+  cycleDeltaReference(): boolean {
+    return this.alive && this.post({ type: 'cycle-delta-reference' })
+  }
+
   /** Asks the running process to delete every personal best; false when none is running. */
   clearBests(): boolean {
     return this.alive && this.post({ type: 'clear-bests' })

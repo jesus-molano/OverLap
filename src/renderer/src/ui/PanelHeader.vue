@@ -38,7 +38,7 @@ withDefaults(
   /* Room for a plate-high tag (SIM, preview) whether one shows or not: no jump between modes. */
   min-height: calc(var(--ov-plate-h) + 0.7em + 1px);
   padding: 0.35em 0.6em 0.35em calc(var(--ov-bar-w) + 0.35em);
-  background: var(--ov-bg-head);
+  background: var(--ov-head-grad), var(--ov-bg-head);
   border-bottom: 1px solid var(--ov-rule);
   line-height: 1.3;
   white-space: nowrap;

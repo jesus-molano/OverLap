@@ -237,6 +237,8 @@ export function toRowSlot(
   if (index % 2 === 1) css += ' is-alt'
   if (breaks) css += ' is-break'
   if (u !== 'normal') css += ` is-${u}`
+  // Urgent: the line's state tint (theme.css .ov-state), with the icon colour and the number.
+  if (u === 'bad' || u === 'warn') css += ' ov-state'
   return {
     kind: 'row',
     group,

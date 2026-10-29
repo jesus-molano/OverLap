@@ -61,7 +61,7 @@ const outerStyle = computed<InlineStyle>(() => ({
 const windowStyle = computed<InlineStyle>(() => ({
   width: `${box.value.width}px`,
   height: `${box.value.height}px`,
-  transform: box.value.scale < 1 ? `scale(${box.value.scale})` : 'none'
+  transform: box.value.scale !== 1 ? `scale(${box.value.scale})` : 'none'
 }))
 const component = WIDGET_COMPONENTS[id]
 </script>

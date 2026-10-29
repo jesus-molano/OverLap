@@ -2,12 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { defaultOptions } from '../settings'
 import { DELTA_REFERENCE_VALUES } from '../settingsSchema'
 import type { DeltaReference } from '../types'
-import {
-  DELTA_REFERENCE_FIELD,
-  cycleDeltaPatch,
-  deltaReferenceFor,
-  nextDeltaReference
-} from './choice'
+import { DELTA_REFERENCE_FIELD, deltaReferenceFor, nextDeltaReference } from './choice'
 
 const DEFAULTS = defaultOptions('delta')
 
@@ -42,13 +37,5 @@ describe('the cycle shortcut', () => {
       seen.push(nextDeltaReference(seen.at(-1) ?? 'pb'))
     }
     expect(seen).toEqual([...DELTA_REFERENCE_VALUES, 'pb'])
-  })
-
-  it('patches only the current kind of session', () => {
-    expect(cycleDeltaPatch(DEFAULTS, 'race')).toEqual({ referenceRace: 'class' })
-    expect(cycleDeltaPatch(DEFAULTS, 'practice')).toEqual({ referencePractice: 'session' })
-    expect(cycleDeltaPatch({ ...DEFAULTS, referenceQualify: 'classOptimal' }, 'qualify')).toEqual({
-      referenceQualify: 'pb'
-    })
   })
 })

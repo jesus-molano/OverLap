@@ -298,23 +298,16 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 /* Colour-blind mode needs nothing here: the theme's warn steps away from its orange "bad". */
+/* Urgency is state: the line's tint in its tone (theme.css .ov-state), with the icon colour and
+   the number, never alone. */
 .tr-row.is-bad {
   --tr-tone: var(--ov-bad);
+  --ov-state: var(--tr-tone);
 }
 
 .tr-row.is-warn {
   --tr-tone: var(--ov-warn);
-}
-
-/* Urgency is state: the rail in its tone, full height and flush (with the icon colour and the
-   number, never alone). */
-.tr-row.is-bad::before,
-.tr-row.is-warn::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--ov-bar-w);
-  background: var(--tr-tone);
+  --ov-state: var(--tr-tone);
 }
 
 .tr-icon {

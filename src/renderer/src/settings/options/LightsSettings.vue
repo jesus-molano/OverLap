@@ -15,6 +15,7 @@ import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageAppendix from '../layout/PageAppendix.vue'
 import PageSection from '../layout/PageSection.vue'
+import { hasLightTexts, lightsFilter } from '@renderer/widgets/lights/view'
 import LightsLegend from './LightsLegend.vue'
 
 const opts = useOptions('lights')
@@ -28,6 +29,12 @@ const labelSideChoices = computed(() =>
   choiceOptions(OPTION_SCHEMA.lights.labelSide.values, t.value.settings.lights.labelSideChoices)
 )
 const column = computed(() => opts.value.layout === 'column')
+/** No caption, value nor repair time anywhere: the side of the texts has nothing to place. */
+const hasTexts = computed(() => hasLightTexts(lightsFilter(opts.value)))
+const labelSideHelp = computed(() => {
+  if (!column.value) return t.value.settings.lights.labelSideOff
+  return hasTexts.value ? undefined : t.value.settings.lights.labelSideNoText
+})
 const shown = (kind: LightKind): boolean => isElementVisible(opts.value.icons, kind)
 /** The trend lights the two temperature lights: nothing to light without them. */
 const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
@@ -46,10 +53,10 @@ const setIcons = listSetter('lights', 'icons')
     />
     <ChoiceControl
       :label="t.settings.lights.labelSide"
-      :help="column ? undefined : t.settings.lights.labelSideOff"
+      :help="labelSideHelp"
       :current="opts.labelSide"
       :options="labelSideChoices"
-      :disabled="!column"
+      :disabled="!column || !hasTexts"
       :apply="set('labelSide')"
     />
     <ToggleControl

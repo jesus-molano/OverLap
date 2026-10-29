@@ -267,7 +267,7 @@ export const settingsEs = {
       },
       cycleDeltaReference: {
         label: 'Cambiar la referencia del delta',
-        help: 'Pasa a la siguiente en este tipo de sesión; se aplica al empezar la vuelta'
+        help: 'Pasa a la siguiente solo en esta sesión (no se guarda); se aplica al empezar la vuelta'
       }
     },
     /** The fixed Esc row. */
@@ -599,7 +599,7 @@ export const settingsEs = {
       classOptimal: 'Óptima de clase'
     },
     /** The cycle shortcut, under the selector: 'Ctrl+Alt+D pasa a la siguiente en la sesión'. */
-    cycleKeys: (keys: string) => `${keys} pasa a la siguiente en la sesión actual`,
+    cycleKeys: (keys: string) => `${keys} pasa a la siguiente solo en esta sesión, sin guardarla`,
     cycleNoKeys: 'Con un atajo en «Atajos de teclado» la cambias sin salir del coche',
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
@@ -636,16 +636,18 @@ export const settingsEs = {
         'Los mejores tiempos de cada sector en las vueltas limpias de tu clase en esta sesión, sean de quien sean (tú incluido), unidos en una sola vuelta: el límite teórico'
     },
     fallback: 'Usar la siguiente si no existe',
-    /** Where the fallback goes from each reference (DELTA_FALLBACK in delta.ts). */
-    fallbackHelp: {
-      pb: 'Sin récord guardado aún, compara con tu mejor vuelta de la sesión y, si tampoco hay, con la mejor de tu clase',
-      session: 'Mientras no tengas vuelta en esta sesión, compara con la mejor de tu clase',
-      optimal:
-        'Mientras no tengas vuelta en esta sesión, compara con tu récord y, si tampoco hay, con la óptima de tu clase',
-      class: 'Es la última referencia: si nadie de tu clase ha marcado vuelta, no hay otra',
-      classOptimal:
-        'Mientras nadie de tu clase haya marcado vuelta en esta sesión, compara con tu récord'
-    },
+    /** The switch's help while on: each session's chain is under its own selector. */
+    fallbackOn: 'Mientras la elegida no exista, compara con la siguiente de su cadena',
+    /** The switch's help when every session uses the class best (it has no fallback). */
+    fallbackLast:
+      'La mejor de clase es la última referencia: si nadie ha marcado vuelta, no hay otra',
+    /**
+     * Under each session's selector, its fallback chain (DELTA_FALLBACK in choice.ts):
+     * 'Si no existe: Récord → Óptima de clase'.
+     */
+    fallbackThen: (chain: string) => `Si no existe: ${chain}`,
+    /** The class best under a session's selector: nothing after it. */
+    fallbackNone: 'Sin otra si no existe',
     fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
     range: 'Escala de la barra',
     rangeHelp:
@@ -707,18 +709,20 @@ export const settingsEs = {
       left: { label: 'A la izquierda' }
     },
     labelSideOff: 'Solo en columna',
+    /** No captions, temperatures nor repair time: nothing for the side to place. */
+    labelSideNoText: 'Solo afecta a textos y valores',
     onlyWhenLit: 'Solo encendidos',
     onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
     captions: 'Rótulos',
     captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
     temps: 'Temperaturas',
-    tempsHelp: 'La del agua y la del aceite junto a su testigo: «98°»',
+    tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
     repairTimeHelp: 'Lo que tardarán en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
-      `El agua o el aceite en amarillo tras ${s}${NB}s muy por encima de tu media: «+6°»`,
+      `El agua o el aceite en amarillo tras ${s}${NB}s muy por encima de tu media`,
     /** Short help under each light's toggle. */
     help: {
       oilPressure: 'Solo con el motor en marcha',
@@ -1242,7 +1246,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       cycleDeltaReference: {
         label: 'Next delta reference',
-        help: 'Moves to the next one for this kind of session; applied when the next lap starts'
+        help: 'Moves to the next one for this session only (not saved); applied when the next lap starts'
       }
     },
     escape: {
@@ -1552,7 +1556,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       class: 'Class best',
       classOptimal: 'Class optimal'
     },
-    cycleKeys: (keys) => `${keys} moves to the next one in the current session`,
+    cycleKeys: (keys) => `${keys} moves to the next one for this session only, not saved`,
     cycleNoKeys: 'Give it a shortcut in “Keyboard shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
@@ -1586,16 +1590,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'The best times in each sector over the clean laps of your class this session, whoever set them (you included), joined into one lap: the theoretical limit'
     },
     fallback: 'Fall back to the next one',
-    fallbackHelp: {
-      pb: 'With no personal best stored yet, compares with your session best and, failing that, with your class best',
-      session: 'Until you set a lap this session, compares with your class best',
-      optimal:
-        'Until you set a lap this session, compares with your personal best and, failing that, with your class optimal',
-      class:
-        'This is the last reference: if nobody in your class has set a lap yet, there is nothing to fall back to',
-      classOptimal:
-        'Until someone in your class sets a lap this session, compares with your personal best'
-    },
+    fallbackOn: 'While the chosen one doesn’t exist, compares with the next in its chain',
+    fallbackLast:
+      'The class best is the last reference: if nobody has set a lap yet, there is nothing to fall back to',
+    fallbackThen: (chain) => `If missing: ${chain}`,
+    fallbackNone: 'Nothing after it if missing',
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
     range: 'Bar scale',
     rangeHelp:
@@ -1649,16 +1648,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
       left: { label: 'On the left' }
     },
     labelSideOff: 'Column only',
+    labelSideNoText: 'Only affects captions and values',
     onlyWhenLit: 'Lit only',
     onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
     captions: 'Captions',
     captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
     temps: 'Temperatures',
-    tempsHelp: 'The water and oil temperature next to their lights: “98°”',
+    tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',
     repairTimeHelp: 'How long they take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
     trend: 'Rising temperature',
-    trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average: “+6°”`,
+    trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average`,
     help: {
       oilPressure: 'Only with the engine running',
       fuelPressure: 'Nearly always a tank running dry',

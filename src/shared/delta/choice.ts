@@ -1,8 +1,9 @@
 /**
  * Which delta reference the options choose: one per kind of session (DeltaOptions.reference*),
- * and the cycle of the 'cycleDeltaReference' shortcut, which main applies to the settings (the
- * provider then takes the new one at the start of the next lap). Shared by main, the provider
- * and the settings window. Pure.
+ * and the order of the 'cycleDeltaReference' shortcut. The shortcut never touches the settings:
+ * main asks the telemetry process, whose DeltaProvider keeps the choice for the current session
+ * only and takes it at the start of the next lap. Shared by the provider and the settings
+ * window. Pure.
  */
 import { DELTA_REFERENCE_VALUES } from '../settingsSchema'
 import type { SessionKind } from '../sessionInfo'
@@ -33,19 +34,22 @@ export function deltaReferenceFor(
   return isReference(v) ? v : 'pb'
 }
 
+/**
+ * The chain each reference walks with DeltaOptions.fallback, the chosen one first. Your optimal
+ * exists exactly when your session best does (a clean lap of yours), so it skips it: your record,
+ * then the optimal of your class. Until someone in your class has a clean lap, your record is
+ * the only lap a class optimal can fall back to. The class best has no fallback.
+ */
+export const DELTA_FALLBACK: Readonly<Record<DeltaReference, readonly DeltaReference[]>> = {
+  pb: ['pb', 'session', 'class'],
+  session: ['session', 'class'],
+  optimal: ['optimal', 'pb', 'classOptimal'],
+  class: ['class'],
+  classOptimal: ['classOptimal', 'pb']
+}
+
 /** The reference after `ref` in DELTA_REFERENCE_VALUES' order, back to the first after the last. */
 export function nextDeltaReference(ref: DeltaReference): DeltaReference {
   const i = DELTA_REFERENCE_VALUES.indexOf(ref)
   return DELTA_REFERENCE_VALUES[(i + 1) % DELTA_REFERENCE_VALUES.length] ?? 'pb'
-}
-
-/** The patch the cycle shortcut applies: `kind`'s reference moved to the next one. */
-export function cycleDeltaPatch(
-  opts: Pick<DeltaOptions, DeltaReferenceField>,
-  kind: SessionKind
-): Partial<DeltaOptions> {
-  const field = DELTA_REFERENCE_FIELD[kind]
-  const patch: Partial<DeltaOptions> = {}
-  patch[field] = nextDeltaReference(deltaReferenceFor(opts, kind))
-  return patch
 }

@@ -11,7 +11,9 @@
  * the first sector line) or when there is none: a faster lap, a best sector set mid-lap or a
  * change of options (Settings, the cycle shortcut) never makes the delta jump, and the sectors of
  * one lap compare with one reference. A reference chosen mid-lap waits in DeltaData.pending until
- * the next lap starts. Its profile is copied, so the store and the model may replace theirs at
+ * the next lap starts. The cycle shortcut (cycleReference) is a temporary choice for this session
+ * only: kept here, never in the settings, dropped on another sessionKey or kind of session (and
+ * with the process, on a restart); DeltaData.temporary says it is in force. Its profile is copied, so the store and the model may replace theirs at
  * will.
  *
  * Every payload also carries your lap times (DeltaData.laps: the last, your session best, your
@@ -42,6 +44,7 @@ import { finiteOr, quantise } from '../num'
 import { RACE_TIMING_LINES } from '../race/raceView'
 import type { RaceView } from '../race/raceView'
 import { currentSessionType, isRaceSession, resolvePlayerCarIdx, sessionKind } from '../sessionInfo'
+import type { SessionKind } from '../sessionInfo'
 import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type {
@@ -52,7 +55,7 @@ import type {
   DeltaReference,
   SessionMeta
 } from '../types'
-import { deltaReferenceFor } from './choice'
+import { DELTA_FALLBACK, deltaReferenceFor, nextDeltaReference } from './choice'
 import { OptimalLaps } from './optimal'
 import { personalBestKey, usableLap } from './references'
 import type { PersonalBestStore } from './references'
@@ -87,19 +90,8 @@ export const DELTA = {
   flagLagS: 1
 } as const
 
-/**
- * The chain each reference walks with DeltaOptions.fallback, the chosen one first. Your optimal
- * exists exactly when your session best does (a clean lap of yours), so it skips it: your record,
- * then the optimal of your class. Until someone in your class has a clean lap, your record is
- * the only lap a class optimal can fall back to. The class best has no fallback.
- */
-export const DELTA_FALLBACK: Readonly<Record<DeltaReference, readonly DeltaReference[]>> = {
-  pb: ['pb', 'session', 'class'],
-  session: ['session', 'class'],
-  optimal: ['optimal', 'pb', 'classOptimal'],
-  class: ['class'],
-  classOptimal: ['classOptimal', 'pb']
-}
+/** The chain each reference walks with DeltaOptions.fallback (choice.ts: the settings say it too). */
+export { DELTA_FALLBACK }
 
 /**
  * Seconds into the lap of `profile` (RACE_TIMING_LINES + 1 cumulative times) at lap fraction
@@ -158,6 +150,7 @@ function hiddenPayload(reference: DeltaReference): DeltaData {
     reference,
     preferred: reference,
     pending: null,
+    temporary: false,
     laps: NO_LAPS,
     refDriver: '',
     refSelf: false,
@@ -183,6 +176,15 @@ export class DeltaProvider {
   private optFallback = false
   /** A reference chosen while a lap was under way: taken at the next lap start. */
   private pending: DeltaReference | null = null
+  /**
+   * The cycle shortcut's choice, for its session (sessionKey) and kind of session only: never
+   * saved, and kept across reset() (a reconnect to the same session keeps it).
+   */
+  private override: { key: string; kind: SessionKind; ref: DeltaReference } | null = null
+  /** The session, kind and settings' choice of the last compute (what cycleReference acts on). */
+  private seenKey = ''
+  private seenKind: SessionKind | null = null
+  private seenChosen: DeltaReference = 'pb'
   /** DeltaData.laps, the same frozen object while the times stay. */
   private laps: Readonly<DeltaLaps> = NO_LAPS
   /** Your newest closed lap when your session best was last read ('' for none), and that best. */
@@ -266,6 +268,21 @@ export class DeltaProvider {
     this.summary = null
   }
 
+  /**
+   * The cycle shortcut: the reference after the one in use (or waiting) for the rest of this
+   * session, from the next lap start; back on the settings' choice it is no override any more.
+   * False with no session to cycle in.
+   */
+  cycleReference(): boolean {
+    const key = this.seenKey
+    const kind = this.seenKind
+    if (key === '' || kind === null) return false
+    const base = this.override?.ref ?? this.pending ?? this.ref ?? this.seenChosen
+    const ref = nextDeltaReference(base)
+    this.override = ref === this.seenChosen ? null : { key, kind, ref }
+    return true
+  }
+
   compute(
     frame: TelemetryFrame,
     session: SessionMeta,
@@ -273,8 +290,46 @@ export class DeltaProvider {
     bests: PersonalBestStore,
     opts: DeltaOptions
   ): DeltaData {
-    // This kind of session's choice (DeltaOptions.reference*).
-    const reference = deltaReferenceFor(opts, sessionKind(currentSessionType(frame, session)))
+    const out = this.computeLap(frame, session, race, bests, opts)
+    out.temporary = this.override !== null && this.override.key === race.sessionKey
+    return out
+  }
+
+  /**
+   * This kind of session's choice (DeltaOptions.reference*), or the cycle shortcut's for this
+   * session. An override of another session or kind of session is dropped; while either is
+   * unknown (a reconnect, no session info yet) it waits.
+   */
+  private wantedReference(
+    key: string,
+    kind: SessionKind | null,
+    opts: DeltaOptions
+  ): DeltaReference {
+    const chosen = deltaReferenceFor(opts, kind)
+    this.seenKey = key
+    this.seenKind = kind
+    this.seenChosen = chosen
+    const o = this.override
+    if (o === null || key === '' || kind === null) return chosen
+    if (o.key !== key || o.kind !== kind) {
+      this.override = null
+      return chosen
+    }
+    return o.ref
+  }
+
+  private computeLap(
+    frame: TelemetryFrame,
+    session: SessionMeta,
+    race: RaceView,
+    bests: PersonalBestStore,
+    opts: DeltaOptions
+  ): DeltaData {
+    const reference = this.wantedReference(
+      race.sessionKey,
+      sessionKind(currentSessionType(frame, session)),
+      opts
+    )
     const now = finiteOr(frame.SessionTime[0], Number.NaN)
     if (race.sessionKey !== this.sessionKey || !(now >= this.lastT)) {
       this.reset()
@@ -486,6 +541,7 @@ export class DeltaProvider {
         reference: this.ref,
         preferred: this.optRef ?? this.ref,
         pending: null,
+        temporary: false,
         laps: NO_LAPS,
         refDriver: this.refDriver,
         refSelf: this.refSelf,
@@ -758,6 +814,7 @@ export class DeltaProvider {
       reference: this.ref ?? 'pb',
       preferred: this.optRef ?? this.ref ?? 'pb',
       pending: this.pending,
+      temporary: false,
       laps: this.laps,
       refDriver: this.refDriver,
       refSelf: this.refSelf,
@@ -844,6 +901,7 @@ export function deltaEqual(a: DeltaData, b: DeltaData): boolean {
     a.lapState === b.lapState &&
     a.preferred === b.preferred &&
     a.pending === b.pending &&
+    a.temporary === b.temporary &&
     a.laps.last === b.laps.last &&
     a.laps.best === b.laps.best &&
     a.laps.optimal === b.laps.optimal &&

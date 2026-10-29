@@ -23,7 +23,7 @@ describe('the info item catalog', () => {
       const spec = INFO_ITEMS[id]
       expect(spec.priority, id).toBeGreaterThanOrEqual(1)
       expect(spec.em, id).toBeGreaterThan(2)
-      expect(spec.em, id).toBeLessThan(12)
+      expect(spec.em, id).toBeLessThan(18)
     }
     // The renderer's own: the name and the clock; everything else the telemetry computes.
     expect(INFO_ITEM_IDS.filter((id) => INFO_ITEMS[id].source === 'renderer')).toEqual([
@@ -149,6 +149,30 @@ describe('fitInfoItems', () => {
     expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 9)).toEqual(['session'])
     // Not measured yet: nothing to act on.
     expect(fitInfoItems(ids, 0, INFO_ITEM_GAP_EM, 2)).toEqual(ids)
+  })
+
+  it('each measured overflow drops one more beyond the estimates, so the bar converges', () => {
+    // The review's bar: every Relative item at 31.6 em. Each step must change what is kept, down
+    // to one item; the session type (priority 1) outlives the less important ones.
+    const ids: InfoItemId[] = [
+      'title',
+      'session',
+      'remaining',
+      'sof',
+      'carCount',
+      'incidents',
+      'iRating'
+    ]
+    const steps = [0, 1, 2, 3, 4, 5, 6].map((n) => fitInfoItems(ids, 31.6, 0.5, n))
+    for (let n = 1; n < steps.length; n++) {
+      const prev = steps[n - 1] ?? []
+      const cur = steps[n] ?? []
+      if (prev.length > 1) expect(cur.length, `step ${n}`).toBe(prev.length - 1)
+    }
+    expect(steps.at(-1)).toEqual(['session'])
+    for (const s of steps) expect(s).toContain('session')
+    // By the estimates alone the long iRating item is not left to overflow next to the rest.
+    expect(width(steps[0] ?? [])).toBeLessThanOrEqual(31.6)
   })
 
   it('returns a new list in the given order', () => {

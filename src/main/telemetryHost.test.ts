@@ -257,9 +257,12 @@ describe('TelemetryHost', () => {
 
     expect(host.deleteBests(['67@219/Grand Prix'])).toBe(true)
     expect(host.clearBests()).toBe(true)
-    expect(c.postMessage.mock.calls.slice(-2)).toEqual([
+    // The delta's cycle shortcut goes to the process (it never touches the settings).
+    expect(host.cycleDeltaReference()).toBe(true)
+    expect(c.postMessage.mock.calls.slice(-3)).toEqual([
       [{ type: 'delete-bests', keys: ['67@219/Grand Prix'] }],
-      [{ type: 'clear-bests' }]
+      [{ type: 'clear-bests' }],
+      [{ type: 'cycle-delta-reference' }]
     ])
     c.postMessage.mockImplementationOnce(() => {
       throw new Error('port closed')

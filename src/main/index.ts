@@ -9,7 +9,7 @@ import {
   type WebContents
 } from 'electron'
 import { join } from 'node:path'
-import { cycleDeltaPatch } from '@shared/delta/choice'
+
 import type { PersonalBestList } from '@shared/delta/references'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
 import { stepScale } from '@shared/panelGeometry'
@@ -184,16 +184,14 @@ function start(): void {
   })
 
   /**
-   * The delta's cycle shortcut: this kind of session's reference moves to the next one (the
-   * provider takes it at the start of the next lap, the widget names it). Outside a session there
-   * is nothing to cycle.
+   * The delta's cycle shortcut: a temporary reference for the current session only. The
+   * telemetry process keeps it (the provider takes it at the start of the next lap, the widget
+   * marks it as temporary); the settings never change, so a new session or a restart starts
+   * again from the per-session choice in Settings. Outside a session there is nothing to cycle.
    */
   function cycleDeltaReference(): void {
-    const kind = sessionKindNow
-    if (kind === null) return
-    changeSettings((s) => {
-      Object.assign(s.delta, cycleDeltaPatch(s.delta, kind))
-    })
+    if (sessionKindNow === null) return
+    telemetry.cycleDeltaReference()
   }
 
   /** The settings window gets the list again (and drops whatever it showed as deleting). */

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
+import { referenceRowHelp } from './deltaHelp'
 import {
   DELTA_REFERENCE_VALUES,
   OPTION_SCHEMA,
@@ -53,17 +54,17 @@ const kinds = computed(() =>
       field,
       current,
       label: t.value.settings.delta.sessions[kind],
-      help: t.value.settings.delta.references[current].hint
+      // What it is, and where it falls back to: each session its own chain.
+      help: referenceRowHelp(current, opts.value.fallback, t.value)
     }
   })
 )
 
-/** Where the fallback goes from the race's reference (DELTA_FALLBACK); the class best has none. */
+/** The switch itself: what it does (each chain is under its session), off, or nothing to do. */
 const fallbackHelp = computed(() => {
   const d = t.value.settings.delta
-  const r = opts.value.referenceRace
-  if (r === 'class') return d.fallbackHelp.class
-  return opts.value.fallback ? d.fallbackHelp[r] : d.fallbackOff
+  if (kinds.value.every((k) => k.current === 'class')) return d.fallbackLast
+  return opts.value.fallback ? d.fallbackOn : d.fallbackOff
 })
 
 /** The cycle shortcut's keys, or where to give it some. */

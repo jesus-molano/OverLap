@@ -56,6 +56,19 @@ export function lightsFilter(o: LightsOptions): LightsFilter {
   }
 }
 
+/**
+ * Some light can show a text: a caption, a temperature (and its rise) or a repair time, with a
+ * light shown that has one. Without any, the side of the texts in a column changes nothing.
+ */
+export function hasLightTexts(o: LightsFilter): boolean {
+  const shown = new Set(visibleIds(o.icons))
+  return (
+    (o.showCaptions && shown.size > 0) ||
+    (o.showTemps && (shown.has('water') || shown.has('oilTemp'))) ||
+    (o.showRepairTime && (shown.has('repair') || shown.has('repairOptional')))
+  )
+}
+
 export interface LightView {
   readonly kind: LightKind
   readonly icon: EngineIconName
@@ -112,8 +125,9 @@ function lightView(
   const level: LightLevel = r.level === 'caution' && !trend ? 'off' : r.level
   if (level === 'off' && o.onlyWhenLit) return null
   const readings: string[] = []
+  // The rise is a value too: it follows the values toggle (the yellow light stays without it).
   if (o.showTemps && r.tempC !== null) readings.push(formatDegrees(r.tempC, units))
-  if (trend && r.riseC !== null) readings.push(formatRise(r.riseC, units))
+  if (o.showTemps && trend && r.riseC !== null) readings.push(formatRise(r.riseC, units))
   const seconds =
     o.showRepairTime && level !== 'off' && r.seconds !== null && r.seconds > 0
       ? t.seconds(Math.ceil(r.seconds))

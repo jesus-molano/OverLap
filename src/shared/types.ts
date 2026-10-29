@@ -794,8 +794,9 @@ export interface DeltaData {
   /** The lap in progress (of the lap just finished while its summary shows). */
   lapState: DeltaLapState
   /**
-   * The reference the options choose for this kind of session (DeltaOptions.reference*), before
-   * any fallback: `reference` differs from it while falling back.
+   * The reference chosen for this kind of session (DeltaOptions.reference*, or the cycle
+   * shortcut's for this session), before any fallback: `reference` differs from it while falling
+   * back.
    */
   preferred: DeltaReference
   /**
@@ -803,6 +804,11 @@ export interface DeltaData {
    * of the next lap; null when none is waiting. The widget names it for a moment.
    */
   pending: DeltaReference | null
+  /**
+   * The choice (in force, or waiting in `pending`) is the cycle shortcut's: for this session
+   * only, never saved. The widget marks the reference as temporary.
+   */
+  temporary: boolean
   /** The lap times line (DeltaLapId), whatever the reference. */
   laps: DeltaLaps
 }

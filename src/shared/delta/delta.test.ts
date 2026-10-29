@@ -344,6 +344,7 @@ describe('DeltaProvider: the live delta', () => {
       lapState: 'none',
       preferred: 'session',
       pending: null,
+      temporary: false,
       laps: NO_LAPS
     })
     // A reference appears while there is none: taken at once (nothing to keep consistent).
@@ -589,6 +590,65 @@ describe('DeltaProvider: references', () => {
     rig.opts = { ...rig.opts, fallback: false }
     expect(rig.at(T0 + 160, 5, 0.3, 30.3)).toMatchObject({ visible: true, pending: null })
     expect(rig.at(T0 + 230, 6, 0.005, 0.5).visible).toBe(false)
+  })
+
+  it('the cycle shortcut: this session only, from the next lap, never in the options', () => {
+    const rig = new Rig({ reference: 'session' })
+    rig.race.best.set(1, lapOf(100.5, 5))
+    rig.race.best.set(PLAYER, lapOf(101, 2))
+    const saved = JSON.stringify(rig.opts)
+    expect(rig.at(T0, 3, 0.3, 30.35)).toMatchObject({ reference: 'session', temporary: false })
+    // Twice mid-lap: session -> optimal -> class, waiting for the line.
+    expect(rig.provider.cycleReference()).toBe(true)
+    expect(rig.provider.cycleReference()).toBe(true)
+    expect(rig.at(T0 + 0.1, 3, 0.301, 30.45)).toMatchObject({
+      reference: 'session',
+      pending: 'class',
+      temporary: true
+    })
+    expect(rig.at(T0 + 70, 4, 0.005, 0.5)).toMatchObject({
+      reference: 'class',
+      preferred: 'class',
+      pending: null,
+      temporary: true,
+      refLapTime: 100.5
+    })
+    // A reconnect to the same session keeps it.
+    rig.provider.reset()
+    expect(rig.at(T0 + 71, 4, 0.01, 1.5)).toMatchObject({ reference: 'class', temporary: true })
+    // The options never changed.
+    expect(JSON.stringify(rig.opts)).toBe(saved)
+    // Another session (or subsession): the settings' choice again.
+    rig.race.key = 'race-b'
+    expect(rig.at(T0 + 72, 4, 0.02, 2.5)).toMatchObject({
+      reference: 'session',
+      preferred: 'session',
+      temporary: false
+    })
+  })
+
+  it('the cycle shortcut ends with the kind of session, and back on the setting it is none', () => {
+    const rig = new Rig({ reference: 'session' })
+    rig.race.best.set(1, lapOf(100.5, 5))
+    rig.race.best.set(PLAYER, lapOf(101, 2))
+    // No session seen yet: nothing to cycle.
+    expect(rig.provider.cycleReference()).toBe(false)
+    rig.at(T0, 3, 0.005, 0.5)
+    rig.provider.cycleReference()
+    expect(rig.at(T0 + 0.1, 3, 0.006, 0.6)).toMatchObject({ preferred: 'optimal', temporary: true })
+    // Another kind of session in the same sessionKey (SessionNum moved on): the default again.
+    const practice = [...rig.session.sessionTypes].find(([, type]) => type === 'Practice')?.[0]
+    rig.frame.SessionNum[0] = practice ?? -1
+    expect(rig.at(T0 + 0.2, 3, 0.007, 0.7)).toMatchObject({
+      preferred: 'session',
+      temporary: false
+    })
+    // Round the five references and back to the setting: no override left.
+    for (let i = 0; i < 5; i++) rig.provider.cycleReference()
+    expect(rig.at(T0 + 0.3, 3, 0.008, 0.8)).toMatchObject({
+      preferred: 'session',
+      temporary: false
+    })
   })
 
   it('with no reference in use, a change of options applies at once', () => {
@@ -904,6 +964,7 @@ describe('DeltaProvider: the S/F line', () => {
         lapState: 'valid',
         preferred: 'session',
         pending: null,
+        temporary: false,
         laps: s.data.laps
       })
     }
@@ -1308,6 +1369,7 @@ describe('deltaEqual', () => {
     lapState: 'valid',
     preferred: 'pb',
     pending: null,
+    temporary: false,
     laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: 92.5 }
   }
 

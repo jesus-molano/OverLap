@@ -118,6 +118,10 @@ const refKind = computed(() => content.value?.reference ?? null)
 const refDriver = computed(() => content.value?.refDriver ?? '')
 const refSelf = computed(() => content.value?.refSelf === true)
 const refLapTime = computed(() => content.value?.refLapTime ?? null)
+/** The cycle shortcut's choice is in force (this session only): the reference says so. */
+const temporary = computed(
+  () => content.value?.temporary === true && content.value.pending === null
+)
 const reference = computed<RefView>((prev) => {
   const kind = refKind.value
   if (kind === null) return NO_REF
@@ -166,7 +170,8 @@ let noteTimer: ReturnType<typeof setTimeout> | undefined
 const choice = computed<ReferenceChoice>((prev) =>
   reuseView(prev, {
     preferred: content.value?.preferred ?? null,
-    pending: content.value?.pending ?? null
+    pending: content.value?.pending ?? null,
+    temporary: content.value?.temporary === true
   })
 )
 watch(choice, (next, prev) => {
@@ -184,7 +189,7 @@ watch(phase, (p) => {
 })
 onBeforeUnmount(() => clearTimeout(noteTimer))
 
-// The panel's rail follows the sign of the delta: these classes change on a sign flip only. The
+// The panel's tint follows the sign of the delta: these classes change on a sign flip only. The
 // rows and parts shown size the font (--dl-fit-h / --dl-fit-w, see the styles).
 const rootClass = computed(() => ({
   'is-shown': shown.value,
@@ -202,7 +207,7 @@ const rootClass = computed(() => ({
 
 <template>
   <div class="delta ov-root ov-fade" :class="rootClass">
-    <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
+    <WidgetPanel class="dl-panel ov-state" :surface="surfaceStyle" :halo="halo" fill>
       <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top">
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
           <!-- The sign as a shape too: ▼ faster, ▲ slower (colour-blind safe). -->
@@ -246,9 +251,11 @@ const rootClass = computed(() => ({
               <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
               <span class="dl-pred__time">{{ predicted }}</span>
             </div>
-            <div v-if="showReference" v-memo="[reference]" class="dl-ref">
+            <div v-if="showReference" v-memo="[reference, temporary]" class="dl-ref">
               <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
               <span class="dl-ref__label">{{ reference.label }}</span>
+              <!-- The cycle shortcut's choice: this session only, never saved. -->
+              <span v-if="temporary" class="dl-ref__temp">{{ t.widgets.delta.temporary }}</span>
               <span class="dl-ref__time">{{ reference.time }}</span>
             </div>
           </div>
@@ -387,24 +394,14 @@ const rootClass = computed(() => ({
   --dl-w-laps: 29;
 }
 
-/* The rail is state: the sign of the delta, flush on the panel's left edge, full height. No
-   transition: the class changes only when the sign flips, and it is matched on the rail itself
-   (not an inherited property on the root), so a flip restyles the rail alone, not the widget. */
-.dl-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  z-index: 2;
-  width: var(--ov-bar-w);
-  pointer-events: none;
+/* The sign of the delta is state: the panel's tint in its tone (theme.css .ov-state), with the
+   number's colour and arrow. No transition: the class changes only when the sign flips. */
+.dl--good .dl-panel {
+  --ov-state: var(--ov-good);
 }
 
-.dl--good .dl-panel::before {
-  background: var(--ov-good);
-}
-
-.dl--bad .dl-panel::before {
-  background: var(--ov-bad);
+.dl--bad .dl-panel {
+  --ov-state: var(--ov-bad);
 }
 
 /* ---- Top line: hero, state, predicted lap and reference ------------------------------- */
@@ -556,6 +553,17 @@ const rootClass = computed(() => ({
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* An outlined tag (a shape, not colour alone): the reference is for this session only. */
+.dl-ref__temp {
+  flex: none;
+  padding: 0 0.3em;
+  border: 1px solid var(--ov-accent);
+  border-radius: 2px;
+  font-size: 0.85em;
+  line-height: 1.25;
+  color: var(--ov-fg);
 }
 
 .dl-ref__time {

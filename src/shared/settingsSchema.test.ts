@@ -404,7 +404,7 @@ describe('v2.2 delta specs', () => {
         expect(s.references[ref].label, `${lang} ${ref}`).toBeTruthy()
         expect(s.references[ref].hint, `${lang} ${ref}`).toBeTruthy()
         expect(s.referenceHelp[ref], `${lang} ${ref}`).toBeTruthy()
-        expect(s.fallbackHelp[ref], `${lang} ${ref}`).toBeTruthy()
+        expect(s.referencesShort[ref], `${lang} ${ref}`).toBeTruthy()
       }
     }
     expect(messagesFor('es').settings.delta.references.pb.label).toBe('Récord personal')

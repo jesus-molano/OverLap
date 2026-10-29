@@ -77,8 +77,9 @@ export const INFO_ITEMS: { readonly [K in InfoItemId]: InfoItemSpec } = {
   sof: { source: 'field', priority: 5, em: 4.5 },
   carCount: { source: 'field', priority: 6, em: 4.5 },
   incidents: { source: 'incidents', priority: 2, em: 6.5 },
-  iRating: { source: 'ratings', priority: 2, em: 9 },
-  safetyRating: { source: 'ratings', priority: 2, em: 9.5 },
+  // 'iR +13 ▲ P4 +31 P6 −5 break-even P6' / 'SR B 3.98 → A 4.02 ▲ margen 4x', as drawn.
+  iRating: { source: 'ratings', priority: 2, em: 16 },
+  safetyRating: { source: 'ratings', priority: 2, em: 13.5 },
   fastestLap: { source: 'fastestLap', priority: 4, em: 7.5 },
   fuelLaps: { source: 'fuel', priority: 3, em: 5 },
   trackTemp: { source: 'conditions', priority: 3, em: 5.5 },
@@ -214,8 +215,9 @@ export const COMPUTED_INFO_ITEMS: readonly InfoItemId[] = Object.freeze(
  * Which of `items` (in order, with their widths) fit `widthEm` of bar: all of them while they
  * fit, else the least important dropped one at a time (the highest priority number; between
  * equals the later one) until the rest does. `widthEm` <= 0 (not measured yet) keeps them all.
- * `dropAtLeast` drops that many more the same way (the bar measured that what is drawn is still
- * wider than the estimates say: a long value, the SIM or preview tag); one item always stays.
+ * `dropAtLeast` drops that many more the same way, beyond the ones the estimates need (the bar
+ * measured that what is drawn is still wider than they say: a long value, the SIM or preview
+ * tag), so each step drops one more item; one item always stays.
  */
 export function fitInfoItems(
   items: readonly InfoItemId[],
@@ -227,9 +229,7 @@ export function fitInfoItems(
   if (!(widthEm > 0)) return kept
   const width = (ids: readonly InfoItemId[]): number =>
     ids.reduce((sum, id, i) => sum + INFO_ITEMS[id].em + (i > 0 ? gapEm : 0), 0)
-  let dropped = 0
-  while (kept.length > 1 && (width(kept) > widthEm || dropped < dropAtLeast)) {
-    dropped++
+  const dropOne = (): void => {
     let drop = 0
     for (let i = 1; i < kept.length; i++) {
       const a = kept[i]
@@ -240,5 +240,7 @@ export function fitInfoItems(
     }
     kept.splice(drop, 1)
   }
+  while (kept.length > 1 && width(kept) > widthEm) dropOne()
+  for (let n = 0; n < dropAtLeast && kept.length > 1; n++) dropOne()
   return kept
 }

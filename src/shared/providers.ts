@@ -53,6 +53,11 @@ export interface ProviderSet {
   readonly observe?: (frame: TelemetryFrame, session: SessionMeta, race: RaceView) => void
   /** Forget all provider state: reconnect, or race.sessionKey changed (new session). */
   reset(): void
+  /**
+   * The delta's cycle shortcut: the next reference for the rest of this session only (never
+   * saved). False with no session to cycle in. A set without a delta has none.
+   */
+  readonly cycleDeltaReference?: () => boolean
 }
 
 /** A payload with its info bars' data filled in (the providers build it with null). */
@@ -127,6 +132,7 @@ export function createProviders(): ProviderSet {
         ),
       lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights)
     },
+    cycleDeltaReference: () => delta.cycleReference(),
     observe: (frame, session, race) => {
       engine.observe(frame)
       alerts.observe(frame, session, race)

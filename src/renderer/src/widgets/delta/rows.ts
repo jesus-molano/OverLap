@@ -117,6 +117,8 @@ export const referenceNames = perDictionary((m): Readonly<Record<DeltaReference,
 export interface ReferenceChoice {
   readonly preferred: DeltaReference | null
   readonly pending: DeltaReference | null
+  /** The choice is the cycle shortcut's, for this session only (DeltaData.temporary). */
+  readonly temporary: boolean
 }
 
 /** How long the brief label stays after another reference is chosen or takes over (ms). */
@@ -132,12 +134,14 @@ export function referenceNote(
   next: ReferenceChoice,
   m: Messages
 ): string | null {
-  const names = referenceNames(m)
+  const all = referenceNames(m)
+  const t = m.widgets.delta
+  const name = (r: DeltaReference): string => (next.temporary ? t.temporaryRef(all[r]) : all[r])
   if (next.pending !== null && next.pending !== prev.pending) {
-    return m.widgets.delta.nextLap(names[next.pending])
+    return t.nextLap(name(next.pending))
   }
   if (next.preferred !== null && prev.preferred !== null && next.preferred !== prev.preferred) {
-    return names[next.preferred]
+    return name(next.preferred)
   }
   // Chosen again before the line: nothing changes, nothing to announce.
   if (next.pending === null && prev.pending !== null) return ''
