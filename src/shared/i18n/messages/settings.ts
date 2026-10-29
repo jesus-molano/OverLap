@@ -174,6 +174,15 @@ export const settingsEs = {
       numberChoices: {
         chip: { label: 'Chip', hint: 'Número sobre el color de su clase' },
         stripe: { label: 'Franja', hint: 'Franja del color de la clase y número en texto' }
+      },
+      brandLogos: 'Logos de marca',
+      brandLogosHelp: 'La marca de cada coche en relativo, clasificación y batalla',
+      brandLogoChoices: {
+        color: {
+          label: 'Color',
+          hint: 'Cada marca con sus colores: Ferrari en amarillo, BMW en azul'
+        },
+        mono: { label: 'Monocromo', hint: 'Todas en el color del texto' }
       }
     },
     other: {
@@ -1170,6 +1179,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
       numberChoices: {
         chip: { label: 'Chip', hint: 'Number on its class colour' },
         stripe: { label: 'Stripe', hint: 'Class-colour stripe and the number as text' }
+      },
+      brandLogos: 'Brand logos',
+      brandLogosHelp: "Each car's make in Relative, Standings and Battle",
+      brandLogoChoices: {
+        color: { label: 'Colour', hint: 'Each make in its own colours: Ferrari yellow, BMW blue' },
+        mono: { label: 'Monochrome', hint: 'All in the text colour' }
       }
     },
     other: {

@@ -1527,6 +1527,69 @@ describe('OverlayWindows recovery', () => {
     expect(w.webContents.invalidate).toHaveBeenCalled()
   })
 
+  // Electron 44 / Windows: with throttling off across a hide() and showInactive(), Chromium's
+  // input child window stays hidden and Windows eats every press on the overlay from then on.
+  it('throttles a window only while hidden, on every path that hides it', () => {
+    start()
+    const w = only()
+    const wc = w.webContents
+    expect(w.isVisible()).toBe(true)
+    // The first show needs nothing: the window was created hidden at full rate.
+    expect(wc.throttled).not.toBe(true)
+    const OUT: AutoHiddenState = { hidden: true, reason: 'out-of-car' }
+    const IN: AutoHiddenState = { hidden: false, reason: null }
+    const paths: [string, () => void, () => void][] = [
+      ['user', () => windows.setUserHidden(true), () => windows.setUserHidden(false)],
+      [
+        'rules',
+        () => {
+          for (const id of WIDGET_IDS) windows.setAutoHidden(id, OUT)
+        },
+        () => {
+          for (const id of WIDGET_IDS) windows.setAutoHidden(id, IN)
+        }
+      ],
+      [
+        'lock',
+        () => fakePowerMonitor.emit('lock-screen'),
+        () => {
+          fakePowerMonitor.emit('unlock-screen')
+          vi.advanceTimersByTime(RESUME_DEBOUNCE_MS)
+        }
+      ],
+      ['hang', () => w.emit('unresponsive'), () => w.emit('responsive')]
+    ]
+    for (const [name, hide, show] of paths) {
+      w.hide.mockClear()
+      w.showInactive.mockClear()
+      wc.setBackgroundThrottling.mockClear()
+      hide()
+      expect(w.isVisible(), name).toBe(false)
+      expect(wc.throttled, name).toBe(true)
+      // Before the hide, not after it.
+      expect(wc.setBackgroundThrottling.mock.invocationCallOrder[0], name).toBeLessThan(
+        w.hide.mock.invocationCallOrder[0] as number
+      )
+      show()
+      expect(w.isVisible(), name).toBe(true)
+      expect(wc.throttled, name).toBe(false)
+      // After the show, not before it.
+      expect(wc.setBackgroundThrottling.mock.invocationCallOrder.at(-1), name).toBeGreaterThan(
+        w.showInactive.mock.invocationCallOrder[0] as number
+      )
+    }
+  })
+
+  it('still notices a hang while hidden and throttled', () => {
+    start()
+    const w = only()
+    windows.setUserHidden(true)
+    expect(w.webContents.throttled).toBe(true)
+    w.webContents.executeJavaScript.mockImplementation(() => new Promise(() => {}))
+    vi.advanceTimersByTime(Z_ORDER_INTERVAL_MS + PROBE_TIMEOUT_MS + Z_ORDER_INTERVAL_MS)
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('renderer does not answer'))
+  })
+
   it('merges a GPU loss during a pending resume into recreate and resync', () => {
     start()
     const w = only()

@@ -71,6 +71,11 @@ export class FakeWebContents extends Emitter {
   readonly setZoomFactor = vi.fn()
   readonly setVisualZoomLevelLimits = vi.fn(() => Promise.resolve())
   readonly invalidate = vi.fn()
+  /** What the last setBackgroundThrottling call asked for (null: never called). */
+  throttled: boolean | null = null
+  readonly setBackgroundThrottling = vi.fn((on: boolean) => {
+    this.throttled = on
+  })
   readonly forcefullyCrashRenderer = vi.fn()
   /**
    * Answers synchronously (a thenable), so a test that advances fake timers without awaiting

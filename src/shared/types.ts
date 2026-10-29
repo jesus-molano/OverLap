@@ -1130,6 +1130,8 @@ export interface AppearanceSettings {
   nameFormat: NameFormat
   licenseStyle: LicenseStyle
   numberStyle: 'chip' | 'stripe'
+  /** Car makes in their own colours, or one ink like the text (BrandMark). */
+  brandLogos: 'color' | 'mono'
   /** Colour-blind-safe palette (blue/orange instead of green/red; shapes always present). */
   colorBlind: boolean
   units: 'metric' | 'imperial'
