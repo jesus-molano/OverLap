@@ -196,6 +196,25 @@ export type WidgetId = keyof typeof WIDGET_DEFS
 export const WIDGET_IDS = Object.keys(WIDGET_DEFS) as WidgetId[]
 
 /**
+ * The widgets by what they are about (R42), for the lists a person reads (the settings sidebar
+ * and its page select, the tray, the overview of where each one shows): the track and the
+ * rivals, your lap, the state of your car. Every widget is in exactly one group; within a group,
+ * the order to read them in. Names in `core.widgetGroups`.
+ */
+export const WIDGET_GROUPS = [
+  { id: 'track', widgets: ['relative', 'standings', 'battle', 'traffic', 'radar'] },
+  { id: 'lap', widgets: ['delta', 'fuel', 'inputs'] },
+  { id: 'car', widgets: ['alerts', 'lights'] }
+] as const satisfies readonly { id: string; widgets: readonly WidgetId[] }[]
+
+export type WidgetGroupId = (typeof WIDGET_GROUPS)[number]['id']
+
+/** Every widget in the groups' order (WIDGET_GROUPS flattened): the order the lists show. */
+export const WIDGET_LIST_ORDER: readonly WidgetId[] = Object.freeze(
+  WIDGET_GROUPS.flatMap((g): WidgetId[] => [...g.widgets])
+)
+
+/**
  * The widget painted above every other one in its overlay window (and hit-tested first): the
  * radar shows the car alongside you, so no panel may ever cover it (an alerts banner over its
  * centre hid a side-by-side pass, report B05). Edit mode flags the panels it covers.

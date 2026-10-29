@@ -9,8 +9,9 @@ import EditModeButton from './layout/EditModeButton.vue'
 import OverlayHiddenNote from './layout/OverlayHiddenNote.vue'
 import SettingsFooter from './layout/SettingsFooter.vue'
 import SettingsSidebar from './layout/SettingsSidebar.vue'
+import { WIDGET_GROUPS } from '@shared/widgets'
 import {
-  SETTINGS_PAGES,
+  GLOBAL_PAGES,
   browserStorage,
   initialPage,
   isSettingsPage,
@@ -39,9 +40,19 @@ if (unasked !== location.search) {
   history.replaceState(history.state, '', location.pathname + unasked + location.hash)
 }
 const selectId = useId()
-const pageOptions = computed(() =>
-  SETTINGS_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
-)
+/** The narrow window's select: the general pages, then the widgets in their groups (R42). */
+const pageGroups = computed(() => [
+  {
+    id: 'general',
+    title: null,
+    pages: GLOBAL_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
+  },
+  ...WIDGET_GROUPS.map((g) => ({
+    id: g.id,
+    title: t.value.core.widgetGroups[g.id],
+    pages: g.widgets.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
+  }))
+])
 
 /** A new page is a new scroller (it is keyed), so it starts at the top. */
 function select(next: SettingsPage): void {
@@ -88,7 +99,14 @@ onUnmounted(stopSaveFailing)
             :value="page"
             @change="onSelectChange"
           >
-            <option v-for="o in pageOptions" :key="o.page" :value="o.page">{{ o.title }}</option>
+            <template v-for="g in pageGroups" :key="g.id">
+              <template v-if="g.title === null">
+                <option v-for="o in g.pages" :key="o.page" :value="o.page">{{ o.title }}</option>
+              </template>
+              <optgroup v-else :label="g.title">
+                <option v-for="o in g.pages" :key="o.page" :value="o.page">{{ o.title }}</option>
+              </optgroup>
+            </template>
           </select>
           <StatusChip />
           <EditModeButton compact />

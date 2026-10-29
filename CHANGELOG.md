@@ -9,6 +9,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Widgets agrupados**: la barra lateral de los Ajustes, su selector en una ventana estrecha y la
+  bandeja ordenan los diez widgets en tres grupos: **Pista y rivales** (Relativo, Posiciones,
+  Batalla, Tráfico, Radar), **Tu vuelta** (Delta, Combustible, Pedales) y **Estado del coche**
+  (Avisos, Testigos). En la bandeja, una línea separa cada grupo.
+
 - **Atajos en tabla, una columna por atajo**: cada acción es una fila y cada atajo tiene su
   columna (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como en la pantalla de controles de
   un juego, así que los atajos quedan alineados entre filas. La casilla es el control: clic para
