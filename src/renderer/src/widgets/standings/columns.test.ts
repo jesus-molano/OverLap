@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { StandingsColumnId } from '@shared/types'
 import {
+  BRAND_EM,
   DROP_ORDER,
   NAME_MIN_EM,
   NARROW_EM,
   columnWanted,
   fitColumns,
   reuseColumns,
+  flagEm,
   rowWidthEm,
   type ColumnPrefs
 } from './columns'
@@ -21,6 +23,8 @@ function prefs(over: Partial<ColumnPrefs> = {}): ColumnPrefs {
     tyres: true,
     licenseStyle: 'soft',
     numberStyle: 'chip',
+    brand: false,
+    flag: false,
     ...over
   }
 }
@@ -172,6 +176,62 @@ describe('fitColumns', () => {
     expect(
       fitColumns(prefs({ columns: cols }), 0, 13).cells.filter((c) => c === 'gap')
     ).toHaveLength(1)
+  })
+})
+
+describe('fitColumns: the make and the flag', () => {
+  const both = prefs({ brand: true, flag: true })
+
+  it('draws them when wanted and there is room, and keys the columns on them', () => {
+    const c = fitColumns(both, 700, 13)
+    expect(c.brand).toBe(true)
+    expect(c.flag).toBe(true)
+    const none = fitColumns(prefs(), 700, 13)
+    expect(none.brand).toBe(false)
+    expect(none.flag).toBe(false)
+    expect(c.key).not.toBe(none.key)
+    expect(fitColumns(prefs({ flag: true }), 700, 13).key).not.toBe(
+      fitColumns(prefs({ brand: true }), 700, 13).key
+    )
+  })
+
+  it('takes their width from the name', () => {
+    const plain = fitColumns(prefs(), 700, 13).nameEm
+    const c = fitColumns(both, 700, 13).nameEm
+    expect(plain - c).toBeCloseTo(BRAND_EM + flagEm(13), 1)
+    // The flag is 3:2 at the plate height, which never goes below 13 px.
+    expect(flagEm(8)).toBeGreaterThan(flagEm(13))
+    expect(flagEm(26)).toBeCloseTo(1.5 * 1.15 + 0.35, 9)
+  })
+
+  it('drops after every optional column: the flag first, then the make, then the plate', () => {
+    const p = prefs({ columns: allColumns(), brand: true, flag: true })
+    let w = 900
+    // While any optional column can still go, both stay.
+    while (fitColumns(p, w, 13).cells.length > 1) {
+      const c = fitColumns(p, w, 13)
+      expect(c.brand && c.flag).toBe(true)
+      w -= 2
+    }
+    const states: string[] = []
+    for (; w > 150; w -= 2) {
+      const c = fitColumns(p, w, 13)
+      const s = `${c.flag ? 'F' : ''}${c.brand ? 'B' : ''}${c.numberStyle}`
+      if (states.at(-1) !== s) states.push(s)
+    }
+    // The make may outlast the flag down to the narrow stripe (NARROW_EM), never the other way.
+    expect(states.slice(0, 2)).toEqual(['FBchip', 'Bchip'])
+    expect(states.at(-1)).toBe('bare')
+    expect(states.every((x) => !x.startsWith('Fchip'))).toBe(true)
+  })
+
+  it('never draws them on a bare stripe, nor before the window is measured if not wanted', () => {
+    const narrow = fitColumns(both, 200, 13)
+    expect(narrow.numberStyle).toBe('bare')
+    expect(narrow.brand).toBe(false)
+    expect(narrow.flag).toBe(false)
+    expect(fitColumns(both, 0, 13)).toMatchObject({ brand: true, flag: true })
+    expect(fitColumns(prefs(), 0, 13)).toMatchObject({ brand: false, flag: false })
   })
 })
 

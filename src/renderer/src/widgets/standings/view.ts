@@ -13,16 +13,20 @@ import {
   formatLapTime,
   signAt
 } from '@shared/format'
+import type { BrandId } from '@shared/carBrands'
 import type { Messages } from '@shared/i18n'
 import type {
   CarPenalty,
+  ElementEntry,
   GapValue,
   NameFormat,
   StandingsClassBlock,
+  StandingsClassLineId,
   StandingsOptions,
   StandingsRow
 } from '@shared/types'
 import { stintCell, tyreCell } from '@renderer/view/carExtras'
+import { gapShowsLeader } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
 import type { IconName } from '@renderer/ui/icons'
@@ -53,6 +57,11 @@ export interface CarLineView extends DriverCellView {
   /** Class short name of a one-line leader ('LMP2'), else ''. */
   classTag: string
   player: boolean
+  /** The car's make and the driver's flag code ('' none): drawn when the columns have room. */
+  brand: BrandId
+  country: string
+  /** This row set its class's fastest lap: the 'VR' tag after the name. */
+  fastest: boolean
   /** Class position ('5'), '' when unclassified. */
   pos: string
   /** Off track: the position chip gets the warning ring. */
@@ -95,7 +104,7 @@ export interface ClassLineView {
   css: string
   clsStyle: InlineStyle
   name: string
-  /** 'SoF 2.1k', '12 coches' (en-spaced), per the SoF / car count options; '' if nothing to say. */
+  /** 'SoF 2.1k', '12 coches' (en-spaced), in the class line's order; '' if nothing to say. */
   meta: string
 }
 
@@ -108,8 +117,8 @@ export interface LineContext {
   /** iRating change on every row (otherwise only on yours). */
   deltaAll: boolean
   nameFormat: NameFormat
-  showSof: boolean
-  showCarCount: boolean
+  /** What the class lines say, in order (standings.classLine). */
+  classLine: readonly Readonly<ElementEntry<StandingsClassLineId>>[]
   /** The flag badge after the name (black, meatball, furled). */
   showFlags: boolean
   /** The 'gapLeader' column is drawn: the 'gap' column never repeats it (gapCell). */
@@ -144,7 +153,7 @@ export function gapCell(
   m: Messages,
   leaderShown = false
 ): { text: string; kind: GapKind } {
-  const toLeader = gapMode === 'leader' || (!race && gapMode === 'interval')
+  const toLeader = gapShowsLeader(gapMode, race)
   const first = toLeader ? row.gapToLeader : row.interval
   const gap = first ?? (toLeader ? row.interval : leaderShown ? null : row.gapToLeader)
   if (gap === null) {
@@ -252,6 +261,9 @@ function toCarView(
     css: carCss(row, o.alt, o.sep, leader),
     classTag: o.classTag,
     player: row.isPlayer,
+    brand: row.brand,
+    country: row.country,
+    fastest: row.bestLapKind === 'class-best',
     pos: row.classPosition > 0 ? String(row.classPosition) : '',
     posWarn: row.status === 'off-track',
     penalty: ctx.showFlags ? row.penalty : null,
@@ -278,19 +290,27 @@ function toCarView(
   }
 }
 
-/** 'SoF 2.1k', '12 coches' (either part optional), en-spaced; '' when both are off or unknown. */
+/**
+ * 'SoF 2.1k', '12 coches' in the order of `parts` (the visible ones), en-spaced; '' when none is
+ * shown or known.
+ */
 export function classMeta(
   block: Pick<StandingsClassBlock, 'sof' | 'carCount'>,
-  showSof: boolean,
-  showCarCount: boolean,
+  parts: readonly Readonly<ElementEntry<StandingsClassLineId>>[],
   m: Messages
 ): string {
   const t = m.widgets.standings
-  const parts: string[] = []
-  const sof = showSof ? formatIRating(block.sof) : ''
-  if (sof !== '') parts.push(t.sof(sof))
-  if (showCarCount && block.carCount > 0) parts.push(t.cars(block.carCount))
-  return parts.join(META_SEP)
+  const out: string[] = []
+  for (const p of parts) {
+    if (!p.visible) continue
+    if (p.id === 'sof') {
+      const sof = formatIRating(block.sof)
+      if (sof !== '') out.push(t.sof(sof))
+    } else if (block.carCount > 0) {
+      out.push(t.cars(block.carCount))
+    }
+  }
+  return out.join(META_SEP)
 }
 
 /** The class's short name, or 'Clase 30' when the session info gives it none. */
@@ -307,7 +327,7 @@ function toClassView(block: StandingsClassBlock, ctx: LineContext): ClassLineVie
     css: block.isPlayerClass ? 'sd-line sd-class is-own' : 'sd-line sd-class',
     clsStyle: ctx.styles.cls(block.classColor),
     name: className(block, ctx.m),
-    meta: classMeta(block, ctx.showSof, ctx.showCarCount, ctx.m)
+    meta: classMeta(block, ctx.classLine, ctx.m)
   }
 }
 

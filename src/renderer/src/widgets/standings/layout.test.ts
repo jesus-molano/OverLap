@@ -1,17 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { FOOTER_EM, FOOTER_RULE_PX } from '@renderer/view/conditions'
+import { INFO_BAR_LINE_EM } from '@shared/infoBar'
 import { BORDER_PX } from './columns'
 import {
+  BAR_RULE_PX,
   BOTTOM_PAD_EM,
-  HEAD_RULE_PX,
+  HEADS_EM,
   LAYOUT_SLACK_PX,
-  headEm,
+  TOP_PAD_EM,
+  barPx,
+  chromePx,
   lineBudgetEm,
   lineMetrics,
   linesEm,
   panelHeightPx,
   planLines,
   primaryBlock,
+  type Chrome,
   type PlannedLine
 } from './layout'
 import { block } from './testing/rows'
@@ -19,6 +23,12 @@ import { block } from './testing/rows'
 const M = lineMetrics('compact')
 const COMPACT = { oneLineLeaders: true }
 const FULL = { oneLineLeaders: false }
+
+/** Today's default: the header and its second line, no heads, the footer. */
+const TWO: Chrome = { head: ['normal', 'normal'], heads: false, foot: null }
+const ONE: Chrome = { head: ['normal'], heads: false, foot: null }
+const FOOTED: Chrome = { ...TWO, foot: 'normal' }
+const BARE: Chrome = { head: [], heads: false, foot: null }
 
 /** 'H' for a class header, 'L<pos>' for a one-line leader, the class position for a car row. */
 function shape(lines: readonly PlannedLine[]): (string | number)[] {
@@ -34,49 +44,71 @@ describe('lineMetrics', () => {
   })
 })
 
-describe('panelHeightPx', () => {
-  it('is header + lines + padding in px, plus the borders and a little slack', () => {
-    const px = panelHeightPx(10, 2, 13)
-    expect(px).toBeCloseTo(
-      (headEm(2) + 10 + BOTTOM_PAD_EM) * 13 + BORDER_PX + HEAD_RULE_PX + LAYOUT_SLACK_PX,
-      9
-    )
-    expect(panelHeightPx(10, 1, 13)).toBeLessThan(px)
+describe('barPx', () => {
+  it('is the bar line of its own text plus its rule', () => {
+    expect(barPx('normal', 13)).toBeCloseTo(INFO_BAR_LINE_EM * 13 + BAR_RULE_PX, 9)
+    expect(barPx('large', 13)).toBeCloseTo(INFO_BAR_LINE_EM * 13 * 1.2 + BAR_RULE_PX, 9)
+    expect(barPx('small', 20)).toBeCloseTo(INFO_BAR_LINE_EM * 20 * 0.85 + BAR_RULE_PX, 9)
   })
 
-  it('puts the conditions footer, with its rule, in the bottom padding’s place', () => {
-    const px = panelHeightPx(10, 2, 13, true)
-    expect(px).toBeCloseTo(
-      (headEm(2) + 10 + FOOTER_EM) * 13 +
-        BORDER_PX +
-        HEAD_RULE_PX +
-        FOOTER_RULE_PX +
-        LAYOUT_SLACK_PX,
+  it('never puts the text below the minimum size', () => {
+    // 0.85 x 10 px would be 8.5 px: the bar keeps 9 px text, so it is that tall.
+    expect(barPx('small', 10)).toBeCloseTo(INFO_BAR_LINE_EM * 9 + BAR_RULE_PX, 9)
+    expect(barPx('normal', 0)).toBe(0)
+  })
+})
+
+describe('chromePx', () => {
+  it('adds each header bar, the heads, the footer (or the paddings) and the borders', () => {
+    const bar = barPx('normal', 13)
+    expect(chromePx(TWO, 13)).toBeCloseTo(BORDER_PX + 2 * bar + BOTTOM_PAD_EM * 13, 9)
+    expect(chromePx(FOOTED, 13)).toBeCloseTo(BORDER_PX + 3 * bar, 9)
+    expect(chromePx({ ...TWO, heads: true }, 13) - chromePx(TWO, 13)).toBeCloseTo(HEADS_EM * 13, 9)
+  })
+
+  it('keeps a top padding when no header bar is drawn', () => {
+    expect(chromePx(BARE, 13)).toBeCloseTo(BORDER_PX + (TOP_PAD_EM + BOTTOM_PAD_EM) * 13, 9)
+    expect(chromePx({ ...BARE, heads: true }, 13)).toBeCloseTo(
+      BORDER_PX + (TOP_PAD_EM + HEADS_EM + BOTTOM_PAD_EM) * 13,
       9
     )
-    expect(px - panelHeightPx(10, 2, 13)).toBeCloseTo((FOOTER_EM - BOTTOM_PAD_EM) * 13 + 1, 9)
-    // About one more line of the table (a compact row is 1.5 em).
-    expect(FOOTER_EM).toBeGreaterThan(1.4)
-    expect(FOOTER_EM).toBeLessThan(1.8)
+  })
+
+  it('follows each bar’s size', () => {
+    const small: Chrome = { head: ['small'], heads: false, foot: 'large' }
+    expect(chromePx(small, 13)).toBeCloseTo(BORDER_PX + barPx('small', 13) + barPx('large', 13), 9)
+  })
+})
+
+describe('panelHeightPx', () => {
+  it('is the lines in px plus the chrome and a little slack', () => {
+    const px = panelHeightPx(10, TWO, 13)
+    expect(px).toBeCloseTo(10 * 13 + chromePx(TWO, 13) + LAYOUT_SLACK_PX, 9)
+    expect(panelHeightPx(10, ONE, 13)).toBeLessThan(px)
+  })
+
+  it('puts the footer bar, with its rule, in the bottom padding’s place', () => {
+    const px = panelHeightPx(10, FOOTED, 13)
+    expect(px - panelHeightPx(10, TWO, 13)).toBeCloseTo(barPx('normal', 13) - BOTTOM_PAD_EM * 13, 9)
   })
 
   it('takes no window size: equal inputs, equal heights (no feedback loop possible)', () => {
     expect(panelHeightPx.length).toBe(3)
-    expect(panelHeightPx(7.5, 1, 15)).toBe(panelHeightPx(7.5, 1, 15))
+    expect(panelHeightPx(7.5, ONE, 15)).toBe(panelHeightPx(7.5, ONE, 15))
   })
 
   it('scales with the font and is 0 for unusable input', () => {
-    expect(panelHeightPx(10, 1, 26) - panelHeightPx(10, 1, 13)).toBeCloseTo(
-      (headEm(1) + 10 + BOTTOM_PAD_EM) * 13,
+    expect(panelHeightPx(10, ONE, 26) - panelHeightPx(10, ONE, 13)).toBeCloseTo(
+      (10 + INFO_BAR_LINE_EM + BOTTOM_PAD_EM) * 13,
       9
     )
-    expect(panelHeightPx(10, 1, 0)).toBe(0)
-    expect(panelHeightPx(Number.NaN, 1, 13)).toBe(0)
+    expect(panelHeightPx(10, ONE, 0)).toBe(0)
+    expect(panelHeightPx(Number.NaN, ONE, 13)).toBe(0)
   })
 
   it('gives a compact default table of about 300 px at 13 px', () => {
-    // Header with ratings, class line, 8 rows, one other-class leader.
-    const px = panelHeightPx(1.25 + 9 * 1.5, 2, 13)
+    // Header and its second line, class line, 8 rows, one other-class leader, the footer.
+    const px = panelHeightPx(1.25 + 9 * 1.5, FOOTED, 13)
     expect(px).toBeGreaterThan(240)
     expect(px).toBeLessThan(320)
   })
@@ -84,34 +116,30 @@ describe('panelHeightPx', () => {
 
 describe('lineBudgetEm', () => {
   it('is unlimited while the window is not measured', () => {
-    expect(lineBudgetEm(0, 13, 1)).toBe(Infinity)
-    expect(lineBudgetEm(300, 0, 1)).toBe(Infinity)
+    expect(lineBudgetEm(0, 13, ONE)).toBe(Infinity)
+    expect(lineBudgetEm(300, 0, ONE)).toBe(Infinity)
   })
 
   it('fits exactly the lines of the height that was asked for', () => {
+    const chromes: Chrome[] = [BARE, ONE, TWO, FOOTED, { ...FOOTED, heads: true }]
     for (const body of [0, 3.5, 12.25, 30]) {
-      for (const lines of [1, 2] as const) {
-        const h = Math.ceil(panelHeightPx(body, lines, 13))
-        expect(lineBudgetEm(h, 13, lines)).toBeGreaterThanOrEqual(body)
-        expect(lineBudgetEm(h, 13, lines)).toBeLessThan(body + 0.2)
+      for (const c of chromes) {
+        const h = Math.ceil(panelHeightPx(body, c, 13))
+        expect(lineBudgetEm(h, 13, c)).toBeGreaterThanOrEqual(body)
+        expect(lineBudgetEm(h, 13, c)).toBeLessThan(body + 0.2)
       }
     }
   })
 
   it('never goes negative', () => {
-    expect(lineBudgetEm(10, 13, 2)).toBe(0)
-    expect(lineBudgetEm(30, 13, 2, true)).toBe(0)
+    expect(lineBudgetEm(10, 13, TWO)).toBe(0)
+    expect(lineBudgetEm(30, 13, FOOTED)).toBe(0)
   })
 
-  it('keeps the footer: a window sized with it fits its lines, the footer’s room taken first', () => {
-    for (const body of [0, 3.5, 12.25, 30]) {
-      for (const lines of [1, 2] as const) {
-        const h = Math.ceil(panelHeightPx(body, lines, 13, true))
-        expect(lineBudgetEm(h, 13, lines, true)).toBeGreaterThanOrEqual(body)
-        expect(lineBudgetEm(h, 13, lines, true)).toBeLessThan(body + 0.2)
-        // The same window without the footer has its room for rows.
-        expect(lineBudgetEm(h, 13, lines)).toBeGreaterThan(body + FOOTER_EM - BOTTOM_PAD_EM)
-      }
+  it('keeps the bars: a window sized with the footer gives its rows that room without it', () => {
+    for (const body of [0, 3.5, 12.25]) {
+      const h = Math.ceil(panelHeightPx(body, FOOTED, 13))
+      expect(lineBudgetEm(h, 13, TWO)).toBeGreaterThan(body + INFO_BAR_LINE_EM - BOTTOM_PAD_EM)
     }
   })
 })

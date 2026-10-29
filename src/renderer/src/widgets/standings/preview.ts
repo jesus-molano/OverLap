@@ -2,19 +2,19 @@
  * Sample standings for edit mode (ux §4.7): an invented multiclass race with every row state
  * (you at P5, PIT, OUT, a lapped car, class best and personal best laps, off-track, meatball, a
  * warning), stints and stops, tyres known for your car model only, names that exercise every
- * name format, the ratings and incidents header, and the conditions footer's readings (drawn
- * only with the footer on). Rows are picked with the same rules as the provider (top rows, rows
+ * name format, flags for most drivers, and the info bars' data of your class (its SoF, entries
+ * and fastest lap, your projections, the conditions). Rows are picked with the same rules as the provider (top rows, rows
  * around you, other class leaders), so the window is sized on what the current options really
  * show. A field of several makes (the LMP2s are all Dallaras), so the brand marks show in 'auto'
  * mode. Pure.
  */
 import type { BrandId } from '@shared/carBrands'
-import { isElementVisible } from '@shared/elements'
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
 import { PREVIEW_INFO } from '@renderer/view/infoBar'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 import type {
   GapValue,
+  InfoBarData,
   StandingsClassBlock,
   StandingsData,
   StandingsHeader,
@@ -24,7 +24,7 @@ import type {
 
 export type PreviewOptions = Pick<
   StandingsOptions,
-  'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders' | 'subheaderBar'
+  'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders'
 >
 
 const LIC = {
@@ -407,6 +407,38 @@ const HEADER: Readonly<StandingsHeader> = {
   incidents: PREVIEW_INCIDENTS
 }
 
+/** Your class's fastest lap (the row with the purple plate), for the info bars' item. */
+function fastestOf(rows: readonly StandingsRow[]): InfoBarData['fastestLap'] {
+  const r = rows.find((x) => x.bestLapKind === 'class-best')
+  if (r === undefined || r.bestLap === null) return null
+  return {
+    lapTime: r.bestLap,
+    carIdx: r.carIdx,
+    carNumber: r.carNumber,
+    driverName: r.driverName,
+    isPlayer: r.isPlayer
+  }
+}
+
+/**
+ * The info bars' data: the shared sample (time left, the conditions), with the standings' own
+ * figures so the bars and the table agree: your class's SoF, entries and fastest lap, your
+ * position, the header's projections.
+ */
+const INFO: Readonly<InfoBarData> = Object.freeze({
+  ...PREVIEW_INFO,
+  sessionType: HEADER.sessionType,
+  lapsRemaining: HEADER.lapsRemaining,
+  timeRemainingS: HEADER.timeRemainingS,
+  sof: CLASSES[0]?.block.sof ?? null,
+  carCount: CLASSES[0]?.block.carCount ?? null,
+  incidents: HEADER.incidents,
+  iRating: HEADER.iRating,
+  classPosition: GT3_ROWS.find((r) => r.isPlayer)?.classPosition ?? null,
+  safetyRating: HEADER.safetyRating,
+  fastestLap: fastestOf(GT3_ROWS)
+})
+
 type DisplayRow = StandingsClassBlock['rows'][number]
 
 /** Compact selection of the player's class: the top rows, then the rows around you. */
@@ -438,13 +470,9 @@ export function previewStandings(o: PreviewOptions): StandingsData {
     classes.push({ ...c.block, rows })
   }
   return {
-    header: {
-      ...HEADER,
-      iRating: isElementVisible(o.subheaderBar, 'iRating') ? HEADER.iRating : null,
-      safetyRating: isElementVisible(o.subheaderBar, 'safetyRating') ? HEADER.safetyRating : null
-    },
+    header: HEADER,
     classes,
-    info: PREVIEW_INFO,
+    info: INFO,
     multiBrand: true
   }
 }
