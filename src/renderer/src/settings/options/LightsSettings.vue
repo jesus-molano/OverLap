@@ -108,7 +108,7 @@ const setIcons = listSetter('lights', 'icons')
     />
   </PageSection>
 
-  <CustomizeSection>
+  <CustomizeSection no-bars>
     <ElementEditor
       :title="zoneTitle(t, 'lights', 'icons')"
       :items="opts.icons"

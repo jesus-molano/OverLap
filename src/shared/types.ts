@@ -550,6 +550,8 @@ export interface BattleData {
   behind: BattleOpponent | null
   /** More than one make in the whole field (RelativeData.multiBrand). */
   multiBrand: boolean
+  /** What its header and footer bars show (InfoFeed); null while no bar item needs data. */
+  info: InfoBarData | null
 }
 
 // ---------------------------------------------------------------------------
@@ -650,6 +652,8 @@ export interface TrafficData {
   faster: TrafficEntry[]
   slower: TrafficEntry[]
   hazards: TrafficEntry[]
+  /** What its header and footer bars show (InfoFeed); null while no bar item needs data. */
+  info: InfoBarData | null
 }
 
 // ---------------------------------------------------------------------------
@@ -986,7 +990,7 @@ export interface FuelData {
   fastRepairs: number | null
   /** Dry tyre sets left when the session limits them, else null. */
   tyreSets: number | null
-  /** What its header bar shows (InfoFeed); null while no bar item needs data. */
+  /** What its header and footer bars show (InfoFeed); null while no bar item needs data. */
   info: InfoBarData | null
 }
 
@@ -1214,8 +1218,6 @@ export type BattlePartId = 'rating' | 'license' | 'trendNote' | 'stake'
 export type TrafficGroupId = 'hazard' | 'slower' | 'faster'
 /** Cells of a traffic line, left to right; `driver` and `value` always stay. */
 export type TrafficPartId = 'icon' | 'cls' | 'driver' | 'lead' | 'value' | 'sector'
-/** The panel's header band and the caption line of each group. */
-export type TrafficHeaderId = 'title' | 'captions'
 /** The pedals' blocks, in reading order (the trace hidden is the old 'bars' layout). */
 export type InputsSectionId = 'trace' | 'bars' | 'info' | 'car'
 export type InputsBarId = 'clutch' | 'brake' | 'throttle'
@@ -1437,6 +1439,16 @@ export interface StandingsOptions {
 }
 
 export interface BattleOptions {
+  /** The header bar (off by default): the widget's name and whatever items you add. */
+  headerBar: ElementList<InfoBarEntryId>
+  headerBarSize: InfoBarSize
+  /** The footer bar under the lanes (off by default). */
+  footerBar: ElementList<InfoBarEntryId>
+  footerBarSize: InfoBarSize
+  /** Arrow after the track temperature (the `trackTemp` item). */
+  conditionsTrend: boolean
+  /** The `wind` item's dial. */
+  conditionsWindDirection: boolean
   /** Show an opponent when the gap is below this (s, 0.3..5). */
   thresholdS: number
   /** The rivals, in order (a hidden one is not computed). */
@@ -1497,8 +1509,21 @@ export interface TrafficOptions {
   groups: ElementList<TrafficGroupId>
   /** The cells of each line, left to right. */
   parts: ElementList<TrafficPartId>
-  /** The header band and the group captions. */
-  header: ElementList<TrafficHeaderId>
+  /**
+   * The header bar: the widget's name and whatever items you add. Shown by default, as the title
+   * band it replaced (a file's old `header` list gives its switch: migrate.ts).
+   */
+  headerBar: ElementList<InfoBarEntryId>
+  headerBarSize: InfoBarSize
+  /** The footer bar under the lines (off by default). */
+  footerBar: ElementList<InfoBarEntryId>
+  footerBarSize: InfoBarSize
+  /** Arrow after the track temperature (the `trackTemp` item). */
+  conditionsTrend: boolean
+  /** The `wind` item's dial. */
+  conditionsWindDirection: boolean
+  /** A caption line over each group ('PELIGRO', 'DELANTE', 'POR DETRÁS'), header or not. */
+  captions: boolean
   /** Faster/slower traffic only in multiclass sessions (hazards always). */
   onlyMulticlass: boolean
   /** 'inherit' = appearance.nameFormat. */
@@ -1573,6 +1598,9 @@ export interface FuelOptions {
   /** The header bar (off by default): the widget's name and whatever items you add. */
   headerBar: ElementList<InfoBarEntryId>
   headerBarSize: InfoBarSize
+  /** The footer bar under the lines (off by default). */
+  footerBar: ElementList<InfoBarEntryId>
+  footerBarSize: InfoBarSize
   /** Arrow after the track temperature (the `trackTemp` item). */
   conditionsTrend: boolean
   /** The `wind` item's dial. */
@@ -1635,22 +1663,26 @@ export type CustomizeZoneId =
   | 'standings.subheaderBar'
   | 'standings.footerBar'
   | 'standings.classLine'
+  | 'battle.headerBar'
   | 'battle.lanes'
   | 'battle.rows'
   | 'battle.parts'
+  | 'battle.footerBar'
   | 'inputs.sections'
   | 'inputs.bars'
   | 'inputs.info'
   | 'inputs.car'
+  | 'traffic.headerBar'
   | 'traffic.groups'
   | 'traffic.parts'
-  | 'traffic.header'
+  | 'traffic.footerBar'
   | 'alerts.parts'
   | 'delta.rows'
   | 'delta.top'
   | 'delta.laps'
   | 'fuel.headerBar'
   | 'fuel.lines'
+  | 'fuel.footerBar'
   | 'lights.icons'
 
 /** The settings window's own preferences (nothing else reads them). */
@@ -1659,6 +1691,8 @@ export interface SettingsWindowOptions {
   stageScene: 'dark' | 'light'
   /** Which "Personalizar" accordions are open (visible = open), every zone once. */
   customizeOpen: ElementList<CustomizeZoneId>
+  /** The hint above a widget page's preview (editing in it) is shown: until you dismiss it. */
+  previewHint: boolean
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

@@ -179,6 +179,12 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   density: 'inherit'
 }
 const DEFAULT_BATTLE: BattleOptions = {
+  headerBar: bar(['title', 'split']),
+  headerBarSize: 'off',
+  footerBar: bar(['remaining', 'split', 'fuelLaps']),
+  footerBarSize: 'off',
+  conditionsTrend: true,
+  conditionsWindDirection: true,
   thresholdS: 1.5,
   lanes: list(['ahead', 'behind']),
   layout: 'stacked',
@@ -211,7 +217,13 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   maxEntries: 3,
   groups: list(['hazard', 'slower', 'faster']),
   parts: list(['icon', 'cls', 'driver', 'lead', 'value', 'sector']),
-  header: list(['title', 'captions']),
+  headerBar: bar(['title', 'split']),
+  headerBarSize: 'normal',
+  footerBar: bar(['carCount', 'sof', 'split', 'remaining']),
+  footerBarSize: 'off',
+  conditionsTrend: true,
+  conditionsWindDirection: true,
+  captions: true,
   onlyMulticlass: true,
   nameFormat: 'inherit'
 }
@@ -254,6 +266,8 @@ const DEFAULT_DELTA: DeltaOptions = {
 const DEFAULT_FUEL: FuelOptions = {
   headerBar: bar(['title', 'split']),
   headerBarSize: 'off',
+  footerBar: bar(['remaining', 'split', 'trackTemp']),
+  footerBarSize: 'off',
   conditionsTrend: true,
   conditionsWindDirection: true,
   lines: list(['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits']),
@@ -297,6 +311,8 @@ const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
   'standings.subheaderBar',
   'standings.footerBar',
   'standings.classLine',
+  'battle.headerBar',
+  'battle.footerBar',
   'battle.lanes',
   'battle.rows',
   'battle.parts',
@@ -304,14 +320,16 @@ const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
   'inputs.bars',
   'inputs.info',
   'inputs.car',
+  'traffic.headerBar',
+  'traffic.footerBar',
   'traffic.groups',
   'traffic.parts',
-  'traffic.header',
   'alerts.parts',
   'delta.rows',
   'delta.top',
   'delta.laps',
   'fuel.headerBar',
+  'fuel.footerBar',
   'fuel.lines',
   'lights.icons'
 ]
@@ -319,9 +337,9 @@ const FIRST_ZONES: readonly CustomizeZoneId[] = [
   'relative.columns',
   'radar.parts',
   'standings.columns',
-  'battle.lanes',
+  'battle.headerBar',
   'inputs.sections',
-  'traffic.groups',
+  'traffic.headerBar',
   'alerts.parts',
   'delta.rows',
   'fuel.headerBar',
@@ -332,7 +350,8 @@ const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = {
   customizeOpen: list(
     CUSTOMIZE_ZONES,
     CUSTOMIZE_ZONES.filter((id) => !FIRST_ZONES.includes(id))
-  )
+  ),
+  previewHint: true
 }
 
 /** Visibility of `id` in a list (the tests read the lists through this). */
@@ -606,7 +625,8 @@ describe('normalizeSettings: basics', () => {
     s.lights = { ...DEFAULT_LIGHTS, layout: 'column', labelSide: 'left' }
     s.settingsWindow = {
       stageScene: 'light',
-      customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines'])
+      customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines']),
+      previewHint: false
     }
     s.shortcuts = { ...DEFAULT_SHORTCUTS, cycleDeltaReference: 'Ctrl+Alt+D' }
     s.widgets.traffic = { ...s.widgets.traffic, anchor: 'bottom', scale: 90, hideInPits: true }

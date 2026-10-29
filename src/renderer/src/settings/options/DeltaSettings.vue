@@ -168,7 +168,7 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
     />
   </PageSection>
 
-  <CustomizeSection>
+  <CustomizeSection no-bars>
     <ElementEditor
       :title="zoneTitle(t, 'delta', 'rows')"
       :items="opts.rows"

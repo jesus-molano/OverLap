@@ -62,9 +62,14 @@ const content = useShownContent(
   () => PREVIEW_FUEL
 )
 
-/** The header: an info bar of any items (fuel.headerBar), off by default as the old band. */
+/**
+ * The header and footer info bars (fuel.headerBar / footerBar): the header off by default as the
+ * old band, the footer off.
+ */
 const head = useInfoBar(ID, 'headerBar', () => content.value?.info ?? null)
+const foot = useInfoBar(ID, 'footerBar', () => content.value?.info ?? null)
 const showHeader = computed(() => head.shown.value)
+const showFooter = computed(() => foot.shown.value)
 
 // Every line keeps its object while equal: a payload re-renders only the lines it moved.
 const view = computed<FuelView>((prev) => {
@@ -99,7 +104,8 @@ const wanted = computed(
 )
 const shown = useReveal(
   () => wanted.value,
-  () => layoutKey(view.value, showHeader.value, viewOptions.value.order),
+  () =>
+    `${layoutKey(view.value, showHeader.value, viewOptions.value.order)}${showFooter.value ? '|f' : ''}`,
   { fit: () => autoHeight.value }
 )
 
@@ -119,7 +125,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       v-if="lines.length > 0"
       ref="panel"
       class="fu-panel"
-      :class="{ 'fu-panel--fixed': !autoHeight, 'fu-panel--head': showHeader }"
+      :class="{
+        'fu-panel--fixed': !autoHeight,
+        'fu-panel--head': showHeader,
+        'fu-panel--foot': showFooter
+      }"
       :surface="surfaceStyle"
       :halo="halo"
       :fill="!autoHeight"
@@ -310,6 +320,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         </span>
         <PreviewTag v-if="tagLine === 'limits'" class="fu-tag" />
       </div>
+
+      <InfoBar
+        v-if="showFooter"
+        class="fu-foot"
+        :view="foot.view.value"
+        :size="foot.size.value"
+        place="foot"
+        zone="fuel.footerBar"
+      />
     </WidgetPanel>
   </div>
 </template>
@@ -335,6 +354,16 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .fu-panel--head {
   padding-top: 0;
+}
+
+.fu-panel--foot {
+  padding-bottom: 0;
+}
+
+/* After every line, whatever their order (CSS order); at the bottom of a fixed-size panel. */
+.fu-foot {
+  order: 1000;
+  margin-top: auto;
 }
 
 .fu-panel--fixed {

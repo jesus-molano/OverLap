@@ -112,10 +112,17 @@ export function createProviders(): ProviderSet {
         }
         return withInfo(p, info(ctx, sectionInfoItems('standings', ctx.config.standings), known))
       },
-      battle: (ctx, prev) => battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
+      battle: (ctx, prev) =>
+        withInfo(
+          battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
+          info(ctx, sectionInfoItems('battle', ctx.config.battle))
+        ),
       inputs: (ctx) => computeInputs(ctx.frame, ctx.session),
       traffic: (ctx, prev) =>
-        traffic.compute(ctx.frame, ctx.session, ctx.race, ctx.config.traffic, prev),
+        withInfo(
+          traffic.compute(ctx.frame, ctx.session, ctx.race, ctx.config.traffic, prev),
+          info(ctx, sectionInfoItems('traffic', ctx.config.traffic))
+        ),
       alerts: (ctx) =>
         alerts.compute(
           ctx.frame,

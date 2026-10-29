@@ -6,6 +6,7 @@ import { useAutoHeight } from '../../composables/useWidgetSettings'
 import { provideSampleHost, provideWidgetId } from '../../composables/widgetContext'
 import type { InlineStyle } from '../../view/styles'
 import { WIDGET_COMPONENTS } from '../../widgets'
+import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { sampleBox } from './sampleBox'
 import { useSampleHeight, useSampleWidth } from './useSampleWidth'
 
@@ -14,6 +15,8 @@ import { useSampleHeight, useSampleWidth } from './useSampleWidth'
  * with the current options and appearance, at the widget's window size (scaled down to the
  * page when it is wider). What you see here is what the widget draws over the game.
  * `global`: name format and density follow the appearance (Apariencia page).
+ * On a widget page the sample is editable (usePreviewEdit): it takes the pointer, and while you
+ * edit it draws the hidden elements of the ghosted zones (the host's viewOptions and ghosts).
  */
 const props = withDefaults(defineProps<{ widgetId: WidgetId; global?: boolean }>(), {
   global: false
@@ -22,6 +25,7 @@ const props = withDefaults(defineProps<{ widgetId: WidgetId; global?: boolean }>
 // The page is keyed by the widget: the id never changes for this instance.
 const id = props.widgetId
 provideWidgetId(id)
+const edit = injectPreviewEdit()
 /** Content height reported by an auto-height widget (null until it does). */
 const contentHeight = shallowRef<number | null>(null)
 // Applied on the next frame, like an overlay panel: resizing the box from inside
@@ -37,7 +41,8 @@ provideSampleHost({
       contentHeight.value = pendingHeight
     })
   },
-  globalAppearance: props.global
+  globalAppearance: props.global,
+  ...(edit !== null && !props.global ? { viewOptions: edit.viewOptions, ghosts: edit.ghosts } : {})
 })
 onBeforeUnmount(() => {
   if (frame !== 0) cancelAnimationFrame(frame)
@@ -67,7 +72,7 @@ const component = WIDGET_COMPONENTS[id]
 </script>
 
 <template>
-  <div ref="area" class="ws" aria-hidden="true">
+  <div ref="area" class="ws" :class="{ 'is-editable': edit !== null }" aria-hidden="true">
     <div class="ws-box" :style="outerStyle">
       <!-- Stands in for the widget's window (its body styles included). -->
       <div class="ws-window" :style="windowStyle">
@@ -84,6 +89,12 @@ const component = WIDGET_COMPONENTS[id]
   width: 100%;
   min-width: 0;
   pointer-events: none;
+}
+
+/* Editable in place (settings/preview): the pointer reaches what the widget draws. */
+.ws.is-editable {
+  pointer-events: auto;
+  user-select: none;
 }
 
 .ws-box {

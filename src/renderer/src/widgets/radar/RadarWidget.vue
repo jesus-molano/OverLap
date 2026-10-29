@@ -4,6 +4,7 @@ import { isElementVisible } from '@shared/elements'
 import { formatMetres } from '@shared/format'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
 import { useElementSize } from '@renderer/composables/useElementSize'
+import { injectSampleHost } from '@renderer/composables/widgetContext'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useOption } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
@@ -41,6 +42,8 @@ const showSideAlerts = computed(() => isElementVisible(parts.value, 'sideAlerts'
 const showRangeLabels = computed(
   () => showGuides.value && isElementVisible(parts.value, 'rangeLabels')
 )
+/** Drawn as an editable settings sample (settings/preview): the guides and labels take the pointer. */
+const editable = injectSampleHost()?.ghosts !== undefined
 const { surfaceStyle, halo } = useWidgetSurface()
 // The SDK can go silent for seconds before the connection is declared lost, and the provider
 // sends nothing while the radar is hidden: freshness hides it without a ticking timer.
@@ -116,7 +119,7 @@ const rangeLabels = computed(() => {
     ref="root"
     v-inline-style="surfaceStyle"
     class="radar ov-root ov-fade ov-surface"
-    :class="{ 'is-shown': shown, 'radar--halo': halo }"
+    :class="{ 'is-shown': shown, 'radar--halo': halo, 'radar--editable': editable }"
   >
     <svg
       class="radar__svg"
@@ -208,6 +211,14 @@ const rangeLabels = computed(() => {
             x2="1.4"
             :y2="y"
           />
+        </g>
+        <!-- Editing in the settings sample only: the hairlines are hard to point at, so a wide,
+             invisible copy takes the pointer for them (the side alerts, drawn later, win). -->
+        <g v-if="showGuides && editable" class="radar__guides-hit" data-el="radar.parts.guides">
+          <line x1="0" :y1="-BG_HALF" x2="0" :y2="BG_HALF" />
+          <line :x1="-BG_HALF" y1="0" :x2="BG_HALF" y2="0" />
+          <line :x1="-BG_HALF" :y1="guides.halfY" :x2="BG_HALF" :y2="guides.halfY" />
+          <line :x1="-BG_HALF" :y1="-guides.halfY" :x2="BG_HALF" :y2="-guides.halfY" />
         </g>
 
         <template v-if="showSideAlerts">
@@ -447,6 +458,19 @@ const rangeLabels = computed(() => {
 }
 
 /* Straight over the game: a solid outline instead of the faint halo. */
+/* The settings sample: a wide invisible stroke over each guide, and each label hit by its box
+   (not its letters' outlines), so both can be pointed at. Never drawn over the game. */
+.radar__guides-hit line {
+  stroke: transparent;
+  stroke-width: 10px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+}
+
+.radar--editable .radar__labels text {
+  pointer-events: bounding-box;
+}
+
 .radar--halo .radar__labels text {
   stroke: rgba(0, 0, 0, 0.9);
   stroke-width: 1px;

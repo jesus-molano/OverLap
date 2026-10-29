@@ -14,7 +14,7 @@
  * smaller as a whole, centred (stageFit). Only the window height and the sample's own layout
  * size decide it, never the scale, so nothing feeds back.
  */
-import { computed, useId, useTemplateRef } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { SettingsWindowOptions } from '@shared/types'
 import { useElementSize } from '../../composables/useElementSize'
@@ -22,9 +22,11 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import type { InlineStyle } from '../../view/styles'
 import { choiceOptions } from '../controls/choice'
+import PreviewEditLayer from '../preview/PreviewEditLayer.vue'
+import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
-import { stageFit } from './stageFit'
+import { editingLimit, stageFit } from './stageFit'
 
 /** `caption`: the figure caption (default: the sample-data note in the current language). */
 withDefaults(defineProps<{ caption?: string }>(), { caption: undefined })
@@ -50,11 +52,45 @@ const sceneLabelId = `${sceneId}-label`
 /** Height the sample may take: the stage's cap less its padding and border (CSS decides it). */
 const limitSize = useElementSize(useTemplateRef<HTMLElement>('limit'))
 /** The sample's layout size (the scale below is a transform: it does not change it). */
-const sampleSize = useElementSize(useTemplateRef<HTMLElement>('sample'))
+const sampleEl = useTemplateRef<HTMLElement>('sample')
+const sampleSize = useElementSize(sampleEl)
+const stageEl = useTemplateRef<HTMLElement>('stage')
+/** A widget page's preview is editable (usePreviewEdit): its pointer layer. */
+const edit = injectPreviewEdit()
+const editable = edit !== null
 
-const fit = computed(() =>
-  stageFit(sampleSize.value, { w: sampleSize.value.w, h: Math.floor(limitSize.value.h) })
-)
+/**
+ * While the sample draws ghosts (and until it is measured again without them), it keeps the
+ * height it had at rest (`rest`): ghosts that add lines draw it a little smaller instead of
+ * growing the stage, so the options under it never jump while you point (editingLimit).
+ */
+const ghosting = computed(() => (edit?.ghosts.value.length ?? 0) > 0)
+const settling = shallowRef(false)
+const rest = shallowRef(0)
+let settleTimer: ReturnType<typeof setTimeout> | undefined
+watch(ghosting, (on, was) => {
+  clearTimeout(settleTimer)
+  if (on || !was) return
+  settling.value = true
+  // The sample's next measure ends it; one that does not change ends it after a moment.
+  settleTimer = setTimeout(() => (settling.value = false), 150)
+})
+watch(sampleSize, () => {
+  if (settling.value && !ghosting.value) settling.value = false
+})
+onBeforeUnmount(() => clearTimeout(settleTimer))
+
+const fit = computed(() => {
+  const limit = Math.floor(limitSize.value.h)
+  const frozen = ghosting.value || settling.value
+  return stageFit(sampleSize.value, {
+    w: sampleSize.value.w,
+    h: frozen ? editingLimit(limit, rest.value) : limit
+  })
+})
+watch(fit, (f) => {
+  if (!ghosting.value && !settling.value && f.height > 0) rest.value = f.height
+})
 /** Until the sample is measured it takes its own height. */
 const fitStyle = computed<InlineStyle | undefined>(() =>
   fit.value.height > 0 ? { height: `${fit.value.height}px` } : undefined
@@ -65,7 +101,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 </script>
 
 <template>
-  <figure class="stage" :data-scene="sceneNow">
+  <figure ref="stage" class="stage" :data-scene="sceneNow">
     <div class="scene" aria-hidden="true" />
     <div ref="limit" class="limit" aria-hidden="true" />
     <div class="content">
@@ -75,6 +111,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
         </div>
       </div>
     </div>
+    <PreviewEditLayer v-if="editable" :sample="sampleEl" :stage="stageEl" />
     <div class="scene-switch">
       <span :id="sceneLabelId" class="scene-label">{{ t.settings.sample.scene }}</span>
       <div class="scene-seg" role="radiogroup" :aria-labelledby="sceneLabelId">

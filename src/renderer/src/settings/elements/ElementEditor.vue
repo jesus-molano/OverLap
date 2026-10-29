@@ -6,8 +6,12 @@ import Icon from '../../ui/Icon.vue'
 import AccordionSection from '../layout/AccordionSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
+import type { ElRef } from '../preview/previewEdit'
+import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
 import { useOptimistic } from '../useOptimistic'
 import {
+  barRows,
+  barStop,
   blockedBy,
   boxBounds,
   boxPosition,
@@ -18,12 +22,15 @@ import {
   keyAction,
   movedAcross,
   movedBy,
+  movedPast,
   movedTo,
   movedMessage,
+  placeOfSlot,
+  placedAt,
+  shownAtSideEnd,
   shownCount,
   sideMessage,
   sideOf,
-  sides,
   toggled,
   visibilityMessage,
   type ElementChange,
@@ -46,6 +53,11 @@ import {
  * shown; any other list is a plain section. With `split` (an info bar's marker) the list is two
  * boxes, "Izquierda" and "Derecha": the marker is no row; an element changes side by a drag, by
  * ↑ ↓ over the boundary or by its ← → button, and the stored list keeps the marker as it was.
+ * The boxes hold the shown items; the hidden ones (of either side) wait in a collapsed
+ * "Ocultos (N)" group under them, and one shown from there goes to the end of its side.
+ *
+ * On a widget page the zone also joins the page's preview editing (usePreviewEdit): the sample
+ * acts on it through the same edits as its rows, and a row and its element light each other.
  *
  *   <ElementEditor
  *     :title="zoneTitle(t, 'relative', 'columns')"
@@ -134,13 +146,15 @@ interface Box {
   readonly rows: readonly IndexedEntry<Id>[]
 }
 
+/** An info bar's rows: its shown items by side, its hidden ones apart (barRows). */
+const bar = computed(() => (props.split === undefined ? null : barRows(shown.value, props.split)))
+
 const boxes = computed<readonly Box[]>(() => {
   const list = shown.value
-  if (props.split !== undefined) {
-    const { left, right } = sides(list, props.split)
+  if (bar.value !== null) {
     return [
-      { side: 'left', rows: left },
-      { side: 'right', rows: right }
+      { side: 'left', rows: bar.value.left },
+      { side: 'right', rows: bar.value.right }
     ]
   }
   const rows = list
@@ -149,8 +163,31 @@ const boxes = computed<readonly Box[]>(() => {
   return [{ side: null, rows }]
 })
 
+/** An info bar's hidden items, under the boxes ("Ocultos (N)", closed until you open it). */
+const hiddenRows = computed(() => bar.value?.hidden ?? [])
+const hiddenOpen = shallowRef(false)
+const hiddenListId = `${useId()}-hidden`
+
 /** The rows drawn (no marker, nothing omitted): what the count counts. */
-const rowEntries = computed(() => boxes.value.flatMap((b) => b.rows.map((r) => r.entry)))
+const rowEntries = computed(() => [
+  ...boxes.value.flatMap((b) => b.rows.map((r) => r.entry)),
+  ...hiddenRows.value.map((r) => r.entry)
+])
+
+/**
+ * The entries a drag or ↑ ↓ steps over: the rows drawn in the boxes (an info bar's shown items
+ * and its marker, the right box's heading); hidden entries between them never matter.
+ */
+function isStop(e: Readonly<ElementEntry<Id>>): boolean {
+  if (props.split !== undefined) return barStop(props.split)(e)
+  return !props.omit.includes(e.id)
+}
+
+/** Whether ↑ (-1) or ↓ (1) can move `id` (an info bar: past the next row drawn). */
+function canStep(id: Id, index: number, delta: -1 | 1): boolean {
+  if (props.split === undefined) return delta < 0 ? index > 0 : index < shown.value.length - 1
+  return movedPast(props.spec, shown.value, id, delta, isStop) !== null
+}
 const countNote = computed(() =>
   t.value.settings.elements.count(shownCount(rowEntries.value), rowEntries.value.length)
 )
@@ -202,22 +239,49 @@ function say(text: string): void {
 
 const labelOf = (id: Id): string => props.labels[id]?.label ?? id
 
-function setVisible(id: Id, visible: boolean): void {
+/**
+ * Shows or hides `id`. An info bar's hidden item shown from its list goes to the end of its
+ * side (shownAtSideEnd); `inPlace` (the preview, where its ghost is drawn) keeps it where it is.
+ */
+function setVisible(id: Id, visible: boolean, inPlace = false): void {
   if (!visible && isRequired(props.spec, id)) return
-  void send(toggled(props.spec, current.value, id, visible), { kind: 'visible', id, visible })
+  const list = current.value
+  const next =
+    visible && !inPlace && props.split !== undefined
+      ? shownAtSideEnd(props.spec, list, id, props.split)
+      : toggled(props.spec, list, id, visible)
+  void send(next, { kind: 'visible', id, visible })
   say(visibilityMessage(t.value, labelOf(id), visible))
+}
+
+/** The eye of a row: in an info bar the row changes group, so the focus follows it. */
+function onEye(id: Id, visible: boolean): void {
+  setVisible(id, visible)
+  if (props.split !== undefined) void refocusEye(id)
 }
 
 type FocusTarget = 'handle' | 'up' | 'down' | 'side'
 
+const rootEl = shallowRef<HTMLElement | null>(null)
+const rowOf = (id: Id): HTMLElement | null =>
+  rootEl.value?.querySelector<HTMLElement>(`li[data-row="${id}"]`) ?? null
+
 /** Keeps keyboard focus on the moved row's control (its buttons may have become disabled). */
 async function refocus(id: Id, target: FocusTarget): Promise<void> {
   await nextTick()
-  const row = listEl.value?.querySelector<HTMLElement>(`li[data-row="${id}"]`)
+  const row = rowOf(id)
   const want = row?.querySelector<HTMLButtonElement>(`[data-focus="${target}"]`)
   const el =
     want && !want.disabled ? want : row?.querySelector<HTMLElement>('[data-focus="handle"]')
   el?.focus()
+}
+
+/** The focus on the eye of `id`'s row wherever it went, else on the "Ocultos" button. */
+async function refocusEye(id: Id): Promise<void> {
+  await nextTick()
+  const eye = rowOf(id)?.querySelector<HTMLElement>('[data-focus="eye"]')
+  if (eye && eye.offsetParent !== null) eye.focus()
+  else rootEl.value?.querySelector<HTMLElement>('[data-focus="hidden"]')?.focus()
 }
 
 /**
@@ -240,9 +304,13 @@ function announceMove(
   say(movedMessage(t.value, labelOf(id), at.index, at.total))
 }
 
-function move(id: Id, delta: number, target: FocusTarget): void {
+function move(id: Id, delta: -1 | 1, target: FocusTarget): void {
   const before = current.value
-  const next = movedBy(props.spec, before, id, delta)
+  const next =
+    props.split !== undefined
+      ? movedPast(props.spec, before, id, delta, isStop)
+      : movedBy(props.spec, before, id, delta)
+  if (next === null) return
   const to = next.findIndex((e) => e.id === id)
   if (to === before.findIndex((e) => e.id === id)) return
   void send(next, { kind: 'move', id, to })
@@ -278,7 +346,7 @@ function onHandleKey(e: KeyboardEvent, id: Id, index: number): void {
   const action = keyAction(e.key, index, list.length, boxBounds(list, index, props.split))
   if (action === null) return
   e.preventDefault()
-  if (action.kind === 'by') move(id, action.delta, 'handle')
+  if (action.kind === 'by') move(id, action.delta < 0 ? -1 : 1, 'handle')
   else moveTo(id, action.index)
 }
 
@@ -293,6 +361,8 @@ function sideLabel(id: Id, side: Side): string {
 interface Drag {
   pointerId: number
   id: Id
+  /** The rows drawn (isStop), in list order, and the dragged one's place among them. */
+  stops: Id[]
   from: number
   to: number
   centres: number[]
@@ -301,32 +371,39 @@ interface Drag {
 let drag: Drag | null = null
 
 /**
- * Each entry's slot centre (px) in list order: its row, or for the marker the heading of the
+ * Each stop's slot centre (px) in list order: its row, or for the marker the heading of the
  * right box, which sits where the marker is in the list.
  */
-function slotCentres(lists: HTMLElement, base: readonly ElementEntry<Id>[]): number[] {
-  return base.map((e) => {
-    const el = lists.querySelector<HTMLElement>(`[data-row="${e.id}"]`)
+function slotCentres(lists: HTMLElement, stops: readonly Id[]): number[] {
+  return stops.map((id) => {
+    const el = lists.querySelector<HTMLElement>(`[data-row="${id}"]`)
     if (el === null) return Number.NaN
     const r = el.getBoundingClientRect()
     return r.top + r.height / 2
   })
 }
 
+/** The list a drag to slot `to` makes (the base itself for its own slot). */
+function dragged(d: Drag, to: number): ElementEntry<Id>[] {
+  const place = to === d.from ? null : placeOfSlot(d.stops, d.id, to)
+  return place === null ? d.base : placedAt(props.spec, d.base, d.id, place)
+}
+
 function onHandleDown(e: PointerEvent, id: Id): void {
   const lists = listEl.value
   if (e.button !== 0 || lists === null || drag !== null || !sortable.value) return
   const base = current.value.map((c) => ({ id: c.id, visible: c.visible }))
-  const from = base.findIndex((c) => c.id === id)
+  const stops = base.filter(isStop).map((c) => c.id)
+  const from = stops.indexOf(id)
   if (from < 0) return
-  const centres = slotCentres(lists, base)
+  const centres = slotCentres(lists, stops)
   e.preventDefault()
   try {
     lists.setPointerCapture(e.pointerId)
   } catch {
     // Without capture, leaving the list cancels (pointerleave).
   }
-  drag = { pointerId: e.pointerId, id, from, to: from, centres, base }
+  drag = { pointerId: e.pointerId, id, stops, from, to: from, centres, base }
   dragId.value = id
   dragOrder.value = base
 }
@@ -336,7 +413,7 @@ function onMove(e: PointerEvent): void {
   const to = dropIndex(drag.centres, drag.from, e.clientY)
   if (to === drag.to) return
   drag.to = to
-  dragOrder.value = movedTo(props.spec, drag.base, drag.id, to)
+  dragOrder.value = dragged(drag, to)
 }
 
 function endDrag(): void {
@@ -347,12 +424,77 @@ function endDrag(): void {
 
 function onUp(e: PointerEvent): void {
   if (drag === null || e.pointerId !== drag.pointerId) return
-  const { id, from, to, base } = drag
+  const d = drag
   endDrag()
-  if (to === from) return
-  const next = movedTo(props.spec, base, id, to)
-  void send(next, { kind: 'move', id, to })
-  announceMove(id, base, next)
+  if (d.to === d.from) return
+  const next = dragged(d, d.to)
+  void send(next, { kind: 'move', id: d.id, to: next.findIndex((c) => c.id === d.id) })
+  announceMove(d.id, d.base, next)
+}
+
+// ---- The preview (the sample acts on this zone; a row and its element light each other) -----
+
+const preview = injectPreviewEdit()
+
+/** The element of this zone the sample points at, or the list lights: its row is lit. */
+const litId = computed<string | null>(() => {
+  const z = zone.value
+  if (preview === null || z === null) return null
+  for (const el of [preview.hover.value, preview.lit.value]) if (el?.zone === z) return el.id
+  return null
+})
+const hiddenLit = computed(() => hiddenRows.value.some((r) => r.entry.id === litId.value))
+
+function lightRow(id: Id | null): void {
+  const z = zone.value
+  if (preview === null || z === null) return
+  preview.lightFromList(id === null ? null : ({ zone: z, id } satisfies ElRef))
+}
+
+/** Opens the accordion and brings `id`'s row into view (the sample acted on it). */
+function reveal(id: Id): void {
+  if (zone.value !== null) void setZonesOpen([zone.value], true)
+  if (hiddenRows.value.some((r) => r.entry.id === id)) hiddenOpen.value = true
+  // After the accordion's short opening.
+  setTimeout(() => {
+    const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    rowOf(id)?.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' })
+  }, 220)
+}
+
+if (preview !== null) {
+  watch(
+    zone,
+    (z, _prev, onCleanup) => {
+      if (z === null) return
+      const handle: ZoneHandle = {
+        zone: z,
+        spec: props.spec as SpecRules<string>,
+        split: props.split,
+        title: () => props.title,
+        list: () => current.value,
+        label: (id) => labelOf(id as Id),
+        dim: () => props.dim,
+        setVisible: (id, visible) => setVisible(id as Id, visible, true),
+        commit: (next, id) => {
+          const before = current.value
+          void send(next as ElementEntry<Id>[], {
+            kind: 'move',
+            id: id as Id,
+            to: next.findIndex((e) => e.id === id)
+          })
+          announceMove(id as Id, before, next as ElementEntry<Id>[])
+        },
+        showAt: (next, id) => {
+          void send(next as ElementEntry<Id>[], { kind: 'visible', id: id as Id, visible: true })
+          say(visibilityMessage(t.value, labelOf(id as Id), true))
+        },
+        reveal: (id) => reveal(id as Id)
+      }
+      onCleanup(preview.register(handle))
+    },
+    { immediate: true }
+  )
 }
 
 function onCancel(e: PointerEvent): void {
@@ -361,8 +503,12 @@ function onCancel(e: PointerEvent): void {
 </script>
 
 <template>
-  <component :is="frame.is" v-bind="frame.props">
-    <div class="ed" :class="{ 'in-acc': zone !== null, 'is-dim': dim }">
+  <component
+    :is="frame.is"
+    v-bind="frame.props"
+    :class="{ 'is-zone-lit': litId !== null && !open }"
+  >
+    <div ref="rootEl" class="ed" :class="{ 'in-acc': zone !== null, 'is-dim': dim }">
       <div v-if="$slots.head" class="ed-head">
         <slot name="head" />
       </div>
@@ -423,9 +569,14 @@ function onCancel(e: PointerEvent): void {
               :class="{
                 'is-dragged': dragId === r.entry.id,
                 'is-off': !r.entry.visible,
-                'is-blocked': blockedBy(spec, shown, r.entry.id) !== null
+                'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
+                'is-lit': litId === r.entry.id && dragId === null
               }"
               :data-row="r.entry.id"
+              @pointerenter="lightRow(r.entry.id)"
+              @pointerleave="lightRow(null)"
+              @focusin="lightRow(r.entry.id)"
+              @focusout="lightRow(null)"
             >
               <button
                 v-if="sortable"
@@ -451,13 +602,14 @@ function onCancel(e: PointerEvent): void {
                 v-else
                 type="button"
                 class="ed-eye"
+                data-focus="eye"
                 :aria-pressed="r.entry.visible"
                 :aria-label="
                   r.entry.visible
                     ? t.settings.elements.hide(labelOf(r.entry.id))
                     : t.settings.elements.show(labelOf(r.entry.id))
                 "
-                @click="setVisible(r.entry.id, !r.entry.visible)"
+                @click="onEye(r.entry.id, !r.entry.visible)"
               >
                 <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
               </button>
@@ -491,7 +643,7 @@ function onCancel(e: PointerEvent): void {
                   class="st-btn st-btn-icon st-btn-ghost"
                   data-focus="up"
                   :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
-                  :disabled="r.index === 0 || dragId !== null"
+                  :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
                   @click="move(r.entry.id, -1, 'up')"
                 >
                   ↑
@@ -501,7 +653,7 @@ function onCancel(e: PointerEvent): void {
                   class="st-btn st-btn-icon st-btn-ghost"
                   data-focus="down"
                   :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
-                  :disabled="r.index === shown.length - 1 || dragId !== null"
+                  :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
                   @click="move(r.entry.id, 1, 'down')"
                 >
                   ↓
@@ -513,6 +665,61 @@ function onCancel(e: PointerEvent): void {
             </li>
           </ol>
         </div>
+      </div>
+
+      <!-- An info bar's hidden items: out of the boxes, in a group of their own. -->
+      <div v-if="hiddenRows.length > 0" class="ed-hidden" :class="{ 'is-open': hiddenOpen }">
+        <button
+          type="button"
+          class="ed-hidden-btn"
+          :class="{ 'is-lit': hiddenLit && !hiddenOpen }"
+          data-focus="hidden"
+          :aria-expanded="hiddenOpen"
+          :aria-controls="hiddenListId"
+          @click="hiddenOpen = !hiddenOpen"
+        >
+          <span class="ed-hidden-chev" aria-hidden="true"><Icon name="chevron" /></span>
+          <span class="ed-hidden-name">{{
+            t.settings.elements.hiddenGroup(hiddenRows.length)
+          }}</span>
+          <span class="ed-hidden-help">{{ t.settings.elements.hiddenGroupHelp }}</span>
+        </button>
+        <ul
+          v-show="hiddenOpen"
+          :id="hiddenListId"
+          class="ed-list ed-hidden-list"
+          :aria-label="`${title}: ${t.settings.elements.hiddenGroup(hiddenRows.length)}`"
+        >
+          <li
+            v-for="r in hiddenRows"
+            :key="r.entry.id"
+            class="ed-row is-off"
+            :class="{ 'is-lit': litId === r.entry.id }"
+            :data-row="r.entry.id"
+            @pointerenter="lightRow(r.entry.id)"
+            @pointerleave="lightRow(null)"
+            @focusin="lightRow(r.entry.id)"
+            @focusout="lightRow(null)"
+          >
+            <button
+              type="button"
+              class="ed-eye"
+              data-focus="eye"
+              :aria-pressed="false"
+              :aria-label="t.settings.elements.show(labelOf(r.entry.id))"
+              @click="onEye(r.entry.id, true)"
+            >
+              <Icon name="eye-off" />
+            </button>
+            <span class="ed-text">
+              <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
+              <span v-if="labels[r.entry.id]?.hint" class="ed-hint">{{
+                labels[r.entry.id]?.hint
+              }}</span>
+            </span>
+            <span class="ed-tag ed-side-tag">{{ t.settings.elements.hiddenSide[r.side] }}</span>
+          </li>
+        </ul>
       </div>
 
       <ul v-if="fixedAfter.length > 0" class="ed-list ed-after">
@@ -694,6 +901,91 @@ function onCancel(e: PointerEvent): void {
 .ed-lists.dragging,
 .ed-lists.dragging * {
   cursor: grabbing;
+}
+
+/* Its element is pointed at in the preview (or the other way round): an outline, no tint. */
+.ed-row.is-lit,
+.ed-hidden-btn.is-lit {
+  border-color: var(--st-border-strong);
+  outline: 1px solid var(--st-border-strong);
+  outline-offset: -1px;
+}
+
+/* A closed zone whose element the preview points at. */
+.is-zone-lit {
+  outline: 1px solid var(--st-border-strong);
+  outline-offset: -1px;
+}
+
+/* An info bar's hidden items: a quiet disclosure under the two boxes. */
+.ed-hidden {
+  margin-top: 10px;
+}
+
+.ed-hidden-btn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px dashed var(--st-border-hi);
+  border-radius: var(--st-radius-sm);
+  background: transparent;
+  color: var(--ov-fg-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ed-hidden-btn:hover {
+  background: var(--st-hover);
+  color: var(--ov-fg);
+}
+
+.ed-hidden-btn:focus-visible {
+  outline: 2px solid var(--st-focus, var(--ov-fg));
+  outline-offset: 1px;
+}
+
+.ed-hidden-chev {
+  display: inline-flex;
+  align-self: center;
+  font-size: 12px;
+  transform: rotate(-90deg);
+}
+
+.ed-hidden.is-open .ed-hidden-chev {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ed-hidden-chev {
+    transition: transform 0.12s ease-out;
+  }
+}
+
+.ed-hidden-name {
+  color: var(--ov-fg);
+  font-family: var(--ov-font-small);
+  font-size: 11px;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+}
+
+.ed-hidden-help {
+  font-size: 12px;
+}
+
+.ed-hidden-list {
+  margin-top: 6px;
+}
+
+.ed-side-tag {
+  flex: none;
+  color: var(--ov-fg-dim);
 }
 
 .ed-handle,

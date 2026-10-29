@@ -1,6 +1,6 @@
 /**
- * The info bars: the configurable headers and footers of the relative, the standings and the
- * fuel. One catalog of data items (InfoItemId), each with where its data comes from, how
+ * The info bars: the configurable headers and footers of the relative, the standings, the fuel,
+ * the traffic and the battle. One catalog of data items (InfoItemId), each with where its data comes from, how
  * important it is when the bar is short of room, and how wide it is at least; every bar is an
  * element list of those items (plus the `split` marker: what follows it lines up at the far end)
  * and a size. Pure.
@@ -132,7 +132,9 @@ export const INFO_TOP_GAP_EM = 0.5
 
 /**
  * The bars of each section that has some, as [list field, size field], top to bottom: the
- * relative's header and footer, the standings' header lines and footer, the fuel's header.
+ * panel-style widgets (the relative, the standings, the fuel, the traffic and the battle) all
+ * have a header and a footer, the standings a second header line too. The gauge-like ones
+ * (NO_BAR_SECTIONS) have none.
  */
 export const INFO_BARS = {
   relative: [
@@ -144,8 +146,25 @@ export const INFO_BARS = {
     ['subheaderBar', 'subheaderBarSize'],
     ['footerBar', 'footerBarSize']
   ],
-  fuel: [['headerBar', 'headerBarSize']]
+  fuel: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ],
+  traffic: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ],
+  battle: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ]
 } as const
+
+/**
+ * The widgets without info bars: the delta, the pedals, the radar, the warning lights and the
+ * alerts band are each a single reading, where a bar would only add height (their pages say so).
+ */
+export const NO_BAR_SECTIONS = ['delta', 'inputs', 'radar', 'lights', 'alerts'] as const
 
 export type InfoBarSection = keyof typeof INFO_BARS
 export type InfoBarField<S extends InfoBarSection> = (typeof INFO_BARS)[S][number][0]
@@ -211,30 +230,36 @@ export const COMPUTED_INFO_ITEMS: readonly InfoItemId[] = Object.freeze(
   INFO_ITEM_IDS.filter((id) => INFO_ITEMS[id].source !== 'renderer')
 )
 
+const NO_ITEMS: ReadonlySet<InfoItemId> = new Set()
+
 /**
  * Which of `items` (in order, with their widths) fit `widthEm` of bar: all of them while they
  * fit, else the least important dropped one at a time (the highest priority number; between
  * equals the later one) until the rest does. `widthEm` <= 0 (not measured yet) keeps them all.
  * `dropAtLeast` drops that many more the same way, beyond the ones the estimates need (the bar
  * measured that what is drawn is still wider than they say: a long value, the SIM or preview
- * tag), so each step drops one more item; one item always stays.
+ * tag), so each step drops one more item; one item always stays. The items of `dropFirst` go
+ * before any other (the settings preview's ghosts: what is really shown is drawn as without them).
  */
 export function fitInfoItems(
   items: readonly InfoItemId[],
   widthEm: number,
   gapEm = INFO_ITEM_GAP_EM,
-  dropAtLeast = 0
+  dropAtLeast = 0,
+  dropFirst: ReadonlySet<InfoItemId> = NO_ITEMS
 ): InfoItemId[] {
   const kept = [...items]
   if (!(widthEm > 0)) return kept
   const width = (ids: readonly InfoItemId[]): number =>
     ids.reduce((sum, id, i) => sum + INFO_ITEMS[id].em + (i > 0 ? gapEm : 0), 0)
+  const rank = (id: InfoItemId): number =>
+    dropFirst.has(id) ? Number.POSITIVE_INFINITY : INFO_ITEMS[id].priority
   const dropOne = (): void => {
     let drop = 0
     for (let i = 1; i < kept.length; i++) {
       const a = kept[i]
       const b = kept[drop]
-      if (a !== undefined && b !== undefined && INFO_ITEMS[a].priority >= INFO_ITEMS[b].priority) {
+      if (a !== undefined && b !== undefined && rank(a) >= rank(b)) {
         drop = i
       }
     }

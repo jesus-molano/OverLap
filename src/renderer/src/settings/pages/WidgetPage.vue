@@ -11,6 +11,8 @@ import OptionsTarget from '../layout/OptionsTarget.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { WIDGET_OPTIONS } from '../options'
+import PreviewHint from '../preview/PreviewHint.vue'
+import { providePreviewEdit } from '../preview/usePreviewEdit'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { useSampleWidth, useWidgetSizeText } from '../samples/useSampleWidth'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -27,6 +29,7 @@ import WindowSection from './WindowSection.vue'
  * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
  * the window and content options; a page without editors spreads its options over both columns.
  * Reference sections (a legend, the saved records) follow the editors (PageAppendix moves them).
+ * The live sample is editable in place for the page's element lists (settings/preview).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
 
@@ -35,6 +38,8 @@ const def = computed(() => WIDGET_DEFS[props.widgetId])
 const title = computed(() => widgetTitle(t.value, props.widgetId))
 const titleId = useId()
 const customize = provideCustomizeHost(useId())
+// The sample edits the page's element lists in place (its editors join it).
+providePreviewEdit(props.widgetId)
 const hasCustom = computed(() => customize.count.value > 0)
 const prefs = useWidgetSettings(props.widgetId)
 const width = useSampleWidth(props.widgetId)
@@ -74,6 +79,7 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
         {{ t.settings.widgetPage.hiddenNote }}
       </p>
 
+      <PreviewHint />
       <SampleStage class="stage">
         <WidgetSample :widget-id="widgetId" />
       </SampleStage>

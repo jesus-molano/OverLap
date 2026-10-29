@@ -74,6 +74,7 @@ const setLines = listSetter('fuel', 'lines')
 
   <CustomizeSection>
     <InfoBarEditor section="fuel" field="headerBar" />
+    <InfoBarEditor section="fuel" field="footerBar" />
 
     <ElementEditor
       :title="zoneTitle(t, 'fuel', 'lines')"

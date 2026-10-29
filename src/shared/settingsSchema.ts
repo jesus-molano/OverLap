@@ -41,7 +41,6 @@ import type {
   SteeringStyle,
   TelemetryConfig,
   TrafficGroupId,
-  TrafficHeaderId,
   TrafficPartId,
   WheelSize,
   WidgetSettings
@@ -337,6 +336,8 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'standings.subheaderBar',
   'standings.footerBar',
   'standings.classLine',
+  'battle.headerBar',
+  'battle.footerBar',
   'battle.lanes',
   'battle.rows',
   'battle.parts',
@@ -344,14 +345,16 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'inputs.bars',
   'inputs.info',
   'inputs.car',
+  'traffic.headerBar',
+  'traffic.footerBar',
   'traffic.groups',
   'traffic.parts',
-  'traffic.header',
   'alerts.parts',
   'delta.rows',
   'delta.top',
   'delta.laps',
   'fuel.headerBar',
+  'fuel.footerBar',
   'fuel.lines',
   'lights.icons'
 ])
@@ -487,6 +490,13 @@ export const OPTION_SCHEMA = {
     }
   },
   battle: {
+    // Off: a battle card is small, and the rivals are what it is for. Turned on, the header
+    // names it; the footer says how long is left and how many laps the fuel lasts.
+    headerBar: infoBar(['title', 'split']),
+    headerBarSize: barSize('off'),
+    footerBar: infoBar(['remaining', 'split', 'fuelLaps']),
+    footerBarSize: barSize('off'),
+    ...CONDITIONS_EXTRAS,
     thresholdS: { kind: 'number', min: 0.3, max: 5, decimals: 1, default: 1.5, step: 0.1 },
     // A hidden rival is not looked for.
     lanes: elements(idsOf<BattleLaneId>()(['ahead', 'behind'])),
@@ -575,10 +585,15 @@ export const OPTION_SCHEMA = {
       required: ['driver', 'value'],
       displayOnly: true
     }),
-    header: elements(idsOf<TrafficHeaderId>()(['title', 'captions']), {
-      fixedOrder: true,
-      displayOnly: true
-    }),
+    // Shown, as the title band it replaced (its old `header` list gives the switch: migrate.ts).
+    headerBar: infoBar(['title', 'split']),
+    headerBarSize: barSize('normal'),
+    // Off by default; turned on, the field you share the track with and what is left.
+    footerBar: infoBar(['carCount', 'sof', 'split', 'remaining']),
+    footerBarSize: barSize('off'),
+    ...CONDITIONS_EXTRAS,
+    // Over each group, whatever the header's switch says.
+    captions: { kind: 'bool', default: true, displayOnly: true },
     onlyMulticlass: { kind: 'bool', default: true },
     nameFormat: {
       kind: 'enum',
@@ -652,6 +667,10 @@ export const OPTION_SCHEMA = {
     // Off, as the header switch it replaced: the name and the SIM tag when on.
     headerBar: infoBar(['title', 'split']),
     headerBarSize: barSize('off'),
+    // Off by default; turned on, what is left of the session and the track temperature (what
+    // the consumption follows).
+    footerBar: infoBar(['remaining', 'split', 'trackTemp']),
+    footerBarSize: barSize('off'),
     ...CONDITIONS_EXTRAS,
     lines: elements(
       idsOf<FuelLineId>()([
@@ -706,7 +725,9 @@ export const OPTION_SCHEMA = {
       hidden: CUSTOMIZE_ZONE_IDS.filter((id) => !CUSTOMIZE_FIRST_ZONES.includes(id)),
       fixedOrder: true,
       displayOnly: true
-    })
+    }),
+    // The hint above a widget page's preview ("Arrastra en la vista previa…") until dismissed.
+    previewHint: { kind: 'bool', default: true, displayOnly: true }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.

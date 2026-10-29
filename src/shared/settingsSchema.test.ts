@@ -167,6 +167,8 @@ describe('displayOnlyFields', () => {
       'density'
     ])
     expect(displayOnlyFields('battle')).toEqual([
+      'conditionsTrend',
+      'conditionsWindDirection',
       'layout',
       'brandMarks',
       'countryFlags',
@@ -174,7 +176,13 @@ describe('displayOnlyFields', () => {
     ])
     expect(displayOnlyFields('inputs')).toEqual(Object.keys(OPTION_SCHEMA.inputs))
     // Windows, groups and the hold decide what the providers compute.
-    expect(displayOnlyFields('traffic')).toEqual(['parts', 'header', 'nameFormat'])
+    expect(displayOnlyFields('traffic')).toEqual([
+      'parts',
+      'conditionsTrend',
+      'conditionsWindDirection',
+      'captions',
+      'nameFormat'
+    ])
     expect(displayOnlyFields('alerts')).toEqual(['parts'])
     // The references (and the fallback) are what the provider computes against.
     expect(displayOnlyFields('delta')).toEqual(['rangeS', 'rows', 'top', 'laps'])
@@ -245,7 +253,6 @@ describe('element lists (v2.6)', () => {
       OPTION_SCHEMA.inputs.info,
       OPTION_SCHEMA.traffic.groups,
       OPTION_SCHEMA.traffic.parts,
-      OPTION_SCHEMA.traffic.header,
       OPTION_SCHEMA.alerts.parts,
       OPTION_SCHEMA.delta.top,
       OPTION_SCHEMA.fuel.lines
