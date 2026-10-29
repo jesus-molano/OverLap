@@ -64,10 +64,11 @@ watch(
 
 <style>
 /*
- * Row height by default (a widget may set --cf-h smaller), 3:2 like the artwork.
+ * A touch under the plate height by default (a widget may set --cf-h), 3:2 like the artwork,
+ * centred on the row: beside the number plate and the make it reads as a detail, not a plate.
  */
 .ov-flag {
-  --cf-h-used: var(--cf-h, var(--ov-plate-h));
+  --cf-h-used: var(--cf-h, calc(var(--ov-plate-h) * 0.82));
   position: relative;
   display: inline-flex;
   flex: none;
