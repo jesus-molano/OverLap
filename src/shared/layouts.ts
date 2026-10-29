@@ -16,7 +16,7 @@
  */
 import { copyData } from './copy'
 import { deepEqual } from './equal'
-import { SETTINGS_VERSION } from './settings/defaults'
+import { SETTINGS_VERSION, defaultOptions } from './settings/defaults'
 import { applySettingsPatch } from './settings/patch'
 import {
   MAX_CAR_LINKS,
@@ -557,11 +557,15 @@ export function importLayout(
 // What the renderers receive
 // ---------------------------------------------------------------------------
 
+/** What the overlays get as the settings window's options (see rendererSettings). */
+const OVERLAY_SETTINGS_WINDOW = defaultOptions('settingsWindow')
+
 /**
  * The settings without what a renderer never reads, so that a broadcast stays small however
  * many 'full' layouts there are (each is about 10 kB of options): the options in effect are the
  * top-level ones. 'settings' (the settings window): every layout, without its options, and no
- * shared ones. 'overlay': only the layout in use, likewise, and no cars.
+ * shared ones. 'overlay': only the layout in use, likewise, no cars, and the settings window's
+ * own options at their defaults.
  */
 export function rendererSettings(
   s: OverlaySettings,
@@ -580,7 +584,10 @@ export function rendererSettings(
     links: view === 'overlay' ? [] : lib.links,
     seenCars: view === 'overlay' ? [] : lib.seenCars
   }
-  return { ...s, savedLayouts: out }
+  // The settings window's own options are no overlay's: the defaults there, so folding a panel
+  // of "Personalizar" changes nothing the overlays are sent (main skips an unchanged copy).
+  const settingsWindow = view === 'overlay' ? OVERLAY_SETTINGS_WINDOW : s.settingsWindow
+  return { ...s, savedLayouts: out, settingsWindow }
 }
 
 /** A file name for an exported layout: the name without characters Windows refuses. */

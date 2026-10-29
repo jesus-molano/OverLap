@@ -135,12 +135,15 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
         v-memo="[lane, rows, layout, i === lanes.length - 1 ? previewTag : null, t]"
         class="lane"
         :class="[`lane--${lane.tone}`, { 'lane--pit': lane.inPits }]"
+        :data-el="`battle.lanes.${lane.side}`"
       >
         <span class="lane__tag"><Icon :name="lane.tagIcon" />{{ lane.tag }}</span>
         <DriverCell
           class="lane__who"
           v-bind="lane.driver"
           :with-rating="lane.driver.withRating && layout !== 'side'"
+          rating-el="battle.parts.rating"
+          license-el="battle.parts.license"
         >
           <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
         </DriverCell>
@@ -153,8 +156,10 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
           <span class="lane__trend-value" :class="`ov-tone-${lane.trend.tone}`">
             <Icon v-if="lane.trend.icon" :name="lane.trend.icon" />{{ lane.trend.text }}
           </span>
-          <span v-if="lane.trend.note" class="lane__note">{{ lane.trend.note }}</span>
-          <span v-if="lane.stake" class="lane__stake"
+          <span v-if="lane.trend.note" class="lane__note" data-el="battle.parts.trendNote">{{
+            lane.trend.note
+          }}</span>
+          <span v-if="lane.stake" class="lane__stake" data-el="battle.parts.stake"
             ><b>{{ lane.stake }}</b
             >&nbsp;{{ t.widgets.battle.stake }}</span
           >
@@ -166,7 +171,7 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
         <!-- The rows under the headline in battle.rows' order (the grid places them in turn). -->
         <template v-for="row in rows.order" :key="row">
-          <div v-if="row === 'prediction'" class="lane__catch">
+          <div v-if="row === 'prediction'" class="lane__catch" data-el="battle.rows.prediction">
             <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
             <template v-else-if="lane.catch">
               <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
@@ -180,7 +185,11 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
               class="lane__preview"
             />
           </div>
-          <div v-else-if="row === 'sectors' && lane.sectors" class="lane__chips">
+          <div
+            v-else-if="row === 'sectors' && lane.sectors"
+            class="lane__chips"
+            data-el="battle.rows.sectors"
+          >
             <Chip
               v-for="c in lane.sectors"
               :key="c.label"
@@ -190,7 +199,11 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
               >{{ c.text }}</Chip
             >
           </div>
-          <div v-else-if="row === 'laps' && lane.laps" class="lane__chips">
+          <div
+            v-else-if="row === 'laps' && lane.laps"
+            class="lane__chips"
+            data-el="battle.rows.laps"
+          >
             <Chip
               v-for="c in lane.laps"
               :key="c.label"

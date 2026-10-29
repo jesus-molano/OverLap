@@ -258,6 +258,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           place="head"
           sim
           :preview="isPreview"
+          zone="standings.headerBar"
         />
         <InfoBar
           v-if="subShown"
@@ -266,6 +267,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           place="head"
           :sim="!headShown"
           :preview="isPreview && !headShown"
+          zone="standings.subheaderBar"
         />
         <StandingsHeads v-if="headsShown" :heads="heads" />
       </template>
@@ -283,7 +285,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <StandingsCarCells v-else :line="line" :cols="cols" />
         </div>
       </template>
-      <InfoBar v-if="footed" :view="footBar.view.value" :size="footBar.size.value" place="foot" />
+      <InfoBar
+        v-if="footed"
+        :view="footBar.view.value"
+        :size="footBar.size.value"
+        place="foot"
+        zone="standings.footerBar"
+      />
     </WidgetPanel>
   </div>
 </template>

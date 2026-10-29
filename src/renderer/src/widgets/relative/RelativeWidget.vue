@@ -134,6 +134,7 @@ const panelStyle = computed<InlineStyle>(() => ({
           place="head"
           sim
           :preview="phase === 'preview'"
+          zone="relative.headerBar"
         />
       </template>
 
@@ -141,9 +142,14 @@ const panelStyle = computed<InlineStyle>(() => ({
 
       <template v-else>
         <div v-if="heads" v-memo="[headViews]" class="rl-heads" aria-hidden="true">
-          <span v-for="h in headViews" :key="h.id" class="rl-head" :class="`is-${h.align}`">{{
-            h.label
-          }}</span>
+          <span
+            v-for="h in headViews"
+            :key="h.id"
+            class="rl-head"
+            :class="`is-${h.align}`"
+            :data-el="`relative.columns.${h.id}`"
+            >{{ h.label }}</span
+          >
         </div>
 
         <div class="rl-rows">
@@ -156,10 +162,13 @@ const panelStyle = computed<InlineStyle>(() => ({
           >
             <template v-if="slot.kind === 'car'">
               <template v-for="cell in cols.cells" :key="cell">
-                <span v-if="cell === 'pos'" class="c-pos">{{ slot.pos }}</span>
+                <span v-if="cell === 'pos'" class="c-pos" data-el="relative.columns.pos">{{
+                  slot.pos
+                }}</span>
                 <DriverCell
                   v-else-if="cell === 'driver'"
                   class="c-driver"
+                  data-el="relative.columns.driver"
                   :number="slot.number"
                   :name="slot.name"
                   :name-unknown="slot.nameUnknown"
@@ -176,25 +185,33 @@ const panelStyle = computed<InlineStyle>(() => ({
                   }}</Badge>
                   <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
                 </DriverCell>
-                <span v-else-if="cell === 'lic'" class="c-lic"
+                <span v-else-if="cell === 'lic'" class="c-lic" data-el="relative.columns.lic"
                   ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
                 /></span>
-                <span v-else-if="cell === 'ir'" class="c-ir">{{ slot.iRating }}</span>
-                <span v-else-if="cell === 'tyre'" class="c-tyre"
+                <span v-else-if="cell === 'ir'" class="c-ir" data-el="relative.columns.ir">{{
+                  slot.iRating
+                }}</span>
+                <span v-else-if="cell === 'tyre'" class="c-tyre" data-el="relative.columns.tyre"
                   ><TyreChip :letter="slot.tyre"
                 /></span>
-                <span v-else-if="cell === 'stint'" class="c-stint"
+                <span v-else-if="cell === 'stint'" class="c-stint" data-el="relative.columns.stint"
                   >{{ slot.stint
                   }}<span v-if="slot.stintUnit" class="rl-unit">{{ slot.stintUnit }}</span></span
                 >
-                <span v-else class="c-gap">{{ slot.gap }}</span>
+                <span v-else class="c-gap" data-el="relative.columns.gap">{{ slot.gap }}</span>
               </template>
             </template>
           </div>
         </div>
       </template>
 
-      <InfoBar v-if="footed" :view="foot.view.value" :size="foot.size.value" place="foot" />
+      <InfoBar
+        v-if="footed"
+        :view="foot.view.value"
+        :size="foot.size.value"
+        place="foot"
+        zone="relative.footerBar"
+      />
     </WidgetPanel>
   </div>
 </template>

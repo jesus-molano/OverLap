@@ -19,6 +19,8 @@ export interface HeadCell {
   readonly id: StandingsColumnId | StandingsFixedHead
   readonly label: string
   readonly align: HeadAlign
+  /** A column's `data-el` ('standings.columns.ir'); none for the fixed position and name. */
+  readonly el?: string
 }
 
 /** One head per track: position, name, then the drawn cells in their order. */
@@ -29,8 +31,14 @@ export function toHeadsView(
   c: StandingsHeadContext,
   m: Messages
 ): HeadsView {
-  const ids: (StandingsColumnId | StandingsFixedHead)[] = ['pos', 'name', ...cols.cells]
-  return ids.map((id) => ({ id, ...standingsHead(id, c, m) }))
+  const fixed: HeadCell[] = (['pos', 'name'] as const).map((id) => ({
+    id,
+    ...standingsHead(id, c, m)
+  }))
+  return [
+    ...fixed,
+    ...cols.cells.map((id) => ({ id, ...standingsHead(id, c, m), el: `standings.columns.${id}` }))
+  ]
 }
 
 /** `next`, or `prev` while every head reads the same (a payload re-renders nothing there). */

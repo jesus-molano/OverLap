@@ -107,6 +107,8 @@ export const ICONS = {
   'arrow-up': [{ d: 'M8 3.5l5.5 7h-11z' }],
   /** Losing / down. */
   'arrow-down': [{ d: 'M8 12.5l-5.5-7h11z' }],
+  /** An accordion's header: open below (turned upside down while open). */
+  chevron: [{ d: 'M4 6l4 4 4-4', kind: 'stroke' }],
   /** Time remaining. */
   clock: [
     { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },

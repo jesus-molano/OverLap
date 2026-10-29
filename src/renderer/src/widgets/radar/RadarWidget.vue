@@ -182,7 +182,7 @@ const rangeLabels = computed(() => {
       <path v-once class="radar__bezel-top" :d="BEZEL_TOP_PATH" />
 
       <g :clip-path="clipUrl">
-        <g v-if="showGuides" v-memo="[guides]" class="radar__guides">
+        <g v-if="showGuides" v-memo="[guides]" class="radar__guides" data-el="radar.parts.guides">
           <line x1="0" :y1="-BG_HALF" x2="0" :y2="BG_HALF" />
           <line :x1="-BG_HALF" y1="0" :x2="BG_HALF" y2="0" />
           <line
@@ -217,6 +217,7 @@ const rangeLabels = computed(() => {
             :mirrored="false"
             :wash-url="washUrl"
             :bar-url="barUrl"
+            data-el="radar.parts.sideAlerts"
           />
           <RadarSideAlert
             v-memo="[right]"
@@ -224,6 +225,7 @@ const rangeLabels = computed(() => {
             :mirrored="true"
             :wash-url="washUrl"
             :bar-url="barUrl"
+            data-el="radar.parts.sideAlerts"
           />
         </template>
 
@@ -268,7 +270,7 @@ const rangeLabels = computed(() => {
         </g>
       </g>
 
-      <g v-memo="[rangeLabels, guides]" class="radar__labels">
+      <g v-memo="[rangeLabels, guides]" class="radar__labels" data-el="radar.parts.rangeLabels">
         <template v-if="rangeLabels">
           <text :x="LABEL_X" :y="guides.halfLabelY" :font-size="rangeLabels.font" text-anchor="end">
             {{ rangeLabels.half }}

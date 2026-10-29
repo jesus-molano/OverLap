@@ -139,7 +139,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :fill="!autoHeight"
     >
       <template v-if="titleShown" #header>
-        <PanelHeader :title="title">
+        <PanelHeader :title="title" data-el="traffic.header.title">
           <PreviewTag v-if="previewTag === 'header'" />
         </PanelHeader>
       </template>
@@ -150,6 +150,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-memo="[slot, parts, i === 0 ? previewTag : null]"
         v-inline-style="slot.kind === 'row' ? slot.clsStyle : undefined"
         :class="slot.css"
+        :data-el="slot.kind === 'caption' ? 'traffic.header.captions' : undefined"
+        :data-group="`traffic.groups.${slot.group}`"
       >
         <template v-if="slot.kind === 'caption'">
           <span class="tr-cap__text">{{ slot.text }}</span>
@@ -159,14 +161,20 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
              sector are text. The cells in traffic.parts' order. -->
         <template v-else>
           <template v-for="part in parts" :key="part">
-            <TrafficKindIcon v-if="part === 'icon'" class="tr-icon" :kind="slot.group" />
+            <TrafficKindIcon
+              v-if="part === 'icon'"
+              class="tr-icon"
+              :kind="slot.group"
+              data-el="traffic.parts.icon"
+            />
             <template v-else-if="part === 'cls'">
-              <span v-if="slot.cls" class="tr-cls">{{ slot.cls }}</span>
-              <span v-else class="tr-cls tr-cls--none" />
+              <span v-if="slot.cls" class="tr-cls" data-el="traffic.parts.cls">{{ slot.cls }}</span>
+              <span v-else class="tr-cls tr-cls--none" data-el="traffic.parts.cls" />
             </template>
             <template v-else-if="part === 'driver'">
               <DriverCell
                 class="tr-who"
+                data-el="traffic.parts.driver"
                 :number="slot.number"
                 :name="slot.name"
                 :name-unknown="slot.nameUnknown"
@@ -185,14 +193,16 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
                 slot.hazard
               }}</Badge>
             </template>
-            <span v-else-if="part === 'lead'" class="tr-lead">
+            <span v-else-if="part === 'lead'" class="tr-lead" data-el="traffic.parts.lead">
               <Badge v-if="slot.hazard" :tone="slot.hazardTone">{{ slot.hazard }}</Badge>
               <span class="tr-verb">{{ slot.lead }}</span>
             </span>
-            <span v-else-if="part === 'value'" class="tr-num"
+            <span v-else-if="part === 'value'" class="tr-num" data-el="traffic.parts.value"
               >{{ slot.num }}<span class="tr-unit ov-unit">{{ slot.unit }}</span></span
             >
-            <span v-else-if="part === 'sector'" class="tr-sector">{{ slot.sector }}</span>
+            <span v-else-if="part === 'sector'" class="tr-sector" data-el="traffic.parts.sector">{{
+              slot.sector
+            }}</span>
           </template>
           <PreviewTag v-if="i === 0 && previewTag === 'row'" class="tr-preview" />
         </template>

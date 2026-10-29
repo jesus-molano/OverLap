@@ -112,22 +112,122 @@ export function dropIndex(centres: readonly number[], from: number, pointerY: nu
   return n
 }
 
+// ---- Two sides (an info bar: what follows its `split` marker lines up at the far end) ----
+
+export type Side = 'left' | 'right'
+
+/** A row of the editor: an entry and its index in the whole list. */
+export interface IndexedEntry<Id extends string> {
+  readonly entry: Readonly<ElementEntry<Id>>
+  readonly index: number
+}
+
+/**
+ * The entries before the marker (left) and after it (right), each with its index in `list`; the
+ * marker itself in neither. Without the marker in the list, everything is on the left.
+ */
+export function sides<Id extends string>(
+  list: List<Id>,
+  split: Id
+): { readonly left: IndexedEntry<Id>[]; readonly right: IndexedEntry<Id>[] } {
+  const at = list.findIndex((e) => e.id === split)
+  const left: IndexedEntry<Id>[] = []
+  const right: IndexedEntry<Id>[] = []
+  list.forEach((entry, index) => {
+    if (entry.id === split) return
+    if (at < 0 || index < at) left.push({ entry, index })
+    else right.push({ entry, index })
+  })
+  return { left, right }
+}
+
+/** Which side of the marker `id` is on (left without a marker). */
+export function sideOf<Id extends string>(list: List<Id>, id: Id, split: Id): Side {
+  const at = list.findIndex((e) => e.id === split)
+  const i = list.findIndex((e) => e.id === id)
+  return at >= 0 && i > at ? 'right' : 'left'
+}
+
+/**
+ * The list with `id` on the other side of the marker, the side nearest it: the end of the left
+ * one or the start of the right one (a single step over the marker, so the order the bar draws
+ * the others in never changes). A copy unchanged for the marker itself or a list without it.
+ */
+export function movedAcross<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  split: Id
+): ElementEntry<Id>[] {
+  const at = list.findIndex((e) => e.id === split)
+  const from = list.findIndex((e) => e.id === id)
+  if (at < 0 || from < 0 || id === split) return list.map((e) => ({ ...e }))
+  // Taken out, then put back where the marker was: just after it from the left, just before
+  // it from the right.
+  return movedTo(spec, list, id, at)
+}
+
+/**
+ * The indexes in `list` of the box `index` is in: the side of the marker it is on (the left one
+ * ends just before it, the right one starts just after it), or the whole list without one.
+ */
+export function boxBounds<Id extends string>(list: List<Id>, index: number, split?: Id): Bounds {
+  const at = split === undefined ? -1 : list.findIndex((e) => e.id === split)
+  if (at < 0) return { first: 0, last: list.length - 1 }
+  return index < at ? { first: 0, last: at - 1 } : { first: at + 1, last: list.length - 1 }
+}
+
+/**
+ * Where `id` is as its box numbers it (from 0) and how many rows that box has: the side of the
+ * marker it is on, or the whole list without one.
+ */
+export function boxPosition<Id extends string>(
+  list: List<Id>,
+  id: Id,
+  split?: Id
+): { readonly index: number; readonly total: number } {
+  if (split === undefined) return { index: list.findIndex((e) => e.id === id), total: list.length }
+  const rows = sides(list, split)[sideOf(list, id, split)]
+  return { index: rows.findIndex((r) => r.entry.id === id), total: rows.length }
+}
+
+/** 'Incidentes: a la derecha.' */
+export function sideMessage(m: Messages, label: string, side: Side): string {
+  const e = m.settings.elements
+  return side === 'right' ? e.movedRight(label) : e.movedLeft(label)
+}
+
 /** What a key on a row's handle does: a move by places, to an end, or nothing. */
 export type KeyAction =
   | { readonly kind: 'by'; readonly delta: number }
   | { readonly kind: 'to'; readonly index: number }
   | null
 
-export function keyAction(key: string, index: number, total: number): KeyAction {
+/** The first and last index of a row's box in the whole list (see boxBounds). */
+export interface Bounds {
+  readonly first: number
+  readonly last: number
+}
+
+/**
+ * The arrows move by one through the whole list (over the marker too); Home and End go to the
+ * ends of the row's own box (`bounds`, the whole list by default), never to the other side.
+ */
+export function keyAction(
+  key: string,
+  index: number,
+  total: number,
+  bounds: Bounds = { first: 0, last: total - 1 }
+): KeyAction {
   switch (key) {
     case 'ArrowUp':
       return index > 0 ? { kind: 'by', delta: -1 } : null
     case 'ArrowDown':
       return index < total - 1 ? { kind: 'by', delta: 1 } : null
     case 'Home':
-      return index > 0 ? { kind: 'to', index: 0 } : null
+      return index > bounds.first ? { kind: 'to', index: bounds.first } : null
     case 'End':
-      return index < total - 1 ? { kind: 'to', index: total - 1 } : null
+      return index < bounds.last ? { kind: 'to', index: bounds.last } : null
     default:
       return null
   }

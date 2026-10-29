@@ -91,34 +91,58 @@ const inlinePit = computed(() =>
     </DriverCell>
   </template>
   <template v-for="id in cols.cells" :key="id">
-    <span v-if="id === 'gained'" class="c-gained" :class="`ov-tone-${line.gainedTone}`"
+    <span
+      v-if="id === 'gained'"
+      class="c-gained"
+      data-el="standings.columns.gained"
+      :class="`ov-tone-${line.gainedTone}`"
       ><Icon v-if="line.gainedIcon" :name="line.gainedIcon" class="sd-gain-icon" />{{
         line.gained
       }}</span
     >
-    <span v-else-if="id === 'ir'" class="c-ir">{{ line.iRating }}</span>
-    <span v-else-if="id === 'lic'" class="c-lic"
+    <span v-else-if="id === 'ir'" class="c-ir" data-el="standings.columns.ir">{{
+      line.iRating
+    }}</span>
+    <span v-else-if="id === 'lic'" class="c-lic" data-el="standings.columns.lic"
       ><LicenseChip v-if="line.lic" :text="line.lic" :colors="line.licStyle"
     /></span>
-    <span v-else-if="id === 'delta'" class="c-delta" :class="`ov-tone-${line.deltaTone}`">{{
-      line.delta
-    }}</span>
-    <span v-else-if="id === 'gap'" class="c-gap" :class="`is-${line.gapKind}`">{{ line.gap }}</span>
-    <span v-else-if="id === 'gapLeader'" class="c-gapl" :class="`is-${line.gapLeaderKind}`">{{
-      line.gapLeader
-    }}</span>
-    <span v-else-if="id === 'last'" class="c-lap"
+    <span
+      v-else-if="id === 'delta'"
+      class="c-delta"
+      data-el="standings.columns.delta"
+      :class="`ov-tone-${line.deltaTone}`"
+      >{{ line.delta }}</span
+    >
+    <span
+      v-else-if="id === 'gap'"
+      class="c-gap"
+      data-el="standings.columns.gap"
+      :class="`is-${line.gapKind}`"
+      >{{ line.gap }}</span
+    >
+    <span
+      v-else-if="id === 'gapLeader'"
+      class="c-gapl"
+      data-el="standings.columns.gapLeader"
+      :class="`is-${line.gapLeaderKind}`"
+      >{{ line.gapLeader }}</span
+    >
+    <span v-else-if="id === 'last'" class="c-lap" data-el="standings.columns.last"
       ><span class="sd-lap" :class="`is-${line.lapKind}`">{{ line.lap }}</span></span
     >
-    <span v-else-if="id === 'best'" class="c-lap"
+    <span v-else-if="id === 'best'" class="c-lap" data-el="standings.columns.best"
       ><span class="sd-lap" :class="`is-${line.bestKind}`">{{ line.best }}</span></span
     >
-    <span v-else-if="id === 'pitLap'" class="c-pitlap">{{ line.pitLap }}</span>
-    <span v-else-if="id === 'stint'" class="c-stint"
+    <span v-else-if="id === 'pitLap'" class="c-pitlap" data-el="standings.columns.pitLap">{{
+      line.pitLap
+    }}</span>
+    <span v-else-if="id === 'stint'" class="c-stint" data-el="standings.columns.stint"
       >{{ line.stint }}<span v-if="line.stintUnit" class="sd-unit">{{ line.stintUnit }}</span></span
     >
-    <span v-else-if="id === 'tyre'" class="c-tyre"><TyreChip :letter="line.tyre" /></span>
-    <span v-else-if="id === 'pit'" class="c-pit">
+    <span v-else-if="id === 'tyre'" class="c-tyre" data-el="standings.columns.tyre"
+      ><TyreChip :letter="line.tyre"
+    /></span>
+    <span v-else-if="id === 'pit'" class="c-pit" data-el="standings.columns.pit">
       <Badge v-if="line.pit === 'pit'">{{ t.widgets.common.pit }}</Badge>
       <Badge v-else-if="line.pit === 'tow'" tone="warn">{{ t.widgets.common.tow }}</Badge>
       <Badge v-else-if="line.pit === 'out'" variant="outline">{{ t.widgets.common.out }}</Badge>

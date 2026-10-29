@@ -326,7 +326,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       <!-- Blocks, bars and readouts take their place by CSS order (inputs.sections, .bars,
            .info, .car): a reorder never re-creates the canvas or a readout. -->
       <div class="inputs__row">
-        <div v-if="hasTrace" v-inline-style="orderStyle(layout.order.trace)" class="plot">
+        <div
+          v-if="hasTrace"
+          v-inline-style="orderStyle(layout.order.trace)"
+          data-el="inputs.sections.trace"
+          class="plot"
+        >
           <div class="grid" aria-hidden="true" />
           <canvas ref="canvas" class="trace" aria-hidden="true" />
           <PreviewTag v-if="preview" class="plot__tag" />
@@ -334,10 +339,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
         <!-- The numbers, fills, gear and the ABS state are written by writeReadout(): the
              template never binds them, so a 60 Hz sample re-renders nothing. -->
-        <div v-inline-style="orderStyle(layout.order.bars)" class="bars">
+        <div
+          v-inline-style="orderStyle(layout.order.bars)"
+          data-el="inputs.sections.bars"
+          class="bars"
+        >
           <div
             v-if="showClutch"
             v-inline-style="orderStyle(layout.order.clutch)"
+            data-el="inputs.bars.clutch"
             class="bar bar--clutch"
           >
             <span ref="clutchPct" class="pct" />
@@ -349,6 +359,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <div
             ref="brakeBar"
             v-inline-style="orderStyle(layout.order.brake)"
+            data-el="inputs.bars.brake"
             class="bar bar--brake"
           >
             <span ref="brakePct" class="pct" />
@@ -358,7 +369,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
               <span class="key-abs">{{ t.widgets.inputs.abs }}</span>
             </span>
           </div>
-          <div v-inline-style="orderStyle(layout.order.throttle)" class="bar bar--throttle">
+          <div
+            v-inline-style="orderStyle(layout.order.throttle)"
+            data-el="inputs.bars.throttle"
+            class="bar bar--throttle"
+          >
             <span ref="throttlePct" class="pct" />
             <span class="track"><span ref="throttleFill" class="fill" /></span>
             <span class="key"
@@ -367,20 +382,32 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           </div>
         </div>
 
-        <div v-if="layout.info" v-inline-style="orderStyle(layout.order.info)" class="info">
+        <div
+          v-if="layout.info"
+          v-inline-style="orderStyle(layout.order.info)"
+          data-el="inputs.sections.info"
+          class="info"
+        >
           <span
             v-if="showGear"
             ref="gear"
             v-inline-style="orderStyle(layout.order.gear)"
+            data-el="inputs.info.gear"
             class="gear ov-t-hero"
           />
-          <span v-if="showSpeed" v-inline-style="orderStyle(layout.order.speed)" class="speed">
+          <span
+            v-if="showSpeed"
+            v-inline-style="orderStyle(layout.order.speed)"
+            data-el="inputs.info.speed"
+            class="speed"
+          >
             <span ref="speed" class="speed-num" />
             <span class="unit">{{ unitLabel }}</span>
           </span>
           <span
             v-if="showSteering"
             v-inline-style="orderStyle(layout.order.steering)"
+            data-el="inputs.info.steering"
             class="steering"
           >
             <!-- Static drawing turned as a whole on its own layer: a turn is a transform. -->
@@ -400,14 +427,25 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           </span>
         </div>
 
-        <div v-if="layout.car" v-inline-style="orderStyle(layout.order.car)" class="car">
-          <span v-if="layout.rpm" v-inline-style="orderStyle(layout.order.rpm)" class="car-row">
+        <div
+          v-if="layout.car"
+          v-inline-style="orderStyle(layout.order.car)"
+          data-el="inputs.sections.car"
+          class="car"
+        >
+          <span
+            v-if="layout.rpm"
+            v-inline-style="orderStyle(layout.order.rpm)"
+            data-el="inputs.car.rpm"
+            class="car-row"
+          >
             <span class="car-key">{{ t.widgets.inputs.car.rpm }}</span>
             <span ref="rpm" class="car-val car-val--rpm" />
           </span>
           <span
             v-if="layout.bias && hasBias"
             v-inline-style="orderStyle(layout.order.bias)"
+            data-el="inputs.car.bias"
             class="car-row"
           >
             <span class="car-key">{{ t.widgets.inputs.car.bias }}</span>
@@ -416,6 +454,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <span
             v-if="layout.tc && hasTc"
             v-inline-style="orderStyle(layout.order.tc)"
+            data-el="inputs.car.tc"
             class="car-row"
           >
             <span class="car-key">{{ t.widgets.inputs.car.tc }}</span>
@@ -425,6 +464,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
             v-if="layout.ffb && hasFfb"
             ref="ffbRow"
             v-inline-style="orderStyle(layout.order.ffb)"
+            data-el="inputs.car.ffb"
             class="car-row car-row--ffb"
           >
             <span class="car-key">{{ t.widgets.inputs.car.ffb }}</span>

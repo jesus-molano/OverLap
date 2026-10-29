@@ -192,16 +192,17 @@ html.ov-settings .st-btn {
   cursor: pointer;
 }
 
-html.ov-settings .st-btn:hover:not(:disabled) {
+html.ov-settings .st-btn:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--st-border-strong);
   background: var(--st-hover);
 }
 
-html.ov-settings .st-btn:active:not(:disabled) {
+html.ov-settings .st-btn:active:not(:disabled, [aria-disabled='true']) {
   background: var(--st-press);
 }
 
-html.ov-settings .st-btn:disabled {
+html.ov-settings .st-btn:disabled,
+html.ov-settings .st-btn[aria-disabled='true'] {
   opacity: 0.4;
   cursor: default;
 }
@@ -225,7 +226,7 @@ html.ov-settings .st-btn-ghost {
   color: var(--ov-fg-muted);
 }
 
-html.ov-settings .st-btn-ghost:hover:not(:disabled) {
+html.ov-settings .st-btn-ghost:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--st-border);
   background: var(--st-surface-hi);
   color: var(--ov-fg);
@@ -238,7 +239,7 @@ html.ov-settings .st-btn-danger {
   color: var(--ov-fg);
 }
 
-html.ov-settings .st-btn-danger:hover:not(:disabled) {
+html.ov-settings .st-btn-danger:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--ov-danger);
   background: color-mix(in srgb, var(--ov-danger) 24%, var(--st-surface-hi));
 }

@@ -370,8 +370,22 @@ describe('toLineViews', () => {
       kind: 'class',
       name: 'GT3',
       meta: 'SoF 2.0k',
+      metaSof: 'SoF 2.0k',
+      metaCars: '',
+      metaCarsFirst: false,
       css: 'sd-line sd-class is-own'
     })
+    // Part by part in the class line's order, the same words as the joined meta.
+    const both = toLineViews(
+      [{ kind: 'class', block: block([1, 2], { sof: 1980 }, 1) }],
+      ctx({ classLine: line(true, true, true) })
+    )[0] as ClassLineView
+    expect([both.metaCarsFirst, both.metaCars, both.metaSof]).toEqual([
+      true,
+      '2 coches',
+      'SoF 2.0k'
+    ])
+    expect(both.meta).toBe('2 coches SoF 2.0k')
     expect(v.clsStyle).toBe(c.styles.cls('#ff0000'))
   })
 
