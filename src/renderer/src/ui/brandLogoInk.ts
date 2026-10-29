@@ -411,8 +411,9 @@ export function fitLogo(viewBox: string, ink: InkMeasure): LogoFit {
   const widthLimit = SLOT_ASPECT / (vw / vh)
   const natural = Math.min(1, widthLimit)
   let scale = Math.min(SCALE_MAX, Math.max(SCALE_MIN * natural, TARGET_SIZE / unit))
-  // Taller than the slot's width allows changes nothing: keep it at 1.
-  if (scale >= widthLimit) scale = 1
+  // Taller than the slot's width allows draws no bigger: a wide mark keeps 1 (the size it had),
+  // a nearly slot-shaped one stops where it meets the width, not back down at 1.
+  if (scale >= widthLimit) scale = Math.max(1, widthLimit)
   scale = Math.round(scale * 100) / 100
   return { scale, before: natural * unit, after: Math.min(scale, widthLimit) * unit }
 }
