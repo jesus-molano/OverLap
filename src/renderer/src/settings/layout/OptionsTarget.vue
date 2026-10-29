@@ -5,6 +5,7 @@ import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { layoutCommands, optionsTarget, useLayoutState } from '../layoutsView'
+import Icon from '../../ui/Icon.vue'
 import ConfirmButton from './ConfirmButton.vue'
 
 /**
@@ -47,8 +48,9 @@ function toAll(): void {
 </script>
 
 <template>
-  <div class="target" role="note">
-    <p class="where">
+  <div class="target" :class="{ 'is-shared': target.shared }" role="note">
+    <Icon name="save" class="icon" />
+    <div class="where">
       <span class="label">{{ text.savingIn }}</span>
       <strong class="name" :title="target.shared ? text.shared : target.name">{{
         target.shared ? text.shared : target.name
@@ -56,9 +58,8 @@ function toAll(): void {
       <span class="st-help help">{{
         target.shared ? text.sharedHelp(target.name) : text.layoutHelp
       }}</span>
-    </p>
+    </div>
     <div v-if="target.canApplyToAll" class="to-all">
-      <span class="st-help done" aria-live="polite">{{ done }}</span>
       <ConfirmButton
         :key="target.id"
         small
@@ -67,57 +68,94 @@ function toAll(): void {
         :description="text.toAll.description"
         :action="toAll"
       />
+      <span class="st-help done" aria-live="polite">{{ done }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* A plain bar, lined all round like the page's other notes: no coloured edge. */
+/*
+ * Lined all round a step lighter than the cards, with a faint light wash from the top: it stands
+ * out from the cards below as information, never as a warning (no accent, which is yellow by
+ * default; no amber; no coloured edge). The shared options, not one layout's, are quieter still.
+ */
 .target {
+  --tg-tone: var(--ov-fg);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px 14px;
+  gap: 10px 14px;
   margin-bottom: 14px;
-  padding: 6px 8px 6px 12px;
-  border: 1px solid var(--st-border);
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--tg-tone) 22%, var(--st-border));
   border-radius: var(--st-radius);
-  background: var(--st-surface);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tg-tone) 6%, transparent), transparent 85%),
+    var(--st-surface);
 }
 
+.target.is-shared {
+  --tg-tone: var(--ov-fg-muted);
+}
+
+.target.is-shared .icon {
+  color: var(--ov-fg-muted);
+}
+
+.icon {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 18px;
+  color: var(--ov-fg);
+}
+
+/* Label, name and help each on their own line. */
 .where {
   display: flex;
-  flex: 1 1 20em;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
+  flex: 1 1 18em;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  font-size: 13px;
 }
 
 .label {
+  font-size: 11px;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ov-fg-muted);
 }
 
 .name {
   overflow: hidden;
-  max-width: 24em;
+  font-size: 14px;
   font-weight: var(--ov-w-strong);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .help {
-  flex: 1 1 16em;
-  min-width: 0;
+  margin: 0;
 }
 
+/* The button centred on the right; what it did, under it. Under the text when narrow. */
 .to-all {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px 10px;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.done:empty {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .to-all {
+    align-items: flex-start;
+    margin-left: 32px;
+  }
 }
 </style>
