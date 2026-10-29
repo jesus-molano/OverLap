@@ -1,7 +1,14 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { COUNTRY_CODES, countryName, countryOfFlair, flairKey, isCountryCode } from './countries'
+import {
+  COUNTRY_CODES,
+  GLOBAL_FLAG,
+  countryName,
+  countryOfFlair,
+  flairKey,
+  isCountryCode
+} from './countries'
 
 describe('countryOfFlair', () => {
   it('maps the flairs as iRacing writes them', () => {
@@ -35,10 +42,14 @@ describe('countryOfFlair', () => {
     expect(flairKey('  The Côte-d’Ivoire ')).toBe('cote d ivoire')
   })
 
-  it('nothing for none, unknown or empty', () => {
-    for (const none of ['-none-', 'None', 'none', '', '   ', 'Atlantis', 'Club 42', '-']) {
-      expect(countryOfFlair(none), none).toBe('')
+  it('the global flag for none or a flair that is no country', () => {
+    for (const none of ['-none-', 'None', 'none', 'Atlantis', 'Club 42', '-']) {
+      expect(countryOfFlair(none), none).toBe(GLOBAL_FLAG)
     }
+  })
+
+  it('nothing when there is no flair at all', () => {
+    for (const empty of ['', '   ']) expect(countryOfFlair(empty), empty).toBe('')
   })
 })
 
