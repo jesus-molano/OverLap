@@ -119,11 +119,24 @@ export class LayoutControl {
   /** One of the settings window's layout commands (already validated by isSettingsCommand). */
   async command(cmd: LayoutCommand): Promise<void> {
     switch (cmd.type) {
-      case 'layout-save':
+      case 'layout-save': {
         // The new one is in use: nothing moves, and nothing pending should replace it.
         this.auto.onManualSwitch()
-        this.change((s) => void saveLayoutAs(s, cmd.name, this.now(), cmd.mode ?? 'full'))
+        const car = cmd.car === undefined ? null : normalizeCarRef(cmd.car)
+        let switchedOn = false
+        this.change((s) => {
+          const id = saveLayoutAs(s, cmd.name, this.now(), cmd.mode ?? 'full')
+          // «Vincular a …» ticked (R26): the car you are in gets it, the switch goes on.
+          if (id !== null && car !== null && linkCar(s, car, id) && !s.layouts.autoSwitch) {
+            s.layouts.autoSwitch = true
+            switchedOn = true
+          }
+        })
+        if (switchedOn && car !== null) {
+          this.deps.notify({ kind: 'auto-switch-on', carName: car.carName })
+        }
         break
+      }
       case 'layout-set-mode':
         // The one in use turning 'position' takes the shared options: what waits is written
         // first, as before applying a layout.
@@ -162,7 +175,15 @@ export class LayoutControl {
       case 'layout-link-car': {
         const car = normalizeCarRef(cmd.car)
         if (car === null) return
-        this.change((s) => void linkCar(s, car, cmd.layoutId))
+        // Linking means "use this one in that car": «Según el coche» on too (R26), said once.
+        let switchedOn = false
+        this.change((s) => {
+          if (linkCar(s, car, cmd.layoutId) && cmd.layoutId !== null && !s.layouts.autoSwitch) {
+            s.layouts.autoSwitch = true
+            switchedOn = true
+          }
+        })
+        if (switchedOn) this.deps.notify({ kind: 'auto-switch-on', carName: car.carName })
         // Linking the car you are in: its layout now, if the automatic mode is on.
         if (this.auto.car?.carId === car.carId) this.reevaluate()
         break

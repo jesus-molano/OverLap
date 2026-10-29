@@ -442,10 +442,29 @@ export function noteSeenCar(s: OverlaySettings, car: CarRef): boolean {
 }
 
 /**
- * The cars a layout can be linked to, for the settings window: the one you are in now first,
- * then the ones seen, then any linked car no longer in that list. Each car once.
+ * The layout to offer linking the car you are in to (R26: «Vincular a «GT3»»): the one in use,
+ * while that car has no layout and there are two or more (with one there is nothing to switch).
  */
-export function linkableCars(lib: LayoutLibrary, current: CarRef | null): CarRef[] {
+export function linkSuggestion(
+  lib: LayoutLibrary,
+  current: CarRef | null
+): { id: string; name: string } | null {
+  if (current === null || lib.list.length < 2) return null
+  if (lib.links.some((l) => l.carId === current.carId)) return null
+  const active = lib.list.find((l) => l.id === lib.activeId)
+  return active ? { id: active.id, name: active.name } : null
+}
+
+/**
+ * The cars a layout can be linked to, for the settings window: the one you are in now first,
+ * then the ones seen, then any linked car no longer in that list, then `known` ones (the
+ * personal bests' cars). Each car once.
+ */
+export function linkableCars(
+  lib: LayoutLibrary,
+  current: CarRef | null,
+  known: readonly CarRef[] = []
+): CarRef[] {
   const out: CarRef[] = []
   const seen = new Set<number>()
   const add = (c: CarRef): void => {
@@ -456,6 +475,8 @@ export function linkableCars(lib: LayoutLibrary, current: CarRef | null): CarRef
   if (current) add(current)
   for (const c of lib.seenCars) add(c)
   for (const l of lib.links) add(l)
+  // Cars known otherwise (the personal bests' cars, R26): linkable without getting in them.
+  for (const c of known) add(c)
   return out
 }
 

@@ -279,9 +279,11 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
   opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
-- **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás o a
-  uno reciente, y se aplica sola al subirte a ese modelo. Un coche sin vínculo se queda con la
-  última que usaste.
+- **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
+  uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche
+  lo activa. Estando en un coche sin disposición, la página y la bandeja ofrecen **Vincular a «…»**,
+  y al guardar una nueva puedes vincularla a tu coche. Cada disposición muestra sus coches como
+  etiquetas. Un coche sin vínculo se queda con la última que usaste.
 
 ## Atajos de teclado
 

@@ -14,8 +14,11 @@ import { offerRestore } from '../undo/restore'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
+import { usePersonalBests } from '../personalBests'
 import {
   carRows,
+  carsOfBests,
+  linkSuggestion,
   layoutCommands as cmd,
   isFileNotice,
   layoutList,
@@ -62,7 +65,33 @@ const query = shallowRef('')
 const view = computed(() =>
   layoutList(t.value, lib.value, { sort: sort.value, query: query.value, locale: locale.value })
 )
-const cars = computed(() => carRows(t.value, lib.value, currentCar.value))
+/** Cars you have a personal best in: linkable without getting in them again (R26). */
+const bests = usePersonalBests()
+const knownCars = computed(() => carsOfBests(bests.entries.value))
+const cars = computed(() => carRows(t.value, lib.value, currentCar.value, knownCars.value))
+/** The car you are in has no layout: «Vincular a «X»», the one in use (R26). */
+const suggestion = computed(() => linkSuggestion(lib.value, currentCar.value))
+
+function linkSuggested(): void {
+  const s = suggestion.value
+  const car = currentCar.value
+  if (s && car) cmd.link(car, s.id)
+}
+
+/** Linking turned «Según el coche» on: said under it, with "Deshacer" (R26). */
+const autoOnText = computed(() => {
+  const n = layoutNotice.value
+  return n !== null && n.kind === 'auto-switch-on'
+    ? t.value.settings.layouts.autoOn(n.carName)
+    : null
+})
+watch(layoutNotice, (n) => {
+  if (n === null || n.kind !== 'auto-switch-on') return
+  offerRestore(
+    (m) => m.settings.layouts.autoOnUndo,
+    () => void setAutoSwitch(false)
+  )
+})
 const currentRow = computed<CarRow | null>(() => cars.value.find((c) => c.current) ?? null)
 const otherCars = computed(() => cars.value.filter((c) => !c.current))
 const links = computed(() => linkOptions(lib.value, locale.value))
@@ -73,6 +102,16 @@ const notice = computed(() => {
 })
 
 const newName = shallowRef('')
+/**
+ * «Vincular a <coche actual>» in the save form (R26): ticked while the car you are in has no
+ * layout yet (one it has stays unless you tick it).
+ */
+const linkNew = shallowRef(true)
+watch(
+  () => currentRow.value?.layoutId ?? '',
+  (id) => (linkNew.value = id === ''),
+  { immediate: true }
+)
 /** What the next layout saved, and the next one imported, restore. */
 const saveMode = shallowRef<LayoutMode>('full')
 const importMode = shallowRef<LayoutMode>('full')
@@ -80,7 +119,8 @@ const canSave = computed(() => roomLeft.value && layoutName(newName.value) !== n
 
 function save(): void {
   if (!canSave.value) return
-  cmd.save(newName.value, saveMode.value)
+  const car = currentCar.value
+  cmd.save(newName.value, saveMode.value, linkNew.value && car !== null ? car : undefined)
   newName.value = ''
 }
 
@@ -344,6 +384,10 @@ function onLink(car: CarRow, e: Event): void {
               {{ t.settings.layouts.save }}
             </button>
           </div>
+          <label v-if="currentRow" class="st-check link-new">
+            <input v-model="linkNew" type="checkbox" :disabled="!roomLeft" />
+            <span>{{ t.settings.layouts.linkNew(currentRow.label) }}</span>
+          </label>
           <div class="mode">
             <span :id="saveModeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
             <LayoutModeChoice v-model="saveMode" :labelledby="saveModeId" :disabled="!roomLeft" />
@@ -380,6 +424,15 @@ function onLink(car: CarRow, e: Event): void {
             <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
           </select>
         </div>
+        <div v-if="suggestion && currentRow" class="st-row st-row-wrap suggest">
+          <span class="st-help">{{
+            t.settings.layouts.linkSuggestHelp(currentRow.label, suggestion.name)
+          }}</span>
+          <button type="button" class="st-btn st-btn-sm" @click="linkSuggested">
+            {{ t.settings.layouts.linkSuggest(suggestion.name) }}
+          </button>
+        </div>
+        <p v-if="autoOnText" class="st-row st-help" role="status">{{ autoOnText }}</p>
 
         <div class="st-row st-row-stack">
           <span class="st-label">{{ t.settings.layouts.seenCars }}</span>
@@ -480,6 +533,10 @@ function onLink(car: CarRow, e: Event): void {
   max-width: 46em;
   color: var(--ov-fg-muted);
   font-size: 12.5px;
+}
+
+.link-new {
+  font-size: 13px;
 }
 
 .find {

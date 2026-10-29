@@ -410,6 +410,7 @@ function start(): void {
       overlayHidden: windows.userHidden,
       autoHidden: windows.autoHiddenReasons(),
       carId: layouts.car?.carId ?? null,
+      carName: layouts.car?.carName ?? '',
       shortcutsFailing: Object.values(shortcuts.report.actions).filter((a) => a === 'unavailable')
         .length
     }
@@ -751,6 +752,11 @@ function start(): void {
   createTray(trayState(), {
     openSettings: (page) => openSettingsWindow(page),
     applyLayout: (id) => void layouts.choose(id),
+    linkCar: (car, layoutId) => {
+      layouts
+        .command({ type: 'layout-link-car', car, layoutId })
+        .catch((err: unknown) => console.error('[main] link car:', err))
+    },
     setWidgetVisible,
     setRadarRange,
     setShowWhen,

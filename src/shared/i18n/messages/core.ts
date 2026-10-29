@@ -98,6 +98,8 @@ export const coreEs = {
     moreLayouts: 'Más…',
     /** A layout linked to the car you are in (automatic mode): 'Mazda · coche actual'. */
     layoutForCar: (name: string) => `${name} · coche actual`,
+    /** The car you are in has no layout (R26): link it to the one in use. */
+    linkCar: (car: string, layout: string) => `Vincular ${car} a «${layout}»`,
     editMode: 'Modo edición',
     /** Every widget to the display where the cursor is (R51). */
     gatherWidgets: 'Traer todos los widgets a esta pantalla',
@@ -283,6 +285,7 @@ export const coreEn: Dict<typeof coreEs> = {
     manageLayouts: 'Manage layouts…',
     moreLayouts: 'More…',
     layoutForCar: (name) => `${name} · current car`,
+    linkCar: (car, layout) => `Link ${car} to “${layout}”`,
     editMode: 'Edit mode',
     gatherWidgets: 'Bring every widget to this screen',
     showOverlay: 'Show the overlay',

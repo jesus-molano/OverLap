@@ -3,9 +3,11 @@
  * export / import result (pushed by main), the rows of the layouts page and the commands.
  */
 import { shallowRef, type ShallowRef } from 'vue'
+import type { PersonalBestSummary } from '@shared/delta/references'
 import type { Messages } from '@shared/i18n'
 import type { LayoutFileNotice, LayoutNotice } from '@shared/ipc'
 import { canDeleteLayout, linkableCars, sortLayouts } from '@shared/layouts'
+export { linkSuggestion } from '@shared/layouts'
 import type { CarRef, LayoutLibrary, LayoutMode, LayoutSort, SavedLayout } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { sendCommand } from './editor'
@@ -25,8 +27,8 @@ export interface LayoutRow {
   canMoveUp: boolean
   canMoveDown: boolean
   mode: LayoutMode
-  /** 'Coches: Mazda MX-5 Cup, BMW M2' ('' without links). */
-  cars: string
+  /** The cars linked to it, each a tag on its row (R26): 'Mazda MX-5 Cup', 'BMW M2'. */
+  cars: string[]
 }
 
 /** How the page shows the layouts (layoutList). */
@@ -131,7 +133,7 @@ export function layoutList(
       canMoveUp: reorder && i !== null && i > 0,
       canMoveDown: reorder && i !== null && i < last,
       mode: l.mode,
-      cars: cars.length > 0 ? m.settings.layouts.cars(cars.join(', ')) : ''
+      cars
     }
   }
   const pinnedMatches = pin && matches(active)
@@ -214,8 +216,13 @@ export function linkOptions(lib: LayoutLibrary, locale: string): { id: string; n
 }
 
 /** The car you are in first (`current`), then the cars seen and linked, each once. */
-export function carRows(m: Messages, lib: LayoutLibrary, current: CarRef | null): CarRow[] {
-  return linkableCars(lib, current).map((car) => ({
+export function carRows(
+  m: Messages,
+  lib: LayoutLibrary,
+  current: CarRef | null,
+  known: readonly CarRef[] = []
+): CarRow[] {
+  return linkableCars(lib, current, known).map((car) => ({
     car,
     label: carLabel(m, car),
     layoutId: lib.links.find((l) => l.carId === car.carId)?.layoutId ?? '',
@@ -225,7 +232,25 @@ export function carRows(m: Messages, lib: LayoutLibrary, current: CarRef | null)
 
 /** Whether `n` is about an export or an import (the layouts page shows those). */
 export function isFileNotice(n: LayoutNotice): n is LayoutFileNotice {
-  return n.kind !== 'options-copied' && n.kind !== 'gathered'
+  return n.kind !== 'options-copied' && n.kind !== 'gathered' && n.kind !== 'auto-switch-on'
+}
+
+/**
+ * The cars of the personal bests ('67@219/Grand Prix': car 67), newest first, once each: cars
+ * you have driven, to link from the layouts page without getting in them again (R26).
+ */
+export function carsOfBests(entries: readonly PersonalBestSummary[]): CarRef[] {
+  const out: CarRef[] = []
+  const seen = new Set<number>()
+  for (const e of entries) {
+    const m = /^(\d+)@/.exec(e.key)
+    const carId = m ? Number(m[1]) : 0
+    const carName = e.car.trim()
+    if (carId <= 0 || carName === '' || seen.has(carId)) continue
+    seen.add(carId)
+    out.push({ carId, carName })
+  }
+  return out
 }
 
 /** What the last export or import did, in words; `error` true for a failure. */
@@ -272,7 +297,13 @@ export function useLayoutState(): {
 }
 
 export const layoutCommands = {
-  save: (name: string, mode: LayoutMode) => sendCommand({ type: 'layout-save', name, mode }),
+  save: (name: string, mode: LayoutMode, car?: CarRef) =>
+    sendCommand({
+      type: 'layout-save',
+      name,
+      mode,
+      ...(car === undefined ? {} : { car: { ...car } })
+    }),
   apply: (id: string) => sendCommand({ type: 'layout-apply', id }),
   duplicate: (id: string, name: string) => sendCommand({ type: 'layout-duplicate', id, name }),
   rename: (id: string, name: string) => sendCommand({ type: 'layout-rename', id, name }),
