@@ -382,7 +382,8 @@ describe('DEFAULT_SETTINGS', () => {
         links: [],
         seenCars: [],
         shared: defaultOptionSet()
-      }
+      },
+      buttonDeviceNames: {}
     })
   })
 
@@ -1418,5 +1419,75 @@ describe('normalizeSettings: visibility', () => {
     // An invalid showWhen is still a file with the option: its replays stay.
     const broken = normalizeSettings({ visibility: { ...chosen, showWhen: 1 } })
     expect(broken.visibility).toMatchObject({ showWhen: 'car', replays: 'follow' })
+  })
+})
+
+describe('normalizeSettings: controller buttons', () => {
+  const G29 = 'joy:046d:c24f:0'
+
+  it('keeps a button binding and the names of the controllers bound', () => {
+    const s = normalizeSettings({
+      shortcuts: { toggleOverlay: `${G29}:7`, nextLayout: 'joy:1dd2:2201:0:40' },
+      buttonDeviceNames: {
+        [G29]: 'G29 Driving Force Racing Wheel',
+        'joy:1dd2:2201:0': 'BU0836X Interface',
+        // Not bound any more: forgotten.
+        'joy:0eb7:0e05:0': 'Podium'
+      }
+    })
+    expect(s.shortcuts).toEqual({
+      toggleOverlay: `${G29}:7`,
+      toggleEditMode: 'Ctrl+Shift+E',
+      cycleDeltaReference: '',
+      nextLayout: 'joy:1dd2:2201:0:40',
+      openSettings: 'Ctrl+Shift+O'
+    })
+    expect(s.buttonDeviceNames).toEqual({
+      [G29]: 'G29 Driving Force Racing Wheel',
+      'joy:1dd2:2201:0': 'BU0836X Interface'
+    })
+  })
+
+  it('loads a file from before (no buttons, no names) unchanged: no version bump', () => {
+    const before = normalizeSettings({
+      version: 6,
+      shortcuts: { toggleOverlay: 'Ctrl+Alt+F9', cycleDeltaReference: 'Ctrl+Alt+D' }
+    })
+    expect(before.version).toBe(6)
+    expect(SETTINGS_VERSION).toBe(6)
+    expect(before.buttonDeviceNames).toEqual({})
+    expect(before.shortcuts).toEqual({
+      toggleOverlay: 'Ctrl+Alt+F9',
+      toggleEditMode: 'Ctrl+Shift+E',
+      cycleDeltaReference: 'Ctrl+Alt+D',
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
+    })
+    // Saved and read again: the same.
+    expect(normalizeSettings(JSON.parse(JSON.stringify(before)))).toEqual(before)
+  })
+
+  it('round-trips a file with buttons', () => {
+    const s = normalizeSettings({
+      shortcuts: { toggleEditMode: `${G29}:3` },
+      buttonDeviceNames: { [G29]: 'G29' }
+    })
+    expect(normalizeSettings(JSON.parse(JSON.stringify(s)))).toEqual(s)
+  })
+
+  it('gives a button repeated on disk to the first action only', () => {
+    expect(
+      normalizeSettings({ shortcuts: { toggleOverlay: `${G29}:7`, openSettings: `${G29}:7` } })
+        .shortcuts
+    ).toMatchObject({ toggleOverlay: `${G29}:7`, openSettings: '' })
+  })
+
+  it('replaces a malformed button binding with the default', () => {
+    for (const bad of ['joy:046d:c24f:0:0', 'joy:046D:C24F:0:7', 'joy:046d:c24f:7', 'joy:']) {
+      expect(normalizeSettings({ shortcuts: { toggleOverlay: bad } }).shortcuts.toggleOverlay).toBe(
+        'Ctrl+Shift+H'
+      )
+    }
+    expect(normalizeSettings({ buttonDeviceNames: 'G29' }).buttonDeviceNames).toEqual({})
   })
 })

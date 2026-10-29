@@ -1,4 +1,5 @@
 /** Defensive load of anything read from disk. */
+import { boundControllers, normalizeDeviceNames } from '../controllers'
 import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
 import { OPTION_SECTIONS, createDefaultSettings, sectionSpecs } from './defaults'
@@ -59,6 +60,11 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     mergeSection(out[section], r, sectionSpecs(section))
     disableDuplicateAccelerators(out[section], sectionSpecs(section))
   }
+  // Only the names of the controllers the final shortcuts use.
+  out.buttonDeviceNames = normalizeDeviceNames(
+    raw.buttonDeviceNames,
+    boundControllers(Object.values(out.shortcuts))
+  )
   // Last: against the final widgets, named in the final language.
   out.savedLayouts = normalizeLayoutLibrary(
     raw.savedLayouts,

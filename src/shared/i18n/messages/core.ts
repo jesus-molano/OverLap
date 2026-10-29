@@ -157,7 +157,9 @@ export const coreEs = {
     pageUp: 'Re Pág',
     pageDown: 'Av Pág',
     /** A key of the numeric keypad: 'Num 5', 'Num +'. */
-    numpad: (key: string) => `Num ${key}`
+    numpad: (key: string) => `Num ${key}`,
+    /** A controller's button bound to a shortcut: 'Botón 7' (its number on the controller). */
+    button: (n: number) => `Botón ${n}`
   },
   /** A window that could not start (renderer main.ts). */
   boot: {
@@ -277,7 +279,8 @@ export const coreEn: Dict<typeof coreEs> = {
     end: 'End',
     pageUp: 'PgUp',
     pageDown: 'PgDn',
-    numpad: (key) => `Num ${key}`
+    numpad: (key) => `Num ${key}`,
+    button: (n) => `Button ${n}`
   },
   boot: {
     settingsFailed: 'Could not load the settings window.',

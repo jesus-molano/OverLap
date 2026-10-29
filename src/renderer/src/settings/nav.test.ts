@@ -42,7 +42,7 @@ describe('settings pages', () => {
   it('titles pages in Spanish', () => {
     const es = messagesFor('es')
     expect(pageTitle(es, 'appearance')).toBe('Apariencia')
-    expect(pageTitle(es, 'shortcuts')).toBe('Atajos de teclado')
+    expect(pageTitle(es, 'shortcuts')).toBe('Atajos')
     expect(pageTitle(es, 'layouts')).toBe('Disposiciones')
     expect(pageTitle(es, 'standings')).toBe('Clasificación')
     expect(pageTitle(es, 'inputs')).toBe('Pedales')
@@ -51,7 +51,7 @@ describe('settings pages', () => {
   it('titles pages in English', () => {
     const en = messagesFor('en')
     expect(pageTitle(en, 'appearance')).toBe('Appearance')
-    expect(pageTitle(en, 'shortcuts')).toBe('Keyboard shortcuts')
+    expect(pageTitle(en, 'shortcuts')).toBe('Shortcuts')
     expect(pageTitle(en, 'standings')).toBe('Standings')
     expect(pageTitle(en, 'relative')).toBe('Relative')
     expect(pageTitle(en, 'inputs')).toBe('Inputs')

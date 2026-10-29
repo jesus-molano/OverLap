@@ -128,7 +128,7 @@ describe('editModeTooltip', () => {
 
 describe('refusalText', () => {
   it('words every refusal, naming the action that has a duplicate', () => {
-    expect(refusalText(es, 'duplicate', 'toggleEditMode')).toBe('Ya la usa «Modo edición»')
+    expect(refusalText(es, 'duplicate', 'toggleEditMode')).toBe('Ya lo usa «Modo edición»')
     expect(refusalText(en, 'duplicate', 'toggleOverlay')).toBe(
       'Already used by “Show or hide the overlay”'
     )
@@ -200,5 +200,79 @@ describe('rowMessages', () => {
     expect(rowMessages(es, taken, null, false)).toEqual([
       { text: es.settings.shortcuts.unavailableHelp, tone: 'warn' }
     ])
+  })
+})
+
+describe('controller buttons', () => {
+  const G29 = 'joy:046d:c24f:0'
+  const withButton: ShortcutSettings = { ...defaults, toggleOverlay: `${G29}:12` }
+  const names = { [G29]: 'G29 Driving Force Racing Wheel' }
+
+  it('shows a button and its controller instead of keycaps', () => {
+    const [r] = shortcutRows(es, withButton, OK, names)
+    expect(r).toMatchObject({
+      accelerator: `${G29}:12`,
+      keys: [],
+      button: { button: 'Botón 12', device: 'G29 Driving Force Racing Wheel' },
+      status: 'ok',
+      badge: '',
+      canDisable: true,
+      canReset: true
+    })
+    expect(shortcutRows(en, withButton, OK, names)[0]?.button?.button).toBe('Button 12')
+    // A combination has none.
+    expect(shortcutRows(es, defaults, OK, names)[0]?.button).toBeNull()
+  })
+
+  it('names a controller it never saw by its ids', () => {
+    expect(shortcutRows(es, withButton, OK)[0]?.button?.device).toBe('VID 046D PID C24F')
+  })
+
+  it('tells two controllers with the same name apart', () => {
+    const twins = { 'joy:1dd2:2201:0': 'BU0836X Interface', 'joy:1dd2:2202:0': 'BU0836X Interface' }
+    const rows = shortcutRows(
+      es,
+      { ...defaults, toggleOverlay: 'joy:1dd2:2201:0:4', nextLayout: 'joy:1dd2:2202:0:4' },
+      OK,
+      twins
+    )
+    expect(rows[0]?.button?.device).toBe('BU0836X Interface (1dd2:2201)')
+    expect(rows[3]?.button?.device).toBe('BU0836X Interface (1dd2:2202)')
+  })
+
+  it('says "Desconectado" when the controller is unplugged, and keeps the binding', () => {
+    const r = shortcutRows(es, withButton, { ...OK, toggleOverlay: 'unavailable' }, names)[0]
+    if (!r) throw new Error('no row')
+    expect(r).toMatchObject({
+      status: 'unavailable',
+      badge: 'Desconectado',
+      accelerator: `${G29}:12`
+    })
+    expect(rowMessages(es, r, null, false, names)).toEqual([
+      { text: es.settings.shortcuts.disconnectedHelp, tone: 'warn' }
+    ])
+    // A combination another app holds keeps its own words.
+    const keys = shortcutRows(es, defaults, { ...OK, toggleOverlay: 'unavailable' })[0]
+    expect(keys?.badge).toBe('En uso por otra aplicación')
+  })
+
+  it('words a saved button with its controller', () => {
+    const r = shortcutRows(es, withButton, OK, names)[0]
+    if (!r) throw new Error('no row')
+    expect(
+      rowMessages(
+        es,
+        r,
+        { action: 'toggleOverlay', kind: 'saved', accelerator: `${G29}:12` },
+        false,
+        names
+      )
+    ).toEqual([{ text: 'Guardado: Botón 12 · G29 Driving Force Racing Wheel', tone: 'info' }])
+  })
+
+  it('shows the button in the sidebar keys and the edit-mode tooltip', () => {
+    const s = { ...defaults, toggleEditMode: `${G29}:3` }
+    expect(sidebarKeys(es, s)[0]).toMatchObject({ id: 'toggleEditMode', keys: 'Botón 3' })
+    expect(editModeTooltip(es, s)).toContain('Botón 3')
   })
 })

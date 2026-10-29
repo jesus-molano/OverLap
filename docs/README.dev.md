@@ -659,6 +659,16 @@ ventana normal, que sí coge el foco, es la de Ajustes, y solo cuando la abres t
 teclado son `RegisterHotKey` de Windows (vía `globalShortcut` de Electron): Windows avisa a la app
 cuando se pulsa la combinación; no hay ganchos de teclado ni nada que llegue al juego.
 
+Los atajos en un botón de un mando (volante, button box, pedales) se leen en otro `utilityProcess`
+(`src/input`, arrancado por `src/main/inputHost.ts` solo mientras algún atajo es un botón o la
+página de atajos está grabando uno) con **Raw Input**: una ventana solo de mensajes de ese proceso
+se registra para los usos joystick, gamepad y multieje (`RIDEV_INPUTSINK | RIDEV_DEVNOTIFY`) y
+Windows le da su propia copia de cada informe HID, que `hid.dll` (`HidP_GetUsages`) traduce en
+botones pulsados. Es lectura pasiva y compartida: nada se adquiere en exclusiva, no hay ganchos,
+ningún handle a otro proceso, no se escribe al dispositivo ni hay force feedback; el dispositivo
+solo se abre, sin derechos de acceso, para leer su nombre (`HidD_GetProductString`). iRacing
+(DirectInput) sigue recibiendo todo. Ver `src/input/rawInput.ts`.
+
 ## Cómo añadir un widget nuevo
 
 1. **Registro**: añade la entrada en `WIDGET_DEFS` (`src/shared/widgets.ts`) con `id`, `hz`,

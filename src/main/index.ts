@@ -12,6 +12,13 @@ import {
 import { readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import {
+  boundControllers,
+  buttonBinding,
+  fallbackControllerName,
+  updateDeviceNames,
+  type ControllerInfo
+} from '@shared/controllers'
 import type { PersonalBestList } from '@shared/delta/references'
 import { messagesFor } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
@@ -30,6 +37,7 @@ import type { SessionKind } from '@shared/sessionInfo'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
+import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
 import { SettingsStore } from './settingsStore'
@@ -63,7 +71,10 @@ import { createTray, destroyTray, updateTray, type TrayState } from './tray'
  * settings window, opened from the tray, is a normal focusable window. The
  * global shortcuts are Windows hot
  * keys (RegisterHotKey through globalShortcut): no keyboard hook, nothing
- * sent to the game.
+ * sent to the game. Shortcuts on a controller's button are read in the input
+ * utilityProcess through Raw Input, only while one is configured: shared with
+ * iRacing (its own copy of each report), no device acquired, opened for I/O
+ * or written to, no hook (src/input/rawInput.ts).
  */
 
 const APP_USER_MODEL_ID = 'io.github.jesus-molano.overlap'
@@ -264,6 +275,48 @@ function start(): void {
     if (personalBests) sendToSettingsWindow(IPC.personalBests, personalBests)
   }
 
+  /** The controllers connected now (the input process's list); null when not known. */
+  let controllersNow: readonly ControllerInfo[] | null = null
+  // Runs only while some shortcut is a button or the shortcuts page records one
+  // (onButtonsWanted below): otherwise no process, nothing read.
+  const input = new InputHost({
+    onDevices: (list) => {
+      controllersNow = list
+      shortcuts.setControllers(list === null ? null : list.map((c) => c.id))
+      rememberControllerNames()
+    },
+    onPress: (device, button) => {
+      // While the page records a binding, the press is for it (no action runs).
+      if (!shortcuts.capturing) {
+        shortcuts.pressButton(device, button)
+        return
+      }
+      const name = controllersNow?.find((c) => c.id === device)?.name
+      sendToSettingsWindow(IPC.controllerPress, {
+        binding: buttonBinding(device, button),
+        name: name ?? fallbackControllerName(device)
+      })
+    }
+  })
+
+  /**
+   * Keeps the name of each controller a button shortcut uses (the page shows it while it is
+   * unplugged) and forgets the others'. Re-entrant through changeSettings: the second pass
+   * finds nothing to change.
+   */
+  function rememberControllerNames(): void {
+    const s = store.settings
+    const next = updateDeviceNames(
+      s.buttonDeviceNames,
+      boundControllers(Object.values(s.shortcuts)),
+      controllersNow ?? []
+    )
+    if (next === s.buttonDeviceNames) return
+    changeSettings((draft) => {
+      draft.buttonDeviceNames = { ...next }
+    })
+  }
+
   const shortcuts = new ShortcutManager({
     registry: globalShortcut,
     onAction: (action) => {
@@ -286,7 +339,8 @@ function start(): void {
       }
     },
     onExitEdit: () => setEditMode(false),
-    onStatus: (next) => sendToSettingsWindow(IPC.shortcutStatus, next)
+    onStatus: (next) => sendToSettingsWindow(IPC.shortcutStatus, next),
+    onButtonsWanted: (wanted) => input.setWanted(wanted)
   })
   // Whatever takes the keys away from the settings page ends a capture there.
   onSettingsWindowInactive(() => shortcuts.stopCapture())
@@ -347,6 +401,7 @@ function start(): void {
     }
     sendToSettingsWindow(IPC.settings, rendererSettings(store.settings, 'settings'))
     shortcuts.configure(store.settings.shortcuts)
+    rememberControllerNames()
     refreshTray()
   }
 
@@ -552,6 +607,7 @@ function start(): void {
     safe('leave edit mode', () => setEditMode(false))
     safe('close settings window', () => destroySettingsWindow())
     safe('unregister shortcuts', () => shortcuts.dispose())
+    safe('stop reading controllers', () => input.dispose())
     safe('dispose windows', () => windows.dispose())
     safe('flush settings', () => store.flush())
     safe('destroy tray', () => destroyTray())
