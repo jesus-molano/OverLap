@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CUSTOMIZE_ZONE_IDS } from '@shared/settingsSchema'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { elements } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
@@ -213,14 +214,12 @@ describe('drops in an info bar', () => {
 describe('ghosts', () => {
   const relative = DEFAULT_SETTINGS.relative as unknown as Readonly<Record<string, unknown>>
 
-  it('ghosts the info bars that are shown and the line stacks, never a table', () => {
-    expect(GHOST_ZONES.has('relative.headerBar')).toBe(true)
-    expect(GHOST_ZONES.has('fuel.lines')).toBe(true)
-    expect(GHOST_ZONES.has('relative.columns')).toBe(false)
-    expect(GHOST_ZONES.has('standings.columns')).toBe(false)
+  it('ghosts every zone the same way (R41), an info bar only while it is shown', () => {
+    expect([...GHOST_ZONES]).toEqual([...CUSTOMIZE_ZONE_IDS])
     const on = { ...relative, headerBarSize: 'normal', footerBarSize: 'off' }
-    expect(ghostZones('relative', on)).toEqual(['relative.headerBar'])
-    expect(ghostZones('relative', { ...on, headerBarSize: 'off' })).toEqual([])
+    // The default columns hide the PIT, tyre and stint columns: ghosted too.
+    expect(ghostZones('relative', on)).toEqual(['relative.columns', 'relative.headerBar'])
+    expect(ghostZones('relative', { ...on, headerBarSize: 'off' })).toEqual(['relative.columns'])
     expect(ghostZones('delta', on)).toEqual([])
   })
 
@@ -309,7 +308,9 @@ describe('the sample stylesheet', () => {
       ghosts: ['relative.headerBar.clock']
     } as const
     const css = marksCss(S, marks)
-    expect(css).toContain(`${S} [data-el="relative.headerBar.clock"] {`)
+    expect(css).toContain(
+      `${S} [data-el="relative.headerBar.clock"], ${S} [data-group="relative.headerBar.clock"] {`
+    )
     expect(css).not.toContain('outline')
     expect(css).toContain('opacity: 0.42')
     // The hovered and lit element are outlined by the layer, not here.

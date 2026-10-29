@@ -180,7 +180,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         :data-group="`traffic.groups.${slot.group}`"
       >
         <template v-if="slot.kind === 'caption'">
-          <span class="tr-cap__text">{{ slot.text }}</span>
+          <span class="tr-cap__text" :data-el="`traffic.groups.${slot.group}`">{{
+            slot.text
+          }}</span>
           <PreviewTag v-if="i === 0 && previewTag === 'caption'" class="tr-preview" />
         </template>
         <!-- One plate per line, the car number (plus a hazard tag): class, lap state and
