@@ -108,6 +108,16 @@ solo.
   (`appearance.language`: `"es"` o `"en"` en `settings.json`).
 - **Atajos de teclado** (justo debajo de Apariencia): ver [Atajos de teclado](#atajos-de-teclado).
 - Botón de modo edición y acceso a la carpeta de ajustes.
+- **Vista previa**: cada página dibuja el widget real con datos de ejemplo sobre un fondo de
+  circuito. El interruptor **Fondo** (abajo a la izquierda) cambia entre **Noche** (asfalto oscuro,
+  por defecto) y **Día** (escena clara con reflejos), para juzgar la opacidad y el contorno del
+  texto en los dos casos (`settingsWindow.stageScene`: `"dark"` o `"light"`).
+- **Personalizar**: en la página de cada widget, tras Ventana y Contenido, los editores de orden y
+  visibilidad de cada parte (columnas, cabecera, segunda línea, pie y el resto de listas).
+- **Ventana grande**: maximizada (desde unos 1380 px de ancho) las opciones van en dos columnas
+  (Personalizar en la segunda) y la vista previa crece. En ultrapanorámicas (21:9, 32:9, triple
+  monitor) el contenido se limita y se centra, sin líneas larguísimas. Se abre a 880 × 760 en
+  1080p y algo más alta en pantallas más altas, nunca más grande que el escritorio.
 
 Es una ventana normal y sí coge el foco al abrirla (lo pides tú); los widgets nunca lo hacen.
 

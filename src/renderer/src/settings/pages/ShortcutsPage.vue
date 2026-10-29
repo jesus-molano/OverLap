@@ -39,25 +39,28 @@ const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
       </header>
     </template>
 
-    <PageSection :title="t.settings.shortcuts.section">
-      <ShortcutRow v-for="row in rows" :key="row.action" :row="row" :capture="capture" />
-      <div class="st-row st-row-stack">
-        <div class="st-row-text">
-          <span class="st-label">{{ t.settings.shortcuts.escape.label }}</span>
-          <span class="st-help">{{ t.settings.shortcuts.escape.help }}</span>
+    <!-- The actions, and the notes beside them in a wide window (settings.css .st-cols). -->
+    <div class="st-cols">
+      <PageSection :title="t.settings.shortcuts.section">
+        <ShortcutRow v-for="row in rows" :key="row.action" :row="row" :capture="capture" />
+        <div class="st-row st-row-stack">
+          <div class="st-row-text">
+            <span class="st-label">{{ t.settings.shortcuts.escape.label }}</span>
+            <span class="st-help">{{ t.settings.shortcuts.escape.help }}</span>
+          </div>
+          <div class="fixed">
+            <span class="fixed-keys"><Keycaps :keys="escapeCaps" /></span>
+            <span class="fixed-tag">{{ t.settings.shortcuts.escape.tag }}</span>
+          </div>
         </div>
-        <div class="fixed">
-          <span class="fixed-keys"><Keycaps :keys="escapeCaps" /></span>
-          <span class="fixed-tag">{{ t.settings.shortcuts.escape.tag }}</span>
-        </div>
-      </div>
-    </PageSection>
+      </PageSection>
 
-    <PageSection :title="t.settings.shortcuts.notes.title">
-      <p class="st-row st-help note">{{ t.settings.shortcuts.notes.focus }}</p>
-      <p class="st-row st-help note">{{ t.settings.shortcuts.notes.exclusive }}</p>
-      <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>
-    </PageSection>
+      <PageSection :title="t.settings.shortcuts.notes.title">
+        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.focus }}</p>
+        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.exclusive }}</p>
+        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>
+      </PageSection>
+    </div>
 
     <footer class="page-foot">
       <ConfirmButton

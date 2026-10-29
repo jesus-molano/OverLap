@@ -39,9 +39,11 @@ html.ov-settings {
   --st-lit: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --st-radius: 8px;
   --st-radius-sm: 5px;
-  /* Page column: side padding and the widest it gets. */
+  /* Page column: side padding and the widest it gets (wider in a wide window, below). */
   --st-page-pad: 28px;
   --st-page-max: 780px;
+  /* Between two option columns (wide window). */
+  --st-col-gap: 32px;
 
   /* The document keeps theme.css's full height and never scrolls: each page's options do. */
   color-scheme: dark;
@@ -130,6 +132,29 @@ html.ov-settings .st-scroll {
 /* Drawn inside: the scroller meets the window's edges. */
 html.ov-settings .st-scroll:focus-visible {
   outline-offset: -2px;
+}
+
+/*
+ * A wide window (maximised, 1440p, ultrawide): from 1380 px, about 1100 px of page beside the
+ * sidebar, the options take two columns (.st-cols spreads a page's sections over both; a widget
+ * page with editors gives them the second, WidgetPage). Each column stays near today's 780 px,
+ * so no line gets longer than about 90 characters, however wide the screen (SettingsApp caps and
+ * centres the whole window content past 2200 px).
+ */
+@media (min-width: 1380px) {
+  html.ov-settings {
+    --st-page-max: 1480px;
+  }
+
+  html.ov-settings .st-cols {
+    columns: 2;
+    column-gap: var(--st-col-gap);
+  }
+
+  /* A section is never split between the columns. */
+  html.ov-settings .st-cols .st-section {
+    break-inside: avoid;
+  }
 }
 
 @media (max-width: 639px) {
