@@ -854,12 +854,20 @@ describe('normalizeSettings: widget fields', () => {
 
 describe('normalizeSettings: options', () => {
   it('clamps options and rounds integers', () => {
-    expect(normalizeSettings({ relative: { carsAhead: -2, carsBehind: 99 } }).relative).toEqual({
+    expect(
+      normalizeSettings({ version: SETTINGS_VERSION, relative: { carsAhead: -2, carsBehind: 99 } })
+        .relative
+    ).toEqual({
       ...DEFAULT_RELATIVE,
       carsAhead: 0,
       carsBehind: 10
     })
-    expect(normalizeSettings({ relative: { carsAhead: 2.6, carsBehind: 0.4 } }).relative).toEqual({
+    expect(
+      normalizeSettings({
+        version: SETTINGS_VERSION,
+        relative: { carsAhead: 2.6, carsBehind: 0.4 }
+      }).relative
+    ).toEqual({
       ...DEFAULT_RELATIVE,
       carsAhead: 3,
       carsBehind: 0
@@ -907,7 +915,7 @@ describe('normalizeSettings: options', () => {
 
   it('clamps the traffic windows and entries to whole numbers', () => {
     const traffic = (raw: Record<string, unknown>): TrafficOptions =>
-      normalizeSettings({ traffic: raw }).traffic
+      normalizeSettings({ version: SETTINGS_VERSION, traffic: raw }).traffic
     expect(traffic({ behindS: 1, aheadS: 99, hazardS: 0, maxEntries: 9 })).toEqual({
       ...DEFAULT_TRAFFIC,
       ...OLD_TRAFFIC,
@@ -985,6 +993,7 @@ describe('normalizeSettings: options', () => {
 
   it('validates every enum', () => {
     const s = normalizeSettings({
+      version: SETTINGS_VERSION,
       appearance: {
         density: 'tiny',
         nameFormat: 'inherit',
@@ -1053,6 +1062,7 @@ describe('normalizeSettings: options', () => {
 
   it('takes boolean toggles only when they are booleans', () => {
     const bad = normalizeSettings({
+      version: SETTINGS_VERSION,
       appearance: { colorBlind: 1, stripes: 'no', showSimPill: null },
       standings: { iRatingDeltaAll: 'yes', headerIRating: 0, showSof: [] },
       battle: { showPrediction: 'false', showAhead: 0 },
@@ -1068,6 +1078,7 @@ describe('normalizeSettings: options', () => {
     })
     expect(bad).toEqual(withOldDriverBlocks(DEFAULT_SETTINGS))
     const ok = normalizeSettings({
+      version: SETTINGS_VERSION,
       traffic: { showFaster: false, showHazards: false, onlyMulticlass: false },
       alerts: { showFlags: false, showPitLimiter: false }
     })
@@ -1393,7 +1404,8 @@ describe('normalizeSettings: migration', () => {
     const bad = normalizeSettings({
       standings: { showPositionsGained: 'false', showIRating: null, showRatingsHeader: 0 }
     })
-    expect(bad.standings).toEqual(DEFAULT_STANDINGS)
+    // A file with no version reads as old: the bars it drew then (migrateOldBars).
+    expect(bad.standings).toEqual({ ...DEFAULT_STANDINGS, ...OLD_STANDINGS_BARS })
 
     const mixed = normalizeSettings({
       standings: {

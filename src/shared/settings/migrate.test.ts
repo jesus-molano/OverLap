@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { setElementVisible } from '../elements'
+import { OPTION_SCHEMA } from '../settingsSchema'
 import type { OverlaySettings, Rect } from '../types'
 import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { createDefaultSettings, normalizeSettings } from '.'
@@ -11,6 +12,7 @@ import {
   freeSpot,
   migrateCustomizeOpen,
   migrateOldBars,
+  migrateRelativeColumns,
   migrateRelativeDensity,
   migrateSection
 } from './migrate'
@@ -660,6 +662,39 @@ describe('migrateRelativeColumns (R10)', () => {
     const s = normalizeSettings({ relative: { columns: own } })
     expect(s.relative.columns).toEqual([...own, { id: 'pit', visible: false }])
   })
+
+  it('gives each saved layout its own columns, never the options in effect', () => {
+    type Cols = OverlaySettings['relative']['columns']
+    const custom = L('gap driver -pos lic ir tyre stint') as Cols
+    const base = JSON.parse(JSON.stringify(createDefaultSettings())) as OverlaySettings
+    base.relative.columns = custom
+    const a = base.savedLayouts.list[0]
+    if (a?.options === undefined) throw new Error('a full layout')
+    a.options.sections.relative.columns = custom
+    const b = JSON.parse(JSON.stringify(a)) as typeof a
+    b.id = 'bbbbbbbb-0000-4000-8000-000000000000'
+    b.name = 'B'
+    if (b.options === undefined) throw new Error('a full layout')
+    b.options.sections.relative.columns = L('pos driver lic ir -tyre -stint gap') as Cols
+    base.savedLayouts.list.push(b)
+    const s = normalizeSettings(JSON.parse(JSON.stringify(base)))
+    const ids = (cols: readonly { id: string; visible: boolean }[] | undefined): string[] =>
+      (cols ?? []).map((e) => `${e.visible ? '' : '-'}${e.id}`)
+    const lb = s.savedLayouts.list.find((l) => l.name === 'B')
+    expect(ids(lb?.options?.sections.relative.columns)).toEqual(
+      ids(OPTION_SCHEMA.relative.columns.default)
+    )
+    expect(ids(s.relative.columns)).toEqual([...ids(custom), '-pit'])
+  })
+
+  it('writes the new default out, so no fallback can stand in for it', () => {
+    const out = migrateRelativeColumns({
+      carsAhead: 2,
+      columns: L('pos driver lic ir -tyre -stint gap')
+    }) as Record<string, unknown>
+    expect(out.carsAhead).toBe(2)
+    expect(out.columns).toEqual(OPTION_SCHEMA.relative.columns.default)
+  })
 })
 
 describe('migrateOldBars (R13: new defaults for new installs only)', () => {
@@ -690,5 +725,12 @@ describe('migrateOldBars (R13: new defaults for new installs only)', () => {
     const today = { carsAhead: 3 }
     expect(migrateOldBars('relative', today, { version: 6 })).toBe(today)
     expect(migrateOldBars('radar', today, { version: 4 })).toBe(today)
+  })
+
+  it('reads a file with no version as old, as the rest of the migrations do', () => {
+    const r = migrateOldBars('relative', { carsAhead: 4 }, {})
+    expect(shown(r.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
+    const odd = migrateOldBars('relative', {}, { version: 'x' })
+    expect(shown(odd.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
   })
 })
