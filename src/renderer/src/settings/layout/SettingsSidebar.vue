@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { widgetTitle } from '@shared/i18n'
-import { WIDGET_IDS } from '@shared/widgets'
+import { WIDGET_GROUPS, WIDGET_IDS } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
@@ -31,12 +31,17 @@ const keys = computed(() => sidebarKeys(t.value, shortcuts.value, deviceNames.va
 const visibleKey = computed(() =>
   WIDGET_IDS.map((id) => (settings.value?.widgets[id].visible === false ? '0' : '1')).join('')
 )
-const items = computed(() =>
-  WIDGET_IDS.map((id, i) => ({
-    id,
-    title: widgetTitle(t.value, id),
-    visible: visibleKey.value[i] === '1',
-    setVisible: (on: boolean) => setWidgetVisible(id, on)
+/** The widgets in their groups (R42): the track and rivals, your lap, your car. */
+const groups = computed(() =>
+  WIDGET_GROUPS.map((g) => ({
+    id: g.id,
+    title: t.value.core.widgetGroups[g.id],
+    items: g.widgets.map((id) => ({
+      id,
+      title: widgetTitle(t.value, id),
+      visible: visibleKey.value[WIDGET_IDS.indexOf(id)] === '1',
+      setVisible: (on: boolean) => setWidgetVisible(id, on)
+    }))
   }))
 )
 
@@ -65,22 +70,24 @@ function openSettingsFolder(): void {
         <span class="nav-text">{{ item.title }}</span>
       </button>
 
-      <h2 class="nav-group">{{ t.settings.nav.widgets }}</h2>
-      <ul class="nav-list">
-        <li v-for="item in items" :key="item.id" class="nav-li">
-          <button
-            type="button"
-            class="nav-item"
-            :class="{ 'is-hidden': !item.visible }"
-            :aria-current="page === item.id ? 'page' : undefined"
-            @click="emit('select', item.id)"
-          >
-            <NavIcon :page="item.id" />
-            <span class="nav-text">{{ item.title }}</span>
-          </button>
-          <VisibilityDot :title="item.title" :current="item.visible" :apply="item.setVisible" />
-        </li>
-      </ul>
+      <template v-for="group in groups" :key="group.id">
+        <h2 class="nav-group">{{ group.title }}</h2>
+        <ul class="nav-list" :aria-label="group.title">
+          <li v-for="item in group.items" :key="item.id" class="nav-li">
+            <button
+              type="button"
+              class="nav-item"
+              :class="{ 'is-hidden': !item.visible }"
+              :aria-current="page === item.id ? 'page' : undefined"
+              @click="emit('select', item.id)"
+            >
+              <NavIcon :page="item.id" />
+              <span class="nav-text">{{ item.title }}</span>
+            </button>
+            <VisibilityDot :title="item.title" :current="item.visible" :apply="item.setVisible" />
+          </li>
+        </ul>
+      </template>
     </nav>
 
     <div class="foot">

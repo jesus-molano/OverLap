@@ -1,9 +1,9 @@
 /**
  * Pages of the settings window: appearance, shortcuts, saved layouts, then one per
- * widget. Pure.
+ * widget, in the groups' order (WIDGET_GROUPS). Pure.
  */
 import { widgetTitle, type Messages } from '@shared/i18n'
-import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
+import { WIDGET_LIST_ORDER, isWidgetId, type WidgetId } from '@shared/widgets'
 
 /** The pages that are not a widget's, in sidebar order. */
 export const GLOBAL_PAGES = ['appearance', 'shortcuts', 'layouts'] as const
@@ -14,7 +14,7 @@ export type SettingsPage = GlobalPage | WidgetId
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = Object.freeze([
   ...GLOBAL_PAGES,
-  ...WIDGET_IDS
+  ...WIDGET_LIST_ORDER
 ])
 
 export const DEFAULT_PAGE: SettingsPage = 'appearance'

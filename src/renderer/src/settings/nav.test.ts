@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
-import { WIDGET_IDS } from '@shared/widgets'
+import { WIDGET_LIST_ORDER } from '@shared/widgets'
 import {
   DEFAULT_PAGE,
   PAGE_STORAGE_KEY,
@@ -33,9 +33,9 @@ const throwing: PageStorage = {
 }
 
 describe('settings pages', () => {
-  it('lists the appearance, the shortcuts, the layouts, then every widget once', () => {
+  it('lists the appearance, the shortcuts, the layouts, then every widget once, by group', () => {
     expect(SETTINGS_PAGES.slice(0, 3)).toEqual(['appearance', 'shortcuts', 'layouts'])
-    expect(SETTINGS_PAGES.slice(3)).toEqual(WIDGET_IDS)
+    expect(SETTINGS_PAGES.slice(3)).toEqual(WIDGET_LIST_ORDER)
     expect(new Set(SETTINGS_PAGES).size).toBe(SETTINGS_PAGES.length)
   })
 

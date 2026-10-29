@@ -236,6 +236,28 @@ describe('tray menu', () => {
     })
   })
 
+  it('lists the widgets in their three groups, a separator between two (R42)', () => {
+    createTray(state(createDefaultSettings()), ACTIONS)
+    const menu = fake.menus.at(-1) ?? []
+    const first = menu.findIndex((i) => i.label === 'Relativo')
+    const block = menu.slice(first, first + 12).map((i) => i.label ?? i.type)
+    expect(block).toEqual([
+      'Relativo',
+      'Posiciones',
+      'Batalla',
+      'Tráfico',
+      'Radar',
+      'separator',
+      'Delta',
+      'Combustible',
+      'Pedales',
+      'separator',
+      'Avisos',
+      'Testigos'
+    ])
+    expect(menu[first + 12]).toEqual({ type: 'separator' })
+  })
+
   it('rebuilds the menu only when a rule note changes', () => {
     const settings = createDefaultSettings()
     createTray(state(settings), ACTIONS)

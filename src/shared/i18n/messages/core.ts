@@ -28,6 +28,12 @@ export const coreEs = {
     delta: 'Delta',
     fuel: 'Combustible'
   },
+  /** The groups of widgets in the lists (WIDGET_GROUPS): sidebar, page select, tray. */
+  widgetGroups: {
+    track: 'Pista y rivales',
+    lap: 'Tu vuelta',
+    car: 'Estado del coche'
+  },
   status: {
     starting: 'Iniciando telemetría…',
     startingMock: 'Iniciando telemetría simulada…',
@@ -190,6 +196,11 @@ export const coreEn: Dict<typeof coreEs> = {
     lights: 'Warning lights',
     delta: 'Delta',
     fuel: 'Fuel'
+  },
+  widgetGroups: {
+    track: 'Track and rivals',
+    lap: 'Your lap',
+    car: 'Car status'
   },
   status: {
     starting: 'Starting telemetry…',

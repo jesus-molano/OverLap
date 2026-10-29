@@ -5,7 +5,9 @@ import {
   PAINT_ORDER,
   TOPMOST_WIDGET,
   WIDGET_DEFS,
+  WIDGET_GROUPS,
   WIDGET_IDS,
+  WIDGET_LIST_ORDER,
   type WidgetId
 } from './widgets'
 
@@ -48,5 +50,27 @@ describe('PAINT_ORDER', () => {
     expect(PAINT_ORDER.indexOf('alerts')).toBeLessThan(PAINT_ORDER.indexOf('radar'))
     // The others keep their registry order.
     expect(PAINT_ORDER.slice(0, -1)).toEqual(WIDGET_IDS.filter((id) => id !== 'radar'))
+  })
+})
+
+describe('WIDGET_GROUPS', () => {
+  it('puts every widget in exactly one group (R42)', () => {
+    const listed = WIDGET_GROUPS.flatMap((g): WidgetId[] => [...g.widgets])
+    expect([...listed].sort()).toEqual([...WIDGET_IDS].sort())
+    expect(new Set(listed).size).toBe(listed.length)
+    expect(WIDGET_LIST_ORDER).toEqual(listed)
+  })
+
+  it('groups the track and rivals, your lap and your car', () => {
+    expect(WIDGET_GROUPS.map((g) => g.id)).toEqual(['track', 'lap', 'car'])
+    expect(WIDGET_GROUPS[0].widgets).toEqual([
+      'relative',
+      'standings',
+      'battle',
+      'traffic',
+      'radar'
+    ])
+    expect(WIDGET_GROUPS[1].widgets).toEqual(['delta', 'fuel', 'inputs'])
+    expect(WIDGET_GROUPS[2].widgets).toEqual(['alerts', 'lights'])
   })
 })
