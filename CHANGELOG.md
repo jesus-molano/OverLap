@@ -5,7 +5,7 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [2.2.0] - 2026-10-29
 
 ### Añadido
 
@@ -59,6 +59,22 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   (McLaren, Hyundai, Subaru, Ford...) ya no se ven mucho más grandes que los redondos (BMW) o los
   escudos (Ferrari, Porsche): cada uno se dibuja a una escala medida de su propio trazo, en color
   y en monocromo, centrado en el mismo hueco para que la columna siga alineada.
+
+- **Ajustes > Personalizar en acordeones**: cada sección (columnas, cabecera, pie…) se abre y se
+  cierra por separado, con un resumen al estar cerrada y «Expandir todo / Contraer todo»; recuerda
+  cuáles dejaste abiertas. Cada cabecera, segunda línea y pie tiene un interruptor «Mostrar» con
+  su tamaño al lado, y sus elementos se reparten en las cajas «Izquierda» y «Derecha».
+- Las banderas de los pilotos son un poco más pequeñas (82 % del alto de la fila).
+
+### Corregido
+
+- **Clasificación con coches en boxes**: un coche en el pit lane o en su box (también remolcado
+  por la grúa) ya no salta por delante de ti al cruzar la meta para volver a caer detrás al pasar
+  por su box; conserva su puesto como en iRacing y baja si le pasan. También un coche que cruzaba
+  la meta en el pit lane tras la bandera de cuadros podía salir primero. Afecta igual a Relativo y
+  Batalla.
+- En la vista previa, el contorno de los elementos ocultos ya no sale cortado dentro de las
+  cabeceras y pies.
 
 ## [2.1.1] - 2026-10-29
 
@@ -347,6 +363,7 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[2.2.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.2.0
 [2.1.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.1
 [2.1.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.0
 [2.0.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.0.0
