@@ -47,16 +47,19 @@ describe('shortcuts page', () => {
 
   it('keeps the keys field one width in every row: the "in use" badge sits by the name', () => {
     const t = templateOf(ROW)
-    const field = /<div class="sc-keys"[\s\S]*?<\/div>/.exec(t)?.[0] ?? ''
+    const field = /<div\s+class="sc-keys"[\s\S]*?<\/div>/.exec(t)?.[0] ?? ''
     expect(field).toContain('<Keycaps')
     expect(field).not.toMatch(/sc-badge/)
     expect(t).toMatch(/<span class="sc-title">[\s\S]*class="sc-badge-unavailable"[\s\S]*?<\/span>/)
     expect(ROW).toMatch(/\.sc-keys \{[^}]*min-width: 15em;/)
+    // A button's field is exactly as wide (its controller cut on a second line), not wider.
+    expect(ROW).toMatch(/\.sc-keys\.has-button \{[^}]*width: 15em;/)
+    expect(ROW).not.toMatch(/24em/)
   })
 
   it('lists the configured keys in the sidebar instead of fixed ones', () => {
     expect(templateOf(SIDEBAR)).not.toMatch(/<kbd>[^{<]/)
-    expect(SIDEBAR).toContain('sidebarKeys(t.value, shortcuts.value)')
+    expect(SIDEBAR).toContain('sidebarKeys(t.value, shortcuts.value, deviceNames.value)')
   })
 })
 

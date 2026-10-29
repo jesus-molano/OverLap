@@ -1,5 +1,5 @@
 /**
- * Pages of the settings window: appearance, keyboard shortcuts, saved layouts, then one per
+ * Pages of the settings window: appearance, shortcuts, saved layouts, then one per
  * widget. Pure.
  */
 import { widgetTitle, type Messages } from '@shared/i18n'

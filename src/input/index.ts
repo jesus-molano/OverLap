@@ -73,7 +73,7 @@ function run(port: ParentPort): void {
       }
       reader = new ButtonReader({
         source,
-        onPress: (device, button) => emit({ type: 'press', device, button }),
+        onPress: (device, button, first) => emit({ type: 'press', device, button, first }),
         onDevices: (list) => emit({ type: 'devices', list }),
         onError: (err) => {
           emit({

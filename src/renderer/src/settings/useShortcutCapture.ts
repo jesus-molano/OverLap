@@ -158,7 +158,8 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
         action,
         kind: 'refused',
         error: check.error ?? 'invalid',
-        conflict: check.conflict
+        conflict: check.conflict,
+        ...(isButtonBinding(accelerator) ? { button: accelerator } : {})
       }
       return false
     }
@@ -203,7 +204,10 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
 
   /**
    * A controller's button while recording: it becomes the row's binding (refused like a
-   * combination when another action has it). Holding a modifier changes nothing.
+   * combination when another action has it). Holding a modifier changes nothing. One from the
+   * controller's first report is not saved: it may be resting down (a rotary's position, a
+   * latched switch) beside the one pressed, so the row asks for the press again, and the next
+   * time the button goes down it is a press for sure.
    */
   function onButton(press: ControllerPress): void {
     const action = active.value
@@ -211,6 +215,10 @@ export function useShortcutCapture(deps: CaptureDeps): ShortcutCapture {
     const device = press.binding.slice(0, press.binding.lastIndexOf(':'))
     if (pressedNames.value[device] !== press.name) {
       pressedNames.value = { ...pressedNames.value, [device]: press.name }
+    }
+    if (press.first) {
+      feedback.value = { action, kind: 'again' }
+      return
     }
     if (assign(action, press.binding)) cancel()
   }

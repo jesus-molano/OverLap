@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { acceleratorText } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
-import { useShortcuts } from '../../composables/useShortcuts'
+import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
 import { setOverlayHidden } from '../editor'
+import { bindingText } from '../shortcutsView'
 
 /**
  * While the user has the overlay hidden (tray, shortcut): one quiet line above every page, in
@@ -15,7 +15,9 @@ import { setOverlayHidden } from '../editor'
 const { overlayHidden } = useOverlayState()
 const t = useI18n()
 const shortcuts = useShortcuts()
-const keys = computed(() => acceleratorText(t.value, shortcuts.value.toggleOverlay))
+const deviceNames = useDeviceNames()
+/** 'Ctrl+Shift+H', or 'Botón 3 · G29 …' for a controller's button. */
+const keys = computed(() => bindingText(t.value, shortcuts.value.toggleOverlay, deviceNames.value))
 </script>
 
 <template>

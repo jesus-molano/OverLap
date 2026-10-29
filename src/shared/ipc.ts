@@ -93,8 +93,11 @@ export type TelemetryInMessage =
 export type InputOutMessage =
   /** The controllers connected now: once at start, then on every arrival or removal. */
   | { type: 'devices'; list: ControllerInfo[] }
-  /** A button went down (once per press: holding it sends nothing more). */
-  | { type: 'press'; device: string; button: number }
+  /**
+   * A button went down (once per press: holding it sends nothing more). `first`: in the
+   * controller's first report since it arrived, so it may be resting down rather than pressed.
+   */
+  | { type: 'press'; device: string; button: number; first: boolean }
   /** Controllers cannot be read at all (not Windows, no Raw Input): `detail` says why. */
   | { type: 'unavailable'; detail: string }
   | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string }
@@ -160,10 +163,15 @@ export const IPC = {
   controllerPress: 'overlay:controller-press'
 } as const
 
-/** A button pressed while recording: its binding (controllers.ts) and its controller's name. */
+/**
+ * A button pressed while recording: its binding (controllers.ts) and its controller's name.
+ * `first`: from the controller's first report since it arrived (InputOutMessage 'press'): it
+ * may be a button resting down, so the page asks for the press again instead of saving it.
+ */
 export interface ControllerPress {
   binding: string
   name: string
+  first: boolean
 }
 
 /**

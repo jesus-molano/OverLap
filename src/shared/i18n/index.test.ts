@@ -146,9 +146,18 @@ describe('shortcut texts', () => {
     const s = es.settings.shortcuts
     expect(es.settings.nav.shortcuts).toBe('Atajos')
     expect(en.settings.nav.shortcuts).toBe('Shortcuts')
-    expect(s.capture.prompt).toBe('Pulsa una combinación o un botón del volante… (Esc cancela)')
-    expect(en.settings.shortcuts.capture.prompt).toBe(
-      'Press a combination or a wheel button… (Esc cancels)'
+    // Short (the field keeps its width while recording), and not only the wheel's buttons.
+    expect(s.capture.prompt).toBe('Pulsa las teclas o un botón…')
+    expect(en.settings.shortcuts.capture.prompt).toBe('Press the keys or a button…')
+    expect(s.capture.clearHint).toBe('Esc cancela · Retroceso o Supr lo desactivan')
+    expect(s.capture.pressAgain).toBe('Mando detectado: pulsa el botón otra vez')
+    expect(en.settings.shortcuts.capture.pressAgain).toBe(
+      'Controller found: press the button again'
+    )
+    expect(s.resetAll.descriptionButtons(1)).toContain('quita el botón asignado')
+    expect(s.resetAll.confirmButtons(3)).toBe('¿Quitar 3 botones asignados? Pulsa otra vez')
+    expect(en.settings.shortcuts.resetAll.confirmButtons(1)).toBe(
+      'Remove the assigned button? Click again'
     )
     expect(s.status).toEqual({
       disabled: 'Desactivado',

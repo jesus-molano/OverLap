@@ -45,6 +45,11 @@ export interface ShortcutManagerOptions {
    * records one), on change: main starts or stops the input process.
    */
   onButtonsWanted?(wanted: boolean): void
+  /**
+   * A capture started (after onButtonsWanted): main lets a reader that stopped trying (it kept
+   * crashing, or controllers could not be read) try again.
+   */
+  onCaptureStart?(): void
 }
 
 type Binding = ShortcutAction | 'exitEdit'
@@ -120,13 +125,16 @@ export class ShortcutManager {
   /**
    * A controller's button went down (not while held: the input process reports each press
    * once). Runs the action bound to it, through the same burst guard as a hot key (a switch
-   * that bounces). Nothing while the settings page records a binding.
+   * that bounces). Nothing while the settings page records a binding. The action bound to it
+   * (for the log; the burst guard may still have swallowed it), or null.
    */
-  pressButton(device: string, button: number): void {
-    if (this.disposed || this.capturingNow) return
+  pressButton(device: string, button: number): ShortcutAction | null {
+    if (this.disposed || this.capturingNow) return null
     const binding = buttonBinding(device, button)
     const action = SHORTCUT_ACTIONS.find((a) => this.config?.[a] === binding)
-    if (action !== undefined) this.fire(action)
+    if (action === undefined) return null
+    this.fire(action)
+    return action
   }
 
   /** The settings' shortcuts (already normalised: canonical and unique). Same ones: no-op. */
@@ -161,6 +169,7 @@ export class ShortcutManager {
     this.capturingNow = true
     this.opts.registry.setSuspended(true)
     this.updateButtonsWanted()
+    this.opts.onCaptureStart?.()
   }
 
   /** Resumes the shortcuts and applies whatever changed while suspended. */

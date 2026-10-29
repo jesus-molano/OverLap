@@ -285,16 +285,20 @@ function start(): void {
       shortcuts.setControllers(list === null ? null : list.map((c) => c.id))
       rememberControllerNames()
     },
-    onPress: (device, button) => {
+    onPress: (device, button, first) => {
+      const binding = buttonBinding(device, button)
       // While the page records a binding, the press is for it (no action runs).
       if (!shortcuts.capturing) {
-        shortcuts.pressButton(device, button)
+        const action = shortcuts.pressButton(device, button)
+        console.log(`[input] press ${binding}${first ? ' (first)' : ''} -> ${action ?? 'nothing'}`)
         return
       }
+      console.log(`[input] press ${binding}${first ? ' (first)' : ''} -> recording`)
       const name = controllersNow?.find((c) => c.id === device)?.name
       sendToSettingsWindow(IPC.controllerPress, {
-        binding: buttonBinding(device, button),
-        name: name ?? fallbackControllerName(device)
+        binding,
+        name: name ?? fallbackControllerName(device),
+        first
       })
     }
   })
@@ -340,7 +344,9 @@ function start(): void {
     },
     onExitEdit: () => setEditMode(false),
     onStatus: (next) => sendToSettingsWindow(IPC.shortcutStatus, next),
-    onButtonsWanted: (wanted) => input.setWanted(wanted)
+    onButtonsWanted: (wanted) => input.setWanted(wanted),
+    // A reader that gave up (or could not read controllers) gets another go.
+    onCaptureStart: () => input.retry()
   })
   // Whatever takes the keys away from the settings page ends a capture there.
   onSettingsWindowInactive(() => shortcuts.stopCapture())

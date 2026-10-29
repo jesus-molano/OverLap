@@ -11,7 +11,7 @@ import Keycaps from '../layout/Keycaps.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import ShortcutRow from '../layout/ShortcutRow.vue'
-import { shortcutRows } from '../shortcutsView'
+import { buttonBindingCount, shortcutRows } from '../shortcutsView'
 import { useShortcutCapture, windowCaptureDeps } from '../useShortcutCapture'
 
 /**
@@ -36,6 +36,18 @@ const rows = computed(() =>
   shortcutRows(t.value, shortcuts.value, shortcutStatus.value, names.value)
 )
 const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
+
+/** The reset removes every button (none is a default): its description and confirmation say so. */
+const buttonCount = computed(() => buttonBindingCount(shortcuts.value))
+const resetDescription = computed(() => {
+  const r = t.value.settings.shortcuts.resetAll
+  return buttonCount.value > 0 ? r.descriptionButtons(buttonCount.value) : r.description
+})
+const resetConfirm = computed(() =>
+  buttonCount.value > 0
+    ? t.value.settings.shortcuts.resetAll.confirmButtons(buttonCount.value)
+    : t.value.settings.confirm.reset
+)
 </script>
 
 <template>
@@ -80,8 +92,8 @@ const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
     <footer class="page-foot">
       <ConfirmButton
         :label="t.settings.shortcuts.resetAll.label"
-        :confirm-label="t.settings.confirm.reset"
-        :description="t.settings.shortcuts.resetAll.description"
+        :confirm-label="resetConfirm"
+        :description="resetDescription"
         :action="resetShortcuts"
       />
     </footer>
