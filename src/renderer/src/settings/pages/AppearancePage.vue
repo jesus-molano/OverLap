@@ -7,6 +7,7 @@ import type { ShowWhen } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
+import BrandMark from '../../ui/BrandMark.vue'
 import LicenseChip from '../../ui/LicenseChip.vue'
 import NumberBadge from '../../ui/NumberBadge.vue'
 import { createDriverStyles } from '../../view/styles'
@@ -73,6 +74,9 @@ const licenseChoices = computed(() =>
 )
 const numberChoices = computed(() =>
   choiceOptions(A.numberStyle.values, t.value.settings.appearance.rows.numberChoices)
+)
+const brandLogoChoices = computed(() =>
+  choiceOptions(A.brandLogos.values, t.value.settings.appearance.rows.brandLogoChoices)
 )
 const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
@@ -242,6 +246,18 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           {{ option.label }}
         </template>
       </ChoiceControl>
+      <ChoiceControl
+        :label="t.settings.appearance.rows.brandLogos"
+        :help="t.settings.appearance.rows.brandLogosHelp"
+        :current="appearance.brandLogos"
+        :options="brandLogoChoices"
+        :apply="set('brandLogos')"
+      >
+        <template #option="{ option }">
+          <BrandMark class="opt-brand" brand="ferrari" :logos="option.value" />
+          {{ option.label }}
+        </template>
+      </ChoiceControl>
     </PageSection>
 
     <PageSection :title="t.settings.appearance.screen.title">
@@ -360,6 +376,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 
 .opt-chip {
   font-size: 11px;
+}
+
+.opt-brand {
+  width: 22px;
+  height: 16px;
 }
 
 .opt-stripe {

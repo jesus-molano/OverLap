@@ -1,23 +1,33 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { brandInfo, type BrandId } from '@shared/carBrands'
-import { brandLogo } from './brandLogos'
+import { useAppearance } from '../composables/useAppearance'
+import { brandDrawing, type BrandLogoStyle, type BrandSurface } from './brandDrawing'
 
 /**
- * The make of a car at row height: its logo in currentColor, or its three-letter badge ('DAL')
- * when it has none. An unknown make keeps the slot empty, so a table column stays aligned.
+ * The make of a car at row height: its logo in its own colours (settings.appearance.brandLogos),
+ * or in one ink, or its three-letter badge ('RAY') when it has no logo. An unknown make keeps
+ * the slot empty, so a table column stays aligned.
  */
 const props = withDefaults(
   defineProps<{
     brand: BrandId
     /** The text badge even when the brand has a logo. */
     text?: boolean
+    /** Colour or monochrome; defaults to appearance.brandLogos. */
+    logos?: BrandLogoStyle
+    /** The background: the widgets' dark glass unless said otherwise. */
+    surface?: BrandSurface
   }>(),
-  { text: false }
+  { text: false, logos: undefined, surface: 'dark' }
 )
 
+const appearance = useAppearance()
 const info = computed(() => brandInfo(props.brand))
-const logo = computed(() => (props.text ? null : brandLogo(props.brand)))
+const style = computed(() => props.logos ?? appearance.value.brandLogos)
+const logo = computed(() =>
+  props.text ? null : brandDrawing(props.brand, style.value, props.surface)
+)
 </script>
 
 <template>
@@ -36,7 +46,14 @@ const logo = computed(() => (props.text ? null : brandLogo(props.brand)))
       focusable="false"
       aria-hidden="true"
     >
-      <path :d="logo.d" />
+      <path
+        v-for="(p, i) in logo.paths"
+        :key="i"
+        :d="p.d"
+        :fill="p.fill"
+        :fill-rule="p.fillRule"
+        :opacity="p.opacity"
+      />
     </svg>
     <span v-else-if="info" class="ov-brand__badge">{{ info.badge }}</span>
   </span>
@@ -59,7 +76,10 @@ const logo = computed(() => (props.text ? null : brandLogo(props.brand)))
   white-space: nowrap;
 }
 
-/* Fitted inside the slot (wide logos to its width, tall ones to 85 % of its height). */
+/*
+ * Fitted inside the slot (wide logos to its width, tall ones to 85 % of its height). A colour
+ * logo's paths carry their own fills; the monochrome path takes the text colour.
+ */
 .ov-brand__logo {
   display: block;
   width: 100%;

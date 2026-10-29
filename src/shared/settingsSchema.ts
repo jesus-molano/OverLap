@@ -173,6 +173,8 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     },
     numberStyle: { kind: 'enum', values: ['chip', 'stripe'], default: 'chip', displayOnly: true },
+    // Older files have none: they get colour, the look every brand mark has by default.
+    brandLogos: { kind: 'enum', values: ['color', 'mono'], default: 'color', displayOnly: true },
     colorBlind: { kind: 'bool', default: false, displayOnly: true },
     units: { kind: 'enum', values: ['metric', 'imperial'], default: 'metric', displayOnly: true },
     stripes: { kind: 'bool', default: true, displayOnly: true },
