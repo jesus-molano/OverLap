@@ -446,7 +446,7 @@ export const settingsEs = {
   },
   /** One widget's page: header, hidden note and resets. */
   widgetPage: {
-    sizeFree: (size: string) => `Tamaño libre · ${size} px`,
+    sizeFree: (size: string, scale: string) => `Tamaño libre · ${size} px · ${scale}`,
     sizeAuto: (width: number, scale: string) => `Alto automático · ${width} px de ancho · ${scale}`,
     sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
     visible: 'Visible',
@@ -532,8 +532,10 @@ export const settingsEs = {
       top: { label: 'Abajo', hint: 'El borde de arriba se queda fijo' },
       bottom: { label: 'Arriba', hint: 'El borde de abajo se queda fijo' }
     },
-    sizeNote:
-      'Tamaño libre: el contenido se ajusta a la ventana. Cámbiala arrastrando sus bordes en modo edición, o con la rueda del ratón para escalarla entera.',
+    /** A free-size widget (Relativo, Radar, Delta): the scale is its window's. */
+    scaleFreeHelp: 'Tamaño de la ventana; el texto se ajusta a ella. También con la rueda',
+    /** Its height row, off: why. */
+    heightFree: 'Libre en este widget: el contenido llena la ventana que le des',
     showIn: 'Mostrar en',
     showInKinds: {
       practice: 'Práctica',
@@ -1771,7 +1773,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   widgetPage: {
-    sizeFree: (size) => `Free size · ${size} px`,
+    sizeFree: (size, scale) => `Free size · ${size} px · ${scale}`,
     sizeAuto: (width, scale) => `Auto height · ${width} px wide · ${scale}`,
     sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
     visible: 'Visible',
@@ -1843,8 +1845,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       top: { label: 'Down', hint: 'The top edge stays put' },
       bottom: { label: 'Up', hint: 'The bottom edge stays put' }
     },
-    sizeNote:
-      'Free size: the content fits the window. Resize it by dragging its edges in edit mode, or use the mouse wheel to scale it as a whole.',
+    scaleFreeHelp: 'The window’s size; the text fits it. The mouse wheel does it too',
+    heightFree: 'Free in this widget: the content fills the window you give it',
     showIn: 'Show in',
     showInKinds: {
       practice: 'Practice',

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { freeScalePercent } from '../settings/freeScale'
 /**
  * Edit-mode chrome and interactions of one panel of an overlay window: the frame, the chips
  * (name, size, scale, the eye and padlock buttons, why a rule hides it, the radar covering it,
@@ -84,9 +85,16 @@ const metaText = computed(() => {
   return locked.value ? f.locked : sizeText.value
 })
 
-/** '100 %' (auto-height widgets, scaled by the wheel); null for free widgets. */
+/**
+ * '100 %': the «Escala» the wheel changes, the same number as on the widget's page (R09): an
+ * auto-height widget's content scale, a free one's window against its factory width.
+ */
 const scaleText = computed(() =>
-  def.sizeModel === 'auto-height' ? t.value.core.percent(prefs.value.scale) : null
+  t.value.core.percent(
+    def.sizeModel === 'auto-height'
+      ? prefs.value.scale
+      : freeScalePercent(slot.rect.value, def.defaultBounds)
+  )
 )
 
 /** The chip's buttons: what a click does, as their tooltip. */

@@ -17,6 +17,8 @@ import WidgetSample from '../samples/WidgetSample.vue'
 import { useSampleWidth, useWidgetSizeText } from '../samples/useSampleWidth'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
+import { freeScalePercent } from '../freeScale'
+import { useOverlayState } from '../../composables/useOverlay'
 import WindowSection from './WindowSection.vue'
 
 /**
@@ -50,9 +52,18 @@ const setVisible = (on: boolean): Promise<void> => setWidgetVisible(props.widget
 // Its sections' reset icons (PageSection) reset this widget.
 provide(WIDGET_PAGE, props.widgetId)
 
+const { settings } = useOverlayState()
+const bounds = computed(
+  () => settings.value?.widgets[props.widgetId].bounds ?? def.value.defaultBounds
+)
 const subtitle = computed(() => {
   const w = t.value.settings.widgetPage
-  if (def.value.sizeModel === 'free') return w.sizeFree(size.value)
+  if (def.value.sizeModel === 'free') {
+    return w.sizeFree(
+      size.value,
+      formatPercent(t.value, freeScalePercent(bounds.value, def.value.defaultBounds))
+    )
+  }
   const scale = formatPercent(t.value, prefs.value.scale)
   return prefs.value.autoHeight ? w.sizeAuto(width.value, scale) : w.sizeFixed(size.value, scale)
 })
