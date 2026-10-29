@@ -51,6 +51,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Avisos ya no se oculta en boxes**: su página no ofrece «Ocultar en boxes», porque ocultaba
   también los avisos del limitador, del exceso de velocidad y de la entrada a boxes. Si lo tenías
   activado, se ignora (el valor se conserva).
+- **Bandeja más clara**: la casilla «Ocultar overlay» pasa a ser «Mostrar el overlay», marcada
+  cuando se ve, como las de los widgets; el submenú de cuándo se ve se llama «Cuándo mostrar» y el
+  del radar «Alcance del radar».
 
 ### Corregido
 

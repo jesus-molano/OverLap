@@ -283,12 +283,13 @@ function buildMenu(
     },
     { label: t.layouts, submenu: layoutsMenu(state, act) },
     { type: 'separator' },
+    // Checked means shown, as the widgets' checkboxes above.
     {
-      label: t.hideOverlay,
+      label: t.showOverlay,
       type: 'checkbox',
-      checked: state.overlayHidden,
+      checked: !state.overlayHidden,
       ...acceleratorLabel(shortcuts.toggleOverlay),
-      click: (item) => act.setOverlayHidden(item.checked)
+      click: (item) => act.setOverlayHidden(!item.checked)
     },
     {
       label: t.editMode,

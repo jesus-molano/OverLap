@@ -114,10 +114,7 @@ Las definiciones están en `WIDGET_DEFS` (`src/shared/widgets.ts`).
 ## Cuándo se ve el overlay (detalle)
 
 En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Mostrar el
-overlay** también está en la bandeja):
-
-En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Mostrar el
-overlay** también está en la bandeja):
+overlay** también está en la bandeja, en el submenú **Cuándo mostrar**):
 
 | Opción                                                   | Por defecto                           | Qué hace                                                                      |
 | -------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------- |
