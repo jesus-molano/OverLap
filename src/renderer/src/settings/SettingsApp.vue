@@ -23,6 +23,7 @@ import {
 import AppearancePage from './pages/AppearancePage.vue'
 import LayoutsPage from './pages/LayoutsPage.vue'
 import ShortcutsPage from './pages/ShortcutsPage.vue'
+import VisibilityPage from './pages/VisibilityPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 import UndoToast from './undo/UndoToast.vue'
 import { provideNavigate } from './navigate'
@@ -164,6 +165,7 @@ function openLog(): void {
           <SettingsFooter />
         </div>
         <AppearancePage v-else-if="page === 'appearance'"><SettingsFooter /></AppearancePage>
+        <VisibilityPage v-else-if="page === 'visibility'"><SettingsFooter /></VisibilityPage>
         <ShortcutsPage v-else-if="page === 'shortcuts'"><SettingsFooter /></ShortcutsPage>
         <LayoutsPage v-else-if="page === 'layouts'"><SettingsFooter /></LayoutsPage>
         <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>

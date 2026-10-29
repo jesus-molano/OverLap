@@ -7,8 +7,8 @@ import {
   FONT_SCALE_MIN,
   type AppearancePart
 } from '@shared/settings'
-import { ACCENT_PRESETS, OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema'
-import type { SettingsPatch, ShowWhen } from '@shared/types'
+import { ACCENT_PRESETS, OPTION_SCHEMA } from '@shared/settingsSchema'
+import type { SettingsPatch } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -34,25 +34,21 @@ import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { fontScaleHelp as fontScaleHelpText } from '../appearanceHelp'
-import { outOfCarHidesSessionScreen, replaysHelp as replaysHelpText } from '../replayWidgets'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { dayUnreadable } from '../opacityNote'
 import { SIZE_PRESETS, formatPercent, fromPercent, toPercent } from '../values'
 
 /**
- * Global look shared by every widget (settings.appearance), and when the overlay shows and hides
- * with what iRacing shows (settings.visibility, plus the standings' session-screen exception):
- * live preview (fixed), then the options (they scroll). The default slot closes the scrolling
+ * Global look shared by every widget (settings.appearance): live preview (fixed), then the options
+ * (they scroll). When the overlay shows is on the «Visibilidad» page (R34). The default slot closes the scrolling
  * part (the window's foot).
  */
 const appearance = useAppearance()
-const visibility = useOptions('visibility')
 const t = useI18n()
 const locale = useLocale()
 const titleId = useId()
 const set = optionSetter('appearance')
-const setVisibility = optionSetter('visibility')
 
 const A = OPTION_SCHEMA.appearance
 /** Slider readout in the current language; a new function only when the language changes. */
@@ -89,30 +85,6 @@ const brandLogoChoices = computed(() =>
 const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
 )
-/** The tray's words for each choice (core.showWhen), with this page's tooltips. */
-const showWhenChoices = computed<ChoiceOption<ShowWhen>[]>(() =>
-  SHOW_WHEN.map((value) => ({
-    value,
-    label: t.value.core.showWhen[value],
-    hint: t.value.settings.appearance.screen.showWhenHints[value]
-  }))
-)
-const showWhenHelp = computed(
-  () => t.value.settings.appearance.screen.showWhenHelp[visibility.value.showWhen]
-)
-/**
- * Hiding on the session screen changes nothing while out of the car hides it already (the
- * overlay only for the car, replays hidden): then it is not offered. Each widget's own
- * "Mostrar en la pantalla de sesión" is on its page.
- */
-const sessionScreenOffered = computed(() => !outOfCarHidesSessionScreen(visibility.value))
-const replayChoices = computed(() =>
-  choiceOptions(
-    OPTION_SCHEMA.visibility.replays.values,
-    t.value.settings.appearance.screen.replayChoices
-  )
-)
-const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
 /** The preview on «Día» shows the global background hard to read: said under it. */
 const windowOptions = useOptions('settingsWindow')
@@ -172,7 +144,8 @@ async function followBlocks(): Promise<void> {
  */
 const resetItems = computed<ResetItem[]>(() => {
   const a = t.value.settings.appearance
-  const items: ResetItem[] = APPEARANCE_PARTS.map((part) => ({
+  // «Cuándo se ve el overlay» is on the «Visibilidad» page now (R34), with its reset.
+  const items: ResetItem[] = APPEARANCE_PARTS.filter((part) => part !== 'screen').map((part) => ({
     id: part,
     label: a[part].title,
     description: a.reset[part],
@@ -397,59 +370,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
             {{ option.label }}
           </template>
         </ChoiceControl>
-      </PageSection>
-
-      <PageSection
-        :title="t.settings.appearance.screen.title"
-        :reset-label="resetLabel('screen')"
-        @reset="resetAppearancePart('screen')"
-      >
-        <ChoiceControl
-          stack
-          :label="t.settings.appearance.screen.showWhen"
-          :help="showWhenHelp"
-          :current="visibility.showWhen"
-          :options="showWhenChoices"
-          :apply="setVisibility('showWhen')"
-        />
-        <ChoiceControl
-          :label="t.settings.appearance.screen.replays"
-          :help="replaysHelp.help"
-          :more="replaysHelp.more"
-          :current="visibility.replays"
-          :options="replayChoices"
-          :apply="setVisibility('replays')"
-        />
-        <!-- The session screen, after the two rules that decide whether it hides already. -->
-        <ToggleControl
-          v-if="sessionScreenOffered"
-          kind="switch"
-          :label="t.settings.appearance.screen.sessionScreen"
-          :help="t.settings.appearance.screen.sessionScreenHelp"
-          :current="visibility.hideOnSessionScreen"
-          :apply="setVisibility('hideOnSessionScreen')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.screen.simUi"
-          :help="t.settings.appearance.screen.simUiHelp"
-          :current="visibility.hideWithSimUi"
-          :apply="setVisibility('hideWithSimUi')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.screen.garage"
-          :help="t.settings.appearance.screen.garageHelp"
-          :current="visibility.hideInGarage"
-          :apply="setVisibility('hideInGarage')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.screen.waiting"
-          :help="t.settings.appearance.screen.waitingHelp"
-          :current="visibility.showWhileWaiting"
-          :apply="setVisibility('showWhileWaiting')"
-        />
       </PageSection>
 
       <PageSection

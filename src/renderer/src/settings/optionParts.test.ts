@@ -16,7 +16,11 @@ import {
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
-import APPEARANCE from './pages/AppearancePage.vue?raw'
+import APPEARANCE_PAGE from './pages/AppearancePage.vue?raw'
+import VISIBILITY_PAGE from './pages/VisibilityPage.vue?raw'
+
+/** «Cuándo se ve el overlay» is on the «Visibilidad» page (R34): the two pages' sections. */
+const APPEARANCE = APPEARANCE_PAGE + VISIBILITY_PAGE
 
 const RAW = import.meta.glob('./options/*Settings.vue', {
   query: '?raw',

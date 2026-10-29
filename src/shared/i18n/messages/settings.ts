@@ -90,6 +90,8 @@ export const settingsEs = {
     title: 'Ajustes',
     sections: 'Secciones de ajustes',
     appearance: 'Apariencia',
+    /** When the overlay shows, and where each widget does (R34). */
+    visibility: 'Visibilidad',
     shortcuts: 'Atajos',
     layouts: 'Disposiciones',
     widgets: 'Widgets',
@@ -119,6 +121,43 @@ export const settingsEs = {
       `Mover y redimensionar los widgets (${keys}). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera`,
     enter: 'Modo edición',
     exit: 'Salir de edición'
+  },
+  /**
+   * The «Visibilidad» page (R34): the overlay's rules, then one table of where each widget shows,
+   * the same values as each widget's «Ventana y visibilidad».
+   */
+  visibilityPage: {
+    sub: 'Cuándo se ve el overlay y, en una tabla, dónde se ve cada widget',
+    subMore:
+      'Cada casilla es el mismo ajuste que «Ventana y visibilidad» en la página del widget; su nombre lleva a ella.',
+    resetMenu: 'Restablecer Visibilidad',
+    matrixTitle: 'Dónde se ve cada widget',
+    matrixNote: 'Lo mismo que en la página de cada uno',
+    cols: {
+      widget: 'Widget',
+      visible: 'Visible',
+      practice: 'Práctica',
+      qualify: 'Clasificación',
+      race: 'Carrera',
+      pits: 'Boxes',
+      session: 'Pantalla de sesión',
+      locked: 'Bloqueado'
+    },
+    colHints: {
+      visible: 'Activado: se dibuja sobre el juego',
+      practice: 'Se ve en las sesiones de práctica',
+      qualify: 'Se ve en clasificación',
+      race: 'Se ve en carrera',
+      pits: 'Se ve también en boxes (sin marcar: se oculta en boxes)',
+      session: 'Se queda en la pantalla de sesión, con los resultados',
+      locked: 'No se mueve en el modo edición'
+    },
+    /** A cell's accessible name: 'Batalla: Práctica'. */
+    cell: (widget: string, col: string) => `${widget}: ${col}`,
+    pitsAlways: (widget: string) => `${widget} se ve siempre en boxes: avisa del limitador`,
+    open: (widget: string) => `Abrir la página de ${widget}`,
+    raceOnly:
+      'Con «Solo en carrera» arriba, práctica y clasificación no se ven aunque estén marcadas.'
   },
   /** Sidebar eye that shows or hides a widget. */
   visibility: {
@@ -330,7 +369,7 @@ export const settingsEs = {
     },
     /** settings.visibility: when every widget hides with what iRacing shows. */
     screen: {
-      title: 'Visibilidad',
+      title: 'Cuándo se ve el overlay',
       /** visibility.showWhen; its choices are core.showWhen. */
       showWhen: 'Cuándo mostrar el overlay',
       /** The help line under it, for the current choice. */
@@ -667,21 +706,20 @@ export const settingsEs = {
     },
     showInNowhere: 'No se mostrará en ninguna sesión (en modo edición sí, para colocarlo)',
     showInHelp: 'En las demás sesiones se oculta y no consume nada; en modo edición siempre se ve',
-    /** Apariencia > Visibilidad shows the overlay in races only (showWhen 'race'). */
+    /** Visibilidad shows the overlay in races only (showWhen 'race'). */
     showInRaceOnly:
-      'Apariencia > Visibilidad solo muestra el overlay en carrera: en práctica y clasificación no se ve',
+      'Visibilidad solo muestra el overlay en carrera: en práctica y clasificación no se ve',
     hideInPits: 'Ocultar en boxes',
     hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box',
     sessionScreen: 'Mostrar en la pantalla de sesión',
     sessionScreenHelp:
       'Fuera del coche, sobre los resultados y el chat de iRacing (aunque el overlay sea solo para el coche)',
-    /** Apariencia > Visibilidad does not hide anything on the session screen. */
-    sessionScreenOff:
-      'Se muestra: Apariencia > Visibilidad no oculta nada en la pantalla de sesión',
+    /** Visibilidad does not hide anything on the session screen. */
+    sessionScreenOff: 'Se muestra: Visibilidad no oculta nada en la pantalla de sesión',
     /** Where it cannot apply: an in-car widget (WidgetDef.inCarOnly) or the fuel (noSessionScreen). */
     sessionScreenNoData: 'No aplica: solo tiene datos dentro del coche',
     sessionScreenNoReplay: 'No aplica: con las repeticiones activas no muestra nada',
-    /** What the widget does in a replay (Apariencia > Visibilidad decides the rest). */
+    /** What the widget does in a replay (Visibilidad decides the rest). */
     replay: {
       /** The standings: they keep the live race. */
       keepsLive: 'En directo sigue al coche que miras; al rebobinar mantiene la carrera en directo',
@@ -693,11 +731,10 @@ export const settingsEs = {
       /** The fuel: nothing while the replay system is on, so no session-screen switch either. */
       noSessionScreen:
         'Solo tiene datos de tu coche: se oculta en repeticiones, en la pantalla de sesión y si miras otro coche',
-      hidden:
-        'Al rebobinar se oculta (Apariencia > Visibilidad); en directo sigue al coche que miras',
+      hidden: 'Al rebobinar se oculta (Visibilidad); en directo sigue al coche que miras',
       /** Replays hidden with the overlay only in the car: watching from out of it hides too. */
       hiddenOutOfCar:
-        'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Apariencia > Visibilidad)'
+        'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Visibilidad)'
     }
   },
   relative: {
@@ -1685,6 +1722,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     title: 'Settings',
     sections: 'Settings sections',
     appearance: 'Appearance',
+    visibility: 'Visibility',
     shortcuts: 'Shortcuts',
     layouts: 'Layouts',
     widgets: 'Widgets',
@@ -1706,6 +1744,37 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `Move and resize the widgets (${keys}). In the car iRacing hides the cursor: start here, this window frees it`,
     enter: 'Edit mode',
     exit: 'Exit edit mode'
+  },
+  visibilityPage: {
+    sub: 'When the overlay shows and, in one table, where each widget does',
+    subMore:
+      'Each box is the same setting as “Window and visibility” on the widget’s page; its name takes you there.',
+    resetMenu: 'Reset Visibility',
+    matrixTitle: 'Where each widget shows',
+    matrixNote: 'The same as on each one’s page',
+    cols: {
+      widget: 'Widget',
+      visible: 'Visible',
+      practice: 'Practice',
+      qualify: 'Qualifying',
+      race: 'Race',
+      pits: 'Pits',
+      session: 'Session screen',
+      locked: 'Locked'
+    },
+    colHints: {
+      visible: 'On: drawn over the game',
+      practice: 'Shows in practice sessions',
+      qualify: 'Shows in qualifying',
+      race: 'Shows in races',
+      pits: 'Shows in the pits too (unticked: hides in the pits)',
+      session: 'Stays on the session screen, with the results',
+      locked: 'Does not move in edit mode'
+    },
+    cell: (widget, col) => `${widget}: ${col}`,
+    pitsAlways: (widget) => `${widget} always shows in the pits: it warns about the limiter`,
+    open: (widget) => `Open the ${widget} page`,
+    raceOnly: 'With “Races only” above, practice and qualifying never show even when ticked.'
   },
   visibility: {
     label: (widget) => `${widget} visible`,
@@ -1880,7 +1949,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       simPillHelp: 'Marks the widgets when the data is simulated'
     },
     screen: {
-      title: 'Visibility',
+      title: 'When the overlay shows',
       showWhen: 'When to show the overlay',
       showWhenHelp: {
         car: 'While you drive; out of the car (garage, session screen…) it hides',
@@ -2143,14 +2212,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     showInNowhere: 'Won’t show in any session (only in edit mode, so you can place it)',
     showInHelp: 'In other sessions it’s hidden and uses no resources; in edit mode it always shows',
-    showInRaceOnly:
-      'Appearance > Visibility only shows the overlay in races: not in practice or qualifying',
+    showInRaceOnly: 'Visibility only shows the overlay in races: not in practice or qualifying',
     hideInPits: 'Hide in the pits',
     hideInPitsHelp: 'While you are on pit road or stopped in your pit box',
     sessionScreen: 'Show on the session screen',
     sessionScreenHelp:
       'Out of the car, over iRacing’s results and chat (even with the overlay for the car only)',
-    sessionScreenOff: 'Shown: Appearance > Visibility hides nothing on the session screen',
+    sessionScreenOff: 'Shown: Visibility hides nothing on the session screen',
     sessionScreenNoData: 'Not available: it only has data in the car',
     sessionScreenNoReplay: 'Not available: it shows nothing while replays are on',
     replay: {
@@ -2162,10 +2230,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car',
       noSessionScreen:
         'Only your car’s data: hidden in replays, on the session screen and when you watch another car',
-      hidden:
-        'Hidden when you rewind (Appearance > Visibility); live, it follows the car you watch',
+      hidden: 'Hidden when you rewind (Visibility); live, it follows the car you watch',
       hiddenOutOfCar:
-        'Hidden in replays and while you watch other cars from out of the car (Appearance > Visibility)'
+        'Hidden in replays and while you watch other cars from out of the car (Visibility)'
     }
   },
   relative: {

@@ -96,10 +96,10 @@ const showIn = computed(() => {
   }))
 })
 const nowhere = computed(() => SHOW_IN_KINDS.every((k) => !prefs.value.showIn[k]))
-/** Replays are a global rule (Apariencia > Visibilidad): only what it means for this widget. */
+/** Replays are a global rule (Visibilidad): only what it means for this widget. */
 const visibility = useOptions('visibility')
 const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value))
-/** The overlay only in races (Apariencia > Visibilidad): practice and qualifying never show. */
+/** The overlay only in races (Visibilidad): practice and qualifying never show. */
 const showInHelp = computed(() => {
   const w = t.value.settings.window
   if (nowhere.value) return w.showInNowhere

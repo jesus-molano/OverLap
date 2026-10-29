@@ -131,6 +131,10 @@ const SAME_IN_ENGLISH = new Set([
   'core.appName',
   // A widget's name and its reason, both already translated.
   'settings.status.hiddenOne',
+  // Column names that read the same, and a widget's name with a column's.
+  'settings.visibilityPage.cols.widget',
+  'settings.visibilityPage.cols.visible',
+  'settings.visibilityPage.cell',
   // Key names on the edit-mode banner.
   'settings.app.editBanner.keys[3].key',
   'settings.app.editBanner.keys[4].key',

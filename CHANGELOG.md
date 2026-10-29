@@ -9,6 +9,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Página «Visibilidad»**: junto a Apariencia, con **Cuándo se ve el overlay** (que estaba en
+  Apariencia; su «Restablecer» va con ella y el de Apariencia ya no lo toca) y una tabla **Dónde se
+  ve cada widget**: una fila por widget, agrupados, y columnas Visible, Práctica, Clasificación,
+  Carrera, Boxes, Pantalla de sesión y Bloqueado. Cada casilla cambia el mismo ajuste que su página
+  y el nombre del widget lleva a ella; una casilla que no se puede cambiar dice por qué. Con «Solo
+  en carrera», la tabla avisa de que práctica y clasificación no se ven.
 - **Traer todos los widgets a esta pantalla**: en la bandeja (a la pantalla donde está el ratón) y
   en **Disposiciones › Pantallas** (a la de la ventana de Ajustes). Los widgets de otra pantalla,
   o de una que ya no está conectada, vienen al mismo sitio relativo y con su tamaño, sin salirse;

@@ -62,11 +62,11 @@ export const coreEs = {
     qualify: 'Oculto en clasificación',
     race: 'Oculto en carrera',
     pits: 'Oculto en boxes',
-    /** The overlay only shows in races (Apariencia > Visibilidad) and this session is not one. */
+    /** The overlay only shows in races (Visibilidad) and this session is not one. */
     'not-race': 'Oculto: solo en carrera',
     garage: 'Oculto en el garaje',
     'ui-hidden': 'Oculto: interfaz de iRacing oculta',
-    /** The overlay only shows while you are in the car (Apariencia > Visibilidad). */
+    /** The overlay only shows while you are in the car (Visibilidad). */
     'out-of-car': 'Oculto: fuera del coche',
     'session-screen': 'Oculto en la pantalla de sesión',
     replay: 'Oculto en repeticiones',
