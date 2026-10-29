@@ -1007,7 +1007,7 @@ export const settingsEs = {
         value: 'Tiempo',
         sector: 'Sector'
       },
-      header: { title: 'Nombre del widget', captions: 'Rótulos de los grupos' }
+      header: { title: 'Título del widget', captions: 'Rótulos de los grupos' }
     },
     alerts: { parts: { notes: 'Qué hacer, tras cada aviso', chips: 'Otros avisos en chips' } },
     delta: {
@@ -1036,7 +1036,7 @@ export const settingsEs = {
   /** The info bars: their items, the marker, the size and the items' options. */
   infoBar: {
     items: {
-      title: 'Nombre del widget',
+      title: 'Título del widget',
       session: 'Sesión',
       remaining: 'Tiempo o vueltas restantes',
       clock: 'Hora local',
@@ -1054,6 +1054,7 @@ export const settingsEs = {
       rubber: 'Goma'
     },
     hints: {
+      title: 'El rótulo «RELATIVO» o «CLASIFICACIÓN» con el que empieza la cabecera',
       remaining: '«38:19  ≈19 v», «Quedan 12 v»; «Final» tras tu bandera',
       sof: 'La de tu clase',
       carCount: 'Los inscritos en tu clase',
@@ -2090,7 +2091,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         value: 'Time',
         sector: 'Sector'
       },
-      header: { title: 'Widget name', captions: 'Group captions' }
+      header: { title: 'Widget title', captions: 'Group captions' }
     },
     alerts: { parts: { notes: 'What to do, after each alert', chips: 'Other alerts as chips' } },
     delta: {
@@ -2113,7 +2114,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   infoBar: {
     items: {
-      title: 'Widget name',
+      title: 'Widget title',
       session: 'Session',
       remaining: 'Time or laps left',
       clock: 'Local time',
@@ -2131,6 +2132,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       rubber: 'Rubber'
     },
     hints: {
+      title: 'The “RELATIVE” or “STANDINGS” label the header starts with',
       remaining: '“38:19  ≈19 laps”, “12 laps to go”; “Finished” after your flag',
       sof: 'Of your class',
       carCount: 'The entries of your class',
