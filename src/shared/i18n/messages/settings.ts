@@ -129,7 +129,8 @@ export const settingsEs = {
     expandAll: 'Expandir todo',
     collapseAll: 'Contraer todo',
     show: 'Mostrar',
-    layout: 'Disposición',
+    /** The battle's and the lights' stacking (not a saved layout: those are Disposiciones). */
+    layout: 'Orientación',
     keepVisible: 'Mantener visible',
     nameFormat: 'Formato de nombre',
     density: 'Densidad',
@@ -571,9 +572,9 @@ export const settingsEs = {
       leader: { label: 'Al líder' },
       both: { label: 'Ambos', hint: 'Al de delante y, en otra columna, al líder' }
     },
-    deltaAll: 'Δ iRating de todos',
+    deltaAll: 'iRating en juego de todos',
     deltaAllHelp:
-      'El cambio de iRating proyectado en cada fila, no solo en la tuya (activa la columna)',
+      'El iRating que se gana o se pierde en cada fila, no solo en la tuya (activa la columna)',
     classLine: 'Línea de clase'
   },
   /** Standings column editor. */
@@ -588,7 +589,7 @@ export const settingsEs = {
       gained: 'Puestos ganados',
       ir: 'iRating',
       lic: 'Licencia',
-      delta: 'Δ iRating',
+      delta: 'iRating en juego',
       gap: 'Hueco',
       gapLeader: 'Hueco al líder',
       last: 'Última vuelta',
@@ -601,7 +602,7 @@ export const settingsEs = {
     /** Short help under a column label (only some columns have one). */
     hints: {
       gained: 'Solo en carrera: puestos ganados desde la salida',
-      delta: 'Tu cambio de iRating proyectado (o el de todos, con la opción)',
+      delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
       gap: 'Según «Hueco»: al de delante o al líder',
       gapLeader: 'Con «Hueco: Ambos»',
       last: 'Fuera de carrera, la mejor vuelta',
@@ -687,9 +688,9 @@ export const settingsEs = {
     limiterHidden: 'Con «Ocultar en boxes» (Ventana) el limitador no llega a verse',
     /** Groups of toggles after the flags ('Mostrar'). */
     pitGroup: 'Boxes',
-    raceGroup: 'Carrera',
+    raceGroup: 'Durante la carrera',
     engineGroup: 'Motor',
-    flags: 'Banderas',
+    flags: 'Banderas de carrera',
     flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
     blue: 'Bandera azul',
     blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
@@ -742,7 +743,7 @@ export const settingsEs = {
       pb: 'Récord',
       session: 'Mejor',
       optimal: 'Óptima',
-      class: 'Mejor de clase',
+      class: 'Vuelta rápida de clase',
       classOptimal: 'Óptima de clase'
     },
     /** The cycle shortcut, under the selector: 'Ctrl+Alt+D pasa a la siguiente en la sesión'. */
@@ -766,7 +767,7 @@ export const settingsEs = {
         hint: 'Tus mejores sectores de esta sesión, unidos en una vuelta'
       },
       class: {
-        label: 'Mejor de tu clase',
+        label: 'Vuelta rápida de clase',
         hint: 'La vuelta más rápida de tu clase en esta sesión, sea de quien sea'
       },
       classOptimal: {
@@ -790,7 +791,7 @@ export const settingsEs = {
     fallbackOn: 'Mientras la elegida no exista, compara con la siguiente de su cadena',
     /** The switch's help when every session uses the class best (it has no fallback). */
     fallbackLast:
-      'La mejor de clase es la última referencia: si nadie ha marcado vuelta, no hay otra',
+      'La vuelta rápida de clase es la última referencia: si nadie ha marcado vuelta, no hay otra',
     /**
      * Under each session's selector, its fallback chain (DELTA_FALLBACK in choice.ts):
      * 'Si no existe: Récord → Óptima de clase'.
@@ -847,7 +848,7 @@ export const settingsEs = {
   },
   lights: {
     note: 'Como los testigos del salpicadero: en gris apagados, encendidos con su color y su forma',
-    layout: 'Disposición',
+    layout: 'Orientación',
     layoutChoices: {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
       column: { label: 'En columna' }
@@ -1176,9 +1177,9 @@ export const settingsEs = {
       sof: 'SoF',
       carCount: 'Número de coches',
       incidents: 'Incidentes',
-      iRating: 'iRating proyectado',
+      iRating: 'iRating en juego',
       safetyRating: 'SR proyectado',
-      fastestLap: 'Vuelta rápida',
+      fastestLap: 'Vuelta rápida de clase',
       fuelLaps: 'Vueltas de combustible',
       trackTemp: 'Temperatura de la pista',
       airTemp: 'Temperatura del aire',
@@ -1240,7 +1241,7 @@ export const settingsEs = {
     },
     countryFlags: 'Bandera del país',
     countryFlagsHelp: 'La que cada piloto eligió en iRacing; nada si no eligió ninguna',
-    columnHeads: 'Cabeceras de columna',
+    columnHeads: 'Títulos de columna',
     columnHeadsHelp: 'Una fila con el nombre de cada columna: «POS», «PILOTO», «iR»…'
   },
   /** The saved layouts page (pages/LayoutsPage.vue). */
@@ -1441,7 +1442,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     show: 'Show',
-    layout: 'Layout',
+    layout: 'Orientation',
     keepVisible: 'Keep visible',
     nameFormat: 'Name format',
     density: 'Density',
@@ -1816,8 +1817,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       leader: { label: 'Leader' },
       both: { label: 'Both', hint: 'To the car ahead and, in another column, to the leader' }
     },
-    deltaAll: 'Δ iRating for everyone',
-    deltaAllHelp: 'The projected iRating change on every row, not just yours (turns the column on)',
+    deltaAll: 'iRating at stake for everyone',
+    deltaAllHelp: 'The iRating won or lost on every row, not just yours (turns the column on)',
     classLine: 'Class line'
   },
   columns: {
@@ -1831,7 +1832,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       gained: 'Positions gained',
       ir: 'iRating',
       lic: 'Licence',
-      delta: 'Δ iRating',
+      delta: 'iRating at stake',
       gap: 'Gap',
       gapLeader: 'Gap to leader',
       last: 'Last lap',
@@ -1843,7 +1844,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     hints: {
       gained: 'Race only: positions gained since the start',
-      delta: 'Your projected iRating change (or everyone’s, with the option)',
+      delta: 'What you win or lose in your position (or everyone’s, with the option)',
       gap: 'Set by “Gap”: to the car ahead or to the leader',
       gapLeader: 'Only with “Gap: Both”',
       last: 'Outside races, the best lap',
@@ -1927,9 +1928,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     nothing: 'With no alert selected, the widget never shows',
     limiterHidden: 'With “Hide in the pits” (Window) the limiter never shows',
     pitGroup: 'Pit lane',
-    raceGroup: 'Race',
+    raceGroup: 'During the race',
     engineGroup: 'Engine',
-    flags: 'Flags',
+    flags: 'Race flags',
     flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
     blue: 'Blue flag',
     // The blue flag's note in the alerts widget.
@@ -1979,7 +1980,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       pb: 'Best ever',
       session: 'Session best',
       optimal: 'Optimal',
-      class: 'Class best',
+      class: 'Class fastest lap',
       classOptimal: 'Class optimal'
     },
     cycleKeys: (keys) => `${keys} moves to the next one for this session only, not saved`,
@@ -1998,7 +1999,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         hint: 'Your best sectors of this session, joined into one lap'
       },
       class: {
-        label: 'Class best',
+        label: 'Class fastest lap',
         hint: 'The fastest lap in your class this session, whoever set it'
       },
       classOptimal: {
@@ -2019,7 +2020,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fallback: 'Fall back to the next one',
     fallbackOn: 'While the chosen one doesn’t exist, compares with the next in its chain',
     fallbackLast:
-      'The class best is the last reference: if nobody has set a lap yet, there is nothing to fall back to',
+      'The class fastest lap is the last reference: if nobody has set a lap yet, there is nothing to fall back to',
     fallbackThen: (chain) => `If missing: ${chain}`,
     fallbackNone: 'Nothing after it if missing',
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
@@ -2064,12 +2065,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   lights: {
     note: 'Like a dashboard’s warning lights: grey when off, lit with their colour and their shape',
-    layout: 'Layout',
+    layout: 'Orientation',
     layoutChoices: {
       row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
       column: { label: 'Column' }
     },
-    labelSide: 'Captions',
+    labelSide: 'Text side',
     labelSideChoices: {
       right: { label: 'On the right' },
       left: { label: 'On the left' }
@@ -2350,9 +2351,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
       sof: 'SoF',
       carCount: 'Car count',
       incidents: 'Incidents',
-      iRating: 'Projected iRating',
+      iRating: 'iRating at stake',
       safetyRating: 'Projected SR',
-      fastestLap: 'Fastest lap',
+      fastestLap: 'Class fastest lap',
       fuelLaps: 'Laps of fuel',
       trackTemp: 'Track temperature',
       airTemp: 'Air temperature',
@@ -2408,7 +2409,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     countryFlags: 'Country flag',
     countryFlagsHelp: 'The one each driver chose in iRacing; nothing when they chose none',
-    columnHeads: 'Column headers',
+    columnHeads: 'Column titles',
     columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
   },
   layouts: {

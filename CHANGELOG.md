@@ -32,6 +32,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   «Mostrar en la pantalla de sesión»; en Radar, Pedales, Testigos, Delta y Combustible sale
   desactivado con el motivo. Apariencia ya no repite el de Posiciones y solo ofrece «Ocultar en la
   pantalla de sesión» cuando cambia algo (con «Siempre» o siguiendo las repeticiones).
+- **Un nombre para cada cosa**: «Vuelta rápida de clase» (antes también «Mejor de clase» en Delta),
+  «iRating en juego» (antes también «Δ iRating» e «iRating proyectado»), «Orientación» en Batalla y
+  Testigos (no confunde con las disposiciones), «Títulos de columna» (no confunde con la cabecera),
+  «Banderas de carrera» en Avisos y su grupo «Durante la carrera». En inglés, el lado de los textos
+  de Testigos es «Text side» (antes, dos controles se llamaban «Captions»).
 
 ### Corregido
 

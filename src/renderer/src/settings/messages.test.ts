@@ -58,14 +58,14 @@ describe('settings dictionary', () => {
       'Récord personal',
       'Mejor vuelta de la sesión',
       'Vuelta óptima',
-      'Mejor de tu clase',
+      'Vuelta rápida de clase',
       'Óptima de tu clase'
     ])
     expect(choiceOptions(values, en.delta.references).map((o) => o.label)).toEqual([
       'Personal best',
       'Session best',
       'Optimal lap',
-      'Class best',
+      'Class fastest lap',
       'Class optimal'
     ])
     expect(

@@ -340,3 +340,22 @@ describe('Spanish dictionary', () => {
     expect(odd).toEqual([])
   })
 })
+
+describe('glossary (one name per concept)', () => {
+  /** Names a concept had besides its one name, per language. */
+  const RETIRED: Readonly<Record<'es' | 'en', readonly RegExp[]>> = {
+    es: [/Mejor de (la |tu )?clase/i, /Δ iRating/, /iRating proyectado/, /Cabeceras de columna/],
+    en: [/Class best/i, /Δ iRating/, /Projected iRating/, /Column headers/]
+  }
+
+  for (const [lang, leaves] of [
+    ['es', es],
+    ['en', en]
+  ] as const) {
+    it(`${lang}: says each concept one way`, () => {
+      for (const l of leaves) {
+        for (const re of RETIRED[lang]) expect(l.text, l.path).not.toMatch(re)
+      }
+    })
+  }
+})

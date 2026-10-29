@@ -238,9 +238,9 @@ oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia a
 - **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
   la ventana se estrecha se van primero las columnas añadidas (Δ iRating, stint, neumático…),
   luego la bandera y el logotipo, después las de siempre y, al final, el número queda en una franja:
-  un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a «Hueco: Ambos» y «Δ
-  iRating» a «Δ iRating de todos».
-- **Cabeceras de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
+  un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a «Hueco: Ambos» y «iRating
+  en juego» a «iRating en juego de todos».
+- **Títulos de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
   «INT.»… en el orden de las columnas; la del hueco dice «LÍDER» o «DIF.» según el modo y la sesión.
 - **Logotipo de la marca** (`brandMarks`: Auto, Siempre, Nunca; Auto solo si hay varias marcas) y
   **bandera del país** (`countryFlags`, activada) delante del nombre.
