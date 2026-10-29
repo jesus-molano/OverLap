@@ -16,6 +16,7 @@ import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry, OverlaySettings } from '@shared/types'
 import { overlayState } from '../../composables/useOverlay'
 import * as listOps from '../elements/listOps'
+import * as undo from '../undo/undo'
 import * as useOptimistic from '../useOptimistic'
 import * as customize from './customize'
 import * as zonesOpen from './zonesOpen'
@@ -150,6 +151,7 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
   '../layout/PageSection.vue': { default: Stub },
   '../layout/zonesOpen': zonesOpen,
   '../preview/usePreviewEdit': { injectPreviewEdit: () => null },
+  '../undo/undo': undo,
   '../useOptimistic': useOptimistic,
   './listOps': listOps
 })
@@ -344,5 +346,60 @@ describe('ElementEditor in "Personalizar"', () => {
     expect(header?.props['aria-expanded']).toBe(true)
     expect(zonesOpen.isZoneOpen('relative.headerBar')).toBe(true)
     expect(zonesOpen.isZoneOpen('relative.columns')).toBe(true)
+  })
+})
+
+// ---- Undo -------------------------------------------------------------------------------------
+
+describe('ElementEditor undo', () => {
+  const spec = S.columns
+  const labels = Object.fromEntries(spec.ids.map((id: string) => [id, { label: `L-${id}` }]))
+  const target = spec.default.find((e) => e.visible && !spec.required.includes(e.id))
+
+  function columns(apply: (next: unknown, change: unknown) => Promise<unknown>): {
+    root: TestNode
+    unmount: () => void
+  } {
+    return mount(() =>
+      vue.h(Editor, { title: 'Columnas', items: spec.default, spec, labels, apply })
+    )
+  }
+  const eyeOf = (root: TestNode, id: string): TestNode | undefined =>
+    all(root, (n) => n.props['data-focus'] === 'eye').find((n) => rowId(n) === id)
+  function rowId(n: TestNode): string | undefined {
+    for (let p: TestNode | null = n; p !== null; p = p.parent) {
+      if (typeof p.props['data-row'] === 'string') return p.props['data-row']
+    }
+    return undefined
+  }
+
+  it('offers to undo a hide from its eye, and undoes it through its own apply', async () => {
+    expect(target).toBeDefined()
+    const id = (target as ElementEntry<string>).id
+    const detachToast = undo.undoSlot.attach()
+    const apply = vi.fn((next: unknown, change: unknown) => Promise.resolve([next, change]))
+    const { root, unmount } = columns(apply)
+    fire(eyeOf(root, id))
+    expect(undo.undoSlot.shown.value?.offer).toMatchObject({ kind: 'hide', id, label: `L-${id}` })
+    expect(undo.undoSlot.undo()).toBe(true)
+    expect(apply).toHaveBeenCalledTimes(2)
+    expect(apply.mock.calls[1]).toEqual([
+      spec.default.map((e) => ({ id: e.id, visible: e.visible })),
+      { kind: 'visible', id, visible: true }
+    ])
+    await vue.nextTick()
+    unmount()
+    detachToast()
+  })
+
+  it('withdraws its offer when it goes', () => {
+    const id = (target as ElementEntry<string>).id
+    const detachToast = undo.undoSlot.attach()
+    const { root, unmount } = columns(() => Promise.resolve())
+    fire(eyeOf(root, id))
+    expect(undo.undoSlot.shown.value).not.toBeNull()
+    unmount()
+    expect(undo.undoSlot.shown.value).toBeNull()
+    detachToast()
   })
 })

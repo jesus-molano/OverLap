@@ -8,6 +8,7 @@ import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
 import type { ElRef } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
+import { undoSlot, type UndoKind } from '../undo/undo'
 import { useOptimistic } from '../useOptimistic'
 import {
   barRows,
@@ -251,7 +252,49 @@ function setVisible(id: Id, visible: boolean, inPlace = false): void {
       ? shownAtSideEnd(props.spec, list, id, props.split)
       : toggled(props.spec, list, id, visible)
   void send(next, { kind: 'visible', id, visible })
-  say(visibilityMessage(t.value, labelOf(id), visible))
+  // A hide offers "Deshacer" (a misclick); the toast then announces it.
+  if (visible || !offerUndo('hide', id, list, next)) {
+    say(visibilityMessage(t.value, labelOf(id), visible))
+  }
+}
+
+// ---- Undo (the window's toast: undo/undo.ts) -------------------------------------------
+
+/** This editor, as the owner of its offers: they go when it does (another page). */
+const undoOwner = {}
+onBeforeUnmount(() => undoSlot.withdraw(undoOwner))
+
+/**
+ * Offers to undo the change of `id` from `before` to `after`; false when no toast shows it (the
+ * caller announces the change then). Undone, it goes back through `send` as the opposite edit.
+ */
+function offerUndo(
+  kind: UndoKind,
+  id: Id,
+  before: readonly Readonly<ElementEntry<Id>>[],
+  after: readonly Readonly<ElementEntry<Id>>[]
+): boolean {
+  return undoSlot.offer({
+    owner: undoOwner,
+    kind,
+    id,
+    label: labelOf(id),
+    before,
+    after,
+    current: () => current.value,
+    apply: (next) => undoTo(kind, id, next as ElementEntry<Id>[])
+  })
+}
+
+function undoTo(kind: UndoKind, id: Id, next: ElementEntry<Id>[]): void {
+  const before = current.value
+  if (kind === 'hide') {
+    void send(next, { kind: 'visible', id, visible: true })
+    say(visibilityMessage(t.value, labelOf(id), true))
+    return
+  }
+  void send(next, { kind: 'move', id, to: next.findIndex((e) => e.id === id) })
+  announceMove(id, before, next)
 }
 
 /** The eye of a row: in an info bar the row changes group, so the focus follows it. */
@@ -483,7 +526,10 @@ if (preview !== null) {
             id: id as Id,
             to: next.findIndex((e) => e.id === id)
           })
-          announceMove(id as Id, before, next as ElementEntry<Id>[])
+          // A drag in the sample offers "Deshacer" too (a drop in the wrong place).
+          if (!offerUndo('move', id as Id, before, next as ElementEntry<Id>[])) {
+            announceMove(id as Id, before, next as ElementEntry<Id>[])
+          }
         },
         showAt: (next, id) => {
           void send(next as ElementEntry<Id>[], { kind: 'visible', id: id as Id, visible: true })

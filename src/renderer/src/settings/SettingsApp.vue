@@ -23,6 +23,7 @@ import AppearancePage from './pages/AppearancePage.vue'
 import LayoutsPage from './pages/LayoutsPage.vue'
 import ShortcutsPage from './pages/ShortcutsPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
+import UndoToast from './undo/UndoToast.vue'
 
 // Main is the source of truth: these follow its broadcasts (and the replies to our updates).
 const { editMode, settings } = useOverlayState()
@@ -116,6 +117,8 @@ onUnmounted(stopSaveFailing)
         <LayoutsPage v-else-if="page === 'layouts'"><SettingsFooter /></LayoutsPage>
         <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>
       </main>
+
+      <UndoToast />
     </div>
   </div>
 </template>
@@ -134,6 +137,8 @@ onUnmounted(stopSaveFailing)
 
 /* No side padding of its own: each band has it, beside the scrollbar's gutter. */
 .main-col {
+  /* The undo toast sits over its foot. */
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
