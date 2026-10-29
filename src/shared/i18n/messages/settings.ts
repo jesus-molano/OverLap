@@ -658,6 +658,9 @@ export const settingsEs = {
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
+    /** Under the lap times list while their row is off in Filas. */
+    lapTimesRowOff:
+      'La línea de tiempos está oculta en «Filas»; al mostrar aquí un tiempo, se muestra la línea',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1787,6 +1790,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     cycleNoKeys: 'Give it a shortcut in “Keyboard shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
+    lapTimesRowOff: 'The lap times line is hidden in “Rows”; showing a time here shows the line',
     references: {
       pb: {
         label: 'Personal best',
