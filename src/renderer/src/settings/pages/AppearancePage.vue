@@ -135,188 +135,191 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
       </SampleStage>
     </template>
 
-    <PageSection :title="t.settings.appearance.language.title">
-      <ChoiceControl
-        :label="t.settings.appearance.language.label"
-        :help="t.settings.appearance.language.help"
-        :current="appearance.language"
-        :options="LANGUAGE_CHOICES"
-        :apply="set('language')"
-      >
-        <template #option="{ option }">
-          <span :lang="option.value">{{ option.label }}</span>
-        </template>
-      </ChoiceControl>
-    </PageSection>
+    <!-- Two columns in a wide window (settings.css .st-cols). -->
+    <div class="st-cols">
+      <PageSection :title="t.settings.appearance.language.title">
+        <ChoiceControl
+          :label="t.settings.appearance.language.label"
+          :help="t.settings.appearance.language.help"
+          :current="appearance.language"
+          :options="LANGUAGE_CHOICES"
+          :apply="set('language')"
+        >
+          <template #option="{ option }">
+            <span :lang="option.value">{{ option.label }}</span>
+          </template>
+        </ChoiceControl>
+      </PageSection>
 
-    <PageSection :title="t.settings.appearance.color.title">
-      <ColorControl
-        :label="t.settings.appearance.color.accent"
-        :help="t.settings.appearance.color.accentHelp"
-        :current="appearance.accent"
-        :presets="accentPresets"
-        :apply="set('accent')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.color.colorBlind"
-        :help="t.settings.appearance.color.colorBlindHelp"
-        :current="appearance.colorBlind"
-        :apply="set('colorBlind')"
-      />
-    </PageSection>
+      <PageSection :title="t.settings.appearance.color.title">
+        <ColorControl
+          :label="t.settings.appearance.color.accent"
+          :help="t.settings.appearance.color.accentHelp"
+          :current="appearance.accent"
+          :presets="accentPresets"
+          :apply="set('accent')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.color.colorBlind"
+          :help="t.settings.appearance.color.colorBlindHelp"
+          :current="appearance.colorBlind"
+          :apply="set('colorBlind')"
+        />
+      </PageSection>
 
-    <PageSection :title="t.settings.appearance.text.title">
-      <SliderControl
-        :label="t.settings.appearance.text.fontScale"
-        :help="t.settings.appearance.text.fontScaleHelp"
-        :current="appearance.fontScale"
-        :min="FONT_SCALE_MIN"
-        :max="FONT_SCALE_MAX"
-        :step="OPTION_SCHEMA.appearance.fontScale.step"
-        :presets="FONT_PRESETS"
-        :format="percent"
-        :apply="set('fontScale')"
-      />
-      <ChoiceControl
-        :label="t.settings.common.nameFormat"
-        :help="example"
-        :current="appearance.nameFormat"
-        :options="nameChoices"
-        :apply="set('nameFormat')"
-      />
-      <ChoiceControl
-        :label="t.settings.appearance.text.halo"
-        :help="t.settings.appearance.text.haloHelp"
-        :current="appearance.textHalo"
-        :options="haloChoices"
-        :apply="set('textHalo')"
-      />
-    </PageSection>
+      <PageSection :title="t.settings.appearance.text.title">
+        <SliderControl
+          :label="t.settings.appearance.text.fontScale"
+          :help="t.settings.appearance.text.fontScaleHelp"
+          :current="appearance.fontScale"
+          :min="FONT_SCALE_MIN"
+          :max="FONT_SCALE_MAX"
+          :step="OPTION_SCHEMA.appearance.fontScale.step"
+          :presets="FONT_PRESETS"
+          :format="percent"
+          :apply="set('fontScale')"
+        />
+        <ChoiceControl
+          :label="t.settings.common.nameFormat"
+          :help="example"
+          :current="appearance.nameFormat"
+          :options="nameChoices"
+          :apply="set('nameFormat')"
+        />
+        <ChoiceControl
+          :label="t.settings.appearance.text.halo"
+          :help="t.settings.appearance.text.haloHelp"
+          :current="appearance.textHalo"
+          :options="haloChoices"
+          :apply="set('textHalo')"
+        />
+      </PageSection>
 
-    <PageSection :title="t.settings.appearance.rows.title">
-      <ChoiceControl
-        :label="t.settings.common.density"
-        :help="t.settings.appearance.rows.densityHelp"
-        :current="appearance.density"
-        :options="densityOptions"
-        :apply="set('density')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.rows.stripes"
-        :help="t.settings.appearance.rows.stripesHelp"
-        :current="appearance.stripes"
-        :apply="set('stripes')"
-      />
-      <ChoiceControl
-        :label="t.settings.common.license"
-        :current="appearance.licenseStyle"
-        :options="licenseChoices"
-        :apply="set('licenseStyle')"
-      >
-        <template #option="{ option }">
-          <LicenseChip
-            class="opt-chip"
-            :text="licText"
-            :colors="licStyle"
-            :variant="option.value"
-          />
-          {{ option.label }}
-        </template>
-      </ChoiceControl>
-      <ChoiceControl
-        :label="t.settings.appearance.rows.number"
-        :current="appearance.numberStyle"
-        :options="numberChoices"
-        :apply="set('numberStyle')"
-      >
-        <template #option="{ option }">
-          <span v-if="option.value === 'stripe'" class="opt-stripe" aria-hidden="true" />
-          <NumberBadge
-            class="opt-chip"
-            :number="carNumber"
-            :cls-style="numStyle"
-            :variant="option.value === 'chip' ? 'filled' : 'plain'"
-          />
-          {{ option.label }}
-        </template>
-      </ChoiceControl>
-    </PageSection>
+      <PageSection :title="t.settings.appearance.rows.title">
+        <ChoiceControl
+          :label="t.settings.common.density"
+          :help="t.settings.appearance.rows.densityHelp"
+          :current="appearance.density"
+          :options="densityOptions"
+          :apply="set('density')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.rows.stripes"
+          :help="t.settings.appearance.rows.stripesHelp"
+          :current="appearance.stripes"
+          :apply="set('stripes')"
+        />
+        <ChoiceControl
+          :label="t.settings.common.license"
+          :current="appearance.licenseStyle"
+          :options="licenseChoices"
+          :apply="set('licenseStyle')"
+        >
+          <template #option="{ option }">
+            <LicenseChip
+              class="opt-chip"
+              :text="licText"
+              :colors="licStyle"
+              :variant="option.value"
+            />
+            {{ option.label }}
+          </template>
+        </ChoiceControl>
+        <ChoiceControl
+          :label="t.settings.appearance.rows.number"
+          :current="appearance.numberStyle"
+          :options="numberChoices"
+          :apply="set('numberStyle')"
+        >
+          <template #option="{ option }">
+            <span v-if="option.value === 'stripe'" class="opt-stripe" aria-hidden="true" />
+            <NumberBadge
+              class="opt-chip"
+              :number="carNumber"
+              :cls-style="numStyle"
+              :variant="option.value === 'chip' ? 'filled' : 'plain'"
+            />
+            {{ option.label }}
+          </template>
+        </ChoiceControl>
+      </PageSection>
 
-    <PageSection :title="t.settings.appearance.screen.title">
-      <ChoiceControl
-        stack
-        :label="t.settings.appearance.screen.showWhen"
-        :help="showWhenHelp"
-        :current="visibility.showWhen"
-        :options="showWhenChoices"
-        :apply="setVisibility('showWhen')"
-      />
-      <ChoiceControl
-        :label="t.settings.appearance.screen.replays"
-        :help="replaysHelp"
-        :current="visibility.replays"
-        :options="replayChoices"
-        :apply="setVisibility('replays')"
-      />
-      <!-- The session screen: whether it hides (after the two rules that decide it), then the
+      <PageSection :title="t.settings.appearance.screen.title">
+        <ChoiceControl
+          stack
+          :label="t.settings.appearance.screen.showWhen"
+          :help="showWhenHelp"
+          :current="visibility.showWhen"
+          :options="showWhenChoices"
+          :apply="setVisibility('showWhen')"
+        />
+        <ChoiceControl
+          :label="t.settings.appearance.screen.replays"
+          :help="replaysHelp"
+          :current="visibility.replays"
+          :options="replayChoices"
+          :apply="setVisibility('replays')"
+        />
+        <!-- The session screen: whether it hides (after the two rules that decide it), then the
            standings' exception. -->
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.sessionScreen"
-        :help="sessionScreenHelp"
-        :current="visibility.hideOnSessionScreen || sessionScreenHidden"
-        :disabled="sessionScreenHidden"
-        :apply="setVisibility('hideOnSessionScreen')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.keepStandings"
-        :help="keepStandingsHelp"
-        :current="standings.showOnSessionScreen || !keepStandingsRule"
-        :disabled="!keepStandingsRule"
-        :apply="setKeepStandings"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.simUi"
-        :help="t.settings.appearance.screen.simUiHelp"
-        :current="visibility.hideWithSimUi"
-        :apply="setVisibility('hideWithSimUi')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.garage"
-        :help="t.settings.appearance.screen.garageHelp"
-        :current="visibility.hideInGarage"
-        :apply="setVisibility('hideInGarage')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.screen.waiting"
-        :help="t.settings.appearance.screen.waitingHelp"
-        :current="visibility.showWhileWaiting"
-        :apply="setVisibility('showWhileWaiting')"
-      />
-    </PageSection>
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.screen.sessionScreen"
+          :help="sessionScreenHelp"
+          :current="visibility.hideOnSessionScreen || sessionScreenHidden"
+          :disabled="sessionScreenHidden"
+          :apply="setVisibility('hideOnSessionScreen')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.screen.keepStandings"
+          :help="keepStandingsHelp"
+          :current="standings.showOnSessionScreen || !keepStandingsRule"
+          :disabled="!keepStandingsRule"
+          :apply="setKeepStandings"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.screen.simUi"
+          :help="t.settings.appearance.screen.simUiHelp"
+          :current="visibility.hideWithSimUi"
+          :apply="setVisibility('hideWithSimUi')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.screen.garage"
+          :help="t.settings.appearance.screen.garageHelp"
+          :current="visibility.hideInGarage"
+          :apply="setVisibility('hideInGarage')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.screen.waiting"
+          :help="t.settings.appearance.screen.waitingHelp"
+          :current="visibility.showWhileWaiting"
+          :apply="setVisibility('showWhileWaiting')"
+        />
+      </PageSection>
 
-    <PageSection :title="t.settings.appearance.other.title">
-      <ChoiceControl
-        :label="t.settings.appearance.other.units"
-        :help="t.settings.appearance.other.unitsHelp"
-        :current="appearance.units"
-        :options="unitChoices"
-        :apply="set('units')"
-      />
-      <ToggleControl
-        kind="switch"
-        :label="t.settings.appearance.other.simPill"
-        :help="t.settings.appearance.other.simPillHelp"
-        :current="appearance.showSimPill"
-        :apply="set('showSimPill')"
-      />
-    </PageSection>
+      <PageSection :title="t.settings.appearance.other.title">
+        <ChoiceControl
+          :label="t.settings.appearance.other.units"
+          :help="t.settings.appearance.other.unitsHelp"
+          :current="appearance.units"
+          :options="unitChoices"
+          :apply="set('units')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.other.simPill"
+          :help="t.settings.appearance.other.simPillHelp"
+          :current="appearance.showSimPill"
+          :apply="set('showSimPill')"
+        />
+      </PageSection>
+    </div>
 
     <footer class="page-foot">
       <ConfirmButton
