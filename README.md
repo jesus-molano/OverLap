@@ -125,7 +125,9 @@ minimalista, realista (GT) o de fórmula que gira los grados reales.
 
 Los coches más rápidos que te alcanzan por detrás (en cuánto tiempo y en qué sector), el tráfico
 lento al que alcanzas y los peligros de delante (coches parados, muy lentos o fuera de pista). Quien
-te dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca. Se
+te dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca. Cada
+coche lleva, como en el relativo, el logo de su marca, la bandera de su piloto y su bandera de
+penalización (el bloque «Piloto» de su página). Se
 desvanece cuando no hay nadie cerca. La cabecera (el título) admite más datos, y hay un pie
 opcional.
 
@@ -205,8 +207,12 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
-  formato del nombre, estilo de la licencia y del número, logos de marca en color o monocromo y
-  unidades métricas o imperiales.
+  estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
+  imperiales y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
+  Nunca), bandera del país y banderas de penalización.
+- **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
+  de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,
+  banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio.
 - **Récords personales**: la lista por coche y trazado, con borrar uno, el actual o todos.
 
 ## Modo edición

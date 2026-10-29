@@ -14,6 +14,7 @@ import { useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import {
   useAutoHeight,
   useDensity,
+  useDriverBlock,
   useNameFormat,
   useOptions,
   useWidgetSettings
@@ -70,6 +71,8 @@ const { data, phase } = useWidgetPhase(ID, {
 const { status } = useOverlayState()
 const autoHidden = useAutoHidden(ID)
 const opts = useOptions(ID)
+/** Makes, flags and penalty badges: the «Piloto» block (own or Apariencia's). */
+const block = useDriverBlock(ID)
 const prefs = useWidgetSettings(ID)
 const appearance = useAppearance()
 const nameFormat = useNameFormat(ID)
@@ -189,8 +192,8 @@ const cols = computed<Columns>((prev) =>
         tyres: tyres.value,
         licenseStyle: appearance.value.licenseStyle,
         numberStyle: appearance.value.numberStyle,
-        brand: brandMarksOn(opts.value.brandMarks, payload.value?.multiBrand ?? false),
-        flag: opts.value.countryFlags
+        brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
+        flag: block.value.countryFlags
       },
       widthPx.value,
       fontPx.value
@@ -220,7 +223,7 @@ const lineCtx = computed<LineContext>(() => ({
   deltaAll: opts.value.iRatingDeltaAll,
   nameFormat: nameFormat.value,
   classLine: opts.value.classLine,
-  showFlags: opts.value.showFlags,
+  showFlags: block.value.showFlags,
   gapLeaderShown: cols.value.cells.includes('gapLeader'),
   styles,
   m: t.value

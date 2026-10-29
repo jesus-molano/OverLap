@@ -188,6 +188,9 @@ describe('SettingsStore with a v3 file', () => {
     expect(visible).toMatchObject({ gained: false, ir: true, last: false, pit: true })
     expect(s.battle).toEqual({
       ...DEFAULT_SETTINGS.battle,
+      // Never drawn then: off (migrateDriverBlock).
+      showFlags: false,
+      countryFlags: false,
       thresholdS: 2.5,
       lanes: [
         { id: 'ahead', visible: true },

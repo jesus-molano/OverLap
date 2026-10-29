@@ -37,6 +37,8 @@ function otherValue(spec: OptionSpec, value: unknown): unknown {
   switch (spec.kind) {
     case 'bool':
       return !value
+    case 'flag':
+      return value === 'inherit' ? false : 'inherit'
     case 'int':
     case 'number':
       return (value as number) + 1
@@ -318,15 +320,19 @@ describe('diffSettings and the widget options', () => {
     }
   })
 
-  it('traffic: only the name format stays in the renderer', () => {
+  it('traffic: only the name format and the «Piloto» block stay in the renderer', () => {
     expect(DISPLAY_ONLY.traffic).toEqual([
       'parts',
       'conditionsTrend',
       'conditionsWindDirection',
       'captions',
+      'brandMarks',
+      'countryFlags',
+      'showFlags',
       'nameFormat'
     ])
     expect(configChanged((s) => (s.traffic.nameFormat = 'tv'))).toBe(false)
+    expect(configChanged((s) => (s.traffic.showFlags = false))).toBe(false)
     expect(configChanged((s) => (s.traffic.behindS = 20))).toBe(true)
     expect(configChanged((s) => (s.traffic.aheadS = 4))).toBe(true)
     expect(configChanged((s) => (s.traffic.hazardS = 12))).toBe(true)

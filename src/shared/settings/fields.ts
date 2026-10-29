@@ -121,6 +121,8 @@ export function validateOption(spec: OptionSpec, raw: unknown, current: unknown)
       return clampNumber(raw, spec.min, spec.max, current as number, spec.decimals)
     case 'bool':
       return pickBoolean(raw, current as boolean)
+    case 'flag':
+      return raw === 'inherit' || typeof raw === 'boolean' ? raw : current
     case 'enum':
       return pickEnum(raw, spec.values, current as string)
     case 'color':

@@ -15,13 +15,14 @@
  * and the pace margin say (B08), marked as passing you. Nothing in a lone session: the other
  * cars there are not on track with you (B11). With one class in the session no line names it.
  */
-import { driverIdentity, identityEqual } from './driver'
+import { driverIdentity, fieldHasMultipleBrands, identityEqual } from './driver'
 import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
 import { CAUTION_FLAGS, SessionFlag } from './flags'
 import { infoBarDataEqual } from './infoFeed'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { finiteOr, frac, quantise } from './num'
+import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import {
   currentSessionType,
@@ -197,7 +198,8 @@ function candidate(
       meetSector,
       lapping: lap,
       passing,
-      hazard
+      hazard,
+      penalty: penaltyOf(run.frame.CarIdxSessionFlags[d.carIdx])
     },
     eta: qEta ?? Infinity
   }
@@ -279,7 +281,14 @@ export class TrafficProvider {
     const showHazards = isElementVisible(opts.groups, 'hazard')
     if (!run || (!showFaster && !showSlower && !showHazards)) {
       this.clearHolds()
-      return { visible: false, faster: [], slower: [], hazards: [], info: null }
+      return {
+        visible: false,
+        faster: [],
+        slower: [],
+        hazards: [],
+        multiBrand: fieldHasMultipleBrands(session),
+        info: null
+      }
     }
     const behindS = finiteOr(opts.behindS, 0)
     const aheadS = finiteOr(opts.aheadS, 0)
@@ -349,6 +358,7 @@ export class TrafficProvider {
       faster: closest(faster, max),
       slower: closest(slower, max),
       hazards: closest(hazards, max),
+      multiBrand: fieldHasMultipleBrands(session),
       // The info bars' data is the provider set's (InfoFeed).
       info: null
     }
@@ -471,6 +481,7 @@ function entryEqual(a: TrafficEntry, b: TrafficEntry): boolean {
     a.lapping === b.lapping &&
     a.passing === b.passing &&
     a.hazard === b.hazard &&
+    a.penalty === b.penalty &&
     a.className === b.className &&
     identityEqual(a.driver, b.driver)
   )
@@ -483,6 +494,7 @@ export function trafficEqual(a: TrafficData, b: TrafficData): boolean {
     arrayEqual(a.faster, b.faster, entryEqual) &&
     arrayEqual(a.slower, b.slower, entryEqual) &&
     arrayEqual(a.hazards, b.hazards, entryEqual) &&
+    a.multiBrand === b.multiBrand &&
     infoBarDataEqual(a.info, b.info)
   )
 }

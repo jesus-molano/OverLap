@@ -135,7 +135,7 @@ export const settingsEs = {
     density: 'Densidad',
     license: 'Licencia',
     iRating: 'iRating',
-    /** The per-car flag badges of the relative and the standings. */
+    /** The per-car flag badges of the four driver widgets (the «Piloto» block). */
     penaltyFlags: 'Banderas de penalización',
     penaltyFlagsHelp: 'Negra, reparación y aviso (negra enrollada), tras el nombre'
   },
@@ -155,12 +155,16 @@ export const settingsEs = {
     inherit: (current: string) => `Global (${current})`,
     nameInheritHint: 'El de Apariencia',
     densityInheritHint: 'La de Apariencia',
+    /** A switch that can follow Apariencia's: 'Global (Sí)', 'Sí', 'No'. */
+    onOff: { on: { label: 'Sí' }, off: { label: 'No' } },
+    flagInheritHint: 'Lo que diga Apariencia',
     example: (sample: string, formatted: string) => `Ejemplo: ${sample} → ${formatted}`
   },
   appearance: {
     /** One line under the title; the rest behind its ⓘ (`…More`, as every long help here). */
     sub: 'El aspecto común de todos los widgets',
-    subMore: 'En su página, cada uno puede cambiar el formato de nombre o la densidad si los usa.',
+    subMore:
+      'En su página, cada uno puede usar su propio fondo, densidad o bloque «Piloto» (nombre, logo y banderas).',
     language: {
       title: 'Idioma',
       label: 'Idioma',
@@ -225,8 +229,16 @@ export const settingsEs = {
         chip: { label: 'Chip', hint: 'Número sobre el color de su clase' },
         stripe: { label: 'Franja', hint: 'Franja del color de la clase y número en texto' }
       },
-      brandLogos: 'Logos de marca',
-      brandLogosHelp: 'La marca de cada coche en Relativo, Posiciones y Batalla',
+      /** The «Piloto» block's globals: what each driver widget on «Global» draws. */
+      blockHelp: 'Para Relativo, Posiciones, Batalla y Tráfico, si su página dice «Global»',
+      ownBlocks: (n: number) =>
+        n === 1
+          ? '1 widget usa su propio bloque «Piloto»'
+          : `${n} widgets usan su propio bloque «Piloto»`,
+      followGlobal: 'Usar el global en todos',
+      followGlobalDone: 'Todos los widgets siguen el bloque «Piloto» global',
+      brandLogos: 'Color del logo',
+      brandLogosHelp: 'La marca de cada coche, donde se muestre',
       brandLogoChoices: {
         color: {
           label: 'Color',
@@ -1300,8 +1312,15 @@ export const settingsEs = {
     windDirectionHelp: 'La flecha apunta a tu coche desde donde sopla. Solo al volante'
   },
   /** The driver cell's extras in the relative, the standings and the battle. */
+  /**
+   * The «Piloto» block (R08): the same four rows in the same place on the four driver widgets'
+   * pages, each with «Global (…)» from Apariencia.
+   */
+  driverBlock: {
+    title: 'Piloto'
+  },
   driverCell: {
-    brandMarks: 'Logotipo de la marca',
+    brandMarks: 'Logo de la marca',
     brandMarksHelp: 'Delante del nombre; en Auto, solo si hay más de una marca en pista',
     brandChoices: {
       auto: { label: 'Auto', hint: 'Solo con varias marcas en la sesión' },
@@ -1538,11 +1557,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     inherit: (current) => `Global (${current})`,
     nameInheritHint: 'As set in Appearance',
     densityInheritHint: 'As set in Appearance',
+    onOff: { on: { label: 'Yes' }, off: { label: 'No' } },
+    flagInheritHint: 'As set in Appearance',
     example: (sample, formatted) => `Example: ${sample} → ${formatted}`
   },
   appearance: {
     sub: 'The look shared by every widget',
-    subMore: 'On its page, each one can change the name format or the density if it uses them.',
+    subMore:
+      'On its page, each one can use its own background, density or “Driver” block (name, logo and flags).',
     language: {
       title: 'Language',
       label: 'Language',
@@ -1601,8 +1623,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
         chip: { label: 'Chip', hint: 'Number on its class colour' },
         stripe: { label: 'Stripe', hint: 'Class-colour stripe and the number as text' }
       },
-      brandLogos: 'Brand logos',
-      brandLogosHelp: "Each car's make in Relative, Standings and Battle",
+      blockHelp: 'For Relative, Standings, Battle and Traffic, when their page says “Global”',
+      ownBlocks: (n) =>
+        n === 1
+          ? '1 widget uses its own “Driver” block'
+          : `${n} widgets use their own “Driver” block`,
+      followGlobal: 'Use the global one in all',
+      followGlobalDone: 'Every widget follows the global “Driver” block',
+      brandLogos: 'Logo colour',
+      brandLogosHelp: "Each car's make, wherever it shows",
       brandLogoChoices: {
         color: { label: 'Colour', hint: 'Each make in its own colours: Ferrari yellow, BMW blue' },
         mono: { label: 'Monochrome', hint: 'All in the text colour' }
@@ -2512,8 +2541,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
     windDirection: 'Direction relative to your car',
     windDirectionHelp: 'The arrow points at your car from where the wind blows. Only while driving'
   },
+  driverBlock: {
+    title: 'Driver'
+  },
   driverCell: {
-    brandMarks: 'Car make logo',
+    brandMarks: 'Make logo',
     brandMarksHelp: 'Before the name; on Auto, only when there is more than one make on track',
     brandChoices: {
       auto: { label: 'Auto', hint: 'Only with several makes in the session' },

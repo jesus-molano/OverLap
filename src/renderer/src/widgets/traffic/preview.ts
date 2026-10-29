@@ -4,6 +4,7 @@
  * and sized on realistic content. Invented drivers; gaps and ETAs are consistent with real
  * closing rates (a GTP gains ~0.1 s of road per second on a GT3).
  */
+import type { BrandId } from '@shared/carBrands'
 import type { DriverIdentity } from '@shared/driver'
 import type { TrafficData, TrafficEntry, TrafficKind } from '@shared/types'
 import { PREVIEW_INFO } from '@renderer/view/infoBar'
@@ -17,7 +18,9 @@ function driver(
   carIdx: number,
   carNumber: string,
   driverName: string,
-  classColor: string
+  classColor: string,
+  brand: BrandId,
+  country: string
 ): DriverIdentity {
   return Object.freeze({
     carIdx,
@@ -27,8 +30,8 @@ function driver(
     iRating: 2850,
     licString: 'A 3.12',
     licColor: '#0153db',
-    brand: 'unknown',
-    country: ''
+    brand,
+    country
   })
 }
 
@@ -40,7 +43,7 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
   visible: true,
   hazards: list([
     entry({
-      driver: driver(-1, '12', 'Lucas Moreau', GT3),
+      driver: driver(-1, '12', 'Lucas Moreau', GT3, 'porsche', 'FR'),
       kind: 'hazard',
       className: 'GT3 Class',
       gapS: 3.2,
@@ -49,12 +52,13 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetSector: 2,
       lapping: false,
       passing: null,
-      hazard: 'stopped'
+      hazard: 'stopped',
+      penalty: null
     })
   ]),
   slower: list([
     entry({
-      driver: driver(-2, '45', 'Hannah Schmidt', GT4),
+      driver: driver(-2, '45', 'Hannah Schmidt', GT4, 'bmw', 'DE'),
       kind: 'slower',
       className: 'GT4 Class',
       gapS: 0.6,
@@ -63,10 +67,11 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetSector: 1,
       lapping: false,
       passing: null,
-      hazard: null
+      hazard: null,
+      penalty: null
     }),
     entry({
-      driver: driver(-3, '72', 'Tomás Herrera', GT4),
+      driver: driver(-3, '72', 'Tomás Herrera', GT4, 'ford', 'ES'),
       kind: 'slower',
       className: 'GT4 Class',
       gapS: 1.5,
@@ -75,12 +80,13 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetSector: 3,
       lapping: true,
       passing: null,
-      hazard: null
+      hazard: null,
+      penalty: null
     })
   ]),
   faster: list([
     entry({
-      driver: driver(-4, '6', 'Jules Laurent', GTP),
+      driver: driver(-4, '6', 'Jules Laurent', GTP, 'cadillac', 'FR'),
       kind: 'faster',
       className: 'GTP',
       gapS: -0.25,
@@ -89,10 +95,11 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetSector: 2,
       lapping: false,
       passing: null,
-      hazard: null
+      hazard: null,
+      penalty: null
     }),
     entry({
-      driver: driver(-5, '31', 'Daniel Okafor', GTP),
+      driver: driver(-5, '31', 'Daniel Okafor', GTP, 'acura', 'GB'),
       kind: 'faster',
       className: 'GTP',
       gapS: -1.1,
@@ -101,9 +108,12 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       meetSector: 3,
       lapping: true,
       passing: null,
-      hazard: null
+      hazard: null,
+      penalty: null
     })
   ]),
+  // Several makes: the marks show on 'auto', as on a multiclass grid.
+  multiBrand: true,
   // The info bars' sample (every item has something to show).
   info: PREVIEW_INFO
 })

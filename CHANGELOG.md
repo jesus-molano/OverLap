@@ -18,6 +18,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Un bloque «Piloto» igual en Relativo, Posiciones, Batalla y Tráfico**: justo después de
+  Contenido, las mismas cuatro filas en el mismo orden (formato de nombre, logo de la marca,
+  bandera del país, banderas de penalización), cada una con «Global (…)», que es lo que diga
+  Apariencia › Filas y pilotos, donde están ahora sus valores globales (el formato de nombre pasa
+  allí desde Texto). Quitar las banderas de todos es un cambio en Apariencia. Batalla gana las
+  banderas de penalización del rival y Tráfico el logo, la bandera y la penalización de cada coche.
+  «Logotipo de la marca» se llama ya «Logo de la marca» y, en Apariencia, «Logos de marca» pasa a
+  «Color del logo». **En una instalación nueva** los cuatro siguen el global (Batalla enseña ahora
+  la bandera del país, antes apagada, y Tráfico los logos y las banderas); **si ya tenías
+  ajustes**, cada widget dibuja lo mismo que antes (lo que nunca dibujaba queda apagado) y
+  Apariencia ofrece «Usar el global en todos». Si vuelves a una versión anterior, lo que esté en
+  «Global» toma el valor por defecto de esa versión.
 - **El mismo bloque «Ventana y visibilidad» en los diez widgets**: Relativo, Radar y Delta tienen
   ya «Escala», con los mismos botones 80/100/125/150 %: es el tamaño de su ventana respecto al de
   fábrica (lo mismo que hace la rueda en modo edición, que ahora significa «escala» en todos), y

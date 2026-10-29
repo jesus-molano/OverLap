@@ -53,6 +53,7 @@ function opponent(over: Partial<BattleOpponent> = {}): BattleOpponent {
     lastLaps: [],
     sectorDeltas: null,
     iRatingAtStake: null,
+    penalty: null,
     ...over
   }
 }
@@ -78,6 +79,7 @@ const OPTS: LaneOptions = {
   parts: ALL_PARTS,
   brand: false,
   flag: false,
+  penalties: true,
   nameFormat: 'abbr'
 }
 

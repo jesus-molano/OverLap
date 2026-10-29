@@ -38,6 +38,9 @@ const OPTS: TrafficOptions = {
   conditionsWindDirection: true,
   captions: true,
   onlyMulticlass: true,
+  brandMarks: 'inherit',
+  countryFlags: 'inherit',
+  showFlags: 'inherit',
   nameFormat: 'inherit'
 }
 
@@ -223,7 +226,8 @@ describe('faster cars behind', () => {
         meetSector: 3,
         lapping: false,
         passing: null,
-        hazard: null
+        hazard: null,
+        penalty: null
       }
     ])
     expect(d.slower).toEqual([])
@@ -531,6 +535,7 @@ describe('classes and options', () => {
       faster: [],
       slower: [],
       hazards: [],
+      multiBrand: false,
       info: null
     })
     // The same cars in an open session are traffic.
@@ -555,6 +560,7 @@ describe('classes and options', () => {
       faster: [],
       slower: [],
       hazards: [],
+      multiBrand: false,
       info: null
     })
     const onlySlower = compute(w, groups('faster', 'hazard'))
@@ -769,5 +775,14 @@ describe('practice sessions', () => {
     w.frame.SessionNum[0] = PRACTICE
     w.racing = false
     expect(compute(w).faster[0]).toMatchObject({ etaS: 45, lapping: false })
+  })
+})
+
+describe('the «Piloto» block (R08)', () => {
+  it('gives each car its flag badge and says whether the field has several makes', () => {
+    const w = field().set(1, { pct: 0.45, pace: 90 })
+    const d = compute(w)
+    expect(d.faster[0]?.penalty).toBeNull()
+    expect(typeof d.multiBrand).toBe('boolean')
   })
 })

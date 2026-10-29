@@ -82,6 +82,14 @@ export interface BoolSpec extends SpecBase {
   readonly kind: 'bool'
   readonly default: boolean
 }
+/**
+ * A switch that can follow a global one: true, false, or 'inherit' (the global's value, from
+ * Apariencia). A file's plain true / false is kept as it is.
+ */
+export interface FlagSpec extends SpecBase {
+  readonly kind: 'flag'
+  readonly default: boolean | 'inherit'
+}
 export interface EnumSpec<T extends string = string> extends SpecBase {
   readonly kind: 'enum'
   readonly values: readonly T[]
@@ -136,22 +144,31 @@ export interface AcceleratorSpec extends SpecBase {
 }
 export type NumericSpec = IntSpec | NumberSpec
 export type OptionSpec =
-  NumericSpec | BoolSpec | EnumSpec | ColorSpec | ColorsSpec | ElementsSpec | AcceleratorSpec
+  | NumericSpec
+  | BoolSpec
+  | FlagSpec
+  | EnumSpec
+  | ColorSpec
+  | ColorsSpec
+  | ElementsSpec
+  | AcceleratorSpec
 
 /** The spec kinds allowed for a field of type T (non-distributive on purpose). */
 export type SpecFor<T> = [T] extends [boolean]
   ? BoolSpec
-  : [T] extends [number]
-    ? NumericSpec
-    : [T] extends [readonly ElementEntry<infer Id extends string>[]]
-      ? ElementsSpec<Id>
-      : [T] extends [string]
-        ? string extends T
-          ? ColorSpec | AcceleratorSpec
-          : EnumSpec<T>
-        : [T] extends [Readonly<Record<string, string>>]
-          ? ColorsSpec<Extract<keyof T, string>>
-          : never
+  : [T] extends [boolean | 'inherit']
+    ? FlagSpec
+    : [T] extends [number]
+      ? NumericSpec
+      : [T] extends [readonly ElementEntry<infer Id extends string>[]]
+        ? ElementsSpec<Id>
+        : [T] extends [string]
+          ? string extends T
+            ? ColorSpec | AcceleratorSpec
+            : EnumSpec<T>
+          : [T] extends [Readonly<Record<string, string>>]
+            ? ColorsSpec<Extract<keyof T, string>>
+            : never
 
 export type OptionSchema = {
   readonly [S in OptionSection]: {
@@ -298,12 +315,20 @@ export const DELTA_REFERENCE_VALUES = [
   'classOptimal'
 ] as const satisfies readonly DeltaReference[]
 
-/** Brand marks: drawing only (every row carries its make), 'auto' as the user asked. */
-const BRAND_MARKS = {
-  kind: 'enum',
-  values: BRAND_MARK_CHOICES,
-  default: 'auto',
-  displayOnly: true
+/**
+ * The «Piloto» block of the four driver widgets (R08): the same fields, defaults and Global
+ * choice in each. Drawing only (every row carries its make, flag and penalty). A new install
+ * follows Apariencia's (`inherit`); a file's own value is kept.
+ */
+const DRIVER_BLOCK = {
+  brandMarks: {
+    kind: 'enum',
+    values: ['inherit', ...BRAND_MARK_CHOICES],
+    default: 'inherit',
+    displayOnly: true
+  },
+  countryFlags: { kind: 'flag', default: 'inherit', displayOnly: true },
+  showFlags: { kind: 'flag', default: 'inherit', displayOnly: true }
 } as const
 
 /** The track temperature's trend arrow and the wind's dial, options of their info items. */
@@ -394,6 +419,10 @@ export const OPTION_SCHEMA = {
     numberStyle: { kind: 'enum', values: ['chip', 'stripe'], default: 'chip', displayOnly: true },
     // Older files have none: they get colour, the look every brand mark has by default.
     brandLogos: { kind: 'enum', values: ['color', 'mono'], default: 'color', displayOnly: true },
+    // The «Piloto» block's globals (R08): what a driver widget on «Global» draws.
+    brandMarks: { kind: 'enum', values: BRAND_MARK_CHOICES, default: 'auto', displayOnly: true },
+    countryFlags: { kind: 'bool', default: true, displayOnly: true },
+    penaltyFlags: { kind: 'bool', default: true, displayOnly: true },
     colorBlind: { kind: 'bool', default: false, displayOnly: true },
     units: { kind: 'enum', values: ['metric', 'imperial'], default: 'metric', displayOnly: true },
     stripes: { kind: 'bool', default: true, displayOnly: true },
@@ -431,9 +460,7 @@ export const OPTION_SCHEMA = {
     ...CONDITIONS_EXTRAS,
     // Off: the panel keeps today's rows until asked for.
     columnHeads: { kind: 'bool', default: false, displayOnly: true },
-    brandMarks: BRAND_MARKS,
-    countryFlags: { kind: 'bool', default: true, displayOnly: true },
-    showFlags: { kind: 'bool', default: true, displayOnly: true },
+    ...DRIVER_BLOCK,
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
@@ -489,8 +516,7 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     }),
     columnHeads: { kind: 'bool', default: false, displayOnly: true },
-    brandMarks: BRAND_MARKS,
-    countryFlags: { kind: 'bool', default: true, displayOnly: true },
+    ...DRIVER_BLOCK,
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
@@ -498,8 +524,6 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     },
     iRatingDeltaAll: { kind: 'bool', default: false },
-    // Every row carries its badge: the provider computes the same payload either way.
-    showFlags: { kind: 'bool', default: true, displayOnly: true },
     density: {
       kind: 'enum',
       values: ['inherit', 'comfortable', 'compact'],
@@ -529,9 +553,8 @@ export const OPTION_SCHEMA = {
       computed: ['stake']
     }),
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 },
-    brandMarks: BRAND_MARKS,
-    // Off: a battle card is small, and the rival's name is what matters.
-    countryFlags: { kind: 'bool', default: false, displayOnly: true },
+    // The same «Piloto» block as the others (its flag was off by default before 2.3).
+    ...DRIVER_BLOCK,
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
@@ -613,6 +636,8 @@ export const OPTION_SCHEMA = {
     // Over each group, whatever the header's switch says.
     captions: { kind: 'bool', default: true, displayOnly: true },
     onlyMulticlass: { kind: 'bool', default: true },
+    // The same «Piloto» block as the relative's (2.3: the traffic lines draw them too).
+    ...DRIVER_BLOCK,
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,

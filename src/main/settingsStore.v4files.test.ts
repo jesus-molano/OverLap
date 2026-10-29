@@ -53,7 +53,18 @@ describe('the untouched v4 file', () => {
         sections: DEFAULT_SETTINGS.inputs.sections.map((b) => ({ ...b, visible: b.id !== 'car' })),
         shiftLights: false
       },
-      lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false }
+      lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false },
+      // The «Piloto» block (R08): the penalty switch it saved stays its own; what the battle and
+      // the traffic never drew stays off; the rest follows Apariencia, which draws the same.
+      relative: { ...DEFAULT_SETTINGS.relative, showFlags: true },
+      standings: { ...DEFAULT_SETTINGS.standings, showFlags: true },
+      battle: { ...DEFAULT_SETTINGS.battle, showFlags: false, countryFlags: false },
+      traffic: {
+        ...DEFAULT_SETTINGS.traffic,
+        brandMarks: 'off' as const,
+        countryFlags: false,
+        showFlags: false
+      }
     })
     // Its own background opacities stay (the old per-widget defaults, saved): only a fresh
     // install follows the global one.

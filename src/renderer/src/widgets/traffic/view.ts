@@ -9,7 +9,15 @@
  * urgency by that gap under the blue flag. Words come from the dictionary `m` (messagesFor(lang)).
  */
 import type { Messages } from '@shared/i18n'
-import type { HazardKind, NameFormat, TrafficData, TrafficEntry, TrafficKind } from '@shared/types'
+import type { BrandId } from '@shared/carBrands'
+import type {
+  CarPenalty,
+  HazardKind,
+  NameFormat,
+  TrafficData,
+  TrafficEntry,
+  TrafficKind
+} from '@shared/types'
 import type { Tone } from '@renderer/ui/tones'
 import { toDriverCell } from '@renderer/view/driverCell'
 import { perDictionary } from '@renderer/view/perDictionary'
@@ -76,7 +84,22 @@ export interface TrafficViewOptions {
   /** Lines per group, already clamped to the option's range. */
   readonly maxEntries: number
   readonly nameFormat: NameFormat
+  /** What the driver cell adds, as the «Piloto» block says (makes: brandMarksOn already). */
+  readonly extras: DriverExtras
 }
+
+/** The make, the flag and the penalty badge in a car line (the «Piloto» block, R08). */
+export interface DriverExtras {
+  readonly brand: boolean
+  readonly flag: boolean
+  readonly penalties: boolean
+}
+
+export const NO_DRIVER_EXTRAS: DriverExtras = Object.freeze({
+  brand: false,
+  flag: false,
+  penalties: false
+})
 
 /** The number on the right, split from its unit ('6' + 's', '3.2' + 's', '2' + 'min'). */
 export interface ValueParts {
@@ -122,6 +145,11 @@ export interface RowSlotView {
   readonly unit: string
   /** Where you meet ('S2'), '' when unknown. */
   readonly sector: string
+  /** The car's make and the driver's flag, present only when drawn and known. */
+  readonly brand?: BrandId
+  readonly country?: string
+  /** Its flag badge after the name (black, meatball, furled), null for none or when off. */
+  readonly penalty: CarPenalty | null
 }
 
 export type TrafficSlotView = CaptionSlotView | RowSlotView
@@ -215,7 +243,8 @@ export function toRowSlot(
   styles: DriverStyles,
   nameFormat: NameFormat,
   m: Messages,
-  breaks = false
+  breaks = false,
+  extras: DriverExtras = NO_DRIVER_EXTRAS
 ): RowSlotView {
   const t = m.widgets.traffic
   const driver = toDriverCell(e.driver, styles, nameFormat, m)
@@ -256,7 +285,10 @@ export function toRowSlot(
     lead: eta === null ? t.at : group === 'faster' ? t.reachesYou : t.youReach,
     num: value.num,
     unit: value.unit,
-    sector: sectorLabel(e.meetSector, m)
+    sector: sectorLabel(e.meetSector, m),
+    ...(extras.brand && e.driver.brand !== 'unknown' ? { brand: e.driver.brand } : {}),
+    ...(extras.flag && e.driver.country !== '' ? { country: e.driver.country } : {}),
+    penalty: extras.penalties ? e.penalty : null
   }
 }
 
@@ -321,7 +353,9 @@ export function toSlots(
     const later = out.length > 0
     if (o.captions) out.push(caps[group][later ? 1 : 0])
     entries.forEach((e, i) =>
-      out.push(toRowSlot(e, group, i, styles, o.nameFormat, m, !o.captions && later && i === 0))
+      out.push(
+        toRowSlot(e, group, i, styles, o.nameFormat, m, !o.captions && later && i === 0, o.extras)
+      )
     )
   }
   return out

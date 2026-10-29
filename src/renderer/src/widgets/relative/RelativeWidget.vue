@@ -9,7 +9,12 @@ import { useAppearance } from '@renderer/composables/useAppearance'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
-import { useDensity, useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
+import {
+  useDensity,
+  useDriverBlock,
+  useNameFormat,
+  useOptions
+} from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
@@ -43,6 +48,8 @@ const { data, phase } = useWidgetPhase(ID, {
 })
 const opts = useOptions(ID)
 const nameFormat = useNameFormat(ID)
+/** Makes, flags and penalty badges: the «Piloto» block (own or Apariencia's). */
+const block = useDriverBlock(ID)
 const density = useDensity(ID)
 const { halo, surfaceStyle } = useWidgetSurface(ID)
 const appearance = useAppearance()
@@ -91,14 +98,14 @@ const slots = computed<readonly SlotView[]>((prev) =>
 const tyres = computed(() => source.value?.rows.some((r) => r.tyre !== null) ?? false)
 /** Makes and flags in the driver cell; 'auto' marks only a field of several makes (A.4). */
 const brands = computed(() =>
-  brandMarksOn(opts.value.brandMarks, source.value?.multiBrand ?? false)
+  brandMarksOn(block.value.brandMarks, source.value?.multiBrand ?? false)
 )
 const cols = computed<RelativeColumns>((prev) => {
   const next = relativeColumns(opts.value.columns, {
     tyres: tyres.value,
-    flags: opts.value.showFlags,
+    flags: block.value.showFlags,
     brand: brands.value,
-    country: opts.value.countryFlags
+    country: block.value.countryFlags
   })
   return prev !== undefined && prev.key === next.key ? prev : next
 })

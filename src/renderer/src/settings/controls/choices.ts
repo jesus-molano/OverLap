@@ -1,10 +1,11 @@
 /** Option lists shared by several settings pages, worded by the dictionary passed in. Pure. */
 import type { Messages } from '@shared/i18n'
 import { formatDriverName } from '@shared/format'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import type { BrandMarkMode } from '@shared/carBrands'
+import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { AppearanceSettings, NameFormat } from '@shared/types'
 import { SAMPLE_NAME } from '../samples/sampleData'
-import { choiceOptions, type ChoiceOption } from './choice'
+import { choiceOptions, toChoice, fromChoice, type BoolChoice, type ChoiceOption } from './choice'
 
 type Density = AppearanceSettings['density']
 
@@ -51,4 +52,43 @@ export function densityChoicesInherit(
 /** 'Ejemplo: Pierre-Étienne Duvalier → P. Duvalier' for the format a widget ends up using. */
 export function nameExample(m: Messages, format: NameFormat): string {
   return m.settings.choices.example(SAMPLE_NAME, formatDriverName(SAMPLE_NAME, format))
+}
+
+/** A switch that can follow Apariencia's, as a choice: 'inherit', 'on', 'off'. */
+export type FlagChoice = 'inherit' | BoolChoice
+
+export const toFlagChoice = (v: boolean | 'inherit'): FlagChoice =>
+  v === 'inherit' ? 'inherit' : toChoice(v)
+export const fromFlagChoice = (v: FlagChoice): boolean | 'inherit' =>
+  v === 'inherit' ? 'inherit' : fromChoice(v)
+
+/** «Global (Sí)», «Sí», «No»: the global labelled with what it is. */
+export function flagChoicesInherit(
+  m: Messages,
+  global: boolean
+): readonly ChoiceOption<FlagChoice>[] {
+  const c = m.settings.choices
+  return [
+    {
+      value: 'inherit',
+      label: c.inherit(c.onOff[toChoice(global)].label),
+      hint: c.flagInheritHint
+    },
+    ...choiceOptions(BOOL_CHOICES, c.onOff)
+  ]
+}
+
+const BOOL_CHOICES: readonly BoolChoice[] = ['on', 'off']
+
+/** The make logo's «Global (Auto)», then Auto / Siempre / Nunca. */
+export function brandChoicesInherit(
+  m: Messages,
+  global: BrandMarkMode
+): readonly ChoiceOption<BrandMarkMode | 'inherit'>[] {
+  const c = m.settings.choices
+  const texts = m.settings.driverCell.brandChoices
+  return [
+    { value: 'inherit', label: c.inherit(texts[global].label), hint: c.flagInheritHint },
+    ...choiceOptions(BRAND_MARK_CHOICES, texts)
+  ]
 }

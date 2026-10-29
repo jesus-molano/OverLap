@@ -9,7 +9,13 @@ import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
-import { useAutoHeight, useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
+import {
+  useAutoHeight,
+  useDriverBlock,
+  useNameFormat,
+  useOptions
+} from '@renderer/composables/useWidgetSettings'
+import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import Badge from '@renderer/ui/Badge.vue'
 import Chip from '@renderer/ui/Chip.vue'
@@ -37,6 +43,8 @@ const NO_LANES: readonly LaneView[] = Object.freeze([])
 
 const options = useOptions('battle')
 const nameFormat = useNameFormat('battle')
+/** Makes, flags and penalty badges: the «Piloto» block (own or Apariencia's). */
+const block = useDriverBlock('battle')
 const autoHeight = useAutoHeight()
 const { surfaceStyle, halo, fontPx } = useWidgetSurface()
 // Finished race, holdS and the side options are the provider's: it simply stops sending opponents.
@@ -65,8 +73,9 @@ const laneOptions = computed<LaneOptions>((prev) => {
     {
       rows: visibleIds(o.rows),
       parts: laneParts((id) => isElementVisible(o.parts, id)),
-      brand: brandMarksOn(o.brandMarks, multiBrand.value),
-      flag: o.countryFlags,
+      brand: brandMarksOn(block.value.brandMarks, multiBrand.value),
+      flag: block.value.countryFlags,
+      penalties: block.value.showFlags,
       nameFormat: nameFormat.value
     },
     deepEqual
@@ -179,6 +188,9 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
             rating-el="battle.parts.rating"
             license-el="battle.parts.license"
           >
+            <span v-if="lane.driver.penalty" class="lane__flag"
+              ><PenaltyIcon :penalty="lane.driver.penalty"
+            /></span>
             <Badge v-if="lane.inPits">{{ t.widgets.common.pit }}</Badge>
           </DriverCell>
 
@@ -354,6 +366,13 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
   letter-spacing: var(--ov-track-caps);
   white-space: nowrap;
   color: var(--ov-fg-muted);
+}
+
+/* The flag badge after the name, as in the relative. */
+.lane__flag {
+  display: inline-flex;
+  flex: none;
+  font-size: 0.85em;
 }
 
 .lane__who {

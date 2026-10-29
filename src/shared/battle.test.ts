@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BATTLE, BattleProvider, battleEqual, gapSlope } from './battle'
+import { SessionFlag } from './flags'
 import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { LapRecord, RaceCarState, RaceView } from './race/raceView'
 import { iRatingDeltas } from './ratings/irating'
@@ -298,6 +299,15 @@ describe('opponents and visibility', () => {
     const { race, session } = scenario()
     race.set(1, { inPits: true })
     expect(compute(session, race).ahead?.inPits).toBe(true)
+  })
+
+  it('gives a rival its flag badge, as the relative does (R08)', () => {
+    const { race, session } = scenario()
+    expect(compute(session, race).ahead?.penalty).toBeNull()
+    race.set(1, { sessionFlags: SessionFlag.Black })
+    expect(compute(session, race).ahead?.penalty).toBe('black')
+    race.set(2, { sessionFlags: SessionFlag.Repair })
+    expect(compute(session, race).behind?.penalty).toBe('meatball')
   })
 
   it('hides opponents above the threshold', () => {

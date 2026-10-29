@@ -7,7 +7,7 @@ import {
   STANDINGS_ROWS_MAX,
   STANDINGS_ROWS_MIN
 } from '@shared/settings'
-import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { ElementEntry, StandingsColumnId, StandingsOptions } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
@@ -21,7 +21,7 @@ import {
 } from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
-import { densityChoicesInherit, nameFormatChoicesInherit } from '../controls/choices'
+import { densityChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
@@ -31,6 +31,7 @@ import { elementTexts, zoneTitle } from '../elements/labels'
 import type { ElementChange } from '../elements/listOps'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import DriverSection from './DriverSection.vue'
 
 /**
  * The standings' page: what the table shows (mode, rows, gap, names), then one editor per zone
@@ -75,11 +76,7 @@ const applyColumns = (
 }
 
 const compactOff = computed(() => opts.value.mode === 'full')
-const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
-const brandChoices = computed(() =>
-  choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
-)
 const fixed = computed(() => fixedColumns(t.value))
 </script>
 
@@ -134,20 +131,6 @@ const fixed = computed(() => fixedColumns(t.value))
       :current="opts.iRatingDeltaAll"
       :apply="setDeltaAll"
     />
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.common.penaltyFlags"
-      :help="t.settings.common.penaltyFlagsHelp"
-      :current="opts.showFlags"
-      :apply="set('showFlags')"
-    />
-    <ChoiceControl
-      :label="t.settings.common.nameFormat"
-      stack
-      :current="opts.nameFormat"
-      :options="nameChoices"
-      :apply="set('nameFormat')"
-    />
     <ChoiceControl
       :label="t.settings.common.density"
       :current="opts.density"
@@ -155,6 +138,9 @@ const fixed = computed(() => fixedColumns(t.value))
       :apply="set('density')"
     />
   </PageSection>
+
+  <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
+  <DriverSection section="standings" />
 
   <CustomizeSection>
     <ElementEditor
@@ -172,20 +158,6 @@ const fixed = computed(() => fixedColumns(t.value))
           :help="t.settings.driverCell.columnHeadsHelp"
           :current="opts.columnHeads"
           :apply="set('columnHeads')"
-        />
-        <ChoiceControl
-          :label="t.settings.driverCell.brandMarks"
-          :help="t.settings.driverCell.brandMarksHelp"
-          :current="opts.brandMarks"
-          :options="brandChoices"
-          :apply="set('brandMarks')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.driverCell.countryFlags"
-          :help="t.settings.driverCell.countryFlagsHelp"
-          :current="opts.countryFlags"
-          :apply="set('countryFlags')"
         />
       </template>
     </ElementEditor>

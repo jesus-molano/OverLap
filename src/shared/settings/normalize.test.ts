@@ -103,6 +103,9 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   licenseStyle: 'outline',
   numberStyle: 'chip',
   brandLogos: 'color',
+  brandMarks: 'auto',
+  countryFlags: true,
+  penaltyFlags: true,
   colorBlind: false,
   units: 'metric',
   stripes: true,
@@ -131,9 +134,9 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   conditionsTrend: true,
   conditionsWindDirection: true,
   columnHeads: false,
-  brandMarks: 'auto',
-  countryFlags: true,
-  showFlags: true,
+  brandMarks: 'inherit',
+  countryFlags: 'inherit',
+  showFlags: 'inherit',
   nameFormat: 'inherit',
   density: 'inherit'
 }
@@ -173,11 +176,11 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   conditionsWindDirection: true,
   classLine: list(['sof', 'carCount']),
   columnHeads: false,
-  brandMarks: 'auto',
-  countryFlags: true,
+  brandMarks: 'inherit',
+  countryFlags: 'inherit',
+  showFlags: 'inherit',
   nameFormat: 'inherit',
   iRatingDeltaAll: false,
-  showFlags: true,
   density: 'inherit'
 }
 const DEFAULT_BATTLE: BattleOptions = {
@@ -193,8 +196,9 @@ const DEFAULT_BATTLE: BattleOptions = {
   rows: list(['prediction', 'sectors', 'laps'], ['laps']),
   parts: list(['rating', 'license', 'trendNote', 'stake']),
   holdS: 3,
-  brandMarks: 'auto',
-  countryFlags: false,
+  brandMarks: 'inherit',
+  countryFlags: 'inherit',
+  showFlags: 'inherit',
   nameFormat: 'inherit'
 }
 const DEFAULT_INPUTS: InputsOptions = {
@@ -227,8 +231,14 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   conditionsWindDirection: true,
   captions: true,
   onlyMulticlass: true,
+  brandMarks: 'inherit',
+  countryFlags: 'inherit',
+  showFlags: 'inherit',
   nameFormat: 'inherit'
 }
+/** What a battle / traffic section saved before 2.3 gets (migrateDriverBlock): its old look. */
+const OLD_BATTLE = { showFlags: false, countryFlags: false } as const
+const OLD_TRAFFIC = { brandMarks: 'off', countryFlags: false, showFlags: false } as const
 const DEFAULT_ALERTS: AlertsOptions = {
   showFlags: true,
   showBlue: true,
@@ -879,6 +889,7 @@ describe('normalizeSettings: options', () => {
       normalizeSettings({ traffic: raw }).traffic
     expect(traffic({ behindS: 1, aheadS: 99, hazardS: 0, maxEntries: 9 })).toEqual({
       ...DEFAULT_TRAFFIC,
+      ...OLD_TRAFFIC,
       behindS: 2,
       aheadS: 30,
       hazardS: 2,
@@ -886,15 +897,17 @@ describe('normalizeSettings: options', () => {
     })
     expect(traffic({ behindS: 14.6, aheadS: 5.4, hazardS: 25, maxEntries: 0.2 })).toEqual({
       ...DEFAULT_TRAFFIC,
+      ...OLD_TRAFFIC,
       behindS: 15,
       aheadS: 5,
       hazardS: 20,
       maxEntries: 1
     })
     for (const bad of [Number.NaN, Infinity, '10', null, true, {}]) {
-      expect(traffic({ behindS: bad, aheadS: bad, hazardS: bad, maxEntries: bad })).toEqual(
-        DEFAULT_TRAFFIC
-      )
+      expect(traffic({ behindS: bad, aheadS: bad, hazardS: bad, maxEntries: bad })).toEqual({
+        ...DEFAULT_TRAFFIC,
+        ...OLD_TRAFFIC
+      })
     }
   })
 
@@ -969,7 +982,7 @@ describe('normalizeSettings: options', () => {
       },
       traffic: { nameFormat: 'short' }
     })
-    expect(s).toEqual(DEFAULT_SETTINGS)
+    expect(s).toEqual(withOldDriverBlocks(DEFAULT_SETTINGS))
     const ok = normalizeSettings({
       appearance: {
         density: 'compact',
@@ -1032,13 +1045,14 @@ describe('normalizeSettings: options', () => {
       alerts: { showFlags: 1, showBlue: 'off', showPitLimiter: [] },
       delta: { fallback: 0, showPredicted: 'no', showSectors: null, showTrend: {} }
     })
-    expect(bad).toEqual(DEFAULT_SETTINGS)
+    expect(bad).toEqual(withOldDriverBlocks(DEFAULT_SETTINGS))
     const ok = normalizeSettings({
       traffic: { showFaster: false, showHazards: false, onlyMulticlass: false },
       alerts: { showFlags: false, showPitLimiter: false }
     })
     expect(ok.traffic).toEqual({
       ...DEFAULT_TRAFFIC,
+      ...OLD_TRAFFIC,
       groups: list(['hazard', 'slower', 'faster'], ['hazard', 'faster']),
       onlyMulticlass: false
     })
@@ -1326,6 +1340,7 @@ describe('normalizeSettings: migration', () => {
     expect('showRatingsHeader' in s.standings).toBe(false)
     expect(s.battle).toEqual({
       ...DEFAULT_BATTLE,
+      ...OLD_BATTLE,
       thresholdS: 2.5,
       lanes: list(['ahead', 'behind'], ['behind'])
     })
@@ -1672,5 +1687,54 @@ describe('normalizeSettings: several bindings per action', () => {
     })
     expect(s.shortcuts.cycleDeltaReference).toBe(`${G29}:9`)
     expect(s.shortcutsMore.cycleDeltaReference).toEqual(['Ctrl+Alt+D'])
+  })
+})
+
+/** `settings` as a file with a battle and a traffic section from before 2.3 loads. */
+function withOldDriverBlocks(settings: OverlaySettings): OverlaySettings {
+  const out = structuredClone(settings)
+  // Every copy of the sections: the file's, and each layout's and the shared options' own.
+  const walk = (node: unknown): void => {
+    if (typeof node !== 'object' || node === null) return
+    const rec = node as Record<string, unknown>
+    for (const [k, v] of Object.entries(rec)) {
+      if (k === 'battle' && typeof v === 'object' && v !== null && 'thresholdS' in v) {
+        Object.assign(v, OLD_BATTLE)
+      } else if (k === 'traffic' && typeof v === 'object' && v !== null && 'behindS' in v) {
+        Object.assign(v, OLD_TRAFFIC)
+      } else walk(v)
+    }
+  }
+  walk(out)
+  return out
+}
+
+describe('the «Piloto» block (R08)', () => {
+  it('follows Apariencia on a new install, and keeps a file’s own switches', () => {
+    expect(DEFAULT_SETTINGS.relative).toMatchObject({
+      brandMarks: 'inherit',
+      countryFlags: 'inherit',
+      showFlags: 'inherit'
+    })
+    const s = normalizeSettings({
+      relative: { countryFlags: false, showFlags: true, brandMarks: 'off' },
+      standings: { countryFlags: 'inherit', showFlags: 'maybe' }
+    })
+    expect(s.relative).toMatchObject({ countryFlags: false, showFlags: true, brandMarks: 'off' })
+    expect(s.standings).toMatchObject({ countryFlags: 'inherit', showFlags: 'inherit' })
+  })
+
+  it('draws an old battle and traffic section as before: what they never drew is off', () => {
+    const s = normalizeSettings({ battle: { countryFlags: true }, traffic: {} })
+    expect(s.battle).toMatchObject({ countryFlags: true, showFlags: false, brandMarks: 'inherit' })
+    expect(normalizeSettings({ battle: {} }).battle).toMatchObject(OLD_BATTLE)
+    expect(s.traffic).toMatchObject(OLD_TRAFFIC)
+    // A file saved since has them: they stay as they are.
+    const now = normalizeSettings({
+      battle: { showFlags: 'inherit' },
+      traffic: { showFlags: true }
+    })
+    expect(now.battle.showFlags).toBe('inherit')
+    expect(now.traffic).toMatchObject({ showFlags: true, brandMarks: 'off', countryFlags: false })
   })
 })
