@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
+import { elementOrder, visibleIds } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
 import type { TrafficPartId } from '@shared/types'
 import { useContentSize } from '@renderer/composables/useContentSize'
+import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
@@ -15,11 +16,10 @@ import {
   useWidgetSettings
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
-import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
-import PanelHeader from '@renderer/ui/PanelHeader.vue'
+import InfoBar from '@renderer/ui/InfoBar.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
@@ -46,7 +46,6 @@ const autoHeight = useAutoHeight(ID)
 const { surfaceStyle, halo } = useWidgetSurface(ID)
 const styles = createDriverStyles()
 const t = useI18n()
-const title = useWidgetTitle(ID)
 
 // Options are stable objects (useOptions); the view input keeps its identity while equal, so a
 // look-ahead change (provider side) or a drag re-renders nothing.
@@ -55,7 +54,7 @@ const viewOptions = computed<TrafficViewOptions>((prev) =>
     prev,
     {
       groups: visibleIds(options.value.groups),
-      captions: isElementVisible(options.value.header, 'captions'),
+      captions: options.value.captions !== false,
       maxEntries: clampOption(OPTION_SCHEMA.traffic.maxEntries, options.value.maxEntries),
       nameFormat: nameFormat.value
     },
@@ -66,7 +65,6 @@ const viewOptions = computed<TrafficViewOptions>((prev) =>
 const parts = computed<readonly TrafficPartId[]>((prev) =>
   reuseView(prev, visibleIds(options.value.parts, OPTION_SCHEMA.traffic.parts.ids), deepEqual)
 )
-const titleShown = computed(() => isElementVisible(options.value.header, 'title'))
 const leadShown = computed(() => parts.value.includes('lead'))
 
 // Look-ahead windows and 'Solo en multiclase' are the provider's: it simply sends no entries.
@@ -81,6 +79,15 @@ const content = useShownContent(
   () => data.value,
   () => PREVIEW_TRAFFIC
 )
+
+/**
+ * The header and footer info bars (traffic.headerBar / footerBar): the header is the title band
+ * it replaced by default (the widget's name and the SIM tag), the footer off.
+ */
+const head = useInfoBar(ID, 'headerBar', () => content.value?.info ?? null)
+const foot = useInfoBar(ID, 'footerBar', () => content.value?.info ?? null)
+const titleShown = computed(() => head.shown.value)
+const footShown = computed(() => foot.shown.value)
 
 // Slots are keyed by index and an unchanged slot keeps its object, so a 4 Hz payload only
 // rewrites the lines whose car or values changed: no line element is ever reordered. A new
@@ -113,7 +120,7 @@ const previewTag = computed(() =>
 )
 const shown = useReveal(
   () => wanted.value,
-  () => `${titleShown.value ? 'h' : ''}${layoutKey(slots.value)}`,
+  () => `${titleShown.value ? 'h' : ''}${footShown.value ? 'f' : ''}${layoutKey(slots.value)}`,
   { fit: () => autoHeight.value }
 )
 
@@ -133,15 +140,20 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       v-if="slots.length > 0"
       ref="panel"
       class="tr-panel"
-      :class="{ 'has-sectors': sectors, 'has-classes': classes }"
+      :class="{ 'has-sectors': sectors, 'has-classes': classes, 'has-foot': footShown }"
       :surface="surfaceStyle"
       :halo="halo"
       :fill="!autoHeight"
     >
       <template v-if="titleShown" #header>
-        <PanelHeader :title="title" data-el="traffic.header.title">
-          <PreviewTag v-if="previewTag === 'header'" />
-        </PanelHeader>
+        <InfoBar
+          :view="head.view.value"
+          :size="head.size.value"
+          place="head"
+          sim
+          :preview="previewTag === 'header'"
+          zone="traffic.headerBar"
+        />
       </template>
 
       <div
@@ -150,7 +162,6 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         v-memo="[slot, parts, i === 0 ? previewTag : null]"
         v-inline-style="slot.kind === 'row' ? slot.clsStyle : undefined"
         :class="slot.css"
-        :data-el="slot.kind === 'caption' ? 'traffic.header.captions' : undefined"
         :data-group="`traffic.groups.${slot.group}`"
       >
         <template v-if="slot.kind === 'caption'">
@@ -207,6 +218,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <PreviewTag v-if="i === 0 && previewTag === 'row'" class="tr-preview" />
         </template>
       </div>
+
+      <InfoBar
+        v-if="footShown"
+        class="tr-foot"
+        :view="foot.view.value"
+        :size="foot.size.value"
+        place="foot"
+        zone="traffic.footerBar"
+      />
     </WidgetPanel>
   </div>
 </template>
@@ -228,6 +248,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   flex: none;
   padding-bottom: 0.25em;
   container: traffic / inline-size;
+}
+
+/* The footer closes the panel: no room under it; it keeps to the bottom of a fixed-size one. */
+.tr-panel.has-foot {
+  padding-bottom: 0;
+}
+
+.tr-foot {
+  margin-top: auto;
 }
 
 /*

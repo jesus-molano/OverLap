@@ -118,7 +118,9 @@ const ZONES: ZoneWords = {
     parts: {
       title: (m) => m.settings.zones.battle.parts,
       items: (m) => plain(m.settings.items.battle.parts)
-    }
+    },
+    headerBar: { title: (m) => m.settings.zones.battle.headerBar, items: infoBarTexts },
+    footerBar: { title: (m) => m.settings.zones.battle.footerBar, items: infoBarTexts }
   },
   inputs: {
     sections: {
@@ -147,10 +149,8 @@ const ZONES: ZoneWords = {
       title: (m) => m.settings.zones.traffic.parts,
       items: (m) => plain(m.settings.items.traffic.parts)
     },
-    header: {
-      title: (m) => m.settings.zones.traffic.header,
-      items: (m) => plain(m.settings.items.traffic.header)
-    }
+    headerBar: { title: (m) => m.settings.zones.traffic.headerBar, items: infoBarTexts },
+    footerBar: { title: (m) => m.settings.zones.traffic.footerBar, items: infoBarTexts }
   },
   alerts: {
     parts: {
@@ -177,7 +177,8 @@ const ZONES: ZoneWords = {
     lines: {
       title: (m) => m.settings.zones.fuel.lines,
       items: (m) => plain(m.settings.items.fuel.lines)
-    }
+    },
+    footerBar: { title: (m) => m.settings.zones.fuel.footerBar, items: infoBarTexts }
   },
   lights: {
     icons: { title: (m) => m.settings.zones.lights.icons, items: lights }

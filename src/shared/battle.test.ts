@@ -437,7 +437,8 @@ describe('opponents and visibility', () => {
       behind: null,
       lapsRemaining: 10,
       playerLastLaps: [95.1],
-      multiBrand: false
+      multiBrand: false,
+      info: null
     })
   })
 
@@ -450,7 +451,8 @@ describe('opponents and visibility', () => {
       behind: null,
       lapsRemaining: null,
       playerLastLaps: [],
-      multiBrand: false
+      multiBrand: false,
+      info: null
     })
     race.playerCarIdx = 0
     race.set(0, { classPosition: 0 })

@@ -9,6 +9,7 @@ import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
 import { renderToString, type SSRContext } from 'vue/server-renderer'
 import { messagesFor, type Language } from '@shared/i18n'
+import { NO_BAR_SECTIONS } from '@shared/infoBar'
 import {
   CUSTOMIZE_FIRST_ZONES,
   CUSTOMIZE_ZONE_IDS,
@@ -34,11 +35,12 @@ describe('customizeZones', () => {
       'classLine'
     ])
     expect(customizeZones('relative')).toEqual(['columns', 'headerBar', 'footerBar'])
-    expect(customizeZones('fuel')).toEqual(['headerBar', 'lines'])
+    expect(customizeZones('fuel')).toEqual(['headerBar', 'footerBar', 'lines'])
+    expect(customizeZones('traffic')).toEqual(['headerBar', 'footerBar', 'groups', 'parts'])
+    expect(customizeZones('battle')).toEqual(['headerBar', 'footerBar', 'lanes', 'rows', 'parts'])
   })
 
   it("keeps the schema's order for every other list", () => {
-    expect(customizeZones('battle')).toEqual(['lanes', 'rows', 'parts'])
     expect(customizeZones('delta')).toEqual(['rows', 'top', 'laps'])
     expect(customizeZones('inputs')).toEqual(['sections', 'bars', 'info', 'car'])
   })
@@ -93,7 +95,7 @@ describe('the accordions of "Personalizar"', () => {
   it("find an editor's zone by its spec, none for a list no page has", () => {
     expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.standings.footerBar)).toBe('standings.footerBar')
     expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.relative.footerBar)).toBe('relative.footerBar')
-    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.traffic.header)).toBe('traffic.header')
+    expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.traffic.headerBar)).toBe('traffic.headerBar')
     expect(zonesOpen.zoneOfSpec(OPTION_SCHEMA.settingsWindow.customizeOpen)).toBeNull()
     expect(zonesOpen.zoneOfSpec({})).toBeNull()
   })
@@ -131,7 +133,7 @@ describe('the widget pages', () => {
     expect(Object.keys(PAGES).length).toBe(10)
     for (const [path, source] of Object.entries(PAGES)) {
       const template = source.slice(source.indexOf('<template>'))
-      const open = template.indexOf('<CustomizeSection>')
+      const open = template.search(/<CustomizeSection[\s>]/)
       const close = template.indexOf('</CustomizeSection>')
       expect(open, path).toBeGreaterThan(0)
       const editors = [...template.matchAll(/<(ElementEditor|InfoBarEditor)\b/g)].map(
@@ -141,6 +143,27 @@ describe('the widget pages', () => {
       for (const at of editors) {
         expect(at > open && at < close, `${path}: an editor outside Personalizar`).toBe(true)
       }
+    }
+  })
+
+  it('say on the pages of the widgets without bars that they have none, and only there', () => {
+    const PAGE_OF: Readonly<Record<string, string>> = {
+      delta: 'Delta',
+      inputs: 'Inputs',
+      radar: 'Radar',
+      lights: 'Lights',
+      alerts: 'Alerts'
+    }
+    const noBars = Object.entries(PAGES)
+      .filter(([, source]) => source.includes('<CustomizeSection no-bars>'))
+      .map(([path]) => path)
+      .sort()
+    expect(noBars).toEqual(
+      NO_BAR_SECTIONS.map((s) => `../options/${PAGE_OF[s] ?? s}Settings.vue`).sort()
+    )
+    for (const [path, source] of Object.entries(PAGES)) {
+      const bars = source.includes('<InfoBarEditor')
+      expect(bars, path).toBe(!noBars.includes(path))
     }
   })
 

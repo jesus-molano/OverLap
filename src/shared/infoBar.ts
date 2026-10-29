@@ -1,6 +1,6 @@
 /**
- * The info bars: the configurable headers and footers of the relative, the standings and the
- * fuel. One catalog of data items (InfoItemId), each with where its data comes from, how
+ * The info bars: the configurable headers and footers of the relative, the standings, the fuel,
+ * the traffic and the battle. One catalog of data items (InfoItemId), each with where its data comes from, how
  * important it is when the bar is short of room, and how wide it is at least; every bar is an
  * element list of those items (plus the `split` marker: what follows it lines up at the far end)
  * and a size. Pure.
@@ -132,7 +132,9 @@ export const INFO_TOP_GAP_EM = 0.5
 
 /**
  * The bars of each section that has some, as [list field, size field], top to bottom: the
- * relative's header and footer, the standings' header lines and footer, the fuel's header.
+ * panel-style widgets (the relative, the standings, the fuel, the traffic and the battle) all
+ * have a header and a footer, the standings a second header line too. The gauge-like ones
+ * (NO_BAR_SECTIONS) have none.
  */
 export const INFO_BARS = {
   relative: [
@@ -144,8 +146,25 @@ export const INFO_BARS = {
     ['subheaderBar', 'subheaderBarSize'],
     ['footerBar', 'footerBarSize']
   ],
-  fuel: [['headerBar', 'headerBarSize']]
+  fuel: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ],
+  traffic: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ],
+  battle: [
+    ['headerBar', 'headerBarSize'],
+    ['footerBar', 'footerBarSize']
+  ]
 } as const
+
+/**
+ * The widgets without info bars: the delta, the pedals, the radar, the warning lights and the
+ * alerts band are each a single reading, where a bar would only add height (their pages say so).
+ */
+export const NO_BAR_SECTIONS = ['delta', 'inputs', 'radar', 'lights', 'alerts'] as const
 
 export type InfoBarSection = keyof typeof INFO_BARS
 export type InfoBarField<S extends InfoBarSection> = (typeof INFO_BARS)[S][number][0]

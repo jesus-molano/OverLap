@@ -14,9 +14,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   también de un lado al otro) y haz clic para mostrarlo u ocultarlo. Mientras editas, los ocultos
   se dibujan translúcidos donde caben, para poder recuperarlos. La lista y la vista previa se
   señalan una a otra, y al tocar algo en la vista previa se abre su sección.
+- **Cabecera y pie en todos los paneles**: Combustible, Tráfico y Batalla tienen ahora la misma
+  cabecera y el mismo pie que Relativo y Clasificación, con el mismo catálogo de datos (tiempo
+  restante, SoF, vueltas de combustible, temperatura de pista…), interruptor, tamaño y cajas
+  Izquierda/Derecha, y se editan también en la vista previa. Los nuevos vienen apagados, así que
+  nada cambia hasta que los enciendas. Delta, Pedales, Radar, Testigos y Avisos siguen sin ellos,
+  y su página lo explica.
 
 ### Cambiado
 
+- **Tráfico**: su título es ahora la cabecera compartida (se ve igual y admite más datos); los
+  rótulos de los grupos pasan a ser un interruptor en «Grupos». Un archivo de ajustes anterior
+  conserva cómo los tenías.
 - En las listas de cabecera, segunda línea y pie, los elementos ocultos ya no llenan la caja
   «Derecha»: van en un grupo «Ocultos» plegado debajo; al mostrar uno, va al final de su lado.
 

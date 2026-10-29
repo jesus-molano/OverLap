@@ -170,7 +170,8 @@ describe('SKIP_EMIT', () => {
     playerLastLaps: [90],
     ahead: null,
     behind: null,
-    multiBrand: false
+    multiBrand: false,
+    info: null
   }
 
   it('battle: one hidden payload is sent, the following hidden ones are not', () => {
@@ -237,8 +238,14 @@ describe('SKIP_EMIT', () => {
     passing: null,
     hazard: null
   }
-  const noTraffic: TrafficData = { visible: false, faster: [], slower: [], hazards: [] }
-  const traffic: TrafficData = { visible: true, faster: [entry], slower: [], hazards: [] }
+  const noTraffic: TrafficData = { visible: false, faster: [], slower: [], hazards: [], info: null }
+  const traffic: TrafficData = {
+    visible: true,
+    faster: [entry],
+    slower: [],
+    hazards: [],
+    info: null
+  }
 
   it('traffic: nothing around is sent once; an unchanged list is not re-sent', () => {
     const skip = SKIP_EMIT.traffic

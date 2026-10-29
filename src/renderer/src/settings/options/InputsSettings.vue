@@ -171,7 +171,7 @@ const setCar = listSetter('inputs', 'car')
     />
   </PageSection>
 
-  <CustomizeSection>
+  <CustomizeSection no-bars>
     <ElementEditor
       :title="zoneTitle(t, 'inputs', 'sections')"
       :items="opts.sections"

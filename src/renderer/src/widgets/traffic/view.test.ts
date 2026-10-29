@@ -66,7 +66,7 @@ function entry(over: Partial<TrafficEntry> = {}): TrafficEntry {
 }
 
 function traffic(over: Partial<TrafficData> = {}): TrafficData {
-  return { visible: true, faster: [], slower: [], hazards: [], ...over }
+  return { visible: true, faster: [], slower: [], hazards: [], info: null, ...over }
 }
 
 const OPTS: TrafficViewOptions = {
@@ -425,7 +425,9 @@ describe('groups and slots', () => {
     // The defaults draw today's widget: every group in that order, captions and title, every cell.
     const S = OPTION_SCHEMA.traffic
     expect(visibleIds(S.groups.default)).toEqual(GROUP_ORDER)
-    expect(visibleIds(S.header.default)).toEqual(['title', 'captions'])
+    expect(S.headerBarSize.default).toBe('normal')
+    expect(visibleIds(S.headerBar.default)).toEqual(['title', 'split'])
+    expect(S.captions.default).toBe(true)
     expect(visibleIds(S.parts.default)).toEqual([
       'icon',
       'cls',
