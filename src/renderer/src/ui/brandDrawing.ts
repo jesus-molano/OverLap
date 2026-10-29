@@ -2,6 +2,7 @@ import type { BrandId } from '@shared/carBrands'
 import type { AppearanceSettings } from '@shared/types'
 import { brandLogo } from './brandLogos'
 import { colorLogo, type ColorLayer } from './brandLogosColor'
+import { LOGO_SCALE_COLOR, LOGO_SCALE_MONO } from './brandLogoSizes'
 
 /** settings.appearance.brandLogos: each make in its colours, or all in one ink. */
 export type BrandLogoStyle = AppearanceSettings['brandLogos']
@@ -22,6 +23,11 @@ export interface BrandDrawing {
   readonly paths: readonly BrandPath[]
   /** Drawn in the make's colours (or their greys), not in currentColor. */
   readonly colored: boolean
+  /**
+   * Its height in heights of BrandMark's slot, so every logo reads at about the same size
+   * (brandLogoSizes.ts, generated from the paths).
+   */
+  readonly scale: number
 }
 
 /** Relative luminance (sRGB) of '#rrggbb'. */
@@ -95,18 +101,21 @@ export function brandDrawing(
   const color = colorLogo(brand)
   const mono = brandLogo(brand)
   let out: BrandDrawing | null = null
+  const known = brand === 'unknown' ? null : brand
+  const monoScale = (known && LOGO_SCALE_MONO[known]) ?? 1
   if (style === 'mono' && mono) {
-    out = { viewBox: mono.viewBox, paths: [{ d: mono.d }], colored: false }
+    out = { viewBox: mono.viewBox, paths: [{ d: mono.d }], colored: false, scale: monoScale }
   } else if (color) {
     const inks = color.layers.map((l) => (surface === 'dark' ? (l.onDark ?? l.fill) : l.fill))
     const fills = style === 'mono' ? monoInks(inks, surface) : inks
     out = {
       viewBox: color.viewBox,
       paths: color.layers.map((l, i) => layerPath(l, fills[i] ?? l.fill)),
-      colored: true
+      colored: true,
+      scale: (known && LOGO_SCALE_COLOR[known]) ?? 1
     }
   } else if (mono) {
-    out = { viewBox: mono.viewBox, paths: [{ d: mono.d }], colored: false }
+    out = { viewBox: mono.viewBox, paths: [{ d: mono.d }], colored: false, scale: monoScale }
   }
   cache.set(key, out)
   return out

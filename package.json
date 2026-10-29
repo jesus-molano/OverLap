@@ -16,6 +16,7 @@
   "scripts": {
     "format": "prettier --write .",
     "icons": "electron scripts/icons.mjs",
+    "logo-sizes": "node --no-warnings scripts/brand-logo-sizes.mjs",
     "lint": "eslint --cache .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
