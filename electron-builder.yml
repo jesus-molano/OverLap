@@ -1,5 +1,6 @@
-appId: dev.local.overlap
+appId: io.github.jesus-molano.overlap
 productName: OverLap
+copyright: Copyright (c) 2026 Jesús Molano. All rights reserved.
 directories:
   buildResources: build
   output: dist
@@ -21,6 +22,12 @@ files:
   - '!**/node_modules/koffi/cnoke.cjs'
   - '!**/node_modules/@koromix/koffi-!(win32-x64)/**'
   - '!**/node_modules/@koromix/koffi-win32-x64/**/*.lib'
+# Shipped next to OverLap.exe (the portable unpacks them into its temp folder; also inside the exe).
+extraFiles:
+  - from: LICENSE
+    to: LICENSE.txt
+  - from: THIRD_PARTY_NOTICES.md
+    to: THIRD_PARTY_NOTICES.md
 asarUnpack:
   - resources/**
   # The iRacing SDK addon is loaded with node-gyp-build from its own folder.

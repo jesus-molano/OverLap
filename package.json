@@ -3,7 +3,8 @@
   "version": "2.0.0",
   "description": "OverLap: overlay de sim racing para iRacing (relativo, radar, clasificación, batalla, delta y más)",
   "main": "./out/main/index.js",
-  "author": "jessumolano",
+  "author": "Jesús Molano",
+  "license": "UNLICENSED",
   "homepage": "https://github.com/jesus-molano/OverLap#readme",
   "repository": {
     "type": "git",

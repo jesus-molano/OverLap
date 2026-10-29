@@ -65,7 +65,7 @@ import { createTray, destroyTray, updateTray, type TrayState } from './tray'
  * sent to the game.
  */
 
-const APP_USER_MODEL_ID = 'dev.local.overlap'
+const APP_USER_MODEL_ID = 'io.github.jesus-molano.overlap'
 /** Backstop for before-quit: telemetry.stop() resolves within ~2 s on its own. */
 const FORCE_EXIT_AFTER_MS = 5_000
 

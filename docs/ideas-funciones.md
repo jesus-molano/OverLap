@@ -1,12 +1,14 @@
 # OverLap: qué podemos añadir con datos reales de iRacing
 
 Fecha: 25-10-2026. En qué se basa este informe:
+
 - He contrastado cada idea con el SDK que usa OverLap (irsdk-node 4.4.0 y las cabeceras oficiales de iRacing).
 - He usado tu grabación real: MX-5 Cup en Okayama, carrera offline contra la IA.
 - He repasado unas 20 herramientas de la competencia y los hilos de r/iRacing de 2026.
 - No me he conectado a iRacing, no he arrancado la app y no he tocado el proyecto.
 
 **Lo primero que hay que saber.** El rival ya no es RaceLab, es el **iRacing nativo de 2026**. Desde S3/S4 el sim trae de serie:
+
 - un mapa del circuito con 4 modos;
 - un calculador de combustible;
 - un Incident Tracker;
@@ -16,6 +18,7 @@ Fecha: 25-10-2026. En qué se basa este informe:
 Por tanto, un overlay solo se gana su sitio si **muestra lo que el sim no enseña, o si lo hace mejor**. Y lo que más valora la gente es lo que ya buscamos: que sea ligero, legible, gratis y sin cuenta.
 
 Esfuerzo:
+
 - **S**: va dentro de un widget que ya existe y usa pocas variables nuevas.
 - **M**: un widget nuevo, o un modelo derivado encima del RaceModel.
 - **L**: un subsistema nuevo (grabación más persistencia, o un lector de ficheros).
@@ -29,36 +32,36 @@ Esfuerzo:
 - **No se puede saber qué pieza está dañada** (alerón, suspensión, dirección…). El SDK no lo exporta: solo lo tiene el widget nativo Car Damage.
 - **Sí hay datos reales para todo esto:**
 
-  | Qué | Dato |
-  |---|---|
-  | Segundos de reparación obligatoria y opcional | `PitRepairLeft`, `PitOptRepairLeft` |
-  | "Reparación obligatoria / opcional pendiente" | Bits 0x80 / 0x100 de `EngineWarnings`. Ya leemos esa variable, pero solo usamos el bit del limitador |
-  | Bandera meatball | Ya la mostramos en Alertas |
-  | Fast repairs disponibles y usadas | `FastRepairAvailable` (255 = ilimitadas) y `FastRepairUsed`. Tu sesión permite 1 |
-  | Grúa: segundos que quedan | `PlayerCarTowTime` |
-  | "Boxes: no se puede reparar" | `PlayerCarPitSvStatus` = 105 |
-  | Avisos de motor | Agua, presión de aceite y de combustible, temperatura de aceite y calado, más las temperaturas reales (`WaterTemp`, `OilTemp`, `OilPress`…) |
+  | Qué                                           | Dato                                                                                                                                        |
+  | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Segundos de reparación obligatoria y opcional | `PitRepairLeft`, `PitOptRepairLeft`                                                                                                         |
+  | "Reparación obligatoria / opcional pendiente" | Bits 0x80 / 0x100 de `EngineWarnings`. Ya leemos esa variable, pero solo usamos el bit del limitador                                        |
+  | Bandera meatball                              | Ya la mostramos en Alertas                                                                                                                  |
+  | Fast repairs disponibles y usadas             | `FastRepairAvailable` (255 = ilimitadas) y `FastRepairUsed`. Tu sesión permite 1                                                            |
+  | Grúa: segundos que quedan                     | `PlayerCarTowTime`                                                                                                                          |
+  | "Boxes: no se puede reparar"                  | `PlayerCarPitSvStatus` = 105                                                                                                                |
+  | Avisos de motor                               | Agua, presión de aceite y de combustible, temperatura de aceite y calado, más las temperaturas reales (`WaterTemp`, `OilTemp`, `OilPress`…) |
 
 - **Falta comprobarlo en una sesión** (es decisivo): ¿aparecen los segundos de reparación **en pista** justo después del golpe, o solo en el box? Si solo aparecen en el box, la caja diría "reparación obligatoria pendiente" sin segundos.
 - **Hoy OverLap no muestra nada de daños,** salvo la meatball.
 
 ### Avisos que nos faltan
 
-| Aviso | Dato real | Ojo |
-|---|---|---|
-| **Exceso de velocidad con el limitador OFF** | `OnPitRoad` + `Speed` + el límite del YAML ("60.00 kph") | Hoy solo pone "OFF", aunque vayas a 80 |
-| **Limitador antes de entrar al pit** | `PlayerTrackSurface` = 2 (zona de boxes) | En tu grabación esa zona también cubre la salida (ibas a 65–85 km/h con ella activa). Solo hay que avisar al pasar de pista a zona de boxes, y callarse en cuanto has pasado por el pit lane |
-| **Bandera negra enrollada** (aviso, bit 0x80000) | `SessionFlags` / `CarIdxSessionFlags` | Ya está definida en el código pero no se muestra. Texto neutro: "AVISO" |
-| **10 / 5 vueltas para el final** | `SessionLapsRemainEx` | Hay que calcularlo nosotros: probablemente iRacing nunca activa sus propios bits de 10/5 |
-| **Grúa con cuenta atrás** | `PlayerCarTowTime` | — |
-| **Motor calado, agua, aceite, presión** | Bits 0x8, 0x1, 0x2, 0x4 y 0x40 de `EngineWarnings` | El de calado, solo con `IsOnTrack`. El MX-5 lleva anticalado, así que será raro |
-| **Sentido contrario** | Derivado de `LapDistPct` | Ignorarlo marcha atrás y en el pit lane |
-| **Incidente "+2x"** | Ver "Incidentes" | — |
-| Boxes cerrados | `PitsOpen` | En Okayama offline (cautions locales) nunca salta |
-| Pista mojada | `WeatherDeclaredWet`, `TrackWetness`, `Precipitation` | Con tu meteo "clásica" nunca llueve. Sirve con meteo realista |
-| Semáforo de salida y tiempo de reacción | Bits de salida de `SessionFlags` | Solo en salida parada. Las tuyas son lanzadas (`StandingStart: 0`) |
-| Conexión inestable | `ChanQuality`, `ChanLatency` | Solo online |
-| Cambio de compuesto obligatorio pendiente | YAML `SessionEnforceTireCompoundChange` + `PlayerTireCompound` | Solo si la sesión lo exige |
+| Aviso                                            | Dato real                                                      | Ojo                                                                                                                                                                                          |
+| ------------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Exceso de velocidad con el limitador OFF**     | `OnPitRoad` + `Speed` + el límite del YAML ("60.00 kph")       | Hoy solo pone "OFF", aunque vayas a 80                                                                                                                                                       |
+| **Limitador antes de entrar al pit**             | `PlayerTrackSurface` = 2 (zona de boxes)                       | En tu grabación esa zona también cubre la salida (ibas a 65–85 km/h con ella activa). Solo hay que avisar al pasar de pista a zona de boxes, y callarse en cuanto has pasado por el pit lane |
+| **Bandera negra enrollada** (aviso, bit 0x80000) | `SessionFlags` / `CarIdxSessionFlags`                          | Ya está definida en el código pero no se muestra. Texto neutro: "AVISO"                                                                                                                      |
+| **10 / 5 vueltas para el final**                 | `SessionLapsRemainEx`                                          | Hay que calcularlo nosotros: probablemente iRacing nunca activa sus propios bits de 10/5                                                                                                     |
+| **Grúa con cuenta atrás**                        | `PlayerCarTowTime`                                             | —                                                                                                                                                                                            |
+| **Motor calado, agua, aceite, presión**          | Bits 0x8, 0x1, 0x2, 0x4 y 0x40 de `EngineWarnings`             | El de calado, solo con `IsOnTrack`. El MX-5 lleva anticalado, así que será raro                                                                                                              |
+| **Sentido contrario**                            | Derivado de `LapDistPct`                                       | Ignorarlo marcha atrás y en el pit lane                                                                                                                                                      |
+| **Incidente "+2x"**                              | Ver "Incidentes"                                               | —                                                                                                                                                                                            |
+| Boxes cerrados                                   | `PitsOpen`                                                     | En Okayama offline (cautions locales) nunca salta                                                                                                                                            |
+| Pista mojada                                     | `WeatherDeclaredWet`, `TrackWetness`, `Precipitation`          | Con tu meteo "clásica" nunca llueve. Sirve con meteo realista                                                                                                                                |
+| Semáforo de salida y tiempo de reacción          | Bits de salida de `SessionFlags`                               | Solo en salida parada. Las tuyas son lanzadas (`StandingStart: 0`)                                                                                                                           |
+| Conexión inestable                               | `ChanQuality`, `ChanLatency`                                   | Solo online                                                                                                                                                                                  |
+| Cambio de compuesto obligatorio pendiente        | YAML `SessionEnforceTireCompoundChange` + `PlayerTireCompound` | Solo si la sesión lo exige                                                                                                                                                                   |
 
 Los cinco primeros son baratos (S) y sirven en todas tus carreras.
 
@@ -67,6 +70,7 @@ Los cinco primeros son baratos (S) y sirven en todas tus carreras.
 **Sí, pero no con coordenadas en vivo, porque no existen.** No hay X/Y de ningún coche. `Lat`/`Lon` solo se graban en el fichero `.ibt` del disco, y solo los de tu coche.
 
 Hay tres formas, de menos a más esfuerzo:
+
 1. **Tira de pista (desde el primer segundo).** Una línea con cada coche situado por su % de vuelta, más los sectores y tu box.
 2. **Mapa 2D aprendido de tu propia vuelta limpia.**
    - Se integran la velocidad y el rumbo (`Speed`, `YawNorth`) a 60 Hz.
@@ -78,11 +82,13 @@ Hay tres formas, de menos a más esfuerzo:
    - Hay que escribir un lector propio pequeño.
 
 Límites:
+
 - **Nunca se verá a dos coches lado a lado**, porque no hay posición lateral.
 - Hay que validar una vez la orientación: con el signo cambiado, el mapa sale en espejo pero cierra perfecto.
 - **No usaremos los SVG de iRacing.** Son suyos, y la API de datos no da accesos nuevos desde marzo de 2026.
 
 Ojo: el nativo ya tiene mapa. El nuestro solo vale la pena si dibuja lo que ya calculamos y el nativo no:
+
 - peligros en pista;
 - tu rival de batalla;
 - dónde te alcanza la clase rápida;
@@ -93,16 +99,17 @@ Ojo: el nativo ya tiene mapa. El nuestro solo vale la pena si dibuja lo que ya c
 **A medias.** Leemos tu contador (`PlayerCarMyIncidentCount`), pero solo aparece en la línea de SR de la cabecera de Standings, y solo en carreras **oficiales puntuables**. Por eso, en tu carrera de IA en Okayama llegaste a **11x y OverLap no mostró nada**.
 
 Lo que se puede añadir enseguida (S):
+
 - un contador siempre visible;
 - un aviso "+Nx" con el **tipo** de incidente, leído de `PlayerIncidents`, y en qué vuelta y sector fue:
 
-  | Tipo | Puntos |
-  |---|---|
-  | Pérdida de control | 2x |
-  | Salida de pista | 1x |
-  | Golpe contra el muro | 2x |
-  | Choque con otro coche | 4x |
-  | Contacto leve | 0x |
+  | Tipo                  | Puntos |
+  | --------------------- | ------ |
+  | Pérdida de control    | 2x     |
+  | Salida de pista       | 1x     |
+  | Golpe contra el muro  | 2x     |
+  | Choque con otro coche | 4x     |
+  | Contacto leve         | 0x     |
 
 - el **margen hasta la penalización o la DQ**, cuando la sesión tiene límite. Tu sesión era "unlimited", así que ahí solo saldría "11x".
 
@@ -112,12 +119,12 @@ Lo que se puede añadir enseguida (S):
 
 - **iRacing no da un contador de infracciones, ni el tipo de penalización** (drive-through, stop & go, segundos), ni el motivo. Solo da **bits de bandera**, tuyos y de cada coche:
 
-  | Bandera | Bit | Nota |
-  |---|---|---|
-  | Negra | 0x10000 | |
-  | DQ | 0x20000 | |
-  | Negra enrollada (aviso) | 0x80000 | |
-  | Meatball | 0x100000 | |
+  | Bandera                      | Bit      | Nota                               |
+  | ---------------------------- | -------- | ---------------------------------- |
+  | Negra                        | 0x10000  |                                    |
+  | DQ                           | 0x20000  |                                    |
+  | Negra enrollada (aviso)      | 0x80000  |                                    |
+  | Meatball                     | 0x100000 |                                    |
   | "DQ por puntuación inválida" | 0x200000 | Aún no está definida en `flags.ts` |
 
 - **Hoy:**
@@ -137,6 +144,7 @@ Lo que se puede añadir enseguida (S):
 ## 2. Top 10 recomendado (de más rentable a menos)
 
 ### 1. Incidentes siempre visibles + aviso "+Nx" (esfuerzo S)
+
 - **Qué ves:**
   - un chip fijo `3x`;
   - al sumar un incidente, `+2x Pérdida de control · V5 · S3 · grava`;
@@ -156,6 +164,7 @@ Lo que se puede añadir enseguida (S):
   - alimenta la memoria de incidentes por curva (sección 3).
 
 ### 2. Paquete de avisos que faltan (esfuerzo S)
+
 - **Qué ves:** `EXCESO 68/60 · LIMITADOR OFF`, `LIMITADOR` al acercarte a la entrada, `AVISO (negra enrollada)`, `5 VUELTAS`, `GRÚA 0:42`, `CALADO` y `SENTIDO CONTRARIO`.
 - **Datos:** `OnPitRoad`, `Speed`, `TrackPitSpeedLimit`, `PlayerTrackSurface`, `SessionFlags`/`CarIdxSessionFlags`, `SessionLapsRemainEx`, `PlayerCarTowTime`, `EngineWarnings`, `LapDistPct` y `Gear`.
 - **Límites:**
@@ -166,6 +175,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** ya tenemos la banda de alertas con prioridades, tiempo mínimo en pantalla y modo daltónico. Solo hay que añadir casos.
 
 ### 3. Standings y Relative con lo que el nativo no da (esfuerzo S)
+
 - **Qué ves:**
   - la mejor vuelta también en carrera (hoy solo sale la última);
   - `stint 7 v` y `última parada V12`;
@@ -183,6 +193,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** sale casi gratis porque el RaceModel ya lo calcula, y está dentro del propio overlay.
 
 ### 4. Salud del motor (esfuerzo S)
+
 - **Qué ves:** iconos `AGUA` / `ACEITE` / `PRESIÓN`, y `Agua 98 °C ↑ +6 vs tu media (¿rebufo?)`.
 - **Datos:** los bits 0x1, 0x2, 0x4 y 0x40 de `EngineWarnings`, más `WaterTemp`, `OilTemp`, `OilPress`, `FuelPress` y `Voltage`.
 - **Límites:**
@@ -192,6 +203,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** la tendencia se mide contra tu propia referencia, no solo contra el umbral rojo del sim.
 
 ### 5. Ocultar OverLap cuando ocultas la interfaz del sim, abres el garaje o ves una repetición (esfuerzo S)
+
 - **Qué ves:** si ocultas la UI de iRacing o abres el garaje, los widgets desaparecen también. En una repetición siguen al coche que estás mirando.
 - **Datos:** `CamCameraState & 0x8` (UI oculta), `IsGarageVisible`, `IsReplayPlaying` y `CamCarIdx`.
 - **Límites:** en una repetición el tiempo va hacia atrás. Los modelos tienen que ignorarlo y no deben registrar incidentes de la repetición.
@@ -199,6 +211,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** es barato y ataca la queja de "demasiadas cosas en pantalla".
 
 ### 6. Condiciones de pista (esfuerzo S)
+
 - **Qué ves:**
   - `Pista 34 °C ↑ · Aire 22 °C · Viento 10 km/h de cara en recta · Goma moderada`;
   - con lluvia, `Mojado 3/7 · Lluvia 40 % · DECLARADA MOJADA`.
@@ -216,6 +229,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** el viento relativo a tu coche y la tendencia de la temperatura de pista, dentro del overlay.
 
 ### 7. Tira de pista (esfuerzo S–M)
+
 - **Qué ves:** una línea con todos los coches por su % de vuelta, los sectores y tu box. Encima: los peligros (coche parado o fuera de pista), tu rival de batalla resaltado y la clase rápida acercándose.
 - **Datos:**
   - `CarIdxLapDistPct` (-1 = fuera del mundo);
@@ -229,6 +243,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** funciona desde el primer segundo y es la base del mapa 2D.
 
 ### 8. Caja de reparaciones (esfuerzo M)
+
 - **Qué ves:**
   - `REPARACIÓN oblig. 14 s · opc. 38 s · FR 1/1`;
   - en el box, la cuenta atrás;
@@ -251,6 +266,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** es el tema más caliente de 2026 (hilos de 195, 210 y 100 puntos sobre no entender las reparaciones). Además es la base de "¿Reparo o sigo?".
 
 ### 9. Ayuda para reincorporarte a pista (esfuerzo M)
+
 - **Qué ves:** si estás fuera de pista o parado, `ESPERA · coche a 2,1 s` o `LIBRE 6 s`, con los coches que vienen por detrás.
 - **Datos:** `PlayerTrackSurface` / `CarIdxTrackSurface` (3 = en pista), `CarIdxLapDistPct`, `CarIdxOnPitRoad`, el ritmo del RaceModel y `Speed`.
 - **Límites:**
@@ -263,6 +279,7 @@ Lo que se puede añadir enseguida (S):
 - **Cómo lo haríamos mejor:** reutiliza la lógica "por detrás" del widget Tráfico. Las reincorporaciones peligrosas están entre las quejas más votadas del año.
 
 ### 10. Mapa 2D aprendido de tu vuelta (esfuerzo L)
+
 - **Qué ves:**
   - el dibujo del circuito con todos los coches;
   - mientras graba, `grabando mapa · 63 %`;
@@ -286,18 +303,18 @@ Lo que se puede añadir enseguida (S):
 
 ### Siguientes candidatos (fuera del top 10)
 
-| Idea | Esfuerzo | Datos / nota |
-|---|---|---|
-| Ayudante de boxes | M | Distancia a tu box, colocación en el box (`PlayerCarPitSvStatus` 100–104) y tráfico a la salida |
-| "Si paro ahora" | M–L | Posición en la que saldrías de boxes. Solo lo hacen bien StintView, Crew Chief (por voz) y RaceLab Pro |
-| Delta oficial de iRacing | S | Contra el mejor de la sesión o la vuelta óptima (`LapDeltaToSessionBestLap`, `…OptimalLap`). En clasificación, "vs pole" en vivo |
-| Media de vueltas limpias de iRacing | S | `LapLastNLapTime`. Offline parece inactiva |
-| Luces de cambio | S | `PlayerCarSL*RPM` + `RPM`. En el MX-5, cambiar a 7200 |
-| Juegos de neumáticos restantes | S | Solo en series con límite |
-| Uso de pianos por curva | S–M, por comprobar | `Tire*_RumblePitch` |
-| Detectar tirones por paginación de memoria | S | `MemPageFaultSec` + `FrameRate` |
-| Ayuda de salida lanzada y reinicios | S–M | `PaceMode`, `CarIdxPaceLine/Row` |
-| Combustible preciso | S–M | Poco útil en los sprints del MX-5 |
+| Idea                                       | Esfuerzo           | Datos / nota                                                                                                                     |
+| ------------------------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Ayudante de boxes                          | M                  | Distancia a tu box, colocación en el box (`PlayerCarPitSvStatus` 100–104) y tráfico a la salida                                  |
+| "Si paro ahora"                            | M–L                | Posición en la que saldrías de boxes. Solo lo hacen bien StintView, Crew Chief (por voz) y RaceLab Pro                           |
+| Delta oficial de iRacing                   | S                  | Contra el mejor de la sesión o la vuelta óptima (`LapDeltaToSessionBestLap`, `…OptimalLap`). En clasificación, "vs pole" en vivo |
+| Media de vueltas limpias de iRacing        | S                  | `LapLastNLapTime`. Offline parece inactiva                                                                                       |
+| Luces de cambio                            | S                  | `PlayerCarSL*RPM` + `RPM`. En el MX-5, cambiar a 7200                                                                            |
+| Juegos de neumáticos restantes             | S                  | Solo en series con límite                                                                                                        |
+| Uso de pianos por curva                    | S–M, por comprobar | `Tire*_RumblePitch`                                                                                                              |
+| Detectar tirones por paginación de memoria | S                  | `MemPageFaultSec` + `FrameRate`                                                                                                  |
+| Ayuda de salida lanzada y reinicios        | S–M                | `PaceMode`, `CarIdxPaceLine/Row`                                                                                                 |
+| Combustible preciso                        | S–M                | Poco útil en los sprints del MX-5                                                                                                |
 
 ### Antes de construir: una sesión de prueba tuya (unos 20 min offline)
 
@@ -322,6 +339,7 @@ Lo que se puede añadir enseguida (S):
 ## 3. Lo que nadie hace bien (ideas diferenciales)
 
 ### "¿Reparo o sigo?" (esfuerzo M–L; necesita la caja de reparaciones)
+
 - **Qué ves:** `Daño: −0,9 s/v (S3 +0,6) · punta −4 km/h · volante torcido 3,5° → quedan 9 v, pierdes ~8 s · parar cuesta 38 s → SIGUE`.
 - **Cómo se calcula:**
   - ritmo por sector antes y después del golpe;
@@ -331,19 +349,23 @@ Lo que se puede añadir enseguida (S):
 - **Por qué no lo tiene nadie:** el nativo dice dónde está el daño, pero nadie dice **cuánto te cuesta** ni si la parada compensa. Se mostraría con una banda de confianza.
 
 ### "Dónde le gano" (esfuerzo M)
+
 - **Qué ves:** `Le ganas 0,21 s en T5–T7 · él te gana 0,15 s en la recta trasera`. Y lo mismo con el coche de detrás: `te gana en la frenada de T1`.
 - **Cómo se calcula:** el RaceModel ya cronometra a **todos** los coches en 100 puntos por vuelta (unos 36 m en Okayama). Se agrupan en zonas usando las últimas 3 vueltas limpias de los dos.
 - **Por qué no lo tiene nadie:** en una monomarca como el MX-5 decide dónde preparar el adelantamiento. La predicción de adelantamiento es lo más votado del roadmap de RaceLab, y está sin terminar.
 
 ### Memoria de incidentes por curva entre sesiones (esfuerzo M)
+
 - **Qué ves:** `Okayama T1 en V1: 3 de tus últimos 5 incidentes`, `T7: 2 salidas hoy en práctica`.
 - **Por qué no lo tiene nadie:** el tracker nativo lo olvida todo al acabar la sesión, y Garage 61 guarda vueltas, no incidentes.
 
 ### "Quién cae, quién viene" (esfuerzo S–M)
+
 - **Qué ves:** en Standings, una flecha de tendencia por rival: `▲ −0,4 s/v` o `▼ +0,3 s/v`. Si además lleva meatball o ha usado la fast repair, eso explica la caída.
 - **Cómo se calcula:** con la pendiente de sus últimas 3 a 5 vueltas limpias. En sprints de 12 vueltas, se oculta si hay menos de 3.
 
 ### Ocultado inteligente según el momento de la carrera (esfuerzo M)
+
 - **Qué ves:** cada widget aparece solo cuando importa:
   - Standings, en recta o bajo caution;
   - el ayudante de boxes, en el pit lane;
@@ -352,6 +374,7 @@ Lo que se puede añadir enseguida (S):
 - **Por qué no lo tiene nadie:** el nativo es manual, e irDashies solo cambia por tipo de sesión.
 
 ### Dos extras pequeños
+
 - **Contador de banderas por sesión:** "Avisos 2 · Negras 1". Es lo más parecido a "número de infracciones" que permiten los datos reales.
 - **"Tirón: paginación de memoria":** para distinguir si el que da tirones es OverLap o tu PC.
 
@@ -359,26 +382,27 @@ Lo que se puede añadir enseguida (S):
 
 ## 4. Descartado y por qué
 
-| Idea | Por qué no | Qué hacer en su lugar |
-|---|---|---|
-| Dibujo del coche con daño por pieza | El SDK no lo exporta | Caja de reparaciones y "¿Reparo o sigo?". Para ver dónde está el daño, el widget nativo |
-| Radar lateral "de verdad", o dos coches lado a lado en el mapa | No hay posición lateral de los demás. Solo `CarLeftRight` (izquierda/derecha, y solo para ti) | El radar actual: barras de lado + distancia longitudinal |
-| Temperaturas, desgaste y presiones de neumáticos en vivo | Solo se actualizan en el box. Las presiones en caliente y la temperatura de superficie solo existen en el disco | Como mucho, una tarjeta tras la parada con los datos del YAML (`LastHotPressure`, `LastTemps*`, `TreadRemaining`) |
-| Puntos de incidente de los rivales | No están en los datos: IA a 0 y resultados a 0. Online, sin verificar | Contar sus salidas de pista, etiquetadas como "salidas" |
-| Tipo de penalización, segundos o motivo | Solo hay bits de bandera | Distintivos por coche + aviso de negra enrollada + contador de banderas |
-| Pronóstico del tiempo | No existe en el SDK | Tendencias de temperatura y humedad |
-| Mapa con coordenadas en vivo | `Lat`/`Lon` solo en el `.ibt` del disco, y solo de tu coche | Mapa aprendido de tu vuelta, o leído del `.ibt` |
-| Usar los mapas SVG de iRacing | Son propiedad de iRacing y la API no da accesos nuevos | Mapa propio |
-| Poner combustible o reparaciones automáticamente | El SDK lo permite, pero OverLap es de solo lectura por diseño | Indicarlo como texto: "pon 14 L", "marca FR" |
-| Pedales, combustible o neumáticos de los rivales | Solo hay su marcha, sus RPM y su volante | No hace falta |
-| Spotter por voz | Crew Chief ya lo hace gratis y bien | Avisos visuales, quizá un pitido opcional |
-| iR/SR en carreras offline | `Official` = 0 y tu iRating offline es 1 | Mostrar solo en oficiales (como ahora) |
+| Idea                                                           | Por qué no                                                                                                      | Qué hacer en su lugar                                                                                             |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Dibujo del coche con daño por pieza                            | El SDK no lo exporta                                                                                            | Caja de reparaciones y "¿Reparo o sigo?". Para ver dónde está el daño, el widget nativo                           |
+| Radar lateral "de verdad", o dos coches lado a lado en el mapa | No hay posición lateral de los demás. Solo `CarLeftRight` (izquierda/derecha, y solo para ti)                   | El radar actual: barras de lado + distancia longitudinal                                                          |
+| Temperaturas, desgaste y presiones de neumáticos en vivo       | Solo se actualizan en el box. Las presiones en caliente y la temperatura de superficie solo existen en el disco | Como mucho, una tarjeta tras la parada con los datos del YAML (`LastHotPressure`, `LastTemps*`, `TreadRemaining`) |
+| Puntos de incidente de los rivales                             | No están en los datos: IA a 0 y resultados a 0. Online, sin verificar                                           | Contar sus salidas de pista, etiquetadas como "salidas"                                                           |
+| Tipo de penalización, segundos o motivo                        | Solo hay bits de bandera                                                                                        | Distintivos por coche + aviso de negra enrollada + contador de banderas                                           |
+| Pronóstico del tiempo                                          | No existe en el SDK                                                                                             | Tendencias de temperatura y humedad                                                                               |
+| Mapa con coordenadas en vivo                                   | `Lat`/`Lon` solo en el `.ibt` del disco, y solo de tu coche                                                     | Mapa aprendido de tu vuelta, o leído del `.ibt`                                                                   |
+| Usar los mapas SVG de iRacing                                  | Son propiedad de iRacing y la API no da accesos nuevos                                                          | Mapa propio                                                                                                       |
+| Poner combustible o reparaciones automáticamente               | El SDK lo permite, pero OverLap es de solo lectura por diseño                                                   | Indicarlo como texto: "pon 14 L", "marca FR"                                                                      |
+| Pedales, combustible o neumáticos de los rivales               | Solo hay su marcha, sus RPM y su volante                                                                        | No hace falta                                                                                                     |
+| Spotter por voz                                                | Crew Chief ya lo hace gratis y bien                                                                             | Avisos visuales, quizá un pitido opcional                                                                         |
+| iR/SR en carreras offline                                      | `Official` = 0 y tu iRating offline es 1                                                                        | Mostrar solo en oficiales (como ahora)                                                                            |
 
 ---
 
 ## 5. Fuentes
 
 **iRacing (nativo y notas de versión)**
+
 - https://support.iracing.com/support/solutions/articles/31000179517-2026-season-4-initial-release-notes-2026-09-09-01-
 - https://boxthislap.org/iracing-2026-season-3-release-notes/
 - https://boxthislap.org/iracing-2026-season-2-release-notes/
@@ -388,6 +412,7 @@ Lo que se puede añadir enseguida (S):
 - https://www.explosion.com/game-guides/iracing-patch-notes/ (fuente secundaria)
 
 **Overlays**
+
 - RaceLab:
   - https://racelab.app/
   - https://racelab.app/iracing
@@ -409,12 +434,14 @@ Lo que se puede añadir enseguida (S):
 - GO Setups: https://support.gosetups.gg/hc/en-gb/articles/23224288679570-Free-vs-Paid-What-Is-Included-Without-a-Subscription
 
 **SimHub**
+
 - https://www.simhubdash.com/get-a-license/
 - https://github.com/fixfactory/bo2-official-overlays (benofficial2)
 - https://www.simhubdash.com/community-2/dashboard-templates/romainrobs-collection/
 - https://danielnewmanracing.com/products/overlays
 
 **Telemetría, spotter y live timing**
+
 - Garage 61:
   - https://iracerhub.com/garage-61-now-has-live-timing-what-it-does-and-why-endurance-racers-should-know/
   - https://www.reddit.com/r/iRacing/comments/1szadi1/
@@ -428,6 +455,7 @@ Lo que se puede añadir enseguida (S):
   - https://coachdaveacademy.com/tutorials/10-must-have-free-apps-for-iracing/
 
 **Hilos de r/iRacing** (leídos a través del archivo Arctic Shift)
+
 - Qué le falta al nativo:
   - https://www.reddit.com/r/iRacing/comments/1u3do88/
   - https://www.reddit.com/r/iRacing/comments/1xax78h/
