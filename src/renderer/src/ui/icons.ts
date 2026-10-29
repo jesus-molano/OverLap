@@ -105,6 +105,11 @@ export const ICONS = {
   minus: [{ d: 'M3.5 8h9', kind: 'stroke' }],
   /** Add one more (a shortcut's binding). */
   plus: [{ d: 'M8 3.5v9M3.5 8h9', kind: 'stroke' }],
+  /** Back to the default (a reset that is an icon): an arrow turning back. */
+  reset: [
+    { d: 'M3.6 6.2A4.75 4.75 0 1 1 3.4 9.6', kind: 'stroke' },
+    { d: 'M3.25 2.75v3.6h3.6', kind: 'stroke' }
+  ],
   /** Remove this one (a shortcut's binding). */
   close: [{ d: 'M4.5 4.5l7 7M11.5 4.5l-7 7', kind: 'stroke' }],
   /** Gaining / up (replaces the ▲ glyph next to other icons). */

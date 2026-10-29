@@ -13,6 +13,8 @@ import {
   editModeTooltip,
   focusAfter,
   refusalText,
+  rowAnnouncement,
+  rowCells,
   rowMessages,
   shortcutRows,
   sidebarKeys,
@@ -254,69 +256,101 @@ describe('refusalText', () => {
   })
 })
 
-describe('rowMessages', () => {
+describe('rowMessages and rowAnnouncement', () => {
   const overlay = row(defaults, 0)
 
-  it('while recording: how to cancel (and remove), or why the last binding was refused', () => {
-    // Over its binding.
-    expect(rowMessages(es, overlay, null, 0)).toEqual([
-      { text: 'Esc cancela · Retroceso o Supr lo quitan', tone: 'info' }
-    ])
-    // One more: nothing to remove.
-    expect(rowMessages(es, overlay, null, 1)).toEqual([{ text: 'Esc cancela', tone: 'info' }])
+  it('while recording: nothing drawn but a refusal or "press again", under the cell recorded', () => {
+    // How to cancel is in the cell and the legend: only said to screen readers.
+    expect(rowMessages(es, overlay, null, 0)).toEqual([])
+    expect(rowAnnouncement(es, overlay, null, 0)).toBe('Esc cancela · Retroceso o Supr lo quitan')
+    expect(rowAnnouncement(es, overlay, null, 1)).toBe('Esc cancela')
     // A button from a controller's first report: asked for again.
     expect(rowMessages(es, overlay, { action: 'toggleOverlay', kind: 'again' }, 1)).toEqual([
-      { text: 'Mando detectado: pulsa el botón otra vez', tone: 'info' }
+      { text: 'Mando detectado: pulsa el botón otra vez', tone: 'info', slot: 1 }
     ])
-    expect(
-      rowMessages(es, overlay, { action: 'toggleOverlay', kind: 'refused', error: 'reserved' }, 0)
-    ).toEqual([{ text: 'Windows o los programas ya usan esa combinación', tone: 'error' }])
-  })
-
-  it('after saving: the new keys, and the AltGr warning when it applies', () => {
-    const altgr = row(B({ ...DEFAULT_SETTINGS.shortcuts, toggleOverlay: 'Ctrl+Alt+H' }), 0)
-    expect(
-      rowMessages(
-        es,
-        altgr,
-        { action: 'toggleOverlay', kind: 'saved', accelerator: 'Ctrl+Alt+H', warning: 'altgr' },
-        null
-      )
-    ).toEqual([
-      { text: 'Guardado: Ctrl+Alt+H', tone: 'info' },
-      { text: es.settings.shortcuts.warnings.altgr, tone: 'warn' }
+    const refused = { action: 'toggleOverlay', kind: 'refused', error: 'reserved' } as const
+    expect(rowMessages(es, overlay, refused, 2)).toEqual([
+      { text: 'Windows o los programas ya usan esa combinación', tone: 'error', slot: 2 }
     ])
   })
 
-  it('after removing: what went, or that the action has none left', () => {
+  it('after saving: the cell shows it (said, not drawn); the AltGr warning under its cell', () => {
+    const altgr = row(
+      B(
+        { ...DEFAULT_SETTINGS.shortcuts, toggleOverlay: 'Ctrl+Shift+H' },
+        { toggleOverlay: ['Ctrl+Alt+H'] }
+      ),
+      0
+    )
+    const saved = {
+      action: 'toggleOverlay',
+      kind: 'saved',
+      accelerator: 'Ctrl+Alt+H',
+      warning: 'altgr',
+      slot: 1
+    } as const
+    expect(rowMessages(es, altgr, saved, null)).toEqual([
+      { text: es.settings.shortcuts.warnings.altgr, tone: 'warn', slot: 1 }
+    ])
+    expect(rowAnnouncement(es, altgr, saved, null)).toBe(
+      `Guardado: Ctrl+Alt+H. ${es.settings.shortcuts.warnings.altgr}`
+    )
+  })
+
+  it('after removing: said, not drawn', () => {
     const off = shortcutRows(en, B({ ...DEFAULT_SETTINGS.shortcuts, toggleOverlay: '' }), null)[0]
     const removed = { action: 'toggleOverlay', kind: 'removed', accelerator: 'F13' } as const
-    expect(rowMessages(en, off as ShortcutRowView, removed, null)).toEqual([
-      { text: 'Off: this action has no shortcut now', tone: 'info' }
-    ])
-    expect(rowMessages(es, overlay, removed, null)).toEqual([
-      { text: 'Quitado: F13', tone: 'info' }
-    ])
+    expect(rowMessages(en, off as ShortcutRowView, removed, null)).toEqual([])
+    expect(rowAnnouncement(en, off as ShortcutRowView, removed, null)).toBe(
+      'Off: this action has no shortcut now'
+    )
+    expect(rowAnnouncement(es, overlay, removed, null)).toBe('Quitado: F13')
   })
 
   it('drops a "saved" or "removed" the bindings no longer match (reset elsewhere)', () => {
     const saved = { action: 'toggleOverlay', kind: 'saved', accelerator: 'Ctrl+Alt+H' } as const
-    expect(rowMessages(es, overlay, saved, null)).toEqual([])
+    expect(rowAnnouncement(es, overlay, saved, null)).toBe('')
     const removed = {
       action: 'toggleOverlay',
       kind: 'removed',
       accelerator: 'Ctrl+Shift+H'
     } as const
-    expect(rowMessages(es, overlay, removed, null)).toEqual([])
+    expect(rowAnnouncement(es, overlay, removed, null)).toBe('')
   })
 
-  it("ignores another row's feedback, and explains a combination another app holds", () => {
+  it("ignores another row's feedback, and explains a combination another app holds under it", () => {
     const fb = { action: 'toggleEditMode', kind: 'removed', accelerator: 'F13' } as const
     expect(rowMessages(es, overlay, fb, null)).toEqual([])
-    const taken = shortcutRows(es, defaults, report('Ctrl+Shift+H'))[0] as ShortcutRowView
+    expect(rowAnnouncement(es, overlay, fb, null)).toBe('')
+    const taken = shortcutRows(
+      es,
+      B(DEFAULT_SETTINGS.shortcuts, { toggleOverlay: ['F13', 'Ctrl+Alt+K'] }),
+      report('Ctrl+Alt+K')
+    )[0] as ShortcutRowView
     expect(rowMessages(es, taken, null, null)).toEqual([
-      { text: es.settings.shortcuts.unavailableHelp, tone: 'warn' }
+      { text: es.settings.shortcuts.unavailableHelp, tone: 'warn', slot: 2 }
     ])
+  })
+})
+
+describe('rowCells', () => {
+  it('gives every row three cells: its bindings, "assign" in the first empty one, then "—"', () => {
+    const one = row(defaults, 0)
+    expect(rowCells(one, null).map((c) => c.kind)).toEqual(['binding', 'assign', 'empty'])
+    const none = row(defaults, 2)
+    expect(rowCells(none, null).map((c) => c.kind)).toEqual(['assign', 'empty', 'empty'])
+    const three = row(B(DEFAULT_SETTINGS.shortcuts, { toggleOverlay: ['F13', 'F14'] }), 0)
+    expect(rowCells(three, null).map((c) => c.kind)).toEqual(['binding', 'binding', 'binding'])
+  })
+
+  it('marks the cell recorded, over a binding or in the first empty one', () => {
+    const one = row(defaults, 0)
+    const over = rowCells(one, 0)
+    expect(over.map((c) => c.kind)).toEqual(['recording', 'assign', 'empty'])
+    expect(over[0]).toMatchObject({ kind: 'recording', binding: { accelerator: 'Ctrl+Shift+H' } })
+    expect(rowCells(one, 1).map((c) => c.kind)).toEqual(['binding', 'recording', 'empty'])
+    expect(rowCells(one, 1)[1]).toMatchObject({ binding: null })
+    expect(rowCells(one, null).map((c) => c.slot)).toEqual([0, 1, 2])
   })
 })
 
@@ -375,9 +409,9 @@ describe('controller buttons', () => {
     if (!r) throw new Error('no row')
     expect(r).toMatchObject({ status: 'unavailable', badge: 'Desconectado' })
     expect(r.bindings[0]).toMatchObject({ accelerator: `${G29}:12`, off: true })
-    expect(rowMessages(es, r, null, null, names)).toEqual([
-      { text: es.settings.shortcuts.disconnectedHelp, tone: 'warn' }
-    ])
+    // The cell says "Desconectado" (the sentence is its tooltip): no line under it.
+    expect(rowMessages(es, r, null, null)).toEqual([])
+    expect(rowAnnouncement(es, r, null, null, names)).toBe(es.settings.shortcuts.disconnectedHelp)
   })
 
   it('marks only the binding that does not work among several', () => {
@@ -390,24 +424,26 @@ describe('controller buttons', () => {
     const both = shortcutRows(es, three, report('Ctrl+Shift+H', `${BOX}:3`), names)[0]
     if (!both) throw new Error('no row')
     expect(both.badge).toBe('En uso por otra aplicación')
-    expect(rowMessages(es, both, null, null, names).map((m) => m.text)).toEqual([
-      es.settings.shortcuts.disconnectedHelp,
-      es.settings.shortcuts.unavailableHelp
+    expect(rowMessages(es, both, null, null)).toEqual([
+      { text: es.settings.shortcuts.unavailableHelp, tone: 'warn', slot: 0 }
     ])
+    expect(rowAnnouncement(es, both, null, null, names)).toBe(
+      `${es.settings.shortcuts.disconnectedHelp}. ${es.settings.shortcuts.unavailableHelp}`
+    )
   })
 
   it('words a saved button with its controller', () => {
     const r = shortcutRows(es, withButton, OK, names)[0]
     if (!r) throw new Error('no row')
     expect(
-      rowMessages(
+      rowAnnouncement(
         es,
         r,
         { action: 'toggleOverlay', kind: 'saved', accelerator: `${G29}:12` },
         null,
         names
       )
-    ).toEqual([{ text: 'Guardado: Botón 12 · G29 Driving Force Racing Wheel', tone: 'info' }])
+    ).toBe('Guardado: Botón 12 · G29 Driving Force Racing Wheel')
   })
 
   it('shows the button and its controller in the sidebar keys and the edit-mode tooltip', () => {
@@ -434,12 +470,13 @@ describe('controller buttons', () => {
       conflict: 'toggleOverlay',
       button: `${G29}:12`
     } as const
-    expect(rowMessages(es, r, refused, 1, names)).toEqual([
-      {
-        text: 'Botón 12 · G29 Driving Force Racing Wheel ya lo usa «Mostrar u ocultar el overlay»',
-        tone: 'error'
-      }
+    // Drawn under the cell without the controller; said in full.
+    expect(rowMessages(es, r, refused, 1)).toEqual([
+      { text: 'Botón 12 ya lo usa «Mostrar u ocultar el overlay»', tone: 'error', slot: 1 }
     ])
+    expect(rowAnnouncement(es, r, refused, 1, names)).toBe(
+      'Botón 12 · G29 Driving Force Racing Wheel ya lo usa «Mostrar u ocultar el overlay»'
+    )
     expect(refusalText(en, 'duplicate', 'toggleOverlay', 'Button 12 · G29')).toBe(
       'Button 12 · G29 is already used by “Show or hide the overlay”'
     )

@@ -9,6 +9,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Atajos en tabla, una columna por atajo**: cada acción es una fila y cada atajo tiene su
+  columna (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como en la pantalla de controles de
+  un juego, así que los atajos quedan alineados entre filas. La casilla es el control: clic para
+  cambiar, **×** o `Supr` para quitar, **+ Asignar** en la primera libre. Los avisos están en su
+  casilla («Desconectado», «En uso por otra app») y la frase que haga falta sale debajo de esa
+  columna; «Guardado» y «Quitado» ya no empujan la página (los lectores de pantalla los siguen
+  oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
+  las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
+  más cortas para cada acción.
+
 - **«Clasificación» pasa a llamarse «Posiciones»** en español (barra lateral, bandeja, título del
   widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En
   inglés sigue siendo «Standings». Los ajustes guardados no cambian.

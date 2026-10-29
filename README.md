@@ -264,12 +264,17 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
-- Se cambian en **Ajustes > Atajos**, donde cada acción muestra sus atajos uno al lado del otro:
-  **+ Añadir** espera una combinación (o un botón del volante) y la pone junto a los demás; pulsar
-  un atajo lo cambia por otro, y su **×** lo quita (si era el primero, el siguiente pasa a serlo).
-  Sin ninguno, la acción queda desactivada. **Restablecer**, junto al nombre de la acción, la deja
-  solo con el de fábrica. `Esc` (o el **×** del atajo que estás cambiando) cancela, y `Retroceso`
-  o `Supr` quitan el atajo que estás cambiando.
+- Se cambian en **Ajustes > Atajos**, una tabla con una fila por acción y una columna por atajo
+  (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como la pantalla de controles de un juego.
+  Cada casilla es el control: un clic en una casilla con atajo lo cambia por otro, y su **×** (al
+  pasar el ratón) o `Supr` lo quitan; la primera casilla libre dice **+ Asignar** y espera una
+  combinación o un botón del volante. Al quitar uno, los de la derecha se corren a la izquierda (el
+  primero es el que lee la versión 2.1). Sin ninguno, la acción queda desactivada. El icono ↺ de la
+  derecha la deja solo con el de fábrica. Mientras grabas, `Esc` cancela y `Retroceso` o `Supr`
+  quitan el atajo que estás cambiando.
+- Los avisos van en la casilla a la que se refieren (**Desconectado**, **En uso por otra app**), y
+  una frase que haga falta (un atajo rechazado, el aviso de `AltGr`) sale debajo de esa misma
+  columna.
 - Un mismo atajo no puede estar en dos acciones (ni dos veces en la misma): la página dice quién
   lo tiene ya.
 - **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras
@@ -281,7 +286,7 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 
 ### Botones del volante
 
-- En **Ajustes > Atajos**, pulsa **+ Añadir** (o el atajo que quieras cambiar) y luego el botón:
+- En **Ajustes > Atajos**, pulsa **+ Asignar** (o el atajo que quieras cambiar) y luego el botón:
   vale cualquier botón de un volante o su aro, una button box, unos pedales, un cambio o un freno
   de mano que Windows vea como mando de juego, también los de más de 32 botones. Se ve como «Botón
   12 · G29 Driving Force Racing Wheel».
@@ -292,9 +297,8 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Si la página pide **pulsar el botón otra vez**, es que acaba de empezar a leer ese mando y no
   sabe qué botones estaban ya abajo (un selector giratorio o un interruptor fijo); la segunda
   pulsación es la que se guarda.
-- Si el dispositivo está desenchufado, el atajo sigue guardado y la página dice **Desconectado**
-  (marcado con un aviso, si la acción tiene otros, que siguen funcionando); al enchufarlo vuelve a
-  funcionar solo.
+- Si el dispositivo está desenchufado, el atajo sigue guardado y su casilla dice **Desconectado**
+  (los otros atajos de la acción siguen funcionando); al enchufarlo vuelve a funcionar solo.
 - Dos dispositivos idénticos (mismo modelo) comparten los botones: cualquiera de los dos sirve.
 - `Esc` para salir del modo edición sigue siendo solo de teclado.
 - Los botones solo se leen mientras algún atajo es un botón (o mientras eliges uno): sin ninguno,
