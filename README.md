@@ -100,9 +100,8 @@ solo.
 - **Por widget**: visible, **bloqueado** (no se mueve ni se redimensiona, ni siquiera en modo edición),
   **opacidad del fondo** (0–100 %: solo el panel; el texto y los coches siguen nítidos, y con poca
   opacidad el texto lleva un contorno para leerse sobre el juego) y restablecer posición y tamaño.
-- **Relativo**: coches delante y detrás (0–10), columnas opcionales (posición en clase, licencia,
-  iRating, neumático, vueltas del stint), banderas de penalización tras el nombre y el
-  [pie de condiciones](#pie-de-condiciones-relativo-y-clasificación) (también en Clasificación).
+- **Relativo**: coches delante y detrás (0–10), banderas de penalización tras el nombre, y
+  [columnas, cabecera y pie a tu gusto](#relativo) (orden, visibles, logotipos, banderas).
 - **Radar**: alcance (5–100 m, con atajos 10/20/30/50) y mostrar u ocultar las distancias.
 - **Idioma** (en Apariencia): español (por defecto) o inglés. Cambia al momento los widgets, la
   ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja
@@ -297,6 +296,22 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
 - 3 coches delante y 3 detrás por defecto (`relative.carsAhead` / `carsBehind`); si faltan coches se
   rellena con filas vacías para que tu fila quede centrada.
 - Cada fila incluye posición en clase, número, nombre, licencia, iRating y gap.
+- **Personalizar** (Ajustes > Relativo, cada zona con su editor: arrastrar o ↑ ↓ para ordenar, el
+  ojo para mostrar u ocultar, «Restablecer»):
+  - **Columnas** (`relative.columns`): posición, piloto, licencia, iRating, neumático, stint y hueco,
+    en el orden que quieras (las que van antes del piloto quedan a su izquierda). Piloto y hueco no
+    se pueden ocultar. Debajo: **cabeceras de columna** (`columnHeads`, «POS», «PILOTO», «SR»…,
+    desactivadas), **logotipo de la marca** (`brandMarks`: Auto, solo si hay más de una marca en la
+    sesión; Siempre; Nunca) y **bandera del país** (`countryFlags`, activada; nada si el piloto no
+    eligió ninguna).
+  - **Cabecera** (`headerBar` + `headerBarSize`) y **pie** (`footerBar` + `footerBarSize`): barras de
+    datos con el mismo catálogo (nombre, sesión, tiempo o vueltas restantes, hora, SoF, coches,
+    incidentes, iRating y SR proyectados, vuelta rápida, combustible, pista, agua, viento, aire,
+    goma); «A la derecha» separa lo que se alinea al otro extremo. Tamaño Oculta / Pequeña / Normal
+    / Grande. Por defecto, la cabecera de siempre y el pie oculto. Si no cabe, se quitan primero
+    los datos menos importantes; el texto nunca baja del mínimo.
+  - Las barras y las cabeceras de columna cuentan en el alto: con ellas el texto de las filas
+    encoge un poco; los logotipos y banderas cuentan en el ancho.
 - **Posición**: la misma que la Clasificación (la del modelo de carrera, no `CarIdxClassPosition`,
   que iRacing solo actualiza en meta). La de parrilla solo en carrera antes de la verde; fuera de
   carrera, sin tiempo no hay posición.
@@ -351,7 +366,7 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   la bandera blanca y negra de aviso). Las dos tablas las muestran y en las dos se pueden quitar
   (`relative.showFlags`, `standings.showFlags`, activadas). La negra enrollada que iRacing pone a
   un coche que ya terminó no se muestra.
-- En el relativo: `relative.showTyre` y `relative.showStint` (desactivadas) y `relative.showFlags`
+- En el relativo: las columnas `tyre` y `stint` de `relative.columns` (ocultas) y `relative.showFlags`
   (activada). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
   cambian de alto.
 - En modo mock se ven paradas, stints, duros y algún coche con lluvia, y un aviso al coche de delante

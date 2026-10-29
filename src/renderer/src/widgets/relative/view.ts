@@ -1,12 +1,25 @@
 /**
  * View models of the relative widget (quality P1-10): which car goes in each slot (the player
  * always in the centre one), each slot formatted and flat so an unchanged slot keeps its object
- * (`reuseViews`) for v-memo, and the grid columns of the row options. Pure.
+ * (`reuseViews`) for v-memo, the grid columns in relative.columns' order (with the make and
+ * flag in the driver cell), their heads, and the lines the font fit counts besides the rows. Pure.
  */
+import type { BrandId } from '@shared/carBrands'
+import { visibleIds } from '@shared/elements'
 import { formatClassPosition, formatGap } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import type { CarPenalty, NameFormat, RelativeData, RelativeRow } from '@shared/types'
+import { INFO_BAR_LINE_EM } from '@shared/infoBar'
+import type {
+  CarPenalty,
+  ElementEntry,
+  LicenseStyle,
+  NameFormat,
+  RelativeColumnId,
+  RelativeData,
+  RelativeRow
+} from '@shared/types'
 import { stintCell, tyreCell } from '@renderer/view/carExtras'
+import { relativeHead, type ColumnHead } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
 
@@ -31,6 +44,9 @@ export interface RelativeSlotView extends DriverCellView {
   stintUnit: string
   /** Tyre compound letter ('H'), '—' when unknown. */
   tyre: string
+  /** The car's make ('unknown' keeps an empty slot) and the driver's flag code ('' for none). */
+  brand: BrandId
+  country: string
 }
 
 /** A slot with no car (fewer cars than slots on that side). */
@@ -100,7 +116,9 @@ export function toSlotView(
     penalty: row.penalty,
     stint: stint.text,
     stintUnit: stint.unit,
-    tyre: tyreCell(row.tyre)
+    tyre: tyreCell(row.tyre),
+    brand: row.brand,
+    country: row.country
   }
 }
 
@@ -116,7 +134,7 @@ export function toSlotViews(
   })
 }
 
-/** Column widths (em of the row font). The name takes the rest. */
+/** Column widths (em of the row font). The driver cell takes the rest. */
 export const RELATIVE_COL_EM = {
   pos: 1.9,
   lic: 2.8,
@@ -124,69 +142,119 @@ export const RELATIVE_COL_EM = {
   tyre: 1.3,
   stint: 2.3,
   gap: 3.1
-} as const
+} as const satisfies Readonly<Record<Exclude<RelativeColumnId, 'driver'>, number>>
 /** Row width (em) the default columns need with a readable name: it caps the font by width. */
 export const RELATIVE_FIT_EM = 27
 const COL_GAP_EM = 0.4
+/** The driver cell's gap between its parts (DriverCell.vue .ov-driver). */
+const CELL_GAP_EM = 0.35
+/** The make's slot (BrandMark.vue: 1.75em wide) and its gap. */
+export const BRAND_FIT_EM = 1.75 + CELL_GAP_EM
+/** The flag's slot (CountryFlag.vue: 1.5 × the plate's 1.15em) and its gap, rounded up. */
+export const FLAG_FIT_EM = Math.ceil((1.5 * 1.15 + CELL_GAP_EM) * 100) / 100
 
 export interface RelativeColumns {
-  pos: boolean
-  lic: boolean
-  ir: boolean
-  tyre: boolean
-  stint: boolean
-  /** Flag badges after the name. */
+  /** The cells a row draws, in the list's order (the driver cell always among them). */
+  cells: readonly RelativeColumnId[]
+  /** Penalty flag badges after the name. */
   flags: boolean
-  /** grid-template-columns of a row. */
+  /** The make's logo and the driver's flag inside the driver cell. */
+  brand: boolean
+  country: boolean
+  /** grid-template-columns of a row (and of the column heads). */
   template: string
   /**
    * Row width (em) the columns need: RELATIVE_FIT_EM plus the optional extras, so turning them on
    * shrinks the text in a narrow window instead of squeezing the name.
    */
   fitEm: number
-  /** Changes with the set of columns (v-memo). */
+  /** Changes with the cells, their order and the driver cell's parts (v-memo). */
   key: string
 }
 
-/** Which optional cells are on (RelativeWidget reads them from relative.columns). */
-export interface ColumnOptions {
-  showClassPosition: boolean
-  showLicense: boolean
-  showIRating: boolean
-  showTyre?: boolean
-  showStint?: boolean
-  showFlags?: boolean
+/** What the row draws besides relative.columns. */
+export interface ColumnExtras {
+  /** Some row names a compound: the tyre column can show (the provider names none otherwise). */
+  tyres: boolean
+  /** relative.showFlags. */
+  flags: boolean
+  /** brandMarksOn(relative.brandMarks, payload.multiBrand). */
+  brand: boolean
+  /** relative.countryFlags. */
+  country: boolean
 }
 
-/** Hidden columns leave the grid, so the name takes their width. */
-export function relativeColumns(o: ColumnOptions): RelativeColumns {
-  const pos = o.showClassPosition !== false
-  const lic = o.showLicense !== false
-  const ir = o.showIRating !== false
-  // A missing option reads as its schema default (tyre and stint off, flags on).
-  const tyre = o.showTyre === true
-  const stint = o.showStint === true
-  const flags = o.showFlags !== false
-  const tracks: string[] = []
-  if (pos) tracks.push(`${RELATIVE_COL_EM.pos}em`)
-  tracks.push('minmax(0, 1fr)')
-  if (lic) tracks.push(`${RELATIVE_COL_EM.lic}em`)
-  if (ir) tracks.push(`${RELATIVE_COL_EM.ir}em`)
-  if (tyre) tracks.push(`${RELATIVE_COL_EM.tyre}em`)
-  if (stint) tracks.push(`${RELATIVE_COL_EM.stint}em`)
-  tracks.push(`${RELATIVE_COL_EM.gap}em`)
+/**
+ * The row's cells in the list's order: hidden ones leave the grid, so the name takes their
+ * width. Cells before the driver are left tracks, the ones after it right tracks. The tyre
+ * column shows only while some row has a compound (today's rule).
+ */
+export function relativeColumns(
+  list: readonly Readonly<ElementEntry<RelativeColumnId>>[],
+  x: ColumnExtras
+): RelativeColumns {
+  const cells: RelativeColumnId[] = []
+  for (const id of visibleIds(list)) {
+    if (id === 'tyre' && !x.tyres) continue
+    if (!cells.includes(id)) cells.push(id)
+  }
+  // Required: a list main normalised always has them; a missing one goes where it is by default.
+  if (!cells.includes('driver')) cells.splice(cells.includes('pos') ? 1 : 0, 0, 'driver')
+  if (!cells.includes('gap')) cells.push('gap')
+  const tracks = cells.map((id) =>
+    id === 'driver' ? 'minmax(0, 1fr)' : `${RELATIVE_COL_EM[id]}em`
+  )
   let fitEm = RELATIVE_FIT_EM
-  if (tyre) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
-  if (stint) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
+  if (cells.includes('tyre')) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
+  if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
+  if (x.brand) fitEm += BRAND_FIT_EM
+  if (x.country) fitEm += FLAG_FIT_EM
   return {
-    pos,
-    lic,
-    ir,
-    tyre,
-    stint,
-    flags,
+    cells,
+    flags: x.flags,
+    brand: x.brand,
+    country: x.country,
     template: tracks.join(' '),
     fitEm: Math.round(fitEm * 100) / 100,
-    key: [pos, lic, ir, tyre, stint, flags].map(Number).join('')
+    key: `${cells.join(',')}|${[x.flags, x.brand, x.country].map(Number).join('')}`
   }
+}
+
+/** One column head, keyed by its cell. */
+export interface RelativeHeadView extends ColumnHead {
+  readonly id: RelativeColumnId
+}
+
+/** The heads row over the cells (same order, same grid). */
+export function relativeHeads(
+  cells: readonly RelativeColumnId[],
+  licenseStyle: LicenseStyle,
+  m: Messages
+): RelativeHeadView[] {
+  return cells.map((id) => ({ id, ...relativeHead(id, licenseStyle, m) }))
+}
+
+/** The column heads row's height (em of the row font), counted in the font fit. */
+export const HEADS_EM = 1.1
+/** Slack kept under the rows whatever the bars (today's header was 1.6em of line + this). */
+export const CHROME_BASE_EM = 0.2
+
+/** The panel's lines besides the rows: what the font fit divides the height by, with the rows. */
+export interface ChromeParts {
+  /** The header bar's text scale (INFO_BAR_SCALE), null when it is not drawn. */
+  header: number | null
+  heads: boolean
+  footer: number | null
+}
+
+/**
+ * The height (em of the row font) the bars and the heads take: each bar is INFO_BAR_LINE_EM of
+ * its own (scaled) text. Today's header at 'normal' and no footer: 1.8.
+ */
+export function chromeEm(p: ChromeParts): number {
+  let em = CHROME_BASE_EM
+  if (p.header !== null) em += INFO_BAR_LINE_EM * p.header
+  if (p.heads) em += HEADS_EM
+  if (p.footer !== null) em += INFO_BAR_LINE_EM * p.footer
+  return Math.round(em * 1000) / 1000
 }
