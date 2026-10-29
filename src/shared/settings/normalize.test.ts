@@ -97,6 +97,7 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   nameFormat: 'abbr',
   licenseStyle: 'outline',
   numberStyle: 'chip',
+  brandLogos: 'color',
   colorBlind: false,
   units: 'metric',
   stripes: true,
@@ -764,9 +765,28 @@ describe('normalizeSettings: options', () => {
     ).toMatchObject({ referencePractice: 'pb', referenceQualify: 'optimal', referenceRace: 'pb' })
   })
 
+  it('gives a file from before the brand logo setting colour logos, keeping the rest', () => {
+    const old = normalizeSettings({
+      appearance: { accent: '#a3e635', numberStyle: 'stripe', showSimPill: false }
+    }).appearance
+    expect(old).toEqual({
+      ...DEFAULT_APPEARANCE,
+      accent: '#a3e635',
+      numberStyle: 'stripe',
+      showSimPill: false,
+      brandLogos: 'color'
+    })
+  })
+
   it('validates every enum', () => {
     const s = normalizeSettings({
-      appearance: { density: 'tiny', nameFormat: 'inherit', licenseStyle: 'x', units: 'si' },
+      appearance: {
+        density: 'tiny',
+        nameFormat: 'inherit',
+        licenseStyle: 'x',
+        units: 'si',
+        brandLogos: 'grey'
+      },
       standings: { mode: 'Full', gapMode: 'toString', nameFormat: 'nick', density: 'huge' },
       battle: { layout: 'grid', detail: 'all', nameFormat: 'TV' },
       inputs: { steeringStyle: 'yoke', layout: 'stacked' },
@@ -774,7 +794,12 @@ describe('normalizeSettings: options', () => {
     })
     expect(s).toEqual(DEFAULT_SETTINGS)
     const ok = normalizeSettings({
-      appearance: { density: 'compact', nameFormat: 'surname', textHalo: 'off' },
+      appearance: {
+        density: 'compact',
+        nameFormat: 'surname',
+        textHalo: 'off',
+        brandLogos: 'mono'
+      },
       standings: { mode: 'full', gapMode: 'both', nameFormat: 'full', density: 'comfortable' },
       battle: { layout: 'side', detail: 'none' },
       inputs: { steeringStyle: 'wheel', layout: 'info-bars-trace' },
@@ -784,7 +809,8 @@ describe('normalizeSettings: options', () => {
     expect(ok.appearance).toMatchObject({
       density: 'compact',
       nameFormat: 'surname',
-      textHalo: 'off'
+      textHalo: 'off',
+      brandLogos: 'mono'
     })
     expect(ok.standings).toMatchObject({ mode: 'full', gapMode: 'both', nameFormat: 'full' })
     // The old detail and layout choices become the battle's rows and the pedals' blocks.
