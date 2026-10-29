@@ -5,9 +5,9 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [2.0.0] - AAAA-MM-DD
+## [2.0.0] - 2026-10-29
 
-Primera versión pública. OverLap es un overlay para iRacing en Windows: lee la telemetría oficial
+Primera versión publicada. OverLap es un overlay para iRacing en Windows: lee la telemetría oficial
 del SDK, solo lectura y sin inyectar nada en el juego, y dibuja diez widgets encima del simulador.
 La 1.x, con relativo y radar, fue de uso personal y no se publicó; sus ajustes se migran solos.
 
@@ -30,7 +30,7 @@ La 1.x, con relativo y radar, fue de uso personal y no se publicó; sus ajustes 
 - **Batalla** (por defecto solo en carrera): tu rival de clase de delante y el de detrás mientras
   estén a menos del hueco que elijas, con la tendencia del hueco, la predicción de alcance («Le
   alcanzas en ~4 v de 19»), la diferencia por sector o por vuelta y el iRating en juego.
-- **Pedales**: traza de acelerador, freno y embrague, barras, volante (barra o aro que gira),
+- **Pedales**: traza de acelerador, freno y embrague, barras, volante,
   marcha, velocidad y ABS, en tres disposiciones (la más pequeña, solo barras). La traza avanza su
   distancia exacta en cada muestra, sin saltos de un píxel.
 - **Tráfico**: la clase más rápida que te alcanza por detrás (en cuánto y dónde), el tráfico lento
@@ -121,8 +121,45 @@ La 1.x, con relativo y radar, fue de uso personal y no se publicó; sus ajustes 
 
 ### Personalización
 
-<!-- TODO: bloque de personalización (elementos de cada widget, cabeceras de columna, logotipos de
-marca). Rellenar esta sección cuando se fusione, antes de publicar la 2.0.0. -->
+- **Elementos de cada widget**: un editor común en Ajustes para mostrar, ocultar y ordenar lo que
+  dibuja cada widget (columnas del Relativo y de la Clasificación, partes de Batalla, Tráfico,
+  Delta, Pedales, Radar, Avisos, Combustible y Testigos), con una muestra en vivo. El aspecto de
+  siempre es el valor por defecto y los ajustes anteriores se migran sin perder nada.
+- **Barras de información** en cabeceras y pies: eliges, ordenas y dimensionas los datos (tiempo o
+  vueltas que quedan, sesión, SoF, coches, incidentes, iRating y SR proyectados, vuelta rápida,
+  temperaturas con tendencia, viento, goma, lluvia, vueltas de combustible, hora local). Siempre
+  legibles: si no caben, saltan de línea o se recortan por prioridad, nunca se encogen.
+- **Cabeceras de columna** opcionales (SR, iR, Líder, Intervalo…), en los dos idiomas.
+- **Logotipos de marca** en color (o monocromos) en Relativo, Clasificación y Batalla, y
+  **banderas** del país de cada piloto.
+- **Vuelta rápida** más visible en la Clasificación, con marca en la fila y dato para la barra de
+  información.
+- **Licencias** con estilo contorno, el nuevo por defecto.
+- **Delta**: referencia por tipo de sesión (récord personal en práctica, vuelta óptima en
+  clasificación y en carrera), línea opcional con la última, la mejor y la óptima a la vez con la
+  referencia en uso marcada, y un atajo para cambiar la referencia solo durante la sesión actual.
+- **Pedales**: luces de cambio con los puntos del coche, bloque del coche (RPM, reparto de frenada,
+  nivel de TC y force feedback con aviso de saturación) y cuatro estilos de volante (barra,
+  minimalista, realista y fórmula) en tres tamaños, con color de la marca central y grados. El
+  panel se ajusta a su contenido.
+- **Testigos** en columna con los textos a la izquierda o a la derecha. El tiempo de reparación se
+  marca «(equipo)», el que tarda el equipo según iRacing, con una estimación opcional en tiempo
+  real.
+- **Ventana de Ajustes**: fondo de la muestra claro u oscuro, más columnas y una muestra mayor al
+  maximizar, y mejor encaje en pantallas ultrapanorámicas.
+- Paneles sin franja lateral: el estado ilumina el borde de arriba.
+
+### Disposiciones
+
+- Guarda con nombre dónde está cada widget, su tamaño, escala, si se ve y si está bloqueado (una
+  para el MX-5, otra para el GT3). Duplicar, renombrar, borrar, exportar e importar a .json.
+- Se cambian desde Ajustes, la bandeja o un atajo, y opcionalmente solas al subirte a un coche
+  vinculado. La disposición en uso se actualiza al mover los widgets. Los ajustes anteriores pasan a
+  una disposición «Principal».
+
+### Correcciones
+
+- El modo edición dejaba de responder (ni mover ni ocultar) tras horas con la app abierta.
 
 ### Idiomas
 
