@@ -4,7 +4,7 @@ import { messagesFor } from '@shared/i18n'
 import { defaultOptions } from '@shared/settings'
 import type { LightKind, LightReading, LightsData } from '@shared/types'
 import { ENGINE_ICON_NAMES } from '@renderer/ui/engineIcons'
-import { PREVIEW_LIGHTS } from './preview'
+import { PREVIEW_LIGHTS, PREVIEW_LIGHTS_REAL } from './preview'
 import {
   LIGHT_ICONS,
   formatDegrees,
@@ -36,6 +36,7 @@ const reading = (o: Partial<LightReading> & Pick<LightReading, 'kind'>): LightRe
   riseC: null,
   draft: false,
   seconds: null,
+  realTime: false,
   ...o
 })
 const data = (lights: LightReading[], visible = true): LightsData => ({ visible, lights })
@@ -54,28 +55,28 @@ describe('lightsView', () => {
     expect(new Set(Object.values(LIGHT_ICONS)).size).toBe(LIGHT_ORDER.length)
   })
 
-  it('icons alone by default; the repair time as the light says it, the trend light yellow', () => {
+  it('icons alone by default; the repair time as the crew’s, the trend light yellow', () => {
     const v = lightsView(PREVIEW_LIGHTS, DEFAULTS, 'metric', ES)
     expect(texts(v)).toEqual([
       'oilPressure=',
       'fuelPressure=',
       'stalled=',
-      `repair=42${NB}s`,
-      `repairOptional=38${NB}s`,
+      `repair=42${NB}s${NB}(equipo)`,
+      `repairOptional=38${NB}s${NB}(equipo)`,
       'water=',
       'oilTemp='
     ])
     expect(v.map((l) => l.level)).toEqual(['off', 'off', 'off', 'alarm', 'warn', 'caution', 'off'])
   })
 
-  it('captions in each language: «REPARAR · 42 s», «OPC. · 38 s»', () => {
+  it('captions in each language: «REPARAR · 42 s (equipo)», «OPC. · 38 s (equipo)»', () => {
     const o = { ...ALL, showCaptions: true, showTemps: true }
     expect(texts(lightsView(PREVIEW_LIGHTS, o, 'metric', ES))).toEqual([
       'oilPressure=P. ACEITE',
       'fuelPressure=GASOLINA',
       'stalled=CALADO',
-      `repair=REPARAR · 42${NB}s`,
-      `repairOptional=OPC. · 38${NB}s`,
+      `repair=REPARAR · 42${NB}s${NB}(equipo)`,
+      `repairOptional=OPC. · 38${NB}s${NB}(equipo)`,
       'water=AGUA · 98° +6° · ¿rebufo?',
       'oilTemp=T. ACEITE · 104°',
       'pitLimiter=LIMITADOR',
@@ -85,13 +86,59 @@ describe('lightsView', () => {
       'oilPressure=OIL P.',
       'fuelPressure=FUEL',
       'stalled=STALL',
-      `repair=REPAIR · 42${NB}s`,
-      `repairOptional=OPT. · 38${NB}s`,
+      `repair=REPAIR · 42${NB}s${NB}(crew)`,
+      `repairOptional=OPT. · 38${NB}s${NB}(crew)`,
       'water=WATER · 98° +6° · slipstream?',
       'oilTemp=OIL T. · 104°',
       'pitLimiter=LIMITER',
       'revLimiter=REV LIM.'
     ])
+  })
+
+  it('the crew’s time with its tag, short in narrow windows; bare without the tag', () => {
+    const o = { ...ALL, showCaptions: true }
+    const repair = (f: LightsFilter, m = ES): LightView | undefined =>
+      lightsView(PREVIEW_LIGHTS, f, 'metric', m).find((l) => l.kind === 'repair')
+    expect(repair(o)?.short).toBe(`REPARAR · 42${NB}s${NB}eq.`)
+    expect(repair(o, EN)?.short).toBe(`REPAIR · 42${NB}s${NB}crew`)
+    const bare = repair({ ...o, repairCrewTag: false })
+    expect(bare?.text).toBe(`REPARAR · 42${NB}s`)
+    // Nothing shorter to write: no narrow form.
+    expect(bare?.short).toBe('')
+    // A light without a time has none either.
+    expect(lightsView(PREVIEW_LIGHTS, o, 'metric', ES).find((l) => l.kind === 'water')?.short).toBe(
+      ''
+    )
+  })
+
+  it('the real seconds estimated in the stall always read «≈», tagged «(real)» when wide', () => {
+    const o = { ...ALL, showCaptions: true }
+    const repair = (f: LightsFilter, m = ES): LightView | undefined =>
+      lightsView(PREVIEW_LIGHTS_REAL, f, 'metric', m).find((l) => l.kind === 'repair')
+    expect(repair(o)?.text).toBe(`REPARAR · ≈${NB}31${NB}s${NB}(real)`)
+    expect(repair(o)?.short).toBe(`REPARAR · ≈${NB}31${NB}s`)
+    expect(repair(o, EN)?.text).toBe(`REPAIR · ≈${NB}31${NB}s${NB}(real)`)
+    // Without the crew's tag the estimate keeps its «≈»: it is never mistaken for iRacing's figure.
+    expect(repair({ ...o, repairCrewTag: false })?.text).toBe(`REPARAR · ≈${NB}31${NB}s`)
+    // The optional repairs of that sample are still the crew's.
+    expect(
+      lightsView(PREVIEW_LIGHTS_REAL, o, 'metric', ES).find((l) => l.kind === 'repairOptional')
+        ?.text
+    ).toBe(`OPC. · 38${NB}s${NB}(equipo)`)
+  })
+
+  it('reads a payload from before realTime as the crew’s time, and drops a bad one', () => {
+    const old = {
+      kind: 'repair',
+      level: 'alarm',
+      tempC: null,
+      riseC: null,
+      draft: false,
+      seconds: 9
+    }
+    const bad = { ...old, kind: 'repairOptional', realTime: 'yes' }
+    const v = lightsView({ lights: [old, bad] as unknown as LightReading[] }, ALL, 'metric', ES)
+    expect(texts(v).filter((l) => l.startsWith('repair'))).toEqual([`repair=9${NB}s${NB}(equipo)`])
   })
 
   it('tells every light apart by its caption and its name, in both languages', () => {

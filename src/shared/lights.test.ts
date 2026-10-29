@@ -257,8 +257,24 @@ describe('lightsEqual', () => {
   const base: LightsData = {
     visible: true,
     lights: [
-      { kind: 'repair', level: 'alarm', tempC: null, riseC: null, draft: false, seconds: 42 },
-      { kind: 'water', level: 'caution', tempC: 98, riseC: 6, draft: true, seconds: null }
+      {
+        kind: 'repair',
+        level: 'alarm',
+        tempC: null,
+        riseC: null,
+        draft: false,
+        seconds: 42,
+        realTime: false
+      },
+      {
+        kind: 'water',
+        level: 'caution',
+        tempC: 98,
+        riseC: 6,
+        draft: true,
+        seconds: null,
+        realTime: false
+      }
     ]
   }
 
@@ -275,6 +291,7 @@ describe('lightsEqual', () => {
           { riseC: 7 },
           { draft: false },
           { seconds: 1 },
+          { realTime: true },
           { kind: 'oilTemp' }
         ] satisfies Partial<LightReading>[]
       ).map((c) => ({ ...base, lights: [base.lights[0] as LightReading, { ...water, ...c }] }))

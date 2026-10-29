@@ -602,6 +602,20 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   rótulos (`AGUA`, `REPARAR`…), la temperatura junto a agua y aceite (`98°`) y el tiempo de
   reparación: `REPARAR · 42 s` (`PitRepairLeft`), `OPC. · 38 s` (`PitOptRepairLeft`), solo si es
   mayor que 0. Su página de Ajustes tiene una leyenda: qué es cada testigo y qué hacer.
+- Tiempo de reparación: la cifra de iRacing es el tiempo **del equipo**, que en una parada real
+  bajó ~1 s cada varios segundos (OverLap la muestra en ≤ 100 ms). Por eso sale marcada
+  `42 s (equipo)` (`42 s eq.` en ventanas estrechas; `lights.repairCrewTag`, activado). Con
+  `lights.repairCrewTag` apagado vuelve a `42 s`.
+- `Cuenta atrás real (estimada)` (`lights.repairRealTime`, **apagado** por defecto): parado en tu box
+  con el servicio en marcha (`PitstopActive`), mide cuánto baja la cifra en los últimos 3 s (al menos
+  2 s seguidos bajando) y muestra los segundos reales que faltan, cifra / ritmo: `≈ 30 s (real)`.
+  Una pausa (1 s sin bajar) congela la estimación; nunca sube ni baja de 0. Hasta saberlo, remolcado,
+  fuera del box o en una repetición, sale la del equipo. Si la cifra solo baja a saltos de más de 1 s,
+  no hay estimación (`src/shared/notices/repairClock.ts`).
+- Falta confirmar con una grabación real de una parada con daños: si `PitRepairLeft` baja suave o a
+  saltos (y cada cuánto), si `PitstopActive` está activo durante toda la reparación, si el ritmo es
+  constante con gasolina y neumáticos a la vez, qué pasa con la reparación rápida y si el tiempo de
+  la grúa ya incluye la reparación. Avisos no muestra el tiempo (su `DAÑO` sale fuera del box).
 - Las reglas son las de Avisos, en un solo sitio (`src/shared/notices/engine.ts`): nada durante la
   grúa, en tu box, con el coche fuera del mundo, los 2 s después de reaparecer ni los 3 s después de
   subir al coche (ahí parpadean con el coche parado); las presiones, solo con el motor en marcha (a

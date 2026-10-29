@@ -2,7 +2,7 @@
  * Warning lights widget (Testigos): the engine's lights as a dashboard strip, each lit by its
  * severity (LightLevel), from the state the alerts band reads too (notices/engine.ts), so both
  * follow the same rules: oil and fuel pressure, a stall, mandatory and optional repairs with the
- * time they take, the water and oil temperature lights (orange) or, before them, the trend above
+ * time they take (the crew's, or the real seconds left estimated in the stall), the water and oil temperature lights (orange) or, before them, the trend above
  * your own average (yellow), and the limiters for those who want them. Runs at 10 Hz; the payload
  * only changes when a light, a reading shown or a repair time changes, so SKIP_EMIT drops the
  * rest. A flickering engine light stays lit LIGHTS.holdS, so it can be read; none is held while
@@ -92,10 +92,17 @@ function tempOf(e: EngineState, kind: LightKind): number | null {
   return null
 }
 
-/** How long the repairs of a repair light take (s); null for the other lights or none. */
+/** How long the repairs of a repair light take (s, the crew's); null for the other lights or none. */
 function secondsOf(e: EngineState, kind: LightKind): number | null {
   if (kind === 'repair') return e.repairS
   if (kind === 'repairOptional') return e.optRepairS
+  return null
+}
+
+/** The real seconds a repair light's repairs have left (estimated in the stall), or null. */
+function realSecondsOf(e: EngineState, kind: LightKind): number | null {
+  if (kind === 'repair') return e.repairRealS
+  if (kind === 'repairOptional') return e.optRepairRealS
   return null
 }
 
@@ -183,14 +190,18 @@ function reading(e: EngineState, kind: LightKind, on: boolean, opts: LightsOptio
   const trend = opts.showTrend ? trendOf(e, kind) : null
   const level: LightLevel = on ? LIT_LEVEL[kind] : trend !== null ? 'caution' : 'off'
   const temp = opts.showTemps ? tempOf(e, kind) : null
-  const seconds = on && opts.showRepairTime ? secondsOf(e, kind) : null
+  const crew = on && opts.showRepairTime ? secondsOf(e, kind) : null
+  // The real countdown only while the crew's figure is there too: the repairs are still on.
+  const real = crew !== null && opts.repairRealTime ? realSecondsOf(e, kind) : null
+  const seconds = real ?? crew
   return {
     kind,
     level,
     tempC: temp === null ? null : Math.round(temp),
     riseC: trend === null ? null : trend.deltaC,
     draft: trend?.draft ?? false,
-    seconds: seconds === null ? null : Math.ceil(seconds)
+    seconds: seconds === null ? null : Math.ceil(seconds),
+    realTime: real !== null
   }
 }
 
