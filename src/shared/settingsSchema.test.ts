@@ -150,7 +150,8 @@ describe('displayOnlyFields', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
-      'nameFormat'
+      'nameFormat',
+      'density'
     ])
     expect(displayOnlyFields('radar')).toEqual(['parts'])
     // The columns and the info bars decide what the provider computes.

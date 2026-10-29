@@ -148,8 +148,8 @@ export const settingsEs = {
       tv: 'TV'
     },
     density: {
-      comfortable: { label: 'Cómoda', hint: 'Filas más altas' },
-      compact: { label: 'Compacta', hint: 'Más filas en el mismo alto' }
+      comfortable: { label: 'Cómoda', hint: 'Filas más holgadas' },
+      compact: { label: 'Compacta', hint: 'Filas más juntas' }
     },
     /** 'inherit', labelled with what it resolves to: 'Global (Apellido)'. */
     inherit: (current: string) => `Global (${current})`,
@@ -158,7 +158,7 @@ export const settingsEs = {
     example: (sample: string, formatted: string) => `Ejemplo: ${sample} → ${formatted}`
   },
   appearance: {
-    sub: 'El aspecto común de todos los widgets. Cada widget puede usar su propio formato de nombre y densidad en su página.',
+    sub: 'El aspecto común de todos los widgets. En su página, cada uno puede cambiar el formato de nombre o la densidad si los usa.',
     language: {
       title: 'Idioma',
       label: 'Idioma',
@@ -1454,8 +1454,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       tv: 'TV'
     },
     density: {
-      comfortable: { label: 'Comfortable', hint: 'Taller rows' },
-      compact: { label: 'Compact', hint: 'More rows in the same height' }
+      comfortable: { label: 'Comfortable', hint: 'Roomier rows' },
+      compact: { label: 'Compact', hint: 'Tighter rows' }
     },
     inherit: (current) => `Global (${current})`,
     nameInheritHint: 'As set in Appearance',
@@ -1463,7 +1463,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     example: (sample, formatted) => `Example: ${sample} → ${formatted}`
   },
   appearance: {
-    sub: 'The look shared by every widget. Each widget can use its own name format and density on its page.',
+    sub: 'The look shared by every widget. On its page, each one can change the name format or the density if it uses them.',
     language: {
       title: 'Language',
       label: 'Language',

@@ -69,8 +69,8 @@ describe('choiceOptions', () => {
 
   it('words the density choices in Spanish by default', () => {
     expect(densityChoices(es)).toEqual([
-      { value: 'comfortable', label: 'Cómoda', hint: 'Filas más altas' },
-      { value: 'compact', label: 'Compacta', hint: 'Más filas en el mismo alto' }
+      { value: 'comfortable', label: 'Cómoda', hint: 'Filas más holgadas' },
+      { value: 'compact', label: 'Compacta', hint: 'Filas más juntas' }
     ])
   })
 })

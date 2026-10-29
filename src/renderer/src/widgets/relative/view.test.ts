@@ -13,10 +13,12 @@ import {
   FLAG_FIT_EM,
   HEADS_EM,
   RELATIVE_FIT_EM,
+  RELATIVE_ROW_EM,
   chromeEm,
   layoutSlots,
   relativeColumns,
   relativeHeads,
+  relativeRowEm,
   toSlotView,
   toSlotViews,
   type RelativeSlotView,
@@ -294,6 +296,18 @@ describe('relativeHeads', () => {
     ])
     expect(relativeHeads(['lic'], 'letter', EN)[0]?.label).toBe(EN.widgets.heads.lic)
     expect(ES.widgets.heads.driver).not.toBe(EN.widgets.heads.driver)
+  })
+})
+
+describe('relativeRowEm', () => {
+  it('draws the comfortable rows as the relative always was (text half a row high)', () => {
+    expect(relativeRowEm('comfortable')).toBe(2)
+    expect(relativeRowEm(undefined)).toBe(2)
+  })
+
+  it('tightens the compact rows by the same step as the standings', () => {
+    expect(relativeRowEm('compact')).toBe(RELATIVE_ROW_EM.compact)
+    expect(RELATIVE_ROW_EM.comfortable / RELATIVE_ROW_EM.compact).toBeCloseTo(1.8 / 1.5, 1)
   })
 })
 

@@ -133,7 +133,8 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   brandMarks: 'auto',
   countryFlags: true,
   showFlags: true,
-  nameFormat: 'inherit'
+  nameFormat: 'inherit',
+  density: 'inherit'
 }
 const DEFAULT_RADAR: RadarOptions = {
   rangeM: 20,

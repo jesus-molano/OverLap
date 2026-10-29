@@ -9,7 +9,7 @@ import { useAppearance } from '@renderer/composables/useAppearance'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
-import { useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
+import { useDensity, useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
@@ -27,6 +27,7 @@ import {
   layoutSlots,
   relativeColumns,
   relativeHeads,
+  relativeRowEm,
   toSlotViews,
   type RelativeColumns,
   type RelativeHeadView,
@@ -42,6 +43,7 @@ const { data, phase } = useWidgetPhase(ID, {
 })
 const opts = useOptions(ID)
 const nameFormat = useNameFormat(ID)
+const density = useDensity(ID)
 const { halo, surfaceStyle } = useWidgetSurface(ID)
 const appearance = useAppearance()
 const t = useI18n()
@@ -113,11 +115,12 @@ const chrome = computed(() =>
   })
 )
 
-// Every row inherits --rl-slots, --rl-cols, --rl-fit and --rl-chrome (the bars' and the heads'
-// em); written only when one of them changes.
+// Every row inherits --rl-slots, --rl-row (a row's em: the density), --rl-cols, --rl-fit and
+// --rl-chrome (the bars' and the heads' em); written only when one of them changes.
 const panelStyle = computed<InlineStyle>(() => ({
   ...surfaceStyle.value,
   '--rl-slots': String(slots.value.length),
+  '--rl-row': String(relativeRowEm(density.value)),
   '--rl-cols': cols.value.template,
   '--rl-fit': String(cols.value.fitEm),
   '--rl-chrome': String(chrome.value)
@@ -223,7 +226,7 @@ const panelStyle = computed<InlineStyle>(() => ({
 }
 
 /*
- * About half a row high, capped by the width so the columns always fit (--rl-fit: view.ts). The
+ * A row is --rl-row em of this font (half a row high when comfortable), capped by the width so the columns always fit (--rl-fit: view.ts). The
  * info bars and the column heads are counted in the height (--rl-chrome: view.ts chromeEm): with
  * them the rows keep their proportions, a notch smaller.
  */
@@ -231,7 +234,7 @@ const panelStyle = computed<InlineStyle>(() => ({
   font-size: clamp(
     var(--ov-min-text),
     min(
-      calc(100cqh / (var(--rl-slots) * 2 + var(--rl-chrome, 1.8))),
+      calc(100cqh / (var(--rl-slots) * var(--rl-row, 2) + var(--rl-chrome, 1.8))),
       calc(100cqw / var(--rl-fit, 27))
     ),
     30px
