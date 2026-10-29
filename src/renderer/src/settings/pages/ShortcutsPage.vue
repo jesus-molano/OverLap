@@ -5,6 +5,7 @@ import { EXIT_EDIT_ACCELERATOR } from '@shared/shortcuts'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useShortcuts } from '../../composables/useShortcuts'
+import HelpText from '../controls/HelpText.vue'
 import { resetShortcuts } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import Keycaps from '../layout/Keycaps.vue'
@@ -58,7 +59,12 @@ const resetConfirm = computed(() =>
     <template #top>
       <header class="page-head">
         <h1 :id="titleId" class="page-title">{{ t.settings.nav.shortcuts }}</h1>
-        <p class="page-sub">{{ t.settings.shortcuts.sub }}</p>
+        <HelpText
+          tag="p"
+          class="page-sub"
+          :text="t.settings.shortcuts.sub"
+          :more="t.settings.shortcuts.subMore"
+        />
       </header>
     </template>
 
@@ -86,9 +92,24 @@ const resetConfirm = computed(() =>
 
       <PageSection :title="t.settings.shortcuts.notes.title">
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.focus }}</p>
-        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.several }}</p>
-        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.exclusive }}</p>
-        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttons }}</p>
+        <HelpText
+          tag="p"
+          class="st-row st-help note"
+          :text="t.settings.shortcuts.notes.several"
+          :more="t.settings.shortcuts.notes.severalMore"
+        />
+        <HelpText
+          tag="p"
+          class="st-row st-help note"
+          :text="t.settings.shortcuts.notes.exclusive"
+          :more="t.settings.shortcuts.notes.exclusiveMore"
+        />
+        <HelpText
+          tag="p"
+          class="st-row st-help note"
+          :text="t.settings.shortcuts.notes.buttons"
+          :more="t.settings.shortcuts.notes.buttonsMore"
+        />
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>
       </PageSection>
     </div>

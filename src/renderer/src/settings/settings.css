@@ -365,6 +365,41 @@ html.ov-settings .st-help-warn {
   color: var(--ov-warn);
 }
 
+/* A help line's ⓘ (HelpText): the rest of the help, under it, on demand. */
+html.ov-settings .st-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ov-fg-muted);
+  font: inherit;
+  line-height: 1;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+
+html.ov-settings .st-more:hover,
+html.ov-settings .st-more[aria-expanded='true'] {
+  color: var(--ov-fg);
+  background: var(--st-hover);
+}
+
+html.ov-settings .st-more:focus-visible {
+  outline: 2px solid var(--st-focus);
+  outline-offset: 1px;
+}
+
+html.ov-settings .st-more-text {
+  display: block;
+  margin-top: 3px;
+}
+
 /* A control's readout ("80 %", "1.5 s"): the numbers speak in the Display face. */
 html.ov-settings .st-value {
   min-width: 4.5em;

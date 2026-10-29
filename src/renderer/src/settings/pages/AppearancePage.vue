@@ -15,6 +15,7 @@ import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions, type ChoiceOption } from '../controls/choice'
 import { densityChoices, nameExample, nameFormatChoices } from '../controls/choices'
 import ColorControl from '../controls/ColorControl.vue'
+import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter, resetAppearance } from '../editor'
@@ -125,7 +126,12 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
     <template #top>
       <header class="page-head">
         <h1 :id="titleId" class="page-title">{{ t.settings.nav.appearance }}</h1>
-        <p class="page-sub">{{ t.settings.appearance.sub }}</p>
+        <HelpText
+          tag="p"
+          class="page-sub"
+          :text="t.settings.appearance.sub"
+          :more="t.settings.appearance.subMore"
+        />
       </header>
 
       <SampleStage class="stage">
@@ -182,7 +188,8 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
       <PageSection :title="t.settings.appearance.text.title">
         <SliderControl
           :label="t.settings.appearance.text.fontScale"
-          :help="fontScaleHelp"
+          :help="fontScaleHelp.help"
+          :more="fontScaleHelp.more"
           :current="appearance.fontScale"
           :min="FONT_SCALE_MIN"
           :max="FONT_SCALE_MAX"
@@ -279,7 +286,8 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         />
         <ChoiceControl
           :label="t.settings.appearance.screen.replays"
-          :help="replaysHelp"
+          :help="replaysHelp.help"
+          :more="replaysHelp.more"
           :current="visibility.replays"
           :options="replayChoices"
           :apply="setVisibility('replays')"

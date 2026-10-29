@@ -4,11 +4,14 @@ import { useI18n } from '../../composables/useI18n'
 import type { InlineStyle } from '../../view/styles'
 import { useDraft } from '../useDraft'
 import { rangeFill, snapToStep } from '../values'
+import HelpText from './HelpText.vue'
 
 const props = withDefaults(
   defineProps<{
     label: string
     help?: string
+    /** The rest of the help, behind its ⓘ (HelpText). */
+    more?: string
     current: number
     min: number
     max: number
@@ -19,7 +22,7 @@ const props = withDefaults(
     presets?: readonly number[]
     disabled?: boolean
   }>(),
-  { help: undefined, step: 1, presets: () => [], disabled: false }
+  { help: undefined, more: undefined, step: 1, presets: () => [], disabled: false }
 )
 
 const id = useId()
@@ -76,9 +79,14 @@ function onChange(e: Event): void {
       @input="onInput"
       @change="onChange"
     />
-    <span v-if="help" :id="helpId" class="st-help" :class="{ 'st-disabled': disabled }">{{
-      help
-    }}</span>
+    <HelpText
+      v-if="help"
+      :id="helpId"
+      class="st-help"
+      :class="{ 'st-disabled': disabled }"
+      :text="help"
+      :more="more"
+    />
     <div v-if="presets.length > 0" class="st-presets" role="group" :aria-label="presetsLabel">
       <button
         v-for="p in presets"

@@ -13,11 +13,15 @@ export function fontScaleWidgets(): { scaled: WidgetId[]; free: WidgetId[] } {
   return { scaled, free }
 }
 
-/** The help of "Tamaño del texto": exactly which widgets it changes and which it does not. */
-export function fontScaleHelp(m: Messages, locale: string): string {
+/**
+ * The help of "Tamaño del texto": exactly which widgets it changes (the line), and which it does
+ * not (behind its ⓘ).
+ */
+export function fontScaleHelp(m: Messages, locale: string): { help: string; more: string } {
   const { scaled, free } = fontScaleWidgets()
-  return m.settings.appearance.text.fontScaleHelp(
-    widgetList(m, locale, scaled),
-    widgetList(m, locale, free)
-  )
+  const text = m.settings.appearance.text
+  return {
+    help: text.fontScaleHelp(widgetList(m, locale, scaled)),
+    more: text.fontScaleMore(widgetList(m, locale, free))
+  }
 }

@@ -35,10 +35,12 @@ export function replaysHelp(
   m: Messages,
   locale: string,
   v: Pick<VisibilityOptions, 'replays' | 'showWhen'>
-): string {
+): { help: string; more?: string } {
   const h = m.settings.appearance.screen.replaysHelp
-  if (v.replays === 'follow') return h.follow(liveOnlyWidgets(m, locale))
-  return v.showWhen === 'always' ? h.hideAlways : h.hide
+  if (v.replays === 'follow') {
+    return { help: h.follow, more: h.followMore(liveOnlyWidgets(m, locale)) }
+  }
+  return { help: v.showWhen === 'always' ? h.hideAlways : h.hide }
 }
 
 /** What one widget does while a replay plays, for its "Ventana" section. */
