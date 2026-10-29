@@ -140,13 +140,6 @@ const fixed = computed(() => fixedColumns(t.value))
       :options="gapChoices"
       :apply="setGapMode"
     />
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.standings.deltaAll"
-      :help="t.settings.standings.deltaAllHelp"
-      :current="opts.iRatingDeltaAll"
-      :apply="setDeltaAll"
-    />
     <ChoiceControl
       :label="t.settings.common.density"
       :current="opts.density"
@@ -167,6 +160,16 @@ const fixed = computed(() => fixedColumns(t.value))
       :fixed-before="fixed"
       :apply="applyColumns"
     >
+      <!-- An element's option in its own row (R12): every row's stake, on the stake column. -->
+      <template #extra="{ id, visible }">
+        <ToggleControl
+          v-if="id === 'delta' && visible"
+          :label="t.settings.standings.deltaAll"
+          :help="t.settings.standings.deltaAllHelp"
+          :current="opts.iRatingDeltaAll"
+          :apply="setDeltaAll"
+        />
+      </template>
       <template #footer>
         <ToggleControl
           kind="switch"

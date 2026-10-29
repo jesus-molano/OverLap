@@ -119,6 +119,8 @@ const props = withDefaults(
      * page's "Expandir todo"; still the preview's list for its zone.
      */
     embedded?: boolean
+    /** One of several lists of a zone (the alerts' groups): no "nothing shown" note of its own. */
+    quietEmpty?: boolean
   }>(),
   {
     emptyHides: false,
@@ -132,7 +134,8 @@ const props = withDefaults(
     restAtDefault: true,
     partsOf: () => [],
     partsSummary: undefined,
-    embedded: false
+    embedded: false,
+    quietEmpty: false
   }
 )
 
@@ -884,7 +887,7 @@ function onCancel(e: PointerEvent): void {
           </li>
         </ul>
 
-        <p v-if="empty" class="st-help ed-warn">
+        <p v-if="empty && !quietEmpty" class="st-help ed-warn">
           {{ emptyHides ? t.settings.elements.emptyHides : t.settings.elements.empty }}
         </p>
 

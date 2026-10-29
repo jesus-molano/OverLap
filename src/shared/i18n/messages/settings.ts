@@ -753,9 +753,15 @@ export const settingsEs = {
   alerts: {
     nothing: 'Sin ningún aviso marcado el widget no se muestra',
     /** Groups of toggles after the flags ('Mostrar'). */
-    pitGroup: 'Boxes',
-    raceGroup: 'Durante la carrera',
-    engineGroup: 'Motor',
+    /** Personalizar's list of alerts (R12), and its groups' titles. */
+    listTitle: 'Avisos',
+    groups: {
+      flags: 'Banderas',
+      pit: 'Boxes',
+      race: 'Durante la carrera',
+      engine: 'Motor',
+      fuel: 'Combustible'
+    },
     flags: 'Banderas de carrera',
     flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
     blue: 'Bandera azul',
@@ -788,7 +794,6 @@ export const settingsEs = {
     damage: 'Daños',
     damageHelp:
       'Al dañarse el coche, antes de la bandera de reparación: «DAÑO · reparación obligatoria en boxes»',
-    fuelGroup: 'Combustible',
     /** `laps`: FUEL_ALERT.lowLaps. */
     fuelLow: 'Combustible bajo',
     fuelLowHelp: (laps: number) =>
@@ -2090,9 +2095,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   alerts: {
     nothing: 'With no alert selected, the widget never shows',
-    pitGroup: 'Pit lane',
-    raceGroup: 'During the race',
-    engineGroup: 'Engine',
+    listTitle: 'Alerts',
+    groups: {
+      flags: 'Flags',
+      pit: 'Pit lane',
+      race: 'During the race',
+      engine: 'Engine',
+      fuel: 'Fuel'
+    },
     flags: 'Race flags',
     flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
     blue: 'Blue flag',
@@ -2124,7 +2134,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     damage: 'Damage',
     damageHelp:
       'When the car is damaged, before the meatball flag: “DAMAGE · pit for mandatory repairs”',
-    fuelGroup: 'Fuel',
     fuelLow: 'Low fuel',
     fuelLowHelp: (laps) =>
       `Under ${laps}${NB}laps of fuel and not enough to finish: “FUEL · 1.6 LAPS”`,
