@@ -16,7 +16,7 @@ const { overlayHidden } = useOverlayState()
 const t = useI18n()
 const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
-/** 'Ctrl+Shift+H', 'Botón 3 · G29 …' for a controller's button, 'Ctrl+Shift+H · Botón 24'. */
+/** 'Ctrl+Shift+H', 'Botón 3 de G29 …' for a controller's button, 'Ctrl+Shift+H o Botón 24'. */
 const keys = computed(() => bindingsText(t.value, shortcuts.value.toggleOverlay, deviceNames.value))
 </script>
 

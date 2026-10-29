@@ -33,7 +33,7 @@ const names = computed(() => ({
   ...capture.pressedNames.value
 }))
 const rows = computed(() =>
-  shortcutRows(t.value, shortcuts.value, shortcutStatus.value, names.value)
+  shortcutRows(t.value, capture.bindings.value, shortcutStatus.value, names.value)
 )
 const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
 

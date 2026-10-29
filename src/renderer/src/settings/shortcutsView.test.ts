@@ -11,6 +11,7 @@ import {
   bindingsText,
   buttonBindingCount,
   editModeTooltip,
+  focusAfter,
   refusalText,
   rowMessages,
   shortcutRows,
@@ -156,6 +157,29 @@ describe('sidebarKeys', () => {
     const more = B(DEFAULT_SETTINGS.shortcuts, { toggleEditMode: ['joy:046d:c24f:0:3'] })
     expect(sidebarKeys(es, more)[0]?.keys).toBe('Ctrl+Shift+E')
   })
+
+  it('prefers a key combination to a button, and draws a button without its controller', () => {
+    const G29 = 'joy:046d:c24f:0'
+    const names = { [G29]: 'G29 Driving Force Racing Wheel' }
+    const keyLater = B(
+      { ...DEFAULT_SETTINGS.shortcuts, toggleOverlay: `${G29}:24` },
+      { toggleOverlay: ['F13'] }
+    )
+    expect(sidebarKeys(es, keyLater, names)[1]).toEqual({
+      id: 'toggleOverlay',
+      keys: 'F13',
+      label: 'mostrar u ocultar',
+      button: false
+    })
+    const buttonsOnly = B({ ...DEFAULT_SETTINGS.shortcuts, toggleOverlay: `${G29}:24` })
+    expect(sidebarKeys(es, buttonsOnly, names)[1]).toEqual({
+      id: 'toggleOverlay',
+      keys: 'Botón 24',
+      label: 'mostrar u ocultar',
+      button: true,
+      title: 'Botón 24 · G29 Driving Force Racing Wheel'
+    })
+  })
 })
 
 describe('editModeTooltip', () => {
@@ -174,7 +198,7 @@ describe('editModeTooltip', () => {
   it('names every binding, compactly, when there are several', () => {
     const more = B(DEFAULT_SETTINGS.shortcuts, { toggleEditMode: ['joy:046d:c24f:0:24'] })
     expect(editModeTooltip(es, more, { 'joy:046d:c24f:0': 'G29' })).toContain(
-      '(Ctrl+Shift+E · Botón 24)'
+      '(Ctrl+Shift+E o Botón 24)'
     )
   })
 })
@@ -183,11 +207,21 @@ describe('bindingsText', () => {
   const G29 = 'joy:046d:c24f:0'
   it('gives one binding in full, several without their controllers, none as nothing', () => {
     const names = { [G29]: 'G29' }
-    expect(bindingsText(es, [`${G29}:7`], names)).toBe('Botón 7 · G29')
+    expect(bindingsText(es, [`${G29}:7`], names)).toBe('Botón 7 de G29')
     expect(bindingsText(en, ['Ctrl+Shift+H', `${G29}:24`, 'F13'], names)).toBe(
-      'Ctrl+Shift+H · Button 24 · F13'
+      'Ctrl+Shift+H, Button 24 or F13'
     )
+    expect(bindingsText(es, ['Ctrl+Alt+D', `${G29}:7`], names)).toBe('Ctrl+Alt+D o Botón 7')
     expect(bindingsText(es, [], names)).toBe('')
+  })
+
+  it('never uses the dot, which the sentences around it use between their parts', () => {
+    const names = { [G29]: 'G29' }
+    for (const lang of [es, en]) {
+      expect(bindingsText(lang, [`${G29}:24`], names)).not.toContain('·')
+      expect(bindingsText(lang, ['Ctrl+Shift+H', `${G29}:24`], names)).not.toContain('·')
+      expect(bindingsText(lang, ['Ctrl+Shift+H', `${G29}:24`, 'F13'], names)).not.toContain('·')
+    }
   })
 })
 
@@ -380,13 +414,14 @@ describe('controller buttons', () => {
     const s = B({ ...DEFAULT_SETTINGS.shortcuts, toggleEditMode: `${G29}:3` })
     expect(sidebarKeys(es, s, names)[0]).toEqual({
       id: 'toggleEditMode',
-      keys: 'Botón 3 · G29 Driving Force Racing Wheel',
+      keys: 'Botón 3',
       label: 'modo edición',
-      button: true
+      button: true,
+      title: 'Botón 3 · G29 Driving Force Racing Wheel'
     })
-    expect(editModeTooltip(es, s, names)).toContain('(Botón 3 · G29 Driving Force Racing Wheel)')
+    expect(editModeTooltip(es, s, names)).toContain('(Botón 3 de G29 Driving Force Racing Wheel)')
     // Its name not known yet: its ids.
-    expect(sidebarKeys(es, s)[0]?.keys).toBe('Botón 3 · VID 046D PID C24F')
+    expect(sidebarKeys(es, s)[0]?.title).toBe('Botón 3 · VID 046D PID C24F')
   })
 
   it('names the button pressed when another action has it', () => {
@@ -420,5 +455,34 @@ describe('controller buttons', () => {
         )
       )
     ).toBe(3)
+  })
+})
+
+describe('focusAfter', () => {
+  const rowOf = (more: string[]): ShortcutRowView => {
+    const r = shortcutRows(es, B(DEFAULT_SETTINGS.shortcuts, { toggleOverlay: more }), null)[0]
+    if (!r) throw new Error('no row')
+    return r
+  }
+
+  it('goes to the chip now in the slot changed, else "add", else the last chip', () => {
+    const removed = (slot: number) =>
+      ({ action: 'toggleOverlay', kind: 'removed', accelerator: 'X', slot }) as const
+    // The first of three removed: the one that moved up.
+    expect(focusAfter(removed(0), rowOf(['F13']))).toEqual({ slot: 0 })
+    // The last one removed: "add".
+    expect(focusAfter(removed(2), rowOf(['F13']))).toBe('add')
+    // A third one added: the row is full and "add" gone, so the new chip.
+    const saved = { action: 'toggleOverlay', kind: 'saved', accelerator: 'F14', slot: 2 } as const
+    expect(focusAfter(saved, rowOf(['F13', 'F14']))).toEqual({ slot: 2 })
+  })
+
+  it('does nothing for another row, a refusal or no feedback', () => {
+    const row = rowOf([])
+    expect(focusAfter(null, row)).toBeNull()
+    const other = { action: 'nextLayout', kind: 'removed', accelerator: 'F13', slot: 0 } as const
+    expect(focusAfter(other, row)).toBeNull()
+    const refused = { action: 'toggleOverlay', kind: 'refused', error: 'invalid' } as const
+    expect(focusAfter(refused, row)).toBeNull()
   })
 })

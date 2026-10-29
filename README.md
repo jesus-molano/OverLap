@@ -257,8 +257,9 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Se cambian en **Ajustes > Atajos**, donde cada acción muestra sus atajos uno al lado del otro:
   **+ Añadir** espera una combinación (o un botón del volante) y la pone junto a los demás; pulsar
   un atajo lo cambia por otro, y su **×** lo quita (si era el primero, el siguiente pasa a serlo).
-  Sin ninguno, la acción queda desactivada. **Restablecer** la deja solo con el de fábrica. `Esc`
-  cancela, y `Retroceso` o `Supr` quitan el atajo que estás cambiando.
+  Sin ninguno, la acción queda desactivada. **Restablecer**, junto al nombre de la acción, la deja
+  solo con el de fábrica. `Esc` (o el **×** del atajo que estás cambiando) cancela, y `Retroceso`
+  o `Supr` quitan el atajo que estás cambiando.
 - Un mismo atajo no puede estar en dos acciones (ni dos veces en la misma): la página dice quién
   lo tiene ya.
 - **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras
