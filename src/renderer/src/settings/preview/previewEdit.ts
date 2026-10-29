@@ -463,12 +463,14 @@ export function ghostZones(section: string, options: Options): CustomizeZoneId[]
 
 /**
  * `options` as the sample draws them while you edit: the hidden elements of `zones` shown (so
- * the widget draws them where they would go), with the set of their `data-el`s to ghost. The
- * object itself when nothing is ghosted.
+ * the widget draws them where they would go), with the set of their `data-el`s to ghost. Those
+ * of `except` stay hidden (one just hidden from its list row: quietAfterLit). The object itself
+ * when nothing is ghosted.
  */
 export function withGhosts<T extends object>(
   options: T,
-  zones: readonly CustomizeZoneId[]
+  zones: readonly CustomizeZoneId[],
+  except: readonly string[] = []
 ): { readonly options: T; readonly ghosts: readonly string[] } {
   if (zones.length === 0) return { options, ghosts: [] }
   const o = options as unknown as Options
@@ -481,12 +483,36 @@ export function withGhosts<T extends object>(
     const elsewhere = shownInOtherBar(zone, o)
     out[field] = (list as ElementEntry<string>[]).map((e) => {
       if (e.visible || e.id === SPLIT) return { id: e.id, visible: true }
-      if (elsewhere.has(e.id)) return e
-      ghosts.push(`${zone}.${e.id}`)
+      const el = `${zone}.${e.id}`
+      if (elsewhere.has(e.id) || except.includes(el)) return e
+      ghosts.push(el)
       return { id: e.id, visible: true }
     })
   }
   return { options: out as unknown as T, ghosts }
+}
+
+/**
+ * An element hidden from its list row (its eye) and not ghosted yet: drawn as a ghost at once,
+ * while the pointer is still on its row, the hide reads as if it did nothing. `left`: the list
+ * has lit another row of its zone since (an info bar's row moves to the hidden ones, so the
+ * pointer ends up on another row).
+ */
+export interface QuietEl {
+  readonly el: ElRef
+  readonly left: boolean
+}
+
+/**
+ * `quiet` after the list lights `lit`: kept while the pointer or the focus stays on its row or
+ * on other rows of its zone; gone when the list lights nothing or another zone, or that row
+ * again after another one (you came back to it: its ghost shows where it would go).
+ */
+export function quietAfterLit(quiet: QuietEl | null, lit: ElRef | null): QuietEl | null {
+  if (quiet === null) return null
+  if (lit === null || lit.zone !== quiet.el.zone) return null
+  if (sameEl(lit, quiet.el)) return quiet.left ? null : quiet
+  return quiet.left ? quiet : { el: quiet.el, left: true }
 }
 
 /**

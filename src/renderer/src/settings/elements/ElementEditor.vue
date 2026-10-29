@@ -310,8 +310,14 @@ function undoTo(kind: UndoKind, id: Id, next: ElementEntry<Id>[]): void {
   announceMove(id, before, next)
 }
 
-/** The eye of a row: in an info bar the row changes group, so the focus follows it. */
+/**
+ * The eye of a row: in an info bar the row changes group, so the focus follows it. A hidden
+ * element is not ghosted in the sample while the list stays on its zone: it shows gone.
+ */
 function onEye(id: Id, visible: boolean): void {
+  const z = zone.value
+  if (!visible && preview !== null && z !== null && !isRequired(props.spec, id))
+    preview.hiddenFromList({ zone: z, id })
   setVisible(id, visible)
   if (props.split !== undefined) void refocusEye(id)
 }

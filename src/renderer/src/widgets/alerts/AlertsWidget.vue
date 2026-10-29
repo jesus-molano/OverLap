@@ -156,7 +156,6 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
     >
       <div
         v-if="flags.primary"
-        v-memo="[flags.primary, previewTag === 'flag', showNotes]"
         class="flag"
         :class="[
           `al-fill-${flags.primary.fill}`,
@@ -188,12 +187,7 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         <PreviewTag v-if="previewTag === 'flag'" class="alerts__preview" />
       </div>
 
-      <div
-        v-if="chips.length > 0"
-        v-memo="[chips, previewTag === 'chips']"
-        class="chips"
-        data-el="alerts.parts.chips"
-      >
+      <div v-if="chips.length > 0" class="chips" data-el="alerts.parts.chips">
         <span v-for="f in chips" :key="f.kind" class="chip">
           <span class="chip__mark al-tile" :class="[`al-fill-${f.fill}`, `al-tile--${f.mark}`]" />
           <span class="chip__text">{{ f.chip }}</span>
