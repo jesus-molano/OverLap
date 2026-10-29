@@ -16,7 +16,7 @@ import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
-import { decimalsOf, formatSeconds } from '../values'
+import { formatSeconds } from '../values'
 
 const opts = useOptions('traffic')
 const appearance = useAppearance()
@@ -34,12 +34,11 @@ interface SecondsSlider {
 /** A seconds slider of the schema: its range, step, format and the presets inside its range. */
 function secondsSlider(spec: NumericSpec, presets: readonly number[]): SecondsSlider {
   const step = spec.step ?? 1
-  const decimals = decimalsOf(step)
   return {
     min: spec.min,
     max: spec.max,
     step,
-    format: (s: number): string => formatSeconds(s, decimals),
+    format: (s: number): string => formatSeconds(t.value, s),
     presets: presets.filter((p) => p >= spec.min && p <= spec.max)
   }
 }

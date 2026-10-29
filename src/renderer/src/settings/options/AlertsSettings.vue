@@ -22,7 +22,7 @@ const t = useI18n()
 
 const HOLD: NumericSpec = OPTION_SCHEMA.alerts.holdS
 const HOLD_PRESETS_S = [0, 3, 5].filter((s) => s >= HOLD.min && s <= HOLD.max)
-const tenths = (s: number): string => formatSeconds(s, 1)
+const seconds = (s: number): string => formatSeconds(t.value, s)
 
 // The blue, furled and overspeed switches hide with their own (their values stay): not counted.
 const nothing = computed(() => showsNothing(opts.value))
@@ -160,7 +160,7 @@ const setParts = listSetter('alerts', 'parts')
       :min="HOLD.min"
       :max="HOLD.max"
       :step="HOLD.step"
-      :format="tenths"
+      :format="seconds"
       :presets="HOLD_PRESETS_S"
       :apply="set('holdS')"
     />

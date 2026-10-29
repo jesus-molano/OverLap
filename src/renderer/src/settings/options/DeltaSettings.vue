@@ -25,7 +25,7 @@ import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageAppendix from '../layout/PageAppendix.vue'
 import PageSection from '../layout/PageSection.vue'
 import PersonalBestsSection from './PersonalBestsSection.vue'
-import { decimalsOf, formatSeconds } from '../values'
+import { formatSeconds, snapToStep } from '../values'
 
 const opts = useOptions('delta')
 const shortcuts = useShortcuts()
@@ -80,9 +80,8 @@ const cycleText = computed(() => {
 const RANGE: NumericSpec = S.rangeS
 const RANGE_STEP = RANGE.step ?? 0.1
 const RANGE_PRESETS_S = [0.5, 1, 1.5, 2, 3].filter((s) => s >= RANGE.min && s <= RANGE.max)
-/** Snapped values only: '0.5 s', '1 s', '1.25 s' (no trailing zeros). */
-const rangeText = (s: number): string =>
-  formatSeconds(s, Math.min(decimalsOf(RANGE_STEP), decimalsOf(s)))
+/** Snapped values only: '0,5 s', '1 s', '1,25 s' (no trailing zeros). */
+const rangeText = (s: number): string => formatSeconds(t.value, snapToStep(s, RANGE_STEP, 0))
 
 // The editors' words, with the hints of the parts that need one.
 const rowTexts = computed(() => {

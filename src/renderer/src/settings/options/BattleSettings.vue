@@ -30,7 +30,7 @@ const set = optionSetter('battle')
 
 const THRESHOLD_PRESETS_S = [0.5, 1, 1.5, 2, 3] as const
 const HOLD_PRESETS_S = [0, 3, 5] as const
-const tenths = (s: number): string => formatSeconds(s, 1)
+const seconds = (s: number): string => formatSeconds(t.value, s)
 
 const B = OPTION_SCHEMA.battle
 const layoutChoices = computed(() =>
@@ -81,7 +81,7 @@ const setParts = listSetter('battle', 'parts')
       :min="BATTLE_THRESHOLD_MIN_S"
       :max="BATTLE_THRESHOLD_MAX_S"
       :step="B.thresholdS.step"
-      :format="tenths"
+      :format="seconds"
       :presets="THRESHOLD_PRESETS_S"
       :apply="set('thresholdS')"
     />
@@ -92,7 +92,7 @@ const setParts = listSetter('battle', 'parts')
       :min="BATTLE_HOLD_MIN_S"
       :max="BATTLE_HOLD_MAX_S"
       :step="B.holdS.step"
-      :format="tenths"
+      :format="seconds"
       :presets="HOLD_PRESETS_S"
       :apply="set('holdS')"
     />

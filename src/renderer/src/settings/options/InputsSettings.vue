@@ -27,7 +27,11 @@ import { formatPx, formatSeconds, stepValues } from '../values'
 const opts = useOptions('inputs')
 const t = useI18n()
 const set = optionSetter('inputs')
-const seconds = (s: number): string => formatSeconds(s)
+const seconds = (s: number): string => formatSeconds(t.value, s)
+/** The trace's length: the same quick buttons as every other seconds slider. */
+const TRACE_PRESETS_S = [3, 5, 8, 10].filter(
+  (s) => s >= INPUTS_TRACE_MIN_S && s <= INPUTS_TRACE_MAX_S
+)
 
 type Pedal = keyof InputsOptions['colors']
 
@@ -61,11 +65,10 @@ const pedals = computed(() => {
 })
 
 const spec = OPTION_SCHEMA.inputs.traceWidth
-const WIDTH_CHOICES: readonly ChoiceOption<string>[] = stepValues(
-  INPUTS_TRACE_WIDTH_MIN,
-  INPUTS_TRACE_WIDTH_MAX,
-  spec.step
-).map((w) => ({ value: String(w), label: formatPx(w) }))
+const WIDTHS = stepValues(INPUTS_TRACE_WIDTH_MIN, INPUTS_TRACE_WIDTH_MAX, spec.step)
+const widthChoices = computed<readonly ChoiceOption<string>[]>(() =>
+  WIDTHS.map((w) => ({ value: String(w), label: formatPx(t.value, w) }))
+)
 const traceWidth = computed(() => String(opts.value.traceWidth))
 const setTraceWidth: Setter<string> = (v) => set('traceWidth')(Number(v))
 
@@ -116,13 +119,14 @@ const setCar = listSetter('inputs', 'car')
       :min="INPUTS_TRACE_MIN_S"
       :max="INPUTS_TRACE_MAX_S"
       :format="seconds"
+      :presets="TRACE_PRESETS_S"
       :apply="set('traceSeconds')"
     />
     <ChoiceControl
       v-if="hasTrace"
       :label="t.settings.inputs.traceWidth"
       :current="traceWidth"
-      :options="WIDTH_CHOICES"
+      :options="widthChoices"
       :apply="setTraceWidth"
     />
     <ToggleControl

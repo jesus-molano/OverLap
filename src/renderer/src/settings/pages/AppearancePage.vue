@@ -30,7 +30,7 @@ import { outOfCarHidesSessionScreen, replaysHelp as replaysHelpText } from '../r
 import { SAMPLE_CHIPS } from '../samples/sampleData'
 import WidgetSample from '../samples/WidgetSample.vue'
 import { dayUnreadable } from '../opacityNote'
-import { formatPercent, fromPercent, toPercent } from '../values'
+import { SIZE_PRESETS, formatPercent, fromPercent, toPercent } from '../values'
 
 /**
  * Global look shared by every widget (settings.appearance), and when the overlay shows and hides
@@ -102,7 +102,6 @@ const replayChoices = computed(() =>
   )
 )
 const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
-const FONT_PRESETS = [90, 100, 115, 130] as const
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
 /** The preview on «Día» shows the global background hard to read: said under it. */
 const windowOptions = useOptions('settingsWindow')
@@ -214,7 +213,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :min="FONT_SCALE_MIN"
           :max="FONT_SCALE_MAX"
           :step="OPTION_SCHEMA.appearance.fontScale.step"
-          :presets="FONT_PRESETS"
+          :presets="SIZE_PRESETS"
           :format="percent"
           :apply="set('fontScale')"
         />
