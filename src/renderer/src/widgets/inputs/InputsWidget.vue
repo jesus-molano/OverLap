@@ -891,10 +891,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   min-height: 0;
 }
 
-/* A key and its value on one line, the value's box fixed (it changes every sample). */
+/* A key and its value on one line, the value's box fixed (it changes every sample). Centred, not
+   on the baseline: a contained box has none, so its bottom edge would sit on the key's. */
 .car-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 0.3em;
   padding: 0 0.25em;

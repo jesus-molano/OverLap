@@ -801,7 +801,7 @@ export const settingsEs = {
       },
       repairOptional: {
         meaning: 'Daños leves: puedes seguir con ellos',
-        action: 'Arréglalos en tu próxima parada si compensa: «OPC. · 38 s»'
+        action: 'Arréglalos en tu próxima parada si compensa: «OPC. · 38 s (equipo)»'
       },
       water: {
         meaning: 'Agua demasiado caliente: el testigo del propio coche',
@@ -1841,7 +1841,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       repairOptional: {
         meaning: 'Minor damage: you can race on with it',
-        action: 'Fix it at your next stop if it pays off: “OPT. · 38 s”'
+        action: 'Fix it at your next stop if it pays off: “OPT. · 38 s (crew)”'
       },
       water: {
         meaning: 'Water too hot: the car’s own warning light',
