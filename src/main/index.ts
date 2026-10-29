@@ -477,7 +477,7 @@ function start(): void {
     })
   }
 
-  /** The tray's "Mostrar el overlay": the same setting as Apariencia > Visibilidad. */
+  /** The tray's "Mostrar el overlay": the same setting as Visibilidad. */
   function setShowWhen(showWhen: ShowWhen): void {
     changeSettings((s) => {
       s.visibility.showWhen = showWhen

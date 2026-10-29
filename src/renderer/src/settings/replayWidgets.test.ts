@@ -56,10 +56,10 @@ describe('replay rule wording', () => {
     )
     // Replays hidden (the default): watching from out of the car hides them too.
     expect(replayNote(es, 'standings', HIDE)).toBe(
-      'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Apariencia > Visibilidad)'
+      'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Visibilidad)'
     )
     expect(replayNote(es, 'standings', HIDE_ALWAYS)).toBe(
-      'Al rebobinar se oculta (Apariencia > Visibilidad); en directo sigue al coche que miras'
+      'Al rebobinar se oculta (Visibilidad); en directo sigue al coche que miras'
     )
     // Your car's data only hides whatever the rule says.
     for (const choices of [FOLLOW, HIDE, HIDE_ALWAYS]) {

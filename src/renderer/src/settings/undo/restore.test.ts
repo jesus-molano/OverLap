@@ -133,7 +133,7 @@ describe('resets with "Deshacer"', () => {
     })
   })
 
-  it('resets one section of Apariencia, and all of it with Visibilidad', async () => {
+  it('resets one section of Apariencia, and all of it but «Visibilidad» (R34)', async () => {
     const own = settingsWith(createDefaultSettings(), (s) => {
       s.appearance.fontScale = 125
       s.appearance.accent = '#22d3ee'
@@ -144,10 +144,13 @@ describe('resets with "Deshacer"', () => {
     expect(patches.at(-1)).toEqual({ appearance: { fontScale: 100, textHalo: 'auto' } })
     expect(shownText(undo)).toBe('Restablecido: Texto')
     restore.resetAppearance()
-    expect(patches.at(-1)?.visibility?.showWhen).toBe('car')
+    // When the overlay shows has its own page and reset now.
+    expect(patches.some((p) => p.visibility !== undefined)).toBe(false)
     undo.undoSlot.undo()
-    expect(patches.at(-1)?.visibility?.showWhen).toBe('always')
+    expect(patches.at(-1)?.visibility).toBeUndefined()
     expect(patches.at(-1)?.appearance?.accent).toBe('#22d3ee')
+    restore.resetAppearancePart('screen')
+    expect(patches.at(-1)?.visibility?.showWhen).toBe('car')
   })
 
   it('offers "Deshacer" after «Usar «Global» en todos»', async () => {

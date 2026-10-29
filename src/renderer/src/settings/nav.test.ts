@@ -33,9 +33,9 @@ const throwing: PageStorage = {
 }
 
 describe('settings pages', () => {
-  it('lists the appearance, the shortcuts, the layouts, then every widget once, by group', () => {
-    expect(SETTINGS_PAGES.slice(0, 3)).toEqual(['appearance', 'shortcuts', 'layouts'])
-    expect(SETTINGS_PAGES.slice(3)).toEqual(WIDGET_LIST_ORDER)
+  it('lists the appearance, the visibility, the shortcuts, the layouts, then the widgets by group', () => {
+    expect(SETTINGS_PAGES.slice(0, 4)).toEqual(['appearance', 'visibility', 'shortcuts', 'layouts'])
+    expect(SETTINGS_PAGES.slice(4)).toEqual(WIDGET_LIST_ORDER)
     expect(new Set(SETTINGS_PAGES).size).toBe(SETTINGS_PAGES.length)
   })
 

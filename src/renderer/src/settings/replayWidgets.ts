@@ -27,7 +27,7 @@ export function liveOnlyWidgets(m: Messages, locale: string): string {
 }
 
 /**
- * The help line of Apariencia > Visibilidad > En repeticiones, for the current choices: with
+ * The help line of Visibilidad > En repeticiones, for the current choices: with
  * replays hidden and the overlay only in the car, watching from out of it hides them too; with
  * the overlay always on, the live point stays live.
  */

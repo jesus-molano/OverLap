@@ -17,6 +17,11 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
     },
     { d: 'M4.6 7.4a1 1 0 1 0 0-.01zM6.6 4.6a1 1 0 1 0 0-.01zM9.9 4.6a1 1 0 1 0 0-.01z', fill: true }
   ],
+  // An eye: when and where things show (R34).
+  visibility: [
+    { d: 'M1.5 8s2.4-4.25 6.5-4.25S14.5 8 14.5 8s-2.4 4.25-6.5 4.25S1.5 8 1.5 8z' },
+    { d: 'M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4z', fill: true }
+  ],
   // A bolt: an action at a press, of a key or a controller's button.
   shortcuts: [{ d: 'M9.25 1.75 3.75 9h4l-1 5.25L12.25 7h-4z' }],
   // Panels placed on a screen: a layout.

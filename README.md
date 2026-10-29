@@ -351,7 +351,7 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 
 ## Cuándo se ve el overlay
 
-En **Ajustes > Apariencia > Visibilidad**:
+En **Ajustes > Visibilidad**:
 
 - **Cuándo mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o
   siempre. Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
@@ -360,6 +360,9 @@ En **Ajustes > Apariencia > Visibilidad**:
 - Se ocultan también con la interfaz de iRacing oculta, en el garaje y en la pantalla de sesión
   (cada widget puede tener su excepción).
 - Cada widget tiene además sus propias reglas: en qué sesiones se muestra y si se oculta en boxes.
+  Debajo, la tabla **Dónde se ve cada widget** las reúne todas (visible, práctica, clasificación,
+  carrera, boxes, pantalla de sesión y bloqueado), una fila por widget: cada casilla es el mismo
+  ajuste que en su página, y su nombre lleva a ella.
 - El modo edición siempre enseña todos los widgets, con el motivo si alguno está oculto.
 
 Para OBS, usa la captura de ventana «Pantalla N · OverLap» (trae todos los widgets de esa pantalla)

@@ -196,19 +196,17 @@ export function resetBounds(id: WidgetId): void {
 }
 
 /**
- * The whole of Apariencia back to its defaults, the look and «Visibilidad» (the language kept),
- * with "Deshacer".
+ * The whole of Apariencia back to its defaults, the language kept, with "Deshacer". When the
+ * overlay shows lives on its own page now («Visibilidad», R34), with its own reset.
  */
 export function resetAppearance(): void {
   const s = settingsNow()
   const before: Partial<OverlaySettings['appearance']> = { ...s.appearance }
   delete before.language
-  const visibility = { ...s.visibility }
   void sendAppearanceReset()
-  void updateSection('visibility', appearancePartDefaults('screen').fields as never)
   offerRestore(
     (m) => m.settings.elements.undo.reset(m.settings.elements.undo.whatAppearance, ''),
-    () => void updateSettings({ appearance: before, visibility })
+    () => void updateSettings({ appearance: before })
   )
 }
 
