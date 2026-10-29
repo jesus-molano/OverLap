@@ -28,7 +28,8 @@ describe('the words of every element list', () => {
       hint: 'Lo que va después se alinea al otro extremo'
     })
     expect(t.fastestLap.hint).toContain('VR')
-    expect(t.title.hint).toBeUndefined()
+    expect(t.title.hint).toContain('RELATIVO')
+    expect(t.session.hint).toBeUndefined()
   })
 
   it('reuses the existing words: the standings columns, the lights', () => {
