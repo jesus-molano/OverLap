@@ -131,6 +131,34 @@ export function advanceTrack(
 }
 
 /**
+ * Race distance the running order ranks `track` by (orderD), after this tick's advanceTrack
+ * moved it from `before` (its lastD before the tick, kept while out of the world).
+ *
+ * On track it is the distance. On pit road (`inPits`) it is the distance it had when it got
+ * there plus what it has driven since, so lap-counter jumps there move it past nobody: a pct
+ * and a lap counter that disagree for longer than WRAP_HOLD_S at pit-lane speed, a lap
+ * credited in the box after a tow. Cars driving past it still pass it (a stop costs
+ * places), and it takes its own distance back when it rejoins the track (an undercut shows
+ * there).
+ *
+ * A car that lands on pit road without driving there (a tow or reset to its box, a rejoin)
+ * keeps the distance it had before: iRacing keeps it in its place (CarIdxPosition, by laps
+ * completed) until the cars behind it cross the line, and credits it the lap when it is
+ * towed to a box just past the line; its distance there is a lap short until then.
+ */
+export function updateOrderDistance(track: CarTrack, inPits: boolean, before: number): void {
+  const d = track.lastD
+  if (!inPits) {
+    track.orderD = d
+  } else if (!track.pitOrder || Number.isNaN(track.orderD)) {
+    track.orderD = !track.continuous && Number.isFinite(before) ? before : d
+  } else {
+    track.orderD += track.lastDelta
+  }
+  track.pitOrder = inPits
+}
+
+/**
  * Lap a stint starting at race distance `d` counts from: the run from the grid
  * or the pit lane to the line (lap -1) completes no lap.
  */

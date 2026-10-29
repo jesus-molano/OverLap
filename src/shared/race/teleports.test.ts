@@ -40,8 +40,12 @@ describe('RaceModel tows and resets', () => {
     })
     sim.run(41, 60, cars)
     expect(car(sim.view, 1).distance).toBeCloseTo(1.002, 3)
-    expect(car(sim.view, 1).overallPosition).toBe(2)
     expect(sim.view.timeGap(1, 0)).toBeGreaterThan(20)
+    // In its box it keeps its place (iRacing does, by laps completed) until car 0 gets to where
+    // it was towed from (1.833; car 0 is at 1.817).
+    expect(car(sim.view, 1).overallPosition).toBe(1)
+    sim.run(2, 60, cars)
+    expect(car(sim.view, 1).overallPosition).toBe(2)
   })
 
   it('measures from where a towed car is, ahead of a car or behind it (B01)', () => {

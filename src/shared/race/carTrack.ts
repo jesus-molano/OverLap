@@ -81,8 +81,16 @@ export class CarTrack {
   prevT = 0
   prevPct = 0
   effLap = 0
-  /** Last valid distance (kept while out of the world, for ordering). */
+  /** Last valid distance (kept while out of the world). */
   lastD = NaN
+  /**
+   * Race distance the running order ranks the car by (kept while out of the world): lastD on
+   * track; on pit road, where it was when it got there plus what it drove since
+   * (updateOrderDistance).
+   */
+  orderD = NaN
+  /** orderD was last updated on pit road. */
+  pitOrder = false
   /** Forward progress of this tick beyond the high-water mark (0 on teleports). */
   lastDelta = 0
   /** Highest distance since the last discontinuity (jitter does not count twice). */
@@ -204,6 +212,8 @@ export class CarTrack {
     this.classPriorBest = 0
     this.prevValid = false
     this.lastD = NaN
+    this.orderD = NaN
+    this.pitOrder = false
     this.lastDelta = 0
     this.hwD = 0
     this.hwLine = NO_LINE
@@ -313,7 +323,7 @@ export class CarTrack {
     return this.flags[slotOf(line)] ?? 0
   }
 
-  /** Race distance used for ordering and laps down: frozen at the finish line once finished. */
+  /** Race distance of laps down and laps left: frozen at the finish line once finished. */
   orderDistance(): number {
     return this.state.finished ? this.finishLap : this.lastD
   }

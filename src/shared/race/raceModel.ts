@@ -28,7 +28,13 @@ import { isRaceSession, resolveFocusCarIdx, resolvePlayerCarIdx } from '../sessi
 import { MAX_CARS, SessionState, TrackLocation } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type { DriverEntry, SessionDetails, SessionMeta } from '../types'
-import { TELEPORT_LAPS, advanceTrack, stintStart, updatePitEdges } from './advance'
+import {
+  TELEPORT_LAPS,
+  advanceTrack,
+  stintStart,
+  updateOrderDistance,
+  updatePitEdges
+} from './advance'
 import { CarTrack, FLAG_CAUTION, FLAG_PIT, NO_LINE } from './carTrack'
 import { entryKey } from './entry'
 import { closeLap, updateLapTimes } from './laps'
@@ -464,7 +470,9 @@ export class RaceModel {
     if (raceStart) {
       track.gridStart = this.sawPreRace && frac(track.lastD) > 0.5 && this.crawling(track)
     }
+    const before = track.lastD
     const d = advanceTrack(track, lapRaw, pct, this.time, flags, this.onSfLine)
+    updateOrderDistance(track, inPits, before)
     if (this.racing) track.seenRacing = true
     // A lap credited without driving it (a towed car in its box) is not a stint lap.
     if (track.creditedLaps > 0) track.stintStartLap += track.creditedLaps
