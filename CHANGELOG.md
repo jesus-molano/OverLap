@@ -5,7 +5,19 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [2.1.1] - 2026-10-29
+
+### Corregido
+
+- **Ajustes que no se guardaban**: en algunas sesiones los cambios se veían en Ajustes pero no
+  llegaban al archivo, y se perdían al cerrar. Ahora un guardado fallido se reintenta solo cada
+  pocos segundos, Ajustes avisa mientras los cambios estén solo en memoria, y los errores quedan en
+  `overlap.log`, junto a los ajustes («Abrir carpeta de ajustes»).
+- **Delta**: encender un tiempo en «Tiempos de vuelta» no se veía si la línea estaba oculta en
+  «Filas»; ahora la lista lo avisa y, al encender un tiempo, se muestra la línea.
+- «Nombre del widget» pasa a llamarse «Título del widget», con una explicación de qué es.
+
+### Añadido
 
 - Atajo para abrir los Ajustes (`Ctrl+Shift+O` por defecto, la O de opciones): los abre o los trae
   al frente, también con iRacing delante. Se cambia o se desactiva en **Ajustes > Atajos de teclado**.
@@ -280,5 +292,6 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[2.1.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.1
 [2.1.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.0
 [2.0.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.0.0
