@@ -11,6 +11,7 @@ import {
   elementFields,
   isLayoutSection,
   type ElementField,
+  type LayoutSection,
   type OptionSection
 } from '@shared/settingsSchema'
 
@@ -51,14 +52,29 @@ export function injectCustomizeHost(): CustomizeHost | null {
 }
 
 /**
- * The zones that lead a page's editors, in this order (requirements A.1/A.2): the columns, the
- * header bar, its second line, the footer bar. Every other list follows in schema order.
+ * The main list of each widget page: what the widget is made of (its columns, rivals, groups,
+ * lines...). It leads the page's editors and is the one open on a fresh install.
  */
-export const LEADING_ZONES = ['columns', 'headerBar', 'subheaderBar', 'footerBar'] as const
+export const MAIN_ZONES = {
+  relative: 'columns',
+  radar: 'parts',
+  standings: 'columns',
+  battle: 'lanes',
+  inputs: 'sections',
+  traffic: 'groups',
+  alerts: 'parts',
+  delta: 'rows',
+  fuel: 'lines',
+  lights: 'icons'
+} as const satisfies Readonly<Record<LayoutSection, string>>
+
+/** The info bars close a page's editors, in this order (the widget's own, top to bottom). */
+export const TRAILING_ZONES = ['headerBar', 'subheaderBar', 'footerBar'] as const
 
 /**
- * The element-list fields of `section` in the order their editors go on its page:
- * `customizeZones('standings')` is columns, headerBar, subheaderBar, footerBar, classLine. None
+ * The element-list fields of `section` in the order their editors go on its page, the same on
+ * every page: the main list, the other lists of the content (schema order), then the info bars.
+ * `customizeZones('standings')` is columns, classLine, headerBar, subheaderBar, footerBar. None
  * for a section that is no widget's (the settings window's own lists are no zone).
  */
 export function customizeZones<S extends OptionSection>(section: S): ElementField<S>[] {
@@ -66,9 +82,11 @@ export function customizeZones<S extends OptionSection>(section: S): ElementFiel
   const fields = elementFields()
     .filter(([s]) => s === section)
     .map(([, field]) => field as ElementField<S>)
+  const main: string = MAIN_ZONES[section as LayoutSection]
   const rank = (field: string): number => {
-    const i = (LEADING_ZONES as readonly string[]).indexOf(field)
-    return i < 0 ? LEADING_ZONES.length : i
+    if (field === main) return 0
+    const i = (TRAILING_ZONES as readonly string[]).indexOf(field)
+    return i < 0 ? 1 : 2 + i
   }
   // Stable: the fields that do not lead keep the schema's order.
   return fields

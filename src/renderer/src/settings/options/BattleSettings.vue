@@ -117,8 +117,6 @@ const setParts = listSetter('battle', 'parts')
   </PageSection>
 
   <CustomizeSection>
-    <InfoBarEditor section="battle" field="headerBar" />
-    <InfoBarEditor section="battle" field="footerBar" />
     <ElementEditor
       :title="lanes.title"
       :items="opts.lanes"
@@ -158,5 +156,7 @@ const setParts = listSetter('battle', 'parts')
         />
       </template>
     </ElementEditor>
+    <InfoBarEditor section="battle" field="headerBar" />
+    <InfoBarEditor section="battle" field="footerBar" />
   </CustomizeSection>
 </template>

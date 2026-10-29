@@ -20,24 +20,32 @@ import {
 } from '@shared/settingsSchema'
 import { WIDGET_IDS } from '@shared/widgets'
 import * as customize from './customize'
-import { LEADING_ZONES, customizeAppendixId, customizeTargetId, customizeZones } from './customize'
+import { INFO_BARS } from '@shared/infoBar'
+import {
+  MAIN_ZONES,
+  TRAILING_ZONES,
+  customizeAppendixId,
+  customizeTargetId,
+  customizeZones
+} from './customize'
 import * as zonesOpen from './zonesOpen'
 import SOURCE from './CustomizeSection.vue?raw'
 import WIDGET_PAGE from '../pages/WidgetPage.vue?raw'
 
 describe('customizeZones', () => {
-  it('leads with the columns and the info bars, in that order', () => {
+  it('leads with the main list and closes with the info bars, on every page', () => {
     expect(customizeZones('standings')).toEqual([
       'columns',
+      'classLine',
       'headerBar',
       'subheaderBar',
-      'footerBar',
-      'classLine'
+      'footerBar'
     ])
     expect(customizeZones('relative')).toEqual(['columns', 'headerBar', 'footerBar'])
-    expect(customizeZones('fuel')).toEqual(['headerBar', 'footerBar', 'lines'])
-    expect(customizeZones('traffic')).toEqual(['headerBar', 'footerBar', 'groups', 'parts'])
-    expect(customizeZones('battle')).toEqual(['headerBar', 'footerBar', 'lanes', 'rows', 'parts'])
+    expect(customizeZones('fuel')).toEqual(['lines', 'headerBar', 'footerBar'])
+    expect(customizeZones('traffic')).toEqual(['groups', 'parts', 'headerBar', 'footerBar'])
+    expect(customizeZones('battle')).toEqual(['lanes', 'rows', 'parts', 'headerBar', 'footerBar'])
+    for (const id of WIDGET_IDS) expect(customizeZones(id)[0], id).toBe(MAIN_ZONES[id])
   })
 
   it("keeps the schema's order for every other list", () => {
@@ -54,9 +62,9 @@ describe('customizeZones', () => {
         .map(([, f]) => f)
       const zones: readonly string[] = customizeZones(section)
       expect([...zones].sort(), section).toEqual([...own].sort())
-      // The leading zones a section has come first, in LEADING_ZONES order.
-      const leading = zones.filter((z) => (LEADING_ZONES as readonly string[]).includes(z))
-      expect(zones.slice(0, leading.length), section).toEqual(leading)
+      // The info bars a section has come last, in TRAILING_ZONES order.
+      const bars = zones.filter((z) => (TRAILING_ZONES as readonly string[]).includes(z))
+      expect(zones.slice(zones.length - bars.length), section).toEqual(bars)
     }
   })
 
@@ -143,6 +151,28 @@ describe('the widget pages', () => {
       for (const at of editors) {
         expect(at > open && at < close, `${path}: an editor outside Personalizar`).toBe(true)
       }
+    }
+  })
+
+  it('write their editors in the order of customizeZones (the tab order is the page order)', () => {
+    const PAGE_OF: Readonly<Record<string, string>> = { inputs: 'Inputs', lights: 'Lights' }
+    for (const id of WIDGET_IDS) {
+      const name = PAGE_OF[id] ?? `${id.charAt(0).toUpperCase()}${id.slice(1)}`
+      const source = PAGES[`../options/${name}Settings.vue`] ?? ''
+      const template = source.slice(source.indexOf('<template>'))
+      const fields: string[] = []
+      for (const m of template.matchAll(/<(ElementEditor|InfoBarEditor)\b([^>]*)>/g)) {
+        const attrs = m[2] ?? ''
+        if (m[1] === 'InfoBarEditor') {
+          const field = /\sfield="(\w+)"/.exec(attrs)?.[1]
+          if (field) fields.push(field)
+          else fields.push(...INFO_BARS[id as keyof typeof INFO_BARS].map(([f]) => f))
+        } else {
+          const field = /:spec="[\w.]+\.(\w+)"/.exec(attrs)?.[1]
+          if (field) fields.push(field)
+        }
+      }
+      expect(fields, id).toEqual(customizeZones(id))
     }
   })
 

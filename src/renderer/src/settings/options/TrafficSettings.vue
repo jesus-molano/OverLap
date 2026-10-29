@@ -151,8 +151,6 @@ const nameHelp = computed(() =>
   </PageSection>
 
   <CustomizeSection>
-    <InfoBarEditor section="traffic" field="headerBar" />
-    <InfoBarEditor section="traffic" field="footerBar" />
     <ElementEditor
       :title="groups.title"
       :items="opts.groups"
@@ -179,5 +177,7 @@ const nameHelp = computed(() =>
       :labels="parts.labels"
       :apply="setParts"
     />
+    <InfoBarEditor section="traffic" field="headerBar" />
+    <InfoBarEditor section="traffic" field="footerBar" />
   </CustomizeSection>
 </template>

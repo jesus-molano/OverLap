@@ -21,8 +21,8 @@ import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 
 /**
- * The relative's page: how many cars, then one editor per zone (columns, header bar, footer
- * bar), each with the zone's own options below its list. The live sample beside it shows every
+ * The relative's page: how many cars, then one editor per zone (the columns, then the header and
+ * footer bars), each with the zone's own options below its list. The live sample beside it shows every
  * change.
  */
 const opts = useOptions('relative')
