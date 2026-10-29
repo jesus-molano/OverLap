@@ -239,14 +239,14 @@ describe('settings window: size', () => {
   it('opens at 880 x 760 on a 1080p screen, as before', () => {
     expect(settingsWindowSize({ width: 1920, height: 1040 })).toEqual({
       width: 880,
-      height: 760,
+      height: 900,
       minWidth: 560,
       minHeight: 520
     })
     openSettingsWindow()
     expect(only().options).toMatchObject({
       width: 880,
-      height: 760,
+      height: 900,
       minWidth: 560,
       minHeight: 520,
       center: true,
@@ -255,15 +255,16 @@ describe('settings window: size', () => {
     })
   })
 
-  it('opens taller on a taller screen (1440p, ultrawide), never past 960', () => {
+  it('opens taller and wider on a bigger screen, never past 1200 x 1200 (R14)', () => {
+    // 1440p: two option columns from the start.
     expect(settingsWindowSize({ width: 2560, height: 1400 })).toMatchObject({
-      width: 880,
-      height: 960
+      width: 1152,
+      height: 1200
     })
-    expect(settingsWindowSize({ width: 3440, height: 1400 }).height).toBe(960)
-    expect(settingsWindowSize({ width: 5120, height: 1400 }).width).toBe(880)
-    expect(settingsWindowSize({ width: 3840, height: 2100 }).height).toBe(960)
-    expect(settingsWindowSize({ width: 1920, height: 1160 }).height).toBe(835)
+    expect(settingsWindowSize({ width: 3440, height: 1400 }).height).toBe(1200)
+    expect(settingsWindowSize({ width: 5120, height: 1400 }).width).toBe(1200)
+    expect(settingsWindowSize({ width: 3840, height: 2100 }).height).toBe(1200)
+    expect(settingsWindowSize({ width: 1920, height: 1160 }).height).toBe(998)
   })
 
   it('fits a small or scaled work area, its minimum never above its size', () => {
@@ -281,7 +282,7 @@ describe('settings window: size', () => {
   it("opens at the size of the primary display's work area", () => {
     fakeScreen.getPrimaryDisplay().workArea = { x: 0, y: 0, width: 3440, height: 1400 }
     openSettingsWindow()
-    expect(only().options).toMatchObject({ width: 880, height: 960 })
+    expect(only().options).toMatchObject({ width: 1200, height: 1200 })
   })
 })
 

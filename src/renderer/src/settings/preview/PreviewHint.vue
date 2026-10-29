@@ -6,6 +6,7 @@ import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
 import { previewHintOf } from './previewEdit'
 import { injectPreviewEdit } from './usePreviewEdit'
+import { injectPreviewFold } from '../layout/previewFold'
 
 /**
  * The line above a widget page's preview that says it is editable, on a page with element lists,
@@ -40,7 +41,9 @@ const texts = computed(() => {
     more: k.ghosts === 'all' ? p.hintMore : k.ghosts === 'some' ? p.hintMoreSome : p.hintMoreNone
   }
 })
-const shown = computed(() => hint.value.value && texts.value !== null)
+/** Folded into a strip (R14): the hint gives its room to the options too. */
+const fold = injectPreviewFold()
+const shown = computed(() => hint.value.value && texts.value !== null && !fold.folded.value)
 </script>
 
 <template>

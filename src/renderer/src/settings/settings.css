@@ -141,13 +141,13 @@ html.ov-settings .st-scroll:focus-visible {
 }
 
 /*
- * A wide window (maximised, 1440p, ultrawide): from 1380 px, about 1100 px of page beside the
- * sidebar, the options take two columns (.st-cols spreads a page's sections over both; a widget
- * page with editors gives them the second, WidgetPage). Each column stays near today's 780 px,
- * so no line gets longer than about 90 characters, however wide the screen (SettingsApp caps and
- * centres the whole window content past 2200 px).
+ * A wide window: from 1100 px, about 830 px of page beside the sidebar, the options take two
+ * columns (R14; .st-cols spreads a page's sections over both; a widget page with editors gives
+ * them the second, WidgetPage). Each column stays under 780 px, so no line gets longer than
+ * about 90 characters, however wide the screen (SettingsApp caps and centres the whole window
+ * content past 2200 px).
  */
-@media (min-width: 1380px) {
+@media (min-width: 1100px) {
   html.ov-settings {
     --st-page-max: 1480px;
   }

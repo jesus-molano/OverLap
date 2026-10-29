@@ -183,7 +183,16 @@ export const settingsEs = {
     sceneChoices: {
       dark: { label: 'Noche', hint: 'El widget sobre asfalto oscuro' },
       light: { label: 'Día', hint: 'El widget sobre una escena clara' }
-    }
+    },
+    /** settingsWindow.previewFold (R14): the preview while the options scroll. */
+    fold: 'Al bajar',
+    foldChoices: {
+      auto: { label: 'Se pliega', hint: 'Se encoge a una franja al bajar por los ajustes' },
+      pinned: { label: 'Fija', hint: 'Siempre entera, aunque bajes' },
+      small: { label: 'Franja', hint: 'Siempre una franja: más sitio para los ajustes' }
+    },
+    /** On the folded strip: back to the whole preview. */
+    unfold: 'Ver entera'
   },
   /** Editing in a widget page's preview (settings/preview/PreviewEditLayer.vue). */
   preview: {
@@ -1793,7 +1802,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sceneChoices: {
       dark: { label: 'Night', hint: 'The widget over dark asphalt' },
       light: { label: 'Day', hint: 'The widget over a bright scene' }
-    }
+    },
+    fold: 'Scrolling',
+    foldChoices: {
+      auto: { label: 'Folds', hint: 'Shrinks to a strip as you scroll down the settings' },
+      pinned: { label: 'Fixed', hint: 'Always whole, even when you scroll' },
+      small: { label: 'Strip', hint: 'Always a strip: more room for the settings' }
+    },
+    unfold: 'Show whole'
   },
   preview: {
     hint: 'Drag in the preview to reorder; click to show or hide',

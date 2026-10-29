@@ -1715,6 +1715,11 @@ export interface SettingsWindowOptions {
   previewHint: boolean
   /** A short confirmation over the game when a shortcut runs (main shows it, R37). */
   shortcutToasts: boolean
+  /**
+   * The preview while the options scroll (R14): 'auto' folds it into a strip past the top,
+   * 'pinned' keeps it whole, 'small' keeps it a strip.
+   */
+  previewFold: 'auto' | 'pinned' | 'small'
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

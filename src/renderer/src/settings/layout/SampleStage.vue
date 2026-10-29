@@ -27,6 +27,7 @@ import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
 import { editingLimit, stageFit } from './stageFit'
+import { injectPreviewFold, type PreviewFold } from './previewFold'
 
 /** `caption`: the figure caption (default: the sample-data note in the current language). */
 withDefaults(defineProps<{ caption?: string }>(), { caption: undefined })
@@ -48,6 +49,21 @@ const sceneChoices = computed(() =>
 )
 const sceneId = useId()
 const sceneLabelId = `${sceneId}-label`
+/** Folded into a strip while the options scroll (R14), and how it folds. */
+const fold = injectPreviewFold()
+const folded = fold.folded
+const foldMode = useDraft<PreviewFold>(
+  () => windowOptions.value.previewFold,
+  optionSetter('settingsWindow')('previewFold')
+)
+const foldChoices = computed(() =>
+  choiceOptions(
+    OPTION_SCHEMA.settingsWindow.previewFold.values,
+    t.value.settings.sample.foldChoices
+  )
+)
+const foldId = useId()
+const foldLabelId = `${foldId}-label`
 
 /** Height the sample may take: the stage's cap less its padding and border (CSS decides it). */
 const limitSize = useElementSize(useTemplateRef<HTMLElement>('limit'))
@@ -101,7 +117,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 </script>
 
 <template>
-  <figure ref="stage" class="stage" :data-scene="sceneNow">
+  <figure ref="stage" class="stage" :data-scene="sceneNow" :data-folded="folded || undefined">
     <div class="scene" aria-hidden="true" />
     <div ref="limit" class="limit" aria-hidden="true" />
     <div class="content">
@@ -112,20 +128,47 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
       </div>
     </div>
     <PreviewEditLayer v-if="editable" :sample="sampleEl" :stage="stageEl" />
-    <div class="scene-switch">
-      <span :id="sceneLabelId" class="scene-label">{{ t.settings.sample.scene }}</span>
-      <div class="scene-seg" role="radiogroup" :aria-labelledby="sceneLabelId">
-        <label v-for="o in sceneChoices" :key="o.value" class="st-seg-item" :title="o.hint">
-          <input
-            type="radio"
-            class="st-seg-input"
-            :name="sceneId"
-            :value="o.value"
-            :checked="sceneNow === o.value"
-            @change="scene.commit(o.value)"
-          />
-          <span class="st-seg-text">{{ o.label }}</span>
-        </label>
+    <button
+      v-if="folded"
+      type="button"
+      class="st-btn st-btn-sm unfold"
+      :title="t.settings.sample.foldChoices.auto.hint"
+      @click="fold.unfold()"
+    >
+      {{ t.settings.sample.unfold }}
+    </button>
+    <div class="stage-foot">
+      <div class="scene-switch">
+        <span :id="sceneLabelId" class="scene-label">{{ t.settings.sample.scene }}</span>
+        <div class="scene-seg" role="radiogroup" :aria-labelledby="sceneLabelId">
+          <label v-for="o in sceneChoices" :key="o.value" class="st-seg-item" :title="o.hint">
+            <input
+              type="radio"
+              class="st-seg-input"
+              :name="sceneId"
+              :value="o.value"
+              :checked="sceneNow === o.value"
+              @change="scene.commit(o.value)"
+            />
+            <span class="st-seg-text">{{ o.label }}</span>
+          </label>
+        </div>
+      </div>
+      <div class="scene-switch fold-switch">
+        <span :id="foldLabelId" class="scene-label">{{ t.settings.sample.fold }}</span>
+        <div class="scene-seg" role="radiogroup" :aria-labelledby="foldLabelId">
+          <label v-for="o in foldChoices" :key="o.value" class="st-seg-item" :title="o.hint">
+            <input
+              type="radio"
+              class="st-seg-input"
+              :name="foldId"
+              :value="o.value"
+              :checked="foldMode.value.value === o.value"
+              @change="foldMode.commit(o.value)"
+            />
+            <span class="st-seg-text">{{ o.label }}</span>
+          </label>
+        </div>
       </div>
     </div>
     <figcaption class="caption">{{ caption ?? t.settings.sample.caption }}</figcaption>
@@ -143,6 +186,8 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
   --scene-ink-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
 
   position: relative;
+  /* Its width decides whether the caption still fits beside the foot controls. */
+  container-type: inline-size;
   max-height: var(--stage-max);
   margin: 0;
   /* Clipped, never scrollable: the measuring .limit reaches past a short stage. */
@@ -154,9 +199,48 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 }
 
 /* A wide window has room to spare in height too: the preview gets a little more of it. */
-@media (min-width: 1380px) {
+@media (min-width: 1100px) {
   .stage {
     --stage-share: 46vh;
+  }
+}
+
+.stage {
+  transition: max-height 120ms ease-out;
+}
+
+/*
+ * Folded (R14): a strip of about 120 px while the options scroll; the sample is drawn smaller
+ * to fit it (stageFit), its foot controls give way to «Ver entera».
+ */
+.stage[data-folded] {
+  --pad-top: 8px;
+  --pad-bottom: 8px;
+  --stage-max: 120px;
+}
+
+.stage[data-folded] .stage-foot,
+.stage[data-folded] .caption {
+  display: none;
+}
+
+/* A narrow stage: the foot controls keep the room, the caption gives way. */
+@container (max-width: 760px) {
+  .caption {
+    display: none;
+  }
+}
+
+.unfold {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    transition: none;
   }
 }
 
@@ -265,11 +349,19 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
   transform-origin: 50% 0;
 }
 
-/* In the stage's foot, left of the caption: a dark pill that reads on either scene. */
-.scene-switch {
+/* The stage's foot, left of the caption: the scene and the fold, side by side. */
+.stage-foot {
   position: absolute;
   left: 8px;
   bottom: 4px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A dark pill that reads on either scene. */
+.scene-switch {
   display: flex;
   align-items: center;
   gap: 6px;

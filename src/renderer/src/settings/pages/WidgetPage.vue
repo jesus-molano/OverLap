@@ -39,9 +39,11 @@ import WindowSection from './WindowSection.vue'
  * Keyed by the id. The default slot closes the scrolling part (the window's foot).
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
- * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
- * the content options; a page without editors spreads its options over both columns. Reference
- * sections (a legend, the saved records) follow the editors (PageAppendix moves them).
+ * wide window (settings.css: two option columns from 1100 px) they get the second column, and the
+ * first stacks the content options, «Ventana y visibilidad» and the reference sections, each
+ * column as tall as its own content (R14); a page without editors spreads its options over both
+ * columns. Reference sections (a legend, the saved records) follow the editors (PageAppendix
+ * moves them).
  * The live sample is editable in place for the page's element lists (settings/preview).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
@@ -162,15 +164,21 @@ const resetItems = computed<ResetItem[]>(() => {
 
     <OptionsTarget :widget-id="widgetId" />
 
-    <div class="opts" :class="{ 'has-custom': hasCustom }">
-      <div class="opts-main st-cols">
+    <!--
+      One column: Contenido, Personalizar, the reference sections, Ventana y visibilidad (R04).
+      Two (settings.css, from 1100 px): Contenido, then Ventana y visibilidad and the reference
+      sections down the left, Personalizar down the right, each column as tall as its own (R14);
+      a page without editors spreads its sections over both.
+    -->
+    <div class="opts" :class="hasCustom ? 'has-custom' : 'st-cols'">
+      <div class="opts-main">
         <component :is="options" v-if="options" />
       </div>
       <div :id="customize.targetId" class="opts-custom" />
-    </div>
-    <div :id="customize.appendixId" class="opts-appendix" />
-    <div class="opts-window st-cols">
-      <WindowSection :widget-id="widgetId" />
+      <div :id="customize.appendixId" class="opts-appendix" />
+      <div class="opts-window">
+        <WindowSection :widget-id="widgetId" />
+      </div>
     </div>
 
     <template #foot>
@@ -239,25 +247,41 @@ const resetItems = computed<ResetItem[]>(() => {
   margin-bottom: 22px;
 }
 
-/* The editors: after the options in one column, the second column when the window is wide. */
-.has-custom .opts-custom {
+/* One column: the editors after the options, then the reference sections and the window. */
+.has-custom .opts-custom,
+.opts-appendix:not(:empty),
+.opts-window {
   margin-top: 26px;
 }
 
-@media (min-width: 1380px) {
+/*
+ * Two columns (R14): Personalizar down the right, spanning every row; the left stacks Contenido,
+ * Ventana y visibilidad and the reference sections, sized by their own content (the last row
+ * takes what Personalizar has more), so no gap opens under Contenido.
+ */
+@media (min-width: 1100px) {
   .opts.has-custom {
     display: grid;
+    grid-template-rows: auto auto auto 1fr;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
     gap: 0 var(--st-col-gap);
   }
 
-  /* Its own column: no spreading of the options into two more. */
   .has-custom .opts-main {
-    columns: auto;
+    grid-area: 1 / 1;
+  }
+
+  .has-custom .opts-window {
+    grid-area: 2 / 1;
+  }
+
+  .has-custom .opts-appendix {
+    grid-area: 3 / 1;
   }
 
   .has-custom .opts-custom {
+    grid-area: 1 / 2 / -1 / 3;
     margin-top: 0;
   }
 
@@ -266,16 +290,6 @@ const resetItems = computed<ResetItem[]>(() => {
     padding-top: 0;
     border-top: 0;
   }
-}
-
-/* Reference sections after the editors, over the whole width. */
-.opts-appendix:not(:empty) {
-  margin-top: 26px;
-}
-
-/* The window and its visibility rules close the options, over the whole width. */
-.opts-window {
-  margin-top: 26px;
 }
 
 /* "Restablecer…" and «Editar posición» beside "Visible", at the end of the title line. */

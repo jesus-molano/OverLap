@@ -99,20 +99,27 @@ export interface SettingsWindowSize {
   readonly minHeight: number
 }
 
-/** Room for the sidebar plus a live sample at the default standings width (540 px). */
-const BASE = { width: 880, height: 760, minWidth: 560, minHeight: 520 } as const
-/** A taller screen (1440p, ultrawide) opens it taller, up to this. */
-const TALLEST = 960
+/**
+ * Room for the sidebar plus a live sample at the default standings width (540 px), and on a
+ * 1080p screen most of its height (R14: the options get more than the preview).
+ */
+const BASE = { width: 880, height: 900, minWidth: 560, minHeight: 520 } as const
+/** A taller screen (1440p, 4K) opens it taller, up to this. */
+const TALLEST = 1200
 /** Share of the work area's height it opens at, between the base height and TALLEST. */
-const HEIGHT_SHARE = 0.72
+const HEIGHT_SHARE = 0.86
+/** A wider screen opens it wider, up to this: two option columns from 1100 px (settings.css). */
+const WIDEST = 1200
+/** Share of the work area's width it opens at, between the base width and WIDEST. */
+const WIDTH_SHARE = 0.45
 /** Kept clear around it, so it never opens past the work area (a small or scaled screen). */
 const MARGIN = 24
 
 /**
- * The opening size in `workArea` (the primary display's): 880 x 760 on a 1080p screen, taller on
- * a taller one (the preview and the options both gain), never larger than the work area, its
- * minimum never above that. Maximising it is the page's to use (settings.css: two option
- * columns, and on an ultrawide the page capped and centred). Pure.
+ * The opening size in `workArea` (the primary display's): 880 x 900 on a 1080p screen, taller on
+ * a taller one and wider on a wider one (1440p: 1152 x 1200, two option columns), never larger
+ * than the work area, its minimum never above that. Maximising it is the page's to use
+ * (settings.css: two option columns, and on an ultrawide the page capped and centred). Pure.
  */
 export function settingsWindowSize(
   workArea: Pick<Rectangle, 'width' | 'height'>
@@ -123,7 +130,8 @@ export function settingsWindowSize(
   const roomW = Math.max(1, Math.floor(areaW) - 2 * MARGIN)
   const roomH = Math.max(1, Math.floor(areaH) - 2 * MARGIN)
   const tall = Math.min(TALLEST, Math.max(BASE.height, Math.round(areaH * HEIGHT_SHARE)))
-  const width = Math.min(BASE.width, roomW)
+  const wide = Math.min(WIDEST, Math.max(BASE.width, Math.round(areaW * WIDTH_SHARE)))
+  const width = Math.min(wide, roomW)
   const height = Math.min(tall, roomH)
   return {
     width,
