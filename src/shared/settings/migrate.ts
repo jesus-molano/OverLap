@@ -23,6 +23,7 @@
  * written since: older ones get the new defaults that replaced a saved old one (the 'outline'
  * licence, the pedals' auto height) once.
  */
+import { INFO_ITEM_IDS } from '../infoBar'
 import { OPTION_SCHEMA, type ElementsSpec, type OptionSection } from '../settingsSchema'
 import type {
   ElementEntry,
@@ -657,7 +658,66 @@ export function migrateSection(
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
   else if (section === 'battle' || section === 'traffic') out = migrateDriverBlock(section, out)
-  return migrateLists(section, out)
+  return migrateLists(section, migrateOldBars(section, out, file))
+}
+
+/**
+ * The info bars' defaults before 2.3, where R13 changed them (one rule for every widget: the
+ * session data only in the standings by default, the clock on the header's right, the cars on the
+ * footer's right). Shown ids in order, the rest hidden.
+ */
+const OLD_BARS: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+  relative: { headerBar: ['title', 'session', 'split', 'incidents'] },
+  standings: {
+    headerBar: ['session', 'sof', 'carCount', 'split', 'incidents', 'remaining'],
+    footerBar: ['trackTemp', 'wet', 'wind', 'airTemp', 'rubber', 'split']
+  },
+  battle: { headerBar: ['title', 'split'], footerBar: ['remaining', 'split', 'fuelLaps'] },
+  traffic: { footerBar: ['carCount', 'sof', 'split', 'remaining'] },
+  fuel: { footerBar: ['remaining', 'split', 'trackTemp'] }
+}
+
+/**
+ * A section saved before its info bars were lists (a file of version 4 or older, or one with the
+ * old switches) gets the bars it drew then, not 2.3's new defaults (R13 changes the defaults of a
+ * new install only); what its old switches said is applied over them (LIST_MIGRATIONS). `raw`
+ * itself when there is nothing to do.
+ */
+export function migrateOldBars(
+  section: string,
+  raw: Record<string, unknown>,
+  file: Readonly<Record<string, unknown>> = {}
+): Record<string, unknown> {
+  const bars = OLD_BARS[section]
+  if (bars === undefined) return raw
+  const oldFile = typeof file.version === 'number' && file.version < 5
+  const specs = OPTION_SCHEMA[section as OptionSection] as Readonly<Record<string, unknown>>
+  const lists = LIST_MIGRATIONS[section as OptionSection] ?? []
+  let out: Record<string, unknown> | null = null
+  for (const [field, shown] of Object.entries(bars)) {
+    if (Array.isArray(raw[field])) continue
+    const spec = specs[field] as ElementsSpec | undefined
+    if (spec?.kind !== 'elements') continue
+    const old: ElementsSpec = {
+      ...spec,
+      default: [
+        ...shown.map((id) => ({ id, visible: true })),
+        // The rest hidden in the catalog's order, as infoBar() made them then.
+        ...INFO_ITEM_IDS.filter((id) => spec.ids.includes(id) && !shown.includes(id)).map((id) => ({
+          id,
+          visible: false
+        }))
+      ]
+    }
+    const legacy = lists.find((l) => l.field === field)?.read(raw) ?? null
+    if (!oldFile && legacy === null) continue
+    out ??= { ...raw }
+    out[field] =
+      legacy === null
+        ? normalizeElements(old.default, old.default, old)
+        : listFromLegacy(old, legacy)
+  }
+  return out ?? raw
 }
 
 /**

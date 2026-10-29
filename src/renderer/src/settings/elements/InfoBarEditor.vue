@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { INFO_BAR_SIZES, isInfoItem, type InfoBarField, type InfoBarSection } from '@shared/infoBar'
+import {
+  INFO_BARS,
+  INFO_BAR_SIZES,
+  isInfoItem,
+  type InfoBarField,
+  type InfoBarSection
+} from '@shared/infoBar'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { ElementEntry, InfoBarEntryId, InfoBarSize } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
@@ -8,7 +14,9 @@ import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter, type Setter } from '../editor'
+import { widgetTitle } from '@shared/i18n'
+import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
+import { offerSectionUndo } from '../undo/restore'
 import ElementEditor from './ElementEditor.vue'
 import { elementTexts, zoneTitle } from './labels'
 import { shownCount, type ElementChange, type SpecRules } from './listOps'
@@ -62,6 +70,27 @@ function apply(
 }
 
 const title = computed(() => zoneTitle(t.value, props.section, props.field as never))
+
+/**
+ * «Copiar a» (R13): the other widgets with the same bar, each a button that copies this one's
+ * items (in their order and sides) and size into it; what the other widget has no room for in its
+ * catalog is left out (the fuel lists no laps of fuel). One click, then "Deshacer".
+ */
+const targets = computed(() =>
+  (Object.keys(INFO_BARS) as InfoBarSection[])
+    .filter((s) => s !== props.section && INFO_BARS[s].some(([f]) => f === props.field))
+    .map((s) => ({ section: s, name: widgetTitle(t.value, s) }))
+)
+function copyTo(target: InfoBarSection): void {
+  const name = widgetTitle(t.value, target)
+  const done = offerSectionUndo(target, (m) => m.settings.infoBar.copied(title.value, name))
+  const fields: Record<string, unknown> = {
+    [props.field]: items.value.map((e) => ({ id: e.id, visible: e.visible })),
+    [sizeField]: size.value
+  }
+  void updateSection(target, fields as never)
+  done()
+}
 const labels = computed(() => elementTexts(t.value, props.section, 'headerBar'))
 const switchLabel = computed(() => t.value.settings.infoBar.show[props.field])
 const sizeChoices = computed(() =>
@@ -96,6 +125,22 @@ const summary = computed(() => {
         :options="sizeChoices"
         :apply="setSize"
       />
+      <div v-if="targets.length > 0 && !off" class="st-row ib-copy">
+        <span class="st-label">{{ t.settings.infoBar.copyTo }}</span>
+        <span class="ib-copy-list">
+          <button
+            v-for="x in targets"
+            :key="x.section"
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost"
+            :title="t.settings.infoBar.copyToLabel(title, x.name)"
+            :aria-label="t.settings.infoBar.copyToLabel(title, x.name)"
+            @click="copyTo(x.section)"
+          >
+            {{ x.name }}
+          </button>
+        </span>
+      </div>
     </template>
     <template #extra="{ id, visible }">
       <ToggleControl
@@ -113,3 +158,20 @@ const summary = computed(() => {
     </template>
   </ElementEditor>
 </template>
+
+<style scoped>
+/* «Copiar a»: the other widgets with this bar, one button each. */
+.ib-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.ib-copy-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+</style>

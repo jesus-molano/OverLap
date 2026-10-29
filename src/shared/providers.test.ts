@@ -395,7 +395,8 @@ describe('the info bars of the relative and the standings: the weather of their 
     const p = createProviders()
     const ctx = ctxOf(weatherSim(), session3(), config())
     expect(p.run.standings(ctx, null).info?.conditions).toMatchObject({ trackTempC: 31.2 })
-    expect(p.run.relative(ctx, null).info?.conditions).toBeNull()
+    // The relative's bars ask for nothing by default (its header: the title alone).
+    expect(p.run.relative(ctx, null).info?.conditions ?? null).toBeNull()
   })
 
   it('share one reading a second: both tables get the same object between computations', () => {
@@ -420,8 +421,8 @@ describe('the info bars of the relative and the standings: the weather of their 
     try {
       const p = createProviders()
       const ctx = ctxOf(weatherSim(), session3(), footers(false, false))
-      expect(p.run.relative(ctx, null).info?.conditions).toBeNull()
-      expect(p.run.standings(ctx, null).info?.conditions).toBeNull()
+      expect(p.run.relative(ctx, null).info?.conditions ?? null).toBeNull()
+      expect(p.run.standings(ctx, null).info?.conditions ?? null).toBeNull()
       expect(get).not.toHaveBeenCalled()
     } finally {
       get.mockRestore()

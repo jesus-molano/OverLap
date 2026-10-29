@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@shared/settings'
+import { DEFAULT_SETTINGS, SETTINGS_VERSION, normalizeSettings } from '@shared/settings'
 import { SettingsStore } from './settingsStore'
 
 let dir: string
@@ -16,6 +16,20 @@ beforeEach(() => {
 afterEach(() => rmSync(dir, { recursive: true, force: true }))
 
 const NEW_IN_V3 = ['standings', 'battle', 'inputs'] as const
+
+/**
+ * The info bars a section of a file from before they were lists keeps (shared migrateOldBars):
+ * those of before 2.3, not R13's new defaults. Tested there; here only carried along.
+ */
+function oldBars(section: 'relative' | 'standings' | 'battle'): Record<string, unknown> {
+  const s = normalizeSettings({ version: 4, [section]: {} })[section] as unknown as Record<
+    string,
+    unknown
+  >
+  const out: Record<string, unknown> = { headerBar: s.headerBar }
+  if (section !== 'relative') out.footerBar = s.footerBar
+  return out
+}
 
 /** Loads `raw` from disk, saves after a change and checks the file round-trips. */
 function roundTrip(raw: unknown, mutate: Parameters<SettingsStore['update']>[0]): unknown {
@@ -48,7 +62,12 @@ describe('SettingsStore with a v1 file', () => {
       visible: false,
       bounds: { x: 100, y: 200, width: 500, height: 300 }
     })
-    expect(s.relative).toEqual({ ...DEFAULT_SETTINGS.relative, carsAhead: 4, carsBehind: 2 })
+    expect(s.relative).toEqual({
+      ...DEFAULT_SETTINGS.relative,
+      ...oldBars('relative'),
+      carsAhead: 4,
+      carsBehind: 2
+    })
     expect(s.radar).toEqual({ ...DEFAULT_SETTINGS.radar, rangeM: 30 })
     expect(s.appearance).toEqual(DEFAULT_SETTINGS.appearance)
     for (const id of NEW_IN_V3) {
@@ -105,6 +124,7 @@ describe('SettingsStore with a v2 file', () => {
     // Its column flags became the row's list, the labels flag the radar's parts.
     expect(s.relative).toEqual({
       ...DEFAULT_SETTINGS.relative,
+      ...oldBars('relative'),
       carsAhead: 4,
       carsBehind: 2,
       columns: DEFAULT_SETTINGS.relative.columns.map((c) => ({
@@ -188,6 +208,7 @@ describe('SettingsStore with a v3 file', () => {
     expect(visible).toMatchObject({ gained: false, ir: true, last: false, pit: true })
     expect(s.battle).toEqual({
       ...DEFAULT_SETTINGS.battle,
+      ...oldBars('battle'),
       // Never drawn then: off (migrateDriverBlock).
       showFlags: false,
       countryFlags: false,
@@ -249,8 +270,16 @@ describe('SettingsStore with a file that has the old conditions widget (v2.3-v2.
     const s = SettingsStore.load(file).settings
     expect(s.widgets).not.toHaveProperty('conditions')
     expect(s).not.toHaveProperty('conditions')
-    expect(s.relative).toEqual({ ...DEFAULT_SETTINGS.relative, carsAhead: 4 })
-    expect(s.standings).toEqual({ ...DEFAULT_SETTINGS.standings, topRows: 5 })
+    expect(s.relative).toEqual({
+      ...DEFAULT_SETTINGS.relative,
+      ...oldBars('relative'),
+      carsAhead: 4
+    })
+    expect(s.standings).toEqual({
+      ...DEFAULT_SETTINGS.standings,
+      ...oldBars('standings'),
+      topRows: 5
+    })
     expect(s.standings.footerBarSize).toBe('normal')
     expect(s.relative.footerBarSize).toBe('off')
     expect(s.widgets.standings.bounds).toEqual(v24.widgets.standings.bounds)

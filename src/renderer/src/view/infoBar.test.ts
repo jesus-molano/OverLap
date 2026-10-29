@@ -32,7 +32,7 @@ const ids = (items: readonly InfoItemView[]): string[] => items.map((v) => v.id)
 describe('barEntries', () => {
   it('the shown entries in order, the marker included; none with the bar off', () => {
     const list = DEFAULT_SETTINGS.relative.headerBar
-    expect(barEntries(list, 'normal')).toEqual(['title', 'session', 'split', 'incidents'])
+    expect(barEntries(list, 'normal')).toEqual(['title', 'split'])
     expect(barEntries(list, 'off')).toEqual([])
   })
 })

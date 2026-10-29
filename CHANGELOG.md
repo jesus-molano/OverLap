@@ -18,6 +18,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Cabecera y pie con una sola regla**: en una instalación nueva, la cabecera lleva a la izquierda
+  el título (y la sesión) y a la derecha los incidentes y el reloj; el pie, a la izquierda las
+  condiciones y a la derecha los coches y el combustible. Los datos de la sesión (sesión, tiempo
+  restante, SoF, incidentes) salen por defecto solo en Posiciones, que ahora también tiene título y
+  lleva el número de coches al pie; Relativo deja de repetir los incidentes. Cada cabecera y pie
+  tiene **«Copiar a»** para pasarlo, con su tamaño, a otro widget (con «Deshacer»), y Combustible ya
+  no ofrece «Vueltas de combustible» en sus barras, porque las dice en grande (si la tenías, se
+  quita). Si ya tenías ajustes, tus barras no cambian.
 - **Delta en una sola lista**: Personalizar tiene solo «Líneas»; la línea superior y los tiempos
   de vuelta se despliegan en su propia fila para mostrar sus partes («3 de 3 partes»), en vez de
   tres acordeones que dependían entre sí. Las referencias se llaman por su nombre completo

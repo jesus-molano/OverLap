@@ -72,8 +72,9 @@ Los coches que tienes delante y detrás en pista (3 y 3 por defecto, hasta 10) c
 segundos: positivo delante, negativo detrás. Cada fila lleva posición en clase, número con el color
 de su clase, marca, bandera del país, nombre, iRating y licencia (en el mismo orden que Posiciones
 y Batalla). En rojo quien te va a doblar, en
-azul los doblados y atenuados los que están en boxes. En la cabecera, tus incidentes y el próximo
-límite de la sesión («3x · DQ a 17x»).
+azul los doblados y atenuados los que están en boxes. En la cabecera, su nombre; tus incidentes y
+el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo restante salen por
+defecto en Posiciones, y aquí con un clic en su cabecera.
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
 Posiciones), neumático y vueltas del stint, banderas de penalización tras el nombre, títulos de
@@ -203,7 +204,11 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
-  viento, aire, goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se
+  viento, aire, goma; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
+  defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus
+  incidentes y el reloj; a la izquierda del pie las condiciones, a la derecha los coches y el
+  combustible; y los datos de la sesión, solo en Posiciones. **Copiar a** pasa una cabecera o un
+  pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %

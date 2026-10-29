@@ -197,19 +197,27 @@ export function deleteLayout(id: string, name: string): void {
  * "Deshacer" that puts back every field of it the reset changed.
  */
 export function offerSectionRestore(section: OptionSection, zone: string): () => boolean {
+  const where = whereText(useI18n().value, settingsNow())
+  return offerSectionUndo(section, (m) => m.settings.elements.undo.reset(zone, where))
+}
+
+/**
+ * Before a change to `section` (a reset, a bar copied into it): its fields as they are, and,
+ * once changed, the "Deshacer" (worded by `text`) that puts back every field the change touched.
+ */
+export function offerSectionUndo(
+  section: OptionSection,
+  text: (m: Messages) => string
+): () => boolean {
   const s = settingsNow()
   const before = copyData(s[section]) as unknown as Readonly<Record<string, unknown>>
-  const where = whereText(useI18n().value, s)
   return () =>
-    offerRestore(
-      (m) => m.settings.elements.undo.reset(zone, where),
-      () => {
-        const now = settingsNow()[section] as unknown as Readonly<Record<string, unknown>>
-        const fields: Record<string, unknown> = {}
-        for (const [k, v] of Object.entries(before)) if (!deepEqual(v, now[k])) fields[k] = v
-        if (Object.keys(fields).length > 0) {
-          void updateSection(section, fields as Partial<OverlaySettings[typeof section]>)
-        }
+    offerRestore(text, () => {
+      const now = settingsNow()[section] as unknown as Readonly<Record<string, unknown>>
+      const fields: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(before)) if (!deepEqual(v, now[k])) fields[k] = v
+      if (Object.keys(fields).length > 0) {
+        void updateSection(section, fields as Partial<OverlaySettings[typeof section]>)
       }
-    )
+    })
 }
