@@ -5,6 +5,7 @@ import {
   FakeWebContents,
   fakeApp,
   fakeEvent,
+  fakeScreen,
   resetFakeElectron
 } from './testing/fakeElectron'
 import {
@@ -14,7 +15,8 @@ import {
   onSettingsWindowInactive,
   openSettingsWindow,
   sendToSettingsWindow,
-  setSettingsWindowLanguage
+  setSettingsWindowLanguage,
+  settingsWindowSize
 } from './settingsWindow'
 
 vi.mock('electron', async () => (await import('./testing/fakeElectron')).electronModule)
@@ -152,6 +154,56 @@ describe('settings window', () => {
     w.webContents.emit('render-process-gone', {}, { reason: 'crashed' })
     expect(w.destroyed).toBe(true)
     expect(isSettingsSender(w.webContents as never)).toBe(false)
+  })
+})
+
+describe('settings window: size', () => {
+  it('opens at 880 x 760 on a 1080p screen, as before', () => {
+    expect(settingsWindowSize({ width: 1920, height: 1040 })).toEqual({
+      width: 880,
+      height: 760,
+      minWidth: 560,
+      minHeight: 520
+    })
+    openSettingsWindow()
+    expect(only().options).toMatchObject({
+      width: 880,
+      height: 760,
+      minWidth: 560,
+      minHeight: 520,
+      center: true,
+      resizable: true,
+      maximizable: true
+    })
+  })
+
+  it('opens taller on a taller screen (1440p, ultrawide), never past 960', () => {
+    expect(settingsWindowSize({ width: 2560, height: 1400 })).toMatchObject({
+      width: 880,
+      height: 960
+    })
+    expect(settingsWindowSize({ width: 3440, height: 1400 }).height).toBe(960)
+    expect(settingsWindowSize({ width: 5120, height: 1400 }).width).toBe(880)
+    expect(settingsWindowSize({ width: 3840, height: 2100 }).height).toBe(960)
+    expect(settingsWindowSize({ width: 1920, height: 1160 }).height).toBe(835)
+  })
+
+  it('fits a small or scaled work area, its minimum never above its size', () => {
+    const small = settingsWindowSize({ width: 800, height: 560 })
+    expect(small.width).toBeLessThanOrEqual(800 - 48)
+    expect(small.height).toBeLessThanOrEqual(560 - 48)
+    expect(small.minWidth).toBeLessThanOrEqual(small.width)
+    expect(small.minHeight).toBeLessThanOrEqual(small.height)
+    const odd = settingsWindowSize({ width: 0, height: Number.NaN })
+    expect(odd.width).toBeGreaterThan(0)
+    expect(odd.height).toBeGreaterThan(0)
+    expect(odd.minWidth).toBeLessThanOrEqual(odd.width)
+  })
+
+  it("opens at the size of the primary display's work area", () => {
+    fakeScreen.getPrimaryDisplay().workArea = { x: 0, y: 0, width: 3440, height: 1400 }
+    openSettingsWindow()
+    expect(only().options).toMatchObject({ width: 880, height: 960 })
   })
 })
 

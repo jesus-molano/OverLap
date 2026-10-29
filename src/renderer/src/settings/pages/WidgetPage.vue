@@ -6,6 +6,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useWidgetSettings } from '../../composables/useWidgetSettings'
 import { resetWidgetBounds, resetWidgetOptions, widgetSetter } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
+import { provideCustomizeHost } from '../layout/customize'
 import PageFrame from '../layout/PageFrame.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { WIDGET_OPTIONS } from '../options'
@@ -16,8 +17,13 @@ import { formatPercent } from '../values'
 import WindowSection from './WindowSection.vue'
 
 /**
- * One widget's page: live preview (fixed), then the window, content options and resets (they
- * scroll). Keyed by the id. The default slot closes the scrolling part (the window's foot).
+ * One widget's page: live preview (fixed), then the window and content options, the
+ * "Personalizar" editors and the resets (they scroll). Keyed by the id. The default slot closes
+ * the scrolling part (the window's foot).
+ *
+ * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
+ * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
+ * the window and content options; a page without editors spreads its options over both columns.
  */
 const props = defineProps<{ widgetId: WidgetId }>()
 
@@ -25,6 +31,8 @@ const t = useI18n()
 const def = computed(() => WIDGET_DEFS[props.widgetId])
 const title = computed(() => widgetTitle(t.value, props.widgetId))
 const titleId = useId()
+const customize = provideCustomizeHost(useId())
+const hasCustom = computed(() => customize.count.value > 0)
 const prefs = useWidgetSettings(props.widgetId)
 const width = useSampleWidth(props.widgetId)
 const size = useWidgetSizeText(props.widgetId)
@@ -68,8 +76,13 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
       </SampleStage>
     </template>
 
-    <WindowSection :widget-id="widgetId" />
-    <component :is="options" v-if="options" />
+    <div class="opts" :class="{ 'has-custom': hasCustom }">
+      <div class="opts-main st-cols">
+        <WindowSection :widget-id="widgetId" />
+        <component :is="options" v-if="options" />
+      </div>
+      <div :id="customize.targetId" class="opts-custom" />
+    </div>
 
     <footer class="page-foot">
       <ConfirmButton
@@ -147,6 +160,35 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 
 .stage {
   margin-bottom: 22px;
+}
+
+/* The editors: after the options in one column, the second column when the window is wide. */
+.has-custom .opts-custom {
+  margin-top: 26px;
+}
+
+@media (min-width: 1380px) {
+  .opts.has-custom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 0 var(--st-col-gap);
+  }
+
+  /* Its own column: no spreading of the options into two more. */
+  .has-custom .opts-main {
+    columns: auto;
+  }
+
+  .has-custom .opts-custom {
+    margin-top: 0;
+  }
+
+  /* A column's top rule would sit above nothing: the column itself sets the group apart. */
+  .has-custom .opts-custom :deep(.cz-head) {
+    padding-top: 0;
+    border-top: 0;
+  }
 }
 
 .page-foot {
