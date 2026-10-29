@@ -186,7 +186,10 @@ vuelta. Por defecto, solo en carrera. Opcionales: cabecera y pie con datos de la
 
 Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arrancándolo con
 `--settings` (útil para un acceso directo). Todo se aplica **en vivo** y se guarda solo; arriba de
-cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día.
+cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día; al bajar
+por las opciones se pliega en una franja (o queda fija, o siempre en franja: **Al bajar**, en su
+pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
+derecha.
 La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
 coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero una regla lo oculta ahora (el ratón encima dice cuál). El **chip de

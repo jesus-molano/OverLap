@@ -784,7 +784,15 @@ export const OPTION_SCHEMA = {
     }),
     // The hint above a widget page's preview ("Arrastra en la vista previa…") until dismissed.
     previewHint: { kind: 'bool', default: true, displayOnly: true },
-    shortcutToasts: { kind: 'bool', default: true, displayOnly: true }
+    shortcutToasts: { kind: 'bool', default: true, displayOnly: true },
+    // The page's preview while its options scroll (R14): folds into a strip, stays whole, or is
+    // always the strip.
+    previewFold: {
+      kind: 'enum',
+      values: ['auto', 'pinned', 'small'],
+      default: 'auto',
+      displayOnly: true
+    }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.

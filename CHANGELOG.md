@@ -44,6 +44,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Más sitio para los ajustes**: al bajar por las opciones, la vista previa se pliega en una
+  franja de unos 120 px (con «Ver entera») y vuelve al subir; al pie de la vista previa, **Al
+  bajar: Se pliega / Fija / Franja** lo cambia y se recuerda. La ventana de Ajustes se abre más
+  alta (880 × 900 en una pantalla 1080p; en 1440p, 1152 × 1200) y las opciones pasan a dos
+  columnas desde 1100 px de ancho (antes 1380). En las páginas de widget a dos columnas,
+  «Personalizar» va a la derecha y la izquierda apila «Contenido», «Ventana y visibilidad» y las
+  secciones de referencia, cada columna con su propio alto: ya no queda un hueco vacío bajo
+  Contenido. A una columna, el orden sigue siendo Contenido › Personalizar › Ventana y visibilidad.
 - **Vincular un coche enciende «Según el coche»**: al vincular un coche a una disposición (en
   Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado, y la página
   lo dice con «Deshacer»; quitar un vínculo no lo toca. Si estás en un coche sin disposición y

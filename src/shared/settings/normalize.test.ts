@@ -385,7 +385,8 @@ const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = {
     CUSTOMIZE_ZONES.filter((id) => !FIRST_ZONES.includes(id))
   ),
   previewHint: true,
-  shortcutToasts: true
+  shortcutToasts: true,
+  previewFold: 'auto'
 }
 
 /** Visibility of `id` in a list (the tests read the lists through this). */
@@ -672,7 +673,8 @@ describe('normalizeSettings: basics', () => {
       stageScene: 'light',
       customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines']),
       previewHint: false,
-      shortcutToasts: false
+      shortcutToasts: false,
+      previewFold: 'small'
     }
     s.shortcuts = { ...DEFAULT_SHORTCUTS, cycleDeltaReference: 'Ctrl+Alt+D' }
     s.widgets.traffic = { ...s.widgets.traffic, anchor: 'bottom', scale: 90, hideInPits: true }

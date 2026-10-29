@@ -98,7 +98,7 @@ function styleOf(sfc: string): string {
   return /<style scoped>([\s\S]*?)<\/style>/.exec(sfc)?.[1] ?? ''
 }
 
-const WIDE = '@media (min-width: 1380px)'
+const WIDE = '@media (min-width: 1100px)'
 
 const uncommented = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
@@ -122,13 +122,13 @@ function outsideMedia(css: string): string {
 }
 
 describe('settings window: wide and ultrawide', () => {
-  it('keeps one 780 px column below 1380 px, as before', () => {
+  it('keeps one 780 px column below 1100 px, as before', () => {
     const root = declarations(outsideMedia(SETTINGS_CSS), 'html.ov-settings')
     expect(root.get('--st-page-max')).toBe('780px')
     expect(outsideMedia(SETTINGS_CSS)).not.toMatch(/columns:/)
   })
 
-  it('spreads the options over two columns from 1380 px, a section never split', () => {
+  it('spreads the options over two columns from 1100 px (R14), a section never split', () => {
     const css = media(SETTINGS_CSS, WIDE)
     expect(declarations(css, 'html.ov-settings').get('--st-page-max')).toBe('1480px')
     const cols = declarations(css, 'html.ov-settings .st-cols')
@@ -151,24 +151,32 @@ describe('settings window: wide and ultrawide', () => {
   it('wraps the options of every page in the columns, below the fixed top', () => {
     for (const page of [APPEARANCE_PAGE, SHORTCUTS_PAGE, WIDGET_PAGE]) {
       const t = templateOf(page)
-      // A widget page: its content, then its window section, each in the columns. The
-      // shortcuts are one table over the whole width (its own maximum, ShortcutsPage .sc-page).
-      expect(tagsWith(t, 'st-cols')).toHaveLength(
-        page === WIDGET_PAGE ? 2 : page === SHORTCUTS_PAGE ? 0 : 1
-      )
+      // A widget page: one block, in the columns when it has no editors (R14). The shortcuts
+      // are one table over the whole width (its own maximum, ShortcutsPage .sc-page).
+      expect(tagsWith(t, 'st-cols')).toHaveLength(page === SHORTCUTS_PAGE ? 0 : 1)
       if (page === SHORTCUTS_PAGE) continue
       expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('<template #top>'))
       expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('</template>'))
     }
   })
 
-  it('gives the editors the second column of a wide widget page', () => {
+  it('gives the editors the second column of a wide widget page, the rest stacked left (R14)', () => {
     const css = media(styleOf(WIDGET_PAGE), WIDE)
     const grid = declarations(css, '.opts.has-custom')
     expect(grid.get('display')).toBe('grid')
     expect(grid.get('grid-template-columns')).toBe('minmax(0, 1fr) minmax(0, 1fr)')
-    // Then the options keep one column of their own.
-    expect(declarations(css, '.has-custom .opts-main').get('columns')).toBe('auto')
+    // The left rows are as tall as their own content; the last takes what the editors have more.
+    expect(grid.get('grid-template-rows')).toBe('auto auto auto 1fr')
+    expect(declarations(css, '.has-custom .opts-main').get('grid-area')).toBe('1 / 1')
+    expect(declarations(css, '.has-custom .opts-window').get('grid-area')).toBe('2 / 1')
+    expect(declarations(css, '.has-custom .opts-appendix').get('grid-area')).toBe('3 / 1')
+    expect(declarations(css, '.has-custom .opts-custom').get('grid-area')).toBe('1 / 2 / -1 / 3')
+    // One column: the DOM order is the page's order (R04): Contenido, Personalizar, Ventana.
+    const t = templateOf(WIDGET_PAGE)
+    const at = (cls: string): number => t.indexOf(`class="${cls}"`)
+    expect(at('opts-main')).toBeLessThan(at('opts-custom'))
+    expect(at('opts-custom')).toBeLessThan(at('opts-appendix'))
+    expect(at('opts-appendix')).toBeLessThan(at('opts-window'))
   })
 
   it('caps and centres the whole window content on an ultrawide screen', () => {
@@ -178,6 +186,29 @@ describe('settings window: wide and ultrawide', () => {
     expect(app.get('margin-inline')).toBe('auto')
     const own = declarations(outsideMedia(styleOf(APP)), '.app')
     expect(own.get('--st-app-max')).toContain('var(--st-page-max)')
+  })
+})
+
+describe('preview stage fold (R14)', () => {
+  const css = styleOf(SAMPLE_STAGE)
+
+  it('folds into a strip of about 120 px, its foot controls out of the way', () => {
+    const folded = declarations(css, '.stage[data-folded]')
+    expect(folded.get('--stage-max')).toBe('120px')
+    expect(
+      declarations(css, '.stage[data-folded] .stage-foot, .stage[data-folded] .caption').get(
+        'display'
+      )
+    ).toBe('none')
+    const t = templateOf(SAMPLE_STAGE)
+    expect(t).toContain(':data-folded="folded || undefined"')
+    expect(t).toContain('fold.unfold()')
+    expect(SAMPLE_STAGE).toContain("optionSetter('settingsWindow')('previewFold')")
+  })
+
+  it('is folded by the page frame from its scroller', () => {
+    expect(templateOf(PAGE_FRAME)).toContain('@scroll.passive="onScroll"')
+    expect(PAGE_FRAME).toContain('providePreviewFold(')
   })
 })
 
@@ -196,7 +227,8 @@ describe('preview stage scenes', () => {
 
   it('switches the scene on the stage: a labelled radio group, outside the hidden sample', () => {
     const t = templateOf(SAMPLE_STAGE)
-    expect(t).toContain('<figure ref="stage" class="stage" :data-scene="sceneNow">')
+    expect(t).toContain('<figure')
+    expect(t).toContain(':data-scene="sceneNow"')
     expect(t).toContain('role="radiogroup" :aria-labelledby="sceneLabelId"')
     expect(t).toContain('type="radio"')
     expect(t.indexOf('class="scene-switch"')).toBeGreaterThan(t.indexOf('<slot />'))
