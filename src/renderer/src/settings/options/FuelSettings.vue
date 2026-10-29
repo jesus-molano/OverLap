@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isElementVisible } from '@shared/elements'
 import { FUEL_STRATEGY } from '@shared/fuel/strategy'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
@@ -7,7 +8,7 @@ import CheckGroup from '../controls/CheckGroup.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 
 const opts = useOptions('fuel')
@@ -22,6 +23,8 @@ const MARGIN_PRESETS = [0, 0.5, 1, 2].filter((v) => v >= MARGIN.min && v <= MARG
 const marginText = (v: number): string => t.value.settings.fuel.marginValue(v.toFixed(1))
 /** How much less per lap still counts as within reach, as a whole percentage. */
 const SAVE_PCT = Math.round(FUEL_STRATEGY.saveReach * 100)
+/** The header is an info bar now: until the page gets its editor (package P4), on or off. */
+const setHeader: Setter<boolean> = (on) => set('headerBarSize')(on ? 'normal' : 'off')
 </script>
 
 <template>
@@ -30,58 +33,58 @@ const SAVE_PCT = Math.round(FUEL_STRATEGY.saveReach * 100)
       kind="switch"
       :label="t.settings.fuel.header"
       :help="t.settings.fuel.headerHelp"
-      :current="opts.showHeader"
-      :apply="set('showHeader')"
+      :current="opts.headerBarSize !== 'off'"
+      :apply="setHeader"
     />
     <CheckGroup :legend="t.settings.fuel.lines">
       <ToggleControl
         :label="t.settings.fuel.gauge"
         :help="t.settings.fuel.gaugeHelp"
-        :current="opts.showGauge"
-        :apply="set('showGauge')"
+        :current="isElementVisible(opts.lines, 'gauge')"
+        :apply="elementToggle('fuel', 'lines', 'gauge')"
       />
       <ToggleControl
         :label="t.settings.fuel.perLap"
         :help="t.settings.fuel.perLapHelp"
-        :current="opts.showPerLap"
-        :apply="set('showPerLap')"
+        :current="isElementVisible(opts.lines, 'perLap')"
+        :apply="elementToggle('fuel', 'lines', 'perLap')"
       />
       <ToggleControl
         :label="t.settings.fuel.finish"
         :help="t.settings.fuel.finishHelp"
-        :current="opts.showFinish"
-        :apply="set('showFinish')"
+        :current="isElementVisible(opts.lines, 'finish')"
+        :apply="elementToggle('fuel', 'lines', 'finish')"
       />
       <ToggleControl
         :label="t.settings.fuel.box"
         :help="t.settings.fuel.boxHelp"
         :current="opts.showBox"
-        :disabled="!opts.showFinish"
+        :disabled="!isElementVisible(opts.lines, 'finish')"
         :apply="set('showBox')"
       />
       <ToggleControl
         :label="t.settings.fuel.window"
         :help="t.settings.fuel.windowHelp"
-        :current="opts.showWindow"
-        :apply="set('showWindow')"
+        :current="isElementVisible(opts.lines, 'window')"
+        :apply="elementToggle('fuel', 'lines', 'window')"
       />
       <ToggleControl
         :label="t.settings.fuel.save"
         :help="t.settings.fuel.saveHelp(SAVE_PCT)"
-        :current="opts.showSave"
-        :apply="set('showSave')"
+        :current="isElementVisible(opts.lines, 'save')"
+        :apply="elementToggle('fuel', 'lines', 'save')"
       />
       <ToggleControl
         :label="t.settings.fuel.tyres"
         :help="t.settings.fuel.tyresHelp"
-        :current="opts.showTyres"
-        :apply="set('showTyres')"
+        :current="isElementVisible(opts.lines, 'tyres')"
+        :apply="elementToggle('fuel', 'lines', 'tyres')"
       />
       <ToggleControl
         :label="t.settings.fuel.limits"
         :help="t.settings.fuel.limitsHelp"
-        :current="opts.showLimits"
-        :apply="set('showLimits')"
+        :current="isElementVisible(opts.lines, 'limits')"
+        :apply="elementToggle('fuel', 'lines', 'limits')"
       />
     </CheckGroup>
   </PageSection>

@@ -46,7 +46,9 @@ function entry(over: Partial<TrafficEntry> = {}): TrafficEntry {
       classColor: '#ff5888',
       iRating: 3100,
       licString: 'A 2.50',
-      licColor: '#0153db'
+      licColor: '#0153db',
+      brand: 'unknown',
+      country: ''
     },
     kind: 'faster',
     className: 'GTP',

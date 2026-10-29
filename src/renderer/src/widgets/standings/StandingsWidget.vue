@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { isRaceSession } from '@shared/sessionInfo'
-import type { StandingsData } from '@shared/types'
+import type { InfoItemId, StandingsData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useConditionsFooter } from '@renderer/composables/useConditionsFooter'
@@ -102,6 +103,12 @@ const payload = computed<StandingsData | null>((prev) => {
 const classes = computed(() => (body.value === 'status' ? null : (payload.value?.classes ?? null)))
 const race = computed(() => isRaceSession(payload.value?.header.sessionType ?? null))
 
+const headerShows = (id: InfoItemId): boolean =>
+  opts.value.headerBarSize !== 'off' && isElementVisible(opts.value.headerBar, id)
+const subheaderShows = (id: InfoItemId): boolean =>
+  opts.value.subheaderBarSize !== 'off' && isElementVisible(opts.value.subheaderBar, id)
+const showSof = computed(() => isElementVisible(opts.value.classLine, 'sof'))
+const showCarCount = computed(() => isElementVisible(opts.value.classLine, 'carCount'))
 const head = computed<HeaderView>((prev) =>
   reuseView(
     prev,
@@ -109,11 +116,12 @@ const head = computed<HeaderView>((prev) =>
       header: payload.value?.header ?? null,
       classes: classes.value,
       race: race.value,
-      showIRating: opts.value.headerIRating,
-      showSafetyRating: opts.value.headerSafetyRating,
-      showSof: opts.value.showSof,
-      showCarCount: opts.value.showCarCount,
-      showIncidents: opts.value.headerIncidents,
+      // Until the header draws its info bars (package P2): the parts it has today.
+      showIRating: subheaderShows('iRating'),
+      showSafetyRating: subheaderShows('safetyRating'),
+      showSof: headerShows('sof'),
+      showCarCount: headerShows('carCount'),
+      showIncidents: headerShows('incidents'),
       preview: phase.value === 'preview',
       title: title.value,
       m: t.value
@@ -127,7 +135,7 @@ const headLines = computed(() => head.value.lines)
  * under the offline or waiting placeholders); kept while hidden, like the lines. The same object
  * while it reads the same, so a 4 Hz payload re-renders nothing there.
  */
-const footer = useConditionsFooter(ID, () => payload.value?.conditions ?? null)
+const footer = useConditionsFooter(ID, () => payload.value?.info?.conditions ?? null)
 const footed = computed(
   () => (body.value === 'table' || body.value === 'none') && hasFooter(footer.value)
 )
@@ -193,8 +201,8 @@ const lineCtx = computed<LineContext>(() => ({
   race: race.value,
   deltaAll: opts.value.iRatingDeltaAll,
   nameFormat: nameFormat.value,
-  showSof: opts.value.showSof,
-  showCarCount: opts.value.showCarCount,
+  showSof: showSof.value,
+  showCarCount: showCarCount.value,
   showFlags: opts.value.showFlags,
   gapLeaderShown: cols.value.cells.includes('gapLeader'),
   styles,

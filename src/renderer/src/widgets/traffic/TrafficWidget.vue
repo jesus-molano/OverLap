@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -47,11 +48,12 @@ const title = useWidgetTitle(ID)
 
 // Options are stable objects (useOptions); the view input keeps its identity while equal, so a
 // look-ahead change (provider side) or a drag re-renders nothing.
+// Until the widget draws its lists in order (package P3): the groups it has today.
 const viewOptions = computed<TrafficViewOptions>((prev) =>
   reuseView(prev, {
-    showFaster: options.value.showFaster,
-    showSlower: options.value.showSlower,
-    showHazards: options.value.showHazards,
+    showFaster: isElementVisible(options.value.groups, 'faster'),
+    showSlower: isElementVisible(options.value.groups, 'slower'),
+    showHazards: isElementVisible(options.value.groups, 'hazard'),
     maxEntries: clampOption(OPTION_SCHEMA.traffic.maxEntries, options.value.maxEntries),
     nameFormat: nameFormat.value
   })

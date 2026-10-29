@@ -23,7 +23,9 @@ export class SettingsStore {
     initial: OverlaySettings,
     private readonly saveDelayMs: number,
     /** The file exists but could not be read: back it up before the first save replaces it. */
-    private loadFailed: boolean
+    private loadFailed: boolean,
+    /** There was no file: a first run, on the default settings. */
+    readonly fresh: boolean
   ) {
     this.current = initial
   }
@@ -34,8 +36,8 @@ export class SettingsStore {
    * save copies it to `<file>.bak` before overwriting it.
    */
   static load(file: string, saveDelayMs = DEFAULT_SAVE_DELAY_MS): SettingsStore {
-    const { settings, loadFailed } = readSettings(file)
-    return new SettingsStore(file, settings, saveDelayMs, loadFailed)
+    const { settings, loadFailed, fresh } = readSettings(file)
+    return new SettingsStore(file, settings, saveDelayMs, loadFailed, fresh === true)
   }
 
   /** Current settings. Treat as read-only; change them through `update()`. */
@@ -98,6 +100,8 @@ export class SettingsStore {
 interface Loaded {
   settings: OverlaySettings
   loadFailed: boolean
+  /** No file at all (ENOENT). */
+  fresh?: boolean
 }
 
 function readSettings(file: string): Loaded {
@@ -107,7 +111,7 @@ function readSettings(file: string): Loaded {
       text = readFileSync(file, 'utf8')
     } catch (err) {
       if (errorCode(err) === 'ENOENT')
-        return { settings: createDefaultSettings(), loadFailed: false }
+        return { settings: createDefaultSettings(), loadFailed: false, fresh: true }
       if (attempt >= READ_RETRIES) {
         console.warn(`[settings] could not read ${file}, using defaults:`, err)
         return { settings: createDefaultSettings(), loadFailed: true }

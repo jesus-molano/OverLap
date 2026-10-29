@@ -9,16 +9,21 @@ const defaults = DEFAULT_SETTINGS.shortcuts
 describe('shortcut actions', () => {
   it('are the schema fields, in the same (priority) order', () => {
     expect(Object.keys(OPTION_SCHEMA.shortcuts)).toEqual([...SHORTCUT_ACTIONS])
-    expect(SHORTCUT_ACTIONS).toEqual(['toggleOverlay', 'toggleEditMode'])
+    expect(SHORTCUT_ACTIONS).toEqual(['toggleOverlay', 'toggleEditMode', 'cycleDeltaReference'])
   })
 
-  it('default to Ctrl+Shift+H (show / hide) and Ctrl+Shift+E (edit mode)', () => {
-    expect(defaults).toEqual({ toggleOverlay: 'Ctrl+Shift+H', toggleEditMode: 'Ctrl+Shift+E' })
+  it('default to Ctrl+Shift+H (show / hide) and Ctrl+Shift+E (edit mode); no delta cycle', () => {
+    expect(defaults).toEqual({
+      toggleOverlay: 'Ctrl+Shift+H',
+      toggleEditMode: 'Ctrl+Shift+E',
+      cycleDeltaReference: ''
+    })
   })
 
   it('recognises only known actions', () => {
     expect(isShortcutAction('toggleOverlay')).toBe(true)
     expect(isShortcutAction('toggleEditMode')).toBe(true)
+    expect(isShortcutAction('cycleDeltaReference')).toBe(true)
     expect(isShortcutAction('quit')).toBe(false)
     expect(isShortcutAction(null)).toBe(false)
   })
@@ -60,7 +65,7 @@ describe('checkShortcut', () => {
   })
 
   it('does not count a turned-off action as having a combination', () => {
-    const off = { toggleOverlay: '', toggleEditMode: 'Ctrl+Shift+E' }
+    const off = { toggleOverlay: '', toggleEditMode: 'Ctrl+Shift+E', cycleDeltaReference: '' }
     expect(checkShortcut('toggleOverlay', 'Ctrl+Shift+H', off).ok).toBe(true)
   })
 })

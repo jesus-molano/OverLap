@@ -8,8 +8,24 @@ import { RACE_TIMING_LINES } from '../race/raceView'
 import type { RaceCarState, RaceView } from '../race/raceView'
 import { makeDriver, makeFrame, makeSession } from '../race/testing/raceSim'
 import { DELTA_REFERENCES } from '../settings'
+import { defaultOptions } from '../settings'
 import type { DeltaData, DeltaOptions, DeltaReference, DriverEntry, SessionMeta } from '../types'
-import { DELTA, DELTA_FALLBACK, DeltaProvider, deltaEqual, profileAt, sectorLines } from './delta'
+
+/** The same reference in every kind of session (the rig's sessions are of any kind). */
+function everySession(
+  r: DeltaReference
+): Pick<DeltaOptions, 'referencePractice' | 'referenceQualify' | 'referenceRace'> {
+  return { referencePractice: r, referenceQualify: r, referenceRace: r }
+}
+import {
+  DELTA,
+  DELTA_FALLBACK,
+  DeltaProvider,
+  NO_LAPS,
+  deltaEqual,
+  profileAt,
+  sectorLines
+} from './delta'
 import { createMemoryStore, personalBestKey } from './references'
 import type { LapReference } from './references'
 
@@ -187,12 +203,10 @@ class Rig {
       drivers
     )
     this.opts = {
-      reference: o.reference ?? 'session',
+      ...defaultOptions('delta'),
+      ...everySession(o.reference ?? 'session'),
       fallback: o.fallback ?? false,
-      rangeS: 1,
-      showPredicted: true,
-      showSectors: true,
-      showTrend: true
+      rangeS: 1
     }
     this.frame.PlayerCarIdx[0] = PLAYER
     for (const d of drivers) this.race.states.set(d.carIdx, carState(d.carIdx))
@@ -327,7 +341,10 @@ describe('DeltaProvider: the live delta', () => {
       trend: 0,
       predictedLap: null,
       sectors: [],
-      lapState: 'none'
+      lapState: 'none',
+      preferred: 'session',
+      pending: null,
+      laps: NO_LAPS
     })
     // A reference appears while there is none: taken at once (nothing to keep consistent).
     rig.race.best.set(PLAYER, lapOf(100))
@@ -536,14 +553,14 @@ describe('DeltaProvider: references', () => {
     rig.race.best.set(1, lapOf(100.5, 5))
     rig.race.best.set(PLAYER, lapOf(101, 2))
     expect(rig.at(T0, 3, 0.3, 30.35).reference).toBe('class')
-    rig.opts = { ...rig.opts, reference: 'session' }
+    rig.opts = { ...rig.opts, ...everySession('session') }
     expect(rig.at(T0 + 0.1, 3, 0.301, 30.45)).toMatchObject({
       reference: 'session',
       refDriver: '',
       refSelf: false,
       refLapTime: 101
     })
-    rig.opts = { ...rig.opts, fallback: true, reference: 'pb' }
+    rig.opts = { ...rig.opts, fallback: true, ...everySession('pb') }
     expect(rig.at(T0 + 0.2, 3, 0.302, 30.55).reference).toBe('session')
     rig.opts = { ...rig.opts, fallback: false }
     expect(rig.at(T0 + 0.3, 3, 0.303, 30.65).visible).toBe(false)
@@ -825,7 +842,10 @@ describe('DeltaProvider: the S/F line', () => {
         trend: 0,
         predictedLap: 101,
         sectors: [0.33, 0.33, 0.34],
-        lapState: 'valid'
+        lapState: 'valid',
+        preferred: 'session',
+        pending: null,
+        laps: NO_LAPS
       })
     }
     // Then the new lap, live.
@@ -1224,7 +1244,10 @@ describe('deltaEqual', () => {
     trend: 0.01,
     predictedLap: 92.38,
     sectors: [-0.05, null, null],
-    lapState: 'valid'
+    lapState: 'valid',
+    preferred: 'pb',
+    pending: null,
+    laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: 92.5 }
   }
 
   it('compares every field, sectors element by element', () => {
@@ -1243,7 +1266,13 @@ describe('deltaEqual', () => {
       { sectors: [-0.05, null] },
       { lapState: 'invalid' },
       { lapState: 'out' },
-      { lapState: 'none' }
+      { lapState: 'none' },
+      { preferred: 'optimal' },
+      { pending: 'class' },
+      { laps: { last: 93.2, best: 92.5, optimal: 92.2, pb: 92.5 } },
+      { laps: { last: 93.1, best: 92.4, optimal: 92.2, pb: 92.5 } },
+      { laps: { last: 93.1, best: 92.5, optimal: null, pb: 92.5 } },
+      { laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: null } }
     ]
     for (const c of changes)
       expect(deltaEqual({ ...base, ...c }, base), JSON.stringify(c)).toBe(false)

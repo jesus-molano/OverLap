@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
@@ -23,6 +24,7 @@ import {
   EMPTY_VIEW,
   LITRES,
   fuelView,
+  fuelViewOptions,
   layoutKey,
   linesOf,
   reuseParts,
@@ -42,18 +44,12 @@ const title = useWidgetTitle(ID)
 
 /** The drawing options, one object while they are equal: a drag re-renders nothing. */
 const viewOptions = computed<FuelViewOptions>((prev) =>
-  reuseView(prev, {
-    showGauge: options.value.showGauge,
-    showPerLap: options.value.showPerLap,
-    showFinish: options.value.showFinish,
-    showBox: options.value.showBox,
-    showWindow: options.value.showWindow,
-    showSave: options.value.showSave,
-    showTyres: options.value.showTyres,
-    showLimits: options.value.showLimits
-  })
+  reuseView(prev, fuelViewOptions(options.value))
 )
-const showHeader = computed(() => options.value.showHeader)
+// The header is an info bar now: until the widget draws it (package P4), today's band.
+const showHeader = computed(
+  () => options.value.headerBarSize !== 'off' && isElementVisible(options.value.headerBar, 'title')
+)
 
 // Payloads come only when something shown changes (SKIP_EMIT), so there is no freshness timer: a
 // lost connection hides the widget through the phase.

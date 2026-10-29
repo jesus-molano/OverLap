@@ -6,7 +6,8 @@
  * an opponent has been held past the threshold, the rating cache) lives in one BattleProvider
  * per telemetry loop.
  */
-import { driverIdentity, identityEqual } from './driver'
+import { driverIdentity, fieldHasMultipleBrands, identityEqual } from './driver'
+import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
 import { quantise } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
@@ -203,7 +204,8 @@ export class BattleProvider {
           : null,
       playerLastLaps: lastLapTimes(player),
       ahead: null,
-      behind: null
+      behind: null,
+      multiBrand: fieldHasMultipleBrands(session)
     }
     const me = session.drivers.get(playerIdx)
     // After your flag the result is fixed: nothing left to fight for.
@@ -211,7 +213,9 @@ export class BattleProvider {
       this.clearHolds()
       return result
     }
-    if (!opts.showAhead && !opts.showBehind) return result
+    const showAhead = isElementVisible(opts.lanes, 'ahead')
+    const showBehind = isElementVisible(opts.lanes, 'behind')
+    if (!showAhead && !showBehind) return result
 
     const pos = player.classPosition
     let aheadCar: RaceCarState | undefined
@@ -236,10 +240,10 @@ export class BattleProvider {
       stake: this.stakeFor(session, race, opts, me.classId, playerIdx)
     }
     // A car ahead that took the flag can no longer be caught.
-    if (opts.showAhead && aheadCar && !aheadCar.finished) {
+    if (showAhead && aheadCar && !aheadCar.finished) {
       result.ahead = this.opponent(run, 'ahead', aheadCar, session.drivers.get(aheadCar.carIdx))
     }
-    if (opts.showBehind && behindCar) {
+    if (showBehind && behindCar) {
       result.behind = this.opponent(run, 'behind', behindCar, session.drivers.get(behindCar.carIdx))
     }
     if (!result.ahead) this.holds.ahead.carIdx = -1
@@ -297,7 +301,7 @@ export class BattleProvider {
     let lapsToCatch: number | null = null
     let catchesBeforeEnd: boolean | null = null
     let neededSPerLap: number | null = null
-    if (run.opts.showPrediction) {
+    if (isElementVisible(run.opts.rows, 'prediction')) {
       let laps: number | null = null
       if (trend !== null) {
         if (side === 'ahead' && trend > BATTLE.minCatchTrend) laps = gap / trend
@@ -343,7 +347,7 @@ export class BattleProvider {
     classId: number,
     playerIdx: number
   ): (oppIdx: number) => number | null {
-    if (!opts.showIRatingAtStake || !isRatedEvent(session)) return () => null
+    if (!isElementVisible(opts.parts, 'stake') || !isRatedEvent(session)) return () => null
     let field: RatingField | null = null
     return (oppIdx) => {
       try {
@@ -382,6 +386,7 @@ export function battleEqual(a: BattleData, b: BattleData): boolean {
   return (
     a.visible === b.visible &&
     a.lapsRemaining === b.lapsRemaining &&
+    a.multiBrand === b.multiBrand &&
     arrayEqual(a.playerLastLaps, b.playerLastLaps) &&
     opponentEqual(a.ahead, b.ahead) &&
     opponentEqual(a.behind, b.behind)

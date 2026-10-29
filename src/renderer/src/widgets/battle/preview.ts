@@ -1,6 +1,7 @@
 /**
  * Edit-mode sample of the battle widget: invented drivers, every row of both lanes filled, so
- * the window is placed and sized on realistic content (names exercise the name formats).
+ * the window is placed and sized on realistic content (names exercise the name formats). Two
+ * makes, so the brand marks show in 'auto' mode.
  */
 import type { BattleData, BattleOpponent } from '@shared/types'
 
@@ -13,6 +14,8 @@ const AHEAD: BattleOpponent = Object.freeze({
   iRating: 3480,
   licString: 'A 4.12',
   licColor: '#0153db',
+  brand: 'porsche',
+  country: 'FR',
   gapS: 0.6,
   trendSPerLap: 0.15,
   lapsToCatch: 4,
@@ -32,6 +35,8 @@ const BEHIND: BattleOpponent = Object.freeze({
   iRating: 2510,
   licString: 'A 1.83',
   licColor: '#0153db',
+  brand: 'lamborghini',
+  country: 'IT',
   gapS: 1,
   trendSPerLap: -0.09,
   lapsToCatch: 11.1,
@@ -47,7 +52,8 @@ export const PREVIEW_BATTLE: BattleData = Object.freeze({
   lapsRemaining: 19,
   playerLastLaps: [98.452, 98.63, 98.519],
   ahead: AHEAD,
-  behind: BEHIND
+  behind: BEHIND,
+  multiBrand: true
 })
 
 const ONLY_AHEAD: BattleData = Object.freeze({ ...PREVIEW_BATTLE, behind: null })

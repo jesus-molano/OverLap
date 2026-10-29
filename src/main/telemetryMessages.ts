@@ -6,6 +6,8 @@ import {
   type PersonalBestTarget
 } from '@shared/delta/references'
 import type { TelemetryOutMessage } from '@shared/ipc'
+import type { SessionKind } from '@shared/sessionInfo'
+import { SHOW_IN_KINDS } from '@shared/settingsSchema'
 import type {
   ConnectionState,
   HiddenReason,
@@ -35,6 +37,7 @@ const HIDDEN_REASON_SET: Readonly<Record<HiddenReason, true>> = {
   'camera-other': true
 }
 const HIDDEN_REASONS = Object.keys(HIDDEN_REASON_SET) as HiddenReason[]
+const SESSION_KINDS: readonly SessionKind[] = SHOW_IN_KINDS
 const LOG_LEVELS = ['info', 'warn', 'error'] as const
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -94,6 +97,11 @@ export function parseTelemetryMessage(raw: unknown): TelemetryOutMessage | null 
     case 'bests': {
       const list = parseBestList(raw.list)
       return list ? { type: 'bests', list } : null
+    }
+    case 'session-kind': {
+      const { kind } = raw
+      if (kind !== null && !includes(SESSION_KINDS, kind)) return null
+      return { type: 'session-kind', kind }
     }
     default:
       return null

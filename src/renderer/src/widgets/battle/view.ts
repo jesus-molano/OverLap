@@ -11,6 +11,9 @@
 import { NBSP, formatGap, formatLaps, formatTrend, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type { BattleData, BattleOpponent, BattleOptions, NameFormat } from '@shared/types'
+
+/** The old detail choice (BattleWidget reads it from battle.rows until the lanes draw the list). */
+export type LaneDetail = 'none' | 'sectors' | 'laps' | 'both'
 import type { IconName } from '@renderer/ui/icons'
 import type { Tone } from '@renderer/ui/tones'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
@@ -78,7 +81,7 @@ export interface LaneView {
 
 /** The options a lane reads (display side; the provider may also skip what is off). */
 export interface LaneOptions {
-  readonly detail: BattleOptions['detail']
+  readonly detail: LaneDetail
   readonly showPrediction: boolean
   readonly showStake: boolean
   readonly nameFormat: NameFormat

@@ -7,7 +7,8 @@
  * here as well as in the provider, so an option shows at once and on the samples. Words come
  * from the dictionary `m` (messagesFor(lang)).
  */
-import { LIGHT_OPTION, LIGHT_ORDER, type LightToggle } from '@shared/lights'
+import { isElementVisible } from '@shared/elements'
+import { LIGHT_ORDER } from '@shared/lights'
 import { tempDeltaIn, tempIn } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
@@ -35,7 +36,10 @@ export const LIGHT_ICONS: Readonly<Record<LightKind, EngineIconName>> = {
 
 /** The options the strip reads (the layout and the colours are the component's). */
 export type LightsFilter = Readonly<
-  Pick<LightsOptions, LightToggle | 'showCaptions' | 'showTemps' | 'showRepairTime'>
+  Pick<
+    LightsOptions,
+    'onlyWhenLit' | 'showCaptions' | 'showTemps' | 'showRepairTime' | 'icons' | 'showTrend'
+  >
 >
 
 /** The toggles of `o` (a new object; see reuseView for a stable one). */
@@ -45,16 +49,9 @@ export function lightsFilter(o: LightsOptions): LightsFilter {
     showCaptions: o.showCaptions,
     showTemps: o.showTemps,
     showRepairTime: o.showRepairTime,
-    showOilPressure: o.showOilPressure,
-    showFuelPressure: o.showFuelPressure,
-    showStalled: o.showStalled,
-    showRepair: o.showRepair,
-    showRepairOptional: o.showRepairOptional,
-    showWater: o.showWater,
-    showOilTemp: o.showOilTemp,
-    showTrend: o.showTrend,
-    showPitLimiter: o.showPitLimiter,
-    showRevLimiter: o.showRevLimiter
+    // The options are stable objects (useOptions): the list keeps its identity while equal.
+    icons: o.icons,
+    showTrend: o.showTrend
   }
 }
 
@@ -152,7 +149,8 @@ export function lightsView(
   const out: LightView[] = []
   for (const kind of LIGHT_ORDER) {
     const r = byKind.get(kind)
-    if (r === undefined || !o[LIGHT_OPTION[kind]]) continue
+    // Until the strip draws the list in its order (package P4): LIGHT_ORDER, the list's shown.
+    if (r === undefined || !isElementVisible(o.icons, kind)) continue
     const v = lightView(r, o, units, m)
     if (v !== null) out.push(v)
   }
@@ -171,9 +169,7 @@ export function hasLights(d: LightsData, o: LightsFilter, m: Messages): boolean 
  */
 export function previewFilter(sample: LightsData, o: LightsFilter, m: Messages): LightsFilter {
   if (lightsView(sample, o, 'metric', m).length > 0) return o
-  const all = { ...o, onlyWhenLit: false }
-  for (const k of LIGHT_ORDER) all[LIGHT_OPTION[k]] = true
-  return all
+  return { ...o, onlyWhenLit: false, icons: LIGHT_ORDER.map((id) => ({ id, visible: true })) }
 }
 
 /** Everything the strip's height depends on besides the width and the font. */

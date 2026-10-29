@@ -54,7 +54,23 @@ const parts = computed(() => splitLicense(props.text))
   margin-left: 0.3em;
 }
 
-/* Quiet default for tables: coloured text, no box. The letter in the ink, the SR in grey. */
+/*
+ * The default (v2.6): a thin border in the licence ink, no fill, the letter in the ink and the SR
+ * after it in grey. Drawn as an inset ring, so it takes no more room than the other styles.
+ */
+.ov-lic--outline {
+  padding: 0 0.28em;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--lic-ink, var(--lic-soft));
+  color: var(--lic-ink, var(--lic-soft));
+}
+
+.ov-lic--outline .ov-lic__sr {
+  font-weight: var(--ov-w-text);
+  color: var(--ov-fg-muted);
+}
+
+/* Quiet, for dense tables: coloured text, no box. The letter in the ink, the SR in grey. */
 .ov-lic--soft {
   padding: 0;
   background: none;

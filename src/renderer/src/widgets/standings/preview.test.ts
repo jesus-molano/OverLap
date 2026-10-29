@@ -73,7 +73,12 @@ describe('previewStandings', () => {
   })
 
   it('follows the header toggles', () => {
-    const off = previewStandings({ ...DEFAULTS, headerIRating: false, headerSafetyRating: false })
+    const off = previewStandings({
+      ...DEFAULTS,
+      subheaderBar: DEFAULTS.subheaderBar.map((e) =>
+        e.id === 'iRating' || e.id === 'safetyRating' ? { ...e, visible: false } : e
+      )
+    })
     expect(off.header.iRating).toBeNull()
     expect(off.header.safetyRating).toBeNull()
     expect(previewStandings(DEFAULTS).header.iRating).not.toBeNull()

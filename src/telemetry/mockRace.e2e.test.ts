@@ -11,6 +11,7 @@ import { DELTA } from '@shared/delta/delta'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import type { TelemetryFrame } from '@shared/telemetry'
 import type {
+  DeltaOptions,
   DeltaReference,
   FlagKind,
   GapValue,
@@ -32,6 +33,20 @@ const WARM_UP_S = 150
 const LATE_JOIN_S = 1350
 /** Default traffic windows (s) and alerts hold (s). */
 const DEFAULTS = defaultTelemetryConfig()
+
+/**
+ * The delta against your record in every kind of session (the one reference every file had
+ * before v2.6): these runs check its whole chain (pb -> session -> class).
+ */
+function withRecord(config: TelemetryConfig): TelemetryConfig {
+  return { ...config, delta: { ...config.delta, ...everySession('pb') } }
+}
+
+function everySession(
+  r: DeltaReference
+): Pick<DeltaOptions, 'referencePractice' | 'referenceQualify' | 'referenceRace'> {
+  return { referencePractice: r, referenceQualify: r, referenceRace: r }
+}
 
 /** The series stepped by exactly one tick per waitForTick, on a fake clock. */
 class SteppedSource implements TelemetrySource {
@@ -155,7 +170,7 @@ async function runLoop(
     sleep: () => Promise.resolve(),
     yieldToEventLoop: () => Promise.resolve()
   })
-  if (config) loop.setConfig(config)
+  loop.setConfig(config ?? withRecord(defaultTelemetryConfig()))
   end.stop = () => loop.stop()
   await loop.start()
   return run
@@ -563,7 +578,7 @@ describe('mock race end to end: the optimal references over the first ten minute
     for (const reference of ['session', 'optimal', 'class', 'classOptimal'] as const) {
       const config = defaultTelemetryConfig()
       config.enabledWidgets = reference === 'optimal' ? ['delta', 'standings'] : ['delta']
-      config.delta = { ...config.delta, reference, fallback: false }
+      config.delta = { ...config.delta, ...everySession(reference), fallback: false }
       const ticks = RUN_S * 30
       runs.set(reference, await runLoop(new MockSeries(), 1 / 30, (r) => r.ticks >= ticks, config))
     }
@@ -678,7 +693,7 @@ describe('mock race end to end: late join, pit stop, finish and the next session
     const start = series.sessionTime
     // The overlay starts late: the series runs on its own until then.
     while (series.sessionTime - start < LATE_JOIN_S) series.step(0.1)
-    const config = defaultTelemetryConfig()
+    const config = withRecord(defaultTelemetryConfig())
     config.rules.radar = {
       showIn: { practice: true, qualify: true, race: false },
       hideInPits: false,

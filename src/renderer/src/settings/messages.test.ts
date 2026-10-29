@@ -53,7 +53,7 @@ describe('settings dictionary', () => {
   })
 
   it('words a choice group in each language', () => {
-    const values = OPTION_SCHEMA.delta.reference.values
+    const values = OPTION_SCHEMA.delta.referenceRace.values
     expect(choiceOptions(values, es.delta.references).map((o) => o.label)).toEqual([
       'Récord personal',
       'Mejor vuelta de la sesión',

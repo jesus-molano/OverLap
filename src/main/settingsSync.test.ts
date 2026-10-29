@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
-import { CONDITIONS_FOOTER_FIELDS, OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
-import type { OverlaySettings, StandingsColumn } from '@shared/types'
+import { setElementVisible } from '@shared/elements'
+import { OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
+import type { ElementEntry, OverlaySettings, StandingsColumn } from '@shared/types'
 import { WIDGET_DEFS, WIDGET_IDS } from '@shared/widgets'
 import {
   DISPLAY_ONLY,
@@ -49,13 +50,22 @@ function otherValue(spec: OptionSpec, value: unknown): unknown {
       colors[key] = colors[key] === '#000000' ? '#ffffff' : '#000000'
       return colors
     }
-    case 'columns':
-      return (value as StandingsColumn[]).map((c, i) =>
-        i === 0 ? { ...c, visible: !c.visible } : c
-      )
+    case 'elements': {
+      // An id the provider reads, when the list has any.
+      const list = value as ElementEntry[]
+      const id = spec.computed?.[0] ?? list[0]?.id ?? ''
+      const e = list.find((x) => x.id === id)
+      return setElementVisible(list, id, e === undefined ? true : !e.visible)
+    }
     case 'accelerator':
       return value === 'Ctrl+Alt+F9' ? 'Ctrl+Alt+F10' : 'Ctrl+Alt+F9'
   }
+  return value
+}
+
+/** `list` with `id` shown or hidden the other way round. */
+function flip<Id extends string>(list: ElementEntry<Id>[], id: Id): ElementEntry<Id>[] {
+  return setElementVisible(list, id, !list.some((e) => e.id === id && e.visible))
 }
 
 function columns(...visible: StandingsColumn['id'][]): StandingsColumn[] {
@@ -177,7 +187,10 @@ describe('diffSettings', () => {
       (s: OverlaySettings) => (s.appearance.language = 'en'),
       // Main registers the shortcuts; the telemetry process never sees them.
       (s: OverlaySettings) => (s.shortcuts.toggleOverlay = 'Ctrl+Alt+F9'),
-      (s: OverlaySettings) => (s.shortcuts.toggleEditMode = '')
+      (s: OverlaySettings) => (s.shortcuts.toggleEditMode = ''),
+      (s: OverlaySettings) => (s.shortcuts.cycleDeltaReference = 'Ctrl+Alt+D'),
+      // The settings window's own preferences: nobody else reads them.
+      (s: OverlaySettings) => (s.settingsWindow.stageScene = 'light')
     ]) {
       expect(configChanged(mutate), mutate.toString()).toBe(false)
     }
@@ -224,11 +237,13 @@ describe('diffSettings and the widget options', () => {
     expect(configChanged((s) => (s.standings.iRatingDeltaAll = !s.standings.iRatingDeltaAll))).toBe(
       true
     )
-    expect(configChanged((s) => (s.standings.headerIRating = !s.standings.headerIRating))).toBe(
-      true
-    )
     expect(
-      configChanged((s) => (s.standings.headerSafetyRating = !s.standings.headerSafetyRating))
+      configChanged((s) => (s.standings.subheaderBar = flip(s.standings.subheaderBar, 'iRating')))
+    ).toBe(true)
+    expect(
+      configChanged(
+        (s) => (s.standings.subheaderBar = flip(s.standings.subheaderBar, 'safetyRating'))
+      )
     ).toBe(true)
     expect(configChanged((s) => (s.battle.thresholdS = 2))).toBe(true)
   })
@@ -246,33 +261,37 @@ describe('diffSettings and the widget options', () => {
   })
 
   it('traffic: only the name format stays in the renderer', () => {
-    expect(DISPLAY_ONLY.traffic).toEqual(['nameFormat'])
+    expect(DISPLAY_ONLY.traffic).toEqual(['parts', 'header', 'nameFormat'])
     expect(configChanged((s) => (s.traffic.nameFormat = 'tv'))).toBe(false)
     expect(configChanged((s) => (s.traffic.behindS = 20))).toBe(true)
     expect(configChanged((s) => (s.traffic.aheadS = 4))).toBe(true)
     expect(configChanged((s) => (s.traffic.hazardS = 12))).toBe(true)
     expect(configChanged((s) => (s.traffic.maxEntries = 1))).toBe(true)
-    expect(configChanged((s) => (s.traffic.showSlower = !s.traffic.showSlower))).toBe(true)
+    expect(configChanged((s) => (s.traffic.groups = flip(s.traffic.groups, 'slower')))).toBe(true)
+    expect(configChanged((s) => s.traffic.groups.reverse())).toBe(false)
     expect(configChanged((s) => (s.traffic.onlyMulticlass = !s.traffic.onlyMulticlass))).toBe(true)
   })
 
   it('alerts: every option goes to the telemetry process', () => {
-    expect(DISPLAY_ONLY.alerts).toEqual([])
+    expect(DISPLAY_ONLY.alerts).toEqual(['parts'])
     expect(configChanged((s) => (s.alerts.showBlue = !s.alerts.showBlue))).toBe(true)
     expect(configChanged((s) => (s.alerts.showPitLimiter = !s.alerts.showPitLimiter))).toBe(true)
     expect(configChanged((s) => (s.alerts.holdS = 0))).toBe(true)
   })
 
-  it('delta: the reference goes to the telemetry process, the drawing options do not', () => {
-    expect(DISPLAY_ONLY.delta).toEqual(['rangeS', 'showPredicted', 'showSectors', 'showTrend'])
-    expect(configChanged((s) => (s.delta.reference = 'class'))).toBe(true)
+  it('delta: the references go to the telemetry process, the drawing options do not', () => {
+    expect(DISPLAY_ONLY.delta).toEqual(['rangeS', 'rows', 'top', 'laps'])
+    expect(configChanged((s) => (s.delta.referencePractice = 'class'))).toBe(true)
+    expect(configChanged((s) => (s.delta.referenceQualify = 'session'))).toBe(true)
+    expect(configChanged((s) => (s.delta.referenceRace = 'pb'))).toBe(true)
     expect(configChanged((s) => (s.delta.fallback = !s.delta.fallback))).toBe(true)
     expect(
       configChanged((s) => {
         s.delta.rangeS = 2.5
-        s.delta.showPredicted = !s.delta.showPredicted
-        s.delta.showSectors = !s.delta.showSectors
-        s.delta.showTrend = !s.delta.showTrend
+        s.delta.top = flip(s.delta.top, 'predicted')
+        s.delta.rows = flip(s.delta.rows, 'sectors')
+        s.delta.rows = flip(s.delta.rows, 'laps')
+        s.delta.laps.reverse()
       })
     ).toBe(false)
   })
@@ -289,28 +308,42 @@ describe('diffSettings and the widget options', () => {
     expect(
       configChanged((s) => {
         s.inputs.traceSeconds = 8
-        s.inputs.showClutch = !s.inputs.showClutch
+        s.inputs.bars = flip(s.inputs.bars, 'clutch')
         s.inputs.clutchInTrace = !s.inputs.clutchInTrace
         s.inputs.traceWidth = 3
         s.inputs.colors.brake = '#123456'
         s.inputs.steeringStyle = s.inputs.steeringStyle === 'bar' ? 'wheel' : 'bar'
-        s.inputs.layout = 'bars'
+        s.inputs.sections = flip(s.inputs.sections, 'trace')
+        s.inputs.info.reverse()
       })
     ).toBe(false)
   })
 
-  it('the conditions footers: their switches go to the telemetry process, their readings not', () => {
+  it('the info bars: the items the provider computes and the sizes go, the rest does not', () => {
     for (const section of ['relative', 'standings'] as const) {
+      // The order, the renderer's own items (the name, the clock) and the items' options.
       expect(
         configChanged((s) => {
-          for (const key of CONDITIONS_FOOTER_FIELDS) {
-            if (key !== 'conditionsFooter') s[section][key] = !s[section][key]
-          }
+          s[section].footerBar.reverse()
+          s[section].headerBar = flip(s[section].headerBar, 'clock')
+          s[section].headerBar = flip(s[section].headerBar, 'title')
+          s[section].conditionsTrend = !s[section].conditionsTrend
+          s[section].conditionsWindDirection = !s[section].conditionsWindDirection
         }),
         section
       ).toBe(false)
       expect(
-        configChanged((s) => (s[section].conditionsFooter = !s[section].conditionsFooter)),
+        configChanged((s) => (s[section].footerBar = flip(s[section].footerBar, 'trackTemp'))),
+        section
+      ).toBe(true)
+      expect(
+        configChanged((s) => (s[section].headerBar = flip(s[section].headerBar, 'fuelLaps'))),
+        section
+      ).toBe(true)
+      expect(
+        configChanged(
+          (s) => (s[section].footerBarSize = s[section].footerBarSize === 'off' ? 'normal' : 'off')
+        ),
         section
       ).toBe(true)
     }
@@ -319,15 +352,10 @@ describe('diffSettings and the widget options', () => {
   it('the fuel lines are drawing only; the average and the margin go to the telemetry process', () => {
     expect(
       configChanged((s) => {
-        s.fuel.showHeader = !s.fuel.showHeader
-        s.fuel.showGauge = !s.fuel.showGauge
-        s.fuel.showPerLap = !s.fuel.showPerLap
-        s.fuel.showFinish = !s.fuel.showFinish
+        s.fuel.lines = flip(s.fuel.lines, 'gauge')
+        s.fuel.lines.reverse()
         s.fuel.showBox = !s.fuel.showBox
-        s.fuel.showWindow = !s.fuel.showWindow
-        s.fuel.showSave = !s.fuel.showSave
-        s.fuel.showTyres = !s.fuel.showTyres
-        s.fuel.showLimits = !s.fuel.showLimits
+        s.fuel.headerBar = flip(s.fuel.headerBar, 'title')
       })
     ).toBe(false)
     expect(configChanged((s) => (s.fuel.avgLaps = 3))).toBe(true)
@@ -338,12 +366,14 @@ describe('diffSettings and the widget options', () => {
     expect(
       configChanged((s) => {
         s.lights.layout = 'column'
+        s.lights.labelSide = 'left'
         s.lights.showCaptions = true
+        s.lights.icons.reverse()
       })
     ).toBe(false)
     expect(configChanged((s) => (s.lights.onlyWhenLit = true))).toBe(true)
     expect(configChanged((s) => (s.lights.showTemps = true))).toBe(true)
-    expect(configChanged((s) => (s.lights.showRevLimiter = true))).toBe(true)
+    expect(configChanged((s) => (s.lights.icons = flip(s.lights.icons, 'revLimiter')))).toBe(true)
   })
 })
 

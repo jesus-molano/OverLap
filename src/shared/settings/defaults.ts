@@ -8,7 +8,7 @@ import {
 import type { OverlaySettings, WidgetSettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, shownOnSessionScreen, type WidgetId } from '../widgets'
 
-export const SETTINGS_VERSION = 4
+export const SETTINGS_VERSION = 5
 
 export const OPTION_SECTIONS = Object.keys(OPTION_SCHEMA) as OptionSection[]
 
@@ -17,9 +17,9 @@ export function sectionSpecs(section: OptionSection): Readonly<Record<string, Op
   return OPTION_SCHEMA[section]
 }
 
-/** A fresh copy of a spec's default (column lists and colour sets are objects). */
+/** A fresh copy of a spec's default (element lists and colour sets are objects). */
 export function specDefault(spec: OptionSpec): unknown {
-  if (spec.kind === 'columns') return spec.default.map((c) => ({ ...c }))
+  if (spec.kind === 'elements') return spec.default.map((e) => ({ ...e }))
   if (spec.kind === 'colors') return { ...spec.default }
   return spec.default
 }
@@ -65,7 +65,8 @@ export function createDefaultSettings(): OverlaySettings {
     delta: defaultOptions('delta'),
     fuel: defaultOptions('fuel'),
     lights: defaultOptions('lights'),
-    shortcuts: defaultOptions('shortcuts')
+    shortcuts: defaultOptions('shortcuts'),
+    settingsWindow: defaultOptions('settingsWindow')
   }
 }
 

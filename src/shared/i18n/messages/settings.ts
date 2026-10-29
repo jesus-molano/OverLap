@@ -69,7 +69,13 @@ export const settingsEs = {
     reset: '¿Restablecer? Pulsa otra vez'
   },
   sample: {
-    caption: 'Vista previa con datos de ejemplo'
+    caption: 'Vista previa con datos de ejemplo',
+    /** settingsWindow.stageScene: the scene behind the previews. */
+    scene: 'Fondo',
+    sceneChoices: {
+      dark: { label: 'Noche', hint: 'El widget sobre asfalto oscuro' },
+      light: { label: 'Día', hint: 'El widget sobre una escena clara' }
+    }
   },
   controls: {
     customColor: 'Color personalizado',
@@ -156,7 +162,8 @@ export const settingsEs = {
       stripes: 'Filas alternas',
       stripesHelp: 'Sombrea una fila de cada dos',
       licenseChoices: {
-        soft: { label: 'Suave', hint: 'Tinte y borde del color de la licencia' },
+        outline: { label: 'Contorno', hint: 'Borde fino del color de la licencia, sin fondo' },
+        soft: { label: 'Suave', hint: 'Letra del color de la licencia, sin borde' },
         solid: { label: 'Sólida', hint: 'Como en iRacing' },
         letter: { label: 'Solo letra', hint: 'La letra en su color, sin chip' }
       },
@@ -254,6 +261,10 @@ export const settingsEs = {
       toggleEditMode: {
         label: 'Modo edición',
         help: 'Entra o sale del modo edición para mover y redimensionar los widgets'
+      },
+      cycleDeltaReference: {
+        label: 'Cambiar la referencia del delta',
+        help: 'Pasa a la siguiente en este tipo de sesión; se aplica al empezar la vuelta'
       }
     },
     /** The fixed Esc row. */
@@ -625,6 +636,24 @@ export const settingsEs = {
   delta: {
     reference: 'Referencia',
     referenceNote: 'El récord personal se guarda por coche y trazado',
+    /** delta.reference*: one per kind of session (practice also warmup and testing). */
+    referenceBySession: 'Referencia por sesión',
+    referenceBySessionNote: 'Un cambio se aplica al empezar la próxima vuelta',
+    sessions: { practice: 'Práctica', qualify: 'Clasificación', race: 'Carrera' },
+    /** Short names that fit the selector on one line ('Óptima de clase'). */
+    referencesShort: {
+      pb: 'Récord',
+      session: 'Mejor',
+      optimal: 'Óptima',
+      class: 'Mejor de clase',
+      classOptimal: 'Óptima de clase'
+    },
+    /** The cycle shortcut, under the selector: 'Ctrl+Alt+D pasa a la siguiente en la sesión'. */
+    cycleKeys: (keys: string) => `${keys} pasa a la siguiente en la sesión actual`,
+    cycleNoKeys: 'Con un atajo en «Atajos de teclado» la cambias sin salir del coche',
+    /** The lap times line (delta.rows 'laps', its items delta.laps). */
+    lapTimes: 'Tiempos de vuelta',
+    lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
     compareWith: 'Comparar con',
     /** Delta references, in UI order. */
     references: {
@@ -752,6 +781,13 @@ export const settingsEs = {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
       column: { label: 'En columna' }
     },
+    /** lights.labelSide: where the captions and values go in a column. */
+    labelSide: 'Textos',
+    labelSideChoices: {
+      right: { label: 'A la derecha' },
+      left: { label: 'A la izquierda' }
+    },
+    labelSideOff: 'Solo en columna',
     onlyWhenLit: 'Solo encendidos',
     onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
     captions: 'Rótulos',
@@ -869,6 +905,195 @@ export const settingsEs = {
     },
     unnamedCar: 'Coche sin nombre',
     unnamedTrack: 'Circuito sin nombre'
+  },
+  /** The shared element editor (settings/elements/ElementEditor.vue): its chrome. */
+  elements: {
+    /** Split around the drag handle glyph. */
+    intro: {
+      before: 'Arrastra',
+      after: 'o usa ↑ ↓ para ordenar; el ojo muestra u oculta cada elemento en el widget.'
+    },
+    introFixed: 'El ojo muestra u oculta cada elemento en el widget; su orden es fijo.',
+    count: (visible: number, total: number) => `${visible} de ${total} visibles`,
+    move: (item: string) => `Mover ${item}`,
+    moveUp: (item: string) => `Subir ${item}`,
+    moveDown: (item: string) => `Bajar ${item}`,
+    show: (item: string) => `Mostrar ${item} en el widget`,
+    hide: (item: string) => `Ocultar ${item} en el widget`,
+    /** A required element: a lock instead of the eye. */
+    required: 'Siempre visible',
+    /** A fixed row of the widget, listed for context (not in the list). */
+    fixedTag: 'Fijo',
+    /** A child whose parent is hidden: 'Necesita «iRating»'. */
+    needsParent: (parent: string) => `Necesita «${parent}»`,
+    reset: 'Restablecer',
+    resetLabel: (zone: string) => `Restablecer ${zone}`,
+    /** Screen-reader announcements. */
+    moved: (item: string, position: number, total: number) =>
+      `${item}: posición ${position} de ${total}.`,
+    shown: (item: string) => `${item} visible.`,
+    hidden: (item: string) => `${item} oculto.`,
+    resetDone: (zone: string) => `${zone}: por defecto.`,
+    /** Under a zone with nothing shown that the widget draws without. */
+    empty: 'Sin nada visible no se dibuja',
+    /** Under a zone whose widget hides with nothing shown (the battle's rivals...). */
+    emptyHides: 'Sin nada visible el widget no se muestra'
+  },
+  /** Each editable zone's name, per widget page (the editor's title). */
+  zones: {
+    relative: { columns: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
+    radar: { parts: 'Capas' },
+    standings: {
+      columns: 'Columnas',
+      headerBar: 'Cabecera',
+      subheaderBar: 'Segunda línea',
+      footerBar: 'Pie',
+      classLine: 'Línea de clase'
+    },
+    battle: { lanes: 'Rivales', rows: 'Filas', parts: 'Detalles' },
+    inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos' },
+    traffic: { groups: 'Grupos', parts: 'Columnas', header: 'Cabecera' },
+    alerts: { parts: 'Extras' },
+    delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
+    fuel: { headerBar: 'Cabecera', lines: 'Líneas' },
+    lights: { icons: 'Testigos' }
+  },
+  /**
+   * Each element's name (and a hint where it helps), per widget and zone, for the zones no other
+   * group names (the standings' columns are settings.columns, the lights widgets.lights.names, the
+   * info bars' items settings.infoBar.items).
+   */
+  items: {
+    relative: {
+      columns: {
+        pos: 'Posición en clase',
+        driver: 'Piloto',
+        lic: 'Licencia',
+        ir: 'iRating',
+        tyre: 'Neumático',
+        stint: 'Vueltas del stint',
+        gap: 'Hueco'
+      }
+    },
+    radar: {
+      parts: {
+        guides: 'Guías de distancia',
+        sideAlerts: 'Avisos laterales',
+        rangeLabels: 'Distancias en las guías'
+      }
+    },
+    standings: { classLine: { sof: 'SoF', carCount: 'Número de coches' } },
+    battle: {
+      lanes: { ahead: 'Coche de delante', behind: 'Coche de detrás' },
+      rows: { prediction: 'Predicción de alcance', sectors: 'Sectores', laps: 'Vueltas' },
+      parts: {
+        rating: 'iRating del rival',
+        license: 'Licencia del rival',
+        trendNote: 'Texto de la tendencia',
+        stake: 'iRating en juego'
+      }
+    },
+    inputs: {
+      sections: { trace: 'Traza', bars: 'Barras', info: 'Marcha, velocidad y volante' },
+      bars: { clutch: 'Embrague', brake: 'Freno', throttle: 'Acelerador' },
+      info: { gear: 'Marcha', speed: 'Velocidad', steering: 'Volante' }
+    },
+    traffic: {
+      groups: { hazard: 'Peligros', slower: 'Tráfico lento', faster: 'Clase más rápida' },
+      parts: {
+        icon: 'Icono',
+        cls: 'Clase',
+        driver: 'Piloto',
+        lead: 'Delante / detrás',
+        value: 'Tiempo',
+        sector: 'Sector'
+      },
+      header: { title: 'Nombre del widget', captions: 'Rótulos de los grupos' }
+    },
+    alerts: { parts: { notes: 'Qué hacer, tras cada aviso', chips: 'Otros avisos en chips' } },
+    delta: {
+      rows: {
+        top: 'Línea superior',
+        bar: 'Barra',
+        sectors: 'Sectores',
+        laps: 'Tiempos de vuelta'
+      },
+      top: { state: 'Estado de la vuelta', predicted: 'Vuelta prevista', reference: 'Referencia' },
+      laps: { last: 'Última vuelta', best: 'Mejor vuelta', optimal: 'Vuelta óptima', pb: 'Récord' }
+    },
+    fuel: {
+      lines: {
+        hero: 'Combustible y vueltas',
+        gauge: 'Depósito',
+        perLap: 'Consumo por vuelta',
+        finish: 'Para meta y repostar',
+        window: 'Ventana de parada',
+        save: 'Ahorro',
+        tyres: 'Neumáticos',
+        limits: 'Reparaciones y juegos'
+      }
+    }
+  },
+  /** The info bars: their items, the marker, the size and the items' options. */
+  infoBar: {
+    items: {
+      title: 'Nombre del widget',
+      session: 'Sesión',
+      remaining: 'Tiempo o vueltas restantes',
+      clock: 'Hora local',
+      sof: 'SoF',
+      carCount: 'Número de coches',
+      incidents: 'Incidentes',
+      iRating: 'iRating proyectado',
+      safetyRating: 'SR proyectado',
+      fastestLap: 'Vuelta rápida',
+      fuelLaps: 'Vueltas de combustible',
+      trackTemp: 'Temperatura de la pista',
+      airTemp: 'Temperatura del aire',
+      wind: 'Viento',
+      wet: 'Agua en la pista',
+      rubber: 'Goma'
+    },
+    hints: {
+      remaining: '«38:19  ≈19 v», «Quedan 12 v»; «Final» tras tu bandera',
+      sof: 'La de tu clase',
+      carCount: 'Los inscritos en tu clase',
+      incidents: 'Los tuyos y el próximo límite: «3x · DQ a 17x»',
+      iRating: 'Solo en carreras oficiales: cuánto ganas o pierdes en tu puesto',
+      safetyRating: 'Con tu margen de incidentes',
+      fastestLap: 'La de tu clase en esta sesión: «VR #9 1:01.234»',
+      fuelLaps: 'A tu consumo medio',
+      trackTemp: 'Con una flecha si sube o baja',
+      wind: 'La media del último minuto, con su dirección respecto a tu coche',
+      wet: 'Solo cuando la hay: cuánta, la lluvia y «Declarada mojada»',
+      rubber: 'La que había al empezar la sesión'
+    },
+    split: 'A la derecha',
+    splitHint: 'Lo que va después se alinea al otro extremo',
+    size: 'Tamaño',
+    sizeChoices: {
+      off: { label: 'Oculta' },
+      small: { label: 'Pequeña' },
+      normal: { label: 'Normal' },
+      large: { label: 'Grande' }
+    },
+    /** How a short bar behaves (legibility rules). */
+    fitNote:
+      'El texto nunca baja del tamaño mínimo: si no cabe, se quitan primero los datos menos importantes'
+  },
+  /** The driver cell's extras in the relative, the standings and the battle. */
+  driverCell: {
+    brandMarks: 'Logotipo de la marca',
+    brandMarksHelp: 'Delante del nombre; en Auto, solo si hay más de una marca en pista',
+    brandChoices: {
+      auto: { label: 'Auto', hint: 'Solo con varias marcas en la sesión' },
+      on: { label: 'Siempre' },
+      off: { label: 'Nunca' }
+    },
+    countryFlags: 'Bandera del país',
+    countryFlagsHelp: 'La que cada piloto eligió en iRacing; nada si no eligió ninguna',
+    columnHeads: 'Cabeceras de columna',
+    columnHeadsHelp: 'Una fila con el nombre de cada columna: «POS», «PILOTO», «iR»…'
   }
 } as const
 
@@ -921,7 +1146,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
     reset: 'Reset? Click again'
   },
   sample: {
-    caption: 'Preview with sample data'
+    caption: 'Preview with sample data',
+    scene: 'Background',
+    sceneChoices: {
+      dark: { label: 'Night', hint: 'The widget over dark asphalt' },
+      light: { label: 'Day', hint: 'The widget over a bright scene' }
+    }
   },
   controls: {
     customColor: 'Custom colour',
@@ -1003,7 +1233,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       stripes: 'Alternating rows',
       stripesHelp: 'Shades every other row',
       licenseChoices: {
-        soft: { label: 'Soft', hint: 'Tint and border in the licence colour' },
+        outline: { label: 'Outline', hint: 'A thin border in the licence colour, no fill' },
+        soft: { label: 'Soft', hint: 'The letter in the licence colour, no border' },
         solid: { label: 'Solid', hint: 'As in iRacing' },
         letter: { label: 'Letter only', hint: 'The letter in its colour, no chip' }
       },
@@ -1084,6 +1315,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
       toggleEditMode: {
         label: 'Edit mode',
         help: 'Enters or leaves edit mode to move and resize the widgets'
+      },
+      cycleDeltaReference: {
+        label: 'Next delta reference',
+        help: 'Moves to the next one for this kind of session; applied when the next lap starts'
       }
     },
     escape: {
@@ -1432,6 +1667,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
   delta: {
     reference: 'Reference',
     referenceNote: 'The personal best is stored per car and layout',
+    referenceBySession: 'Reference per session',
+    referenceBySessionNote: 'A change applies when the next lap starts',
+    sessions: { practice: 'Practice', qualify: 'Qualifying', race: 'Race' },
+    referencesShort: {
+      pb: 'Best ever',
+      session: 'Session best',
+      optimal: 'Optimal',
+      class: 'Class best',
+      classOptimal: 'Class optimal'
+    },
+    cycleKeys: (keys) => `${keys} moves to the next one in the current session`,
+    cycleNoKeys: 'Give it a shortcut in “Keyboard shortcuts” to change it from the car',
+    lapTimes: 'Lap times',
+    lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
     compareWith: 'Compare with',
     references: {
       pb: {
@@ -1549,6 +1798,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
       row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
       column: { label: 'Column' }
     },
+    labelSide: 'Captions',
+    labelSideChoices: {
+      right: { label: 'On the right' },
+      left: { label: 'On the left' }
+    },
+    labelSideOff: 'Column only',
     onlyWhenLit: 'Lit only',
     onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
     captions: 'Captions',
@@ -1657,5 +1912,171 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     unnamedCar: 'Unnamed car',
     unnamedTrack: 'Unnamed track'
+  },
+  elements: {
+    intro: {
+      before: 'Drag',
+      after: 'or use ↑ ↓ to reorder; the eye shows or hides each element in the widget.'
+    },
+    introFixed: 'The eye shows or hides each element in the widget; their order is fixed.',
+    count: (visible, total) => `${visible} of ${total} shown`,
+    move: (item) => `Move ${item}`,
+    moveUp: (item) => `Move ${item} up`,
+    moveDown: (item) => `Move ${item} down`,
+    show: (item) => `Show ${item} in the widget`,
+    hide: (item) => `Hide ${item} in the widget`,
+    required: 'Always shown',
+    fixedTag: 'Fixed',
+    needsParent: (parent) => `Needs “${parent}”`,
+    reset: 'Reset',
+    resetLabel: (zone) => `Reset ${zone}`,
+    moved: (item, position, total) => `${item}: position ${position} of ${total}.`,
+    shown: (item) => `${item} shown.`,
+    hidden: (item) => `${item} hidden.`,
+    resetDone: (zone) => `${zone}: defaults.`,
+    empty: 'With nothing shown it is not drawn',
+    emptyHides: 'With nothing shown the widget does not show'
+  },
+  zones: {
+    relative: { columns: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
+    radar: { parts: 'Layers' },
+    standings: {
+      columns: 'Columns',
+      headerBar: 'Header',
+      subheaderBar: 'Second line',
+      footerBar: 'Footer',
+      classLine: 'Class line'
+    },
+    battle: { lanes: 'Rivals', rows: 'Rows', parts: 'Details' },
+    inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts' },
+    traffic: { groups: 'Groups', parts: 'Columns', header: 'Header' },
+    alerts: { parts: 'Extras' },
+    delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
+    fuel: { headerBar: 'Header', lines: 'Lines' },
+    lights: { icons: 'Lights' }
+  },
+  items: {
+    relative: {
+      columns: {
+        pos: 'Class position',
+        driver: 'Driver',
+        lic: 'Licence',
+        ir: 'iRating',
+        tyre: 'Tyre',
+        stint: 'Stint laps',
+        gap: 'Gap'
+      }
+    },
+    radar: {
+      parts: {
+        guides: 'Distance guides',
+        sideAlerts: 'Side alerts',
+        rangeLabels: 'Distances on the guides'
+      }
+    },
+    standings: { classLine: { sof: 'SoF', carCount: 'Car count' } },
+    battle: {
+      lanes: { ahead: 'Car ahead', behind: 'Car behind' },
+      rows: { prediction: 'Catch prediction', sectors: 'Sectors', laps: 'Laps' },
+      parts: {
+        rating: 'Rival iRating',
+        license: 'Rival licence',
+        trendNote: 'Trend text',
+        stake: 'iRating at stake'
+      }
+    },
+    inputs: {
+      sections: { trace: 'Trace', bars: 'Bars', info: 'Gear, speed and steering' },
+      bars: { clutch: 'Clutch', brake: 'Brake', throttle: 'Throttle' },
+      info: { gear: 'Gear', speed: 'Speed', steering: 'Steering' }
+    },
+    traffic: {
+      groups: { hazard: 'Hazards', slower: 'Slower traffic', faster: 'Faster class' },
+      parts: {
+        icon: 'Icon',
+        cls: 'Class',
+        driver: 'Driver',
+        lead: 'Ahead / behind',
+        value: 'Time',
+        sector: 'Sector'
+      },
+      header: { title: 'Widget name', captions: 'Group captions' }
+    },
+    alerts: { parts: { notes: 'What to do, after each alert', chips: 'Other alerts as chips' } },
+    delta: {
+      rows: { top: 'Top line', bar: 'Bar', sectors: 'Sectors', laps: 'Lap times' },
+      top: { state: 'Lap state', predicted: 'Predicted lap', reference: 'Reference' },
+      laps: { last: 'Last lap', best: 'Best lap', optimal: 'Optimal lap', pb: 'Personal best' }
+    },
+    fuel: {
+      lines: {
+        hero: 'Fuel and laps',
+        gauge: 'Tank',
+        perLap: 'Use per lap',
+        finish: 'To finish and add',
+        window: 'Pit window',
+        save: 'Saving',
+        tyres: 'Tyres',
+        limits: 'Repairs and sets'
+      }
+    }
+  },
+  infoBar: {
+    items: {
+      title: 'Widget name',
+      session: 'Session',
+      remaining: 'Time or laps left',
+      clock: 'Local time',
+      sof: 'SoF',
+      carCount: 'Car count',
+      incidents: 'Incidents',
+      iRating: 'Projected iRating',
+      safetyRating: 'Projected SR',
+      fastestLap: 'Fastest lap',
+      fuelLaps: 'Laps of fuel',
+      trackTemp: 'Track temperature',
+      airTemp: 'Air temperature',
+      wind: 'Wind',
+      wet: 'Water on track',
+      rubber: 'Rubber'
+    },
+    hints: {
+      remaining: '“38:19  ≈19 laps”, “12 laps to go”; “Finished” after your flag',
+      sof: 'Of your class',
+      carCount: 'The entries of your class',
+      incidents: 'Yours and the next limit: “3x · DQ at 17x”',
+      iRating: 'Official races only: what you win or lose in your position',
+      safetyRating: 'With your incident margin',
+      fastestLap: 'Of your class this session: “FL #9 1:01.234”',
+      fuelLaps: 'At your average use',
+      trackTemp: 'With an arrow when it rises or falls',
+      wind: 'The last minute’s mean, with its direction relative to your car',
+      wet: 'Only when there is some: how much, the rain and “Declared wet”',
+      rubber: 'What was down when the session started'
+    },
+    split: 'On the right',
+    splitHint: 'What follows lines up at the other end',
+    size: 'Size',
+    sizeChoices: {
+      off: { label: 'Hidden' },
+      small: { label: 'Small' },
+      normal: { label: 'Normal' },
+      large: { label: 'Large' }
+    },
+    fitNote:
+      'Text never goes below the minimum size: when it does not fit, the least important items go first'
+  },
+  driverCell: {
+    brandMarks: 'Car make logo',
+    brandMarksHelp: 'Before the name; on Auto, only when there is more than one make on track',
+    brandChoices: {
+      auto: { label: 'Auto', hint: 'Only with several makes in the session' },
+      on: { label: 'Always' },
+      off: { label: 'Never' }
+    },
+    countryFlags: 'Country flag',
+    countryFlagsHelp: 'The one each driver chose in iRacing; nothing when they chose none',
+    columnHeads: 'Column headers',
+    columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
   }
 }

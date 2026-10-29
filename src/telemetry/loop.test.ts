@@ -207,14 +207,16 @@ const STANDINGS: StandingsData = {
     incidents: null
   },
   classes: [],
-  conditions: null
+  info: null,
+  multiBrand: false
 }
 const BATTLE: BattleData = {
   visible: false,
   lapsRemaining: null,
   playerLastLaps: [],
   ahead: null,
-  behind: null
+  behind: null,
+  multiBrand: false
 }
 const INPUTS: InputsData = {
   throttle: 0,
@@ -248,7 +250,10 @@ const DELTA: DeltaData = {
   trend: 0,
   predictedLap: null,
   sectors: [],
-  lapState: 'none'
+  lapState: 'none',
+  preferred: 'pb',
+  pending: null,
+  laps: { last: null, best: null, optimal: null, pb: null }
 }
 const FUEL: FuelData = {
   visible: false,
@@ -264,7 +269,8 @@ const FUEL: FuelData = {
   boxL: null,
   tyres: null,
   fastRepairs: null,
-  tyreSets: null
+  tyreSets: null,
+  info: null
 }
 const LIGHTS: LightsData = { visible: false, lights: [] }
 
@@ -332,7 +338,8 @@ function setup(
         slotsBehind: ctx.config.relative.carsBehind,
         sessionType: null,
         incidents: null,
-        conditions: null
+        info: null,
+        multiBrand: false
       }
       calls.relative.push({ ctx, prev, at: clock.t, payload })
       return payload
@@ -536,28 +543,16 @@ describe('TelemetryLoop', () => {
     const config = h.calls.relative[0]?.ctx.config
     expect(config).toEqual(defaultTelemetryConfig())
     expect(config?.enabledWidgets).toEqual([...WIDGET_IDS])
-    expect(config?.relative).toEqual({
+    expect(config?.relative).toMatchObject({
       carsAhead: 3,
       carsBehind: 3,
-      showClassPosition: true,
-      showLicense: true,
-      showIRating: true,
-      showStint: false,
-      showTyre: false,
       showFlags: true,
       nameFormat: 'inherit',
-      showIncidents: true,
-      // The conditions footer: off under the relative by default.
-      conditionsFooter: false,
-      conditionsTrackTemp: true,
-      conditionsTrend: true,
-      conditionsWet: true,
-      conditionsWind: true,
-      conditionsWindDirection: true,
-      conditionsAirTemp: true,
-      conditionsRubber: true
+      // The footer bar (the conditions): off under the relative by default.
+      footerBarSize: 'off',
+      headerBarSize: 'normal'
     })
-    expect(config?.standings.conditionsFooter).toBe(true)
+    expect(config?.standings.footerBarSize).toBe('normal')
     expect(config?.rules.battle).toEqual({
       showIn: { practice: false, qualify: false, race: true },
       hideInPits: false,
@@ -1008,6 +1003,21 @@ describe('TelemetryLoop', () => {
     expect(autoHidden(h)).toHaveLength(6)
   })
 
+  it('tells main the kind of session when it changes (the delta cycle shortcut acts on it)', async () => {
+    const h = setup()
+    h.source.sessionRaw = { name: 'S1', type: 'Practice' }
+    h.source.frame = playerFrame()
+    await h.run(1 + 5)
+    h.source.version = 2
+    h.source.sessionRaw = { name: 'S2', type: 'Race' }
+    await h.run(5)
+    const kinds = h.out.filter((m) => m.type === 'session-kind')
+    expect(kinds).toEqual([
+      { type: 'session-kind', kind: 'practice' },
+      { type: 'session-kind', kind: 'race' }
+    ])
+  })
+
   it('"Ocultar en boxes": hidden while the player is on pit road or in the stall', async () => {
     const h = setup()
     h.source.sessionRaw = { name: 'S1', type: 'Race' }
@@ -1183,7 +1193,9 @@ function pbDriver(carId: number): DriverEntry {
     teamId: 0,
     carId,
     carName: 'Porsche 911 GT3 R',
-    isAI: false
+    isAI: false,
+    brand: 'porsche',
+    country: ''
   }
 }
 

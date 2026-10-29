@@ -62,7 +62,8 @@ export function shortcutRows(
       defaultAccelerator,
       defaultKeys: acceleratorText(m, defaultAccelerator),
       canDisable: accelerator !== '',
-      canReset: accelerator !== defaultAccelerator
+      // An action without a factory combination (the delta's cycle) is reset by turning it off.
+      canReset: accelerator !== defaultAccelerator && defaultAccelerator !== ''
     }
   })
 }

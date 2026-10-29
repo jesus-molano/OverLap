@@ -14,7 +14,12 @@ import {
 const es = messagesFor('es')
 const en = messagesFor('en')
 const defaults = DEFAULT_SETTINGS.shortcuts
-const custom: ShortcutSettings = { toggleOverlay: 'Ctrl+Alt+PageDown', toggleEditMode: '' }
+const custom: ShortcutSettings = {
+  toggleOverlay: 'Ctrl+Alt+PageDown',
+  toggleEditMode: '',
+  cycleDeltaReference: 'Ctrl+Alt+D'
+}
+const OK = { toggleOverlay: 'ok', toggleEditMode: 'ok', cycleDeltaReference: 'ok' } as const
 
 function row(shortcuts: ShortcutSettings, i: number): ShortcutRowView {
   const r = shortcutRows(es, shortcuts, null)[i]
@@ -24,8 +29,12 @@ function row(shortcuts: ShortcutSettings, i: number): ShortcutRowView {
 
 describe('shortcutRows', () => {
   it('has one row per action, worded, with its keycaps and what can be done', () => {
-    const rows = shortcutRows(es, defaults, { toggleOverlay: 'ok', toggleEditMode: 'ok' })
-    expect(rows.map((r) => r.action)).toEqual(['toggleOverlay', 'toggleEditMode'])
+    const rows = shortcutRows(es, defaults, OK)
+    expect(rows.map((r) => r.action)).toEqual([
+      'toggleOverlay',
+      'toggleEditMode',
+      'cycleDeltaReference'
+    ])
     expect(rows[0]).toMatchObject({
       label: 'Mostrar u ocultar el overlay',
       accelerator: 'Ctrl+Shift+H',
@@ -36,6 +45,16 @@ describe('shortcutRows', () => {
       canReset: false
     })
     expect(rows[1]?.label).toBe('Modo edición')
+    // The delta's cycle comes without a combination: nothing to turn off or reset.
+    expect(rows[2]).toMatchObject({
+      label: 'Cambiar la referencia del delta',
+      accelerator: '',
+      status: 'disabled',
+      canDisable: false,
+      canReset: false
+    })
+    // Given one, it is turned off (no factory combination to reset to).
+    expect(row(custom, 2)).toMatchObject({ canDisable: true, canReset: false })
   })
 
   it('offers a reset only away from the default, and words the keys of the layout', () => {
@@ -47,7 +66,7 @@ describe('shortcutRows', () => {
   })
 
   it('badges a turned-off shortcut from the settings, whatever main last said', () => {
-    const off = shortcutRows(es, custom, { toggleOverlay: 'ok', toggleEditMode: 'ok' })[1]
+    const off = shortcutRows(es, custom, OK)[1]
     expect(off).toMatchObject({
       status: 'disabled',
       badge: 'Desactivado',
@@ -58,14 +77,11 @@ describe('shortcutRows', () => {
   })
 
   it('badges a combination another application holds', () => {
-    const taken = shortcutRows(en, defaults, {
-      toggleOverlay: 'unavailable',
-      toggleEditMode: 'ok'
-    })[0]
+    const taken = shortcutRows(en, defaults, { ...OK, toggleOverlay: 'unavailable' })[0]
     expect(taken).toMatchObject({ status: 'unavailable', badge: 'Used by another app' })
-    expect(
-      shortcutRows(es, defaults, { toggleOverlay: 'unavailable', toggleEditMode: 'ok' })[0]?.badge
-    ).toBe('En uso por otra aplicación')
+    expect(shortcutRows(es, defaults, { ...OK, toggleOverlay: 'unavailable' })[0]?.badge).toBe(
+      'En uso por otra aplicación'
+    )
   })
 })
 
@@ -168,8 +184,8 @@ describe('rowMessages', () => {
     const fb = { action: 'toggleEditMode', kind: 'disabled' } as const
     expect(rowMessages(es, overlay, fb, false)).toEqual([])
     const taken = shortcutRows(es, defaults, {
-      toggleOverlay: 'unavailable',
-      toggleEditMode: 'ok'
+      ...OK,
+      toggleOverlay: 'unavailable'
     })[0] as ShortcutRowView
     expect(rowMessages(es, taken, null, false)).toEqual([
       { text: es.settings.shortcuts.unavailableHelp, tone: 'warn' }

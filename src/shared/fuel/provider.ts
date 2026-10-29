@@ -148,7 +148,9 @@ export function computeFuel(
       frame.FastRepairUsed[0],
       spec?.fastRepairsLimit ?? null
     ),
-    tyreSets: leftOf(frame.TireSetsAvailable[0], frame.TireSetsUsed[0], spec?.tyreSetLimit ?? null)
+    tyreSets: leftOf(frame.TireSetsAvailable[0], frame.TireSetsUsed[0], spec?.tyreSetLimit ?? null),
+    // The header bar's data is the provider set's (InfoFeed).
+    info: null
   }
 }
 
@@ -191,6 +193,7 @@ export function fuelEqual(a: FuelData, b: FuelData): boolean {
     a.fastRepairs === b.fastRepairs &&
     a.tyreSets === b.tyreSets &&
     deepEqual(a.finish, b.finish) &&
-    deepEqual(a.tyres, b.tyres)
+    deepEqual(a.tyres, b.tyres) &&
+    deepEqual(a.info, b.info)
   )
 }

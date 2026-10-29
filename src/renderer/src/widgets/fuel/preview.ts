@@ -32,5 +32,6 @@ export const PREVIEW_FUEL: FuelData = Object.freeze({
   boxL: 20,
   tyres: Object.freeze({ lap: 13, wearPct: Object.freeze([78, 74, 86, 82] as const) }),
   fastRepairs: 1,
-  tyreSets: 2
+  tyreSets: 2,
+  info: null
 })

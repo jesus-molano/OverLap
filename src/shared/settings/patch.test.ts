@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { setElementVisible } from '../elements'
 import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
 import {
@@ -8,6 +9,7 @@ import {
   defaultOptions,
   defaultWidgetSettings,
   normalizeSettings,
+  placeDefaultLayout,
   resetWidgetBounds,
   resetWidgetOptions
 } from '.'
@@ -37,28 +39,54 @@ function customSettings(): OverlaySettings {
     hideInPits: true
   }
   s.widgets.inputs.backgroundOpacity = 0.4
-  s.relative = { ...s.relative, carsAhead: 5, carsBehind: 2, showClassPosition: false }
-  s.radar = { rangeM: 30, showRangeLabels: false }
+  s.relative = {
+    ...s.relative,
+    carsAhead: 5,
+    carsBehind: 2,
+    columns: setElementVisible(s.relative.columns, 'pos', false)
+  }
+  s.radar = { rangeM: 30, parts: setElementVisible(s.radar.parts, 'rangeLabels', false) }
   s.standings = {
     ...s.standings,
     mode: 'full',
     topRows: 5,
     gapMode: 'leader',
     columns: s.standings.columns.map((c) => ({ ...c, visible: !c.visible })),
-    headerSafetyRating: false
+    subheaderBar: setElementVisible(s.standings.subheaderBar, 'safetyRating', false)
   }
-  s.battle = { ...s.battle, thresholdS: 2.5, showBehind: false, holdS: 5 }
-  s.inputs = { ...s.inputs, traceSeconds: 8, showClutch: false, traceWidth: 1.5 }
+  s.battle = {
+    ...s.battle,
+    thresholdS: 2.5,
+    lanes: setElementVisible(s.battle.lanes, 'behind', false),
+    holdS: 5
+  }
+  s.inputs = {
+    ...s.inputs,
+    traceSeconds: 8,
+    bars: setElementVisible(s.inputs.bars, 'clutch', false),
+    traceWidth: 1.5
+  }
   s.widgets.traffic = {
     ...s.widgets.traffic,
     bounds: { x: 900, y: 600, width: 360, height: 140 },
     anchor: 'bottom',
     hideInPits: true
   }
-  s.traffic = { ...s.traffic, behindS: 18, hazardS: 5, maxEntries: 2, showSlower: false }
+  s.traffic = {
+    ...s.traffic,
+    behindS: 18,
+    hazardS: 5,
+    maxEntries: 2,
+    groups: setElementVisible(s.traffic.groups, 'slower', false)
+  }
   s.alerts = { ...s.alerts, showBlue: false, holdS: 1.5 }
   s.widgets.delta = { ...s.widgets.delta, scale: 120, hideInPits: true }
-  s.delta = { ...s.delta, reference: 'session', rangeS: 1.5, showTrend: false }
+  s.delta = {
+    ...s.delta,
+    referenceRace: 'session',
+    rangeS: 1.5,
+    top: setElementVisible(s.delta.top, 'state', false)
+  }
   return normalizeSettings(s)
 }
 
@@ -173,13 +201,20 @@ describe('applySettingsPatch', () => {
     const current = customSettings()
     const out = applySettingsPatch(current, {
       widgets: { alerts: { anchor: 'bottom', scale: 150 }, traffic: { autoHeight: false } },
-      traffic: { aheadS: 15, showHazards: false, onlyMulticlass: false, nameFormat: 'surname' },
+      traffic: {
+        aheadS: 15,
+        groups: setElementVisible(current.traffic.groups, 'hazard', false),
+        onlyMulticlass: false,
+        nameFormat: 'surname',
+        // An old field is no option any more: ignored.
+        showFaster: false
+      },
       alerts: { showPitLimiter: false, holdS: 0 }
     })
     expect(out.traffic).toEqual({
       ...current.traffic,
       aheadS: 15,
-      showHazards: false,
+      groups: setElementVisible(current.traffic.groups, 'hazard', false),
       onlyMulticlass: false,
       nameFormat: 'surname'
     })
@@ -193,21 +228,34 @@ describe('applySettingsPatch', () => {
     const current = customSettings()
     const out = applySettingsPatch(current, {
       widgets: { delta: { backgroundOpacity: 0.4, autoHeight: true } },
-      delta: { reference: 'class', fallback: false, rangeS: 0.75, showPredicted: false }
+      delta: {
+        referencePractice: 'class',
+        fallback: false,
+        rangeS: 0.75,
+        top: setElementVisible(current.delta.top, 'predicted', false),
+        rows: setElementVisible(current.delta.rows, 'laps', true)
+      }
     })
     expect(out.delta).toEqual({
       ...current.delta,
-      reference: 'class',
+      referencePractice: 'class',
       fallback: false,
       rangeS: 0.75,
-      showPredicted: false
+      top: setElementVisible(current.delta.top, 'predicted', false),
+      rows: setElementVisible(current.delta.rows, 'laps', true)
     })
     // A free-size widget never follows its content.
     expect(out.widgets.delta).toEqual({ ...current.widgets.delta, backgroundOpacity: 0.4 })
     // The optimal references are choices like the others.
-    for (const reference of ['optimal', 'classOptimal'] as const) {
-      expect(applySettingsPatch(current, { delta: { reference } }).delta.reference).toBe(reference)
+    for (const referenceQualify of ['optimal', 'classOptimal'] as const) {
+      expect(
+        applySettingsPatch(current, { delta: { referenceQualify } }).delta.referenceQualify
+      ).toBe(referenceQualify)
     }
+    // The cycle shortcut's patch is one of these.
+    expect(applySettingsPatch(current, { delta: { referenceRace: 'nope' } }).delta).toEqual(
+      current.delta
+    )
   })
 
   it('applies the v4 fields', () => {
@@ -215,8 +263,20 @@ describe('applySettingsPatch', () => {
     const out = applySettingsPatch(current, {
       appearance: { accent: '#A3E635', density: 'compact', textHalo: 'on', showSimPill: false },
       standings: { gapMode: 'both', nameFormat: 'tv', iRatingDeltaAll: true, density: 'compact' },
-      battle: { layout: 'side', detail: 'laps', holdS: 0, showPrediction: false },
-      inputs: { clutchInTrace: false, steeringStyle: 'wheel', layout: 'bars' }
+      battle: {
+        layout: 'side',
+        rows: [
+          { id: 'laps', visible: true },
+          { id: 'sectors', visible: false },
+          { id: 'prediction', visible: false }
+        ],
+        holdS: 0
+      },
+      inputs: {
+        clutchInTrace: false,
+        steeringStyle: 'wheel',
+        sections: setElementVisible(current.inputs.sections, 'trace', false)
+      }
     })
     expect(out.appearance).toEqual({
       ...current.appearance,
@@ -235,15 +295,18 @@ describe('applySettingsPatch', () => {
     expect(out.battle).toEqual({
       ...current.battle,
       layout: 'side',
-      detail: 'laps',
-      holdS: 0,
-      showPrediction: false
+      rows: [
+        { id: 'laps', visible: true },
+        { id: 'sectors', visible: false },
+        { id: 'prediction', visible: false }
+      ],
+      holdS: 0
     })
     expect(out.inputs).toEqual({
       ...current.inputs,
       clutchInTrace: false,
       steeringStyle: 'wheel',
-      layout: 'bars'
+      sections: setElementVisible(current.inputs.sections, 'trace', false)
     })
   })
 
@@ -372,7 +435,7 @@ describe('applySettingsPatch', () => {
       inputs: { traceSeconds: 99.9 }
     })
     expect(normalizeSettings(out)).toEqual(out)
-    expect(out.version).toBe(4)
+    expect(out.version).toBe(5)
   })
 })
 
@@ -486,18 +549,31 @@ describe('resetWidgetOptions', () => {
 describe('applySettingsPatch: shortcuts', () => {
   function withShortcuts(toggleOverlay: string, toggleEditMode: string): OverlaySettings {
     const s = createDefaultSettings()
-    s.shortcuts = { toggleOverlay, toggleEditMode }
+    s.shortcuts = { toggleOverlay, toggleEditMode, cycleDeltaReference: '' }
     return s
   }
+
+  /** The shortcuts with the delta cycle at its default (none). */
+  const keys = (toggleOverlay: string, toggleEditMode: string): OverlaySettings['shortcuts'] => ({
+    toggleOverlay,
+    toggleEditMode,
+    cycleDeltaReference: ''
+  })
 
   it('assigns a valid combination in its canonical spelling', () => {
     const out = applySettingsPatch(DEFAULT_SETTINGS, {
       shortcuts: { toggleOverlay: 'control+alt+shift+o' }
     })
-    expect(out.shortcuts).toEqual({
-      toggleOverlay: 'Ctrl+Alt+Shift+O',
-      toggleEditMode: 'Ctrl+Shift+E'
+    expect(out.shortcuts).toEqual(keys('Ctrl+Alt+Shift+O', 'Ctrl+Shift+E'))
+    // The delta's cycle takes one like any other, and refuses another action's.
+    const cycle = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { cycleDeltaReference: 'ctrl+alt+d' }
     })
+    expect(cycle.shortcuts.cycleDeltaReference).toBe('Ctrl+Alt+D')
+    const taken = applySettingsPatch(DEFAULT_SETTINGS, {
+      shortcuts: { cycleDeltaReference: 'Ctrl+Shift+H' }
+    })
+    expect(taken.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
   })
 
   it('turns a shortcut off with an empty combination', () => {
@@ -533,14 +609,11 @@ describe('applySettingsPatch: shortcuts', () => {
     const swapped = applySettingsPatch(DEFAULT_SETTINGS, {
       shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Shift+H' }
     })
-    expect(swapped.shortcuts).toEqual({
-      toggleOverlay: 'Ctrl+Shift+E',
-      toggleEditMode: 'Ctrl+Shift+H'
-    })
+    expect(swapped.shortcuts).toEqual(keys('Ctrl+Shift+E', 'Ctrl+Shift+H'))
     const handedOver = applySettingsPatch(DEFAULT_SETTINGS, {
       shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: '' }
     })
-    expect(handedOver.shortcuts).toEqual({ toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: '' })
+    expect(handedOver.shortcuts).toEqual(keys('Ctrl+Shift+E', ''))
   })
 
   it('keeps the valid half of a patch whose other half collides', () => {
@@ -548,20 +621,47 @@ describe('applySettingsPatch: shortcuts', () => {
       shortcuts: { toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Alt+F10' }
     })
     // toggleEditMode moved away, so toggleOverlay may take its old combination.
-    expect(out.shortcuts).toEqual({ toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Alt+F10' })
+    expect(out.shortcuts).toEqual(keys('Ctrl+Shift+E', 'Ctrl+Alt+F10'))
     const moved = applySettingsPatch(withShortcuts('F13', 'F14'), {
       shortcuts: { toggleOverlay: 'F14', toggleEditMode: 'F15' }
     })
-    expect(moved.shortcuts).toEqual({ toggleOverlay: 'F14', toggleEditMode: 'F15' })
+    expect(moved.shortcuts).toEqual(keys('F14', 'F15'))
     const half = applySettingsPatch(withShortcuts('F13', 'F14'), {
       shortcuts: { toggleOverlay: 'F14', toggleEditMode: 'Ctrl+C' }
     })
-    expect(half.shortcuts).toEqual({ toggleOverlay: 'F13', toggleEditMode: 'F14' })
+    expect(half.shortcuts).toEqual(keys('F13', 'F14'))
   })
 
   it('resets every shortcut at once with the defaults as one patch', () => {
     const current = withShortcuts('Ctrl+Shift+E', 'Ctrl+Shift+H')
     const out = applySettingsPatch(current, { shortcuts: { ...DEFAULT_SETTINGS.shortcuts } })
     expect(out.shortcuts).toEqual(DEFAULT_SETTINGS.shortcuts)
+  })
+})
+
+describe('the default layout for the primary work area', () => {
+  const WIDE = { x: 0, y: 0, width: 5120, height: 1400 }
+
+  it('resetWidgetBounds puts the widget in the middle of an ultrawide work area', () => {
+    const out = resetWidgetBounds(createDefaultSettings(), 'relative', WIDE)
+    expect(out.widgets.relative.bounds).toEqual({
+      ...WIDGET_DEFS.relative.defaultBounds,
+      x: 1600 + WIDGET_DEFS.relative.defaultBounds.x
+    })
+    // Without an area: the default as it is.
+    expect(resetWidgetBounds(out, 'relative').widgets.relative.bounds).toEqual(
+      WIDGET_DEFS.relative.defaultBounds
+    )
+  })
+
+  it('placeDefaultLayout moves every widget by the same offset, nothing else', () => {
+    const s = createDefaultSettings()
+    const out = placeDefaultLayout(s, WIDE)
+    for (const id of Object.keys(WIDGET_DEFS) as WidgetId[]) {
+      expect(out.widgets[id].bounds.x - s.widgets[id].bounds.x, id).toBe(1600)
+      expect(out.widgets[id].bounds.y, id).toBe(s.widgets[id].bounds.y)
+    }
+    expect({ ...out, widgets: s.widgets }).toEqual(s)
+    expect(placeDefaultLayout(s, { x: 0, y: 0, width: 1920, height: 1040 })).toEqual(s)
   })
 })

@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LIGHT_OPTION, LIGHT_ORDER } from '@shared/lights'
+import { isElementVisible, visibleCount } from '@shared/elements'
+import { LIGHT_ORDER } from '@shared/lights'
 import { ENGINE_TREND } from '@shared/notices/engineTrend'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import type { LightKind } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import LightsLegend from './LightsLegend.vue'
 
@@ -20,11 +22,12 @@ const t = useI18n()
 const layoutChoices = computed(() =>
   choiceOptions(OPTION_SCHEMA.lights.layout.values, t.value.settings.lights.layoutChoices)
 )
+const shown = (kind: LightKind): boolean => isElementVisible(opts.value.icons, kind)
 /** Every light off: the widget never shows. */
-const nothing = computed(() => LIGHT_ORDER.every((k) => !opts.value[LIGHT_OPTION[k]]))
+const nothing = computed(() => visibleCount(opts.value.icons) === 0)
 /** The trend lights the two temperature lights: nothing to light without them. */
-const noTemps = computed(() => !opts.value.showWater && !opts.value.showOilTemp)
-const noRepairs = computed(() => !opts.value.showRepair && !opts.value.showRepairOptional)
+const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
+const noRepairs = computed(() => !shown('repair') && !shown('repairOptional'))
 </script>
 
 <template>
@@ -74,8 +77,8 @@ const noRepairs = computed(() => !opts.value.showRepair && !opts.value.showRepai
         <ToggleControl
           :label="t.widgets.lights.names[kind]"
           :help="t.settings.lights.help[kind]"
-          :current="opts[LIGHT_OPTION[kind]]"
-          :apply="set(LIGHT_OPTION[kind])"
+          :current="shown(kind)"
+          :apply="elementToggle('lights', 'icons', kind)"
         />
         <ToggleControl
           v-if="kind === 'oilTemp'"

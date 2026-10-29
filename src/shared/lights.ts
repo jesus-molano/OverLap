@@ -8,6 +8,7 @@
  * rest. A flickering engine light stays lit LIGHTS.holdS, so it can be read; none is held while
  * the engine's lights are quiet (towed, in the box...). Out of the car it sends nothing to show.
  */
+import { isElementVisible } from './elements'
 import { arrayEqual, deepEqual } from './equal'
 import { EngineMonitor, type EngineState } from './notices/engine'
 import type { TrendNotice } from './notices/engineTrend'
@@ -30,7 +31,11 @@ export const LIGHTS = {
   staleS: 1
 } as const
 
-/** The strip's order: the critical lights first, then the repairs, the temperatures, the limiters. */
+/**
+ * The order the provider reads and sends the lights in: the critical ones first, then the repairs,
+ * the temperatures, the limiters. The default of lights.icons (LIGHT_IDS); the strip draws them
+ * in the order the user gave.
+ */
 export const LIGHT_ORDER = [
   'oilPressure',
   'fuelPressure',
@@ -42,24 +47,6 @@ export const LIGHT_ORDER = [
   'pitLimiter',
   'revLimiter'
 ] as const satisfies readonly LightKind[]
-
-/** The on/off options of LightsOptions. */
-export type LightToggle = {
-  [K in keyof LightsOptions]: LightsOptions[K] extends boolean ? K : never
-}[keyof LightsOptions]
-
-/** The option that shows each light. */
-export const LIGHT_OPTION: Readonly<Record<LightKind, LightToggle>> = {
-  oilPressure: 'showOilPressure',
-  fuelPressure: 'showFuelPressure',
-  stalled: 'showStalled',
-  repair: 'showRepair',
-  repairOptional: 'showRepairOptional',
-  water: 'showWater',
-  oilTemp: 'showOilTemp',
-  pitLimiter: 'showPitLimiter',
-  revLimiter: 'showRevLimiter'
-}
 
 /** The level of each light when its own bit is on (the trend is 'caution', below 'warn'). */
 export const LIT_LEVEL: Readonly<Record<LightKind, Exclude<LightLevel, 'off' | 'caution'>>> = {
@@ -166,7 +153,7 @@ export class LightsProvider {
     for (const kind of LIGHT_ORDER) {
       // Followed whatever the options say, so a light turned on mid-flicker is already held.
       const on = this.held(kind, isOn(e, kind), now, e.quiet)
-      if (!opts[LIGHT_OPTION[kind]]) continue
+      if (!isElementVisible(opts.icons, kind)) continue
       const light = reading(e, kind, on, opts)
       if (light.level === 'off' && opts.onlyWhenLit) continue
       lights.push(light)

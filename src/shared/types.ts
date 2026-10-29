@@ -2,6 +2,7 @@
  * Domain types shared by main, telemetry process, preload and renderer.
  * Pure TypeScript: no Electron, no Node, no DOM.
  */
+import type { BrandId, BrandMarkMode } from './carBrands'
 import type { DriverIdentity } from './driver'
 import type { Language } from './i18n/language'
 import type { ShortcutSettings } from './shortcuts'
@@ -64,6 +65,14 @@ export interface DriverEntry {
   carName: string
   /** DriverInfo CarIsAI: an AI driver (its iRating and licence are always unknown). */
   isAI: boolean
+  /** The car's make (carBrands.ts, from CarScreenName, CarScreenNameShort and CarPath). */
+  brand: BrandId
+  /**
+   * The driver's country as a flag code of country-flag-icons (ISO 3166 alpha-2, 'GB-ENG' for
+   * the home nations): countries.ts countryOfFlair(FlairName); '' for none ('-none-'), unknown,
+   * the pace car and spectators.
+   */
+  country: string
 }
 
 /** One session of the weekend (SessionInfo.Sessions[]). */
@@ -253,6 +262,10 @@ export interface RelativeRow {
   iRating: number | null
   licString: string | null
   licColor: string | null
+  /** The car's make (DriverEntry.brand); 'unknown' draws no mark. */
+  brand: BrandId
+  /** The driver's flag code (DriverEntry.country), '' for none. */
+  country: string
   /**
    * Time gap to the player in seconds, irDashies convention: positive = car
    * is ahead of the player on track, negative = car is behind. 0 for the
@@ -286,8 +299,13 @@ export interface RelativeData {
   sessionType: string | null
   /** Your incident count for the header, null when unknown (no player car). */
   incidents: IncidentCount | null
-  /** The conditions footer's readings (ConditionsFeed, ~1 Hz); null while the footer is off. */
-  conditions: ConditionsData | null
+  /** What its info bars show (InfoFeed); null while no bar item needs data. */
+  info: InfoBarData | null
+  /**
+   * More than one make in the whole field (fieldHasMultipleBrands): brand marks in 'auto' mode.
+   * Decided on the field, not on the rows shown, so a moving window never makes marks flicker.
+   */
+  multiBrand: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -360,6 +378,10 @@ export interface StandingsRow {
   iRating: number | null
   licString: string | null
   licColor: string | null
+  /** The car's make (DriverEntry.brand); 'unknown' draws no mark. */
+  brand: BrandId
+  /** The driver's flag code (DriverEntry.country), '' for none. */
+  country: string
   /** To the class car ahead; null for the class leader or when unknown. */
   interval: GapValue | null
   /** To the class leader; null for the leader or when unknown. */
@@ -463,8 +485,10 @@ export interface StandingsData {
   header: StandingsHeader
   /** Player's class first, then the others by class speed. */
   classes: StandingsClassBlock[]
-  /** The conditions footer's readings (ConditionsFeed, ~1 Hz); null while the footer is off. */
-  conditions: ConditionsData | null
+  /** What its info bars show (InfoFeed); null while no bar item needs data. */
+  info: InfoBarData | null
+  /** More than one make in the whole field (RelativeData.multiBrand). */
+  multiBrand: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -483,6 +507,10 @@ export interface BattleOpponent {
   iRating: number | null
   licString: string | null
   licColor: string | null
+  /** The car's make (DriverEntry.brand); 'unknown' draws no mark. */
+  brand: BrandId
+  /** The driver's flag code (DriverEntry.country), '' for none. */
+  country: string
   /** Current time gap in seconds (always positive). */
   gapS: number
   /**
@@ -514,6 +542,8 @@ export interface BattleData {
   playerLastLaps: (number | null)[]
   ahead: BattleOpponent | null
   behind: BattleOpponent | null
+  /** More than one make in the whole field (RelativeData.multiBrand). */
+  multiBrand: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -763,6 +793,30 @@ export interface DeltaData {
   sectors: (number | null)[]
   /** The lap in progress (of the lap just finished while its summary shows). */
   lapState: DeltaLapState
+  /**
+   * The reference the options choose for this kind of session (DeltaOptions.reference*), before
+   * any fallback: `reference` differs from it while falling back.
+   */
+  preferred: DeltaReference
+  /**
+   * A reference chosen (in the settings or with the cycle shortcut) that takes over at the start
+   * of the next lap; null when none is waiting. The widget names it for a moment.
+   */
+  pending: DeltaReference | null
+  /** The lap times line (DeltaLapId), whatever the reference. */
+  laps: DeltaLaps
+}
+
+/** Your lap times for the delta's lap times line, seconds; null when there is none yet. */
+export interface DeltaLaps {
+  /** Your last completed lap (clean or not). */
+  last: number | null
+  /** Your best clean lap of the session (the 'session' reference). */
+  best: number | null
+  /** Your optimal lap of the session (the 'optimal' reference). */
+  optimal: number | null
+  /** Your record with this car on this layout (the 'pb' reference). */
+  pb: number | null
 }
 
 // ---------------------------------------------------------------------------
@@ -890,6 +944,8 @@ export interface FuelData {
   fastRepairs: number | null
   /** Dry tyre sets left when the session limits them, else null. */
   tyreSets: number | null
+  /** What its header bar shows (InfoFeed); null while no bar item needs data. */
+  info: InfoBarData | null
 }
 
 export interface WidgetPayloads {
@@ -1066,7 +1122,7 @@ export interface AppearanceSettings {
   fontScale: number
   density: 'comfortable' | 'compact'
   nameFormat: NameFormat
-  licenseStyle: 'soft' | 'solid' | 'letter'
+  licenseStyle: LicenseStyle
   numberStyle: 'chip' | 'stripe'
   /** Colour-blind-safe palette (blue/orange instead of green/red; shapes always present). */
   colorBlind: boolean
@@ -1081,52 +1137,186 @@ export interface AppearanceSettings {
   language: Language
 }
 
-/**
- * The conditions footer of a table (the relative and the standings each have their own): a line
- * under it with the track conditions, each reading a toggle. Only the switch reaches the
- * telemetry process (the readings are computed while it is on); the rest is drawing.
- */
-export interface ConditionsFooterOptions {
-  /** The footer line under the table. */
-  conditionsFooter: boolean
-  conditionsTrackTemp: boolean
-  /** Arrow after the track temperature: rising or falling over the last minutes. */
-  conditionsTrend: boolean
-  /** Only when relevant: the stewards' wet call, how wet the track is (past dry), the rain. */
-  conditionsWet: boolean
-  /** The wind's mean speed over the last minute. */
-  conditionsWind: boolean
-  /** Where the wind comes from relative to your car: the dial's arrow. */
-  conditionsWindDirection: boolean
-  conditionsAirTemp: boolean
-  /** The rubber laid down when the session started. */
-  conditionsRubber: boolean
+// ---------------------------------------------------------------------------
+// Element lists: what a widget draws, and in which order (settingsSchema 'elements' specs)
+// ---------------------------------------------------------------------------
+
+/** One element of a widget zone: its id and whether it is drawn. */
+export interface ElementEntry<Id extends string = string> {
+  id: Id
+  visible: boolean
 }
 
-export interface RelativeOptions extends ConditionsFooterOptions {
+/**
+ * A zone of a widget (its columns, its rows, an info bar...): every id of the zone exactly once,
+ * in display order. Normalisation keeps it so (fields.ts normalizeElements); read and change it
+ * with shared/elements.ts, edit it with settings/elements/ElementEditor.vue.
+ */
+export type ElementList<Id extends string = string> = ElementEntry<Id>[]
+
+/**
+ * Cells of a relative row, left to right. `driver` (number plate, brand mark, flag, name and its
+ * badges) and `gap` always stay.
+ */
+export type RelativeColumnId = 'pos' | 'driver' | 'lic' | 'ir' | 'tyre' | 'stint' | 'gap'
+/** What a class line (and a single-class header) says about the class, in that order. */
+export type StandingsClassLineId = 'sof' | 'carCount'
+export type BattleLaneId = 'ahead' | 'behind'
+/** A lane's rows below its fixed ones (rival, gap and trend). */
+export type BattleRowId = 'prediction' | 'sectors' | 'laps'
+/** Smaller parts of a lane: the rival's iRating and licence, the trend's words, iR at stake. */
+export type BattlePartId = 'rating' | 'license' | 'trendNote' | 'stake'
+/** The traffic groups, top to bottom (TrafficKind). */
+export type TrafficGroupId = 'hazard' | 'slower' | 'faster'
+/** Cells of a traffic line, left to right; `driver` and `value` always stay. */
+export type TrafficPartId = 'icon' | 'cls' | 'driver' | 'lead' | 'value' | 'sector'
+/** The panel's header band and the caption line of each group. */
+export type TrafficHeaderId = 'title' | 'captions'
+/** The pedals' blocks, in reading order (the trace hidden is the old 'bars' layout). */
+export type InputsSectionId = 'trace' | 'bars' | 'info'
+export type InputsBarId = 'clutch' | 'brake' | 'throttle'
+export type InputsInfoId = 'gear' | 'speed' | 'steering'
+/**
+ * The delta's rows: the top line (its hero number always stays), the bar, the sectors, and the
+ * lap times line (DeltaLapId, off by default).
+ */
+export type DeltaRowId = 'top' | 'bar' | 'sectors' | 'laps'
+/** The top line's parts after the hero number. */
+export type DeltaTopId = 'state' | 'predicted' | 'reference'
+/**
+ * The lap times line, whatever the reference: your last lap, your best of the session, your
+ * optimal of the session and your record. The one the delta compares against is marked ('Δ').
+ */
+export type DeltaLapId = 'last' | 'best' | 'optimal' | 'pb'
+/** The radar's layers over the cars: guides, side alerts, distance labels. */
+export type RadarPartId = 'guides' | 'sideAlerts' | 'rangeLabels'
+/** The alerts band's extras: what to do after each label, the other alerts as chips. */
+export type AlertsPartId = 'notes' | 'chips'
+/** The fuel widget's lines; `hero` (the fuel and the laps it lasts) always stays. */
+export type FuelLineId =
+  'hero' | 'gauge' | 'perLap' | 'finish' | 'window' | 'save' | 'tyres' | 'limits'
+
+// ---------------------------------------------------------------------------
+// Info bars: the configurable headers and footers (shared/infoBar.ts has the catalog)
+// ---------------------------------------------------------------------------
+
+/**
+ * A data item of the info bars, the same catalog in every widget that has one (INFO_ITEMS in
+ * infoBar.ts: its data source, its priority when the bar is short of room, its width):
+ * - `title`: the widget's name (and the SIM tag); `session`: the session type ('CARRERA');
+ * - `remaining`: time and/or laps left ('38:19  ≈19 v', 'Quedan 12 v', 'Final');
+ * - `clock`: your computer's local time;
+ * - `sof`, `carCount`: your class's strength of field and its entries;
+ * - `incidents`: yours and the session's next limit ('3x · pen. a 17x');
+ * - `iRating`, `safetyRating`: your projected changes (iRating in rated races only);
+ * - `fastestLap`: the fastest lap of your class this session ('VR #9 1:01.234');
+ * - `fuelLaps`: the laps your fuel lasts at your average;
+ * - `trackTemp` (with its trend), `airTemp`, `wind` (its mean, and the dial), `wet` (the
+ *   stewards' call, the wetness meter and the rain, only when relevant), `rubber`.
+ */
+export type InfoItemId =
+  | 'title'
+  | 'session'
+  | 'remaining'
+  | 'clock'
+  | 'sof'
+  | 'carCount'
+  | 'incidents'
+  | 'iRating'
+  | 'safetyRating'
+  | 'fastestLap'
+  | 'fuelLaps'
+  | 'trackTemp'
+  | 'airTemp'
+  | 'wind'
+  | 'wet'
+  | 'rubber'
+
+/**
+ * An entry of an info bar's list: a catalog item, or `split`, the marker after which the items
+ * line up at the bar's far end (always "visible": it is a place, not something drawn).
+ */
+export type InfoBarEntryId = InfoItemId | 'split'
+
+/** An info bar's text size ('off': no bar at all). Never smaller than the minimum text size. */
+export type InfoBarSize = 'off' | 'small' | 'normal' | 'large'
+
+/** The fastest lap of your class this session (the `fastestLap` item). */
+export interface FastestLapInfo {
+  lapTime: number
+  carIdx: number
+  carNumber: string
+  /** '' when unknown. */
+  driverName: string
+  isPlayer: boolean
+}
+
+/**
+ * What the info bars of a widget show, computed by the provider set's InfoFeed for the items its
+ * bars draw (INFO_ITEMS[id].source): a field no visible item reads stays null (false), so the
+ * payload only changes when something shown does.
+ */
+export interface InfoBarData {
+  /** SessionType ('Race', 'Practice'...), null when unknown. */
+  sessionType: string | null
+  /** Laps left for you including the current one, whole (ceil); null when unknown. */
+  lapsRemaining: number | null
+  /** Seconds left in a timed session, whole (floor); null otherwise. */
+  timeRemainingS: number | null
+  /** The race is over for you (your flag, or no lap left): 'Final' instead of what is left. */
+  finished: boolean
+  /** Strength of field of your class, null when unknown. */
+  sof: number | null
+  /** Registered entries of your class, null when unknown. */
+  carCount: number | null
+  incidents: IncidentCount | null
+  /** Rated races only. */
+  iRating: PlayerRatingProjection | null
+  /** Your class position, for the iRating swing ('P4 +31'); null when unknown. */
+  classPosition: number | null
+  safetyRating: SafetyRatingProjection | null
+  fastestLap: FastestLapInfo | null
+  /** The weather readings (ConditionsFeed, ~1 Hz); null while no item shows them. */
+  conditions: ConditionsData | null
+  /** Laps the fuel lasts at your average (FuelData.lapsOfFuel), null while measuring. */
+  fuelLaps: number | null
+}
+
+/** How licences are drawn ('outline' is the default since v2.6; 'soft' was before). */
+export type LicenseStyle = 'outline' | 'soft' | 'solid' | 'letter'
+
+export interface RelativeOptions {
   carsAhead: number
   carsBehind: number
-  /** Optional columns (display only; the telemetry process ignores them). */
-  showClassPosition: boolean
-  showLicense: boolean
-  showIRating: boolean
-  /** Laps of each car's stint. */
-  showStint: boolean
-  /** Tyre compound letter (known for your car model only). */
-  showTyre: boolean
+  /** The row's cells in order (display only; the telemetry process ignores them). */
+  columns: ElementList<RelativeColumnId>
+  /** The header bar: its items and size ('off': no header band). */
+  headerBar: ElementList<InfoBarEntryId>
+  headerBarSize: InfoBarSize
+  /** The footer bar under the rows (off by default: the rows give it their height). */
+  footerBar: ElementList<InfoBarEntryId>
+  footerBarSize: InfoBarSize
+  /** Arrow after the track temperature (the `trackTemp` item): rising or falling. */
+  conditionsTrend: boolean
+  /** The `wind` item's dial: where the wind comes from relative to your car. */
+  conditionsWindDirection: boolean
+  /** A row of column headings ('POS', 'PILOTO', 'iR'...) under the header. */
+  columnHeads: boolean
+  /** The car's make in the driver cell. */
+  brandMarks: BrandMarkMode
+  /** The driver's country flag in the driver cell (nothing for none or unknown). */
+  countryFlags: boolean
   /** Black flag, meatball and furled black flag badges after the name. */
   showFlags: boolean
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
-  /** Your incident count (and the session's limit) in the header. */
-  showIncidents: boolean
 }
 
 export interface RadarOptions {
   /** Cars further than this (metres, along the track) are not shown. */
   rangeM: number
-  /** Distance labels on the range guides. */
-  showRangeLabels: boolean
+  /** The layers over the cars (fixed order; the distance labels sit on the guides). */
+  parts: ElementList<RadarPartId>
 }
 
 /**
@@ -1150,12 +1340,10 @@ export type StandingsColumnId =
   | 'stint'
   | 'tyre'
 
-export interface StandingsColumn {
-  id: StandingsColumnId
-  visible: boolean
-}
+/** One standings column (the generic element entry; stored as `{ id, visible }`). */
+export type StandingsColumn = ElementEntry<StandingsColumnId>
 
-export interface StandingsOptions extends ConditionsFooterOptions {
+export interface StandingsOptions {
   /** compact: top rows + window around you + other class leaders; full: every car of every class. */
   mode: 'compact' | 'full'
   /** Compact: leading rows of your class (0..10). */
@@ -1168,18 +1356,31 @@ export interface StandingsOptions extends ConditionsFooterOptions {
   gapMode: 'interval' | 'leader' | 'both'
   /** Every column id exactly once, in order (normalisation fixes missing/duplicated ids). */
   columns: StandingsColumn[]
+  /** The header's first line: session, your class, incidents, what is left. */
+  headerBar: ElementList<InfoBarEntryId>
+  headerBarSize: InfoBarSize
+  /** The header's second line: your projected iRating and SR, the fastest lap. */
+  subheaderBar: ElementList<InfoBarEntryId>
+  subheaderBarSize: InfoBarSize
+  /** The footer bar under the table (the track conditions by default). */
+  footerBar: ElementList<InfoBarEntryId>
+  footerBarSize: InfoBarSize
+  /** Arrow after the track temperature (the `trackTemp` item). */
+  conditionsTrend: boolean
+  /** The `wind` item's dial. */
+  conditionsWindDirection: boolean
+  /** What a class line says, in order. */
+  classLine: ElementList<StandingsClassLineId>
+  /** A row of column headings under the header ('POS', 'PILOTO', 'INT.'...). */
+  columnHeads: boolean
+  /** The car's make on each row and leader line. */
+  brandMarks: BrandMarkMode
+  /** The driver's country flag on each row and leader line. */
+  countryFlags: boolean
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
   /** Projected iRating change on every row (otherwise only on yours and in the header). */
   iRatingDeltaAll: boolean
-  /** Header line with your projected iRating. */
-  headerIRating: boolean
-  /** Header line with your projected SR and incident margin. */
-  headerSafetyRating: boolean
-  /** Your incident count (and the session's limit) in the header, in every session type. */
-  headerIncidents: boolean
-  showSof: boolean
-  showCarCount: boolean
   /** Black flag, meatball and furled black flag badges after the name (as in the relative). */
   showFlags: boolean
   /** 'inherit' = appearance.density. */
@@ -1189,16 +1390,19 @@ export interface StandingsOptions extends ConditionsFooterOptions {
 export interface BattleOptions {
   /** Show an opponent when the gap is below this (s, 0.3..5). */
   thresholdS: number
-  showAhead: boolean
-  showBehind: boolean
+  /** The rivals, in order (a hidden one is not computed). */
+  lanes: ElementList<BattleLaneId>
   layout: 'stacked' | 'side'
-  /** What each lane shows below the headline. */
-  detail: 'none' | 'sectors' | 'laps' | 'both'
+  /** Each lane's rows below the rival and the gap, in order. */
+  rows: ElementList<BattleRowId>
+  /** Smaller parts of each lane (the iRating at stake is computed only while shown). */
+  parts: ElementList<BattlePartId>
   /** Keep an opponent shown this long (s, 0..10) after it leaves the threshold. */
   holdS: number
-  /** Catch prediction line ("Le alcanzas en ~3 v"). */
-  showPrediction: boolean
-  showIRatingAtStake: boolean
+  /** The car's make in the rival's cell. */
+  brandMarks: BrandMarkMode
+  /** The rival's country flag (off by default). */
+  countryFlags: boolean
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
 }
@@ -1206,17 +1410,19 @@ export interface BattleOptions {
 export interface InputsOptions {
   /** Seconds of trace history (2..10). */
   traceSeconds: number
-  showClutch: boolean
-  showSteering: boolean
-  showGearSpeed: boolean
-  /** Clutch line in the trace (the bar follows showClutch). */
+  /** The blocks in reading order: trace, bars, gear and speed. */
+  sections: ElementList<InputsSectionId>
+  /** The pedal bars, left to right. */
+  bars: ElementList<InputsBarId>
+  /** The readouts of the info block, in order. */
+  info: ElementList<InputsInfoId>
+  /** Clutch line in the trace (the bar is the bars list's). */
   clutchInTrace: boolean
   /** Trace line width in px (1..3). */
   traceWidth: number
   /** Pedal colours (#rrggbb). */
   colors: { throttle: string; brake: string; clutch: string }
   steeringStyle: 'bar' | 'wheel'
-  layout: 'trace-bars-info' | 'info-bars-trace' | 'bars'
 }
 
 export interface TrafficOptions {
@@ -1228,9 +1434,12 @@ export interface TrafficOptions {
   hazardS: number
   /** Entries per group (1..5). */
   maxEntries: number
-  showFaster: boolean
-  showSlower: boolean
-  showHazards: boolean
+  /** The groups, top to bottom (a hidden one is not looked for). */
+  groups: ElementList<TrafficGroupId>
+  /** The cells of each line, left to right. */
+  parts: ElementList<TrafficPartId>
+  /** The header band and the group captions. */
+  header: ElementList<TrafficHeaderId>
   /** Faster/slower traffic only in multiclass sessions (hazards always). */
   onlyMulticlass: boolean
   /** 'inherit' = appearance.nameFormat. */
@@ -1269,10 +1478,19 @@ export interface AlertsOptions {
   showFuelLow: boolean
   /** Keep an alert shown at least this long (s, 0..10) so a flicker is readable. */
   holdS: number
+  /** The band's extras (display only): the note after each label, the other alerts' chips. */
+  parts: ElementList<AlertsPartId>
 }
 
 export interface DeltaOptions {
-  reference: DeltaReference
+  /**
+   * The reference of each kind of session (sessionKind: practice also covers warmup and testing,
+   * qualifying the time trials). A change, by hand or with the cycle shortcut, is applied at the
+   * start of the next lap.
+   */
+  referencePractice: DeltaReference
+  referenceQualify: DeltaReference
+  referenceRace: DeltaReference
   /**
    * Use the next available reference while the preferred one does not exist: pb -> session ->
    * class, optimal -> pb -> classOptimal, classOptimal -> pb (see DELTA_FALLBACK).
@@ -1280,34 +1498,29 @@ export interface DeltaOptions {
   fallback: boolean
   /** Full scale of the bar in seconds (0.5..3). */
   rangeS: number
-  showPredicted: boolean
-  showSectors: boolean
-  showTrend: boolean
+  /** The rows in order: the top line, the bar, the sectors, the lap times. */
+  rows: ElementList<DeltaRowId>
+  /** The top line's parts after the hero number (fixed order). */
+  top: ElementList<DeltaTopId>
+  /** The lap times line's items, in order. */
+  laps: ElementList<DeltaLapId>
 }
 
 /**
- * The fuel widget: the fuel left and the laps it lasts are always drawn, every other line is a
- * toggle. The average and the margin change what is computed (the alerts band uses the average).
+ * The fuel widget: the fuel left and the laps it lasts are always drawn, every other line is an
+ * element. The average and the margin change what is computed (the alerts band uses the average).
  */
 export interface FuelOptions {
-  /** Header band with the widget's name (and the SIM tag). */
-  showHeader: boolean
-  /** A bar of the fuel against what the tank holds. */
-  showGauge: boolean
-  /** Litres per lap: the average, the last lap and the most. */
-  showPerLap: boolean
-  /** What you need to the flag and what to add at the next stop. */
-  showFinish: boolean
-  /** The pit menu's fuel next to what to add, flagged when it is short. */
+  /** The header bar (off by default): the widget's name and whatever items you add. */
+  headerBar: ElementList<InfoBarEntryId>
+  headerBarSize: InfoBarSize
+  /**
+   * The lines in order: the hero (fuel and laps), the tank gauge, the litres per lap, what to
+   * the flag and what to add, the pit window, the saving, the tyres, the repairs and sets left.
+   */
+  lines: ElementList<FuelLineId>
+  /** The pit menu's fuel next to what to add (on the finish line), flagged when it is short. */
   showBox: boolean
-  /** The pit window ('V24–V28') and the stops left. */
-  showWindow: boolean
-  /** The litres per lap that would save a stop, when within reach. */
-  showSave: boolean
-  /** The tread of the last stop's tyre reading. */
-  showTyres: boolean
-  /** Fast repairs and tyre sets left, when the session limits them. */
-  showLimits: boolean
   /** Clean laps averaged for the consumption (2..10). */
   avgLaps: number
   /** Laps of fuel to keep at the flag (0..3). */
@@ -1315,12 +1528,15 @@ export interface FuelOptions {
 }
 
 /**
- * The warning lights strip: every light its own toggle, how it is laid out and what goes next
- * to each icon. The layout and the captions are drawing; the rest changes the payload.
+ * The warning lights strip: which lights, in which order, how they are laid out and what goes
+ * next to each icon. The layout, the side and the captions are drawing; the rest changes the
+ * payload.
  */
 export interface LightsOptions {
   /** A row (it wraps when the window is narrower) or a column. */
   layout: 'row' | 'column'
+  /** In a column: the side of the icons where the captions and values go. */
+  labelSide: 'right' | 'left'
   /** Only the lit lights; the strip hides while none is (instead of the dim dashboard). */
   onlyWhenLit: boolean
   /** A short word after each icon ('AGUA', 'REPARAR'). */
@@ -1329,22 +1545,25 @@ export interface LightsOptions {
   showTemps: boolean
   /** How long the repairs take, while lit ('REPARAR · 42 s', 'OPC. · 38 s'). */
   showRepairTime: boolean
-  showOilPressure: boolean
-  showFuelPressure: boolean
-  showStalled: boolean
-  showRepair: boolean
-  showRepairOptional: boolean
-  showWater: boolean
-  showOilTemp: boolean
+  /** The lights on the strip, in order (a hidden one is not computed). */
+  icons: ElementList<LightKind>
   /** The water and oil lights turn yellow while above your own average ('+6°'). */
   showTrend: boolean
-  showPitLimiter: boolean
-  showRevLimiter: boolean
+}
+
+/** The settings window's own preferences (nothing else reads them). */
+export interface SettingsWindowOptions {
+  /** The scene behind the widget previews: a night track or a bright day one. */
+  stageScene: 'dark' | 'light'
 }
 
 export interface OverlaySettings {
-  /** 4 added appearance and per-widget scale/auto-height/visibility rules; v1..v3 files are migrated. */
-  version: 4
+  /**
+   * 5 (v2.6) made the licence 'outline' and the pedals auto height (older files are migrated
+   * once, recognised by their version); 4 added appearance and per-widget
+   * scale/auto-height/visibility rules; v1..v3 files are migrated.
+   */
+  version: 5
   appearance: AppearanceSettings
   visibility: VisibilityOptions
   widgets: Record<WidgetId, WidgetSettings>
@@ -1360,6 +1579,7 @@ export interface OverlaySettings {
   lights: LightsOptions
   /** Global keyboard shortcuts (main registers them; nothing else acts on them). */
   shortcuts: ShortcutSettings
+  settingsWindow: SettingsWindowOptions
 }
 
 /**
@@ -1400,6 +1620,7 @@ export interface SettingsPatch {
   lights?: Partial<LightsOptions>
   /** A combination another action has is refused (the current one is kept). */
   shortcuts?: Partial<ShortcutSettings>
+  settingsWindow?: Partial<SettingsWindowOptions>
 }
 
 /** What main tells the telemetry process. */

@@ -39,6 +39,8 @@ function opponent(over: Partial<BattleOpponent> = {}): BattleOpponent {
     iRating: 2140,
     licString: 'B 3.41',
     licColor: '#00c702',
+    brand: 'porsche',
+    country: 'ES',
     gapS: 0.8,
     trendSPerLap: 0.1,
     lapsToCatch: null,
@@ -58,6 +60,7 @@ function battle(over: Partial<BattleData> = {}): BattleData {
     playerLastLaps: [],
     ahead: null,
     behind: null,
+    multiBrand: false,
     ...over
   }
 }

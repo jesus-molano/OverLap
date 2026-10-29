@@ -4,6 +4,8 @@ import {
   applyDrag,
   clampRectToDisplay,
   clampRectToDisplays,
+  defaultBoundsIn,
+  defaultLayoutOffsetX,
   isRectVisible,
   pickDisplay,
   restoreBounds
@@ -189,5 +191,29 @@ describe('applyDrag', () => {
     expect(applyDrag(start, 'w', 1000, 0, min)).toEqual({ ...start, x: 280, width: 120 })
     expect(applyDrag(start, 'n', 0, 1000, min)).toEqual({ ...start, y: 160, height: 140 })
     expect(applyDrag(start, 's', 0, -1000, min)).toEqual({ ...start, height: 140 })
+  })
+})
+
+describe('the default layout on an ultrawide screen', () => {
+  it('stays where it is up to 16:9, and moves to the middle of a wider work area', () => {
+    expect(defaultLayoutOffsetX({ width: 1920, height: 1040 })).toBe(0)
+    expect(defaultLayoutOffsetX({ width: 2560, height: 1400 })).toBe(0)
+    expect(defaultLayoutOffsetX({ width: 3440, height: 1400 })).toBe(760)
+    expect(defaultLayoutOffsetX({ width: 5120, height: 1400 })).toBe(1600)
+    // Three 1080p screens as one (NVIDIA Surround): the middle one.
+    expect(defaultLayoutOffsetX({ width: 5760, height: 1040 })).toBe(1920)
+    expect(defaultLayoutOffsetX({ width: 0, height: 0 })).toBe(0)
+  })
+
+  it('places a default rect in the work area, its origin included', () => {
+    const def = { x: 60, y: 260, width: 460, height: 252 }
+    expect(defaultBoundsIn(def, PRIMARY_WORK)).toEqual(def)
+    expect(defaultBoundsIn(def, { x: -3440, y: 0, width: 3440, height: 1400 })).toEqual({
+      ...def,
+      x: -3440 + 760 + 60
+    })
+    // restoreBounds falls back to the same place.
+    const wide = { x: 0, y: 0, width: 3440, height: 1400 }
+    expect(restoreBounds(undefined, def, [wide], wide)).toEqual({ ...def, x: 820 })
   })
 })

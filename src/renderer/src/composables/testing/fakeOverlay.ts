@@ -97,7 +97,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     layout: null,
     autoHidden: {},
     overlayHidden: false,
-    shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'ok' },
+    shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'ok', cycleDeltaReference: 'disabled' },
     cursorHidden: false,
     ...init
   }

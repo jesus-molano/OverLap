@@ -305,7 +305,12 @@ describe('alertFilter', () => {
       .filter(([, s]) => s.kind === 'bool')
       .map(([k]) => k)
     expect(Object.keys(SHOW_ALL).sort()).toEqual(toggles.sort())
-    const opts = { ...SHOW_ALL, showTow: false, holdS: 3 }
+    const opts = {
+      ...SHOW_ALL,
+      showTow: false,
+      holdS: 3,
+      parts: OPTION_SCHEMA.alerts.parts.default.map((p) => ({ ...p }))
+    }
     expect(alertFilter(opts)).toEqual({ ...SHOW_ALL, showTow: false })
   })
 })

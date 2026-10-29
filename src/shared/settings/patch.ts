@@ -1,9 +1,10 @@
 /** Changes requested by the settings window and its one-shot commands. */
 import type { OptionSection } from '../settingsSchema'
-import type { OverlaySettings } from '../types'
+import type { OverlaySettings, Rect } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, isWidgetId, type WidgetId } from '../widgets'
 import { OPTION_SECTIONS, defaultOptions, defaultWidgetSettings, sectionSpecs } from './defaults'
 import { isRecord, mergeSection, mergeWidgetFields, revertDuplicateAccelerators } from './fields'
+import { defaultBoundsIn } from './geometry'
 import { normalizeSettings } from './normalize'
 
 /**
@@ -36,11 +37,32 @@ export function applySettingsPatch(current: OverlaySettings, patch: unknown): Ov
   return out
 }
 
-/** New settings with the widget's bounds back to its `WIDGET_DEFS` default. */
-export function resetWidgetBounds(current: OverlaySettings, id: WidgetId): OverlaySettings {
+/**
+ * New settings with the widget's bounds back to its `WIDGET_DEFS` default, placed for the primary
+ * work area `area` when given (centred on an ultrawide one: defaultBoundsIn).
+ */
+export function resetWidgetBounds(
+  current: OverlaySettings,
+  id: WidgetId,
+  area?: Rect
+): OverlaySettings {
   const out = normalizeSettings(current)
   // The id usually comes straight from IPC.
-  if (isWidgetId(id)) out.widgets[id].bounds = { ...WIDGET_DEFS[id].defaultBounds }
+  if (!isWidgetId(id)) return out
+  const def = WIDGET_DEFS[id].defaultBounds
+  out.widgets[id].bounds = area !== undefined ? defaultBoundsIn(def, area) : { ...def }
+  return out
+}
+
+/**
+ * A first run's settings (no file yet) with the default layout placed for the primary work
+ * area: moved to its middle on an ultrawide one (defaultLayoutOffsetX), else unchanged.
+ */
+export function placeDefaultLayout(current: OverlaySettings, area: Rect): OverlaySettings {
+  const out = normalizeSettings(current)
+  for (const id of WIDGET_IDS) {
+    out.widgets[id].bounds = defaultBoundsIn(WIDGET_DEFS[id].defaultBounds, area)
+  }
   return out
 }
 

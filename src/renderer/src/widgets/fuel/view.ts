@@ -15,10 +15,11 @@
  * it has nothing to say (no stop: no saving; no tyre reading yet; no session limits). Litres
  * always (the unit is not translated); words come from the dictionary `m` (messagesFor(lang)).
  */
+import { isElementVisible } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { FUEL_ALERT } from '@shared/notices/fuel'
 import type { Messages } from '@shared/i18n'
-import type { FuelData, FuelFinish, FuelOptions } from '@shared/types'
+import type { FuelData, FuelFinish, FuelLineId, FuelOptions } from '@shared/types'
 import type { Tone } from '@renderer/ui/tones'
 
 const DASH = '—'
@@ -108,8 +109,35 @@ export interface FuelView {
   readonly limits: LimitsView | null
 }
 
-/** The drawing options of the view (the header is the widget's; the rest is the provider's). */
-export type FuelViewOptions = Omit<FuelOptions, 'showHeader' | 'avgLaps' | 'marginLaps'>
+/**
+ * The drawing options of the view (the header is the widget's; the rest is the provider's):
+ * FuelWidget reads them from fuel.lines until the widget draws the list in order (package P4).
+ */
+export interface FuelViewOptions {
+  readonly showGauge: boolean
+  readonly showPerLap: boolean
+  readonly showFinish: boolean
+  readonly showBox: FuelOptions['showBox']
+  readonly showWindow: boolean
+  readonly showSave: boolean
+  readonly showTyres: boolean
+  readonly showLimits: boolean
+}
+
+/** The view's options from the widget's (its lines list and the box flag). */
+export function fuelViewOptions(o: Pick<FuelOptions, 'lines' | 'showBox'>): FuelViewOptions {
+  const shown = (id: FuelLineId): boolean => isElementVisible(o.lines, id)
+  return {
+    showGauge: shown('gauge'),
+    showPerLap: shown('perLap'),
+    showFinish: shown('finish'),
+    showBox: o.showBox,
+    showWindow: shown('window'),
+    showSave: shown('save'),
+    showTyres: shown('tyres'),
+    showLimits: shown('limits')
+  }
+}
 
 export const EMPTY_VIEW: FuelView = Object.freeze({
   hero: null,

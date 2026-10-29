@@ -16,6 +16,7 @@
  * cars there are not on track with you (B11). With one class in the session no line names it.
  */
 import { driverIdentity, identityEqual } from './driver'
+import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
 import { CAUTION_FLAGS, SessionFlag } from './flags'
 import { isValidPct, wrapPctDelta } from './lapDist'
@@ -272,17 +273,19 @@ export class TrafficProvider {
     this.stamp++
 
     const run = begin(frame, session, race, prev, now)
-    if (!run || (!opts.showFaster && !opts.showSlower && !opts.showHazards)) {
+    const showFaster = isElementVisible(opts.groups, 'faster')
+    const showSlower = isElementVisible(opts.groups, 'slower')
+    const showHazards = isElementVisible(opts.groups, 'hazard')
+    if (!run || (!showFaster && !showSlower && !showHazards)) {
       this.clearHolds()
       return { visible: false, faster: [], slower: [], hazards: [] }
     }
     const behindS = finiteOr(opts.behindS, 0)
     const aheadS = finiteOr(opts.aheadS, 0)
     const hazardS = finiteOr(opts.hazardS, 0)
-    const classes =
-      (opts.showFaster || opts.showSlower) && (!opts.onlyMulticlass || multiclass(run))
-    const wantFaster = opts.showFaster && classes
-    const wantSlower = opts.showSlower && classes
+    const classes = (showFaster || showSlower) && (!opts.onlyMulticlass || multiclass(run))
+    const wantFaster = showFaster && classes
+    const wantSlower = showSlower && classes
 
     const faster: Candidate[] = []
     const slower: Candidate[] = []
@@ -300,7 +303,7 @@ export class TrafficProvider {
         const kind = hazardKind(run, car)
         const gap = dPct * run.myPace
         if (
-          opts.showHazards &&
+          showHazards &&
           this.keep('hazard', car.carIdx, kind !== null && gap <= hazardS, run, kind)
         ) {
           const shown = kind ?? this.holds.hazard.get(car.carIdx)?.hazard ?? null
@@ -321,7 +324,7 @@ export class TrafficProvider {
         const eta = closing > 0 && !run.caution ? dPct / closing : null
         slower.push(candidate(run, d, 'slower', gap, eta, laps <= -1, null))
       } else {
-        if (!opts.showFaster) continue
+        if (!showFaster) continue
         const laps = lapsApart(run, car, dPct)
         const passing = passingYou(run, d, laps)
         if (!passing && (!wantFaster || pace === null || relation(run, d, pace, laps) <= 0)) {

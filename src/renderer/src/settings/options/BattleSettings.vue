@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible, setElementVisible } from '@shared/elements'
 import {
   BATTLE_HOLD_MAX_S,
   BATTLE_HOLD_MIN_S,
@@ -17,7 +18,7 @@ import { choiceOptions } from '../controls/choice'
 import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { currentList, elementToggle, listSetter, optionSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import { formatSeconds } from '../values'
 
@@ -34,11 +35,28 @@ const B = OPTION_SCHEMA.battle
 const layoutChoices = computed(() =>
   choiceOptions(B.layout.values, t.value.settings.battle.layoutChoices)
 )
-const detailChoices = computed(() =>
-  choiceOptions(B.detail.values, t.value.settings.battle.detailChoices)
-)
+// Until this page gets the element editors (package P3): the old detail choice, read from and
+// written to the rows' sector and lap chips.
+type Detail = 'none' | 'sectors' | 'laps' | 'both'
+const DETAILS = ['none', 'sectors', 'laps', 'both'] as const satisfies readonly Detail[]
+const detailChoices = computed(() => choiceOptions(DETAILS, t.value.settings.battle.detailChoices))
+const detail = computed<Detail>(() => {
+  const sectors = isElementVisible(opts.value.rows, 'sectors')
+  const laps = isElementVisible(opts.value.rows, 'laps')
+  return sectors && laps ? 'both' : sectors ? 'sectors' : laps ? 'laps' : 'none'
+})
+const setDetail: Setter<Detail> = (d) => {
+  const rows = setElementVisible(
+    currentList('battle', 'rows'),
+    'sectors',
+    d === 'sectors' || d === 'both'
+  )
+  return listSetter('battle', 'rows')(setElementVisible(rows, 'laps', d === 'laps' || d === 'both'))
+}
+const shownAhead = computed(() => isElementVisible(opts.value.lanes, 'ahead'))
+const shownBehind = computed(() => isElementVisible(opts.value.lanes, 'behind'))
 
-const noRivals = computed(() => !opts.value.showAhead && !opts.value.showBehind)
+const noRivals = computed(() => !shownAhead.value && !shownBehind.value)
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
   nameExample(t.value, inherit(opts.value.nameFormat, appearance.value.nameFormat))
@@ -76,13 +94,13 @@ const nameHelp = computed(() =>
     >
       <ToggleControl
         :label="t.settings.battle.ahead"
-        :current="opts.showAhead"
-        :apply="set('showAhead')"
+        :current="shownAhead"
+        :apply="elementToggle('battle', 'lanes', 'ahead')"
       />
       <ToggleControl
         :label="t.settings.battle.behind"
-        :current="opts.showBehind"
-        :apply="set('showBehind')"
+        :current="shownBehind"
+        :apply="elementToggle('battle', 'lanes', 'behind')"
       />
     </CheckGroup>
     <ChoiceControl
@@ -94,22 +112,22 @@ const nameHelp = computed(() =>
     <ChoiceControl
       :label="t.settings.battle.detail"
       :help="t.settings.battle.detailHelp"
-      :current="opts.detail"
+      :current="detail"
       :options="detailChoices"
-      :apply="set('detail')"
+      :apply="setDetail"
     />
     <CheckGroup :legend="t.settings.common.show">
       <ToggleControl
         :label="t.settings.battle.prediction"
         :help="t.settings.battle.predictionHelp"
-        :current="opts.showPrediction"
-        :apply="set('showPrediction')"
+        :current="isElementVisible(opts.rows, 'prediction')"
+        :apply="elementToggle('battle', 'rows', 'prediction')"
       />
       <ToggleControl
         :label="t.settings.battle.atStake"
         :help="t.settings.battle.atStakeHelp"
-        :current="opts.showIRatingAtStake"
-        :apply="set('showIRatingAtStake')"
+        :current="isElementVisible(opts.parts, 'stake')"
+        :apply="elementToggle('battle', 'parts', 'stake')"
       />
     </CheckGroup>
     <ChoiceControl

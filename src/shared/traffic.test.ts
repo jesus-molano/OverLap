@@ -6,7 +6,15 @@ import { makeDriver, makeFrame, makeSession, PRACTICE } from './race/testing/rac
 import type { MutableFrame } from './race/testing/raceSim'
 import { SessionState, TrackLocation } from './telemetry'
 import { TRAFFIC, TrafficProvider, sectorOf, speedRelation, trafficEqual } from './traffic'
-import type { DriverEntry, SessionMeta, TrafficData, TrafficEntry, TrafficOptions } from './types'
+import { defaultOptions } from './settings'
+import type {
+  DriverEntry,
+  SessionMeta,
+  TrafficData,
+  TrafficEntry,
+  TrafficGroupId,
+  TrafficOptions
+} from './types'
 
 /** The player (CarIdx 0) laps in 100 s; GT3 is the player's class. */
 const MY_PACE = 100
@@ -16,11 +24,20 @@ const OPTS: TrafficOptions = {
   aheadS: 8,
   hazardS: 8,
   maxEntries: 3,
-  showFaster: true,
-  showSlower: true,
-  showHazards: true,
+  groups: [
+    { id: 'hazard', visible: true },
+    { id: 'slower', visible: true },
+    { id: 'faster', visible: true }
+  ],
+  parts: defaultOptions('traffic').parts,
+  header: defaultOptions('traffic').header,
   onlyMulticlass: true,
   nameFormat: 'inherit'
+}
+
+/** The groups with these ones hidden. */
+function groups(...hidden: TrafficGroupId[]): Partial<TrafficOptions> {
+  return { groups: OPTS.groups.map((g) => ({ ...g, visible: !hidden.includes(g.id) })) }
 }
 
 const GT3 = { classId: 1, classShortName: 'GT3', classRelSpeed: 50, classColor: '#ffda59' }
@@ -188,7 +205,9 @@ describe('faster cars behind', () => {
           classColor: '#33ceff',
           iRating: 1500,
           licString: 'B 3.00',
-          licColor: null
+          licColor: null,
+          brand: 'porsche',
+          country: ''
         },
         kind: 'faster',
         className: 'LMP2',
@@ -388,7 +407,7 @@ describe('hazards ahead', () => {
     expect(ids(d.hazards)).toEqual([4])
     expect(d.slower).toEqual([])
     // Hidden hazards: it is slower traffic again, reached at its actual speed (0.02 / 0.01 = 2 s).
-    const s = compute(w, { showHazards: false })
+    const s = compute(w, groups('hazard'))
     expect(s.hazards).toEqual([])
     expect(s.slower[0]).toMatchObject({ gapS: 2, etaS: 2 })
   })
@@ -468,7 +487,7 @@ describe('classes and options', () => {
     w.set(1, { pct: 0.3, pace: 99, lap: 11 })
     expect(compute(w).visible).toBe(false)
     w.set(1, { pct: 0.45, pace: 99, lap: 11 })
-    expect(compute(w, { showFaster: false }).visible).toBe(false)
+    expect(compute(w, groups('faster')).visible).toBe(false)
     // Outside a race laps say nothing: no lapping without the paces (or a blue flag).
     w.racing = false
     w.set(1, { pct: 0.45, pace: 99.5, lap: 11 })
@@ -518,9 +537,9 @@ describe('classes and options', () => {
       .set(7, { pct: 0.52, offTrack: true })
     const all = compute(w)
     expect([all.faster.length, all.slower.length, all.hazards.length]).toEqual([1, 1, 1])
-    const none = compute(w, { showFaster: false, showSlower: false, showHazards: false })
+    const none = compute(w, groups('faster', 'slower', 'hazard'))
     expect(none).toEqual({ visible: false, faster: [], slower: [], hazards: [] })
-    const onlySlower = compute(w, { showFaster: false, showHazards: false })
+    const onlySlower = compute(w, groups('faster', 'hazard'))
     expect([onlySlower.faster.length, onlySlower.slower.length, onlySlower.hazards.length]).toEqual(
       [0, 1, 0]
     )

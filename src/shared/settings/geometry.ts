@@ -100,7 +100,7 @@ export function clampRectToDisplays(rect: Rect, displays: readonly Rect[]): Rect
  * Bounds to open a widget with. Saved bounds win when they are sane and still
  * visible on some display (a monitor may have been unplugged since); they are
  * clamped into their display. Otherwise the default bounds are used as an
- * offset into the primary work area.
+ * offset into the primary work area (centred on an ultrawide one: defaultBoundsIn).
  */
 export function restoreBounds(
   saved: Rect | undefined,
@@ -115,15 +115,7 @@ export function restoreBounds(
       return clampRectToDisplays(rect, screens)
     }
   }
-  return clampRectToDisplay(
-    {
-      x: primaryWorkArea.x + def.x,
-      y: primaryWorkArea.y + def.y,
-      width: def.width,
-      height: def.height
-    },
-    primaryWorkArea
-  )
+  return clampRectToDisplay(defaultBoundsIn(def, primaryWorkArea), primaryWorkArea)
 }
 
 /**
@@ -164,4 +156,30 @@ function isSaneRect(rect: Rect): boolean {
     Number.isFinite(rect.width) &&
     Number.isFinite(rect.height)
   )
+}
+
+/**
+ * The default layout (every WidgetDef.defaultBounds) is drawn for a 1920 px wide 16:9 work area.
+ * On a wider one (21:9, 32:9, three screens as one) it is moved right by this much, so it sits
+ * in the middle, where a driver looks, instead of hugging the left edge; 0 up to 16:9 (a 2560 x
+ * 1440 screen keeps today's places).
+ */
+export const DEFAULT_LAYOUT_WIDTH = 1920
+/** Wider than this is an ultrawide (21:9 is 2.33); a 16:9 work area less its taskbar is ~1.85. */
+const WIDE_ASPECT = 2
+
+export function defaultLayoutOffsetX(workArea: Size): number {
+  if (!(workArea.width > 0) || !(workArea.height > 0)) return 0
+  if (workArea.width / workArea.height <= WIDE_ASPECT) return 0
+  return Math.max(0, Math.round((workArea.width - DEFAULT_LAYOUT_WIDTH) / 2))
+}
+
+/** A widget's default bounds placed for `workArea` (its origin plus the ultrawide offset). */
+export function defaultBoundsIn(def: Rect, workArea: Rect): Rect {
+  return {
+    x: workArea.x + defaultLayoutOffsetX(workArea) + def.x,
+    y: workArea.y + def.y,
+    width: def.width,
+    height: def.height
+  }
 }

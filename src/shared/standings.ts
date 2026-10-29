@@ -2,18 +2,19 @@
  * Standings widget: the classification per class, built from the RaceModel's
  * view (positions, gaps, pits, laps, finish) and the session YAML (names,
  * iRating, licences). Runs at 4 Hz. Its only state, owned by one
- * StandingsProvider per telemetry loop, is a cache of the rating projections.
+ * StandingsProvider per telemetry loop, is a cache of the rating projections (and your SR's).
  */
-import { driverIdentity } from './driver'
+import { driverIdentity, fieldHasMultipleBrands } from './driver'
+import { isElementVisible } from './elements'
+import { infoItemShown } from './infoBar'
 import { incidentCount } from './incidents/count'
-import { frac } from './num'
 import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { ownTowTime, showsTow } from './race/towBadge'
 import { classRatingField } from './ratings/field'
 import { ClassRatingsCache } from './ratings/projection'
 import { isRatedEvent } from './ratings/rated'
-import { projectSessionSafetyRating } from './ratings/sessionSafety'
+import { PlayerSafety } from './ratings/playerSafety'
 import {
   currentSessionType,
   isRaceSession,
@@ -27,7 +28,6 @@ import type {
   DriverEntry,
   GapValue,
   PlayerRatingProjection,
-  SafetyRatingProjection,
   SessionMeta,
   StandingsClassBlock,
   StandingsColumnId,
@@ -232,8 +232,7 @@ interface RowNeeds {
 
 function columnShown(opts: StandingsOptions, id: StandingsColumnId): boolean {
   // A malformed list (never after normalisation) shows everything rather than nothing.
-  if (!Array.isArray(opts.columns)) return true
-  return opts.columns.some((c) => c.id === id && c.visible)
+  return isElementVisible(opts.columns, id)
 }
 
 interface RowContext {
@@ -349,25 +348,17 @@ function blockRows(
 // Provider
 // ---------------------------------------------------------------------------
 
-interface Licence {
-  licLevel: number
-  licSubLevel: number
-}
-
 /**
  * One per telemetry loop. reset() on a reconnect or a new session (the loop
  * calls it when race.sessionKey changes).
  */
 export class StandingsProvider {
   private readonly ratings = new ClassRatingsCache()
-  private sr: { key: string; result: SafetyRatingProjection | null } | null = null
-  /** Team races: the user's own licence, from the last tick they were driving. */
-  private ownLicence: Licence | null = null
+  private readonly safety = new PlayerSafety()
 
   reset(): void {
     this.ratings.clear()
-    this.sr = null
-    this.ownLicence = null
+    this.safety.reset()
   }
 
   compute(
@@ -413,7 +404,8 @@ export class StandingsProvider {
     // A column of the same compound on every row says nothing: none until one differs.
     const tyres = needs.tyre && tyresVary(frame, session, tyreModel)
     // Only rated races change iRating; the player's own row and the header need the deltas.
-    const withDeltas = rated && isRace && (opts.headerIRating || deltaColumn)
+    const headerIRating = infoItemShown('standings', opts, 'iRating')
+    const withDeltas = rated && isRace && (headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'
     // Without a player class (spectating) the fastest class gets the top rows.
     const primary = playerGroup ?? groups[0]
@@ -470,10 +462,10 @@ export class StandingsProvider {
           : null,
       timeRemainingS:
         timeLeft !== null && Number.isFinite(timeLeft) ? Math.max(0, Math.floor(timeLeft)) : null,
-      iRating: withDeltas && opts.headerIRating ? iRating : null,
+      iRating: withDeltas && headerIRating ? iRating : null,
       safetyRating:
-        rated && opts.headerSafetyRating && playerDriver && ownCar
-          ? this.safetyRating(
+        rated && infoItemShown('standings', opts, 'safetyRating') && playerDriver && ownCar
+          ? this.safety.project(
               frame,
               session,
               race,
@@ -482,66 +474,10 @@ export class StandingsProvider {
               sessionType ?? ''
             )
           : null,
-      // Every session type, not only rated races; headerIncidents is display only.
+      // Every session type, not only rated races: one cheap read.
       incidents: ownCar ? incidentCount(frame, session) : null
     }
-    // The conditions footer's readings are the provider set's (ConditionsFeed).
-    return { header, classes, conditions: null }
-  }
-
-  /**
-   * Incidents (the whole session's PlayerCarMyIncidentCount) over the corners
-   * the user drove (the model's distance spans the same stretch). In a race
-   * whose laps left are known the budget covers the whole race; in practice
-   * nobody knows how much more you will drive, so it is "if you stopped now".
-   * Recomputed only when an input changes, so the object stays the same.
-   */
-  private safetyRating(
-    frame: TelemetryFrame,
-    session: SessionMeta,
-    race: RaceView,
-    playerIdx: number,
-    /** Race laps left (the budget's horizon), null outside races or when unknown. */
-    lapsLeft: number | null,
-    sessionType: string
-  ): SafetyRatingProjection | null {
-    const driver = session.drivers.get(playerIdx)
-    if (!driver) return null
-    const lic = this.licenceOf(frame, session, driver)
-    const turns = session.trackNumTurns
-    const driven = race.playerDistanceDriven
-    const corners = turns > 0 && driven > 0 ? Math.floor(turns * driven) : 0
-    let totalCorners: number | null = null
-    if (turns > 0 && lapsLeft !== null && Number.isFinite(lapsLeft) && lapsLeft >= 0) {
-      // lapsLeft counts the lap in progress, whose driven part is already in `driven`.
-      const d = race.car(playerIdx)?.distance ?? NaN
-      const left = Math.max(0, lapsLeft - (Number.isFinite(d) ? frac(d) : 0))
-      totalCorners = Math.floor(turns * (Math.max(0, driven) + left))
-    }
-    const incidents = race.playerIncidents
-    const key = `${lic.licLevel}:${lic.licSubLevel}:${incidents}:${corners}:${totalCorners}:${sessionType}`
-    if (this.sr?.key === key) return this.sr.result
-    const result = projectSessionSafetyRating({
-      licLevel: lic.licLevel,
-      licSubLevel: lic.licSubLevel,
-      incidents,
-      corners,
-      totalCorners,
-      sessionType
-    })
-    this.sr = { key, result }
-    return result
-  }
-
-  /**
-   * In team races the entry at the player's CarIdx is whoever drives it now;
-   * the SR is the user's, so their licence is taken while IsOnTrack (they are
-   * the one in the car) and kept through a teammate's stint.
-   */
-  private licenceOf(frame: TelemetryFrame, session: SessionMeta, driver: DriverEntry): Licence {
-    const current = { licLevel: driver.licLevel, licSubLevel: driver.licSubLevel }
-    if (!session.teamRacing) return current
-    if (frame.IsOnTrack[0] === true) this.ownLicence = current
-    return this.ownLicence ?? current
+    // The info bars' data is the provider set's (InfoFeed, fed this header).
+    return { header, classes, info: null, multiBrand: fieldHasMultipleBrands(session) }
   }
 }

@@ -7,8 +7,14 @@ import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
 import { toTelemetryConfig } from '@shared/settings'
-import { displayOnlyFields, type ConfigSection } from '@shared/settingsSchema'
-import type { OverlaySettings, StandingsColumn, StandingsColumnId } from '@shared/types'
+import {
+  OPTION_SCHEMA,
+  displayOnlyFields,
+  type ConfigSection,
+  type ElementsSpec,
+  type OptionSpec
+} from '@shared/settingsSchema'
+import type { ElementEntry, OverlaySettings } from '@shared/types'
 import { WIDGET_IDS, isWidgetId, type WidgetId } from '@shared/widgets'
 
 export interface SenderLookup<S> {
@@ -104,15 +110,22 @@ export const DISPLAY_ONLY: { readonly [K in ConfigSection]: readonly string[] } 
   lights: displayOnlyFields('lights').map(String)
 }
 
-/** The telemetry config without the display-only options. */
+/**
+ * The telemetry config without the display-only options. An element list the provider reads
+ * counts by the visibility of its computed ids only: the order is the renderer's alone, so a
+ * reorder never makes the telemetry process recompute (the ids are compared sorted).
+ */
 export function computedConfig(settings: OverlaySettings): Record<string, unknown> {
   const config = toTelemetryConfig(settings)
   const out: Record<string, unknown> = { ...config }
   for (const section of CONFIG_SECTIONS) {
     const options: Record<string, unknown> = { ...config[section] }
     for (const key of DISPLAY_ONLY[section]) delete options[key]
-    if (section === 'standings' && 'columns' in options) {
-      options.columns = visibleColumns(config.standings.columns)
+    const specs = OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>
+    for (const [field, spec] of Object.entries(specs)) {
+      if (spec.kind === 'elements' && field in options) {
+        options[field] = computedIds(options[field], spec)
+      }
     }
     out[section] = options
   }
@@ -120,13 +133,14 @@ export function computedConfig(settings: OverlaySettings): Record<string, unknow
 }
 
 /**
- * The provider may skip what no visible column shows (the per-row iRating
- * projection for 'delta', for one), so visibility counts; the order is the
- * renderer's alone, so the set is compared sorted.
+ * The visible ids of a list that the provider reads (`spec.computed`, every id when absent),
+ * sorted; a malformed list as it is (it cannot come out of normalisation).
  */
-function visibleColumns(columns: readonly StandingsColumn[]): StandingsColumnId[] {
-  return columns
-    .filter((c) => c.visible)
-    .map((c) => c.id)
+export function computedIds(list: unknown, spec: ElementsSpec): unknown {
+  if (!Array.isArray(list)) return list
+  const read = spec.computed === undefined ? null : new Set<string>(spec.computed)
+  return (list as ElementEntry[])
+    .filter((e) => e.visible && (read === null || read.has(e.id)))
+    .map((e) => e.id)
     .sort()
 }

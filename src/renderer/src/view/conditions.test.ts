@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
 import { DEFAULT_SETTINGS } from '@shared/settings'
-import type { ConditionsData, ConditionsFooterOptions } from '@shared/types'
+import type { ConditionsData } from '@shared/types'
 import {
   FOOTER_ITEMS,
   NO_FOOTER,
   PREVIEW_CONDITIONS,
   WETNESS_CELLS,
+  footerReadingsOf,
   footerView,
   hasFooter,
   precipText,
@@ -17,6 +18,7 @@ import {
   trendIcon,
   unwrapDeg,
   wetnessText,
+  type FooterReadings,
   type FooterView
 } from './conditions'
 
@@ -24,7 +26,7 @@ const ES = messagesFor('es')
 const EN = messagesFor('en')
 const NB = ' '
 
-const ALL_ON: ConditionsFooterOptions = {
+const ALL_ON: FooterReadings = {
   conditionsFooter: true,
   conditionsTrackTemp: true,
   conditionsTrend: true,
@@ -51,7 +53,7 @@ function data(over: Partial<ConditionsData> = {}): ConditionsData {
 
 function view(
   d: ConditionsData | null,
-  o: Partial<ConditionsFooterOptions> = {},
+  o: Partial<FooterReadings> = {},
   units: 'metric' | 'imperial' = 'metric',
   m = ES
 ): FooterView {
@@ -279,20 +281,7 @@ describe('the edit-mode sample', () => {
   it('matches the default options of both tables but the switch', () => {
     for (const section of ['relative', 'standings'] as const) {
       const o = DEFAULT_SETTINGS[section]
-      expect({ ...footerOptions(o), conditionsFooter: true }).toEqual(ALL_ON)
+      expect({ ...footerReadingsOf(o), conditionsFooter: true }).toEqual(ALL_ON)
     }
   })
 })
-
-function footerOptions(o: ConditionsFooterOptions): ConditionsFooterOptions {
-  return {
-    conditionsFooter: o.conditionsFooter,
-    conditionsTrackTemp: o.conditionsTrackTemp,
-    conditionsTrend: o.conditionsTrend,
-    conditionsWet: o.conditionsWet,
-    conditionsWind: o.conditionsWind,
-    conditionsWindDirection: o.conditionsWindDirection,
-    conditionsAirTemp: o.conditionsAirTemp,
-    conditionsRubber: o.conditionsRubber
-  }
-}

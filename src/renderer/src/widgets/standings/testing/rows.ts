@@ -15,6 +15,8 @@ export function makeRow(over: Partial<DisplayRow> = {}): DisplayRow {
     iRating: 1500,
     licString: 'B 3.41',
     licColor: '#00c702',
+    brand: 'unknown',
+    country: '',
     interval: null,
     gapToLeader: null,
     lastLap: null,

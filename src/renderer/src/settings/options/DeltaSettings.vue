@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
+import { isElementVisible } from '@shared/elements'
+import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
+import {
+  DELTA_REFERENCE_VALUES,
+  OPTION_SCHEMA,
+  SHOW_IN_KINDS,
+  type NumericSpec
+} from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import CheckGroup from '../controls/CheckGroup.vue'
@@ -8,7 +15,7 @@ import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import PersonalBestsSection from './PersonalBestsSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
@@ -18,15 +25,30 @@ const t = useI18n()
 const set = optionSetter('delta')
 
 const referenceChoices = computed(() =>
-  choiceOptions(OPTION_SCHEMA.delta.reference.values, t.value.settings.delta.references)
+  choiceOptions(DELTA_REFERENCE_VALUES, t.value.settings.delta.references)
 )
-/** What the chosen reference is, under the choice. */
-const referenceHelp = computed(() => t.value.settings.delta.referenceHelp[opts.value.reference])
+/**
+ * One choice per kind of session (DeltaOptions.reference*). Until the page gets its tidied
+ * selector (package P4): three of today's choices, the race's fallback help.
+ */
+const kinds = computed(() =>
+  SHOW_IN_KINDS.map((kind) => {
+    const field = DELTA_REFERENCE_FIELD[kind]
+    const current = opts.value[field]
+    return {
+      kind,
+      field,
+      current,
+      label: t.value.settings.delta.sessions[kind],
+      help: t.value.settings.delta.referenceHelp[current]
+    }
+  })
+)
 
-/** Where the fallback goes from each reference (DELTA_FALLBACK); the class best has none. */
+/** Where the fallback goes from the race's reference (DELTA_FALLBACK); the class best has none. */
 const fallbackHelp = computed(() => {
   const d = t.value.settings.delta
-  const r = opts.value.reference
+  const r = opts.value.referenceRace
   if (r === 'class') return d.fallbackHelp.class
   return opts.value.fallback ? d.fallbackHelp[r] : d.fallbackOff
 })
@@ -42,19 +64,21 @@ const rangeText = (s: number): string =>
 <template>
   <PageSection :title="t.settings.delta.reference" :note="t.settings.delta.referenceNote">
     <ChoiceControl
-      :label="t.settings.delta.compareWith"
-      :help="referenceHelp"
+      v-for="k in kinds"
+      :key="k.kind"
+      :label="k.label"
+      :help="k.help"
       stack
-      :current="opts.reference"
+      :current="k.current"
       :options="referenceChoices"
-      :apply="set('reference')"
+      :apply="set(k.field)"
     />
     <ToggleControl
       kind="switch"
       :label="t.settings.delta.fallback"
       :help="fallbackHelp"
       :current="opts.fallback"
-      :disabled="opts.reference === 'class'"
+      :disabled="kinds.every((k) => k.current === 'class')"
       :apply="set('fallback')"
     />
   </PageSection>
@@ -75,20 +99,20 @@ const rangeText = (s: number): string =>
       <ToggleControl
         :label="t.settings.delta.predicted"
         :help="t.settings.delta.predictedHelp"
-        :current="opts.showPredicted"
-        :apply="set('showPredicted')"
+        :current="isElementVisible(opts.top, 'predicted')"
+        :apply="elementToggle('delta', 'top', 'predicted')"
       />
       <ToggleControl
         :label="t.settings.delta.sectors"
         :help="t.settings.delta.sectorsHelp"
-        :current="opts.showSectors"
-        :apply="set('showSectors')"
+        :current="isElementVisible(opts.rows, 'sectors')"
+        :apply="elementToggle('delta', 'rows', 'sectors')"
       />
       <ToggleControl
         :label="t.settings.delta.trend"
         :help="t.settings.delta.trendHelp"
-        :current="opts.showTrend"
-        :apply="set('showTrend')"
+        :current="isElementVisible(opts.top, 'state')"
+        :apply="elementToggle('delta', 'top', 'state')"
       />
     </CheckGroup>
   </PageSection>

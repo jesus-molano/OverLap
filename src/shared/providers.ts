@@ -1,11 +1,13 @@
 import { AlertsProvider, alertsEqual } from './alerts'
 import { BattleProvider, battleEqual } from './battle'
-import { ConditionsFeed, footerConditionsEqual } from './conditions'
+import { ConditionsFeed } from './conditions'
 import { DeltaProvider, deltaEqual } from './delta/delta'
 import type { PersonalBestStore } from './delta/references'
 import { computeFuel, fuelAlertInput, fuelEqual } from './fuel/provider'
 import { FuelTracker } from './fuel/tracker'
 import { incidentCountEqual } from './incidents/count'
+import { sectionInfoItems } from './infoBar'
+import { InfoFeed, infoBarDataEqual, type KnownInfo } from './infoFeed'
 import { computeInputs } from './inputs'
 import { LightsProvider, lightsEqual } from './lights'
 import { EngineMonitor } from './notices/engine'
@@ -16,13 +18,7 @@ import { StandingsProvider } from './standings'
 import { standingsEqual } from './standingsEqual'
 import { TrafficProvider, trafficEqual } from './traffic'
 import type { TelemetryFrame } from './telemetry'
-import type {
-  ConditionsData,
-  ConditionsFooterOptions,
-  SessionMeta,
-  TelemetryConfig,
-  WidgetPayloads
-} from './types'
+import type { InfoBarData, InfoItemId, SessionMeta, TelemetryConfig, WidgetPayloads } from './types'
 import type { WidgetId } from './widgets'
 
 export interface ProviderContext {
@@ -59,12 +55,9 @@ export interface ProviderSet {
   reset(): void
 }
 
-/** A table payload with its footer's readings filled in (the providers build it with null). */
-function withConditions<T extends { conditions: ConditionsData | null }>(
-  payload: T,
-  conditions: ConditionsData | null
-): T {
-  payload.conditions = conditions
+/** A payload with its info bars' data filled in (the providers build it with null). */
+function withInfo<T extends { info: InfoBarData | null }>(payload: T, info: InfoBarData | null): T {
+  payload.info = info
   return payload
 }
 
@@ -77,26 +70,43 @@ export function createProviders(): ProviderSet {
   const alerts = new AlertsProvider(engine)
   const lights = new LightsProvider(engine)
   const delta = new DeltaProvider()
-  // The footers of the relative and the standings: one reading a second for both, only while
-  // one of them is on.
-  const conditions = new ConditionsFeed()
-  const footer = (ctx: ProviderContext, o: ConditionsFooterOptions): ConditionsData | null =>
-    o.conditionsFooter ? conditions.get(ctx.frame, ctx.session) : null
   // Fed on every tick: the fuel widget and the alerts band plan with the same laps.
   const fuel = new FuelTracker()
+  // The weather for every info bar that shows it: one reading a second for all of them, only
+  // while one does.
+  const conditions = new ConditionsFeed()
+  const infoFeed = new InfoFeed(conditions, fuel)
+  /** The data of a widget's bars for this tick (null while none of their items needs any). */
+  const info = (
+    ctx: ProviderContext,
+    items: readonly InfoItemId[],
+    known?: KnownInfo
+  ): InfoBarData | null =>
+    infoFeed.get(ctx.frame, ctx.session, ctx.race, items, ctx.config.fuel.avgLaps, known)
   return {
     run: {
-      relative: (ctx) =>
-        withConditions(
-          computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race),
-          footer(ctx, ctx.config.relative)
-        ),
+      relative: (ctx) => {
+        const p = computeRelative(ctx.frame, ctx.session, ctx.config.relative, ctx.race)
+        const items = sectionInfoItems('relative', ctx.config.relative)
+        return withInfo(p, info(ctx, items, { sessionType: p.sessionType, incidents: p.incidents }))
+      },
       radar: (ctx, prev) => computeRadar(ctx.frame, ctx.session, ctx.config.radar, prev),
-      standings: (ctx) =>
-        withConditions(
-          standings.compute(ctx.frame, ctx.session, ctx.race, ctx.config.standings),
-          footer(ctx, ctx.config.standings)
-        ),
+      standings: (ctx) => {
+        const p = standings.compute(ctx.frame, ctx.session, ctx.race, ctx.config.standings)
+        const h = p.header
+        const mine = p.classes.find((c) => c.isPlayerClass)
+        // What the table computed already: the header's figures and your class's.
+        const known: KnownInfo = {
+          sessionType: h.sessionType,
+          lapsRemaining: h.lapsRemaining,
+          timeRemainingS: h.timeRemainingS,
+          iRating: h.iRating,
+          safetyRating: h.safetyRating,
+          incidents: h.incidents,
+          ...(mine !== undefined ? { sof: mine.sof, carCount: mine.carCount } : {})
+        }
+        return withInfo(p, info(ctx, sectionInfoItems('standings', ctx.config.standings), known))
+      },
       battle: (ctx, prev) => battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
       inputs: (ctx) => computeInputs(ctx.frame),
       traffic: (ctx, prev) =>
@@ -110,7 +120,11 @@ export function createProviders(): ProviderSet {
           fuelAlertInput(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel)
         ),
       delta: (ctx) => delta.compute(ctx.frame, ctx.session, ctx.race, ctx.bests, ctx.config.delta),
-      fuel: (ctx) => computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel),
+      fuel: (ctx) =>
+        withInfo(
+          computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel),
+          info(ctx, sectionInfoItems('fuel', ctx.config.fuel))
+        ),
       lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights)
     },
     observe: (frame, session, race) => {
@@ -127,6 +141,7 @@ export function createProviders(): ProviderSet {
       lights.reset()
       delta.reset()
       conditions.reset()
+      infoFeed.reset()
       fuel.reset()
     }
   }
@@ -141,7 +156,7 @@ export function createProviders(): ProviderSet {
 export const SKIP_EMIT: {
   readonly [K in WidgetId]?: (payload: WidgetPayloads[K], prev: WidgetPayloads[K] | null) => boolean
 } = {
-  // Out of the car the relative is an empty, unchanging table (its header and footer still count).
+  // Out of the car the relative is an empty, unchanging table (its info bars still count).
   relative: (payload, prev) =>
     prev !== null &&
     payload.playerRow < 0 &&
@@ -149,8 +164,9 @@ export const SKIP_EMIT: {
     payload.slotsAhead === prev.slotsAhead &&
     payload.slotsBehind === prev.slotsBehind &&
     payload.sessionType === prev.sessionType &&
+    payload.multiBrand === prev.multiBrand &&
     incidentCountEqual(payload.incidents, prev.incidents) &&
-    footerConditionsEqual(payload.conditions, prev.conditions),
+    infoBarDataEqual(payload.info, prev.info),
   radar: (payload, prev) => !payload.visible && prev !== null && !prev.visible,
   // Quantised payloads: an unchanged table (and footer, standingsEqual) is not re-sent.
   standings: (payload, prev) => prev !== null && standingsEqual(payload, prev),

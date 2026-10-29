@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Rect } from '../types'
+import type { OverlaySettings, Rect } from '../types'
 import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
 import { createDefaultSettings, normalizeSettings } from '.'
 import {
@@ -10,6 +10,16 @@ import {
   freeSpot,
   migrateSection
 } from './migrate'
+
+/** Visibility of `id` in an element list. */
+function shown(list: readonly { id: string; visible: boolean }[], id: string): boolean {
+  return list.some((e) => e.id === id && e.visible)
+}
+
+/** The warning lights shown on the strip, in order. */
+function lightsOn(s: OverlaySettings): string[] {
+  return s.lights.icons.filter((e) => e.visible).map((e) => e.id)
+}
 
 const overlaps = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
@@ -178,11 +188,11 @@ describe('the conditions widget, now the footer of the relative and the standing
     ;(raw.widgets as Record<string, unknown>).conditions = OLD_CONDITIONS.widget
     raw.conditions = OLD_CONDITIONS.options
     const s = normalizeSettings(raw)
-    expect(s.standings.conditionsFooter).toBe(true)
-    expect(s.relative.conditionsFooter).toBe(false)
+    expect(s.standings.footerBarSize).toBe('normal')
+    expect(s.relative.footerBarSize).toBe('off')
     // The old widget's choices are not carried over: it showed a panel that no longer exists.
-    expect(s.standings.conditionsWind).toBe(true)
-    expect(s.relative.conditionsWind).toBe(true)
+    expect(shown(s.standings.footerBar, 'wind')).toBe(true)
+    expect(shown(s.relative.footerBar, 'wind')).toBe(true)
   })
 
   it('survives a corrupt entry of the old widget', () => {
@@ -241,28 +251,18 @@ describe('the alerts band before the warning lights', () => {
     raw.alerts = { showEngineWarnings: false, showEngineTrend: false }
     const s = normalizeSettings(raw)
     expect(s.widgets.lights.visible).toBe(true)
-    expect(s.lights).toMatchObject({
-      showOilPressure: false,
-      showFuelPressure: false,
-      showWater: false,
-      showOilTemp: false,
-      showTrend: false,
-      showStalled: true,
-      showRepair: true,
-      showRepairOptional: true
-    })
+    expect(s.lights.showTrend).toBe(false)
+    expect(lightsOn(s)).toEqual(['stalled', 'repair', 'repairOptional'])
     expect(s.alerts.showOilPressure).toBe(false)
     // The damage off: both repair lights (the band said the optional ones too).
     const noDamage = normalizeSettings({ ...fileBeforeFuel(), alerts: { showDamage: false } })
-    expect(noDamage.lights).toMatchObject({
-      showRepair: false,
-      showRepairOptional: false,
-      showWater: true
-    })
+    expect(lightsOn(noDamage)).not.toContain('repair')
+    expect(lightsOn(noDamage)).not.toContain('repairOptional')
+    expect(lightsOn(noDamage)).toContain('water')
     expect(noDamage.alerts.showDamage).toBe(false)
     expect(noDamage.widgets.lights.visible).toBe(true)
     // The stall off in the band stays off in the strip too.
-    expect(normalizeSettings({ alerts: { showStalled: false } }).lights.showStalled).toBe(false)
+    expect(lightsOn(normalizeSettings({ alerts: { showStalled: false } }))).not.toContain('stalled')
   })
 
   it('leaves the lights hidden for a band that showed none of what they took over', () => {
@@ -273,7 +273,9 @@ describe('the alerts band before the warning lights', () => {
     expect(s.widgets.lights.visible).toBe(false)
     // Still placed clear of the others, for the day it is turned on.
     expect(overlaps(s.widgets.lights.bounds, RACE_LAYOUT.radar as Rect)).toBe(false)
-    expect(s.lights).toMatchObject({ showWater: false, showRepair: false, showTrend: false })
+    expect(lightsOn(s)).not.toContain('water')
+    expect(lightsOn(s)).not.toContain('repair')
+    expect(s.lights.showTrend).toBe(false)
 
     // The whole band hidden: none of it was on screen, whatever its options.
     const hidden = fileBeforeFuel()
@@ -296,5 +298,183 @@ describe('the alerts band before the warning lights', () => {
     ;(hidden.widgets as Record<string, unknown>).lights = { visible: true }
     hidden.alerts = { showEngineWarnings: false, showEngineTrend: false, showDamage: false }
     expect(normalizeSettings(hidden).widgets.lights.visible).toBe(true)
+  })
+})
+
+describe('the element lists from the options they replaced (v2.6)', () => {
+  const ids = (list: readonly { id: string; visible: boolean }[]): string[] =>
+    list.filter((e) => e.visible).map((e) => e.id)
+
+  it('a file with every old toggle at its default draws exactly the new defaults', () => {
+    const d = createDefaultSettings()
+    const old = {
+      relative: {
+        showClassPosition: true,
+        showLicense: true,
+        showIRating: true,
+        showStint: false,
+        showTyre: false,
+        showIncidents: true,
+        conditionsFooter: false,
+        conditionsTrackTemp: true,
+        conditionsWet: true,
+        conditionsWind: true,
+        conditionsAirTemp: true,
+        conditionsRubber: true
+      },
+      radar: { showRangeLabels: true },
+      standings: {
+        headerIRating: true,
+        headerSafetyRating: true,
+        headerIncidents: true,
+        showSof: true,
+        showCarCount: true,
+        conditionsFooter: true,
+        conditionsTrackTemp: true
+      },
+      battle: {
+        showAhead: true,
+        showBehind: true,
+        detail: 'sectors',
+        showPrediction: true,
+        showIRatingAtStake: true
+      },
+      inputs: {
+        layout: 'trace-bars-info',
+        showClutch: true,
+        showSteering: true,
+        showGearSpeed: true
+      },
+      traffic: { showFaster: true, showSlower: true, showHazards: true },
+      delta: { reference: 'pb', showPredicted: true, showSectors: true, showTrend: true },
+      fuel: { showHeader: false, showGauge: true, showPerLap: true, showWindow: true },
+      lights: { showOilPressure: true, showPitLimiter: false, showRevLimiter: false }
+    }
+    const s = normalizeSettings({ ...old, version: 5 })
+    for (const section of Object.keys(old) as (keyof typeof old)[]) {
+      expect(s[section], section).toEqual(d[section])
+    }
+  })
+
+  it('carries every old toggle into its list', () => {
+    const s = normalizeSettings({
+      relative: { showClassPosition: false, showStint: true, showIncidents: false },
+      radar: { showRangeLabels: false },
+      standings: { headerIRating: false, headerIncidents: false, showSof: false },
+      battle: { showBehind: false, showIRatingAtStake: false },
+      traffic: { showHazards: false },
+      delta: { showSectors: false, showTrend: false },
+      fuel: { showGauge: false, showLimits: false },
+      lights: { showWater: false, showPitLimiter: true }
+    })
+    expect(ids(s.relative.columns)).toEqual(['driver', 'lic', 'ir', 'stint', 'gap'])
+    expect(ids(s.relative.headerBar)).toEqual(['title', 'session', 'split'])
+    expect(ids(s.radar.parts)).toEqual(['guides', 'sideAlerts'])
+    expect(ids(s.standings.headerBar)).toEqual(['session', 'carCount', 'split', 'remaining'])
+    expect(ids(s.standings.classLine)).toEqual(['carCount'])
+    expect(ids(s.standings.subheaderBar)).toEqual(['fastestLap', 'split', 'safetyRating'])
+    expect(ids(s.battle.lanes)).toEqual(['ahead'])
+    expect(ids(s.battle.parts)).toEqual(['rating', 'license', 'trendNote'])
+    expect(ids(s.traffic.groups)).toEqual(['slower', 'faster'])
+    expect(ids(s.delta.rows)).toEqual(['top', 'bar'])
+    expect(ids(s.delta.top)).toEqual(['predicted', 'reference'])
+    expect(ids(s.fuel.lines)).toEqual(['hero', 'perLap', 'finish', 'window', 'save', 'tyres'])
+    expect(ids(s.lights.icons)).not.toContain('water')
+    expect(ids(s.lights.icons)).toContain('pitLimiter')
+  })
+
+  it('the conditions footers become the footer bars, the switch their size', () => {
+    const s = normalizeSettings({
+      relative: { conditionsFooter: true, conditionsWind: false, conditionsTrend: false },
+      standings: { conditionsFooter: false, conditionsRubber: false }
+    })
+    expect(s.relative.footerBarSize).toBe('normal')
+    expect(ids(s.relative.footerBar)).toEqual(['trackTemp', 'wet', 'airTemp', 'rubber', 'split'])
+    expect(s.relative.conditionsTrend).toBe(false)
+    expect(s.standings.footerBarSize).toBe('off')
+    expect(ids(s.standings.footerBar)).toEqual(['trackTemp', 'wet', 'wind', 'airTemp', 'split'])
+    // The fuel's header switch, its bar's size.
+    expect(normalizeSettings({ fuel: { showHeader: true } }).fuel.headerBarSize).toBe('normal')
+  })
+
+  it('the three layouts of the pedals, the four details of the battle, with the prediction', () => {
+    const order = (layout: string): string[] =>
+      normalizeSettings({ inputs: { layout } }).inputs.sections.map(
+        (e) => `${e.visible ? '+' : '-'}${e.id}`
+      )
+    expect(order('trace-bars-info')).toEqual(['+trace', '+bars', '+info'])
+    expect(order('info-bars-trace')).toEqual(['+info', '+bars', '+trace'])
+    expect(order('bars')).toEqual(['-trace', '+bars', '+info'])
+    expect(order('sideways')).toEqual(['+trace', '+bars', '+info'])
+    for (const [detail, sectors, laps] of [
+      ['none', false, false],
+      ['sectors', true, false],
+      ['laps', false, true],
+      ['both', true, true]
+    ] as const) {
+      for (const showPrediction of [true, false]) {
+        const rows = normalizeSettings({ battle: { detail, showPrediction } }).battle.rows
+        expect(rows, `${detail} ${showPrediction}`).toEqual([
+          { id: 'prediction', visible: showPrediction },
+          { id: 'sectors', visible: sectors },
+          { id: 'laps', visible: laps }
+        ])
+      }
+    }
+    // Gear and speed were one toggle.
+    expect(ids(normalizeSettings({ inputs: { showGearSpeed: false } }).inputs.info)).toEqual([
+      'steering'
+    ])
+  })
+
+  it('a file that has the list keeps it: the old fields are ignored', () => {
+    const columns = [{ id: 'gap', visible: true }]
+    const s = normalizeSettings({ relative: { columns, showClassPosition: true } })
+    expect(s.relative.columns[0]).toEqual({ id: 'gap', visible: true })
+    expect(s.relative.columns.find((e) => e.id === 'pos')?.visible).toBe(false)
+  })
+})
+
+describe('version 5: new defaults over old saved ones, once', () => {
+  const licence = (raw: Record<string, unknown>): string =>
+    normalizeSettings(raw).appearance.licenseStyle
+
+  it('the old default licence becomes the outline; a choice stays; a v5 file keeps soft', () => {
+    expect(licence({ version: 4, appearance: { licenseStyle: 'soft' } })).toBe('outline')
+    expect(licence({ appearance: { licenseStyle: 'soft' } })).toBe('outline')
+    expect(licence({ version: 4, appearance: { licenseStyle: 'solid' } })).toBe('solid')
+    expect(licence({ version: 5, appearance: { licenseStyle: 'soft' } })).toBe('soft')
+  })
+
+  it('the pedals fit their content: a v4 file had no auto height to give them', () => {
+    const bounds = { x: 820, y: 860, width: 360, height: 120 }
+    const v4 = normalizeSettings({
+      version: 4,
+      widgets: { inputs: { visible: true, bounds, autoHeight: false } }
+    })
+    expect(v4.widgets.inputs.autoHeight).toBe(true)
+    expect(v4.widgets.inputs.bounds).toEqual(bounds)
+    const v5 = normalizeSettings({
+      version: 5,
+      widgets: { inputs: { visible: true, bounds, autoHeight: false } }
+    })
+    expect(v5.widgets.inputs.autoHeight).toBe(false)
+  })
+
+  it('the delta: the old single default gives the per-session defaults, a choice every kind', () => {
+    expect(normalizeSettings({ delta: { reference: 'pb' } }).delta).toMatchObject({
+      referencePractice: 'pb',
+      referenceQualify: 'optimal',
+      referenceRace: 'optimal'
+    })
+    expect(normalizeSettings({ delta: { reference: 'classOptimal' } }).delta).toMatchObject({
+      referencePractice: 'classOptimal',
+      referenceQualify: 'classOptimal',
+      referenceRace: 'classOptimal'
+    })
+    // A bad old value: the defaults.
+    expect(normalizeSettings({ delta: { reference: 'fastest' } }).delta.referenceRace).toBe(
+      'optimal'
+    )
   })
 })

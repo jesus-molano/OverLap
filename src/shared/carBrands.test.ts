@@ -4,6 +4,7 @@ import {
   BRAND_MARK_MODES,
   BRANDS,
   brandInfo,
+  brandMarksOn,
   brandMarksShown,
   brandOfCar,
   brandsByCarIdx,
@@ -460,5 +461,14 @@ describe('brandMarksShown', () => {
     expect(brandMarksShown('auto', ['porsche', 'bmw'])).toBe(true)
     expect(brandMarksShown('auto', ['mazda', 'mazda'])).toBe(false)
     expect(brandMarksShown('auto', ['unknown', 'dallara'])).toBe(false)
+  })
+})
+
+describe('brandMarksOn', () => {
+  it('on, off, or auto from the multiBrand of a payload', () => {
+    expect(brandMarksOn('on', false)).toBe(true)
+    expect(brandMarksOn('off', true)).toBe(false)
+    expect(brandMarksOn('auto', true)).toBe(true)
+    expect(brandMarksOn('auto', false)).toBe(false)
   })
 })

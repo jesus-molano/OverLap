@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { driverIdentity, identityEqual } from './driver'
-import type { DriverEntry } from './types'
+import { driverIdentity, fieldHasMultipleBrands, identityEqual } from './driver'
+import { makeDriver, makeSession } from './race/testing/raceSim'
+import type { DriverEntry, SessionMeta } from './types'
 
 function entry(o: Partial<DriverEntry> = {}): DriverEntry {
   return {
@@ -25,6 +26,8 @@ function entry(o: Partial<DriverEntry> = {}): DriverEntry {
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'unknown',
+    country: '',
     ...o
   }
 }
@@ -38,7 +41,9 @@ describe('driverIdentity', () => {
       classColor: '#ffda59',
       iRating: 2412,
       licString: 'B 3.21',
-      licColor: '#00c702'
+      licColor: '#00c702',
+      brand: 'unknown',
+      country: ''
     })
   })
 
@@ -79,9 +84,50 @@ describe('identityEqual', () => {
       { classColor: '#ffffff' },
       { iRating: null },
       { licString: 'A 1.00' },
-      { licColor: null }
+      { licColor: null },
+      { brand: 'bmw' as const },
+      { country: 'ES' }
     ]) {
       expect(identityEqual(a, { ...a, ...change })).toBe(false)
     }
+  })
+})
+
+describe('the make and the country on every row', () => {
+  it('come from the entry', () => {
+    const id = driverIdentity(entry({ brand: 'ferrari', country: 'IT' }))
+    expect(id).toMatchObject({ brand: 'ferrari', country: 'IT' })
+  })
+})
+
+describe('fieldHasMultipleBrands', () => {
+  const field = (brands: DriverEntry['brand'][], o: Partial<SessionMeta> = {}): SessionMeta =>
+    makeSession(
+      brands.length,
+      o,
+      brands.map((brand, i) => makeDriver(i, { brand }))
+    )
+
+  it('counts the known makes of the field', () => {
+    expect(fieldHasMultipleBrands(field(['porsche', 'porsche']))).toBe(false)
+    expect(fieldHasMultipleBrands(field(['porsche', 'bmw']))).toBe(true)
+    expect(fieldHasMultipleBrands(field(['porsche', 'unknown', 'unknown']))).toBe(false)
+  })
+
+  it('leaves out the pace car and spectators', () => {
+    const s = makeSession(3, { paceCarIdx: 2 }, [
+      makeDriver(0, { brand: 'mazda' }),
+      makeDriver(1, { brand: 'toyota', isSpectator: true }),
+      makeDriver(2, { brand: 'bmw', isPaceCar: true })
+    ])
+    expect(fieldHasMultipleBrands(s)).toBe(false)
+  })
+
+  it('is memoised per session object', () => {
+    const s = field(['porsche', 'bmw'])
+    expect(fieldHasMultipleBrands(s)).toBe(true)
+    // The same object: the cached answer (sessions are replaced, never edited).
+    ;(s.drivers as Map<number, DriverEntry>).clear()
+    expect(fieldHasMultipleBrands(s)).toBe(true)
   })
 })

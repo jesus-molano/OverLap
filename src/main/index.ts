@@ -1,15 +1,28 @@
-import { Menu, app, globalShortcut, ipcMain, session, shell, type WebContents } from 'electron'
+import {
+  Menu,
+  app,
+  globalShortcut,
+  ipcMain,
+  screen,
+  session,
+  shell,
+  type WebContents
+} from 'electron'
 import { join } from 'node:path'
+import { cycleDeltaPatch } from '@shared/delta/choice'
 import type { PersonalBestList } from '@shared/delta/references'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
 import { stepScale } from '@shared/panelGeometry'
 import {
   applySettingsPatch,
+  defaultLayoutOffsetX,
+  placeDefaultLayout,
   rectsEqual,
   resetWidgetBounds,
   resetWidgetOptions,
   toTelemetryConfig
 } from '@shared/settings'
+import type { SessionKind } from '@shared/sessionInfo'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
@@ -113,10 +126,20 @@ function start(): void {
 
   const userData = app.getPath('userData')
   const store = SettingsStore.load(join(userData, 'settings.json'))
+  // A first run on an ultrawide screen: the default layout in its middle, not at its left edge.
+  const primaryArea = screen.getPrimaryDisplay().workArea
+  if (store.fresh && defaultLayoutOffsetX(primaryArea) > 0) {
+    const area = primaryArea
+    store.update((s) => {
+      Object.assign(s, placeDefaultLayout(s, area))
+    })
+  }
   const source = resolveSource(process.argv, process.env)
   let status = initialStatus(source)
   /** The telemetry process's latest list, for the settings window's Delta page. */
   let personalBests: PersonalBestList | null = null
+  /** The kind of session the telemetry process reports (the delta cycle shortcut acts on it). */
+  let sessionKindNow: SessionKind | null = null
   console.log(`[main] source: ${source}, settings: ${store.file}`)
   setSettingsWindowLanguage(store.settings.appearance.language)
 
@@ -154,8 +177,24 @@ function start(): void {
     onBests: (list) => {
       personalBests = list
       sendToSettingsWindow(IPC.personalBests, list)
+    },
+    onSessionKind: (kind) => {
+      sessionKindNow = kind
     }
   })
+
+  /**
+   * The delta's cycle shortcut: this kind of session's reference moves to the next one (the
+   * provider takes it at the start of the next lap, the widget names it). Outside a session there
+   * is nothing to cycle.
+   */
+  function cycleDeltaReference(): void {
+    const kind = sessionKindNow
+    if (kind === null) return
+    changeSettings((s) => {
+      Object.assign(s.delta, cycleDeltaPatch(s.delta, kind))
+    })
+  }
 
   /** The settings window gets the list again (and drops whatever it showed as deleting). */
   function sendPersonalBests(): void {
@@ -171,6 +210,9 @@ function start(): void {
           break
         case 'toggleEditMode':
           setEditMode(!windows.editMode)
+          break
+        case 'cycleDeltaReference':
+          cycleDeltaReference()
           break
       }
     },
@@ -254,7 +296,7 @@ function start(): void {
   function resetBounds(id: WidgetId): void {
     const prev = store.settings
     store.update((s) => {
-      Object.assign(s, resetWidgetBounds(s, id))
+      Object.assign(s, resetWidgetBounds(s, id, screen.getPrimaryDisplay().workArea))
     })
     // Move the widget first: its pending saves are dropped and a drag of it is
     // cancelled, so the reset wins.

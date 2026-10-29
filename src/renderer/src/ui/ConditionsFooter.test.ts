@@ -9,10 +9,16 @@ import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
 import { renderToString } from 'vue/server-renderer'
 import { messagesFor } from '@shared/i18n'
-import type { ConditionsData, ConditionsFooterOptions } from '@shared/types'
+import type { ConditionsData } from '@shared/types'
 import * as inlineStyle from '../directives/inlineStyle'
 import * as conditions from '../view/conditions'
-import { FOOTER_EM, PREVIEW_CONDITIONS, footerView, type FooterView } from '../view/conditions'
+import {
+  FOOTER_EM,
+  PREVIEW_CONDITIONS,
+  footerView,
+  type FooterReadings,
+  type FooterView
+} from '../view/conditions'
 import SOURCE from './ConditionsFooter.vue?raw'
 
 const Badge = vue.defineComponent({
@@ -59,7 +65,7 @@ function compileFooter(): vue.Component {
 const Footer = compileFooter()
 const ES = messagesFor('es')
 
-const ON: ConditionsFooterOptions = {
+const ON: FooterReadings = {
   conditionsFooter: true,
   conditionsTrackTemp: true,
   conditionsTrend: true,
@@ -70,10 +76,7 @@ const ON: ConditionsFooterOptions = {
   conditionsRubber: true
 }
 
-function viewOf(
-  d: Partial<ConditionsData> = {},
-  o: Partial<ConditionsFooterOptions> = {}
-): FooterView {
+function viewOf(d: Partial<ConditionsData> = {}, o: Partial<FooterReadings> = {}): FooterView {
   return footerView({ ...PREVIEW_CONDITIONS, ...d }, { ...ON, ...o }, 'metric', ES)
 }
 

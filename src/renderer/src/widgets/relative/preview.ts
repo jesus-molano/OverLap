@@ -3,10 +3,12 @@
  * car, one in the pits, two classes and every flag badge, so name format, licence style and
  * columns are judged on realistic rows. Tyres are named for your car model (the GT3s) only. As
  * many cars as the options ask for, your incident count and the conditions footer's readings
- * (drawn only with the footer on). Pure.
+ * (drawn only with the footer on). A field of several makes (the LMP2s are all Dallaras), so the
+ * brand marks show in 'auto' mode. Pure.
  */
+import type { BrandId } from '@shared/carBrands'
 import type { CarPenalty, LapRelation, RelativeData, RelativeRow } from '@shared/types'
-import { PREVIEW_CONDITIONS } from '@renderer/view/conditions'
+import { PREVIEW_INFO } from '@renderer/view/infoBar'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 
 const GT3 = '#33ceff'
@@ -14,6 +16,44 @@ const LMP2 = '#ff5888'
 const LIC = { A: '#0153db', B: '#00c702', C: '#feec04', D: '#fc8a27', R: '#fc0706' } as const
 /** Laps of a stint without a stop. */
 const STINT = 16
+/** The GT3s' makes by car number (the LMP2s are Dallaras); a Porsche when not listed. */
+const GT3_MAKES: Readonly<Record<string, BrandId>> = {
+  '7': 'mercedes-amg',
+  '19': 'porsche',
+  '12': 'ferrari',
+  '3': 'bmw',
+  '44': 'mercedes-amg',
+  '61': 'audi',
+  '51': 'lamborghini',
+  '8': 'mclaren',
+  '9': 'aston-martin',
+  '23': 'ford',
+  '88': 'chevrolet',
+  '14': 'acura',
+  '17': 'ferrari',
+  '40': 'bmw',
+  '66': 'audi'
+}
+
+/** Where the sample drivers race from, by car number (some chose no flag: none drawn). */
+const FLAGS: Readonly<Record<string, string>> = {
+  '7': 'DE',
+  '19': 'FR',
+  '12': 'IT',
+  '3': 'GB',
+  '44': 'SE',
+  '61': 'ES',
+  '51': 'IT',
+  '8': 'GB-SCT',
+  '9': 'NO',
+  '23': 'US',
+  '88': 'BR',
+  '14': 'JP',
+  '40': 'NL',
+  '66': 'AU',
+  '2': 'ES',
+  '5': 'BE'
+}
 
 interface Seed {
   num: string
@@ -45,6 +85,8 @@ function row(s: Seed, i: number, isPlayer = false): RelativeRow {
     iRating: s.ir,
     licString: `${s.lic} ${s.sr}`,
     licColor: LIC[s.lic],
+    brand: s.cls === LMP2 ? 'dallara' : (GT3_MAKES[s.num] ?? 'porsche'),
+    country: FLAGS[s.num] ?? '',
     gapS: s.gap,
     lapRelation: s.lap ?? 'same',
     inPits: s.pits === true,
@@ -285,6 +327,7 @@ export function previewRelative(ahead: number, behind: number): RelativeData {
     slotsBehind: behind,
     sessionType: 'Race',
     incidents: PREVIEW_INCIDENTS,
-    conditions: PREVIEW_CONDITIONS
+    info: PREVIEW_INFO,
+    multiBrand: true
   }
 }

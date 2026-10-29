@@ -4,11 +4,13 @@
  * identity across renders.
  */
 import { shallowRef } from 'vue'
+import { setElementVisible } from '@shared/elements'
 import type { SettingsCommand } from '@shared/ipc'
 import { DEFAULT_SETTINGS } from '@shared/settings'
-import type { OptionSection } from '@shared/settingsSchema'
+import type { ElementField, ElementIdOf, OptionSection } from '@shared/settingsSchema'
 import type {
   AppearanceSettings,
+  ElementEntry,
   OverlaySettings,
   SettingsPatch,
   ShowInSessions
@@ -88,6 +90,70 @@ export function optionSetter<S extends OptionSection>(
     }
     return set
   }
+}
+
+/** A list sent and not answered yet, per 'section.field': the next change builds on it. */
+const pendingLists = new Map<string, { readonly list: readonly ElementEntry[] }>()
+const listSetters = new Map<string, Setter<never>>()
+
+/** The list of `section.field` as last sent, or as the settings have it. */
+export function currentList<S extends OptionSection, F extends ElementField<S>>(
+  section: S,
+  field: F
+): readonly ElementEntry<ElementIdOf<S, F>>[] {
+  const pending = pendingLists.get(`${section}.${field}`)
+  if (pending !== undefined) return pending.list as readonly ElementEntry<ElementIdOf<S, F>>[]
+  const options = overlayState.settings.value?.[section] ?? DEFAULT_SETTINGS[section]
+  return options[field] as unknown as readonly ElementEntry<ElementIdOf<S, F>>[]
+}
+
+/**
+ * Memoised setter of a whole element list (`listSetter('relative', 'columns')(next)`): main
+ * normalises it (every id once, required ones shown). While its reply is out, `currentList`
+ * and `elementToggle` build on what was sent, so quick changes never undo each other.
+ */
+export function listSetter<S extends OptionSection, F extends ElementField<S>>(
+  section: S,
+  field: F
+): Setter<ElementEntry<ElementIdOf<S, F>>[]> {
+  const key = `${section}.${field}`
+  let set = listSetters.get(key) as Setter<ElementEntry<ElementIdOf<S, F>>[]> | undefined
+  if (set === undefined) {
+    set = async (list) => {
+      const mine = { list }
+      pendingLists.set(key, mine)
+      const fields: Partial<OverlaySettings[S]> = {}
+      ;(fields as Record<string, unknown>)[field] = list
+      try {
+        await updateSection(section, fields)
+      } finally {
+        if (pendingLists.get(key) === mine) pendingLists.delete(key)
+      }
+    }
+    listSetters.set(key, set)
+  }
+  return set
+}
+
+const toggleSetters = new Map<string, Setter<never>>()
+
+/**
+ * Memoised setter that shows or hides one element of a list (a ToggleControl's `apply`):
+ * `elementToggle('relative', 'columns', 'lic')(false)`.
+ */
+export function elementToggle<S extends OptionSection, F extends ElementField<S>>(
+  section: S,
+  field: F,
+  id: ElementIdOf<S, F>
+): Setter<boolean> {
+  const key = `${section}.${field}.${id}`
+  let set = toggleSetters.get(key) as Setter<boolean> | undefined
+  if (set === undefined) {
+    set = (visible) =>
+      listSetter(section, field)(setElementVisible(currentList(section, field), id, visible))
+    toggleSetters.set(key, set)
+  }
+  return set
 }
 
 const widgetSetters = new Map<string, Setter<never>>()

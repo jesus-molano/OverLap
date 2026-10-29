@@ -8,6 +8,7 @@ import {
   EMPTY_VIEW,
   fuelTone,
   fuelView,
+  fuelViewOptions,
   layoutKey,
   linesOf,
   reuseParts,
@@ -271,8 +272,8 @@ describe('fuelView', () => {
 
   it('takes its options from the defaults (only the header is off)', () => {
     const o = DEFAULT_SETTINGS.fuel
-    expect(o.showHeader).toBe(false)
-    const v = fuelView(PREVIEW_FUEL, o, ES)
+    expect(o.headerBarSize).toBe('off')
+    const v = fuelView(PREVIEW_FUEL, fuelViewOptions(o), ES)
     expect(linesOf(v)).toHaveLength(8)
   })
 })

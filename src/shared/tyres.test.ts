@@ -38,7 +38,9 @@ function driver(carIdx: number, carId: number): DriverEntry {
     teamId: 0,
     carId,
     carName: '',
-    isAI: false
+    isAI: false,
+    brand: 'unknown',
+    country: ''
   }
 }
 

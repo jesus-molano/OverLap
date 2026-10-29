@@ -164,6 +164,8 @@ function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): DriverEntry {
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'unknown',
+    country: '',
     ...o
   }
 }
@@ -228,6 +230,19 @@ const OPTS: StandingsOptions = {
   iRatingDeltaAll: true
 }
 const FULL: StandingsOptions = { ...OPTS, mode: 'full' }
+
+/** The options with these header items hidden (the ratings are on the second line). */
+function noHeader(
+  opts: StandingsOptions,
+  ...ids: ('iRating' | 'safetyRating')[]
+): StandingsOptions {
+  return {
+    ...opts,
+    subheaderBar: opts.subheaderBar.map((e) =>
+      (ids as string[]).includes(e.id) ? { ...e, visible: false } : e
+    )
+  }
+}
 
 function hide(opts: StandingsOptions, ...ids: StandingsColumnId[]): StandingsOptions {
   return {
@@ -868,13 +883,13 @@ describe('iRating', () => {
   })
 
   it('is not computed when neither the column nor the header shows it', () => {
-    const opts = { ...hide(FULL, 'delta'), headerIRating: false }
+    const opts = noHeader(hide(FULL, 'delta'), 'iRating')
     const data = compute(RACE, session, makeRace(cars), opts)
     expect(iRatingDeltas).not.toHaveBeenCalled()
     expect(rowOf(data, 0).iRatingDelta).toBeNull()
     expect(data.header.iRating).toBeNull()
     // The column alone: rows, no header.
-    const column = compute(RACE, session, makeRace(cars), { ...FULL, headerIRating: false })
+    const column = compute(RACE, session, makeRace(cars), noHeader(FULL, 'iRating'))
     expect(column.header.iRating).toBeNull()
     expect(rowOf(column, 0).iRatingDelta).not.toBeNull()
   })
@@ -1000,7 +1015,7 @@ describe('header', () => {
   it('no SR without the SR header or a player entry', () => {
     const race = makeRace(field(3))
     expect(
-      compute(RACE, session, race, { ...OPTS, headerSafetyRating: false }).header.safetyRating
+      compute(RACE, session, race, noHeader(OPTS, 'safetyRating')).header.safetyRating
     ).toBeNull()
     const spectator = makeRace(field(3), { playerCarIdx: 42 })
     expect(
@@ -1009,7 +1024,7 @@ describe('header', () => {
     ).toBeNull()
     expect(projectSessionSafetyRating).not.toHaveBeenCalled()
     // The iRating line has its own toggle.
-    const noIr = compute(RACE, session, race, { ...OPTS, headerIRating: false })
+    const noIr = compute(RACE, session, race, noHeader(OPTS, 'iRating'))
     expect(noIr.header.iRating).toBeNull()
     expect(noIr.header.safetyRating).not.toBeNull()
   })
