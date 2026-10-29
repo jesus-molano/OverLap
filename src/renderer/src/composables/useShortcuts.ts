@@ -18,3 +18,17 @@ export function useShortcuts(): ComputedRef<ShortcutSettings> {
   useOverlayState()
   return shortcuts
 }
+
+const NO_NAMES: Readonly<Record<string, string>> = Object.freeze({})
+
+/** settings.buttonDeviceNames, kept while equal: the names of the controllers shortcuts use. */
+const deviceNames: ComputedRef<Readonly<Record<string, string>>> = computed((prev) => {
+  const next = overlayState.settings.value?.buttonDeviceNames ?? NO_NAMES
+  return prev !== undefined && shallowEqual(prev, next) ? prev : next
+})
+
+/** The names of the controllers whose buttons are shortcuts (id -> name). */
+export function useDeviceNames(): ComputedRef<Readonly<Record<string, string>>> {
+  useOverlayState()
+  return deviceNames
+}

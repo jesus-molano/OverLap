@@ -4,8 +4,10 @@ import { WIDGET_IDS } from '../widgets'
 import {
   DEFAULT_LANGUAGE,
   LANGUAGES,
+  acceleratorText,
   hiddenText,
   isLanguage,
+  keycaps,
   messagesFor,
   statusText,
   widgetTitle,
@@ -142,10 +144,30 @@ describe('shortcut texts', () => {
 
   it('word the shortcuts page in both languages', () => {
     const s = es.settings.shortcuts
-    expect(es.settings.nav.shortcuts).toBe('Atajos de teclado')
-    expect(en.settings.nav.shortcuts).toBe('Keyboard shortcuts')
-    expect(s.capture.prompt).toBe('Pulsa la combinación… (Esc cancela)')
-    expect(s.status).toEqual({ disabled: 'Desactivado', unavailable: 'En uso por otra aplicación' })
+    expect(es.settings.nav.shortcuts).toBe('Atajos')
+    expect(en.settings.nav.shortcuts).toBe('Shortcuts')
+    // Short (the field keeps its width while recording), and not only the wheel's buttons.
+    expect(s.capture.prompt).toBe('Pulsa las teclas o un botón…')
+    expect(en.settings.shortcuts.capture.prompt).toBe('Press the keys or a button…')
+    expect(s.capture.clearHint).toBe('Esc cancela · Retroceso o Supr lo desactivan')
+    expect(s.capture.pressAgain).toBe('Mando detectado: pulsa el botón otra vez')
+    expect(en.settings.shortcuts.capture.pressAgain).toBe(
+      'Controller found: press the button again'
+    )
+    expect(s.resetAll.descriptionButtons(1)).toContain('quita el botón asignado')
+    expect(s.resetAll.confirmButtons(3)).toBe('¿Quitar 3 botones asignados? Pulsa otra vez')
+    expect(en.settings.shortcuts.resetAll.confirmButtons(1)).toBe(
+      'Remove the assigned button? Click again'
+    )
+    expect(s.status).toEqual({
+      disabled: 'Desactivado',
+      unavailable: 'En uso por otra aplicación',
+      disconnected: 'Desconectado'
+    })
+    expect(es.core.keys.button(12)).toBe('Botón 12')
+    expect(en.core.keys.button(12)).toBe('Button 12')
+    expect(acceleratorText(es, 'joy:046d:c24f:0:7')).toBe('Botón 7')
+    expect(keycaps(en, 'joy:046d:c24f:0:7')).toEqual(['Button 7'])
     expect([s.change, s.disable, s.reset]).toEqual(['Cambiar', 'Desactivar', 'Restablecer'])
     expect([en.settings.shortcuts.change, en.settings.shortcuts.disable]).toEqual([
       'Change',

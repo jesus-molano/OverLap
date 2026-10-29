@@ -6,6 +6,7 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/telemetry/**/*",
+    "src/input/**/*",
     "src/shared/**/*"
   ],
   "compilerOptions": {

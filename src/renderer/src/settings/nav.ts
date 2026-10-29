@@ -1,5 +1,5 @@
 /**
- * Pages of the settings window: appearance, keyboard shortcuts, saved layouts, then one per
+ * Pages of the settings window: appearance, shortcuts, saved layouts, then one per
  * widget. Pure.
  */
 import { widgetTitle, type Messages } from '@shared/i18n'
@@ -26,7 +26,7 @@ export function isSettingsPage(value: unknown): value is SettingsPage {
   return (GLOBAL_PAGES as readonly unknown[]).includes(value) || isWidgetId(value)
 }
 
-/** 'Apariencia', 'Atajos de teclado', 'Disposiciones' or the widget's name, in `m`'s language. */
+/** 'Apariencia', 'Atajos', 'Disposiciones' or the widget's name, in `m`'s language. */
 export function pageTitle(m: Messages, page: SettingsPage): string {
   if (page === 'appearance') return m.settings.nav.appearance
   if (page === 'shortcuts') return m.settings.nav.shortcuts

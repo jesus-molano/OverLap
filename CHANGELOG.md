@@ -5,6 +5,22 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- **Atajos en los botones del volante**: cualquier atajo puede ir en un botón del volante o su aro,
+  una button box, los pedales, el cambio o el freno de mano, en vez de en una combinación de
+  teclas. En **Ajustes > Atajos** (antes «Atajos de teclado»), **Cambiar** espera una combinación
+  o un botón; se ve como «Botón 12 · G29 Driving Force Racing Wheel», con más de 32 botones
+  también.
+- Los botones solo se leen (Raw Input de Windows, como SimHub o Crew Chief): se comparten con
+  iRacing, que también recibe la pulsación, y no se bloquea nada. Mantener pulsado cuenta una vez.
+- Un dispositivo desenchufado conserva su atajo y la página dice «Desconectado»; al enchufarlo
+  vuelve a funcionar solo. Sin ningún atajo en un botón, OverLap no lee los mandos.
+- Las crucetas (D-pad) y los hats no se pueden asignar. Volver a la 2.1.1 devuelve a su
+  combinación de fábrica los atajos que estaban en un botón.
+
 ## [2.1.1] - 2026-10-29
 
 ### Corregido

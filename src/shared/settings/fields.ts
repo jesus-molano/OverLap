@@ -4,7 +4,6 @@
  * `target` (a fresh copy); invalid ones keep target's value: the default when
  * normalising, the current value when patching.
  */
-import { canonicalAccelerator } from '../accelerator'
 import { normalizeHexColor } from '../colors'
 import {
   OPTION_SCHEMA,
@@ -12,6 +11,7 @@ import {
   type ElementsSpec,
   type OptionSpec
 } from '../settingsSchema'
+import { canonicalShortcut } from '../shortcuts'
 import type { ElementEntry, Rect, Size, StandingsColumn, WidgetSettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
 
@@ -103,12 +103,13 @@ export function normalizeColumns(
 }
 
 /**
- * '' (turned off), or an assignable combination in its canonical spelling; anything else
- * (not a string, unparsable, reserved, needing a modifier) keeps `fallback`.
+ * '' (turned off), an assignable combination in its canonical spelling, or a controller's
+ * button (controllers.ts); anything else (not a string, unparsable, reserved, needing a
+ * modifier) keeps `fallback`.
  */
 export function pickAccelerator(value: unknown, fallback: string): string {
   if (value === '') return ''
-  return canonicalAccelerator(value) ?? fallback
+  return canonicalShortcut(value) ?? fallback
 }
 
 /** A valid value for `spec` from `raw`, else `current` (copied when it is an object). */

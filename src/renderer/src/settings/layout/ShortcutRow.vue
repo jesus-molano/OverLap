@@ -2,25 +2,28 @@
 import { computed, useId } from 'vue'
 import { modifierCaps } from '@shared/accelerator'
 import { useI18n } from '../../composables/useI18n'
-import { rowMessages, type ShortcutRowView } from '../shortcutsView'
+import Icon from '../../ui/Icon.vue'
+import { rowMessages, type DeviceNames, type ShortcutRowView } from '../shortcutsView'
 import type { ShortcutCapture } from '../useShortcutCapture'
 import Keycaps from './Keycaps.vue'
 
 /**
  * One configurable shortcut: the label (with a badge when another application holds the
- * combination), then a field with its keys (the keys being pressed while recording, "Off"
- * when it has none) and Change / Disable / Reset beside it. The field has one width in every
- * row, so the buttons line up. The Change button keeps the focus while recording: leaving it
+ * combination, or the button's controller is unplugged), then a field with its keys or its
+ * button and controller (the keys being pressed while recording, "Off" when it has none) and
+ * Change / Disable / Reset beside it. The field keeps one width in every row and while
+ * recording (a button's controller goes on a second line, cut when long; the prompt is short),
+ * so the buttons line up and nothing moves when recording starts. The Change button keeps the focus while recording: leaving it
  * (Tab, a click elsewhere) cancels.
  */
-const props = defineProps<{ row: ShortcutRowView; capture: ShortcutCapture }>()
+const props = defineProps<{ row: ShortcutRowView; capture: ShortcutCapture; names: DeviceNames }>()
 
 const t = useI18n()
 const msgId = useId()
 const recording = computed(() => props.capture.active.value === props.row.action)
 const heldCaps = computed(() => (recording.value ? modifierCaps(props.capture.held.value) : []))
 const messages = computed(() =>
-  rowMessages(t.value, props.row, props.capture.feedback.value, recording.value)
+  rowMessages(t.value, props.row, props.capture.feedback.value, recording.value, props.names)
 )
 
 function onChangeBlur(): void {
@@ -41,11 +44,28 @@ function onChangeBlur(): void {
         <span class="st-help">{{ row.help }}</span>
       </div>
       <div class="sc-bind">
-        <div class="sc-keys" :class="{ 'is-recording': recording }">
+        <div
+          class="sc-keys"
+          :class="{ 'is-recording': recording, 'has-button': row.button && !recording }"
+        >
           <template v-if="recording">
             <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
             <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
           </template>
+          <span
+            v-else-if="row.button"
+            class="sc-button"
+            :class="{ 'is-off': row.status === 'unavailable' }"
+            :aria-label="t.settings.shortcuts.buttonAria(row.button.button, row.button.device)"
+          >
+            <Icon name="wheel" class="sc-button-icon" />
+            <span class="sc-button-text">
+              <span class="sc-button-name">{{ row.button.button }}</span>
+              <span class="sc-button-device" :title="row.button.device">{{
+                row.button.device
+              }}</span>
+            </span>
+          </span>
           <Keycaps v-else-if="row.keys.length > 0" :keys="row.keys" />
           <span v-else class="sc-off">{{ row.badge }}</span>
         </div>
@@ -134,6 +154,58 @@ function onChangeBlur(): void {
 .sc-prompt {
   color: var(--ov-fg);
   font-size: 12.5px;
+}
+
+/* A button's field: the keys' width exactly, whatever its controller's name. */
+.sc-keys.has-button {
+  width: 15em;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+
+/* A controller's button: the wheel glyph, the button, and its controller under it. */
+.sc-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+.sc-button-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.sc-button-icon {
+  color: var(--ov-fg-muted);
+  font-size: 14px;
+}
+
+.sc-button-name {
+  color: var(--ov-fg);
+  font-family: var(--ov-font-num);
+  font-weight: var(--ov-w-strong);
+  white-space: nowrap;
+}
+
+/* A long controller name is cut (its full name is in the title and the saved line). */
+.sc-button-device {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ov-fg-muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Its controller is unplugged: kept, but dimmed (the badge says why). */
+.sc-button.is-off .sc-button-name,
+.sc-button.is-off .sc-button-device,
+.sc-button.is-off .sc-button-icon {
+  color: var(--ov-fg-dim);
 }
 
 /* Turned off: what an empty field would say. */

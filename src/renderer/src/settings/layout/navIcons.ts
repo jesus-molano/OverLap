@@ -17,13 +17,8 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
     },
     { d: 'M4.6 7.4a1 1 0 1 0 0-.01zM6.6 4.6a1 1 0 1 0 0-.01zM9.9 4.6a1 1 0 1 0 0-.01z', fill: true }
   ],
-  // Keyboard: a row of keys over the space bar.
-  shortcuts: [
-    {
-      d: 'M2.25 4.25h11.5a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1H2.25a1 1 0 0 1-1-1v-5.5a1 1 0 0 1 1-1z'
-    },
-    { d: 'M4 6.75h.01M6.67 6.75h.01M9.33 6.75h.01M12 6.75h.01M5.5 9.25h5' }
-  ],
+  // A bolt: an action at a press, of a key or a controller's button.
+  shortcuts: [{ d: 'M9.25 1.75 3.75 9h4l-1 5.25L12.25 7h-4z' }],
   // Panels placed on a screen: a layout.
   layouts: [{ d: 'M2.25 2.75h5v5h-5zM9.75 2.75h4v3h-4zM9.75 8.25h4v5h-4zM2.25 10.25h5v3h-5z' }],
   // Rows around a highlighted one.
