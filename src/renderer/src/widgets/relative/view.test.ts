@@ -1,13 +1,22 @@
 import { describe, expect, it } from 'vitest'
+import { moveElement, setElementVisible } from '@shared/elements'
 import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
+import { DEFAULT_SETTINGS, normalizeSettings } from '@shared/settings'
 import type { RelativeData, RelativeRow } from '@shared/types'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
 import { previewRelative } from './preview'
 import {
+  BRAND_FIT_EM,
+  CHROME_BASE_EM,
+  FLAG_FIT_EM,
+  HEADS_EM,
+  RELATIVE_FIT_EM,
+  chromeEm,
   layoutSlots,
   relativeColumns,
+  relativeHeads,
   toSlotView,
   toSlotViews,
   type RelativeSlotView,
@@ -173,33 +182,134 @@ describe('toSlotViews', () => {
 })
 
 describe('relativeColumns', () => {
-  it('lists the shown columns, the name taking the rest', () => {
-    const all = relativeColumns({ showClassPosition: true, showLicense: true, showIRating: true })
-    expect(all.template).toBe('1.9em minmax(0, 1fr) 2.8em 2.4em 3.1em')
-    const none = relativeColumns({
-      showClassPosition: false,
-      showLicense: false,
-      showIRating: false
-    })
-    expect(none.template).toBe('minmax(0, 1fr) 3.1em')
-    expect(none.key).not.toBe(all.key)
+  const DEF = DEFAULT_SETTINGS.relative.columns
+  const plain = { tyres: true, flags: true, brand: false, country: false }
+  type Legacy = {
+    showClassPosition: boolean
+    showLicense: boolean
+    showIRating: boolean
+    showTyre: boolean
+    showStint: boolean
+  }
+  /** What the row drew before the list (the old relativeColumns), from its five toggles. */
+  function legacyTemplate(o: Legacy): string {
+    const tracks: string[] = []
+    if (o.showClassPosition) tracks.push('1.9em')
+    tracks.push('minmax(0, 1fr)')
+    if (o.showLicense) tracks.push('2.8em')
+    if (o.showIRating) tracks.push('2.4em')
+    if (o.showTyre) tracks.push('1.3em')
+    if (o.showStint) tracks.push('2.3em')
+    tracks.push('3.1em')
+    return tracks.join(' ')
+  }
+  function legacyFit(o: Legacy): number {
+    return 27 + (o.showTyre ? 1.7 : 0) + (o.showStint ? 2.7 : 0)
+  }
+
+  it('draws today’s row from the default list', () => {
+    const c = relativeColumns(DEF, plain)
+    expect(c.cells).toEqual(['pos', 'driver', 'lic', 'ir', 'gap'])
+    expect(c.template).toBe('1.9em minmax(0, 1fr) 2.8em 2.4em 3.1em')
+    expect(c.fitEm).toBe(RELATIVE_FIT_EM)
+    expect(c.fitEm).toBe(27)
   })
 
-  it('adds the tyre and stint columns before the gap, widening what the font fits', () => {
-    const base = { showClassPosition: true, showLicense: true, showIRating: true }
-    const plain = relativeColumns(base)
-    expect(plain).toMatchObject({ tyre: false, stint: false, flags: true, fitEm: 27 })
-    const extras = relativeColumns({ ...base, showTyre: true, showStint: true })
-    expect(extras.template).toBe('1.9em minmax(0, 1fr) 2.8em 2.4em 1.3em 2.3em 3.1em')
-    expect(extras.fitEm).toBeCloseTo(27 + 1.3 + 2.3 + 0.8, 5)
-    expect(relativeColumns({ ...base, showTyre: true }).template).toBe(
-      '1.9em minmax(0, 1fr) 2.8em 2.4em 1.3em 3.1em'
+  it('reads every old combination of toggles into the same row', () => {
+    const keys = new Set<string>()
+    for (let bits = 0; bits < 32; bits++) {
+      const o: Legacy = {
+        showClassPosition: (bits & 1) !== 0,
+        showLicense: (bits & 2) !== 0,
+        showIRating: (bits & 4) !== 0,
+        showTyre: (bits & 8) !== 0,
+        showStint: (bits & 16) !== 0
+      }
+      const list = normalizeSettings({ version: 4, relative: o }).relative.columns
+      const c = relativeColumns(list, plain)
+      expect(c.template, JSON.stringify(o)).toBe(legacyTemplate(o))
+      expect(c.fitEm).toBeCloseTo(legacyFit(o), 5)
+      keys.add(c.key)
+    }
+    expect(keys.size).toBe(32)
+  })
+
+  it('follows the list’s order, cells before the driver on its left', () => {
+    // [pos driver lic ir tyre stint gap] → [gap ir pos driver lic tyre stint]
+    let list = moveElement(DEF, 6, 0)
+    list = moveElement(list, 4, 1)
+    expect(list.map((e) => e.id)).toEqual(['gap', 'ir', 'pos', 'driver', 'lic', 'tyre', 'stint'])
+    const c = relativeColumns(list, plain)
+    expect(c.cells).toEqual(['gap', 'ir', 'pos', 'driver', 'lic'])
+    expect(c.template).toBe('3.1em 2.4em 1.9em minmax(0, 1fr) 2.8em')
+    expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
+  })
+
+  it('puts back a required cell a hand-edited list lost', () => {
+    const c = relativeColumns(
+      [
+        { id: 'pos', visible: true },
+        { id: 'ir', visible: true }
+      ],
+      plain
     )
-    // Flags change no track, only what the rows draw: still a new key for v-memo.
-    const noFlags = relativeColumns({ ...base, showFlags: false })
-    expect(noFlags.flags).toBe(false)
-    expect(noFlags.template).toBe(plain.template)
-    expect(new Set([plain.key, extras.key, noFlags.key]).size).toBe(3)
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'gap'])
+  })
+
+  it('shows the tyre column only while some row names a compound', () => {
+    const list = setElementVisible(DEF, 'tyre', true)
+    expect(relativeColumns(list, plain).cells).toContain('tyre')
+    const none = relativeColumns(list, { ...plain, tyres: false })
+    expect(none.cells).not.toContain('tyre')
+    expect(none.fitEm).toBe(27)
+  })
+
+  it('widens the fit for the make and the flag in the driver cell, not the tracks', () => {
+    const base = relativeColumns(DEF, plain)
+    const brand = relativeColumns(DEF, { ...plain, brand: true })
+    const both = relativeColumns(DEF, { ...plain, brand: true, country: true })
+    expect(brand.template).toBe(base.template)
+    expect(brand.fitEm).toBeCloseTo(27 + BRAND_FIT_EM, 5)
+    expect(both.fitEm).toBeCloseTo(27 + BRAND_FIT_EM + FLAG_FIT_EM, 5)
+    expect(BRAND_FIT_EM).toBeCloseTo(2.1, 5)
+    expect(FLAG_FIT_EM).toBeCloseTo(2.08, 5)
+    // Flags (penalty badges), makes and country flags change no track: still new v-memo keys.
+    const noFlags = relativeColumns(DEF, { ...plain, flags: false })
+    expect(noFlags.template).toBe(base.template)
+    expect(new Set([base.key, brand.key, both.key, noFlags.key]).size).toBe(4)
+  })
+})
+
+describe('relativeHeads', () => {
+  it('names each cell in its order, aligned like it, in each language', () => {
+    const cells = ['gap', 'pos', 'driver', 'lic', 'ir', 'tyre', 'stint'] as const
+    expect(relativeHeads(cells, 'outline', ES).map((h) => [h.id, h.label, h.align])).toEqual([
+      ['gap', ES.widgets.heads.gap, 'end'],
+      ['pos', ES.widgets.heads.pos, 'start'],
+      ['driver', ES.widgets.heads.driver, 'start'],
+      ['lic', ES.widgets.heads.sr, 'center'],
+      ['ir', ES.widgets.heads.ir, 'end'],
+      ['tyre', '', 'center'],
+      ['stint', ES.widgets.heads.stint, 'end']
+    ])
+    expect(relativeHeads(['lic'], 'letter', EN)[0]?.label).toBe(EN.widgets.heads.lic)
+    expect(ES.widgets.heads.driver).not.toBe(EN.widgets.heads.driver)
+  })
+})
+
+describe('chromeEm', () => {
+  it('is today’s 1.8 with the header at its normal size and no footer', () => {
+    expect(chromeEm({ header: 1, heads: false, footer: null })).toBe(1.8)
+  })
+
+  it('adds each bar at its scale and the heads row', () => {
+    expect(chromeEm({ header: null, heads: false, footer: null })).toBe(CHROME_BASE_EM)
+    expect(chromeEm({ header: 1, heads: true, footer: null })).toBeCloseTo(1.8 + HEADS_EM, 5)
+    expect(chromeEm({ header: 1, heads: false, footer: 1 })).toBeCloseTo(3.4, 5)
+    expect(chromeEm({ header: 0.85, heads: true, footer: 1.2 })).toBeCloseTo(
+      0.2 + 1.36 + 1.1 + 1.92,
+      5
+    )
   })
 })
 
@@ -223,6 +333,12 @@ describe('stint, tyre and flag cells', () => {
     expect(toSlotView(row(1, { tyre: 'wet' }), 0, styles, 'full', EN).tyre).toBe('W')
     expect(toSlotView(row(1, { tyre: null }), 0, styles, 'full', ES).tyre).toBe('—')
     expect(toSlotView(row(1, { tyre: '  ' }), 0, styles, 'full', ES).tyre).toBe('—')
+  })
+
+  it('passes the make and the country flag on', () => {
+    expect(
+      toSlotView(row(1, { brand: 'porsche', country: 'ES' }), 0, styles, 'full', ES)
+    ).toMatchObject({ brand: 'porsche', country: 'ES' })
   })
 
   it('passes the flag badge on', () => {
