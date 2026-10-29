@@ -8,9 +8,15 @@
  * 'classOptimal' the best in each sector by anyone in your class, joined into a lap (clean laps,
  * OptimalLaps in optimal.ts). With `fallback` the chain DELTA_FALLBACK of the chosen one is
  * walked. A reference is only switched at the start of a lap (its first DELTA.switchS, before
- * the first sector line), when there is none or when the options change: a faster lap or a best
- * sector set mid-lap never makes the delta jump, and the sectors of one lap compare with one
- * reference. Its profile is copied, so the store and the model may replace theirs at will.
+ * the first sector line) or when there is none: a faster lap, a best sector set mid-lap or a
+ * change of options (Settings, the cycle shortcut) never makes the delta jump, and the sectors of
+ * one lap compare with one reference. A reference chosen mid-lap waits in DeltaData.pending until
+ * the next lap starts. Its profile is copied, so the store and the model may replace theirs at
+ * will.
+ *
+ * Every payload also carries your lap times (DeltaData.laps: the last, your session best, your
+ * optimal and your record), whatever the reference: the widget's lap times line. They are looked
+ * up with the references while a lap starts (when they change), not per compute.
  *
  * Delta = seconds into the lap (RaceView.currentLap) - the reference's time at the same lap
  * fraction (linear between timing lines). In the first DELTA.guardPct of a lap, where the lap
@@ -172,8 +178,16 @@ export class DeltaProvider {
   private sessionKey: string | null = null
   private lastT = Number.NaN
   private player = -1
+  /** The options in force: the chosen reference (before any fallback) and the fallback. */
   private optRef: DeltaReference | null = null
   private optFallback = false
+  /** A reference chosen while a lap was under way: taken at the next lap start. */
+  private pending: DeltaReference | null = null
+  /** DeltaData.laps, the same frozen object while the times stay. */
+  private laps: Readonly<DeltaLaps> = NO_LAPS
+  /** Your newest closed lap when your session best was last read ('' for none), and that best. */
+  private bestOf = '\u0000'
+  private bestTime: number | null = null
 
   /** personalBestKey() of keySession/keyPlayer (rebuilt only when either changes). */
   private keySession: SessionMeta | null = null
@@ -233,6 +247,10 @@ export class DeltaProvider {
     this.player = -1
     this.optRef = null
     this.optFallback = false
+    this.pending = null
+    this.laps = NO_LAPS
+    this.bestOf = '\u0000'
+    this.bestTime = null
     this.keySession = null
     this.keyPlayer = -1
     this.pbKey = null
@@ -508,25 +526,38 @@ export class DeltaProvider {
   // References
   // ---------------------------------------------------------------------------
 
+  /**
+   * The reference to compare with. Options chosen while a lap is under way wait for the next lap
+   * start (DeltaData.pending meanwhile); with no reference in use they apply at once (nothing to
+   * keep consistent).
+   */
   private updateReference(
     session: SessionMeta,
     race: RaceView,
     bests: PersonalBestStore,
-    reference: DeltaReference,
-    fallback: boolean,
+    wanted: DeltaReference,
+    wantedFallback: boolean,
     player: number,
     now: number,
     lapChanged: boolean,
     starting: boolean
   ): void {
-    const optsChanged = reference !== this.optRef || fallback !== this.optFallback
-    this.optRef = reference
-    this.optFallback = fallback
+    const canSwitch = this.ref === null || lapChanged || starting
+    const applied = canSwitch && (wanted !== this.optRef || wantedFallback !== this.optFallback)
+    if (applied) {
+      this.optRef = wanted
+      this.optFallback = wantedFallback
+    }
+    this.pending = this.optRef !== wanted ? wanted : null
+    const reference = this.optRef ?? wanted
+    const fallback = this.optFallback
     const every = this.ref === null || starting ? DELTA.searchS : DELTA.refreshS
-    if (!optsChanged && !lapChanged && now - this.refreshT < every) return
+    if (!applied && !lapChanged && now - this.refreshT < every) return
     this.refreshT = now
     // Whatever the reference: an optimal one chosen later has the laps before it.
     this.optimal.scan(race, session)
+    // Your times change at the line (your record a few seconds after it): looked up meanwhile.
+    if (canSwitch) this.updateLaps(session, race, bests, player)
 
     const chain = DELTA_FALLBACK[reference]
     const end = fallback ? chain.length : 1
@@ -534,7 +565,6 @@ export class DeltaProvider {
     for (let i = 0; i < end && cand === null; i++) {
       cand = this.candidate(chain[i] ?? 'pb', session, race, bests, player)
     }
-    const canSwitch = this.ref === null || optsChanged || lapChanged || starting
     if (cand === null) {
       if (canSwitch) this.dropReference()
       return
@@ -550,6 +580,41 @@ export class DeltaProvider {
       if (cand.lapTime !== this.refTime) this.copyProfile(cand)
     } else if (canSwitch) {
       this.adopt(cand, session, player)
+    }
+  }
+
+  /** DeltaData.laps: your last lap, session best (clean), optimal and record, to the ms. */
+  private updateLaps(
+    session: SessionMeta,
+    race: RaceView,
+    bests: PersonalBestStore,
+    player: number
+  ): void {
+    const me = race.car(player)
+    // The best lap is read again only once you have closed another one.
+    const newest = me?.laps[0]
+    const closed = newest === undefined ? '' : `${player}:${newest.lap}:${newest.time}`
+    if (closed !== this.bestOf) {
+      this.bestOf = closed
+      const best = race.lapProfile(player, 'best')
+      this.bestTime = best !== null && best.clean ? lapTimeOf(best.lapTime) : null
+    }
+    const key = this.personalBestKey(session, player)
+    const pb = key === null ? null : bests.get(key)
+    const next: DeltaLaps = {
+      last: lapTimeOf(me?.lastLapTime),
+      best: this.bestTime,
+      optimal: lapTimeOf(this.optimal.ofCar(player)?.lapTime),
+      pb: lapTimeOf(pb?.lapTime)
+    }
+    const l = this.laps
+    if (
+      next.last !== l.last ||
+      next.best !== l.best ||
+      next.optimal !== l.optimal ||
+      next.pb !== l.pb
+    ) {
+      this.laps = Object.freeze(next)
     }
   }
 
@@ -658,7 +723,13 @@ export class DeltaProvider {
       const next = cur === null || cur.lap === s.lap + 1
       if ((next && pct < DELTA.guardPct) || over) {
         this.shownDelta = s.data.delta
-        return { ...s.data, sectors: s.data.sectors.slice() }
+        return {
+          ...s.data,
+          preferred: this.optRef ?? s.data.preferred,
+          pending: this.pending,
+          laps: this.laps,
+          sectors: s.data.sectors.slice()
+        }
       }
     }
     if (over) return hiddenPayload(this.optRef ?? 'pb')
@@ -686,8 +757,8 @@ export class DeltaProvider {
       visible: true,
       reference: this.ref ?? 'pb',
       preferred: this.optRef ?? this.ref ?? 'pb',
-      pending: null,
-      laps: NO_LAPS,
+      pending: this.pending,
+      laps: this.laps,
       refDriver: this.refDriver,
       refSelf: this.refSelf,
       refLapTime: this.refTime,
@@ -734,6 +805,11 @@ export class DeltaProvider {
     this.trendT = Number.NaN
     this.trendRaw = Number.NaN
   }
+}
+
+/** A lap time to the ms; null unless positive and finite. */
+function lapTimeOf(t: number | null | undefined): number | null {
+  return typeof t === 'number' && t > 0 && Number.isFinite(t) ? quantise(t, 1000) : null
 }
 
 /**

@@ -24,4 +24,12 @@ describe('the warning lights strip', () => {
     // The reading's trailing letter spacing does not add to it.
     expect(SOURCE).toMatch(/\.wl-text \{[^}]*margin-right: calc\(-1 \* var\(--ov-track-tag\)\);/)
   })
+
+  it('puts the texts left of the icons in a column with labelSide left (A.10), not in a row', () => {
+    expect(SOURCE).toMatch(
+      /textsLeft = computed\(\(\) => column\.value && options\.value\.labelSide === 'left'\)/
+    )
+    expect(SOURCE).toMatch(/\.wl-strip--left > \.wl-light \{\s*flex-direction: row-reverse;/)
+    expect(SOURCE).toMatch(/\.wl-strip--left \{\s*align-items: flex-end;/)
+  })
 })

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { isElementVisible } from '@shared/elements'
+import { arrayEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
+import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
@@ -11,14 +12,14 @@ import {
   useWidgetSettings
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
-import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
-import PanelHeader from '@renderer/ui/PanelHeader.vue'
+import InfoBar from '@renderer/ui/InfoBar.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView } from '@renderer/view/reuse'
 import type { InlineStyle } from '@renderer/view/styles'
+import { orderStyle, placesOf } from '../orderStyle'
 import { PREVIEW_FUEL } from './preview'
 import {
   EMPTY_VIEW,
@@ -40,15 +41,10 @@ const prefs = useWidgetSettings(ID)
 const autoHeight = useAutoHeight(ID)
 const { surfaceStyle, halo } = useWidgetSurface(ID)
 const t = useI18n()
-const title = useWidgetTitle(ID)
 
 /** The drawing options, one object while they are equal: a drag re-renders nothing. */
 const viewOptions = computed<FuelViewOptions>((prev) =>
   reuseView(prev, fuelViewOptions(options.value))
-)
-// The header is an info bar now: until the widget draws it (package P4), today's band.
-const showHeader = computed(
-  () => options.value.headerBarSize !== 'off' && isElementVisible(options.value.headerBar, 'title')
 )
 
 // Payloads come only when something shown changes (SKIP_EMIT), so there is no freshness timer: a
@@ -66,13 +62,22 @@ const content = useShownContent(
   () => PREVIEW_FUEL
 )
 
+/** The header: an info bar of any items (fuel.headerBar), off by default as the old band. */
+const head = useInfoBar(ID, 'headerBar', () => content.value?.info ?? null)
+const showHeader = computed(() => head.shown.value)
+
 // Every line keeps its object while equal: a payload re-renders only the lines it moved.
 const view = computed<FuelView>((prev) => {
   const d = content.value
   if (d === null) return prev ?? EMPTY_VIEW
   return reuseParts(prev, fuelView(d, viewOptions.value, t.value))
 })
-const lines = computed<readonly LineId[]>(() => linesOf(view.value))
+/** Each line's place in fuel.lines: CSS order, so a reorder re-creates no line. */
+const place = computed(() => placesOf(viewOptions.value.order))
+const lines = computed<readonly LineId[]>((prev) => {
+  const next = linesOf(view.value, viewOptions.value.order)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
 /** Without the header, the VISTA PREVIA tag goes at the end of the first line it fits on. */
 const tagLine = computed<LineId | null>(() => {
   if (!preview.value || showHeader.value) return null
@@ -94,7 +99,7 @@ const wanted = computed(
 )
 const shown = useReveal(
   () => wanted.value,
-  () => layoutKey(view.value, showHeader.value),
+  () => layoutKey(view.value, showHeader.value, viewOptions.value.order),
   { fit: () => autoHeight.value }
 )
 
@@ -120,13 +125,22 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :fill="!autoHeight"
     >
       <template v-if="showHeader" #header>
-        <PanelHeader :title="title">
-          <PreviewTag v-if="preview" />
-        </PanelHeader>
+        <InfoBar
+          :view="head.view.value"
+          :size="head.size.value"
+          place="head"
+          sim
+          :preview="preview"
+        />
       </template>
 
       <!-- The fuel and the laps it lasts (in the tone of the plan), the laps to go at the end. -->
-      <div v-if="view.hero" v-memo="[view.hero, tagLine]" class="fu-hero">
+      <div
+        v-if="view.hero"
+        v-inline-style="orderStyle(place.hero ?? 0)"
+        v-memo="[view.hero, tagLine, place.hero]"
+        class="fu-hero"
+      >
         <span class="fu-big">
           <span class="ov-t-hero">{{ view.hero.fuel }}</span>
           <span class="fu-unit-hero ov-unit">{{ LITRES }}</span>
@@ -147,7 +161,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       </div>
 
       <!-- The tank: the fuel against what it holds, a tick where the fuel to the flag reaches. -->
-      <div v-if="view.gauge" class="fu-gauge" aria-hidden="true">
+      <div
+        v-if="view.gauge"
+        v-inline-style="orderStyle(place.gauge ?? 0)"
+        class="fu-gauge"
+        aria-hidden="true"
+      >
         <span class="fu-gauge__track">
           <span
             v-inline-style="fillStyle"
@@ -158,7 +177,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         </span>
       </div>
 
-      <div v-if="view.perLap" v-memo="[view.perLap, tagLine]" class="fu-line">
+      <div
+        v-if="view.perLap"
+        v-inline-style="orderStyle(place.perLap ?? 0)"
+        v-memo="[view.perLap, tagLine, place.perLap]"
+        class="fu-line"
+      >
         <span class="fu-read">
           <span class="fu-label">{{ view.perLap.label }}</span>
           <span v-if="view.perLap.measuring" class="fu-text fu-text--muted">{{
@@ -173,7 +197,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'perLap'" class="fu-tag" />
       </div>
 
-      <div v-if="view.finish" v-memo="[view.finish, tagLine]" class="fu-line">
+      <div
+        v-if="view.finish"
+        v-inline-style="orderStyle(place.finish ?? 0)"
+        v-memo="[view.finish, tagLine, place.finish]"
+        class="fu-line"
+      >
         <span class="fu-read">
           <span class="fu-label">{{ view.finish.need.label }}</span>
           <span class="fu-num"
@@ -200,7 +229,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'finish'" class="fu-tag" />
       </div>
 
-      <div v-if="view.window" v-memo="[view.window, tagLine]" class="fu-line">
+      <div
+        v-if="view.window"
+        v-inline-style="orderStyle(place.window ?? 0)"
+        v-memo="[view.window, tagLine, place.window]"
+        class="fu-line"
+      >
         <span class="fu-read">
           <span class="fu-label">{{ view.window.label }}</span>
           <span class="fu-num" :class="`ov-tone-${view.window.tone}`">{{ view.window.value }}</span>
@@ -213,7 +247,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'window'" class="fu-tag" />
       </div>
 
-      <div v-if="view.save" v-memo="[view.save, tagLine]" class="fu-line">
+      <div
+        v-if="view.save"
+        v-inline-style="orderStyle(place.save ?? 0)"
+        v-memo="[view.save, tagLine, place.save]"
+        class="fu-line"
+      >
         <span class="fu-read">
           <span class="fu-label">{{ view.save.label }}</span>
           <span class="fu-num"
@@ -226,7 +265,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       </div>
 
       <!-- The tread left at the last stop: one figure per tyre, front pair first. -->
-      <div v-if="view.tyres" v-memo="[view.tyres, tagLine]" class="fu-line">
+      <div
+        v-if="view.tyres"
+        v-inline-style="orderStyle(place.tyres ?? 0)"
+        v-memo="[view.tyres, tagLine, place.tyres]"
+        class="fu-line"
+      >
         <span class="fu-read">
           <span class="fu-label">{{ view.tyres.label }}</span>
           <span class="fu-note fu-note--lap">{{ view.tyres.lap }}</span>
@@ -241,7 +285,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'tyres'" class="fu-tag" />
       </div>
 
-      <div v-if="view.limits" v-memo="[view.limits, tagLine]" class="fu-line">
+      <div
+        v-if="view.limits"
+        v-inline-style="orderStyle(place.limits ?? 0)"
+        v-memo="[view.limits, tagLine, place.limits]"
+        class="fu-line"
+      >
         <span v-if="view.limits.repairs" class="fu-read">
           <span class="fu-label">{{ view.limits.repairs.label }}</span>
           <span class="fu-num">{{ view.limits.repairs.value }}</span>

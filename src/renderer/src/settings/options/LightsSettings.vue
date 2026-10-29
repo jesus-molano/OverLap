@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { isElementVisible, visibleCount } from '@shared/elements'
-import { LIGHT_ORDER } from '@shared/lights'
+import { isElementVisible } from '@shared/elements'
 import { ENGINE_TREND } from '@shared/notices/engineTrend'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { LightKind } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { elementToggle, optionSetter } from '../editor'
+import { listSetter, optionSetter } from '../editor'
+import ElementEditor from '../elements/ElementEditor.vue'
+import { elementTexts, zoneTitle } from '../elements/labels'
 import PageSection from '../layout/PageSection.vue'
 import LightsLegend from './LightsLegend.vue'
 
@@ -22,12 +22,16 @@ const t = useI18n()
 const layoutChoices = computed(() =>
   choiceOptions(OPTION_SCHEMA.lights.layout.values, t.value.settings.lights.layoutChoices)
 )
+const labelSideChoices = computed(() =>
+  choiceOptions(OPTION_SCHEMA.lights.labelSide.values, t.value.settings.lights.labelSideChoices)
+)
+const column = computed(() => opts.value.layout === 'column')
 const shown = (kind: LightKind): boolean => isElementVisible(opts.value.icons, kind)
-/** Every light off: the widget never shows. */
-const nothing = computed(() => visibleCount(opts.value.icons) === 0)
 /** The trend lights the two temperature lights: nothing to light without them. */
 const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
 const noRepairs = computed(() => !shown('repair') && !shown('repairOptional'))
+const iconTexts = computed(() => elementTexts(t.value, 'lights', 'icons'))
+const setIcons = listSetter('lights', 'icons')
 </script>
 
 <template>
@@ -37,6 +41,14 @@ const noRepairs = computed(() => !shown('repair') && !shown('repairOptional'))
       :current="opts.layout"
       :options="layoutChoices"
       :apply="set('layout')"
+    />
+    <ChoiceControl
+      :label="t.settings.lights.labelSide"
+      :help="column ? undefined : t.settings.lights.labelSideOff"
+      :current="opts.labelSide"
+      :options="labelSideChoices"
+      :disabled="!column"
+      :apply="set('labelSide')"
     />
     <ToggleControl
       kind="switch"
@@ -68,29 +80,35 @@ const noRepairs = computed(() => !shown('repair') && !shown('repairOptional'))
       :disabled="noRepairs"
       :apply="set('showRepairTime')"
     />
-    <CheckGroup
-      :legend="t.settings.lights.lightsGroup"
-      :help="nothing ? t.settings.lights.nothing : undefined"
-      :warn="nothing"
-    >
-      <template v-for="kind in LIGHT_ORDER" :key="kind">
+  </PageSection>
+
+  <ElementEditor
+    :title="zoneTitle(t, 'lights', 'icons')"
+    :items="opts.icons"
+    :spec="OPTION_SCHEMA.lights.icons"
+    :labels="iconTexts"
+    :apply="setIcons"
+    empty-hides
+  >
+    <template #footer>
+      <div class="st-card li-extras">
         <ToggleControl
-          :label="t.widgets.lights.names[kind]"
-          :help="t.settings.lights.help[kind]"
-          :current="shown(kind)"
-          :apply="elementToggle('lights', 'icons', kind)"
-        />
-        <ToggleControl
-          v-if="kind === 'oilTemp'"
+          kind="switch"
           :label="t.settings.lights.trend"
           :help="t.settings.lights.trendHelp(ENGINE_TREND.sustainS)"
           :current="opts.showTrend"
           :disabled="noTemps"
           :apply="set('showTrend')"
         />
-      </template>
-    </CheckGroup>
-  </PageSection>
+      </div>
+    </template>
+  </ElementEditor>
 
   <LightsLegend />
 </template>
+
+<style scoped>
+.li-extras {
+  margin-top: 10px;
+}
+</style>

@@ -21,6 +21,7 @@ const EN = messagesFor('en')
 const NB = ' '
 
 const ALL_ON: FuelViewOptions = {
+  order: ['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits'],
   showGauge: true,
   showPerLap: true,
   showFinish: true,
@@ -119,6 +120,7 @@ describe('fuelView', () => {
 
   it('leaves out each line with its option; the hero always stays', () => {
     const none: FuelViewOptions = {
+      order: ALL_ON.order,
       showGauge: false,
       showPerLap: false,
       showFinish: false,
@@ -130,6 +132,7 @@ describe('fuelView', () => {
     }
     expect(linesOf(fuelView(PREVIEW_FUEL, none, ES))).toEqual(['hero'])
     for (const k of Object.keys(ALL_ON) as (keyof FuelViewOptions)[]) {
+      if (k === 'order') continue
       const v = fuelView(PREVIEW_FUEL, { ...ALL_ON, [k]: false }, ES)
       if (k === 'showBox') expect(v.finish?.box).toBeNull()
       else expect(linesOf(v), k).toHaveLength(7)
@@ -274,7 +277,27 @@ describe('fuelView', () => {
     const o = DEFAULT_SETTINGS.fuel
     expect(o.headerBarSize).toBe('off')
     const v = fuelView(PREVIEW_FUEL, fuelViewOptions(o), ES)
+    expect(linesOf(v, fuelViewOptions(o).order)).toEqual(linesOf(v))
     expect(linesOf(v)).toHaveLength(8)
+  })
+
+  it('draws the lines in the order of fuel.lines, the hidden ones left out', () => {
+    const o = fuelViewOptions({
+      showBox: true,
+      lines: [
+        { id: 'finish', visible: true },
+        { id: 'hero', visible: true },
+        { id: 'gauge', visible: false },
+        { id: 'limits', visible: true },
+        { id: 'perLap', visible: true },
+        { id: 'window', visible: false },
+        { id: 'save', visible: true },
+        { id: 'tyres', visible: true }
+      ]
+    })
+    const v = fuelView(PREVIEW_FUEL, o, ES)
+    expect(linesOf(v, o.order)).toEqual(['finish', 'hero', 'limits', 'perLap', 'save', 'tyres'])
+    expect(layoutKey(v, false, o.order)).not.toBe(layoutKey(v, false))
   })
 })
 

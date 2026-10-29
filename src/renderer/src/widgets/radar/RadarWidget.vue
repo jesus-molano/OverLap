@@ -35,8 +35,12 @@ const STALE_MS = 300
 
 const rangeOption = useOption('radar', 'rangeM')
 const parts = useOption('radar', 'parts')
-// Until the radar draws its parts list (package P4): the distance labels of today.
-const showRangeLabels = computed(() => isElementVisible(parts.value, 'rangeLabels'))
+// The layers over the cars (radar.parts): the guides, the side alerts, the labels on the guides.
+const showGuides = computed(() => isElementVisible(parts.value, 'guides'))
+const showSideAlerts = computed(() => isElementVisible(parts.value, 'sideAlerts'))
+const showRangeLabels = computed(
+  () => showGuides.value && isElementVisible(parts.value, 'rangeLabels')
+)
 const { surfaceStyle, halo } = useWidgetSurface()
 // The SDK can go silent for seconds before the connection is declared lost, and the provider
 // sends nothing while the radar is hidden: freshness hides it without a ticking timer.
@@ -178,7 +182,7 @@ const rangeLabels = computed(() => {
       <path v-once class="radar__bezel-top" :d="BEZEL_TOP_PATH" />
 
       <g :clip-path="clipUrl">
-        <g v-memo="[guides]" class="radar__guides">
+        <g v-if="showGuides" v-memo="[guides]" class="radar__guides">
           <line x1="0" :y1="-BG_HALF" x2="0" :y2="BG_HALF" />
           <line :x1="-BG_HALF" y1="0" :x2="BG_HALF" y2="0" />
           <line
@@ -206,20 +210,22 @@ const rangeLabels = computed(() => {
           />
         </g>
 
-        <RadarSideAlert
-          v-memo="[left]"
-          :alert="left"
-          :mirrored="false"
-          :wash-url="washUrl"
-          :bar-url="barUrl"
-        />
-        <RadarSideAlert
-          v-memo="[right]"
-          :alert="right"
-          :mirrored="true"
-          :wash-url="washUrl"
-          :bar-url="barUrl"
-        />
+        <template v-if="showSideAlerts">
+          <RadarSideAlert
+            v-memo="[left]"
+            :alert="left"
+            :mirrored="false"
+            :wash-url="washUrl"
+            :bar-url="barUrl"
+          />
+          <RadarSideAlert
+            v-memo="[right]"
+            :alert="right"
+            :mirrored="true"
+            :wash-url="washUrl"
+            :bar-url="barUrl"
+          />
+        </template>
 
         <!-- Positions follow the 60 Hz data: no CSS transitions on transform (a lane change
              slides in script, one transform per frame drawn: laneEaser.ts). Halo and body

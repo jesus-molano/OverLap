@@ -413,6 +413,8 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   discontinuo a su distancia real, encima de tu coche, nunca pegado a tu parachoques ni encima de otro.
 - En las sesiones en solitario (clasificación «Lone Qualify») los demás coches no están en pista
   contigo: el radar solo usa `CarLeftRight` y Tráfico no lista a nadie.
+- Capas (`radar.parts`): guías de distancia, avisos laterales y las distancias sobre las guías (estas,
+  solo con las guías). Los coches y el tuyo siempre se dibujan.
 
 ### Tráfico
 
@@ -450,7 +452,10 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Barra delta a 30 Hz: segundos arriba o abajo frente a una referencia en tu punto de la vuelta,
   tendencia (ganando / perdiendo), vuelta prevista y cada sector frente a la referencia (el que estás
   corriendo, en vivo).
-- Referencias (`delta.reference`):
+- Referencia **por tipo de sesión** (`delta.referencePractice`, `referenceQualify`, `referenceRace`):
+  por defecto récord en práctica y tu óptima en clasificación y carrera. Un `settings.json` con la
+  antigua `delta.reference` en `pb` (la de antes por defecto) pasa a estas; otra se copia a las tres.
+- Referencias:
   - **Récord personal** (`pb`): tu mejor vuelta limpia de siempre con ese coche en ese trazado. Se
     guarda en `personal-bests.json`, junto a `settings.json` (el modo mock usa su propia subcarpeta
     `mock/`), y no se pierde al cambiar de sesión, a diferencia del delta de iRacing.
@@ -464,7 +469,15 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Con `delta.fallback` se usa la siguiente mientras no exista la elegida: pb → session → class,
   optimal → pb → classOptimal y classOptimal → pb (`class` no tiene ninguna).
 - La referencia solo cambia al empezar una vuelta, así el delta nunca salta a mitad de vuelta (un
-  sector mejor marcado a mitad de vuelta cuenta desde la siguiente).
+  sector mejor marcado a mitad de vuelta cuenta desde la siguiente). También al elegir otra en Ajustes
+  o con el atajo «Cambiar la referencia del delta» (sin teclas por defecto: pasa a la siguiente en la
+  sesión actual): el widget dice unos segundos «Vuelta óptima desde la próxima vuelta» y luego su
+  nombre.
+- Personalizable (`delta.rows`, `delta.top`, `delta.laps`): el orden de las filas (línea superior,
+  barra, sectores y **tiempos de vuelta**), qué sale en la línea superior (tendencia, vuelta prevista,
+  referencia) y, en la fila de tiempos (oculta por defecto), tu última, tu mejor, tu óptima y tu
+  récord en el orden que quieras. El tiempo con el que compara el delta va subrayado y con «Δ» (también
+  con la referencia de reserva); las de clase no son una vuelta tuya y no marcan ninguno.
 - Solo cuentan vueltas limpias conducidas por ti (sin boxes, salidas de pista, paradas ni amarillas).
   La vuelta en curso se marca como inválida en cuanto deja de contar; la vuelta de salida dice
   `vuelta de salida` y la grúa `grúa`. Sin vuelta en curso (parrilla, antes de cruzar meta) no dice
@@ -479,6 +492,7 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Una banda con lo que te afecta: lo más importante en grande y el resto al lado, cada aviso con sus
   palabras y su marca (se lee también con la paleta daltónica). Un aviso breve sigue en pantalla al
   menos `alerts.holdS` segundos.
+- Extras (`alerts.parts`): «qué hacer» tras cada aviso y los demás avisos en chips.
 - Cada caso se activa o desactiva en Ajustes → Avisos; todos vienen activados:
   - **Banderas** tuyas y de la sesión, también la **negra enrollada**
     (`ADVERTENCIA · dirección de carrera`, sin motivo: no llega en los datos). Solo dentro del coche.
@@ -512,6 +526,14 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - En modo mock cada caso sale al menos una vez: entre los minutos 15 y 22 de la sesión; el
   limitador, en tu parada, y las 10 y 5 vueltas, cuando tocan.
 
+### Pedales
+
+- Traza, barras y datos (marcha, velocidad, volante) en el orden que quieras, cada uno con su ojo
+  (`inputs.sections`, `inputs.bars`, `inputs.info`); freno y acelerador siempre.
+- Alto automático por defecto (Ventana → Alto): el panel mide lo que su contenido, sin hueco vacío, y
+  el texto sigue la escala del widget, no la ventana. Un `settings.json` de antes pasa a alto
+  automático una vez.
+
 ### Testigos
 
 - Los testigos del motor como en un salpicadero, en fila (si no caben, siguen debajo) o en columna:
@@ -521,7 +543,8 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Apagados en gris; encendidos, cada gravedad con su color y su forma (se lee sin el color): rojo
   relleno (actúa ya), naranja con borde (el testigo del propio coche, daños leves), amarillo subrayado
   (agua o aceite muy por encima de tu media, antes de su testigo: `+6°`) y azul con raya (limitador).
-- Opciones (`lights.*`): cada testigo, `Solo encendidos` (se oculta mientras no hay ninguno),
+- Opciones (`lights.*`): cada testigo y su orden (`lights.icons`), en columna los textos a la
+  izquierda o a la derecha de los iconos (`lights.labelSide`), `Solo encendidos` (se oculta mientras no hay ninguno),
   rótulos (`AGUA`, `REPARAR`…), la temperatura junto a agua y aceite (`98°`) y el tiempo de
   reparación: `REPARAR · 42 s` (`PitRepairLeft`), `OPC. · 38 s` (`PitOptRepairLeft`), solo si es
   mayor que 0. Su página de Ajustes tiene una leyenda: qué es cada testigo y qué hacer.
@@ -600,7 +623,10 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   últimas `fuel.avgLaps` (5), la última y la que más gastó; «midiendo…» hasta la primera. Entre
   sesiones del mismo coche y circuito (práctica → carrera) se aprovecha la media anterior hasta tener
   una propia.
-- Líneas, cada una con su opción (`fuel.*`): depósito (barra con una marca en lo que necesitas),
+- Cabecera opcional (`fuel.headerBar`, oculta por defecto): una barra de datos como las del Relativo
+  y la Clasificación (nombre, vueltas de combustible, hora, sesión…), en tamaño pequeño, normal o
+  grande.
+- Líneas, cada una con su ojo y en el orden que quieras (`fuel.lines`; la principal siempre): depósito (barra con una marca en lo que necesitas),
   consumo, para meta y repostar (con `fuel.marginLaps` vueltas de margen, 0.5; `LLENO` si una parada
   no basta) junto a lo que tienes en el menú de boxes (`PitSvFuel`, naranja si no llega), ventana
   `V24–V28` y paradas, ahorro por vuelta para quitarte una parada (si es un 10 % o menos), la última
