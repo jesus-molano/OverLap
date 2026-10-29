@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { WIDGET_SCALE_MAX, WIDGET_SCALE_MIN, WIDGET_SCALE_STEP } from '@shared/settings'
 import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
-import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
+import { WIDGET_DEFS, canHideInPits, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import { useAppearance } from '../../composables/useAppearance'
@@ -173,6 +173,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       />
     </CheckGroup>
     <ToggleControl
+      v-if="canHideInPits(widgetId)"
       kind="switch"
       :label="t.settings.window.hideInPits"
       :help="t.settings.window.hideInPitsHelp"

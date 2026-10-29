@@ -5,7 +5,7 @@ import { INCIDENT_ALERT } from '@shared/incidents/alert'
 import { FUEL_ALERT } from '@shared/notices/fuel'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
-import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
+import { useOptions } from '../../composables/useWidgetSettings'
 import CheckGroup from '../controls/CheckGroup.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -26,9 +26,7 @@ const tenths = (s: number): string => formatSeconds(s, 1)
 
 // The blue, furled and overspeed switches hide with their own (their values stay): not counted.
 const nothing = computed(() => showsNothing(opts.value))
-// "Ocultar en boxes" (Ventana) hides the whole widget on pit road, limiter line included.
-const prefs = useWidgetSettings('alerts')
-const limiterHidden = computed(() => opts.value.showPitLimiter && prefs.value.hideInPits)
+
 /**
  * The hold applies to the flags, to the alerts a flicker could make unreadable and to the
  * incident line (never under their own minimum).
@@ -74,11 +72,7 @@ const setParts = listSetter('alerts', 'parts')
         :apply="set('showFurled')"
       />
     </CheckGroup>
-    <CheckGroup
-      :legend="t.settings.alerts.pitGroup"
-      :help="limiterHidden ? t.settings.alerts.limiterHidden : undefined"
-      :warn="limiterHidden"
-    >
+    <CheckGroup :legend="t.settings.alerts.pitGroup">
       <ToggleControl
         :label="t.settings.alerts.limiter"
         :help="t.settings.alerts.limiterHelp"

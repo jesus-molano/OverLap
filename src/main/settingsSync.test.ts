@@ -351,7 +351,8 @@ describe('diffSettings and the widget options', () => {
     for (const id of ['traffic', 'alerts', 'delta'] as const) {
       expect(configChanged((s) => (s.widgets[id].scale = 140))).toBe(false)
       expect(configChanged((s) => (s.widgets[id].anchor = 'bottom'))).toBe(false)
-      expect(configChanged((s) => (s.widgets[id].hideInPits = true))).toBe(true)
+      // The alerts are never hidden in the pits (their pit alerts): nothing for telemetry.
+      expect(configChanged((s) => (s.widgets[id].hideInPits = true))).toBe(id !== 'alerts')
     }
   })
 

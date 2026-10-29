@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { WIDGET_DEFS, WIDGET_IDS } from '../widgets'
+import { WIDGET_DEFS, WIDGET_IDS, canHideInPits } from '../widgets'
 import { DEFAULT_SETTINGS, createDefaultSettings, toTelemetryConfig } from '.'
 
 describe('toTelemetryConfig', () => {
@@ -46,6 +46,14 @@ describe('toTelemetryConfig', () => {
     expect(c.rules.standings.showOnSessionScreen).toBe(true)
     expect(c.rules.relative.showIn).toEqual({ practice: true, qualify: false, race: true })
     expect(c.rules.battle.showIn).toEqual({ practice: false, qualify: false, race: true })
+  })
+
+  it('never hides the alerts in the pits (their pit alerts), whatever a file says', () => {
+    const s = createDefaultSettings()
+    s.widgets.alerts.hideInPits = true
+    expect(toTelemetryConfig(s).rules.alerts.hideInPits).toBe(false)
+    expect(canHideInPits('alerts')).toBe(false)
+    expect(WIDGET_IDS.filter((id) => !canHideInPits(id))).toEqual(['alerts'])
   })
 
   it('carries the global visibility rules, as a copy', () => {

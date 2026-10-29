@@ -48,6 +48,11 @@ export interface WidgetDef {
    * the car on camera's or the tape's). No session-screen exception for it, like inCarOnly.
    */
   readonly noSessionScreen?: true
+  /**
+   * Part of its job is in the pits (the alerts: the pit limiter, its overspeed, the pit entry):
+   * never hidden there, so no "Ocultar en boxes" (a file's hideInPits is kept and ignored).
+   */
+  readonly showsInPits?: true
 }
 
 /**
@@ -142,7 +147,8 @@ export const WIDGET_DEFS = {
     minSize: { width: 200, height: 50 },
     defaultVisible: true,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: true, qualify: true, race: true }
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    showsInPits: true
   },
   // The engine's warning lights, a small strip like a dashboard's (Testigos), at the alerts'
   // rate: the trend samples the temperatures at 10 Hz. Under the delta, where it can grow down
@@ -234,6 +240,12 @@ export function inCarOnly(id: WidgetId): boolean {
 export function canShowOnSessionScreen(id: WidgetId): boolean {
   const def: WidgetDef = WIDGET_DEFS[id]
   return def.inCarOnly !== true && def.noSessionScreen !== true
+}
+
+/** "Ocultar en boxes" means something for it: not a widget whose job includes the pits. */
+export function canHideInPits(id: WidgetId): boolean {
+  const def: WidgetDef = WIDGET_DEFS[id]
+  return def.showsInPits !== true
 }
 
 /** WidgetDef.defaultOnSessionScreen: WidgetSettings.showOnSessionScreen by default. */
