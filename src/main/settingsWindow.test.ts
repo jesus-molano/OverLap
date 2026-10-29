@@ -88,6 +88,33 @@ describe('settings window', () => {
     expect(w.focus).toHaveBeenCalledOnce()
   })
 
+  it('opens on a page: in the URL of a new window, asked of an open one', () => {
+    openSettingsWindow('layouts')
+    const w = only()
+    expect(w.loadFile).toHaveBeenCalledExactlyOnceWith(expect.any(String), {
+      query: { view: 'settings', page: 'layouts' }
+    })
+    // Still loading (its page may not listen yet): loaded again, the page in the URL.
+    openSettingsWindow('layouts')
+    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.webContents.send).not.toHaveBeenCalled()
+    w.becomeReady()
+    openSettingsWindow('layouts')
+    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.webContents.send).toHaveBeenCalledExactlyOnceWith('overlay:settings-page', 'layouts')
+    expect(w.focus).toHaveBeenCalledOnce()
+    // Without a page: the one it shows.
+    openSettingsWindow()
+    expect(w.webContents.send).toHaveBeenCalledOnce()
+  })
+
+  it('asks for the page in the dev server URL too', () => {
+    fakeApp.isPackaged = false
+    vi.stubEnv('ELECTRON_RENDERER_URL', 'http://localhost:5173/')
+    openSettingsWindow('layouts')
+    expect(only().loadURL).toHaveBeenCalledWith('http://localhost:5173/?view=settings&page=layouts')
+  })
+
   it('creates a new window after the previous one was closed', () => {
     openSettingsWindow()
     const first = only()

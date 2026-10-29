@@ -147,6 +147,14 @@ export function normalizeLayoutWidgets(
   return out
 }
 
+/**
+ * A layout's SavedLayout.usedAt read from disk: whole epoch ms, or undefined (absent, not a
+ * finite number, negative), which counts as never used.
+ */
+export function normalizeUsedAt(raw: unknown): number | undefined {
+  return typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : undefined
+}
+
 /** A car model's id as the session gives it (DriverInfo CarID): a positive integer. */
 export function isCarId(v: unknown): v is number {
   return typeof v === 'number' && Number.isInteger(v) && v > 0 && v <= 0x7fffffff
@@ -199,10 +207,12 @@ export function normalizeLayoutLibrary(
     if (!isRecord(entry) || !isLayoutId(entry.id) || ids.has(entry.id)) continue
     ids.add(entry.id)
     const name = layoutName(entry.name) ?? `${DEFAULT_LAYOUT_NAMES[language]} ${list.length + 1}`
+    const usedAt = normalizeUsedAt(entry.usedAt)
     list.push({
       id: entry.id,
       name: uniqueLayoutName(name, list),
-      widgets: normalizeLayoutWidgets(entry.widgets, live)
+      widgets: normalizeLayoutWidgets(entry.widgets, live),
+      ...(usedAt === undefined ? {} : { usedAt })
     })
   }
   if (list.length === 0) return defaultLayoutLibrary(widgets, language)

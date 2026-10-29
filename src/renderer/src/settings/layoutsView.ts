@@ -5,9 +5,16 @@
 import { shallowRef, type ShallowRef } from 'vue'
 import type { Messages } from '@shared/i18n'
 import type { LayoutNotice } from '@shared/ipc'
-import { canDeleteLayout, linkableCars } from '@shared/layouts'
-import type { CarRef, LayoutLibrary } from '@shared/types'
+import { canDeleteLayout, linkableCars, sortLayouts } from '@shared/layouts'
+import type { CarRef, LayoutLibrary, LayoutSort, SavedLayout } from '@shared/types'
 import { sendCommand } from './editor'
+import { foldText } from './personalBests'
+
+/**
+ * Rows the list shows before it scrolls in a box of its own; past this many layouts the page
+ * also offers a search (as the personal bests do).
+ */
+export const LAYOUT_LIST_ROWS = 8
 
 export interface LayoutRow {
   id: string
@@ -18,6 +25,39 @@ export interface LayoutRow {
   canMoveDown: boolean
   /** 'Coches: Mazda MX-5 Cup, BMW M2' ('' without links). */
   cars: string
+}
+
+/** How the page shows the layouts (layoutList). */
+export interface LayoutListView {
+  /**
+   * The one in use, apart above the others: always there, whatever the order or the search
+   * (null: it keeps its place among `rows`, a short list in your order).
+   */
+  pinned: LayoutRow | null
+  /** False while the search leaves the pinned one out (it is still shown, set apart). */
+  pinnedMatches: boolean
+  /** The others (all of them with no pinned one), in the chosen order, those matching. */
+  rows: LayoutRow[]
+  /** Layouts matching the search (every one without a search) and how many there are. */
+  shown: number
+  total: number
+  /** Past LAYOUT_LIST_ROWS: the search field shows and the list scrolls in its own box. */
+  many: boolean
+  /** The search in effect ('' when none, or with too few layouts to search). */
+  query: string
+  /**
+   * The order chevrons are offered: your order, no search. With a pinned row they move a layout
+   * past its neighbours in `rows` (the one in use keeps its place: moveLayout aroundActive).
+   */
+  reorder: boolean
+}
+
+export interface LayoutListOptions {
+  sort: LayoutSort
+  /** As typed. */
+  query: string
+  /** The interface locale (LOCALES), for the A to Z order. */
+  locale: string
 }
 
 export interface CarRow {
@@ -32,21 +72,104 @@ export function carLabel(m: Messages, car: CarRef): string {
   return car.carName || m.settings.layouts.unknownCar(car.carId)
 }
 
-/** One row per layout, in the library's order. */
-export function layoutRows(m: Messages, lib: LayoutLibrary): LayoutRow[] {
-  const last = lib.list.length - 1
-  return lib.list.map((l, i) => {
-    const cars = lib.links.filter((k) => k.layoutId === l.id).map((k) => carLabel(m, k))
+/** The names of the cars linked to layout `id`. */
+function linkedCarLabels(m: Messages, lib: LayoutLibrary, id: string): string[] {
+  return lib.links.filter((k) => k.layoutId === id).map((k) => carLabel(m, k))
+}
+
+/**
+ * Every word of `query` appears in the layout's name or in the name of a car linked to it,
+ * whatever the case and the accents ('porsche' finds 'Pórsche 911 Cup'); an empty query matches.
+ */
+export function layoutMatches(
+  m: Messages,
+  lib: LayoutLibrary,
+  layout: SavedLayout,
+  query: string
+): boolean {
+  const words = foldText(query).split(/\s+/).filter(Boolean)
+  if (words.length === 0) return true
+  const hay = foldText([layout.name, ...linkedCarLabels(m, lib, layout.id)].join('\n'))
+  return words.every((w) => hay.includes(w))
+}
+
+/**
+ * The list as the page shows it: the one in use pinned apart once the list is long or not in
+ * your order (so it never scrolls or sorts out of sight), the rest sorted (sortLayouts) and
+ * filtered by the search; a short list in your order stays as stored, the one in use in its
+ * place. The stored order never changes here.
+ */
+export function layoutList(
+  m: Messages,
+  lib: LayoutLibrary,
+  opts: LayoutListOptions
+): LayoutListView {
+  const total = lib.list.length
+  const many = total > LAYOUT_LIST_ROWS
+  const query = many ? opts.query.trim() : ''
+  const active = lib.list.find((l) => l.id === lib.activeId)
+  const pin = active !== undefined && (many || opts.sort !== 'custom')
+  const reorder = opts.sort === 'custom' && query === ''
+  const matches = (l: SavedLayout): boolean => layoutMatches(m, lib, l, query)
+  const others = sortLayouts(
+    lib.list.filter((l) => !pin || l !== active),
+    opts.sort,
+    opts.locale
+  ).filter(matches)
+  const last = others.length - 1
+  const row = (l: SavedLayout, i: number | null): LayoutRow => {
+    const cars = linkedCarLabels(m, lib, l.id)
     return {
       id: l.id,
       name: l.name,
       active: l.id === lib.activeId,
       canDelete: canDeleteLayout(lib, l.id),
-      canMoveUp: i > 0,
-      canMoveDown: i < last,
+      canMoveUp: reorder && i !== null && i > 0,
+      canMoveDown: reorder && i !== null && i < last,
       cars: cars.length > 0 ? m.settings.layouts.cars(cars.join(', ')) : ''
     }
-  })
+  }
+  const pinnedMatches = pin && matches(active)
+  return {
+    pinned: pin ? row(active, null) : null,
+    pinnedMatches,
+    rows: others.map((l, i) => row(l, i)),
+    shown: others.length + (pinnedMatches ? 1 : 0),
+    total,
+    many,
+    query,
+    reorder
+  }
+}
+
+/**
+ * The row to bring into view after the library changed from `prev` to `next`: a layout that
+ * was not there before (saved, duplicated, imported), else the one in use when it changed; null
+ * for anything else (a rename, a move, a link), which leaves the list where you scrolled it.
+ */
+export function rowToReveal(
+  prev: { ids: readonly string[]; activeId: string },
+  next: { ids: readonly string[]; activeId: string }
+): string | null {
+  const before = new Set(prev.ids)
+  const added = next.ids.find((id) => !before.has(id))
+  if (added !== undefined) return added
+  return next.activeId !== prev.activeId ? next.activeId : null
+}
+
+/** How far a box must scroll (px, signed) for `row` to be whole inside it; 0 when it is. */
+export function revealOffset(
+  box: { top: number; bottom: number },
+  row: { top: number; bottom: number }
+): number {
+  if (row.top < box.top) return row.top - box.top
+  if (row.bottom > box.bottom) return Math.min(row.bottom - box.bottom, row.top - box.top)
+  return 0
+}
+
+/** The layouts a car can be linked to, A to Z (a native select of up to 30 stays findable). */
+export function linkOptions(lib: LayoutLibrary, locale: string): { id: string; name: string }[] {
+  return sortLayouts(lib.list, 'name', locale).map((l) => ({ id: l.id, name: l.name }))
 }
 
 /** The car you are in first (`current`), then the cars seen and linked, each once. */
@@ -108,7 +231,9 @@ export const layoutCommands = {
   duplicate: (id: string, name: string) => sendCommand({ type: 'layout-duplicate', id, name }),
   rename: (id: string, name: string) => sendCommand({ type: 'layout-rename', id, name }),
   remove: (id: string) => sendCommand({ type: 'layout-delete', id }),
-  move: (id: string, step: -1 | 1) => sendCommand({ type: 'layout-move', id, step }),
+  /** `aroundActive`: the one in use is pinned apart, so the move skips it (layoutList). */
+  move: (id: string, step: -1 | 1, aroundActive: boolean) =>
+    sendCommand({ type: 'layout-move', id, step, aroundActive }),
   exportOne: (id: string) => {
     layoutNotice.value = null
     sendCommand({ type: 'layout-export', id })

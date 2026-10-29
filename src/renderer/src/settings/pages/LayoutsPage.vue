@@ -1,43 +1,63 @@
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useId } from 'vue'
+import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
-import { useI18n } from '../../composables/useI18n'
+import { LAYOUT_SORTS } from '@shared/settingsSchema'
+import type { LayoutSort } from '@shared/types'
+import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter } from '../editor'
-import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import {
   carRows,
   layoutCommands as cmd,
-  layoutRows,
+  layoutList,
+  linkOptions,
   noticeText,
+  revealOffset,
+  rowToReveal,
   useLayoutState,
   type CarRow
 } from '../layoutsView'
+import { useDraft } from '../useDraft'
+import LayoutItem from './LayoutItem.vue'
 
 /**
  * The saved layouts (settings.savedLayouts): the list (apply, rename, duplicate, order, export,
  * delete), saving the widgets as they are under a new name, importing a file, and the automatic
  * switch with its car links (settings.layouts.autoSwitch). Main runs every command and
- * broadcasts the settings; this page only shows them.
+ * broadcasts the settings; this page only shows them. With many layouts the list scrolls in a
+ * box of its own (the sections below stay in reach) and can be searched; the one in use stays
+ * pinned above it (layoutsView layoutList).
  */
 const t = useI18n()
+const locale = useLocale()
 const titleId = useId()
 const saveId = useId()
+const searchId = useId()
+const sortLabelId = useId()
+const sortName = useId()
 const { settings } = useOverlayState()
 const { currentCar, layoutNotice } = useLayoutState()
 const options = useOptions('layouts')
 const setAutoSwitch = optionSetter('layouts')('autoSwitch')
+const { value: sort, commit: setSort } = useDraft<LayoutSort>(
+  () => options.value.sort,
+  optionSetter('layouts')('sort')
+)
 
 const lib = computed(() => settings.value?.savedLayouts ?? DEFAULT_SETTINGS.savedLayouts)
-const rows = computed(() => layoutRows(t.value, lib.value))
+const query = shallowRef('')
+const view = computed(() =>
+  layoutList(t.value, lib.value, { sort: sort.value, query: query.value, locale: locale.value })
+)
 const cars = computed(() => carRows(t.value, lib.value, currentCar.value))
 const currentRow = computed<CarRow | null>(() => cars.value.find((c) => c.current) ?? null)
 const otherCars = computed(() => cars.value.filter((c) => !c.current))
+const links = computed(() => linkOptions(lib.value, locale.value))
 const roomLeft = computed(() => canAddLayout(lib.value))
 const notice = computed(() => (layoutNotice.value ? noticeText(t.value, layoutNotice.value) : null))
 
@@ -50,39 +70,48 @@ function save(): void {
   newName.value = ''
 }
 
-/** The row being renamed (null: none) and its draft name. */
+/** The row being renamed (null: none). */
 const renaming = shallowRef<string | null>(null)
-const renameDraft = shallowRef('')
 
-async function startRename(id: string, name: string): Promise<void> {
-  renaming.value = id
-  renameDraft.value = name
-  await nextTick()
-  const input = document.getElementById(`st-layout-rename-${id}`)
-  if (input instanceof HTMLInputElement) {
-    input.focus()
-    input.select()
+function onRename(id: string, open: boolean): void {
+  if (open) renaming.value = id
+  else if (renaming.value === id) renaming.value = null
+}
+
+const searchInput = useTemplateRef<HTMLInputElement>('search')
+
+function clearSearch(): void {
+  query.value = ''
+  searchInput.value?.focus()
+}
+
+/** Esc empties the search (and goes no further); with nothing typed it passes on. */
+function onSearchEsc(e: KeyboardEvent): void {
+  if (query.value === '') return
+  e.preventDefault()
+  e.stopPropagation()
+  query.value = ''
+}
+
+// A layout saved, duplicated or imported, or another one put in use: its row scrolled into the
+// list's box (the box only, never the page: a notice under "Archivos" stays in view).
+const listBox = useTemplateRef<HTMLElement>('listBox')
+watch(
+  () => ({ ids: lib.value.list.map((l) => l.id), activeId: lib.value.activeId }),
+  async (next, prev) => {
+    const id = rowToReveal(prev, next)
+    if (id === null) return
+    await nextTick()
+    const box = listBox.value
+    const row = box?.querySelector(`[data-layout-id="${CSS.escape(id)}"]`)
+    if (!box || !(row instanceof HTMLElement)) return
+    box.scrollTop += revealOffset(box.getBoundingClientRect(), row.getBoundingClientRect())
   }
-}
-
-function commitRename(id: string): void {
-  if (renaming.value !== id) return
-  if (layoutName(renameDraft.value) !== null) cmd.rename(id, renameDraft.value)
-  renaming.value = null
-}
-
-function cancelRename(): void {
-  renaming.value = null
-}
+)
 
 function onLink(car: CarRow, e: Event): void {
   const v = e.target instanceof HTMLSelectElement ? e.target.value : ''
   cmd.link(car.car, v === '' ? null : v)
-}
-
-/** A delete button's confirmed action. */
-function removeAction(id: string): () => void {
-  return () => cmd.remove(id)
 }
 </script>
 
@@ -97,126 +126,108 @@ function removeAction(id: string): () => void {
 
     <div class="st-cols">
       <PageSection :title="t.settings.layouts.listTitle" :note="t.settings.layouts.listNote">
-        <ul class="list" :aria-label="t.settings.layouts.listTitle">
-          <li v-for="r in rows" :key="r.id" class="item" :class="{ 'is-active': r.active }">
-            <div class="order">
-              <button
-                type="button"
-                class="st-btn st-btn-ghost st-btn-icon"
-                :disabled="!r.canMoveUp"
-                :aria-label="t.settings.layouts.moveUp(r.name)"
-                :title="t.settings.layouts.moveUp(r.name)"
-                @click="cmd.move(r.id, -1)"
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-                  <path d="M4 10l4-4 4 4" class="chev" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="st-btn st-btn-ghost st-btn-icon"
-                :disabled="!r.canMoveDown"
-                :aria-label="t.settings.layouts.moveDown(r.name)"
-                :title="t.settings.layouts.moveDown(r.name)"
-                @click="cmd.move(r.id, 1)"
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-                  <path d="M4 6l4 4 4-4" class="chev" />
-                </svg>
-              </button>
-            </div>
-
-            <form
-              v-if="renaming === r.id"
-              class="rename"
-              @submit.prevent="commitRename(r.id)"
-              @keydown.esc.stop="cancelRename"
-            >
-              <label :for="`st-layout-rename-${r.id}`" class="st-sr-only">{{
-                t.settings.layouts.nameLabel
-              }}</label>
+        <div v-if="view.total > 1" class="st-row st-row-wrap tools">
+          <div v-if="view.many" class="find" role="search">
+            <label :for="searchId" class="st-sr-only">{{ t.settings.layouts.search }}</label>
+            <span class="search-box">
               <input
-                :id="`st-layout-rename-${r.id}`"
-                v-model="renameDraft"
-                type="text"
-                class="st-field name-field"
-                :maxlength="MAX_LAYOUT_NAME"
+                :id="searchId"
+                ref="search"
+                v-model="query"
+                type="search"
+                class="st-field search"
+                :placeholder="t.settings.layouts.searchPlaceholder"
                 autocomplete="off"
                 spellcheck="false"
+                @keydown.esc="onSearchEsc"
               />
-              <button type="submit" class="st-btn st-btn-sm">
-                {{ t.settings.layouts.saveName }}
+              <button
+                v-if="query !== ''"
+                type="button"
+                class="st-btn st-btn-ghost st-btn-icon clear"
+                :aria-label="t.settings.layouts.clearSearch"
+                :title="t.settings.layouts.clearSearch"
+                @click="clearSearch"
+              >
+                <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">
+                  <path d="M4 4l8 8M12 4l-8 8" class="cross" />
+                </svg>
               </button>
-              <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="cancelRename">
-                {{ t.settings.layouts.cancel }}
-              </button>
-            </form>
-            <div v-else class="st-row-text">
-              <span class="st-label name">
-                <span v-if="r.active" class="tag">{{ t.settings.layouts.inUse }}</span>
-                {{ r.name }}
-              </span>
-              <span v-if="r.cars" class="st-help cars">{{ r.cars }}</span>
+            </span>
+            <span class="st-help count" aria-live="polite">{{
+              view.query !== '' ? t.settings.layouts.matches(view.shown, view.total) : ''
+            }}</span>
+          </div>
+          <div class="sort-by" :class="{ 'is-alone': !view.many }">
+            <span :id="sortLabelId" class="st-label">{{ t.settings.layouts.sort }}</span>
+            <div class="st-seg" role="radiogroup" :aria-labelledby="sortLabelId">
+              <label
+                v-for="s in LAYOUT_SORTS"
+                :key="s"
+                class="st-seg-item"
+                :title="t.settings.layouts.sortHints[s]"
+              >
+                <input
+                  type="radio"
+                  class="st-seg-input"
+                  :name="sortName"
+                  :value="s"
+                  :checked="sort === s"
+                  @change="setSort(s)"
+                />
+                <span class="st-seg-text">{{ t.settings.layouts.sorts[s] }}</span>
+              </label>
             </div>
+          </div>
+        </div>
 
-            <div v-if="renaming !== r.id" class="actions">
-              <!-- The one in use keeps an invisible Aplicar: its buttons line up with the others'. -->
-              <button
-                type="button"
-                class="st-btn st-btn-sm"
-                :class="{ 'is-placeholder': r.active }"
-                :disabled="r.active"
-                :aria-hidden="r.active ? 'true' : undefined"
-                :aria-label="t.settings.layouts.applyLabel(r.name)"
-                @click="cmd.apply(r.id)"
-              >
-                {{ t.settings.layouts.apply }}
-              </button>
-              <button
-                type="button"
-                class="st-btn st-btn-sm st-btn-ghost"
-                :aria-label="t.settings.layouts.renameLabel(r.name)"
-                @click="startRename(r.id, r.name)"
-              >
-                {{ t.settings.layouts.rename }}
-              </button>
-              <button
-                type="button"
-                class="st-btn st-btn-sm st-btn-ghost"
-                :disabled="!roomLeft"
-                :aria-label="t.settings.layouts.duplicateLabel(r.name)"
-                @click="cmd.duplicate(r.id, t.settings.layouts.copyName(r.name))"
-              >
-                {{ t.settings.layouts.duplicate }}
-              </button>
-              <button
-                type="button"
-                class="st-btn st-btn-sm st-btn-ghost"
-                :aria-label="t.settings.layouts.exportLabel(r.name)"
-                @click="cmd.exportOne(r.id)"
-              >
-                {{ t.settings.layouts.export }}
-              </button>
-              <ConfirmButton
-                v-if="r.canDelete"
-                small
-                :label="t.settings.layouts.delete.label"
-                :confirm-label="t.settings.layouts.delete.confirm"
-                :description="t.settings.layouts.delete.description(r.name)"
-                :action="removeAction(r.id)"
+        <div class="lists">
+          <div v-if="view.pinned" class="pinned">
+            <ul class="list" :aria-label="t.settings.layouts.inUse">
+              <LayoutItem
+                :row="view.pinned"
+                :order="view.reorder ? 'space' : 'none'"
+                :around-active="true"
+                :room-left="roomLeft"
+                :renaming="renaming === view.pinned.id"
+                @rename="(open: boolean) => onRename(lib.activeId, open)"
               />
-              <button
-                v-else
-                type="button"
-                class="st-btn st-btn-sm"
-                disabled
-                :title="t.settings.layouts.deleteActive"
-              >
-                {{ t.settings.layouts.delete.label }}
-              </button>
-            </div>
-          </li>
-        </ul>
+            </ul>
+            <p v-if="!view.pinnedMatches" class="st-help apart-note">
+              {{ t.settings.layouts.pinnedNoMatch }}
+            </p>
+          </div>
+
+          <!-- Many layouts: a box of its own, about LAYOUT_LIST_ROWS rows tall (Tab, keys, wheel). -->
+          <div
+            ref="listBox"
+            class="list-box"
+            :class="{ 'is-scroll': view.many }"
+            :tabindex="view.many ? 0 : undefined"
+            :role="view.many ? 'region' : undefined"
+            :aria-label="view.many ? t.settings.layouts.listTitle : undefined"
+          >
+            <ul
+              v-if="view.rows.length > 0"
+              class="list"
+              :aria-label="view.many ? undefined : t.settings.layouts.listTitle"
+            >
+              <LayoutItem
+                v-for="r in view.rows"
+                :key="r.id"
+                :row="r"
+                :order="view.reorder ? 'move' : 'none'"
+                :around-active="view.pinned !== null"
+                :room-left="roomLeft"
+                :renaming="renaming === r.id"
+                @rename="(open: boolean) => onRename(r.id, open)"
+              />
+            </ul>
+            <p v-else-if="view.query !== ''" class="st-help empty">
+              {{ t.settings.layouts.noMatch(view.query) }}
+            </p>
+          </div>
+        </div>
       </PageSection>
 
       <PageSection :title="t.settings.layouts.saveTitle">
@@ -270,7 +281,7 @@ function removeAction(id: string): () => void {
             @change="onLink(currentRow, $event)"
           >
             <option value="">{{ t.settings.layouts.noLink }}</option>
-            <option v-for="l in lib.list" :key="l.id" :value="l.id">{{ l.name }}</option>
+            <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
           </select>
         </div>
 
@@ -287,7 +298,7 @@ function removeAction(id: string): () => void {
                 @change="onLink(c, $event)"
               >
                 <option value="">{{ t.settings.layouts.noLink }}</option>
-                <option v-for="l in lib.list" :key="l.id" :value="l.id">{{ l.name }}</option>
+                <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
               </select>
             </li>
           </ul>
@@ -342,6 +353,70 @@ function removeAction(id: string): () => void {
   font-size: 12.5px;
 }
 
+.find {
+  display: flex;
+  flex: 1 1 16em;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The clear button sits inside the field, over its right end. */
+.search-box {
+  position: relative;
+  display: flex;
+  flex: 0 1 18em;
+  min-width: 0;
+}
+
+.search {
+  width: 100%;
+  min-width: 0;
+  padding-right: 28px;
+}
+
+/* Our own clear button instead of the native cross, which Tab cannot reach. */
+.search::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  width: 22px;
+  min-height: 22px;
+  transform: translateY(-50%);
+}
+
+.cross {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.count {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sort-by {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-left: auto;
+}
+
+/* No search beside it: label left, choices right, as any option row. */
+.sort-by.is-alone {
+  flex: 1 1 auto;
+  justify-content: space-between;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -350,91 +425,35 @@ function removeAction(id: string): () => void {
   list-style: none;
 }
 
-.item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  min-height: 52px;
-  /* Room for the rail on every row, so the one in use lines up with the rest. */
-  padding: 8px 0 8px 10px;
+/* The pinned one stands apart from the rest: a stronger line, then the others. */
+.pinned {
+  border-bottom: 1px solid var(--st-border-hi);
 }
 
-.item + .item {
-  border-top: 1px solid var(--st-border);
+.apart-note {
+  padding: 0 0 8px 10px;
 }
 
-/* The one in use: the accent rail, as your own row in the widgets (drawn, taking no room). */
-.item.is-active {
-  box-shadow: inset var(--ov-bar-w) 0 0 var(--ov-accent);
+/*
+ * About LAYOUT_LIST_ROWS rows (the pinned one above counts as one), then it scrolls. Pulled into
+ * the card's right padding, so the thin scrollbar sits there and the rows keep the pinned one's
+ * width (their buttons line up).
+ */
+.list-box.is-scroll {
+  max-height: calc(7.5 * 53px);
+  margin-right: -13px;
+  padding-right: 2px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
 }
 
-.is-placeholder {
-  visibility: hidden;
+.list-box.is-scroll:focus-visible {
+  outline-offset: -2px;
 }
 
-.order {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-}
-
-.order .st-btn-icon {
-  width: 22px;
-  min-height: 18px;
-}
-
-.chev {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.st-row-text {
-  flex: 1 1 10em;
-  min-width: 0;
-}
-
-.name,
-.cars {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag {
-  margin-right: 6px;
-  padding: 1px 6px;
-  border-radius: var(--ov-radius-chip);
-  background: var(--ov-accent);
-  color: var(--ov-accent-fg);
-  font-family: var(--ov-font-small);
-  font-size: 11px;
-  font-weight: var(--ov-w-solid);
-  letter-spacing: var(--ov-track-tag);
-  text-transform: uppercase;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-.rename {
-  display: flex;
-  flex: 1 1 14em;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.name-field {
-  flex: 1 1 12em;
-  min-width: 0;
+.empty {
+  padding: 14px 0 14px 10px;
 }
 
 .save {
@@ -442,6 +461,11 @@ function removeAction(id: string): () => void {
   flex-wrap: wrap;
   gap: 8px;
   width: 100%;
+}
+
+.name-field {
+  flex: 1 1 12em;
+  min-width: 0;
 }
 
 .link {

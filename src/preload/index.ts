@@ -11,6 +11,7 @@ import {
   type OverlayLayout,
   type ScaleStepMessage,
   type SettingsCommand,
+  type SettingsWindowPage,
   type WidgetToggleMessage
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
@@ -49,6 +50,7 @@ const api: OverlayApi = {
   onCursorHidden: (cb) => subscribe<boolean>(IPC.cursorHidden, cb),
   onCurrentCar: (cb) => subscribe<CarRef | null>(IPC.currentCar, cb),
   onLayoutNotice: (cb) => subscribe<LayoutNotice>(IPC.layoutNotice, cb),
+  onSettingsPage: (cb) => subscribe<SettingsWindowPage>(IPC.settingsPage, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),

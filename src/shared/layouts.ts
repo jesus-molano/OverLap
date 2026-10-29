@@ -6,7 +6,9 @@
  * The active layout always equals the widgets (settings/layouts.ts syncActiveLayout): moving a
  * widget changes the layout in use, and applying another copies its fields into the widgets.
  * The commands below mutate a settings draft (main runs them inside SettingsStore.update, which
- * normalises the result) and say whether they changed anything. Pure.
+ * normalises the result) and say whether they changed anything. Pure, but for the clock: a
+ * layout that becomes the one in use is stamped (SavedLayout.usedAt) with `now`, Date.now() unless
+ * given.
  */
 import {
   MAX_CAR_LINKS,
@@ -21,7 +23,14 @@ import {
   uniqueLayoutName,
   withoutControls
 } from './settings/layouts'
-import type { CarRef, LayoutLibrary, LayoutWidget, OverlaySettings, SavedLayout } from './types'
+import type {
+  CarRef,
+  LayoutLibrary,
+  LayoutSort,
+  LayoutWidget,
+  OverlaySettings,
+  SavedLayout
+} from './types'
 import { WIDGET_IDS, type WidgetId } from './widgets'
 
 export {
@@ -73,10 +82,18 @@ function addLayout(
  * "Guardar como": a new layout equal to the widgets now, which becomes the one in use (what you
  * move next changes it, not the one you started from). Null: no name, or no room.
  */
-export function saveLayoutAs(s: OverlaySettings, name: unknown): string | null {
+export function saveLayoutAs(s: OverlaySettings, name: unknown, now = Date.now()): string | null {
   const id = addLayout(s, name, snapshotWidgets(s.widgets))
-  if (id !== null) s.savedLayouts.activeId = id
+  if (id === null) return null
+  s.savedLayouts.activeId = id
+  stampUsed(s.savedLayouts, id, now)
   return id
+}
+
+/** Layout `id` became the one in use at `now`. */
+function stampUsed(lib: LayoutLibrary, id: string, now: number): void {
+  const layout = findLayout(lib, id)
+  if (layout && Number.isFinite(now) && now >= 0) layout.usedAt = Math.floor(now)
 }
 
 /** A copy of layout `id` named `name`, right after it, not applied. */
@@ -114,29 +131,93 @@ export function deleteLayout(s: OverlaySettings, id: string): boolean {
 
 /**
  * Moves layout `id` one place up (-1) or down (1) in the list (the tray's and the shortcut's
- * order).
+ * order). `aroundActive`: the settings window shows the one in use pinned above the others, so
+ * `id` swaps with its neighbour among those and the one in use keeps its place (it cannot be
+ * moved itself then).
  */
-export function moveLayout(s: OverlaySettings, id: string, step: -1 | 1): boolean {
-  const list = s.savedLayouts.list
+export function moveLayout(
+  s: OverlaySettings,
+  id: string,
+  step: -1 | 1,
+  aroundActive = false
+): boolean {
+  const lib = s.savedLayouts
+  const activeAt = lib.list.findIndex((l) => l.id === lib.activeId)
+  const pinned = aroundActive ? lib.list[activeAt] : undefined
+  if (pinned?.id === id) return false
+  const list = pinned ? lib.list.filter((l) => l !== pinned) : lib.list
   const at = list.findIndex((l) => l.id === id)
   const to = at + step
   if (at < 0 || to < 0 || to >= list.length) return false
   const [layout] = list.splice(at, 1)
   if (layout) list.splice(to, 0, layout)
+  if (pinned) {
+    list.splice(activeAt, 0, pinned)
+    lib.list = list
+  }
   return true
 }
 
 /**
- * Makes layout `id` the one in use: every widget takes its bounds, scale, visibility and lock;
- * nothing else changes. False when it is unknown or already in use.
+ * Makes layout `id` the one in use: every widget takes its bounds, scale, visibility and lock,
+ * and the layout is stamped used at `now`; nothing else changes. False when it is unknown or
+ * already in use.
  */
-export function applyLayout(s: OverlaySettings, id: string): boolean {
+export function applyLayout(s: OverlaySettings, id: string, now = Date.now()): boolean {
   const lib = s.savedLayouts
   const layout = findLayout(lib, id)
   if (!layout || id === lib.activeId) return false
   for (const w of WIDGET_IDS) Object.assign(s.widgets[w], layoutWidgetOf(layout.widgets[w]))
   lib.activeId = id
+  stampUsed(lib, id, now)
   return true
+}
+
+/** SavedLayout.usedAt, 0 for one never used. */
+export function usedAtOf(layout: Pick<SavedLayout, 'usedAt'>): number {
+  return layout.usedAt ?? 0
+}
+
+/**
+ * At most `max` layouts for a short list (the tray): the one in use, then `also` (the current
+ * car's, null: none), then the latest used (never used ones in the list's order), shown in the
+ * list's order so they keep their places as you switch.
+ */
+export function recentLayouts(
+  lib: LayoutLibrary,
+  max: number,
+  also: string | null = null
+): SavedLayout[] {
+  if (lib.list.length <= max) return [...lib.list]
+  const picked = new Set<string>()
+  for (const id of [lib.activeId, also]) {
+    if (id !== null && picked.size < max && findLayout(lib, id)) picked.add(id)
+  }
+  for (const l of sortLayouts(lib.list, 'recent')) {
+    if (picked.size >= max) break
+    picked.add(l.id)
+  }
+  return lib.list.filter((l) => picked.has(l.id))
+}
+
+/**
+ * The layouts in `sort` order, a new array: 'custom' as stored, 'name' A to Z in `locale`
+ * (case, accents and numbers as people read them: 'GT3 (2)' before 'GT3 (10)'), 'recent' the
+ * latest used first. Ties keep the stored order.
+ */
+export function sortLayouts(
+  list: readonly SavedLayout[],
+  sort: LayoutSort,
+  locale?: string
+): SavedLayout[] {
+  const out = [...list]
+  if (sort === 'name') {
+    const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true })
+    out.sort((a, b) => collator.compare(a.name, b.name))
+  } else if (sort === 'recent') {
+    out.sort((a, b) => usedAtOf(b) - usedAtOf(a))
+  }
+  return out
 }
 
 /** The layout after the one in use, wrapping around; null with a single layout. */

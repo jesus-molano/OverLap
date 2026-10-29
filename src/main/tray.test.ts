@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { linkCar, renameLayout, saveLayoutAs } from '@shared/layouts'
+import { applyLayout, linkCar, renameLayout, saveLayoutAs } from '@shared/layouts'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
 import { WIDGET_IDS } from '@shared/widgets'
@@ -503,7 +503,7 @@ describe('tray layouts submenu', () => {
     sub[2]?.click?.({ checked: true })
     expect(applyLayout).toHaveBeenCalledWith('layout-3')
     sub.at(-1)?.click?.({ checked: false })
-    expect(openSettings).toHaveBeenCalledOnce()
+    expect(openSettings).toHaveBeenCalledExactlyOnceWith('layouts')
     const labels = (fake.menus.at(-1) ?? []).map((i) => i.label)
     expect(labels.indexOf('Disposición')).toBe(labels.indexOf('Mostrar el overlay') + 1)
   })
@@ -519,6 +519,82 @@ describe('tray layouts submenu', () => {
     expect(labels({ ...state(s), carId: 99 })[1]).toBe('Mazda')
     s.appearance.language = 'en'
     expect(layoutsMenu({ ...state(s), carId: 67 }, ACTIONS).at(-1)?.label).toBe('Manage layouts…')
+  })
+
+  /** Principal and `n - 1` more ('L2'...), saved a second apart; 'L2' in use last. */
+  function manyLayouts(n: number): OverlaySettings {
+    const s = createDefaultSettings()
+    for (let i = 2; i <= n; i++) saveLayoutAs(s, `L${i}`, i * 1_000)
+    applyLayout(s, 'layout-2', 100_000)
+    return s
+  }
+
+  it('past five layouts: the one in use and the latest used, in your order, then "Más…"', () => {
+    const s = manyLayouts(30)
+    const openSettings = vi.fn()
+    const menu = layoutsMenu(state(s), { ...ACTIONS, openSettings })
+    expect(menu.map((i) => [i.label, i.type, i.checked])).toEqual([
+      ['L2', 'radio', true],
+      ['L27', 'radio', false],
+      ['L28', 'radio', false],
+      ['L29', 'radio', false],
+      ['L30', 'radio', false],
+      ['Más…', undefined, undefined],
+      [undefined, 'separator', undefined],
+      ['Gestionar disposiciones…', undefined, undefined]
+    ])
+    ;(menu[5]?.click as (() => void) | undefined)?.()
+    expect(openSettings).toHaveBeenCalledExactlyOnceWith('layouts')
+    // The car you are in keeps its layout listed, marked.
+    linkCar(s, { carId: 67, carName: 'Mazda MX-5 Cup' }, 'layout-1')
+    s.layouts.autoSwitch = true
+    expect(layoutsMenu({ ...state(s), carId: 67 }, ACTIONS).map((i) => i.label)).toEqual([
+      'Principal · coche actual',
+      'L2',
+      'L28',
+      'L29',
+      'L30',
+      'Más…',
+      undefined,
+      'Gestionar disposiciones…'
+    ])
+    s.appearance.language = 'en'
+    expect(layoutsMenu(state(s), ACTIONS)[5]?.label).toBe('More…')
+  })
+
+  it('lists five layouts whole, without "Más…"; an old file (no usedAt) falls back to the order', () => {
+    expect(layoutsMenu(state(manyLayouts(5)), ACTIONS).map((i) => i.label)).toEqual([
+      'Principal',
+      'L2',
+      'L3',
+      'L4',
+      'L5',
+      undefined,
+      'Gestionar disposiciones…'
+    ])
+    const old = manyLayouts(8)
+    for (const l of old.savedLayouts.list) delete l.usedAt
+    old.savedLayouts.activeId = 'layout-6'
+    expect(layoutsMenu(state(old), ACTIONS).map((i) => i.label)).toEqual([
+      'Principal',
+      'L2',
+      'L3',
+      'L4',
+      'L6',
+      'Más…',
+      undefined,
+      'Gestionar disposiciones…'
+    ])
+  })
+
+  it('rebuilds the menu when another layout becomes a recent one', () => {
+    const s = manyLayouts(8)
+    createTray(state(s), ACTIONS)
+    const next = structuredClone(s)
+    applyLayout(next, 'layout-3', 200_000)
+    updateTray(state(next))
+    expect(fake.menus).toHaveLength(2)
+    expect(item('Disposición').submenu?.map((i) => i.label)).toContain('L3')
   })
 
   it('rebuilds the menu when a layout is renamed, added or applied, not otherwise', () => {

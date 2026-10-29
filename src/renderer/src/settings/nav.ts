@@ -47,6 +47,15 @@ export function loadPage(storage: PageStorage | null): SettingsPage {
   }
 }
 
+/**
+ * The page to open on: the one main asked for in the URL (`?page=`, the tray's "Más…"), else the
+ * remembered one. `search` is location.search.
+ */
+export function initialPage(search: string, storage: PageStorage | null): SettingsPage {
+  const asked = new URLSearchParams(search).get('page')
+  return isSettingsPage(asked) ? asked : loadPage(storage)
+}
+
 /** Remembers the page; a storage failure is ignored (it only affects the next opening). */
 export function savePage(storage: PageStorage | null, page: SettingsPage): void {
   try {

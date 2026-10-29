@@ -149,6 +149,7 @@ describe('isSettingsCommand', () => {
       { type: 'layout-rename', id: 'layout-2', name: '' },
       { type: 'layout-delete', id: 'layout-2' },
       { type: 'layout-move', id: 'layout-2', step: -1 },
+      { type: 'layout-move', id: 'layout-2', step: 1, aroundActive: true },
       { type: 'layout-export', id: 'layout-2' },
       { type: 'layout-import' },
       { type: 'layout-link-car', car, layoutId: 'layout-2' },
@@ -163,6 +164,7 @@ describe('isSettingsCommand', () => {
       { type: 'layout-apply', id: 7 },
       { type: 'layout-duplicate', id: 'layout-2' },
       { type: 'layout-move', id: 'layout-2', step: 2 },
+      { type: 'layout-move', id: 'layout-2', step: 1, aroundActive: 'yes' },
       { type: 'layout-link-car', car: { carId: 0 }, layoutId: null },
       { type: 'layout-link-car', car, layoutId: 'bad id' },
       { type: 'layout-link-car', car }

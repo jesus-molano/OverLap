@@ -37,6 +37,8 @@ function harness(initial: OverlaySettings): Harness {
   let current = normalizeSettings(initial)
   let editing = false
   let pending: ((s: OverlaySettings) => void) | null = null
+  /** Each reading of the clock is a second later. */
+  let clock = 0
   const calls: string[] = []
   const reloaded: WidgetId[][] = []
   const notices: LayoutNotice[] = []
@@ -73,7 +75,8 @@ function harness(initial: OverlaySettings): Harness {
     notify: (n) => void notices.push(n),
     carChanged: (car) => void cars.push(car),
     files: () => files as unknown as LayoutFileDeps,
-    importedName: () => 'Importada'
+    importedName: () => 'Importada',
+    now: () => (clock += 1_000)
   })
   return {
     control,
@@ -144,6 +147,36 @@ describe('LayoutControl: applying', () => {
   it('applies in edit mode too when chosen by hand', () => {
     h.setEditing(true)
     expect(h.control.choose('layout-2')).toBe(true)
+  })
+
+  it('stamps the layout put in use, by hand, shortcut, car or "Guardar como"', async () => {
+    const usedAt = (id: string): number | undefined =>
+      h.settings().savedLayouts.list.find((l) => l.id === id)?.usedAt
+    h.control.choose('layout-2')
+    expect(usedAt('layout-2')).toBe(1_000)
+    h.control.next()
+    expect(usedAt('layout-1')).toBe(2_000)
+    await h.control.command({ type: 'layout-save', name: 'GT3' })
+    expect(usedAt('layout-3')).toBe(3_000)
+    h.edit((d) => {
+      linkCar(d, MAZDA, 'layout-2')
+      d.layouts.autoSwitch = true
+    })
+    h.control.onCar(MAZDA)
+    expect(h.settings().savedLayouts.activeId).toBe('layout-2')
+    expect(usedAt('layout-2')).toBe(4_000)
+    // A duplicate was never in use.
+    await h.control.command({ type: 'layout-duplicate', id: 'layout-2', name: 'Copia' })
+    expect(usedAt('layout-4')).toBeUndefined()
+  })
+
+  it('moves past the pinned one in use when the page asks', async () => {
+    await h.control.command({ type: 'layout-save', name: 'GT3' })
+    // Principal, Mazda, [GT3]: Principal goes below Mazda; the one in use cannot move itself.
+    await h.control.command({ type: 'layout-move', id: 'layout-1', step: 1, aroundActive: true })
+    expect(h.settings().savedLayouts.list.map((l) => l.name)).toEqual(['Mazda', 'Principal', 'GT3'])
+    await h.control.command({ type: 'layout-move', id: 'layout-3', step: -1, aroundActive: true })
+    expect(h.settings().savedLayouts.list.map((l) => l.name)).toEqual(['Mazda', 'Principal', 'GT3'])
   })
 
   it('cycles with the shortcut, wrapping around', () => {

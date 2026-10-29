@@ -56,6 +56,8 @@ export interface LayoutControlDeps {
   files(): LayoutFileDeps
   /** Name of an imported layout whose file has none, in the interface language. */
   importedName(): string
+  /** The clock a layout that becomes the one in use is stamped with (Date.now by default). */
+  now?(): number
   log?(message: string): void
 }
 
@@ -111,7 +113,7 @@ export class LayoutControl {
       case 'layout-save':
         // The new one is in use: nothing moves, and nothing pending should replace it.
         this.auto.onManualSwitch()
-        this.change((s) => void saveLayoutAs(s, cmd.name))
+        this.change((s) => void saveLayoutAs(s, cmd.name, this.now()))
         break
       case 'layout-apply':
         this.choose(cmd.id)
@@ -126,7 +128,7 @@ export class LayoutControl {
         this.change((s) => void deleteLayout(s, cmd.id))
         break
       case 'layout-move':
-        this.change((s) => void moveLayout(s, cmd.id, cmd.step))
+        this.change((s) => void moveLayout(s, cmd.id, cmd.step, cmd.aroundActive === true))
         break
       case 'layout-link-car': {
         const car = normalizeCarRef(cmd.car)
@@ -176,6 +178,10 @@ export class LayoutControl {
     if (id !== null) this.apply(id, 'auto')
   }
 
+  private now(): number {
+    return this.deps.now?.() ?? Date.now()
+  }
+
   private context(): { settings: OverlaySettings; editing: boolean } {
     return { settings: this.deps.getSettings(), editing: this.deps.isEditing() }
   }
@@ -195,7 +201,7 @@ export class LayoutControl {
     this.deps.flushPendingSaves()
     const prev = this.deps.getSettings()
     if (!hasLayout(prev.savedLayouts, id) || id === prev.savedLayouts.activeId) return false
-    this.deps.update((s) => void applyLayout(s, id))
+    this.deps.update((s) => void applyLayout(s, id, this.now()))
     this.deps.reloadBounds(WIDGET_IDS)
     this.deps.sync(prev)
     const name = findLayout(this.deps.getSettings().savedLayouts, id)?.name ?? id

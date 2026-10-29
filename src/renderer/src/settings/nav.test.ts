@@ -5,6 +5,7 @@ import {
   DEFAULT_PAGE,
   PAGE_STORAGE_KEY,
   SETTINGS_PAGES,
+  initialPage,
   isSettingsPage,
   loadPage,
   pageTitle,
@@ -80,5 +81,13 @@ describe('remembered page', () => {
     expect(loadPage(null)).toBe(DEFAULT_PAGE)
     expect(loadPage(throwing)).toBe(DEFAULT_PAGE)
     expect(() => savePage(throwing, 'radar')).not.toThrow()
+  })
+
+  it('opens on the page main asks for in the URL, else the remembered one', () => {
+    const s = memoryStorage({ [PAGE_STORAGE_KEY]: 'radar' })
+    expect(initialPage('?view=settings&page=layouts', s)).toBe('layouts')
+    expect(initialPage('?view=settings', s)).toBe('radar')
+    expect(initialPage('?view=settings&page=toString', s)).toBe('radar')
+    expect(initialPage('', null)).toBe(DEFAULT_PAGE)
   })
 })

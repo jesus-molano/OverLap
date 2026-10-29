@@ -83,6 +83,8 @@ export const coreEs = {
     layouts: 'Disposición',
     /** Its last item: the settings window's layouts page. */
     manageLayouts: 'Gestionar disposiciones…',
+    /** After the few it lists when there are many: the same page, with all of them. */
+    moreLayouts: 'Más…',
     /** A layout linked to the car you are in (automatic mode): 'Mazda · coche actual'. */
     layoutForCar: (name: string) => `${name} · coche actual`,
     editMode: 'Modo edición',
@@ -227,6 +229,7 @@ export const coreEn: Dict<typeof coreEs> = {
     showWhen: 'Show the overlay',
     layouts: 'Layout',
     manageLayouts: 'Manage layouts…',
+    moreLayouts: 'More…',
     layoutForCar: (name) => `${name} · current car`,
     editMode: 'Edit mode',
     hideOverlay: 'Hide overlay',

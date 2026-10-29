@@ -60,7 +60,11 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'layout-rename':
       return isLayoutId(cmd.id) && isName(cmd.name)
     case 'layout-move':
-      return isLayoutId(cmd.id) && (cmd.step === -1 || cmd.step === 1)
+      return (
+        isLayoutId(cmd.id) &&
+        (cmd.step === -1 || cmd.step === 1) &&
+        (cmd.aroundActive === undefined || typeof cmd.aroundActive === 'boolean')
+      )
     case 'layout-import':
       return true
     case 'layout-link-car':

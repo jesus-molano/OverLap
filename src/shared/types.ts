@@ -1633,7 +1633,15 @@ export interface LayoutOptions {
    * the last one used). Off: only the tray, the shortcut and the settings window switch.
    */
   autoSwitch: boolean
+  /**
+   * The order the settings window lists them in: yours ('custom', the stored order), by name or
+   * the latest used first. Display only: the stored order (the tray's, the shortcut's) stays.
+   */
+  sort: LayoutSort
 }
+
+/** LayoutOptions.sort. */
+export type LayoutSort = 'custom' | 'name' | 'recent'
 
 /** What a saved layout keeps of one widget: where it is, its size and scale, shown and locked. */
 export type LayoutWidget = Pick<WidgetSettings, 'bounds' | 'scale' | 'visible' | 'locked'>
@@ -1644,6 +1652,11 @@ export interface SavedLayout {
   id: string
   name: string
   widgets: Record<WidgetId, LayoutWidget>
+  /**
+   * When it last became the one in use (epoch ms): the tray's recent ones. Absent on a layout
+   * not used since (older files, imported or duplicated ones), which counts as 0. Never exported.
+   */
+  usedAt?: number
 }
 
 /** A car model as the session names it (DriverInfo CarID and CarScreenName). */
