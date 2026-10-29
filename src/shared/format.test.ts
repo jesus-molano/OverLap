@@ -358,7 +358,7 @@ describe('formatDriverName', () => {
   })
 
   it('upper-cases the initial of a lowercase given name', () => {
-    expect(formatDriverName('jesús molano', 'abbr')).toBe('J. molano')
+    expect(formatDriverName('andrés lucena', 'abbr')).toBe('A. lucena')
   })
 
   it('returns single names, name + suffix and empty names unchanged', () => {

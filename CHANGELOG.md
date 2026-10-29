@@ -1,0 +1,201 @@
+# Registro de cambios
+
+Aquí se apuntan todos los cambios importantes de OverLap.
+
+El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
+[versionado semántico](https://semver.org/lang/es/).
+
+## [2.0.0] - AAAA-MM-DD
+
+Primera versión pública. OverLap es un overlay para iRacing en Windows: lee la telemetría oficial
+del SDK, solo lectura y sin inyectar nada en el juego, y dibuja diez widgets encima del simulador.
+La 1.x, con relativo y radar, fue de uso personal y no se publicó; sus ajustes se migran solos.
+
+### Widgets
+
+- **Relativo**: los coches que tienes delante y detrás en pista (3 y 3 por defecto, hasta 10), con
+  posición en clase, número, nombre, licencia, iRating y hueco. Color de clase en cada fila, en rojo
+  quien te va a doblar, en azul los doblados y atenuados los que están en boxes. Opcionales:
+  columnas de neumático y de vueltas del stint, banderas de penalización tras el nombre y tus
+  incidentes en la cabecera («3x · DQ a 17x»).
+- **Radar**: vista cenital con los coches a escala alrededor del tuyo, que pasan de neutros a rojo
+  según se acercan. Alcance de 5 a 100 m (20 m por defecto). Un coche que se pone a tu lado se
+  desliza a su carril en vez de saltar y conserva su lado hasta 3 s después de que iRacing deje de
+  darlo.
+- **Clasificación**: modo compacto (primeros, tu entorno y líderes de otras clases) o completo.
+  Columnas que se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos
+  ganados, iRating, licencia, Δ iRating, hueco al de delante y al líder, última y mejor vuelta,
+  boxes, última parada, stint y neumático. Cabecera con tu iRating y SR proyectados, SoF, número de
+  coches e incidentes.
+- **Batalla** (por defecto solo en carrera): tu rival de clase de delante y el de detrás mientras
+  estén a menos del hueco que elijas, con la tendencia del hueco, la predicción de alcance («Le
+  alcanzas en ~4 v de 19»), la diferencia por sector o por vuelta y el iRating en juego.
+- **Pedales**: traza de acelerador, freno y embrague, barras, volante (barra o aro que gira),
+  marcha, velocidad y ABS, en tres disposiciones (la más pequeña, solo barras). La traza avanza su
+  distancia exacta en cada muestra, sin saltos de un píxel.
+- **Tráfico**: la clase más rápida que te alcanza por detrás (en cuánto y dónde), el tráfico lento
+  al que alcanzas y los peligros de delante (coches parados, muy lentos o fuera de pista). Quien te
+  dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca.
+- **Avisos**: una banda con lo que te afecta, lo más importante en grande. Banderas (también la
+  negra enrollada), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de entrar,
+  10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario, presión de
+  aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», combustible bajo y cada incidente
+  al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso tiene su opción.
+- **Delta**: barra a 30 Hz frente a la referencia que elijas: tu récord personal con ese coche en
+  ese trazado, la mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor de tu clase o
+  la óptima de tu clase. Con tendencia, vuelta prevista y sectores. La referencia solo cambia al
+  empezar una vuelta y, mientras no existe, se usa la siguiente. Los récords se guardan en tu equipo
+  y no se pierden al cambiar de sesión.
+- **Combustible** (por defecto solo en carrera): litros y vueltas que te dan, vueltas que quedan,
+  depósito con la marca de lo que necesitas, consumo (media, última y máximo), lo que falta para
+  meta y lo que hay que echar junto a lo del menú de boxes, ventana de parada («V24–V28»), paradas,
+  el ahorro por vuelta que te quita una parada, la última lectura de neumáticos y las reparaciones
+  rápidas y juegos de neumáticos que quedan si la sesión los limita. Solo mide vueltas limpias, y el
+  plan no baila dentro de la vuelta.
+- **Testigos**: los testigos del motor como en un salpicadero, en fila o en columna: presión de
+  aceite y de gasolina, motor calado, reparación obligatoria y opcional (con el tiempo que falta),
+  temperatura del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones.
+  Cada gravedad tiene su color y su forma, así que se lee sin el color. Avisa en amarillo cuando el
+  agua o el aceite suben muy por encima de tu media, antes de que se encienda el testigo del coche.
+- **Pie de condiciones** bajo Relativo y Clasificación (activado en Clasificación): temperatura de
+  la pista con su tendencia, agua y lluvia cuando las hay («DECLARADA MOJADA»), viento medio con un
+  dial que apunta a tu coche desde donde sopla, aire y goma.
+
+### Overlay y rendimiento
+
+- Una sola ventana transparente por pantalla con todos sus widgets, en lugar de una por widget.
+  Windows reparte el refresco entre las ventanas que se actualizan, y la traza de pedales y el radar
+  se quedaban en 22–39 fps; ahora todos los paneles van a ~58 fps. La memoria del overlay baja de
+  ~705 MB a ~203 MB.
+- Las ventanas nunca cogen el foco y dejan pasar los clics al juego; solo cogen el ratón en modo
+  edición, sobre un widget sin bloquear.
+- Si la ventana falla o se cuelga, se pierde la GPU, el equipo se suspende o cambia la escala de una
+  pantalla, el overlay se oculta y vuelve solo al recuperarse.
+- Un widget oculto no se dibuja ni se calcula, y cada widget se calcula a su propia frecuencia.
+- Para OBS, la captura de ventana es «Pantalla N · OverLap», con todos los widgets de esa pantalla.
+- Diseño «Night Cluster»: paneles con el borde de arriba iluminado, tu fila marcada con un corchete
+  de luz del color de acento y licencias como texto de color con su SR.
+- Icono propio (monograma OL) para la app y la bandeja, que sigue el tema claro u oscuro de la barra
+  de tareas.
+
+### Modo edición
+
+- Arrastra un widget para moverlo, usa sus bordes y esquinas para cambiar su tamaño o la rueda del
+  ratón para escalarlo. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o
+  `Shift` pulsado, no).
+- Arrastrado fuera de su pantalla, el widget pasa a la otra.
+- Cada etiqueta tiene un ojo (mostrar u ocultar) y un candado (bloquear). Las etiquetas se dibujan
+  encima de todo, y un widget oculto se ve como un hueco discontinuo para poder recuperarlo.
+- El radar se dibuja encima de todos los widgets, y el modo edición marca en naranja lo que lo tapa.
+- Con iRacing delante, el simulador oculta el cursor: el overlay lo avisa y dice cómo recuperarlo
+  (los Ajustes desde la bandeja o `Alt+Tab`).
+- Salir del modo edición en mitad de un arrastre lo cancela.
+
+### Atajos de teclado
+
+- Globales, funcionan con iRacing en primer plano: `Ctrl+Shift+H` muestra u oculta todo el overlay
+  de golpe (la telemetría sigue, así que vuelve con los datos al día) y `Ctrl+Shift+E` entra o sale
+  del modo edición. `Esc` sale del modo edición.
+- Se cambian en **Ajustes > Atajos de teclado**: pulsa la combinación nueva, o desactiva o
+  restablece cada atajo. Avisa si otra aplicación ya la usa o si `Ctrl+Alt` (el `AltGr` de un
+  teclado español) puede impedir escribir `@`, `#` o `€`, y rechaza las de Windows, las de editar y
+  las que no llevan `Ctrl` ni `Alt` (salvo `F13`–`F24`, que envían muchas button box).
+- Usan `RegisterHotKey` de Windows: no hay ganchos de teclado ni nada que llegue al juego.
+
+### Ajustes
+
+- Ventana de Ajustes desde la bandeja, volviendo a abrir la app o con `--settings`. Todo se aplica
+  en vivo y se guarda solo; arriba queda fija una muestra del widget y solo se desplazan las
+  opciones.
+- Por widget: visible, bloqueado, opacidad del fondo (el texto sigue nítido y lleva contorno con
+  poca opacidad), escala, alto automático o fijo y hacia dónde crece, en qué sesiones se muestra
+  (práctica, clasificación, carrera), ocultar en boxes y restablecer opciones o posición.
+- Apariencia: color de acento (seis), paleta para daltónicos (azul y naranja en vez de verde y
+  rojo), tamaño y contorno del texto, densidad y filas alternas, estilo de la licencia y del número,
+  formato del nombre y unidades métricas o imperiales.
+- Récords personales: la lista por coche y trazado, con borrar uno, el actual o todos.
+- Bandeja: Ajustes, mostrar u ocultar cada widget, alcance del radar, cuándo se ve el overlay,
+  ocultarlo, modo edición y la carpeta de ajustes.
+- Un archivo de ajustes dañado se guarda como `.bak` y se usan los valores por defecto. Los widgets
+  nuevos llegan a un hueco libre, sin tapar lo que ya tenías colocado.
+
+### Personalización
+
+<!-- TODO: bloque de personalización (elementos de cada widget, cabeceras de columna, logotipos de
+marca). Rellenar esta sección cuando se fusione, antes de publicar la 2.0.0. -->
+
+### Idiomas
+
+- Español (por defecto) e inglés, en **Ajustes > Apariencia**. Cambia al momento los widgets, la
+  ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja.
+
+### iRacing
+
+- Solo lectura: lee la memoria compartida del SDK oficial y dibuja ventanas propias. No inyecta nada
+  en el proceso del juego (iRacing usa EasyAntiCheat) ni enciende la grabación de telemetría `.ibt`.
+- **Nombres con acentos**: iRacing escribe los datos de sesión en Windows-1252 y cada acento llegaba
+  roto (`�`); ahora se leen bien. Los nombres que iRacing ya manda como `?` (cirílico, chino…) se
+  muestran con el nombre del equipo o como «Piloto #7». Los récords guardados con un trazado de
+  nombre roto se recuperan solos.
+- **Solo en el coche**: por defecto el overlay se ve mientras conduces; también hay «Solo en
+  carrera» y «Siempre». Fuera del coche solo se queda la Clasificación en la pantalla de sesión, con
+  los resultados. Un instante fuera (un reset, el principio de una grúa) no lo hace parpadear.
+  También se oculta con la interfaz de iRacing oculta y en el garaje.
+- **Repeticiones**: ocultas por defecto. Con «Seguir al coche en cámara», los widgets siguen al
+  coche que miras y, al rebobinar, la Clasificación se queda con la carrera en directo. La pantalla
+  de sesión en directo («Playback: Live») no cuenta como repetición, y la cinta nunca suma vueltas,
+  récords ni incidentes.
+- En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
+  él; los widgets que solo tienen datos de tu coche se ocultan.
+- Sin iRacing, «Esperando a iRacing…» se oculta a los 8 s. La conexión se reintenta cada ~2 s, y el
+  proceso de telemetría se reinicia solo si falla.
+- Modo simulado (`--mock`): una carrera de ~20 coches de dos clases para probarlo sin iRacing.
+
+### Correcciones tras la carrera real
+
+Lo que salió al usar OverLap en una carrera online real, al reproducir la grabación de esa carrera y
+en una carrera offline contra la IA:
+
+- **Cronometraje**: la vuelta 1 de una salida parada cuenta desde que el semáforo se pone verde, con
+  el mismo tiempo que iRacing (salía un segundo más corta). Un coche remolcado o reiniciado se
+  cronometra desde donde aparece, sin «+0.0» falsos, y la vuelta de enfriamiento no se cronometra.
+- **Antes de la verde**: reloj, vueltas y margen de SR con la duración programada, no con la cuenta
+  atrás de la parrilla. La Clasificación lista la parrilla entera y el Relativo, el puesto de
+  salida.
+- **Posiciones y huecos**: el Relativo usa las mismas posiciones que la Clasificación; el intervalo
+  ya no repite el hueco al líder; un retirado queda a las vueltas que le faltan; fuera de carrera,
+  sin tiempo no hay puesto ni «LÍDER». En práctica y clasificación las vueltas que quedan no suben
+  al salir del coche, y con límite de vueltas y de tiempo también sale el reloj.
+- **Final de la carrera**: la cabecera dice «Última vuelta» y luego «Final» cuando cruzas la meta
+  (o al acabar la sesión, si te quedas en el box).
+- **Grúa y boxes**: «GRÚA» solo mientras dura la grúa y después «PIT». La grúa no cuenta como
+  parada, y la vuelta que iRacing te acredita en el box no suma al stint.
+- **Avisos y testigos**: sin «LIMITADOR OFF» falso al aparecer en tu box tras la grúa ni «CALADO»
+  mientras la grúa levanta el coche; las presiones y temperaturas del motor callan durante la grúa,
+  en tu box y al subir al coche. La de cuadros cuenta desde que sale, no hay banderas fuera del
+  coche y la negra enrollada no sale a quien ya terminó. Cada incidente se nombra por lo más grave
+  que pasó, no por el byte de penalización.
+- **Delta**: ya no dice «vuelta inválida» sin una vuelta en curso; la vuelta de salida y la grúa lo
+  dicen.
+- **Radar y tráfico**: un coche a tu lado del que iRacing no da el lado se dibuja atenuado a su
+  distancia real, nunca encima de tu coche ni pegado a tu parachoques. En las sesiones en solitario
+  el radar solo usa los avisos laterales de iRacing y Tráfico no lista a nadie.
+- **Pilotos de IA y sesiones offline**: sin iRatings ni licencias de relleno («R 0.0», «SoF 1»).
+- **Neumático**: sin columna de compuesto cuando todos llevan el de seco.
+
+### Pendiente / conocido
+
+- Falta una prueba de fps con iRacing en marcha que confirme los ~58 fps del overlay.
+- Falta probar el overlay en pantallas con la escala de Windows al 125 % y al 150 %.
+- Pie de condiciones: falta confirmar qué significa el estado de la goma (el que da iRacing al
+  empezar la sesión) y el viento, cuya dirección solo se ha comprobado en una carrera; la escala de
+  la lluvia tampoco está confirmada.
+- Desgaste de neumáticos: iRacing solo lo mide con el coche parado en tu box, así que Combustible
+  muestra la lectura de la última parada, no el desgaste en directo.
+- Los límites de incidentes (penalización y DQ) se leen de los datos de sesión; falta confirmarlos
+  en una carrera oficial.
+- En pantalla completa exclusiva el overlay no se ve (usa ventana sin bordes), ni en VR sin una
+  herramienta como OpenKneeboard.
+- El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
+
+[2.0.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.0.0
