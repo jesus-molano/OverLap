@@ -10,6 +10,7 @@ import {
   loadPage,
   pageTitle,
   savePage,
+  searchWithoutPage,
   type PageStorage
 } from './nav'
 
@@ -89,5 +90,13 @@ describe('remembered page', () => {
     expect(initialPage('?view=settings', s)).toBe('radar')
     expect(initialPage('?view=settings&page=toString', s)).toBe('radar')
     expect(initialPage('', null)).toBe(DEFAULT_PAGE)
+  })
+
+  it('drops the page asked for from the URL, keeping the rest', () => {
+    expect(searchWithoutPage('?view=settings&page=layouts')).toBe('?view=settings')
+    expect(searchWithoutPage('?page=layouts&view=settings')).toBe('?view=settings')
+    expect(searchWithoutPage('?view=settings')).toBe('?view=settings')
+    expect(searchWithoutPage('?page=layouts')).toBe('')
+    expect(searchWithoutPage('')).toBe('')
   })
 })

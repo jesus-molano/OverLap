@@ -50,6 +50,8 @@ export interface LayoutListView {
    * past its neighbours in `rows` (the one in use keeps its place: moveLayout aroundActive).
    */
   reorder: boolean
+  /** What a row's chevrons send: true while the one in use is pinned (layoutCommands.move). */
+  aroundActive: boolean
 }
 
 export interface LayoutListOptions {
@@ -138,7 +140,8 @@ export function layoutList(
     total,
     many,
     query,
-    reorder
+    reorder,
+    aroundActive: pin
   }
 }
 

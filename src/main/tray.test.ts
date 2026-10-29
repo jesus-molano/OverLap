@@ -529,37 +529,35 @@ describe('tray layouts submenu', () => {
     return s
   }
 
-  it('past five layouts: the one in use and the latest used, in your order, then "Más…"', () => {
+  it('past five layouts: the one in use, then the latest used first, then only "Más…"', () => {
     const s = manyLayouts(30)
     const openSettings = vi.fn()
     const menu = layoutsMenu(state(s), { ...ACTIONS, openSettings })
     expect(menu.map((i) => [i.label, i.type, i.checked])).toEqual([
       ['L2', 'radio', true],
-      ['L27', 'radio', false],
-      ['L28', 'radio', false],
-      ['L29', 'radio', false],
       ['L30', 'radio', false],
-      ['Más…', undefined, undefined],
+      ['L29', 'radio', false],
+      ['L28', 'radio', false],
+      ['L27', 'radio', false],
       [undefined, 'separator', undefined],
-      ['Gestionar disposiciones…', undefined, undefined]
+      ['Más…', undefined, undefined]
     ])
-    ;(menu[5]?.click as (() => void) | undefined)?.()
+    ;(menu[6]?.click as (() => void) | undefined)?.()
     expect(openSettings).toHaveBeenCalledExactlyOnceWith('layouts')
     // The car you are in keeps its layout listed, marked.
     linkCar(s, { carId: 67, carName: 'Mazda MX-5 Cup' }, 'layout-1')
     s.layouts.autoSwitch = true
     expect(layoutsMenu({ ...state(s), carId: 67 }, ACTIONS).map((i) => i.label)).toEqual([
-      'Principal · coche actual',
       'L2',
-      'L28',
-      'L29',
+      'Principal · coche actual',
       'L30',
-      'Más…',
+      'L29',
+      'L28',
       undefined,
-      'Gestionar disposiciones…'
+      'Más…'
     ])
     s.appearance.language = 'en'
-    expect(layoutsMenu(state(s), ACTIONS)[5]?.label).toBe('More…')
+    expect(layoutsMenu(state(s), ACTIONS).at(-1)?.label).toBe('More…')
   })
 
   it('lists five layouts whole, without "Más…"; an old file (no usedAt) falls back to the order', () => {
@@ -576,14 +574,13 @@ describe('tray layouts submenu', () => {
     for (const l of old.savedLayouts.list) delete l.usedAt
     old.savedLayouts.activeId = 'layout-6'
     expect(layoutsMenu(state(old), ACTIONS).map((i) => i.label)).toEqual([
+      'L6',
       'Principal',
       'L2',
       'L3',
       'L4',
-      'L6',
-      'Más…',
       undefined,
-      'Gestionar disposiciones…'
+      'Más…'
     ])
   })
 

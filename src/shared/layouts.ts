@@ -179,9 +179,9 @@ export function usedAtOf(layout: Pick<SavedLayout, 'usedAt'>): number {
 }
 
 /**
- * At most `max` layouts for a short list (the tray): the one in use, then `also` (the current
- * car's, null: none), then the latest used (never used ones in the list's order), shown in the
- * list's order so they keep their places as you switch.
+ * At most `max` layouts for a short list (the tray), in this order: the one in use, then `also`
+ * (the current car's, null: none; one click back to it after a manual switch), then the latest
+ * used first (never used ones in the list's order). A list that fits is returned whole, as stored.
  */
 export function recentLayouts(
   lib: LayoutLibrary,
@@ -189,15 +189,16 @@ export function recentLayouts(
   also: string | null = null
 ): SavedLayout[] {
   if (lib.list.length <= max) return [...lib.list]
-  const picked = new Set<string>()
+  const picked = new Map<string, SavedLayout>()
   for (const id of [lib.activeId, also]) {
-    if (id !== null && picked.size < max && findLayout(lib, id)) picked.add(id)
+    const l = id === null ? undefined : findLayout(lib, id)
+    if (l && picked.size < max) picked.set(l.id, l)
   }
   for (const l of sortLayouts(lib.list, 'recent')) {
     if (picked.size >= max) break
-    picked.add(l.id)
+    if (!picked.has(l.id)) picked.set(l.id, l)
   }
-  return lib.list.filter((l) => picked.has(l.id))
+  return [...picked.values()]
 }
 
 /**

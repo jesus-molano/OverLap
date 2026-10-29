@@ -16,6 +16,7 @@ import {
   isSettingsPage,
   pageTitle,
   savePage,
+  searchWithoutPage,
   type SettingsPage
 } from './nav'
 import AppearancePage from './pages/AppearancePage.vue'
@@ -31,6 +32,11 @@ const lang = useLanguage()
 const storage = browserStorage()
 const page = shallowRef<SettingsPage>(initialPage(location.search, storage))
 savePage(storage, page.value)
+// Read once: a reload (dev Ctrl+R) shows the page you are on, not the one main asked for.
+const unasked = searchWithoutPage(location.search)
+if (unasked !== location.search) {
+  history.replaceState(history.state, '', location.pathname + unasked + location.hash)
+}
 const selectId = useId()
 const pageOptions = computed(() =>
   SETTINGS_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))

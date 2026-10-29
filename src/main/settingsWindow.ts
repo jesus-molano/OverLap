@@ -10,6 +10,10 @@ let win: BrowserWindow | null = null
 /** settings.appearance.language, for the title bar (see setSettingsWindowLanguage). */
 let language: Language = DEFAULT_LANGUAGE
 let inactiveListener: (() => void) | null = null
+/** The page asked for in the URL of the load in progress (undefined: none, or not loading). */
+let loadingPage: SettingsWindowPage | undefined
+/** Chromium's net::ERR_ABORTED: a load cancelled by the next one. */
+const ERR_ABORTED = -3
 
 /**
  * `listener` runs whenever the settings window stops being where the user types: it loses
@@ -44,13 +48,15 @@ export function setSettingsWindowLanguage(lang: Language): void {
  */
 export function openSettingsWindow(page?: SettingsWindowPage): void {
   if (win && !win.isDestroyed()) {
-    // Still loading: 'ready-to-show' shows it. A failed load is shown anyway so it can be closed.
-    if (!win.isVisible() && win.webContents.isLoading()) {
-      // Its page may not listen yet: loaded again, asking for that page in the URL.
-      if (page !== undefined) loadRenderer(win, page)
-      return
+    const loading = win.webContents.isLoading()
+    if (page !== undefined) {
+      // Loading (the first time or again): its page may not listen yet, so it is loaded again
+      // asking for that page in the URL; once only, a load that already asks for it goes on.
+      if (!loading) sendToSettingsWindow(IPC.settingsPage, page)
+      else if (loadingPage !== page) loadRenderer(win, page)
     }
-    if (page !== undefined) sendToSettingsWindow(IPC.settingsPage, page)
+    // Loading the first time: 'ready-to-show' shows it. A failed load is shown anyway (closable).
+    if (!win.isVisible() && loading) return
     if (win.isMinimized()) win.restore()
     win.show()
     win.focus()
@@ -168,7 +174,13 @@ function createWindow(page: SettingsWindowPage | undefined): BrowserWindow {
     if (!w.isDestroyed()) w.show()
   })
   wc.on('did-fail-load', (_event, code, description, url, isMainFrame) => {
-    if (isMainFrame) console.error(`[settings-window] load failed (${code} ${description}) ${url}`)
+    // A load replaced by the next one (a page asked for while loading) is not a failure.
+    if (isMainFrame && code !== ERR_ABORTED) {
+      console.error(`[settings-window] load failed (${code} ${description}) ${url}`)
+    }
+  })
+  wc.on('did-stop-loading', () => {
+    if (win === w) loadingPage = undefined
   })
   // Reopening from the tray creates a fresh one.
   wc.on('render-process-gone', (_event, details) => {
@@ -191,6 +203,7 @@ function createWindow(page: SettingsWindowPage | undefined): BrowserWindow {
 
 /** `?view=settings`, and `&page=` to open on a page instead of the one shown last. */
 function loadRenderer(w: BrowserWindow, page: SettingsWindowPage | undefined): void {
+  loadingPage = page
   const query: Record<string, string> = { view: 'settings' }
   if (page !== undefined) query.page = page
   const devUrl = process.env.ELECTRON_RENDERER_URL
@@ -199,8 +212,17 @@ function loadRenderer(w: BrowserWindow, page: SettingsWindowPage | undefined): v
       ? w.loadURL(withQuery(devUrl, query))
       : w.loadFile(join(__dirname, '../renderer/index.html'), { query })
   loading.catch((err: unknown) => {
-    if (!w.isDestroyed()) console.error('[settings-window] could not load the renderer', err)
+    if (!w.isDestroyed() && !isAborted(err)) {
+      console.error('[settings-window] could not load the renderer', err)
+    }
   })
+}
+
+/** A load promise rejected because the next load replaced it (see ERR_ABORTED). */
+function isAborted(err: unknown): boolean {
+  if (typeof err !== 'object' || err === null) return false
+  const { errno, code } = err as { errno?: unknown; code?: unknown }
+  return errno === ERR_ABORTED || code === 'ERR_ABORTED'
 }
 
 function withQuery(base: string, query: Record<string, string>): string {

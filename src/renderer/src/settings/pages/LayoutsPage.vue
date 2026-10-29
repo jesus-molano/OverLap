@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
 import { LAYOUT_SORTS } from '@shared/settingsSchema'
@@ -94,20 +94,50 @@ function onSearchEsc(e: KeyboardEvent): void {
 }
 
 // A layout saved, duplicated or imported, or another one put in use: its row scrolled into the
-// list's box (the box only, never the page: a notice under "Archivos" stays in view).
+// list's box (the box only, never the page: a notice under "Archivos" stays in view). Keyed by a
+// string, so the settings broadcast on every change (a drag in edit mode) does not call back.
 const listBox = useTemplateRef<HTMLElement>('listBox')
-watch(
-  () => ({ ids: lib.value.list.map((l) => l.id), activeId: lib.value.activeId }),
-  async (next, prev) => {
-    const id = rowToReveal(prev, next)
-    if (id === null) return
-    await nextTick()
-    const box = listBox.value
-    const row = box?.querySelector(`[data-layout-id="${CSS.escape(id)}"]`)
-    if (!box || !(row instanceof HTMLElement)) return
-    box.scrollTop += revealOffset(box.getBoundingClientRect(), row.getBoundingClientRect())
-  }
+const listRows = useTemplateRef<HTMLElement>('listRows')
+const libKey = computed(
+  () => `${lib.value.activeId}\n${lib.value.list.map((l) => l.id).join('\n')}`
 )
+let shownLib = { ids: lib.value.list.map((l) => l.id), activeId: lib.value.activeId }
+watch(libKey, async () => {
+  const next = { ids: lib.value.list.map((l) => l.id), activeId: lib.value.activeId }
+  const id = rowToReveal(shownLib, next)
+  shownLib = next
+  if (id === null) return
+  await nextTick()
+  const box = listBox.value
+  const row = box?.querySelector(`[data-layout-id="${CSS.escape(id)}"]`)
+  if (!box || !(row instanceof HTMLElement)) return
+  box.scrollTop += revealOffset(box.getBoundingClientRect(), row.getBoundingClientRect())
+})
+
+// The box is a Tab stop (a region you scroll with the keys) only while it has something to
+// scroll; `scrolled` shades its top edge, under the pinned row, once rows have gone under it.
+const overflowing = shallowRef(false)
+const scrolled = shallowRef(false)
+const scrollable = computed(() => view.value.many && overflowing.value)
+
+function measureBox(): void {
+  const box = listBox.value
+  overflowing.value = box !== null && box.scrollHeight > box.clientHeight + 1
+  scrolled.value = box !== null && box.scrollTop > 0
+}
+
+// The rows' height changes with the search, the window's width (rows wrap) and the library.
+const boxSizes = new ResizeObserver(measureBox)
+watch(
+  [listBox, listRows],
+  ([box, rows], _prev, onCleanup) => {
+    for (const el of [box, rows]) if (el) boxSizes.observe(el)
+    measureBox()
+    onCleanup(() => boxSizes.disconnect())
+  },
+  { flush: 'post' }
+)
+onBeforeUnmount(() => boxSizes.disconnect())
 
 function onLink(car: CarRow, e: Event): void {
   const v = e.target instanceof HTMLSelectElement ? e.target.value : ''
@@ -158,7 +188,7 @@ function onLink(car: CarRow, e: Event): void {
               view.query !== '' ? t.settings.layouts.matches(view.shown, view.total) : ''
             }}</span>
           </div>
-          <div class="sort-by" :class="{ 'is-alone': !view.many }">
+          <div class="sort-by">
             <span :id="sortLabelId" class="st-label">{{ t.settings.layouts.sort }}</span>
             <div class="st-seg" role="radiogroup" :aria-labelledby="sortLabelId">
               <label
@@ -182,42 +212,46 @@ function onLink(car: CarRow, e: Event): void {
         </div>
 
         <div class="lists">
-          <div v-if="view.pinned" class="pinned">
-            <ul class="list" :aria-label="t.settings.layouts.inUse">
-              <LayoutItem
-                :row="view.pinned"
-                :order="view.reorder ? 'space' : 'none'"
-                :around-active="true"
-                :room-left="roomLeft"
-                :renaming="renaming === view.pinned.id"
-                @rename="(open: boolean) => onRename(lib.activeId, open)"
-              />
-            </ul>
-            <p v-if="!view.pinnedMatches" class="st-help apart-note">
-              {{ t.settings.layouts.pinnedNoMatch }}
-            </p>
+          <div v-if="view.pinned" class="pinned" :class="{ 'is-scroll': view.many }">
+            <div class="pinned-body">
+              <ul class="list" :aria-label="t.settings.layouts.inUse">
+                <LayoutItem
+                  :row="view.pinned"
+                  order="space"
+                  :around-active="true"
+                  :room-left="roomLeft"
+                  :renaming="renaming === view.pinned.id"
+                  @rename="(open: boolean) => onRename(lib.activeId, open)"
+                />
+              </ul>
+              <p v-if="!view.pinnedMatches" class="st-help apart-note">
+                {{ t.settings.layouts.pinnedNoMatch }}
+              </p>
+            </div>
           </div>
 
           <!-- Many layouts: a box of its own, about LAYOUT_LIST_ROWS rows tall (Tab, keys, wheel). -->
           <div
             ref="listBox"
             class="list-box"
-            :class="{ 'is-scroll': view.many }"
-            :tabindex="view.many ? 0 : undefined"
-            :role="view.many ? 'region' : undefined"
-            :aria-label="view.many ? t.settings.layouts.listTitle : undefined"
+            :class="{ 'is-scroll': view.many, 'is-scrolled': scrollable && scrolled }"
+            :tabindex="scrollable ? 0 : undefined"
+            :role="scrollable ? 'region' : undefined"
+            :aria-label="scrollable ? t.settings.layouts.listTitle : undefined"
+            @scroll.passive="measureBox"
           >
             <ul
               v-if="view.rows.length > 0"
+              ref="listRows"
               class="list"
-              :aria-label="view.many ? undefined : t.settings.layouts.listTitle"
+              :aria-label="scrollable ? undefined : t.settings.layouts.listTitle"
             >
               <LayoutItem
                 v-for="r in view.rows"
                 :key="r.id"
                 :row="r"
-                :order="view.reorder ? 'move' : 'none'"
-                :around-active="view.pinned !== null"
+                :order="view.reorder ? 'move' : 'space'"
+                :around-active="view.aroundActive"
                 :room-left="roomLeft"
                 :renaming="renaming === r.id"
                 @rename="(open: boolean) => onRename(r.id, open)"
@@ -361,11 +395,12 @@ function onLink(car: CarRow, e: Event): void {
   min-width: 0;
 }
 
-/* The clear button sits inside the field, over its right end. */
+/* The clear button sits inside the field, over its right end. Wrapped onto a line of its own
+   (a narrow window), the field takes that line. */
 .search-box {
   position: relative;
   display: flex;
-  flex: 0 1 18em;
+  flex: 1 1 18em;
   min-width: 0;
 }
 
@@ -411,12 +446,6 @@ function onLink(car: CarRow, e: Event): void {
   margin-left: auto;
 }
 
-/* No search beside it: label left, choices right, as any option row. */
-.sort-by.is-alone {
-  flex: 1 1 auto;
-  justify-content: space-between;
-}
-
 .list {
   display: flex;
   flex-direction: column;
@@ -425,9 +454,13 @@ function onLink(car: CarRow, e: Event): void {
   list-style: none;
 }
 
-/* The pinned one stands apart from the rest: a stronger line, then the others. */
+/* The pinned one stands apart from the rest: a gap and a stronger, thicker line, then the others. */
 .pinned {
-  border-bottom: 1px solid var(--st-border-hi);
+  margin-bottom: 6px;
+}
+
+.pinned-body {
+  border-bottom: 2px solid var(--st-border-hi);
 }
 
 .apart-note {
@@ -435,17 +468,35 @@ function onLink(car: CarRow, e: Event): void {
 }
 
 /*
- * About LAYOUT_LIST_ROWS rows (the pinned one above counts as one), then it scrolls. Pulled into
- * the card's right padding, so the thin scrollbar sits there and the rows keep the pinned one's
- * width (their buttons line up).
+ * Pulled into the card's right padding, so the thin scrollbar sits there. The pinned block keeps
+ * the same (empty) gutter, so both lists share one width whatever the scrollbar's and their
+ * buttons line up.
  */
+.pinned.is-scroll,
 .list-box.is-scroll {
-  max-height: calc(7.5 * 53px);
   margin-right: -13px;
   padding-right: 2px;
-  overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+}
+
+.pinned.is-scroll {
+  overflow-y: hidden;
+}
+
+/*
+ * About LAYOUT_LIST_ROWS rows (the pinned one above counts as one), then it scrolls; never more
+ * than half a short window, so the sections below stay in reach. Narrow, the rows wrap to twice
+ * their height and fewer fit: the box keeps its height rather than pushing the sections down.
+ */
+.list-box.is-scroll {
+  max-height: min(calc(7.5 * 53px), 50vh);
+  overflow-y: auto;
+}
+
+/* Rows gone under the pinned one: its edge shaded, as a lid over them. */
+.list-box.is-scrolled {
+  box-shadow: inset 0 6px 2px -3px rgba(0, 0, 0, 0.45);
 }
 
 .list-box.is-scroll:focus-visible {
