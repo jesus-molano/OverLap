@@ -3,7 +3,9 @@ import type { LayoutNotice } from '@shared/ipc'
 import {
   LAYOUT_FILE_FORMAT,
   MAX_LAYOUTS,
+  applyLayout,
   layoutFileText,
+  setLayoutMode,
   linkCar,
   saveLayoutAs,
   snapshotWidgets
@@ -186,23 +188,40 @@ describe('LayoutControl: applying', () => {
     expect(h.settings().savedLayouts.activeId).toBe('layout-1')
   })
 
-  it('keeps per-widget options and option sections', () => {
-    const before = h.settings()
-    h.control.choose('layout-2')
-    const after = h.settings()
-    const options = (w: OverlaySettings['widgets'][WidgetId]): Record<string, unknown> => {
-      const out: Record<string, unknown> = { ...w }
-      for (const field of ['bounds', 'scale', 'visible', 'locked']) delete out[field]
-      return out
-    }
-    for (const id of WIDGET_IDS) {
-      expect(options(after.widgets[id]), id).toEqual(options(before.widgets[id]))
-    }
-    expect({ ...after, widgets: null, savedLayouts: null }).toEqual({
-      ...before,
-      widgets: null,
-      savedLayouts: null
+  it('swaps the options with the places in the same store change, after the pending saves', () => {
+    // Mazda's own options: 6 cars ahead, the radar's background half opaque.
+    h.edit((s) => void applyLayout(s, 'layout-2'))
+    h.edit((s) => {
+      s.relative.carsAhead = 6
+      s.widgets.radar.backgroundOpacity = 0.5
     })
+    h.edit((s) => void applyLayout(s, 'layout-1'))
+    const principal = h.settings()
+    expect(principal.relative.carsAhead).toBe(3)
+    h.calls.length = 0
+    h.pendingSave((s) => (s.widgets.relative.scale = 140))
+    expect(h.control.choose('layout-2')).toBe(true)
+    // One change of the store and one sync (one broadcast): no state with half of it.
+    expect(h.calls).toEqual(['flush', 'update', 'reload', 'sync'])
+    const s = h.settings()
+    expect(s.relative.carsAhead).toBe(6)
+    expect(s.widgets.radar.backgroundOpacity).toBe(0.5)
+    expect(s.widgets.relative.bounds).toEqual({ x: 900, y: 500, width: 420, height: 300 })
+    // The pending resize went into the layout left, and its options stayed with it.
+    expect(s.savedLayouts.list[0]?.widgets.relative.scale).toBe(140)
+    expect(s.savedLayouts.list[0]?.options?.sections.relative.carsAhead).toBe(3)
+    // The global options never move with a layout.
+    expect(s.appearance).toEqual(principal.appearance)
+    expect(s.visibility).toEqual(principal.visibility)
+  })
+
+  it('keeps the options of a "Solo posición" layout: the shared ones', () => {
+    h.edit((s) => void setLayoutMode(s, 'layout-2', 'position'))
+    h.edit((s) => void (s.relative.carsAhead = 7))
+    h.control.choose('layout-2')
+    expect(h.settings().relative.carsAhead).toBe(
+      h.settings().savedLayouts.shared?.sections.relative.carsAhead
+    )
   })
 })
 
@@ -321,6 +340,38 @@ describe('LayoutControl: commands', () => {
     expect(h.notices).toEqual([{ kind: 'export-failed', name: 'Mazda' }])
   })
 
+  it('saves "Solo posición", changes a mode and copies a widget’s options to all', async () => {
+    await h.control.command({ type: 'layout-save', name: 'Óvalo', mode: 'position' })
+    let lib = h.settings().savedLayouts
+    expect(lib.list[2]).toMatchObject({ name: 'Óvalo', mode: 'position' })
+    expect(lib.activeId).toBe('layout-3')
+    h.calls.length = 0
+    // Another one: nothing waits to be written for it.
+    await h.control.command({ type: 'layout-set-mode', id: 'layout-1', mode: 'position' })
+    expect(h.calls).toEqual(['update', 'sync'])
+    // The one in use: what waits is written first.
+    h.calls.length = 0
+    await h.control.command({ type: 'layout-set-mode', id: 'layout-3', mode: 'full' })
+    expect(h.calls).toEqual(['flush', 'update', 'sync'])
+    lib = h.settings().savedLayouts
+    expect(lib.list.map((l) => l.mode)).toEqual(['position', 'full', 'full'])
+    h.edit((s) => void (s.radar.rangeM = 50))
+    await h.control.command({ type: 'layout-options-to-all', widgetId: 'radar' })
+    lib = h.settings().savedLayouts
+    expect(lib.list[1]?.options?.sections.radar.rangeM).toBe(50)
+    expect(lib.shared?.sections.radar.rangeM).toBe(50)
+  })
+
+  it('imports "Solo posición" when asked', async () => {
+    const mazda = h.settings().savedLayouts.list[1]
+    if (!mazda) throw new Error('no Mazda')
+    h.files.readText.mockReturnValueOnce(layoutFileText(mazda))
+    await h.control.command({ type: 'layout-import', mode: 'position' })
+    const added = h.settings().savedLayouts.list[2]
+    expect(added?.mode).toBe('position')
+    expect(added).not.toHaveProperty('options')
+  })
+
   it('imports a valid file as a new layout, not applied', async () => {
     const mazda = h.settings().savedLayouts.list[1]
     if (!mazda) throw new Error('no Mazda')
@@ -329,6 +380,7 @@ describe('LayoutControl: commands', () => {
     const lib = h.settings().savedLayouts
     expect(lib.list.map((l) => l.name)).toEqual(['Principal', 'Mazda', 'Mazda (2)'])
     expect(lib.list[2]?.widgets).toEqual(mazda.widgets)
+    expect(lib.list[2]?.options).toEqual(mazda.options)
     expect(lib.activeId).toBe('layout-1')
     expect(h.notices).toEqual([{ kind: 'imported', name: 'Mazda (2)' }])
   })

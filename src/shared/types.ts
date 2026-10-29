@@ -5,6 +5,7 @@
 import type { BrandId, BrandMarkMode } from './carBrands'
 import type { DriverIdentity } from './driver'
 import type { Language } from './i18n/language'
+import type { LayoutSection, WIDGET_OPTION_FIELDS } from './settingsSchema'
 import type { ShortcutSettings } from './shortcuts'
 import type { WidgetId } from './widgets'
 
@@ -1646,12 +1647,34 @@ export type LayoutSort = 'custom' | 'name' | 'recent'
 /** What a saved layout keeps of one widget: where it is, its size and scale, shown and locked. */
 export type LayoutWidget = Pick<WidgetSettings, 'bounds' | 'scale' | 'visible' | 'locked'>
 
-/** A named layout ('Principal', 'Mazda MX-5'): every widget's LayoutWidget. */
+/**
+ * What applying a layout restores: 'full' ("Posición y opciones") the places and its own copy of
+ * every widget's options; 'position' ("Solo posición") the places only, the widgets keeping the
+ * shared options (LayoutLibrary.shared).
+ */
+export type LayoutMode = 'full' | 'position'
+
+/** A widget's options outside its option section (WIDGET_OPTION_FIELDS in settingsSchema.ts). */
+export type WidgetOptionFields = Pick<WidgetSettings, (typeof WIDGET_OPTION_FIELDS)[number]>
+
+/** Every widget's options, as a layout carries them (LAYOUT_SECTIONS in settingsSchema.ts). */
+export interface LayoutOptionSet {
+  sections: Pick<OverlaySettings, LayoutSection>
+  widgets: Record<WidgetId, WidgetOptionFields>
+}
+
+/** A named layout ('Principal', 'Mazda MX-5'): every widget's LayoutWidget, and its options. */
 export interface SavedLayout {
   /** Stable id ('layout-1'), never shown. */
   id: string
   name: string
   widgets: Record<WidgetId, LayoutWidget>
+  mode: LayoutMode
+  /**
+   * Mode 'full': its own options (main's copy always has them). Never in what the renderers
+   * receive (rendererSettings in layouts.ts): they read the options in effect, at the top level.
+   */
+  options?: LayoutOptionSet
   /**
    * When it last became the one in use (epoch ms): the tray's recent ones. Absent on a layout
    * not used since (older files, imported or duplicated ones), which counts as 0. Never exported.
@@ -1673,7 +1696,9 @@ export interface CarLayoutLink extends CarRef {
 /**
  * The saved layouts (src/shared/layouts.ts). The active one always equals the widgets' own
  * bounds, scale, visibility and lock (normalisation copies them in), so moving a widget changes
- * the layout in use; applying another copies its fields into the widgets.
+ * the layout in use; applying another copies its fields into the widgets. The options follow the
+ * same rule: the top-level option sections are the ones in effect, copied into the active layout
+ * (a 'full' one) or into `shared` (a 'position' one is in use).
  */
 export interface LayoutLibrary {
   activeId: string
@@ -1683,6 +1708,11 @@ export interface LayoutLibrary {
   links: CarLayoutLink[]
   /** The car models you got in lately, the latest first (to link one you are not in now). */
   seenCars: CarRef[]
+  /**
+   * The shared options ("Opciones comunes"), those of every 'position' layout. Main's copy always
+   * has them; the renderers receive none (rendererSettings in layouts.ts).
+   */
+  shared?: LayoutOptionSet
 }
 
 export interface OverlaySettings {

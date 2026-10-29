@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { MAX_LAYOUT_NAME, layoutName } from '@shared/layouts'
+import type { LayoutMode } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import { layoutCommands as cmd, type LayoutRow } from '../layoutsView'
+import LayoutModeChoice from './LayoutModeChoice.vue'
 
 /**
- * One saved layout of LayoutsPage: its order chevrons, name (or the rename form) and linked cars,
- * and its actions. The page says which row is being renamed (one at a time).
+ * One saved layout of LayoutsPage: its order chevrons, name, what it restores and linked cars (or
+ * the edit form: name and mode), and its actions. The page says which row is being edited (one
+ * at a time).
  */
 const props = defineProps<{
   row: LayoutRow
@@ -26,14 +29,17 @@ const emit = defineEmits<{ rename: [open: boolean] }>()
 
 const t = useI18n()
 const inputId = useId()
+const modeId = useId()
 const input = useTemplateRef<HTMLInputElement>('input')
 const draft = shallowRef('')
+const draftMode = shallowRef<LayoutMode>('full')
 
 watch(
   () => props.renaming,
   async (open) => {
     if (!open) return
     draft.value = props.row.name
+    draftMode.value = props.row.mode
     await nextTick()
     input.value?.focus()
     input.value?.select()
@@ -42,7 +48,10 @@ watch(
 
 function commit(): void {
   if (!props.renaming) return
-  if (layoutName(draft.value) !== null) cmd.rename(props.row.id, draft.value)
+  if (layoutName(draft.value) !== null && draft.value !== props.row.name) {
+    cmd.rename(props.row.id, draft.value)
+  }
+  if (draftMode.value !== props.row.mode) cmd.setMode(props.row.id, draftMode.value)
   emit('rename', false)
 }
 
@@ -88,30 +97,42 @@ function remove(): void {
       @submit.prevent="commit"
       @keydown.esc.stop="emit('rename', false)"
     >
-      <label :for="inputId" class="st-sr-only">{{ t.settings.layouts.nameLabel }}</label>
-      <input
-        :id="inputId"
-        ref="input"
-        v-model="draft"
-        type="text"
-        class="st-field name-field"
-        :maxlength="MAX_LAYOUT_NAME"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button type="submit" class="st-btn st-btn-sm">
-        {{ t.settings.layouts.saveName }}
-      </button>
-      <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="emit('rename', false)">
-        {{ t.settings.layouts.cancel }}
-      </button>
+      <div class="rename-line">
+        <label :for="inputId" class="st-sr-only">{{ t.settings.layouts.nameLabel }}</label>
+        <input
+          :id="inputId"
+          ref="input"
+          v-model="draft"
+          type="text"
+          class="st-field name-field"
+          :maxlength="MAX_LAYOUT_NAME"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="st-btn st-btn-sm">
+          {{ t.settings.layouts.saveName }}
+        </button>
+        <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="emit('rename', false)">
+          {{ t.settings.layouts.cancel }}
+        </button>
+      </div>
+      <div class="rename-line">
+        <span :id="modeId" class="st-help">{{ t.settings.layouts.modeLabel }}</span>
+        <LayoutModeChoice v-model="draftMode" :labelledby="modeId" />
+      </div>
+      <p v-if="row.mode === 'full' && draftMode === 'position'" class="st-help st-help-warn">
+        {{ t.settings.layouts.dropOptions }}
+      </p>
     </form>
     <div v-else class="st-row-text">
       <span class="st-label name" :title="row.name">
         <span v-if="row.active" class="tag">{{ t.settings.layouts.inUse }}</span>
         {{ row.name }}
       </span>
-      <span v-if="row.cars" class="st-help cars" :title="row.cars">{{ row.cars }}</span>
+      <span class="st-help meta" :title="row.cars || undefined">
+        {{ t.settings.layouts.rowModes[row.mode]
+        }}<template v-if="row.cars"> · {{ row.cars }}</template>
+      </span>
     </div>
 
     <div v-if="!renaming" class="actions">
@@ -130,10 +151,10 @@ function remove(): void {
       <button
         type="button"
         class="st-btn st-btn-sm st-btn-ghost"
-        :aria-label="t.settings.layouts.renameLabel(row.name)"
+        :aria-label="t.settings.layouts.editLabel(row.name)"
         @click="emit('rename', true)"
       >
-        {{ t.settings.layouts.rename }}
+        {{ t.settings.layouts.edit }}
       </button>
       <button
         type="button"
@@ -226,7 +247,7 @@ function remove(): void {
 }
 
 .name,
-.cars {
+.meta {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -255,9 +276,17 @@ function remove(): void {
 .rename {
   display: flex;
   flex: 1 1 14em;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.rename-line {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 6px 10px;
 }
 
 .name-field {

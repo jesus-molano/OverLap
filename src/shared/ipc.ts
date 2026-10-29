@@ -22,6 +22,7 @@ import type { LayoutFileError } from './layouts'
 import type {
   CarRef,
   HiddenReason,
+  LayoutMode,
   OverlaySettings,
   OverlayStatus,
   Point,
@@ -338,15 +339,20 @@ export type SettingsCommand =
    * 'layout-export' and 'layout-import' open a file dialog; main answers on IPC.layoutNotice.
    * 'layout-link-car' links a car model to a layout (`layoutId` null: unlinks it).
    * 'layout-move' with `aroundActive` moves past the one in use, which the page pins apart.
+   * 'layout-save' and 'layout-import' say what the new one restores (`mode`, 'full' when
+   * absent); 'layout-set-mode' changes it for one; 'layout-options-to-all' copies a widget's
+   * options in effect into every 'full' layout and the shared options.
    */
-  | { type: 'layout-save'; name: string }
+  | { type: 'layout-save'; name: string; mode?: LayoutMode }
   | { type: 'layout-apply'; id: string }
   | { type: 'layout-duplicate'; id: string; name: string }
   | { type: 'layout-rename'; id: string; name: string }
   | { type: 'layout-delete'; id: string }
   | { type: 'layout-move'; id: string; step: -1 | 1; aroundActive?: boolean }
   | { type: 'layout-export'; id: string }
-  | { type: 'layout-import' }
+  | { type: 'layout-import'; mode?: LayoutMode }
+  | { type: 'layout-set-mode'; id: string; mode: LayoutMode }
+  | { type: 'layout-options-to-all'; widgetId: WidgetId }
   | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
 
 export interface InitialState {

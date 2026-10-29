@@ -16,6 +16,7 @@ export {
   defaultWidgetSettings
 } from './defaults'
 export { normalizeColumns, normalizeElements } from './fields'
+export { settingsDraft } from './layouts'
 export { normalizeSettings } from './normalize'
 export {
   applySettingsPatch,

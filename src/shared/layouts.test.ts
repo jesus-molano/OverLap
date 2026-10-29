@@ -24,11 +24,14 @@ import {
   recentLayouts,
   renameLayout,
   saveLayoutAs,
+  sharedOptions,
   snapshotWidgets,
   sortLayouts,
-  uniqueLayoutName
+  uniqueLayoutName,
+  type LayoutImportFallback
 } from './layouts'
-import { createDefaultSettings, normalizeSettings } from './settings'
+import { SETTINGS_VERSION, createDefaultSettings, normalizeSettings } from './settings'
+import { LAYOUT_SECTIONS } from './settingsSchema'
 import { MAX_SEEN_CARS } from './settings/layouts'
 import type { LayoutSort, OverlaySettings, SavedLayout } from './types'
 import { WIDGET_DEFS, WIDGET_IDS } from './widgets'
@@ -41,6 +44,11 @@ function change(s: OverlaySettings, mutate: (d: OverlaySettings) => void): Overl
   const draft = structuredClone(s)
   mutate(draft)
   return normalizeSettings(draft)
+}
+
+/** What an import falls back on: the widgets' places and the shared options now. */
+function fallbackOf(s: OverlaySettings): LayoutImportFallback {
+  return { widgets: snapshotWidgets(s.widgets), options: sharedOptions(s) }
 }
 
 function names(s: OverlaySettings): string[] {
@@ -338,19 +346,21 @@ describe('layout commands', () => {
     const w = snapshotWidgets(createDefaultSettings().widgets)
     expect(
       nextLayoutId([
-        { id: 'layout-7', name: 'a', widgets: w },
-        { id: 'custom', name: 'b', widgets: w }
+        { id: 'layout-7', name: 'a', mode: 'position', widgets: w },
+        { id: 'custom', name: 'b', mode: 'position', widgets: w }
       ])
     ).toBe('layout-8')
   })
 })
 
 describe('applyLayout', () => {
-  it('copies bounds, scale, visibility and lock into the widgets, nothing else', () => {
+  it('copies bounds, scale, visibility and lock into the widgets, and its own options', () => {
     const mazdaSettings = withMazda()
     let s = change(mazdaSettings, (d) => {
       d.widgets.relative.backgroundOpacity = 0.4
       d.relative.carsAhead = 6
+      d.appearance.fontScale = 120
+      d.visibility.showWhen = 'always'
     })
     s = change(s, (d) => expect(applyLayout(d, 'layout-1')).toBe(true))
     const def = createDefaultSettings().widgets
@@ -359,12 +369,17 @@ describe('applyLayout', () => {
     expect(s.widgets.relative.scale).toBe(def.relative.scale)
     expect(s.widgets.radar.visible).toBe(def.radar.visible)
     expect(s.widgets.battle.locked).toBe(false)
-    // Per-widget options and option sections stay.
-    expect(s.widgets.relative.backgroundOpacity).toBe(0.4)
-    expect(s.relative.carsAhead).toBe(6)
-    // Back to Mazda: exactly what it had.
+    // Principal's own options: those it was saved with (the defaults).
+    expect(s.widgets.relative.backgroundOpacity).toBe(def.relative.backgroundOpacity)
+    expect(s.relative.carsAhead).toBe(createDefaultSettings().relative.carsAhead)
+    // The global ones stay whatever the layout.
+    expect(s.appearance.fontScale).toBe(120)
+    expect(s.visibility.showWhen).toBe('always')
+    // Back to Mazda: exactly what it had, places and options.
     s = change(s, (d) => void applyLayout(d, layout(d, 'Mazda').id))
     expect(snapshotWidgets(s.widgets)).toEqual(layout(mazdaSettings, 'Mazda').widgets)
+    expect(s.widgets.relative.backgroundOpacity).toBe(0.4)
+    expect(s.relative.carsAhead).toBe(6)
   })
 
   it('does nothing for an unknown layout or the one in use', () => {
@@ -393,7 +408,7 @@ describe('last used (usedAt)', () => {
     expect(layout(copy, 'Copia').usedAt).toBeUndefined()
     const text = layoutFileText(layout(s, 'Mazda'))
     expect(text).not.toContain('usedAt')
-    const parsed = parseLayoutFile(text, snapshotWidgets(s.widgets))
+    const parsed = parseLayoutFile(text, fallbackOf(s))
     if (!parsed.ok) throw new Error('not parsed')
     const imported = change(s, (d) => void importLayout(d, parsed, 'Importada'))
     expect(imported.savedLayouts.list.at(-1)).not.toHaveProperty('usedAt')
@@ -491,9 +506,9 @@ describe('car links', () => {
 })
 
 describe('layout files', () => {
-  const fallback = snapshotWidgets(createDefaultSettings().widgets)
+  const fallback = fallbackOf(createDefaultSettings())
 
-  it('round-trips a layout through its file, layout fields only', () => {
+  it('round-trips a layout through its file, places and per-widget options only', () => {
     const mazda = layout(withMazda(), 'Mazda')
     const text = layoutFileText(mazda)
     const raw = JSON.parse(text) as Record<string, unknown>
@@ -505,8 +520,17 @@ describe('layout files', () => {
       'scale',
       'visible'
     ])
+    expect(raw.settingsVersion).toBe(SETTINGS_VERSION)
+    expect(Object.keys((raw.options as { sections: object }).sections).sort()).toEqual(
+      [...LAYOUT_SECTIONS].sort()
+    )
     const parsed = parseLayoutFile(text, fallback)
-    expect(parsed).toEqual({ ok: true, name: 'Mazda', widgets: mazda.widgets })
+    expect(parsed).toEqual({
+      ok: true,
+      name: 'Mazda',
+      widgets: mazda.widgets,
+      options: mazda.options
+    })
   })
 
   it('refuses what is not a layout file', () => {
@@ -524,7 +548,7 @@ describe('layout files', () => {
     expect(bad(JSON.stringify({ format: LAYOUT_FILE_FORMAT, version: 1, widgets: [] }))).toBe(
       'format'
     )
-    expect(bad(JSON.stringify({ format: LAYOUT_FILE_FORMAT, version: 2, widgets: {} }))).toBe(
+    expect(bad(JSON.stringify({ format: LAYOUT_FILE_FORMAT, version: 3, widgets: {} }))).toBe(
       'version'
     )
     expect(
@@ -557,11 +581,13 @@ describe('layout files', () => {
     expect(r.widgets.radar).toEqual({
       bounds: { x: 10, y: 20, width: WIDGET_DEFS.radar.minSize.width, height: 10_000 },
       scale: 60,
-      visible: fallback.radar.visible,
+      visible: fallback.widgets.radar.visible,
       locked: true
     })
     expect(Object.keys(r.widgets).sort()).toEqual([...WIDGET_IDS].sort())
-    expect(r.widgets.standings).toEqual(fallback.standings)
+    expect(r.widgets.standings).toEqual(fallback.widgets.standings)
+    // A version 1 file: places only, whatever else it says.
+    expect(r.options).toBeNull()
   })
 
   it('imports a layout as a new one, not applied, named from the file or the fallback', () => {

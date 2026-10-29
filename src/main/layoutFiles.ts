@@ -1,7 +1,7 @@
 /**
  * Export and import of one saved layout as a JSON file, through the system's file dialogs.
  * The dialogs and the file system are injected (tests pass doubles); what is read is
- * validated by parseLayoutFile, which takes the layout fields only.
+ * validated by parseLayoutFile, which takes the layout fields and the per-widget options only.
  */
 import type { LayoutNotice } from '@shared/ipc'
 import {
@@ -9,10 +9,10 @@ import {
   layoutFileName,
   layoutFileText,
   parseLayoutFile,
-  type LayoutImport
+  type LayoutImport,
+  type LayoutImportFallback
 } from '@shared/layouts'
-import type { LayoutWidget, SavedLayout } from '@shared/types'
-import type { WidgetId } from '@shared/widgets'
+import type { SavedLayout } from '@shared/types'
 
 export interface LayoutFileDeps {
   /** Asks where to save (the file name suggested); null when cancelled. */
@@ -46,7 +46,7 @@ export async function exportLayout(
  * `{ ok: false, error: 'read' }` when the file could not be read.
  */
 export async function readLayoutFile(
-  fallback: Readonly<Record<WidgetId, LayoutWidget>>,
+  fallback: LayoutImportFallback,
   deps: LayoutFileDeps
 ): Promise<LayoutImport | { ok: false; error: 'read' } | null> {
   const path = await deps.pickOpenPath()

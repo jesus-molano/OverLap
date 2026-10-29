@@ -10,6 +10,7 @@ import type {
   DeltaOptions,
   FuelOptions,
   InputsOptions,
+  LayoutOptionSet,
   LightsOptions,
   OverlaySettings,
   RadarOptions,
@@ -305,6 +306,35 @@ function defaultWidget(id: WidgetId): WidgetSettings {
   }
 }
 
+/** Every widget's options as a fresh install has them (a layout's, the shared ones). */
+function defaultOptionSet(): LayoutOptionSet {
+  const widgets = Object.fromEntries(
+    WIDGET_IDS.map((id) => {
+      const { backgroundOpacity, autoHeight, anchor, showIn, hideInPits, showOnSessionScreen } =
+        defaultWidget(id)
+      return [
+        id,
+        { backgroundOpacity, autoHeight, anchor, showIn, hideInPits, showOnSessionScreen }
+      ]
+    })
+  ) as LayoutOptionSet['widgets']
+  return {
+    sections: {
+      relative: DEFAULT_RELATIVE,
+      radar: DEFAULT_RADAR,
+      standings: DEFAULT_STANDINGS,
+      battle: DEFAULT_BATTLE,
+      inputs: DEFAULT_INPUTS,
+      traffic: DEFAULT_TRAFFIC,
+      alerts: DEFAULT_ALERTS,
+      delta: DEFAULT_DELTA,
+      fuel: DEFAULT_FUEL,
+      lights: DEFAULT_LIGHTS
+    },
+    widgets
+  }
+}
+
 const cols = (s: OverlaySettings): string[] =>
   s.standings.columns.map((c) => `${c.visible ? '+' : '-'}${c.id}`)
 
@@ -337,16 +367,19 @@ describe('DEFAULT_SETTINGS', () => {
           {
             id: 'layout-1',
             name: 'Principal',
+            mode: 'full',
             widgets: Object.fromEntries(
               WIDGET_IDS.map((id) => {
                 const { bounds, scale, visible, locked } = defaultWidget(id)
                 return [id, { bounds, scale, visible, locked }]
               })
-            ) as OverlaySettings['savedLayouts']['list'][number]['widgets']
+            ) as OverlaySettings['savedLayouts']['list'][number]['widgets'],
+            options: defaultOptionSet()
           }
         ],
         links: [],
-        seenCars: []
+        seenCars: [],
+        shared: defaultOptionSet()
       }
     })
   })

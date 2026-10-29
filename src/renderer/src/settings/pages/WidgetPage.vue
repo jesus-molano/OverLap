@@ -7,6 +7,7 @@ import { useWidgetSettings } from '../../composables/useWidgetSettings'
 import { resetWidgetBounds, resetWidgetOptions, widgetSetter } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import { provideCustomizeHost } from '../layout/customize'
+import OptionsTarget from '../layout/OptionsTarget.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { WIDGET_OPTIONS } from '../options'
@@ -17,9 +18,9 @@ import { formatPercent } from '../values'
 import WindowSection from './WindowSection.vue'
 
 /**
- * One widget's page: live preview (fixed), then the window and content options, the
- * "Personalizar" editors and the resets (they scroll). Keyed by the id. The default slot closes
- * the scrolling part (the window's foot).
+ * One widget's page: where its changes are kept (OptionsTarget) and the live preview (fixed),
+ * then the window and content options, the "Personalizar" editors and the resets (they scroll).
+ * Keyed by the id. The default slot closes the scrolling part (the window's foot).
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
  * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
@@ -71,6 +72,8 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
       <p v-if="!prefs.visible" class="hidden-note" role="status">
         {{ t.settings.widgetPage.hiddenNote }}
       </p>
+
+      <OptionsTarget :widget-id="widgetId" />
 
       <SampleStage class="stage">
         <WidgetSample :widget-id="widgetId" />

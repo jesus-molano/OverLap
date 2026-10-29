@@ -7,18 +7,23 @@ import { createDefaultSettings, normalizeSettings } from './settings'
 import {
   ACCENT_PRESETS,
   DELTA_REFERENCE_VALUES,
+  GLOBAL_SECTIONS,
+  LAYOUT_SECTIONS,
   LICENSE_STYLES,
   OPTION_SCHEMA,
   PEDAL_COLOR_PRESETS,
   STANDINGS_COLUMN_IDS,
   WIDGET_FIELD_SCHEMA,
+  WIDGET_OPTION_FIELDS,
   clampOption,
   displayOnlyFields,
   elementFields,
   elementsSpec,
+  isLayoutSection,
   type ElementsSpec,
   type OptionSpec
 } from './settingsSchema'
+import { isWidgetId } from './widgets'
 
 const allSpecs = (): [string, OptionSpec][] =>
   Object.entries(OPTION_SCHEMA).flatMap(([section, fields]) =>
@@ -462,5 +467,34 @@ describe('shortcut specs', () => {
     const given = specs.map((s) => s.default).filter((d) => d !== '')
     expect(new Set(given).size).toBe(given.length)
     expect(OPTION_SCHEMA.shortcuts.cycleDeltaReference.default).toBe('')
+  })
+})
+
+describe('what a layout carries (LAYOUT_SECTIONS, GLOBAL_SECTIONS, WIDGET_OPTION_FIELDS)', () => {
+  it('classifies every option section exactly once: a new one must be added to a list', () => {
+    const all = Object.keys(OPTION_SCHEMA).sort()
+    const classified = [...LAYOUT_SECTIONS, ...GLOBAL_SECTIONS].sort()
+    expect(classified).toEqual(all)
+    expect(new Set(classified).size).toBe(classified.length)
+  })
+
+  it('carries each widget’s own section, and keeps the look, rules and shortcuts global', () => {
+    // A widget's section is named after it (a widget without options has none).
+    for (const section of Object.keys(OPTION_SCHEMA)) {
+      if (isWidgetId(section)) expect(LAYOUT_SECTIONS).toContain(section)
+    }
+    for (const section of LAYOUT_SECTIONS) expect(isWidgetId(section)).toBe(true)
+    expect([...GLOBAL_SECTIONS].sort()).toEqual(
+      ['appearance', 'layouts', 'settingsWindow', 'shortcuts', 'visibility'].sort()
+    )
+    expect(isLayoutSection('relative')).toBe(true)
+    expect(isLayoutSection('appearance')).toBe(false)
+  })
+
+  it('classifies every widget field: a place (LayoutWidget) or an option, never both', () => {
+    const places = ['bounds', 'scale', 'visible', 'locked']
+    const fields = Object.keys(createDefaultSettings().widgets.relative).sort()
+    expect([...places, ...WIDGET_OPTION_FIELDS].sort()).toEqual(fields)
+    for (const f of WIDGET_OPTION_FIELDS) expect(places).not.toContain(f)
   })
 })

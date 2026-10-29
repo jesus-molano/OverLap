@@ -354,6 +354,20 @@ export const settingsEs = {
       label: 'Restablecer posición y tamaño',
       confirm: '¿Moverlo? Pulsa otra vez',
       description: 'Lleva el widget a su posición y tamaño de fábrica'
+    },
+    /** Where this page's changes are kept (layout/OptionsTarget.vue). */
+    target: {
+      savingIn: 'Guardando en:',
+      shared: 'Opciones comunes',
+      layoutHelp: 'Lo que cambies aquí solo cambia la disposición en uso',
+      sharedHelp: (name: string) =>
+        `${name} es de solo posición: estos cambios valen para todas las de solo posición`,
+      toAll: {
+        label: 'Aplicar a todas las disposiciones',
+        confirm: '¿Aplicar a todas? Pulsa otra vez',
+        description:
+          'Copia las opciones de este widget a todas las disposiciones con opciones y a las opciones comunes; las posiciones no cambian'
+      }
     }
   },
   /** "Ventana" section of every widget page. */
@@ -1076,9 +1090,9 @@ export const settingsEs = {
   },
   /** The saved layouts page (pages/LayoutsPage.vue). */
   layouts: {
-    sub: 'Guarda con un nombre dónde está cada widget, su tamaño, su escala, si se ve y si está bloqueado: una para el Mazda, otra para el GT3. Las opciones de cada widget no cambian.',
+    sub: 'Guarda con un nombre dónde está cada widget, su tamaño, su escala, si se ve y si está bloqueado, y también sus opciones (columnas, elementos, referencias del delta, opacidad…): una para el Mazda, otra para el GT3. Una de «Solo posición» usa las opciones comunes. La apariencia, la visibilidad y los atajos son siempre los mismos.',
     listTitle: 'Disposiciones guardadas',
-    listNote: 'La que está en uso se actualiza sola al mover los widgets',
+    listNote: 'La que está en uso se actualiza sola al mover los widgets o cambiar sus opciones',
     inUse: 'En uso',
     search: 'Buscar disposiciones',
     searchPlaceholder: 'Nombre o coche',
@@ -1101,8 +1115,25 @@ export const settingsEs = {
     },
     apply: 'Aplicar',
     applyLabel: (name: string) => `Aplicar ${name}`,
-    rename: 'Renombrar',
-    renameLabel: (name: string) => `Renombrar ${name}`,
+    edit: 'Editar',
+    editLabel: (name: string) => `Editar ${name}: nombre y qué restaura`,
+    /** What a layout restores when applied (SavedLayout.mode). */
+    modes: {
+      full: 'Posición y opciones',
+      position: 'Solo posición'
+    },
+    modeHints: {
+      full: 'Vuelven también las opciones de cada widget, las suyas propias',
+      position: 'Solo se mueven los widgets; usan las opciones comunes'
+    },
+    /** Under a layout's name in the list. */
+    rowModes: {
+      full: 'Posición y opciones',
+      position: 'Solo posición · opciones comunes'
+    },
+    modeLabel: 'Al aplicarla',
+    importMode: 'Importar como',
+    dropOptions: 'Sus opciones propias se descartarán: pasará a usar las opciones comunes',
     nameLabel: 'Nombre',
     saveName: 'Guardar',
     cancel: 'Cancelar',
@@ -1129,7 +1160,7 @@ export const settingsEs = {
     full: (max: number) => `Has llegado al máximo de ${max} disposiciones`,
     filesTitle: 'Archivos',
     filesHelp:
-      'Exporta una disposición a un archivo .json para guardarla o compartirla; al importarla se añade a la lista, sin aplicarla',
+      'Exporta una disposición a un archivo .json para guardarla o compartirla, con sus opciones si las tiene; al importarla se añade a la lista, sin aplicarla. Un archivo sin opciones importado con ellas toma las comunes',
     import: 'Importar…',
     notices: {
       exported: (name: string) => `Exportada: ${name}`,
@@ -1463,6 +1494,19 @@ export const settingsEn: Dict<typeof settingsEs> = {
       label: 'Reset position and size',
       confirm: 'Move it? Click again',
       description: 'Moves the widget back to its default position and size'
+    },
+    target: {
+      savingIn: 'Saving to:',
+      shared: 'Shared options',
+      layoutHelp: 'What you change here only changes the layout in use',
+      sharedHelp: (name) =>
+        `${name} is position only: these changes apply to every position-only layout`,
+      toAll: {
+        label: 'Apply to all layouts',
+        confirm: 'Apply to all? Click again',
+        description:
+          'Copies this widget’s options to every layout with options and to the shared options; positions don’t change'
+      }
     }
   },
   window: {
@@ -2112,9 +2156,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
   },
   layouts: {
-    sub: 'Save under a name where each widget is, its size, its scale, whether it shows and whether it is locked: one for the Mazda, another for the GT3. Each widget’s options don’t change.',
+    sub: 'Save under a name where each widget is, its size, its scale, whether it shows and whether it is locked, and its options too (columns, elements, delta references, opacity…): one for the Mazda, another for the GT3. A “Position only” one uses the shared options. Appearance, visibility and shortcuts are always the same.',
     listTitle: 'Saved layouts',
-    listNote: 'The one in use updates itself as you move the widgets',
+    listNote: 'The one in use updates itself as you move the widgets or change their options',
     inUse: 'In use',
     search: 'Search layouts',
     searchPlaceholder: 'Name or car',
@@ -2135,8 +2179,23 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     apply: 'Apply',
     applyLabel: (name) => `Apply ${name}`,
-    rename: 'Rename',
-    renameLabel: (name) => `Rename ${name}`,
+    edit: 'Edit',
+    editLabel: (name) => `Edit ${name}: name and what it restores`,
+    modes: {
+      full: 'Position and options',
+      position: 'Position only'
+    },
+    modeHints: {
+      full: 'Each widget’s options come back too, its very own',
+      position: 'Only the widgets move; they use the shared options'
+    },
+    rowModes: {
+      full: 'Position and options',
+      position: 'Position only · shared options'
+    },
+    modeLabel: 'When applied',
+    importMode: 'Import as',
+    dropOptions: 'Its own options will be discarded: it will use the shared options',
     nameLabel: 'Name',
     saveName: 'Save',
     cancel: 'Cancel',
@@ -2161,7 +2220,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     full: (max) => `You have reached the maximum of ${max} layouts`,
     filesTitle: 'Files',
     filesHelp:
-      'Export a layout to a .json file to keep or share it; importing one adds it to the list, without applying it',
+      'Export a layout to a .json file to keep or share it, with its options if it has them; importing one adds it to the list, without applying it. A file without options imported with them takes the shared ones',
     import: 'Import…',
     notices: {
       exported: (name) => `Exported: ${name}`,

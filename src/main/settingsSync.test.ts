@@ -152,6 +152,10 @@ describe('isSettingsCommand', () => {
       { type: 'layout-move', id: 'layout-2', step: 1, aroundActive: true },
       { type: 'layout-export', id: 'layout-2' },
       { type: 'layout-import' },
+      { type: 'layout-import', mode: 'position' },
+      { type: 'layout-save', name: 'Óvalo', mode: 'full' },
+      { type: 'layout-set-mode', id: 'layout-2', mode: 'position' },
+      { type: 'layout-options-to-all', widgetId: 'standings' },
       { type: 'layout-link-car', car, layoutId: 'layout-2' },
       { type: 'layout-link-car', car, layoutId: null }
     ]) {
@@ -167,7 +171,12 @@ describe('isSettingsCommand', () => {
       { type: 'layout-move', id: 'layout-2', step: 1, aroundActive: 'yes' },
       { type: 'layout-link-car', car: { carId: 0 }, layoutId: null },
       { type: 'layout-link-car', car, layoutId: 'bad id' },
-      { type: 'layout-link-car', car }
+      { type: 'layout-link-car', car },
+      { type: 'layout-save', name: 'x', mode: 'both' },
+      { type: 'layout-import', mode: 1 },
+      { type: 'layout-set-mode', id: 'layout-2' },
+      { type: 'layout-set-mode', id: '../x', mode: 'full' },
+      { type: 'layout-options-to-all', widgetId: 'pitboard' }
     ]) {
       expect(isSettingsCommand(raw), JSON.stringify(raw)).toBe(false)
     }

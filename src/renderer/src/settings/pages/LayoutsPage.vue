@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef,
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
 import { LAYOUT_SORTS } from '@shared/settingsSchema'
-import type { LayoutSort } from '@shared/types'
+import type { LayoutMode, LayoutSort } from '@shared/types'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -24,10 +24,12 @@ import {
 } from '../layoutsView'
 import { useDraft } from '../useDraft'
 import LayoutItem from './LayoutItem.vue'
+import LayoutModeChoice from './LayoutModeChoice.vue'
 
 /**
- * The saved layouts (settings.savedLayouts): the list (apply, rename, duplicate, order, export,
- * delete), saving the widgets as they are under a new name, importing a file, and the automatic
+ * The saved layouts (settings.savedLayouts): the list (apply, edit the name and what it restores,
+ * duplicate, order, export, delete), saving the widgets and their options as they are under a new
+ * name, importing a file (either as "Posición y opciones" or "Solo posición"), and the automatic
  * switch with its car links (settings.layouts.autoSwitch). Main runs every command and
  * broadcasts the settings; this page only shows them. With many layouts the list scrolls in a
  * box of its own (the sections below stay in reach) and can be searched; the one in use stays
@@ -40,6 +42,8 @@ const saveId = useId()
 const searchId = useId()
 const sortLabelId = useId()
 const sortName = useId()
+const saveModeId = useId()
+const importModeId = useId()
 const { settings } = useOverlayState()
 const { currentCar, layoutNotice } = useLayoutState()
 const options = useOptions('layouts')
@@ -62,15 +66,18 @@ const roomLeft = computed(() => canAddLayout(lib.value))
 const notice = computed(() => (layoutNotice.value ? noticeText(t.value, layoutNotice.value) : null))
 
 const newName = shallowRef('')
+/** What the next layout saved, and the next one imported, restore. */
+const saveMode = shallowRef<LayoutMode>('full')
+const importMode = shallowRef<LayoutMode>('full')
 const canSave = computed(() => roomLeft.value && layoutName(newName.value) !== null)
 
 function save(): void {
   if (!canSave.value) return
-  cmd.save(newName.value)
+  cmd.save(newName.value, saveMode.value)
   newName.value = ''
 }
 
-/** The row being renamed (null: none). */
+/** The row being edited (null: none). */
 const renaming = shallowRef<string | null>(null)
 
 function onRename(id: string, open: boolean): void {
@@ -288,6 +295,11 @@ function onLink(car: CarRow, e: Event): void {
               {{ t.settings.layouts.save }}
             </button>
           </div>
+          <div class="mode">
+            <span :id="saveModeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
+            <LayoutModeChoice v-model="saveMode" :labelledby="saveModeId" :disabled="!roomLeft" />
+            <span class="st-help">{{ t.settings.layouts.modeHints[saveMode] }}</span>
+          </div>
         </form>
       </PageSection>
 
@@ -345,7 +357,22 @@ function onLink(car: CarRow, e: Event): void {
       <PageSection :title="t.settings.layouts.filesTitle">
         <div class="st-row st-row-wrap">
           <span class="st-help files-help">{{ t.settings.layouts.filesHelp }}</span>
-          <button type="button" class="st-btn" :disabled="!roomLeft" @click="cmd.importOne()">
+        </div>
+        <div class="st-row st-row-wrap">
+          <div class="mode import-mode">
+            <span :id="importModeId" class="st-label">{{ t.settings.layouts.importMode }}</span>
+            <LayoutModeChoice
+              v-model="importMode"
+              :labelledby="importModeId"
+              :disabled="!roomLeft"
+            />
+          </div>
+          <button
+            type="button"
+            class="st-btn"
+            :disabled="!roomLeft"
+            @click="cmd.importOne(importMode)"
+          >
             {{ t.settings.layouts.import }}
           </button>
         </div>
@@ -550,5 +577,19 @@ function onLink(car: CarRow, e: Event): void {
 
 .files-help {
   flex: 1 1 16em;
+}
+
+/* What a layout saved or imported restores: the label, the choice, and what it means. */
+.mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  width: 100%;
+}
+
+.import-mode {
+  flex: 1 1 auto;
+  width: auto;
 }
 </style>

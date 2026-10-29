@@ -10,7 +10,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { optionSetOf } from '@shared/layouts'
 import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@shared/settings'
+import { syncActiveLayout } from '@shared/settings/layouts'
 import type { ElementEntry } from '@shared/types'
 import DEFAULT_V4 from './fixtures/settings-v4-default.json'
 import CUSTOM_V4 from './fixtures/settings-v4-customised.json'
@@ -43,7 +45,7 @@ describe('the untouched v4 file', () => {
     const s = load(DEFAULT_V4).settings
     // What came after it stays off: the pedals' car block and shift lights, the repair's
     // crew-time tag.
-    expect(s).toEqual({
+    const expected = structuredClone({
       ...DEFAULT_SETTINGS,
       inputs: {
         ...DEFAULT_SETTINGS.inputs,
@@ -52,6 +54,10 @@ describe('the untouched v4 file', () => {
       },
       lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false }
     })
+    // Its one layout, and the shared options, have the options as loaded.
+    syncActiveLayout(expected)
+    expected.savedLayouts.shared = optionSetOf(expected)
+    expect(s).toEqual(expected)
     // The changes of default, applied once.
     expect(s.appearance.licenseStyle).toBe('outline')
     expect([s.delta.referencePractice, s.delta.referenceQualify, s.delta.referenceRace]).toEqual([

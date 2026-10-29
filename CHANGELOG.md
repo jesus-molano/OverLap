@@ -5,6 +5,22 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Disposiciones
+
+- Las disposiciones guardan también las opciones de cada widget (columnas y su orden, elementos,
+  barras de información, referencias del delta, estilo del volante, opacidad, sesiones en que se
+  ve…), y al aplicar una vuelven junto con las posiciones, de una vez. La apariencia, la
+  visibilidad y los atajos siguen siendo los mismos para todas.
+- Cada una es «Posición y opciones» o «Solo posición» (usa las opciones comunes); se elige al
+  guardarla o importarla y se cambia con «Editar».
+- Cada página de widget dice dónde se guardan sus cambios («Guardando en: …» u «Opciones
+  comunes») y ofrece «Aplicar a todas las disposiciones».
+- Los archivos exportados (versión 2) llevan las opciones; los de la versión 1 se siguen
+  importando. Tus disposiciones pasan a «Posición y opciones» con las opciones de ahora: nada
+  cambia.
+
 ## [2.0.0] - 2026-10-29
 
 Primera versión publicada. OverLap es un overlay para iRacing en Windows: lee la telemetría oficial

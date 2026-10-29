@@ -1,23 +1,49 @@
 /**
  * Defensive load of the saved layouts (settings.savedLayouts) and the one rule that ties them to
  * the widgets: the active layout always equals the widgets' own bounds, scale, visibility and
- * lock. The commands that change them are in ../layouts.ts.
+ * lock, and the options in effect (the top-level sections) are the active layout's own ('full')
+ * or the shared ones (a 'position' layout in use). The commands that change them are in
+ * ../layouts.ts.
  */
+import { copyData } from '../copy'
 import type { Language } from '../i18n/language'
-import { WIDGET_FIELD_SCHEMA } from '../settingsSchema'
+import {
+  LAYOUT_SECTIONS,
+  OPTION_SCHEMA,
+  WIDGET_FIELD_SCHEMA,
+  WIDGET_OPTION_FIELDS,
+  isLayoutSection,
+  type LayoutSection
+} from '../settingsSchema'
 import type {
   CarLayoutLink,
   CarRef,
   LayoutLibrary,
+  LayoutMode,
+  LayoutOptionSet,
   LayoutWidget,
   OverlaySettings,
   SavedLayout,
+  WidgetOptionFields,
   WidgetSettings
 } from '../types'
+import { deepEqual } from '../equal'
 import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
-import { clampNumber, isRecord, normalizeBounds, pickBoolean } from './fields'
+import {
+  clampNumber,
+  isRecord,
+  mergeSection,
+  mergeWidgetFields,
+  normalizeBounds,
+  pickBoolean,
+  pickEnum
+} from './fields'
+import { migrateSection } from './migrate'
 
-/** Most layouts kept: each is every widget's place, and every broadcast carries them all. */
+/**
+ * Most layouts kept. Each is every widget's place and options (about 10 kB): main keeps them all,
+ * the renderers get them without the options (rendererSettings in ../layouts.ts).
+ */
 export const MAX_LAYOUTS = 30
 /** Longest layout name (characters, after trimming). */
 export const MAX_LAYOUT_NAME = 40
@@ -166,9 +192,158 @@ export function normalizeCarRef(raw: unknown): CarRef | null {
   return { carId: raw.carId, carName: cleanText(raw.carName, MAX_CAR_NAME) ?? '' }
 }
 
-/** The library a fresh install starts with: one layout, the widgets as they are. */
+// ---------------------------------------------------------------------------
+// Options: what a 'full' layout and the shared options keep of every widget
+// ---------------------------------------------------------------------------
+
+/** Every widget and option, in effect: what a library is normalised against. */
+export type LiveSettings = Omit<OverlaySettings, 'savedLayouts'>
+
+/** SavedLayout.mode; the first one is a new layout's. */
+export const LAYOUT_MODES = ['full', 'position'] as const satisfies readonly LayoutMode[]
+
+/** A widget's option fields (WIDGET_OPTION_FIELDS), copied. */
+export function widgetOptionFieldsOf(w: Readonly<WidgetOptionFields>): WidgetOptionFields {
+  const out: Record<string, unknown> = {}
+  for (const f of WIDGET_OPTION_FIELDS) out[f] = copyData(w[f])
+  return out as unknown as WidgetOptionFields
+}
+
+/** The options in effect (the top-level sections and the widgets' option fields), copied. */
+export function optionSetOf(s: Readonly<LiveSettings>): LayoutOptionSet {
+  const sections: Record<string, unknown> = {}
+  for (const section of LAYOUT_SECTIONS) sections[section] = copyData(s[section])
+  const widgets = {} as Record<WidgetId, WidgetOptionFields>
+  for (const id of WIDGET_IDS) widgets[id] = widgetOptionFieldsOf(s.widgets[id])
+  return { sections: sections as unknown as LayoutOptionSet['sections'], widgets }
+}
+
+/** Puts `set` in effect: copied into the top-level sections and the widgets. Mutates `s`. */
+export function writeOptionSet(s: LiveSettings, set: Readonly<LayoutOptionSet>): void {
+  for (const section of LAYOUT_SECTIONS) setSection(s, section, set.sections[section])
+  for (const id of WIDGET_IDS) Object.assign(s.widgets[id], widgetOptionFieldsOf(set.widgets[id]))
+}
+
+/** Copies widget `id`'s options (its section, when it has one, and its fields) from `from`. */
+export function copyWidgetOptions(
+  to: LayoutOptionSet,
+  from: Readonly<LayoutOptionSet>,
+  id: WidgetId
+): void {
+  to.widgets[id] = widgetOptionFieldsOf(from.widgets[id])
+  const section = widgetSection(id)
+  if (section !== null) setSection(to.sections, section, from.sections[section])
+}
+
+/** The option section of widget `id` (named after it), null for a widget without one. */
+export function widgetSection(id: WidgetId): LayoutSection | null {
+  return isLayoutSection(id) ? id : null
+}
+
+function setSection<S extends LayoutSection>(
+  target: Pick<OverlaySettings, LayoutSection>,
+  section: S,
+  value: Readonly<OverlaySettings[S]>
+): void {
+  target[section] = copyData(value) as OverlaySettings[S]
+}
+
+/**
+ * Option sets known to be normalised, frozen so that they stay so: 30 layouts' options are not
+ * copied and validated again on every settings change (settingsDraft keeps them, and
+ * normalizeOptionSet takes them as they are). A command that changes one replaces it.
+ */
+const SEALED = new WeakSet<object>()
+
+/** `set`, frozen and known to be normalised (it must be: the options in effect, or validated). */
+export function sealOptionSet(set: LayoutOptionSet): LayoutOptionSet {
+  if (!SEALED.has(set)) SEALED.add(deepFreeze(set))
+  return set
+}
+
+/** Whether `v` is a sealed option set (sealOptionSet). */
+export function isSealedOptionSet(v: unknown): v is LayoutOptionSet {
+  return typeof v === 'object' && v !== null && SEALED.has(v)
+}
+
+function deepFreeze<T>(value: T): T {
+  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+    for (const v of Object.values(value)) deepFreeze(v)
+    Object.freeze(value)
+  }
+  return value
+}
+
+/**
+ * A copy of `s` to change (SettingsStore.update): everything copied but the sealed option sets of
+ * the layouts and the shared ones, which are kept (frozen: a command replaces them).
+ */
+export function settingsDraft(s: Readonly<OverlaySettings>): OverlaySettings {
+  const { savedLayouts: lib, ...live } = s
+  const keep = (o: LayoutOptionSet): LayoutOptionSet => (isSealedOptionSet(o) ? o : copyData(o))
+  const list = lib.list.map((l): SavedLayout => {
+    const { options, ...rest } = l
+    return { ...copyData(rest), ...(options ? { options: keep(options) } : {}) }
+  })
+  const out: LayoutLibrary = {
+    activeId: lib.activeId,
+    list,
+    links: copyData(lib.links),
+    seenCars: copyData(lib.seenCars),
+    ...(lib.shared ? { shared: keep(lib.shared) } : {})
+  }
+  return { ...copyData(live), savedLayouts: out }
+}
+
+/**
+ * Options read from disk or a file, against `fallback` (the options in effect): every section is
+ * migrated as a file's own would be (migrate.ts, with the file's `version`) and validated by the
+ * schema; unknown sections, fields and widgets are dropped, and anything missing or invalid keeps
+ * the fallback's. The result is sealed (sealOptionSet) and shares nothing with its inputs; a
+ * sealed `raw` is the result itself.
+ */
+export function normalizeOptionSet(
+  raw: unknown,
+  fallback: Readonly<LayoutOptionSet>,
+  version?: unknown
+): LayoutOptionSet {
+  if (isSealedOptionSet(raw)) return raw
+  const out = copyData(fallback) as LayoutOptionSet
+  if (!isRecord(raw)) return sealOptionSet(out)
+  const sections = isRecord(raw.sections) ? raw.sections : {}
+  // The layout's own sections stand for the file's (an option moved between two of them).
+  const file = { ...sections, version }
+  for (const section of LAYOUT_SECTIONS) {
+    if (!isRecord(sections[section])) continue
+    const r = migrateSection(section, sections[section], file)
+    if (isRecord(r)) mergeSection(out.sections[section], r, OPTION_SCHEMA[section])
+  }
+  const widgets = isRecord(raw.widgets) ? raw.widgets : {}
+  for (const id of WIDGET_IDS) {
+    const w = widgets[id]
+    if (!isRecord(w)) continue
+    // The places' fields are not read: they are only there for the merge.
+    const target: WidgetSettings = { ...out.widgets[id], ...PLACE_STUB }
+    mergeWidgetFields(id, target, w)
+    out.widgets[id] = widgetOptionFieldsOf(target)
+  }
+  return sealOptionSet(out)
+}
+
+const PLACE_STUB: LayoutWidget = {
+  bounds: { x: 0, y: 0, width: 1, height: 1 },
+  scale: WIDGET_FIELD_SCHEMA.scale.default,
+  visible: false,
+  locked: false
+}
+
+// ---------------------------------------------------------------------------
+// The library
+// ---------------------------------------------------------------------------
+
+/** The library a fresh install starts with: one layout with the places and options as they are. */
 export function defaultLayoutLibrary(
-  widgets: Readonly<Record<WidgetId, WidgetSettings>>,
+  live: Readonly<LiveSettings>,
   language: Language
 ): LayoutLibrary {
   return {
@@ -177,28 +352,36 @@ export function defaultLayoutLibrary(
       {
         id: FIRST_LAYOUT_ID,
         name: DEFAULT_LAYOUT_NAMES[language],
-        widgets: snapshotWidgets(widgets)
+        mode: 'full',
+        widgets: snapshotWidgets(live.widgets),
+        options: sealOptionSet(optionSetOf(live))
       }
     ],
     links: [],
-    seenCars: []
+    seenCars: [],
+    shared: sealOptionSet(optionSetOf(live))
   }
 }
 
 /**
- * The saved layouts read from disk, against the widgets already normalised. A file without
- * any (from before layouts) gets one, named after the interface language ('Principal'), equal
- * to its widgets: nothing moves. Malformed layouts, duplicate ids, links to a layout that is
- * gone and repeated cars are dropped; a repeated name (a file edited by hand) gets a number. An
- * active id naming no kept layout gets one that does (orphanActive). The active layout then
- * takes the widgets' fields (syncActiveLayout).
+ * The saved layouts read from disk, against the widgets and options already normalised (`live`).
+ * A file without any (from before layouts) gets one, named after the interface language
+ * ('Principal'), equal to its widgets: nothing moves. A layout without a mode or options (from
+ * before layouts carried them) is a 'full' one with a copy of the options in effect, as are the
+ * shared options of a file without them: nothing changes either. Malformed layouts, duplicate
+ * ids, links to a layout that is gone and repeated cars are dropped; a repeated name (a file
+ * edited by hand) gets a number. An active id naming no kept layout gets one that does
+ * (orphanActive). The active layout then takes the widgets' fields and the options in effect
+ * (syncActiveLayout). `version`: the file's (migrate.ts).
  */
 export function normalizeLayoutLibrary(
   raw: unknown,
-  widgets: Readonly<Record<WidgetId, WidgetSettings>>,
-  language: Language
+  live: Readonly<LiveSettings>,
+  language: Language,
+  version?: unknown
 ): LayoutLibrary {
-  const live = snapshotWidgets(widgets)
+  const places = snapshotWidgets(live.widgets)
+  const options = sealOptionSet(optionSetOf(live))
   const r = isRecord(raw) ? raw : {}
   const list: SavedLayout[] = []
   const ids = new Set<string>()
@@ -207,15 +390,18 @@ export function normalizeLayoutLibrary(
     if (!isRecord(entry) || !isLayoutId(entry.id) || ids.has(entry.id)) continue
     ids.add(entry.id)
     const name = layoutName(entry.name) ?? `${DEFAULT_LAYOUT_NAMES[language]} ${list.length + 1}`
+    const mode = pickEnum(entry.mode, LAYOUT_MODES, 'full')
     const usedAt = normalizeUsedAt(entry.usedAt)
     list.push({
       id: entry.id,
       name: uniqueLayoutName(name, list),
-      widgets: normalizeLayoutWidgets(entry.widgets, live),
+      mode,
+      widgets: normalizeLayoutWidgets(entry.widgets, places),
+      ...(mode === 'full' ? { options: normalizeOptionSet(entry.options, options, version) } : {}),
       ...(usedAt === undefined ? {} : { usedAt })
     })
   }
-  if (list.length === 0) return defaultLayoutLibrary(widgets, language)
+  if (list.length === 0) return defaultLayoutLibrary(live, language)
 
   const links: CarLayoutLink[] = []
   const linked = new Set<number>()
@@ -236,30 +422,39 @@ export function normalizeLayoutLibrary(
     seen.add(car.carId)
     seenCars.push(car)
   }
+  const shared = normalizeOptionSet(r.shared, options, version)
   const activeId =
     typeof r.activeId === 'string' && ids.has(r.activeId)
       ? r.activeId
-      : orphanActive(list, live, language)
-  const lib: LayoutLibrary = { activeId, list, links, seenCars }
-  copyIntoActive(lib, live)
+      : orphanActive(list, shared, places, options, language)
+  const lib: LayoutLibrary = { activeId, list, links, seenCars, shared }
+  copyIntoActive(lib, places, options)
   return lib
 }
 
 /**
  * The active layout of a file whose own one is gone (a damaged or hand-edited file), so that no
- * saved layout is overwritten by the widgets: one already equal to them, else the widgets kept
- * as a new layout; only a full list falls back to the first one. Mutates `list`.
+ * saved layout (nor the shared options) is overwritten by what is in effect: one already equal to
+ * it, else what is in effect kept as a new layout; only a full list falls back to the first one.
+ * Mutates `list`.
  */
 function orphanActive(
   list: SavedLayout[],
-  live: Record<WidgetId, LayoutWidget>,
+  shared: Readonly<LayoutOptionSet>,
+  places: Record<WidgetId, LayoutWidget>,
+  options: LayoutOptionSet,
   language: Language
 ): string {
-  const same = list.find((l) => sameLayoutWidgets(l.widgets, live))
+  const same = list.find(
+    (l) =>
+      sameLayoutWidgets(l.widgets, places) &&
+      deepEqual(l.mode === 'full' ? l.options : shared, options)
+  )
   if (same) return same.id
   if (list.length >= MAX_LAYOUTS) return list[0]?.id ?? FIRST_LAYOUT_ID
   const id = nextLayoutId(list)
-  list.push({ id, name: uniqueLayoutName(DEFAULT_LAYOUT_NAMES[language], list), widgets: live })
+  const name = uniqueLayoutName(DEFAULT_LAYOUT_NAMES[language], list)
+  list.push({ id, name, mode: 'full', widgets: places, options })
   return id
 }
 
@@ -283,15 +478,24 @@ function sameLayoutWidgets(
   })
 }
 
-function copyIntoActive(lib: LayoutLibrary, live: Record<WidgetId, LayoutWidget>): void {
+function copyIntoActive(
+  lib: LayoutLibrary,
+  places: Record<WidgetId, LayoutWidget>,
+  options: LayoutOptionSet
+): void {
   const active = lib.list.find((l) => l.id === lib.activeId)
-  if (active) active.widgets = live
+  if (!active) return
+  active.widgets = places
+  if (active.mode === 'full') active.options = options
+  else lib.shared = options
 }
 
 /**
  * The rule: the active layout takes the widgets' bounds, scale, visibility and lock (moving a
- * widget changes the layout in use). Mutates `s`.
+ * widget changes the layout in use), and the options in effect go into it (a 'full' one) or into
+ * the shared ones (a 'position' one): changing an option changes only where it is kept. Mutates
+ * `s`.
  */
 export function syncActiveLayout(s: OverlaySettings): void {
-  copyIntoActive(s.savedLayouts, snapshotWidgets(s.widgets))
+  copyIntoActive(s.savedLayouts, snapshotWidgets(s.widgets), sealOptionSet(optionSetOf(s)))
 }

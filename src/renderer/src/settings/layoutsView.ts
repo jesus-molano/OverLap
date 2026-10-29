@@ -6,7 +6,8 @@ import { shallowRef, type ShallowRef } from 'vue'
 import type { Messages } from '@shared/i18n'
 import type { LayoutNotice } from '@shared/ipc'
 import { canDeleteLayout, linkableCars, sortLayouts } from '@shared/layouts'
-import type { CarRef, LayoutLibrary, LayoutSort, SavedLayout } from '@shared/types'
+import type { CarRef, LayoutLibrary, LayoutMode, LayoutSort, SavedLayout } from '@shared/types'
+import type { WidgetId } from '@shared/widgets'
 import { sendCommand } from './editor'
 import { foldText } from './personalBests'
 
@@ -23,6 +24,7 @@ export interface LayoutRow {
   canDelete: boolean
   canMoveUp: boolean
   canMoveDown: boolean
+  mode: LayoutMode
   /** 'Coches: Mazda MX-5 Cup, BMW M2' ('' without links). */
   cars: string
 }
@@ -128,6 +130,7 @@ export function layoutList(
       canDelete: canDeleteLayout(lib, l.id),
       canMoveUp: reorder && i !== null && i > 0,
       canMoveDown: reorder && i !== null && i < last,
+      mode: l.mode,
       cars: cars.length > 0 ? m.settings.layouts.cars(cars.join(', ')) : ''
     }
   }
@@ -168,6 +171,25 @@ export function revealOffset(
   if (row.top < box.top) return row.top - box.top
   if (row.bottom > box.bottom) return Math.min(row.bottom - box.bottom, row.top - box.top)
   return 0
+}
+
+/** Where a widget page's changes go (the banner at its top, OptionsTarget.vue). */
+export interface OptionsTarget {
+  /** The layout in use ('Mazda MX-5'). */
+  name: string
+  /** True: a 'position' layout is in use, so the changes go to the shared options. */
+  shared: boolean
+  /** "Aplicar a todas las disposiciones" changes something only with another layout. */
+  canApplyToAll: boolean
+}
+
+export function optionsTarget(lib: LayoutLibrary): OptionsTarget {
+  const active = lib.list.find((l) => l.id === lib.activeId)
+  return {
+    name: active?.name ?? '',
+    shared: active?.mode === 'position',
+    canApplyToAll: lib.list.length > 1
+  }
 }
 
 /** The layouts a car can be linked to, A to Z (a native select of up to 30 stays findable). */
@@ -229,7 +251,7 @@ export function useLayoutState(): {
 }
 
 export const layoutCommands = {
-  save: (name: string) => sendCommand({ type: 'layout-save', name }),
+  save: (name: string, mode: LayoutMode) => sendCommand({ type: 'layout-save', name, mode }),
   apply: (id: string) => sendCommand({ type: 'layout-apply', id }),
   duplicate: (id: string, name: string) => sendCommand({ type: 'layout-duplicate', id, name }),
   rename: (id: string, name: string) => sendCommand({ type: 'layout-rename', id, name }),
@@ -241,10 +263,13 @@ export const layoutCommands = {
     layoutNotice.value = null
     sendCommand({ type: 'layout-export', id })
   },
-  importOne: () => {
+  importOne: (mode: LayoutMode) => {
     layoutNotice.value = null
-    sendCommand({ type: 'layout-import' })
+    sendCommand({ type: 'layout-import', mode })
   },
+  setMode: (id: string, mode: LayoutMode) => sendCommand({ type: 'layout-set-mode', id, mode }),
+  /** Widget `widgetId`'s options in effect into every 'full' layout and the shared options. */
+  optionsToAll: (widgetId: WidgetId) => sendCommand({ type: 'layout-options-to-all', widgetId }),
   link: (car: CarRef, layoutId: string | null) =>
     sendCommand({ type: 'layout-link-car', car: { ...car }, layoutId })
 }
