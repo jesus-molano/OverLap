@@ -11,6 +11,7 @@ import {
   fixedColumns,
   gapModePatch,
   isColumnVisible,
+  matchSharedColumns,
   setColumnVisible
 } from './columns'
 
@@ -36,12 +37,12 @@ describe('fixedColumns', () => {
     expect(fixedColumns(messagesFor('es')).map((c) => c.label)).toEqual([
       'Posición',
       'Número',
-      'Nombre'
+      'Piloto'
     ])
     expect(fixedColumns(messagesFor('en')).map((c) => c.label)).toEqual([
       'Position',
       'Number',
-      'Name'
+      'Driver'
     ])
     expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'num', 'name'])
   })
@@ -169,5 +170,26 @@ describe('coupled patches', () => {
     const hidden = columnVisiblePatch(visible, 'delta', false)
     expect(hidden.iRatingDeltaAll).toBe(false)
     expect(isColumnVisible(hidden.columns!, 'delta')).toBe(false)
+  })
+})
+
+describe('matchSharedColumns (R10: «Igualar con…»)', () => {
+  const L = <T extends string>(spec: string): { id: T; visible: boolean }[] =>
+    spec.split(' ').map((s) => ({ id: s.replace('-', '') as T, visible: !s.startsWith('-') }))
+
+  it('gives the shared columns the other table’s order and eyes, the own ones keep their place', () => {
+    const relative = L('pos driver ir lic -pit -tyre -stint gap')
+    const standings = L('-gained lic ir -delta gap -gapLeader last best pit -pitLap stint -tyre')
+    expect(matchSharedColumns(relative, standings)).toEqual(
+      L('pos driver lic ir gap pit stint -tyre')
+    )
+    expect(matchSharedColumns(standings, relative)).toEqual(
+      L('-gained ir lic -delta -pit -gapLeader last best -tyre -pitLap -stint gap')
+    )
+  })
+
+  it('changes nothing when both already agree', () => {
+    const a = L('pos driver ir lic -pit -tyre -stint gap')
+    expect(matchSharedColumns(a, a)).toEqual(a)
   })
 })

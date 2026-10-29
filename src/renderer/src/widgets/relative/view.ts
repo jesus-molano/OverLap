@@ -140,6 +140,7 @@ export const RELATIVE_COL_EM = {
   pos: 1.9,
   lic: 2.8,
   ir: 2.4,
+  pit: 2.6,
   tyre: 1.3,
   stint: 2.3,
   gap: 3.1
@@ -159,6 +160,11 @@ export interface RelativeColumns {
   cells: readonly RelativeColumnId[]
   /** Penalty flag badges after the name. */
   flags: boolean
+  /**
+   * The PIT / tow badge after the name: the PIT column is hidden (as the standings put it
+   * inline without their "Boxes" column, R10).
+   */
+  pitInline: boolean
   /** The make's logo and the driver's flag inside the driver cell. */
   brand: boolean
   country: boolean
@@ -208,11 +214,13 @@ export function relativeColumns(
   let fitEm = RELATIVE_FIT_EM
   if (cells.includes('tyre')) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
+  if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
   if (x.brand) fitEm += BRAND_FIT_EM
   if (x.country) fitEm += FLAG_FIT_EM
   return {
     cells,
     flags: x.flags,
+    pitInline: !cells.includes('pit'),
     brand: x.brand,
     country: x.country,
     template: tracks.join(' '),

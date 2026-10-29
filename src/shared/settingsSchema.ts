@@ -272,8 +272,11 @@ export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
 export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'pos',
   'driver',
-  'lic',
+  // iRating then licence, as in the standings and the battle (R10).
   'ir',
+  'lic',
+  // Hidden: the PIT badge goes after the name (as the standings do without their "Boxes").
+  'pit',
   'tyre',
   'stint',
   'gap'
@@ -446,7 +449,7 @@ export const OPTION_SCHEMA = {
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
-      hidden: ['tyre', 'stint'],
+      hidden: ['pit', 'tyre', 'stint'],
       required: ['driver', 'gap'],
       displayOnly: true
     }),

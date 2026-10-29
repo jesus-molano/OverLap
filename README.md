@@ -70,12 +70,14 @@ carrera).
 
 Los coches que tienes delante y detrás en pista (3 y 3 por defecto, hasta 10) con el hueco en
 segundos: positivo delante, negativo detrás. Cada fila lleva posición en clase, número con el color
-de su clase, marca, bandera del país, nombre, licencia e iRating. En rojo quien te va a doblar, en
+de su clase, marca, bandera del país, nombre, iRating y licencia (en el mismo orden que Posiciones
+y Batalla). En rojo quien te va a doblar, en
 azul los doblados y atenuados los que están en boxes. En la cabecera, tus incidentes y el próximo
 límite de la sesión («3x · DQ a 17x»).
 
-Opcionales: columnas de neumático y de vueltas del stint, banderas de penalización tras el nombre,
-títulos de columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
+Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
+Posiciones), neumático y vueltas del stint, banderas de penalización tras el nombre, títulos de
+columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
 juego, SR proyectado, condiciones de pista…).
 
 ### Radar

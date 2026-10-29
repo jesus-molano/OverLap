@@ -11,7 +11,12 @@
  */
 import { setElementVisible } from '@shared/elements'
 import type { Messages } from '@shared/i18n'
-import type { StandingsColumn, StandingsColumnId, StandingsOptions } from '@shared/types'
+import type {
+  ElementEntry,
+  StandingsColumn,
+  StandingsColumnId,
+  StandingsOptions
+} from '@shared/types'
 import type { ElementChange } from './elements/listOps'
 
 /** Keys of the fixed left block, listed (locked) above the editable columns. */
@@ -123,4 +128,24 @@ export function columnsEditPatch(
   if (leader && opts.gapMode !== 'both') patch.gapMode = 'both'
   if (!isColumnVisible(columns, 'delta') && opts.iRatingDeltaAll) patch.iRatingDeltaAll = false
   return patch
+}
+
+/**
+ * «Igualar con las columnas de …» (R10): the columns the relative and the standings share take
+ * `source`'s order and visibility in `target`; the target's own columns keep their places (the
+ * shared ones fill the places shared ones had). Pure.
+ */
+export function matchSharedColumns<T extends string, S extends string>(
+  target: readonly Readonly<ElementEntry<T>>[],
+  source: readonly Readonly<ElementEntry<S>>[]
+): ElementEntry<T>[] {
+  const ids = new Set<string>(target.map((e) => e.id))
+  const shared = source.filter((e) => ids.has(e.id))
+  const sharedIds = new Set<string>(shared.map((e) => e.id))
+  let next = 0
+  return target.map((e) => {
+    if (!sharedIds.has(e.id)) return { id: e.id, visible: e.visible }
+    const s = shared[next++] as Readonly<ElementEntry<string>>
+    return { id: s.id as T, visible: s.visible }
+  })
 }

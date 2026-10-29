@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
+import { widgetTitle } from '@shared/i18n'
 import { INFO_BARS } from '@shared/infoBar'
 import {
   STANDINGS_GAP_MODES,
@@ -17,7 +18,8 @@ import {
   deltaAllDroppedAfter,
   deltaAllPatch,
   fixedColumns,
-  gapModePatch
+  gapModePatch,
+  matchSharedColumns
 } from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
@@ -32,6 +34,7 @@ import type { ElementChange } from '../elements/listOps'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import DriverSection from './DriverSection.vue'
+import { offerSectionRestore } from '../undo/restore'
 
 /**
  * The standings' page: what the table shows (mode, rows, gap, names), then one editor per zone
@@ -75,6 +78,19 @@ const applyColumns = (
   return updateSection('standings', patch)
 }
 
+/**
+ * «Igualar con Relativo» (R10): the columns both tables have take the relative's order and eyes
+ * (with the options that go with the columns, as a reset brings them); then "Deshacer".
+ */
+const relative = useOptions('relative')
+const matched = shallowRef('')
+function matchRelative(): void {
+  const done = offerSectionRestore('standings', zoneTitle(t.value, 'standings', 'columns'))
+  const next = matchSharedColumns(opts.value.columns, relative.value.columns)
+  void updateSection('standings', columnsEditPatch(opts.value, next, { kind: 'reset' }))
+  done()
+  matched.value = t.value.settings.columns.match.done(widgetTitle(t.value, 'relative'))
+}
 const compactOff = computed(() => opts.value.mode === 'full')
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
 const fixed = computed(() => fixedColumns(t.value))
@@ -159,6 +175,13 @@ const fixed = computed(() => fixedColumns(t.value))
           :current="opts.columnHeads"
           :apply="set('columnHeads')"
         />
+        <div class="st-row match-row">
+          <span class="st-help">{{ t.settings.columns.match.help }}</span>
+          <button type="button" class="st-btn st-btn-sm" @click="matchRelative">
+            {{ t.settings.columns.match.fromRelative }}
+          </button>
+        </div>
+        <p class="st-sr-only" aria-live="polite">{{ matched }}</p>
       </template>
     </ElementEditor>
 

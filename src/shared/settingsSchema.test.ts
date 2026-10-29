@@ -243,7 +243,8 @@ describe('element lists (v2.6)', () => {
   it("keeps today's look by default: hidden only what was off", () => {
     const hidden = (spec: ElementsSpec): string[] =>
       spec.default.filter((e) => !e.visible).map((e) => e.id)
-    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['tyre', 'stint'])
+    // The PIT column (R10) hidden: its badge goes after the name, as before.
+    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['pit', 'tyre', 'stint'])
     expect(hidden(OPTION_SCHEMA.battle.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.laps)).toEqual(['pb'])

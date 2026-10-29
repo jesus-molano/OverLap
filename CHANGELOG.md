@@ -18,6 +18,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Las columnas de Relativo y Posiciones se llaman y editan igual**: «Posición» (en tu clase) y
+  «Piloto» en las dos (Posiciones decía «Nombre» y Relativo «Posición en clase»), el mismo
+  candado, en el sitio del ojo, para lo que siempre se ve (Posiciones ponía «Fijo»), iRating
+  antes que la licencia en las dos y una columna «Boxes» también en Relativo (oculta, la etiqueta
+  PIT sigue tras el nombre, como en Posiciones sin la suya). Cada tabla tiene **«Igualar con
+  Posiciones / Relativo»**, que copia el orden y el ojo de las columnas que comparten, con
+  «Deshacer». **En una instalación nueva**, y si nunca habías tocado las columnas de Relativo,
+  iRating va antes que la licencia; una lista cambiada por ti no se toca.
 - **Un bloque «Piloto» igual en Relativo, Posiciones, Batalla y Tráfico**: justo después de
   Contenido, las mismas cuatro filas en el mismo orden (formato de nombre, logo de la marca,
   bandera del país, banderas de penalización), cada una con «Global (…)», que es lo que diga

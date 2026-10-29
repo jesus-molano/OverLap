@@ -190,11 +190,17 @@ const panelStyle = computed<InlineStyle>(() => ({
                   <span v-if="cols.flags && slot.penalty" class="rl-flag"
                     ><PenaltyIcon :penalty="slot.penalty"
                   /></span>
-                  <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{
-                    t.widgets.common.tow
-                  }}</Badge>
-                  <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
+                  <template v-if="cols.pitInline">
+                    <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{
+                      t.widgets.common.tow
+                    }}</Badge>
+                    <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
+                  </template>
                 </DriverCell>
+                <span v-else-if="cell === 'pit'" class="c-pit" data-el="relative.columns.pit"
+                  ><Badge v-if="slot.towed" tone="warn">{{ t.widgets.common.tow }}</Badge
+                  ><Badge v-else-if="slot.inPits">{{ t.widgets.common.pit }}</Badge></span
+                >
                 <span v-else-if="cell === 'lic'" class="c-lic" data-el="relative.columns.lic"
                   ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
                 /></span>
@@ -366,6 +372,14 @@ const panelStyle = computed<InlineStyle>(() => ({
 
 .c-lic,
 .c-tyre {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The PIT column (R10): its badge centred in the cell. */
+.c-pit {
   display: flex;
   justify-content: center;
   min-width: 0;

@@ -198,8 +198,9 @@ describe('relativeColumns', () => {
     const tracks: string[] = []
     if (o.showClassPosition) tracks.push('1.9em')
     tracks.push('minmax(0, 1fr)')
-    if (o.showLicense) tracks.push('2.8em')
+    // iRating before the licence since 2.3 (R10), as the standings and the battle.
     if (o.showIRating) tracks.push('2.4em')
+    if (o.showLicense) tracks.push('2.8em')
     if (o.showTyre) tracks.push('1.3em')
     if (o.showStint) tracks.push('2.3em')
     tracks.push('3.1em')
@@ -211,8 +212,10 @@ describe('relativeColumns', () => {
 
   it('draws today’s row from the default list', () => {
     const c = relativeColumns(DEF, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'lic', 'ir', 'gap'])
-    expect(c.template).toBe('1.9em minmax(0, 1fr) 2.8em 2.4em 3.1em')
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap'])
+    expect(c.template).toBe('1.9em minmax(0, 1fr) 2.4em 2.8em 3.1em')
+    // Without its column the PIT badge goes after the name.
+    expect(c.pitInline).toBe(true)
     expect(c.fitEm).toBe(RELATIVE_FIT_EM)
     expect(c.fitEm).toBe(27)
   })
@@ -237,14 +240,31 @@ describe('relativeColumns', () => {
   })
 
   it('follows the list’s order, cells before the driver on its left', () => {
-    // [pos driver lic ir tyre stint gap] → [gap ir pos driver lic tyre stint]
-    let list = moveElement(DEF, 6, 0)
-    list = moveElement(list, 4, 1)
-    expect(list.map((e) => e.id)).toEqual(['gap', 'ir', 'pos', 'driver', 'lic', 'tyre', 'stint'])
+    // [pos driver ir lic pit tyre stint gap] → [gap ir pos driver lic pit tyre stint]
+    let list = moveElement(DEF, 7, 0)
+    list = moveElement(list, 3, 1)
+    expect(list.map((e) => e.id)).toEqual([
+      'gap',
+      'ir',
+      'pos',
+      'driver',
+      'lic',
+      'pit',
+      'tyre',
+      'stint'
+    ])
     const c = relativeColumns(list, plain)
     expect(c.cells).toEqual(['gap', 'ir', 'pos', 'driver', 'lic'])
     expect(c.template).toBe('3.1em 2.4em 1.9em minmax(0, 1fr) 2.8em')
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
+  })
+
+  it('gives the PIT badge a column of its own when it is shown (R10)', () => {
+    const list = DEF.map((e) => (e.id === 'pit' ? { ...e, visible: true } : e))
+    const c = relativeColumns(list, plain)
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'pit', 'gap'])
+    expect(c.pitInline).toBe(false)
+    expect(c.fitEm).toBeGreaterThan(RELATIVE_FIT_EM)
   })
 
   it('puts back a required cell a hand-edited list lost', () => {

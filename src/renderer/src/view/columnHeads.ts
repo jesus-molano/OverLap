@@ -62,6 +62,8 @@ export function relativeHead(
       return { label: licHead(licenseStyle, m), align: 'center' }
     case 'ir':
       return { label: h.ir, align: 'end' }
+    case 'pit':
+      return { label: h.pit, align: 'center' }
     case 'tyre':
       return { label: '', align: 'center' }
     case 'stint':

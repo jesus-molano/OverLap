@@ -596,6 +596,9 @@ export const settingsEs = {
     stint: 'Vueltas del stint',
     stintHelp: 'Desde su última parada, o desde la salida',
     tyre: 'Neumático',
+    /** Column hints (R10: the same words as the standings'). */
+    posHelp: 'En tu clase',
+    pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
   },
@@ -632,10 +635,18 @@ export const settingsEs = {
   /** Standings column editor. */
   columns: {
     title: 'Columnas',
+    /** «Igualar con…» (R10): the columns both tables have, in the other's order and eyes. */
+    match: {
+      fromStandings: 'Igualar con Posiciones',
+      fromRelative: 'Igualar con Relativo',
+      help: 'Las columnas que comparten, en el mismo orden y con el mismo ojo',
+      done: (other: string) => `Columnas igualadas con ${other}`
+    },
+    /** The same words as the relative's columns (R10). */
     fixed: {
       pos: 'Posición',
       num: 'Número',
-      name: 'Nombre'
+      name: 'Piloto'
     },
     labels: {
       gained: 'Puestos ganados',
@@ -659,7 +670,7 @@ export const settingsEs = {
       gapLeader: 'Con «Hueco: Ambos»',
       last: 'Fuera de carrera, la mejor vuelta',
       best: 'Solo en carrera: fuera de carrera ya la muestra «Última vuelta»',
-      pit: 'PIT / OUT / GRÚA y paradas (una grúa no cuenta)',
+      pit: 'PIT, OUT o GRÚA y las paradas; oculta, PIT va tras el nombre',
       pitLap: 'Solo en carrera: la vuelta de su última parada (V12)',
       stint: 'Desde su última parada, o desde la salida (7 v)',
       tyre: 'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
@@ -1092,7 +1103,8 @@ export const settingsEs = {
     /** A required element: a lock instead of the eye. */
     required: 'Siempre visible',
     /** A fixed row of the widget, listed for context (not in the list). */
-    fixedTag: 'Fijo',
+    /** A column that is always there, in its place: the same lock as an always-shown one. */
+    fixedTag: 'Siempre visible y en su sitio',
     /** A child whose parent is hidden: 'Necesita «iRating»'. */
     needsParent: (parent: string) => `Necesita «${parent}»`,
     reset: 'Restablecer',
@@ -1170,10 +1182,11 @@ export const settingsEs = {
   items: {
     relative: {
       columns: {
-        pos: 'Posición en clase',
+        pos: 'Posición',
         driver: 'Piloto',
-        lic: 'Licencia',
         ir: 'iRating',
+        lic: 'Licencia',
+        pit: 'Boxes',
         tyre: 'Neumático',
         stint: 'Vueltas del stint',
         gap: 'Hueco'
@@ -1916,6 +1929,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     stint: 'Stint laps',
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
+    posHelp: 'In your class',
+    pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
       'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
   },
@@ -1950,10 +1965,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   columns: {
     title: 'Columns',
+    match: {
+      fromStandings: 'Match Standings',
+      fromRelative: 'Match Relative',
+      help: 'The columns both have, in the same order and with the same eye',
+      done: (other) => `Columns matched to ${other}`
+    },
     fixed: {
       pos: 'Position',
       num: 'Number',
-      name: 'Name'
+      name: 'Driver'
     },
     labels: {
       gained: 'Positions gained',
@@ -1976,7 +1997,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       gapLeader: 'Only with “Gap: Both”',
       last: 'Outside races, the best lap',
       best: 'Race only: outside races “Last lap” already shows it',
-      pit: 'PIT / OUT / TOW and pit stop count (a tow is not one)',
+      pit: 'PIT, OUT or TOW and the stops; hidden, PIT goes after the name',
       pitLap: 'Race only: the lap of its last stop (L12)',
       stint: 'Since its last stop, or since the start (7 L)',
       tyre: 'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
@@ -2353,7 +2374,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     show: (item) => `Show ${item} in the widget`,
     hide: (item) => `Hide ${item} in the widget`,
     required: 'Always shown',
-    fixedTag: 'Fixed',
+    fixedTag: 'Always shown, in its place',
     needsParent: (parent) => `Needs “${parent}”`,
     reset: 'Reset',
     resetLabel: (zone) => `Reset ${zone}`,
@@ -2411,10 +2432,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
   items: {
     relative: {
       columns: {
-        pos: 'Class position',
+        pos: 'Position',
         driver: 'Driver',
-        lic: 'Licence',
         ir: 'iRating',
+        lic: 'Licence',
+        pit: 'Pits',
         tyre: 'Tyre',
         stint: 'Stint laps',
         gap: 'Gap'
