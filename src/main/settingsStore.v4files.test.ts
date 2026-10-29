@@ -41,14 +41,16 @@ describe('the untouched v4 file', () => {
     expect(DEFAULT_V4.appearance.licenseStyle).toBe('soft')
     expect(DEFAULT_V4.delta.reference).toBe('pb')
     const s = load(DEFAULT_V4).settings
-    // What came after it stays off: the pedals' car block and shift lights.
+    // What came after it stays off: the pedals' car block and shift lights, the repair's
+    // crew-time tag.
     expect(s).toEqual({
       ...DEFAULT_SETTINGS,
       inputs: {
         ...DEFAULT_SETTINGS.inputs,
         sections: DEFAULT_SETTINGS.inputs.sections.map((b) => ({ ...b, visible: b.id !== 'car' })),
         shiftLights: false
-      }
+      },
+      lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false }
     })
     // The changes of default, applied once.
     expect(s.appearance.licenseStyle).toBe('outline')

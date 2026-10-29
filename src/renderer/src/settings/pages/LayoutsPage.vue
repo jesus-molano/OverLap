@@ -160,10 +160,13 @@ function removeAction(id: string): () => void {
             </div>
 
             <div v-if="renaming !== r.id" class="actions">
+              <!-- The one in use keeps an invisible Aplicar: its buttons line up with the others'. -->
               <button
-                v-if="!r.active"
                 type="button"
                 class="st-btn st-btn-sm"
+                :class="{ 'is-placeholder': r.active }"
+                :disabled="r.active"
+                :aria-hidden="r.active ? 'true' : undefined"
                 :aria-label="t.settings.layouts.applyLabel(r.name)"
                 @click="cmd.apply(r.id)"
               >
@@ -353,17 +356,21 @@ function removeAction(id: string): () => void {
   align-items: center;
   gap: 8px 10px;
   min-height: 52px;
-  padding: 8px 0;
+  /* Room for the rail on every row, so the one in use lines up with the rest. */
+  padding: 8px 0 8px 10px;
 }
 
 .item + .item {
   border-top: 1px solid var(--st-border);
 }
 
-/* The one in use: the accent rail, as your own row in the widgets. */
+/* The one in use: the accent rail, as your own row in the widgets (drawn, taking no room). */
 .item.is-active {
-  padding-left: 10px;
   box-shadow: inset var(--ov-bar-w) 0 0 var(--ov-accent);
+}
+
+.is-placeholder {
+  visibility: hidden;
 }
 
 .order {

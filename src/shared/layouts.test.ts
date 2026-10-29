@@ -4,6 +4,7 @@ import {
   LAYOUT_FILE_VERSION,
   MAX_LAYOUTS,
   MAX_LAYOUT_FILE_BYTES,
+  MAX_LAYOUT_NAME,
   applyLayout,
   canDeleteLayout,
   deleteLayout,
@@ -143,7 +144,7 @@ describe('migration and normalisation', () => {
       ['a', 'Uno'],
       ['b', 'Principal 2']
     ])
-    // An unknown active id falls back to the first one, which takes the widgets.
+    // An unknown active id falls back to a layout already equal to the widgets.
     expect(lib.activeId).toBe('a')
     expect(lib.list[1]?.widgets.relative.scale).toBe(200)
     expect(lib.list[1]?.widgets.relative.bounds.x).toBe(w.relative.bounds.x)
@@ -161,6 +162,54 @@ describe('migration and normalisation', () => {
     }))
     const s = normalizeSettings({ ...base, savedLayouts: { activeId: 'layout-1', list } })
     expect(s.savedLayouts.list).toHaveLength(MAX_LAYOUTS)
+  })
+
+  it('keeps the widgets as a new layout when the active one was dropped, overwriting none', () => {
+    const base = createDefaultSettings()
+    const first = snapshotWidgets(base.widgets)
+    const live = structuredClone(base)
+    live.widgets.inputs.bounds = { ...live.widgets.inputs.bounds, x: 777 }
+    const s = normalizeSettings(
+      JSON.parse(
+        JSON.stringify({
+          ...live,
+          savedLayouts: {
+            activeId: 'bad id',
+            list: [
+              { id: 'layout-1', name: 'Principal', widgets: first },
+              { id: 'bad id', name: 'B', widgets: first }
+            ]
+          }
+        })
+      )
+    )
+    const lib = s.savedLayouts
+    expect(lib.list[0]?.widgets.inputs.bounds.x).toBe(first.inputs.bounds.x)
+    expect(lib.list.map((l) => [l.id, l.name])).toEqual([
+      ['layout-1', 'Principal'],
+      ['layout-2', 'Principal (2)']
+    ])
+    expect(lib.activeId).toBe('layout-2')
+    expect(lib.list[1]?.widgets.inputs.bounds.x).toBe(777)
+    // Stable: loading it again changes nothing.
+    expect(normalizeSettings(JSON.parse(JSON.stringify(s))).savedLayouts).toEqual(lib)
+  })
+
+  it('numbers repeated names of a file edited by hand', () => {
+    const base = createDefaultSettings()
+    const w = snapshotWidgets(base.widgets)
+    const s = normalizeSettings({
+      ...base,
+      savedLayouts: {
+        activeId: 'a',
+        list: [
+          { id: 'a', name: 'GT3', widgets: w },
+          { id: 'b', name: 'gt3', widgets: w },
+          { id: 'c', name: 'GT3', widgets: w }
+        ]
+      }
+    })
+    expect(s.savedLayouts.list.map((l) => l.name)).toEqual(['GT3', 'gt3 (2)', 'GT3 (3)'])
   })
 })
 
@@ -190,6 +239,21 @@ describe('layout commands', () => {
     saveLayoutAs(s, 'Principal')
     expect(names(s)).toEqual(['Principal', 'principal (2)', 'Principal (3)'])
     expect(uniqueLayoutName('Principal', s.savedLayouts.list, 'layout-1')).toBe('Principal')
+  })
+
+  it('keeps unique names of the longest length unique after a load', () => {
+    const long = 'A'.repeat(MAX_LAYOUT_NAME)
+    let s = createDefaultSettings()
+    s = change(s, (d) => void saveLayoutAs(d, long))
+    s = change(s, (d) => void saveLayoutAs(d, long))
+    s = change(s, (d) => void duplicateLayout(d, d.savedLayouts.activeId, long))
+    s = change(s, (d) => void renameLayout(d, 'layout-1', `${long}B`))
+    const after = normalizeSettings(JSON.parse(JSON.stringify(s)))
+    const list = names(after)
+    expect(list).toEqual(names(s))
+    expect(new Set(list.map((n) => n.toLowerCase())).size).toBe(list.length)
+    for (const n of list) expect(Array.from(n).length).toBeLessThanOrEqual(MAX_LAYOUT_NAME)
+    expect(list).toContain(`${'A'.repeat(MAX_LAYOUT_NAME - 4)} (2)`)
   })
 
   it('cleans names: control characters, spaces, length', () => {

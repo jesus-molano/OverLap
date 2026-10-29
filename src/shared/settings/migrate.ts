@@ -202,6 +202,14 @@ export function migrateLights(raw: unknown, file: Record<string, unknown>): unkn
 }
 
 /**
+ * Warning lights saved before the crew-time tag: the tag stays off, so an upgrade reads what it
+ * read ('REPARAR · 42 s'); a new install, or a file from before the lights, gets the default.
+ */
+export function migrateLightsCrewTag(raw: Record<string, unknown>): Record<string, unknown> {
+  return 'repairCrewTag' in raw ? raw : { ...raw, repairCrewTag: false }
+}
+
+/**
  * Whether a file without the SHOWN_WHEN_ADDED widget `id` gets it shown. The warning lights only
  * when its alerts band showed something they took over: the band shown, with one of the options
  * that moved (BAND_MOVED, each on by default) on. A band hidden, or with all of them off, showed
@@ -597,6 +605,8 @@ export function migrateSection(
   else if (section === 'alerts') out = migrateAlerts(out)
   else if (section === 'visibility') out = migrateVisibility(out)
   else if (section === 'inputs') out = migrateInputs(out)
+  // Only a lights section the file saved (not the one migrateLights makes from the band).
+  else if (section === 'lights' && isRecord(raw)) out = migrateLightsCrewTag(out)
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   return migrateLists(section, out)
 }

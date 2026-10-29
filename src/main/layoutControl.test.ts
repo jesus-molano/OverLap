@@ -26,6 +26,8 @@ interface Harness {
   notices: LayoutNotice[]
   cars: (CarRef | null)[]
   setEditing(on: boolean): void
+  /** A wheel resize waiting in OverlayWindows: written when main flushes the pending saves. */
+  pendingSave(mutate: (s: OverlaySettings) => void): void
   /** A change from elsewhere (the settings window's patch). */
   edit(mutate: (s: OverlaySettings) => void): void
   files: { [K in keyof LayoutFileDeps]: ReturnType<typeof vi.fn> }
@@ -34,6 +36,7 @@ interface Harness {
 function harness(initial: OverlaySettings): Harness {
   let current = normalizeSettings(initial)
   let editing = false
+  let pending: ((s: OverlaySettings) => void) | null = null
   const calls: string[] = []
   const reloaded: WidgetId[][] = []
   const notices: LayoutNotice[] = []
@@ -58,6 +61,14 @@ function harness(initial: OverlaySettings): Harness {
       calls.push('reload')
       reloaded.push([...ids])
     },
+    flushPendingSaves: () => {
+      calls.push('flush')
+      if (pending === null) return
+      const draft = structuredClone(current)
+      pending(draft)
+      pending = null
+      current = normalizeSettings(draft)
+    },
     isEditing: () => editing,
     notify: (n) => void notices.push(n),
     carChanged: (car) => void cars.push(car),
@@ -72,6 +83,7 @@ function harness(initial: OverlaySettings): Harness {
     notices,
     cars,
     setEditing: (on) => (editing = on),
+    pendingSave: (mutate) => (pending = mutate),
     edit: (mutate) => {
       const draft = structuredClone(current)
       mutate(draft)
@@ -103,12 +115,24 @@ describe('LayoutControl: applying', () => {
 
   it('takes the reset path: store, then every widget reloaded, then the sync', () => {
     expect(h.control.choose('layout-2')).toBe(true)
-    expect(h.calls).toEqual(['update', 'reload', 'sync'])
+    expect(h.calls).toEqual(['flush', 'update', 'reload', 'sync'])
     expect(h.reloaded).toEqual([[...WIDGET_IDS]])
     const s = h.settings()
     expect(s.savedLayouts.activeId).toBe('layout-2')
     expect(s.widgets.relative.bounds).toEqual({ x: 900, y: 500, width: 420, height: 300 })
     expect(s.widgets.radar.visible).toBe(false)
+  })
+
+  it('writes a pending wheel resize into the layout being left, not the next one', () => {
+    h.setEditing(true)
+    const resized = { x: 50, y: 250, width: 483, height: 265 }
+    h.pendingSave((s) => (s.widgets.relative.bounds = { ...resized }))
+    expect(h.control.next()).toBe(true)
+    const s = h.settings()
+    expect(s.savedLayouts.list[0]?.widgets.relative.bounds).toEqual(resized)
+    expect(s.widgets.relative.bounds).toEqual({ x: 900, y: 500, width: 420, height: 300 })
+    expect(h.control.next()).toBe(true)
+    expect(h.settings().widgets.relative.bounds).toEqual(resized)
   })
 
   it('does nothing for the layout in use or an unknown one', () => {

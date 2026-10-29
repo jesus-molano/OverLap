@@ -23,6 +23,7 @@ defineProps<{ wheel: WheelStyle }>()
       <path class="sw__mark-line" :d="REALISTIC.mark" :stroke-width="REALISTIC.markW" />
     </g>
     <g v-else>
+      <path class="sw__body" :d="FORMULA.body" />
       <rect
         v-for="(g, i) in FORMULA.grips"
         :key="i"
@@ -33,7 +34,7 @@ defineProps<{ wheel: WheelStyle }>()
         :height="g.h"
         :rx="g.r"
       />
-      <path class="sw__body" :d="FORMULA.body" />
+      <path class="sw__grip" :d="FORMULA.topEdge" :stroke-width="FORMULA.topEdgeW" />
       <rect
         class="sw__pad"
         :x="FORMULA.screen.x"
@@ -48,7 +49,7 @@ defineProps<{ wheel: WheelStyle }>()
         class="sw__button"
         :cx="b[0]"
         :cy="b[1]"
-        :r="FORMULA.buttonR"
+        :r="b[2]"
       />
       <rect
         class="sw__mark"
@@ -90,8 +91,9 @@ defineProps<{ wheel: WheelStyle }>()
   fill: color-mix(in srgb, var(--ov-fg) 58%, transparent);
 }
 
+/* The yoke's rubber: lighter than the body, inside its outline. */
 .sw__grip-fill {
-  fill: color-mix(in srgb, var(--ov-fg) 80%, transparent);
+  fill: color-mix(in srgb, var(--ov-fg) 52%, var(--ov-bg));
 }
 
 /* The yoke: a dark carbon body outlined, so it reads on the dark glass. */

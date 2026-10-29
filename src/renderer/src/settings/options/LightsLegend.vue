@@ -2,17 +2,19 @@
 import { computed } from 'vue'
 import { LIGHT_ORDER, LIT_LEVEL } from '@shared/lights'
 import { ENGINE_TREND } from '@shared/notices/engineTrend'
-import type { LightLevel } from '@shared/types'
+import type { LightKind, LightLevel, LightsOptions } from '@shared/types'
 import type { EngineIconName } from '@renderer/ui/engineIcons'
-import { LIGHT_ICONS } from '@renderer/widgets/lights/view'
+import { LIGHT_ICONS, repairSampleText } from '@renderer/widgets/lights/view'
 import LightTile from '@renderer/widgets/lights/LightTile.vue'
 import { useI18n } from '../../composables/useI18n'
 import PageSection from '../layout/PageSection.vue'
 
 /**
  * The warning lights' legend: what each lit look says, then every light lit as on the strip
- * with what it means and what to do. Read-only.
+ * with what it means and what to do. Read-only; the repairs' examples follow the options (the
+ * crew's tag, the real countdown), written as the strip writes them.
  */
+const props = defineProps<{ opts: Pick<LightsOptions, 'repairCrewTag' | 'repairRealTime'> }>()
 const t = useI18n()
 
 const LOOKS = ['alarm', 'warn', 'caution', 'info'] as const satisfies readonly LightLevel[]
@@ -37,16 +39,26 @@ interface Row {
 const rows = computed<readonly Row[]>(() => {
   const w = t.value.widgets.lights
   const s = t.value.settings.lights
+  const e = s.entries
+  const action = (kind: LightKind): string => {
+    if (kind === 'repair') {
+      const example = repairSampleText(kind, props.opts, t.value)
+      return props.opts.repairRealTime ? e.repair.actionReal(example) : e.repair.action(example)
+    }
+    if (kind === 'repairOptional') {
+      return e.repairOptional.action(repairSampleText(kind, props.opts, t.value))
+    }
+    return e[kind].action
+  }
   const out: Row[] = []
   for (const kind of LIGHT_ORDER) {
-    const e = s.entries[kind]
     out.push({
       key: kind,
       icon: LIGHT_ICONS[kind],
       level: LIT_LEVEL[kind],
       name: w.names[kind],
-      meaning: e.meaning,
-      action: e.action
+      meaning: e[kind].meaning,
+      action: action(kind)
     })
     if (kind === 'oilTemp') {
       out.push({
@@ -54,8 +66,8 @@ const rows = computed<readonly Row[]>(() => {
         icon: LIGHT_ICONS.water,
         level: 'caution',
         name: s.trend,
-        meaning: s.entries.trend.meaning(ENGINE_TREND.sustainS),
-        action: s.entries.trend.action
+        meaning: e.trend.meaning(ENGINE_TREND.sustainS),
+        action: e.trend.action
       })
     }
   }

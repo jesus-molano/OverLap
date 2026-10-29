@@ -1010,6 +1010,19 @@ describe('OverlayWindows commits', () => {
     expect(committed).toEqual([['relative', rect]])
   })
 
+  it('writes a pending wheel resize when asked (a layout about to be applied), once', () => {
+    start()
+    windows.setEditMode(true)
+    const w = only()
+    const rect = { x: 50, y: 250, width: 483, height: 265 }
+    commit(w, { kind: 'wheel', widget: 'relative', rect, revision: layoutOf(w).revision })
+    windows.flushPendingSaves()
+    expect(committed).toEqual([['relative', rect]])
+    vi.advanceTimersByTime(COMMIT_DELAY_MS)
+    windows.reloadBoundsOf(['relative'])
+    expect(committed).toHaveLength(1)
+  })
+
   it('fits auto-height widgets within the work area and saves only the height, debounced', () => {
     start()
     const w = only()

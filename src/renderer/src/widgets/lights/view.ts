@@ -21,6 +21,7 @@ import type {
   LightsOptions
 } from '@shared/types'
 import type { EngineIconName } from '@renderer/ui/engineIcons'
+import { PREVIEW_LIGHTS, PREVIEW_LIGHTS_REAL } from './preview'
 
 /** Each light's pictogram. */
 export const LIGHT_ICONS: Readonly<Record<LightKind, EngineIconName>> = {
@@ -136,6 +137,24 @@ function repairTimeTexts(
 ): readonly [wide: string, narrow: string] {
   if (realTime) return [tagged ? t.realSeconds(s) : t.realSecondsShort(s), t.realSecondsShort(s)]
   return tagged ? [t.crewSeconds(s), t.crewSecondsShort(s)] : [t.seconds(s), t.seconds(s)]
+}
+
+/**
+ * A repair light of the sample as the strip writes it, caption and time ('REPARAR · 42 s
+ * (equipo)'), for the legend: with the crew's tag or without it, and the real seconds with
+ * lights.repairRealTime, as the sample shows them.
+ */
+export function repairSampleText(
+  kind: 'repair' | 'repairOptional',
+  o: Pick<LightsOptions, 'repairCrewTag' | 'repairRealTime'>,
+  m: Messages
+): string {
+  const t = m.widgets.lights
+  const sample = o.repairRealTime ? PREVIEW_LIGHTS_REAL : PREVIEW_LIGHTS
+  const r = sample.lights.find((l) => l.kind === kind)
+  const s = Math.ceil(r?.seconds ?? 0)
+  const [time] = repairTimeTexts(s, r?.realTime === true, o.repairCrewTag, t)
+  return `${t.captions[kind]}${DOT}${time}`
 }
 
 /** One light's view; null when the options leave it out. */

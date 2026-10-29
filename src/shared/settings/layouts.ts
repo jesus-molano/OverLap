@@ -69,6 +69,40 @@ export function layoutName(raw: unknown): string | null {
   return cleanText(raw, MAX_LAYOUT_NAME)
 }
 
+/** A free id: 'layout-' and one more than the highest number in use. */
+export function nextLayoutId(list: readonly SavedLayout[]): string {
+  let max = 0
+  for (const l of list) {
+    const m = /^layout-(\d+)$/.exec(l.id)
+    if (m) max = Math.max(max, Number(m[1]))
+  }
+  return `layout-${max + 1}`
+}
+
+/**
+ * `name`, or 'name (2)', 'name (3)'... when another layout (not `exceptId`) already has it
+ * (case does not matter). The name is shortened so that the number fits in MAX_LAYOUT_NAME: a
+ * longer one would be cut back on the next load, into the very name it had to differ from.
+ */
+export function uniqueLayoutName(
+  name: string,
+  list: readonly SavedLayout[],
+  exceptId?: string
+): string {
+  const taken = new Set(list.filter((l) => l.id !== exceptId).map((l) => l.name.toLowerCase()))
+  if (!taken.has(name.toLowerCase())) return name
+  const chars = Array.from(name)
+  for (let n = 2; ; n++) {
+    const suffix = ` (${n})`
+    const base = chars
+      .slice(0, MAX_LAYOUT_NAME - suffix.length)
+      .join('')
+      .trimEnd()
+    const candidate = `${base}${suffix}`
+    if (!taken.has(candidate.toLowerCase())) return candidate
+  }
+}
+
 /** What a layout keeps of a widget, copied. */
 export function layoutWidgetOf(w: Readonly<LayoutWidget>): LayoutWidget {
   return { bounds: { ...w.bounds }, scale: w.scale, visible: w.visible, locked: w.locked }
@@ -147,8 +181,9 @@ export function defaultLayoutLibrary(
  * The saved layouts read from disk, against the widgets already normalised. A file without
  * any (from before layouts) gets one, named after the interface language ('Principal'), equal
  * to its widgets: nothing moves. Malformed layouts, duplicate ids, links to a layout that is
- * gone and repeated cars are dropped; the active id falls back to the first layout. The active
- * layout then takes the widgets' fields (syncActiveLayout).
+ * gone and repeated cars are dropped; a repeated name (a file edited by hand) gets a number. An
+ * active id naming no kept layout gets one that does (orphanActive). The active layout then
+ * takes the widgets' fields (syncActiveLayout).
  */
 export function normalizeLayoutLibrary(
   raw: unknown,
@@ -163,9 +198,10 @@ export function normalizeLayoutLibrary(
     if (list.length >= MAX_LAYOUTS) break
     if (!isRecord(entry) || !isLayoutId(entry.id) || ids.has(entry.id)) continue
     ids.add(entry.id)
+    const name = layoutName(entry.name) ?? `${DEFAULT_LAYOUT_NAMES[language]} ${list.length + 1}`
     list.push({
       id: entry.id,
-      name: layoutName(entry.name) ?? `${DEFAULT_LAYOUT_NAMES[language]} ${list.length + 1}`,
+      name: uniqueLayoutName(name, list),
       widgets: normalizeLayoutWidgets(entry.widgets, live)
     })
   }
@@ -193,10 +229,48 @@ export function normalizeLayoutLibrary(
   const activeId =
     typeof r.activeId === 'string' && ids.has(r.activeId)
       ? r.activeId
-      : (list[0]?.id ?? FIRST_LAYOUT_ID)
+      : orphanActive(list, live, language)
   const lib: LayoutLibrary = { activeId, list, links, seenCars }
   copyIntoActive(lib, live)
   return lib
+}
+
+/**
+ * The active layout of a file whose own one is gone (a damaged or hand-edited file), so that no
+ * saved layout is overwritten by the widgets: one already equal to them, else the widgets kept
+ * as a new layout; only a full list falls back to the first one. Mutates `list`.
+ */
+function orphanActive(
+  list: SavedLayout[],
+  live: Record<WidgetId, LayoutWidget>,
+  language: Language
+): string {
+  const same = list.find((l) => sameLayoutWidgets(l.widgets, live))
+  if (same) return same.id
+  if (list.length >= MAX_LAYOUTS) return list[0]?.id ?? FIRST_LAYOUT_ID
+  const id = nextLayoutId(list)
+  list.push({ id, name: uniqueLayoutName(DEFAULT_LAYOUT_NAMES[language], list), widgets: live })
+  return id
+}
+
+/** Whether two layouts hold the same fields for every widget. */
+function sameLayoutWidgets(
+  a: Readonly<Record<WidgetId, LayoutWidget>>,
+  b: Readonly<Record<WidgetId, LayoutWidget>>
+): boolean {
+  return WIDGET_IDS.every((id) => {
+    const x = a[id]
+    const y = b[id]
+    return (
+      x.bounds.x === y.bounds.x &&
+      x.bounds.y === y.bounds.y &&
+      x.bounds.width === y.bounds.width &&
+      x.bounds.height === y.bounds.height &&
+      x.scale === y.scale &&
+      x.visible === y.visible &&
+      x.locked === y.locked
+    )
+  })
 }
 
 function copyIntoActive(lib: LayoutLibrary, live: Record<WidgetId, LayoutWidget>): void {

@@ -15,6 +15,7 @@ import {
   lightsFilter,
   lightsView,
   previewFilter,
+  repairSampleText,
   type LightView,
   type LightsFilter
 } from './view'
@@ -115,11 +116,11 @@ describe('lightsView', () => {
     const o = { ...ALL, showCaptions: true }
     const repair = (f: LightsFilter, m = ES): LightView | undefined =>
       lightsView(PREVIEW_LIGHTS_REAL, f, 'metric', m).find((l) => l.kind === 'repair')
-    expect(repair(o)?.text).toBe(`REPARAR · ≈${NB}31${NB}s${NB}(real)`)
-    expect(repair(o)?.short).toBe(`REPARAR · ≈${NB}31${NB}s`)
-    expect(repair(o, EN)?.text).toBe(`REPAIR · ≈${NB}31${NB}s${NB}(real)`)
+    expect(repair(o)?.text).toBe(`REPARAR · ≈${NB}95${NB}s${NB}(real)`)
+    expect(repair(o)?.short).toBe(`REPARAR · ≈${NB}95${NB}s`)
+    expect(repair(o, EN)?.text).toBe(`REPAIR · ≈${NB}95${NB}s${NB}(real)`)
     // Without the crew's tag the estimate keeps its «≈»: it is never mistaken for iRacing's figure.
-    expect(repair({ ...o, repairCrewTag: false })?.text).toBe(`REPARAR · ≈${NB}31${NB}s`)
+    expect(repair({ ...o, repairCrewTag: false })?.text).toBe(`REPARAR · ≈${NB}95${NB}s`)
     // The optional repairs of that sample are still the crew's.
     expect(
       lightsView(PREVIEW_LIGHTS_REAL, o, 'metric', ES).find((l) => l.kind === 'repairOptional')
@@ -282,5 +283,28 @@ describe('preview', () => {
     expect(levels).toEqual(new Set(['off', 'alarm', 'warn', 'caution', 'info']))
     expect(PREVIEW_LIGHTS.lights.map((l) => l.kind)).toEqual([...LIGHT_ORDER])
     expect(Object.isFrozen(PREVIEW_LIGHTS)).toBe(true)
+  })
+})
+
+describe('repairSampleText', () => {
+  const o = { repairCrewTag: true, repairRealTime: false }
+  it('writes the sample’s repairs as the strip does, following the tag and the real countdown', () => {
+    expect(repairSampleText('repair', o, ES)).toBe(`REPARAR · 42${NB}s${NB}(equipo)`)
+    expect(repairSampleText('repairOptional', o, ES)).toBe(`OPC. · 38${NB}s${NB}(equipo)`)
+    expect(repairSampleText('repair', { ...o, repairCrewTag: false }, ES)).toBe(
+      `REPARAR · 42${NB}s`
+    )
+    expect(repairSampleText('repair', { ...o, repairRealTime: true }, EN)).toBe(
+      `REPAIR · ≈${NB}95${NB}s${NB}(real)`
+    )
+    // The legend's rows say the same as the strip with the same options.
+    const strip = lightsView(PREVIEW_LIGHTS, { ...ALL, showCaptions: true }, 'metric', ES)
+    expect(strip.find((l) => l.kind === 'repair')?.text).toBe(repairSampleText('repair', o, ES))
+  })
+
+  it('the sample’s real countdown is longer than the crew’s figure, as the feature measures', () => {
+    const crew = PREVIEW_LIGHTS.lights.find((l) => l.kind === 'repair')?.seconds ?? 0
+    const real = PREVIEW_LIGHTS_REAL.lights.find((l) => l.kind === 'repair')?.seconds ?? 0
+    expect(real).toBeGreaterThan(crew)
   })
 })
