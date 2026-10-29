@@ -18,6 +18,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Deshacer también los cambios grandes**: restablecer (una lista, las opciones de un widget, su
+  ventana o su posición, la apariencia, los atajos), ocultar un widget y eliminar una disposición
+  se hacen con un clic y muestran el mismo aviso que ocultar un elemento, con **Deshacer** (o
+  `Ctrl+Z`). Ya no piden «Pulsa otra vez»; solo borrar récords personales lo sigue pidiendo,
+  porque no se puede deshacer.
+- **Restablecer dice qué y dónde**: en cada página de widget, un menú **Restablecer…** arriba,
+  junto a «Visible», con lo que devuelve cada opción (Contenido y Personalizar, Ventana y
+  visibilidad, Posición y tamaño, o todo el widget), y un icono ↺ en la cabecera de Contenido y de
+  Ventana y visibilidad. Antes eran dos botones al final de la página, y «Restablecer opciones»
+  tocaba también la escala, el fondo y las reglas. Con dos disposiciones o más, el aviso nombra
+  la disposición («Restablecido: ventana de Relativo · en «Principal»»).
 - **Un solo formato de números en Ajustes**: sin «,0» de sobra («1 s», no «1.0 s» en Batalla y
   Avisos) y con coma decimal en español («1,5 s», «0,5 v», «1,5 px»); los widgets mantienen el
   punto del simulador, como los tiempos de vuelta. **Una sola escalera de botones rápidos** para

@@ -110,7 +110,7 @@ const setCar = listSetter('inputs', 'car')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content">
+  <PageSection :title="t.settings.common.content" resets="options">
     <SliderControl
       v-if="hasTrace"
       :label="t.settings.inputs.traceSeconds"

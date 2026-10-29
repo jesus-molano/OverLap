@@ -38,6 +38,7 @@ import {
   writeOptionSet
 } from './settings/layouts'
 import type {
+  CarLayoutLink,
   CarRef,
   LayoutLibrary,
   LayoutMode,
@@ -215,12 +216,43 @@ export function canDeleteLayout(lib: LayoutLibrary, id: string): boolean {
   return id !== lib.activeId && lib.list.length > 1 && findLayout(lib, id) !== undefined
 }
 
-/** Deletes layout `id` and the car links to it (see canDeleteLayout). */
-export function deleteLayout(s: OverlaySettings, id: string): boolean {
+/** A deleted layout as it was: where it sat in the list and the cars linked to it. */
+export interface DeletedLayout {
+  readonly layout: SavedLayout
+  readonly at: number
+  readonly links: readonly CarLayoutLink[]
+}
+
+/**
+ * Deletes layout `id` and the car links to it (see canDeleteLayout). Returns what went (for its
+ * "Deshacer": restoreLayout), null when it could not.
+ */
+export function deleteLayout(s: OverlaySettings, id: string): DeletedLayout | null {
   const lib = s.savedLayouts
-  if (!canDeleteLayout(lib, id)) return false
+  if (!canDeleteLayout(lib, id)) return null
+  const at = lib.list.findIndex((l) => l.id === id)
+  const layout = lib.list[at]
+  if (layout === undefined) return null
+  const links = lib.links.filter((l) => l.layoutId === id)
   lib.list = lib.list.filter((l) => l.id !== id)
   lib.links = lib.links.filter((l) => l.layoutId !== id)
+  return { layout: copyData(layout), at, links: links.map((l) => ({ ...l })) }
+}
+
+/**
+ * Puts a deleted layout back ("Deshacer"): at its place in the list (or the end), under its own
+ * id while no layout has it, its name made unique again, with the car links no other layout
+ * took meanwhile. False when its id is in use again.
+ */
+export function restoreLayout(s: OverlaySettings, deleted: DeletedLayout): boolean {
+  const lib = s.savedLayouts
+  if (findLayout(lib, deleted.layout.id) !== undefined) return false
+  const layout = copyData(deleted.layout)
+  layout.name = uniqueLayoutName(layout.name, lib.list)
+  lib.list.splice(Math.min(deleted.at, lib.list.length), 0, layout)
+  for (const link of deleted.links) {
+    if (!lib.links.some((l) => l.carId === link.carId)) lib.links.push({ ...link })
+  }
   return true
 }
 

@@ -23,13 +23,17 @@ const text = computed(() => {
   const s = shown.value
   if (s === null) return ''
   const u = t.value.settings.elements.undo
-  return s.offer.kind === 'hide' ? u.hidden(s.offer.label) : u.moved(s.offer.label)
+  const offer = s.offer
+  if (offer.kind === 'restore') return offer.text()
+  return offer.kind === 'hide' ? u.hidden(offer.label) : u.moved(offer.label)
 })
 
 /** Nothing left to undo (shown again, reordered since): the offer goes. */
 const stale = computed(() => {
-  const s = shown.value
-  return s !== null && undoneList(s.offer, s.offer.current()) === null
+  const offer = shown.value?.offer
+  if (offer === undefined) return false
+  if (offer.kind === 'restore') return !offer.alive()
+  return undoneList(offer, offer.current()) === null
 })
 watch(stale, (v) => {
   if (v) close()

@@ -23,6 +23,7 @@ import {
   parseLayoutFile,
   recentLayouts,
   renameLayout,
+  restoreLayout,
   saveLayoutAs,
   sharedOptions,
   snapshotWidgets,
@@ -297,15 +298,36 @@ describe('layout commands', () => {
     let s = withMazda()
     const mazda = layout(s, 'Mazda').id
     expect(canDeleteLayout(s.savedLayouts, mazda)).toBe(false)
-    expect(deleteLayout(s, mazda)).toBe(false)
+    expect(deleteLayout(s, mazda)).toBeNull()
     s = change(s, (d) => {
       applyLayout(d, 'layout-1')
       linkCar(d, MAZDA, mazda)
     })
-    expect(deleteLayout(s, mazda)).toBe(true)
+    expect(deleteLayout(s, mazda)).toMatchObject({ layout: { id: mazda, name: 'Mazda' }, at: 1 })
     expect(names(s)).toEqual(['Principal'])
     expect(s.savedLayouts.links).toEqual([])
-    expect(deleteLayout(s, 'layout-1')).toBe(false)
+    expect(deleteLayout(s, 'layout-1')).toBeNull()
+  })
+
+  it('puts a deleted layout back where it was, with its car links ("Deshacer")', () => {
+    let s = change(withMazda(), (d) => {
+      applyLayout(d, 'layout-1')
+      linkCar(d, MAZDA, layout(d, 'Mazda').id)
+    })
+    const mazda = layout(s, 'Mazda').id
+    const before = s.savedLayouts
+    const gone = deleteLayout(s, mazda)
+    if (gone === null) throw new Error('not deleted')
+    expect(restoreLayout(s, gone)).toBe(true)
+    expect(s.savedLayouts.list).toEqual(before.list)
+    expect(s.savedLayouts.links.map((l) => l.layoutId)).toEqual([mazda])
+    // Twice: its id is in use again.
+    expect(restoreLayout(s, gone)).toBe(false)
+    // A layout saved meanwhile with its name: the restored one gets another.
+    s = change(s, (d) => void deleteLayout(d, mazda))
+    s = change(s, (d) => void renameLayout(d, 'layout-1', 'Mazda'))
+    expect(restoreLayout(s, gone)).toBe(true)
+    expect(names(s)).toEqual(['Mazda', 'Mazda (2)'])
   })
 
   it('moves a layout up and down', () => {

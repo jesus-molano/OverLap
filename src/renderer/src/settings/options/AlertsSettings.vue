@@ -44,7 +44,7 @@ const setParts = listSetter('alerts', 'parts')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content">
+  <PageSection :title="t.settings.common.content" resets="options">
     <CheckGroup
       :legend="t.settings.common.show"
       :help="nothing ? t.settings.alerts.nothing : undefined"

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, provide, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useWidgetSettings } from '../../composables/useWidgetSettings'
-import { resetWidgetBounds, resetWidgetOptions, widgetSetter } from '../editor'
-import ConfirmButton from '../layout/ConfirmButton.vue'
+import { WIDGET_PAGE, setWidgetVisible } from '../undo/restore'
+import ResetMenu from '../layout/ResetMenu.vue'
 import { provideCustomizeHost } from '../layout/customize'
 import OptionsTarget from '../layout/OptionsTarget.vue'
 import PageFrame from '../layout/PageFrame.vue'
@@ -22,7 +22,8 @@ import WindowSection from './WindowSection.vue'
 /**
  * One widget's page: the live preview (fixed), then, in what scrolls, the same order on every
  * page: where its changes are kept (OptionsTarget), what the widget shows ("Contenido"), the
- * "Personalizar" editors, the reference sections, "Ventana y visibilidad" and the resets.
+ * "Personalizar" editors, the reference sections and "Ventana y visibilidad". The resets are a
+ * "Restablecer…" menu at the top, beside "Visible", and an icon in each section's head (R24).
  * Keyed by the id. The default slot closes the scrolling part (the window's foot).
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
@@ -44,9 +45,10 @@ const hasCustom = computed(() => customize.count.value > 0)
 const prefs = useWidgetSettings(props.widgetId)
 const width = useSampleWidth(props.widgetId)
 const size = useWidgetSizeText(props.widgetId)
-const setVisible = widgetSetter(props.widgetId)('visible')
-const resetOptions = (): void => resetWidgetOptions(props.widgetId)
-const resetBounds = (): void => resetWidgetBounds(props.widgetId)
+/** Hiding it offers "Deshacer" (R11). */
+const setVisible = (on: boolean): Promise<void> => setWidgetVisible(props.widgetId, on)
+// Its sections' reset icons (PageSection) reset this widget.
+provide(WIDGET_PAGE, props.widgetId)
 
 const subtitle = computed(() => {
   const w = t.value.settings.widgetPage
@@ -65,6 +67,7 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
           <h1 :id="titleId" class="page-title">{{ title }}</h1>
           <p class="page-sub">{{ subtitle }}</p>
         </div>
+        <ResetMenu :widget-id="widgetId" class="reset" />
         <div class="visible-toggle">
           <ToggleControl
             kind="switch"
@@ -97,21 +100,6 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
     <div class="opts-window st-cols">
       <WindowSection :widget-id="widgetId" />
     </div>
-
-    <footer class="page-foot">
-      <ConfirmButton
-        :label="t.settings.widgetPage.resetOptions.label"
-        :confirm-label="t.settings.confirm.reset"
-        :description="t.settings.widgetPage.resetOptions.description"
-        :action="resetOptions"
-      />
-      <ConfirmButton
-        :label="t.settings.widgetPage.resetBounds.label"
-        :confirm-label="t.settings.widgetPage.resetBounds.confirm"
-        :description="t.settings.widgetPage.resetBounds.description"
-        :action="resetBounds"
-      />
-    </footer>
 
     <template #foot>
       <slot />
@@ -215,13 +203,9 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
   margin-top: 26px;
 }
 
-.page-foot {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--st-border);
+/* "Restablecer…" beside "Visible", at the end of the title line. */
+.reset {
+  margin-left: auto;
+  align-self: center;
 }
 </style>

@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="Id extends string">
 import { computed, nextTick, onBeforeUnmount, shallowRef, useId, watch } from 'vue'
+import type { OptionSection } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
@@ -8,6 +9,7 @@ import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
 import type { ElRef } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
+import { offerSectionRestore } from '../undo/restore'
 import { undoSlot, type UndoKind } from '../undo/undo'
 import { useOptimistic } from '../useOptimistic'
 import {
@@ -392,9 +394,16 @@ function moveAcross(id: Id): void {
   void refocus(id, 'side')
 }
 
+/**
+ * Back to the default list (and what goes with it): one click, then "Deshacer" (R11), which puts
+ * back what the reset changed in the zone's section. Without a toast (a zone off a widget
+ * page), it is announced.
+ */
 function reset(): void {
+  const section = zone.value?.split('.')[0] as OptionSection | undefined
+  const offer = section === undefined ? null : offerSectionRestore(section, props.title)
   void send(defaults(props.spec), { kind: 'reset' })
-  say(t.value.settings.elements.resetDone(props.title))
+  if (offer === null || !offer()) say(t.value.settings.elements.resetDone(props.title))
 }
 
 function onHandleKey(e: KeyboardEvent, id: Id, index: number): void {

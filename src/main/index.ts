@@ -31,6 +31,8 @@ import {
   rectsEqual,
   resetWidgetBounds,
   resetWidgetOptions,
+  setWidgetBounds,
+  type WidgetResetPart,
   toTelemetryConfig
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
@@ -447,11 +449,21 @@ function start(): void {
     syncSettings(prev)
   }
 
+  /** The widget's bounds set from the settings window (an undone reset, a free «Escala»). */
+  function setBounds(id: WidgetId, bounds: unknown): void {
+    const prev = store.settings
+    store.update((s) => {
+      Object.assign(s, setWidgetBounds(s, id, bounds))
+    })
+    windows.reloadBounds(id)
+    syncSettings(prev)
+  }
+
   /** Back to the widget's default options; bounds only move if the reset touched them. */
-  function resetOptions(id: WidgetId): void {
+  function resetOptions(id: WidgetId, part?: WidgetResetPart): void {
     const before = store.settings.widgets[id].bounds
     changeSettings((s) => {
-      Object.assign(s, resetWidgetOptions(s, id))
+      Object.assign(s, resetWidgetOptions(s, id, part))
     })
     if (!rectsEqual(before, store.settings.widgets[id].bounds)) windows.reloadBounds(id)
   }
@@ -564,7 +576,10 @@ function start(): void {
         resetBounds(raw.widgetId)
         break
       case 'reset-widget-options':
-        resetOptions(raw.widgetId)
+        resetOptions(raw.widgetId, raw.part)
+        break
+      case 'set-widget-bounds':
+        setBounds(raw.widgetId, raw.bounds)
         break
       case 'open-settings-folder':
         openSettingsFolder()

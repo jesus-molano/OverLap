@@ -7,7 +7,7 @@ import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
 import { LAYOUT_MODES, isLayoutId, normalizeCarRef } from '@shared/layouts'
-import { toTelemetryConfig } from '@shared/settings'
+import { isWidgetResetPart, toTelemetryConfig } from '@shared/settings'
 import {
   OPTION_SCHEMA,
   displayOnlyFields,
@@ -41,8 +41,11 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'set-overlay-hidden':
       return typeof cmd.hidden === 'boolean'
     case 'reset-widget-bounds':
-    case 'reset-widget-options':
       return isWidgetId(cmd.widgetId)
+    case 'reset-widget-options':
+      return isWidgetId(cmd.widgetId) && (cmd.part === undefined || isWidgetResetPart(cmd.part))
+    case 'set-widget-bounds':
+      return isWidgetId(cmd.widgetId) && isRect(cmd.bounds)
     case 'open-settings-folder':
     case 'refresh-personal-bests':
     case 'clear-personal-bests':
@@ -54,6 +57,7 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return isName(cmd.name) && isModeOrAbsent(cmd.mode)
     case 'layout-apply':
     case 'layout-delete':
+    case 'layout-restore':
     case 'layout-export':
       return isLayoutId(cmd.id)
     case 'layout-set-mode':
@@ -86,6 +90,13 @@ function isLayoutMode(v: unknown): v is LayoutMode {
 
 function isModeOrAbsent(v: unknown): boolean {
   return v === undefined || isLayoutMode(v)
+}
+
+/** Four finite numbers (setWidgetBounds rounds and clamps them). */
+function isRect(v: unknown): boolean {
+  if (typeof v !== 'object' || v === null) return false
+  const r = v as Record<string, unknown>
+  return ['x', 'y', 'width', 'height'].every((k) => Number.isFinite(r[k]))
 }
 
 /** A name as sent (cleaned later); longer than any sane one is refused outright. */

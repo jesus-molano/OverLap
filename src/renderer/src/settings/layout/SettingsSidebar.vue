@@ -7,7 +7,8 @@ import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
 import StatusChip from '../StatusChip.vue'
-import { sendCommand, widgetSetter } from '../editor'
+import { sendCommand } from '../editor'
+import { setWidgetVisible } from '../undo/restore'
 import { GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
 import { sidebarKeys } from '../shortcutsView'
 import EditModeButton from './EditModeButton.vue'
@@ -35,7 +36,7 @@ const items = computed(() =>
     id,
     title: widgetTitle(t.value, id),
     visible: visibleKey.value[i] === '1',
-    setVisible: widgetSetter(id)('visible')
+    setVisible: (on: boolean) => setWidgetVisible(id, on)
   }))
 )
 

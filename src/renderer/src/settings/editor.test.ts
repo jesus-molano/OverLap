@@ -118,7 +118,7 @@ describe('commands', () => {
     editor.resetWidgetBounds('battle')
     editor.sendCommand({ type: 'set-edit-mode', on: true })
     expect(fake.sent.commands).toEqual([
-      { type: 'reset-widget-options', widgetId: 'standings' },
+      { type: 'reset-widget-options', widgetId: 'standings', part: 'all' },
       { type: 'reset-widget-bounds', widgetId: 'battle' },
       { type: 'set-edit-mode', on: true }
     ])

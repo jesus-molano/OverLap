@@ -441,11 +441,7 @@ export const settingsEs = {
       descriptionButtons: (n: number) =>
         n === 1
           ? 'Vuelve todos los atajos a los de fábrica y quita el botón asignado'
-          : `Vuelve todos los atajos a los de fábrica y quita los ${n} botones asignados`,
-      confirmButtons: (n: number) =>
-        n === 1
-          ? '¿Quitar el botón asignado? Pulsa otra vez'
-          : `¿Quitar ${n} botones asignados? Pulsa otra vez`
+          : `Vuelve todos los atajos a los de fábrica y quita los ${n} botones asignados`
     }
   },
   /** One widget's page: header, hidden note and resets. */
@@ -455,15 +451,35 @@ export const settingsEs = {
     sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
     visible: 'Visible',
     hiddenNote: 'Oculto: no se dibuja ni se calcula. Actívalo para verlo sobre el juego.',
-    resetOptions: {
-      label: 'Restablecer opciones',
-      description:
-        'Vuelve a los valores por defecto las opciones, la escala, la opacidad y las reglas de este widget; no cambia su posición'
-    },
-    resetBounds: {
-      label: 'Restablecer posición y tamaño',
-      confirm: '¿Moverlo? Pulsa otra vez',
-      description: 'Lleva el widget a su posición y tamaño de fábrica'
+    /**
+     * The page's resets (R24): a menu at the top and an icon in each section's head. One click,
+     * then "Deshacer" (the toast names the layout).
+     */
+    reset: {
+      menu: 'Restablecer…',
+      /** The menu's name for screen readers. */
+      menuLabel: (widget: string) => `Restablecer ${widget}`,
+      options: {
+        label: 'Contenido y Personalizar',
+        description: 'Lo que muestra el widget, de fábrica; su ventana y su posición no cambian'
+      },
+      window: {
+        label: 'Ventana y visibilidad',
+        description:
+          'Escala, alto, fondo y cuándo se muestra, de fábrica; la posición y el bloqueo no cambian'
+      },
+      bounds: {
+        label: 'Posición y tamaño',
+        description: 'Lleva el widget a su posición y tamaño de fábrica'
+      },
+      all: {
+        label: 'Todo el widget',
+        description: 'Todo lo anterior; sigue visible y con su bloqueo'
+      },
+      /** Under the menu's items. */
+      undoNote: 'Se puede deshacer',
+      /** A section head's icon: 'Restablecer Ventana y visibilidad de Relativo'. */
+      sectionLabel: (section: string, widget: string) => `Restablecer ${section} de ${widget}`
     },
     /** Where this page's changes are kept (layout/OptionsTarget.vue). */
     target: {
@@ -1077,6 +1093,22 @@ export const settingsEs = {
     undo: {
       hidden: (item: string) => `«${item}» oculto`,
       moved: (item: string) => `«${item}» movido`,
+      /**
+       * A bigger change, said with what it was and, with two layouts or more, where
+       * (`where`: inLayout's words or ''): 'Restablecido: Columnas · en «Principal»'.
+       */
+      reset: (what: string, where: string) => `Restablecido: ${what}${where}`,
+      inLayout: (name: string) => ` · en «${name}»`,
+      inShared: ' · en las opciones comunes',
+      /** What was reset ('Restablecido: …'). */
+      whatOptions: (widget: string) => `opciones de ${widget}`,
+      whatWindow: (widget: string) => `ventana de ${widget}`,
+      whatBounds: (widget: string) => `posición y tamaño de ${widget}`,
+      whatAll: (widget: string) => `todo ${widget}`,
+      whatAppearance: 'apariencia',
+      whatShortcuts: 'atajos',
+      widgetHidden: (widget: string) => `${widget} oculto`,
+      layoutDeleted: (name: string) => `Disposición «${name}» eliminada`,
       action: 'Deshacer',
       dismiss: 'Cerrar aviso',
       /** After the announcement, for screen readers. */
@@ -1338,8 +1370,8 @@ export const settingsEs = {
     moveDown: (name: string) => `Bajar ${name}`,
     delete: {
       label: 'Eliminar',
-      confirm: '¿Eliminar? Pulsa otra vez',
-      description: (name: string) => `Elimina la disposición ${name} y sus coches vinculados`
+      description: (name: string) =>
+        `Elimina la disposición ${name} y sus coches vinculados (se puede deshacer)`
     },
     deleteActive: 'Aplica otra antes de eliminar la que está en uso',
     /** The cars linked to a layout: 'Coches: Mazda MX-5 Cup, BMW M2'. */
@@ -1735,11 +1767,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       descriptionButtons: (n) =>
         n === 1
           ? 'Returns every shortcut to its default and removes the assigned button'
-          : `Returns every shortcut to its default and removes the ${n} assigned buttons`,
-      confirmButtons: (n) =>
-        n === 1
-          ? 'Remove the assigned button? Click again'
-          : `Remove ${n} assigned buttons? Click again`
+          : `Returns every shortcut to its default and removes the ${n} assigned buttons`
     }
   },
   widgetPage: {
@@ -1748,15 +1776,28 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
     visible: 'Visible',
     hiddenNote: 'Hidden: not drawn or computed. Turn it on to see it over the game.',
-    resetOptions: {
-      label: 'Reset options',
-      description:
-        'Returns this widget’s options, scale, opacity and rules to their defaults; its position doesn’t change'
-    },
-    resetBounds: {
-      label: 'Reset position and size',
-      confirm: 'Move it? Click again',
-      description: 'Moves the widget back to its default position and size'
+    reset: {
+      menu: 'Reset…',
+      menuLabel: (widget) => `Reset ${widget}`,
+      options: {
+        label: 'Content and Customize',
+        description: 'What the widget shows, back to default; its window and position don’t change'
+      },
+      window: {
+        label: 'Window and visibility',
+        description:
+          'Scale, height, background and when it shows, back to default; position and lock stay'
+      },
+      bounds: {
+        label: 'Position and size',
+        description: 'Moves the widget back to its default position and size'
+      },
+      all: {
+        label: 'The whole widget',
+        description: 'All of the above; it stays visible and keeps its lock'
+      },
+      undoNote: 'You can undo it',
+      sectionLabel: (section, widget) => `Reset ${section} of ${widget}`
     },
     target: {
       savingIn: 'Saving to',
@@ -2292,6 +2333,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
     undo: {
       hidden: (item) => `“${item}” hidden`,
       moved: (item) => `“${item}” moved`,
+      reset: (what, where) => `Reset: ${what}${where}`,
+      inLayout: (name) => ` · in “${name}”`,
+      inShared: ' · in the shared options',
+      whatOptions: (widget) => `${widget} options`,
+      whatWindow: (widget) => `${widget} window`,
+      whatBounds: (widget) => `${widget} position and size`,
+      whatAll: (widget) => `all of ${widget}`,
+      whatAppearance: 'appearance',
+      whatShortcuts: 'shortcuts',
+      widgetHidden: (widget) => `${widget} hidden`,
+      layoutDeleted: (name) => `Layout “${name}” deleted`,
       action: 'Undo',
       dismiss: 'Dismiss',
       keyHint: 'Ctrl+Z to undo.',
@@ -2524,8 +2576,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     moveDown: (name) => `Move ${name} down`,
     delete: {
       label: 'Delete',
-      confirm: 'Delete? Press again',
-      description: (name) => `Deletes the layout ${name} and its linked cars`
+      description: (name) => `Deletes the layout ${name} and its linked cars (you can undo it)`
     },
     deleteActive: 'Apply another one before deleting the one in use',
     cars: (list) => `Cars: ${list}`,

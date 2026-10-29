@@ -6,8 +6,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useShortcuts } from '../../composables/useShortcuts'
 import HelpText from '../controls/HelpText.vue'
-import { resetShortcuts } from '../editor'
-import ConfirmButton from '../layout/ConfirmButton.vue'
+import { resetShortcuts } from '../undo/restore'
 import Keycaps from '../layout/Keycaps.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import ShortcutRow from '../layout/ShortcutRow.vue'
@@ -49,11 +48,6 @@ const resetDescription = computed(() => {
   const r = t.value.settings.shortcuts.resetAll
   return buttonCount.value > 0 ? r.descriptionButtons(buttonCount.value) : r.description
 })
-const resetConfirm = computed(() =>
-  buttonCount.value > 0
-    ? t.value.settings.shortcuts.resetAll.confirmButtons(buttonCount.value)
-    : t.value.settings.confirm.reset
-)
 </script>
 
 <template>
@@ -142,12 +136,10 @@ const resetConfirm = computed(() =>
     </details>
 
     <footer class="page-foot">
-      <ConfirmButton
-        :label="t.settings.shortcuts.resetAll.label"
-        :confirm-label="resetConfirm"
-        :description="resetDescription"
-        :action="resetShortcuts"
-      />
+      <!-- One click, then "Deshacer" in the toast (R11): the buttons come back with it. -->
+      <button type="button" class="st-btn" :title="resetDescription" @click="resetShortcuts">
+        {{ t.settings.shortcuts.resetAll.label }}
+      </button>
     </footer>
 
     <template #foot>

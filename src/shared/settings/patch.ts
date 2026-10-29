@@ -3,7 +3,13 @@ import type { OptionSection } from '../settingsSchema'
 import type { OverlaySettings, Rect } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, isWidgetId, type WidgetId } from '../widgets'
 import { OPTION_SECTIONS, defaultOptions, defaultWidgetSettings, sectionSpecs } from './defaults'
-import { isRecord, mergeSection, mergeWidgetFields, revertDuplicateAccelerators } from './fields'
+import {
+  isRecord,
+  mergeSection,
+  mergeWidgetFields,
+  normalizeBounds,
+  revertDuplicateAccelerators
+} from './fields'
 import { defaultBoundsIn } from './geometry'
 import { syncActiveLayout } from './layouts'
 import { normalizeSettings } from './normalize'
@@ -75,17 +81,52 @@ export function placeDefaultLayout(current: OverlaySettings, area: Rect): Overla
 }
 
 /**
- * New settings with the widget's options and look (scale, auto height,
- * anchor, "Mostrar en", hide in pits, background opacity) back to their
- * defaults. Bounds, visibility and the lock are kept: this is not a layout
- * reset.
+ * What a widget page's reset covers (R24): 'options', its option section (what the page shows
+ * under Contenido and Personalizar); 'window', its "Ventana y visibilidad" (scale, auto height,
+ * anchor, background, "Mostrar en", hide in pits, the session screen); 'all', both.
  */
-export function resetWidgetOptions(current: OverlaySettings, id: WidgetId): OverlaySettings {
+export type WidgetResetPart = 'options' | 'window' | 'all'
+
+export const WIDGET_RESET_PARTS: readonly WidgetResetPart[] = ['options', 'window', 'all']
+
+export function isWidgetResetPart(v: unknown): v is WidgetResetPart {
+  return typeof v === 'string' && (WIDGET_RESET_PARTS as readonly string[]).includes(v)
+}
+
+/**
+ * New settings with the widget's options and look back to their defaults (`part`: which of
+ * them). Bounds, visibility and the lock are kept: this is not a layout reset.
+ */
+export function resetWidgetOptions(
+  current: OverlaySettings,
+  id: WidgetId,
+  part: WidgetResetPart = 'all'
+): OverlaySettings {
   const out = normalizeSettings(current)
   if (!isWidgetId(id)) return out
-  const { bounds, visible, locked } = out.widgets[id]
-  out.widgets[id] = { ...defaultWidgetSettings(id), bounds, visible, locked }
-  setSection(out, id, defaultOptions(id))
+  if (part !== 'options') {
+    const { bounds, visible, locked } = out.widgets[id]
+    out.widgets[id] = { ...defaultWidgetSettings(id), bounds, visible, locked }
+  }
+  if (part !== 'window') setSection(out, id, defaultOptions(id))
+  syncActiveLayout(out)
+  return out
+}
+
+/**
+ * New settings with the widget's bounds set to `rect` (an undo of a reset, or a size typed on
+ * its page), checked as a saved file's are: whole numbers, at least its minimum size. Main places
+ * it on a display as for any saved bounds.
+ */
+export function setWidgetBounds(
+  current: OverlaySettings,
+  id: WidgetId,
+  rect: unknown
+): OverlaySettings {
+  const out = normalizeSettings(current)
+  if (!isWidgetId(id)) return out
+  const w = out.widgets[id]
+  w.bounds = normalizeBounds(rect, w.bounds, WIDGET_DEFS[id].minSize)
   syncActiveLayout(out)
   return out
 }

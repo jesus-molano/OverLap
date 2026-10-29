@@ -21,8 +21,12 @@ export { normalizeSettings } from './normalize'
 export {
   applySettingsPatch,
   placeDefaultLayout,
+  WIDGET_RESET_PARTS,
+  isWidgetResetPart,
   resetWidgetBounds,
-  resetWidgetOptions
+  resetWidgetOptions,
+  setWidgetBounds,
+  type WidgetResetPart
 } from './patch'
 export { toTelemetryConfig } from './config'
 export {
