@@ -42,6 +42,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   explica una vez por página, en Personalizar, y no en cada lista; y se quitan las ayudas que
   repetían lo que ya dice la opción (el ejemplo del formato de nombre en cada widget, la del modo de
   Posiciones y la de «Filas alternas»).
+- **Un control donde había dos**: cada cabecera, segunda línea y pie tiene un solo selector «No /
+  Pequeña / Normal / Grande» en vez de un interruptor y un tamaño (con «No» se sigue ocultando).
+  En Testigos, «Rótulos: No / Derecha / Izquierda» (en fila, «No / Sí»). Y lo que no se aplica se
+  oculta en vez de quedarse en gris: el modo compacto de Posiciones en modo completo, el tamaño y
+  el color del volante con el estilo Barra, «Crece hacia» con alto fijo, las opciones de un grupo
+  oculto en Tráfico, etc. Lo guardado no cambia.
 
 ### Corregido
 

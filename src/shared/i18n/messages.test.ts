@@ -129,6 +129,9 @@ describe('dictionaries', () => {
  */
 const SAME_IN_ENGLISH = new Set([
   'core.appName',
+  // 'No' reads the same in both.
+  'settings.infoBar.sizeChoices.off.label',
+  'settings.lights.captionsChoices.off.label',
   'core.widgetTitles.radar',
   'core.widgetTitles.delta',
   'core.tray.rangeMeters',

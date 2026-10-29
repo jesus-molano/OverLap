@@ -133,11 +133,11 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
         :apply="setAutoHeight"
       />
       <ChoiceControl
+        v-if="prefs.autoHeight"
         :label="t.settings.window.anchor"
-        :help="prefs.autoHeight ? t.settings.window.anchorHelp : t.settings.window.anchorOff"
+        :help="t.settings.window.anchorHelp"
         :current="prefs.anchor"
         :options="anchorChoices"
-        :disabled="!prefs.autoHeight"
         :apply="set('anchor')"
       />
     </template>

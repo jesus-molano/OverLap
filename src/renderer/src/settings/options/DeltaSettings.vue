@@ -143,11 +143,11 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
       :apply="set(k.field)"
     />
     <ToggleControl
+      v-if="!kinds.every((k) => k.current === 'class')"
       kind="switch"
       :label="t.settings.delta.fallback"
       :help="fallbackHelp"
       :current="opts.fallback"
-      :disabled="kinds.every((k) => k.current === 'class')"
       :apply="set('fallback')"
     />
     <p class="st-row st-help dl-cycle">{{ cycleText }}</p>
@@ -155,6 +155,7 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
 
   <PageSection :title="t.settings.common.content" :note="t.settings.delta.referenceNote">
     <SliderControl
+      v-if="isElementVisible(opts.rows, 'bar')"
       :label="t.settings.delta.range"
       :help="t.settings.delta.rangeHelp"
       :current="opts.rangeS"
@@ -163,7 +164,6 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
       :step="RANGE_STEP"
       :format="rangeText"
       :presets="RANGE_PRESETS_S"
-      :disabled="!isElementVisible(opts.rows, 'bar')"
       :apply="set('rangeS')"
     />
   </PageSection>

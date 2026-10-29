@@ -187,7 +187,7 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
-  un interruptor, un tamaño (pequeña, normal o grande) y las cajas Izquierda y Derecha con los datos que
+  un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
   iRating y SR proyectados, vuelta rápida, vueltas de combustible, pista, agua, viento, aire,
   goma). Si no caben, se quitan enteros los menos importantes; el texto nunca se encoge. Delta,

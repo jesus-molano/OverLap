@@ -24,7 +24,7 @@ const HOLD: NumericSpec = OPTION_SCHEMA.alerts.holdS
 const HOLD_PRESETS_S = [0, 3, 5].filter((s) => s >= HOLD.min && s <= HOLD.max)
 const tenths = (s: number): string => formatSeconds(s, 1)
 
-// The blue, furled and overspeed switches stay on, greyed out, under their own: not counted.
+// The blue, furled and overspeed switches hide with their own (their values stay): not counted.
 const nothing = computed(() => showsNothing(opts.value))
 // "Ocultar en boxes" (Ventana) hides the whole widget on pit road, limiter line included.
 const prefs = useWidgetSettings('alerts')
@@ -60,17 +60,17 @@ const setParts = listSetter('alerts', 'parts')
         :apply="set('showFlags')"
       />
       <ToggleControl
+        v-if="opts.showFlags"
         :label="t.settings.alerts.blue"
         :help="t.settings.alerts.blueHelp"
         :current="opts.showBlue"
-        :disabled="!opts.showFlags"
         :apply="set('showBlue')"
       />
       <ToggleControl
+        v-if="opts.showFlags"
         :label="t.settings.alerts.furled"
         :help="t.settings.alerts.furledHelp"
         :current="opts.showFurled"
-        :disabled="!opts.showFlags"
         :apply="set('showFurled')"
       />
     </CheckGroup>
@@ -86,10 +86,10 @@ const setParts = listSetter('alerts', 'parts')
         :apply="set('showPitLimiter')"
       />
       <ToggleControl
+        v-if="opts.showPitLimiter"
         :label="t.settings.alerts.overspeed"
         :help="t.settings.alerts.overspeedHelp"
         :current="opts.showPitOverspeed"
-        :disabled="!opts.showPitLimiter"
         :apply="set('showPitOverspeed')"
       />
       <ToggleControl
@@ -160,6 +160,7 @@ const setParts = listSetter('alerts', 'parts')
       />
     </CheckGroup>
     <SliderControl
+      v-if="holds"
       :label="t.settings.common.keepVisible"
       :help="t.settings.alerts.holdHelp"
       :current="opts.holdS"
@@ -168,7 +169,6 @@ const setParts = listSetter('alerts', 'parts')
       :step="HOLD.step"
       :format="tenths"
       :presets="HOLD_PRESETS_S"
-      :disabled="!holds"
       :apply="set('holdS')"
     />
   </PageSection>

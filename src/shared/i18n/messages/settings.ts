@@ -485,7 +485,6 @@ export const settingsEs = {
     },
     anchor: 'Crece hacia',
     anchorHelp: 'Arriba si lo tienes pegado al borde inferior de la pantalla',
-    anchorOff: 'Solo con alto automático',
     // The anchor is the edge that stays put: anchored at the top, it grows downwards.
     anchorChoices: {
       top: { label: 'Abajo', hint: 'El borde de arriba se queda fijo' },
@@ -556,7 +555,6 @@ export const settingsEs = {
       full: { label: 'Completo', hint: 'Todos los coches de todas las clases' }
     },
     compact: 'Modo compacto',
-    compactOff: '(no se usa en modo completo)',
     topRows: 'Primeros puestos',
     topRowsHelp: 'Filas de cabeza de tu clase',
     aroundRows: 'Alrededor de ti',
@@ -851,19 +849,27 @@ export const settingsEs = {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
       column: { label: 'En columna' }
     },
-    /** lights.labelSide: where the captions and values go in a column. */
-    labelSide: 'Textos',
+    /**
+     * lights.labelSide: where the captions and values go in a column. Its own row only for the
+     * values with the captions off (with them on, "Rótulos" says the side).
+     */
+    labelSide: 'Lado de los textos',
     labelSideChoices: {
       right: { label: 'A la derecha' },
       left: { label: 'A la izquierda' }
     },
-    labelSideOff: 'Solo en columna',
-    /** No captions, temperatures nor repair time: nothing for the side to place. */
-    labelSideNoText: 'Solo afecta a textos y valores',
+
     onlyWhenLit: 'Solo encendidos',
     onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
+    /** lights.showCaptions with, in a column, lights.labelSide: one choice. */
     captions: 'Rótulos',
     captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
+    captionsChoices: {
+      off: { label: 'No' },
+      on: { label: 'Sí' },
+      right: { label: 'Derecha' },
+      left: { label: 'Izquierda' }
+    },
     temps: 'Temperaturas',
     tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
@@ -1202,7 +1208,7 @@ export const settingsEs = {
     },
     split: 'A la derecha',
     splitHint: 'Lo que va después se alinea al otro extremo',
-    /** The bar's switch, at the top of its editor (off: the size 'off'). */
+    /** The bar's one choice, at the top of its editor: No (the size 'off') or its size. */
     show: {
       headerBar: 'Mostrar cabecera',
       subheaderBar: 'Mostrar segunda línea',
@@ -1214,7 +1220,7 @@ export const settingsEs = {
     summaryOff: 'No se muestra',
     size: 'Tamaño',
     sizeChoices: {
-      off: { label: 'Oculta' },
+      off: { label: 'No' },
       small: { label: 'Pequeña' },
       normal: { label: 'Normal' },
       large: { label: 'Grande' }
@@ -1737,7 +1743,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     anchor: 'Grows',
     anchorHelp: 'Up if it sits against the bottom edge of the screen',
-    anchorOff: 'Only with automatic height',
     anchorChoices: {
       top: { label: 'Down', hint: 'The top edge stays put' },
       bottom: { label: 'Up', hint: 'The bottom edge stays put' }
@@ -1799,7 +1804,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       full: { label: 'Full', hint: 'Every car in every class' }
     },
     compact: 'Compact mode',
-    compactOff: '(not used in full mode)',
     topRows: 'Top positions',
     topRowsHelp: 'Rows from the front of your class',
     aroundRows: 'Around you',
@@ -2071,12 +2075,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
       right: { label: 'On the right' },
       left: { label: 'On the left' }
     },
-    labelSideOff: 'Column only',
-    labelSideNoText: 'Only affects captions and values',
+
     onlyWhenLit: 'Lit only',
     onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
     captions: 'Captions',
     captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
+    captionsChoices: {
+      off: { label: 'No' },
+      on: { label: 'Yes' },
+      right: { label: 'Right' },
+      left: { label: 'Left' }
+    },
     temps: 'Temperatures',
     tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',
@@ -2383,7 +2392,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     summaryOff: 'Not shown',
     size: 'Size',
     sizeChoices: {
-      off: { label: 'Hidden' },
+      off: { label: 'No' },
       small: { label: 'Small' },
       normal: { label: 'Normal' },
       large: { label: 'Large' }

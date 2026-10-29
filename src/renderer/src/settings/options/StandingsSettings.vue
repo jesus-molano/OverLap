@@ -88,14 +88,9 @@ const fixed = computed(() => fixedColumns(t.value))
       :options="modeChoices"
       :apply="set('mode')"
     />
-    <!-- A disabled fieldset disables every control inside: these only apply in compact mode. -->
-    <fieldset class="st-fieldset compact" :disabled="compactOff">
-      <legend class="st-label">
-        {{ t.settings.standings.compact }}
-        <span v-if="compactOff" class="st-help off-note">{{
-          t.settings.standings.compactOff
-        }}</span>
-      </legend>
+    <!-- Only in compact mode: hidden in full mode, their values kept. -->
+    <fieldset v-if="!compactOff" class="st-fieldset compact">
+      <legend class="st-label">{{ t.settings.standings.compact }}</legend>
       <div class="compact-body">
         <StepperControl
           :label="t.settings.standings.topRows"
@@ -224,14 +219,5 @@ const fixed = computed(() => fixedColumns(t.value))
 
 .compact-body > * + * {
   border-top: 1px solid var(--st-border);
-}
-
-.compact:disabled .compact-body {
-  opacity: 0.45;
-}
-
-.off-note {
-  margin-left: 6px;
-  font-weight: 400;
 }
 </style>

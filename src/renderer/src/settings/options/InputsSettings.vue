@@ -108,58 +108,58 @@ const setCar = listSetter('inputs', 'car')
 <template>
   <PageSection :title="t.settings.common.content">
     <SliderControl
+      v-if="hasTrace"
       :label="t.settings.inputs.traceSeconds"
       :help="t.settings.inputs.traceSecondsHelp"
       :current="opts.traceSeconds"
       :min="INPUTS_TRACE_MIN_S"
       :max="INPUTS_TRACE_MAX_S"
       :format="seconds"
-      :disabled="!hasTrace"
       :apply="set('traceSeconds')"
     />
     <ChoiceControl
+      v-if="hasTrace"
       :label="t.settings.inputs.traceWidth"
       :current="traceWidth"
       :options="WIDTH_CHOICES"
-      :disabled="!hasTrace"
       :apply="setTraceWidth"
     />
     <ToggleControl
+      v-if="hasTrace"
       kind="switch"
       :label="t.settings.inputs.clutchInTrace"
       :help="t.settings.inputs.clutchInTraceHelp"
       :current="opts.clutchInTrace"
-      :disabled="!hasTrace"
       :apply="set('clutchInTrace')"
     />
     <ChoiceControl
+      v-if="showSteering"
       :label="t.settings.inputs.steeringStyle"
       :current="opts.steeringStyle"
       :options="steeringChoices"
-      :disabled="!showSteering"
       :apply="set('steeringStyle')"
     />
     <ChoiceControl
+      v-if="showWheel"
       :label="t.settings.inputs.wheelSize"
       :current="opts.wheelSize"
       :options="wheelSizeChoices"
-      :disabled="!showWheel"
       :apply="set('wheelSize')"
     />
     <ColorControl
+      v-if="showWheel"
       :label="t.settings.inputs.wheelColor"
       :help="t.settings.inputs.wheelColorHelp"
       :current="opts.wheelColor"
       :presets="accentPresets"
-      :disabled="!showWheel"
       :apply="set('wheelColor')"
     />
     <ToggleControl
+      v-if="showSteering"
       kind="switch"
       :label="t.settings.inputs.steeringDegrees"
       :help="t.settings.inputs.steeringDegreesHelp"
       :current="opts.steeringDegrees"
-      :disabled="!showSteering"
       :apply="set('steeringDegrees')"
     />
     <ToggleControl
