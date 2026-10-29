@@ -72,6 +72,8 @@ export interface TrayActions {
   setEditMode(on: boolean): void
   setOverlayHidden(hidden: boolean): void
   openSettingsFolder(): void
+  /** Every widget to the display where the cursor is (R51). */
+  gatherWidgets(): void
   quit(): void
 }
 
@@ -319,6 +321,8 @@ function buildMenu(
       ...acceleratorLabel(shortcuts.toggleEditMode),
       click: (item) => act.setEditMode(item.checked)
     },
+    // A monitor unplugged, a widget lost on another one: all of them here (R51).
+    { label: t.gatherWidgets, click: () => act.gatherWidgets() },
     { label: t.openSettingsFolder, click: () => act.openSettingsFolder() },
     { type: 'separator' },
     { label: t.quit, click: () => act.quit() }

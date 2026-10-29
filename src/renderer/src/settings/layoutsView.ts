@@ -225,7 +225,7 @@ export function carRows(m: Messages, lib: LayoutLibrary, current: CarRef | null)
 
 /** Whether `n` is about an export or an import (the layouts page shows those). */
 export function isFileNotice(n: LayoutNotice): n is LayoutFileNotice {
-  return n.kind !== 'options-copied'
+  return n.kind !== 'options-copied' && n.kind !== 'gathered'
 }
 
 /** What the last export or import did, in words; `error` true for a failure. */

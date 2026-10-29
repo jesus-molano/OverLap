@@ -1563,6 +1563,17 @@ export const settingsEs = {
     save: 'Guardar como nueva',
     full: (max: number) => `Has llegado al máximo de ${max} disposiciones`,
     filesTitle: 'Archivos',
+    /** «Traer todos los widgets a esta pantalla» (R51), also in the tray. */
+    screens: {
+      title: 'Pantallas',
+      gather: 'Traer todos los widgets a esta pantalla',
+      gatherHelp: 'Los de otra pantalla, o de una desconectada, vienen a la de esta ventana',
+      button: 'Traer aquí',
+      gathered: (n: number) =>
+        n === 1 ? '1 widget traído a esta pantalla.' : `${n} widgets traídos a esta pantalla.`,
+      none: 'Ya estaban todos en esta pantalla.',
+      undo: 'Widgets traídos a esta pantalla'
+    },
     filesHelp:
       'Exporta una disposición a un .json para guardarla o compartirla; importarla no la aplica',
     filesMore:
@@ -2877,6 +2888,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
     save: 'Save as new',
     full: (max) => `You have reached the maximum of ${max} layouts`,
     filesTitle: 'Files',
+    screens: {
+      title: 'Screens',
+      gather: 'Bring every widget to this screen',
+      gatherHelp: 'The ones on another screen, or on one unplugged, come to this window’s screen',
+      button: 'Bring here',
+      gathered: (n) =>
+        n === 1 ? '1 widget brought to this screen.' : `${n} widgets brought to this screen.`,
+      none: 'They were all on this screen already.',
+      undo: 'Widgets brought to this screen'
+    },
     filesHelp:
       'Export a layout to a .json file to keep or share it; importing one does not apply it',
     filesMore:

@@ -9,6 +9,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Traer todos los widgets a esta pantalla**: en la bandeja (a la pantalla donde está el ratón) y
+  en **Disposiciones › Pantallas** (a la de la ventana de Ajustes). Los widgets de otra pantalla,
+  o de una que ya no está conectada, vienen al mismo sitio relativo y con su tamaño, sin salirse;
+  los que ya estaban no se mueven. La página dice cuántos ha traído, con «Deshacer».
 - **«Editar posición» en cada widget, y ⚙ en su etiqueta**: junto a «Visible», un botón entra en
   el modo edición y señala ese widget sobre el juego con un borde que parpadea; si ya editas, lo
   vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el

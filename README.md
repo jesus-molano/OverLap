@@ -242,7 +242,9 @@ juego.
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
   ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o `Shift`
   pulsado, no).
-- Arrástralo fuera de su pantalla para llevarlo a otra.
+- Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
+  los widgets a esta pantalla** (en la bandeja, o en **Disposiciones › Pantallas**) los recupera
+  de una vez.
 - La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar), un **candado** (bloquear) y un
   **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
   poder recuperarlo.

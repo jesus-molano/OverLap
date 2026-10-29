@@ -103,6 +103,7 @@ const ACTIONS = {
   setEditMode: () => {},
   setOverlayHidden: () => {},
   openSettingsFolder: () => {},
+  gatherWidgets: () => {},
   quit: () => {}
 }
 
@@ -272,6 +273,17 @@ describe('tray menu', () => {
     updateTray({ ...state(createDefaultSettings()), shortcutsFailing: 0 })
     expect((fake.menus.at(-1) ?? []).some((i) => i.label?.includes('atajo'))).toBe(false)
     expect(fake.tooltips.at(-1)).toBe('OverLap · Modo simulado (mock)')
+  })
+
+  it('brings every widget to the screen of the cursor, after edit mode (R51)', () => {
+    const gatherWidgets = vi.fn()
+    createTray(state(createDefaultSettings()), { ...ACTIONS, gatherWidgets })
+    const all = labels()
+    expect(all.indexOf('Traer todos los widgets a esta pantalla')).toBe(
+      all.indexOf('Modo edición') + 1
+    )
+    item('Traer todos los widgets a esta pantalla').click?.({ checked: false })
+    expect(gatherWidgets).toHaveBeenCalledOnce()
   })
 
   it('rebuilds the menu only when a rule note changes', () => {
