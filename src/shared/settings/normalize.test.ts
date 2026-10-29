@@ -85,8 +85,11 @@ const CATALOG: readonly InfoItemId[] = [
 ]
 
 /** An info bar showing `shown` in that order (the split marker among them), the rest hidden. */
-function bar(shown: readonly InfoBarEntryId[]): ElementEntry<InfoBarEntryId>[] {
-  const rest = CATALOG.filter((id) => !shown.includes(id))
+function bar(
+  shown: readonly InfoBarEntryId[],
+  without: readonly InfoBarEntryId[] = []
+): ElementEntry<InfoBarEntryId>[] {
+  const rest = CATALOG.filter((id) => !shown.includes(id) && !without.includes(id))
   return [
     ...shown.map((id) => ({ id, visible: true })),
     ...rest.map((id) => ({ id, visible: false }))
@@ -130,7 +133,8 @@ const DEFAULT_RELATIVE: RelativeOptions = {
     ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
     ['pit', 'tyre', 'stint']
   ),
-  headerBar: bar(['title', 'session', 'split', 'incidents']),
+  // One rule for the bars (R13): session data on by default in the standings only.
+  headerBar: bar(['title', 'split']),
   headerBarSize: 'normal',
   // The conditions footer: off in the relative (a free-size window), every reading on.
   footerBar: bar(FOOTER),
@@ -169,12 +173,12 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   otherClassLeaders: true,
   gapMode: 'interval',
   columns: DEFAULT_COLUMNS,
-  headerBar: bar(['session', 'sof', 'carCount', 'split', 'incidents', 'remaining']),
+  headerBar: bar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
   headerBarSize: 'normal',
   subheaderBar: bar(['iRating', 'fastestLap', 'split', 'safetyRating']),
   subheaderBarSize: 'normal',
   // The conditions footer: on in the standings (it grows by the line), every reading on.
-  footerBar: bar(FOOTER),
+  footerBar: bar([...FOOTER, 'carCount']),
   footerBarSize: 'normal',
   conditionsTrend: true,
   conditionsWindDirection: true,
@@ -188,9 +192,9 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   density: 'inherit'
 }
 const DEFAULT_BATTLE: BattleOptions = {
-  headerBar: bar(['title', 'split']),
+  headerBar: bar(['title', 'split', 'remaining']),
   headerBarSize: 'off',
-  footerBar: bar(['remaining', 'split', 'fuelLaps']),
+  footerBar: bar(['split', 'fuelLaps']),
   footerBarSize: 'off',
   conditionsTrend: true,
   conditionsWindDirection: true,
@@ -229,7 +233,7 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   parts: list(['icon', 'cls', 'driver', 'lead', 'value', 'sector']),
   headerBar: bar(['title', 'split']),
   headerBarSize: 'normal',
-  footerBar: bar(['carCount', 'sof', 'split', 'remaining']),
+  footerBar: bar(['split', 'carCount']),
   footerBarSize: 'off',
   conditionsTrend: true,
   conditionsWindDirection: true,
@@ -239,6 +243,19 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   countryFlags: 'inherit',
   showFlags: 'inherit',
   nameFormat: 'inherit'
+}
+/**
+ * The bars a section saved before they were lists (a file of version 4 or older) keeps: those of
+ * before 2.3 (migrateOldBars), not R13's new defaults.
+ */
+const OLD_RELATIVE_BARS = { headerBar: bar(['title', 'session', 'split', 'incidents']) }
+const OLD_STANDINGS_BARS = {
+  headerBar: bar(['session', 'sof', 'carCount', 'split', 'incidents', 'remaining']),
+  footerBar: bar(FOOTER)
+}
+const OLD_BATTLE_BARS = {
+  headerBar: bar(['title', 'split']),
+  footerBar: bar(['remaining', 'split', 'fuelLaps'])
 }
 /** What a battle / traffic section saved before 2.3 gets (migrateDriverBlock): its old look. */
 const OLD_BATTLE = { showFlags: false, countryFlags: false } as const
@@ -280,9 +297,9 @@ const DEFAULT_DELTA: DeltaOptions = {
   laps: list(['last', 'best', 'optimal', 'pb'], ['pb'])
 }
 const DEFAULT_FUEL: FuelOptions = {
-  headerBar: bar(['title', 'split']),
+  headerBar: bar(['title', 'split'], ['fuelLaps']),
   headerBarSize: 'off',
-  footerBar: bar(['remaining', 'split', 'trackTemp']),
+  footerBar: bar(['trackTemp', 'split'], ['fuelLaps']),
   footerBarSize: 'off',
   conditionsTrend: true,
   conditionsWindDirection: true,
@@ -1185,7 +1202,12 @@ describe('normalizeSettings: migration', () => {
     for (const id of ['standings', 'battle', 'inputs', 'traffic', 'alerts', 'delta'] as const) {
       expect(s.widgets[id]).toEqual(defaultWidget(id))
     }
-    expect(s.relative).toEqual({ ...DEFAULT_RELATIVE, carsAhead: 5, carsBehind: 2 })
+    expect(s.relative).toEqual({
+      ...DEFAULT_RELATIVE,
+      ...OLD_RELATIVE_BARS,
+      carsAhead: 5,
+      carsBehind: 2
+    })
     expect(s.radar).toEqual({ ...DEFAULT_RADAR, rangeM: 30 })
     expect(s.appearance).toEqual(DEFAULT_APPEARANCE)
     expect(s.standings).toEqual(DEFAULT_STANDINGS)
@@ -1268,6 +1290,7 @@ describe('normalizeSettings: migration', () => {
     expect(s.widgets.relative).toEqual({ ...defaultWidget('relative'), ...v2.widgets.relative })
     expect(s.relative).toEqual({
       ...DEFAULT_RELATIVE,
+      ...OLD_RELATIVE_BARS,
       // Its old toggles on today's list: iRating, licence (off), the PIT column hidden.
       columns: list(
         ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
@@ -1328,6 +1351,7 @@ describe('normalizeSettings: migration', () => {
     ])
     expect(s.standings).toEqual({
       ...DEFAULT_STANDINGS,
+      ...OLD_STANDINGS_BARS,
       mode: 'full',
       topRows: 5,
       aroundRows: 2,
@@ -1346,6 +1370,7 @@ describe('normalizeSettings: migration', () => {
     expect(s.battle).toEqual({
       ...DEFAULT_BATTLE,
       ...OLD_BATTLE,
+      ...OLD_BATTLE_BARS,
       thresholdS: 2.5,
       lanes: list(['ahead', 'behind'], ['behind'])
     })

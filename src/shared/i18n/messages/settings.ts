@@ -1269,6 +1269,13 @@ export const settingsEs = {
   },
   /** The info bars: their items, the marker, the size and the items' options. */
   infoBar: {
+    /**
+     * «Copiar a» (R13): this bar, its items and size, into the same bar of another widget, with
+     * "Deshacer".
+     */
+    copyTo: 'Copiar a',
+    copyToLabel: (bar: string, widget: string) => `Copiar «${bar}» a ${widget}`,
+    copied: (bar: string, widget: string) => `Copiado: ${bar} → ${widget}`,
     items: {
       title: 'Título del widget',
       session: 'Sesión',
@@ -2516,6 +2523,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   infoBar: {
+    copyTo: 'Copy to',
+    copyToLabel: (bar, widget) => `Copy “${bar}” to ${widget}`,
+    copied: (bar, widget) => `Copied: ${bar} → ${widget}`,
     items: {
       title: 'Widget title',
       session: 'Session',

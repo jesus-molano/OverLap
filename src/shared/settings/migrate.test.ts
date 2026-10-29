@@ -10,6 +10,7 @@ import {
   SHOWN_WHEN_ADDED,
   freeSpot,
   migrateCustomizeOpen,
+  migrateOldBars,
   migrateRelativeDensity,
   migrateSection
 } from './migrate'
@@ -364,6 +365,9 @@ describe('the element lists from the options they replaced (v2.6)', () => {
         shiftLights: false
       },
       lights: { ...d.lights, repairCrewTag: false },
+      // Their old switches draw the bars they drew then (migrateOldBars), not R13's defaults.
+      relative: { ...d.relative, ...migrateOldBars('relative', {}, { version: 4 }) },
+      standings: { ...d.standings, ...migrateOldBars('standings', {}, { version: 4 }) },
       // What the «Piloto» block added stays off (migrateDriverBlock).
       battle: { ...d.battle, showFlags: false, countryFlags: false },
       traffic: { ...d.traffic, brandMarks: 'off', countryFlags: false, showFlags: false }
@@ -655,5 +659,36 @@ describe('migrateRelativeColumns (R10)', () => {
     const own = L('pos driver lic ir tyre -stint gap')
     const s = normalizeSettings({ relative: { columns: own } })
     expect(s.relative.columns).toEqual([...own, { id: 'pit', visible: false }])
+  })
+})
+
+describe('migrateOldBars (R13: new defaults for new installs only)', () => {
+  const shown = (l: unknown): string[] =>
+    (l as { id: string; visible: boolean }[]).filter((e) => e.visible).map((e) => e.id)
+
+  it('gives a section of a file from before the bars were lists the bars it drew then', () => {
+    const r = migrateOldBars('relative', { carsAhead: 4 }, { version: 4 })
+    expect(shown(r.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
+    const st = migrateOldBars('standings', {}, { version: 3 })
+    expect(shown(st.headerBar)).toEqual([
+      'session',
+      'sof',
+      'carCount',
+      'split',
+      'incidents',
+      'remaining'
+    ])
+    // Its old switch on top: the incidents off.
+    const off = migrateOldBars('relative', { showIncidents: false }, { version: 5 })
+    expect(shown(off.headerBar)).toEqual(['title', 'session', 'split'])
+  })
+
+  it('leaves a list of its own, a file of today and a section without bars alone', () => {
+    const own = [{ id: 'clock', visible: true }]
+    const raw = { headerBar: own }
+    expect(migrateOldBars('relative', raw, { version: 4 })).toBe(raw)
+    const today = { carsAhead: 3 }
+    expect(migrateOldBars('relative', today, { version: 6 })).toBe(today)
+    expect(migrateOldBars('radar', today, { version: 4 })).toBe(today)
   })
 })

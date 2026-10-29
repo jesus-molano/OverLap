@@ -288,9 +288,11 @@ describe('info bars (v2.6)', () => {
         const specs = OPTION_SCHEMA[section as keyof typeof INFO_BARS] as Record<string, OptionSpec>
         const spec = specs[field] as ElementsSpec
         expect(spec.kind, `${section}.${field}`).toBe('elements')
-        expect([...spec.ids].sort(), `${section}.${field}`).toEqual([...INFO_BAR_ENTRY_IDS].sort())
+        // The fuel never lists its laps of fuel: its hero line says them (R13).
+        const all = INFO_BAR_ENTRY_IDS.filter((id) => section !== 'fuel' || id !== 'fuelLaps')
+        expect([...spec.ids].sort(), `${section}.${field}`).toEqual([...all].sort())
         expect(spec.required).toEqual(['split'])
-        expect(spec.computed).toEqual(COMPUTED_INFO_ITEMS)
+        expect(spec.computed).toEqual(COMPUTED_INFO_ITEMS.filter((id) => all.includes(id)))
         expect(specs[size]?.kind, `${section}.${size}`).toBe('enum')
         expect(specs[size]?.displayOnly, `${section}.${size}`).toBeUndefined()
       }
@@ -305,18 +307,21 @@ describe('info bars (v2.6)', () => {
     const shown = (spec: ElementsSpec): string[] =>
       spec.default.filter((e) => e.visible).map((e) => e.id)
     const o = OPTION_SCHEMA
-    expect(shown(o.relative.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
+    // One rule (R13): the header's left the title (and the session), its right the incidents
+    // and the clock; the footer's left the conditions, its right the cars and the fuel. The
+    // session data on by default in the standings only.
+    expect(shown(o.relative.headerBar)).toEqual(['title', 'split'])
     expect(o.relative.headerBarSize.default).toBe('normal')
     const weather = ['trackTemp', 'wet', 'wind', 'airTemp', 'rubber', 'split']
     // The relative's footer is off (its readings preset), the standings' on.
     expect(shown(o.relative.footerBar)).toEqual(weather)
     expect(o.relative.footerBarSize.default).toBe('off')
-    expect(shown(o.standings.footerBar)).toEqual(weather)
+    expect(shown(o.standings.footerBar)).toEqual([...weather, 'carCount'])
     expect(o.standings.footerBarSize.default).toBe('normal')
     expect(shown(o.standings.headerBar)).toEqual([
+      'title',
       'session',
       'sof',
-      'carCount',
       'split',
       'incidents',
       'remaining'
@@ -328,6 +333,11 @@ describe('info bars (v2.6)', () => {
       'safetyRating'
     ])
     expect(shown(o.fuel.headerBar)).toEqual(['title', 'split'])
+    expect(shown(o.fuel.footerBar)).toEqual(['trackTemp', 'split'])
+    expect(shown(o.battle.headerBar)).toEqual(['title', 'split', 'remaining'])
+    expect(shown(o.battle.footerBar)).toEqual(['split', 'fuelLaps'])
+    expect(shown(o.traffic.footerBar)).toEqual(['split', 'carCount'])
+    expect(o.fuel.headerBar.ids).not.toContain('fuelLaps')
     expect(o.fuel.headerBarSize.default).toBe('off')
   })
 

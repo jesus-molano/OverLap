@@ -227,17 +227,25 @@ export function elements<const Id extends string>(
 
 /**
  * An info bar's list: `shown` in that order (`split` among them: what follows lines up at the
- * far end), then every other item, hidden, in catalog order (turned on, it lands at the end).
+ * far end), then every other item, hidden, in catalog order (turned on, it lands at the end);
+ * none of `without` (what the widget already says itself: the fuel's laps of fuel).
+ *
+ * Every widget's defaults follow one rule (R13): the header's left the title (and the session),
+ * its right your incidents and the clock; the footer's left the conditions, its right the cars and
+ * the fuel. Session data is on by default in one widget only, the standings.
  * The marker is required; the provider computes the items it draws (COMPUTED_INFO_ITEMS).
  */
-export function infoBar(shown: readonly InfoBarEntryId[]): ElementsSpec<InfoBarEntryId> {
-  const rest = INFO_ITEM_IDS.filter((id) => !shown.includes(id))
+export function infoBar(
+  shown: readonly InfoBarEntryId[],
+  without: readonly InfoBarEntryId[] = []
+): ElementsSpec<InfoBarEntryId> {
+  const rest = INFO_ITEM_IDS.filter((id) => !shown.includes(id) && !without.includes(id))
   const ids: InfoBarEntryId[] = [...shown, ...rest]
   if (!ids.includes('split')) ids.push('split')
   return elements<InfoBarEntryId>(ids, {
     hidden: rest,
     required: ['split'],
-    computed: COMPUTED_INFO_ITEMS
+    computed: COMPUTED_INFO_ITEMS.filter((id) => !without.includes(id))
   })
 }
 
@@ -453,8 +461,8 @@ export const OPTION_SCHEMA = {
       required: ['driver', 'gap'],
       displayOnly: true
     }),
-    // Today's header: the name and the session, your incidents on the right.
-    headerBar: infoBar(['title', 'session', 'split', 'incidents']),
+    // The name (R13: session data is on by default in the standings only).
+    headerBar: infoBar(['title', 'split']),
     headerBarSize: barSize('normal'),
     // Off by default: the relative is a free-size window, so a footer line takes its height
     // from the rows (the standings grows by it instead).
@@ -506,13 +514,13 @@ export const OPTION_SCHEMA = {
     }),
     // Today's two header lines: the session (the widget's name while unknown), the class's SoF
     // and cars, your incidents and what is left; then your projections and the fastest lap.
-    headerBar: infoBar(['session', 'sof', 'carCount', 'split', 'incidents', 'remaining']),
+    headerBar: infoBar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
     headerBarSize: barSize('normal'),
     subheaderBar: infoBar(['iRating', 'fastestLap', 'split', 'safetyRating']),
     subheaderBarSize: barSize('normal'),
     // On by default: the standings grows by the line (auto height), and it is the table you
-    // look at between sessions too.
-    footerBar: infoBar(CONDITIONS_FOOTER),
+    // look at between sessions too. The conditions on the left, the cars on the right (R13).
+    footerBar: infoBar([...CONDITIONS_FOOTER, 'carCount']),
     footerBarSize: barSize('normal'),
     ...CONDITIONS_EXTRAS,
     classLine: elements(idsOf<StandingsClassLineId>()(['sof', 'carCount']), {
@@ -537,9 +545,9 @@ export const OPTION_SCHEMA = {
   battle: {
     // Off: a battle card is small, and the rivals are what it is for. Turned on, the header
     // names it; the footer says how long is left and how many laps the fuel lasts.
-    headerBar: infoBar(['title', 'split']),
+    headerBar: infoBar(['title', 'split', 'remaining']),
     headerBarSize: barSize('off'),
-    footerBar: infoBar(['remaining', 'split', 'fuelLaps']),
+    footerBar: infoBar(['split', 'fuelLaps']),
     footerBarSize: barSize('off'),
     ...CONDITIONS_EXTRAS,
     thresholdS: { kind: 'number', min: 0.3, max: 5, decimals: 1, default: 1.5, step: 0.1 },
@@ -633,7 +641,7 @@ export const OPTION_SCHEMA = {
     headerBar: infoBar(['title', 'split']),
     headerBarSize: barSize('normal'),
     // Off by default; turned on, the field you share the track with and what is left.
-    footerBar: infoBar(['carCount', 'sof', 'split', 'remaining']),
+    footerBar: infoBar(['split', 'carCount']),
     footerBarSize: barSize('off'),
     ...CONDITIONS_EXTRAS,
     // Over each group, whatever the header's switch says.
@@ -711,11 +719,11 @@ export const OPTION_SCHEMA = {
   // it computes (the average also the alerts band's fuel alerts).
   fuel: {
     // Off, as the header switch it replaced: the name and the SIM tag when on.
-    headerBar: infoBar(['title', 'split']),
+    // Never its laps of fuel: the widget's own hero line says them (R13).
+    headerBar: infoBar(['title', 'split'], ['fuelLaps']),
     headerBarSize: barSize('off'),
-    // Off by default; turned on, what is left of the session and the track temperature (what
-    // the consumption follows).
-    footerBar: infoBar(['remaining', 'split', 'trackTemp']),
+    // Off by default; turned on, the track temperature (what the consumption follows).
+    footerBar: infoBar(['trackTemp', 'split'], ['fuelLaps']),
     footerBarSize: barSize('off'),
     ...CONDITIONS_EXTRAS,
     lines: elements(

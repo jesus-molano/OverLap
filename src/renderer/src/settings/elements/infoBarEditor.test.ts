@@ -62,3 +62,13 @@ describe('InfoBarEditor', () => {
     expect(EDITOR).not.toContain('is-dim')
   })
 })
+
+describe('«Copiar a» (R13)', () => {
+  it('offers the other widgets with the same bar, copying its items and size with "Deshacer"', () => {
+    expect(SOURCE).toMatch(/v-for="x in targets"/)
+    expect(SOURCE).toMatch(/offerSectionUndo\(target,/)
+    expect(SOURCE).toMatch(/\[sizeField\]: size\.value/)
+    // Only widgets that have this bar (the standings' second line has no twin).
+    expect(SOURCE).toMatch(/INFO_BARS\[s\]\.some\(\(\[f\]\) => f === props\.field\)/)
+  })
+})

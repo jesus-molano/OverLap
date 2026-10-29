@@ -71,11 +71,12 @@ describe('reading the bars of a section', () => {
       expect(bars[bars.length - 1]?.[0]).toBe('footerBar')
     }
     for (const id of NO_BAR_SECTIONS) expect(id in INFO_BARS).toBe(false)
-    expect(sectionInfoItems('relative', s.relative)).toEqual(['title', 'session', 'incidents'])
+    // One rule (R13): the session data on by default in the standings only.
+    expect(sectionInfoItems('relative', s.relative)).toEqual(['title'])
     expect(sectionInfoItems('standings', s.standings)).toEqual([
+      'title',
       'session',
       'sof',
-      'carCount',
       'incidents',
       'remaining',
       'iRating',
@@ -85,7 +86,8 @@ describe('reading the bars of a section', () => {
       'wet',
       'wind',
       'airTemp',
-      'rubber'
+      'rubber',
+      'carCount'
     ])
     // The fuel's header is off by default, and every footer that is new; the traffic's header is
     // its title band of before.

@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { optionSetOf } from '@shared/layouts'
-import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@shared/settings'
+import { DEFAULT_SETTINGS, SETTINGS_VERSION, normalizeSettings } from '@shared/settings'
 import { syncActiveLayout } from '@shared/settings/layouts'
 import type { ElementEntry } from '@shared/types'
 import { WIDGET_IDS } from '@shared/widgets'
@@ -38,6 +38,15 @@ function load(raw: unknown): SettingsStore {
 const ids = (list: readonly ElementEntry[]): string[] =>
   list.map((e) => (e.visible ? e.id : `-${e.id}`))
 
+/** The info bars a v4 section keeps (shared migrateOldBars, tested there): those of before 2.3. */
+function oldBars(section: 'relative' | 'standings' | 'battle' | 'traffic' | 'fuel'): object {
+  const s = normalizeSettings({ version: 4, [section]: {} })[section] as unknown as Record<
+    string,
+    unknown
+  >
+  return { headerBar: s.headerBar, footerBar: s.footerBar }
+}
+
 describe('the untouched v4 file', () => {
   it('loads as today’s defaults: the new defaults asked for, everything else as it was', () => {
     expect(DEFAULT_V4.version).toBe(4)
@@ -56,11 +65,19 @@ describe('the untouched v4 file', () => {
       lights: { ...DEFAULT_SETTINGS.lights, repairCrewTag: false },
       // The «Piloto» block (R08): the penalty switch it saved stays its own; what the battle and
       // the traffic never drew stays off; the rest follows Apariencia, which draws the same.
-      relative: { ...DEFAULT_SETTINGS.relative, showFlags: true },
-      standings: { ...DEFAULT_SETTINGS.standings, showFlags: true },
-      battle: { ...DEFAULT_SETTINGS.battle, showFlags: false, countryFlags: false },
+      // The info bars it drew (before they were lists): those of before 2.3, not R13's.
+      relative: { ...DEFAULT_SETTINGS.relative, ...oldBars('relative'), showFlags: true },
+      standings: { ...DEFAULT_SETTINGS.standings, ...oldBars('standings'), showFlags: true },
+      battle: {
+        ...DEFAULT_SETTINGS.battle,
+        ...oldBars('battle'),
+        showFlags: false,
+        countryFlags: false
+      },
+      fuel: { ...DEFAULT_SETTINGS.fuel, ...oldBars('fuel') },
       traffic: {
         ...DEFAULT_SETTINGS.traffic,
+        ...oldBars('traffic'),
         brandMarks: 'off' as const,
         countryFlags: false,
         showFlags: false
