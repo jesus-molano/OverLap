@@ -21,6 +21,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import { replayNote, sessionScreenRuleOn } from '../replayWidgets'
+import { dayUnreadable } from '../opacityNote'
 import { formatPercent, fromPercent, toPercent } from '../values'
 
 /**
@@ -62,6 +63,13 @@ const bgChoices = computed<ChoiceOption<BgChoice>[]>(() => {
 const setBackground: Setter<BgChoice> = (v) =>
   set('backgroundOpacity')(v === 'inherit' ? 'inherit' : globalOpacity.value)
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
+/** The preview on «Día» shows this background hard to read: said under the control. */
+const windowOptions = useOptions('settingsWindow')
+const dayNote = computed(() =>
+  dayUnreadable(windowOptions.value.stageScene, opacityNow.value)
+    ? t.value.settings.window.dayUnreadable
+    : undefined
+)
 const setAutoHeight: Setter<BoolChoice> = (v) => set('autoHeight')(fromChoice(v))
 
 const showIn = computed(() => {
@@ -154,6 +162,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :format="percent"
       :apply="setOpacity"
     />
+    <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">{{ dayNote }}</p>
     <CheckGroup :legend="t.settings.window.showIn" :help="showInHelp" :warn="nowhere">
       <ToggleControl
         v-for="s in showIn"
@@ -194,6 +203,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
 
 <style scoped>
 .size-note,
+.day-note,
 .replay-note {
   display: block;
 }

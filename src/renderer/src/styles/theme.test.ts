@@ -324,7 +324,7 @@ describe('legibility on the glass (default opacity)', () => {
   const FLOORS: ReadonlyArray<readonly [string, number, number]> = [
     ['--ov-fg', 9, 16],
     ['--ov-fg-muted', 4.5, 8.5],
-    ['--ov-fg-dim', 3.3, 6],
+    ['--ov-fg-dim', 3.8, 7],
     ['--ov-warn', 4.5, 8.5],
     ['--ov-good', 5, 10],
     ['--ov-bad', 3.5, 6.5],

@@ -31,6 +31,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **Texto legible sobre fondos claros**: con «Contorno del texto» en «Auto», el contorno se pone
+  por debajo del 65 % de opacidad (antes, del 35 %), así que un panel al 50 % sobre un cielo
+  blanco ya se lee. El gris tenue (unidades, títulos de columna) es un poco más claro. Con la vista
+  previa en «Día» y el fondo por debajo del 60 %, el control del fondo avisa de que se leerá mal.
 - **La ayuda de «Tamaño del texto»** (Apariencia) dice exactamente a qué widgets cambia (Posiciones,
   Batalla, Pedales, Tráfico, Avisos, Testigos y Combustible) y cuáles ajustan el texto a su ventana
   (Relativo, Radar y Delta). Antes solo nombraba Clasificación y Batalla.

@@ -197,7 +197,7 @@ export const settingsEs = {
       haloChoices: {
         auto: {
           label: 'Auto',
-          hint: 'Solo con el fondo casi transparente (menos del 35 %)'
+          hint: 'Con el fondo por debajo del 65 %, donde un cielo claro lo haría ilegible'
         },
         on: { label: 'Siempre' },
         off: { label: 'Nunca' }
@@ -481,6 +481,9 @@ export const settingsEs = {
     backgroundOwn: { label: 'Propio', hint: 'Una opacidad solo para este widget' },
     opacity: 'Opacidad del fondo',
     opacityHelp: 'Solo el fondo del panel: el contenido sigue opaco',
+    /** The preview on «Día» and the background below 60 % (settings/opacityNote.ts). */
+    dayUnreadable:
+      'Sobre la vista «Día» se lee mal: con un cielo claro, sube el fondo al 60 % o más',
     scale: 'Escala',
     scaleHelp: 'Tamaño del texto de este widget; también con la rueda del ratón en modo edición',
     height: 'Alto',
@@ -1503,7 +1506,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       haloChoices: {
         auto: {
           label: 'Auto',
-          hint: 'Only with a nearly transparent background (below 35%)'
+          hint: 'With the background below 65%, where a bright sky would make it unreadable'
         },
         on: { label: 'Always' },
         off: { label: 'Never' }
@@ -1735,6 +1738,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     backgroundOwn: { label: 'Own', hint: 'An opacity for this widget only' },
     opacity: 'Background opacity',
     opacityHelp: 'Only the panel’s background: the content stays opaque',
+    dayUnreadable:
+      'Hard to read over the “Day” preview: with a bright sky, raise it to 60% or more',
     scale: 'Scale',
     scaleHelp: 'This widget’s text size; you can also use the mouse wheel in edit mode',
     height: 'Height',

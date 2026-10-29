@@ -12,6 +12,12 @@ import { injectWidgetId } from './widgetContext'
 /** Below this background opacity the text needs a dark halo to stay legible over the game. */
 export const LOW_BG_ALPHA = 0.35
 
+/**
+ * Below this the 'auto' halo is on: a mid-opacity panel over a bright sky (a white sky at 50 %
+ * puts the dim text at 1.2:1 and red at 1.3:1) needs it as much as a see-through one.
+ */
+export const HALO_AUTO_ALPHA = 0.65
+
 /** Background opacity in [0, 1]; `fallback` for anything that is not a finite number. */
 export function clampOpacity(a: unknown, fallback: number): number {
   return isFiniteNumber(a) ? clamp01(a) : fallback
@@ -30,7 +36,7 @@ const DEFAULT_BG_ALPHA = OPTION_SCHEMA.appearance.backgroundOpacity.default
 export function haloOn(mode: AppearanceSettings['textHalo'], alpha: number): boolean {
   if (mode === 'on') return true
   if (mode === 'off') return false
-  return alpha < LOW_BG_ALPHA
+  return alpha < HALO_AUTO_ALPHA
 }
 
 export interface WidgetSurface {
