@@ -347,8 +347,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 /*
  * Auto height (the default): the panel is its content, the font the scale's (--ov-fs), so
  * nothing depends on the window's height (no cqh) and the fitted height cannot feed back. The
- * bars set the row's height (8.4 em: today's 120 px at the default 13 px), the trace and the
- * readouts take it. Only the width is a container then.
+ * bars set the row's height, the trace and the readouts take it: with the panel's 0.4 em paddings
+ * and 1 px borders the panel is today's 120 px at the default 13 px (9.23 em). Only the width is a container then.
  */
 .inputs--auto {
   container-type: inline-size;
@@ -371,7 +371,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 .inputs--auto .bars {
-  height: 8.4em;
+  height: calc(8.43em - 2px);
 }
 
 /* ---- Trace ---------------------------------------------------------------- */

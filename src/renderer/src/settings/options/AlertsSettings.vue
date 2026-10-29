@@ -12,6 +12,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { formatSeconds } from '../values'
 
@@ -172,11 +173,13 @@ const setParts = listSetter('alerts', 'parts')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'alerts', 'parts')"
-    :items="opts.parts"
-    :spec="OPTION_SCHEMA.alerts.parts"
-    :labels="partTexts"
-    :apply="setParts"
-  />
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'alerts', 'parts')"
+      :items="opts.parts"
+      :spec="OPTION_SCHEMA.alerts.parts"
+      :labels="partTexts"
+      :apply="setParts"
+    />
+  </CustomizeSection>
 </template>

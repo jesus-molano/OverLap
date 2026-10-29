@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { INFO_BAR_SIZES } from '@shared/infoBar'
+import { INFO_BARS } from '@shared/infoBar'
 import {
   STANDINGS_GAP_MODES,
   STANDINGS_MODES,
@@ -8,13 +8,7 @@ import {
   STANDINGS_ROWS_MIN
 } from '@shared/settings'
 import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
-import type {
-  ElementEntry,
-  InfoBarEntryId,
-  InfoBarSize,
-  StandingsColumnId,
-  StandingsOptions
-} from '@shared/types'
+import type { ElementEntry, StandingsColumnId, StandingsOptions } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -27,8 +21,10 @@ import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import type { ElementChange } from '../elements/listOps'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 
 /**
@@ -72,42 +68,7 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
 const brandChoices = computed(() =>
   choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
 )
-const sizeChoices = computed(() =>
-  choiceOptions(INFO_BAR_SIZES, t.value.settings.infoBar.sizeChoices)
-)
 const fixed = computed(() => fixedColumns(t.value))
-const barTexts = computed(() => elementTexts(t.value, 'standings', 'headerBar'))
-
-type BarField = 'headerBar' | 'subheaderBar' | 'footerBar'
-
-/** One info bar's editor: its list and its size. */
-interface BarZone {
-  readonly field: BarField
-  readonly title: string
-  readonly items: readonly Readonly<ElementEntry<InfoBarEntryId>>[]
-  readonly spec: (typeof S)[BarField]
-  readonly apply: Setter<ElementEntry<InfoBarEntryId>[]>
-  readonly size: InfoBarSize
-  readonly setSize: Setter<InfoBarSize>
-}
-
-/** The three bars, top to bottom: the header, its second line, the footer. */
-const BAR_FIELDS: readonly BarField[] = ['headerBar', 'subheaderBar', 'footerBar']
-
-const bars = computed<readonly BarZone[]>(() =>
-  BAR_FIELDS.map((field) => {
-    const sizeField = `${field}Size` as const
-    return {
-      field,
-      title: zoneTitle(t.value, 'standings', field),
-      items: opts.value[field],
-      spec: S[field],
-      apply: listSetter('standings', field),
-      size: opts.value[sizeField],
-      setSize: set(sizeField)
-    }
-  })
-)
 </script>
 
 <template>
@@ -190,16 +151,16 @@ const bars = computed<readonly BarZone[]>(() =>
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'standings', 'columns')"
-    :items="opts.columns"
-    :spec="S.columns"
-    :labels="elementTexts(t, 'standings', 'columns')"
-    :fixed-before="fixed"
-    :apply="applyColumns"
-  >
-    <template #footer>
-      <div class="sd-zone-opts">
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'standings', 'columns')"
+      :items="opts.columns"
+      :spec="S.columns"
+      :labels="elementTexts(t, 'standings', 'columns')"
+      :fixed-before="fixed"
+      :apply="applyColumns"
+    >
+      <template #footer>
         <ToggleControl
           kind="switch"
           :label="t.settings.driverCell.columnHeads"
@@ -221,57 +182,24 @@ const bars = computed<readonly BarZone[]>(() =>
           :current="opts.countryFlags"
           :apply="set('countryFlags')"
         />
-      </div>
-    </template>
-  </ElementEditor>
+      </template>
+    </ElementEditor>
 
-  <ElementEditor
-    v-for="bar in bars"
-    :key="bar.field"
-    :title="bar.title"
-    :items="bar.items"
-    :spec="bar.spec"
-    :labels="barTexts"
-    :apply="bar.apply"
-  >
-    <!-- The trend arrow and the wind dial are the section's options: on whichever bar shows
-         the item, greyed out while it is hidden or its bar is off. -->
-    <template #extra="{ id, visible }">
-      <ToggleControl
-        v-if="id === 'trackTemp'"
-        :label="t.settings.conditionsFooter.trend"
-        :current="opts.conditionsTrend"
-        :disabled="!visible || bar.size === 'off'"
-        :apply="set('conditionsTrend')"
-      />
-      <ToggleControl
-        v-else-if="id === 'wind'"
-        :label="t.settings.conditionsFooter.windDirection"
-        :current="opts.conditionsWindDirection"
-        :disabled="!visible || bar.size === 'off'"
-        :apply="set('conditionsWindDirection')"
-      />
-    </template>
-    <template #footer>
-      <div class="sd-zone-opts">
-        <ChoiceControl
-          :label="t.settings.infoBar.size"
-          :help="t.settings.infoBar.fitNote"
-          :current="bar.size"
-          :options="sizeChoices"
-          :apply="bar.setSize"
-        />
-      </div>
-    </template>
-  </ElementEditor>
+    <InfoBarEditor
+      v-for="[field] in INFO_BARS.standings"
+      :key="field"
+      section="standings"
+      :field="field"
+    />
 
-  <ElementEditor
-    :title="zoneTitle(t, 'standings', 'classLine')"
-    :items="opts.classLine"
-    :spec="S.classLine"
-    :labels="elementTexts(t, 'standings', 'classLine')"
-    :apply="listSetter('standings', 'classLine')"
-  />
+    <ElementEditor
+      :title="zoneTitle(t, 'standings', 'classLine')"
+      :items="opts.classLine"
+      :spec="S.classLine"
+      :labels="elementTexts(t, 'standings', 'classLine')"
+      :apply="listSetter('standings', 'classLine')"
+    />
+  </CustomizeSection>
 </template>
 
 <style scoped>
@@ -298,15 +226,5 @@ const bars = computed<readonly BarZone[]>(() =>
 .off-note {
   margin-left: 6px;
   font-weight: 400;
-}
-
-/* A zone's own options under its list, ruled like a card's rows. */
-.sd-zone-opts {
-  display: flex;
-  flex-direction: column;
-}
-
-.sd-zone-opts > * + * {
-  border-top: 1px solid var(--st-border);
 }
 </style>

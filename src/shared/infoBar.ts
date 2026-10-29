@@ -116,8 +116,18 @@ export const INFO_BAR_SCALE: { readonly [K in Exclude<InfoBarSize, 'off'>]: numb
 /** Height of a bar's line at 'normal' (em of the widget's text), its 1 px rule apart. */
 export const INFO_BAR_LINE_EM = 1.6
 
-/** Room between two items (em of the bar's text): a hairline sits in the middle. */
+/**
+ * Height of the panel's own header, the topmost head bar (the one with the SIM tag): the header
+ * band the panels had before the bars (a tag plate of 1.15 em and 0.35 em above and below), so
+ * the relative, the standings and the fuel keep their look. Its 1 px rule apart.
+ */
+export const INFO_BAR_TOP_EM = 1.85
+
+/** Room between two items (em of the bar's text). */
 export const INFO_ITEM_GAP_EM = 0.85
+
+/** The same on the panel's own header (INFO_BAR_TOP_EM): as tight as the header band set it. */
+export const INFO_TOP_GAP_EM = 0.5
 
 /**
  * The bars of each section that has some, as [list field, size field], top to bottom: the
@@ -204,17 +214,22 @@ export const COMPUTED_INFO_ITEMS: readonly InfoItemId[] = Object.freeze(
  * Which of `items` (in order, with their widths) fit `widthEm` of bar: all of them while they
  * fit, else the least important dropped one at a time (the highest priority number; between
  * equals the later one) until the rest does. `widthEm` <= 0 (not measured yet) keeps them all.
+ * `dropAtLeast` drops that many more the same way (the bar measured that what is drawn is still
+ * wider than the estimates say: a long value, the SIM or preview tag); one item always stays.
  */
 export function fitInfoItems(
   items: readonly InfoItemId[],
   widthEm: number,
-  gapEm = INFO_ITEM_GAP_EM
+  gapEm = INFO_ITEM_GAP_EM,
+  dropAtLeast = 0
 ): InfoItemId[] {
   const kept = [...items]
   if (!(widthEm > 0)) return kept
   const width = (ids: readonly InfoItemId[]): number =>
     ids.reduce((sum, id, i) => sum + INFO_ITEMS[id].em + (i > 0 ? gapEm : 0), 0)
-  while (kept.length > 1 && width(kept) > widthEm) {
+  let dropped = 0
+  while (kept.length > 1 && (width(kept) > widthEm || dropped < dropAtLeast)) {
+    dropped++
     let drop = 0
     for (let i = 1; i < kept.length; i++) {
       const a = kept[i]

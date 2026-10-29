@@ -136,6 +136,21 @@ describe('fitInfoItems', () => {
     expect(fitInfoItems(['rubber'], 1)).toEqual(['rubber'])
   })
 
+  it('drops more when the bar measured an overflow, by the same rule, never the last one', () => {
+    const ids: InfoItemId[] = ['session', 'iRating', 'fastestLap', 'safetyRating']
+    // Everything fits by the estimates; one more drop takes the fastest lap (priority 4).
+    expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 1)).toEqual([
+      'session',
+      'iRating',
+      'safetyRating'
+    ])
+    // Then the later of the two ratings (both 2).
+    expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 2)).toEqual(['session', 'iRating'])
+    expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 9)).toEqual(['session'])
+    // Not measured yet: nothing to act on.
+    expect(fitInfoItems(ids, 0, INFO_ITEM_GAP_EM, 2)).toEqual(ids)
+  })
+
   it('returns a new list in the given order', () => {
     const ids: InfoItemId[] = ['remaining', 'session']
     const out = fitInfoItems(ids, 100)

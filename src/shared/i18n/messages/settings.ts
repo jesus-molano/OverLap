@@ -410,19 +410,15 @@ export const settingsEs = {
     carsAhead: 'Coches delante',
     carsBehind: 'Coches detrás',
     columns: 'Columnas',
-    classPosition: 'Posición en clase',
     stint: 'Vueltas del stint',
     stintHelp: 'Desde su última parada, o desde la salida',
     tyre: 'Neumático',
     tyreHelp:
-      'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche',
-    incidents: 'Incidentes en la cabecera',
-    incidentsHelp: 'Los tuyos (y los del equipo) y el próximo límite de la sesión: «3x · DQ a 17x»'
+      'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
   },
   radar: {
     range: 'Alcance',
     rangeHelp: 'Distancia por delante y por detrás que cubre el radar',
-    labels: 'Mostrar distancias',
     labelsHelp: 'Etiquetas con la distancia en las guías del radar'
   },
   standings: {
@@ -449,34 +445,16 @@ export const settingsEs = {
     deltaAll: 'Δ iRating de todos',
     deltaAllHelp:
       'El cambio de iRating proyectado en cada fila, no solo en la tuya (activa la columna)',
-    header: 'Cabecera',
-    headerHelp:
-      'Tu iRating y SR proyectados, con el margen de incidentes (estimación, solo en carrera)',
-    safetyRating: 'Safety rating',
-    incidents: 'Incidentes',
-    incidentsHelp: 'En cualquier sesión, con el próximo límite: «3x · DQ a 17x»',
-    classLine: 'Línea de clase',
-    sof: 'SoF',
-    carCount: 'Número de coches'
+    classLine: 'Línea de clase'
   },
   /** Standings column editor. */
   columns: {
     title: 'Columnas',
-    count: (visible: number, total: number) => `${visible} de ${total} visibles`,
-    /** Split around the drag handle glyph. */
-    intro: {
-      before: 'Arrastra',
-      after:
-        'o usa ↑ ↓ para ordenarlas. Si la ventana se queda estrecha se ocultan primero las menos importantes; el nombre siempre cabe.'
-    },
-    fixedList: 'Columnas fijas',
-    fixedTag: 'Fija',
     fixed: {
       pos: 'Posición',
       num: 'Número',
       name: 'Nombre'
     },
-    list: 'Columnas de la derecha, en orden',
     labels: {
       gained: 'Puestos ganados',
       ir: 'iRating',
@@ -503,57 +481,31 @@ export const settingsEs = {
       pitLap: 'Solo en carrera: la vuelta de su última parada (V12)',
       stint: 'Desde su última parada, o desde la salida (7 v)',
       tyre: 'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
-    },
-    move: (column: string) => `Mover ${column}`,
-    moveUp: (column: string) => `Subir ${column}`,
-    moveDown: (column: string) => `Bajar ${column}`,
-    defaultOrder: 'Orden por defecto',
-    /** Screen-reader announcements. */
-    moved: (column: string, position: number, total: number) =>
-      `${column} movida a la posición ${position} de ${total}.`,
-    shown: (column: string) => `${column} visible.`,
-    hidden: (column: string) => `${column} oculta.`,
-    reordered: 'Columnas en el orden por defecto.'
+    }
   },
   battle: {
     threshold: 'Mostrar cuando el hueco sea menor de',
     thresholdHelp: 'Aparece solo con un rival de tu clase a menos de este tiempo',
     holdHelp:
       'Sigue en pantalla este tiempo después de que el rival se aleje, para que no parpadee',
-    rivals: 'Rivales',
-    noRivals: 'Sin rivales el widget no se muestra',
-    ahead: 'Coche de delante',
-    behind: 'Coche de detrás',
     layoutChoices: {
       stacked: { label: 'Apilada', hint: 'Delante arriba, detrás abajo' },
       side: { label: 'Lado a lado', hint: 'Para ventanas anchas (520 px o más)' }
     },
-    detail: 'Detalle',
-    detailHelp: 'Diferencia por sector o por vuelta: + es a tu favor',
     detailChoices: {
-      none: { label: 'Ninguno' },
       sectors: { label: 'Sectores', hint: 'S1 S2 S3 y la última vuelta' },
-      laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' },
-      both: { label: 'Ambos' }
+      laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' }
     },
-    prediction: 'Predicción de alcance',
     predictionHelp: '«Le alcanzas en ~4 v de 19»',
-    atStake: 'iRating en juego',
     atStakeHelp: 'Cuánto iRating vale ese puesto'
   },
   inputs: {
-    layoutChoices: {
-      'trace-bars-info': { label: 'Traza · barras · datos' },
-      'info-bars-trace': { label: 'Datos · barras · traza' },
-      bars: { label: 'Solo barras', hint: 'Para un widget pequeño (~140 × 110)' }
-    },
     traceSeconds: 'Segundos de traza',
     traceSecondsHelp: 'Historia de acelerador, freno y embrague que muestra la gráfica',
     traceWidth: 'Grosor de la traza',
     clutchInTrace: 'Embrague en la traza',
     clutchInTraceHelp: 'Desactívalo si cambias con levas',
     steering: 'Volante',
-    gearSpeed: 'Marcha y velocidad',
     steeringStyle: 'Estilo del volante',
     steeringChoices: {
       bar: { label: 'Barra' },
@@ -568,13 +520,8 @@ export const settingsEs = {
     }
   },
   traffic: {
-    warnAbout: 'Avisar de',
-    nothing: 'Sin nada que avisar el widget no se muestra',
-    faster: 'Clase más rápida',
     fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
-    slower: 'Tráfico lento',
     slowerHelp: 'Una clase más lenta a la que alcanzas',
-    hazards: 'Peligros',
     hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
     behind: 'Mirar atrás',
     behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
@@ -657,7 +604,6 @@ export const settingsEs = {
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
-    compareWith: 'Comparar con',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -711,37 +657,8 @@ export const settingsEs = {
     trend: 'Tendencia',
     trendHelp: '«Ganando» o «perdiendo» según cómo cambia el delta ahora mismo'
   },
-  /** The conditions footer section of the relative and standings pages. */
-  conditionsFooter: {
-    title: 'Pie de condiciones',
-    note: 'iRacing no da pronóstico: todo es lo que hay ahora mismo',
-    show: 'Mostrar el pie',
-    relativeHelp:
-      'Una línea bajo la tabla con la pista, el agua, el viento y la goma; las filas ceden su alto',
-    standingsHelp:
-      'Una línea bajo la tabla con la pista, el agua, el viento y la goma; la tabla crece una línea',
-    readings: 'Datos',
-    readingsHelp: 'En ese orden: si la tabla es estrecha, los últimos se quitan primero',
-    nothing: 'Sin ningún dato marcado el pie no se muestra',
-    trackTemp: 'Temperatura de la pista',
-    trackTempHelp: 'La que mide el equipo alrededor del circuito',
-    trend: 'Tendencia de la pista',
-    trendHelp: 'Flecha si sube o baja en los últimos minutos',
-    wet: 'Agua en la pista',
-    wetHelp:
-      'Solo cuando la hay: cuánta (de casi seco a encharcado), la lluvia y «Declarada mojada» si se permiten los neumáticos de lluvia',
-    wind: 'Viento',
-    windHelp: 'La media del último minuto, medida en meta',
-    windDirection: 'Dirección respecto a tu coche',
-    windDirectionHelp: 'La flecha apunta a tu coche desde donde sopla. Solo al volante',
-    airTemp: 'Temperatura del aire',
-    rubber: 'Goma',
-    rubberHelp: 'La goma que había en la pista al empezar la sesión'
-  },
   fuel: {
     note: 'Lo que gastas en cada vuelta limpia: sin boxes, amarilla, grúa ni la primera de la carrera',
-    header: 'Cabecera',
-    headerHelp: 'Una banda con el nombre del widget y la etiqueta SIM',
     /** The hero line is always drawn; these are the others. */
     lines: 'Líneas',
     gauge: 'Depósito',
@@ -778,7 +695,6 @@ export const settingsEs = {
   },
   lights: {
     note: 'Como los testigos del salpicadero: en gris apagados, encendidos con su color y su forma',
-    nothing: 'Sin ningún testigo marcado el widget no se muestra',
     layout: 'Disposición',
     layoutChoices: {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
@@ -799,8 +715,6 @@ export const settingsEs = {
     tempsHelp: 'La del agua y la del aceite junto a su testigo: «98°»',
     repairTime: 'Tiempo de reparación',
     repairTimeHelp: 'Lo que tardarán en boxes: «REPARAR · 42 s», «OPC. · 38 s»',
-    /** The per-light toggles (labelled with the lights' names). */
-    lightsGroup: 'Testigos',
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
@@ -1007,7 +921,7 @@ export const settingsEs = {
         icon: 'Icono',
         cls: 'Clase',
         driver: 'Piloto',
-        lead: 'Delante / detrás',
+        lead: 'Texto antes del tiempo',
         value: 'Tiempo',
         sector: 'Sector'
       },
@@ -1082,7 +996,12 @@ export const settingsEs = {
     },
     /** How a short bar behaves (legibility rules). */
     fitNote:
-      'El texto nunca baja del tamaño mínimo: si no cabe, se quitan primero los datos menos importantes'
+      'El texto nunca baja del tamaño mínimo: si no cabe, se quitan primero los datos menos importantes',
+    /** Options of the track temperature and wind items, on whichever bar shows them. */
+    trend: 'Tendencia de la pista',
+    trendHelp: 'Flecha si sube o baja en los últimos minutos',
+    windDirection: 'Dirección respecto a tu coche',
+    windDirectionHelp: 'La flecha apunta a tu coche desde donde sopla. Solo al volante'
   },
   /** The driver cell's extras in the relative, the standings and the battle. */
   driverCell: {
@@ -1452,19 +1371,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsAhead: 'Cars ahead',
     carsBehind: 'Cars behind',
     columns: 'Columns',
-    classPosition: 'Class position',
     stint: 'Stint laps',
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
     tyreHelp:
-      'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model',
-    incidents: 'Incidents in the header',
-    incidentsHelp: 'Yours (and your team’s) and the session’s next limit: “3x · DQ at 17x”'
+      'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
   },
   radar: {
     range: 'Range',
     rangeHelp: 'How far ahead and behind the radar looks',
-    labels: 'Show distances',
     labelsHelp: 'Distance labels on the radar’s guide lines'
   },
   standings: {
@@ -1490,31 +1405,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     deltaAll: 'Δ iRating for everyone',
     deltaAllHelp: 'The projected iRating change on every row, not just yours (turns the column on)',
-    header: 'Header',
-    headerHelp: 'Your projected iRating and SR, with the incident margin (estimate, race only)',
-    safetyRating: 'Safety Rating',
-    incidents: 'Incidents',
-    incidentsHelp: 'In every session, with the next limit: “3x · DQ at 17x”',
-    classLine: 'Class line',
-    sof: 'SoF',
-    carCount: 'Car count'
+    classLine: 'Class line'
   },
   columns: {
     title: 'Columns',
-    count: (visible, total) => `${visible} of ${total} visible`,
-    intro: {
-      before: 'Drag',
-      after:
-        'or use ↑ ↓ to reorder them. If the window gets narrow, the least important ones are hidden first; the name always fits.'
-    },
-    fixedList: 'Fixed columns',
-    fixedTag: 'Fixed',
     fixed: {
       pos: 'Position',
       num: 'Number',
       name: 'Name'
     },
-    list: 'Right-hand columns, in order',
     labels: {
       gained: 'Positions gained',
       ir: 'iRating',
@@ -1540,55 +1439,31 @@ export const settingsEn: Dict<typeof settingsEs> = {
       pitLap: 'Race only: the lap of its last stop (L12)',
       stint: 'Since its last stop, or since the start (7 L)',
       tyre: 'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
-    },
-    move: (column) => `Move ${column}`,
-    moveUp: (column) => `Move ${column} up`,
-    moveDown: (column) => `Move ${column} down`,
-    defaultOrder: 'Default order',
-    moved: (column, position, total) => `${column} moved to position ${position} of ${total}.`,
-    shown: (column) => `${column} shown.`,
-    hidden: (column) => `${column} hidden.`,
-    reordered: 'Columns back in the default order.'
+    }
   },
   battle: {
     threshold: 'Show when the gap is under',
     thresholdHelp: 'Only appears with a rival from your class closer than this',
     holdHelp: 'Stays on screen this long after the gap opens up, so it doesn’t flicker',
-    rivals: 'Rivals',
-    noRivals: 'With no rival selected, the widget never shows',
-    ahead: 'Car ahead',
-    behind: 'Car behind',
     layoutChoices: {
       stacked: { label: 'Stacked', hint: 'Ahead on top, behind below' },
       side: { label: 'Side by side', hint: 'For wide windows (520 px or more)' }
     },
-    detail: 'Detail',
-    detailHelp: 'Difference per sector or per lap: + is in your favour',
     detailChoices: {
-      none: { label: 'None' },
       sectors: { label: 'Sectors', hint: 'S1 S2 S3 and the last lap' },
-      laps: { label: 'Laps', hint: 'The last three laps' },
-      both: { label: 'Both' }
+      laps: { label: 'Laps', hint: 'The last three laps' }
     },
-    prediction: 'Catch prediction',
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
     predictionHelp: '“Catching in ~4 L of 19”',
-    atStake: 'iRating at stake',
     atStakeHelp: 'How much iRating that position is worth'
   },
   inputs: {
-    layoutChoices: {
-      'trace-bars-info': { label: 'Trace · bars · info' },
-      'info-bars-trace': { label: 'Info · bars · trace' },
-      bars: { label: 'Bars only', hint: 'For a small widget (~140 × 110)' }
-    },
     traceSeconds: 'Trace length',
     traceSecondsHelp: 'How much throttle, brake and clutch history the graph shows',
     traceWidth: 'Trace thickness',
     clutchInTrace: 'Clutch in the trace',
     clutchInTraceHelp: 'Turn it off if you shift with paddles',
     steering: 'Steering',
-    gearSpeed: 'Gear and speed',
     steeringStyle: 'Steering style',
     steeringChoices: {
       bar: { label: 'Bar' },
@@ -1603,13 +1478,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   traffic: {
-    warnAbout: 'Warn about',
-    nothing: 'With nothing selected, the widget never shows',
-    faster: 'Faster class',
     fasterHelp: 'Catching you from behind: how soon and where',
-    slower: 'Slower traffic',
     slowerHelp: 'A slower class you are catching',
-    hazards: 'Hazards',
     hazardsHelp: 'Stopped, very slow or off-track cars ahead',
     behind: 'Look behind',
     behindHelp: 'Faster cars up to this far behind you',
@@ -1686,7 +1556,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     cycleNoKeys: 'Give it a shortcut in “Keyboard shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
-    compareWith: 'Compare with',
     references: {
       pb: {
         label: 'Personal best',
@@ -1738,36 +1607,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     trend: 'Trend',
     trendHelp: '“Gaining” or “losing” depending on how the delta is changing right now'
   },
-  conditionsFooter: {
-    title: 'Conditions footer',
-    note: 'iRacing gives no forecast: everything here is how it is right now',
-    show: 'Show the footer',
-    relativeHelp:
-      'A line under the table with the track, water, wind and rubber; the rows give up its height',
-    standingsHelp:
-      'A line under the table with the track, water, wind and rubber; the table grows by one line',
-    readings: 'Readings',
-    readingsHelp: 'In this order: on a narrow table the last ones go first',
-    nothing: 'With no reading ticked the footer stays hidden',
-    trackTemp: 'Track temperature',
-    trackTempHelp: 'Measured by the crew around the circuit',
-    trend: 'Track trend',
-    trendHelp: 'An arrow when it rises or falls over the last few minutes',
-    wet: 'Water on track',
-    wetHelp:
-      'Only when there is some: how much (from mostly dry to extremely wet), the rain, and “Declared wet” when rain tyres are allowed',
-    wind: 'Wind',
-    windHelp: 'The mean of the last minute, measured at the start/finish line',
-    windDirection: 'Direction relative to your car',
-    windDirectionHelp: 'The arrow points at your car from where the wind blows. Only while driving',
-    airTemp: 'Air temperature',
-    rubber: 'Rubber',
-    rubberHelp: 'The rubber on the track when the session started'
-  },
   fuel: {
     note: 'What you burn on each clean lap: no pit lane, caution, tow or the race’s first lap',
-    header: 'Header',
-    headerHelp: 'A band with the widget’s name and the SIM tag',
     lines: 'Lines',
     gauge: 'Tank',
     gaugeHelp: 'A bar of the fuel against what the tank holds, marked where you need it',
@@ -1797,7 +1638,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   lights: {
     note: 'Like a dashboard’s warning lights: grey when off, lit with their colour and their shape',
-    nothing: 'With no light selected, the widget never shows',
     layout: 'Layout',
     layoutChoices: {
       row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
@@ -1817,7 +1657,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     tempsHelp: 'The water and oil temperature next to their lights: “98°”',
     repairTime: 'Repair time',
     repairTimeHelp: 'How long they take in the pits: “REPAIR · 42 s”, “OPT. · 38 s”',
-    lightsGroup: 'Lights',
     trend: 'Rising temperature',
     trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average: “+6°”`,
     help: {
@@ -2001,7 +1840,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         icon: 'Icon',
         cls: 'Class',
         driver: 'Driver',
-        lead: 'Ahead / behind',
+        lead: 'Words before the time',
         value: 'Time',
         sector: 'Sector'
       },
@@ -2069,7 +1908,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
       large: { label: 'Large' }
     },
     fitNote:
-      'Text never goes below the minimum size: when it does not fit, the least important items go first'
+      'Text never goes below the minimum size: when it does not fit, the least important items go first',
+    trend: 'Track trend',
+    trendHelp: 'An arrow when it rises or falls over the last few minutes',
+    windDirection: 'Direction relative to your car',
+    windDirectionHelp: 'The arrow points at your car from where the wind blows. Only while driving'
   },
   driverCell: {
     brandMarks: 'Car make logo',

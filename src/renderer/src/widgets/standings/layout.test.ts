@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INFO_BAR_LINE_EM } from '@shared/infoBar'
+import { INFO_BAR_LINE_EM, INFO_BAR_TOP_EM } from '@shared/infoBar'
 import { BORDER_PX } from './columns'
 import {
   BAR_RULE_PX,
@@ -61,8 +61,9 @@ describe('barPx', () => {
 describe('chromePx', () => {
   it('adds each header bar, the heads, the footer (or the paddings) and the borders', () => {
     const bar = barPx('normal', 13)
-    expect(chromePx(TWO, 13)).toBeCloseTo(BORDER_PX + 2 * bar + BOTTOM_PAD_EM * 13, 9)
-    expect(chromePx(FOOTED, 13)).toBeCloseTo(BORDER_PX + 3 * bar, 9)
+    const top = barPx('normal', 13, true)
+    expect(chromePx(TWO, 13)).toBeCloseTo(BORDER_PX + top + bar + BOTTOM_PAD_EM * 13, 9)
+    expect(chromePx(FOOTED, 13)).toBeCloseTo(BORDER_PX + top + 2 * bar, 9)
     expect(chromePx({ ...TWO, heads: true }, 13) - chromePx(TWO, 13)).toBeCloseTo(HEADS_EM * 13, 9)
   })
 
@@ -76,7 +77,16 @@ describe('chromePx', () => {
 
   it('follows each bar’s size', () => {
     const small: Chrome = { head: ['small'], heads: false, foot: 'large' }
-    expect(chromePx(small, 13)).toBeCloseTo(BORDER_PX + barPx('small', 13) + barPx('large', 13), 9)
+    expect(chromePx(small, 13)).toBeCloseTo(
+      BORDER_PX + barPx('small', 13, true) + barPx('large', 13),
+      9
+    )
+  })
+
+  it('draws the two header lines as tall as today’s header: 3.45 em, the top one as its band', () => {
+    expect(barPx('normal', 16, true) - BAR_RULE_PX).toBeCloseTo(INFO_BAR_TOP_EM * 16, 9)
+    const lines = barPx('normal', 16, true) + barPx('normal', 16) - 2 * BAR_RULE_PX
+    expect(lines / 16).toBeCloseTo(0.3 * 2 + 1.5 + 1.35, 9)
   })
 })
 
@@ -99,7 +109,7 @@ describe('panelHeightPx', () => {
 
   it('scales with the font and is 0 for unusable input', () => {
     expect(panelHeightPx(10, ONE, 26) - panelHeightPx(10, ONE, 13)).toBeCloseTo(
-      (10 + INFO_BAR_LINE_EM + BOTTOM_PAD_EM) * 13,
+      (10 + INFO_BAR_TOP_EM + BOTTOM_PAD_EM) * 13,
       9
     )
     expect(panelHeightPx(10, ONE, 0)).toBe(0)

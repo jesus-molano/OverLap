@@ -12,6 +12,8 @@ import { elementFields, type ElementField, type OptionSection } from '@shared/se
 export interface CustomizeHost {
   /** The id of the element the editors are moved into. */
   readonly targetId: string
+  /** The id of the element reference sections go into, after the editors (PageAppendix). */
+  readonly appendixId: string
   /** How many CustomizeSections are mounted (0: the page has no editors). */
   readonly count: ShallowRef<number>
 }
@@ -23,8 +25,17 @@ export function customizeTargetId(base: string): string {
   return `st-customize-${base.replace(/[^\w-]/g, '')}`
 }
 
+/** The same for the reference sections that follow the editors (PageAppendix). */
+export function customizeAppendixId(base: string): string {
+  return customizeTargetId(base).replace(/^st-customize-/, 'st-appendix-')
+}
+
 export function provideCustomizeHost(base: string): CustomizeHost {
-  const host: CustomizeHost = { targetId: customizeTargetId(base), count: shallowRef(0) }
+  const host: CustomizeHost = {
+    targetId: customizeTargetId(base),
+    appendixId: customizeAppendixId(base),
+    count: shallowRef(0)
+  }
   provide(HOST, host)
   return host
 }

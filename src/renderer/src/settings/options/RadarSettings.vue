@@ -9,6 +9,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 
 const opts = useOptions('radar')
@@ -41,11 +42,13 @@ const setParts = listSetter('radar', 'parts')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'radar', 'parts')"
-    :items="opts.parts"
-    :spec="OPTION_SCHEMA.radar.parts"
-    :labels="partTexts"
-    :apply="setParts"
-  />
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'radar', 'parts')"
+      :items="opts.parts"
+      :spec="OPTION_SCHEMA.radar.parts"
+      :labels="partTexts"
+      :apply="setParts"
+    />
+  </CustomizeSection>
 </template>

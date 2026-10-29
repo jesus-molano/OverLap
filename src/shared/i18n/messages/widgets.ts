@@ -461,7 +461,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   laps: {
     about: (n) => `~${n}${NB}L`,
     underOne: `<${NB}1${NB}L`,
-    timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}L`,
+    timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}laps`,
     left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`),
     unit: 'L',
     number: (n) => `L${n}`

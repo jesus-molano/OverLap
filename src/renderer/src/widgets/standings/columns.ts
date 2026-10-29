@@ -8,7 +8,9 @@ import type { AppearanceSettings, StandingsColumnId, StandingsOptions } from '@s
 
 /**
  * First to go when the window narrows. 'gap' never goes (nor the position and the name). The
- * stint extras go before the best lap, which goes before anything that was there first.
+ * stint extras go before the best lap, which goes before anything that was there first. The flag
+ * and the make's mark (DECORATIONS_BEFORE) go before the best lap too: a decoration never costs a
+ * column the table had before it.
  */
 export const DROP_ORDER = [
   'delta',
@@ -23,6 +25,9 @@ export const DROP_ORDER = [
   'last',
   'pit'
 ] as const satisfies readonly StandingsColumnId[]
+
+/** The first column of DROP_ORDER that the flag, then the make's mark, go before. */
+export const DECORATIONS_BEFORE: (typeof DROP_ORDER)[number] = 'best'
 
 /** Narrowest readable name (em): "P. Duvalier" at the default size. */
 export const NAME_MIN_EM = 8
@@ -175,8 +180,8 @@ export function rowWidthEm(widthPx: number, fontPx: number): number {
 
 /**
  * The columns that fit `widthPx` at `fontPx`: every wanted column while the name keeps
- * NAME_MIN_EM, otherwise columns go in DROP_ORDER; if the name is still short the flag goes,
- * then the make's mark; if it is still short, or the row is narrower than NARROW_EM, the number
+ * NAME_MIN_EM, otherwise columns go in DROP_ORDER, the flag and then the make's mark before
+ * DECORATIONS_BEFORE (if the name is still short at the end they go anyway); if it is still short, or the row is narrower than NARROW_EM, the number
  * chip becomes a bare stripe (without mark or flag). A width of 0 (not measured yet) keeps every
  * wanted column.
  */
@@ -205,11 +210,16 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
 
   let cells = shown
   if (measured) {
+    const short = (): boolean => widthEm - fixedEm(cells) < NAME_MIN_EM
     for (const id of DROP_ORDER) {
-      if (widthEm - fixedEm(cells) >= NAME_MIN_EM) break
+      if (!short()) break
+      if (id === DECORATIONS_BEFORE) {
+        if (flag) flag = false
+        if (brand && short()) brand = false
+        if (!short()) break
+      }
       if (cells.includes(id)) cells = cells.filter((c) => c !== id)
     }
-    const short = (): boolean => widthEm - fixedEm(cells) < NAME_MIN_EM
     if (flag && short()) flag = false
     if (brand && short()) brand = false
     if (short() || widthEm < NARROW_EM) {

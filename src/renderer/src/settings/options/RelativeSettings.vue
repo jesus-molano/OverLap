@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { INFO_BAR_SIZES } from '@shared/infoBar'
 import { RELATIVE_CARS_MAX, RELATIVE_CARS_MIN } from '@shared/settings'
 import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { RelativeColumnId } from '@shared/types'
@@ -15,8 +14,10 @@ import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import type { ElementText } from '../elements/listOps'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 
 /**
@@ -45,18 +46,9 @@ const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(()
     stint: { label: base.stint.label, hint: r.stintHelp }
   }
 })
-const barTexts = computed(() => elementTexts(t.value, 'relative', 'headerBar'))
 const brandChoices = computed(() =>
   choiceOptions(BRAND_MARK_CHOICES, t.value.settings.driverCell.brandChoices)
 )
-const sizeChoices = computed(() =>
-  choiceOptions(INFO_BAR_SIZES, t.value.settings.infoBar.sizeChoices)
-)
-
-// The trend arrow and the wind dial are the section's options: offered on whichever bar shows
-// the item, greyed out while it is hidden or its bar is off.
-const headerOff = computed(() => opts.value.headerBarSize === 'off')
-const footerOff = computed(() => opts.value.footerBarSize === 'off')
 </script>
 
 <template>
@@ -92,15 +84,15 @@ const footerOff = computed(() => opts.value.footerBarSize === 'off')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'relative', 'columns')"
-    :items="opts.columns"
-    :spec="R.columns"
-    :labels="columnTexts"
-    :apply="listSetter('relative', 'columns')"
-  >
-    <template #footer>
-      <div class="rl-zone-opts">
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'relative', 'columns')"
+      :items="opts.columns"
+      :spec="R.columns"
+      :labels="columnTexts"
+      :apply="listSetter('relative', 'columns')"
+    >
+      <template #footer>
         <ToggleControl
           kind="switch"
           :label="t.settings.driverCell.columnHeads"
@@ -122,90 +114,10 @@ const footerOff = computed(() => opts.value.footerBarSize === 'off')
           :current="opts.countryFlags"
           :apply="set('countryFlags')"
         />
-      </div>
-    </template>
-  </ElementEditor>
+      </template>
+    </ElementEditor>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'relative', 'headerBar')"
-    :items="opts.headerBar"
-    :spec="R.headerBar"
-    :labels="barTexts"
-    :apply="listSetter('relative', 'headerBar')"
-  >
-    <template #extra="{ id, visible }">
-      <ToggleControl
-        v-if="id === 'trackTemp'"
-        :label="t.settings.conditionsFooter.trend"
-        :current="opts.conditionsTrend"
-        :disabled="!visible || headerOff"
-        :apply="set('conditionsTrend')"
-      />
-      <ToggleControl
-        v-else-if="id === 'wind'"
-        :label="t.settings.conditionsFooter.windDirection"
-        :current="opts.conditionsWindDirection"
-        :disabled="!visible || headerOff"
-        :apply="set('conditionsWindDirection')"
-      />
-    </template>
-    <template #footer>
-      <div class="rl-zone-opts">
-        <ChoiceControl
-          :label="t.settings.infoBar.size"
-          :help="t.settings.infoBar.fitNote"
-          :current="opts.headerBarSize"
-          :options="sizeChoices"
-          :apply="set('headerBarSize')"
-        />
-      </div>
-    </template>
-  </ElementEditor>
-
-  <ElementEditor
-    :title="zoneTitle(t, 'relative', 'footerBar')"
-    :items="opts.footerBar"
-    :spec="R.footerBar"
-    :labels="barTexts"
-    :apply="listSetter('relative', 'footerBar')"
-  >
-    <template #extra="{ id, visible }">
-      <ToggleControl
-        v-if="id === 'trackTemp'"
-        :label="t.settings.conditionsFooter.trend"
-        :current="opts.conditionsTrend"
-        :disabled="!visible || footerOff"
-        :apply="set('conditionsTrend')"
-      />
-      <ToggleControl
-        v-else-if="id === 'wind'"
-        :label="t.settings.conditionsFooter.windDirection"
-        :current="opts.conditionsWindDirection"
-        :disabled="!visible || footerOff"
-        :apply="set('conditionsWindDirection')"
-      />
-    </template>
-    <template #footer>
-      <div class="rl-zone-opts">
-        <ChoiceControl
-          :label="t.settings.infoBar.size"
-          :help="t.settings.infoBar.fitNote"
-          :current="opts.footerBarSize"
-          :options="sizeChoices"
-          :apply="set('footerBarSize')"
-        />
-      </div>
-    </template>
-  </ElementEditor>
+    <InfoBarEditor section="relative" field="headerBar" />
+    <InfoBarEditor section="relative" field="footerBar" />
+  </CustomizeSection>
 </template>
-
-<style scoped>
-/* The zone's own options under its list, ruled off from it. */
-.rl-zone-opts {
-  display: grid;
-  gap: 2px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--st-border);
-}
-</style>

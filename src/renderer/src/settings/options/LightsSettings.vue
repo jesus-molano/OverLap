@@ -12,6 +12,8 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
+import PageAppendix from '../layout/PageAppendix.vue'
 import PageSection from '../layout/PageSection.vue'
 import LightsLegend from './LightsLegend.vue'
 
@@ -82,16 +84,16 @@ const setIcons = listSetter('lights', 'icons')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'lights', 'icons')"
-    :items="opts.icons"
-    :spec="OPTION_SCHEMA.lights.icons"
-    :labels="iconTexts"
-    :apply="setIcons"
-    empty-hides
-  >
-    <template #footer>
-      <div class="st-card li-extras">
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'lights', 'icons')"
+      :items="opts.icons"
+      :spec="OPTION_SCHEMA.lights.icons"
+      :labels="iconTexts"
+      :apply="setIcons"
+      empty-hides
+    >
+      <template #footer>
         <ToggleControl
           kind="switch"
           :label="t.settings.lights.trend"
@@ -100,15 +102,11 @@ const setIcons = listSetter('lights', 'icons')
           :disabled="noTemps"
           :apply="set('showTrend')"
         />
-      </div>
-    </template>
-  </ElementEditor>
+      </template>
+    </ElementEditor>
+  </CustomizeSection>
 
-  <LightsLegend />
+  <PageAppendix>
+    <LightsLegend />
+  </PageAppendix>
 </template>
-
-<style scoped>
-.li-extras {
-  margin-top: 10px;
-}
-</style>

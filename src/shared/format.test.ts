@@ -250,7 +250,7 @@ describe('moved renderer formatters', () => {
   })
 
   it('says what is left in English', () => {
-    expect(formatRemaining(18.6, 2299, EN)).toBe(`38:19\u2002≈19${NBSP}L`)
+    expect(formatRemaining(18.6, 2299, EN)).toBe(`38:19\u2002≈19${NBSP}laps`)
     expect(formatRemaining(12, null, EN)).toBe(`12${NBSP}laps left`)
     expect(formatRemaining(1, null, EN)).toBe(`1${NBSP}lap left`)
     expect(formatLaps(5.6, EN)).toBe(`~6${NBSP}L`)

@@ -1514,6 +1514,10 @@ export interface FuelOptions {
   /** The header bar (off by default): the widget's name and whatever items you add. */
   headerBar: ElementList<InfoBarEntryId>
   headerBarSize: InfoBarSize
+  /** Arrow after the track temperature (the `trackTemp` item). */
+  conditionsTrend: boolean
+  /** The `wind` item's dial. */
+  conditionsWindDirection: boolean
   /**
    * The lines in order: the hero (fuel and laps), the tank gauge, the litres per lap, what to
    * the flag and what to add, the pit window, the saving, the tyres, the repairs and sets left.

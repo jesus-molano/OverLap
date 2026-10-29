@@ -20,6 +20,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { formatPx, formatSeconds, stepValues } from '../values'
 
@@ -128,27 +129,29 @@ const setInfo = listSetter('inputs', 'info')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'inputs', 'sections')"
-    :items="opts.sections"
-    :spec="I.sections"
-    :labels="sectionTexts"
-    :apply="setSections"
-  />
-  <ElementEditor
-    :title="zoneTitle(t, 'inputs', 'bars')"
-    :items="opts.bars"
-    :spec="I.bars"
-    :labels="barTexts"
-    :apply="setBars"
-  />
-  <ElementEditor
-    :title="zoneTitle(t, 'inputs', 'info')"
-    :items="opts.info"
-    :spec="I.info"
-    :labels="infoTexts"
-    :apply="setInfo"
-  />
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'inputs', 'sections')"
+      :items="opts.sections"
+      :spec="I.sections"
+      :labels="sectionTexts"
+      :apply="setSections"
+    />
+    <ElementEditor
+      :title="zoneTitle(t, 'inputs', 'bars')"
+      :items="opts.bars"
+      :spec="I.bars"
+      :labels="barTexts"
+      :apply="setBars"
+    />
+    <ElementEditor
+      :title="zoneTitle(t, 'inputs', 'info')"
+      :items="opts.info"
+      :spec="I.info"
+      :labels="infoTexts"
+      :apply="setInfo"
+    />
+  </CustomizeSection>
 
   <PageSection :title="t.settings.inputs.colors" :note="t.settings.inputs.colorsNote">
     <ColorControl
