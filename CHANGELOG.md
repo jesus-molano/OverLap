@@ -18,6 +18,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Lo oculto se ve igual en todas las vistas previas**: con el ratón sobre la vista previa, lo
+  que tengas oculto en cualquier lista (columnas, capas, testigos, avisos, líneas…) se dibuja
+  translúcido donde iría, y un clic lo vuelve a mostrar; antes solo pasaba con las barras de datos
+  y algunas listas, y en el resto había que buscarlo debajo. Un solo texto de ayuda en todas.
 - **Las columnas de Relativo y Posiciones se llaman y editan igual**: «Posición» (en tu clase) y
   «Piloto» en las dos (Posiciones decía «Nombre» y Relativo «Posición en clase»), el mismo
   candado, en el sitio del ojo, para lo que siempre se ve (Posiciones ponía «Fijo»), iRating

@@ -6,6 +6,7 @@
  * ghosted while you edit, and the one stylesheet that outlines, lights and ghosts them.
  */
 import { INFO_BARS, type InfoBarSection } from '@shared/infoBar'
+import { CUSTOMIZE_ZONE_IDS } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import {
   isRequired,
@@ -415,19 +416,16 @@ export const NEAR_OFFSETS: readonly (readonly [number, number])[] = [
 // ---- Ghosts -----------------------------------------------------------------------------------
 
 /**
- * The zones whose hidden elements the sample draws ghosted while you edit: the info bars (an
- * item the bar has no room for is simply not drawn, and the ghosts go first: InfoBar), and two
- * stacks of lines that only grow the widget's height. A table's columns are not ghosted: a
- * hidden column drawn would squeeze the others and misrepresent the widths; its way back is the
- * list (as for every zone the sample cannot draw).
+ * The zones whose hidden elements the sample draws ghosted while you edit: every one (R41), so a
+ * hidden element looks the same in every preview, translucent where it would go, and comes back
+ * with a click on it. An info bar's item it has no room for is simply not drawn (the ghosts go
+ * first: InfoBar); a hidden column takes its width while you edit (the sample shows what showing
+ * it would do). A traffic group is ghosted by its lines' `data-group` (its caption has the
+ * `data-el` a click needs).
  */
-export const GHOST_ZONES: ReadonlySet<CustomizeZoneId> = new Set<CustomizeZoneId>([
-  ...(Object.entries(INFO_BARS).flatMap(([section, bars]) =>
-    bars.map(([field]) => `${section}.${field}`)
-  ) as CustomizeZoneId[]),
-  'fuel.lines',
-  'battle.rows'
-])
+export const GHOST_ZONES: ReadonlySet<CustomizeZoneId> = new Set<CustomizeZoneId>(
+  CUSTOMIZE_ZONE_IDS
+)
 
 /** The size field of an info bar zone ('relative.headerBar' → 'headerBarSize'), else null. */
 function barSizeField(zone: CustomizeZoneId): string | null {
@@ -533,6 +531,9 @@ const SAFE = /^[a-zA-Z.]+$/
 export const isPlainKey = (key: string): boolean => SAFE.test(key)
 
 const sel = (scope: string, key: string): string => `${scope} [data-el="${key}"]`
+/** A ghost: its element, or the lines of a group (the traffic's, by `data-group`). */
+const ghostSel = (scope: string, key: string): string =>
+  `${sel(scope, key)}, ${scope} [data-group="${key}"]`
 
 /**
  * The rules for `marks` under `scope` (the sample's root selector), by attribute, so nothing in
@@ -546,7 +547,7 @@ export function marksCss(scope: string, marks: Marks): string {
   const rules: string[] = []
   const ghosts = marks.ghosts.filter(isPlainKey)
   if (ghosts.length > 0) {
-    rules.push(`${ghosts.map((k) => sel(scope, k)).join(',\n')} {\n` + '  opacity: 0.42;\n}')
+    rules.push(`${ghosts.map((k) => ghostSel(scope, k)).join(',\n')} {\n` + '  opacity: 0.42;\n}')
   }
   if (marks.dragged !== null && SAFE.test(elKey(marks.dragged))) {
     rules.push(`${sel(scope, elKey(marks.dragged))} {\n  opacity: 0.3;\n}`)

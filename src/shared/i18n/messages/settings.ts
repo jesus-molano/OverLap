@@ -85,9 +85,8 @@ export const settingsEs = {
   preview: {
     /** Above the preview until dismissed (settingsWindow.previewHint). */
     hint: 'Arrastra en la vista previa para ordenar; clic para mostrar u ocultar',
-    hintMore: 'Los ocultos se ven translúcidos mientras editas, donde caben.',
-    /** The same on a page whose preview draws no ghosts (previewEdit.ts GHOST_ZONES). */
-    hintMoreList: 'Lo que ocultes vuelve desde su lista, debajo.',
+    /** One text on every page (R41): every preview ghosts what is hidden. */
+    hintMore: 'Lo oculto se ve translúcido mientras editas, donde cabe: un clic lo muestra.',
     hintDismiss: 'Entendido',
     hintDismissLabel: 'Ocultar este consejo',
     /** Under an element's name on hover: what the pointer does to it. */
@@ -1513,8 +1512,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   preview: {
     hint: 'Drag in the preview to reorder; click to show or hide',
-    hintMore: 'Hidden elements show translucent while you edit, where they fit.',
-    hintMoreList: 'What you hide comes back from its list, below.',
+    hintMore: 'What is hidden shows translucent while you edit, where it fits: a click shows it.',
     hintDismiss: 'Got it',
     hintDismissLabel: 'Hide this tip',
     actions: {

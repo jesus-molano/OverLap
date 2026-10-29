@@ -4,7 +4,6 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
-import { GHOST_ZONES } from './previewEdit'
 import { injectPreviewEdit } from './usePreviewEdit'
 
 /**
@@ -20,10 +19,6 @@ const hint = useDraft<boolean>(
   optionSetter('settingsWindow')('previewHint')
 )
 const shown = computed(() => hint.value.value && edit !== null && edit.zones.value.size > 0)
-/** Whether a hidden element of this page can show ghosted; else its way back is its list. */
-const ghosted = computed(() =>
-  edit === null ? false : [...edit.zones.value.keys()].some((z) => GHOST_ZONES.has(z))
-)
 </script>
 
 <template>
@@ -31,9 +26,7 @@ const ghosted = computed(() =>
     <span class="pe-hint-icon" aria-hidden="true">⠿</span>
     <p class="pe-hint-text">
       <span class="pe-hint-main">{{ t.settings.preview.hint }}</span>
-      <span class="pe-hint-more">{{
-        ghosted ? t.settings.preview.hintMore : t.settings.preview.hintMoreList
-      }}</span>
+      <span class="pe-hint-more">{{ t.settings.preview.hintMore }}</span>
     </p>
     <button
       type="button"
