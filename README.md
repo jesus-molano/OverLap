@@ -188,7 +188,10 @@ Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arranc
 `--settings` (útil para un acceso directo). Todo se aplica **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día.
 La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
-coche**, igual que la bandeja.
+coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
+discontinuo, está activado pero una regla lo oculta ahora (el ratón encima dice cuál). El **chip de
+estado** de arriba dice qué está oculto y por qué; con un clic abre un panel con qué hacer,
+**Copiar diagnóstico** (para un informe de error, sin nombres) y **Abrir registro**.
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
   panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala (la misma fila y los

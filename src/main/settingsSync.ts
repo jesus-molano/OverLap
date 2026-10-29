@@ -47,6 +47,8 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'set-widget-bounds':
       return isWidgetId(cmd.widgetId) && isRect(cmd.bounds)
     case 'open-settings-folder':
+    case 'open-log':
+    case 'copy-diagnostics':
     case 'refresh-personal-bests':
     case 'clear-personal-bests':
       return true

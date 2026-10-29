@@ -129,6 +129,8 @@ describe('dictionaries', () => {
  */
 const SAME_IN_ENGLISH = new Set([
   'core.appName',
+  // A widget's name and its reason, both already translated.
+  'settings.status.hiddenOne',
   // 'No' reads the same in both.
   'settings.infoBar.sizeChoices.off.label',
   'settings.lights.captionsChoices.off.label',
