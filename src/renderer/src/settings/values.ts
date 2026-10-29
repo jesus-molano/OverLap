@@ -1,11 +1,19 @@
 /**
- * Value conversions and formatting for the settings controls. Pure. Same conventions as
- * @shared/format: a dot as decimal separator, a no-break space before the unit.
+ * Value conversions and formatting for the settings controls. Pure. One number format for every
+ * readout, preset and hint: no trailing zeros ('1 s', '1,5 s', never '1.0 s'), the language's
+ * decimal separator (core.decimal: a comma in Spanish), a no-break space before the unit. The
+ * widgets keep the sim's dot (lap times, gaps).
  */
 import { NBSP } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 
 export { NBSP }
+
+/**
+ * The quick buttons of every size in percent (a widget's «Escala», Apariencia's «Tamaño del
+ * texto»): one ladder, so 125 % is one click on both.
+ */
+export const SIZE_PRESETS = [80, 100, 125, 150] as const
 
 /** 0..1 opacity to a whole 0..100 percentage for the slider. */
 export function toPercent(opacity: number): number {
@@ -30,19 +38,23 @@ export function decimalsOf(step: number): number {
   return dot < 0 ? 0 : text.length - dot - 1
 }
 
-/** Trims float noise: 2.5 -> '2.5', 2 -> '2', 0.30000000000000004 -> '0.3' (at most 3 decimals). */
-function plain(v: number, maxDecimals = 3): string {
-  return String(Number(v.toFixed(maxDecimals)) || 0)
+/**
+ * A number without trailing zeros or float noise, in the language's decimals: 2.5 -> '2,5'
+ * (Spanish), 2 -> '2', 0.30000000000000004 -> '0,3' (at most `maxDecimals`).
+ */
+export function formatNumber(m: Messages, v: number, maxDecimals = 3): string {
+  const text = String(Number.isFinite(v) ? Number(v.toFixed(maxDecimals)) || 0 : 0)
+  return text.replace('.', m.core.decimal)
 }
 
-/** Seconds with a fixed number of decimals: formatSeconds(1.5, 1) -> '1.5 s'. */
-export function formatSeconds(s: number, decimals = 0): string {
-  return `${Number.isFinite(s) ? s.toFixed(decimals) : '0'}${NBSP}s`
+/** Seconds: formatSeconds(es, 1.5) -> '1,5 s', formatSeconds(es, 1) -> '1 s'. */
+export function formatSeconds(m: Messages, s: number): string {
+  return `${formatNumber(m, s)}${NBSP}s`
 }
 
-/** Pixels without trailing zeros: 2 -> '2 px', 1.5 -> '1.5 px'. */
-export function formatPx(px: number): string {
-  return `${plain(px)}${NBSP}px`
+/** Pixels: 2 -> '2 px', 1.5 -> '1,5 px' (Spanish). */
+export function formatPx(m: Messages, px: number): string {
+  return `${formatNumber(m, px)}${NBSP}px`
 }
 
 /**

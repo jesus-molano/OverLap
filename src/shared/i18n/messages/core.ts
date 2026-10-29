@@ -11,6 +11,11 @@ export const coreEs = {
    * English. Scale, text size and opacity readouts (edit-mode chip, settings sliders).
    */
   percent: (n: number) => `${n}\u00a0%`,
+  /**
+   * The decimal separator of a value in the settings ('1,5 s' in Spanish, '1.5 s' in English).
+   * The widgets keep the sim's dot, like lap times ('1:01.234', '+1.2').
+   */
+  decimal: ',',
   widgetTitles: {
     relative: 'Relativo',
     radar: 'Radar',
@@ -173,6 +178,7 @@ export const coreEs = {
 export const coreEn: Dict<typeof coreEs> = {
   appName: 'OverLap',
   percent: (n) => `${n}%`,
+  decimal: '.',
   widgetTitles: {
     relative: 'Relative',
     radar: 'Radar',

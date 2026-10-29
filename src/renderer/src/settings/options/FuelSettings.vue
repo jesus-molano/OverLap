@@ -14,6 +14,7 @@ import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import { formatNumber } from '../values'
 
 const opts = useOptions('fuel')
 const set = optionSetter('fuel')
@@ -24,8 +25,9 @@ const AVG: NumericSpec = S.avgLaps
 const MARGIN: NumericSpec = S.marginLaps
 const MARGIN_STEP = MARGIN.step ?? 0.1
 const MARGIN_PRESETS = [0, 0.5, 1, 2].filter((v) => v >= MARGIN.min && v <= MARGIN.max)
-/** '0.5 v' / '0.5 laps'. */
-const marginText = (v: number): string => t.value.settings.fuel.marginValue(v.toFixed(1))
+/** '0,5 v' / '0.5 laps', '1 v' (one number format: values.ts). */
+const marginText = (v: number): string =>
+  t.value.settings.fuel.marginValue(formatNumber(t.value, v, 1))
 /** How much less per lap still counts as within reach, as a whole percentage. */
 const SAVE_PCT = Math.round(FUEL_STRATEGY.saveReach * 100)
 

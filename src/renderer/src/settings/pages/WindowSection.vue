@@ -23,7 +23,7 @@ import { showInSetter, widgetSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import { replayNote, sessionScreenSwitch } from '../replayWidgets'
 import { dayUnreadable } from '../opacityNote'
-import { formatPercent, fromPercent, toPercent } from '../values'
+import { SIZE_PRESETS, formatPercent, fromPercent, toPercent } from '../values'
 
 /**
  * "Ventana y visibilidad", the same order on every page: its size (scale, height, the edge it
@@ -106,7 +106,6 @@ const heightChoices = computed(() =>
 const anchorChoices = computed(() =>
   choiceOptions(WIDGET_FIELD_SCHEMA.anchor.values, t.value.settings.window.anchorChoices)
 )
-const SCALE_PRESETS = [80, 100, 125, 150] as const
 /** Slider readout in the current language; a new function only when the language changes. */
 const percent = computed(() => (v: number) => formatPercent(t.value, v))
 </script>
@@ -121,7 +120,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
         :min="WIDGET_SCALE_MIN"
         :max="WIDGET_SCALE_MAX"
         :step="WIDGET_SCALE_STEP"
-        :presets="SCALE_PRESETS"
+        :presets="SIZE_PRESETS"
         :format="percent"
         :apply="set('scale')"
       />

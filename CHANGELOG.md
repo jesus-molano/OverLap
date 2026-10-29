@@ -18,6 +18,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Un solo formato de números en Ajustes**: sin «,0» de sobra («1 s», no «1.0 s» en Batalla y
+  Avisos) y con coma decimal en español («1,5 s», «0,5 v», «1,5 px»); los widgets mantienen el
+  punto del simulador, como los tiempos de vuelta. **Una sola escalera de botones rápidos** para
+  los tamaños: «Tamaño del texto» (Apariencia) usa 80/100/125/150 %, como «Escala». Los segundos
+  de la traza de Pedales tienen botones rápidos, como los demás deslizadores de tiempo.
 
 - **«Clasificación» pasa a llamarse «Posiciones»** en español (barra lateral, bandeja, título del
   widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En

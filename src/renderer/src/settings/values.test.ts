@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
 import {
   NBSP,
+  SIZE_PRESETS,
   clampInt,
   decimalsOf,
+  formatNumber,
   formatPercent,
   formatPx,
   formatSeconds,
@@ -39,20 +41,32 @@ describe('formatting', () => {
     expect(NBSP).toBe(' ')
     expect(formatPercent(messagesFor('es'), 80)).toBe(`80${NBSP}%`)
     expect(formatPercent(messagesFor('en'), 80)).toBe('80%')
-    expect(formatSeconds(5)).toBe('5 s')
+    expect(formatSeconds(messagesFor('es'), 5)).toBe('5 s')
   })
 
-  it('formats seconds with a dot and fixed decimals', () => {
-    expect(formatSeconds(1.5, 1)).toBe('1.5 s')
-    expect(formatSeconds(3, 1)).toBe('3.0 s')
-    expect(formatSeconds(0.30000000000000004, 1)).toBe('0.3 s')
-    expect(formatSeconds(Number.NaN)).toBe('0 s')
+  it('formats every number one way: no trailing zeros, the language’s decimal separator', () => {
+    const es = messagesFor('es')
+    const en = messagesFor('en')
+    // The same quantity reads the same on every page: never '1.0 s' beside '1 s'.
+    expect(formatSeconds(es, 1)).toBe('1 s')
+    expect(formatSeconds(es, 1.5)).toBe('1,5 s')
+    expect(formatSeconds(en, 1.5)).toBe('1.5 s')
+    expect(formatSeconds(es, 0)).toBe('0 s')
+    expect(formatSeconds(es, 0.30000000000000004)).toBe('0,3 s')
+    expect(formatSeconds(es, Number.NaN)).toBe('0 s')
+    expect(formatNumber(es, 1.25)).toBe('1,25')
+    expect(formatNumber(es, 0.55, 1)).toBe('0,6')
   })
 
   it('formats pixels without trailing zeros', () => {
-    expect(formatPx(2)).toBe('2 px')
-    expect(formatPx(1.5)).toBe('1.5 px')
-    expect(formatPx(2.5000000000000004)).toBe('2.5 px')
+    const es = messagesFor('es')
+    expect(formatPx(es, 2)).toBe('2 px')
+    expect(formatPx(es, 1.5)).toBe('1,5 px')
+    expect(formatPx(messagesFor('en'), 2.5000000000000004)).toBe('2.5 px')
+  })
+
+  it('uses one ladder of quick buttons for every size', () => {
+    expect(SIZE_PRESETS).toEqual([80, 100, 125, 150])
   })
 
   it('shows hex colours without the hash', () => {
