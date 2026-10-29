@@ -6,7 +6,7 @@ import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { widgetFontPx } from '../view/appearance'
 import type { InlineStyle } from '../view/styles'
 import { useAppearance } from './useAppearance'
-import { useWidgetSettings } from './useWidgetSettings'
+import { ownOptionsApply, useWidgetSettings } from './useWidgetSettings'
 import { injectWidgetId } from './widgetContext'
 
 /** Below this background opacity the text needs a dark halo to stay legible over the game. */
@@ -60,8 +60,13 @@ export function useWidgetSurface(id: WidgetId = injectWidgetId()): WidgetSurface
   const prefs = useWidgetSettings(id)
   const appearance = useAppearance()
   const def = WIDGET_DEFS[id]
+  // Apariencia's sample draws «Fondo de los widgets», as its slider and «Día» note say.
+  const own = ownOptionsApply()
   const bgAlpha = computed(() =>
-    widgetOpacity(prefs.value.backgroundOpacity, appearance.value.backgroundOpacity)
+    widgetOpacity(
+      own ? prefs.value.backgroundOpacity : 'inherit',
+      appearance.value.backgroundOpacity
+    )
   )
   const lowBg = computed(() => bgAlpha.value < LOW_BG_ALPHA)
   const halo = computed(() => haloOn(appearance.value.textHalo, bgAlpha.value))

@@ -26,7 +26,6 @@ const tenths = (s: number): string => formatSeconds(s, 1)
 
 // The blue, furled and overspeed switches hide with their own (their values stay): not counted.
 const nothing = computed(() => showsNothing(opts.value))
-
 /**
  * The hold applies to the flags, to the alerts a flicker could make unreadable and to the
  * incident line (never under their own minimum).

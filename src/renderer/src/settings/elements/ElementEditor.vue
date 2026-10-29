@@ -92,8 +92,8 @@ const props = withDefaults(
     omit?: readonly Id[]
     /** The accordion's summary instead of the count ('Normal · 4 de 15 visibles'). */
     summary?: string
-    /** The zone is switched off: its list is greyed out (still editable, for when it is on). */
-    dim?: boolean
+    /** The zone is switched off: only its head (the switch) and the reset show, no list. */
+    off?: boolean
     /**
      * Whether what the page resets along with the list (the reset's change goes to `apply`) is
      * at its default too: an info bar's switch and size. "Restablecer" is on while either is not.
@@ -108,7 +108,7 @@ const props = withDefaults(
     split: undefined,
     omit: () => [],
     summary: undefined,
-    dim: false,
+    off: false,
     restAtDefault: true
   }
 )
@@ -530,7 +530,7 @@ if (preview !== null) {
         title: () => props.title,
         list: () => current.value,
         label: (id) => labelOf(id as Id),
-        dim: () => props.dim,
+        off: () => props.off,
         setVisible: (id, visible) => setVisible(id as Id, visible, true),
         commit: (next, id) => {
           const before = current.value
@@ -567,71 +567,202 @@ function onCancel(e: PointerEvent): void {
     v-bind="frame.props"
     :class="{ 'is-zone-lit': litId !== null && !open }"
   >
-    <div ref="rootEl" class="ed" :class="{ 'in-acc': zone !== null, 'is-dim': dim }">
+    <div ref="rootEl" class="ed" :class="{ 'in-acc': zone !== null }">
       <div v-if="$slots.head" class="ed-head">
         <slot name="head" />
       </div>
 
-      <!-- In "Personalizar" the page says it once: here only for screen readers. -->
-      <p :id="helpId" class="st-help ed-intro" :class="{ 'st-sr-only': registry !== null }">
-        <template v-if="sortable && split !== undefined">
-          {{ t.settings.elements.introSides.before }}
-          <span class="ed-grip-inline" aria-hidden="true">⠿</span>
-          {{ t.settings.elements.introSides.middle }}
-          <span class="ed-grip-inline" aria-hidden="true">← →</span>
-          {{ t.settings.elements.introSides.after }}
-        </template>
-        <template v-else-if="sortable">
-          {{ t.settings.elements.intro.before }}
-          <span class="ed-grip-inline" aria-hidden="true">⠿</span>
-          {{ t.settings.elements.intro.after }}
-        </template>
-        <template v-else>{{ t.settings.elements.introFixed }}</template>
-      </p>
+      <!-- Switched off: nothing under the switch but the reset (R20: hide what does not apply). -->
+      <template v-if="!off">
+        <!-- In "Personalizar" the page says it once: here only for screen readers. -->
+        <p :id="helpId" class="st-help ed-intro" :class="{ 'st-sr-only': registry !== null }">
+          <template v-if="sortable && split !== undefined">
+            {{ t.settings.elements.introSides.before }}
+            <span class="ed-grip-inline" aria-hidden="true">⠿</span>
+            {{ t.settings.elements.introSides.middle }}
+            <span class="ed-grip-inline" aria-hidden="true">← →</span>
+            {{ t.settings.elements.introSides.after }}
+          </template>
+          <template v-else-if="sortable">
+            {{ t.settings.elements.intro.before }}
+            <span class="ed-grip-inline" aria-hidden="true">⠿</span>
+            {{ t.settings.elements.intro.after }}
+          </template>
+          <template v-else>{{ t.settings.elements.introFixed }}</template>
+        </p>
 
-      <ul v-if="fixedBefore.length > 0" class="ed-list">
-        <li v-for="f in fixedBefore" :key="f.key" class="ed-row is-fixed">
-          <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
-          <span class="ed-name">{{ f.label }}</span>
-          <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
-        </li>
-      </ul>
+        <ul v-if="fixedBefore.length > 0" class="ed-list">
+          <li v-for="f in fixedBefore" :key="f.key" class="ed-row is-fixed">
+            <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
+            <span class="ed-name">{{ f.label }}</span>
+            <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
+          </li>
+        </ul>
 
-      <div
-        ref="listEl"
-        class="ed-lists"
-        :class="{ dragging: dragId !== null, 'has-sides': split !== undefined }"
-        @pointermove="onMove"
-        @pointerup="onUp"
-        @pointercancel="onCancel"
-        @lostpointercapture="onCancel"
-        @pointerleave="onCancel"
-      >
         <div
-          v-for="box in boxes"
-          :key="box.side ?? 'all'"
-          class="ed-box"
-          :class="box.side ? `ed-box--${box.side}` : undefined"
+          ref="listEl"
+          class="ed-lists"
+          :class="{ dragging: dragId !== null, 'has-sides': split !== undefined }"
+          @pointermove="onMove"
+          @pointerup="onUp"
+          @pointercancel="onCancel"
+          @lostpointercapture="onCancel"
+          @pointerleave="onCancel"
         >
-          <!-- The right box's heading is the marker's slot: a drag measures it as one. -->
-          <div v-if="box.side" class="ed-side" :data-row="box.side === 'right' ? split : undefined">
-            <span class="ed-side-name">{{ t.settings.elements.sides[box.side] }}</span>
-            <span class="ed-side-help">{{ t.settings.elements.sidesHelp[box.side] }}</span>
+          <div
+            v-for="box in boxes"
+            :key="box.side ?? 'all'"
+            class="ed-box"
+            :class="box.side ? `ed-box--${box.side}` : undefined"
+          >
+            <!-- The right box's heading is the marker's slot: a drag measures it as one. -->
+            <div
+              v-if="box.side"
+              class="ed-side"
+              :data-row="box.side === 'right' ? split : undefined"
+            >
+              <span class="ed-side-name">{{ t.settings.elements.sides[box.side] }}</span>
+              <span class="ed-side-help">{{ t.settings.elements.sidesHelp[box.side] }}</span>
+            </div>
+            <ol
+              class="ed-list"
+              :aria-label="box.side ? `${title}: ${t.settings.elements.sides[box.side]}` : title"
+            >
+              <li
+                v-for="(r, n) in box.rows"
+                :key="r.entry.id"
+                class="ed-row"
+                :class="{
+                  'is-dragged': dragId === r.entry.id,
+                  'is-off': !r.entry.visible,
+                  'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
+                  'is-lit': litId === r.entry.id && dragId === null
+                }"
+                :data-row="r.entry.id"
+                @pointerenter="lightRow(r.entry.id)"
+                @pointerleave="lightRow(null)"
+                @focusin="lightRow(r.entry.id)"
+                @focusout="lightRow(null)"
+              >
+                <button
+                  v-if="sortable"
+                  type="button"
+                  class="ed-handle"
+                  data-focus="handle"
+                  :aria-label="t.settings.elements.move(labelOf(r.entry.id))"
+                  :aria-describedby="helpId"
+                  @pointerdown="onHandleDown($event, r.entry.id)"
+                  @keydown="onHandleKey($event, r.entry.id, r.index)"
+                >
+                  <span aria-hidden="true">⠿</span>
+                </button>
+                <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
+                <span
+                  v-if="isRequired(spec, r.entry.id)"
+                  class="ed-eye is-locked"
+                  :title="t.settings.elements.required"
+                >
+                  <Icon name="lock" :label="t.settings.elements.required" />
+                </span>
+                <button
+                  v-else
+                  type="button"
+                  class="ed-eye"
+                  data-focus="eye"
+                  :aria-pressed="r.entry.visible"
+                  :aria-label="
+                    r.entry.visible
+                      ? t.settings.elements.hide(labelOf(r.entry.id))
+                      : t.settings.elements.show(labelOf(r.entry.id))
+                  "
+                  @click="onEye(r.entry.id, !r.entry.visible)"
+                >
+                  <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
+                </button>
+                <span class="ed-text">
+                  <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
+                  <span v-if="blockedBy(spec, shown, r.entry.id) !== null" class="ed-hint">{{
+                    t.settings.elements.needsParent(
+                      labelOf(blockedBy(spec, shown, r.entry.id) as Id)
+                    )
+                  }}</span>
+                  <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
+                    labels[r.entry.id]?.hint
+                  }}</span>
+                </span>
+                <span v-if="$slots.extra" class="ed-extra"
+                  ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
+                /></span>
+                <span v-if="sortable" class="ed-arrows">
+                  <button
+                    v-if="box.side"
+                    type="button"
+                    class="st-btn st-btn-icon st-btn-ghost"
+                    data-focus="side"
+                    :aria-label="sideLabel(r.entry.id, box.side)"
+                    :title="sideLabel(r.entry.id, box.side)"
+                    :disabled="dragId !== null"
+                    @click="moveAcross(r.entry.id)"
+                  >
+                    {{ box.side === 'left' ? '→' : '←' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="st-btn st-btn-icon st-btn-ghost"
+                    data-focus="up"
+                    :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
+                    :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
+                    @click="move(r.entry.id, -1, 'up')"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    class="st-btn st-btn-icon st-btn-ghost"
+                    data-focus="down"
+                    :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
+                    :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
+                    @click="move(r.entry.id, 1, 'down')"
+                  >
+                    ↓
+                  </button>
+                </span>
+              </li>
+              <li v-if="box.side && box.rows.length === 0" class="ed-row is-empty">
+                {{ t.settings.elements.sideEmpty }}
+              </li>
+            </ol>
           </div>
-          <ol
-            class="ed-list"
-            :aria-label="box.side ? `${title}: ${t.settings.elements.sides[box.side]}` : title"
+        </div>
+
+        <!-- An info bar's hidden items: out of the boxes, in a group of their own. -->
+        <div v-if="hiddenRows.length > 0" class="ed-hidden" :class="{ 'is-open': hiddenOpen }">
+          <button
+            type="button"
+            class="ed-hidden-btn"
+            :class="{ 'is-lit': hiddenLit && !hiddenOpen }"
+            data-focus="hidden"
+            :aria-expanded="hiddenOpen"
+            :aria-controls="hiddenListId"
+            @click="hiddenOpen = !hiddenOpen"
+          >
+            <span class="ed-hidden-chev" aria-hidden="true"><Icon name="chevron" /></span>
+            <span class="ed-hidden-name">{{
+              t.settings.elements.hiddenGroup(hiddenRows.length)
+            }}</span>
+            <span class="ed-hidden-help">{{ t.settings.elements.hiddenGroupHelp }}</span>
+          </button>
+          <ul
+            v-show="hiddenOpen"
+            :id="hiddenListId"
+            class="ed-list ed-hidden-list"
+            :aria-label="`${title}: ${t.settings.elements.hiddenGroup(hiddenRows.length)}`"
           >
             <li
-              v-for="(r, n) in box.rows"
+              v-for="r in hiddenRows"
               :key="r.entry.id"
-              class="ed-row"
-              :class="{
-                'is-dragged': dragId === r.entry.id,
-                'is-off': !r.entry.visible,
-                'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
-                'is-lit': litId === r.entry.id && dragId === null
-              }"
+              class="ed-row is-off"
+              :class="{ 'is-lit': litId === r.entry.id }"
               :data-row="r.entry.id"
               @pointerenter="lightRow(r.entry.id)"
               @pointerleave="lightRow(null)"
@@ -639,166 +770,44 @@ function onCancel(e: PointerEvent): void {
               @focusout="lightRow(null)"
             >
               <button
-                v-if="sortable"
-                type="button"
-                class="ed-handle"
-                data-focus="handle"
-                :aria-label="t.settings.elements.move(labelOf(r.entry.id))"
-                :aria-describedby="helpId"
-                @pointerdown="onHandleDown($event, r.entry.id)"
-                @keydown="onHandleKey($event, r.entry.id, r.index)"
-              >
-                <span aria-hidden="true">⠿</span>
-              </button>
-              <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
-              <span
-                v-if="isRequired(spec, r.entry.id)"
-                class="ed-eye is-locked"
-                :title="t.settings.elements.required"
-              >
-                <Icon name="lock" :label="t.settings.elements.required" />
-              </span>
-              <button
-                v-else
                 type="button"
                 class="ed-eye"
                 data-focus="eye"
-                :aria-pressed="r.entry.visible"
-                :aria-label="
-                  r.entry.visible
-                    ? t.settings.elements.hide(labelOf(r.entry.id))
-                    : t.settings.elements.show(labelOf(r.entry.id))
-                "
-                @click="onEye(r.entry.id, !r.entry.visible)"
+                :aria-pressed="false"
+                :aria-label="t.settings.elements.show(labelOf(r.entry.id))"
+                @click="onEye(r.entry.id, true)"
               >
-                <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
+                <Icon name="eye-off" />
               </button>
               <span class="ed-text">
                 <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
-                <span v-if="blockedBy(spec, shown, r.entry.id) !== null" class="ed-hint">{{
-                  t.settings.elements.needsParent(labelOf(blockedBy(spec, shown, r.entry.id) as Id))
-                }}</span>
-                <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
+                <span v-if="labels[r.entry.id]?.hint" class="ed-hint">{{
                   labels[r.entry.id]?.hint
                 }}</span>
               </span>
-              <span v-if="$slots.extra" class="ed-extra"
-                ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
-              /></span>
-              <span v-if="sortable" class="ed-arrows">
-                <button
-                  v-if="box.side"
-                  type="button"
-                  class="st-btn st-btn-icon st-btn-ghost"
-                  data-focus="side"
-                  :aria-label="sideLabel(r.entry.id, box.side)"
-                  :title="sideLabel(r.entry.id, box.side)"
-                  :disabled="dragId !== null"
-                  @click="moveAcross(r.entry.id)"
-                >
-                  {{ box.side === 'left' ? '→' : '←' }}
-                </button>
-                <button
-                  type="button"
-                  class="st-btn st-btn-icon st-btn-ghost"
-                  data-focus="up"
-                  :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
-                  :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
-                  @click="move(r.entry.id, -1, 'up')"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  class="st-btn st-btn-icon st-btn-ghost"
-                  data-focus="down"
-                  :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
-                  :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
-                  @click="move(r.entry.id, 1, 'down')"
-                >
-                  ↓
-                </button>
-              </span>
+              <span class="ed-tag ed-side-tag">{{ t.settings.elements.hiddenSide[r.side] }}</span>
             </li>
-            <li v-if="box.side && box.rows.length === 0" class="ed-row is-empty">
-              {{ t.settings.elements.sideEmpty }}
-            </li>
-          </ol>
+          </ul>
         </div>
-      </div>
 
-      <!-- An info bar's hidden items: out of the boxes, in a group of their own. -->
-      <div v-if="hiddenRows.length > 0" class="ed-hidden" :class="{ 'is-open': hiddenOpen }">
-        <button
-          type="button"
-          class="ed-hidden-btn"
-          :class="{ 'is-lit': hiddenLit && !hiddenOpen }"
-          data-focus="hidden"
-          :aria-expanded="hiddenOpen"
-          :aria-controls="hiddenListId"
-          @click="hiddenOpen = !hiddenOpen"
-        >
-          <span class="ed-hidden-chev" aria-hidden="true"><Icon name="chevron" /></span>
-          <span class="ed-hidden-name">{{
-            t.settings.elements.hiddenGroup(hiddenRows.length)
-          }}</span>
-          <span class="ed-hidden-help">{{ t.settings.elements.hiddenGroupHelp }}</span>
-        </button>
-        <ul
-          v-show="hiddenOpen"
-          :id="hiddenListId"
-          class="ed-list ed-hidden-list"
-          :aria-label="`${title}: ${t.settings.elements.hiddenGroup(hiddenRows.length)}`"
-        >
-          <li
-            v-for="r in hiddenRows"
-            :key="r.entry.id"
-            class="ed-row is-off"
-            :class="{ 'is-lit': litId === r.entry.id }"
-            :data-row="r.entry.id"
-            @pointerenter="lightRow(r.entry.id)"
-            @pointerleave="lightRow(null)"
-            @focusin="lightRow(r.entry.id)"
-            @focusout="lightRow(null)"
-          >
-            <button
-              type="button"
-              class="ed-eye"
-              data-focus="eye"
-              :aria-pressed="false"
-              :aria-label="t.settings.elements.show(labelOf(r.entry.id))"
-              @click="onEye(r.entry.id, true)"
-            >
-              <Icon name="eye-off" />
-            </button>
-            <span class="ed-text">
-              <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
-              <span v-if="labels[r.entry.id]?.hint" class="ed-hint">{{
-                labels[r.entry.id]?.hint
-              }}</span>
-            </span>
-            <span class="ed-tag ed-side-tag">{{ t.settings.elements.hiddenSide[r.side] }}</span>
+        <ul v-if="fixedAfter.length > 0" class="ed-list ed-after">
+          <li v-for="f in fixedAfter" :key="f.key" class="ed-row is-fixed">
+            <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
+            <span class="ed-name">{{ f.label }}</span>
+            <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
           </li>
         </ul>
-      </div>
 
-      <ul v-if="fixedAfter.length > 0" class="ed-list ed-after">
-        <li v-for="f in fixedAfter" :key="f.key" class="ed-row is-fixed">
-          <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
-          <span class="ed-name">{{ f.label }}</span>
-          <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
-        </li>
-      </ul>
+        <p v-if="empty" class="st-help ed-warn">
+          {{ emptyHides ? t.settings.elements.emptyHides : t.settings.elements.empty }}
+        </p>
 
-      <p v-if="empty" class="st-help ed-warn">
-        {{ emptyHides ? t.settings.elements.emptyHides : t.settings.elements.empty }}
-      </p>
+        <p v-if="note" class="st-help ed-note">{{ note }}</p>
 
-      <p v-if="note" class="st-help ed-note">{{ note }}</p>
-
-      <div v-if="$slots.footer" class="ed-zone">
-        <slot name="footer" />
-      </div>
+        <div v-if="$slots.footer" class="ed-zone">
+          <slot name="footer" />
+        </div>
+      </template>
 
       <div class="ed-foot">
         <button
@@ -843,12 +852,6 @@ function onCancel(e: PointerEvent): void {
 
 .ed-head > :deep(* + *) {
   border-top: 1px solid var(--st-border);
-}
-
-/* Switched off: the list stays editable, quieter. */
-.ed.is-dim .ed-lists,
-.ed.is-dim .ed-intro {
-  opacity: 0.55;
 }
 
 .ed-intro {

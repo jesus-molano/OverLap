@@ -14,7 +14,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   inglés sigue siendo «Standings». Los ajustes guardados no cambian.
 - **Relativo sigue la densidad**, como ya decía Apariencia, y tiene en su página el mismo selector
   «Global / Cómoda / Compacta» que Posiciones. «Cómoda» (la de siempre) lo dibuja igual que antes;
-  «Compacta» junta las filas y agranda el texto en la misma ventana.
+  «Compacta» junta las filas y agranda el texto en la misma ventana. Si ya tenías la densidad global
+  en «Compacta», Relativo queda en «Cómoda» para verse como antes.
 - **Personalizar en el mismo orden en todos los widgets**: primero la lista principal (Columnas,
   Rivales, Grupos, Líneas…), que es la que se abre en una instalación nueva, luego las demás listas
   del contenido y al final Cabecera, Segunda línea y Pie. Batalla, Tráfico y Combustible ya no se
@@ -22,28 +23,35 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   Combustible. Las secciones que tenías abiertas siguen abiertas.
 - **Lo del widget primero** en cada página: Contenido, Personalizar y, al final, «Ventana y
   visibilidad» (tamaño, fondo, cuándo se muestra y bloqueo, en ese orden) antes de los botones de
-  restablecer. Antes la ventana ocupaba hasta diez filas por encima de lo que hace el widget.
+  restablecer. Antes la ventana ocupaba hasta diez filas por encima de lo que hace el widget. La
+  referencia por sesión de Delta, el cálculo de Combustible y los colores de Pedales están ahora en
+  su Contenido.
 - **Un fondo para todos los widgets**: en Apariencia, «Fondo de los widgets» (80 % por defecto)
   con botones rápidos de 25, 50, 80 y 100 %. En la página de cada widget, «Fondo» sigue el global
   («Global (80 %)») o usa una opacidad propia, con los mismos botones. En una instalación nueva
   todos usan el global; si ya tenías ajustes, cada widget conserva su opacidad (antes había 75, 78,
-  80 y 85 % sin motivo). La ayuda ya no habla de «coches» en widgets sin coches.
+  80 y 85 % sin motivo), y Apariencia lo dice con un botón, «Usar el global en todos», que los
+  pasa a «Global» de una vez. La vista previa de Apariencia usa el fondo global. La ayuda ya no
+  habla de «coches» en widgets sin coches. Si vuelves a una versión anterior, los widgets en
+  «Global» toman la opacidad que tenían por defecto en ella.
 - **Pantalla de sesión, en un solo sitio**: cada página de widget tiene el mismo interruptor
   «Mostrar en la pantalla de sesión»; en Radar, Pedales, Testigos, Delta y Combustible sale
   desactivado con el motivo. Apariencia ya no repite el de Posiciones y solo ofrece «Ocultar en la
   pantalla de sesión» cuando cambia algo (con «Siempre» o siguiendo las repeticiones).
 - **Un nombre para cada cosa**: «Vuelta rápida de clase» (antes también «Mejor de clase» en Delta),
   «iRating en juego» (antes también «Δ iRating» e «iRating proyectado»), «Orientación» en Batalla y
-  Testigos (no confunde con las disposiciones), «Títulos de columna» (no confunde con la cabecera),
-  «Banderas de carrera» en Avisos y su grupo «Durante la carrera». En inglés, el lado de los textos
-  de Testigos es «Text side» (antes, dos controles se llamaban «Captions»).
+  Testigos (no confunde con las disposiciones), «Óptima de clase» en Delta, «Títulos de columna»
+  (no confunde con la cabecera), «Banderas de carrera» en Avisos y su grupo «Durante la carrera».
+  En inglés, el lado de los textos de Testigos es «Text side» (antes, dos controles se llamaban
+  «Captions»).
 - **Menos notas repetidas**: «Guardando en» solo aparece con dos disposiciones o más (o con una de
   «Solo posición» en uso); la nota «Sin cabecera ni pie» ya no sale; cómo arrastrar y el ojo se
   explica una vez por página, en Personalizar, y no en cada lista; y se quitan las ayudas que
   repetían lo que ya dice la opción (el ejemplo del formato de nombre en cada widget, la del modo de
   Posiciones y la de «Filas alternas»).
 - **Un control donde había dos**: cada cabecera, segunda línea y pie tiene un solo selector «No /
-  Pequeña / Normal / Grande» en vez de un interruptor y un tamaño (con «No» se sigue ocultando).
+  Pequeña / Normal / Grande» en vez de un interruptor y un tamaño (con «No» se sigue ocultando, y
+  sus datos no se muestran en gris: vuelven como estaban al elegir un tamaño).
   En Testigos, «Rótulos: No / Derecha / Izquierda» (en fila, «No / Sí»). Y lo que no se aplica se
   oculta en vez de quedarse en gris: el modo compacto de Posiciones en modo completo, el tamaño y
   el color del volante con el estilo Barra, «Crece hacia» con alto fijo, las opciones de un grupo
@@ -53,7 +61,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   activado, se ignora (el valor se conserva).
 - **Bandeja más clara**: la casilla «Ocultar overlay» pasa a ser «Mostrar el overlay», marcada
   cuando se ve, como las de los widgets; el submenú de cuándo se ve se llama «Cuándo mostrar» y el
-  del radar «Alcance del radar».
+  del radar «Alcance del radar». En Apariencia, el control con esas opciones se llama «Cuándo
+  mostrar el overlay».
 - **Ayudas de una línea** en Apariencia, Atajos y Disposiciones: cada ayuda cabe en una línea (unos
   90 caracteres) y el resto está tras su ⓘ, que la despliega debajo. Los subtítulos de Atajos y
   Disposiciones y las notas de «Cómo funcionan» pasan de párrafos a una línea.

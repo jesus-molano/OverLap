@@ -124,7 +124,6 @@ export const settingsEs = {
     content: 'Contenido',
     /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
     customize: 'Personalizar',
-
     /** Every accordion of "Personalizar" at once. */
     expandAll: 'Expandir todo',
     collapseAll: 'Contraer todo',
@@ -182,6 +181,11 @@ export const settingsEs = {
       background: 'Fondo de los widgets',
       backgroundHelp:
         'La opacidad de los que tienen «Global» en su página; el contenido sigue opaco',
+      /** Widgets whose page says «Propio» (every one, in a file from before 2.3). */
+      ownBackgrounds: (n: number) =>
+        n === 1 ? '1 widget tiene su propio fondo' : `${n} widgets tienen su propio fondo`,
+      followGlobal: 'Usar el global en todos',
+      followGlobalDone: 'Todos los widgets siguen el fondo global',
       colorBlind: 'Paleta para daltónicos',
       colorBlindHelp:
         'Azul y naranja en lugar de verde y rojo; las flechas y los iconos se mantienen'
@@ -210,7 +214,6 @@ export const settingsEs = {
       title: 'Filas y pilotos',
       densityHelp: 'Alto de las filas en Posiciones y Relativo',
       stripes: 'Filas alternas',
-
       licenseChoices: {
         outline: { label: 'Contorno', hint: 'Borde fino del color de la licencia, sin fondo' },
         soft: { label: 'Suave', hint: 'Letra del color de la licencia, sin borde' },
@@ -247,7 +250,7 @@ export const settingsEs = {
     screen: {
       title: 'Visibilidad',
       /** visibility.showWhen; its choices are core.showWhen. */
-      showWhen: 'Mostrar el overlay',
+      showWhen: 'Cuándo mostrar el overlay',
       /** The help line under it, for the current choice. */
       showWhenHelp: {
         car: 'Mientras conduces; fuera del coche (garaje, pantalla de sesión…) se oculta',
@@ -657,7 +660,12 @@ export const settingsEs = {
     shiftLights: 'Luces de cambio',
     shiftLightsHelp:
       'Se encienden con las revoluciones hasta el punto de cambio del coche, donde se ponen todas en rojo, y parpadean si te pasas',
-    colors: 'Colores',
+    /** In «Contenido», after the trace options: one colour per pedal. */
+    pedalColors: {
+      throttle: 'Color del acelerador',
+      brake: 'Color del freno',
+      clutch: 'Color del embrague'
+    },
     colorsNote: 'Colores opacos: la traza los superpone',
     pedals: {
       throttle: 'Acelerador',
@@ -686,7 +694,6 @@ export const settingsEs = {
   },
   alerts: {
     nothing: 'Sin ningún aviso marcado el widget no se muestra',
-
     /** Groups of toggles after the flags ('Mostrar'). */
     pitGroup: 'Boxes',
     raceGroup: 'Durante la carrera',
@@ -734,10 +741,12 @@ export const settingsEs = {
   },
   delta: {
     reference: 'Referencia',
-    referenceNote: 'El récord personal se guarda por coche y trazado',
-    /** delta.reference*: one per kind of session (practice also warmup and testing). */
-    referenceBySession: 'Referencia por sesión',
-    referenceBySessionNote: 'Un cambio se aplica al empezar la próxima vuelta',
+    /**
+     * «Contenido»'s note, over delta.reference*: one per kind of session (practice also warmup
+     * and testing). How the records are kept is said once, in «Récords personales».
+     */
+    referenceBySessionNote:
+      'Referencia por sesión: un cambio se aplica al empezar la próxima vuelta',
     sessions: { practice: 'Práctica', qualify: 'Clasificación', race: 'Carrera' },
     /** Short names that fit the selector on one line ('Óptima de clase'). */
     referencesShort: {
@@ -838,7 +847,7 @@ export const settingsEs = {
     limits: 'Reparaciones y juegos',
     limitsHelp:
       'Las reparaciones rápidas y los juegos de neumáticos que te quedan, si la sesión los limita',
-    calc: 'Cálculo',
+    /** «Contenido»'s note: how the numbers are worked out. */
     calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
     avgLapsHelp: 'Cuántas de tus últimas vueltas limpias se promedian',
@@ -863,7 +872,6 @@ export const settingsEs = {
       right: { label: 'A la derecha' },
       left: { label: 'A la izquierda' }
     },
-
     onlyWhenLit: 'Solo encendidos',
     onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
     /** lights.showCaptions with, in a column, lights.labelSide: one choice. */
@@ -1503,6 +1511,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
       background: 'Widget background',
       backgroundHelp:
         'The opacity of those set to “Global” on their page; the content stays opaque',
+      ownBackgrounds: (n) =>
+        n === 1 ? '1 widget has its own background' : `${n} widgets have their own background`,
+      followGlobal: 'Use the global one on all',
+      followGlobalDone: 'Every widget follows the global background',
       colorBlind: 'Colour-blind palette',
       colorBlindHelp: 'Blue and orange instead of green and red; arrows and icons stay the same'
     },
@@ -1526,7 +1538,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'Rows and drivers',
       densityHelp: 'Row height in Standings and Relative',
       stripes: 'Alternating rows',
-
       licenseChoices: {
         outline: { label: 'Outline', hint: 'A thin border in the licence colour, no fill' },
         soft: { label: 'Soft', hint: 'The letter in the licence colour, no border' },
@@ -1558,9 +1569,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     screen: {
       title: 'Visibility',
-      showWhen: 'Show the overlay',
+      showWhen: 'When to show the overlay',
       showWhenHelp: {
-        car: 'While you drive; out of the car (garage, session screen, a teammate’s stint) it hides',
+        car: 'While you drive; out of the car (garage, session screen…) it hides',
         race: 'While you drive in a race session; not in practice or qualifying',
         always: 'Out of the car too; only the rules below and each widget’s own hide it'
       },
@@ -1912,7 +1923,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
     shiftLights: 'Shift lights',
     shiftLightsHelp:
       "Light up with the revs to the car's shift point, all red there, and blink if you go past it",
-    colors: 'Colours',
+    pedalColors: {
+      throttle: 'Throttle colour',
+      brake: 'Brake colour',
+      clutch: 'Clutch colour'
+    },
     colorsNote: 'Solid colours only, as the traces overlap',
     pedals: {
       throttle: 'Throttle',
@@ -1940,7 +1955,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   alerts: {
     nothing: 'With no alert selected, the widget never shows',
-
     pitGroup: 'Pit lane',
     raceGroup: 'During the race',
     engineGroup: 'Engine',
@@ -1986,9 +2000,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   delta: {
     reference: 'Reference',
-    referenceNote: 'The personal best is stored per car and layout',
-    referenceBySession: 'Reference per session',
-    referenceBySessionNote: 'A change applies when the next lap starts',
+    referenceBySessionNote: 'Reference per session: a change applies when the next lap starts',
     sessions: { practice: 'Practice', qualify: 'Qualifying', race: 'Race' },
     referencesShort: {
       pb: 'Best ever',
@@ -2069,7 +2081,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'The wear the crew measured at your last stop: iRacing only measures it in the stall',
     limits: 'Repairs and tyre sets',
     limitsHelp: 'The fast repairs and tyre sets you have left, when the session limits them',
-    calc: 'Calculation',
     calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',
@@ -2089,7 +2100,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       right: { label: 'On the right' },
       left: { label: 'On the left' }
     },
-
     onlyWhenLit: 'Lit only',
     onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
     captions: 'Captions',

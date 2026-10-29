@@ -113,12 +113,12 @@ Las definiciones están en `WIDGET_DEFS` (`src/shared/widgets.ts`).
 
 ## Cuándo se ve el overlay (detalle)
 
-En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Mostrar el
-overlay** también está en la bandeja, en el submenú **Cuándo mostrar**):
+En **Ajustes > Apariencia > Visibilidad** (sección `visibility` de `settings.json`; **Cuándo
+mostrar el overlay** también está en la bandeja, en el submenú **Cuándo mostrar**):
 
 | Opción                                                   | Por defecto                           | Qué hace                                                                      |
 | -------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------- |
-| Mostrar el overlay (`showWhen`)                          | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre |
+| Cuándo mostrar el overlay (`showWhen`)                   | Solo cuando estás en el coche (`car`) | `car`: mientras conduces; `race`: además, solo en carreras; `always`: siempre |
 | En repeticiones (`replays`)                              | Ocultar (`hide`)                      | `follow`: siguen al coche en cámara; al rebobinar solo queda Posiciones       |
 | Ocultar en la pantalla de sesión (`hideOnSessionScreen`) | Sí                                    | Salvo los widgets con «Mostrar en la pantalla de sesión»                      |
 | Ocultar con la interfaz de iRacing (`hideWithSimUi`)     | Sí                                    | Si ocultas la interfaz del simulador, se ocultan los widgets                  |
@@ -140,15 +140,15 @@ overlay** también está en la bandeja, en el submenú **Cuándo mostrar**):
 - Un archivo de ajustes de antes de esta opción pasa a «Ocultar» repeticiones (su `follow` era el
   valor por defecto de entonces).
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
-  botones de iRacing. Cada widget tiene su excepción en la sección **Ventana y visibilidad** de su página
-  (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados. Radar,
-  Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen datos;
-  Combustible también: no muestra nada con el sistema de repeticiones activo, y lo está en la
-  pantalla de sesión. Con «Solo
-  cuando estás en el coche» (o «Solo en carrera») y las repeticiones ocultas, la pantalla de sesión
-  ya se oculta por estar fuera del coche: Apariencia no ofrece «Ocultar en la pantalla de sesión», y
-  solo cuentan las excepciones de cada widget. Con «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es
-  el punto en directo de las repeticiones, donde los widgets siguen al coche.
+  botones de iRacing. Cada widget tiene su excepción en la sección **Ventana y visibilidad** de
+  su página (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados.
+  Radar, Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen
+  datos; Combustible también: no muestra nada con el sistema de repeticiones activo, y lo está en
+  la pantalla de sesión. Con «Solo cuando estás en el coche» (o «Solo en carrera») y las
+  repeticiones ocultas, la pantalla de sesión ya se oculta por estar fuera del coche: Apariencia no
+  ofrece «Ocultar en la pantalla de sesión», y solo cuentan las excepciones de cada widget. Con
+  «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es el punto en directo de las
+  repeticiones, donde los widgets siguen al coche.
 - iRacing marca `IsReplayPlaying` también en la pantalla de sesión **en directo** («Playback: Live»):
   ahí todo sigue en vivo y se cronometra como siempre. Solo es una repetición de verdad si la cinta no
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
@@ -182,17 +182,17 @@ en una sesión real.
   ojo para mostrar u ocultar, «Restablecer»):
   - **Columnas** (`relative.columns`): posición, piloto, licencia, iRating, neumático, stint y hueco,
     en el orden que quieras (las que van antes del piloto quedan a su izquierda). Piloto y hueco no
-    se pueden ocultar. Debajo: **cabeceras de columna** (`columnHeads`, «POS», «PILOTO», «SR»…,
+    se pueden ocultar. Debajo: **títulos de columna** (`columnHeads`, «POS», «PILOTO», «SR»…,
     desactivadas), **logotipo de la marca** (`brandMarks`: Auto, solo si hay más de una marca en la
     sesión; Siempre; Nunca) y **bandera del país** (`countryFlags`, activada; nada si el piloto no
     eligió ninguna).
   - **Cabecera** (`headerBar` + `headerBarSize`) y **pie** (`footerBar` + `footerBarSize`): barras de
     datos con el mismo catálogo (nombre, sesión, tiempo o vueltas restantes, hora, SoF, coches,
-    incidentes, iRating y SR proyectados, vuelta rápida, combustible, pista, agua, viento, aire,
-    goma); «A la derecha» separa lo que se alinea al otro extremo. Tamaño Oculta / Pequeña / Normal
-    / Grande. Por defecto, la cabecera de siempre y el pie oculto. Si no cabe, se quitan primero
-    los datos menos importantes; el texto nunca baja del mínimo.
-  - Las barras y las cabeceras de columna cuentan en el alto: con ellas el texto de las filas
+    incidentes, iRating en juego, SR proyectado, vuelta rápida de clase, combustible, pista, agua,
+    viento, aire, goma); «A la derecha» separa lo que se alinea al otro extremo. Tamaño No /
+    Pequeña / Normal / Grande. Por defecto, la cabecera de siempre y el pie oculto. Si no cabe, se
+    quitan primero los datos menos importantes; el texto nunca baja del mínimo.
+  - Las barras y los títulos de columna cuentan en el alto: con ellos el texto de las filas
     encoge un poco; los logotipos y banderas cuentan en el ancho.
 - **Posición**: la misma que en Posiciones (la del modelo de carrera, no `CarIdxClassPosition`,
   que iRacing solo actualiza en meta). La de parrilla solo en carrera antes de la verde; fuera de
@@ -208,7 +208,7 @@ en una sesión real.
 ### Posiciones: parrilla, huecos y lo que queda
 
 - **Antes de la verde**: la parrilla entera (`QualifyResultsInfo`), también los coches que aún
-  cargan; sin puestos ganados, iRating proyectado con todos de salida y «N coches» = inscritos.
+  cargan; sin puestos ganados, iRating en juego con todos de salida y «N coches» = inscritos.
   Reloj, vueltas y margen de SR con la duración programada, no con la cuenta atrás de parrilla.
 - **Ritmo** antes de la primera vuelta limpia: tu mejor vuelta, luego los tiempos de clasificación
   (tuyo o el mejor de tu clase); `CarClassEstLapTime` solo como último recurso.
@@ -233,18 +233,19 @@ En Ajustes → Posiciones, un editor por zona (arrastra ⠿ o ↑ ↓ para orden
 oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia al momento:
 
 - **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
-  la ventana se estrecha se van primero las columnas añadidas (Δ iRating, stint, neumático…),
-  luego la bandera y el logotipo, después las de siempre y, al final, el número queda en una franja:
-  un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a «Hueco: Ambos» y «iRating
-  en juego» a «iRating en juego de todos».
+  la ventana se estrecha se van primero las columnas añadidas (iRating en juego, stint,
+  neumático…), luego la bandera y el logotipo, después las de siempre y, al final, el número queda
+  en una franja: un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a
+  «Hueco: Ambos» y «iRating en juego» a «iRating en juego de todos».
 - **Títulos de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
   «INT.»… en el orden de las columnas; la del hueco dice «LÍDER» o «DIF.» según el modo y la sesión.
 - **Logotipo de la marca** (`brandMarks`: Auto, Siempre, Nunca; Auto solo si hay varias marcas) y
   **bandera del país** (`countryFlags`, activada) delante del nombre.
 - **Cabecera, segunda línea y pie** son barras de datos (`headerBar`, `subheaderBar`, `footerBar`,
-  cada una con su tamaño u «Oculta»): sesión, lo que queda, hora local, SoF, coches, incidentes,
-  iRating y SR proyectados, vuelta rápida, combustible y las condiciones. Por defecto, lo de
-  siempre: la sesión, tus incidentes y lo que queda; tu iRating, la vuelta rápida y tu SR; el pie
+  cada una con su tamaño o «No»): sesión, lo que queda, hora local, SoF, coches, incidentes,
+  iRating en juego, SR proyectado, vuelta rápida de clase, combustible y las condiciones. Por
+  defecto, lo de siempre: la sesión, tus incidentes y lo que queda; tu iRating en juego, la vuelta
+  rápida de clase y tu SR; el pie
   de condiciones. Con varias clases el SoF y los coches van en cada línea de clase, no arriba.
 - **Línea de clase** (`classLine`): SoF y número de coches, en el orden que elijas.
 - **Vuelta rápida**: la mejor vuelta de cada clase va en una placa morada que llena su celda, y su

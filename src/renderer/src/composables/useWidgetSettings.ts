@@ -73,8 +73,11 @@ export function useOption<K extends OptionSection, F extends keyof OverlaySettin
   return computed((prev) => stable(prev, options.value[field]))
 }
 
-/** A sample of the Apariencia page shows the global values, whatever the widget's own. */
-function ownOptionsApply(): boolean {
+/**
+ * A sample of the Apariencia page shows the global values, whatever the widget's own (its name
+ * format, density and background). Call it in setup.
+ */
+export function ownOptionsApply(): boolean {
   return injectSampleHost()?.globalAppearance !== true
 }
 

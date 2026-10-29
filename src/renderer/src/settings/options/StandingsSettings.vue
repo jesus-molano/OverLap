@@ -56,7 +56,10 @@ const gapChoices = computed(() =>
 // Options that also change the column list (settings/columns.ts).
 const setGapMode: Setter<O['gapMode']> = (gapMode) =>
   updateSection('standings', gapModePatch(opts.value, gapMode))
-/** A hide of the delta column turned "Δ iRating de todos" off: its "Deshacer" turns it back on. */
+/**
+ * A hide of the delta column turned "iRating en juego de todos" off: its "Deshacer" turns it back
+ * on.
+ */
 let deltaAllDropped = false
 const setDeltaAll: Setter<boolean> = (on) => {
   deltaAllDropped = false

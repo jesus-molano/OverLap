@@ -19,7 +19,8 @@ import { shownCount, type ElementChange, type SpecRules } from './listOps'
  * size field as it is stored, 'off' for a hidden bar); then the shared catalog's items in two
  * boxes, "Izquierda" and "Derecha" (the list's `split` marker, kept as it is stored), with their
  * eyes, the trend arrow and the wind dial on the `trackTemp` and `wind` rows (the section's
- * options, shown only while the item and the bar are).
+ * options, shown only while the item and the bar are). With "No" only the choice and the reset
+ * show; the boxes come back as they were with a size.
  */
 const props = defineProps<{ section: InfoBarSection; field: InfoBarField<InfoBarSection> }>()
 
@@ -84,7 +85,7 @@ const summary = computed(() => {
     :apply="apply"
     split="split"
     :summary="summary"
-    :dim="off"
+    :off="off"
     :rest-at-default="sizeAtDefault"
   >
     <template #head>

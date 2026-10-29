@@ -154,6 +154,21 @@ describe('the widget pages', () => {
     }
   })
 
+  it('open with one section, «Contenido», then «Personalizar»; anything else after it (R04)', () => {
+    for (const [path, source] of Object.entries(PAGES)) {
+      const template = source.slice(source.indexOf('<template>'))
+      const customize = template.search(/<CustomizeSection[\s>]/)
+      const before = [...template.slice(0, customize).matchAll(/<PageSection\b([^>]*)>/g)]
+      expect(before.length, path).toBe(1)
+      expect(before[0]?.[1], path).toContain(':title="t.settings.common.content"')
+      // The page's reference sections (a legend, the records) go after the editors.
+      const after = template.slice(template.indexOf('</CustomizeSection>'))
+      expect(after.replace(/<PageAppendix>[\s\S]*?<\/PageAppendix>/g, ''), path).not.toMatch(
+        /<PageSection\b/
+      )
+    }
+  })
+
   it('write their editors in the order of customizeZones (the tab order is the page order)', () => {
     const PAGE_OF: Readonly<Record<string, string>> = { inputs: 'Inputs', lights: 'Lights' }
     for (const id of WIDGET_IDS) {

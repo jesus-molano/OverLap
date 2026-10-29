@@ -313,7 +313,7 @@ export const widgetsEs = {
     /** The class best of a driver not in the session info any more. */
     classBest: 'Vuelta rápida de clase',
     /** The best sectors of your class, joined (nobody's lap). */
-    classOptimal: 'Óptima de la clase',
+    classOptimal: 'Óptima de clase',
     /** The lap times line (delta.laps): short captions before each time. */
     laps: { last: 'Últ.', best: 'Mejor', optimal: 'Ópt.', pb: 'Récord' },
     /** The tag on the time the delta compares against (with an accent underline). */

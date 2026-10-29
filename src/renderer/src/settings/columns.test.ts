@@ -68,7 +68,7 @@ describe('columnsEditPatch', () => {
     expect(isColumnVisible(off.columns!, 'gapLeader')).toBe(false)
   })
 
-  it('hiding the delta column turns "Δ iRating de todos" off', () => {
+  it('hiding the delta column turns "iRating en juego de todos" off', () => {
     const o = opts({
       iRatingDeltaAll: true,
       columns: setColumnVisible(opts().columns, 'delta', true)
@@ -78,7 +78,7 @@ describe('columnsEditPatch', () => {
     expect(p.iRatingDeltaAll).toBe(false)
   })
 
-  it('"Deshacer" after hiding the delta column turns "Δ iRating de todos" back on', () => {
+  it('"Deshacer" after hiding the delta column turns "iRating en juego de todos" back on', () => {
     const o = opts({
       iRatingDeltaAll: true,
       columns: setColumnVisible(opts().columns, 'delta', true)
@@ -107,7 +107,7 @@ describe('columnsEditPatch', () => {
     expect(deltaAllDroppedAfter(false, hide, quiet)).toBe(false)
   })
 
-  it('a reset brings the gap mode and "Δ iRating de todos" in line with the default list', () => {
+  it('a reset brings the gap mode and "iRating en juego de todos" in line with the default list', () => {
     const o = opts({
       gapMode: 'both',
       iRatingDeltaAll: true,
@@ -159,7 +159,7 @@ describe('coupled patches', () => {
     expect(isColumnVisible(p.columns!, 'ir')).toBe(false)
   })
 
-  it('"Δ iRating de todos" shows the delta column, hiding it drops the option', () => {
+  it('"iRating en juego de todos" shows the delta column, hiding it drops the option', () => {
     const on = deltaAllPatch(opts(), true)
     expect(on.iRatingDeltaAll).toBe(true)
     expect(isColumnVisible(on.columns!, 'delta')).toBe(true)

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, ref, useId } from 'vue'
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from '@shared/i18n'
 import { FONT_SCALE_MAX, FONT_SCALE_MIN } from '@shared/settings'
 import { ACCENT_PRESETS, OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema'
 import type { ShowWhen } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
+import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
 import BrandMark from '../../ui/BrandMark.vue'
 import LicenseChip from '../../ui/LicenseChip.vue'
@@ -18,7 +19,8 @@ import ColorControl from '../controls/ColorControl.vue'
 import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter, resetAppearance } from '../editor'
+import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
+import { optionSetter, resetAppearance, updateSettings } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
@@ -110,6 +112,17 @@ const dayNote = computed(() =>
     : undefined
 )
 const setBackground = (pct: number): Promise<void> => set('backgroundOpacity')(fromPercent(pct))
+/**
+ * The widgets that keep their own background (every one after an update from 2.2: the look
+ * stays) do not follow the slider above: said, with one button to set them all to «Global».
+ */
+const { settings } = useOverlayState()
+const ownBg = computed(() => (settings.value ? ownBackgrounds(settings.value.widgets) : []))
+const followedMsg = ref('')
+async function followGlobal(): Promise<void> {
+  await updateSettings(followGlobalPatch(ownBg.value))
+  followedMsg.value = t.value.settings.appearance.color.followGlobalDone
+}
 /** Which widgets the text size changes, by name (the auto-height ones). */
 const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
 
@@ -173,6 +186,13 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :format="percent"
           :apply="setBackground"
         />
+        <div v-if="ownBg.length > 0" class="st-row own-bg">
+          <p class="st-help">{{ t.settings.appearance.color.ownBackgrounds(ownBg.length) }}</p>
+          <button type="button" class="st-btn st-btn-sm" @click="followGlobal">
+            {{ t.settings.appearance.color.followGlobal }}
+          </button>
+        </div>
+        <p class="st-sr-only" aria-live="polite">{{ followedMsg }}</p>
         <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">
           {{ dayNote }}
         </p>
@@ -384,6 +404,18 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 
 .day-note {
   display: block;
+}
+
+.own-bg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.own-bg .st-help {
+  margin: 0;
 }
 
 .opt-chip {
