@@ -207,7 +207,7 @@ const rootClass = computed(() => ({
 
 <template>
   <div class="delta ov-root ov-fade" :class="rootClass">
-    <WidgetPanel class="dl-panel ov-state" :surface="surfaceStyle" :halo="halo" fill>
+    <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
       <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top">
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
           <!-- The sign as a shape too: ▼ faster, ▲ slower (colour-blind safe). -->
@@ -392,16 +392,6 @@ const rootClass = computed(() => ({
 
 .dl--laps-4 .dl-panel {
   --dl-w-laps: 29;
-}
-
-/* The sign of the delta is state: the panel's tint in its tone (theme.css .ov-state), with the
-   number's colour and arrow. No transition: the class changes only when the sign flips. */
-.dl--good .dl-panel {
-  --ov-state: var(--ov-good);
-}
-
-.dl--bad .dl-panel {
-  --ov-state: var(--ov-bad);
 }
 
 /* ---- Top line: hero, state, predicted lap and reference ------------------------------- */
