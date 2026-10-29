@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import {
   INFO_BAR_LINE_EM,
   INFO_BAR_SCALE,
@@ -9,7 +9,6 @@ import {
   fitInfoItems
 } from '@shared/infoBar'
 import type { InfoBarSize, InfoItemId } from '@shared/types'
-import { useElementSize } from '../composables/useElementSize'
 import { injectSampleHost } from '../composables/widgetContext'
 import { vInlineStyle } from '../directives/inlineStyle'
 import type { InfoBarView, InfoItemView } from '../view/infoBar'
@@ -17,6 +16,7 @@ import type { InlineStyle } from '../view/styles'
 import InfoBarItem from './InfoBarItem.vue'
 import PreviewTag from './PreviewTag.vue'
 import SimPill from './SimPill.vue'
+import { useInfoBarRoom } from './useInfoBarRoom'
 
 /**
  * An info bar: a header or a footer band of data items (view/infoBar.ts), one line of a fixed
@@ -53,22 +53,10 @@ const props = withDefaults(
 )
 
 const root = useTemplateRef<HTMLElement>('root')
-const box = useElementSize(root)
 
 /** The panel's own header: the topmost head bar, the one with the SIM tag. */
 const top = computed(() => props.place === 'head' && props.sim)
 const gapEm = computed(() => (top.value ? INFO_TOP_GAP_EM : INFO_ITEM_GAP_EM))
-
-/** The bar's own font size (px), read again only when its size changes (a resize, a scale). */
-const fontPx = computed(() => {
-  void box.value.w
-  const el = root.value
-  if (el === null || typeof getComputedStyle !== 'function') return 0
-  return parseFloat(getComputedStyle(el).fontSize) || 0
-})
-
-/** Room for the items (em of the bar's text): its width less its paddings. */
-const widthEm = computed(() => (fontPx.value > 0 ? box.value.w / fontPx.value : 0))
 
 const ids = computed<readonly InfoItemId[]>((prev) => {
   const next = [...props.view.start, ...props.view.end].map((v) => v.id)
@@ -85,11 +73,8 @@ const itemEls = computed<Readonly<Partial<Record<InfoItemId, string>>>>(() => {
   return out
 })
 
-/** Items dropped beyond the estimates because the drawn bar overflowed. */
-const extra = shallowRef(0)
-watch([ids, widthEm], () => {
-  extra.value = 0
-})
+/** Room for the items (em of the bar's text, its width less its paddings) and the extra drops. */
+const { widthEm, extra } = useInfoBarRoom(root, () => props.size, ids)
 
 /**
  * The settings preview's ghosts in this bar (hidden items drawn while you edit there): they go

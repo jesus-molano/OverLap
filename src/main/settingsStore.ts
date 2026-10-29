@@ -107,7 +107,9 @@ export class SettingsStore {
     if (this.loadFailed && !this.backUpUnreadFile()) return this.failed()
     if (this.olderFile) this.backUpOlderFile()
     try {
-      writeAtomic(this.file, JSON.stringify(this.current, null, 2) + '\n')
+      const text = JSON.stringify(this.current, null, 2) + '\n'
+      writeAtomic(this.file, text)
+      console.log(`[settings] saved (${text.length} bytes)`)
       this.dirty = false
       this.setFailing(false)
       return true

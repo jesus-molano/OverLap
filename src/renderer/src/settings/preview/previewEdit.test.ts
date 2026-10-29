@@ -23,6 +23,7 @@ import {
   parseEl,
   pickEl,
   previewHintOf,
+  quietAfterLit,
   sameEl,
   shownDropList,
   sideBoundary,
@@ -255,6 +256,40 @@ describe('ghosts', () => {
     // With the header off, its title is not drawn: the footer's is ghosted again.
     const off = withGhosts({ ...o, headerBarSize: 'off' }, ['traffic.footerBar'])
     expect(off.ghosts).toEqual(['traffic.footerBar.title', 'traffic.footerBar.carCount'])
+  })
+
+  it('leaves an element just hidden from its row hidden, not ghosted', () => {
+    const o = {
+      headerBar: list('title split sof clock', 'sof clock split'),
+      headerBarSize: 'normal'
+    }
+    const g = withGhosts(o, ['relative.headerBar'], ['relative.headerBar.sof'])
+    expect(g.ghosts).toEqual(['relative.headerBar.clock'])
+    expect(g.options.headerBar.find((e) => e.id === 'sof')?.visible).toBe(false)
+    expect(g.options.headerBar.find((e) => e.id === 'clock')?.visible).toBe(true)
+  })
+})
+
+describe('quietAfterLit (an element just hidden by its eye)', () => {
+  const perLap = { zone: 'fuel.lines', id: 'perLap' } as const
+  const finish = { zone: 'fuel.lines', id: 'finish' } as const
+  const fresh = { el: perLap, left: false }
+
+  it('stays quiet while its row stays lit', () => {
+    expect(quietAfterLit(fresh, perLap)).toBe(fresh)
+  })
+
+  it('stays quiet on other rows of its zone, until its row is lit again', () => {
+    const moved = quietAfterLit(fresh, finish)
+    expect(moved).toEqual({ el: perLap, left: true })
+    expect(quietAfterLit(moved, finish)).toBe(moved)
+    expect(quietAfterLit(moved, perLap)).toBeNull()
+  })
+
+  it('ends when the list lights nothing or another zone', () => {
+    expect(quietAfterLit(fresh, null)).toBeNull()
+    expect(quietAfterLit(fresh, { zone: 'battle.rows', id: 'perLap' })).toBeNull()
+    expect(quietAfterLit(null, perLap)).toBeNull()
   })
 })
 

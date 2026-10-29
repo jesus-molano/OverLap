@@ -225,7 +225,7 @@ const rootClass = computed(() => ({
           <span class="dl-note__text">{{ note }}</span>
         </p>
         <template v-else>
-          <div v-memo="[state, preview]" class="dl-state" data-el="delta.top.state">
+          <div class="dl-state" data-el="delta.top.state">
             <span
               v-if="state.kind !== 'none'"
               class="dl-state__line"
@@ -252,12 +252,7 @@ const rootClass = computed(() => ({
               <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
               <span class="dl-pred__time">{{ predicted }}</span>
             </div>
-            <div
-              v-if="showReference"
-              v-memo="[reference, temporary]"
-              class="dl-ref"
-              data-el="delta.top.reference"
-            >
+            <div v-if="showReference" class="dl-ref" data-el="delta.top.reference">
               <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
               <span class="dl-ref__label">{{ reference.label }}</span>
               <!-- The cycle shortcut's choice: this session only, never saved. -->
@@ -288,7 +283,6 @@ const rootClass = computed(() => ({
       <div
         v-if="showLaps"
         v-inline-style="orderStyle(place.laps ?? 0)"
-        v-memo="[lapTimes, place.laps]"
         class="dl-laps"
         data-el="delta.rows.laps"
       >

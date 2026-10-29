@@ -164,6 +164,19 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **La ayuda de «Tamaño del texto»** (Apariencia) dice exactamente a qué widgets cambia (Posiciones,
   Batalla, Pedales, Tráfico, Avisos, Testigos y Combustible) y cuáles ajustan el texto a su ventana
   (Relativo, Radar y Delta). Antes solo nombraba Clasificación y Batalla.
+- **Opciones que vuelves a activar ya no dejan una línea congelada**, ni en la vista previa ni
+  sobre el juego. Al ocultar y volver a mostrar una parte de Delta (tiempos de vuelta, referencia,
+  estado), de Avisos (la banda de bandera, los otros avisos en chips), de Combustible (cualquier
+  línea) o los títulos de columna de Relativo, esa parte podía quedarse con los datos de antes, no
+  dejar volver a otros avisos (Daños, Presión de aceite) o romper la vista previa hasta cerrar la
+  ventana de ajustes.
+- **Cabecera y pie del tamaño elegido**: al pasar de «Grande» a «Pequeña» (o cambiar la escala),
+  la barra seguía calculando el sitio con la letra anterior y quitaba datos que sí cabían (por
+  ejemplo la vuelta rápida de clase o «SIM»).
+- **Ocultar con el ojo se ve al momento**: en las listas de Cabecera, Pie, Líneas de Combustible y
+  Líneas de Batalla, el elemento que ocultas desaparece de la vista previa aunque sigas con el
+  puntero en la lista. Antes se quedaba dibujado en gris hasta salir de la fila y parecía que no
+  había pasado nada; vuelve a verse en gris (dónde iría) si pasas otra vez por su fila.
 
 ## [2.2.0] - 2026-10-29
 
