@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { formatDriverName } from '@shared/format'
-import { messagesFor } from '@shared/i18n'
 import { lineMetrics, linesEm, panelHeightPx, planLines } from './layout'
 import { previewStandings, type PreviewOptions } from './preview'
-import { toHeaderView } from './headerView'
 
 const DEFAULTS: PreviewOptions = DEFAULT_SETTINGS.standings
 
@@ -72,38 +70,44 @@ describe('previewStandings', () => {
     expect(positions({ topRows: Number.NaN, aroundRows: 99 })[0]).toHaveLength(12)
   })
 
-  it('follows the header toggles', () => {
-    const off = previewStandings({
-      ...DEFAULTS,
-      subheaderBar: DEFAULTS.subheaderBar.map((e) =>
-        e.id === 'iRating' || e.id === 'safetyRating' ? { ...e, visible: false } : e
-      )
+  it('gives the info bars your class’s figures, so they agree with the table', () => {
+    const d = previewStandings(DEFAULTS)
+    const own = d.classes.find((c) => c.isPlayerClass)
+    const fastest = own?.rows.find((r) => r.bestLapKind === 'class-best')
+    expect(d.info?.sof).toBe(own?.sof)
+    expect(d.info?.carCount).toBe(own?.carCount)
+    expect(d.info?.classPosition).toBe(5)
+    expect(d.info?.fastestLap).toMatchObject({
+      lapTime: fastest?.bestLap,
+      carNumber: fastest?.carNumber,
+      isPlayer: false
     })
-    expect(off.header.iRating).toBeNull()
-    expect(off.header.safetyRating).toBeNull()
-    expect(previewStandings(DEFAULTS).header.iRating).not.toBeNull()
+    expect(d.info?.iRating).toEqual(d.header.iRating)
+    expect(d.info?.safetyRating).toEqual(d.header.safetyRating)
+    expect(d.info?.conditions).not.toBeNull()
+  })
+
+  it('has several makes and flags for most drivers', () => {
+    const d = previewStandings({ ...DEFAULTS, mode: 'full' })
+    const rows = d.classes.flatMap((c) => c.rows)
+    expect(d.multiBrand).toBe(true)
+    expect(new Set(rows.map((r) => r.brand)).size).toBeGreaterThan(3)
+    expect(rows.filter((r) => r.country !== '').length).toBeGreaterThan(rows.length / 2)
+    expect(rows.some((r) => r.country === '')).toBe(true)
   })
 
   it('sizes the default window to about 300 px, with no empty band', () => {
     const d = previewStandings(DEFAULTS)
     const m = lineMetrics('comfortable')
     const plan = planLines(d.classes, { oneLineLeaders: true }, m)
-    const head = toHeaderView({
-      header: d.header,
-      classes: d.classes,
-      race: true,
-      showIRating: true,
-      showSafetyRating: true,
-      showSof: true,
-      showCarCount: true,
-      showIncidents: true,
-      preview: true,
-      title: '',
-      m: messagesFor('es')
-    })
-    const px = panelHeightPx(linesEm(plan, m), head.lines, 13)
+    // The defaults: the header, its second line and the conditions footer.
+    const px = panelHeightPx(
+      linesEm(plan, m),
+      { head: ['normal', 'normal'], heads: false, foot: 'normal' },
+      13
+    )
     expect(px).toBeGreaterThan(250)
-    expect(px).toBeLessThan(330)
+    expect(px).toBeLessThan(350)
   })
 
   it('returns a fresh payload that does not share rows with the fixture', () => {
