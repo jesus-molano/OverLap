@@ -601,10 +601,13 @@ function onCancel(e: PointerEvent): void {
         </p>
 
         <ul v-if="fixedBefore.length > 0" class="ed-list">
+          <!-- Always there, in its place: the same lock, where the eye goes, as an always-shown row. -->
           <li v-for="f in fixedBefore" :key="f.key" class="ed-row is-fixed">
-            <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
+            <span class="ed-fixed-gap" aria-hidden="true" />
+            <span class="ed-eye is-locked" :title="t.settings.elements.fixedTag">
+              <Icon name="lock" :label="t.settings.elements.fixedTag" />
+            </span>
             <span class="ed-name">{{ f.label }}</span>
-            <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
           </li>
         </ul>
 
@@ -800,10 +803,13 @@ function onCancel(e: PointerEvent): void {
         </div>
 
         <ul v-if="fixedAfter.length > 0" class="ed-list ed-after">
+          <!-- Always there, in its place: the same lock, where the eye goes, as an always-shown row. -->
           <li v-for="f in fixedAfter" :key="f.key" class="ed-row is-fixed">
-            <span class="ed-lock" aria-hidden="true"><Icon name="lock" /></span>
+            <span class="ed-fixed-gap" aria-hidden="true" />
+            <span class="ed-eye is-locked" :title="t.settings.elements.fixedTag">
+              <Icon name="lock" :label="t.settings.elements.fixedTag" />
+            </span>
             <span class="ed-name">{{ f.label }}</span>
-            <span class="ed-tag">{{ t.settings.elements.fixedTag }}</span>
           </li>
         </ul>
 
@@ -937,6 +943,12 @@ function onCancel(e: PointerEvent): void {
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
+}
+
+/* Where a sortable row has its handle and number: a fixed row's lock lines up with the eyes. */
+.ed-fixed-gap {
+  flex: none;
+  width: calc(28px + 1.4em + 8px);
 }
 
 .ed-row.is-fixed {
@@ -1119,18 +1131,20 @@ function onCancel(e: PointerEvent): void {
   text-align: right;
 }
 
-.ed-lock {
-  display: inline-flex;
-  justify-content: center;
-  width: 28px;
-  font-size: 13px;
-}
-
 .ed-text {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
+}
+
+.ed-tag {
+  margin-right: 6px;
+  font-family: var(--ov-font-small);
+  font-size: 11px;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
+  text-transform: uppercase;
 }
 
 .ed-name {
@@ -1141,15 +1155,6 @@ function onCancel(e: PointerEvent): void {
 .ed-hint {
   color: var(--ov-fg-muted);
   font-size: 12px;
-}
-
-.ed-tag {
-  margin-right: 6px;
-  font-family: var(--ov-font-small);
-  font-size: 11px;
-  font-weight: var(--ov-w-strong);
-  letter-spacing: var(--ov-track-tag);
-  text-transform: uppercase;
 }
 
 .ed-extra {

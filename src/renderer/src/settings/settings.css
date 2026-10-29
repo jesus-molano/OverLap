@@ -291,6 +291,14 @@ html.ov-settings .st-section-note {
   font-size: 12px;
 }
 
+/* «Igualar con…» (R10): what it does, and the button at the end of the line. */
+html.ov-settings .match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 /* A part's reset as an icon (layout/ResetIcon.vue): quiet until hovered or focused. */
 html.ov-settings .st-reset-icon {
   display: inline-flex;

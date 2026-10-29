@@ -384,7 +384,7 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       fuel: { showGauge: false, showLimits: false },
       lights: { showWater: false, showPitLimiter: true }
     })
-    expect(ids(s.relative.columns)).toEqual(['driver', 'lic', 'ir', 'stint', 'gap'])
+    expect(ids(s.relative.columns)).toEqual(['driver', 'ir', 'lic', 'stint', 'gap'])
     expect(ids(s.relative.headerBar)).toEqual(['title', 'session', 'split'])
     expect(ids(s.radar.parts)).toEqual(['guides', 'sideAlerts'])
     expect(ids(s.standings.headerBar)).toEqual(['session', 'carCount', 'split', 'remaining'])
@@ -639,5 +639,21 @@ describe('the relative before it followed the density (2.3, R05)', () => {
     const fresh = createDefaultSettings()
     fresh.appearance.density = 'compact'
     expect(normalizeSettings(JSON.parse(JSON.stringify(fresh))).relative.density).toBe('inherit')
+  })
+})
+
+describe('migrateRelativeColumns (R10)', () => {
+  const L = (spec: string): { id: string; visible: boolean }[] =>
+    spec.split(' ').map((s) => ({ id: s.replace('-', ''), visible: !s.startsWith('-') }))
+
+  it('gives an untouched list today’s default (iRating before the licence)', () => {
+    const s = normalizeSettings({ relative: { columns: L('pos driver lic ir -tyre -stint gap') } })
+    expect(s.relative.columns.map((e) => e.id).slice(0, 4)).toEqual(['pos', 'driver', 'ir', 'lic'])
+  })
+
+  it('keeps a list of its own, the new PIT column hidden at its end', () => {
+    const own = L('pos driver lic ir tyre -stint gap')
+    const s = normalizeSettings({ relative: { columns: own } })
+    expect(s.relative.columns).toEqual([...own, { id: 'pit', visible: false }])
   })
 })

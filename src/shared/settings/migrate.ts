@@ -644,7 +644,7 @@ export function migrateSection(
     section === 'lights'
       ? migrateLights(raw, file)
       : section === 'relative'
-        ? migrateRelativeDensity(raw, file)
+        ? migrateRelativeColumns(migrateRelativeDensity(raw, file))
         : raw
   if (!isRecord(r)) return r
   let out = r
@@ -696,6 +696,25 @@ export function migrateRelativeDensity(raw: unknown, file: Record<string, unknow
   if (appearance.density !== 'compact') return raw
   if (!isRecord(raw)) return { density: 'comfortable' }
   return 'density' in raw ? raw : { ...raw, density: 'comfortable' }
+}
+
+/** The relative's columns as they came before 2.3 (licence before iRating, no PIT column). */
+const OLD_RELATIVE_COLUMNS = ['pos', 'driver', 'lic', 'ir', '-tyre', '-stint', 'gap']
+
+/**
+ * 2.3 put the relative's iRating before its licence (R10), as the standings and the battle draw
+ * them. A list nobody changed (exactly the old default) takes the new one; any other is kept.
+ * `raw` itself when there is nothing to do.
+ */
+export function migrateRelativeColumns(raw: unknown): unknown {
+  if (!isRecord(raw) || !Array.isArray(raw.columns)) return raw
+  const ids = raw.columns.map((e: unknown) =>
+    isRecord(e) ? `${e.visible === false ? '-' : ''}${String(e.id)}` : '?'
+  )
+  if (ids.join(',') !== OLD_RELATIVE_COLUMNS.join(',')) return raw
+  const rest = { ...raw }
+  delete rest.columns
+  return rest
 }
 
 /** Accordions of "Personalizar" that were renamed: the old id and the one that took its place. */

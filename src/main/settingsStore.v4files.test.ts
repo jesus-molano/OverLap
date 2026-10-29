@@ -147,7 +147,7 @@ describe('a customised v4 file', () => {
 
   it('turns the relative’s switches into its columns and bars', () => {
     const r = load(CUSTOM_V4).settings.relative
-    expect(ids(r.columns)).toEqual(['-pos', 'driver', '-lic', 'ir', 'tyre', 'stint', 'gap'])
+    expect(ids(r.columns)).toEqual(['-pos', 'driver', 'ir', '-lic', '-pit', 'tyre', 'stint', 'gap'])
     expect(r.headerBar.find((e) => e.id === 'incidents')?.visible).toBe(false)
     expect(r.footerBarSize).toBe('normal')
     expect(ids(r.footerBar).slice(0, 5)).toEqual([
@@ -258,7 +258,16 @@ describe('a hand-edited v4 file', () => {
     expect(s.appearance.licenseStyle).toBe('outline')
     expect(s.appearance.fontScale).toBeLessThanOrEqual(150)
     // A non-boolean switch reads as unset: the column keeps its default.
-    expect(ids(s.relative.columns)).toEqual(['pos', 'driver', 'lic', 'ir', 'tyre', '-stint', 'gap'])
+    expect(ids(s.relative.columns)).toEqual([
+      'pos',
+      'driver',
+      'ir',
+      'lic',
+      '-pit',
+      'tyre',
+      '-stint',
+      'gap'
+    ])
     expect(s.relative.carsAhead).toBeLessThan(99)
     expect(s.relative).not.toHaveProperty('mystery')
     expect(s.delta.referenceRace).toBe('classOptimal')

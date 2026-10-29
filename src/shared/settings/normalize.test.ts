@@ -125,7 +125,11 @@ const FOOTER: readonly InfoBarEntryId[] = ['trackTemp', 'wet', 'wind', 'airTemp'
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
   carsBehind: 3,
-  columns: list(['pos', 'driver', 'lic', 'ir', 'tyre', 'stint', 'gap'], ['tyre', 'stint']),
+  // iRating then licence, and the PIT column hidden (its badge after the name), R10.
+  columns: list(
+    ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+    ['pit', 'tyre', 'stint']
+  ),
   headerBar: bar(['title', 'session', 'split', 'incidents']),
   headerBarSize: 'normal',
   // The conditions footer: off in the relative (a free-size window), every reading on.
@@ -637,7 +641,7 @@ describe('normalizeSettings: basics', () => {
     }
     s.relative = {
       ...DEFAULT_RELATIVE,
-      columns: list(['gap', 'driver', 'pos', 'lic', 'ir', 'tyre', 'stint'], ['ir']),
+      columns: list(['gap', 'driver', 'pos', 'lic', 'ir', 'tyre', 'stint', 'pit'], ['ir', 'pit']),
       headerBar: bar(['clock', 'split', 'remaining', 'incidents']),
       headerBarSize: 'large',
       footerBarSize: 'small',
@@ -1264,9 +1268,10 @@ describe('normalizeSettings: migration', () => {
     expect(s.widgets.relative).toEqual({ ...defaultWidget('relative'), ...v2.widgets.relative })
     expect(s.relative).toEqual({
       ...DEFAULT_RELATIVE,
+      // Its old toggles on today's list: iRating, licence (off), the PIT column hidden.
       columns: list(
-        ['pos', 'driver', 'lic', 'ir', 'tyre', 'stint', 'gap'],
-        ['lic', 'tyre', 'stint']
+        ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+        ['lic', 'pit', 'tyre', 'stint']
       )
     })
     expect(s.radar).toEqual({

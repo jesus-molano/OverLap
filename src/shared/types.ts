@@ -1221,7 +1221,7 @@ export type ElementList<Id extends string = string> = ElementEntry<Id>[]
  * Cells of a relative row, left to right. `driver` (number plate, brand mark, flag, name and its
  * badges) and `gap` always stay.
  */
-export type RelativeColumnId = 'pos' | 'driver' | 'lic' | 'ir' | 'tyre' | 'stint' | 'gap'
+export type RelativeColumnId = 'pos' | 'driver' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap'
 /** What a class line (and a single-class header) says about the class, in that order. */
 export type StandingsClassLineId = 'sof' | 'carCount'
 export type BattleLaneId = 'ahead' | 'behind'
