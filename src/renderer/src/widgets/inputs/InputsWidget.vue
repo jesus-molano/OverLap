@@ -1,20 +1,25 @@
 <script setup lang="ts">
 import { computed, onMounted, useTemplateRef, watch } from 'vue'
-import { isElementVisible } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { speedUnit } from '@shared/format'
 import type { InputsData } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
 import { useAppearance } from '@renderer/composables/useAppearance'
+import { useContentSize } from '@renderer/composables/useContentSize'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useWidgetPhase, type WidgetPhase } from '@renderer/composables/useWidgetPhase'
-import { useOptions } from '@renderer/composables/useWidgetSettings'
+import {
+  useAutoHeight,
+  useOptions,
+  useWidgetSettings
+} from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView } from '@renderer/view/reuse'
+import { orderStyle } from '../orderStyle'
 import { pedalPalette, type PedalPalette } from './palette'
 import {
   ClassSlot,
@@ -29,7 +34,7 @@ import {
   steerTransform,
   wheelTransform
 } from './readout'
-import { inputsLayout } from './layout'
+import { inputsLayout, sameInputsLayout, type InputsLayout } from './sections'
 import { clampTraceSeconds, clampTraceWidth } from './trace'
 import { TraceController, type TraceSettings } from './traceController'
 import {
@@ -60,13 +65,17 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const preview = computed(() => phase.value === 'preview')
 
 // Each read keeps its value while equal: only a change of what it shows re-renders anything.
-// Until the widget draws its lists in order (package P4): the three layouts and the toggles of
-// today, read from the lists.
-const layout = computed(() => inputsLayout(options.value.sections))
-const hasTrace = computed(() => layout.value !== 'bars')
-const showClutch = computed(() => isElementVisible(options.value.bars, 'clutch'))
-const showSteering = computed(() => isElementVisible(options.value.info, 'steering'))
-const showGearSpeed = computed(() => isElementVisible(options.value.info, 'gear'))
+/** The blocks, bars and readouts shown, each with its place (inputs.sections, .bars, .info). */
+const layout = computed<InputsLayout>((prev) => {
+  const next = inputsLayout(options.value)
+  return prev !== undefined && sameInputsLayout(prev, next) ? prev : next
+})
+const hasTrace = computed(() => layout.value.trace)
+const showClutch = computed(() => layout.value.clutch)
+const showSteering = computed(() => layout.value.steering)
+const showGear = computed(() => layout.value.gear)
+const showSpeed = computed(() => layout.value.speed)
+const autoHeight = useAutoHeight('inputs')
 const asWheel = computed(() => options.value.steeringStyle === 'wheel')
 const units = computed(() => appearance.value.units)
 const unitLabel = computed(() => speedUnit(units.value))
@@ -204,22 +213,43 @@ watch(traceSettings, (s) => {
 
 // Elements re-created by their v-if (and a new speed unit) get the current values.
 watch(
-  [showClutch, showSteering, showGearSpeed, asWheel, layout, units],
+  [layout, asWheel, units],
   () => {
     if (readout !== null) writeReadout(readout)
   },
   { flush: 'post' }
 )
+
+// Auto height: the panel is as tall as its content (the bars' fixed height in em of the scale's
+// font), whatever the window; its overlay panel fits to it.
+const panel = useTemplateRef('panel')
+useContentSize(panel, { enabled: () => autoHeight.value && shown.value })
+/** The window grows upwards: the panel hugs the bottom edge while the window waits to shrink. */
+const prefs = useWidgetSettings('inputs')
+const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor === 'bottom')
 </script>
 
 <template>
   <div
     v-inline-style="palette.vars"
     class="inputs ov-root ov-fade"
-    :class="[`inputs--${layout}`, { 'is-shown': shown }]"
+    :class="{
+      'is-shown': shown,
+      'inputs--trace': hasTrace,
+      'inputs--auto': autoHeight,
+      'is-bottom': bottomAnchored
+    }"
   >
-    <WidgetPanel class="inputs__panel" :surface="surfaceStyle" :halo="halo" fill>
-      <div v-if="hasTrace" class="plot">
+    <!-- Blocks, bars and readouts take their place by CSS order (inputs.sections, .bars,
+         .info): a reorder never re-creates the canvas or a readout. -->
+    <WidgetPanel
+      ref="panel"
+      class="inputs__panel"
+      :surface="surfaceStyle"
+      :halo="halo"
+      :fill="!autoHeight"
+    >
+      <div v-if="hasTrace" v-inline-style="orderStyle(layout.order.trace)" class="plot">
         <div class="grid" aria-hidden="true" />
         <canvas ref="canvas" class="trace" aria-hidden="true" />
         <PreviewTag v-if="preview" class="plot__tag" />
@@ -227,15 +257,19 @@ watch(
 
       <!-- The numbers, fills, gear and the ABS state are written by writeReadout(): the
            template never binds them, so a 60 Hz sample re-renders nothing. -->
-      <div class="bars">
-        <div v-if="showClutch" class="bar bar--clutch">
+      <div v-inline-style="orderStyle(layout.order.bars)" class="bars">
+        <div
+          v-if="showClutch"
+          v-inline-style="orderStyle(layout.order.clutch)"
+          class="bar bar--clutch"
+        >
           <span ref="clutchPct" class="pct" />
           <span class="track"><span ref="clutchFill" class="fill" /></span>
           <span class="key"
             ><span class="key-main">{{ t.widgets.inputs.clutch }}</span></span
           >
         </div>
-        <div ref="brakeBar" class="bar bar--brake">
+        <div ref="brakeBar" v-inline-style="orderStyle(layout.order.brake)" class="bar bar--brake">
           <span ref="brakePct" class="pct" />
           <span class="track"><span ref="brakeFill" class="fill" /></span>
           <span class="key">
@@ -243,7 +277,7 @@ watch(
             <span class="key-abs">{{ t.widgets.inputs.abs }}</span>
           </span>
         </div>
-        <div class="bar bar--throttle">
+        <div v-inline-style="orderStyle(layout.order.throttle)" class="bar bar--throttle">
           <span ref="throttlePct" class="pct" />
           <span class="track"><span ref="throttleFill" class="fill" /></span>
           <span class="key"
@@ -252,15 +286,24 @@ watch(
         </div>
       </div>
 
-      <div v-if="showGearSpeed || showSteering" class="info">
-        <template v-if="showGearSpeed">
-          <span ref="gear" class="gear ov-t-hero" />
-          <span class="speed">
-            <span ref="speed" class="speed-num" />
-            <span class="unit">{{ unitLabel }}</span>
-          </span>
-        </template>
-        <span v-if="showSteering && asWheel" ref="steerWheel" class="wheel" aria-hidden="true">
+      <div v-if="layout.info" v-inline-style="orderStyle(layout.order.info)" class="info">
+        <span
+          v-if="showGear"
+          ref="gear"
+          v-inline-style="orderStyle(layout.order.gear)"
+          class="gear ov-t-hero"
+        />
+        <span v-if="showSpeed" v-inline-style="orderStyle(layout.order.speed)" class="speed">
+          <span ref="speed" class="speed-num" />
+          <span class="unit">{{ unitLabel }}</span>
+        </span>
+        <span
+          v-if="showSteering && asWheel"
+          ref="steerWheel"
+          v-inline-style="orderStyle(layout.order.steering)"
+          class="wheel"
+          aria-hidden="true"
+        >
           <svg v-once class="wheel__svg" viewBox="-10 -10 20 20">
             <circle class="wheel__part" :r="WHEEL_RIM_R" :stroke-width="WHEEL_RIM_W" />
             <path class="wheel__part" :d="WHEEL_SPOKES" :stroke-width="WHEEL_SPOKE_W" />
@@ -268,7 +311,12 @@ watch(
             <path class="wheel__marker" :d="WHEEL_MARKER" :stroke-width="WHEEL_MARKER_W" />
           </svg>
         </span>
-        <span v-else-if="showSteering" class="steer" aria-hidden="true">
+        <span
+          v-else-if="showSteering"
+          v-inline-style="orderStyle(layout.order.steering)"
+          class="steer"
+          aria-hidden="true"
+        >
           <span ref="steerFill" class="steer-fill" />
         </span>
       </div>
@@ -281,7 +329,7 @@ watch(
   container: inputs / size;
 }
 
-/* Free size: the font follows the window (9 px floor), the plot takes the spare width. */
+/* Fixed height: the font follows the window (9 px floor), the plot takes the spare width. */
 .inputs__panel {
   flex-direction: row;
   gap: 0.5em;
@@ -290,14 +338,40 @@ watch(
   line-height: 1.15;
 }
 
-.inputs--info-bars-trace .inputs__panel {
-  flex-direction: row-reverse;
-}
-
 /* No trace: bars and info centred, sized for a small square window. */
-.inputs--bars .inputs__panel {
+.inputs:not(.inputs--trace) .inputs__panel {
   justify-content: center;
   font-size: clamp(9px, min(100cqh / 9, 100cqw / 12.5), 15px);
+}
+
+/*
+ * Auto height (the default): the panel is its content, the font the scale's (--ov-fs), so
+ * nothing depends on the window's height (no cqh) and the fitted height cannot feed back. The
+ * bars set the row's height (8.4 em: today's 120 px at the default 13 px), the trace and the
+ * readouts take it. Only the width is a container then.
+ */
+.inputs--auto {
+  container-type: inline-size;
+}
+
+/* With the bottom edge anchored the panel hugs it while the window waits to shrink. */
+.inputs--auto.is-bottom {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.inputs--auto .inputs__panel {
+  flex: none;
+}
+
+.inputs--auto .inputs__panel,
+.inputs--auto:not(.inputs--trace) .inputs__panel {
+  font-size: var(--ov-fs);
+}
+
+.inputs--auto .bars {
+  height: 8.4em;
 }
 
 /* ---- Trace ---------------------------------------------------------------- */
@@ -610,8 +684,7 @@ watch(
 /* ---- Small windows -------------------------------------------------------- */
 
 @container inputs (max-width: 250px) {
-  .inputs--trace-bars-info .info,
-  .inputs--info-bars-trace .info {
+  .inputs--trace .info {
     display: none;
   }
 }

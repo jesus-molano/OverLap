@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { isElementVisible } from '@shared/elements'
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { arrayEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption, type NumericSpec } from '@shared/settingsSchema'
+import type { DeltaRowId } from '@shared/types'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useOptions } from '@renderer/composables/useWidgetSettings'
@@ -13,8 +13,19 @@ import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import type { Tone } from '@renderer/ui/tones'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { reuseView } from '@renderer/view/reuse'
+import { reuseView, reuseViews } from '@renderer/view/reuse'
+import { orderStyle, placesOf } from '../orderStyle'
 import { previewDelta } from './preview'
+import {
+  REFERENCE_NOTE_MS,
+  deltaRows,
+  deltaTopParts,
+  lapTimesView,
+  referenceNote,
+  type DeltaTopParts,
+  type LapTimeView,
+  type ReferenceChoice
+} from './rows'
 import {
   barOverflow,
   barStep,
@@ -59,11 +70,21 @@ const content = useShownContent(
   () => previewDelta(options.value.referenceRace)
 )
 
-// Display options, one primitive each: another option or a drag re-renders nothing.
-// Until the widget draws its lists in order (package P4): the parts it has today.
-const showPredicted = computed(() => isElementVisible(options.value.top, 'predicted'))
-const showSectors = computed(() => isElementVisible(options.value.rows, 'sectors'))
-const showTrend = computed(() => isElementVisible(options.value.top, 'state'))
+// Display options, each kept while equal: another option or a drag re-renders nothing.
+/** The rows in the user's order (delta.rows), the top line always. */
+const rows = computed<readonly DeltaRowId[]>((prev) => {
+  const next = deltaRows(options.value.rows)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+const top = computed<DeltaTopParts>((prev) => reuseView(prev, deltaTopParts(options.value.top)))
+const showPredicted = computed(() => top.value.predicted)
+const showReference = computed(() => top.value.reference)
+const showTrend = computed(() => top.value.state)
+/** Each row's place (CSS order: a reorder re-creates no row). */
+const place = computed(() => placesOf(rows.value))
+const showBar = computed(() => rows.value.includes('bar'))
+const showSectors = computed(() => rows.value.includes('sectors'))
+const showLaps = computed(() => rows.value.includes('laps'))
 const rangeS = computed(() => clampOption(RANGE, options.value.rangeS))
 
 // ---- 30 Hz path: primitives and shared frozen objects only ----------------------------
@@ -132,11 +153,47 @@ const live = computed(() => liveSectorDelta(sectors.value, delta.value, current.
 const liveText = computed(() => (live.value === null ? '' : formatDelta(live.value)))
 const liveTone = computed<Tone>(() => deltaTone(live.value))
 
-// The panel's rail follows the sign of the delta: these classes change on a sign flip only.
+// ---- The lap times line and the reference label (only on a change of times or choice) ----
+
+const laps = computed(() => content.value?.laps ?? null)
+const lapTimes = computed<readonly LapTimeView[]>((prev) =>
+  reuseViews(prev, [...lapTimesView(laps.value, options.value.laps, refKind.value, t.value)])
+)
+
+/** Brief label after another reference is chosen (or takes over), live only. */
+const note = shallowRef('')
+let noteTimer: ReturnType<typeof setTimeout> | undefined
+const choice = computed<ReferenceChoice>((prev) =>
+  reuseView(prev, {
+    preferred: content.value?.preferred ?? null,
+    pending: content.value?.pending ?? null
+  })
+)
+watch(choice, (next, prev) => {
+  if (phase.value !== 'live') return
+  const text = referenceNote(prev, next, t.value)
+  if (text === null) return
+  clearTimeout(noteTimer)
+  note.value = text
+  if (text !== '') noteTimer = setTimeout(() => (note.value = ''), REFERENCE_NOTE_MS)
+})
+watch(phase, (p) => {
+  if (p === 'live') return
+  clearTimeout(noteTimer)
+  note.value = ''
+})
+onBeforeUnmount(() => clearTimeout(noteTimer))
+
+// The panel's rail follows the sign of the delta: these classes change on a sign flip only. The
+// rows and parts shown size the font (--dl-fit-h / --dl-fit-w, see the styles).
 const rootClass = computed(() => ({
   'is-shown': shown.value,
+  'dl--bar': showBar.value,
   'dl--sectors': showSectors.value,
+  'dl--laps': showLaps.value,
+  [`dl--laps-${lapTimes.value.length}`]: showLaps.value,
   'dl--trend': showTrend.value,
+  'dl--noinfo': !showPredicted.value && !showReference.value,
   'dl--invalid': !counts.value,
   'dl--good': heroTone.value === 'good',
   'dl--bad': heroTone.value === 'bad'
@@ -146,7 +203,7 @@ const rootClass = computed(() => ({
 <template>
   <div class="delta ov-root ov-fade" :class="rootClass">
     <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
-      <div class="dl-top">
+      <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top">
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
           <!-- The sign as a shape too: ▼ faster, ▲ slower (colour-blind safe). -->
           <span class="dl-hero__sym">
@@ -156,43 +213,56 @@ const rootClass = computed(() => ({
           <span class="dl-hero__num ov-t-hero">{{ heroText }}</span>
         </div>
 
-        <div v-memo="[state, preview]" class="dl-state">
-          <span
-            v-if="state.kind !== 'none'"
-            class="dl-state__line"
-            :class="`ov-tone-${state.tone}`"
-          >
-            <Icon v-if="state.icon !== null" :name="state.icon" />
-            <!-- Chevrons point where the bar is heading: left gaining, right losing. -->
-            <svg
-              v-else
-              class="ov-icon dl-chev"
-              :class="{ 'dl-chev--right': state.kind === 'loss' }"
-              viewBox="0 0 16 16"
-              aria-hidden="true"
+        <!-- For a moment after another reference is chosen: what the delta will compare with. -->
+        <p v-if="note !== ''" class="dl-note" role="status">
+          <span class="dl-note__mark" aria-hidden="true">{{ t.widgets.delta.refMark }}</span>
+          <span class="dl-note__text">{{ note }}</span>
+        </p>
+        <template v-else>
+          <div v-memo="[state, preview]" class="dl-state">
+            <span
+              v-if="state.kind !== 'none'"
+              class="dl-state__line"
+              :class="`ov-tone-${state.tone}`"
             >
-              <path class="ov-icon__stroke" d="M8.5 3.5 4 8l4.5 4.5M13 3.5 8.5 8l4.5 4.5" />
-            </svg>
-            <span class="dl-state__text">{{ state.text }}</span>
-          </span>
-          <PreviewTag v-if="preview" class="dl-state__tag" />
-        </div>
+              <Icon v-if="state.icon !== null" :name="state.icon" />
+              <!-- Chevrons point where the bar is heading: left gaining, right losing. -->
+              <svg
+                v-else
+                class="ov-icon dl-chev"
+                :class="{ 'dl-chev--right': state.kind === 'loss' }"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+              >
+                <path class="ov-icon__stroke" d="M8.5 3.5 4 8l4.5 4.5M13 3.5 8.5 8l4.5 4.5" />
+              </svg>
+              <span class="dl-state__text">{{ state.text }}</span>
+            </span>
+            <PreviewTag v-if="preview" class="dl-state__tag" />
+          </div>
 
-        <div class="dl-info">
-          <div v-if="showPredicted" class="dl-pred">
-            <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
-            <span class="dl-pred__time">{{ predicted }}</span>
+          <div v-if="showPredicted || showReference" class="dl-info">
+            <div v-if="showPredicted" class="dl-pred">
+              <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
+              <span class="dl-pred__time">{{ predicted }}</span>
+            </div>
+            <div v-if="showReference" v-memo="[reference]" class="dl-ref">
+              <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
+              <span class="dl-ref__label">{{ reference.label }}</span>
+              <span class="dl-ref__time">{{ reference.time }}</span>
+            </div>
           </div>
-          <div v-memo="[reference]" class="dl-ref">
-            <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
-            <span class="dl-ref__label">{{ reference.label }}</span>
-            <span class="dl-ref__time">{{ reference.time }}</span>
-          </div>
-        </div>
+        </template>
       </div>
 
       <!-- Static track; a frame moves only the fill (scaleX) and the needle (translateX). -->
-      <div class="dl-bar" :class="barClass" aria-hidden="true">
+      <div
+        v-if="showBar"
+        v-inline-style="orderStyle(place.bar ?? 0)"
+        class="dl-bar"
+        :class="barClass"
+        aria-hidden="true"
+      >
         <span v-inline-style="bar.fill" class="dl-bar__fill" />
         <span class="dl-bar__zero" />
         <span v-inline-style="bar.tip" class="dl-bar__tip" />
@@ -200,7 +270,32 @@ const rootClass = computed(() => ({
         <span class="dl-bar__cap dl-bar__cap--right" />
       </div>
 
-      <div v-if="showSectors" class="dl-sectors" :class="`dl-sectors--${density}`">
+      <!-- Your times side by side; the one the delta compares with is underlined and tagged. -->
+      <div
+        v-if="showLaps"
+        v-inline-style="orderStyle(place.laps ?? 0)"
+        v-memo="[lapTimes, place.laps]"
+        class="dl-laps"
+      >
+        <span v-for="l in lapTimes" :key="l.id" class="dl-lap" :class="{ 'dl-lap--ref': l.isRef }">
+          <span class="dl-lap__cap">{{ l.caption }}</span>
+          <span class="dl-lap__time">{{ l.time }}</span>
+          <span
+            v-if="l.isRef"
+            class="dl-lap__mark"
+            role="img"
+            :aria-label="t.widgets.delta.refMarkName"
+            >{{ t.widgets.delta.refMark }}</span
+          >
+        </span>
+      </div>
+
+      <div
+        v-if="showSectors"
+        v-inline-style="orderStyle(place.sectors ?? 0)"
+        class="dl-sectors"
+        :class="`dl-sectors--${density}`"
+      >
         <span
           v-for="c in chips"
           :key="c.label"
@@ -233,8 +328,16 @@ const rootClass = computed(() => ({
 }
 
 .dl-panel {
-  --dl-fit-h: 4.3;
-  --dl-fit-w: 20;
+  /* Em each row shown adds (rows.ts DELTA_ROW_FIT_EM, DELTA_FIT_TOP_EM for the top line). */
+  --dl-h-bar: 0;
+  --dl-h-sectors: 0;
+  --dl-h-laps: 0;
+  /* Em width of the top line (hero and info, plus the trend caption) and of the lap times. */
+  --dl-w-info: 20;
+  --dl-w-trend: 0;
+  --dl-w-laps: 0;
+  --dl-fit-h: calc(3.35 + var(--dl-h-bar) + var(--dl-h-sectors) + var(--dl-h-laps));
+  --dl-fit-w: max(var(--dl-w-info) + var(--dl-w-trend), var(--dl-w-laps));
   justify-content: center;
   gap: 0.35em;
   padding: 0.4em 0.6em;
@@ -246,12 +349,42 @@ const rootClass = computed(() => ({
   line-height: 1.2;
 }
 
+.dl--bar .dl-panel {
+  --dl-h-bar: 0.95;
+}
+
 .dl--sectors .dl-panel {
-  --dl-fit-h: 6;
+  --dl-h-sectors: 1.7;
+}
+
+.dl--laps .dl-panel {
+  --dl-h-laps: 1.7;
 }
 
 .dl--trend .dl-panel {
-  --dl-fit-w: 26;
+  --dl-w-trend: 6;
+}
+
+/* Hero (and trend) alone: no predicted lap nor reference. */
+.dl--noinfo .dl-panel {
+  --dl-w-info: 11.5;
+}
+
+/* DELTA_LAP_FIT_EM per time, plus the padding. */
+.dl--laps-1 .dl-panel {
+  --dl-w-laps: 8;
+}
+
+.dl--laps-2 .dl-panel {
+  --dl-w-laps: 15;
+}
+
+.dl--laps-3 .dl-panel {
+  --dl-w-laps: 22;
+}
+
+.dl--laps-4 .dl-panel {
+  --dl-w-laps: 29;
 }
 
 /* The rail is state: the sign of the delta, flush on the panel's left edge, full height. No
@@ -438,6 +571,97 @@ const rootClass = computed(() => ({
   opacity: var(--ov-o-dim);
 }
 
+/* The brief label after another reference is chosen: in place of the state and the info. */
+.dl-note {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.4em;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--ov-t-secondary);
+  line-height: 1.2;
+  color: var(--ov-fg);
+}
+
+.dl-note__mark {
+  flex: none;
+  padding: 0 0.3em;
+  border-radius: var(--ov-radius-chip);
+  box-shadow: inset 0 0 0 1px var(--ov-accent);
+  font-family: var(--ov-font-small);
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-accent);
+}
+
+.dl-note__text {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ---- Lap times ------------------------------------------------------------------------- */
+
+/* Equal cells sized by the row (a new time re-lays out its cell only): caption, time, and on
+   the reference's the 'Δ' tag and an accent underline (a shape, not colour alone). */
+.dl-laps {
+  display: grid;
+  flex: none;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.6em;
+  height: 1.25em;
+  min-width: 0;
+}
+
+.dl-lap {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 0;
+  contain: strict;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dl-lap__cap {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+  color: var(--ov-fg-dim);
+}
+
+.dl-lap__time {
+  flex: none;
+  padding-bottom: 0.08em;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-strong);
+  font-variant-numeric: tabular-nums;
+  color: var(--ov-fg-muted);
+}
+
+.dl-lap--ref .dl-lap__time {
+  color: var(--ov-fg);
+  box-shadow: inset 0 -0.12em 0 var(--ov-accent);
+}
+
+.dl-lap__mark {
+  flex: none;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-tag);
+  font-weight: var(--ov-w-strong);
+  color: var(--ov-accent);
+}
+
 /* ---- Bar ------------------------------------------------------------------------------ */
 
 /* A recessed well graduated like a gauge: majors at half scale, minors every quarter of each
@@ -608,12 +832,15 @@ const rootClass = computed(() => ({
 /* ---- Small windows: parts go, the hero keeps its size ---------------------------------- */
 
 @container delta (max-height: 62px) {
-  .dl-sectors {
+  .dl-sectors,
+  .dl-laps {
     display: none;
   }
 
-  .dl--sectors .dl-panel {
-    --dl-fit-h: 4.3;
+  .dl--sectors .dl-panel,
+  .dl--laps .dl-panel {
+    --dl-h-sectors: 0;
+    --dl-h-laps: 0;
   }
 }
 
@@ -624,12 +851,15 @@ const rootClass = computed(() => ({
   }
 
   .dl--trend .dl-panel {
-    --dl-fit-w: 21.5;
+    --dl-w-trend: 1.5;
   }
 }
 
+/* The hero first: the lap times lose their captions (the tag still marks the reference). */
 @container delta (max-width: 220px) {
-  .dl-info {
+  .dl-info,
+  .dl-note,
+  .dl-lap__cap {
     display: none;
   }
 
@@ -638,8 +868,12 @@ const rootClass = computed(() => ({
   }
 
   .dl-panel,
-  .dl--trend .dl-panel {
-    --dl-fit-w: 11.5;
+  .dl--trend .dl-panel,
+  .dl--noinfo .dl-panel,
+  [class*='dl--laps-'] .dl-panel {
+    --dl-w-info: 11.5;
+    --dl-w-trend: 0;
+    --dl-w-laps: 0;
   }
 }
 </style>

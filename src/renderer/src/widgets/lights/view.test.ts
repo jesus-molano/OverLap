@@ -112,6 +112,22 @@ describe('lightsView', () => {
     expect(lightsView(data([w]), ALL, 'metric', ES)[0]?.text).toBe('+6°')
   })
 
+  it('draws the lights in the order of lights.icons', () => {
+    const reversed: LightsFilter = { ...ALL, icons: [...ALL.icons].reverse() }
+    const v = lightsView(PREVIEW_LIGHTS, reversed, 'metric', ES).map((l) => l.kind)
+    const fwd = lightsView(PREVIEW_LIGHTS, ALL, 'metric', ES).map((l) => l.kind)
+    expect(v).toEqual([...fwd].reverse())
+    expect(fwd).toEqual(LIGHT_ORDER.filter((k) => fwd.includes(k)))
+    // The order changes the strip (it may wrap otherwise): the reveal waits for it.
+    expect(layoutKey(lightsView(PREVIEW_LIGHTS, reversed, 'metric', ES), 'row')).not.toBe(
+      layoutKey(lightsView(PREVIEW_LIGHTS, ALL, 'metric', ES), 'row')
+    )
+    // The sample with nothing chosen shows every light, in that order too.
+    const none = { ...reversed, icons: reversed.icons.map((e) => ({ ...e, visible: false })) }
+    const all = previewFilter(PREVIEW_LIGHTS, none, ES)
+    expect(all.icons.map((e) => e.id)).toEqual(reversed.icons.map((e) => e.id))
+  })
+
   it('applies every option, at once and on the sample', () => {
     for (const k of LIGHT_ORDER) {
       const v = lightsView(PREVIEW_LIGHTS, without(ALL, k), 'metric', ES)

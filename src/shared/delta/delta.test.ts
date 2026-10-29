@@ -548,22 +548,80 @@ describe('DeltaProvider: references', () => {
     expect(after.every((s) => s.data.refLapTime === 100.5)).toBe(true)
   })
 
-  it('a change of options applies at once, mid-lap', () => {
+  it('a change of options mid-lap waits for the next lap start, pending meanwhile', () => {
     const rig = new Rig({ reference: 'class' })
     rig.race.best.set(1, lapOf(100.5, 5))
     rig.race.best.set(PLAYER, lapOf(101, 2))
-    expect(rig.at(T0, 3, 0.3, 30.35).reference).toBe('class')
+    expect(rig.at(T0, 3, 0.3, 30.35)).toMatchObject({
+      reference: 'class',
+      preferred: 'class',
+      pending: null
+    })
     rig.opts = { ...rig.opts, ...everySession('session') }
     expect(rig.at(T0 + 0.1, 3, 0.301, 30.45)).toMatchObject({
+      reference: 'class',
+      preferred: 'class',
+      pending: 'session',
+      refLapTime: 100.5
+    })
+    // Chosen again before the line: nothing waits any more.
+    rig.opts = { ...rig.opts, ...everySession('class') }
+    expect(rig.at(T0 + 0.2, 3, 0.302, 30.55)).toMatchObject({ reference: 'class', pending: null })
+    rig.opts = { ...rig.opts, ...everySession('session') }
+    expect(rig.at(T0 + 0.3, 3, 0.303, 30.65).pending).toBe('session')
+    // The next lap compares with it.
+    expect(rig.at(T0 + 70, 4, 0.005, 0.5)).toMatchObject({
       reference: 'session',
+      preferred: 'session',
+      pending: null,
       refDriver: '',
       refSelf: false,
       refLapTime: 101
     })
+    // A fallback switched off mid-lap waits too (nothing pending to name: the same reference).
     rig.opts = { ...rig.opts, fallback: true, ...everySession('pb') }
-    expect(rig.at(T0 + 0.2, 3, 0.302, 30.55).reference).toBe('session')
+    expect(rig.at(T0 + 80, 4, 0.3, 30.3)).toMatchObject({ reference: 'session', pending: 'pb' })
+    expect(rig.at(T0 + 150, 5, 0.005, 0.5)).toMatchObject({
+      reference: 'session',
+      preferred: 'pb',
+      pending: null
+    })
     rig.opts = { ...rig.opts, fallback: false }
-    expect(rig.at(T0 + 0.3, 3, 0.303, 30.65).visible).toBe(false)
+    expect(rig.at(T0 + 160, 5, 0.3, 30.3)).toMatchObject({ visible: true, pending: null })
+    expect(rig.at(T0 + 230, 6, 0.005, 0.5).visible).toBe(false)
+  })
+
+  it('with no reference in use, a change of options applies at once', () => {
+    const rig = new Rig({ reference: 'pb' })
+    rig.race.best.set(PLAYER, lapOf(101, 2))
+    expect(rig.at(T0, 3, 0.3, 30.35).visible).toBe(false)
+    rig.opts = { ...rig.opts, ...everySession('session') }
+    expect(rig.at(T0 + 0.1, 3, 0.301, 30.45)).toMatchObject({
+      visible: true,
+      reference: 'session',
+      pending: null
+    })
+  })
+
+  it('carries your lap times whatever the reference: last, best, optimal and record', () => {
+    const rig = new Rig({ reference: 'class' })
+    rig.bests.offer(key(rig), pbLap(99.5))
+    rig.race.best.set(1, lapOf(100.5, 5))
+    rig.race.best.set(PLAYER, lapOf(100.8123, 2))
+    rig.player({ lastLapTime: 101.2 })
+    const d = rig.at(T0, 3, 0.005, 0.5)
+    expect(d.laps).toEqual({ last: 101.2, best: 100.812, optimal: null, pb: 99.5 })
+    // The same object while they stay (cheap to compare, nothing re-renders).
+    expect(rig.at(T0 + 0.5, 3, 0.01, 1).laps).toBe(d.laps)
+    // Not looked up mid-lap: a new last lap shows from the next lap start.
+    rig.player({ lastLapTime: 100.1 })
+    expect(rig.at(T0 + 30, 3, 0.3, 30).laps.last).toBe(101.2)
+    expect(rig.at(T0 + 101, 4, 0.005, 0.5).laps.last).toBe(100.1)
+    // An unclean best is no session best.
+    const dirty = new Rig({ reference: 'pb' })
+    dirty.bests.offer(key(dirty), pbLap(99.5))
+    dirty.race.best.set(PLAYER, { ...lapOf(98), clean: false })
+    expect(dirty.at(T0, 3, 0.005, 0.5).laps).toMatchObject({ best: null, pb: 99.5 })
   })
 
   it('looks the references up at most every refreshS while one is in use (cheap at 30 Hz)', () => {
@@ -744,8 +802,9 @@ describe('DeltaProvider: optimal references', () => {
       expect(mid.length).toBeGreaterThan(1700)
       expect(mid.every((s) => s.data.refLapTime === mid[0]?.data.refLapTime)).toBe(true)
       expect(mid[0]?.data.refLapTime).toBeCloseTo(100, 9)
-      // Each car's last and best lap read once, at the first scan; then nothing.
-      expect(rig.race.profileCalls, reference).toBeLessThanOrEqual(20 * 2)
+      // Each car's last and best lap read once, at the first scan, and your best once for the
+      // lap times; then nothing.
+      expect(rig.race.profileCalls, reference).toBeLessThanOrEqual(20 * 2 + 1)
     }
   })
 
@@ -845,9 +904,11 @@ describe('DeltaProvider: the S/F line', () => {
         lapState: 'valid',
         preferred: 'session',
         pending: null,
-        laps: NO_LAPS
+        laps: s.data.laps
       })
     }
+    // Your times as they were at the line: the best is the model's, the optimal your laps'.
+    expect(line[0]?.data.laps).toMatchObject({ last: null, best: 100, pb: null })
     // Then the new lap, live.
     const after = samples.filter((s) => s.lap === 4 && s.pct >= DELTA.guardPct)
     expect(after.length).toBeGreaterThan(0)

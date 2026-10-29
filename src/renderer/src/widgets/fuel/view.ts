@@ -15,7 +15,7 @@
  * it has nothing to say (no stop: no saving; no tyre reading yet; no session limits). Litres
  * always (the unit is not translated); words come from the dictionary `m` (messagesFor(lang)).
  */
-import { isElementVisible } from '@shared/elements'
+import { elementOrder, isElementVisible } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { FUEL_ALERT } from '@shared/notices/fuel'
 import type { Messages } from '@shared/i18n'
@@ -110,10 +110,12 @@ export interface FuelView {
 }
 
 /**
- * The drawing options of the view (the header is the widget's; the rest is the provider's):
- * FuelWidget reads them from fuel.lines until the widget draws the list in order (package P4).
+ * The drawing options of the view (the header is the widget's; the rest is the provider's): the
+ * lines shown and their order (fuel.lines), the box flag.
  */
 export interface FuelViewOptions {
+  /** The lines top to bottom, as the user put them (fuel.lines; the hero always shown). */
+  readonly order: readonly LineId[]
   readonly showGauge: boolean
   readonly showPerLap: boolean
   readonly showFinish: boolean
@@ -128,6 +130,7 @@ export interface FuelViewOptions {
 export function fuelViewOptions(o: Pick<FuelOptions, 'lines' | 'showBox'>): FuelViewOptions {
   const shown = (id: FuelLineId): boolean => isElementVisible(o.lines, id)
   return {
+    order: elementOrder(o.lines),
     showGauge: shown('gauge'),
     showPerLap: shown('perLap'),
     showFinish: shown('finish'),
@@ -330,8 +333,8 @@ export function reuseParts(prev: FuelView | undefined, next: FuelView): FuelView
   return same ? prev : (out as unknown as FuelView)
 }
 
-/** The view's lines, top to bottom (an empty list: nothing to draw). */
-export type LineId = 'hero' | 'gauge' | 'perLap' | 'finish' | 'window' | 'save' | 'tyres' | 'limits'
+/** The view's lines (fuel.lines' ids). */
+export type LineId = FuelLineId
 
 const LINES: readonly LineId[] = [
   'hero',
@@ -344,11 +347,15 @@ const LINES: readonly LineId[] = [
   'limits'
 ]
 
-export function linesOf(v: FuelView): LineId[] {
-  return LINES.filter((id) => v[id] !== null)
+/**
+ * The view's lines with something to draw, top to bottom in `order` (fuel.lines; the default
+ * order when not given), an empty list: nothing to draw.
+ */
+export function linesOf(v: FuelView, order: readonly LineId[] = LINES): LineId[] {
+  return order.filter((id) => v[id] !== null)
 }
 
 /** Changes whenever the panel's height can (useReveal): which lines are drawn. */
-export function layoutKey(v: FuelView, header: boolean): string {
-  return `${header ? 'h' : ''}${linesOf(v).join(',')}`
+export function layoutKey(v: FuelView, header: boolean, order?: readonly LineId[]): string {
+  return `${header ? 'h' : ''}${linesOf(v, order).join(',')}`
 }

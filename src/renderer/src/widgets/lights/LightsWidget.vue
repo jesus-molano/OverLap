@@ -38,6 +38,8 @@ const t = useI18n()
 /** The options the strip reads, one object while they are equal: a drag re-renders nothing. */
 const filter = computed<LightsFilter>((prev) => reuseView(prev, lightsFilter(options.value)))
 const column = computed(() => options.value.layout === 'column')
+/** In a column, the captions and values left of the icons (lights.labelSide); a row ignores it. */
+const textsLeft = computed(() => column.value && options.value.labelSide === 'left')
 
 // Payloads come only when a light or a reading changes (SKIP_EMIT), so there is no freshness
 // timer: a lost connection hides the strip through the phase.
@@ -99,7 +101,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :surface="surfaceStyle"
       :halo="halo"
     >
-      <div class="wl-strip" :class="{ 'wl-strip--column': column }">
+      <div class="wl-strip" :class="{ 'wl-strip--column': column, 'wl-strip--left': textsLeft }">
         <span
           v-for="light in lights"
           :key="light.kind"
@@ -154,6 +156,21 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: flex-start;
+}
+
+/* Texts on the left: each light reads 'REPARAR · 42 s' then its icon, the icons in one column on
+   the right edge. */
+.wl-strip--left {
+  align-items: flex-end;
+}
+
+.wl-strip--left > .wl-light {
+  flex-direction: row-reverse;
+}
+
+/* Its last letter's spacing now sits against the icon: kept as the gap. */
+.wl-strip--left .wl-text {
+  margin-right: 0;
 }
 
 /* A reading sits close to its own light, so it never reads as the next one's. */
