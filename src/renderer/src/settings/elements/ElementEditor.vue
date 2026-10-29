@@ -9,6 +9,8 @@ import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../lay
 import { useOptimistic } from '../useOptimistic'
 import {
   blockedBy,
+  boxBounds,
+  boxPosition,
   defaults,
   dropIndex,
   isDefault,
@@ -75,10 +77,15 @@ const props = withDefaults(
     split?: Id
     /** Ids that are no row (the zone's switch in the `head` slot shows them). */
     omit?: readonly Id[]
-    /** The accordion's summary instead of the count ('Normal · 4 elementos'). */
+    /** The accordion's summary instead of the count ('Normal · 4 de 15 visibles'). */
     summary?: string
     /** The zone is switched off: its list is greyed out (still editable, for when it is on). */
     dim?: boolean
+    /**
+     * Whether what the page resets along with the list (the reset's change goes to `apply`) is
+     * at its default too: an info bar's switch and size. "Restablecer" is on while either is not.
+     */
+    restAtDefault?: boolean
   }>(),
   {
     emptyHides: false,
@@ -88,7 +95,8 @@ const props = withDefaults(
     split: undefined,
     omit: () => [],
     summary: undefined,
-    dim: false
+    dim: false,
+    restAtDefault: true
   }
 )
 
@@ -146,8 +154,9 @@ const rowEntries = computed(() => boxes.value.flatMap((b) => b.rows.map((r) => r
 const countNote = computed(() =>
   t.value.settings.elements.count(shownCount(rowEntries.value), rowEntries.value.length)
 )
-const empty = computed(() => shownCount(rowEntries.value) === 0)
-const atDefault = computed(() => isDefault(props.spec, current.value))
+// The omitted ids count (the traffic's title, shown by its switch): the widget draws them.
+const empty = computed(() => shownCount(current.value.filter((e) => e.id !== props.split)) === 0)
+const atDefault = computed(() => props.restAtDefault && isDefault(props.spec, current.value))
 
 // ---- The accordion ---------------------------------------------------------------------
 
@@ -211,7 +220,10 @@ async function refocus(id: Id, target: FocusTarget): Promise<void> {
   el?.focus()
 }
 
-/** 'iRating: posición 3 de 8.', or the new side when it changed ('SoF: a la derecha.'). */
+/**
+ * 'iRating: posición 3 de 8.' (as its box numbers it), or the new side when it changed ('SoF: a la
+ * derecha.').
+ */
 function announceMove(
   id: Id,
   before: readonly Readonly<ElementEntry<Id>>[],
@@ -224,8 +236,8 @@ function announceMove(
       return
     }
   }
-  const to = next.findIndex((e) => e.id === id)
-  say(movedMessage(t.value, labelOf(id), to, next.length))
+  const at = boxPosition(next, id, props.split)
+  say(movedMessage(t.value, labelOf(id), at.index, at.total))
 }
 
 function move(id: Id, delta: number, target: FocusTarget): void {
@@ -262,7 +274,8 @@ function reset(): void {
 }
 
 function onHandleKey(e: KeyboardEvent, id: Id, index: number): void {
-  const action = keyAction(e.key, index, current.value.length)
+  const list = current.value
+  const action = keyAction(e.key, index, list.length, boxBounds(list, index, props.split))
   if (action === null) return
   e.preventDefault()
   if (action.kind === 'by') move(id, action.delta, 'handle')
@@ -588,6 +601,11 @@ function onCancel(e: PointerEvent): void {
   list-style: none;
 }
 
+/* Measured by the rows' narrow layout (below). */
+.ed-lists {
+  container: ed-lists / inline-size;
+}
+
 .ed-list + .ed-lists,
 .ed-lists + .ed-list,
 .ed-after {
@@ -602,6 +620,7 @@ function onCancel(e: PointerEvent): void {
 }
 
 .has-sides .ed-box {
+  min-width: 0;
   padding: 8px;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius);
@@ -773,6 +792,28 @@ function onCancel(e: PointerEvent): void {
   display: inline-flex;
   flex: none;
   align-items: center;
+}
+
+/*
+ * A narrow list (a narrow window, or a column of a wide one): a row's own option goes on a line
+ * of its own under the name, so the name keeps its width and the arrows stay in the row.
+ */
+@container ed-lists (max-width: 520px) {
+  .ed-row:has(.ed-extra) {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .ed-row:has(.ed-extra) .ed-text {
+    flex-basis: 0;
+  }
+
+  .ed-extra {
+    flex: 1 1 100%;
+    order: 1;
+    min-width: 0;
+    padding: 0 0 4px 36px;
+  }
 }
 
 .ed-arrows {

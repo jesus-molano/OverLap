@@ -580,6 +580,8 @@ export const settingsEs = {
     fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
     slowerHelp: 'Una clase más lenta a la que alcanzas',
     hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
+    /** The header's captions row: drawn over each group, whatever the header's switch says. */
+    captionsHelp: 'PELIGRO, DELANTE, POR DETRÁS sobre cada grupo; aunque no se muestre la cabecera',
     behind: 'Mirar atrás',
     behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
     ahead: 'Mirar delante',
@@ -1095,9 +1097,9 @@ export const settingsEs = {
       subheaderBar: 'Mostrar segunda línea',
       footerBar: 'Mostrar pie'
     },
-    /** A closed accordion's summary: 'Normal · 4 elementos'; 'No se muestra' when off. */
-    summary: (size: string, items: number) =>
-      `${size} · ${items} ${items === 1 ? 'elemento' : 'elementos'}`,
+    /** A closed accordion's summary: 'Normal · 4 de 15 visibles'; 'No se muestra' when off. */
+    summary: (size: string, visible: number, total: number) =>
+      `${size} · ${visible} de ${total} visibles`,
     summaryOff: 'No se muestra',
     /** A shown header without a size of its own (the traffic's). */
     summaryOn: 'Se muestra',
@@ -1745,6 +1747,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fasterHelp: 'Catching you from behind: how soon and where',
     slowerHelp: 'A slower class you are catching',
     hazardsHelp: 'Stopped, very slow or off-track cars ahead',
+    captionsHelp: 'HAZARD, AHEAD, BEHIND over each group; even with the header hidden',
     behind: 'Look behind',
     behindHelp: 'Faster cars up to this far behind you',
     ahead: 'Look ahead',
@@ -2199,7 +2202,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       subheaderBar: 'Show second line',
       footerBar: 'Show footer'
     },
-    summary: (size, items) => `${size} · ${items} ${items === 1 ? 'item' : 'items'}`,
+    summary: (size, visible, total) => `${size} · ${visible} of ${total} shown`,
     summaryOff: 'Not shown',
     summaryOn: 'Shown',
     size: 'Size',

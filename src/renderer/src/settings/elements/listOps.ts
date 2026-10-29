@@ -167,6 +167,30 @@ export function movedAcross<Id extends string>(
   return movedTo(spec, list, id, at)
 }
 
+/**
+ * The indexes in `list` of the box `index` is in: the side of the marker it is on (the left one
+ * ends just before it, the right one starts just after it), or the whole list without one.
+ */
+export function boxBounds<Id extends string>(list: List<Id>, index: number, split?: Id): Bounds {
+  const at = split === undefined ? -1 : list.findIndex((e) => e.id === split)
+  if (at < 0) return { first: 0, last: list.length - 1 }
+  return index < at ? { first: 0, last: at - 1 } : { first: at + 1, last: list.length - 1 }
+}
+
+/**
+ * Where `id` is as its box numbers it (from 0) and how many rows that box has: the side of the
+ * marker it is on, or the whole list without one.
+ */
+export function boxPosition<Id extends string>(
+  list: List<Id>,
+  id: Id,
+  split?: Id
+): { readonly index: number; readonly total: number } {
+  if (split === undefined) return { index: list.findIndex((e) => e.id === id), total: list.length }
+  const rows = sides(list, split)[sideOf(list, id, split)]
+  return { index: rows.findIndex((r) => r.entry.id === id), total: rows.length }
+}
+
 /** 'Incidentes: a la derecha.' */
 export function sideMessage(m: Messages, label: string, side: Side): string {
   const e = m.settings.elements
@@ -179,16 +203,31 @@ export type KeyAction =
   | { readonly kind: 'to'; readonly index: number }
   | null
 
-export function keyAction(key: string, index: number, total: number): KeyAction {
+/** The first and last index of a row's box in the whole list (see boxBounds). */
+export interface Bounds {
+  readonly first: number
+  readonly last: number
+}
+
+/**
+ * The arrows move by one through the whole list (over the marker too); Home and End go to the
+ * ends of the row's own box (`bounds`, the whole list by default), never to the other side.
+ */
+export function keyAction(
+  key: string,
+  index: number,
+  total: number,
+  bounds: Bounds = { first: 0, last: total - 1 }
+): KeyAction {
   switch (key) {
     case 'ArrowUp':
       return index > 0 ? { kind: 'by', delta: -1 } : null
     case 'ArrowDown':
       return index < total - 1 ? { kind: 'by', delta: 1 } : null
     case 'Home':
-      return index > 0 ? { kind: 'to', index: 0 } : null
+      return index > bounds.first ? { kind: 'to', index: bounds.first } : null
     case 'End':
-      return index < total - 1 ? { kind: 'to', index: total - 1 } : null
+      return index < bounds.last ? { kind: 'to', index: bounds.last } : null
     default:
       return null
   }

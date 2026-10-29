@@ -3,6 +3,8 @@ import { messagesFor } from '@shared/i18n'
 import { OPTION_SCHEMA, elements } from '@shared/settingsSchema'
 import {
   blockedBy,
+  boxBounds,
+  boxPosition,
   defaults,
   dropIndex,
   isDefault,
@@ -146,6 +148,41 @@ describe('two sides of an info bar', () => {
     expect(sideMessage(ES, 'Incidentes', 'right')).toBe('Incidentes: a la derecha.')
     expect(sideMessage(ES, 'SoF', 'left')).toBe('SoF: a la izquierda.')
     expect(sideMessage(EN, 'SoF', 'right')).toBe('SoF: on the right.')
+  })
+
+  it('keeps Home and End inside the box of the row', () => {
+    // x, y | split | z, w: the left box is 0..1, the right one 3..4.
+    const list = defaults(BAR)
+    expect(boxBounds(list, 0, 'split')).toEqual({ first: 0, last: 1 })
+    expect(boxBounds(list, 4, 'split')).toEqual({ first: 3, last: 4 })
+    expect(boxBounds(list, 2, undefined)).toEqual({ first: 0, last: 4 })
+    // End on the left's first row: to its last, never past the marker.
+    expect(keyAction('End', 0, 5, boxBounds(list, 0, 'split'))).toEqual({ kind: 'to', index: 1 })
+    expect(keyAction('End', 1, 5, boxBounds(list, 1, 'split'))).toBeNull()
+    // Home on the right's first row stays put; on its last, to its first.
+    expect(keyAction('Home', 3, 5, boxBounds(list, 3, 'split'))).toBeNull()
+    expect(keyAction('Home', 4, 5, boxBounds(list, 4, 'split'))).toEqual({ kind: 'to', index: 3 })
+    for (const [key, i] of [
+      ['End', 0],
+      ['Home', 4]
+    ] as const) {
+      const a = keyAction(key, i, 5, boxBounds(list, i, 'split'))
+      if (a?.kind !== 'to') throw new Error(key)
+      const id = list[i]?.id as B
+      expect(sideOf(movedTo(BAR, list, id, a.index), id, 'split')).toBe(sideOf(list, id, 'split'))
+    }
+    // The arrows still cross the marker.
+    expect(keyAction('ArrowDown', 1, 5, boxBounds(list, 1, 'split'))).toEqual({
+      kind: 'by',
+      delta: 1
+    })
+  })
+
+  it('numbers a row within its box, as the box shows it', () => {
+    const list = defaults(BAR)
+    expect(boxPosition(list, 'z', 'split')).toEqual({ index: 0, total: 2 })
+    expect(boxPosition(list, 'y', 'split')).toEqual({ index: 1, total: 2 })
+    expect(boxPosition(list, 'z', undefined)).toEqual({ index: 3, total: 5 })
   })
 
   it('lands a drag on the other side through the marker slot (the right box heading)', () => {

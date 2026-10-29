@@ -25,8 +25,14 @@ const registry = provideZoneRegistry()
 
 const anyClosed = computed(() => registry.zones.value.some((z) => !isZoneOpen(z)))
 const anyOpen = computed(() => registry.zones.value.some((z) => isZoneOpen(z)))
-const expandAll = (): void => void setZonesOpen(registry.zones.value, true)
-const collapseAll = (): void => void setZonesOpen(registry.zones.value, false)
+// With nothing to do a button says so (aria-disabled) but keeps the focus it has: a disabled
+// one would drop it to the top of the page right after the click.
+const expandAll = (): void => {
+  if (anyClosed.value) void setZonesOpen(registry.zones.value, true)
+}
+const collapseAll = (): void => {
+  if (anyOpen.value) void setZonesOpen(registry.zones.value, false)
+}
 
 onMounted(() => {
   if (host) host.count.value += 1
@@ -47,7 +53,7 @@ onBeforeUnmount(() => {
           <button
             type="button"
             class="st-btn st-btn-sm st-btn-ghost"
-            :disabled="!anyClosed"
+            :aria-disabled="!anyClosed"
             @click="expandAll"
           >
             {{ t.settings.common.expandAll }}
@@ -55,7 +61,7 @@ onBeforeUnmount(() => {
           <button
             type="button"
             class="st-btn st-btn-sm st-btn-ghost"
-            :disabled="!anyOpen"
+            :aria-disabled="!anyOpen"
             @click="collapseAll"
           >
             {{ t.settings.common.collapseAll }}

@@ -14,6 +14,7 @@ import {
   CUSTOMIZE_ZONE_IDS,
   OPTION_SCHEMA,
   elementFields,
+  isLayoutSection,
   type OptionSection
 } from '@shared/settingsSchema'
 import { WIDGET_IDS } from '@shared/widgets'
@@ -45,6 +46,7 @@ describe('customizeZones', () => {
   it('lists every element list of the section exactly once, and none of another', () => {
     const sections = new Set(elementFields().map(([s]) => s))
     for (const section of sections) {
+      if (!isLayoutSection(section)) continue
       const own = elementFields()
         .filter(([s]) => s === section)
         .map(([, f]) => f)
@@ -59,6 +61,13 @@ describe('customizeZones', () => {
   it('gives nothing for a section without lists', () => {
     const none: OptionSection[] = ['appearance', 'shortcuts', 'visibility', 'layouts']
     for (const section of none) expect(customizeZones(section)).toEqual([])
+  })
+
+  it("gives nothing for the settings window's own list (the accordions' state is no zone)", () => {
+    expect(elementFields().some(([s, f]) => s === 'settingsWindow' && f === 'customizeOpen')).toBe(
+      true
+    )
+    expect(customizeZones('settingsWindow')).toEqual([])
   })
 })
 

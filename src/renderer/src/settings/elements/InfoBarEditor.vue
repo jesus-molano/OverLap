@@ -19,7 +19,7 @@ import {
 } from './barSwitch'
 import ElementEditor from './ElementEditor.vue'
 import { elementTexts, zoneTitle } from './labels'
-import { shownCount, type SpecRules } from './listOps'
+import { shownCount, type ElementChange, type SpecRules } from './listOps'
 
 /**
  * One info bar's editor, the same on every page that has one (the relative, the standings, the
@@ -65,16 +65,28 @@ const setTrend = set<boolean>('conditionsTrend')
 const setWind = set<boolean>('conditionsWindDirection')
 const setShown: Setter<boolean> = (on) => setSize(sizeForSwitch(on, lastShownSize(barKey)))
 
+// "Restablecer" is the whole card's: the items, and the switch and size above them.
+const defaultSize = (schema[sizeField] as { readonly default: InfoBarSize }).default
+const sizeAtDefault = computed(() => size.value === defaultSize)
+function apply(
+  next: ElementEntry<InfoBarEntryId>[],
+  change: ElementChange<InfoBarEntryId>
+): Promise<unknown> {
+  return change.kind === 'reset' && !sizeAtDefault.value
+    ? Promise.all([applyList(next), setSize(defaultSize)])
+    : applyList(next)
+}
+
 const title = computed(() => zoneTitle(t.value, props.section, props.field as never))
 const labels = computed(() => elementTexts(t.value, props.section, 'headerBar'))
 const switchLabel = computed(() => t.value.settings.infoBar.show[props.field])
 const sizeChoices = computed(() => choiceOptions(SHOWN_SIZES, t.value.settings.infoBar.sizeChoices))
-/** 'Normal · 4 elementos', 'No se muestra'. */
+/** 'Normal · 4 de 15 visibles', 'No se muestra'. */
 const summary = computed(() => {
   const b = t.value.settings.infoBar
   if (off.value) return b.summaryOff
-  const n = shownCount(items.value.filter((e) => isInfoItem(e.id)))
-  return b.summary(b.sizeChoices[shownSize.value].label, n)
+  const own = items.value.filter((e) => isInfoItem(e.id))
+  return b.summary(b.sizeChoices[shownSize.value].label, shownCount(own), own.length)
 })
 </script>
 
@@ -84,10 +96,11 @@ const summary = computed(() => {
     :items="items"
     :spec="spec"
     :labels="labels"
-    :apply="applyList"
+    :apply="apply"
     split="split"
     :summary="summary"
     :dim="off"
+    :rest-at-default="sizeAtDefault"
   >
     <template #head>
       <ToggleControl kind="switch" :label="switchLabel" :current="!off" :apply="setShown" />

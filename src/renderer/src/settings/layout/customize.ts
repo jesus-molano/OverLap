@@ -7,7 +7,12 @@
  * injection helpers.
  */
 import { inject, provide, shallowRef, type InjectionKey, type ShallowRef } from 'vue'
-import { elementFields, type ElementField, type OptionSection } from '@shared/settingsSchema'
+import {
+  elementFields,
+  isLayoutSection,
+  type ElementField,
+  type OptionSection
+} from '@shared/settingsSchema'
 
 export interface CustomizeHost {
   /** The id of the element the editors are moved into. */
@@ -53,9 +58,11 @@ export const LEADING_ZONES = ['columns', 'headerBar', 'subheaderBar', 'footerBar
 
 /**
  * The element-list fields of `section` in the order their editors go on its page:
- * `customizeZones('standings')` is columns, headerBar, subheaderBar, footerBar, classLine.
+ * `customizeZones('standings')` is columns, headerBar, subheaderBar, footerBar, classLine. None
+ * for a section that is no widget's (the settings window's own lists are no zone).
  */
 export function customizeZones<S extends OptionSection>(section: S): ElementField<S>[] {
+  if (!isLayoutSection(section)) return []
   const fields = elementFields()
     .filter(([s]) => s === section)
     .map(([, field]) => field as ElementField<S>)

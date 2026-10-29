@@ -5,7 +5,7 @@ import Icon from '../../ui/Icon.vue'
 /**
  * A collapsible block of "Personalizar" (one per zone: ElementEditor). The header is one button
  * (Enter and Space, aria-expanded and aria-controls): the title, a short summary ('7 de 17
- * visibles', 'Normal · 4 elementos') and a chevron. The body opens and closes with a short
+ * visibles', 'No se muestra') and a chevron. The body opens and closes with a short
  * height animation (none with reduced motion); while closed it is inert, so nothing inside
  * takes focus. Several can be open at once; the open state is the caller's (zonesOpen.ts).
  */
@@ -24,7 +24,8 @@ const bodyId = `${id}-body`
 
 <template>
   <section class="acc" :class="{ 'is-open': open }">
-    <h2 class="acc-h">
+    <!-- Under "Personalizar" (an h2); the summary is read after a pause ('Cabecera, Normal…'). -->
+    <h3 class="acc-h">
       <button
         :id="buttonId"
         type="button"
@@ -34,10 +35,12 @@ const bodyId = `${id}-body`
         @click="emit('toggle', !open)"
       >
         <span class="acc-title">{{ title }}</span>
-        <span v-if="summary" class="acc-summary">{{ summary }}</span>
+        <span v-if="summary" class="acc-summary"
+          ><span class="st-sr-only">, </span>{{ summary }}</span
+        >
         <span class="acc-chev" aria-hidden="true"><Icon name="chevron" /></span>
       </button>
-    </h2>
+    </h3>
     <div :id="bodyId" class="acc-body" role="region" :aria-labelledby="buttonId" :inert="!open">
       <div class="acc-inner">
         <slot />
