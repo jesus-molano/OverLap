@@ -56,6 +56,17 @@ export function initialPage(search: string, storage: PageStorage | null): Settin
   return isSettingsPage(asked) ? asked : loadPage(storage)
 }
 
+/**
+ * `search` without its `page` (the rest kept, '' when nothing is left): it is read once on
+ * opening, so a reload of the window shows the page you were on, not that one again.
+ */
+export function searchWithoutPage(search: string): string {
+  const params = new URLSearchParams(search)
+  params.delete('page')
+  const rest = params.toString()
+  return rest === '' ? '' : `?${rest}`
+}
+
 /** Remembers the page; a storage failure is ignored (it only affects the next opening). */
 export function savePage(storage: PageStorage | null, page: SettingsPage): void {
   try {

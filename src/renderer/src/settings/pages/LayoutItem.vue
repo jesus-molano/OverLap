@@ -11,8 +11,11 @@ import { layoutCommands as cmd, type LayoutRow } from '../layoutsView'
  */
 const props = defineProps<{
   row: LayoutRow
-  /** 'move': the chevrons; 'space': their room kept empty (the pinned row); 'none': no column. */
-  order: 'move' | 'space' | 'none'
+  /**
+   * 'move': the chevrons; 'space': their room kept empty (the pinned row, another order, a
+   * search), so the names never shift sideways as you type or change the order.
+   */
+  order: 'move' | 'space'
   /** The one in use is pinned apart: a move skips it (moveLayout aroundActive). */
   aroundActive: boolean
   roomLeft: boolean
@@ -76,8 +79,8 @@ function remove(): void {
         </svg>
       </button>
     </div>
-    <!-- The pinned one cannot move: its room kept, its name lines up with the others'. -->
-    <div v-else-if="order === 'space'" class="order order-space" aria-hidden="true" />
+    <!-- Nothing to move here: the room kept, the name lines up with the others'. -->
+    <div v-else class="order order-space" aria-hidden="true" />
 
     <form
       v-if="renaming"

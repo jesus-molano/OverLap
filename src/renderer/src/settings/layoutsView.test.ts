@@ -49,7 +49,14 @@ describe('layoutList', () => {
     linkCar(s, MAZDA, 'layout-2')
     linkCar(s, { carId: 9, carName: '' }, 'layout-2')
     const v = layoutList(es, s.savedLayouts, opts())
-    expect(v).toMatchObject({ pinned: null, many: false, total: 2, shown: 2, reorder: true })
+    expect(v).toMatchObject({
+      pinned: null,
+      many: false,
+      total: 2,
+      shown: 2,
+      reorder: true,
+      aroundActive: false
+    })
     expect(v.rows).toEqual([
       {
         id: 'layout-1',
@@ -76,7 +83,7 @@ describe('layoutList', () => {
     const s = library(MANY, 2)
     expect(s.savedLayouts.list).toHaveLength(LAYOUT_LIST_ROWS + 1)
     const v = layoutList(es, s.savedLayouts, opts())
-    expect(v.many).toBe(true)
+    expect(v).toMatchObject({ many: true, reorder: true, aroundActive: true })
     expect(v.pinned).toMatchObject({ name: 'GT3 Sprint', active: true, canMoveUp: false })
     expect(v.pinned?.canMoveDown).toBe(false)
     expect(v.rows.map((r) => r.name)).toEqual(
@@ -91,7 +98,7 @@ describe('layoutList', () => {
     const byName = layoutList(es, s.savedLayouts, opts('name'))
     expect(byName.pinned?.name).toBe('Zeta')
     expect(byName.rows.map((r) => r.name)).toEqual(['Ágata', 'alfa', 'beta', 'Principal'])
-    expect(byName.reorder).toBe(false)
+    expect(byName).toMatchObject({ reorder: false, aroundActive: true })
     expect(byName.rows.some((r) => r.canMoveUp || r.canMoveDown)).toBe(false)
     // Saved at 1, 2, 3, 4 s; 'Zeta' applied last (pinned); Principal never used.
     const recent = layoutList(es, s.savedLayouts, opts('recent'))

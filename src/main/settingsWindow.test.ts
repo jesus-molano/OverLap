@@ -94,18 +94,69 @@ describe('settings window', () => {
     expect(w.loadFile).toHaveBeenCalledExactlyOnceWith(expect.any(String), {
       query: { view: 'settings', page: 'layouts' }
     })
-    // Still loading (its page may not listen yet): loaded again, the page in the URL.
+    // Still loading, already asking for it: that load goes on.
     openSettingsWindow('layouts')
-    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.loadFile).toHaveBeenCalledOnce()
     expect(w.webContents.send).not.toHaveBeenCalled()
     w.becomeReady()
     openSettingsWindow('layouts')
-    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.loadFile).toHaveBeenCalledOnce()
     expect(w.webContents.send).toHaveBeenCalledExactlyOnceWith('overlay:settings-page', 'layouts')
     expect(w.focus).toHaveBeenCalledOnce()
     // Without a page: the one it shows.
     openSettingsWindow()
     expect(w.webContents.send).toHaveBeenCalledOnce()
+  })
+
+  it('asked for a page while loading without it: loaded again once, the page in the URL', () => {
+    openSettingsWindow()
+    const w = only()
+    // Its page may not listen yet: no message, a new load asking for the page instead.
+    openSettingsWindow('layouts')
+    openSettingsWindow('layouts')
+    openSettingsWindow('layouts')
+    expect(w.webContents.send).not.toHaveBeenCalled()
+    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.loadFile).toHaveBeenLastCalledWith(expect.any(String), {
+      query: { view: 'settings', page: 'layouts' }
+    })
+    expect(w.show).not.toHaveBeenCalled()
+    w.becomeReady()
+    expect(w.show).toHaveBeenCalledOnce()
+  })
+
+  it('asked for a page while shown and loading again (a reload): loaded with it, in front', () => {
+    openSettingsWindow('layouts')
+    const w = only()
+    w.becomeReady()
+    w.webContents.reload()
+    openSettingsWindow('layouts')
+    expect(w.webContents.send).not.toHaveBeenCalled()
+    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.loadFile).toHaveBeenLastCalledWith(expect.any(String), {
+      query: { view: 'settings', page: 'layouts' }
+    })
+    expect(w.focus).toHaveBeenCalledOnce()
+    w.webContents.finishLoad()
+    openSettingsWindow('layouts')
+    expect(w.loadFile).toHaveBeenCalledTimes(2)
+    expect(w.webContents.sentOn('overlay:settings-page')).toEqual(['layouts'])
+  })
+
+  it('logs no failure for a load replaced by the next one (ERR_ABORTED), only real ones', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    openSettingsWindow()
+    const w = only()
+    w.loadFile.mockImplementationOnce(() => {
+      w.webContents.startLoading()
+      return Promise.reject(Object.assign(new Error('ERR_ABORTED (-3)'), { errno: -3 }))
+    })
+    openSettingsWindow('layouts')
+    w.webContents.emit('did-fail-load', {}, -3, 'ERR_ABORTED', 'file:///index.html', true)
+    await Promise.resolve()
+    expect(error).not.toHaveBeenCalled()
+    w.webContents.emit('did-fail-load', {}, -6, 'ERR_FILE_NOT_FOUND', 'file:///index.html', true)
+    expect(error).toHaveBeenCalledOnce()
   })
 
   it('asks for the page in the dev server URL too', () => {

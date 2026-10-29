@@ -166,14 +166,15 @@ function currentCarLayout(state: TrayState): string | null {
 
 /**
  * The layouts submenu: one radio item per saved layout, in the user's order (the one in use
- * checked; the one linked to the car you are in marked), then the settings window's page. Past
- * TRAY_LAYOUTS, only the one in use, the car's and the latest used ones, then "Más…" (the
- * settings page, where the rest are).
+ * checked; the one linked to the car you are in marked), then "Gestionar disposiciones…" (the
+ * settings window's page). Past TRAY_LAYOUTS, only the one in use, the car's and the latest used
+ * ones (recentLayouts' order), then "Más…" in its place: one entry to that page, where the rest are.
  */
 export function layoutsMenu(state: TrayState, act: TrayActions): MenuItemConstructorOptions[] {
   const lib = state.settings.savedLayouts
   const t = messagesFor(state.settings.appearance.language).core.tray
   const carLayout = currentCarLayout(state)
+  const more = lib.list.length > TRAY_LAYOUTS
   return [
     ...trayLayouts(state).map((l): MenuItemConstructorOptions => ({
       label: l.id === carLayout ? t.layoutForCar(l.name) : l.name,
@@ -181,16 +182,11 @@ export function layoutsMenu(state: TrayState, act: TrayActions): MenuItemConstru
       checked: l.id === lib.activeId,
       click: () => act.applyLayout(l.id)
     })),
-    ...(lib.list.length > TRAY_LAYOUTS
-      ? [
-          {
-            label: t.moreLayouts,
-            click: () => act.openSettings('layouts')
-          } satisfies MenuItemConstructorOptions
-        ]
-      : []),
     { type: 'separator' },
-    { label: t.manageLayouts, click: () => act.openSettings('layouts') }
+    {
+      label: more ? t.moreLayouts : t.manageLayouts,
+      click: () => act.openSettings('layouts')
+    }
   ]
 }
 

@@ -414,7 +414,7 @@ describe('last used (usedAt)', () => {
     expect(normalizeSettings(raw).savedLayouts.list[1]?.usedAt).toBe(0)
   })
 
-  it('picks the one in use, the car one and the latest used for a short list, in list order', () => {
+  it('picks the one in use, the car one, then the latest used first, for a short list', () => {
     const s = createDefaultSettings()
     for (const [i, n] of ['A', 'B', 'C', 'D', 'E', 'F', 'G'].entries()) saveLayoutAs(s, n, i + 1)
     // Principal 0 (never), A 1 ... G 7; Principal put in use last.
@@ -422,9 +422,14 @@ describe('last used (usedAt)', () => {
     const lib = s.savedLayouts
     const short = (max: number, also: string | null = null): string[] =>
       recentLayouts(lib, max, also).map((l) => l.name)
-    expect(short(5)).toEqual(['Principal', 'D', 'E', 'F', 'G'])
-    expect(short(5, 'layout-2')).toEqual(['Principal', 'A', 'E', 'F', 'G'])
-    expect(short(5, 'nope')).toEqual(['Principal', 'D', 'E', 'F', 'G'])
+    expect(short(5)).toEqual(['Principal', 'G', 'F', 'E', 'D'])
+    expect(short(5, 'layout-2')).toEqual(['Principal', 'A', 'G', 'F', 'E'])
+    expect(short(5, 'nope')).toEqual(['Principal', 'G', 'F', 'E', 'D'])
+    // The one in use first even when it is not the latest used (a file edited by hand).
+    lib.activeId = 'layout-3'
+    expect(short(3)).toEqual(['B', 'Principal', 'G'])
+    lib.activeId = 'layout-1'
+    // A list that fits: whole, as stored.
     expect(short(8)).toEqual(['Principal', 'A', 'B', 'C', 'D', 'E', 'F', 'G'])
     // Never used ones: in the list's order, after the used ones.
     for (const l of lib.list) delete l.usedAt
