@@ -16,8 +16,9 @@ const JITTER_LAPS = 0.005
 const WRAP_WINDOW = 0.03
 /**
  * How long (s) the lap counter may disagree with the pct wrap near the line: a few ticks
- * when driving through it. Longer, it is iRacing crediting a lap (a towed car parked in a
- * box just past the line keeps its pct and gets the lap after the tow): take the counter.
+ * when driving through it. Longer, with the car standing where it was, it is iRacing
+ * crediting a lap (a towed car parked in a box just past the line keeps its pct and gets the
+ * lap after the tow): take the counter.
  */
 const WRAP_HOLD_S = 1
 /**
@@ -50,8 +51,16 @@ function effectiveLap(track: CarTrack, lapRaw: number, pct: number, t: number): 
     Math.abs(lapRaw - derived) === 1 &&
     (pct < WRAP_WINDOW || pct > 1 - WRAP_WINDOW)
   ) {
-    if (Number.isNaN(track.lapMismatchT)) track.lapMismatchT = t
-    if (t - track.lapMismatchT <= WRAP_HOLD_S) return derived
+    if (Number.isNaN(track.lapMismatchT)) {
+      track.lapMismatchT = t
+      track.lapMismatchPct = pct
+    }
+    // A car still driving keeps the lap its distance continues, however slowly it crosses the
+    // window (the pit lane at the limiter). Only one standing still gets the counter's lap.
+    const moved = Math.abs(pct - track.lapMismatchPct)
+    if (t - track.lapMismatchT <= WRAP_HOLD_S || Math.min(moved, 1 - moved) > JITTER_LAPS) {
+      return derived
+    }
   } else {
     track.lapMismatchT = NaN
   }
@@ -144,14 +153,24 @@ export function advanceTrack(
  * A car that lands on pit road without driving there (a tow or reset to its box, a rejoin)
  * keeps the distance it had before: iRacing keeps it in its place (CarIdxPosition, by laps
  * completed) until the cars behind it cross the line, and credits it the lap when it is
- * towed to a box just past the line; its distance there is a lap short until then.
+ * towed to a box just past the line; its distance there is a lap short until then. When
+ * iRacing credits that lap to the car standing in its box (`credited`), it has its place
+ * there: the cars that got to where it was towed from since then are behind it until they
+ * pass the box.
  */
-export function updateOrderDistance(track: CarTrack, inPits: boolean, before: number): void {
+export function updateOrderDistance(
+  track: CarTrack,
+  inPits: boolean,
+  before: number,
+  credited: boolean
+): void {
   const d = track.lastD
   if (!inPits) {
     track.orderD = d
   } else if (!track.pitOrder || Number.isNaN(track.orderD)) {
     track.orderD = !track.continuous && Number.isFinite(before) ? before : d
+  } else if (credited) {
+    track.orderD = Math.max(track.orderD, d)
   } else {
     track.orderD += track.lastDelta
   }
