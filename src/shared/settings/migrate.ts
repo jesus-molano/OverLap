@@ -690,7 +690,8 @@ export function migrateOldBars(
 ): Record<string, unknown> {
   const bars = OLD_BARS[section]
   if (bars === undefined) return raw
-  const oldFile = typeof file.version === 'number' && file.version < 5
+  // A missing or non-numeric version reads as old, as everywhere in this file.
+  const oldFile = isBeforeV5(file)
   const specs = OPTION_SCHEMA[section as OptionSection] as Readonly<Record<string, unknown>>
   const lists = LIST_MIGRATIONS[section as OptionSection] ?? []
   let out: Record<string, unknown> | null = null
@@ -763,8 +764,9 @@ const OLD_RELATIVE_COLUMNS = ['pos', 'driver', 'lic', 'ir', '-tyre', '-stint', '
 
 /**
  * 2.3 put the relative's iRating before its licence (R10), as the standings and the battle draw
- * them. A list nobody changed (exactly the old default) takes the new one; any other is kept.
- * `raw` itself when there is nothing to do.
+ * them. A list nobody changed (exactly the old default) takes the new one, written out: a missing
+ * field takes its fallback's, and a layout's fallback is the options in effect (another layout's
+ * columns), not the default. Any other list is kept. `raw` itself when there is nothing to do.
  */
 export function migrateRelativeColumns(raw: unknown): unknown {
   if (!isRecord(raw) || !Array.isArray(raw.columns)) return raw
@@ -772,9 +774,11 @@ export function migrateRelativeColumns(raw: unknown): unknown {
     isRecord(e) ? `${e.visible === false ? '-' : ''}${String(e.id)}` : '?'
   )
   if (ids.join(',') !== OLD_RELATIVE_COLUMNS.join(',')) return raw
-  const rest = { ...raw }
-  delete rest.columns
-  return rest
+  const columns = OPTION_SCHEMA.relative.columns.default.map((e) => ({
+    id: e.id,
+    visible: e.visible
+  }))
+  return { ...raw, columns }
 }
 
 /** Accordions of "Personalizar" that were renamed: the old id and the one that took its place. */
