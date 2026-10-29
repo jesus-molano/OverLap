@@ -21,14 +21,16 @@ import {
   nextLayoutId,
   noteSeenCar,
   parseLayoutFile,
+  recentLayouts,
   renameLayout,
   saveLayoutAs,
   snapshotWidgets,
+  sortLayouts,
   uniqueLayoutName
 } from './layouts'
 import { createDefaultSettings, normalizeSettings } from './settings'
 import { MAX_SEEN_CARS } from './settings/layouts'
-import type { OverlaySettings, SavedLayout } from './types'
+import type { LayoutSort, OverlaySettings, SavedLayout } from './types'
 import { WIDGET_DEFS, WIDGET_IDS } from './widgets'
 
 const MAZDA = { carId: 67, carName: 'Mazda MX-5 Cup' }
@@ -307,6 +309,22 @@ describe('layout commands', () => {
     expect(moveLayout(s, layout(s, 'Mazda').id, 1)).toBe(false)
   })
 
+  it('moves past the one in use, which keeps its place, when the page pins it apart', () => {
+    const s = createDefaultSettings()
+    for (const n of ['A', 'B', 'C']) saveLayoutAs(s, n)
+    s.savedLayouts.activeId = layout(s, 'A').id
+    // Principal, [A], B, C: B up swaps with Principal, A stays second.
+    expect(moveLayout(s, layout(s, 'B').id, -1, true)).toBe(true)
+    expect(names(s)).toEqual(['B', 'A', 'Principal', 'C'])
+    expect(moveLayout(s, layout(s, 'B').id, -1, true)).toBe(false)
+    expect(moveLayout(s, layout(s, 'C').id, 1, true)).toBe(false)
+    expect(moveLayout(s, layout(s, 'A').id, 1, true)).toBe(false)
+    expect(names(s)).toEqual(['B', 'A', 'Principal', 'C'])
+    // Without it, a plain swap with the neighbour, the one in use too.
+    expect(moveLayout(s, layout(s, 'A').id, 1)).toBe(true)
+    expect(names(s)).toEqual(['B', 'Principal', 'A', 'C'])
+  })
+
   it('cycles to the next layout, wrapping around; none with a single one', () => {
     const s = withMazda()
     expect(nextLayoutAfterActive(s.savedLayouts)).toBe('layout-1')
@@ -353,6 +371,79 @@ describe('applyLayout', () => {
     const s = withMazda()
     expect(applyLayout(s, 'nope')).toBe(false)
     expect(applyLayout(s, s.savedLayouts.activeId)).toBe(false)
+  })
+})
+
+describe('last used (usedAt)', () => {
+  it('stamps a layout when it becomes the one in use: saved as new or applied', () => {
+    let s = change(createDefaultSettings(), (d) => void saveLayoutAs(d, 'Mazda', 1_000.7))
+    expect(layout(s, 'Mazda').usedAt).toBe(1_000)
+    expect(layout(s, 'Principal').usedAt).toBeUndefined()
+    s = change(s, (d) => void applyLayout(d, 'layout-1', 5_000))
+    expect(layout(s, 'Principal').usedAt).toBe(5_000)
+    expect(layout(s, 'Mazda').usedAt).toBe(1_000)
+    // Applying the one in use again changes nothing.
+    s = change(s, (d) => expect(applyLayout(d, 'layout-1', 9_000)).toBe(false))
+    expect(layout(s, 'Principal').usedAt).toBe(5_000)
+  })
+
+  it('gives none to a duplicate or an import, and never exports it', () => {
+    const s = change(createDefaultSettings(), (d) => void saveLayoutAs(d, 'Mazda', 7_000))
+    const copy = change(s, (d) => void duplicateLayout(d, layout(d, 'Mazda').id, 'Copia'))
+    expect(layout(copy, 'Copia').usedAt).toBeUndefined()
+    const text = layoutFileText(layout(s, 'Mazda'))
+    expect(text).not.toContain('usedAt')
+    const parsed = parseLayoutFile(text, snapshotWidgets(s.widgets))
+    if (!parsed.ok) throw new Error('not parsed')
+    const imported = change(s, (d) => void importLayout(d, parsed, 'Importada'))
+    expect(imported.savedLayouts.list.at(-1)).not.toHaveProperty('usedAt')
+  })
+
+  it('loads it losslessly; an old file (none) or a bad value reads as never used', () => {
+    const s = change(createDefaultSettings(), (d) => void saveLayoutAs(d, 'Mazda', 123_456))
+    expect(normalizeSettings(JSON.parse(JSON.stringify(s)))).toEqual(s)
+    const raw = JSON.parse(JSON.stringify(s)) as OverlaySettings
+    const bad: unknown[] = [-1, Number.NaN, '5', null, Infinity, true]
+    for (const usedAt of bad) {
+      ;(raw.savedLayouts.list[1] as unknown as Record<string, unknown>).usedAt = usedAt
+      expect(normalizeSettings(raw).savedLayouts.list[1], String(usedAt)).not.toHaveProperty(
+        'usedAt'
+      )
+    }
+    ;(raw.savedLayouts.list[1] as unknown as Record<string, unknown>).usedAt = 0
+    expect(normalizeSettings(raw).savedLayouts.list[1]?.usedAt).toBe(0)
+  })
+
+  it('picks the one in use, the car one and the latest used for a short list, in list order', () => {
+    const s = createDefaultSettings()
+    for (const [i, n] of ['A', 'B', 'C', 'D', 'E', 'F', 'G'].entries()) saveLayoutAs(s, n, i + 1)
+    // Principal 0 (never), A 1 ... G 7; Principal put in use last.
+    applyLayout(s, 'layout-1', 100)
+    const lib = s.savedLayouts
+    const short = (max: number, also: string | null = null): string[] =>
+      recentLayouts(lib, max, also).map((l) => l.name)
+    expect(short(5)).toEqual(['Principal', 'D', 'E', 'F', 'G'])
+    expect(short(5, 'layout-2')).toEqual(['Principal', 'A', 'E', 'F', 'G'])
+    expect(short(5, 'nope')).toEqual(['Principal', 'D', 'E', 'F', 'G'])
+    expect(short(8)).toEqual(['Principal', 'A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    // Never used ones: in the list's order, after the used ones.
+    for (const l of lib.list) delete l.usedAt
+    expect(short(3)).toEqual(['Principal', 'A', 'B'])
+  })
+
+  it('sorts by name (accents, case, numbers) or the latest used, ties in the stored order', () => {
+    const s = createDefaultSettings()
+    saveLayoutAs(s, 'óvalo', 30)
+    saveLayoutAs(s, 'GT3 (10)', 10)
+    saveLayoutAs(s, 'gt3 (2)', 10)
+    saveLayoutAs(s, 'Ágata', 20)
+    const list = s.savedLayouts.list
+    const sorted = (sort: LayoutSort): string[] =>
+      sortLayouts(list, sort, 'es-ES').map((l) => l.name)
+    expect(sorted('custom')).toEqual(['Principal', 'óvalo', 'GT3 (10)', 'gt3 (2)', 'Ágata'])
+    expect(sorted('name')).toEqual(['Ágata', 'gt3 (2)', 'GT3 (10)', 'óvalo', 'Principal'])
+    expect(sorted('recent')).toEqual(['óvalo', 'Ágata', 'GT3 (10)', 'gt3 (2)', 'Principal'])
+    expect(list.map((l) => l.name)).toEqual(sorted('custom'))
   })
 })
 

@@ -330,7 +330,7 @@ describe('DEFAULT_SETTINGS', () => {
       lights: DEFAULT_LIGHTS,
       shortcuts: DEFAULT_SHORTCUTS,
       settingsWindow: DEFAULT_SETTINGS_WINDOW,
-      layouts: { autoSwitch: false },
+      layouts: { autoSwitch: false, sort: 'custom' },
       savedLayouts: {
         activeId: 'layout-1',
         list: [

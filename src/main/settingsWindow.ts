@@ -1,6 +1,7 @@
 import { BrowserWindow, app, screen, type Rectangle, type WebContents } from 'electron'
 import { join } from 'node:path'
 import { DEFAULT_LANGUAGE, messagesFor, type Language } from '@shared/i18n'
+import { IPC, type SettingsWindowPage } from '@shared/ipc'
 import iconPath from '../../resources/icon.png?asset'
 
 // Unlike the widgets, this is a normal framed, focusable window: it only ever
@@ -37,17 +38,25 @@ export function setSettingsWindowLanguage(lang: Language): void {
   if (win && !win.isDestroyed()) win.setTitle(settingsWindowTitle(lang))
 }
 
-/** Opens the settings window, or brings the existing one to the front. */
-export function openSettingsWindow(): void {
+/**
+ * Opens the settings window, or brings the existing one to the front; on `page` when given (the
+ * window shows the page it showed last otherwise).
+ */
+export function openSettingsWindow(page?: SettingsWindowPage): void {
   if (win && !win.isDestroyed()) {
     // Still loading: 'ready-to-show' shows it. A failed load is shown anyway so it can be closed.
-    if (!win.isVisible() && win.webContents.isLoading()) return
+    if (!win.isVisible() && win.webContents.isLoading()) {
+      // Its page may not listen yet: loaded again, asking for that page in the URL.
+      if (page !== undefined) loadRenderer(win, page)
+      return
+    }
+    if (page !== undefined) sendToSettingsWindow(IPC.settingsPage, page)
     if (win.isMinimized()) win.restore()
     win.show()
     win.focus()
     return
   }
-  win = createWindow()
+  win = createWindow(page)
 }
 
 /** The settings window is open and has the keyboard focus. */
@@ -126,7 +135,7 @@ function primaryWorkArea(): Pick<Rectangle, 'width' | 'height'> {
   }
 }
 
-function createWindow(): BrowserWindow {
+function createWindow(page: SettingsWindowPage | undefined): BrowserWindow {
   const w = new BrowserWindow({
     ...settingsWindowSize(primaryWorkArea()),
     center: true,
@@ -176,19 +185,26 @@ function createWindow(): BrowserWindow {
     notifyInactive()
   })
 
-  const devUrl = process.env.ELECTRON_RENDERER_URL
-  const loading =
-    !app.isPackaged && devUrl
-      ? w.loadURL(withViewParam(devUrl))
-      : w.loadFile(join(__dirname, '../renderer/index.html'), { query: { view: 'settings' } })
-  loading.catch((err: unknown) => {
-    if (!w.isDestroyed()) console.error('[settings-window] could not load the renderer', err)
-  })
+  loadRenderer(w, page)
   return w
 }
 
-function withViewParam(base: string): string {
+/** `?view=settings`, and `&page=` to open on a page instead of the one shown last. */
+function loadRenderer(w: BrowserWindow, page: SettingsWindowPage | undefined): void {
+  const query: Record<string, string> = { view: 'settings' }
+  if (page !== undefined) query.page = page
+  const devUrl = process.env.ELECTRON_RENDERER_URL
+  const loading =
+    !app.isPackaged && devUrl
+      ? w.loadURL(withQuery(devUrl, query))
+      : w.loadFile(join(__dirname, '../renderer/index.html'), { query })
+  loading.catch((err: unknown) => {
+    if (!w.isDestroyed()) console.error('[settings-window] could not load the renderer', err)
+  })
+}
+
+function withQuery(base: string, query: Record<string, string>): string {
   const url = new URL(base)
-  url.searchParams.set('view', 'settings')
+  for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v)
   return url.toString()
 }

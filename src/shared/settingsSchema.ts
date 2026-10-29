@@ -26,6 +26,7 @@ import type {
   InputsCarId,
   InputsInfoId,
   InputsSectionId,
+  LayoutSort,
   LicenseStyle,
   LightKind,
   NameFormat,
@@ -156,6 +157,9 @@ const NAME_FORMATS_INHERIT = ['inherit', ...NAME_FORMATS] as const
 
 /** When the overlay is shown (VisibilityOptions.showWhen), in UI order: the default first. */
 export const SHOW_WHEN = ['car', 'race', 'always'] as const satisfies readonly ShowWhen[]
+
+/** How the settings window orders the saved layouts (LayoutOptions.sort), the default first. */
+export const LAYOUT_SORTS = ['custom', 'name', 'recent'] as const satisfies readonly LayoutSort[]
 
 /**
  * The ids of a zone in their default order, every member of `Id` listed (the compiler rejects a
@@ -651,9 +655,10 @@ export const OPTION_SCHEMA = {
     stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
-  // changes only when you change it.
+  // changes only when you change it. The order is the settings window's alone.
   layouts: {
-    autoSwitch: { kind: 'bool', default: false, displayOnly: true }
+    autoSwitch: { kind: 'bool', default: false, displayOnly: true },
+    sort: { kind: 'enum', values: LAYOUT_SORTS, default: 'custom', displayOnly: true }
   }
 } as const satisfies OptionSchema
 

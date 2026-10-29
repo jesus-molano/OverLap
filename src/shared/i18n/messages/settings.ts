@@ -1080,6 +1080,25 @@ export const settingsEs = {
     listTitle: 'Disposiciones guardadas',
     listNote: 'La que está en uso se actualiza sola al mover los widgets',
     inUse: 'En uso',
+    search: 'Buscar',
+    searchPlaceholder: 'Nombre o coche',
+    clearSearch: 'Borrar la búsqueda',
+    /** How many match the search: '3 de 30'. */
+    matches: (shown: number, total: number) => `${shown} de ${total}`,
+    noMatch: (query: string) => `Ninguna disposición coincide con «${query}»`,
+    /** The one in use, shown apart although the search leaves it out. */
+    pinnedNoMatch: 'No coincide con la búsqueda; se muestra porque está en uso',
+    sort: 'Orden',
+    sorts: {
+      custom: 'Personalizado',
+      name: 'Nombre',
+      recent: 'Uso reciente'
+    },
+    sortHints: {
+      custom: 'Tu orden, el de la bandeja y el atajo; se cambia con las flechas',
+      name: 'De la A a la Z',
+      recent: 'La última que usaste primero'
+    },
     apply: 'Aplicar',
     applyLabel: (name: string) => `Aplicar ${name}`,
     rename: 'Renombrar',
@@ -2097,6 +2116,23 @@ export const settingsEn: Dict<typeof settingsEs> = {
     listTitle: 'Saved layouts',
     listNote: 'The one in use updates itself as you move the widgets',
     inUse: 'In use',
+    search: 'Search',
+    searchPlaceholder: 'Name or car',
+    clearSearch: 'Clear the search',
+    matches: (shown, total) => `${shown} of ${total}`,
+    noMatch: (query) => `No layout matches “${query}”`,
+    pinnedNoMatch: 'Doesn’t match the search; shown because it is in use',
+    sort: 'Order',
+    sorts: {
+      custom: 'Custom',
+      name: 'Name',
+      recent: 'Recently used'
+    },
+    sortHints: {
+      custom: 'Your order, the tray’s and the shortcut’s; change it with the arrows',
+      name: 'From A to Z',
+      recent: 'The one you used last first'
+    },
     apply: 'Apply',
     applyLabel: (name) => `Apply ${name}`,
     rename: 'Rename',

@@ -3,6 +3,7 @@ import { canonicalAccelerator } from './accelerator'
 import { normalizeHexColor } from './colors'
 import { LANGUAGES, messagesFor } from './i18n'
 import { COMPUTED_INFO_ITEMS, INFO_BAR_ENTRY_IDS, INFO_BARS, INFO_ITEM_IDS } from './infoBar'
+import { createDefaultSettings, normalizeSettings } from './settings'
 import {
   ACCENT_PRESETS,
   DELTA_REFERENCE_VALUES,
@@ -355,6 +356,29 @@ describe('driver cell extras and the outline licence (v2.6)', () => {
     expect(OPTION_SCHEMA.lights.labelSide.default).toBe('right')
     expect(OPTION_SCHEMA.settingsWindow.stageScene.values).toEqual(['dark', 'light'])
     expect(OPTION_SCHEMA.settingsWindow.stageScene.default).toBe('dark')
+  })
+
+  it('the layouts page order: yours by default, display only, worded in every language', () => {
+    expect(OPTION_SCHEMA.layouts.sort.values).toEqual(['custom', 'name', 'recent'])
+    expect(OPTION_SCHEMA.layouts.sort.default).toBe('custom')
+    expect(OPTION_SCHEMA.layouts.sort.displayOnly).toBe(true)
+    for (const lang of LANGUAGES) {
+      const l = messagesFor(lang).settings.layouts
+      for (const v of OPTION_SCHEMA.layouts.sort.values) {
+        expect(l.sorts[v], `${lang} ${v}`).toBeTruthy()
+        expect(l.sortHints[v], `${lang} ${v}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('loads the layouts order of an old file (none) or a bad one as yours', () => {
+    const old = JSON.parse(JSON.stringify(createDefaultSettings())) as Record<string, unknown>
+    old.layouts = { autoSwitch: true }
+    expect(normalizeSettings(old).layouts).toEqual({ autoSwitch: true, sort: 'custom' })
+    old.layouts = { autoSwitch: false, sort: 'size' }
+    expect(normalizeSettings(old).layouts.sort).toBe('custom')
+    old.layouts = { autoSwitch: false, sort: 'recent' }
+    expect(normalizeSettings(old).layouts.sort).toBe('recent')
   })
 })
 

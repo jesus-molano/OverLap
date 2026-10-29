@@ -14,7 +14,8 @@ import {
   widgetTitle,
   type Language
 } from '@shared/i18n'
-import { linkedLayoutId } from '@shared/layouts'
+import type { SettingsWindowPage } from '@shared/ipc'
+import { linkedLayoutId, recentLayouts } from '@shared/layouts'
 import { RADAR_RANGE_PRESETS_M } from '@shared/settings'
 import { SHOW_WHEN } from '@shared/settingsSchema'
 import type { HiddenReason, OverlaySettings, OverlayStatus, ShowWhen } from '@shared/types'
@@ -57,7 +58,8 @@ export interface TrayState {
 }
 
 export interface TrayActions {
-  openSettings(): void
+  /** The settings window, on `page` when given. */
+  openSettings(page?: SettingsWindowPage): void
   /** Makes a saved layout the one in use (settings.savedLayouts). */
   applyLayout(id: string): void
   setWidgetVisible(id: WidgetId, visible: boolean): void
@@ -136,10 +138,23 @@ export function updateTray(state: TrayState): void {
   tray.setContextMenu(Menu.buildFromTemplate(buildMenu(state, status, actions)))
 }
 
-/** What the layouts submenu shows: names, order, the one in use and the current car's. */
+/** Most layouts the submenu lists; past it, "Más…" opens the settings window's page. */
+export const TRAY_LAYOUTS = 5
+
+/** What the layouts submenu shows: which ones, names, order, the one in use, the car's. */
 function layoutsKey(state: TrayState): unknown {
   const lib = state.settings.savedLayouts
-  return [lib.activeId, lib.list.map((l) => [l.id, l.name]), currentCarLayout(state)]
+  return [
+    lib.activeId,
+    trayLayouts(state).map((l) => [l.id, l.name]),
+    lib.list.length > TRAY_LAYOUTS,
+    currentCarLayout(state)
+  ]
+}
+
+/** The layouts the submenu lists (recentLayouts: the one in use and the car's among them). */
+function trayLayouts(state: TrayState): ReturnType<typeof recentLayouts> {
+  return recentLayouts(state.settings.savedLayouts, TRAY_LAYOUTS, currentCarLayout(state))
 }
 
 /** The layout linked to the car you are in, while the automatic mode is on (null: none). */
@@ -151,21 +166,31 @@ function currentCarLayout(state: TrayState): string | null {
 
 /**
  * The layouts submenu: one radio item per saved layout, in the user's order (the one in use
- * checked; the one linked to the car you are in marked), then the settings window's page.
+ * checked; the one linked to the car you are in marked), then the settings window's page. Past
+ * TRAY_LAYOUTS, only the one in use, the car's and the latest used ones, then "Más…" (the
+ * settings page, where the rest are).
  */
 export function layoutsMenu(state: TrayState, act: TrayActions): MenuItemConstructorOptions[] {
   const lib = state.settings.savedLayouts
   const t = messagesFor(state.settings.appearance.language).core.tray
   const carLayout = currentCarLayout(state)
   return [
-    ...lib.list.map((l): MenuItemConstructorOptions => ({
+    ...trayLayouts(state).map((l): MenuItemConstructorOptions => ({
       label: l.id === carLayout ? t.layoutForCar(l.name) : l.name,
       type: 'radio',
       checked: l.id === lib.activeId,
       click: () => act.applyLayout(l.id)
     })),
+    ...(lib.list.length > TRAY_LAYOUTS
+      ? [
+          {
+            label: t.moreLayouts,
+            click: () => act.openSettings('layouts')
+          } satisfies MenuItemConstructorOptions
+        ]
+      : []),
     { type: 'separator' },
-    { label: t.manageLayouts, click: () => act.openSettings() }
+    { label: t.manageLayouts, click: () => act.openSettings('layouts') }
   ]
 }
 

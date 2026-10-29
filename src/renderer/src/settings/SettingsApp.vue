@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import './settings.css'
-import { computed, shallowRef, useId } from 'vue'
+import { computed, onUnmounted, shallowRef, useId } from 'vue'
 import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
@@ -12,8 +12,8 @@ import SettingsSidebar from './layout/SettingsSidebar.vue'
 import {
   SETTINGS_PAGES,
   browserStorage,
+  initialPage,
   isSettingsPage,
-  loadPage,
   pageTitle,
   savePage,
   type SettingsPage
@@ -29,7 +29,8 @@ const t = useI18n()
 const lang = useLanguage()
 
 const storage = browserStorage()
-const page = shallowRef<SettingsPage>(loadPage(storage))
+const page = shallowRef<SettingsPage>(initialPage(location.search, storage))
+savePage(storage, page.value)
 const selectId = useId()
 const pageOptions = computed(() =>
   SETTINGS_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
@@ -46,6 +47,12 @@ function onSelectChange(e: Event): void {
   const v = e.target instanceof HTMLSelectElement ? e.target.value : null
   if (isSettingsPage(v)) select(v)
 }
+
+// Main asks for a page when it brings the open window to the front (the tray's "Más…").
+const stopPageRequests = window.overlay.onSettingsPage((p) => {
+  if (isSettingsPage(p)) select(p)
+})
+onUnmounted(stopPageRequests)
 </script>
 
 <template>

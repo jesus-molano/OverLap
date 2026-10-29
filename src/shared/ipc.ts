@@ -126,8 +126,16 @@ export const IPC = {
   /** main -> settings window, `CarRef | null`: the car you are in now (layout links). */
   currentCar: 'overlay:current-car',
   /** main -> settings window, `LayoutNotice`: how an export or an import went. */
-  layoutNotice: 'overlay:layout-notice'
+  layoutNotice: 'overlay:layout-notice',
+  /** main -> settings window, `SettingsWindowPage`: show this page (the tray's "Más…"). */
+  settingsPage: 'overlay:settings-page'
 } as const
+
+/**
+ * A page main opens the settings window on: sent on IPC.settingsPage to an open window, or as
+ * `?page=` in the URL of a new one (the renderer checks it like any page id).
+ */
+export type SettingsWindowPage = 'layouts'
 
 /** What became of a layout export or import (the settings window words it). */
 export type LayoutNotice =
@@ -329,13 +337,14 @@ export type SettingsCommand =
    * the one in use; 'layout-duplicate' copies one (not applied); names are made unique by main.
    * 'layout-export' and 'layout-import' open a file dialog; main answers on IPC.layoutNotice.
    * 'layout-link-car' links a car model to a layout (`layoutId` null: unlinks it).
+   * 'layout-move' with `aroundActive` moves past the one in use, which the page pins apart.
    */
   | { type: 'layout-save'; name: string }
   | { type: 'layout-apply'; id: string }
   | { type: 'layout-duplicate'; id: string; name: string }
   | { type: 'layout-rename'; id: string; name: string }
   | { type: 'layout-delete'; id: string }
-  | { type: 'layout-move'; id: string; step: -1 | 1 }
+  | { type: 'layout-move'; id: string; step: -1 | 1; aroundActive?: boolean }
   | { type: 'layout-export'; id: string }
   | { type: 'layout-import' }
   | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
@@ -384,6 +393,8 @@ export interface OverlayApi {
   onCurrentCar(cb: (car: CarRef | null) => void): Unsubscribe
   /** Settings window only: how a layout export or import went. */
   onLayoutNotice(cb: (notice: LayoutNotice) => void): Unsubscribe
+  /** Settings window only: main asks for a page (opened from the tray). */
+  onSettingsPage(cb: (page: SettingsWindowPage) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */
   commitBounds(msg: BoundsCommit): void
   /** Overlay windows, edit mode: a wheel notch over an auto-height widget. */
