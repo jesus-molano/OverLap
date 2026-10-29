@@ -18,6 +18,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **El mismo bloque «Ventana y visibilidad» en los diez widgets**: Relativo, Radar y Delta tienen
+  ya «Escala», con los mismos botones 80/100/125/150 %: es el tamaño de su ventana respecto al de
+  fábrica (lo mismo que hace la rueda en modo edición, que ahora significa «escala» en todos), y
+  el chip del modo edición muestra ese mismo porcentaje. La fila «Alto» sale en todos, apagada con
+  su motivo donde no se aplica, así que las filas están en el mismo sitio en cada página.
 - **Deshacer también los cambios grandes**: restablecer (una lista, las opciones de un widget, su
   ventana o su posición, la apariencia, los atajos), ocultar un widget y eliminar una disposición
   se hacen con un clic y muestran el mismo aviso que ocultar un elemento, con **Deshacer** (o

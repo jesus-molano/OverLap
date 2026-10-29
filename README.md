@@ -182,8 +182,9 @@ Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arranc
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día.
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
-  panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala, alto automático o
-  fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
+  panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala (la misma fila y los
+  mismos botones 80/100/125/150 % en los diez; en Relativo, Radar y Delta cambia el tamaño de su
+  ventana, como la rueda en modo edición), alto automático o fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
   entrada a boxes).
 - **Restablecer y deshacer**: arriba de cada página de widget, **Restablecer…** dice qué devuelve
   a fábrica (Contenido y Personalizar, Ventana y visibilidad, Posición y tamaño, o todo), y cada

@@ -6,6 +6,7 @@ import { WIDGET_DEFS, canHideInPits, type WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import { useAppearance } from '../../composables/useAppearance'
+import { useOverlayState } from '../../composables/useOverlay'
 import { widgetOpacity } from '../../composables/useWidgetSurface'
 import CheckGroup from '../controls/CheckGroup.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
@@ -19,7 +20,8 @@ import {
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { bgChoiceOf, storedBackground, type BgChoice } from '../backgrounds'
-import { showInSetter, widgetSetter, type Setter } from '../editor'
+import { sendCommand, showInSetter, widgetSetter, type Setter } from '../editor'
+import { freeScaleBounds, freeScalePercent } from '../freeScale'
 import PageSection from '../layout/PageSection.vue'
 import { replayNote, sessionScreenSwitch } from '../replayWidgets'
 import { dayUnreadable } from '../opacityNote'
@@ -72,6 +74,18 @@ const dayNote = computed(() =>
 )
 const setAutoHeight: Setter<BoolChoice> = (v) => set('autoHeight')(fromChoice(v))
 
+/** A free-size widget's «Escala»: its window against the factory size (freeScale.ts). */
+const { settings } = useOverlayState()
+const bounds = computed(
+  () => settings.value?.widgets[props.widgetId].bounds ?? def.value.defaultBounds
+)
+const freePercent = computed(() => freeScalePercent(bounds.value, def.value.defaultBounds))
+const setFreeScale: Setter<number> = (pct) => {
+  const next = freeScaleBounds(bounds.value, def.value.defaultBounds, pct, def.value.minSize)
+  sendCommand({ type: 'set-widget-bounds', widgetId: props.widgetId, bounds: next })
+  return Promise.resolve()
+}
+
 const showIn = computed(() => {
   const labels = t.value.settings.window.showInKinds
   return SHOW_IN_KINDS.map((kind) => ({
@@ -112,37 +126,35 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
 
 <template>
   <PageSection :title="t.settings.window.title" resets="window">
-    <template v-if="autoModel">
-      <SliderControl
-        :label="t.settings.window.scale"
-        :help="t.settings.window.scaleHelp"
-        :current="prefs.scale"
-        :min="WIDGET_SCALE_MIN"
-        :max="WIDGET_SCALE_MAX"
-        :step="WIDGET_SCALE_STEP"
-        :presets="SIZE_PRESETS"
-        :format="percent"
-        :apply="set('scale')"
-      />
-      <ChoiceControl
-        :label="t.settings.window.height"
-        :help="t.settings.window.heightHelp"
-        :current="toChoice(prefs.autoHeight)"
-        :options="heightChoices"
-        :apply="setAutoHeight"
-      />
-      <ChoiceControl
-        v-if="prefs.autoHeight"
-        :label="t.settings.window.anchor"
-        :help="t.settings.window.anchorHelp"
-        :current="prefs.anchor"
-        :options="anchorChoices"
-        :apply="set('anchor')"
-      />
-    </template>
-    <p v-else class="st-row st-help size-note">
-      {{ t.settings.window.sizeNote }}
-    </p>
+    <!-- The same rows on every page (R09): a free-size widget scales its window, its height is
+         the window's (the row is there, off, with the reason). -->
+    <SliderControl
+      :label="t.settings.window.scale"
+      :help="autoModel ? t.settings.window.scaleHelp : t.settings.window.scaleFreeHelp"
+      :current="autoModel ? prefs.scale : freePercent"
+      :min="WIDGET_SCALE_MIN"
+      :max="WIDGET_SCALE_MAX"
+      :step="WIDGET_SCALE_STEP"
+      :presets="SIZE_PRESETS"
+      :format="percent"
+      :apply="autoModel ? set('scale') : setFreeScale"
+    />
+    <ChoiceControl
+      :label="t.settings.window.height"
+      :help="autoModel ? t.settings.window.heightHelp : t.settings.window.heightFree"
+      :current="autoModel ? toChoice(prefs.autoHeight) : 'off'"
+      :options="heightChoices"
+      :disabled="!autoModel"
+      :apply="setAutoHeight"
+    />
+    <ChoiceControl
+      v-if="autoModel && prefs.autoHeight"
+      :label="t.settings.window.anchor"
+      :help="t.settings.window.anchorHelp"
+      :current="prefs.anchor"
+      :options="anchorChoices"
+      :apply="set('anchor')"
+    />
     <ChoiceControl
       :label="t.settings.window.background"
       :help="ownOpacity ? undefined : t.settings.window.opacityHelp"
@@ -199,7 +211,6 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
 </template>
 
 <style scoped>
-.size-note,
 .day-note,
 .replay-note {
   display: block;
