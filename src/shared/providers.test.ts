@@ -5,9 +5,10 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { ConditionsFeed } from './conditions'
-import { DELTA } from './delta/delta'
+import { DELTA, NO_LAPS } from './delta/delta'
 import { createMemoryStore, personalBestKey } from './delta/references'
 import type { PersonalBestStore } from './delta/references'
+import { NO_INFO } from './infoFeed'
 import { SKIP_EMIT, createProviders } from './providers'
 import type { ProviderContext, ProviderSet } from './providers'
 import { PRACTICE, Sim, V, makeDriver, makeSession } from './race/testing/raceSim'
@@ -168,7 +169,8 @@ describe('SKIP_EMIT', () => {
     lapsRemaining: 10,
     playerLastLaps: [90],
     ahead: null,
-    behind: null
+    behind: null,
+    multiBrand: false
   }
 
   it('battle: one hidden payload is sent, the following hidden ones are not', () => {
@@ -190,7 +192,8 @@ describe('SKIP_EMIT', () => {
       slotsBehind: 3,
       sessionType: 'Race',
       incidents: { mine: 2, team: null, limit: null },
-      conditions: null
+      info: null,
+      multiBrand: false
     }
     expect(skip(empty, null)).toBe(false)
     expect(skip(structuredClone(empty), empty)).toBe(true)
@@ -199,11 +202,15 @@ describe('SKIP_EMIT', () => {
     expect(skip({ ...empty, sessionType: 'Practice' }, empty)).toBe(false)
     expect(skip({ ...empty, incidents: { mine: 3, team: null, limit: null } }, empty)).toBe(false)
     expect(skip({ ...empty, incidents: null }, empty)).toBe(false)
-    // ...and its conditions footer: turned on, or a reading that moved.
-    const footed: RelativeData = { ...empty, conditions: WEATHER }
+    // ...and its info bars: turned on, or a reading that moved.
+    const footed: RelativeData = { ...empty, info: { ...NO_INFO, conditions: WEATHER } }
     expect(skip(footed, empty)).toBe(false)
     expect(skip(structuredClone(footed), footed)).toBe(true)
-    expect(skip({ ...empty, conditions: { ...WEATHER, airTempC: 19 } }, footed)).toBe(false)
+    expect(
+      skip({ ...empty, info: { ...NO_INFO, conditions: { ...WEATHER, airTempC: 19 } } }, footed)
+    ).toBe(false)
+    // ...and the makes: a field of several turns the marks on.
+    expect(skip({ ...empty, multiBrand: true }, empty)).toBe(false)
     // A live table is always sent.
     expect(skip({ ...empty, playerRow: 0 }, empty)).toBe(false)
   })
@@ -216,7 +223,9 @@ describe('SKIP_EMIT', () => {
       classColor: '#33ceff',
       iRating: 1500,
       licString: 'B 3.00',
-      licColor: null
+      licColor: null,
+      brand: 'unknown',
+      country: ''
     },
     kind: 'faster',
     className: 'LMP2',
@@ -287,7 +296,10 @@ describe('SKIP_EMIT', () => {
       trend: 0,
       predictedLap: null,
       sectors: [],
-      lapState: 'none'
+      lapState: 'none',
+      preferred: 'pb',
+      pending: null,
+      laps: NO_LAPS
     }
     const live: DeltaData = {
       visible: true,
@@ -299,7 +311,10 @@ describe('SKIP_EMIT', () => {
       trend: -0.01,
       predictedLap: 92.38,
       sectors: [-0.05, null, null],
-      lapState: 'valid'
+      lapState: 'valid',
+      preferred: 'pb',
+      pending: null,
+      laps: NO_LAPS
     }
     expect(skip(hidden, null)).toBe(false)
     expect(skip({ ...hidden }, hidden)).toBe(true)
@@ -318,6 +333,9 @@ describe('SKIP_EMIT', () => {
     expect(skip({ ...live, reference: 'session' }, live)).toBe(false)
     expect(skip({ ...live, reference: 'class', refDriver: '#23 L. Costa' }, live)).toBe(false)
     expect(skip({ ...live, reference: 'class', refSelf: true }, live)).toBe(false)
+    // A reference chosen for the next lap is named on the widget.
+    expect(skip({ ...live, pending: 'optimal' }, live)).toBe(false)
+    expect(skip({ ...live, laps: { ...NO_LAPS, last: 93.1 } }, live)).toBe(false)
   })
 
   it('a provider set resets both stateful providers', () => {
@@ -334,13 +352,13 @@ describe('SKIP_EMIT', () => {
   })
 })
 
-describe('the conditions footers of the relative and the standings', () => {
+describe('the info bars of the relative and the standings: the weather of their footers', () => {
   function footers(relative: boolean, standingsOn: boolean): TelemetryConfig {
     const c = config()
     return {
       ...c,
-      relative: { ...c.relative, conditionsFooter: relative },
-      standings: { ...c.standings, conditionsFooter: standingsOn }
+      relative: { ...c.relative, footerBarSize: relative ? 'normal' : 'off' },
+      standings: { ...c.standings, footerBarSize: standingsOn ? 'normal' : 'off' }
     }
   }
 
@@ -358,25 +376,25 @@ describe('the conditions footers of the relative and the standings', () => {
   it('carry the readings with the footer on: by default the standings, not the relative', () => {
     const p = createProviders()
     const ctx = ctxOf(weatherSim(), session3(), config())
-    expect(p.run.standings(ctx, null).conditions).toMatchObject({ trackTempC: 31.2 })
-    expect(p.run.relative(ctx, null).conditions).toBeNull()
+    expect(p.run.standings(ctx, null).info?.conditions).toMatchObject({ trackTempC: 31.2 })
+    expect(p.run.relative(ctx, null).info?.conditions).toBeNull()
   })
 
   it('share one reading a second: both tables get the same object between computations', () => {
     const p = createProviders()
     const sim = weatherSim()
     const ctx = ctxOf(sim, session3(), footers(true, true))
-    const a = p.run.relative(ctx, null).conditions
+    const a = p.run.relative(ctx, null).info?.conditions
     expect(a).not.toBeNull()
-    expect(p.run.standings(ctx, null).conditions).toBe(a)
+    expect(p.run.standings(ctx, null).info?.conditions).toBe(a)
     sim.frame.AirTemp[0] = 25
     sim.run(0.5, 60, racing)
-    expect(p.run.relative(ctx, null).conditions).toBe(a)
+    expect(p.run.relative(ctx, null).info?.conditions).toBe(a)
     sim.run(0.5, 60, racing)
-    const b = p.run.standings(ctx, null).conditions
+    const b = p.run.standings(ctx, null).info?.conditions
     expect(b).not.toBe(a)
     expect(b?.airTempC).toBe(25)
-    expect(p.run.relative(ctx, null).conditions).toBe(b)
+    expect(p.run.relative(ctx, null).info?.conditions).toBe(b)
   })
 
   it('compute nothing while both footers are off', () => {
@@ -384,8 +402,8 @@ describe('the conditions footers of the relative and the standings', () => {
     try {
       const p = createProviders()
       const ctx = ctxOf(weatherSim(), session3(), footers(false, false))
-      expect(p.run.relative(ctx, null).conditions).toBeNull()
-      expect(p.run.standings(ctx, null).conditions).toBeNull()
+      expect(p.run.relative(ctx, null).info?.conditions).toBeNull()
+      expect(p.run.standings(ctx, null).info?.conditions).toBeNull()
       expect(get).not.toHaveBeenCalled()
     } finally {
       get.mockRestore()
@@ -400,16 +418,19 @@ describe('the conditions footers of the relative and the standings', () => {
     const ctx = ctxOf(sim, session3(), config())
     const a = p.run.standings(ctx, null)
     expect(skip({ ...a }, a)).toBe(true)
-    expect(skip({ ...a, conditions: { ...WEATHER, airTempC: 30 } }, a)).toBe(false)
-    expect(skip({ ...a, conditions: null }, a)).toBe(false)
+    const info = a.info ?? NO_INFO
+    expect(skip({ ...a, info: { ...info, conditions: { ...WEATHER, airTempC: 30 } } }, a)).toBe(
+      false
+    )
+    expect(skip({ ...a, info: null }, a)).toBe(false)
   })
 
   it('forget the readings on reset()', () => {
     const p = createProviders()
     const ctx = ctxOf(weatherSim(), session3(), config())
-    const a = p.run.standings(ctx, null).conditions
+    const a = p.run.standings(ctx, null).info?.conditions
     p.reset()
-    const b = p.run.standings(ctx, null).conditions
+    const b = p.run.standings(ctx, null).info?.conditions
     expect(b).not.toBe(a)
     expect(b).toEqual(a)
   })
@@ -525,7 +546,7 @@ describe('delta on the real RaceModel', () => {
   const guardS = DELTA.guardPct * 30
 
   it('your session best is the reference from your first clean lap; a slower lap reads +', () => {
-    const sent = practice({ reference: 'session', fallback: false }, createMemoryStore())
+    const sent = practice({ referencePractice: 'session', fallback: false }, createMemoryStore())
     expect(between(sent, 0, 60).every((x) => !x.d.visible)).toBe(true)
     // Lap 4 at the same pace: within a hundredth all lap.
     const lap4 = between(sent, 60 + guardS + 0.1, 90)
@@ -562,7 +583,7 @@ describe('delta on the real RaceModel', () => {
     const bests = createMemoryStore()
     const key = personalBestKey(session, 0) ?? ''
     let offered = false
-    const sent = practice({ reference: 'pb', fallback: true }, bests, (sim, t) => {
+    const sent = practice({ referencePractice: 'pb', fallback: true }, bests, (sim, t) => {
       // The telemetry loop offers your clean lap once its official time could have arrived.
       if (offered || t < 65.5) return
       offered = true
@@ -585,7 +606,7 @@ describe('delta on the real RaceModel', () => {
     )
 
     // Another session with the same car and track: your record is there from the first tick.
-    const next = practice({ reference: 'pb', fallback: false }, bests, undefined, 20)
+    const next = practice({ referencePractice: 'pb', fallback: false }, bests, undefined, 20)
     expect(next[0]?.d).toMatchObject({ visible: true, reference: 'pb', delta: null })
     expect(next[0]?.d.refLapTime).toBeCloseTo(30, 2)
   })
@@ -633,7 +654,13 @@ describe('optimal laps on the real RaceModel', () => {
     const sim = new Sim(session, { sessionNum: PRACTICE })
     const p = createProviders()
     const base = config()
-    const delta: DeltaOptions = { ...base.delta, reference, fallback: false }
+    // A practice session: its reference, whatever the race's says.
+    const delta: DeltaOptions = {
+      ...base.delta,
+      referencePractice: reference,
+      referenceRace: reference === 'pb' ? 'class' : 'pb',
+      fallback: false
+    }
     const ctx = ctxOf(sim, session, { ...base, delta })
     const out: { t: number; d: DeltaData }[] = []
     let n = 0

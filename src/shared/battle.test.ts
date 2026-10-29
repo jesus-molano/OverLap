@@ -4,7 +4,16 @@ import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { LapRecord, RaceCarState, RaceView } from './race/raceView'
 import { iRatingDeltas } from './ratings/irating'
 import { createDefaultSettings } from './settings'
-import type { BattleData, BattleOptions, DriverEntry, SessionMeta } from './types'
+import type {
+  BattleData,
+  BattleLaneId,
+  BattleOptions,
+  BattlePartId,
+  BattleRowId,
+  DriverEntry,
+  ElementEntry,
+  SessionMeta
+} from './types'
 
 // The real projection, wrapped to count calls and to make it fail once.
 vi.mock('./ratings/irating', async (importOriginal) => {
@@ -130,6 +139,8 @@ function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): DriverEntry {
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'unknown',
+    country: '',
     ...o
   }
 }
@@ -161,6 +172,24 @@ function makeSession(list: DriverEntry[], o: Partial<SessionMeta> = {}): Session
 }
 
 const OPTS: BattleOptions = { ...createDefaultSettings().battle, thresholdS: 1.5, holdS: 0 }
+
+/** The options with these lanes, rows or parts hidden. */
+function hiding(o: {
+  lanes?: readonly BattleLaneId[]
+  rows?: readonly BattleRowId[]
+  parts?: readonly BattlePartId[]
+}): BattleOptions {
+  const hide = <Id extends string>(
+    list: ElementEntry<Id>[],
+    ids: readonly Id[] = []
+  ): ElementEntry<Id>[] => list.map((e) => ({ ...e, visible: e.visible && !ids.includes(e.id) }))
+  return {
+    ...OPTS,
+    lanes: hide(OPTS.lanes, o.lanes),
+    rows: hide(OPTS.rows, o.rows),
+    parts: hide(OPTS.parts, o.parts)
+  }
+}
 
 /**
  * Class 1: car 1 (P1) 0.8 s ahead of the player (car 0, P2), car 2 (P3) 1.2 s behind, 10 laps
@@ -349,15 +378,15 @@ describe('opponents and visibility', () => {
     expect(d.behind).toBeNull()
   })
 
-  it('respects showAhead / showBehind', () => {
+  it('respects the lanes shown', () => {
     const { race, session } = scenario()
-    const noAhead = compute(session, race, { ...OPTS, showAhead: false })
+    const noAhead = compute(session, race, hiding({ lanes: ['ahead'] }))
     expect(noAhead.ahead).toBeNull()
     expect(noAhead.behind?.carIdx).toBe(2)
-    const noBehind = compute(session, race, { ...OPTS, showBehind: false })
+    const noBehind = compute(session, race, hiding({ lanes: ['behind'] }))
     expect(noBehind.ahead?.carIdx).toBe(1)
     expect(noBehind.behind).toBeNull()
-    const neither = compute(session, race, { ...OPTS, showAhead: false, showBehind: false })
+    const neither = compute(session, race, hiding({ lanes: ['ahead', 'behind'] }))
     expect(neither.visible).toBe(false)
   })
 
@@ -407,7 +436,8 @@ describe('opponents and visibility', () => {
       ahead: null,
       behind: null,
       lapsRemaining: 10,
-      playerLastLaps: [95.1]
+      playerLastLaps: [95.1],
+      multiBrand: false
     })
   })
 
@@ -419,7 +449,8 @@ describe('opponents and visibility', () => {
       ahead: null,
       behind: null,
       lapsRemaining: null,
-      playerLastLaps: []
+      playerLastLaps: [],
+      multiBrand: false
     })
     race.playerCarIdx = 0
     race.set(0, { classPosition: 0 })
@@ -583,7 +614,7 @@ describe('trend and catch', () => {
   it('predicts nothing with "Mostrar predicción" off, but keeps the trend', () => {
     const { race, session } = scenario()
     race.histories.set(key(0, 1), linearHistory(10.5, 0.84, 0.1))
-    expect(compute(session, race, { ...OPTS, showPrediction: false }).ahead).toMatchObject({
+    expect(compute(session, race, hiding({ rows: ['prediction'] })).ahead).toMatchObject({
       trendSPerLap: -0.1,
       lapsToCatch: null,
       catchesBeforeEnd: null,
@@ -658,7 +689,7 @@ describe('iRating at stake', () => {
   it('counts registered non-starters in the field, like the standings', () => {
     const { race, session } = scenario()
     session.drivers = new Map([...session.drivers, [6, makeDriver(6, { iRating: 1500 })]])
-    compute(session, race, { ...OPTS, showBehind: false })
+    compute(session, race, hiding({ lanes: ['behind'] }))
     const entries = vi.mocked(iRatingDeltas).mock.calls[0]?.[0]
     expect(entries).toEqual([
       { carIdx: 0, iRating: 2000, position: 2, started: true },
@@ -686,7 +717,7 @@ describe('iRating at stake', () => {
     expect(d.ahead?.iRating).toBeNull()
     expect(d.behind?.iRatingAtStake).toBe(99)
 
-    const off = compute(session, race, { ...OPTS, showIRatingAtStake: false })
+    const off = compute(session, race, hiding({ parts: ['stake'] }))
     expect(off.behind?.iRatingAtStake).toBeNull()
     const hosted = compute({ ...session, official: false }, race)
     expect(hosted.behind?.iRatingAtStake).toBeNull()
@@ -695,7 +726,7 @@ describe('iRating at stake', () => {
     vi.mocked(iRatingDeltas).mockImplementationOnce(() => {
       throw new Error('boom')
     })
-    const failed = compute(session, race, { ...OPTS, showAhead: false })
+    const failed = compute(session, race, hiding({ lanes: ['ahead'] }))
     expect(failed.behind?.iRatingAtStake).toBeNull()
     expect(failed.behind?.carIdx).toBe(2)
   })

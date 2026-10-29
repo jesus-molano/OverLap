@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
@@ -11,7 +12,7 @@ import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
 
@@ -47,10 +48,12 @@ const AHEAD = secondsSlider(S.aheadS, [4, 8, 15, 30])
 const HAZARD = secondsSlider(S.hazardS, [3, 5, 8, 12])
 const ENTRIES: NumericSpec = S.maxEntries
 
-const nothing = computed(
-  () => !opts.value.showFaster && !opts.value.showSlower && !opts.value.showHazards
-)
-const noClasses = computed(() => !opts.value.showFaster && !opts.value.showSlower)
+// Until this page gets the element editors (package P3): one toggle per group.
+const showFaster = computed(() => isElementVisible(opts.value.groups, 'faster'))
+const showSlower = computed(() => isElementVisible(opts.value.groups, 'slower'))
+const showHazards = computed(() => isElementVisible(opts.value.groups, 'hazard'))
+const nothing = computed(() => !showFaster.value && !showSlower.value && !showHazards.value)
+const noClasses = computed(() => !showFaster.value && !showSlower.value)
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
@@ -68,20 +71,20 @@ const nameHelp = computed(() =>
       <ToggleControl
         :label="t.settings.traffic.faster"
         :help="t.settings.traffic.fasterHelp"
-        :current="opts.showFaster"
-        :apply="set('showFaster')"
+        :current="showFaster"
+        :apply="elementToggle('traffic', 'groups', 'faster')"
       />
       <ToggleControl
         :label="t.settings.traffic.slower"
         :help="t.settings.traffic.slowerHelp"
-        :current="opts.showSlower"
-        :apply="set('showSlower')"
+        :current="showSlower"
+        :apply="elementToggle('traffic', 'groups', 'slower')"
       />
       <ToggleControl
         :label="t.settings.traffic.hazards"
         :help="t.settings.traffic.hazardsHelp"
-        :current="opts.showHazards"
-        :apply="set('showHazards')"
+        :current="showHazards"
+        :apply="elementToggle('traffic', 'groups', 'hazard')"
       />
     </CheckGroup>
     <SliderControl
@@ -93,7 +96,7 @@ const nameHelp = computed(() =>
       :step="BEHIND.step"
       :format="BEHIND.format"
       :presets="BEHIND.presets"
-      :disabled="!opts.showFaster"
+      :disabled="!showFaster"
       :apply="set('behindS')"
     />
     <SliderControl
@@ -105,7 +108,7 @@ const nameHelp = computed(() =>
       :step="AHEAD.step"
       :format="AHEAD.format"
       :presets="AHEAD.presets"
-      :disabled="!opts.showSlower"
+      :disabled="!showSlower"
       :apply="set('aheadS')"
     />
     <SliderControl
@@ -117,7 +120,7 @@ const nameHelp = computed(() =>
       :step="HAZARD.step"
       :format="HAZARD.format"
       :presets="HAZARD.presets"
-      :disabled="!opts.showHazards"
+      :disabled="!showHazards"
       :apply="set('hazardS')"
     />
     <StepperControl

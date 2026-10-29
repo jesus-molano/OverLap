@@ -1,20 +1,15 @@
 /**
  * Structural equality of standings payloads, for SKIP_EMIT: an unchanged
- * table (and conditions footer) is not sent again. The provider already
+ * table (and info bars) is not sent again. The provider already
  * leaves out what no visible column draws, so every field compared here can be
  * on screen. Pure.
  */
-import { footerConditionsEqual } from './conditions'
 import { identityEqual } from './driver'
 import { sameNumber } from './equal'
 import { incidentCountEqual } from './incidents/count'
-import type {
-  GapValue,
-  PlayerRatingProjection,
-  SafetyRatingProjection,
-  StandingsClassBlock,
-  StandingsData
-} from './types'
+import { infoBarDataEqual } from './infoFeed'
+import { projectionEqual, safetyEqual } from './ratings/equal'
+import type { GapValue, StandingsClassBlock, StandingsData } from './types'
 
 type DisplayRow = StandingsClassBlock['rows'][number]
 
@@ -54,35 +49,6 @@ function rowEqual(a: DisplayRow, b: DisplayRow): boolean {
   )
 }
 
-function projectionEqual(
-  a: PlayerRatingProjection | null,
-  b: PlayerRatingProjection | null
-): boolean {
-  if (a === b) return true
-  if (a === null || b === null) return false
-  return (
-    sameNumber(a.iRatingDelta, b.iRatingDelta) &&
-    sameNumber(a.perPosition, b.perPosition) &&
-    sameNumber(a.breakEvenPosition, b.breakEvenPosition) &&
-    same(a.ifGainOne, b.ifGainOne) &&
-    same(a.ifLoseOne, b.ifLoseOne)
-  )
-}
-
-function safetyEqual(a: SafetyRatingProjection | null, b: SafetyRatingProjection | null): boolean {
-  if (a === b) return true
-  if (a === null || b === null) return false
-  return (
-    sameNumber(a.current, b.current) &&
-    sameNumber(a.projected, b.projected) &&
-    a.licClass === b.licClass &&
-    a.projectedLicClass === b.projectedLicClass &&
-    sameNumber(a.incidents, b.incidents) &&
-    sameNumber(a.corners, b.corners) &&
-    sameNumber(a.incidentBudget, b.incidentBudget)
-  )
-}
-
 function blockEqual(a: StandingsClassBlock, b: StandingsClassBlock): boolean {
   if (
     a.classId !== b.classId ||
@@ -103,13 +69,14 @@ function blockEqual(a: StandingsClassBlock, b: StandingsClassBlock): boolean {
   return true
 }
 
-/** True when the widget would paint the same table and footer. */
+/** True when the widget would paint the same table and info bars. */
 export function standingsEqual(a: StandingsData, b: StandingsData): boolean {
   if (a === b) return true
   const ha = a.header
   const hb = b.header
   if (
-    !footerConditionsEqual(a.conditions, b.conditions) ||
+    !infoBarDataEqual(a.info, b.info) ||
+    a.multiBrand !== b.multiBrand ||
     ha.sessionType !== hb.sessionType ||
     !same(ha.lapsRemaining, hb.lapsRemaining) ||
     !same(ha.timeRemainingS, hb.timeRemainingS) ||

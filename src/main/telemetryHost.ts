@@ -1,6 +1,7 @@
 import { app, utilityProcess, type UtilityProcess } from 'electron'
 import { createInterface } from 'node:readline'
 import type { PersonalBestList } from '@shared/delta/references'
+import type { SessionKind } from '@shared/sessionInfo'
 import type { AutoHiddenState, TelemetryInMessage } from '@shared/ipc'
 import type { OverlayStatus, SourceKind, TelemetryConfig, WidgetDataMessage } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
@@ -33,6 +34,11 @@ export interface TelemetryHostOptions {
   onAutoHidden(widget: WidgetId, state: AutoHiddenState): void
   /** The process's personal bests: once after each start, then on every change. */
   onBests(list: PersonalBestList): void
+  /**
+   * The kind of session being driven, on change (null when unknown, and when the process
+   * exits: its successor reports it again).
+   */
+  onSessionKind?(kind: SessionKind | null): void
 }
 
 /**
@@ -218,10 +224,14 @@ export class TelemetryHost {
       case 'bests':
         this.opts.onBests(msg.list)
         break
+      case 'session-kind':
+        this.opts.onSessionKind?.(msg.kind)
+        break
     }
   }
 
   private releaseHidden(): void {
+    this.opts.onSessionKind?.(null)
     const ids = [...this.hidden]
     this.hidden.clear()
     for (const id of ids) this.opts.onAutoHidden(id, { hidden: false, reason: null })

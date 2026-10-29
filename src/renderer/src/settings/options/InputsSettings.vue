@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible, setElementVisible } from '@shared/elements'
 import {
   INPUTS_TRACE_MAX_S,
   INPUTS_TRACE_MIN_S,
@@ -17,7 +18,20 @@ import { choiceOptions, type ChoiceOption } from '../controls/choice'
 import ColorControl from '../controls/ColorControl.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter, updateSection, type Setter } from '../editor'
+import {
+  currentList,
+  elementToggle,
+  listSetter,
+  optionSetter,
+  updateSection,
+  type Setter
+} from '../editor'
+import {
+  INPUTS_LAYOUTS,
+  inputsLayout,
+  sectionsOf,
+  type InputsLayout
+} from '../../widgets/inputs/layout'
 import PageSection from '../layout/PageSection.vue'
 import { formatPx, formatSeconds, stepValues } from '../values'
 
@@ -69,9 +83,20 @@ const I = OPTION_SCHEMA.inputs
 const steeringChoices = computed(() =>
   choiceOptions(I.steeringStyle.values, t.value.settings.inputs.steeringChoices)
 )
+// Until this page gets the element editors (package P4): the old layout choice and toggles,
+// read from and written to the lists.
 const layoutChoices = computed(() =>
-  choiceOptions(I.layout.values, t.value.settings.inputs.layoutChoices)
+  choiceOptions(INPUTS_LAYOUTS, t.value.settings.inputs.layoutChoices)
 )
+const layout = computed(() => inputsLayout(opts.value.sections))
+const setLayout: Setter<InputsLayout> = (l) => listSetter('inputs', 'sections')(sectionsOf(l))
+const showSteering = computed(() => isElementVisible(opts.value.info, 'steering'))
+const showGearSpeed = computed(() => isElementVisible(opts.value.info, 'gear'))
+const setGearSpeed: Setter<boolean> = (on) =>
+  listSetter(
+    'inputs',
+    'info'
+  )(setElementVisible(setElementVisible(currentList('inputs', 'info'), 'gear', on), 'speed', on))
 </script>
 
 <template>
@@ -79,9 +104,9 @@ const layoutChoices = computed(() =>
     <ChoiceControl
       :label="t.settings.common.layout"
       stack
-      :current="opts.layout"
+      :current="layout"
       :options="layoutChoices"
-      :apply="set('layout')"
+      :apply="setLayout"
     />
     <SliderControl
       :label="t.settings.inputs.traceSeconds"
@@ -90,21 +115,21 @@ const layoutChoices = computed(() =>
       :min="INPUTS_TRACE_MIN_S"
       :max="INPUTS_TRACE_MAX_S"
       :format="seconds"
-      :disabled="opts.layout === 'bars'"
+      :disabled="layout === 'bars'"
       :apply="set('traceSeconds')"
     />
     <ChoiceControl
       :label="t.settings.inputs.traceWidth"
       :current="traceWidth"
       :options="WIDTH_CHOICES"
-      :disabled="opts.layout === 'bars'"
+      :disabled="layout === 'bars'"
       :apply="setTraceWidth"
     />
     <CheckGroup :legend="t.settings.common.show">
       <ToggleControl
         :label="t.settings.inputs.pedals.clutch"
-        :current="opts.showClutch"
-        :apply="set('showClutch')"
+        :current="isElementVisible(opts.bars, 'clutch')"
+        :apply="elementToggle('inputs', 'bars', 'clutch')"
       />
       <ToggleControl
         :label="t.settings.inputs.clutchInTrace"
@@ -114,20 +139,20 @@ const layoutChoices = computed(() =>
       />
       <ToggleControl
         :label="t.settings.inputs.steering"
-        :current="opts.showSteering"
-        :apply="set('showSteering')"
+        :current="showSteering"
+        :apply="elementToggle('inputs', 'info', 'steering')"
       />
       <ToggleControl
         :label="t.settings.inputs.gearSpeed"
-        :current="opts.showGearSpeed"
-        :apply="set('showGearSpeed')"
+        :current="showGearSpeed"
+        :apply="setGearSpeed"
       />
     </CheckGroup>
     <ChoiceControl
       :label="t.settings.inputs.steeringStyle"
       :current="opts.steeringStyle"
       :options="steeringChoices"
-      :disabled="!opts.showSteering"
+      :disabled="!showSteering"
       :apply="set('steeringStyle')"
     />
   </PageSection>

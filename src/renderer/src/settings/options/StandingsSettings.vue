@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import {
   STANDINGS_GAP_MODES,
   STANDINGS_MODES,
@@ -18,7 +19,7 @@ import { choiceOptions } from '../controls/choice'
 import { densityChoicesInherit, nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter, updateSection, type Setter } from '../editor'
+import { elementToggle, optionSetter, updateSection, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import ConditionsFooterSection from './ConditionsFooterSection.vue'
 import StandingsColumns from './StandingsColumns.vue'
@@ -112,31 +113,31 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
     <CheckGroup :legend="t.settings.standings.header" :help="t.settings.standings.headerHelp">
       <ToggleControl
         :label="t.settings.common.iRating"
-        :current="opts.headerIRating"
-        :apply="set('headerIRating')"
+        :current="isElementVisible(opts.subheaderBar, 'iRating')"
+        :apply="elementToggle('standings', 'subheaderBar', 'iRating')"
       />
       <ToggleControl
         :label="t.settings.standings.safetyRating"
-        :current="opts.headerSafetyRating"
-        :apply="set('headerSafetyRating')"
+        :current="isElementVisible(opts.subheaderBar, 'safetyRating')"
+        :apply="elementToggle('standings', 'subheaderBar', 'safetyRating')"
       />
       <ToggleControl
         :label="t.settings.standings.incidents"
         :help="t.settings.standings.incidentsHelp"
-        :current="opts.headerIncidents"
-        :apply="set('headerIncidents')"
+        :current="isElementVisible(opts.headerBar, 'incidents')"
+        :apply="elementToggle('standings', 'headerBar', 'incidents')"
       />
     </CheckGroup>
     <CheckGroup :legend="t.settings.standings.classLine">
       <ToggleControl
         :label="t.settings.standings.sof"
-        :current="opts.showSof"
-        :apply="set('showSof')"
+        :current="isElementVisible(opts.classLine, 'sof')"
+        :apply="elementToggle('standings', 'classLine', 'sof')"
       />
       <ToggleControl
         :label="t.settings.standings.carCount"
-        :current="opts.showCarCount"
-        :apply="set('showCarCount')"
+        :current="isElementVisible(opts.classLine, 'carCount')"
+        :apply="elementToggle('standings', 'classLine', 'carCount')"
       />
     </CheckGroup>
     <ToggleControl

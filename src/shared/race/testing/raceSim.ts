@@ -69,6 +69,8 @@ export function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): Driver
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'porsche',
+    country: '',
     ...o
   }
 }

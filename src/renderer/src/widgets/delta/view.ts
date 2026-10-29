@@ -11,7 +11,7 @@
 import { MINUS, formatLapTime, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { isFiniteNumber } from '@shared/num'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import { DELTA_REFERENCE_VALUES } from '@shared/settingsSchema'
 import type { DeltaData, DeltaLapState, DeltaReference } from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import type { Tone } from '@renderer/ui/tones'
@@ -189,7 +189,7 @@ export function stateView(
 // Reference and predicted lap
 // ---------------------------------------------------------------------------
 
-const REFERENCES: readonly string[] = OPTION_SCHEMA.delta.reference.values
+const REFERENCES: readonly string[] = DELTA_REFERENCE_VALUES
 
 const isReference = (v: unknown): v is DeltaReference =>
   typeof v === 'string' && REFERENCES.includes(v)

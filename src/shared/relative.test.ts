@@ -12,6 +12,7 @@ import {
   referenceLapTime
 } from './relative'
 import { EMPTY_SESSION } from './session'
+import { createDefaultSettings } from './settings'
 import { MAX_CARS, SessionState, TELEMETRY_VAR_NAMES, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { DriverEntry, RelativeData, RelativeOptions, SessionMeta } from './types'
@@ -106,6 +107,8 @@ function makeDriver(carIdx: number, o: Partial<DriverEntry> = {}): DriverEntry {
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'unknown',
+    country: '',
     ...o
   }
 }
@@ -132,24 +135,9 @@ function makeSession(list: DriverEntry[], o: Partial<SessionMeta> = {}): Session
 }
 
 const OPTS: RelativeOptions = {
-  carsAhead: 3,
-  carsBehind: 3,
-  showClassPosition: true,
-  showLicense: true,
-  showIRating: true,
-  showIncidents: true,
-  showStint: true,
-  showTyre: true,
-  showFlags: true,
-  nameFormat: 'full',
-  conditionsFooter: false,
-  conditionsTrackTemp: true,
-  conditionsTrend: true,
-  conditionsWet: true,
-  conditionsWind: true,
-  conditionsWindDirection: true,
-  conditionsAirTemp: true,
-  conditionsRubber: true
+  ...createDefaultSettings().relative,
+  columns: createDefaultSettings().relative.columns.map((c) => ({ ...c, visible: true })),
+  nameFormat: 'full'
 }
 
 const ids = (data: RelativeData): number[] => data.rows.map((r) => r.carIdx)
@@ -683,6 +671,8 @@ describe('row fields', () => {
         iRating: 2100,
         licString: 'A 4.60',
         licColor: '#00c702',
+        brand: 'unknown',
+        country: '',
         gapS: 0,
         lapRelation: 'same',
         inPits: false,
@@ -702,6 +692,8 @@ describe('row fields', () => {
         iRating: null,
         licString: null,
         licColor: null,
+        brand: 'unknown',
+        country: '',
         gapS: expect.closeTo(-5),
         lapRelation: 'same',
         inPits: false,

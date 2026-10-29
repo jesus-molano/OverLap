@@ -30,6 +30,8 @@ function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
     iRating: 2000,
     licString: 'A 3.41',
     licColor: '#0153db',
+    brand: 'porsche',
+    country: 'ES',
     gapS: 1.5,
     lapRelation: 'same',
     inPits: false,
@@ -54,7 +56,8 @@ function data(ahead: number, behind: number, slots = 3): RelativeData {
     slotsBehind: slots,
     sessionType: 'Race',
     incidents: null,
-    conditions: null
+    info: null,
+    multiBrand: false
   }
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { formatSessionType } from '@shared/format'
 import { clampRelativeSlots } from '@shared/relative'
 import type { RelativeData } from '@shared/types'
@@ -59,12 +60,20 @@ const source = useShownContent<RelativeData>(
 )
 const ahead = computed(() => clampRelativeSlots(source.value?.slotsAhead ?? slotsAheadCfg.value))
 const behind = computed(() => clampRelativeSlots(source.value?.slotsBehind ?? slotsBehindCfg.value))
-const sessionLabel = computed(() => formatSessionType(source.value?.sessionType ?? null, t.value))
+// The header is an info bar now: until the widget draws it (package P1), today's header with
+// the session and the incidents as its items say.
+const sessionLabel = computed(() =>
+  isElementVisible(opts.value.headerBar, 'session')
+    ? formatSessionType(source.value?.sessionType ?? null, t.value)
+    : ''
+)
 /** Your incidents in the header ('3x · pen. a 17x'); the same object while it reads the same. */
 const incidents = computed<IncidentCountView | null>((prev) =>
   reuseView(
     prev,
-    opts.value.showIncidents ? toIncidentCountView(source.value?.incidents ?? null, t.value) : null
+    isElementVisible(opts.value.headerBar, 'incidents')
+      ? toIncidentCountView(source.value?.incidents ?? null, t.value)
+      : null
   )
 )
 
@@ -72,7 +81,7 @@ const incidents = computed<IncidentCountView | null>((prev) =>
  * The conditions footer under the rows (its option, off by default): the same object while it
  * reads the same, so the 10 Hz payloads that carry it re-render nothing there.
  */
-const footer = useConditionsFooter(ID, () => source.value?.conditions ?? null)
+const footer = useConditionsFooter(ID, () => source.value?.info?.conditions ?? null)
 const footed = computed(() => phase.value !== 'offline' && hasFooter(footer.value))
 
 const styles = createDriverStyles()
@@ -92,7 +101,16 @@ const slots = computed<readonly SlotView[]>((prev) =>
 /** The provider names no compound while the whole field runs the same one: no tyre column. */
 const tyres = computed(() => source.value?.rows.some((r) => r.tyre !== null) ?? false)
 const cols = computed<RelativeColumns>((prev) => {
-  const next = relativeColumns({ ...opts.value, showTyre: opts.value.showTyre && tyres.value })
+  // Until the row draws the list in its order (package P1): the cells it has today.
+  const c = opts.value.columns
+  const next = relativeColumns({
+    showClassPosition: isElementVisible(c, 'pos'),
+    showLicense: isElementVisible(c, 'lic'),
+    showIRating: isElementVisible(c, 'ir'),
+    showTyre: isElementVisible(c, 'tyre') && tyres.value,
+    showStint: isElementVisible(c, 'stint'),
+    showFlags: opts.value.showFlags
+  })
   return prev !== undefined && prev.key === next.key ? prev : next
 })
 

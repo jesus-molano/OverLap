@@ -445,3 +445,11 @@ export function brandMarksShown(mode: BrandMarkMode, brands: Iterable<BrandId>):
   if (mode === 'off') return false
   return hasMultipleBrands(brands)
 }
+
+/**
+ * The same decision from a payload's `multiBrand` (fieldHasMultipleBrands in driver.ts): what the
+ * relative, the standings and the battle draw, whatever rows they show.
+ */
+export function brandMarksOn(mode: BrandMarkMode, multiBrand: boolean): boolean {
+  return mode === 'on' || (mode === 'auto' && multiBrand)
+}

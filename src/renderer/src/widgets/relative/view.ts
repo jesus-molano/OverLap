@@ -5,13 +5,7 @@
  */
 import { formatClassPosition, formatGap } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import type {
-  CarPenalty,
-  NameFormat,
-  RelativeData,
-  RelativeOptions,
-  RelativeRow
-} from '@shared/types'
+import type { CarPenalty, NameFormat, RelativeData, RelativeRow } from '@shared/types'
 import { stintCell, tyreCell } from '@renderer/view/carExtras'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
@@ -154,8 +148,15 @@ export interface RelativeColumns {
   key: string
 }
 
-type ColumnOptions = Pick<RelativeOptions, 'showClassPosition' | 'showLicense' | 'showIRating'> &
-  Partial<Pick<RelativeOptions, 'showTyre' | 'showStint' | 'showFlags'>>
+/** Which optional cells are on (RelativeWidget reads them from relative.columns). */
+export interface ColumnOptions {
+  showClassPosition: boolean
+  showLicense: boolean
+  showIRating: boolean
+  showTyre?: boolean
+  showStint?: boolean
+  showFlags?: boolean
+}
 
 /** Hidden columns leave the grid, so the name takes their width. */
 export function relativeColumns(o: ColumnOptions): RelativeColumns {

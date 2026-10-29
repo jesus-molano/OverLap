@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import { DELTA_REFERENCE_VALUES } from '@shared/settingsSchema'
 import type { DeltaReference } from '@shared/types'
 import { previewDelta } from './preview'
 import { currentSector, formatDelta, liveSectorDelta, refView, stateView, trendKind } from './view'
 
-const REFS: readonly DeltaReference[] = OPTION_SCHEMA.delta.reference.values
+const REFS: readonly DeltaReference[] = DELTA_REFERENCE_VALUES
 const ES = messagesFor('es')
 
 describe('previewDelta', () => {

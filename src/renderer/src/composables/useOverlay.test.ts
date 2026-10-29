@@ -26,7 +26,8 @@ const STANDINGS: StandingsData = {
     incidents: null
   },
   classes: [],
-  conditions: null
+  info: null,
+  multiBrand: false
 }
 
 const BATTLE: BattleData = {
@@ -34,7 +35,8 @@ const BATTLE: BattleData = {
   lapsRemaining: null,
   playerLastLaps: [],
   ahead: null,
-  behind: null
+  behind: null,
+  multiBrand: false
 }
 
 function panel(widget: WidgetId): OverlayPanel {
@@ -81,7 +83,7 @@ describe('useOverlayState', () => {
     expect(fake.listenerCount()).toBe(9)
     await flush()
     expect(a.status.value).toEqual(LIVE_STATUS)
-    expect(a.settings.value?.version).toBe(4)
+    expect(a.settings.value?.version).toBe(5)
   })
 
   it('keeps events newer than the initial state', async () => {
@@ -89,25 +91,41 @@ describe('useOverlayState', () => {
     fake.status.emit(WAITING_STATUS)
     fake.editMode.emit(true)
     fake.overlayHidden.emit(true)
-    fake.shortcutStatus.emit({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
+    fake.shortcutStatus.emit({
+      toggleOverlay: 'unavailable',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
     await flush()
     expect(s.status.value).toEqual(WAITING_STATUS)
     expect(s.editMode.value).toBe(true)
     expect(s.overlayHidden.value).toBe(true)
-    expect(s.shortcutStatus.value).toEqual({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
+    expect(s.shortcutStatus.value).toEqual({
+      toggleOverlay: 'unavailable',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
   })
 
   it('takes the hidden overlay and the shortcuts status from the initial state', async () => {
     await load({
       overlayHidden: true,
-      shortcutStatus: { toggleOverlay: 'ok', toggleEditMode: 'disabled' }
+      shortcutStatus: {
+        toggleOverlay: 'ok',
+        toggleEditMode: 'disabled',
+        cycleDeltaReference: 'disabled'
+      }
     })
     const s = mod.useOverlayState()
     expect(s.overlayHidden.value).toBe(false)
     expect(s.shortcutStatus.value).toBeNull()
     await flush()
     expect(s.overlayHidden.value).toBe(true)
-    expect(s.shortcutStatus.value).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'disabled' })
+    expect(s.shortcutStatus.value).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'disabled',
+      cycleDeltaReference: 'disabled'
+    })
     fake.overlayHidden.emit(false)
     expect(s.overlayHidden.value).toBe(false)
   })

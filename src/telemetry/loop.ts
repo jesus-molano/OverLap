@@ -18,7 +18,7 @@ import { OFFICIAL_WAIT_S } from '@shared/race/laps'
 import { RaceModel } from '@shared/race/raceModel'
 import type { RaceView } from '@shared/race/raceView'
 import { parseSessionMeta } from '@shared/session'
-import { resolvePlayerCarIdx } from '@shared/sessionInfo'
+import { resolvePlayerCarIdx, type SessionKind } from '@shared/sessionInfo'
 import { createDefaultSettings, toTelemetryConfig } from '@shared/settings'
 import { InCarHold, ReplayPoint, type ReplayMode } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
@@ -187,6 +187,8 @@ export class TelemetryLoop {
   private lastTickAt = 0
   private lastConnectError = ''
   private lastStatusKey = ''
+  /** The kind of session last told to main (undefined: nothing told yet). */
+  private lastKind: SessionKind | null | undefined = undefined
 
   private spinCount = 0
   private spinWindowStart = 0
@@ -588,6 +590,7 @@ export class TelemetryLoop {
       // From the live frames: on the tape, whether you were in the car when it started.
       const inCar = this.inCar.update(live, now)
       this.autoHide.update(this.config, frame, session, mode, live, inCar)
+      this.followKind(this.autoHide.kind)
     } catch (err) {
       this.logEvery('rules', now, `Visibility rules failed: ${errorMessage(err)}`)
     }
@@ -676,8 +679,16 @@ export class TelemetryLoop {
     this.liveFrame = null
     this.resetProviders(now)
     this.autoHide.showAll()
+    this.followKind(null)
     this.targetSession = null
     this.setTarget(null, now)
+  }
+
+  /** Tells main the kind of session when it changes (the delta's cycle shortcut acts on it). */
+  private followKind(kind: SessionKind | null): void {
+    if (kind === this.lastKind) return
+    this.lastKind = kind
+    this.emit({ type: 'session-kind', kind })
   }
 
   /** Codes only: each window words the status in its language (statusText in @shared/i18n). */

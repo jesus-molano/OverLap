@@ -35,10 +35,18 @@ import { isValidPct } from '../lapDist'
 import { finiteOr, quantise } from '../num'
 import { RACE_TIMING_LINES } from '../race/raceView'
 import type { RaceView } from '../race/raceView'
-import { currentSessionType, isRaceSession, resolvePlayerCarIdx } from '../sessionInfo'
+import { currentSessionType, isRaceSession, resolvePlayerCarIdx, sessionKind } from '../sessionInfo'
 import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
-import type { DeltaData, DeltaLapState, DeltaOptions, DeltaReference, SessionMeta } from '../types'
+import type {
+  DeltaData,
+  DeltaLaps,
+  DeltaLapState,
+  DeltaOptions,
+  DeltaReference,
+  SessionMeta
+} from '../types'
+import { deltaReferenceFor } from './choice'
 import { OptimalLaps } from './optimal'
 import { personalBestKey, usableLap } from './references'
 import type { PersonalBestStore } from './references'
@@ -87,9 +95,6 @@ export const DELTA_FALLBACK: Readonly<Record<DeltaReference, readonly DeltaRefer
   classOptimal: ['classOptimal', 'pb']
 }
 
-const isReference = (v: unknown): v is DeltaReference =>
-  typeof v === 'string' && Object.prototype.hasOwnProperty.call(DELTA_FALLBACK, v)
-
 /**
  * Seconds into the lap of `profile` (RACE_TIMING_LINES + 1 cumulative times) at lap fraction
  * `pct` (clamped to 0..1), linear between timing lines.
@@ -133,10 +138,21 @@ interface LapSummary {
   data: DeltaData
 }
 
+/** No lap times yet (the lap times line, DeltaData.laps). */
+export const NO_LAPS: Readonly<DeltaLaps> = Object.freeze({
+  last: null,
+  best: null,
+  optimal: null,
+  pb: null
+})
+
 function hiddenPayload(reference: DeltaReference): DeltaData {
   return {
     visible: false,
     reference,
+    preferred: reference,
+    pending: null,
+    laps: NO_LAPS,
     refDriver: '',
     refSelf: false,
     refLapTime: null,
@@ -239,7 +255,8 @@ export class DeltaProvider {
     bests: PersonalBestStore,
     opts: DeltaOptions
   ): DeltaData {
-    const reference: DeltaReference = isReference(opts.reference) ? opts.reference : 'pb'
+    // This kind of session's choice (DeltaOptions.reference*).
+    const reference = deltaReferenceFor(opts, sessionKind(currentSessionType(frame, session)))
     const now = finiteOr(frame.SessionTime[0], Number.NaN)
     if (race.sessionKey !== this.sessionKey || !(now >= this.lastT)) {
       this.reset()
@@ -449,6 +466,9 @@ export class DeltaProvider {
       data: {
         visible: true,
         reference: this.ref,
+        preferred: this.optRef ?? this.ref,
+        pending: null,
+        laps: NO_LAPS,
         refDriver: this.refDriver,
         refSelf: this.refSelf,
         refLapTime: this.refTime,
@@ -665,6 +685,9 @@ export class DeltaProvider {
     return {
       visible: true,
       reference: this.ref ?? 'pb',
+      preferred: this.optRef ?? this.ref ?? 'pb',
+      pending: null,
+      laps: NO_LAPS,
       refDriver: this.refDriver,
       refSelf: this.refSelf,
       refLapTime: this.refTime,
@@ -743,6 +766,12 @@ export function deltaEqual(a: DeltaData, b: DeltaData): boolean {
     a.trend === b.trend &&
     a.predictedLap === b.predictedLap &&
     a.lapState === b.lapState &&
+    a.preferred === b.preferred &&
+    a.pending === b.pending &&
+    a.laps.last === b.laps.last &&
+    a.laps.best === b.laps.best &&
+    a.laps.optimal === b.laps.optimal &&
+    a.laps.pb === b.laps.pb &&
     arrayEqual(a.sectors, b.sectors)
   )
 }

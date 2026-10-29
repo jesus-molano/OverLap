@@ -5,14 +5,19 @@ import type { AppearanceSettings, NameFormat } from '@shared/types'
 import { useAppearance } from '../composables/useAppearance'
 import { vInlineStyle } from '../directives/inlineStyle'
 import type { InlineStyle } from '../view/styles'
+import type { BrandId } from '@shared/carBrands'
+import BrandMark from './BrandMark.vue'
 import ClassStripe from './ClassStripe.vue'
+import CountryFlag from './CountryFlag.vue'
 import LicenseChip from './LicenseChip.vue'
 import NumberBadge from './NumberBadge.vue'
 
 /**
- * `[number] Name [icons] [iR] [licence]`. Prop names match DriverCellView, so a view's driver
- * cell binds with `v-bind="view.driver"`. Tables put iR and licence in their own grid cells;
- * inline layouts (battle) turn them on here.
+ * `[number] [make] [flag] Name [icons] [iR] [licence]`. Prop names match DriverCellView, so a
+ * view's driver cell binds with `v-bind="view.driver"`. Tables put iR and licence in their own
+ * grid cells; inline layouts (battle) turn them on here. The make and the flag are drawn only
+ * when given (the widget's brandMarks / countryFlags on): 'unknown' and '' keep an empty slot,
+ * so a column of them stays aligned.
  */
 const props = withDefaults(
   defineProps<{
@@ -34,6 +39,10 @@ const props = withDefaults(
     player?: boolean
     withRating?: boolean
     withLicense?: boolean
+    /** The car's make (BrandMark); undefined: no slot. */
+    brand?: BrandId
+    /** The driver's flag code (CountryFlag); undefined: no slot. */
+    country?: string
   }>(),
   { nameUnknown: false, lap: null, player: false, withRating: false, withLicense: false }
 )
@@ -63,6 +72,8 @@ const shownName = computed(() =>
       :variant="numStyle === 'stripe' ? 'plain' : 'filled'"
       :lap="lap"
     />
+    <BrandMark v-if="brand !== undefined" :brand="brand" />
+    <CountryFlag v-if="country !== undefined" :code="country" />
     <span class="ov-driver__name">{{ shownName }}</span>
     <slot />
     <span v-if="withRating && iRating" class="ov-driver__ir">{{ iRating }}</span>

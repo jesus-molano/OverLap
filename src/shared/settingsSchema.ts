@@ -5,17 +5,40 @@
  * and the settings UI's control ranges are all derived from this table, so a
  * new option is added here (plus its type in types.ts) and nowhere else.
  */
+import type { BrandMarkMode } from './carBrands'
 import { DEFAULT_LANGUAGE, LANGUAGES } from './i18n/language'
+import { COMPUTED_INFO_ITEMS, INFO_BAR_SIZES, INFO_ITEM_IDS } from './infoBar'
 import { clamp, isFiniteNumber, roundTo } from './num'
 import type {
-  ConditionsFooterOptions,
+  AlertsPartId,
+  BattleLaneId,
+  BattlePartId,
+  BattleRowId,
+  DeltaLapId,
+  DeltaReference,
+  DeltaRowId,
+  DeltaTopId,
+  ElementEntry,
+  FuelLineId,
+  InfoBarEntryId,
+  InfoBarSize,
+  InputsBarId,
+  InputsInfoId,
+  InputsSectionId,
+  LicenseStyle,
+  LightKind,
   NameFormat,
   OverlaySettings,
+  RadarPartId,
+  RelativeColumnId,
   ShowInSessions,
   ShowWhen,
-  StandingsColumn,
+  StandingsClassLineId,
   StandingsColumnId,
   TelemetryConfig,
+  TrafficGroupId,
+  TrafficHeaderId,
+  TrafficPartId,
   WidgetSettings
 } from './types'
 
@@ -64,10 +87,33 @@ export interface ColorsSpec<K extends string = string> extends SpecBase {
   readonly kind: 'colors'
   readonly default: { readonly [P in K]: string }
 }
-/** Standings column list: every id exactly once, in display order. */
-export interface ColumnsSpec extends SpecBase {
-  readonly kind: 'columns'
-  readonly default: readonly Readonly<StandingsColumn>[]
+/**
+ * A widget zone (columns, rows, an info bar...): every id exactly once, in display order, each
+ * shown or hidden (ElementList). Normalised by fields.ts normalizeElements; a patch replaces the
+ * whole list, a reset gives `default`. Not display-only: main resends the telemetry config when
+ * the visibility of a `computed` id changes (never on a reorder: the order is the renderer's).
+ * The standings' columns are one too, stored as they always were ({ id, visible }).
+ */
+export interface ElementsSpec<Id extends string = string> extends SpecBase {
+  readonly kind: 'elements'
+  /** Every id, in the default order. */
+  readonly ids: readonly Id[]
+  /** `ids` in order, each shown unless the spec hides it by default. */
+  readonly default: readonly Readonly<ElementEntry<Id>>[]
+  /** Always drawn: forced visible, and the editor shows a lock instead of the eye. */
+  readonly required: readonly Id[]
+  /** Visibility only: the order is always `ids` (normalisation sorts it), no drag handle. */
+  readonly fixedOrder: boolean
+  /**
+   * Child -> parent: a child is drawn only while its parent is, and the editor greys its eye out
+   * while the parent is hidden. Its own visibility is kept.
+   */
+  readonly parents: Readonly<Partial<Record<Id, Id>>>
+  /**
+   * Not display-only: the ids whose visibility the provider reads (every id when absent). The
+   * others are drawing, so toggling them sends the telemetry process nothing new.
+   */
+  readonly computed?: readonly Id[]
 }
 /**
  * A global shortcut: an assignable combination in its canonical spelling (accelerator.ts), or
@@ -79,15 +125,15 @@ export interface AcceleratorSpec extends SpecBase {
 }
 export type NumericSpec = IntSpec | NumberSpec
 export type OptionSpec =
-  NumericSpec | BoolSpec | EnumSpec | ColorSpec | ColorsSpec | ColumnsSpec | AcceleratorSpec
+  NumericSpec | BoolSpec | EnumSpec | ColorSpec | ColorsSpec | ElementsSpec | AcceleratorSpec
 
 /** The spec kinds allowed for a field of type T (non-distributive on purpose). */
 export type SpecFor<T> = [T] extends [boolean]
   ? BoolSpec
   : [T] extends [number]
     ? NumericSpec
-    : [T] extends [readonly StandingsColumn[]]
-      ? ColumnsSpec
+    : [T] extends [readonly ElementEntry<infer Id extends string>[]]
+      ? ElementsSpec<Id>
       : [T] extends [string]
         ? string extends T
           ? ColorSpec | AcceleratorSpec
@@ -108,8 +154,72 @@ const NAME_FORMATS_INHERIT = ['inherit', ...NAME_FORMATS] as const
 /** When the overlay is shown (VisibilityOptions.showWhen), in UI order: the default first. */
 export const SHOW_WHEN = ['car', 'race', 'always'] as const satisfies readonly ShowWhen[]
 
+/**
+ * The ids of a zone in their default order, every member of `Id` listed (the compiler rejects a
+ * list that misses one; duplicates are caught by the schema tests):
+ * `idsOf<RelativeColumnId>()(['pos', ...])`.
+ */
+export function idsOf<Id extends string>() {
+  return <const L extends readonly Id[]>(
+    ids: L & (Exclude<Id, L[number]> extends never ? unknown : never)
+  ): L => ids
+}
+
+interface ElementsOptions<Id extends string> {
+  /** Hidden by default (files saved before an id existed get it hidden too, at the end). */
+  readonly hidden?: readonly Id[]
+  readonly required?: readonly Id[]
+  readonly fixedOrder?: true
+  readonly parents?: Readonly<Partial<Record<Id, Id>>>
+  readonly computed?: readonly Id[]
+  readonly displayOnly?: true
+}
+
+/** An 'elements' spec: `ids` in order, shown unless hidden by default. */
+export function elements<const Id extends string>(
+  ids: readonly Id[],
+  o: ElementsOptions<Id> = {}
+): ElementsSpec<Id> {
+  const hidden = new Set<Id>(o.hidden ?? [])
+  const spec: ElementsSpec<Id> = {
+    kind: 'elements',
+    ids: Object.freeze([...ids]),
+    default: Object.freeze(ids.map((id) => Object.freeze({ id, visible: !hidden.has(id) }))),
+    required: Object.freeze([...(o.required ?? [])]),
+    fixedOrder: o.fixedOrder === true,
+    parents: Object.freeze({ ...o.parents }),
+    ...(o.computed !== undefined ? { computed: Object.freeze([...o.computed]) } : {}),
+    ...(o.displayOnly === true ? { displayOnly: true } : {})
+  }
+  return spec
+}
+
+/**
+ * An info bar's list: `shown` in that order (`split` among them: what follows lines up at the
+ * far end), then every other item, hidden, in catalog order (turned on, it lands at the end).
+ * The marker is required; the provider computes the items it draws (COMPUTED_INFO_ITEMS).
+ */
+export function infoBar(shown: readonly InfoBarEntryId[]): ElementsSpec<InfoBarEntryId> {
+  const rest = INFO_ITEM_IDS.filter((id) => !shown.includes(id))
+  const ids: InfoBarEntryId[] = [...shown, ...rest]
+  if (!ids.includes('split')) ids.push('split')
+  return elements<InfoBarEntryId>(ids, {
+    hidden: rest,
+    required: ['split'],
+    computed: COMPUTED_INFO_ITEMS
+  })
+}
+
+/**
+ * An info bar's size. Computed ('off' turns the bar's data off), though a change between the
+ * other sizes is only drawing: it is rare, and one config resend is nothing.
+ */
+function barSize(def: InfoBarSize): EnumSpec<InfoBarSize> {
+  return { kind: 'enum', values: INFO_BAR_SIZES, default: def }
+}
+
 /** Right-hand standings columns in their default order. */
-export const STANDINGS_COLUMN_IDS = [
+export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
   'gained',
   'ir',
   'lic',
@@ -122,38 +232,81 @@ export const STANDINGS_COLUMN_IDS = [
   'pitLap',
   'stint',
   'tyre'
-] as const satisfies readonly StandingsColumnId[]
-
-// The best lap is the extra most asked for; stint, last stop and tyre are for longer races.
-// Files saved before a column existed get it hidden, at the end (normalizeColumns).
-const HIDDEN_BY_DEFAULT: ReadonlySet<StandingsColumnId> = new Set([
-  'delta',
-  'gapLeader',
-  'pitLap',
-  'stint',
-  'tyre'
 ])
 
 /**
- * The readings of a table's conditions footer (ConditionsFooterOptions), after its switch: the
- * feed sends every reading while the footer is on, so which ones are drawn is display only. The
- * sky is not offered (nothing a driver acts on), and the wet readings only show when relevant.
+ * The cells of a relative row, left to right (`driver` is the plate, the brand mark, the flag,
+ * the name and its badges).
  */
-const CONDITIONS_READINGS = {
-  conditionsTrackTemp: { kind: 'bool', default: true, displayOnly: true },
-  conditionsTrend: { kind: 'bool', default: true, displayOnly: true },
-  conditionsWet: { kind: 'bool', default: true, displayOnly: true },
-  conditionsWind: { kind: 'bool', default: true, displayOnly: true },
-  conditionsWindDirection: { kind: 'bool', default: true, displayOnly: true },
-  conditionsAirTemp: { kind: 'bool', default: true, displayOnly: true },
-  conditionsRubber: { kind: 'bool', default: true, displayOnly: true }
+export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
+  'pos',
+  'driver',
+  'lic',
+  'ir',
+  'tyre',
+  'stint',
+  'gap'
+])
+
+/** The warning lights in the strip's default order (the provider's LIGHT_ORDER). */
+export const LIGHT_IDS = idsOf<LightKind>()([
+  'oilPressure',
+  'fuelPressure',
+  'stalled',
+  'repair',
+  'repairOptional',
+  'water',
+  'oilTemp',
+  'pitLimiter',
+  'revLimiter'
+])
+
+/** Brand marks in Relative, Standings and Battle, in UI order: the default first. */
+export const BRAND_MARK_CHOICES = ['auto', 'on', 'off'] as const satisfies readonly BrandMarkMode[]
+
+/** Licence styles in UI order: the default first. */
+export const LICENSE_STYLES = [
+  'outline',
+  'soft',
+  'solid',
+  'letter'
+] as const satisfies readonly LicenseStyle[]
+
+/**
+ * Delta references in UI order: yours (record, session best, optimal), then your class's (best,
+ * optimal). The cycle shortcut walks them in this order.
+ */
+export const DELTA_REFERENCE_VALUES = [
+  'pb',
+  'session',
+  'optimal',
+  'class',
+  'classOptimal'
+] as const satisfies readonly DeltaReference[]
+
+/** Brand marks: drawing only (every row carries its make), 'auto' as the user asked. */
+const BRAND_MARKS = {
+  kind: 'enum',
+  values: BRAND_MARK_CHOICES,
+  default: 'auto',
+  displayOnly: true
 } as const
 
-/** Every field of ConditionsFooterOptions: the switch, then the readings in the line's order. */
-export const CONDITIONS_FOOTER_FIELDS = Object.freeze([
-  'conditionsFooter',
-  ...(Object.keys(CONDITIONS_READINGS) as (keyof typeof CONDITIONS_READINGS)[])
-]) satisfies readonly (keyof ConditionsFooterOptions)[]
+/** The track temperature's trend arrow and the wind's dial, options of their info items. */
+const CONDITIONS_EXTRAS = {
+  conditionsTrend: { kind: 'bool', default: true, displayOnly: true },
+  conditionsWindDirection: { kind: 'bool', default: true, displayOnly: true }
+} as const
+
+/** A table's footer: the track conditions, in the order of the footer it replaced. */
+const CONDITIONS_FOOTER: readonly InfoBarEntryId[] = [
+  'trackTemp',
+  'wet',
+  'wind',
+  'airTemp',
+  'rubber',
+  'split'
+]
 
 export const OPTION_SCHEMA = {
   appearance: {
@@ -168,8 +321,8 @@ export const OPTION_SCHEMA = {
     nameFormat: { kind: 'enum', values: NAME_FORMATS, default: 'abbr', displayOnly: true },
     licenseStyle: {
       kind: 'enum',
-      values: ['soft', 'solid', 'letter'],
-      default: 'soft',
+      values: LICENSE_STYLES,
+      default: 'outline',
       displayOnly: true
     },
     numberStyle: { kind: 'enum', values: ['chip', 'stripe'], default: 'chip', displayOnly: true },
@@ -194,29 +347,40 @@ export const OPTION_SCHEMA = {
   relative: {
     carsAhead: { kind: 'int', min: 0, max: 10, default: 3 },
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
-    showClassPosition: { kind: 'bool', default: true, displayOnly: true },
-    showLicense: { kind: 'bool', default: true, displayOnly: true },
-    showIRating: { kind: 'bool', default: true, displayOnly: true },
-    // Every row carries them: the provider computes the same payload either way.
-    showStint: { kind: 'bool', default: false, displayOnly: true },
-    showTyre: { kind: 'bool', default: false, displayOnly: true },
+    // Every row carries every cell: the provider computes the same payload either way.
+    columns: elements(RELATIVE_COLUMN_IDS, {
+      hidden: ['tyre', 'stint'],
+      required: ['driver', 'gap'],
+      displayOnly: true
+    }),
+    // Today's header: the name and the session, your incidents on the right.
+    headerBar: infoBar(['title', 'session', 'split', 'incidents']),
+    headerBarSize: barSize('normal'),
+    // Off by default: the relative is a free-size window, so a footer line takes its height
+    // from the rows (the standings grows by it instead).
+    footerBar: infoBar(CONDITIONS_FOOTER),
+    footerBarSize: barSize('off'),
+    ...CONDITIONS_EXTRAS,
+    // Off: the panel keeps today's rows until asked for.
+    columnHeads: { kind: 'bool', default: false, displayOnly: true },
+    brandMarks: BRAND_MARKS,
+    countryFlags: { kind: 'bool', default: true, displayOnly: true },
     showFlags: { kind: 'bool', default: true, displayOnly: true },
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
       default: 'inherit',
       displayOnly: true
-    },
-    // The count is in every payload: the header shows it or not.
-    showIncidents: { kind: 'bool', default: true, displayOnly: true },
-    // Off by default: the relative is a free-size window, so a footer line takes its height
-    // from the rows (the standings grows by it instead). Computed: the feed runs only while on.
-    conditionsFooter: { kind: 'bool', default: false },
-    ...CONDITIONS_READINGS
+    }
   },
   radar: {
     rangeM: { kind: 'number', min: 5, max: 100, decimals: null, default: 20, step: 5 },
-    showRangeLabels: { kind: 'bool', default: true, displayOnly: true }
+    // Layers over the cars; the distance labels sit on the guides.
+    parts: elements(idsOf<RadarPartId>()(['guides', 'sideAlerts', 'rangeLabels']), {
+      fixedOrder: true,
+      parents: { rangeLabels: 'guides' },
+      displayOnly: true
+    })
   },
   standings: {
     mode: { kind: 'enum', values: ['compact', 'full'], default: 'compact' },
@@ -229,11 +393,28 @@ export const OPTION_SCHEMA = {
       default: 'interval',
       displayOnly: true
     },
-    // Not display-only: the provider may skip what no visible column shows.
-    columns: {
-      kind: 'columns',
-      default: STANDINGS_COLUMN_IDS.map((id) => ({ id, visible: !HIDDEN_BY_DEFAULT.has(id) }))
-    },
+    // Not display-only: the provider may skip what no visible column shows. The best lap is the
+    // extra most asked for; stint, last stop and tyre are for longer races.
+    columns: elements(STANDINGS_COLUMN_IDS, {
+      hidden: ['delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
+    }),
+    // Today's two header lines: the session (the widget's name while unknown), the class's SoF
+    // and cars, your incidents and what is left; then your projections and the fastest lap.
+    headerBar: infoBar(['session', 'sof', 'carCount', 'split', 'incidents', 'remaining']),
+    headerBarSize: barSize('normal'),
+    subheaderBar: infoBar(['iRating', 'fastestLap', 'split', 'safetyRating']),
+    subheaderBarSize: barSize('normal'),
+    // On by default: the standings grows by the line (auto height), and it is the table you
+    // look at between sessions too.
+    footerBar: infoBar(CONDITIONS_FOOTER),
+    footerBarSize: barSize('normal'),
+    ...CONDITIONS_EXTRAS,
+    classLine: elements(idsOf<StandingsClassLineId>()(['sof', 'carCount']), {
+      displayOnly: true
+    }),
+    columnHeads: { kind: 'bool', default: false, displayOnly: true },
+    brandMarks: BRAND_MARKS,
+    countryFlags: { kind: 'bool', default: true, displayOnly: true },
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
@@ -241,11 +422,6 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     },
     iRatingDeltaAll: { kind: 'bool', default: false },
-    headerIRating: { kind: 'bool', default: true },
-    headerSafetyRating: { kind: 'bool', default: true },
-    headerIncidents: { kind: 'bool', default: true, displayOnly: true },
-    showSof: { kind: 'bool', default: true, displayOnly: true },
-    showCarCount: { kind: 'bool', default: true, displayOnly: true },
     // Every row carries its badge: the provider computes the same payload either way.
     showFlags: { kind: 'bool', default: true, displayOnly: true },
     density: {
@@ -253,21 +429,26 @@ export const OPTION_SCHEMA = {
       values: ['inherit', 'comfortable', 'compact'],
       default: 'inherit',
       displayOnly: true
-    },
-    // On by default: the standings grows by the line (auto height), and it is the table you
-    // look at between sessions too. Computed: the feed runs only while a footer is on.
-    conditionsFooter: { kind: 'bool', default: true },
-    ...CONDITIONS_READINGS
+    }
   },
   battle: {
     thresholdS: { kind: 'number', min: 0.3, max: 5, decimals: 1, default: 1.5, step: 0.1 },
-    showAhead: { kind: 'bool', default: true },
-    showBehind: { kind: 'bool', default: true },
+    // A hidden rival is not looked for.
+    lanes: elements(idsOf<BattleLaneId>()(['ahead', 'behind'])),
     layout: { kind: 'enum', values: ['stacked', 'side'], default: 'stacked', displayOnly: true },
-    detail: { kind: 'enum', values: ['none', 'sectors', 'laps', 'both'], default: 'sectors' },
+    // The prediction is computed only while shown; the sector and lap chips are drawing.
+    rows: elements(idsOf<BattleRowId>()(['prediction', 'sectors', 'laps']), {
+      hidden: ['laps'],
+      computed: ['prediction']
+    }),
+    parts: elements(idsOf<BattlePartId>()(['rating', 'license', 'trendNote', 'stake']), {
+      fixedOrder: true,
+      computed: ['stake']
+    }),
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 },
-    showPrediction: { kind: 'bool', default: true },
-    showIRatingAtStake: { kind: 'bool', default: true },
+    brandMarks: BRAND_MARKS,
+    // Off: a battle card is small, and the rival's name is what matters.
+    countryFlags: { kind: 'bool', default: false, displayOnly: true },
     nameFormat: {
       kind: 'enum',
       values: NAME_FORMATS_INHERIT,
@@ -278,9 +459,16 @@ export const OPTION_SCHEMA = {
   // The inputs payload ignores its options: the trace is drawn by the renderer.
   inputs: {
     traceSeconds: { kind: 'int', min: 2, max: 10, default: 5, displayOnly: true },
-    showClutch: { kind: 'bool', default: true, displayOnly: true },
-    showSteering: { kind: 'bool', default: true, displayOnly: true },
-    showGearSpeed: { kind: 'bool', default: true, displayOnly: true },
+    // The bars are the widget: they always stay, like the brake and the throttle.
+    sections: elements(idsOf<InputsSectionId>()(['trace', 'bars', 'info']), {
+      required: ['bars'],
+      displayOnly: true
+    }),
+    bars: elements(idsOf<InputsBarId>()(['clutch', 'brake', 'throttle']), {
+      required: ['brake', 'throttle'],
+      displayOnly: true
+    }),
+    info: elements(idsOf<InputsInfoId>()(['gear', 'speed', 'steering']), { displayOnly: true }),
     clutchInTrace: { kind: 'bool', default: true, displayOnly: true },
     traceWidth: {
       kind: 'number',
@@ -297,13 +485,7 @@ export const OPTION_SCHEMA = {
       default: { throttle: '#3ddc84', brake: '#ff4545', clutch: '#4aa3ff' },
       displayOnly: true
     },
-    steeringStyle: { kind: 'enum', values: ['bar', 'wheel'], default: 'bar', displayOnly: true },
-    layout: {
-      kind: 'enum',
-      values: ['trace-bars-info', 'info-bars-trace', 'bars'],
-      default: 'trace-bars-info',
-      displayOnly: true
-    }
+    steeringStyle: { kind: 'enum', values: ['bar', 'wheel'], default: 'bar', displayOnly: true }
   },
   // Windows and groups decide what the provider looks for, so they are computed.
   traffic: {
@@ -311,9 +493,16 @@ export const OPTION_SCHEMA = {
     aheadS: { kind: 'int', min: 2, max: 30, default: 8 },
     hazardS: { kind: 'int', min: 2, max: 20, default: 8 },
     maxEntries: { kind: 'int', min: 1, max: 5, default: 3 },
-    showFaster: { kind: 'bool', default: true },
-    showSlower: { kind: 'bool', default: true },
-    showHazards: { kind: 'bool', default: true },
+    // Top to bottom as on track: what is ahead of you first, the faster cars behind last.
+    groups: elements(idsOf<TrafficGroupId>()(['hazard', 'slower', 'faster'])),
+    parts: elements(idsOf<TrafficPartId>()(['icon', 'cls', 'driver', 'lead', 'value', 'sector']), {
+      required: ['driver', 'value'],
+      displayOnly: true
+    }),
+    header: elements(idsOf<TrafficHeaderId>()(['title', 'captions']), {
+      fixedOrder: true,
+      displayOnly: true
+    }),
     onlyMulticlass: { kind: 'bool', default: true },
     nameFormat: {
       kind: 'enum',
@@ -322,9 +511,10 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     }
   },
-  // The provider filters and holds the alerts itself: nothing here is display-only. In UI order:
-  // flags, pit lane, race, engine, fuel. Of the engine, only the critical lights: the warning
-  // lights strip has them all (a file's showEngineWarnings becomes showOilPressure, migrate.ts).
+  // The provider filters and holds the alerts itself: nothing here is display-only but the
+  // band's extras. In UI order: flags, pit lane, race, engine, fuel. Of the engine, only the
+  // critical lights: the warning lights strip has them all (a file's showEngineWarnings becomes
+  // showOilPressure, migrate.ts).
   alerts: {
     showFlags: { kind: 'bool', default: true },
     showBlue: { kind: 'bool', default: true },
@@ -341,16 +531,19 @@ export const OPTION_SCHEMA = {
     showDamage: { kind: 'bool', default: true },
     showBoxThisLap: { kind: 'bool', default: true },
     showFuelLow: { kind: 'bool', default: true },
-    holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 }
+    holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 },
+    parts: elements(idsOf<AlertsPartId>()(['notes', 'chips']), {
+      fixedOrder: true,
+      displayOnly: true
+    })
   },
-  // The reference choice changes what the provider computes; the rest is drawing. References in
-  // UI order: yours (record, session best, optimal), then your class's (best, optimal).
+  // The references change what the provider computes; the rest is drawing. In practice your
+  // record, in qualifying and races your optimal of the session (with the fallback: your
+  // record, then your class's optimal, until you have a clean lap).
   delta: {
-    reference: {
-      kind: 'enum',
-      values: ['pb', 'session', 'optimal', 'class', 'classOptimal'],
-      default: 'pb'
-    },
+    referencePractice: { kind: 'enum', values: DELTA_REFERENCE_VALUES, default: 'pb' },
+    referenceQualify: { kind: 'enum', values: DELTA_REFERENCE_VALUES, default: 'optimal' },
+    referenceRace: { kind: 'enum', values: DELTA_REFERENCE_VALUES, default: 'optimal' },
     fallback: { kind: 'bool', default: true },
     rangeS: {
       kind: 'number',
@@ -361,50 +554,69 @@ export const OPTION_SCHEMA = {
       step: 0.25,
       displayOnly: true
     },
-    showPredicted: { kind: 'bool', default: true, displayOnly: true },
-    showSectors: { kind: 'bool', default: true, displayOnly: true },
-    showTrend: { kind: 'bool', default: true, displayOnly: true }
+    // The lap times line is off: today's look.
+    rows: elements(idsOf<DeltaRowId>()(['top', 'bar', 'sectors', 'laps']), {
+      hidden: ['laps'],
+      required: ['top'],
+      displayOnly: true
+    }),
+    top: elements(idsOf<DeltaTopId>()(['state', 'predicted', 'reference']), {
+      fixedOrder: true,
+      displayOnly: true
+    }),
+    // Every payload carries the four times (cheap): which ones are drawn is display only.
+    laps: elements(idsOf<DeltaLapId>()(['last', 'best', 'optimal', 'pb']), {
+      hidden: ['pb'],
+      displayOnly: true
+    })
   },
   // The provider sends every line: each is drawn or not. The average and the margin change what
   // it computes (the average also the alerts band's fuel alerts).
   fuel: {
-    showHeader: { kind: 'bool', default: false, displayOnly: true },
-    showGauge: { kind: 'bool', default: true, displayOnly: true },
-    showPerLap: { kind: 'bool', default: true, displayOnly: true },
-    showFinish: { kind: 'bool', default: true, displayOnly: true },
+    // Off, as the header switch it replaced: the name and the SIM tag when on.
+    headerBar: infoBar(['title', 'split']),
+    headerBarSize: barSize('off'),
+    lines: elements(
+      idsOf<FuelLineId>()([
+        'hero',
+        'gauge',
+        'perLap',
+        'finish',
+        'window',
+        'save',
+        'tyres',
+        'limits'
+      ]),
+      { required: ['hero'], displayOnly: true }
+    ),
     showBox: { kind: 'bool', default: true, displayOnly: true },
-    showWindow: { kind: 'bool', default: true, displayOnly: true },
-    showSave: { kind: 'bool', default: true, displayOnly: true },
-    showTyres: { kind: 'bool', default: true, displayOnly: true },
-    showLimits: { kind: 'bool', default: true, displayOnly: true },
     avgLaps: { kind: 'int', min: 2, max: 10, default: 5 },
     marginLaps: { kind: 'number', min: 0, max: 3, decimals: 1, default: 0.5, step: 0.1 }
   },
   // The provider leaves out the lights turned off, the readings not shown and, with onlyWhenLit,
-  // the dim lights (a rev limiter flickering unseen re-sends nothing); the layout and the
-  // captions are drawing. Small by default: icons only, the repair time, every engine light; the
-  // limiters are there for those who want them. In UI order.
+  // the dim lights (a rev limiter flickering unseen re-sends nothing); the layout, the side and
+  // the captions are drawing. Small by default: icons only, the repair time, every engine light;
+  // the limiters are there for those who want them. In UI order.
   lights: {
     layout: { kind: 'enum', values: ['row', 'column'], default: 'row', displayOnly: true },
+    labelSide: { kind: 'enum', values: ['right', 'left'], default: 'right', displayOnly: true },
     onlyWhenLit: { kind: 'bool', default: false },
     showCaptions: { kind: 'bool', default: false, displayOnly: true },
     showTemps: { kind: 'bool', default: false },
     showRepairTime: { kind: 'bool', default: true },
-    showOilPressure: { kind: 'bool', default: true },
-    showFuelPressure: { kind: 'bool', default: true },
-    showStalled: { kind: 'bool', default: true },
-    showRepair: { kind: 'bool', default: true },
-    showRepairOptional: { kind: 'bool', default: true },
-    showWater: { kind: 'bool', default: true },
-    showOilTemp: { kind: 'bool', default: true },
-    showTrend: { kind: 'bool', default: true },
-    showPitLimiter: { kind: 'bool', default: false },
-    showRevLimiter: { kind: 'bool', default: false }
+    icons: elements(LIGHT_IDS, { hidden: ['pitLimiter', 'revLimiter'] }),
+    showTrend: { kind: 'bool', default: true }
   },
-  // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them.
+  // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them. The
+  // delta's cycle has none until you give it one.
   shortcuts: {
     toggleOverlay: { kind: 'accelerator', default: 'Ctrl+Shift+H', displayOnly: true },
-    toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true }
+    toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true },
+    cycleDeltaReference: { kind: 'accelerator', default: '', displayOnly: true }
+  },
+  // The settings window's own; nothing else reads them.
+  settingsWindow: {
+    stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true }
   }
 } as const satisfies OptionSchema
 
@@ -477,3 +689,43 @@ export const PEDAL_COLOR_PRESETS = {
   brake: ['#ff4545', '#f43f5e', '#ff8a1f', '#e879f9'],
   clutch: ['#4aa3ff', '#2f6db5', '#a78bfa', '#94a3b8']
 } as const
+
+// ---------------------------------------------------------------------------
+// Element lists of the option sections
+// ---------------------------------------------------------------------------
+
+/** The element-list fields of a section: `ElementField<'relative'>` is 'columns' | 'headerBar' | ... */
+export type ElementField<S extends OptionSection> = {
+  [F in keyof OverlaySettings[S]]-?: OverlaySettings[S][F] extends readonly ElementEntry[]
+    ? F
+    : never
+}[keyof OverlaySettings[S]] &
+  string
+
+/** The ids of one element-list field: `ElementIdOf<'relative', 'columns'>` is RelativeColumnId. */
+export type ElementIdOf<
+  S extends OptionSection,
+  F extends ElementField<S>
+> = OverlaySettings[S][F] extends readonly ElementEntry<infer Id extends string>[] ? Id : never
+
+/** The spec of an element-list field (typed by its ids). */
+export function elementsSpec<S extends OptionSection, F extends ElementField<S>>(
+  section: S,
+  field: F
+): ElementsSpec<ElementIdOf<S, F>> {
+  const spec = (OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>)[field]
+  if (spec?.kind !== 'elements') throw new Error(`${section}.${field} is not an element list`)
+  return spec as ElementsSpec<ElementIdOf<S, F>>
+}
+
+/** Every element-list field of the schema, as [section, field] pairs (tests, migrations). */
+export function elementFields(): readonly (readonly [OptionSection, string])[] {
+  const out: [OptionSection, string][] = []
+  for (const section of Object.keys(OPTION_SCHEMA) as OptionSection[]) {
+    const specs = OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>
+    for (const [field, spec] of Object.entries(specs)) {
+      if (spec.kind === 'elements') out.push([section, field])
+    }
+  }
+  return out
+}

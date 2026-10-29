@@ -124,7 +124,8 @@ export const WIDGET_DEFS = {
     minSize: { width: 120, height: 70 },
     defaultVisible: true,
     defaultBackgroundOpacity: 0.75,
-    sizeModel: 'free',
+    // The panel fits its content (v2.6): no empty glass around the trace, bars and readouts.
+    sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: true, race: true },
     inCarOnly: true
   },

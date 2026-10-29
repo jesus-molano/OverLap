@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isElementVisible } from '@shared/elements'
 import { formatMetres } from '@shared/format'
 import { RADAR_RANGE_MAX_M, RADAR_RANGE_MIN_M, RADAR_RANGE_PRESETS_M } from '@shared/settings'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
@@ -6,7 +7,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 
 const opts = useOptions('radar')
@@ -32,8 +33,8 @@ const format = (m: number): string => formatMetres(m)
       kind="switch"
       :label="t.settings.radar.labels"
       :help="t.settings.radar.labelsHelp"
-      :current="opts.showRangeLabels"
-      :apply="set('showRangeLabels')"
+      :current="isElementVisible(opts.parts, 'rangeLabels')"
+      :apply="elementToggle('radar', 'parts', 'rangeLabels')"
     />
   </PageSection>
 </template>

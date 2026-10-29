@@ -107,6 +107,17 @@ describe('AutoHide: per-widget rules', () => {
     ])
   })
 
+  it('knows the kind of session of the last update, none after showAll', () => {
+    const { auto } = harness()
+    expect(auto.kind).toBeNull()
+    auto.update(config(raceOnly), frame(1), SESSION, 'none')
+    expect(auto.kind).toBe('practice')
+    auto.update(config(raceOnly), frame(0), SESSION, 'none')
+    expect(auto.kind).toBe('race')
+    auto.showAll()
+    expect(auto.kind).toBeNull()
+  })
+
   it('hides in the pits (pit road or stall) when asked to', () => {
     const { auto, changes } = harness()
     const r = config(rules({ inputs: rule({ hideInPits: true }) }))

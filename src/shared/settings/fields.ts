@@ -6,8 +6,13 @@
  */
 import { canonicalAccelerator } from '../accelerator'
 import { normalizeHexColor } from '../colors'
-import { STANDINGS_COLUMN_IDS, WIDGET_FIELD_SCHEMA, type OptionSpec } from '../settingsSchema'
-import type { StandingsColumn, StandingsColumnId, WidgetSettings } from '../types'
+import {
+  OPTION_SCHEMA,
+  WIDGET_FIELD_SCHEMA,
+  type ElementsSpec,
+  type OptionSpec
+} from '../settingsSchema'
+import type { ElementEntry, StandingsColumn, WidgetSettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -43,33 +48,58 @@ export function pickEnum<T extends string>(value: unknown, allowed: readonly T[]
   return (allowed as readonly unknown[]).includes(value) ? (value as T) : fallback
 }
 
-function isColumnId(v: unknown): v is StandingsColumnId {
-  return (STANDINGS_COLUMN_IDS as readonly unknown[]).includes(v)
-}
+/** The parts of an 'elements' spec normalisation needs. */
+export type ElementRules<Id extends string> = Pick<
+  ElementsSpec<Id>,
+  'ids' | 'required' | 'fixedOrder'
+>
 
 /**
- * Column list with every id exactly once: entries in the given order (first
- * one wins on duplicates, unknown ids and malformed entries are dropped),
- * then the missing ids, hidden, in default order. A non-boolean `visible`
- * keeps the fallback's. A non-array, or one without a single valid entry,
- * gives a copy of `fallback`.
+ * An element list with every id of `spec` exactly once: the entries of `raw` in their order
+ * (the first one wins on duplicates; unknown ids and malformed entries are dropped), then the
+ * missing ids, hidden, in default order (a file saved before an element existed keeps its look).
+ * A non-boolean `visible` keeps the fallback's. A non-array, or one without a single valid
+ * entry, gives a copy of `fallback`. Required ids are always visible; a fixed-order list is
+ * sorted by `spec.ids`. The result shares no object with its inputs.
  */
+export function normalizeElements<Id extends string>(
+  raw: unknown,
+  fallback: readonly Readonly<ElementEntry<Id>>[],
+  spec: ElementRules<Id>
+): ElementEntry<Id>[] {
+  const known = new Set<string>(spec.ids)
+  const before = new Map<string, boolean>(fallback.map((e) => [e.id, e.visible]))
+  const pick = (entries: readonly unknown[]): ElementEntry<Id>[] => {
+    const out: ElementEntry<Id>[] = []
+    const seen = new Set<string>()
+    for (const entry of entries) {
+      if (!isRecord(entry) || typeof entry.id !== 'string') continue
+      const id = entry.id
+      if (!known.has(id) || seen.has(id)) continue
+      seen.add(id)
+      out.push({ id: id as Id, visible: pickBoolean(entry.visible, before.get(id) ?? false) })
+    }
+    return out
+  }
+  let out = pick(Array.isArray(raw) ? raw : [])
+  if (out.length === 0) out = pick(fallback)
+  const present = new Set<string>(out.map((e) => e.id))
+  for (const id of spec.ids) if (!present.has(id)) out.push({ id, visible: false })
+  const required = new Set<string>(spec.required)
+  for (const e of out) if (required.has(e.id)) e.visible = true
+  if (spec.fixedOrder) {
+    const rank = new Map<string, number>(spec.ids.map((id, i) => [id, i]))
+    out.sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0))
+  }
+  return out
+}
+
+/** The standings column list (normalizeElements with the columns' spec). */
 export function normalizeColumns(
   raw: unknown,
   fallback: readonly Readonly<StandingsColumn>[]
 ): StandingsColumn[] {
-  const out: StandingsColumn[] = []
-  const seen = new Set<StandingsColumnId>()
-  for (const entry of Array.isArray(raw) ? raw : []) {
-    if (!isRecord(entry) || !isColumnId(entry.id) || seen.has(entry.id)) continue
-    const id = entry.id
-    const before = fallback.find((c) => c.id === id)?.visible ?? false
-    out.push({ id, visible: pickBoolean(entry.visible, before) })
-    seen.add(id)
-  }
-  if (out.length === 0) return fallback.map((c) => ({ ...c }))
-  for (const id of STANDINGS_COLUMN_IDS) if (!seen.has(id)) out.push({ id, visible: false })
-  return out
+  return normalizeElements(raw, fallback, OPTION_SCHEMA.standings.columns)
 }
 
 /**
@@ -103,8 +133,8 @@ export function validateOption(spec: OptionSpec, raw: unknown, current: unknown)
       }
       return out
     }
-    case 'columns':
-      return normalizeColumns(raw, current as readonly StandingsColumn[])
+    case 'elements':
+      return normalizeElements(raw, current as readonly ElementEntry[], spec)
     case 'accelerator':
       return pickAccelerator(raw, current as string)
   }

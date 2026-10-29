@@ -14,7 +14,7 @@ describe('toTelemetryConfig', () => {
     s.inputs.traceSeconds = 8
     s.traffic.behindS = 20
     s.alerts.showBlue = false
-    s.delta.reference = 'class'
+    s.delta.referenceRace = 'class'
     s.delta.rangeS = 2
     const c = toTelemetryConfig(s)
     expect(c.enabledWidgets).toEqual(['radar', 'inputs', 'alerts'])
@@ -26,7 +26,7 @@ describe('toTelemetryConfig', () => {
     // Options travel whether the widget is enabled or not.
     expect(c.traffic).toEqual({ ...DEFAULT_SETTINGS.traffic, behindS: 20 })
     expect(c.alerts).toEqual({ ...DEFAULT_SETTINGS.alerts, showBlue: false })
-    expect(c.delta).toEqual({ ...DEFAULT_SETTINGS.delta, reference: 'class', rangeS: 2 })
+    expect(c.delta).toEqual({ ...DEFAULT_SETTINGS.delta, referenceRace: 'class', rangeS: 2 })
     expect('appearance' in c).toBe(false)
   })
 
@@ -76,7 +76,9 @@ describe('toTelemetryConfig', () => {
     c.rules.radar.showIn.race = false
     c.traffic.maxEntries = 1
     c.alerts.holdS = 0
-    c.delta.reference = 'session'
+    c.delta.referenceRace = 'session'
+    c.delta.rows[0]!.visible = false
+    c.relative.headerBar[0]!.visible = false
     c.rules.traffic.hideInPits = true
     expect(s.radar.rangeM).toBe(20)
     expect(s.standings.columns[0]!.visible).toBe(true)
@@ -84,7 +86,9 @@ describe('toTelemetryConfig', () => {
     expect(s.widgets.radar.showIn.race).toBe(true)
     expect(s.traffic.maxEntries).toBe(3)
     expect(s.alerts.holdS).toBe(3)
-    expect(s.delta.reference).toBe('pb')
+    expect(s.delta.referenceRace).toBe('optimal')
+    expect(s.delta.rows[0]!.visible).toBe(true)
+    expect(s.relative.headerBar[0]!.visible).toBe(true)
     expect(s.widgets.traffic.hideInPits).toBe(false)
   })
 

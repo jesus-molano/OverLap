@@ -25,7 +25,9 @@ function driver(
     classColor,
     iRating: 2850,
     licString: 'A 3.12',
-    licColor: '#0153db'
+    licColor: '#0153db',
+    brand: 'unknown',
+    country: ''
   })
 }
 

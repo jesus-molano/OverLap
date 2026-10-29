@@ -338,7 +338,7 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
 
   it('shows the configured combinations, and none for a shortcut turned off', () => {
     const settings = createDefaultSettings()
-    settings.shortcuts = { toggleOverlay: 'F13', toggleEditMode: '' }
+    settings.shortcuts = { toggleOverlay: 'F13', toggleEditMode: '', cycleDeltaReference: '' }
     createTray(state(settings), ACTIONS)
     expect(item('Ocultar overlay')).toMatchObject({
       accelerator: 'F13',

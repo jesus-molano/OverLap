@@ -1,6 +1,6 @@
 /**
  * Persisted settings: defaults, defensive normalisation of the file on disk
- * (with v1..v3 migration), validated patches and commands from the settings
+ * (with the migration of older files), validated patches and commands from the settings
  * window, the telemetry config, and the window geometry main uses. Ranges and
  * defaults come from OPTION_SCHEMA (settingsSchema.ts).
  */
@@ -15,14 +15,21 @@ export {
   defaultOptions,
   defaultWidgetSettings
 } from './defaults'
-export { normalizeColumns } from './fields'
+export { normalizeColumns, normalizeElements } from './fields'
 export { normalizeSettings } from './normalize'
-export { applySettingsPatch, resetWidgetBounds, resetWidgetOptions } from './patch'
+export {
+  applySettingsPatch,
+  placeDefaultLayout,
+  resetWidgetBounds,
+  resetWidgetOptions
+} from './patch'
 export { toTelemetryConfig } from './config'
 export {
   applyDrag,
   clampRectToDisplay,
   clampRectToDisplays,
+  defaultBoundsIn,
+  defaultLayoutOffsetX,
   isRectVisible,
   pickDisplay,
   rectsEqual,
@@ -73,4 +80,4 @@ export const ALERTS_HOLD_MAX_S = O.alerts.holdS.max
 /** Delta rangeS: full scale of the bar (seconds, two decimals). */
 export const DELTA_RANGE_MIN_S = O.delta.rangeS.min
 export const DELTA_RANGE_MAX_S = O.delta.rangeS.max
-export const DELTA_REFERENCES = O.delta.reference.values
+export const DELTA_REFERENCES = O.delta.referenceRace.values

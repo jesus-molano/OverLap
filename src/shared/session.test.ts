@@ -79,7 +79,8 @@ function sampleSession(): Record<string, unknown> {
           LicSubLevel: 1,
           LicString: 'R 0.01',
           LicColor: '0xundefined',
-          IsSpectator: 0
+          IsSpectator: 0,
+          FlairName: 'United States'
         },
         {
           CarIdx: 1,
@@ -100,7 +101,11 @@ function sampleSession(): Record<string, unknown> {
           IsSpectator: 0,
           UserID: 123456,
           TeamID: 0,
-          CarID: 169
+          CarID: 169,
+          // The flair replaced the club (ClubName says 'None' now).
+          ClubName: 'None',
+          FlairName: 'Spain',
+          FlairID: 207
         },
         {
           CarIdx: 2,
@@ -118,7 +123,8 @@ function sampleSession(): Record<string, unknown> {
           LicSubLevel: 210,
           LicString: 'D 2.10',
           LicColor: 0,
-          IsSpectator: 0
+          IsSpectator: 0,
+          FlairName: 'Scotland'
         },
         {
           CarIdx: 63,
@@ -132,7 +138,8 @@ function sampleSession(): Record<string, unknown> {
           IRating: 1,
           LicString: 'B 3.00',
           LicColor: 0x00c702,
-          IsSpectator: 1
+          IsSpectator: 1,
+          FlairName: 'Brazil'
         }
       ]
     }
@@ -218,7 +225,10 @@ describe('parseSessionMeta', () => {
       teamId: 0,
       carId: 0,
       carName: 'safety pc',
-      isAI: false
+      isAI: false,
+      brand: 'unknown',
+      // The pace car flies no flag, whatever its entry says.
+      country: ''
     })
     expect(meta.drivers.get(1)).toEqual<DriverEntry>({
       carIdx: 1,
@@ -241,13 +251,19 @@ describe('parseSessionMeta', () => {
       teamId: 0,
       carId: 169,
       carName: 'Porsche 911 GT3 R',
-      isAI: false
+      isAI: false,
+      brand: 'porsche',
+      country: 'ES'
     })
     const weird = meta.drivers.get(2)
     expect(weird?.userName).toBe('12345')
     expect(weird?.carNumber).toBe('42')
     expect(weird?.licColor).toBe('#fc8a27')
     expect(weird?.classColor).toBe('#33ceff')
+    expect(weird?.brand).toBe('mazda')
+    expect(weird?.country).toBe('GB-SCT')
+    // Spectators fly no flag either.
+    expect(meta.drivers.get(63)?.country).toBe('')
     expect(weird?.classRelSpeed).toBe(40)
 
     const spec = meta.drivers.get(63)

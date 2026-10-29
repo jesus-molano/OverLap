@@ -5,10 +5,13 @@
  * name format, the ratings and incidents header, and the conditions footer's readings (drawn
  * only with the footer on). Rows are picked with the same rules as the provider (top rows, rows
  * around you, other class leaders), so the window is sized on what the current options really
- * show. Pure.
+ * show. A field of several makes (the LMP2s are all Dallaras), so the brand marks show in 'auto'
+ * mode. Pure.
  */
+import type { BrandId } from '@shared/carBrands'
+import { isElementVisible } from '@shared/elements'
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
-import { PREVIEW_CONDITIONS } from '@renderer/view/conditions'
+import { PREVIEW_INFO } from '@renderer/view/infoBar'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
 import type {
   GapValue,
@@ -21,7 +24,7 @@ import type {
 
 export type PreviewOptions = Pick<
   StandingsOptions,
-  'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders' | 'headerIRating' | 'headerSafetyRating'
+  'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders' | 'subheaderBar'
 >
 
 const LIC = {
@@ -40,6 +43,41 @@ type RowSeed = Partial<StandingsRow> &
 
 /** Laps the leaders have completed: a stint without a stop is this long. */
 const RACE_LAPS = 16
+/** The GT3s' makes by car number (the LMP2s are Dallaras); a Porsche when not listed. */
+const GT3_MAKES: Readonly<Record<string, BrandId>> = {
+  '44': 'mercedes-amg',
+  '3': 'bmw',
+  '12': 'ferrari',
+  '19': 'porsche',
+  '7': 'mercedes-amg',
+  '51': 'lamborghini',
+  '9': 'aston-martin',
+  '8': 'mclaren',
+  '23': 'ford',
+  '61': 'audi',
+  '88': 'chevrolet',
+  '14': 'acura'
+}
+
+/** Where the sample drivers race from, by car number (some chose no flag: none drawn). */
+const FLAGS: Readonly<Record<string, string>> = {
+  '7': 'DE',
+  '19': 'FR',
+  '12': 'IT',
+  '3': 'GB',
+  '44': 'SE',
+  '61': 'ES',
+  '51': 'IT',
+  '8': 'GB-SCT',
+  '9': 'NO',
+  '23': 'US',
+  '88': 'BR',
+  '14': 'JP',
+  '40': 'NL',
+  '66': 'AU',
+  '2': 'ES',
+  '5': 'BE'
+}
 
 /**
  * `tyre`: the compound of a class of your car model, null for another model (no name). The
@@ -58,6 +96,8 @@ function makeRows(
     positionsGained: 0,
     classColor,
     licColor: LIC[(seed.licString?.[0] ?? 'R') as keyof typeof LIC] ?? null,
+    brand: classColor === LMP2 ? 'dallara' : (GT3_MAKES[seed.carNumber] ?? 'porsche'),
+    country: FLAGS[seed.carNumber] ?? '',
     interval: null,
     gapToLeader: null,
     lastLap: null,
@@ -363,7 +403,7 @@ const HEADER: Readonly<StandingsHeader> = {
     corners: 112,
     incidentBudget: 2
   },
-  // The header option hides it in the view (headerIncidents is display only).
+  // The header list hides it in the view (its 'incidents' is display only).
   incidents: PREVIEW_INCIDENTS
 }
 
@@ -400,10 +440,11 @@ export function previewStandings(o: PreviewOptions): StandingsData {
   return {
     header: {
       ...HEADER,
-      iRating: o.headerIRating ? HEADER.iRating : null,
-      safetyRating: o.headerSafetyRating ? HEADER.safetyRating : null
+      iRating: isElementVisible(o.subheaderBar, 'iRating') ? HEADER.iRating : null,
+      safetyRating: isElementVisible(o.subheaderBar, 'safetyRating') ? HEADER.safetyRating : null
     },
     classes,
-    conditions: PREVIEW_CONDITIONS
+    info: PREVIEW_INFO,
+    multiBrand: true
   }
 }

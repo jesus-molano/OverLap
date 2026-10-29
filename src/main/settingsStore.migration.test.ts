@@ -102,8 +102,20 @@ describe('SettingsStore with a v2 file', () => {
       ...v2.widgets.relative
     })
     expect(s.widgets.radar).toEqual({ ...DEFAULT_SETTINGS.widgets.radar, ...v2.widgets.radar })
-    expect(s.relative).toEqual({ ...DEFAULT_SETTINGS.relative, ...v2.relative })
-    expect(s.radar).toEqual(v2.radar)
+    // Its column flags became the row's list, the labels flag the radar's parts.
+    expect(s.relative).toEqual({
+      ...DEFAULT_SETTINGS.relative,
+      carsAhead: 4,
+      carsBehind: 2,
+      columns: DEFAULT_SETTINGS.relative.columns.map((c) => ({
+        ...c,
+        visible: c.visible && c.id !== 'pos' && c.id !== 'ir'
+      }))
+    })
+    expect(s.radar).toEqual({
+      rangeM: 30,
+      parts: DEFAULT_SETTINGS.radar.parts.map((p) => ({ ...p, visible: p.id !== 'rangeLabels' }))
+    })
     for (const id of NEW_IN_V3) {
       expect(s.widgets[id]).toEqual(DEFAULT_SETTINGS.widgets[id])
       expect(s[id]).toEqual(DEFAULT_SETTINGS[id])
@@ -168,14 +180,27 @@ describe('SettingsStore with a v3 file', () => {
       topRows: 2,
       aroundRows: 4,
       otherClassLeaders: false,
-      gapMode: 'leader',
-      headerIRating: false,
-      headerSafetyRating: false
+      gapMode: 'leader'
     })
+    const sub = Object.fromEntries(s.standings.subheaderBar.map((e) => [e.id, e.visible]))
+    expect(sub).toMatchObject({ iRating: false, safetyRating: false, fastestLap: true })
     const visible = Object.fromEntries(s.standings.columns.map((c) => [c.id, c.visible]))
     expect(visible).toMatchObject({ gained: false, ir: true, last: false, pit: true })
-    expect(s.battle).toEqual({ ...DEFAULT_SETTINGS.battle, ...v3.battle })
-    expect(s.inputs).toEqual({ ...DEFAULT_SETTINGS.inputs, ...v3.inputs })
+    expect(s.battle).toEqual({
+      ...DEFAULT_SETTINGS.battle,
+      thresholdS: 2.5,
+      lanes: [
+        { id: 'ahead', visible: true },
+        { id: 'behind', visible: false }
+      ]
+    })
+    expect(s.inputs).toEqual({
+      ...DEFAULT_SETTINGS.inputs,
+      traceSeconds: 8,
+      bars: DEFAULT_SETTINGS.inputs.bars.map((b) => ({ ...b, visible: b.id !== 'clutch' }))
+    })
+    // A file from before v5: the pedals fit their content, the licence takes the outline.
+    expect(s.appearance.licenseStyle).toBe('outline')
   })
 
   it('drops the v3-only fields when it saves', () => {
@@ -220,18 +245,18 @@ describe('SettingsStore with a file that has the old conditions widget (v2.3-v2.
     expect(s).not.toHaveProperty('conditions')
     expect(s.relative).toEqual({ ...DEFAULT_SETTINGS.relative, carsAhead: 4 })
     expect(s.standings).toEqual({ ...DEFAULT_SETTINGS.standings, topRows: 5 })
-    expect(s.standings.conditionsFooter).toBe(true)
-    expect(s.relative.conditionsFooter).toBe(false)
+    expect(s.standings.footerBarSize).toBe('normal')
+    expect(s.relative.footerBarSize).toBe('off')
     expect(s.widgets.standings.bounds).toEqual(v24.widgets.standings.bounds)
     expect(s.widgets.fuel.visible).toBe(false)
   })
 
   it('does not write it back', () => {
     const saved = roundTrip(v24, (d) => {
-      d.standings.conditionsWind = false
+      d.standings.conditionsTrend = false
     }) as { widgets: Record<string, unknown>; standings: Record<string, unknown> }
     expect(saved).not.toHaveProperty('conditions')
     expect(saved.widgets).not.toHaveProperty('conditions')
-    expect(saved.standings.conditionsWind).toBe(false)
+    expect(saved.standings.conditionsTrend).toBe(false)
   })
 })

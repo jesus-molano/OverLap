@@ -110,24 +110,9 @@ export const widgetsEs = {
     budget: (n: number) => `margen ${n}x`,
     noBudget: 'sin margen',
     budgetUnknown: 'margen —',
-    /**
-     * Short header of each right-hand column, for a header row (none is drawn yet; the settings
-     * window's column hints are the long form).
-     */
-    heads: {
-      gained: 'POS',
-      ir: 'iR',
-      lic: 'LIC',
-      delta: 'ΔiR',
-      gap: 'HUECO',
-      gapLeader: 'LÍDER',
-      last: 'ÚLTIMA',
-      best: 'MEJOR',
-      pit: 'BOX',
-      pitLap: 'PARADA',
-      stint: 'STINT',
-      tyre: 'NEUM.'
-    }
+    /** The fastest lap of the class: the row's tag (a stopwatch's word) and its full name. */
+    fastestTag: 'VR',
+    fastestName: 'Vuelta rápida de la clase'
   },
   battle: {
     ahead: 'DELANTE',
@@ -315,7 +300,15 @@ export const widgetsEs = {
     /** The class best of a driver not in the session info any more. */
     classBest: 'Mejor de la clase',
     /** The best sectors of your class, joined (nobody's lap). */
-    classOptimal: 'Óptima de la clase'
+    classOptimal: 'Óptima de la clase',
+    /** The lap times line (delta.laps): short captions before each time. */
+    laps: { last: 'Últ.', best: 'Mejor', optimal: 'Ópt.', pb: 'Récord' },
+    /** The tag on the time the delta compares against (with an accent underline). */
+    refMark: 'Δ',
+    /** Its accessible name. */
+    refMarkName: 'referencia del delta',
+    /** For a moment after another reference is chosen: 'Vuelta óptima desde la próxima vuelta'. */
+    nextLap: (reference: string) => `${reference} desde la próxima vuelta`
   },
   /** The conditions footer of the relative and the standings. */
   conditions: {
@@ -395,6 +388,54 @@ export const widgetsEs = {
     readingLap: (lap: number) => `V${lap}`,
     /** Front left, front right, rear left, rear right. */
     corners: ['DI', 'DD', 'TI', 'TD']
+  },
+  /**
+   * Column headers of the relative and the standings (renderer view/columnHeads.ts): caps,
+   * short enough for their column. 'interval' / 'leader' / 'toBest' follow the gap mode and the
+   * session (outside races the gap is to the fastest lap).
+   */
+  heads: {
+    pos: 'POS',
+    driver: 'PILOTO',
+    gained: '±',
+    ir: 'iR',
+    sr: 'SR',
+    lic: 'LIC.',
+    delta: 'ΔiR',
+    interval: 'INT.',
+    leader: 'LÍDER',
+    toBest: 'DIF.',
+    gap: 'DIF.',
+    last: 'ÚLTIMA',
+    best: 'MEJOR',
+    pit: 'BOX',
+    pitLap: 'PARADA',
+    stint: 'STINT',
+    tyre: 'NEUM.'
+  },
+  /** The info bars' own words (ui/InfoBar.vue); the rest come from the groups above. */
+  info: {
+    /** The fastest lap of your class: 'VR #9 1:01.234'. */
+    fastestTag: 'VR',
+    fastestLap: (car: string, time: string) => (car === '' ? time : `${car}${NB}${time}`),
+    /** Laps of fuel: 'COMB. 6.4 v'. */
+    fuel: 'Comb.',
+    fuelLaps: (laps: string) => `${laps}${NB}v`,
+    /** The local clock's accessible name. */
+    clock: 'Hora local'
+  },
+  /**
+   * Flags whose country the system's names do not cover (the home nations...); every other one
+   * is named by Intl.DisplayNames in the interface language.
+   */
+  countries: {
+    'GB-ENG': 'Inglaterra',
+    'GB-NIR': 'Irlanda del Norte',
+    'GB-SCT': 'Escocia',
+    'GB-WLS': 'Gales',
+    'ES-CT': 'Cataluña',
+    EU: 'Unión Europea',
+    XK: 'Kosovo'
   }
 } as const
 
@@ -466,20 +507,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     budget: (n) => `margin ${n}x`,
     noBudget: 'no margin',
     budgetUnknown: 'margin —',
-    heads: {
-      gained: 'POS',
-      ir: 'iR',
-      lic: 'LIC',
-      delta: 'ΔiR',
-      gap: 'GAP',
-      gapLeader: 'LEADER',
-      last: 'LAST',
-      best: 'BEST',
-      pit: 'PIT',
-      pitLap: 'STOP',
-      stint: 'STINT',
-      tyre: 'TYRE'
-    }
+    fastestTag: 'FL',
+    fastestName: 'Fastest lap of the class'
   },
   battle: {
     ahead: 'AHEAD',
@@ -597,7 +626,11 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     optimal: 'Optimal lap',
     self: 'You',
     classBest: 'Class best',
-    classOptimal: 'Class optimal'
+    classOptimal: 'Class optimal',
+    laps: { last: 'Last', best: 'Best', optimal: 'Opt.', pb: 'PB' },
+    refMark: 'Δ',
+    refMarkName: 'delta reference',
+    nextLap: (reference) => `${reference} from the next lap`
   },
   conditions: {
     track: 'Track',
@@ -654,5 +687,40 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     saveFor: (n) => (n === 1 ? 'with 1 stop' : `with ${n} stops`),
     readingLap: (lap) => `L${lap}`,
     corners: ['FL', 'FR', 'RL', 'RR']
+  },
+  heads: {
+    pos: 'POS',
+    driver: 'DRIVER',
+    gained: '±',
+    ir: 'iR',
+    sr: 'SR',
+    lic: 'LIC',
+    delta: 'ΔiR',
+    interval: 'INT',
+    leader: 'LEADER',
+    toBest: 'GAP',
+    gap: 'GAP',
+    last: 'LAST',
+    best: 'BEST',
+    pit: 'PIT',
+    pitLap: 'STOP',
+    stint: 'STINT',
+    tyre: 'TYRE'
+  },
+  info: {
+    fastestTag: 'FL',
+    fastestLap: (car, time) => (car === '' ? time : `${car}${NB}${time}`),
+    fuel: 'Fuel',
+    fuelLaps: (laps) => `${laps}${NB}laps`,
+    clock: 'Local time'
+  },
+  countries: {
+    'GB-ENG': 'England',
+    'GB-NIR': 'Northern Ireland',
+    'GB-SCT': 'Scotland',
+    'GB-WLS': 'Wales',
+    'ES-CT': 'Catalonia',
+    EU: 'European Union',
+    XK: 'Kosovo'
   }
 }

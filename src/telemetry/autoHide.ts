@@ -10,7 +10,8 @@ import {
   resolveFocusCarIdx,
   resolvePlayerCarIdx,
   ruleHiddenReason,
-  sessionKind
+  sessionKind,
+  type SessionKind
 } from '@shared/sessionInfo'
 import { isInCar, screenHiddenReason, type ReplayMode, type ScreenFacts } from '@shared/simScreen'
 import type { TelemetryFrame } from '@shared/telemetry'
@@ -41,6 +42,11 @@ export class AutoHide {
 
   isHidden(id: WidgetId): boolean {
     return this.reasons[id] !== null
+  }
+
+  /** The kind of session of the last update (sessionKind), null when unknown or after showAll. */
+  get kind(): SessionKind | null {
+    return this.facts.kind
   }
 
   /**
@@ -86,6 +92,7 @@ export class AutoHide {
 
   /** Session unknown (connection lost): every widget is shown again. */
   showAll(): void {
+    this.facts.kind = null
     for (const id of WIDGET_IDS) this.set(id, null)
   }
 

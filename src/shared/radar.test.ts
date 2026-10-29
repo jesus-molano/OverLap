@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { computeRadar, proximityColor, RADAR, sideCounts } from './radar'
 import { EMPTY_SESSION } from './session'
+import { defaultOptions } from './settings'
 import { CarLeftRight, MAX_CARS, TELEMETRY_VAR_NAMES, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { DriverEntry, RadarCar, RadarData, RadarOptions, SessionMeta } from './types'
@@ -95,6 +96,8 @@ function driver(carIdx: number, extra: Partial<DriverEntry> = {}): DriverEntry {
     carId: 67,
     carName: 'Porsche 911 GT3 R',
     isAI: false,
+    brand: 'unknown',
+    country: '',
     ...extra
   }
 }
@@ -133,7 +136,7 @@ function radar(
 }
 
 function radarOpts(rangeM: number): RadarOptions {
-  return { rangeM, showRangeLabels: true }
+  return { rangeM, parts: defaultOptions('radar').parts }
 }
 
 function carOf(data: RadarData, carIdx: number): RadarCar | undefined {

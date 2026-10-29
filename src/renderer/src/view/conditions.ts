@@ -4,7 +4,7 @@
  *
  *   PISTA 34°C ▲  [DECLARADA MOJADA]  ▰▰▰▱▱▱ Poco mojado  LLUVIA 40 %  (dial) 12 km/h  AIRE 22°C  GOMA Media-alta
  *
- * Every reading is an option (ConditionsFooterOptions). The wet ones only show when relevant:
+ * Every reading is an option (FooterReadings: the info bar items of the footer). The wet ones only show when relevant:
  * the plate while declared wet, the meter past dry, the rain from 1 %. A narrow table drops
  * readings from the end of the line (the rubber first, the track temperature last), so the
  * order is also the priority. Words come from the dictionary `m` (messagesFor(lang));
@@ -16,13 +16,54 @@ import type { Messages } from '@shared/i18n'
 import type {
   AppearanceSettings,
   ConditionsData,
-  ConditionsFooterOptions,
+  ElementEntry,
+  InfoBarEntryId,
+  InfoBarSize,
   TempTrend
 } from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import { shallowEqual } from '@renderer/view/reuse'
 
 export type Units = AppearanceSettings['units']
+
+/**
+ * Which readings a conditions line draws: the footer bar's weather items (an info bar), each a
+ * flag, plus the trend arrow and the wind dial (the section's conditionsTrend and
+ * conditionsWindDirection). `conditionsFooter`: the line is drawn at all.
+ */
+export interface FooterReadings {
+  conditionsFooter: boolean
+  conditionsTrackTemp: boolean
+  conditionsTrend: boolean
+  conditionsWet: boolean
+  conditionsWind: boolean
+  conditionsWindDirection: boolean
+  conditionsAirTemp: boolean
+  conditionsRubber: boolean
+}
+
+/** The parts of a table's options a conditions line reads. */
+export interface FooterOptions {
+  footerBar: readonly Readonly<ElementEntry<InfoBarEntryId>>[]
+  footerBarSize: InfoBarSize
+  conditionsTrend: boolean
+  conditionsWindDirection: boolean
+}
+
+/** The readings of a table's footer bar (shown while its size is not 'off'). */
+export function footerReadingsOf(o: FooterOptions): FooterReadings {
+  const shown = (id: InfoBarEntryId): boolean => o.footerBar.some((e) => e.id === id && e.visible)
+  return {
+    conditionsFooter: o.footerBarSize !== 'off',
+    conditionsTrackTemp: shown('trackTemp'),
+    conditionsTrend: o.conditionsTrend,
+    conditionsWet: shown('wet'),
+    conditionsWind: shown('wind'),
+    conditionsWindDirection: o.conditionsWindDirection,
+    conditionsAirTemp: shown('airTemp'),
+    conditionsRubber: shown('rubber')
+  }
+}
 
 const DASH = '—'
 
@@ -187,7 +228,7 @@ const CALM_KMH = 2
  */
 export function footerView(
   d: ConditionsData | null,
-  o: ConditionsFooterOptions,
+  o: FooterReadings,
   units: Units,
   m: Messages
 ): FooterView {

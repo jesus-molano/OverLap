@@ -142,7 +142,11 @@ function session(): Seen {
   const alerts = new AlertsProvider(engine)
   const lights = new LightsProvider(engine)
   const opts = defaultOptions('alerts')
-  const lightOpts = { ...defaultOptions('lights'), showPitLimiter: true, showRevLimiter: true }
+  // Every light, the limiters too.
+  const lightOpts = {
+    ...defaultOptions('lights'),
+    icons: defaultOptions('lights').icons.map((e) => ({ ...e, visible: true }))
+  }
   const seen: Seen = { at: new Map(), payloads: [] }
   const mark = (key: string, t: number): void => {
     const list = seen.at.get(key) ?? []

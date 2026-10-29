@@ -75,6 +75,18 @@ describe('parseTelemetryMessage', () => {
     }
   })
 
+  it('parses the kind of session, null included, and nothing else', () => {
+    for (const kind of ['practice', 'qualify', 'race', null]) {
+      expect(parseTelemetryMessage({ type: 'session-kind', kind })).toEqual({
+        type: 'session-kind',
+        kind
+      })
+    }
+    for (const kind of ['Race', 'warmup', 1, undefined, {}]) {
+      expect(parseTelemetryMessage({ type: 'session-kind', kind })).toBeNull()
+    }
+  })
+
   it('drops extra fields from status', () => {
     expect(
       parseStatus({ state: 'mock', source: 'mock', note: 'none', detail: '', message: 'x' })

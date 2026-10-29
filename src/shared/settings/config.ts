@@ -1,6 +1,29 @@
 /** What the telemetry process receives. */
+import type { ConfigSection } from '../settingsSchema'
 import type { OverlaySettings, TelemetryConfig } from '../types'
 import { WIDGET_IDS, type WidgetId } from '../widgets'
+import { sectionSpecs } from './defaults'
+import { isRecord } from './fields'
+
+/**
+ * A section's options with every object field copied (element lists entry by entry, colour
+ * sets), from the schema: a new list or set needs nothing here.
+ */
+function copySection<S extends ConfigSection>(
+  section: S,
+  options: OverlaySettings[S]
+): OverlaySettings[S] {
+  const out: Record<string, unknown> = { ...options }
+  for (const [field, spec] of Object.entries(sectionSpecs(section))) {
+    const v = out[field]
+    if (spec.kind === 'elements' && Array.isArray(v)) {
+      out[field] = v.map((e: unknown) => (isRecord(e) ? { ...e } : e))
+    } else if (spec.kind === 'colors' && isRecord(v)) {
+      out[field] = { ...v }
+    }
+  }
+  return out as unknown as OverlaySettings[S]
+}
 
 /**
  * Only visible widgets are computed; the visibility rules travel with the
@@ -20,16 +43,16 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
   return {
     enabledWidgets: WIDGET_IDS.filter((id: WidgetId) => s.widgets[id].visible),
     rules,
-    visibility: { ...s.visibility },
-    relative: { ...s.relative },
-    radar: { ...s.radar },
-    standings: { ...s.standings, columns: s.standings.columns.map((c) => ({ ...c })) },
-    battle: { ...s.battle },
-    inputs: { ...s.inputs, colors: { ...s.inputs.colors } },
-    traffic: { ...s.traffic },
-    alerts: { ...s.alerts },
-    delta: { ...s.delta },
-    fuel: { ...s.fuel },
-    lights: { ...s.lights }
+    visibility: copySection('visibility', s.visibility),
+    relative: copySection('relative', s.relative),
+    radar: copySection('radar', s.radar),
+    standings: copySection('standings', s.standings),
+    battle: copySection('battle', s.battle),
+    inputs: copySection('inputs', s.inputs),
+    traffic: copySection('traffic', s.traffic),
+    alerts: copySection('alerts', s.alerts),
+    delta: copySection('delta', s.delta),
+    fuel: copySection('fuel', s.fuel),
+    lights: copySection('lights', s.lights)
   }
 }

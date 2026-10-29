@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { formatMetres } from '@shared/format'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
 import { useElementSize } from '@renderer/composables/useElementSize'
@@ -33,7 +34,9 @@ import { useCarMarks } from './useCarMarks'
 const STALE_MS = 300
 
 const rangeOption = useOption('radar', 'rangeM')
-const showRangeLabels = useOption('radar', 'showRangeLabels')
+const parts = useOption('radar', 'parts')
+// Until the radar draws its parts list (package P4): the distance labels of today.
+const showRangeLabels = computed(() => isElementVisible(parts.value, 'rangeLabels'))
 const { surfaceStyle, halo } = useWidgetSurface()
 // The SDK can go silent for seconds before the connection is declared lost, and the provider
 // sends nothing while the radar is hidden: freshness hides it without a ticking timer.

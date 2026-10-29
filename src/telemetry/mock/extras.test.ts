@@ -23,8 +23,7 @@ const STANDINGS: StandingsOptions = {
 }
 const RELATIVE: RelativeOptions = {
   ...DEFAULTS.relative,
-  showStint: true,
-  showTyre: true,
+  columns: DEFAULTS.relative.columns.map((c) => ({ ...c, visible: true })),
   showFlags: true
 }
 

@@ -3,7 +3,7 @@
  * estimated from CarIdxEstTime, and your incident count for its header. Pure function of one
  * telemetry tick (plus the RaceModel's positions and stint counts, when given).
  */
-import { driverIdentity } from './driver'
+import { driverIdentity, fieldHasMultipleBrands } from './driver'
 import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { penaltyOf } from './penalty'
@@ -147,11 +147,12 @@ export function computeRelative(
     slotsAhead,
     slotsBehind,
     sessionType,
-    // In the payload whatever showIncidents says (display only): one cheap read per tick. Yours
+    // In the payload whatever the bars show (display only): one cheap read per tick. Yours
     // alone, so not while a replay follows another car (the header would read as theirs).
     incidents: ownCar ? incidentCount(frame, session) : null,
-    // The conditions footer's readings are the provider set's (ConditionsFeed).
-    conditions: null
+    // The info bars' data is the provider set's (InfoFeed).
+    info: null,
+    multiBrand: fieldHasMultipleBrands(session)
   }
 
   const pcts = frame.CarIdxLapDistPct

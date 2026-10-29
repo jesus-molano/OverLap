@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LIGHT_OPTION, LIGHT_ORDER } from '@shared/lights'
+import { LIGHT_ORDER } from '@shared/lights'
 import { messagesFor } from '@shared/i18n'
 import { defaultOptions } from '@shared/settings'
 import type { LightKind, LightReading, LightsData } from '@shared/types'
@@ -22,7 +22,12 @@ const NB = ' '
 const ES = messagesFor('es')
 const EN = messagesFor('en')
 const DEFAULTS: LightsFilter = lightsFilter(defaultOptions('lights'))
-const ALL: LightsFilter = { ...DEFAULTS, showPitLimiter: true, showRevLimiter: true }
+const ALL: LightsFilter = { ...DEFAULTS, icons: LIGHT_ORDER.map((id) => ({ id, visible: true })) }
+
+/** `f` with these lights hidden. */
+function without(f: LightsFilter, ...off: LightKind[]): LightsFilter {
+  return { ...f, icons: f.icons.map((e) => ({ ...e, visible: e.visible && !off.includes(e.id) })) }
+}
 
 const reading = (o: Partial<LightReading> & Pick<LightReading, 'kind'>): LightReading => ({
   level: 'off',
@@ -109,7 +114,7 @@ describe('lightsView', () => {
 
   it('applies every option, at once and on the sample', () => {
     for (const k of LIGHT_ORDER) {
-      const v = lightsView(PREVIEW_LIGHTS, { ...ALL, [LIGHT_OPTION[k]]: false }, 'metric', ES)
+      const v = lightsView(PREVIEW_LIGHTS, without(ALL, k), 'metric', ES)
       expect(
         v.map((l) => l.kind),
         k
@@ -157,7 +162,7 @@ describe('hasLights / previewFilter / layoutKey', () => {
     const one = data([reading({ kind: 'water', level: 'warn' })])
     expect(hasLights(one, ALL, ES)).toBe(true)
     expect(hasLights({ ...one, visible: false }, ALL, ES)).toBe(false)
-    expect(hasLights(one, { ...ALL, showWater: false }, ES)).toBe(false)
+    expect(hasLights(one, without(ALL, 'water'), ES)).toBe(false)
     expect(hasLights(data([reading({ kind: 'water' })]), { ...ALL, onlyWhenLit: true }, ES)).toBe(
       false
     )
@@ -165,8 +170,7 @@ describe('hasLights / previewFilter / layoutKey', () => {
 
   it('the sample follows the options, unless they leave nothing to draw', () => {
     expect(previewFilter(PREVIEW_LIGHTS, DEFAULTS, ES)).toBe(DEFAULTS)
-    const none = { ...DEFAULTS }
-    for (const k of LIGHT_ORDER) none[LIGHT_OPTION[k]] = false
+    const none = without(DEFAULTS, ...LIGHT_ORDER)
     const all = previewFilter(PREVIEW_LIGHTS, none, ES)
     expect(lightsView(PREVIEW_LIGHTS, all, 'metric', ES)).toHaveLength(LIGHT_ORDER.length)
   })

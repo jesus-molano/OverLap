@@ -89,8 +89,10 @@ describe('useConditionsFooter', () => {
 
     fake.settings.emit(
       settingsWith(base, (n) => {
-        n.relative.conditionsFooter = true
-        n.relative.conditionsAirTemp = false
+        n.relative.footerBarSize = 'normal'
+        n.relative.footerBar = n.relative.footerBar.map((e) =>
+          e.id === 'airTemp' ? { ...e, visible: false } : e
+        )
         n.appearance.units = 'imperial'
         n.appearance.language = 'en'
       })

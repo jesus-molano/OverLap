@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, useTemplateRef, watch } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { speedUnit } from '@shared/format'
 import type { InputsData } from '@shared/types'
@@ -28,6 +29,7 @@ import {
   steerTransform,
   wheelTransform
 } from './readout'
+import { inputsLayout } from './layout'
 import { clampTraceSeconds, clampTraceWidth } from './trace'
 import { TraceController, type TraceSettings } from './traceController'
 import {
@@ -58,11 +60,13 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const preview = computed(() => phase.value === 'preview')
 
 // Each read keeps its value while equal: only a change of what it shows re-renders anything.
-const layout = computed(() => options.value.layout)
+// Until the widget draws its lists in order (package P4): the three layouts and the toggles of
+// today, read from the lists.
+const layout = computed(() => inputsLayout(options.value.sections))
 const hasTrace = computed(() => layout.value !== 'bars')
-const showClutch = computed(() => options.value.showClutch)
-const showSteering = computed(() => options.value.showSteering)
-const showGearSpeed = computed(() => options.value.showGearSpeed)
+const showClutch = computed(() => isElementVisible(options.value.bars, 'clutch'))
+const showSteering = computed(() => isElementVisible(options.value.info, 'steering'))
+const showGearSpeed = computed(() => isElementVisible(options.value.info, 'gear'))
 const asWheel = computed(() => options.value.steeringStyle === 'wheel')
 const units = computed(() => appearance.value.units)
 const unitLabel = computed(() => speedUnit(units.value))

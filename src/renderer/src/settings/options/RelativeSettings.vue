@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { RELATIVE_CARS_MAX, RELATIVE_CARS_MIN } from '@shared/settings'
+import type { RelativeColumnId } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -10,7 +12,7 @@ import ChoiceControl from '../controls/ChoiceControl.vue'
 import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { optionSetter } from '../editor'
+import { elementToggle, optionSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
 import ConditionsFooterSection from './ConditionsFooterSection.vue'
 
@@ -18,6 +20,10 @@ const opts = useOptions('relative')
 const appearance = useAppearance()
 const t = useI18n()
 const set = optionSetter('relative')
+
+// Until this page gets the element editors (package P1): one toggle per element.
+const shown = (id: RelativeColumnId): boolean => isElementVisible(opts.value.columns, id)
+const column = (id: RelativeColumnId): Setter<boolean> => elementToggle('relative', 'columns', id)
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
@@ -44,30 +50,30 @@ const nameHelp = computed(() =>
     <CheckGroup :legend="t.settings.relative.columns">
       <ToggleControl
         :label="t.settings.relative.classPosition"
-        :current="opts.showClassPosition"
-        :apply="set('showClassPosition')"
+        :current="shown('pos')"
+        :apply="column('pos')"
       />
       <ToggleControl
         :label="t.settings.common.license"
-        :current="opts.showLicense"
-        :apply="set('showLicense')"
+        :current="shown('lic')"
+        :apply="column('lic')"
       />
       <ToggleControl
         :label="t.settings.common.iRating"
-        :current="opts.showIRating"
-        :apply="set('showIRating')"
+        :current="shown('ir')"
+        :apply="column('ir')"
       />
       <ToggleControl
         :label="t.settings.relative.tyre"
         :help="t.settings.relative.tyreHelp"
-        :current="opts.showTyre"
-        :apply="set('showTyre')"
+        :current="shown('tyre')"
+        :apply="column('tyre')"
       />
       <ToggleControl
         :label="t.settings.relative.stint"
         :help="t.settings.relative.stintHelp"
-        :current="opts.showStint"
-        :apply="set('showStint')"
+        :current="shown('stint')"
+        :apply="column('stint')"
       />
     </CheckGroup>
     <ToggleControl
@@ -81,8 +87,8 @@ const nameHelp = computed(() =>
       kind="switch"
       :label="t.settings.relative.incidents"
       :help="t.settings.relative.incidentsHelp"
-      :current="opts.showIncidents"
-      :apply="set('showIncidents')"
+      :current="isElementVisible(opts.headerBar, 'incidents')"
+      :apply="elementToggle('relative', 'headerBar', 'incidents')"
     />
     <ChoiceControl
       :label="t.settings.common.nameFormat"

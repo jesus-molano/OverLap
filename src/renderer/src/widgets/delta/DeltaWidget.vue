@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { arrayEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -54,13 +55,15 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  () => previewDelta(options.value.reference)
+  // The race's reference: the one most drivers set the widget up for.
+  () => previewDelta(options.value.referenceRace)
 )
 
 // Display options, one primitive each: another option or a drag re-renders nothing.
-const showPredicted = computed(() => options.value.showPredicted)
-const showSectors = computed(() => options.value.showSectors)
-const showTrend = computed(() => options.value.showTrend)
+// Until the widget draws its lists in order (package P4): the parts it has today.
+const showPredicted = computed(() => isElementVisible(options.value.top, 'predicted'))
+const showSectors = computed(() => isElementVisible(options.value.rows, 'sectors'))
+const showTrend = computed(() => isElementVisible(options.value.top, 'state'))
 const rangeS = computed(() => clampOption(RANGE, options.value.rangeS))
 
 // ---- 30 Hz path: primitives and shared frozen objects only ----------------------------

@@ -5,6 +5,7 @@ import type {
   StandingsClassBlock,
   StandingsData
 } from './types'
+import { NO_INFO } from './infoFeed'
 import { standingsEqual } from './standingsEqual'
 
 type Row = StandingsClassBlock['rows'][number]
@@ -21,6 +22,8 @@ function row(carIdx: number, o: Partial<Row> = {}): Row {
     iRating: 2000,
     licString: 'B 3.12',
     licColor: '#00c702',
+    brand: 'mazda',
+    country: 'ES',
     interval: { kind: 'time', seconds: 1.5 },
     gapToLeader: { kind: 'time', seconds: 3 },
     lastLap: 90.1,
@@ -85,7 +88,21 @@ function state(): StandingsData {
         rows: [row(10)]
       }
     ],
-    conditions: weather()
+    info: {
+      ...NO_INFO,
+      sessionType: 'Race',
+      lapsRemaining: 5,
+      sof: 2000,
+      fastestLap: {
+        lapTime: 89.9,
+        carIdx: 0,
+        carNumber: '0',
+        driverName: 'Piloto 0',
+        isPlayer: true
+      },
+      conditions: weather()
+    },
+    multiBrand: false
   }
 }
 
@@ -196,17 +213,25 @@ describe('standingsEqual', () => {
     expect(standingsEqual(a, fewerClasses)).toBe(false)
   })
 
-  it('detects a change of the conditions footer, and the footer turned on or off', () => {
+  it('detects a change of the info bars data, and the bars turned on or off', () => {
     const a = state()
     for (const key of Object.keys(weather()) as (keyof ConditionsData)[]) {
       const b = state()
-      const c = b.conditions as unknown as Record<string, unknown>
+      const c = b.info?.conditions as unknown as Record<string, unknown>
       c[key] = key === 'trackTempTrend' ? 'down' : changed(c[key])
       expect(standingsEqual(a, b), key).toBe(false)
     }
-    const off = { ...state(), conditions: null }
+    for (const key of Object.keys(NO_INFO).filter((k) => k !== 'conditions')) {
+      const b = state()
+      const i = b.info as unknown as Record<string, unknown>
+      i[key] = changed(i[key])
+      expect(standingsEqual(a, b), key).toBe(false)
+    }
+    const off = { ...state(), info: null }
     expect(standingsEqual(a, off)).toBe(false)
     expect(standingsEqual(off, a)).toBe(false)
-    expect(standingsEqual(off, { ...state(), conditions: null })).toBe(true)
+    expect(standingsEqual(off, { ...state(), info: null })).toBe(true)
+    // The field's makes turn the brand marks on in 'auto'.
+    expect(standingsEqual(a, { ...state(), multiBrand: true })).toBe(false)
   })
 })

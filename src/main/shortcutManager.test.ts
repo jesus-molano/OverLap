@@ -4,7 +4,11 @@ import type { ShortcutAction, ShortcutSettings, ShortcutStatusMap } from '@share
 import { REPEAT_GUARD_MS, ShortcutManager } from './shortcutManager'
 import { FakeGlobalShortcut } from './testing/fakeElectron'
 
-const DEFAULTS: ShortcutSettings = { toggleOverlay: 'Ctrl+Shift+H', toggleEditMode: 'Ctrl+Shift+E' }
+const DEFAULTS: ShortcutSettings = {
+  toggleOverlay: 'Ctrl+Shift+H',
+  toggleEditMode: 'Ctrl+Shift+E',
+  cycleDeltaReference: ''
+}
 
 let registry: FakeGlobalShortcut
 let actions: ShortcutAction[]
@@ -46,7 +50,21 @@ describe('ShortcutManager registration', () => {
     expect(press('Ctrl+Shift+H')).toBe(true)
     expect(press('Ctrl+Shift+E')).toBe(true)
     expect(actions).toEqual(['toggleOverlay', 'toggleEditMode'])
-    expect(manager.status).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
+  })
+
+  it('registers the delta cycle once it has a combination (none by default)', () => {
+    manager.configure(DEFAULTS)
+    expect(registry.registered()).not.toContain('Ctrl+Alt+D')
+    manager.configure({ ...DEFAULTS, cycleDeltaReference: 'Ctrl+Alt+D' })
+    expect(registry.registered()).toContain('Ctrl+Alt+D')
+    expect(press('Ctrl+Alt+D')).toBe(true)
+    expect(actions).toEqual(['cycleDeltaReference'])
+    expect(manager.status.cycleDeltaReference).toBe('ok')
   })
 
   it('changes only what differs', () => {
@@ -66,7 +84,11 @@ describe('ShortcutManager registration', () => {
 
   it('moves a combination from one action to another (a swap)', () => {
     manager.configure(DEFAULTS)
-    manager.configure({ toggleOverlay: 'Ctrl+Shift+E', toggleEditMode: 'Ctrl+Shift+H' })
+    manager.configure({
+      ...DEFAULTS,
+      toggleOverlay: 'Ctrl+Shift+E',
+      toggleEditMode: 'Ctrl+Shift+H'
+    })
     press('Ctrl+Shift+E')
     press('Ctrl+Shift+H')
     expect(actions).toEqual(['toggleOverlay', 'toggleEditMode'])
@@ -75,15 +97,29 @@ describe('ShortcutManager registration', () => {
   it('does not register a turned-off shortcut and reports it disabled', () => {
     manager.configure({ ...DEFAULTS, toggleOverlay: '' })
     expect(registry.registered()).toEqual(['Ctrl+Shift+E'])
-    expect(manager.status).toEqual({ toggleOverlay: 'disabled', toggleEditMode: 'ok' })
-    expect(statuses.at(-1)).toEqual({ toggleOverlay: 'disabled', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'disabled',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
+    expect(statuses.at(-1)).toEqual({
+      toggleOverlay: 'disabled',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
   })
 
   it('reports a combination another application holds, once, and retries it on the next change', () => {
     registry.taken.add('Ctrl+Shift+H')
     manager.configure(DEFAULTS)
-    expect(manager.status).toEqual({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
-    expect(statuses).toEqual([{ toggleOverlay: 'unavailable', toggleEditMode: 'ok' }])
+    expect(manager.status).toEqual({
+      toggleOverlay: 'unavailable',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
+    expect(statuses).toEqual([
+      { toggleOverlay: 'unavailable', toggleEditMode: 'ok', cycleDeltaReference: 'disabled' }
+    ])
     expect(console.warn).toHaveBeenCalledOnce()
 
     // Still taken: retried silently, nothing new to report.
@@ -93,8 +129,16 @@ describe('ShortcutManager registration', () => {
 
     registry.taken.delete('Ctrl+Shift+H')
     manager.setEditing(false)
-    expect(manager.status).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
-    expect(statuses.at(-1)).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
+    expect(statuses.at(-1)).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
     expect(press('Ctrl+Shift+H')).toBe(true)
   })
 
@@ -111,7 +155,11 @@ describe('ShortcutManager registration', () => {
     registry.taken.add('Ctrl+Shift+H')
     manager.configure(DEFAULTS)
     manager.configure({ ...DEFAULTS, toggleOverlay: 'F14' })
-    expect(manager.status).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
   })
 })
 
@@ -133,7 +181,11 @@ describe('ShortcutManager Escape', () => {
     registry.taken.add('Escape')
     manager.configure(DEFAULTS)
     manager.setEditing(true)
-    expect(manager.status).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
   })
 })
 
@@ -180,7 +232,11 @@ describe('ShortcutManager capture', () => {
     // Nothing touched while suspended (registering would fail): it all happens on resume.
     expect(registry.register).not.toHaveBeenCalled()
     expect(registry.unregister).not.toHaveBeenCalled()
-    expect(manager.status).toEqual({ toggleOverlay: 'ok', toggleEditMode: 'ok' })
+    expect(manager.status).toEqual({
+      toggleOverlay: 'ok',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
 
     manager.stopCapture()
     expect(registry.registered()).toEqual(['Ctrl+Shift+E', 'Escape', 'F15'])
@@ -196,7 +252,11 @@ describe('ShortcutManager capture', () => {
     expect(manager.status.toggleOverlay).toBe('ok')
     manager.stopCapture()
     expect(manager.status.toggleOverlay).toBe('unavailable')
-    expect(statuses.at(-1)).toEqual({ toggleOverlay: 'unavailable', toggleEditMode: 'ok' })
+    expect(statuses.at(-1)).toEqual({
+      toggleOverlay: 'unavailable',
+      toggleEditMode: 'ok',
+      cycleDeltaReference: 'disabled'
+    })
   })
 
   it('renewing keeps it suspended; a page that stops renewing is resumed by the lease', () => {

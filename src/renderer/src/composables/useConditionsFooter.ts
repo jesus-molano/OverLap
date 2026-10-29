@@ -6,24 +6,29 @@
  */
 import { computed, type ComputedRef } from 'vue'
 import { conditionsEqual } from '@shared/conditions'
-import { CONDITIONS_FOOTER_FIELDS, type OptionSection } from '@shared/settingsSchema'
-import type { ConditionsData, ConditionsFooterOptions, OverlaySettings } from '@shared/types'
-import { footerView, reuseFooter, type FooterView } from '../view/conditions'
+import type { OptionSection } from '@shared/settingsSchema'
+import type { ConditionsData, OverlaySettings } from '@shared/types'
+import {
+  footerReadingsOf,
+  footerView,
+  reuseFooter,
+  type FooterOptions,
+  type FooterReadings,
+  type FooterView
+} from '../view/conditions'
 import { reuseView } from '../view/reuse'
 import { useAppearance } from './useAppearance'
 import { useI18n } from './useI18n'
 import { useOptions } from './useWidgetSettings'
 
-/** Option sections with a conditions footer. */
+/** Option sections with a conditions footer (a footer bar). */
 export type FooterSection = {
-  [K in OptionSection]: OverlaySettings[K] extends ConditionsFooterOptions ? K : never
+  [K in OptionSection]: OverlaySettings[K] extends FooterOptions ? K : never
 }[OptionSection]
 
-/** Only the footer's fields of a section's options (the table's own do not concern it). */
-export function footerOptionsOf(o: ConditionsFooterOptions): ConditionsFooterOptions {
-  const out: Record<string, boolean> = {}
-  for (const f of CONDITIONS_FOOTER_FIELDS) out[f] = o[f]
-  return out as unknown as ConditionsFooterOptions
+/** Only the footer's readings of a section's options (the table's own do not concern it). */
+export function footerOptionsOf(o: FooterOptions): FooterReadings {
+  return footerReadingsOf(o)
 }
 
 /** `next`, or `prev` when it reads the same (null and null included). */
@@ -41,9 +46,7 @@ export function useConditionsFooter(
   readings: () => ConditionsData | null
 ): ComputedRef<FooterView> {
   const options = useOptions(section)
-  const opts = computed<ConditionsFooterOptions>((prev) =>
-    reuseView(prev, footerOptionsOf(options.value))
-  )
+  const opts = computed<FooterReadings>((prev) => reuseView(prev, footerOptionsOf(options.value)))
   const appearance = useAppearance()
   const units = computed(() => appearance.value.units)
   const t = useI18n()

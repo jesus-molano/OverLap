@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { isElementVisible } from '@shared/elements'
 import { deepEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -40,21 +41,29 @@ const t = useI18n()
 
 // Options are stable objects (useOptions); each view input keeps its identity while equal, so
 // a threshold change or a drag re-renders nothing.
-const laneOptions = computed<LaneOptions>((prev) =>
-  reuseView(prev, {
-    detail: options.value.detail,
-    showPrediction: options.value.showPrediction,
-    showStake: options.value.showIRatingAtStake,
+// Until the lanes draw their lists in order (package P3): the rows and parts they have today.
+const laneOptions = computed<LaneOptions>((prev) => {
+  const o = options.value
+  const sectors = isElementVisible(o.rows, 'sectors')
+  const laps = isElementVisible(o.rows, 'laps')
+  return reuseView(prev, {
+    detail: sectors && laps ? 'both' : sectors ? 'sectors' : laps ? 'laps' : 'none',
+    showPrediction: isElementVisible(o.rows, 'prediction'),
+    showStake: isElementVisible(o.parts, 'stake'),
     nameFormat: nameFormat.value
   })
-)
+})
 const rows = computed<LaneRows>((prev) => reuseView(prev, laneRows(laneOptions.value)))
 
 /** Live data, the sample in edit mode, or what was shown last (kept through the fade-out). */
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  () => previewBattle(options.value.showAhead, options.value.showBehind)
+  () =>
+    previewBattle(
+      isElementVisible(options.value.lanes, 'ahead'),
+      isElementVisible(options.value.lanes, 'behind')
+    )
 )
 
 /** Lanes keep their objects while equal, so each lane's v-memo skips unchanged ones. */

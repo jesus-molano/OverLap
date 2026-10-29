@@ -16,6 +16,7 @@
  * list comes back the same way.
  */
 import type { PersonalBestList } from './delta/references'
+import type { SessionKind } from './sessionInfo'
 import type { ShortcutStatusMap } from './shortcuts'
 import type {
   HiddenReason,
@@ -51,6 +52,11 @@ export type TelemetryOutMessage =
    * session). Main keeps the latest for the settings window.
    */
   | { type: 'bests'; list: PersonalBestList }
+  /**
+   * The kind of session being driven or watched (sessionKind), on change: main applies the
+   * delta's cycle shortcut to that kind's reference. Null when unknown (no session).
+   */
+  | { type: 'session-kind'; kind: SessionKind | null }
 
 export type TelemetryInMessage =
   | { type: 'config'; config: TelemetryConfig }

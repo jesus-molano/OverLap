@@ -2,6 +2,8 @@
  * Session YAML (WeekendInfo, DriverInfo, SessionInfo, ...) to SessionMeta.
  * Per-tick facts derived from it (player, session type) live in sessionInfo.ts.
  */
+import { brandOfCar, carIdentityOf } from './carBrands'
+import { countryOfFlair } from './countries'
 import { classColorToCss, licenseColor } from './colors'
 import { NO_PIT_SPEC, parsePitSpec } from './fuel/spec'
 import { NO_INCIDENT_LIMITS, parseIncidentLimits } from './incidents/limits'
@@ -149,7 +151,10 @@ function parseDriver(d: Obj, carIdx: number): DriverEntry {
     teamId: nonNegIntOr0(d.TeamID),
     carId: nonNegIntOr0(d.CarID),
     carName: text(d.CarScreenName) || text(d.CarScreenNameShort),
-    isAI: flag(d.CarIsAI)
+    isAI: flag(d.CarIsAI),
+    brand: brandOfCar(carIdentityOf(d)),
+    // FlairName replaced ClubName (now 'None') as where the driver races from.
+    country: flag(d.CarIsPaceCar) || flag(d.IsSpectator) ? '' : countryOfFlair(text(d.FlairName))
   }
 }
 

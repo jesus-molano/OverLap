@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AlertsProvider } from './alerts'
 import { EngineWarning } from './flags'
-import { LIGHTS, LIGHT_OPTION, LIGHT_ORDER, LIT_LEVEL, LightsProvider, lightsEqual } from './lights'
+import { LIGHTS, LIGHT_ORDER, LIT_LEVEL, LightsProvider, lightsEqual } from './lights'
 import { ENGINE, EngineMonitor } from './notices/engine'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
 import { makeFrame, makeSession } from './race/testing/raceSim'
@@ -14,8 +14,12 @@ import type { LightKind, LightReading, LightsData, LightsOptions, SessionMeta } 
 
 const OPTS: LightsOptions = {
   ...defaultOptions('lights'),
-  showPitLimiter: true,
-  showRevLimiter: true
+  icons: LIGHT_ORDER.map((id) => ({ id, visible: true }))
+}
+
+/** The options' icons with these lights hidden. */
+function without(...off: LightKind[]): Partial<LightsOptions> {
+  return { icons: LIGHT_ORDER.map((id) => ({ id, visible: !off.includes(id) })) }
 }
 
 /** The player is CarIdx 0 of a 3-car session, driving at 30 m/s. */
@@ -57,9 +61,9 @@ const light = (d: LightsData, kind: LightKind): LightReading | undefined =>
 describe('LIGHT_ORDER and the options', () => {
   it('has every light once, each with its option and its lit level', () => {
     expect(new Set(LIGHT_ORDER).size).toBe(LIGHT_ORDER.length)
-    expect(Object.keys(LIGHT_OPTION).sort()).toEqual([...LIGHT_ORDER].sort())
     expect(Object.keys(LIT_LEVEL).sort()).toEqual([...LIGHT_ORDER].sort())
-    for (const k of LIGHT_ORDER) expect(OPTION_SCHEMA.lights[LIGHT_OPTION[k]].kind, k).toBe('bool')
+    // The icons list is the strip in this order, every light in it.
+    expect(OPTION_SCHEMA.lights.icons.ids).toEqual([...LIGHT_ORDER])
   })
 
   it('colours by severity: red to act now, orange to watch, blue for a state', () => {
@@ -85,11 +89,10 @@ describe('LIGHT_ORDER and the options', () => {
       showTemps: false,
       showRepairTime: true,
       showTrend: true,
-      showPitLimiter: false,
-      showRevLimiter: false
+      labelSide: 'right'
     })
-    for (const k of LIGHT_ORDER) {
-      if (k !== 'pitLimiter' && k !== 'revLimiter') expect(d[LIGHT_OPTION[k]], k).toBe(true)
+    for (const e of d.icons) {
+      expect(e.visible, e.id).toBe(e.id !== 'pitLimiter' && e.id !== 'revLimiter')
     }
   })
 })
@@ -138,14 +141,13 @@ describe('LightsProvider', () => {
 
   it('leaves out the lights turned off; only the lit ones, or nothing, with onlyWhenLit', () => {
     const k = new Tick().bits(EngineWarning.WaterTemp)
-    expect(k.run({ showWater: false }).lights.map((l) => l.kind)).not.toContain('water')
+    expect(k.run(without('water')).lights.map((l) => l.kind)).not.toContain('water')
     const lit = k.run({ onlyWhenLit: true })
     expect(lit).toMatchObject({ visible: true, lights: [{ kind: 'water', level: 'warn' }] })
     // Held a moment (holdS), then gone.
     expect(k.bits(0).run({ onlyWhenLit: true }).visible).toBe(true)
     expect(k.runFor(LIGHTS.holdS, { onlyWhenLit: true })).toEqual({ visible: false, lights: [] })
-    const none = Object.fromEntries(LIGHT_ORDER.map((l) => [LIGHT_OPTION[l], false]))
-    expect(k.run(none)).toEqual({ visible: false, lights: [] })
+    expect(k.run(without(...LIGHT_ORDER))).toEqual({ visible: false, lights: [] })
   })
 
   it('the repair time while lit, in whole seconds rounded up, with its option', () => {

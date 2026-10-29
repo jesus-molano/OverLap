@@ -14,10 +14,16 @@
  * (REMOVED_WIDGETS) is dropped like any unknown key, the rest of the file
  * untouched, and the footers start with their own defaults. A visibility section
  * from before "when to show the overlay" gets replays hidden (`migrateVisibility`).
+ * Files from before the customisable widgets (v2.6) had one boolean or choice per element
+ * where the lists are now (the headers and the conditions footers became info bars): each list
+ * and scalar is read from them (`LIST_MIGRATIONS`, `VALUE_MIGRATIONS`), so an upgrade draws the
+ * same; the old fields are dropped on the next save (one-way). Version 5 marks the files
+ * written since: older ones get the new defaults that replaced a saved old one (the 'outline'
+ * licence, the pedals' auto height) once.
  */
-import { OPTION_SCHEMA } from '../settingsSchema'
+import { OPTION_SCHEMA, type ElementsSpec, type OptionSection } from '../settingsSchema'
 import type {
-  LightsOptions,
+  ElementEntry,
   OverlaySettings,
   Point,
   Rect,
@@ -26,7 +32,7 @@ import type {
   StandingsColumnId
 } from '../types'
 import { ALERTS_DEFAULT_ROOM, WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '../widgets'
-import { isRecord } from './fields'
+import { isRecord, normalizeElements } from './fields'
 
 /**
  * Widgets added after settings files already existed that such a file gets hidden: the user
@@ -164,7 +170,7 @@ export function migrateAlerts(raw: Record<string, unknown>): Record<string, unkn
  * The alerts band's engine options before the warning lights, and the lights each one covered:
  * the four engine lights, the stall, the damage (mandatory and optional repairs), the trend.
  */
-type Lights = readonly (keyof LightsOptions)[]
+type Lights = readonly string[]
 const BAND_TO_LIGHTS: readonly (readonly [band: string, lights: Lights])[] = [
   ['showEngineWarnings', ['showOilPressure', 'showFuelPressure', 'showWater', 'showOilTemp']],
   ['showStalled', ['showStalled']],
@@ -187,7 +193,8 @@ export function migrateLights(raw: unknown, file: Record<string, unknown>): unkn
   if (raw !== undefined) return raw
   const alerts = file.alerts
   if (!isRecord(alerts)) return raw
-  const off: Partial<Record<keyof LightsOptions, boolean>> = {}
+  // The lights' own fields of the time (LIGHTS_FLAGS turns them into the list).
+  const off: Record<string, boolean> = {}
   for (const [band, lights] of BAND_TO_LIGHTS) {
     if (alerts[band] === false) for (const l of lights) off[l] = false
   }
@@ -219,18 +226,349 @@ export function migrateVisibility(raw: Record<string, unknown>): Record<string, 
   return { ...raw, replays: OPTION_SCHEMA.visibility.replays.default }
 }
 
+// ---------------------------------------------------------------------------
+// Element lists from the booleans and choices they replaced (customisation, v2.6)
+// ---------------------------------------------------------------------------
+
+/** What a file's old fields said about a list: each id's visibility, and an order if they gave one. */
+export interface LegacyList {
+  readonly visible: Readonly<Record<string, boolean>>
+  /** Ids in the order the old fields put them (the rest follow in default order). */
+  readonly order?: readonly string[]
+}
+
+/**
+ * How a list is read from the fields it replaced: null when the file has none of them (the list
+ * then takes its default, like any missing option).
+ */
+export type LegacyReader = (raw: Readonly<Record<string, unknown>>) => LegacyList | null
+
+/** A boolean field per set of ids: the field gives their visibility. */
+export type FlagMap = readonly (readonly [field: string, ids: readonly string[]])[]
+
+/** The reader of a list that replaced one boolean per element (or per group of elements). */
+export function fromFlags(flags: FlagMap): LegacyReader {
+  return (raw) => {
+    const visible: Record<string, boolean> = {}
+    let any = false
+    for (const [field, ids] of flags) {
+      const v = raw[field]
+      if (typeof v !== 'boolean') continue
+      any = true
+      for (const id of ids) visible[id] = v
+    }
+    return any ? { visible } : null
+  }
+}
+
+/**
+ * The list `spec` describes, from what the old fields said: the default with their visibility and
+ * order applied (ids they did not cover keep the default), normalised.
+ */
+export function listFromLegacy<Id extends string>(
+  spec: ElementsSpec<Id>,
+  legacy: LegacyList
+): ElementEntry<Id>[] {
+  const byId = new Map<string, ElementEntry<Id>>(spec.default.map((e) => [e.id, { ...e }]))
+  for (const [id, v] of Object.entries(legacy.visible)) {
+    const e = byId.get(id)
+    if (e !== undefined) e.visible = v
+  }
+  const ordered: ElementEntry<Id>[] = []
+  for (const id of legacy.order ?? []) {
+    const e = byId.get(id)
+    if (e !== undefined && !ordered.includes(e)) ordered.push(e)
+  }
+  for (const e of byId.values()) if (!ordered.includes(e)) ordered.push(e)
+  return normalizeElements(ordered, spec.default, spec)
+}
+
+/** The readings of a table's old conditions footer, now items of its footer bar. */
+const FOOTER_READINGS: FlagMap = [
+  ['conditionsTrackTemp', ['trackTemp']],
+  ['conditionsWet', ['wet']],
+  ['conditionsWind', ['wind']],
+  ['conditionsAirTemp', ['airTemp']],
+  ['conditionsRubber', ['rubber']]
+]
+
+/** The pedals' old layout choice: the order of the blocks, the trace left out for 'bars'. */
+export const readInputsSections: LegacyReader = (raw) => {
+  switch (raw.layout) {
+    case 'trace-bars-info':
+      return { visible: { trace: true }, order: ['trace', 'bars', 'info'] }
+    case 'info-bars-trace':
+      return { visible: { trace: true }, order: ['info', 'bars', 'trace'] }
+    case 'bars':
+      return { visible: { trace: false }, order: ['trace', 'bars', 'info'] }
+    default:
+      return null
+  }
+}
+
+/** The battle's old detail choice: the sector chips, the lap chips, both or neither. */
+export const readBattleRows: LegacyReader = (raw) => {
+  const visible: Record<string, boolean> = {}
+  const detail = raw.detail
+  if (detail === 'none' || detail === 'sectors' || detail === 'laps' || detail === 'both') {
+    visible.sectors = detail === 'sectors' || detail === 'both'
+    visible.laps = detail === 'laps' || detail === 'both'
+  }
+  if (typeof raw.showPrediction === 'boolean') visible.prediction = raw.showPrediction
+  return Object.keys(visible).length > 0 ? { visible } : null
+}
+
+/** One list of a section and the old fields it is read from. */
+export interface ListMigration {
+  readonly field: string
+  readonly read: LegacyReader
+}
+
+/**
+ * Every list that replaced older fields, by section. A file whose section already has the list
+ * (an array) keeps it; the old fields are then unknown keys and ignored, like any other.
+ */
+export const LIST_MIGRATIONS: { readonly [S in OptionSection]?: readonly ListMigration[] } = {
+  relative: [
+    {
+      field: 'columns',
+      read: fromFlags([
+        ['showClassPosition', ['pos']],
+        ['showLicense', ['lic']],
+        ['showIRating', ['ir']],
+        ['showTyre', ['tyre']],
+        ['showStint', ['stint']]
+      ])
+    },
+    { field: 'headerBar', read: fromFlags([['showIncidents', ['incidents']]]) },
+    { field: 'footerBar', read: fromFlags(FOOTER_READINGS) }
+  ],
+  radar: [{ field: 'parts', read: fromFlags([['showRangeLabels', ['rangeLabels']]]) }],
+  standings: [
+    {
+      // The single-class header showed the class's SoF and cars with the class lines' options.
+      field: 'headerBar',
+      read: fromFlags([
+        ['headerIncidents', ['incidents']],
+        ['showSof', ['sof']],
+        ['showCarCount', ['carCount']]
+      ])
+    },
+    {
+      field: 'subheaderBar',
+      read: fromFlags([
+        ['headerIRating', ['iRating']],
+        ['headerSafetyRating', ['safetyRating']]
+      ])
+    },
+    { field: 'footerBar', read: fromFlags(FOOTER_READINGS) },
+    {
+      field: 'classLine',
+      read: fromFlags([
+        ['showSof', ['sof']],
+        ['showCarCount', ['carCount']]
+      ])
+    }
+  ],
+  battle: [
+    {
+      field: 'lanes',
+      read: fromFlags([
+        ['showAhead', ['ahead']],
+        ['showBehind', ['behind']]
+      ])
+    },
+    { field: 'rows', read: readBattleRows },
+    { field: 'parts', read: fromFlags([['showIRatingAtStake', ['stake']]]) }
+  ],
+  inputs: [
+    { field: 'sections', read: readInputsSections },
+    { field: 'bars', read: fromFlags([['showClutch', ['clutch']]]) },
+    {
+      field: 'info',
+      read: fromFlags([
+        ['showGearSpeed', ['gear', 'speed']],
+        ['showSteering', ['steering']]
+      ])
+    }
+  ],
+  traffic: [
+    {
+      field: 'groups',
+      read: fromFlags([
+        ['showHazards', ['hazard']],
+        ['showSlower', ['slower']],
+        ['showFaster', ['faster']]
+      ])
+    }
+  ],
+  delta: [
+    { field: 'rows', read: fromFlags([['showSectors', ['sectors']]]) },
+    {
+      field: 'top',
+      read: fromFlags([
+        ['showTrend', ['state']],
+        ['showPredicted', ['predicted']]
+      ])
+    }
+  ],
+  fuel: [
+    {
+      field: 'lines',
+      read: fromFlags([
+        ['showGauge', ['gauge']],
+        ['showPerLap', ['perLap']],
+        ['showFinish', ['finish']],
+        ['showWindow', ['window']],
+        ['showSave', ['save']],
+        ['showTyres', ['tyres']],
+        ['showLimits', ['limits']]
+      ])
+    }
+  ],
+  lights: [
+    {
+      field: 'icons',
+      read: fromFlags([
+        ['showOilPressure', ['oilPressure']],
+        ['showFuelPressure', ['fuelPressure']],
+        ['showStalled', ['stalled']],
+        ['showRepair', ['repair']],
+        ['showRepairOptional', ['repairOptional']],
+        ['showWater', ['water']],
+        ['showOilTemp', ['oilTemp']],
+        ['showPitLimiter', ['pitLimiter']],
+        ['showRevLimiter', ['revLimiter']]
+      ])
+    }
+  ]
+}
+
+/**
+ * How a scalar option is read from the fields it replaced: undefined when the file has none of
+ * them (the option takes its default). The value is still validated like any other.
+ */
+export type ValueReader = (raw: Readonly<Record<string, unknown>>) => unknown
+
+/** An info bar's size from the switch it replaced: shown at the normal size, or off. */
+function sizeFromSwitch(field: string): ValueReader {
+  return (raw) => {
+    const v = raw[field]
+    return typeof v === 'boolean' ? (v ? 'normal' : 'off') : undefined
+  }
+}
+
+/**
+ * The delta's one reference of before, for every kind of session. Every file had the old single
+ * default ('pb') unless its driver chose another: those take the new per-session defaults
+ * (record in practice, optimal in qualifying and races), the others keep their choice everywhere.
+ */
+function deltaReference(raw: Readonly<Record<string, unknown>>): unknown {
+  // A file with any of the new fields was written since: the old one is a leftover.
+  if ('referencePractice' in raw || 'referenceQualify' in raw || 'referenceRace' in raw) {
+    return undefined
+  }
+  const ref = raw.reference
+  return typeof ref === 'string' && ref !== 'pb' ? ref : undefined
+}
+
+/** One scalar option of a section and how it is read from the fields it replaced. */
+export interface ValueMigration {
+  readonly field: string
+  readonly read: ValueReader
+}
+
+/** Every scalar that replaced older fields, by section (only while the file lacks it). */
+export const VALUE_MIGRATIONS: { readonly [S in OptionSection]?: readonly ValueMigration[] } = {
+  relative: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
+  standings: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
+  fuel: [{ field: 'headerBarSize', read: sizeFromSwitch('showHeader') }],
+  delta: [
+    { field: 'referencePractice', read: deltaReference },
+    { field: 'referenceQualify', read: deltaReference },
+    { field: 'referenceRace', read: deltaReference }
+  ]
+}
+
+/**
+ * The section with every list and scalar it lacks read from the fields they replaced
+ * (LIST_MIGRATIONS, VALUE_MIGRATIONS): nothing visible changes on upgrade. Only when the new
+ * field is not in the file yet and some old field is; `raw` itself when there is nothing to do.
+ */
+export function migrateLists(
+  section: string,
+  raw: Record<string, unknown>
+): Record<string, unknown> {
+  const lists = LIST_MIGRATIONS[section as OptionSection] ?? []
+  const values = VALUE_MIGRATIONS[section as OptionSection] ?? []
+  if (lists.length === 0 && values.length === 0) return raw
+  const specs = OPTION_SCHEMA[section as OptionSection] as Readonly<Record<string, unknown>>
+  let out: Record<string, unknown> | null = null
+  for (const { field, read } of lists) {
+    if (Array.isArray(raw[field])) continue
+    const spec = specs[field] as ElementsSpec | undefined
+    const legacy = read(raw)
+    if (spec?.kind !== 'elements' || legacy === null) continue
+    out ??= { ...raw }
+    out[field] = listFromLegacy(spec, legacy)
+  }
+  for (const { field, read } of values) {
+    if (field in raw) continue
+    const v = read(raw)
+    if (v === undefined) continue
+    out ??= { ...raw }
+    out[field] = v
+  }
+  return out ?? raw
+}
+
+// ---------------------------------------------------------------------------
+// Version 5 (v2.6): changes of default applied once to older files
+// ---------------------------------------------------------------------------
+
+/**
+ * A file written before version 5: its `version` is the only mark that tells "the old default,
+ * saved" from "chosen since" (a missing or non-numeric version reads as old).
+ */
+export function isBeforeV5(file: Readonly<Record<string, unknown>>): boolean {
+  return !(typeof file.version === 'number' && file.version >= 5)
+}
+
+/** Licences: the old default ('soft') becomes the new one ('outline'); a choice stays. */
+export function migrateAppearanceV5(raw: Record<string, unknown>): Record<string, unknown> {
+  return raw.licenseStyle === 'soft' ? { ...raw, licenseStyle: 'outline' } : raw
+}
+
+/**
+ * The pedals became an auto-height widget: a file from before saved `autoHeight: false` for
+ * them (no free-size widget could have it), so they fit their content from now on.
+ */
+export function migrateWidgetsV5(
+  out: OverlaySettings,
+  file: Readonly<Record<string, unknown>>
+): void {
+  if (!isBeforeV5(file)) return
+  const widgets = isRecord(file.widgets) ? file.widgets : {}
+  if (isRecord(widgets.inputs)) out.widgets.inputs.autoHeight = true
+}
+
 /**
  * Section-level migrations, keyed by section; untouched sections pass through. `file` is the
- * whole file, for an option that moved from one section to another.
+ * whole file, for an option that moved from one section to another and for its version. The
+ * lists come last, from the fields the earlier steps leave (the v3 standings header, the lights
+ * the band gave up).
  */
 export function migrateSection(
   section: string,
   raw: unknown,
   file: Record<string, unknown> = {}
 ): unknown {
-  if (section === 'lights') return migrateLights(raw, file)
-  if (!isRecord(raw)) return raw
-  if (section === 'standings') return migrateStandings(raw)
-  if (section === 'alerts') return migrateAlerts(raw)
-  return section === 'visibility' ? migrateVisibility(raw) : raw
+  const r = section === 'lights' ? migrateLights(raw, file) : raw
+  if (!isRecord(r)) return r
+  let out = r
+  if (section === 'standings') out = migrateStandings(out)
+  else if (section === 'alerts') out = migrateAlerts(out)
+  else if (section === 'visibility') out = migrateVisibility(out)
+  else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
+  return migrateLists(section, out)
 }
