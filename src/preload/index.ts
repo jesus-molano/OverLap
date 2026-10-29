@@ -56,8 +56,8 @@ const api: OverlayApi = {
   dragState: (msg: DragStateMessage) => ipcRenderer.send(IPC.dragState, msg),
   widgetToggle: (msg: WidgetToggleMessage) => ipcRenderer.send(IPC.widgetToggle, msg),
   editChips: (msg: EditChipsMessage) => ipcRenderer.send(IPC.editChips, msg),
-  updateSettings: (patch: SettingsPatch) =>
-    ipcRenderer.invoke(IPC.updateSettings, patch) as Promise<OverlaySettings>,
+  updateSettings: (patch: SettingsPatch, forLayout?: string) =>
+    ipcRenderer.invoke(IPC.updateSettings, patch, forLayout) as Promise<OverlaySettings>,
   command: (cmd: SettingsCommand) => ipcRenderer.send(IPC.command, cmd)
 }
 

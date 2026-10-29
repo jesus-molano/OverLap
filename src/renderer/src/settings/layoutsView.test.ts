@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
-import { applyLayout, linkCar, noteSeenCar, saveLayoutAs } from '@shared/layouts'
+import { applyLayout, linkCar, noteSeenCar, saveLayoutAs, setLayoutMode } from '@shared/layouts'
 import { createDefaultSettings } from '@shared/settings'
 import type { LayoutSort, OverlaySettings } from '@shared/types'
 import {
@@ -9,6 +9,7 @@ import {
   layoutList,
   layoutMatches,
   linkOptions,
+  isFileNotice,
   noticeText,
   optionsTarget,
   revealOffset,
@@ -231,21 +232,47 @@ describe('noticeText', () => {
       expect(n.text.length, error).toBeGreaterThan(0)
     }
   })
+
+  it('leaves a widget page’s copy to that page', () => {
+    expect(isFileNotice({ kind: 'imported', name: 'GT3' })).toBe(true)
+    const copied = { kind: 'options-copied', widgetId: 'radar', result: 'stale' } as const
+    expect(isFileNotice(copied)).toBe(false)
+    for (const m of [es, en]) {
+      const done = m.settings.widgetPage.target.toAll.done
+      for (const r of ['copied', 'unchanged', 'stale'] as const) expect(done[r]).not.toBe('')
+    }
+  })
 })
 
 describe('optionsTarget', () => {
   it('names the layout in use, or says the shared options for a "Solo posición" one', () => {
     const s = createDefaultSettings()
     expect(optionsTarget(s.savedLayouts)).toEqual({
+      id: 'layout-1',
       name: 'Principal',
       shared: false,
       canApplyToAll: false
     })
     saveLayoutAs(s, 'Óvalo', 1, 'position')
     expect(optionsTarget(s.savedLayouts)).toEqual({
+      id: 'layout-2',
       name: 'Óvalo',
       shared: true,
       canApplyToAll: true
     })
+  })
+
+  it('offers the copy only when it reaches another layout', () => {
+    const s = createDefaultSettings()
+    saveLayoutAs(s, 'Óvalo', 1, 'position')
+    saveLayoutAs(s, 'Rally', 2, 'position')
+    // Principal is the one full layout besides.
+    expect(optionsTarget(s.savedLayouts).canApplyToAll).toBe(true)
+    setLayoutMode(s, 'layout-1', 'position')
+    // Every layout uses the shared options: those already are the ones in effect.
+    expect(optionsTarget(s.savedLayouts).canApplyToAll).toBe(false)
+    // From a full one, the position-only ones are reached through the shared options.
+    setLayoutMode(s, 'layout-3', 'full')
+    expect(optionsTarget(s.savedLayouts).canApplyToAll).toBe(true)
   })
 })

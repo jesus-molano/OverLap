@@ -356,10 +356,42 @@ describe('LayoutControl: commands', () => {
     lib = h.settings().savedLayouts
     expect(lib.list.map((l) => l.mode)).toEqual(['position', 'full', 'full'])
     h.edit((s) => void (s.radar.rangeM = 50))
-    await h.control.command({ type: 'layout-options-to-all', widgetId: 'radar' })
+    h.notices.length = 0
+    await h.control.command({
+      type: 'layout-options-to-all',
+      widgetId: 'radar',
+      layoutId: 'layout-3'
+    })
     lib = h.settings().savedLayouts
     expect(lib.list[1]?.options?.sections.radar.rangeM).toBe(50)
     expect(lib.shared?.sections.radar.rangeM).toBe(50)
+    // Again: they all have them now, and the page is told so.
+    await h.control.command({
+      type: 'layout-options-to-all',
+      widgetId: 'radar',
+      layoutId: 'layout-3'
+    })
+    expect(h.notices).toEqual([
+      { kind: 'options-copied', widgetId: 'radar', result: 'copied' },
+      { kind: 'options-copied', widgetId: 'radar', result: 'unchanged' }
+    ])
+  })
+
+  it('copies nothing for a button armed on a layout no longer in use', async () => {
+    // Armed on Principal (radar 80 m), then the car applies Mazda (radar 10 m), then confirmed.
+    h.edit((s) => void (s.radar.rangeM = 80))
+    h.control.choose('layout-2')
+    h.edit((s) => void (s.radar.rangeM = 10))
+    h.calls.length = 0
+    await h.control.command({
+      type: 'layout-options-to-all',
+      widgetId: 'radar',
+      layoutId: 'layout-1'
+    })
+    const lib = h.settings().savedLayouts
+    expect(lib.list[0]?.options?.sections.radar.rangeM).toBe(80)
+    expect(h.calls).toEqual([])
+    expect(h.notices.at(-1)).toEqual({ kind: 'options-copied', widgetId: 'radar', result: 'stale' })
   })
 
   it('imports "Solo posición" when asked', async () => {

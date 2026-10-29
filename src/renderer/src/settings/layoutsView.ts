@@ -4,7 +4,7 @@
  */
 import { shallowRef, type ShallowRef } from 'vue'
 import type { Messages } from '@shared/i18n'
-import type { LayoutNotice } from '@shared/ipc'
+import type { LayoutFileNotice, LayoutNotice } from '@shared/ipc'
 import { canDeleteLayout, linkableCars, sortLayouts } from '@shared/layouts'
 import type { CarRef, LayoutLibrary, LayoutMode, LayoutSort, SavedLayout } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
@@ -175,20 +175,28 @@ export function revealOffset(
 
 /** Where a widget page's changes go (the banner at its top, OptionsTarget.vue). */
 export interface OptionsTarget {
-  /** The layout in use ('Mazda MX-5'). */
+  /** The layout in use: its id and its name ('Mazda MX-5'). */
+  id: string
   name: string
   /** True: a 'position' layout is in use, so the changes go to the shared options. */
   shared: boolean
-  /** "Aplicar a todas las disposiciones" changes something only with another layout. */
+  /**
+   * Whether copying this widget's options to every layout reaches another one: from a 'full'
+   * layout, any other (the 'position' ones through the shared options); from a 'position' one,
+   * only another 'full' one (the shared options already are the ones in effect).
+   */
   canApplyToAll: boolean
 }
 
 export function optionsTarget(lib: LayoutLibrary): OptionsTarget {
   const active = lib.list.find((l) => l.id === lib.activeId)
+  const shared = active?.mode === 'position'
+  const others = lib.list.filter((l) => l.id !== lib.activeId)
   return {
+    id: lib.activeId,
     name: active?.name ?? '',
-    shared: active?.mode === 'position',
-    canApplyToAll: lib.list.length > 1
+    shared,
+    canApplyToAll: shared ? others.some((l) => l.mode === 'full') : others.length > 0
   }
 }
 
@@ -207,8 +215,13 @@ export function carRows(m: Messages, lib: LayoutLibrary, current: CarRef | null)
   }))
 }
 
+/** Whether `n` is about an export or an import (the layouts page shows those). */
+export function isFileNotice(n: LayoutNotice): n is LayoutFileNotice {
+  return n.kind !== 'options-copied'
+}
+
 /** What the last export or import did, in words; `error` true for a failure. */
-export function noticeText(m: Messages, n: LayoutNotice): { text: string; error: boolean } {
+export function noticeText(m: Messages, n: LayoutFileNotice): { text: string; error: boolean } {
   const t = m.settings.layouts.notices
   switch (n.kind) {
     case 'exported':
@@ -268,8 +281,14 @@ export const layoutCommands = {
     sendCommand({ type: 'layout-import', mode })
   },
   setMode: (id: string, mode: LayoutMode) => sendCommand({ type: 'layout-set-mode', id, mode }),
-  /** Widget `widgetId`'s options in effect into every 'full' layout and the shared options. */
-  optionsToAll: (widgetId: WidgetId) => sendCommand({ type: 'layout-options-to-all', widgetId }),
+  /**
+   * Widget `widgetId`'s options in effect into every 'full' layout and the shared options, while
+   * `layoutId` (in use when the button was armed) still is; main answers with a notice.
+   */
+  optionsToAll: (widgetId: WidgetId, layoutId: string) => {
+    layoutNotice.value = null
+    sendCommand({ type: 'layout-options-to-all', widgetId, layoutId })
+  },
   link: (car: CarRef, layoutId: string | null) =>
     sendCommand({ type: 'layout-link-car', car: { ...car }, layoutId })
 }

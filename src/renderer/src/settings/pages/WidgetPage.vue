@@ -18,8 +18,9 @@ import { formatPercent } from '../values'
 import WindowSection from './WindowSection.vue'
 
 /**
- * One widget's page: where its changes are kept (OptionsTarget) and the live preview (fixed),
- * then the window and content options, the "Personalizar" editors and the resets (they scroll).
+ * One widget's page: the live preview (fixed), then where its changes are kept (OptionsTarget,
+ * first of what scrolls, so a small window keeps room for the options), the window and content
+ * options, the "Personalizar" editors and the resets (they scroll).
  * Keyed by the id. The default slot closes the scrolling part (the window's foot).
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
@@ -73,12 +74,12 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
         {{ t.settings.widgetPage.hiddenNote }}
       </p>
 
-      <OptionsTarget :widget-id="widgetId" />
-
       <SampleStage class="stage">
         <WidgetSample :widget-id="widgetId" />
       </SampleStage>
     </template>
+
+    <OptionsTarget :widget-id="widgetId" />
 
     <div class="opts" :class="{ 'has-custom': hasCustom }">
       <div class="opts-main st-cols">

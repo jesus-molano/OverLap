@@ -139,11 +139,20 @@ export const IPC = {
 export type SettingsWindowPage = 'layouts'
 
 /** What became of a layout export or import (the settings window words it). */
-export type LayoutNotice =
+export type LayoutFileNotice =
   | { kind: 'exported'; name: string }
   | { kind: 'export-failed'; name: string }
   | { kind: 'imported'; name: string }
   | { kind: 'import-failed'; error: LayoutFileError | 'read' | 'full' }
+
+/**
+ * What a layout command did, for the settings window to say: an export or an import (the layouts
+ * page), or a widget's options copied to every layout (its page): 'unchanged' when they all had
+ * them, 'stale' when the layout in use changed after the button was armed (nothing copied).
+ */
+export type LayoutNotice =
+  | LayoutFileNotice
+  | { kind: 'options-copied'; widgetId: WidgetId; result: 'copied' | 'unchanged' | 'stale' }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -218,6 +227,12 @@ export interface OverlayLayout {
    * PAINT_ORDER (later ones on top).
    */
   panels: OverlayPanel[]
+  /**
+   * Sent by a layout applied: the settings with its options are broadcast right after. The
+   * window holds this layout until they arrive (briefly), so no frame shows the new places with
+   * the old options.
+   */
+  settingsFollow?: true
 }
 
 /**
@@ -341,7 +356,8 @@ export type SettingsCommand =
    * 'layout-move' with `aroundActive` moves past the one in use, which the page pins apart.
    * 'layout-save' and 'layout-import' say what the new one restores (`mode`, 'full' when
    * absent); 'layout-set-mode' changes it for one; 'layout-options-to-all' copies a widget's
-   * options in effect into every 'full' layout and the shared options.
+   * options in effect into every 'full' layout and the shared options, only while `layoutId` (the
+   * one in use when the button was armed) still is.
    */
   | { type: 'layout-save'; name: string; mode?: LayoutMode }
   | { type: 'layout-apply'; id: string }
@@ -352,7 +368,7 @@ export type SettingsCommand =
   | { type: 'layout-export'; id: string }
   | { type: 'layout-import'; mode?: LayoutMode }
   | { type: 'layout-set-mode'; id: string; mode: LayoutMode }
-  | { type: 'layout-options-to-all'; widgetId: WidgetId }
+  | { type: 'layout-options-to-all'; widgetId: WidgetId; layoutId: string }
   | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
 
 export interface InitialState {
@@ -411,8 +427,12 @@ export interface OverlayApi {
   widgetToggle(msg: WidgetToggleMessage): void
   /** Overlay windows, edit mode: where this window's edit chips are now. */
   editChips(msg: EditChipsMessage): void
-  /** Settings window only (main rejects it from overlay windows). */
-  updateSettings(patch: SettingsPatch): Promise<OverlaySettings>
+  /**
+   * Settings window only (main rejects it from overlay windows). `forLayout`: the layout in use
+   * when the change was made; main keeps it in that layout if another is in use by the time it
+   * arrives (applySettingsPatchFor).
+   */
+  updateSettings(patch: SettingsPatch, forLayout?: string): Promise<OverlaySettings>
   /** Settings window only. */
   command(cmd: SettingsCommand): void
 }

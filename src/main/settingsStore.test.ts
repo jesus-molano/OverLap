@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_SETTINGS } from '@shared/settings'
+import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@shared/settings'
 import { SettingsStore } from './settingsStore'
 
 /** Simulates a settings file locked by another process (antivirus, cloud sync). */
@@ -109,6 +109,27 @@ describe('SettingsStore', () => {
     expect(before.widgets.relative.bounds.x).toBe(DEFAULT_SETTINGS.widgets.relative.bounds.x)
     expect(store.settings.widgets.relative.bounds.x).toBe(1234)
     store.flush()
+  })
+
+  it('backs up a file from an older version once, before the first save over it', () => {
+    const old = join(dir, 'settings.json')
+    const text = JSON.stringify({ version: 5, radar: { rangeM: 30 } })
+    writeFileSync(old, text)
+    const store = SettingsStore.load(old)
+    expect(existsSync(`${old}.v5.bak`)).toBe(false)
+    store.update((s) => (s.radar.rangeM = 40))
+    expect(store.flush()).toBe(true)
+    expect(readFileSync(`${old}.v5.bak`, 'utf8')).toBe(text)
+    expect(JSON.parse(readFileSync(old, 'utf8')).version).toBe(SETTINGS_VERSION)
+    // Later saves leave the copy alone, and a file of this version needs none.
+    store.update((s) => (s.radar.rangeM = 50))
+    store.flush()
+    expect(readFileSync(`${old}.v5.bak`, 'utf8')).toBe(text)
+    rmSync(`${old}.v5.bak`)
+    const current = SettingsStore.load(old)
+    current.update((s) => (s.radar.rangeM = 60))
+    current.flush()
+    expect(existsSync(`${old}.v5.bak`)).toBe(false)
   })
 
   it('debounces saves', () => {

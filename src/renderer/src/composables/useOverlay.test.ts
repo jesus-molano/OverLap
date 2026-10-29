@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick } from 'vue'
 import type { InitialState, OverlayLayout, OverlayPanel } from '@shared/ipc'
 import type { BattleData, StandingsData } from '@shared/types'
+import { SETTINGS_VERSION, createDefaultSettings } from '@shared/settings'
 import type { WidgetId } from '@shared/widgets'
 import {
   LIVE_STATUS,
   WAITING_STATUS,
   createFakeOverlay,
   flush,
+  settingsWith,
   type FakeOverlay
 } from './testing/fakeOverlay'
 
@@ -83,7 +85,7 @@ describe('useOverlayState', () => {
     expect(fake.listenerCount()).toBe(9)
     await flush()
     expect(a.status.value).toEqual(LIVE_STATUS)
-    expect(a.settings.value?.version).toBe(5)
+    expect(a.settings.value?.version).toBe(SETTINGS_VERSION)
   })
 
   it('keeps events newer than the initial state', async () => {
@@ -199,6 +201,42 @@ describe('layout', () => {
     const next = layout(9, ['radar'])
     fake.layout.emit(next)
     expect(s.layout.value).toBe(next)
+  })
+
+  it('holds a layout applied until its settings arrive, then takes both in one go', async () => {
+    await load({ view: { kind: 'overlay' }, layout: layout(5, ['radar']) })
+    const s = mod.useOverlayState()
+    await flush()
+    const first = s.layout.value
+    // The places come first, a widget shown by the same change next, then the options.
+    fake.layout.emit({ ...layout(6, ['radar']), settingsFollow: true })
+    const shown = layout(7, ['radar', 'inputs'])
+    fake.layout.emit(shown)
+    expect(s.layout.value).toBe(first)
+    const settings = settingsWith(createDefaultSettings(), (x) => (x.radar.rangeM = 12))
+    fake.settings.emit(settings)
+    expect(s.settings.value).toBe(settings)
+    expect(s.layout.value).toBe(shown)
+    // Anything later is taken at once again.
+    const after = layout(8, ['radar'])
+    fake.layout.emit(after)
+    expect(s.layout.value).toBe(after)
+  })
+
+  it('takes a held layout anyway when its settings never come', async () => {
+    vi.useFakeTimers()
+    try {
+      await load({ view: { kind: 'overlay' }, layout: layout(5, ['radar']) })
+      const s = mod.useOverlayState()
+      await vi.advanceTimersByTimeAsync(0)
+      const held = { ...layout(6, ['inputs']), settingsFollow: true as const }
+      fake.layout.emit(held)
+      expect(s.layout.value?.revision).toBe(5)
+      vi.advanceTimersByTime(mod.SETTINGS_FOLLOW_WAIT_MS)
+      expect(s.layout.value).toBe(held)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('takes the initial layout when nothing newer came', async () => {

@@ -1,29 +1,48 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, watch } from 'vue'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
-import { layoutCommands, optionsTarget } from '../layoutsView'
+import { layoutCommands, optionsTarget, useLayoutState } from '../layoutsView'
 import ConfirmButton from './ConfirmButton.vue'
 
 /**
- * The top of a widget page: where its changes are kept, the layout in use ("Guardando en:
- * Mazda MX-5", a 'full' one) or the shared options (a 'position' one in use), and "Aplicar a
- * todas las disposiciones", which copies this widget's options into every layout that has its
- * own and into the shared ones (with a second click to confirm).
+ * The top of a widget page's options: where its changes are kept, the layout in use ("Guardando
+ * en: Mazda MX-5", a 'full' one) or the shared options (a 'position' one in use), and "Copiar
+ * estas opciones a todas", which copies this widget's options into every layout that has its own
+ * and into the shared ones (with a second click to confirm), then says how it went.
+ *
+ * The button is keyed by the layout in use: another one applied (the tray, a shortcut, the car)
+ * disarms it, and main copies nothing for a click armed on the layout left (layoutId).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
 
 const t = useI18n()
 const { settings } = useOverlayState()
+const { layoutNotice } = useLayoutState()
 const target = computed(() =>
   optionsTarget(settings.value?.savedLayouts ?? DEFAULT_SETTINGS.savedLayouts)
 )
 const text = computed(() => t.value.settings.widgetPage.target)
 
+/** Main's answer to this page's copy, worded; '' for none. */
+const done = computed(() => {
+  const n = layoutNotice.value
+  if (n?.kind !== 'options-copied' || n.widgetId !== props.widgetId) return ''
+  return text.value.toAll.done[n.result]
+})
+
+function clearDone(): void {
+  if (layoutNotice.value?.kind === 'options-copied') layoutNotice.value = null
+}
+
+// What it said was about the layout in use then, and about this page.
+watch(() => target.value.id, clearDone)
+onBeforeUnmount(clearDone)
+
 function toAll(): void {
-  layoutCommands.optionsToAll(props.widgetId)
+  layoutCommands.optionsToAll(props.widgetId, target.value.id)
 }
 </script>
 
@@ -38,14 +57,17 @@ function toAll(): void {
         target.shared ? text.sharedHelp(target.name) : text.layoutHelp
       }}</span>
     </p>
-    <ConfirmButton
-      v-if="target.canApplyToAll"
-      small
-      :label="text.toAll.label"
-      :confirm-label="text.toAll.confirm"
-      :description="text.toAll.description"
-      :action="toAll"
-    />
+    <div v-if="target.canApplyToAll" class="to-all">
+      <span class="st-help done" aria-live="polite">{{ done }}</span>
+      <ConfirmButton
+        :key="target.id"
+        small
+        :label="text.toAll.label"
+        :confirm-label="text.toAll.confirm"
+        :description="text.toAll.description"
+        :action="toAll"
+      />
+    </div>
   </div>
 </template>
 
@@ -57,7 +79,7 @@ function toAll(): void {
   align-items: center;
   justify-content: space-between;
   gap: 6px 14px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   padding: 6px 8px 6px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
@@ -89,5 +111,13 @@ function toAll(): void {
 .help {
   flex: 1 1 16em;
   min-width: 0;
+}
+
+.to-all {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 10px;
 }
 </style>

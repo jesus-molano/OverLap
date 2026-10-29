@@ -59,7 +59,7 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'layout-set-mode':
       return isLayoutId(cmd.id) && isLayoutMode(cmd.mode)
     case 'layout-options-to-all':
-      return isWidgetId(cmd.widgetId)
+      return isWidgetId(cmd.widgetId) && isLayoutId(cmd.layoutId)
     case 'layout-duplicate':
     case 'layout-rename':
       return isLayoutId(cmd.id) && isName(cmd.name)

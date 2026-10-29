@@ -17,6 +17,7 @@
 import { copyData } from './copy'
 import { deepEqual } from './equal'
 import { SETTINGS_VERSION } from './settings/defaults'
+import { applySettingsPatch } from './settings/patch'
 import {
   MAX_CAR_LINKS,
   MAX_LAYOUTS,
@@ -29,6 +30,7 @@ import {
   normalizeLayoutWidgets,
   normalizeOptionSet,
   optionSetOf,
+  settingsDraft,
   snapshotWidgets,
   syncActiveLayout,
   uniqueLayoutName,
@@ -177,7 +179,7 @@ export function setLayoutMode(s: OverlaySettings, id: string, mode: LayoutMode):
 }
 
 /**
- * "Aplicar a todas las disposiciones": widget `id`'s options in effect (its section and its
+ * "Copiar estas opciones a todas": widget `id`'s options in effect (its section and its
  * fields) copied into every 'full' layout and the shared options. False when they all had them.
  */
 export function applyWidgetOptionsToAll(s: OverlaySettings, id: WidgetId): boolean {
@@ -268,6 +270,38 @@ export function applyLayout(s: OverlaySettings, id: string, now = Date.now()): b
   lib.activeId = id
   stampUsed(lib, id, now)
   return true
+}
+
+/**
+ * A settings-window patch made while layout `forLayout` was in use (sent with it). Still in use,
+ * or none said: applySettingsPatch. Another one in use now (the tray, the shortcut or the car
+ * switched while a slider's last value or a list was on its way): what the patch changes in a
+ * layout (the options, and the widgets' scale, visibility and lock) goes to `forLayout` (its own
+ * options, or the shared ones for a 'position' one), never to the layout now in use; the global
+ * sections apply as usual. Done by applying `forLayout`, patching and applying the one in use
+ * again, with the use stamps kept. Never mutates `current`.
+ */
+export function applySettingsPatchFor(
+  current: OverlaySettings,
+  patch: unknown,
+  forLayout: unknown
+): OverlaySettings {
+  const lib = current.savedLayouts
+  if (!hasLayout(lib, forLayout) || forLayout === lib.activeId) {
+    return applySettingsPatch(current, patch)
+  }
+  const inUse = lib.activeId
+  const stamps = new Map(lib.list.map((l) => [l.id, l.usedAt]))
+  const draft = settingsDraft(current)
+  applyLayout(draft, forLayout)
+  const out = applySettingsPatch(draft, patch)
+  applyLayout(out, inUse)
+  for (const l of out.savedLayouts.list) {
+    const at = stamps.get(l.id)
+    if (at === undefined) delete l.usedAt
+    else l.usedAt = at
+  }
+  return out
 }
 
 /** SavedLayout.usedAt, 0 for one never used. */

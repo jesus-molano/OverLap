@@ -155,7 +155,7 @@ describe('isSettingsCommand', () => {
       { type: 'layout-import', mode: 'position' },
       { type: 'layout-save', name: 'Óvalo', mode: 'full' },
       { type: 'layout-set-mode', id: 'layout-2', mode: 'position' },
-      { type: 'layout-options-to-all', widgetId: 'standings' },
+      { type: 'layout-options-to-all', widgetId: 'standings', layoutId: 'layout-1' },
       { type: 'layout-link-car', car, layoutId: 'layout-2' },
       { type: 'layout-link-car', car, layoutId: null }
     ]) {
@@ -176,7 +176,10 @@ describe('isSettingsCommand', () => {
       { type: 'layout-import', mode: 1 },
       { type: 'layout-set-mode', id: 'layout-2' },
       { type: 'layout-set-mode', id: '../x', mode: 'full' },
-      { type: 'layout-options-to-all', widgetId: 'pitboard' }
+      { type: 'layout-options-to-all', widgetId: 'pitboard', layoutId: 'layout-1' },
+      // Without the layout it was armed on: refused, never copied from whatever is in use.
+      { type: 'layout-options-to-all', widgetId: 'standings' },
+      { type: 'layout-options-to-all', widgetId: 'standings', layoutId: '../x' }
     ]) {
       expect(isSettingsCommand(raw), JSON.stringify(raw)).toBe(false)
     }

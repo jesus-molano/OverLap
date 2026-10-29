@@ -4,6 +4,7 @@ import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
 import {
   DEFAULT_SETTINGS,
+  SETTINGS_VERSION,
   applySettingsPatch,
   createDefaultSettings,
   defaultOptions,
@@ -439,7 +440,7 @@ describe('applySettingsPatch', () => {
       inputs: { traceSeconds: 99.9 }
     })
     expect(normalizeSettings(out)).toEqual(out)
-    expect(out.version).toBe(5)
+    expect(out.version).toBe(SETTINGS_VERSION)
   })
 })
 

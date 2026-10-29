@@ -114,6 +114,12 @@ function adoptLayout(s: OverlayState, next: OverlayLayout): void {
 let started = false
 
 /**
+ * Longest a layout with `settingsFollow` waits for its settings (main sends them at once; this
+ * only covers a broadcast that never comes).
+ */
+export const SETTINGS_FOLLOW_WAIT_MS = 200
+
+/**
  * Connection status, edit mode, settings, layout, auto-hide states, payloads, the hidden overlay,
  * the shortcuts' status and which page this window shows, shared by the whole window. The
  * listeners are registered once per window and live as long as it does. Safe to call outside
@@ -144,12 +150,35 @@ export function useOverlayState(): OverlayState {
       editModeSeen = true
       s.editMode.value = e
     })
-    window.overlay.onSettings((v) => (s.settings.value = v))
+    // A layout applied: its places arrive first, its options right after (two messages). The
+    // places wait for the settings (or SETTINGS_FOLLOW_WAIT_MS), then both are taken in one task,
+    // so no frame paints the new places with the old options and scale.
+    let held: OverlayLayout | null = null
+    let heldTimer: ReturnType<typeof setTimeout> | null = null
+    const release = (): void => {
+      if (heldTimer !== null) clearTimeout(heldTimer)
+      heldTimer = null
+      const layout = held
+      held = null
+      if (layout !== null) adoptLayout(s, layout)
+    }
+    window.overlay.onSettings((v) => {
+      s.settings.value = v
+      release()
+    })
     window.overlay.onAutoHidden((a) => {
       autoHiddenSeen.add(a.widget)
       setAutoHidden(s, a.widget, a)
     })
-    window.overlay.onLayout((layout) => adoptLayout(s, layout))
+    window.overlay.onLayout((layout) => {
+      if (layout.settingsFollow !== true && held === null) {
+        adoptLayout(s, layout)
+        return
+      }
+      // Any layout while one is held is part of the same change (a widget shown or hidden).
+      if (held === null || layout.revision > held.revision) held = layout
+      heldTimer ??= setTimeout(release, SETTINGS_FOLLOW_WAIT_MS)
+    })
     window.overlay.onOverlayHidden((hidden) => {
       overlayHiddenSeen = true
       s.overlayHidden.value = hidden

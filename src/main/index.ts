@@ -16,10 +16,9 @@ import type { PersonalBestList } from '@shared/delta/references'
 import { messagesFor } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView } from '@shared/ipc'
 import { deepEqual } from '@shared/equal'
-import { LAYOUT_FILE_EXTENSION, rendererSettings } from '@shared/layouts'
+import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
 import { stepScale } from '@shared/panelGeometry'
 import {
-  applySettingsPatch,
   defaultLayoutOffsetX,
   placeDefaultLayout,
   rectsEqual,
@@ -180,7 +179,8 @@ function start(): void {
     getSettings: () => store.settings,
     update: (mutate) => void store.update(mutate),
     sync: (prev) => syncSettings(prev),
-    reloadBounds: (ids) => windows.reloadBoundsOf(ids),
+    // The settings with the layout's options follow at once (sync): shown together.
+    reloadBounds: (ids) => windows.reloadBoundsOf(ids, true),
     flushPendingSaves: () => windows.flushPendingSaves(),
     isEditing: () => windows.editMode,
     notify: (notice) => sendToSettingsWindow(IPC.layoutNotice, notice),
@@ -452,13 +452,14 @@ function start(): void {
       currentCar: layouts.car
     }
   })
-  ipcMain.handle(IPC.updateSettings, (event, patch: unknown): OverlaySettings => {
+  ipcMain.handle(IPC.updateSettings, (event, patch: unknown, forLayout: unknown) => {
     if (!isSettingsSender(event.sender)) {
       throw new Error(`${IPC.updateSettings} is only accepted from the settings window`)
     }
     const prev = store.settings
+    // Made for a layout no longer in use (switched while it was on its way): kept in that one.
     changeSettings((s) => {
-      Object.assign(s, applySettingsPatch(s, patch))
+      Object.assign(s, applySettingsPatchFor(s, patch, forLayout))
     })
     // Turning the automatic layout on applies the car's at once.
     layouts.afterChange(prev)

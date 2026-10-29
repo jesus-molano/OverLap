@@ -1,6 +1,11 @@
 import { copyFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { createDefaultSettings, normalizeSettings, settingsDraft } from '@shared/settings'
+import {
+  SETTINGS_VERSION,
+  createDefaultSettings,
+  normalizeSettings,
+  settingsDraft
+} from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
 
 const DEFAULT_SAVE_DELAY_MS = 500
@@ -25,6 +30,12 @@ export class SettingsStore {
     private readonly saveDelayMs: number,
     /** The file exists but could not be read: back it up before the first save replaces it. */
     private loadFailed: boolean,
+    /**
+     * The file was written by an older version (before SETTINGS_VERSION): copied to
+     * `<file>.v5.bak` before the first save, as that version would read it (without the
+     * layouts' options, which it drops), so going back to it loses nothing.
+     */
+    private olderFile: boolean,
     /** There was no file: a first run, on the default settings. */
     readonly fresh: boolean
   ) {
@@ -34,11 +45,19 @@ export class SettingsStore {
   /**
    * Missing file -> defaults. Corrupt file -> copied to `<file>.bak`, then defaults.
    * Unreadable file (still locked after a few retries) -> defaults, and the first
-   * save copies it to `<file>.bak` before overwriting it.
+   * save copies it to `<file>.bak` before overwriting it. A file from an older version is
+   * copied to `<file>.v5.bak` before the first save.
    */
   static load(file: string, saveDelayMs = DEFAULT_SAVE_DELAY_MS): SettingsStore {
-    const { settings, loadFailed, fresh } = readSettings(file)
-    return new SettingsStore(file, settings, saveDelayMs, loadFailed, fresh === true)
+    const { settings, loadFailed, fresh, older } = readSettings(file)
+    return new SettingsStore(
+      file,
+      settings,
+      saveDelayMs,
+      loadFailed,
+      older === true,
+      fresh === true
+    )
   }
 
   /** Current settings. Treat as read-only; change them through `update()`. */
@@ -76,6 +95,7 @@ export class SettingsStore {
     }
     if (!this.dirty) return true
     if (this.loadFailed && !this.backUpUnreadFile()) return false
+    if (this.olderFile) this.backUpOlderFile()
     try {
       writeAtomic(this.file, JSON.stringify(this.current, null, 2) + '\n')
       this.dirty = false
@@ -83,6 +103,18 @@ export class SettingsStore {
     } catch (err) {
       console.error(`[settings] could not save ${this.file}:`, err)
       return false
+    }
+  }
+
+  /** Once: a copy of the older version's file, kept for going back to that version. */
+  private backUpOlderFile(): void {
+    this.olderFile = false
+    try {
+      copyFileSync(this.file, `${this.file}.v5.bak`)
+    } catch (err) {
+      // Not worth refusing to save over: the settings themselves were read whole.
+      if (errorCode(err) !== 'ENOENT')
+        console.warn(`[settings] could not back up ${this.file}:`, err)
     }
   }
 
@@ -106,6 +138,8 @@ interface Loaded {
   loadFailed: boolean
   /** No file at all (ENOENT). */
   fresh?: boolean
+  /** Read whole, but written by an older version (its `version` below SETTINGS_VERSION). */
+  older?: boolean
 }
 
 function readSettings(file: string): Loaded {
@@ -126,7 +160,8 @@ function readSettings(file: string): Loaded {
   try {
     // Strip a BOM in case the file was edited by hand with Notepad.
     const json = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text
-    return { settings: normalizeSettings(JSON.parse(json)), loadFailed: false }
+    const raw: unknown = JSON.parse(json)
+    return { settings: normalizeSettings(raw), loadFailed: false, older: isOlderFile(raw) }
   } catch (err) {
     console.warn(`[settings] ${file} is corrupt, using defaults (copy kept as .bak):`, err)
     try {
@@ -136,6 +171,13 @@ function readSettings(file: string): Loaded {
     }
     return { settings: createDefaultSettings(), loadFailed: false }
   }
+}
+
+/** A settings file whose version is below this one's (a missing or odd one reads as older). */
+function isOlderFile(raw: unknown): boolean {
+  if (typeof raw !== 'object' || raw === null) return false
+  const v = (raw as { version?: unknown }).version
+  return !(typeof v === 'number' && v >= SETTINGS_VERSION)
 }
 
 /** Startup runs before any window exists, so blocking main briefly here is harmless. */

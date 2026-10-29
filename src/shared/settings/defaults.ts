@@ -9,7 +9,12 @@ import type { OverlaySettings, WidgetSettings } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, shownOnSessionScreen, type WidgetId } from '../widgets'
 import { defaultLayoutLibrary, type LiveSettings } from './layouts'
 
-export const SETTINGS_VERSION = 5
+/**
+ * 6: the layouts carry their options (SavedLayout.mode, options; LayoutLibrary.shared). An older
+ * version reads such a file without them, so a file from before 6 is backed up once before this
+ * one rewrites it (SettingsStore, `settings.json.v5.bak`): going back to that version keeps it.
+ */
+export const SETTINGS_VERSION = 6
 
 export const OPTION_SECTIONS = Object.keys(OPTION_SCHEMA) as OptionSection[]
 

@@ -1377,6 +1377,17 @@ describe('OverlayWindows recovery', () => {
     expect(committed).toEqual([])
   })
 
+  it('marks the layouts of a layout applied: its settings follow (and only those)', () => {
+    start()
+    const w = only()
+    settings.widgets.relative.bounds = { x: 30, y: 40, width: 460, height: 252 }
+    windows.reloadBoundsOf(['relative'], true)
+    expect(layoutOf(w).settingsFollow).toBe(true)
+    settings.widgets.relative.bounds = { x: 60, y: 40, width: 460, height: 252 }
+    windows.reloadBoundsOf(['relative'])
+    expect(layoutOf(w)).not.toHaveProperty('settingsFollow')
+  })
+
   it('reloads a crashed renderer after a delay and gives up after repeated crashes', () => {
     start()
     let w = only()
