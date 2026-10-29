@@ -15,7 +15,7 @@ import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
 import LightTile from './LightTile.vue'
-import { PREVIEW_LIGHTS } from './preview'
+import { PREVIEW_LIGHTS, PREVIEW_LIGHTS_REAL } from './preview'
 import {
   hasLights,
   layoutKey,
@@ -49,15 +49,17 @@ const { data, phase } = useWidgetPhase(ID, {
 })
 
 const preview = computed(() => phase.value === 'preview')
+/** The edit-mode sample: with the real countdown on, one repair shows it ('≈ 31 s'). */
+const sample = computed(() => (options.value.repairRealTime ? PREVIEW_LIGHTS_REAL : PREVIEW_LIGHTS))
 /** Live data, the sample in edit mode, or what was shown last (kept through the fade-out). */
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  () => PREVIEW_LIGHTS
+  () => sample.value
 )
 /** Frozen with the content while hidden, so nothing re-renders behind the fade. */
 const shownFilter = computed<LightsFilter>((prev) => {
-  if (phase.value === 'preview') return previewFilter(PREVIEW_LIGHTS, filter.value, t.value)
+  if (phase.value === 'preview') return previewFilter(sample.value, filter.value, t.value)
   if (phase.value === 'live') return filter.value
   return prev ?? filter.value
 })
@@ -110,7 +112,10 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           :class="`wl-light--${light.level}`"
         >
           <LightTile :icon="light.icon" :level="light.level" :label="light.label" />
-          <span v-if="light.text" class="wl-text">{{ light.text }}</span>
+          <template v-if="light.text">
+            <span class="wl-text" :class="{ 'wl-text--wide': light.short }">{{ light.text }}</span>
+            <span v-if="light.short" class="wl-text wl-text--narrow">{{ light.short }}</span>
+          </template>
         </span>
         <PreviewTag v-if="preview" class="wl-tag" />
       </div>
@@ -127,6 +132,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
  */
 
 /* With the bottom edge anchored the panel hugs it while the window waits to shrink. */
+/* The window's width: a narrow one writes the repair times short ('42 s eq.'). */
+.wl-root {
+  container: lights / inline-size;
+}
+
 .wl-root.is-bottom {
   display: flex;
   flex-direction: column;
@@ -223,5 +233,20 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .wl-tag {
   align-self: center;
+}
+
+/* The short form of a text replaces its wide one in narrow windows. */
+.wl-text--narrow {
+  display: none;
+}
+
+@container lights (max-width: 18em) {
+  .wl-text--wide {
+    display: none;
+  }
+
+  .wl-text--narrow {
+    display: block;
+  }
 }
 </style>

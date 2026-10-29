@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { ENGINE_TREND } from '@shared/notices/engineTrend'
+import { REPAIR_CLOCK } from '@shared/notices/repairClock'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { LightKind } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
@@ -88,6 +89,22 @@ const setIcons = listSetter('lights', 'icons')
       :current="opts.showRepairTime"
       :disabled="noRepairs"
       :apply="set('showRepairTime')"
+    />
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.lights.repairCrewTag"
+      :help="t.settings.lights.repairCrewTagHelp"
+      :current="opts.repairCrewTag"
+      :disabled="noRepairs || !opts.showRepairTime"
+      :apply="set('repairCrewTag')"
+    />
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.lights.repairRealTime"
+      :help="t.settings.lights.repairRealTimeHelp(REPAIR_CLOCK.windowS)"
+      :current="opts.repairRealTime"
+      :disabled="noRepairs || !opts.showRepairTime"
+      :apply="set('repairRealTime')"
     />
   </PageSection>
 

@@ -17,6 +17,9 @@
  *   just after it reappears or you get in.
  * - The limiters are not read while towed or just after the car appears: a tow or a reset puts
  *   it on pit road a moment before its limiter is on (online: a false OFF for 0.95 s).
+ * - The repairs' times are the crew's (iRacing's figure, which may run slower than real time);
+ *   their real seconds left are estimated only while the car stands in its stall being serviced
+ *   (repairClock.ts), null anywhere else.
  *
  * WaterTemp, OilTemp, PitRepairLeft and PitOptRepairLeft may be missing (an empty array): they
  * read as unknown, never as 0.
@@ -29,6 +32,7 @@ import { resolvePlayerCarIdx } from '../sessionInfo'
 import { TrackLocation, type TelemetryFrame } from '../telemetry'
 import type { SessionMeta } from '../types'
 import { EngineTrend, type TrendNotice } from './engineTrend'
+import { RepairClock, beingServiced } from './repairClock'
 
 export const ENGINE = {
   /** Close behind another car (the trend's slipstream hint): at most this far (s). */
@@ -71,9 +75,15 @@ export interface EngineState {
   /** WaterTemp / OilTemp (°C) in the car, null when the car has no such reading. */
   readonly waterC: number | null
   readonly oilC: number | null
-  /** PitRepairLeft / PitOptRepairLeft (s) in the car while above 0, null otherwise. */
+  /** PitRepairLeft / PitOptRepairLeft (s) in the car while above 0, null otherwise: crew time. */
   readonly repairS: number | null
   readonly optRepairS: number | null
+  /**
+   * The real seconds each repair has left, from how fast its figure falls while the car stands
+   * in its stall being serviced (repairClock.ts); null otherwise or not known yet.
+   */
+  readonly repairRealS: number | null
+  readonly optRepairRealS: number | null
 }
 
 /** The four warning lights of EngineWarnings: a lap with one of them on is no trend reference. */
@@ -127,6 +137,9 @@ export class EngineMonitor {
   private surfaceWas: number | null = null
   private appearedAt = Number.NaN
   private readonly trend = new EngineTrend()
+  /** The repairs' real seconds left, sampled on every tick (repairClock.ts). */
+  private readonly repairClock = new RepairClock('PitRepairLeft')
+  private readonly optRepairClock = new RepairClock('PitOptRepairLeft')
   /** SessionTime of the last read (NaN: none): a gap starts the trend's lap over. */
   private readT = Number.NaN
   /** The last state read, with the frame and the time it was read for. */
@@ -136,6 +149,8 @@ export class EngineMonitor {
 
   reset(): void {
     this.trend.reset()
+    this.repairClock.reset()
+    this.optRepairClock.reset()
     this.readT = Number.NaN
     this.forgetRead()
     this.forgetTicks()
@@ -163,6 +178,9 @@ export class EngineMonitor {
       this.appearedAt = t
     }
     this.surfaceWas = surface
+    const serviced = beingServiced(frame)
+    this.repairClock.observe(frame, serviced)
+    this.optRepairClock.observe(frame, serviced)
     // A replay's readings are not your engine's now.
     if (frame.IsReplayPlaying[0] !== true) {
       this.trend.observe(
@@ -278,7 +296,9 @@ export class EngineMonitor {
       waterC: inCar ? reading(frame.WaterTemp[0]) : null,
       oilC: inCar ? reading(frame.OilTemp[0]) : null,
       repairS: inCar ? positive(frame.PitRepairLeft[0]) : null,
-      optRepairS: inCar ? positive(frame.PitOptRepairLeft[0]) : null
+      optRepairS: inCar ? positive(frame.PitOptRepairLeft[0]) : null,
+      repairRealS: inCar ? this.repairClock.realS() : null,
+      optRepairRealS: inCar ? this.optRepairClock.realS() : null
     }
   }
 }

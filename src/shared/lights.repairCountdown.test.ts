@@ -11,10 +11,10 @@ import { EngineWarning } from './flags'
 import { LightsProvider } from './lights'
 import { SKIP_EMIT } from './providers'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
-import { makeFrame, makeSession } from './race/testing/raceSim'
+import { makeFrame, makeSession, type MutableFrame } from './race/testing/raceSim'
 import { defaultOptions } from './settings'
 import { TrackLocation } from './telemetry'
-import type { LightsData } from './types'
+import type { LightsData, LightsOptions } from './types'
 
 const HZ = 60
 /** WIDGET_DEFS.lights.hz: the loop computes the strip every 6th tick of a 60 Hz feed. */
@@ -28,6 +28,8 @@ interface Sent {
   t: number
   repair: number | null
   optional: number | null
+  /** The mandatory repair's seconds are the real-time estimate (lights.repairRealTime). */
+  real: boolean
 }
 
 /**
@@ -37,7 +39,9 @@ interface Sent {
 function stop(
   seconds: number,
   repairAt: (t: number) => number,
-  optAt: (t: number) => number
+  optAt: (t: number) => number,
+  opts: LightsOptions = defaultOptions('lights'),
+  edit: (frame: MutableFrame, t: number) => void = () => {}
 ): Sent[] {
   const frame = makeFrame()
   const session = makeSession(3, { driverCarIdleRpm: 900 })
@@ -47,6 +51,8 @@ function stop(
   frame.Speed[0] = 0
   frame.OnPitRoad[0] = true
   frame.PlayerTrackSurface[0] = TrackLocation.InPitStall
+  frame.PlayerCarInPitStall[0] = true
+  frame.PitstopActive[0] = true
   frame.EngineWarnings[0] = EngineWarning.MandatoryRepairs | EngineWarning.OptionalRepairs
   const sent: Sent[] = []
   let prev: LightsData | null = null
@@ -55,13 +61,15 @@ function stop(
     frame.SessionTime[0] = t
     frame.PitRepairLeft[0] = Math.max(0, repairAt(t - 100))
     frame.PitOptRepairLeft[0] = Math.max(0, optAt(t - 100))
+    edit(frame, t - 100)
     p.observe(frame)
     if (n % EVERY !== 0) continue
-    const d = p.compute(frame, session, EMPTY_RACE_VIEW, defaultOptions('lights'))
+    const d = p.compute(frame, session, EMPTY_RACE_VIEW, opts)
     if (!skip(d, prev)) {
       const of = (kind: string): number | null =>
         d.lights.find((l) => l.kind === kind)?.seconds ?? null
-      sent.push({ t: t - 100, repair: of('repair'), optional: of('repairOptional') })
+      const real = d.lights.find((l) => l.kind === 'repair')?.realTime ?? false
+      sent.push({ t: t - 100, repair: of('repair'), optional: of('repairOptional'), real })
     }
     prev = d
   }
@@ -108,5 +116,90 @@ describe('repair seconds on the warning lights (PitRepairLeft at 60 Hz -> the st
     // Three seconds between steps (to the 0.1 s provider period).
     const gaps = changes.slice(1).map((s, i) => s.t - (changes[i] as Sent).t)
     for (const g of gaps.slice(1)) expect(Math.abs(g - 3)).toBeLessThan(0.1 + 1e-9)
+  })
+})
+
+describe('the real countdown on the strip (lights.repairRealTime)', () => {
+  const REAL: LightsOptions = { ...defaultOptions('lights'), repairRealTime: true }
+
+  it('off by default: the crew figure, never the estimate', () => {
+    expect(defaultOptions('lights').repairRealTime).toBe(false)
+    const sent = stop(
+      10,
+      (t) => 20 - t / 3,
+      () => 0
+    )
+    expect(sent.every((s) => !s.real)).toBe(true)
+  })
+
+  it('a crew second every 3 s: the crew figure first, then real seconds falling one per second', () => {
+    const sent = stop(
+      14,
+      (t) => 20 - t / 3,
+      () => 0,
+      REAL
+    )
+    // Until a run spans 2 s, iRacing's figure.
+    for (const s of sent.filter((s) => s.t < 2)) expect(s.real).toBe(false)
+    const est = sent.filter((s) => s.real)
+    expect(est.length).toBeGreaterThan(8)
+    // (20 - t / 3) * 3 = 60 - t real seconds, whole seconds rounded up.
+    for (const s of est) expect(s.repair).toBe(Math.ceil(60 - s.t - 1e-9))
+    // One new whole second per real second, never rising.
+    const values = est.map((s) => s.repair as number)
+    for (let i = 1; i < values.length; i++) {
+      expect(values[i]).toBeLessThanOrEqual(values[i - 1] as number)
+    }
+    expect(new Set(values).size).toBeGreaterThanOrEqual(10)
+  })
+
+  it('1 s per second: the estimate is the crew figure', () => {
+    const sent = stop(
+      8,
+      (t) => 30.5 - t,
+      () => 0,
+      REAL
+    )
+    for (const s of sent.filter((s) => s.real)) expect(s.repair).toBe(Math.ceil(30.5 - s.t - 1e-9))
+  })
+
+  it('towed to the box: the crew figure while towed, the estimate once stopped there', () => {
+    const sent = stop(
+      12,
+      (t) => 20 - t / 2,
+      () => 0,
+      REAL,
+      (f, t) => {
+        f.PlayerCarTowTime[0] = t < 6 ? 6 - t : 0
+      }
+    )
+    for (const s of sent.filter((s) => s.t < 8)) expect(s.real).toBe(false)
+    expect(sent.some((s) => s.real)).toBe(true)
+  })
+
+  it('a fast repair: the light goes when the figure does, no estimate left behind', () => {
+    let fixed = false
+    const sent = stop(
+      8,
+      (t) => (t < 5 ? 30 - t / 3 : 0),
+      () => 0,
+      REAL,
+      (f, t) => {
+        fixed = t >= 5
+        f.EngineWarnings[0] = fixed ? 0 : EngineWarning.MandatoryRepairs
+      }
+    )
+    expect(sent.some((s) => s.real)).toBe(true)
+    for (const s of sent.filter((s) => s.t >= 5)) expect(s.repair).toBeNull()
+  })
+
+  it('without the repair time shown, no estimate either', () => {
+    const sent = stop(
+      8,
+      (t) => 20 - t / 3,
+      () => 0,
+      { ...REAL, showRepairTime: false }
+    )
+    for (const s of sent) expect(s.repair).toBeNull()
   })
 })

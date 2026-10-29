@@ -733,9 +733,14 @@ export interface LightReading {
   draft: boolean
   /**
    * The repairs, lit, with lights.showRepairTime: whole seconds they take (PitRepairLeft /
-   * PitOptRepairLeft); null otherwise or while iRacing says 0.
+   * PitOptRepairLeft, the crew's time); null otherwise or while iRacing says 0.
    */
   seconds: number | null
+  /**
+   * `seconds` are real ones, estimated in the stall (lights.repairRealTime, repairClock.ts),
+   * not the crew's.
+   */
+  realTime: boolean
 }
 
 export interface LightsData {
@@ -1557,6 +1562,13 @@ export interface LightsOptions {
   showTemps: boolean
   /** How long the repairs take, while lit ('REPARAR · 42 s', 'OPC. · 38 s'). */
   showRepairTime: boolean
+  /** The repair times read as the crew's: '42 s (equipo)' (its time, not a real one). */
+  repairCrewTag: boolean
+  /**
+   * Stopped in the stall being serviced, the real seconds left, estimated from how fast the
+   * crew's figure falls ('≈ 30 s'); the crew's figure until it is known.
+   */
+  repairRealTime: boolean
   /** The lights on the strip, in order (a hidden one is not computed). */
   icons: ElementList<LightKind>
   /** The water and oil lights turn yellow while above your own average ('+6°'). */

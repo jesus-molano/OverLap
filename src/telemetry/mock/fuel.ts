@@ -20,6 +20,8 @@ export interface MockFuelVars {
   PitSvFuel: number[]
   PitSvFlags: number[]
   PlayerCarInPitStall: boolean[]
+  /** Being serviced: the whole time the car sits in its stall (the mock services every stop). */
+  PitstopActive: boolean[]
   FastRepairAvailable: number[]
   FastRepairUsed: number[]
   TireSetsAvailable: number[]
@@ -104,6 +106,7 @@ export function initialFuelVars(): MockFuelVars {
     PitSvFuel: [MOCK_FUEL.boxL],
     PitSvFlags: [MOCK_FUEL.boxFlags],
     PlayerCarInPitStall: [false],
+    PitstopActive: [false],
     FastRepairAvailable: [MOCK_FUEL.fastRepairs],
     FastRepairUsed: [0],
     TireSetsAvailable: [MOCK_FUEL.tyreSets - 1],
@@ -187,6 +190,7 @@ export class MockFuel {
     v.FuelLevel[0] = this.fuel
     v.FuelLevelPct[0] = this.fuel / MOCK_FUEL.tankL
     v.PlayerCarInPitStall[0] = inStall
+    v.PitstopActive[0] = inStall
     v.TireSetsUsed[0] = this.setsUsed
     v.TireSetsAvailable[0] = Math.max(0, MOCK_FUEL.tyreSets - this.setsUsed)
     if (!this.measured) return
