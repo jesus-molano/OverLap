@@ -142,8 +142,10 @@ Una banda con lo que te afecta, lo más importante en grande y el resto al lado.
 la negra enrollada), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de
 entrar, 10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario,
 presión de aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», combustible bajo y cada
-incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se activa por
-separado, y cada aviso tiene su forma además de su color (se lee con la paleta para daltónicos).
+incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
+con su ojo en **Personalizar › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
+Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
+daltónicos).
 
 ### Testigos
 
@@ -199,7 +201,10 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   al eliminar una disposición. Solo borrar récords personales pide un segundo clic: eso no se
   puede deshacer.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
-  mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos…
+  mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
+  Una regla para todas las páginas: **Contenido** es el comportamiento (cuántos, cuánto tiempo,
+  umbrales, modos) y **Personalizar** lo que se ve (cada lista con su ojo y, con ella, cómo se
+  ven sus elementos; la opción de un elemento, en su fila).
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,

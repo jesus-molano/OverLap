@@ -64,59 +64,12 @@ const setIcons = listSetter('lights', 'icons')
       :options="layoutChoices"
       :apply="set('layout')"
     />
-    <ChoiceControl
-      :label="t.settings.lights.captions"
-      :help="t.settings.lights.captionsHelp"
-      :current="captions"
-      :options="captionsChoices"
-      :apply="setCaptions"
-    />
-    <ChoiceControl
-      v-if="sideOnItsOwn"
-      :label="t.settings.lights.labelSide"
-      :current="opts.labelSide"
-      :options="labelSideChoices"
-      :apply="set('labelSide')"
-    />
     <ToggleControl
       kind="switch"
       :label="t.settings.lights.onlyWhenLit"
       :help="t.settings.lights.onlyWhenLitHelp"
       :current="opts.onlyWhenLit"
       :apply="set('onlyWhenLit')"
-    />
-
-    <ToggleControl
-      v-if="!noTemps"
-      kind="switch"
-      :label="t.settings.lights.temps"
-      :help="t.settings.lights.tempsHelp"
-      :current="opts.showTemps"
-      :apply="set('showTemps')"
-    />
-    <ToggleControl
-      v-if="!noRepairs"
-      kind="switch"
-      :label="t.settings.lights.repairTime"
-      :help="t.settings.lights.repairTimeHelp"
-      :current="opts.showRepairTime"
-      :apply="set('showRepairTime')"
-    />
-    <ToggleControl
-      v-if="!noRepairs && opts.showRepairTime"
-      kind="switch"
-      :label="t.settings.lights.repairCrewTag"
-      :help="t.settings.lights.repairCrewTagHelp"
-      :current="opts.repairCrewTag"
-      :apply="set('repairCrewTag')"
-    />
-    <ToggleControl
-      v-if="!noRepairs && opts.showRepairTime"
-      kind="switch"
-      :label="t.settings.lights.repairRealTime"
-      :help="t.settings.lights.repairRealTimeHelp(REPAIR_CLOCK.windowS)"
-      :current="opts.repairRealTime"
-      :apply="set('repairRealTime')"
     />
   </PageSection>
 
@@ -129,7 +82,54 @@ const setIcons = listSetter('lights', 'icons')
       :apply="setIcons"
       empty-hides
     >
+      <!-- How the lights read (R12): their words, temperatures and repairs, next to them. -->
       <template #footer>
+        <ChoiceControl
+          :label="t.settings.lights.captions"
+          :help="t.settings.lights.captionsHelp"
+          :current="captions"
+          :options="captionsChoices"
+          :apply="setCaptions"
+        />
+        <ChoiceControl
+          v-if="sideOnItsOwn"
+          :label="t.settings.lights.labelSide"
+          :current="opts.labelSide"
+          :options="labelSideChoices"
+          :apply="set('labelSide')"
+        />
+        <ToggleControl
+          v-if="!noTemps"
+          kind="switch"
+          :label="t.settings.lights.temps"
+          :help="t.settings.lights.tempsHelp"
+          :current="opts.showTemps"
+          :apply="set('showTemps')"
+        />
+        <ToggleControl
+          v-if="!noRepairs"
+          kind="switch"
+          :label="t.settings.lights.repairTime"
+          :help="t.settings.lights.repairTimeHelp"
+          :current="opts.showRepairTime"
+          :apply="set('showRepairTime')"
+        />
+        <ToggleControl
+          v-if="!noRepairs && opts.showRepairTime"
+          kind="switch"
+          :label="t.settings.lights.repairCrewTag"
+          :help="t.settings.lights.repairCrewTagHelp"
+          :current="opts.repairCrewTag"
+          :apply="set('repairCrewTag')"
+        />
+        <ToggleControl
+          v-if="!noRepairs && opts.showRepairTime"
+          kind="switch"
+          :label="t.settings.lights.repairRealTime"
+          :help="t.settings.lights.repairRealTimeHelp(REPAIR_CLOCK.windowS)"
+          :current="opts.repairRealTime"
+          :apply="set('repairRealTime')"
+        />
         <ToggleControl
           v-if="!noTemps"
           kind="switch"

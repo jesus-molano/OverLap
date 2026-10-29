@@ -183,6 +183,8 @@ describe('the widget pages', () => {
           if (field) fields.push(field)
           else fields.push(...INFO_BARS[id as keyof typeof INFO_BARS].map(([f]) => f))
         } else {
+          // The alerts' groups (alertsList.ts) are lists of switches, not a zone of the schema.
+          if (attrs.includes(':spec="g.spec"')) continue
           const field = /:spec="[\w.]+\.(\w+)"/.exec(attrs)?.[1]
           if (field) fields.push(field)
         }

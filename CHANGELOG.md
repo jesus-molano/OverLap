@@ -18,6 +18,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Contenido para el comportamiento, Personalizar para lo que se ve**: Avisos elige sus avisos
+  con una lista con ojo, agrupada (Banderas, Boxes, Durante la carrera, Motor, Combustible), como
+  Testigos y Radar, en vez de 15 casillas en Contenido; las banderas azul y enrollada dependen de
+  las banderas, y el exceso del limitador. En Testigos, rótulos, temperaturas y tiempos de
+  reparación pasan junto a la lista de testigos, con «Temperatura al alza». En Posiciones, «iRating
+  en juego de todos» está en la fila de su columna. Lo guardado no cambia.
 - **Cabecera y pie con una sola regla**: en una instalación nueva, la cabecera lleva a la izquierda
   el título (y la sesión) y a la derecha los incidentes y el reloj; el pie, a la izquierda las
   condiciones y a la derecha los coches y el combustible. Los datos de la sesión (sesión, tiempo
