@@ -18,7 +18,7 @@ import type {
   WidgetToggleMessage
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
-import type { ShortcutStatusMap } from '@shared/shortcuts'
+import type { ShortcutStatusReport } from '@shared/shortcuts'
 import { createDefaultSettings } from '@shared/settings'
 import type { CarRef, OverlaySettings, OverlayStatus, WidgetDataMessage } from '@shared/types'
 
@@ -59,7 +59,7 @@ export interface FakeOverlay extends OverlayApi {
   readonly layout: Channel<OverlayLayout>
   readonly personalBests: Channel<PersonalBestList>
   readonly overlayHidden: Channel<boolean>
-  readonly shortcutStatus: Channel<ShortcutStatusMap>
+  readonly shortcutStatus: Channel<ShortcutStatusReport>
   readonly cursorHidden: Channel<boolean>
   readonly currentCar: Channel<CarRef | null>
   readonly layoutNotice: Channel<LayoutNotice>
@@ -87,7 +87,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const layout = new Channel<OverlayLayout>()
   const personalBests = new Channel<PersonalBestList>()
   const overlayHidden = new Channel<boolean>()
-  const shortcutStatus = new Channel<ShortcutStatusMap>()
+  const shortcutStatus = new Channel<ShortcutStatusReport>()
   const cursorHidden = new Channel<boolean>()
   const currentCar = new Channel<CarRef | null>()
   const layoutNotice = new Channel<LayoutNotice>()
@@ -111,11 +111,14 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     autoHidden: {},
     overlayHidden: false,
     shortcutStatus: {
-      toggleOverlay: 'ok',
-      toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled',
-      openSettings: 'disabled'
+      actions: {
+        toggleOverlay: 'ok',
+        toggleEditMode: 'ok',
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled',
+        openSettings: 'disabled'
+      },
+      unavailable: []
     },
     cursorHidden: false,
     currentCar: null,

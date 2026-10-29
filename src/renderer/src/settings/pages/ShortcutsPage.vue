@@ -15,10 +15,10 @@ import { buttonBindingCount, shortcutRows } from '../shortcutsView'
 import { useShortcutCapture, windowCaptureDeps } from '../useShortcutCapture'
 
 /**
- * The global shortcuts (settings.shortcuts): one row per action, recorded by pressing the
- * combination or a controller's button, then the fixed Esc and how shortcuts behave over the
- * game. Recording ends
- * whenever this page goes away (the capture's scope is the page's). No live preview: there is
+ * The global shortcuts (settings.shortcuts and settings.shortcutsMore): one row per action with
+ * up to three bindings, each recorded by pressing the combination or a controller's button,
+ * then the fixed Esc and how shortcuts behave over the game. Recording ends whenever this page
+ * goes away (the capture's scope is the page's). No live preview: there is
  * nothing to draw.
  */
 const t = useI18n()
@@ -37,7 +37,10 @@ const rows = computed(() =>
 )
 const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
 
-/** The reset removes every button (none is a default): its description and confirmation say so. */
+/**
+ * The reset removes every button and every extra binding (none is a default): its description
+ * and confirmation say so for the buttons.
+ */
 const buttonCount = computed(() => buttonBindingCount(shortcuts.value))
 const resetDescription = computed(() => {
   const r = t.value.settings.shortcuts.resetAll
@@ -83,6 +86,7 @@ const resetConfirm = computed(() =>
 
       <PageSection :title="t.settings.shortcuts.notes.title">
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.focus }}</p>
+        <p class="st-row st-help note">{{ t.settings.shortcuts.notes.several }}</p>
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.exclusive }}</p>
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttons }}</p>
         <p class="st-row st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>

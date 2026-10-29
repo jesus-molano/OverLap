@@ -431,6 +431,13 @@ describe('DEFAULT_SETTINGS', () => {
         seenCars: [],
         shared: defaultOptionSet()
       },
+      shortcutsMore: {
+        toggleOverlay: [],
+        toggleEditMode: [],
+        cycleDeltaReference: [],
+        nextLayout: [],
+        openSettings: []
+      },
       buttonDeviceNames: {}
     })
   })
@@ -1559,5 +1566,82 @@ describe('normalizeSettings: controller buttons', () => {
       )
     }
     expect(normalizeSettings({ buttonDeviceNames: 'G29' }).buttonDeviceNames).toEqual({})
+  })
+})
+
+describe('normalizeSettings: several bindings per action', () => {
+  const G29 = 'joy:046d:c24f:0'
+  const BOX = 'joy:1dd2:2201:0'
+  const NONE = {
+    toggleOverlay: [],
+    toggleEditMode: [],
+    cycleDeltaReference: [],
+    nextLayout: [],
+    openSettings: []
+  }
+
+  it('gives a file without extra bindings (every file before 2.2) none, its shortcuts as they are', () => {
+    const s = normalizeSettings({ shortcuts: { toggleOverlay: 'F13', openSettings: '' } })
+    expect(s.shortcutsMore).toEqual(NONE)
+    expect(s.shortcuts).toMatchObject({ toggleOverlay: 'F13', openSettings: '' })
+    expect(normalizeSettings({ shortcutsMore: 'F13' }).shortcutsMore).toEqual(NONE)
+  })
+
+  it('keeps up to two more per action, valid and in their canonical spelling', () => {
+    const s = normalizeSettings({
+      shortcuts: { toggleOverlay: 'Ctrl+Shift+H' },
+      shortcutsMore: {
+        toggleOverlay: [`${G29}:24`, 'ctrl+alt+f9', 'F14'],
+        toggleEditMode: ['Shift+E', 7, null, '', `${BOX}:3`],
+        nextLayout: 'F15',
+        quit: ['F16']
+      },
+      buttonDeviceNames: { [G29]: 'G29', [BOX]: 'Box' }
+    })
+    expect(s.shortcuts.toggleOverlay).toBe('Ctrl+Shift+H')
+    expect(s.shortcutsMore).toEqual({
+      ...NONE,
+      // A third one past the limit is dropped.
+      toggleOverlay: [`${G29}:24`, 'Ctrl+Alt+F9'],
+      toggleEditMode: [`${BOX}:3`]
+    })
+    // The controllers of the extra bindings keep their names.
+    expect(s.buttonDeviceNames).toEqual({ [G29]: 'G29', [BOX]: 'Box' })
+    expect(normalizeSettings(JSON.parse(JSON.stringify(s)))).toEqual(s)
+  })
+
+  it('drops a binding repeated across actions and slots: the earlier action, or slot, keeps it', () => {
+    const s = normalizeSettings({
+      shortcuts: {
+        toggleOverlay: 'Ctrl+Shift+H',
+        toggleEditMode: 'Ctrl+Shift+E',
+        nextLayout: 'F13'
+      },
+      shortcutsMore: {
+        toggleOverlay: ['Ctrl+Shift+H', 'F13', `${G29}:1`],
+        toggleEditMode: [`${G29}:1`, 'F14'],
+        nextLayout: ['F14', 'F15']
+      }
+    })
+    expect(s.shortcuts).toMatchObject({
+      toggleOverlay: 'Ctrl+Shift+H',
+      toggleEditMode: 'Ctrl+Shift+E',
+      // Its first one went to an earlier action: the next one moved up.
+      nextLayout: 'F15'
+    })
+    expect(s.shortcutsMore).toMatchObject({
+      toggleOverlay: ['F13', `${G29}:1`],
+      toggleEditMode: ['F14'],
+      nextLayout: []
+    })
+  })
+
+  it('moves an extra binding up when the first one is off', () => {
+    const s = normalizeSettings({
+      shortcuts: { cycleDeltaReference: '' },
+      shortcutsMore: { cycleDeltaReference: [`${G29}:9`, 'Ctrl+Alt+D'] }
+    })
+    expect(s.shortcuts.cycleDeltaReference).toBe(`${G29}:9`)
+    expect(s.shortcutsMore.cycleDeltaReference).toEqual(['Ctrl+Alt+D'])
   })
 })

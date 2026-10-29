@@ -94,22 +94,28 @@ describe('useOverlayState', () => {
     fake.editMode.emit(true)
     fake.overlayHidden.emit(true)
     fake.shortcutStatus.emit({
-      toggleOverlay: 'unavailable',
-      toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled',
-      openSettings: 'disabled'
+      actions: {
+        toggleOverlay: 'unavailable',
+        toggleEditMode: 'ok',
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled',
+        openSettings: 'disabled'
+      },
+      unavailable: ['Ctrl+Shift+H']
     })
     await flush()
     expect(s.status.value).toEqual(WAITING_STATUS)
     expect(s.editMode.value).toBe(true)
     expect(s.overlayHidden.value).toBe(true)
     expect(s.shortcutStatus.value).toEqual({
-      toggleOverlay: 'unavailable',
-      toggleEditMode: 'ok',
-      cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled',
-      openSettings: 'disabled'
+      actions: {
+        toggleOverlay: 'unavailable',
+        toggleEditMode: 'ok',
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled',
+        openSettings: 'disabled'
+      },
+      unavailable: ['Ctrl+Shift+H']
     })
   })
 
@@ -117,11 +123,14 @@ describe('useOverlayState', () => {
     await load({
       overlayHidden: true,
       shortcutStatus: {
-        toggleOverlay: 'ok',
-        toggleEditMode: 'disabled',
-        cycleDeltaReference: 'disabled',
-        nextLayout: 'disabled',
-        openSettings: 'disabled'
+        actions: {
+          toggleOverlay: 'ok',
+          toggleEditMode: 'disabled',
+          cycleDeltaReference: 'disabled',
+          nextLayout: 'disabled',
+          openSettings: 'disabled'
+        },
+        unavailable: []
       }
     })
     const s = mod.useOverlayState()
@@ -130,11 +139,14 @@ describe('useOverlayState', () => {
     await flush()
     expect(s.overlayHidden.value).toBe(true)
     expect(s.shortcutStatus.value).toEqual({
-      toggleOverlay: 'ok',
-      toggleEditMode: 'disabled',
-      cycleDeltaReference: 'disabled',
-      nextLayout: 'disabled',
-      openSettings: 'disabled'
+      actions: {
+        toggleOverlay: 'ok',
+        toggleEditMode: 'disabled',
+        cycleDeltaReference: 'disabled',
+        nextLayout: 'disabled',
+        openSettings: 'disabled'
+      },
+      unavailable: []
     })
     fake.overlayHidden.emit(false)
     expect(s.overlayHidden.value).toBe(false)

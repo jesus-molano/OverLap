@@ -8,26 +8,33 @@ import type { ShortcutCapture } from '../useShortcutCapture'
 import Keycaps from './Keycaps.vue'
 
 /**
- * One configurable shortcut: the label (with a badge when another application holds the
- * combination, or the button's controller is unplugged), then a field with its keys or its
- * button and controller (the keys being pressed while recording, "Off" when it has none) and
- * Change / Disable / Reset beside it. The field keeps one width in every row and while
- * recording (a button's controller goes on a second line, cut when long; the prompt is short),
- * so the buttons line up and nothing moves when recording starts. The Change button keeps the focus while recording: leaving it
- * (Tab, a click elsewhere) cancels.
+ * One configurable shortcut: the label (with a badge when it is off, or one of its bindings
+ * does not work), then its bindings side by side as chips (up to three: keycaps, or a button
+ * and its controller), each one a button that records over it and a × that removes it, then
+ * "+ Añadir", which records one more, and Reset. While recording, the chip recorded over (or a
+ * new one after the others) shows the keys being pressed. The button that started the
+ * recording keeps the focus (it turns into Cancel when it is "+ Añadir"): leaving it (Tab, a
+ * click elsewhere) cancels.
  */
 const props = defineProps<{ row: ShortcutRowView; capture: ShortcutCapture; names: DeviceNames }>()
 
 const t = useI18n()
 const msgId = useId()
-const recording = computed(() => props.capture.active.value === props.row.action)
-const heldCaps = computed(() => (recording.value ? modifierCaps(props.capture.held.value) : []))
+/** The slot recorded on this row, null when none is. */
+const recording = computed(() => {
+  const a = props.capture.active.value
+  return a !== null && a.action === props.row.action ? a.slot : null
+})
+const adding = computed(() => recording.value === props.row.bindings.length)
+const heldCaps = computed(() =>
+  recording.value !== null ? modifierCaps(props.capture.held.value) : []
+)
 const messages = computed(() =>
   rowMessages(t.value, props.row, props.capture.feedback.value, recording.value, props.names)
 )
 
-function onChangeBlur(): void {
-  if (recording.value) props.capture.cancel()
+function onRecorderBlur(): void {
+  if (recording.value !== null) props.capture.cancel()
 }
 </script>
 
@@ -44,62 +51,95 @@ function onChangeBlur(): void {
         <span class="st-help">{{ row.help }}</span>
       </div>
       <div class="sc-bind">
-        <div
-          class="sc-keys"
-          :class="{ 'is-recording': recording, 'has-button': row.button && !recording }"
-        >
-          <template v-if="recording">
-            <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
-            <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
-          </template>
-          <span
-            v-else-if="row.button"
-            class="sc-button"
-            :class="{ 'is-off': row.status === 'unavailable' }"
-            :aria-label="t.settings.shortcuts.buttonAria(row.button.button, row.button.device)"
+        <ul class="sc-chips" :aria-label="row.label">
+          <li
+            v-for="b in row.bindings"
+            :key="b.slot"
+            class="sc-chip"
+            :class="{
+              'is-recording': recording === b.slot,
+              'is-off': b.off && recording !== b.slot,
+              'is-button': b.button !== null && recording !== b.slot
+            }"
           >
-            <Icon name="wheel" class="sc-button-icon" />
-            <span class="sc-button-text">
-              <span class="sc-button-name">{{ row.button.button }}</span>
-              <span class="sc-button-device" :title="row.button.device">{{
-                row.button.device
-              }}</span>
+            <button
+              type="button"
+              class="sc-chip-main"
+              :aria-label="
+                recording === b.slot
+                  ? t.settings.shortcuts.cancelLabel(row.label)
+                  : t.settings.shortcuts.changeLabel(b.text, row.label)
+              "
+              :aria-describedby="msgId"
+              :title="b.off ? row.badge : undefined"
+              @click="capture.toggle(row.action, b.slot)"
+              @blur="onRecorderBlur"
+            >
+              <template v-if="recording === b.slot">
+                <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
+                <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
+              </template>
+              <span
+                v-else-if="b.button"
+                class="sc-button"
+                :aria-label="t.settings.shortcuts.buttonAria(b.button.button, b.button.device)"
+              >
+                <Icon name="wheel" class="sc-button-icon" />
+                <span class="sc-button-text">
+                  <span class="sc-button-name">{{ b.button.button }}</span>
+                  <span class="sc-button-device" :title="b.button.device">{{
+                    b.button.device
+                  }}</span>
+                </span>
+              </span>
+              <Keycaps v-else :keys="b.keys" />
+              <Icon v-if="b.off && recording !== b.slot" name="warning" class="sc-off-icon" />
+            </button>
+            <button
+              v-if="recording !== b.slot"
+              type="button"
+              class="sc-chip-x"
+              :aria-label="t.settings.shortcuts.removeLabel(b.text, row.label)"
+              :title="t.settings.shortcuts.removeLabel(b.text, row.label)"
+              @click="capture.remove(row.action, b.slot)"
+            >
+              <Icon name="close" />
+            </button>
+          </li>
+          <li v-if="adding" class="sc-chip is-recording is-new">
+            <span class="sc-chip-main">
+              <Keycaps v-if="heldCaps.length > 0" :keys="heldCaps" pending />
+              <span v-else class="sc-prompt">{{ t.settings.shortcuts.capture.prompt }}</span>
             </span>
-          </span>
-          <Keycaps v-else-if="row.keys.length > 0" :keys="row.keys" />
-          <span v-else class="sc-off">{{ row.badge }}</span>
-        </div>
+          </li>
+          <li v-if="row.bindings.length === 0 && !adding" class="sc-off">{{ row.badge }}</li>
+        </ul>
         <div class="sc-actions">
           <button
+            v-if="row.canAdd"
             type="button"
-            class="st-btn st-btn-sm"
+            class="st-btn st-btn-sm sc-add"
             :aria-label="
-              recording
+              adding
                 ? t.settings.shortcuts.cancelLabel(row.label)
-                : t.settings.shortcuts.changeLabel(row.label)
+                : t.settings.shortcuts.addLabel(row.label)
             "
             :aria-describedby="msgId"
-            @click="capture.toggle(row.action)"
-            @blur="onChangeBlur"
+            @click="capture.toggle(row.action, row.bindings.length)"
+            @blur="onRecorderBlur"
           >
-            {{ recording ? t.settings.shortcuts.cancel : t.settings.shortcuts.change }}
+            <template v-if="adding">{{ t.settings.shortcuts.cancel }}</template>
+            <template v-else>
+              <Icon name="plus" class="sc-add-icon" />{{ t.settings.shortcuts.add }}
+            </template>
           </button>
           <button
-            v-if="row.canDisable && !recording"
-            type="button"
-            class="st-btn st-btn-ghost st-btn-sm"
-            :aria-label="t.settings.shortcuts.disableLabel(row.label)"
-            @click="capture.assign(row.action, '')"
-          >
-            {{ t.settings.shortcuts.disable }}
-          </button>
-          <button
-            v-if="row.canReset && !recording"
+            v-if="row.canReset && recording === null"
             type="button"
             class="st-btn st-btn-ghost st-btn-sm"
             :aria-label="t.settings.shortcuts.resetLabel(row.label, row.defaultKeys)"
             :title="row.defaultKeys"
-            @click="capture.assign(row.action, row.defaultAccelerator)"
+            @click="capture.reset(row.action)"
           >
             {{ t.settings.shortcuts.reset }}
           </button>
@@ -118,7 +158,7 @@ function onChangeBlur(): void {
     </p>
     <!-- Said once when recording starts: the prompt itself is drawn where the keys are. -->
     <span class="st-sr-only" aria-live="polite">{{
-      recording ? t.settings.shortcuts.capture.prompt : ''
+      recording !== null ? t.settings.shortcuts.capture.prompt : ''
     }}</span>
   </div>
 </template>
@@ -131,24 +171,85 @@ function onChangeBlur(): void {
   gap: 8px 10px;
 }
 
-/* The keys, in a well like a field; while recording, dashed in the focus colour. */
-.sc-keys {
-  display: inline-flex;
+/* The bindings side by side, wrapping in a narrow window. */
+.sc-chips {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  min-width: 15em;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One binding: a well like a field, the chip itself the button that records over it. */
+.sc-chip {
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
   min-height: 34px;
-  padding: 3px 8px;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: var(--st-field);
 }
 
-.sc-keys.is-recording {
+.sc-chip-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 3px 4px 3px 8px;
+  border: 0;
+  border-radius: var(--st-radius-sm) 0 0 var(--st-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sc-chip-main:hover {
+  background: var(--st-hover);
+}
+
+/* The × to remove it, a quiet square at the end of the chip. */
+.sc-chip-x {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--st-radius-sm) var(--st-radius-sm) 0;
+  background: transparent;
+  color: var(--ov-fg-dim);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sc-chip-x:hover {
+  background: var(--st-hover);
+  color: var(--ov-fg);
+}
+
+/* Recording over it, or a new one: dashed in the focus colour, the prompt inside. */
+.sc-chip.is-recording {
   border-style: dashed;
   border-color: color-mix(in srgb, var(--st-focus) 70%, transparent);
   background: color-mix(in srgb, var(--st-focus) 8%, var(--st-field));
+}
+
+.sc-chip.is-recording .sc-chip-main {
+  min-width: 13em;
+  padding-right: 8px;
+  border-radius: var(--st-radius-sm);
+}
+
+.sc-chip.is-new .sc-chip-main {
+  cursor: default;
 }
 
 .sc-prompt {
@@ -156,11 +257,9 @@ function onChangeBlur(): void {
   font-size: 12.5px;
 }
 
-/* A button's field: the keys' width exactly, whatever its controller's name. */
-.sc-keys.has-button {
-  width: 15em;
-  max-width: 100%;
-  flex-wrap: nowrap;
+/* A button's chip: its controller cut on the second line, so three still fit side by side. */
+.sc-chip.is-button {
+  max-width: min(15em, 100%);
 }
 
 /* A controller's button: the wheel glyph, the button, and its controller under it. */
@@ -180,6 +279,7 @@ function onChangeBlur(): void {
 }
 
 .sc-button-icon {
+  flex: none;
   color: var(--ov-fg-muted);
   font-size: 14px;
 }
@@ -201,15 +301,30 @@ function onChangeBlur(): void {
   white-space: nowrap;
 }
 
-/* Its controller is unplugged: kept, but dimmed (the badge says why). */
-.sc-button.is-off .sc-button-name,
-.sc-button.is-off .sc-button-device,
-.sc-button.is-off .sc-button-icon {
+/* Not working (unplugged, or held by another application): kept, dimmed, outlined in warning. */
+.sc-chip.is-off {
+  border-color: color-mix(in srgb, var(--ov-warn) 45%, transparent);
+}
+
+.sc-chip.is-off .sc-button-name,
+.sc-chip.is-off .sc-button-device,
+.sc-chip.is-off .sc-button-icon,
+.sc-chip.is-off :deep(.cap) {
   color: var(--ov-fg-dim);
 }
 
-/* Turned off: what an empty field would say. */
+.sc-off-icon {
+  flex: none;
+  color: var(--ov-warn);
+  font-size: 13px;
+}
+
+/* No binding: what an empty field would say. */
 .sc-off {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 2px;
   color: var(--ov-fg-dim);
   font-size: 12.5px;
   white-space: nowrap;
@@ -222,7 +337,7 @@ function onChangeBlur(): void {
   gap: 4px 10px;
 }
 
-/* Taken by another application: a warning chip beside the name, so the fields stay aligned. */
+/* A binding does not work: a warning chip beside the name (the chip itself says which). */
 .sc-badge-unavailable {
   padding: 0 8px;
   border: 1px solid color-mix(in srgb, var(--ov-warn) 55%, transparent);
@@ -237,6 +352,14 @@ function onChangeBlur(): void {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.sc-add {
+  gap: 5px;
+}
+
+.sc-add-icon {
+  font-size: 11px;
 }
 
 .sc-msg {

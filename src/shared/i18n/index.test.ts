@@ -149,7 +149,7 @@ describe('shortcut texts', () => {
     // Short (the field keeps its width while recording), and not only the wheel's buttons.
     expect(s.capture.prompt).toBe('Pulsa las teclas o un botón…')
     expect(en.settings.shortcuts.capture.prompt).toBe('Press the keys or a button…')
-    expect(s.capture.clearHint).toBe('Esc cancela · Retroceso o Supr lo desactivan')
+    expect(s.capture.clearHint).toBe('Esc cancela · Retroceso o Supr lo quitan')
     expect(s.capture.pressAgain).toBe('Mando detectado: pulsa el botón otra vez')
     expect(en.settings.shortcuts.capture.pressAgain).toBe(
       'Controller found: press the button again'
@@ -168,11 +168,13 @@ describe('shortcut texts', () => {
     expect(en.core.keys.button(12)).toBe('Button 12')
     expect(acceleratorText(es, 'joy:046d:c24f:0:7')).toBe('Botón 7')
     expect(keycaps(en, 'joy:046d:c24f:0:7')).toEqual(['Button 7'])
-    expect([s.change, s.disable, s.reset]).toEqual(['Cambiar', 'Desactivar', 'Restablecer'])
-    expect([en.settings.shortcuts.change, en.settings.shortcuts.disable]).toEqual([
-      'Change',
-      'Disable'
-    ])
+    expect([s.add, s.cancel, s.reset]).toEqual(['Añadir', 'Cancelar', 'Restablecer'])
+    expect([en.settings.shortcuts.add, en.settings.shortcuts.cancel]).toEqual(['Add', 'Cancel'])
+    expect(s.removeLabel('Ctrl+Shift+E', 'Modo edición')).toBe(
+      'Quitar Ctrl+Shift+E de Modo edición'
+    )
+    expect(s.removed('Botón 24 · G29')).toBe('Quitado: Botón 24 · G29')
+    expect(s.errors.duplicateSame).toBe('Esta acción ya tiene esa combinación')
     expect(s.resetAll.label).toBe('Restablecer atajos')
     expect(es.settings.nav.hidden.press('Ctrl+Shift+H')).toBe('Ctrl+Shift+H lo muestra')
   })

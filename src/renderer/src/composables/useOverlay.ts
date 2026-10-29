@@ -1,6 +1,6 @@
 import { shallowRef, type ShallowRef } from 'vue'
 import type { AutoHiddenMap, AutoHiddenState, OverlayLayout, RendererView } from '@shared/ipc'
-import type { ShortcutStatusMap } from '@shared/shortcuts'
+import type { ShortcutStatusReport } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, WidgetPayloads } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 
@@ -27,7 +27,7 @@ export interface OverlayState {
   /** Settings window: the user hid every overlay window (tray, shortcut). */
   readonly overlayHidden: ShallowRef<boolean>
   /** Settings window: how each configured shortcut is doing (null until main says). */
-  readonly shortcutStatus: ShallowRef<ShortcutStatusMap | null>
+  readonly shortcutStatus: ShallowRef<ShortcutStatusReport | null>
   /** Overlay windows: edit mode while the game hides the mouse cursor (nothing can be dragged). */
   readonly cursorHidden: ShallowRef<boolean>
   /**
@@ -71,7 +71,7 @@ export const overlayState: OverlayState = {
   settings: shallowRef<OverlaySettings | null>(null),
   view: shallowRef<RendererView | null>(null),
   overlayHidden: shallowRef(false),
-  shortcutStatus: shallowRef<ShortcutStatusMap | null>(null),
+  shortcutStatus: shallowRef<ShortcutStatusReport | null>(null),
   cursorHidden: shallowRef(false),
   layout: shallowRef<OverlayLayout | null>(null),
   autoHiddenOf: shownEverywhere(),

@@ -19,7 +19,7 @@
 import type { ControllerInfo } from './controllers'
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
-import type { ShortcutStatusMap } from './shortcuts'
+import type { ShortcutStatusReport } from './shortcuts'
 import type { LayoutFileError } from './layouts'
 import type {
   CarRef,
@@ -137,7 +137,7 @@ export const IPC = {
   dragState: 'overlay:drag-state',
   /** main -> settings window, `boolean`: the user hid every overlay window (tray, shortcut). */
   overlayHidden: 'overlay:overlay-hidden',
-  /** main -> settings window, `ShortcutStatusMap`: whenever a shortcut's registration changes. */
+  /** main -> settings window, `ShortcutStatusReport`: whenever a binding's registration changes. */
   shortcutStatus: 'overlay:shortcut-status',
   /** overlay window -> main (send), `WidgetToggleMessage`: an edit chip's eye or padlock. */
   widgetToggle: 'overlay:widget-toggle',
@@ -425,7 +425,7 @@ export interface InitialState {
   /** The user hid every overlay window (not saved: the app always starts shown). */
   overlayHidden: boolean
   /** How each configured shortcut is doing (registered, off, taken by another app). */
-  shortcutStatus: ShortcutStatusMap
+  shortcutStatus: ShortcutStatusReport
   /** Edit mode with the mouse cursor hidden by the game (see `IPC.cursorHidden`). */
   cursorHidden: boolean
   /** The car you are in now (see `IPC.currentCar`). */
@@ -452,7 +452,7 @@ export interface OverlayApi {
   /** Settings window only: the user hid or showed every overlay window. */
   onOverlayHidden(cb: (hidden: boolean) => void): Unsubscribe
   /** Settings window only. */
-  onShortcutStatus(cb: (status: ShortcutStatusMap) => void): Unsubscribe
+  onShortcutStatus(cb: (status: ShortcutStatusReport) => void): Unsubscribe
   /** Overlay windows: edit mode with the cursor hidden by the game, or not any more. */
   onCursorHidden(cb: (hidden: boolean) => void): Unsubscribe
   /** Settings window only: the car you are in now changed. */

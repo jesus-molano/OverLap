@@ -5,7 +5,7 @@ import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
 import { setOverlayHidden } from '../editor'
-import { bindingText } from '../shortcutsView'
+import { bindingsText } from '../shortcutsView'
 
 /**
  * While the user has the overlay hidden (tray, shortcut): one quiet line above every page, in
@@ -16,8 +16,8 @@ const { overlayHidden } = useOverlayState()
 const t = useI18n()
 const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
-/** 'Ctrl+Shift+H', or 'Botón 3 · G29 …' for a controller's button. */
-const keys = computed(() => bindingText(t.value, shortcuts.value.toggleOverlay, deviceNames.value))
+/** 'Ctrl+Shift+H', 'Botón 3 · G29 …' for a controller's button, 'Ctrl+Shift+H · Botón 24'. */
+const keys = computed(() => bindingsText(t.value, shortcuts.value.toggleOverlay, deviceNames.value))
 </script>
 
 <template>
