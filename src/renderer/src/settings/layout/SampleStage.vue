@@ -22,6 +22,8 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import type { InlineStyle } from '../../view/styles'
 import { choiceOptions } from '../controls/choice'
+import PreviewEditLayer from '../preview/PreviewEditLayer.vue'
+import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
 import { stageFit } from './stageFit'
@@ -50,7 +52,11 @@ const sceneLabelId = `${sceneId}-label`
 /** Height the sample may take: the stage's cap less its padding and border (CSS decides it). */
 const limitSize = useElementSize(useTemplateRef<HTMLElement>('limit'))
 /** The sample's layout size (the scale below is a transform: it does not change it). */
-const sampleSize = useElementSize(useTemplateRef<HTMLElement>('sample'))
+const sampleEl = useTemplateRef<HTMLElement>('sample')
+const sampleSize = useElementSize(sampleEl)
+const stageEl = useTemplateRef<HTMLElement>('stage')
+/** A widget page's preview is editable (usePreviewEdit): its pointer layer. */
+const editable = injectPreviewEdit() !== null
 
 const fit = computed(() =>
   stageFit(sampleSize.value, { w: sampleSize.value.w, h: Math.floor(limitSize.value.h) })
@@ -65,7 +71,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 </script>
 
 <template>
-  <figure class="stage" :data-scene="sceneNow">
+  <figure ref="stage" class="stage" :data-scene="sceneNow">
     <div class="scene" aria-hidden="true" />
     <div ref="limit" class="limit" aria-hidden="true" />
     <div class="content">
@@ -75,6 +81,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
         </div>
       </div>
     </div>
+    <PreviewEditLayer v-if="editable" :sample="sampleEl" :stage="stageEl" />
     <div class="scene-switch">
       <span :id="sceneLabelId" class="scene-label">{{ t.settings.sample.scene }}</span>
       <div class="scene-seg" role="radiogroup" :aria-labelledby="sceneLabelId">

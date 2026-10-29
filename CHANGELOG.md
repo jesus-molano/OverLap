@@ -5,6 +5,21 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- **Editar en la vista previa**: en la página de cada widget, pasa el ratón por un elemento de la
+  vista previa para ver su nombre, arrástralo para cambiarlo de sitio (en las cabeceras y pies,
+  también de un lado al otro) y haz clic para mostrarlo u ocultarlo. Mientras editas, los ocultos
+  se dibujan translúcidos donde caben, para poder recuperarlos. La lista y la vista previa se
+  señalan una a otra, y al tocar algo en la vista previa se abre su sección.
+
+### Cambiado
+
+- En las listas de cabecera, segunda línea y pie, los elementos ocultos ya no llenan la caja
+  «Derecha»: van en un grupo «Ocultos» plegado debajo; al mostrar uno, va al final de su lado.
+
 ## [2.1.1] - 2026-10-29
 
 ### Corregido

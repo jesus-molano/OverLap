@@ -211,30 +211,36 @@ export const COMPUTED_INFO_ITEMS: readonly InfoItemId[] = Object.freeze(
   INFO_ITEM_IDS.filter((id) => INFO_ITEMS[id].source !== 'renderer')
 )
 
+const NO_ITEMS: ReadonlySet<InfoItemId> = new Set()
+
 /**
  * Which of `items` (in order, with their widths) fit `widthEm` of bar: all of them while they
  * fit, else the least important dropped one at a time (the highest priority number; between
  * equals the later one) until the rest does. `widthEm` <= 0 (not measured yet) keeps them all.
  * `dropAtLeast` drops that many more the same way, beyond the ones the estimates need (the bar
  * measured that what is drawn is still wider than they say: a long value, the SIM or preview
- * tag), so each step drops one more item; one item always stays.
+ * tag), so each step drops one more item; one item always stays. The items of `dropFirst` go
+ * before any other (the settings preview's ghosts: what is really shown is drawn as without them).
  */
 export function fitInfoItems(
   items: readonly InfoItemId[],
   widthEm: number,
   gapEm = INFO_ITEM_GAP_EM,
-  dropAtLeast = 0
+  dropAtLeast = 0,
+  dropFirst: ReadonlySet<InfoItemId> = NO_ITEMS
 ): InfoItemId[] {
   const kept = [...items]
   if (!(widthEm > 0)) return kept
   const width = (ids: readonly InfoItemId[]): number =>
     ids.reduce((sum, id, i) => sum + INFO_ITEMS[id].em + (i > 0 ? gapEm : 0), 0)
+  const rank = (id: InfoItemId): number =>
+    dropFirst.has(id) ? Number.POSITIVE_INFINITY : INFO_ITEMS[id].priority
   const dropOne = (): void => {
     let drop = 0
     for (let i = 1; i < kept.length; i++) {
       const a = kept[i]
       const b = kept[drop]
-      if (a !== undefined && b !== undefined && INFO_ITEMS[a].priority >= INFO_ITEMS[b].priority) {
+      if (a !== undefined && b !== undefined && rank(a) >= rank(b)) {
         drop = i
       }
     }

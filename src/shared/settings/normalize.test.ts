@@ -332,7 +332,8 @@ const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = {
   customizeOpen: list(
     CUSTOMIZE_ZONES,
     CUSTOMIZE_ZONES.filter((id) => !FIRST_ZONES.includes(id))
-  )
+  ),
+  previewHint: true
 }
 
 /** Visibility of `id` in a list (the tests read the lists through this). */
@@ -605,7 +606,8 @@ describe('normalizeSettings: basics', () => {
     s.lights = { ...DEFAULT_LIGHTS, layout: 'column', labelSide: 'left' }
     s.settingsWindow = {
       stageScene: 'light',
-      customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines'])
+      customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines']),
+      previewHint: false
     }
     s.shortcuts = { ...DEFAULT_SHORTCUTS, cycleDeltaReference: 'Ctrl+Alt+D' }
     s.widgets.traffic = { ...s.widgets.traffic, anchor: 'bottom', scale: 90, hideInPits: true }
