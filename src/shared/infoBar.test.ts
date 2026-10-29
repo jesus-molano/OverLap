@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   COMPUTED_INFO_ITEMS,
   INFO_BARS,
+  NO_BAR_SECTIONS,
   INFO_BAR_SIZES,
   INFO_ITEMS,
   INFO_ITEM_GAP_EM,
@@ -63,7 +64,13 @@ describe('reading the bars of a section', () => {
 
   it("every section with bars: the defaults draw today's items", () => {
     const s = createDefaultSettings()
-    expect(Object.keys(INFO_BARS)).toEqual(['relative', 'standings', 'fuel'])
+    expect(Object.keys(INFO_BARS)).toEqual(['relative', 'standings', 'fuel', 'traffic', 'battle'])
+    // Every panel-style widget has a header and a footer; the gauge-like ones have none.
+    for (const bars of Object.values(INFO_BARS)) {
+      expect(bars[0]?.[0]).toBe('headerBar')
+      expect(bars[bars.length - 1]?.[0]).toBe('footerBar')
+    }
+    for (const id of NO_BAR_SECTIONS) expect(id in INFO_BARS).toBe(false)
     expect(sectionInfoItems('relative', s.relative)).toEqual(['title', 'session', 'incidents'])
     expect(sectionInfoItems('standings', s.standings)).toEqual([
       'session',
@@ -80,8 +87,11 @@ describe('reading the bars of a section', () => {
       'airTemp',
       'rubber'
     ])
-    // The fuel's header is off by default.
+    // The fuel's header is off by default, and every footer that is new; the traffic's header is
+    // its title band of before.
     expect(sectionInfoItems('fuel', s.fuel)).toEqual([])
+    expect(sectionInfoItems('battle', s.battle)).toEqual([])
+    expect(sectionInfoItems('traffic', s.traffic)).toEqual(['title'])
     expect(infoItemShown('standings', s.standings, 'iRating')).toBe(true)
     expect(infoItemShown('relative', s.relative, 'trackTemp')).toBe(false)
   })
@@ -173,6 +183,23 @@ describe('fitInfoItems', () => {
     for (const s of steps) expect(s).toContain('session')
     // By the estimates alone the long iRating item is not left to overflow next to the rest.
     expect(width(steps[0] ?? [])).toBeLessThanOrEqual(31.6)
+  })
+
+  it('drops the ghosts of the settings preview before anything really shown', () => {
+    const real: InfoItemId[] = ['session', 'rubber', 'incidents']
+    // 'clock' and 'sof' are ghosts: the room is the real items' and one ghost's.
+    const ids: InfoItemId[] = ['session', 'clock', 'rubber', 'sof', 'incidents']
+    const ghosts = new Set<InfoItemId>(['clock', 'sof'])
+    const room = width([...real, 'clock'])
+    const out = fitInfoItems(ids, room, INFO_ITEM_GAP_EM, 0, ghosts)
+    for (const id of real) expect(out).toContain(id)
+    expect(out.filter((id) => ghosts.has(id))).toHaveLength(1)
+    // With no room for any ghost, exactly what the bar draws without them.
+    expect(fitInfoItems(ids, width(real), INFO_ITEM_GAP_EM, 0, ghosts)).toEqual(
+      fitInfoItems(real, width(real))
+    )
+    // A measured overflow drops a ghost first too.
+    expect(fitInfoItems(ids, 100, INFO_ITEM_GAP_EM, 2, ghosts)).toEqual(real)
   })
 
   it('returns a new list in the given order', () => {

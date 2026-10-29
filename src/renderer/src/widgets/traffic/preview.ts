@@ -6,6 +6,7 @@
  */
 import type { DriverIdentity } from '@shared/driver'
 import type { TrafficData, TrafficEntry, TrafficKind } from '@shared/types'
+import { PREVIEW_INFO } from '@renderer/view/infoBar'
 import { GROUP_ORDER, type TrafficViewOptions } from './view'
 
 const GTP = '#ff5888'
@@ -102,7 +103,9 @@ export const PREVIEW_TRAFFIC: TrafficData = Object.freeze({
       passing: null,
       hazard: null
     })
-  ])
+  ]),
+  // The info bars' sample (every item has something to show).
+  info: PREVIEW_INFO
 })
 
 /**

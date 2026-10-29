@@ -17,7 +17,10 @@ import { isZoneOpen, provideZoneRegistry, setZonesOpen } from './zonesOpen'
  * On a widget page they move to the page's own place for them (WidgetPage: below the options,
  * or a column of their own in a wide window); anywhere else they stay where they are. The
  * editors join its registry, so "Expandir todo / Contraer todo" opens or closes them all.
+ * `no-bars`: the page of a widget without info bars (infoBar.ts NO_BAR_SECTIONS) says so and why,
+ * under the heading.
  */
+const props = withDefaults(defineProps<{ noBars?: boolean }>(), { noBars: false })
 const t = useI18n()
 const host = injectCustomizeHost()
 const titleId = useId()
@@ -68,6 +71,7 @@ onBeforeUnmount(() => {
           </button>
         </span>
       </header>
+      <p v-if="props.noBars" class="cz-nobars">{{ t.settings.common.noBars }}</p>
       <div class="cz-body">
         <slot />
       </div>
@@ -109,6 +113,13 @@ onBeforeUnmount(() => {
   gap: 2px;
   margin-left: auto;
   align-self: center;
+}
+
+/* A quiet line, the page's own note: no box, no rule. */
+.cz-nobars {
+  margin: -6px 0 14px;
+  color: var(--ov-fg-dim);
+  font-size: 12px;
 }
 
 .cz-body {

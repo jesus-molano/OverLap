@@ -17,6 +17,12 @@ import {
   shownCount,
   sideMessage,
   sideOf,
+  barRows,
+  barStop,
+  movedPast,
+  placeOfSlot,
+  placedAt,
+  shownAtSideEnd,
   sides,
   toggled,
   visibilityMessage
@@ -180,8 +186,11 @@ describe('two sides of an info bar', () => {
 
   it('numbers a row within its box, as the box shows it', () => {
     const list = defaults(BAR)
-    expect(boxPosition(list, 'z', 'split')).toEqual({ index: 0, total: 2 })
+    // w is hidden: it waits in the Ocultos group, not in the right box.
+    expect(boxPosition(list, 'z', 'split')).toEqual({ index: 0, total: 1 })
     expect(boxPosition(list, 'y', 'split')).toEqual({ index: 1, total: 2 })
+    const leftHidden = list.map((e) => (e.id === 'x' ? { ...e, visible: false } : e))
+    expect(boxPosition(leftHidden, 'y', 'split')).toEqual({ index: 0, total: 1 })
     expect(boxPosition(list, 'z', undefined)).toEqual({ index: 3, total: 5 })
   })
 
@@ -192,5 +201,67 @@ describe('two sides of an info bar', () => {
     const to = dropIndex(centres, 1, 170)
     expect(ids(movedTo(BAR, list, 'y', to))).toEqual(['x', 'split', 'z', 'y', 'w'])
     expect(sideOf(movedTo(BAR, list, 'z', dropIndex(centres, 3, 50)), 'z', 'split')).toBe('left')
+  })
+})
+
+describe('places by neighbour, an info bar with its hidden items apart', () => {
+  type B = 'a' | 'b' | 'split' | 'c' | 'd'
+  const BAR = elements<B>(['a', 'b', 'split', 'c', 'd'], {})
+  const L = (hidden: B[] = []): { id: B; visible: boolean }[] =>
+    (['a', 'b', 'split', 'c', 'd'] as B[]).map((id) => ({ id, visible: !hidden.includes(id) }))
+  const order = (l: readonly { id: string; visible: boolean }[]): string =>
+    l.map((e) => (e.visible ? e.id : `(${e.id})`)).join(' ')
+
+  it('puts an element just before or after a neighbour', () => {
+    expect(order(placedAt(BAR, L(), 'd', { kind: 'before', id: 'a' }))).toBe('d a b split c')
+    expect(order(placedAt(BAR, L(), 'a', { kind: 'after', id: 'c' }))).toBe('b split c a d')
+    expect(order(placedAt(BAR, L(), 'a', { kind: 'after', id: 'a' }))).toBe('a b split c d')
+    const fixed = placedAt(FIXED, defaults(FIXED), 'c', { kind: 'before', id: 'a' })
+    expect(fixed.map((e) => e.id)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('maps a drag slot among the rows drawn to a place', () => {
+    expect(placeOfSlot(['a', 'b', 'c'], 'a', 0)).toEqual({ kind: 'before', id: 'b' })
+    expect(placeOfSlot(['a', 'b', 'c'], 'a', 2)).toEqual({ kind: 'after', id: 'c' })
+    expect(placeOfSlot(['a', 'b', 'c'], 'c', 1)).toEqual({ kind: 'before', id: 'b' })
+    expect(placeOfSlot(['a'], 'a', 0)).toBeNull()
+  })
+
+  it('steps past the next shown row (or the marker), whatever is hidden between', () => {
+    const l = L(['b', 'c'])
+    const stop = barStop<B>('split')
+    // 'a' down: past the marker (b is hidden): the start of the right side.
+    expect(order(movedPast(BAR, l, 'a', 1, stop) ?? [])).toBe('(b) split a (c) d')
+    // 'd' up: past the marker too (c is hidden): the end of the left side.
+    expect(order(movedPast(BAR, l, 'd', -1, stop) ?? [])).toBe('a (b) d split (c)')
+    expect(movedPast(BAR, l, 'a', -1, stop)).toBeNull()
+    expect(movedPast(BAR, l, 'd', 1, stop)).toBeNull()
+    expect(movedPast(FIXED, defaults(FIXED), 'a', 1, () => true)).toBeNull()
+  })
+
+  it('draws the shown items in their boxes and the hidden ones apart, with their side', () => {
+    const rows = barRows(L(['b', 'd']), 'split')
+    expect(rows.left.map((r) => r.entry.id)).toEqual(['a'])
+    expect(rows.right.map((r) => r.entry.id)).toEqual(['c'])
+    expect(rows.hidden.map((r) => [r.entry.id, r.side, r.index])).toEqual([
+      ['b', 'left', 1],
+      ['d', 'right', 4]
+    ])
+  })
+
+  it('shows a hidden item at the end of its side, the marker kept', () => {
+    const l = (['b', 'a', 'split', 'd', 'c'] as B[]).map((id) => ({
+      id,
+      visible: id !== 'b' && id !== 'd'
+    }))
+    expect(order(shownAtSideEnd(BAR, l, 'b', 'split'))).toBe('a b split (d) c')
+    expect(order(shownAtSideEnd(BAR, l, 'd', 'split'))).toBe('(b) a split c d')
+    // No marker: shown where it is.
+    const flat = elements<string>(['x', 'y'], {})
+    const hiddenX = [
+      { id: 'x', visible: false },
+      { id: 'y', visible: true }
+    ]
+    expect(order(shownAtSideEnd(flat, hiddenX, 'x', 'split'))).toBe('x y')
   })
 })

@@ -149,6 +149,7 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
   '../layout/AccordionSection.vue': { default: Accordion },
   '../layout/PageSection.vue': { default: Stub },
   '../layout/zonesOpen': zonesOpen,
+  '../preview/usePreviewEdit': { injectPreviewEdit: () => null },
   '../useOptimistic': useOptimistic,
   './listOps': listOps
 })

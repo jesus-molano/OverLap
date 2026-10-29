@@ -9,6 +9,7 @@
 import { driverIdentity, fieldHasMultipleBrands, identityEqual } from './driver'
 import { isElementVisible } from './elements'
 import { arrayEqual } from './equal'
+import { infoBarDataEqual } from './infoFeed'
 import { quantise } from './num'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { classRatingField } from './ratings/field'
@@ -205,7 +206,9 @@ export class BattleProvider {
       playerLastLaps: lastLapTimes(player),
       ahead: null,
       behind: null,
-      multiBrand: fieldHasMultipleBrands(session)
+      multiBrand: fieldHasMultipleBrands(session),
+      // The info bars' data is the provider set's (InfoFeed).
+      info: null
     }
     const me = session.drivers.get(playerIdx)
     // After your flag the result is fixed: nothing left to fight for.
@@ -389,6 +392,7 @@ export function battleEqual(a: BattleData, b: BattleData): boolean {
     a.multiBrand === b.multiBrand &&
     arrayEqual(a.playerLastLaps, b.playerLastLaps) &&
     opponentEqual(a.ahead, b.ahead) &&
-    opponentEqual(a.behind, b.behind)
+    opponentEqual(a.behind, b.behind) &&
+    infoBarDataEqual(a.info, b.info)
   )
 }

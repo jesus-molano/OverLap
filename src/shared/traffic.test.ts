@@ -30,7 +30,13 @@ const OPTS: TrafficOptions = {
     { id: 'faster', visible: true }
   ],
   parts: defaultOptions('traffic').parts,
-  header: defaultOptions('traffic').header,
+  headerBar: defaultOptions('traffic').headerBar,
+  headerBarSize: 'normal',
+  footerBar: defaultOptions('traffic').footerBar,
+  footerBarSize: 'off',
+  conditionsTrend: true,
+  conditionsWindDirection: true,
+  captions: true,
   onlyMulticlass: true,
   nameFormat: 'inherit'
 }
@@ -520,7 +526,13 @@ describe('classes and options', () => {
       w.set(7, { pct: 0.52, offTrack: true })
       return compute(w)
     }
-    expect(traffic('Lone Qualify')).toEqual({ visible: false, faster: [], slower: [], hazards: [] })
+    expect(traffic('Lone Qualify')).toEqual({
+      visible: false,
+      faster: [],
+      slower: [],
+      hazards: [],
+      info: null
+    })
     // The same cars in an open session are traffic.
     expect(traffic('Open Qualify').visible).toBe(true)
   })
@@ -538,7 +550,13 @@ describe('classes and options', () => {
     const all = compute(w)
     expect([all.faster.length, all.slower.length, all.hazards.length]).toEqual([1, 1, 1])
     const none = compute(w, groups('faster', 'slower', 'hazard'))
-    expect(none).toEqual({ visible: false, faster: [], slower: [], hazards: [] })
+    expect(none).toEqual({
+      visible: false,
+      faster: [],
+      slower: [],
+      hazards: [],
+      info: null
+    })
     const onlySlower = compute(w, groups('faster', 'hazard'))
     expect([onlySlower.faster.length, onlySlower.slower.length, onlySlower.hazards.length]).toEqual(
       [0, 1, 0]

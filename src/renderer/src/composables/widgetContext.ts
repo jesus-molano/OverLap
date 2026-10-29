@@ -25,6 +25,13 @@ export interface SampleHost {
   reportHeight(px: number): void
   /** Name format and density follow the appearance whatever the widget's own option. */
   readonly globalAppearance: boolean
+  /**
+   * Editing in the sample (settings/preview): an option section as the sample draws it (its
+   * hidden elements shown, to be ghosted), and the `data-el`s drawn ghosted (an info bar drops
+   * those first when it has no room). Absent: the options as they are.
+   */
+  readonly viewOptions?: <T extends object>(section: string, options: T) => T
+  readonly ghosts?: Readonly<Ref<readonly string[]>>
 }
 
 const SAMPLE_HOST: InjectionKey<SampleHost> = Symbol('sample-host')

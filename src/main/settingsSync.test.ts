@@ -306,7 +306,13 @@ describe('diffSettings and the widget options', () => {
   })
 
   it('traffic: only the name format stays in the renderer', () => {
-    expect(DISPLAY_ONLY.traffic).toEqual(['parts', 'header', 'nameFormat'])
+    expect(DISPLAY_ONLY.traffic).toEqual([
+      'parts',
+      'conditionsTrend',
+      'conditionsWindDirection',
+      'captions',
+      'nameFormat'
+    ])
     expect(configChanged((s) => (s.traffic.nameFormat = 'tv'))).toBe(false)
     expect(configChanged((s) => (s.traffic.behindS = 20))).toBe(true)
     expect(configChanged((s) => (s.traffic.aheadS = 4))).toBe(true)

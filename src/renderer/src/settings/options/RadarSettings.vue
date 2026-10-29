@@ -42,7 +42,7 @@ const setParts = listSetter('radar', 'parts')
     />
   </PageSection>
 
-  <CustomizeSection>
+  <CustomizeSection no-bars>
     <ElementEditor
       :title="zoneTitle(t, 'radar', 'parts')"
       :items="opts.parts"

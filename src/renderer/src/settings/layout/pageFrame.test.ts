@@ -191,7 +191,7 @@ describe('preview stage scenes', () => {
 
   it('switches the scene on the stage: a labelled radio group, outside the hidden sample', () => {
     const t = templateOf(SAMPLE_STAGE)
-    expect(t).toContain('<figure class="stage" :data-scene="sceneNow">')
+    expect(t).toContain('<figure ref="stage" class="stage" :data-scene="sceneNow">')
     expect(t).toContain('role="radiogroup" :aria-labelledby="sceneLabelId"')
     expect(t).toContain('type="radio"')
     expect(t.indexOf('class="scene-switch"')).toBeGreaterThan(t.indexOf('<slot />'))

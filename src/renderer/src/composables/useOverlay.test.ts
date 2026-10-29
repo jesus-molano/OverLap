@@ -38,6 +38,7 @@ const BATTLE: BattleData = {
   playerLastLaps: [],
   ahead: null,
   behind: null,
+  info: null,
   multiBrand: false
 }
 

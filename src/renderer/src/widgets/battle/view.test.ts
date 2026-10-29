@@ -65,6 +65,7 @@ function battle(over: Partial<BattleData> = {}): BattleData {
     ahead: null,
     behind: null,
     multiBrand: false,
+    info: null,
     ...over
   }
 }

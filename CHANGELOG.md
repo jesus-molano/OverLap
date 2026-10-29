@@ -20,6 +20,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   vuelve a funcionar solo. Sin ningún atajo en un botón, OverLap no lee los mandos.
 - Las crucetas (D-pad) y los hats no se pueden asignar. Volver a la 2.1.1 devuelve a su
   combinación de fábrica los atajos que estaban en un botón.
+- **Editar en la vista previa**: en la página de cada widget, pasa el ratón por un elemento de la
+  vista previa para ver su nombre, arrástralo para cambiarlo de sitio (en las cabeceras y pies,
+  también de un lado al otro) y haz clic para mostrarlo u ocultarlo. Mientras editas, los ocultos
+  se dibujan translúcidos donde caben, para poder recuperarlos: un clic los muestra en su sitio y
+  arrastrarlos los muestra donde los sueltes. La lista y la vista previa se señalan una a otra, y
+  al tocar algo en la vista previa se abre su sección.
+- **Cabecera y pie en todos los paneles**: Combustible, Tráfico y Batalla tienen ahora la misma
+  cabecera y el mismo pie que Relativo y Clasificación, con el mismo catálogo de datos (tiempo
+  restante, SoF, vueltas de combustible, temperatura de pista…), interruptor, tamaño y cajas
+  Izquierda/Derecha, y se editan también en la vista previa. Los nuevos vienen apagados, así que
+  nada cambia hasta que los enciendas. Delta, Pedales, Radar, Testigos y Avisos siguen sin ellos,
+  y su página lo explica.
+
+### Cambiado
+
+- **Tráfico**: su título es ahora la cabecera compartida (se ve igual y admite más datos); los
+  rótulos de los grupos pasan a ser un interruptor en «Grupos». Un archivo de ajustes anterior
+  conserva cómo los tenías, y la sección «Cabecera» abierta o cerrada como estaba.
+- En las listas de cabecera, segunda línea y pie, los elementos ocultos ya no llenan la caja
+  «Derecha»: van en un grupo «Ocultos» plegado debajo; al mostrar uno, va al final de su lado.
 
 ## [2.1.1] - 2026-10-29
 

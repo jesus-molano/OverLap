@@ -11,8 +11,9 @@ import { nameExample, nameFormatChoicesInherit } from '../controls/choices'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { elementToggle, listSetter, optionSetter } from '../editor'
+import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
@@ -56,8 +57,9 @@ const showHazards = computed(() => isElementVisible(opts.value.groups, 'hazard')
 const nothing = computed(() => !showFaster.value && !showSlower.value && !showHazards.value)
 const noClasses = computed(() => !showFaster.value && !showSlower.value)
 
-// One editor per zone: the groups (a hidden one is not looked for), the cells of a car line and
-// the header. The groups keep the hints their toggles had.
+// One editor per zone: the groups (a hidden one is not looked for, their captions a switch of
+// theirs), the cells of a car line, and the header and footer bars as on the other panels. The
+// groups keep the hints their toggles had.
 const groups = computed(() => {
   const tr = t.value.settings.traffic
   const l = elementTexts(t.value, 'traffic', 'groups')
@@ -74,28 +76,8 @@ const parts = computed(() => ({
   title: zoneTitle(t.value, 'traffic', 'parts'),
   labels: elementTexts(t.value, 'traffic', 'parts')
 }))
-// The header's title is its switch, as on the other widgets' bars ("Mostrar cabecera": the
-// header is that title and the SIM tag); the group captions stay a row of the list, its hint
-// saying they are drawn over the groups whatever the switch says.
-const titleShown = computed(() => isElementVisible(opts.value.header, 'title'))
-const header = computed(() => {
-  const l = elementTexts(t.value, 'traffic', 'header')
-  return {
-    title: zoneTitle(t.value, 'traffic', 'header'),
-    labels: {
-      title: l.title,
-      captions: { label: l.captions.label, hint: t.value.settings.traffic.captionsHelp }
-    },
-    summary: titleShown.value
-      ? t.value.settings.infoBar.summaryOn
-      : t.value.settings.infoBar.summaryOff
-  }
-})
 const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
-const setHeader = listSetter('traffic', 'header')
-const setTitleShown = elementToggle('traffic', 'header', 'title')
-const HEADER_OMIT = ['title'] as const
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const nameHelp = computed(() =>
@@ -169,6 +151,8 @@ const nameHelp = computed(() =>
   </PageSection>
 
   <CustomizeSection>
+    <InfoBarEditor section="traffic" field="headerBar" />
+    <InfoBarEditor section="traffic" field="footerBar" />
     <ElementEditor
       :title="groups.title"
       :items="opts.groups"
@@ -176,7 +160,18 @@ const nameHelp = computed(() =>
       :labels="groups.labels"
       :apply="setGroups"
       empty-hides
-    />
+    >
+      <template #footer>
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.traffic.captions"
+          :help="t.settings.traffic.captionsHelp"
+          :current="opts.captions"
+          :disabled="nothing"
+          :apply="set('captions')"
+        />
+      </template>
+    </ElementEditor>
     <ElementEditor
       :title="parts.title"
       :items="opts.parts"
@@ -184,23 +179,5 @@ const nameHelp = computed(() =>
       :labels="parts.labels"
       :apply="setParts"
     />
-    <ElementEditor
-      :title="header.title"
-      :items="opts.header"
-      :spec="S.header"
-      :labels="header.labels"
-      :apply="setHeader"
-      :omit="HEADER_OMIT"
-      :summary="header.summary"
-    >
-      <template #head>
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.infoBar.show.headerBar"
-          :current="titleShown"
-          :apply="setTitleShown"
-        />
-      </template>
-    </ElementEditor>
   </CustomizeSection>
 </template>

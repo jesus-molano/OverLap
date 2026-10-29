@@ -81,6 +81,34 @@ export const settingsEs = {
       light: { label: 'Día', hint: 'El widget sobre una escena clara' }
     }
   },
+  /** Editing in a widget page's preview (settings/preview/PreviewEditLayer.vue). */
+  preview: {
+    /** Above the preview until dismissed (settingsWindow.previewHint). */
+    hint: 'Arrastra en la vista previa para ordenar; clic para mostrar u ocultar',
+    hintMore: 'Los ocultos se ven translúcidos mientras editas, donde caben.',
+    /** The same on a page whose preview draws no ghosts (previewEdit.ts GHOST_ZONES). */
+    hintMoreList: 'Lo que ocultes vuelve desde su lista, debajo.',
+    hintDismiss: 'Entendido',
+    hintDismissLabel: 'Ocultar este consejo',
+    /** Under an element's name on hover: what the pointer does to it. */
+    actions: {
+      'move-hide': 'Arrastra para mover · clic para ocultar',
+      hide: 'Clic para ocultar · su orden es fijo',
+      'move-required': 'Arrastra para mover · siempre visible',
+      required: 'Siempre visible y en orden fijo',
+      show: 'Oculto · clic o arrastra para mostrarlo'
+    },
+    /** A click or a drag that the rules refuse. */
+    refused: {
+      required: (item: string) => `${item} está siempre visible: no se puede ocultar`,
+      fixed: (zone: string) => `${zone} tiene un orden fijo: no se reordena`
+    },
+    /** While dragging, under the element's name: what the drop does (and on which side). */
+    moving: 'Suelta para colocarlo aquí',
+    movingSide: (side: string) => `Suelta para colocarlo aquí · ${side}`,
+    /** After hiding an element the preview cannot draw ghosted. */
+    hiddenNote: (item: string) => `${item} oculto: vuelve a mostrarlo desde su lista`
+  },
   controls: {
     customColor: 'Color personalizado',
     customColorLabel: (label: string) => `${label}: color personalizado`,
@@ -95,6 +123,8 @@ export const settingsEs = {
     /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
     customize: 'Personalizar',
     customizeNote: 'Orden y visibilidad de cada parte',
+    /** The pages of the widgets without info bars (infoBar.ts NO_BAR_SECTIONS). */
+    noBars: 'Sin cabecera ni pie: es una lectura compacta y una barra solo le añadiría altura',
     /** Every accordion of "Personalizar" at once. */
     expandAll: 'Expandir todo',
     collapseAll: 'Contraer todo',
@@ -608,7 +638,8 @@ export const settingsEs = {
     fasterHelp: 'Te alcanza por detrás: en cuánto y dónde',
     slowerHelp: 'Una clase más lenta a la que alcanzas',
     hazardsHelp: 'Coches parados, muy lentos o fuera de pista delante',
-    /** The header's captions row: drawn over each group, whatever the header's switch says. */
+    /** The groups' captions switch: drawn over each group, whatever the header's switch says. */
+    captions: 'Rótulos de los grupos',
     captionsHelp: 'PELIGRO, DELANTE, POR DETRÁS sobre cada grupo; aunque no se muestre la cabecera',
     behind: 'Mirar atrás',
     behindHelp: 'Coches más rápidos hasta este tiempo por detrás de ti',
@@ -948,6 +979,11 @@ export const settingsEs = {
     sides: { left: 'Izquierda', right: 'Derecha' },
     sidesHelp: { left: 'Al principio de la línea', right: 'Al final de la línea' },
     sideEmpty: 'Nada a este lado: arrastra aquí un elemento',
+    /** An info bar's hidden items, in their own collapsed group under the two boxes. */
+    hiddenGroup: (n: number) => `Ocultos (${n})`,
+    hiddenGroupHelp: 'Al mostrar uno, va al final de su lado',
+    /** A hidden item's side, after its name. */
+    hiddenSide: { left: 'Izquierda', right: 'Derecha' },
     toLeft: (item: string) => `Pasar ${item} a la izquierda`,
     toRight: (item: string) => `Pasar ${item} a la derecha`,
     movedLeft: (item: string) => `${item}: a la izquierda.`,
@@ -988,12 +1024,18 @@ export const settingsEs = {
       footerBar: 'Pie',
       classLine: 'Línea de clase'
     },
-    battle: { lanes: 'Rivales', rows: 'Filas', parts: 'Detalles' },
+    battle: {
+      lanes: 'Rivales',
+      rows: 'Filas',
+      parts: 'Detalles',
+      headerBar: 'Cabecera',
+      footerBar: 'Pie'
+    },
     inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos', car: 'Coche' },
-    traffic: { groups: 'Grupos', parts: 'Columnas', header: 'Cabecera' },
+    traffic: { groups: 'Grupos', parts: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Filas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
-    fuel: { headerBar: 'Cabecera', lines: 'Líneas' },
+    fuel: { headerBar: 'Cabecera', lines: 'Líneas', footerBar: 'Pie' },
     lights: { icons: 'Testigos' },
     /** The accordions' open state (no editor of its own): named for completeness. */
     settingsWindow: { customizeOpen: 'Secciones abiertas de Personalizar' }
@@ -1058,8 +1100,7 @@ export const settingsEs = {
         lead: 'Texto antes del tiempo',
         value: 'Tiempo',
         sector: 'Sector'
-      },
-      header: { title: 'Título del widget', captions: 'Rótulos de los grupos' }
+      }
     },
     alerts: { parts: { notes: 'Qué hacer, tras cada aviso', chips: 'Otros avisos en chips' } },
     delta: {
@@ -1106,7 +1147,7 @@ export const settingsEs = {
       rubber: 'Goma'
     },
     hints: {
-      title: 'El rótulo «RELATIVO» o «CLASIFICACIÓN» con el que empieza la cabecera',
+      title: 'El nombre del widget en mayúsculas: «RELATIVO», «TRÁFICO»…',
       remaining: '«38:19  ≈19 v», «Quedan 12 v»; «Final» tras tu bandera',
       sof: 'La de tu clase',
       carCount: 'Los inscritos en tu clase',
@@ -1132,8 +1173,6 @@ export const settingsEs = {
     summary: (size: string, visible: number, total: number) =>
       `${size} · ${visible} de ${total} visibles`,
     summaryOff: 'No se muestra',
-    /** A shown header without a size of its own (the traffic's). */
-    summaryOn: 'Se muestra',
     size: 'Tamaño',
     sizeChoices: {
       off: { label: 'Oculta' },
@@ -1325,6 +1364,27 @@ export const settingsEn: Dict<typeof settingsEs> = {
       light: { label: 'Day', hint: 'The widget over a bright scene' }
     }
   },
+  preview: {
+    hint: 'Drag in the preview to reorder; click to show or hide',
+    hintMore: 'Hidden elements show translucent while you edit, where they fit.',
+    hintMoreList: 'What you hide comes back from its list, below.',
+    hintDismiss: 'Got it',
+    hintDismissLabel: 'Hide this tip',
+    actions: {
+      'move-hide': 'Drag to move · click to hide',
+      hide: 'Click to hide · its order is fixed',
+      'move-required': 'Drag to move · always shown',
+      required: 'Always shown, in a fixed order',
+      show: 'Hidden · click or drag to show it'
+    },
+    refused: {
+      required: (item) => `${item} is always shown: it cannot be hidden`,
+      fixed: (zone) => `${zone} has a fixed order: it cannot be reordered`
+    },
+    moving: 'Drop to place it here',
+    movingSide: (side) => `Drop to place it here · ${side}`,
+    hiddenNote: (item) => `${item} hidden: show it again from its list`
+  },
   controls: {
     customColor: 'Custom colour',
     customColorLabel: (label) => `${label}: custom colour`,
@@ -1337,6 +1397,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     content: 'Content',
     customize: 'Customise',
     customizeNote: 'Order and visibility of each part',
+    noBars: 'No header or footer: it is a compact readout, and a bar would only add height',
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
     show: 'Show',
@@ -1796,6 +1857,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fasterHelp: 'Catching you from behind: how soon and where',
     slowerHelp: 'A slower class you are catching',
     hazardsHelp: 'Stopped, very slow or off-track cars ahead',
+    captions: 'Group captions',
     captionsHelp: 'HAZARD, AHEAD, BEHIND over each group; even with the header hidden',
     behind: 'Look behind',
     behindHelp: 'Faster cars up to this far behind you',
@@ -2093,6 +2155,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sides: { left: 'Left', right: 'Right' },
     sidesHelp: { left: 'At the start of the line', right: 'At the end of the line' },
     sideEmpty: 'Nothing on this side: drag an element here',
+    hiddenGroup: (n) => `Hidden (${n})`,
+    hiddenGroupHelp: 'Shown again, an element goes to the end of its side',
+    hiddenSide: { left: 'Left', right: 'Right' },
     toLeft: (item) => `Move ${item} to the left`,
     toRight: (item) => `Move ${item} to the right`,
     movedLeft: (item) => `${item}: on the left.`,
@@ -2125,12 +2190,18 @@ export const settingsEn: Dict<typeof settingsEs> = {
       footerBar: 'Footer',
       classLine: 'Class line'
     },
-    battle: { lanes: 'Rivals', rows: 'Rows', parts: 'Details' },
+    battle: {
+      lanes: 'Rivals',
+      rows: 'Rows',
+      parts: 'Details',
+      headerBar: 'Header',
+      footerBar: 'Footer'
+    },
     inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
-    traffic: { groups: 'Groups', parts: 'Columns', header: 'Header' },
+    traffic: { groups: 'Groups', parts: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     alerts: { parts: 'Extras' },
     delta: { rows: 'Rows', top: 'Top line', laps: 'Lap times' },
-    fuel: { headerBar: 'Header', lines: 'Lines' },
+    fuel: { headerBar: 'Header', lines: 'Lines', footerBar: 'Footer' },
     lights: { icons: 'Lights' },
     settingsWindow: { customizeOpen: 'Open sections of Customise' }
   },
@@ -2189,8 +2260,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         lead: 'Words before the time',
         value: 'Time',
         sector: 'Sector'
-      },
-      header: { title: 'Widget title', captions: 'Group captions' }
+      }
     },
     alerts: { parts: { notes: 'What to do, after each alert', chips: 'Other alerts as chips' } },
     delta: {
@@ -2231,7 +2301,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       rubber: 'Rubber'
     },
     hints: {
-      title: 'The “RELATIVE” or “STANDINGS” label the header starts with',
+      title: 'The widget’s name in capitals: “RELATIVE”, “TRAFFIC”…',
       remaining: '“38:19  ≈19 laps”, “12 laps to go”; “Finished” after your flag',
       sof: 'Of your class',
       carCount: 'The entries of your class',
@@ -2254,7 +2324,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     summary: (size, visible, total) => `${size} · ${visible} of ${total} shown`,
     summaryOff: 'Not shown',
-    summaryOn: 'Shown',
     size: 'Size',
     sizeChoices: {
       off: { label: 'Hidden' },

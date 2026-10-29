@@ -9,6 +9,7 @@ import {
   REMOVED_WIDGETS,
   SHOWN_WHEN_ADDED,
   freeSpot,
+  migrateCustomizeOpen,
   migrateSection
 } from './migrate'
 
@@ -439,6 +440,68 @@ describe('the element lists from the options they replaced (v2.6)', () => {
     expect(ids(normalizeSettings({ inputs: { showGearSpeed: false } }).inputs.info)).toEqual([
       'steering'
     ])
+  })
+
+  it("the traffic's title band and captions (2.1.1's header list): its header bar and a switch", () => {
+    const traffic = (header: unknown): OverlaySettings['traffic'] =>
+      normalizeSettings({ traffic: { header } }).traffic
+    const both = traffic([
+      { id: 'title', visible: true },
+      { id: 'captions', visible: true }
+    ])
+    expect(both.headerBarSize).toBe('normal')
+    expect(both.captions).toBe(true)
+    expect(both.headerBar).toEqual(createDefaultSettings().traffic.headerBar)
+    expect(both.footerBarSize).toBe('off')
+    const none = traffic([
+      { id: 'captions', visible: false },
+      { id: 'title', visible: false }
+    ])
+    expect(none.headerBarSize).toBe('off')
+    expect(none.captions).toBe(false)
+    // Read as that version read its list: a missing id was hidden, junk was the default.
+    expect(traffic([{ id: 'captions', visible: true }]).headerBarSize).toBe('off')
+    expect(traffic([{ id: 'nope', visible: false }]).headerBarSize).toBe('normal')
+    expect(traffic('junk').headerBarSize).toBe('normal')
+    // A file written since has the new fields: the old list, a leftover, is ignored.
+    const since = normalizeSettings({
+      traffic: {
+        header: [{ id: 'title', visible: false }],
+        headerBarSize: 'small',
+        captions: true
+      }
+    }).traffic
+    expect(since.headerBarSize).toBe('small')
+    expect(since.captions).toBe(true)
+    expect('header' in since).toBe(false)
+  })
+
+  it("keeps the traffic's old Cabecera accordion open or closed under its header bar", () => {
+    const open = (list: unknown): string[] =>
+      normalizeSettings({ settingsWindow: { customizeOpen: list } })
+        .settingsWindow.customizeOpen.filter((e) => e.visible)
+        .map((e) => e.id)
+    expect(open([{ id: 'traffic.header', visible: true }])).toEqual(['traffic.headerBar'])
+    expect(open([{ id: 'traffic.header', visible: false }])).toEqual([])
+    // Written since: the new id wins, the old one is a leftover.
+    expect(
+      open([
+        { id: 'traffic.header', visible: true },
+        { id: 'traffic.headerBar', visible: false }
+      ])
+    ).toEqual([])
+    expect(migrateCustomizeOpen({ customizeOpen: 'junk' })).toEqual({ customizeOpen: 'junk' })
+  })
+
+  it('a file from before the new bars draws the battle, the traffic and the fuel as it did', () => {
+    const s = normalizeSettings({ battle: { thresholdS: 2 }, traffic: {}, fuel: { avgLaps: 4 } })
+    expect(s.battle.headerBarSize).toBe('off')
+    expect(s.battle.footerBarSize).toBe('off')
+    expect(s.fuel.headerBarSize).toBe('off')
+    expect(s.fuel.footerBarSize).toBe('off')
+    expect(s.traffic.headerBarSize).toBe('normal')
+    expect(s.traffic.footerBarSize).toBe('off')
+    expect(s.traffic.captions).toBe(true)
   })
 
   it('a file that has the list keeps it: the old fields are ignored', () => {

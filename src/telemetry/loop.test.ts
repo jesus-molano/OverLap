@@ -216,7 +216,8 @@ const BATTLE: BattleData = {
   playerLastLaps: [],
   ahead: null,
   behind: null,
-  multiBrand: false
+  multiBrand: false,
+  info: null
 }
 const INPUTS: InputsData = {
   throttle: 0,
@@ -239,7 +240,7 @@ const INPUTS: InputsData = {
   ffb: null,
   ffbClip: false
 }
-const TRAFFIC: TrafficData = { visible: false, faster: [], slower: [], hazards: [] }
+const TRAFFIC: TrafficData = { visible: false, faster: [], slower: [], hazards: [], info: null }
 const ALERTS: AlertsData = {
   visible: false,
   flags: [],
