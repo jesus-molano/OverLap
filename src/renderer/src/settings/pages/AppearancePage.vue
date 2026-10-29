@@ -22,6 +22,7 @@ import ConfirmButton from '../layout/ConfirmButton.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
+import { fontScaleHelp as fontScaleHelpText } from '../appearanceHelp'
 import {
   outOfCarHidesSessionScreen,
   replaysHelp as replaysHelpText,
@@ -117,6 +118,8 @@ const replayChoices = computed(() =>
 )
 const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 const FONT_PRESETS = [90, 100, 115, 130] as const
+/** Which widgets the text size changes, by name (the auto-height ones). */
+const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
 
 const styles = createDriverStyles()
 const licText = SAMPLE_CHIPS.licText
@@ -175,7 +178,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
       <PageSection :title="t.settings.appearance.text.title">
         <SliderControl
           :label="t.settings.appearance.text.fontScale"
-          :help="t.settings.appearance.text.fontScaleHelp"
+          :help="fontScaleHelp"
           :current="appearance.fontScale"
           :min="FONT_SCALE_MIN"
           :max="FONT_SCALE_MAX"

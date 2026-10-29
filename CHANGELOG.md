@@ -13,6 +13,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En
   inglés sigue siendo «Standings». Los ajustes guardados no cambian.
 
+### Corregido
+
+- **La ayuda de «Tamaño del texto»** (Apariencia) dice exactamente a qué widgets cambia (Posiciones,
+  Batalla, Pedales, Tráfico, Avisos, Testigos y Combustible) y cuáles ajustan el texto a su ventana
+  (Relativo, Radar y Delta). Antes solo nombraba Clasificación y Batalla.
+
 ## [2.2.0] - 2026-10-29
 
 ### Añadido

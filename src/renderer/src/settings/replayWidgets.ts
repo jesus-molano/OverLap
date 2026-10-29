@@ -11,7 +11,7 @@ import {
 } from '@shared/widgets'
 
 /** Names in sidebar order, joined the way `locale` lists things. */
-function listOf(m: Messages, locale: string, ids: readonly WidgetId[]): string {
+export function widgetList(m: Messages, locale: string, ids: readonly WidgetId[]): string {
   const names = ids.map((id) => widgetTitle(m, id))
   return new Intl.ListFormat(locale, { type: 'conjunction' }).format(names)
 }
@@ -23,7 +23,7 @@ function listOf(m: Messages, locale: string, ids: readonly WidgetId[]): string {
  */
 export function liveOnlyWidgets(m: Messages, locale: string): string {
   const ids = WIDGET_IDS.filter((id) => !followsCamera(id))
-  return listOf(m, locale, ids)
+  return widgetList(m, locale, ids)
 }
 
 /**
@@ -32,7 +32,7 @@ export function liveOnlyWidgets(m: Messages, locale: string): string {
  */
 export function sessionScreenWidgets(m: Messages, locale: string): string {
   const ids = WIDGET_IDS.filter((id) => id !== 'standings' && canShowOnSessionScreen(id))
-  return listOf(m, locale, ids)
+  return widgetList(m, locale, ids)
 }
 
 /**
