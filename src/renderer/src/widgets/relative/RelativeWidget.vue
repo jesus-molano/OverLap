@@ -1,37 +1,35 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { isElementVisible } from '@shared/elements'
-import { formatSessionType } from '@shared/format'
+import { brandMarksOn } from '@shared/carBrands'
+import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
 import type { RelativeData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
-import { useConditionsFooter } from '@renderer/composables/useConditionsFooter'
+import { useAppearance } from '@renderer/composables/useAppearance'
 import { useI18n } from '@renderer/composables/useI18n'
+import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useNameFormat, useOptions } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
-import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
-import ConditionsFooter from '@renderer/ui/ConditionsFooter.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
-import IncidentCount from '@renderer/ui/IncidentCount.vue'
+import InfoBar from '@renderer/ui/InfoBar.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
-import PanelHeader from '@renderer/ui/PanelHeader.vue'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
-import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import TyreChip from '@renderer/ui/TyreChip.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { FOOTER_EM, hasFooter } from '@renderer/view/conditions'
-import { toIncidentCountView, type IncidentCountView } from '@renderer/view/incidents'
-import { reuseView, reuseViews } from '@renderer/view/reuse'
+import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { previewRelative } from './preview'
 import {
+  chromeEm,
   layoutSlots,
   relativeColumns,
+  relativeHeads,
   toSlotViews,
   type RelativeColumns,
+  type RelativeHeadView,
   type SlotView
 } from './view'
 
@@ -45,8 +43,8 @@ const { data, phase } = useWidgetPhase(ID, {
 const opts = useOptions(ID)
 const nameFormat = useNameFormat(ID)
 const { halo, surfaceStyle } = useWidgetSurface(ID)
+const appearance = useAppearance()
 const t = useI18n()
-const title = useWidgetTitle(ID)
 
 const slotsAheadCfg = computed(() => clampRelativeSlots(opts.value.carsAhead))
 const slotsBehindCfg = computed(() => clampRelativeSlots(opts.value.carsBehind))
@@ -60,29 +58,18 @@ const source = useShownContent<RelativeData>(
 )
 const ahead = computed(() => clampRelativeSlots(source.value?.slotsAhead ?? slotsAheadCfg.value))
 const behind = computed(() => clampRelativeSlots(source.value?.slotsBehind ?? slotsBehindCfg.value))
-// The header is an info bar now: until the widget draws it (package P1), today's header with
-// the session and the incidents as its items say.
-const sessionLabel = computed(() =>
-  isElementVisible(opts.value.headerBar, 'session')
-    ? formatSessionType(source.value?.sessionType ?? null, t.value)
-    : ''
-)
-/** Your incidents in the header ('3x · pen. a 17x'); the same object while it reads the same. */
-const incidents = computed<IncidentCountView | null>((prev) =>
-  reuseView(
-    prev,
-    isElementVisible(opts.value.headerBar, 'incidents')
-      ? toIncidentCountView(source.value?.incidents ?? null, t.value)
-      : null
-  )
-)
 
 /**
- * The conditions footer under the rows (its option, off by default): the same object while it
- * reads the same, so the 10 Hz payloads that carry it re-render nothing there.
+ * The header and footer info bars (relative.headerBar / footerBar, each with its size): every
+ * item keeps its object while it reads the same, so the 10 Hz payloads re-render nothing there.
+ * The footer (off by default) is for the rows only, not the offline message.
  */
-const footer = useConditionsFooter(ID, () => source.value?.info?.conditions ?? null)
-const footed = computed(() => phase.value !== 'offline' && hasFooter(footer.value))
+const head = useInfoBar(ID, 'headerBar', () => source.value?.info ?? null)
+const foot = useInfoBar(ID, 'footerBar', () => source.value?.info ?? null)
+const headed = computed(() => head.shown.value)
+const footed = computed(() => phase.value !== 'offline' && foot.shown.value)
+/** The column heads row (relative.columnHeads), over the rows only. */
+const heads = computed(() => opts.value.columnHeads && phase.value !== 'offline')
 
 const styles = createDriverStyles()
 // Slots are keyed by index and an unchanged slot keeps its object, so a 10 Hz payload only
@@ -100,82 +87,114 @@ const slots = computed<readonly SlotView[]>((prev) =>
 )
 /** The provider names no compound while the whole field runs the same one: no tyre column. */
 const tyres = computed(() => source.value?.rows.some((r) => r.tyre !== null) ?? false)
+/** Makes and flags in the driver cell; 'auto' marks only a field of several makes (A.4). */
+const brands = computed(() =>
+  brandMarksOn(opts.value.brandMarks, source.value?.multiBrand ?? false)
+)
 const cols = computed<RelativeColumns>((prev) => {
-  // Until the row draws the list in its order (package P1): the cells it has today.
-  const c = opts.value.columns
-  const next = relativeColumns({
-    showClassPosition: isElementVisible(c, 'pos'),
-    showLicense: isElementVisible(c, 'lic'),
-    showIRating: isElementVisible(c, 'ir'),
-    showTyre: isElementVisible(c, 'tyre') && tyres.value,
-    showStint: isElementVisible(c, 'stint'),
-    showFlags: opts.value.showFlags
+  const next = relativeColumns(opts.value.columns, {
+    tyres: tyres.value,
+    flags: opts.value.showFlags,
+    brand: brands.value,
+    country: opts.value.countryFlags
   })
   return prev !== undefined && prev.key === next.key ? prev : next
 })
+const headViews = computed<readonly RelativeHeadView[]>((prev) =>
+  reuseViews(prev, relativeHeads(cols.value.cells, appearance.value.licenseStyle, t.value))
+)
 
-// Every row inherits --rl-slots, --rl-cols, --rl-fit and --rl-foot (the footer's em, 0 without
-// it); written only when one of them changes.
+/** What the bars and heads take of the height (em of the row font), with the rows. */
+const chrome = computed(() =>
+  chromeEm({
+    header: headed.value ? INFO_BAR_SCALE[head.size.value] : null,
+    heads: heads.value,
+    footer: footed.value ? INFO_BAR_SCALE[foot.size.value] : null
+  })
+)
+
+// Every row inherits --rl-slots, --rl-cols, --rl-fit and --rl-chrome (the bars' and the heads'
+// em); written only when one of them changes.
 const panelStyle = computed<InlineStyle>(() => ({
   ...surfaceStyle.value,
   '--rl-slots': String(slots.value.length),
   '--rl-cols': cols.value.template,
   '--rl-fit': String(cols.value.fitEm),
-  '--rl-foot': footed.value ? String(FOOTER_EM) : '0'
+  '--rl-chrome': String(chrome.value)
 }))
 </script>
 
 <template>
   <div class="ov-root rl-root ov-fade" :class="{ 'is-shown': shown }">
     <WidgetPanel fill :surface="panelStyle" :halo="halo" class="rl-panel">
-      <template #header>
-        <PanelHeader :title="title" :meta="sessionLabel">
-          <IncidentCount v-if="incidents" v-bind="incidents" />
-          <PreviewTag v-if="phase === 'preview'" />
-        </PanelHeader>
+      <template v-if="headed" #header>
+        <InfoBar
+          :view="head.view.value"
+          :size="head.size.value"
+          place="head"
+          sim
+          :preview="phase === 'preview'"
+        />
       </template>
 
       <div v-if="phase === 'offline'" class="rl-status"><StatusMessage /></div>
 
-      <div v-else class="rl-rows">
-        <div
-          v-for="(slot, i) in slots"
-          :key="i"
-          v-memo="[slot, cols.key, t]"
-          v-inline-style="slot.kind === 'car' ? slot.clsStyle : undefined"
-          :class="slot.css"
-        >
-          <template v-if="slot.kind === 'car'">
-            <span v-if="cols.pos" class="c-pos">{{ slot.pos }}</span>
-            <DriverCell
-              class="c-driver"
-              :number="slot.number"
-              :name="slot.name"
-              :name-unknown="slot.nameUnknown"
-              :player="slot.isPlayer"
-              :lap="slot.lap"
-            >
-              <span v-if="cols.flags && slot.penalty" class="rl-flag"
-                ><PenaltyIcon :penalty="slot.penalty"
-              /></span>
-              <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{ t.widgets.common.tow }}</Badge>
-              <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
-            </DriverCell>
-            <span v-if="cols.lic" class="c-lic"
-              ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
-            /></span>
-            <span v-if="cols.ir" class="c-ir">{{ slot.iRating }}</span>
-            <span v-if="cols.tyre" class="c-tyre"><TyreChip :letter="slot.tyre" /></span>
-            <span v-if="cols.stint" class="c-stint"
-              >{{ slot.stint
-              }}<span v-if="slot.stintUnit" class="rl-unit">{{ slot.stintUnit }}</span></span
-            >
-            <span class="c-gap">{{ slot.gap }}</span>
-          </template>
+      <template v-else>
+        <div v-if="heads" v-memo="[headViews]" class="rl-heads" aria-hidden="true">
+          <span v-for="h in headViews" :key="h.id" class="rl-head" :class="`is-${h.align}`">{{
+            h.label
+          }}</span>
         </div>
-      </div>
 
-      <ConditionsFooter v-if="footed" :view="footer" />
+        <div class="rl-rows">
+          <div
+            v-for="(slot, i) in slots"
+            :key="i"
+            v-memo="[slot, cols.key, t]"
+            v-inline-style="slot.kind === 'car' ? slot.clsStyle : undefined"
+            :class="slot.css"
+          >
+            <template v-if="slot.kind === 'car'">
+              <template v-for="cell in cols.cells" :key="cell">
+                <span v-if="cell === 'pos'" class="c-pos">{{ slot.pos }}</span>
+                <DriverCell
+                  v-else-if="cell === 'driver'"
+                  class="c-driver"
+                  :number="slot.number"
+                  :name="slot.name"
+                  :name-unknown="slot.nameUnknown"
+                  :player="slot.isPlayer"
+                  :lap="slot.lap"
+                  :brand="cols.brand ? slot.brand : undefined"
+                  :country="cols.country ? slot.country : undefined"
+                >
+                  <span v-if="cols.flags && slot.penalty" class="rl-flag"
+                    ><PenaltyIcon :penalty="slot.penalty"
+                  /></span>
+                  <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{
+                    t.widgets.common.tow
+                  }}</Badge>
+                  <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
+                </DriverCell>
+                <span v-else-if="cell === 'lic'" class="c-lic"
+                  ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
+                /></span>
+                <span v-else-if="cell === 'ir'" class="c-ir">{{ slot.iRating }}</span>
+                <span v-else-if="cell === 'tyre'" class="c-tyre"
+                  ><TyreChip :letter="slot.tyre"
+                /></span>
+                <span v-else-if="cell === 'stint'" class="c-stint"
+                  >{{ slot.stint
+                  }}<span v-if="slot.stintUnit" class="rl-unit">{{ slot.stintUnit }}</span></span
+                >
+                <span v-else class="c-gap">{{ slot.gap }}</span>
+              </template>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <InfoBar v-if="footed" :view="foot.view.value" :size="foot.size.value" place="foot" />
     </WidgetPanel>
   </div>
 </template>
@@ -188,18 +207,56 @@ const panelStyle = computed<InlineStyle>(() => ({
 
 /*
  * About half a row high, capped by the width so the columns always fit (--rl-fit: view.ts). The
- * footer's line is counted in the height: with it the rows keep their proportions, a notch
- * smaller.
+ * info bars and the column heads are counted in the height (--rl-chrome: view.ts chromeEm): with
+ * them the rows keep their proportions, a notch smaller.
  */
 .rl-panel {
   font-size: clamp(
     var(--ov-min-text),
     min(
-      calc(100cqh / (var(--rl-slots) * 2 + 1.8 + var(--rl-foot, 0))),
+      calc(100cqh / (var(--rl-slots) * 2 + var(--rl-chrome, 1.8))),
       calc(100cqw / var(--rl-fit, 27))
     ),
     30px
   );
+}
+
+/*
+ * The column heads: one fixed-height line on the rows' own grid, so each caption sits over its
+ * column whatever the order. Small caps, dim, clipped.
+ */
+.rl-heads {
+  display: grid;
+  flex: none;
+  grid-template-columns: var(--rl-cols);
+  align-items: center;
+  column-gap: 0.4em;
+  height: 1.1em;
+  padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
+  overflow: hidden;
+  contain: strict;
+  white-space: nowrap;
+  box-shadow: inset 0 -1px 0 var(--ov-row-rule);
+}
+
+.rl-head {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ov-font-small);
+  font-size: max(var(--ov-min-text), 0.6em);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ov-fg-dim);
+}
+
+.rl-head.is-center {
+  text-align: center;
+}
+
+.rl-head.is-end {
+  text-align: right;
 }
 
 /* StatusMessage centres itself in what is left below the header. */
