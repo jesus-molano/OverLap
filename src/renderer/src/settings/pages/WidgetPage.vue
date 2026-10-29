@@ -26,6 +26,7 @@ import WidgetSample from '../samples/WidgetSample.vue'
 import { useSampleWidth, useWidgetSizeText } from '../samples/useSampleWidth'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
+import { sendCommand } from '../editor'
 import { freeScalePercent } from '../freeScale'
 import { useOverlayState } from '../../composables/useOverlay'
 import WindowSection from './WindowSection.vue'
@@ -61,7 +62,12 @@ const setVisible = (on: boolean): Promise<void> => setWidgetVisible(props.widget
 // Its sections' reset icons (PageSection) reset this widget.
 provide(WIDGET_PAGE, props.widgetId)
 
-const { settings, autoHiddenOf } = useOverlayState()
+const { settings, autoHiddenOf, editMode } = useOverlayState()
+
+/** «Editar posición» (R25): edit mode, this widget pointed out over the game (again if on). */
+function editPosition(): void {
+  sendCommand({ type: 'set-edit-mode', on: true, focus: props.widgetId })
+}
 const lang = useLanguage()
 /** On, but a rule hides it now: why, in lower case ('oculto en práctica'), as the sidebar's eye. */
 const held = computed(() => {
@@ -119,6 +125,16 @@ const resetItems = computed<ResetItem[]>(() => {
           :items="resetItems"
           class="reset"
         />
+        <button
+          type="button"
+          class="st-btn edit-pos"
+          :class="{ 'is-on': editMode }"
+          :title="t.settings.widgetPage.editPositionHelp(title)"
+          @click="editPosition"
+        >
+          <span class="edit-dot" aria-hidden="true" />
+          {{ t.settings.widgetPage.editPosition }}
+        </button>
         <div class="visible-toggle">
           <ToggleControl
             kind="switch"
@@ -262,9 +278,32 @@ const resetItems = computed<ResetItem[]>(() => {
   margin-top: 26px;
 }
 
-/* "Restablecer…" beside "Visible", at the end of the title line. */
+/* "Restablecer…" and «Editar posición» beside "Visible", at the end of the title line. */
 .reset {
   margin-left: auto;
   align-self: center;
+}
+
+.edit-pos {
+  align-self: center;
+  min-height: 34px;
+}
+
+/* The same mark as the sidebar's «Modo edición»: filled with the edit colour while editing. */
+.edit-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--ov-fg-muted);
+  border-radius: 50%;
+}
+
+.edit-pos.is-on {
+  border-color: var(--ov-edit);
+}
+
+.edit-pos.is-on .edit-dot {
+  border-color: var(--ov-edit);
+  background: var(--ov-edit);
 }
 </style>

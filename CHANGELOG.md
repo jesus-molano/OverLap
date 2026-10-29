@@ -9,6 +9,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **«Editar posición» en cada widget, y ⚙ en su etiqueta**: junto a «Visible», un botón entra en
+  el modo edición y señala ese widget sobre el juego con un borde que parpadea; si ya editas, lo
+  vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el
+  candado, un **⚙** que abre su página de ajustes. El aviso del modo edición en los Ajustes es una
+  línea de teclas (`Arrastra` mover · `Bordes` ancho · `Rueda` escala · `Alt` sin imán · `Esc`
+  salir) con un botón **Salir**, en vez de dos líneas de texto.
 - **Saber si un atajo funciona**: al usar un atajo, un aviso breve arriba de la pantalla, sobre el
   juego, dice qué ha hecho («Overlay oculto», «Modo edición», «Disposición: GT3») o por qué no se
   ve nada («Overlay visible · Oculto: fuera del coche», «Solo hay una disposición», «Delta: no hay

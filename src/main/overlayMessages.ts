@@ -9,6 +9,7 @@ import type {
   DragStateMessage,
   EditChip,
   EditChipsMessage,
+  OpenWidgetPageMessage,
   ScaleStepMessage,
   WidgetToggleMessage
 } from '@shared/ipc'
@@ -111,6 +112,13 @@ export function parseWidgetToggle(raw: unknown): WidgetToggleMessage | null {
   if (!r || !isCount(r.session, 1) || !isWidgetId(r.widget)) return null
   if ((r.field !== 'visible' && r.field !== 'locked') || typeof r.value !== 'boolean') return null
   return { session: r.session, widget: r.widget, field: r.field, value: r.value }
+}
+
+/** Validates an `IPC.openWidgetPage` message: one widget's ⚙. */
+export function parseOpenWidgetPage(raw: unknown): OpenWidgetPageMessage | null {
+  const r = record(raw)
+  if (!r || !isCount(r.session, 1) || !isWidgetId(r.widget)) return null
+  return { session: r.session, widget: r.widget }
 }
 
 /**

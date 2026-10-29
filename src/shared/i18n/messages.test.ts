@@ -131,6 +131,9 @@ const SAME_IN_ENGLISH = new Set([
   'core.appName',
   // A widget's name and its reason, both already translated.
   'settings.status.hiddenOne',
+  // Key names on the edit-mode banner.
+  'settings.app.editBanner.keys[3].key',
+  'settings.app.editBanner.keys[4].key',
   // 'No' reads the same in both.
   'settings.infoBar.sizeChoices.off.label',
   'settings.lights.captionsChoices.off.label',

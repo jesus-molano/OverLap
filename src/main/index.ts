@@ -189,6 +189,8 @@ function start(): void {
         s.widgets[id].scale = stepScale(s.widgets[id].scale, step)
       })
     },
+    // An edit chip's ⚙: the widget's own page in the settings window (R25).
+    onOpenWidgetPage: (id) => openSettingsWindow(id),
     // An edit chip's eye or padlock: the same settings as the tray and the settings window.
     onWidgetToggle: (id, field, value) => {
       changeSettings((s) => {
@@ -648,6 +650,8 @@ function start(): void {
     switch (raw.type) {
       case 'set-edit-mode':
         setEditMode(raw.on)
+        // «Editar posición» on a widget's page: that panel is pointed out (R25).
+        if (raw.on && raw.focus !== undefined) windows.focusWidget(raw.focus)
         break
       case 'set-overlay-hidden':
         setOverlayHidden(raw.hidden)
