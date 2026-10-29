@@ -1,23 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import { moveElement } from '@shared/elements'
 import { messagesFor } from '@shared/i18n'
 import { createDefaultSettings } from '@shared/settings'
-import { STANDINGS_COLUMN_IDS } from '@shared/settingsSchema'
 import type { StandingsColumn, StandingsOptions } from '@shared/types'
 import {
-  columnHint,
-  columnLabel,
   columnVisiblePatch,
+  columnsEditPatch,
   deltaAllPatch,
-  dropIndex,
   fixedColumns,
   gapModePatch,
   isColumnVisible,
-  moveColumn,
-  movedMessage,
-  defaultOrder,
-  sameOrder,
-  setColumnVisible,
-  visibilityMessage
+  setColumnVisible
 } from './columns'
 
 const ids = (cols: readonly StandingsColumn[]): string[] => cols.map((c) => c.id)
@@ -26,118 +19,87 @@ function opts(change: Partial<StandingsOptions> = {}): StandingsOptions {
   return { ...createDefaultSettings().standings, ...change }
 }
 
-describe('moveColumn', () => {
-  const cols = opts().columns
-
-  it('moves an item down and up', () => {
-    expect(ids(moveColumn(cols, 0, 2)).slice(0, 3)).toEqual(['ir', 'lic', 'gained'])
-    expect(ids(moveColumn(cols, 3, 0)).slice(0, 4)).toEqual(['delta', 'gained', 'ir', 'lic'])
-  })
-
-  it('clamps out-of-range indices and keeps every id once', () => {
-    const moved = moveColumn(cols, 1, 99)
-    expect(ids(moved).at(-1)).toBe('ir')
-    expect([...ids(moved)].sort()).toEqual([...STANDINGS_COLUMN_IDS].sort())
-    expect(ids(moveColumn(cols, -4, 1)).slice(0, 2)).toEqual(['ir', 'gained'])
-  })
-
-  it('returns an equal copy for no-ops and never mutates the input', () => {
-    const before = structuredClone(cols)
-    const same = moveColumn(cols, 2, 2)
-    expect(same).toEqual(cols)
-    expect(same).not.toBe(cols)
-    expect(moveColumn(cols, Number.NaN, 1)).toEqual(cols)
-    expect(moveColumn([], 0, 1)).toEqual([])
-    moveColumn(cols, 0, 5)
-    expect(cols).toEqual(before)
-  })
-})
-
 describe('visibility', () => {
-  it('sets one column and reads it back', () => {
-    const cols = setColumnVisible(opts().columns, 'delta', true)
-    expect(isColumnVisible(cols, 'delta')).toBe(true)
-    expect(isColumnVisible(opts().columns, 'delta')).toBe(false)
-    expect(ids(cols)).toEqual(ids(opts().columns))
-  })
-
-  it('compares the order only', () => {
+  it('shows and hides one column, a copy each time', () => {
     const cols = opts().columns
-    expect(sameOrder(cols, structuredClone(cols))).toBe(true)
-    expect(sameOrder(cols, setColumnVisible(cols, 'ir', false))).toBe(true)
-    expect(sameOrder(cols, moveColumn(cols, 0, 1))).toBe(false)
-    expect(sameOrder(cols, cols.slice(1))).toBe(false)
-  })
-
-  it('restores the default order and keeps each visibility', () => {
-    const pit = STANDINGS_COLUMN_IDS.indexOf('pit')
-    const custom = setColumnVisible(moveColumn(opts().columns, pit, 0), 'gapLeader', true)
-    const back = defaultOrder(custom)
-    expect(ids(back)).toEqual([...STANDINGS_COLUMN_IDS])
-    expect(isColumnVisible(back, 'gapLeader')).toBe(true)
-    expect(back[0]).not.toBe(custom[1])
-    expect(ids(defaultOrder(custom.slice(2)))).not.toContain('pit')
+    const off = setColumnVisible(cols, 'ir', false)
+    expect(isColumnVisible(off, 'ir')).toBe(false)
+    expect(isColumnVisible(cols, 'ir')).toBe(true)
+    expect(ids(off)).toEqual(ids(cols))
+    expect(off[0]).not.toBe(cols[0])
   })
 })
 
-describe('dropIndex', () => {
-  // Five 30 px rows starting at y = 100: centres 115, 145, 175, 205, 235.
-  const centres = [115, 145, 175, 205, 235]
-
-  it('lands where the pointer is, ignoring the dragged item', () => {
-    expect(dropIndex(centres, 0, 110)).toBe(0)
-    expect(dropIndex(centres, 0, 150)).toBe(1)
-    expect(dropIndex(centres, 0, 400)).toBe(4)
-    expect(dropIndex(centres, 4, 0)).toBe(0)
-    expect(dropIndex(centres, 4, 180)).toBe(3)
-    expect(dropIndex(centres, 2, 170)).toBe(2)
-  })
-
-  it('agrees with moveColumn for every start and slot', () => {
-    const cols = opts().columns.slice(0, 5)
-    for (let from = 0; from < 5; from++) {
-      for (let slot = 0; slot < 5; slot++) {
-        const y = 100 + slot * 30 + 15
-        const to = dropIndex(centres, from, y + (slot > from ? 1 : -1))
-        expect(ids(moveColumn(cols, from, to)).indexOf(cols[from]!.id)).toBe(slot)
-      }
-    }
+describe('fixedColumns', () => {
+  it('lists the fixed left block in both languages', () => {
+    expect(fixedColumns(messagesFor('es')).map((c) => c.label)).toEqual([
+      'Posición',
+      'Número',
+      'Nombre'
+    ])
+    expect(fixedColumns(messagesFor('en')).map((c) => c.label)).toEqual([
+      'Position',
+      'Number',
+      'Name'
+    ])
+    expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'num', 'name'])
   })
 })
 
-describe('messages and labels', () => {
-  const es = messagesFor('es')
-  const en = messagesFor('en')
-
-  it('announces moves and visibility in Spanish', () => {
-    expect(movedMessage(es, 'ir', 2, 8)).toBe('iRating movida a la posición 3 de 8.')
-    expect(visibilityMessage(es, 'last', false)).toBe('Última vuelta oculta.')
-    expect(visibilityMessage(es, 'pit', true)).toBe('Boxes visible.')
+describe('columnsEditPatch', () => {
+  it('a move sends the new order only', () => {
+    const o = opts()
+    const next = moveElement(o.columns, 0, 3)
+    const p = columnsEditPatch(o, next, { kind: 'move', id: 'gained', to: 3 })
+    expect(Object.keys(p)).toEqual(['columns'])
+    expect(ids(p.columns!)).toEqual(ids(next))
   })
 
-  it('labels every column and the fixed block', () => {
-    for (const m of [es, en]) {
-      for (const id of STANDINGS_COLUMN_IDS) expect(columnLabel(m, id)).not.toBe('')
-    }
-    expect(columnLabel(es, 'gapLeader')).toBe('Hueco al líder')
-    expect(fixedColumns(es).map((c) => c.label)).toEqual(['Posición', 'Número', 'Nombre'])
-    expect(fixedColumns(es).map((c) => c.key)).toEqual(['pos', 'num', 'name'])
+  it('showing the gapLeader column switches to "Ambos", hiding it goes back', () => {
+    const o = opts()
+    const shown = setColumnVisible(o.columns, 'gapLeader', true)
+    const on = columnsEditPatch(o, shown, { kind: 'visible', id: 'gapLeader', visible: true })
+    expect(on.gapMode).toBe('both')
+    const both = opts({ gapMode: 'both', columns: on.columns! })
+    const hidden = setColumnVisible(both.columns, 'gapLeader', false)
+    const off = columnsEditPatch(both, hidden, { kind: 'visible', id: 'gapLeader', visible: false })
+    expect(off.gapMode).toBe('interval')
+    expect(isColumnVisible(off.columns!, 'gapLeader')).toBe(false)
   })
 
-  it('gives a hint only to the columns that have one', () => {
-    expect(columnHint(es, 'gapLeader')).toBe('Con «Hueco: Ambos»')
-    expect(columnHint(es, 'ir')).toBeUndefined()
-    expect(columnHint(en, 'lic')).toBeUndefined()
-    expect(columnHint(en, 'last')).toBe('Outside races, the best lap')
+  it('hiding the delta column turns "Δ iRating de todos" off', () => {
+    const o = opts({
+      iRatingDeltaAll: true,
+      columns: setColumnVisible(opts().columns, 'delta', true)
+    })
+    const next = setColumnVisible(o.columns, 'delta', false)
+    const p = columnsEditPatch(o, next, { kind: 'visible', id: 'delta', visible: false })
+    expect(p.iRatingDeltaAll).toBe(false)
   })
 
-  it('speaks English with the English dictionary', () => {
-    expect(columnLabel(en, 'last')).toBe('Last lap')
-    expect(columnLabel(en, 'gap')).toBe('Gap')
-    expect(movedMessage(en, 'ir', 2, 8)).toBe('iRating moved to position 3 of 8.')
-    expect(visibilityMessage(en, 'pit', true)).toBe('Pit shown.')
-    expect(visibilityMessage(en, 'last', false)).toBe('Last lap hidden.')
-    expect(fixedColumns(en).map((c) => c.label)).toEqual(['Position', 'Number', 'Name'])
+  it('a reset brings the gap mode and "Δ iRating de todos" in line with the default list', () => {
+    const o = opts({
+      gapMode: 'both',
+      iRatingDeltaAll: true,
+      columns: setColumnVisible(setColumnVisible(opts().columns, 'gapLeader', true), 'delta', true)
+    })
+    const defaults = opts().columns
+    const p = columnsEditPatch(o, defaults, { kind: 'reset' })
+    expect(p).toEqual({ columns: defaults, gapMode: 'interval', iRatingDeltaAll: false })
+    // Already in line: the list alone.
+    expect(columnsEditPatch(opts(), defaults, { kind: 'reset' })).toEqual({ columns: defaults })
+    // A 'leader' mode with the gapLeader column hidden is in line too.
+    expect(columnsEditPatch(opts({ gapMode: 'leader' }), defaults, { kind: 'reset' })).toEqual({
+      columns: defaults
+    })
+  })
+
+  it('sends plain entries, never the editor’s own objects', () => {
+    const o = opts()
+    const next = o.columns.map((c) => Object.freeze({ ...c }))
+    const p = columnsEditPatch(o, next, { kind: 'move', id: 'ir', to: 1 })
+    expect(p.columns?.[0]).not.toBe(next[0])
+    expect(Object.isFrozen(p.columns?.[0])).toBe(false)
   })
 })
 

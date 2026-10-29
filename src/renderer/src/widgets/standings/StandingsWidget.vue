@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
-import { isElementVisible } from '@shared/elements'
+import { brandMarksOn } from '@shared/carBrands'
 import { isRaceSession } from '@shared/sessionInfo'
-import type { InfoItemId, StandingsData } from '@shared/types'
+import type { InfoBarData, StandingsData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
 import { useAppearance } from '@renderer/composables/useAppearance'
-import { useConditionsFooter } from '@renderer/composables/useConditionsFooter'
+import { useInfoBar } from '@renderer/composables/useInfoBar'
 import { useContentHeight } from '@renderer/composables/useContentSize'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { useI18n } from '@renderer/composables/useI18n'
@@ -22,32 +22,33 @@ import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
 import { injectPanelHost } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
-import ConditionsFooter from '@renderer/ui/ConditionsFooter.vue'
 import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
+import InfoBar from '@renderer/ui/InfoBar.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { hasFooter } from '@renderer/view/conditions'
-import { reuseView, reuseViews } from '@renderer/view/reuse'
+import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
-import { fitColumns, reuseColumns, rowWidthEm, type Columns } from './columns'
-import { headerTier, toHeaderView, type HeaderView } from './headerView'
+import { barInfo } from './bars'
+import { fitColumns, reuseColumns, type Columns } from './columns'
+import { reuseHeads, toHeadsView, type HeadsView } from './heads'
 import {
   BOTTOM_PAD_EM,
   EMPTY_EM,
-  HEAD_LINE1_EM,
-  HEAD_LINE2_EM,
-  HEAD_PAD_EM,
+  HEADS_EM,
   STATUS_EM,
+  TOP_PAD_EM,
   lineBudgetEm,
   lineMetrics,
   linesEm,
   panelHeightPx,
   planLines,
+  type BarSize,
+  type Chrome,
   type PlannedLine
 } from './layout'
 import { previewStandings } from './preview'
 import StandingsCarCells from './StandingsCarCells.vue'
 import StandingsClassCells from './StandingsClassCells.vue'
-import StandingsHeader from './StandingsHeader.vue'
+import StandingsHeads from './StandingsHeads.vue'
 import { toLineViews, type LineContext, type LineView } from './view'
 
 const ID = 'standings'
@@ -55,9 +56,8 @@ const NO_LINES: readonly LineView[] = Object.freeze([])
 const NO_PLAN: readonly PlannedLine[] = Object.freeze([])
 /** Fixed heights of layout.ts, so the CSS is exactly what the height maths assumes. */
 const LAYOUT_VARS: InlineStyle = Object.freeze({
-  '--sd-head-pad': `${HEAD_PAD_EM}em`,
-  '--sd-head-l1': `${HEAD_LINE1_EM}em`,
-  '--sd-head-l2': `${HEAD_LINE2_EM}em`,
+  '--sd-top-pad': `${TOP_PAD_EM}em`,
+  '--sd-heads-h': `${HEADS_EM}em`,
   '--sd-bottom-pad': `${BOTTOM_PAD_EM}em`,
   '--sd-status-h': `${STATUS_EM}em`,
   '--sd-empty-h': `${EMPTY_EM}em`
@@ -103,42 +103,47 @@ const payload = computed<StandingsData | null>((prev) => {
 const classes = computed(() => (body.value === 'status' ? null : (payload.value?.classes ?? null)))
 const race = computed(() => isRaceSession(payload.value?.header.sessionType ?? null))
 
-const headerShows = (id: InfoItemId): boolean =>
-  opts.value.headerBarSize !== 'off' && isElementVisible(opts.value.headerBar, id)
-const subheaderShows = (id: InfoItemId): boolean =>
-  opts.value.subheaderBarSize !== 'off' && isElementVisible(opts.value.subheaderBar, id)
-const showSof = computed(() => isElementVisible(opts.value.classLine, 'sof'))
-const showCarCount = computed(() => isElementVisible(opts.value.classLine, 'carCount'))
-const head = computed<HeaderView>((prev) =>
-  reuseView(
-    prev,
-    toHeaderView({
-      header: payload.value?.header ?? null,
-      classes: classes.value,
-      race: race.value,
-      // Until the header draws its info bars (package P2): the parts it has today.
-      showIRating: subheaderShows('iRating'),
-      showSafetyRating: subheaderShows('safetyRating'),
-      showSof: headerShows('sof'),
-      showCarCount: headerShows('carCount'),
-      showIncidents: headerShows('incidents'),
-      preview: phase.value === 'preview',
-      title: title.value,
-      m: t.value
-    })
-  )
-)
-const headLines = computed(() => head.value.lines)
+const isTable = computed(() => body.value === 'table' || body.value === 'none')
 
 /**
- * The conditions footer under the table (its option, on by default), with the table only (not
- * under the offline or waiting placeholders); kept while hidden, like the lines. The same object
- * while it reads the same, so a 4 Hz payload re-renders nothing there.
+ * The info bars' data (InfoFeed): the SoF and the car count left to the class lines while those
+ * say them (bars.ts). One object per payload; each bar keeps its items while they read the same.
  */
-const footer = useConditionsFooter(ID, () => payload.value?.info?.conditions ?? null)
-const footed = computed(
-  () => (body.value === 'table' || body.value === 'none') && hasFooter(footer.value)
+const info = computed<InfoBarData | null>(() =>
+  barInfo(payload.value?.info ?? null, classes.value, opts.value.classLine)
 )
+// The header (its session falls back to the widget's name, so it always has something) and its
+// second line; the footer with the table only (not under the offline or waiting notes), and
+// kept while hidden, like the lines.
+const headBar = useInfoBar('standings', 'headerBar', () => info.value, {
+  sessionFallback: () => title.value
+})
+const subBar = useInfoBar('standings', 'subheaderBar', () => info.value)
+const footBar = useInfoBar('standings', 'footerBar', () => info.value)
+const headShown = computed(() => headBar.shown.value)
+const subShown = computed(() => subBar.shown.value)
+const footed = computed(() => isTable.value && footBar.shown.value)
+const isPreview = computed(() => phase.value === 'preview')
+const headsShown = computed(() => opts.value.columnHeads && isTable.value)
+
+/** What the height maths add around the lines; the same object while it is the same. */
+const chrome = computed<Chrome>((prev) => {
+  const head: BarSize[] = []
+  if (headShown.value) head.push(headBar.size.value)
+  if (subShown.value) head.push(subBar.size.value)
+  const next: Chrome = {
+    head,
+    heads: headsShown.value,
+    foot: footed.value ? footBar.size.value : null
+  }
+  return prev !== undefined &&
+    prev.heads === next.heads &&
+    prev.foot === next.foot &&
+    prev.head.length === head.length &&
+    prev.head.every((h, i) => h === head[i])
+    ? prev
+    : next
+})
 
 const metrics = computed(() => lineMetrics(density.value))
 const planOpts = computed(() => ({ oneLineLeaders: opts.value.mode !== 'full' }))
@@ -154,15 +159,13 @@ const bodyEm = computed(() => {
   if (body.value === 'empty') return EMPTY_EM
   return linesEm(fullPlan.value, metrics.value)
 })
-const desiredPx = computed(() =>
-  panelHeightPx(bodyEm.value, headLines.value, fontPx.value, footed.value)
-)
+const desiredPx = computed(() => panelHeightPx(bodyEm.value, chrome.value, fontPx.value))
 useContentHeight(() => desiredPx.value, { enabled: () => autoHeight.value && shown.value })
 
 /** The lines that fit the window: all of them unless the window is shorter than the content. */
 const plan = computed<readonly PlannedLine[]>(() => {
   const full = fullPlan.value
-  const budget = lineBudgetEm(size.value.h, fontPx.value, headLines.value, footed.value)
+  const budget = lineBudgetEm(size.value.h, fontPx.value, chrome.value)
   if (linesEm(full, metrics.value) <= budget + 1e-6 || classes.value === null) return full
   return planLines(classes.value, planOpts.value, metrics.value, budget)
 })
@@ -185,15 +188,30 @@ const cols = computed<Columns>((prev) =>
         race: race.value,
         tyres: tyres.value,
         licenseStyle: appearance.value.licenseStyle,
-        numberStyle: appearance.value.numberStyle
+        numberStyle: appearance.value.numberStyle,
+        brand: brandMarksOn(opts.value.brandMarks, payload.value?.multiBrand ?? false),
+        flag: opts.value.countryFlags
       },
       widthPx.value,
       fontPx.value
     )
   )
 )
-// From the live width: cols keeps its previous object while the columns stay the same.
-const tier = computed(() => headerTier(rowWidthEm(widthPx.value, fontPx.value)))
+/** The column heads: one per drawn track, so they follow the order and the narrow fitting. */
+const heads = computed<HeadsView>((prev) =>
+  reuseHeads(
+    prev,
+    toHeadsView(
+      cols.value,
+      {
+        gapMode: opts.value.gapMode,
+        race: race.value,
+        licenseStyle: appearance.value.licenseStyle
+      },
+      t.value
+    )
+  )
+)
 
 const styles = createDriverStyles()
 const lineCtx = computed<LineContext>(() => ({
@@ -201,8 +219,7 @@ const lineCtx = computed<LineContext>(() => ({
   race: race.value,
   deltaAll: opts.value.iRatingDeltaAll,
   nameFormat: nameFormat.value,
-  showSof: showSof.value,
-  showCarCount: showCarCount.value,
+  classLine: opts.value.classLine,
   showFlags: opts.value.showFlags,
   gapLeaderShown: cols.value.cells.includes('gapLeader'),
   styles,
@@ -211,9 +228,7 @@ const lineCtx = computed<LineContext>(() => ({
 // Slots are keyed by index and an unchanged line keeps its object, so a 4 Hz payload that
 // moves cars only rewrites the slots that changed: no DOM node is ever reordered.
 const lines = computed<readonly LineView[]>((prev) =>
-  body.value === 'table' || body.value === 'none'
-    ? reuseViews(prev, toLineViews(plan.value, lineCtx.value))
-    : NO_LINES
+  isTable.value ? reuseViews(prev, toLineViews(plan.value, lineCtx.value)) : NO_LINES
 )
 
 const panelStyle = computed<InlineStyle>(() => ({
@@ -233,10 +248,26 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       :surface="panelStyle"
       :halo="halo"
       class="sd-panel ov-fade"
-      :class="{ 'is-shown': shown, 'has-foot': footed }"
+      :class="{ 'is-shown': shown, 'has-foot': footed, 'no-head': chrome.head.length === 0 }"
     >
       <template #header>
-        <StandingsHeader :head="head" :tier="tier" />
+        <InfoBar
+          v-if="headShown"
+          :view="headBar.view.value"
+          :size="headBar.size.value"
+          place="head"
+          sim
+          :preview="isPreview"
+        />
+        <InfoBar
+          v-if="subShown"
+          :view="subBar.view.value"
+          :size="subBar.size.value"
+          place="head"
+          :sim="!headShown"
+          :preview="isPreview && !headShown"
+        />
+        <StandingsHeads v-if="headsShown" :heads="heads" />
       </template>
       <div v-if="body === 'status'" class="sd-status"><StatusMessage /></div>
       <div v-else-if="body === 'empty'" class="sd-empty"><EmptyPreview :rows="3" /></div>
@@ -252,7 +283,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <StandingsCarCells v-else :line="line" :cols="cols" />
         </div>
       </template>
-      <ConditionsFooter v-if="footed" :view="footer" />
+      <InfoBar v-if="footed" :view="footBar.view.value" :size="footBar.size.value" place="foot" />
     </WidgetPanel>
   </div>
 </template>
@@ -271,9 +302,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   padding-bottom: var(--sd-bottom-pad);
 }
 
-/* The conditions footer ends the panel: it takes the bottom padding's place (layout.ts). */
+/* The footer bar ends the panel: it takes the bottom padding's place (layout.ts). */
 .sd-panel.has-foot {
   padding-bottom: 0;
+}
+
+/* Without a header bar the first line keeps a little room under the panel's top edge. */
+.sd-panel.no-head {
+  padding-top: var(--sd-top-pad);
 }
 
 .sd-status {

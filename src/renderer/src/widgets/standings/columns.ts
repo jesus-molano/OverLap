@@ -79,6 +79,17 @@ const NUMBER_WIDTH: Readonly<Record<NumberStyle, ColumnWidth>> = {
   bare: { w: 0.6, text: 1 }
 }
 
+/** The make's mark in the name track (BrandMark: 1.75em wide), with the driver cell's gap. */
+export const BRAND_EM = 1.75 + 0.35
+/** The plate height (theme.css --ov-plate-h): 1.15em, never below the minimum text + 4 px. */
+function plateEm(fontPx: number): number {
+  return fontPx > 0 ? Math.max(1.15, (MIN_TEXT_PX + 4) / fontPx) : 1.15
+}
+/** The flag in the name track (CountryFlag: 3:2 at the plate height), with the cell's gap. */
+export function flagEm(fontPx: number): number {
+  return 1.5 * plateEm(fontPx) + 0.35
+}
+
 export interface ColumnPrefs {
   columns: StandingsOptions['columns']
   gapMode: StandingsOptions['gapMode']
@@ -89,6 +100,10 @@ export interface ColumnPrefs {
   tyres: boolean
   licenseStyle: AppearanceSettings['licenseStyle']
   numberStyle: AppearanceSettings['numberStyle']
+  /** The make's mark before the name (brandMarksOn: the option and the field). */
+  brand: boolean
+  /** The driver's flag before the name (countryFlags). */
+  flag: boolean
 }
 
 export interface Columns {
@@ -97,6 +112,9 @@ export interface Columns {
   /** grid-template-columns of a car row: position, name (1fr), then `cells`. */
   readonly template: string
   readonly numberStyle: NumberStyle
+  /** The make's mark and the flag are drawn in the name track (they fit). */
+  readonly brand: boolean
+  readonly flag: boolean
   /** The pit column is not shown: pit state goes as an icon after the name. */
   readonly pitInline: boolean
   /** Width the name gets (em); below NAME_MIN_EM only when nothing else could go. */
@@ -157,9 +175,10 @@ export function rowWidthEm(widthPx: number, fontPx: number): number {
 
 /**
  * The columns that fit `widthPx` at `fontPx`: every wanted column while the name keeps
- * NAME_MIN_EM, otherwise columns go in DROP_ORDER; if the name is still short, or the row is
- * narrower than NARROW_EM, the number chip becomes a bare stripe. A width of 0 (not measured
- * yet) keeps every wanted column.
+ * NAME_MIN_EM, otherwise columns go in DROP_ORDER; if the name is still short the flag goes,
+ * then the make's mark; if it is still short, or the row is narrower than NARROW_EM, the number
+ * chip becomes a bare stripe (without mark or flag). A width of 0 (not measured yet) keeps every
+ * wanted column.
  */
 export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Columns {
   const shown: StandingsColumnId[] = []
@@ -172,9 +191,13 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
   const widthEm = rowWidthEm(widthPx, fontPx)
   const measured = widthEm > 0
   let numberStyle: NumberStyle = p.numberStyle === 'stripe' ? 'stripe' : 'chip'
+  let brand = p.brand
+  let flag = p.flag
 
   const fixedEm = (cells: readonly StandingsColumnId[]): number => {
     let sum = widthAt(POS_WIDTH, fontPx) + widthAt(NUMBER_WIDTH[numberStyle], fontPx)
+    if (brand) sum += BRAND_EM
+    if (flag) sum += flagEm(fontPx)
     for (const id of cells) sum += widthAt(columnWidth(id, p), fontPx)
     // Tracks: position, name, then the cells.
     return sum + COL_GAP_EM * (cells.length + 1)
@@ -186,7 +209,14 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
       if (widthEm - fixedEm(cells) >= NAME_MIN_EM) break
       if (cells.includes(id)) cells = cells.filter((c) => c !== id)
     }
-    if (widthEm - fixedEm(cells) < NAME_MIN_EM || widthEm < NARROW_EM) numberStyle = 'bare'
+    const short = (): boolean => widthEm - fixedEm(cells) < NAME_MIN_EM
+    if (flag && short()) flag = false
+    if (brand && short()) brand = false
+    if (short() || widthEm < NARROW_EM) {
+      numberStyle = 'bare'
+      brand = false
+      flag = false
+    }
   }
 
   const tracks = [em(widthAt(POS_WIDTH, fontPx)), 'minmax(0, 1fr)']
@@ -197,10 +227,12 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     cells,
     template,
     numberStyle,
+    brand,
+    flag,
     pitInline,
     nameEm: measured ? round2(widthEm - fixedEm(cells)) : 0,
     widthEm: round2(widthEm),
-    key: `${cells.join(',')}|${numberStyle}|${template}`
+    key: `${cells.join(',')}|${numberStyle}|${brand ? 'b' : ''}${flag ? 'f' : ''}|${template}`
   }
 }
 

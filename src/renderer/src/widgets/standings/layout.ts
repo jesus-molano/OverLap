@@ -1,24 +1,27 @@
 /**
  * Vertical layout of the standings widget: which lines are drawn and how tall the panel is.
- * Every height is a fixed em of the panel font (set as CSS custom properties from these same
+ * Every height is fixed (em of the panel font, or of an info bar's own text, set from these same
  * numbers), so the height the content wants is known without measuring and never depends on
  * the window height: the window follows the content, not the other way round (ux §3.1-3.2).
  * Pure.
  */
-import type { StandingsClassBlock, StandingsRow } from '@shared/types'
+import { INFO_BAR_LINE_EM, INFO_BAR_SCALE } from '@shared/infoBar'
+import type { InfoBarSize, StandingsClassBlock, StandingsRow } from '@shared/types'
 import { DENSITY_EM, type Density } from '@renderer/view/appearance'
-import { FOOTER_EM, FOOTER_RULE_PX } from '@renderer/view/conditions'
-import { BORDER_PX } from './columns'
+import { BORDER_PX, MIN_TEXT_PX } from './columns'
 
 export type DisplayRow = StandingsClassBlock['rows'][number]
 
-/** Panel header: padding above and below, first line, optional second line (em). */
-export const HEAD_PAD_EM = 0.3
-export const HEAD_LINE1_EM = 1.5
-export const HEAD_LINE2_EM = 1.35
-/** Rule under the header. */
-export const HEAD_RULE_PX = 1
-/** Below the last line (the conditions footer, when drawn, takes its place: it ends the panel). */
+/** A drawn info bar's size ('off' is no bar). */
+export type BarSize = Exclude<InfoBarSize, 'off'>
+
+/** Each info bar's rule (below a header bar, above the footer bar). */
+export const BAR_RULE_PX = 1
+/** The column heads row under the header bars (em of the panel font). */
+export const HEADS_EM = 1.2
+/** Above the first line when no header bar is drawn (em). */
+export const TOP_PAD_EM = 0.25
+/** Below the last line (the footer bar, when drawn, takes its place: it ends the panel). */
 export const BOTTOM_PAD_EM = 0.25
 /** Offline status line and the "no data yet" placeholder. */
 export const STATUS_EM = 2.8
@@ -42,50 +45,54 @@ export function lineMetrics(density: Density): LineMetrics {
   return { rowEm: d.row, classEm: d.classLine }
 }
 
-export type HeadLines = 1 | 2
-
-export function headEm(lines: HeadLines): number {
-  return 2 * HEAD_PAD_EM + HEAD_LINE1_EM + (lines === 2 ? HEAD_LINE2_EM : 0)
-}
-
-/** Below the lines: the bottom padding, or the conditions footer (em, then its rule in px). */
-function bottomEm(footer: boolean): number {
-  return footer ? FOOTER_EM : BOTTOM_PAD_EM
-}
-
-function bottomPx(footer: boolean): number {
-  return footer ? FOOTER_RULE_PX : 0
+/**
+ * What the panel draws around its lines: the header bars shown, top to bottom (0 to 2: the
+ * header and its second line), the column heads row, and the footer bar (null: none, the
+ * bottom padding instead).
+ */
+export interface Chrome {
+  readonly head: readonly BarSize[]
+  readonly heads: boolean
+  readonly foot: BarSize | null
 }
 
 /**
- * Height (CSS px) of the whole panel for `bodyEm` of lines below a header of `headLines`, and
- * above the conditions footer when `footer`. Takes no window size: equal inputs give equal
- * heights, so reporting it cannot feed back.
+ * Height (CSS px) of one info bar at `fontPx` of panel text: INFO_BAR_LINE_EM of its own text
+ * (its size's scale, never below the minimum text size) plus its rule, as ui/InfoBar.vue draws
+ * it.
  */
-export function panelHeightPx(
-  bodyEm: number,
-  headLines: HeadLines,
-  fontPx: number,
-  footer = false
-): number {
+export function barPx(size: BarSize, fontPx: number): number {
+  if (!(fontPx > 0)) return 0
+  return INFO_BAR_LINE_EM * Math.max(MIN_TEXT_PX, INFO_BAR_SCALE[size] * fontPx) + BAR_RULE_PX
+}
+
+/** Height (CSS px) of everything but the lines: bars, heads, paddings and the borders. */
+export function chromePx(c: Chrome, fontPx: number): number {
+  if (!(fontPx > 0)) return 0
+  let px = BORDER_PX
+  for (const size of c.head) px += barPx(size, fontPx)
+  if (c.head.length === 0) px += TOP_PAD_EM * fontPx
+  if (c.heads) px += HEADS_EM * fontPx
+  px += c.foot !== null ? barPx(c.foot, fontPx) : BOTTOM_PAD_EM * fontPx
+  return px
+}
+
+/**
+ * Height (CSS px) of the whole panel for `bodyEm` of lines inside `chrome`. Takes no window
+ * size: equal inputs give equal heights, so reporting it cannot feed back.
+ */
+export function panelHeightPx(bodyEm: number, chrome: Chrome, fontPx: number): number {
   if (!(fontPx > 0) || !Number.isFinite(bodyEm)) return 0
-  const em = headEm(headLines) + Math.max(0, bodyEm) + bottomEm(footer)
-  return em * fontPx + BORDER_PX + HEAD_RULE_PX + bottomPx(footer) + LAYOUT_SLACK_PX
+  return Math.max(0, bodyEm) * fontPx + chromePx(chrome, fontPx) + LAYOUT_SLACK_PX
 }
 
 /**
  * Em left for lines in a window `heightPx` tall (Infinity while it is not measured), with the
- * conditions footer drawn when `footer` (it stays: rows go first).
+ * bars and the heads of `chrome` drawn (they stay: rows go first).
  */
-export function lineBudgetEm(
-  heightPx: number,
-  fontPx: number,
-  headLines: HeadLines,
-  footer = false
-): number {
+export function lineBudgetEm(heightPx: number, fontPx: number, chrome: Chrome): number {
   if (!(heightPx > 0) || !(fontPx > 0)) return Infinity
-  const px = heightPx - BORDER_PX - HEAD_RULE_PX - bottomPx(footer)
-  return Math.max(0, px / fontPx - headEm(headLines) - bottomEm(footer))
+  return Math.max(0, (heightPx - chromePx(chrome, fontPx)) / fontPx)
 }
 
 // ---------------------------------------------------------------------------

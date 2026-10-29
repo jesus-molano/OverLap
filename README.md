@@ -330,6 +330,28 @@ Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se
   ti. Las vueltas que quedan no suben al salir del coche; con límite de vueltas y de tiempo, también
   sale el reloj.
 
+### Clasificación: personalizar
+
+En Ajustes → Clasificación, un editor por zona (arrastra ⠿ o ↑ ↓ para ordenar, el ojo muestra u
+oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia al momento:
+
+- **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
+  la ventana se estrecha se van primero las menos importantes, luego la bandera, luego el logotipo
+  y, al final, el número queda en una franja. «Hueco al líder» sigue atado a «Hueco: Ambos» y «Δ
+  iRating» a «Δ iRating de todos».
+- **Cabeceras de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
+  «INT.»… en el orden de las columnas; la del hueco dice «LÍDER» o «DIF.» según el modo y la sesión.
+- **Logotipo de la marca** (`brandMarks`: Auto, Siempre, Nunca; Auto solo si hay varias marcas) y
+  **bandera del país** (`countryFlags`, activada) delante del nombre.
+- **Cabecera, segunda línea y pie** son barras de datos (`headerBar`, `subheaderBar`, `footerBar`,
+  cada una con su tamaño u «Oculta»): sesión, lo que queda, hora local, SoF, coches, incidentes,
+  iRating y SR proyectados, vuelta rápida, combustible y las condiciones. Por defecto, lo de
+  siempre: la sesión, tus incidentes y lo que queda; tu iRating, la vuelta rápida y tu SR; el pie
+  de condiciones. Con varias clases el SoF y los coches van en cada línea de clase, no arriba.
+- **Línea de clase** (`classLine`): SoF y número de coches, en el orden que elijas.
+- **Vuelta rápida**: la mejor vuelta de cada clase va en una placa morada que llena su celda, y su
+  fila lleva la etiqueta «VR» junto al nombre.
+
 ### Clasificación y relativo: mejor vuelta, stint, neumático y banderas
 
 Lo que el overlay nativo no da, cada cosa como opción propia:
