@@ -187,13 +187,18 @@ const DEFAULT_BATTLE: BattleOptions = {
 }
 const DEFAULT_INPUTS: InputsOptions = {
   traceSeconds: 5,
-  sections: list(['trace', 'bars', 'info']),
+  sections: list(['trace', 'bars', 'info', 'car']),
   bars: list(['clutch', 'brake', 'throttle']),
   info: list(['gear', 'speed', 'steering']),
   clutchInTrace: true,
   traceWidth: 2,
   colors: { throttle: '#3ddc84', brake: '#ff4545', clutch: '#4aa3ff' },
-  steeringStyle: 'bar'
+  steeringStyle: 'bar',
+  wheelSize: 'medium',
+  wheelColor: '#ffc400',
+  steeringDegrees: false,
+  shiftLights: true,
+  car: list(['rpm', 'bias', 'tc', 'ffb'])
 }
 const DEFAULT_TRAFFIC: TrafficOptions = {
   behindS: 12,
@@ -480,7 +485,7 @@ describe('normalizeSettings: basics', () => {
       ...DEFAULT_INPUTS,
       traceWidth: 2.5,
       colors: { throttle: '#22c55e', brake: '#f43f5e', clutch: '#2f6db5' },
-      sections: list(['info', 'bars', 'trace'], ['trace'])
+      sections: list(['info', 'bars', 'trace', 'car'], ['trace', 'car'])
     }
     s.relative = {
       ...DEFAULT_RELATIVE,
@@ -789,7 +794,13 @@ describe('normalizeSettings: options', () => {
       },
       standings: { mode: 'Full', gapMode: 'toString', nameFormat: 'nick', density: 'huge' },
       battle: { layout: 'grid', detail: 'all', nameFormat: 'TV' },
-      inputs: { steeringStyle: 'yoke', layout: 'stacked' },
+      // A saved section has the shift lights (without them it is from before: off).
+      inputs: {
+        steeringStyle: 'yoke',
+        layout: 'stacked',
+        shiftLights: true,
+        sections: DEFAULT_INPUTS.sections
+      },
       traffic: { nameFormat: 'short' }
     })
     expect(s).toEqual(DEFAULT_SETTINGS)
@@ -818,9 +829,10 @@ describe('normalizeSettings: options', () => {
       layout: 'side',
       rows: list(['prediction', 'sectors', 'laps'], ['sectors', 'laps'])
     })
+    // The one wheel of before is the realistic one; the car block, new, comes hidden.
     expect(ok.inputs).toMatchObject({
-      steeringStyle: 'wheel',
-      sections: list(['info', 'bars', 'trace'])
+      steeringStyle: 'realistic',
+      sections: list(['info', 'bars', 'trace', 'car'], ['car'])
     })
   })
 
@@ -844,7 +856,12 @@ describe('normalizeSettings: options', () => {
       appearance: { colorBlind: 1, stripes: 'no', showSimPill: null },
       standings: { iRatingDeltaAll: 'yes', headerIRating: 0, showSof: [] },
       battle: { showPrediction: 'false', showAhead: 0 },
-      inputs: { clutchInTrace: {}, showClutch: 'off' },
+      inputs: {
+        clutchInTrace: {},
+        showClutch: 'off',
+        shiftLights: 'on',
+        sections: DEFAULT_INPUTS.sections
+      },
       traffic: { showFaster: 0, showSlower: 'no', showHazards: null, onlyMulticlass: 'false' },
       alerts: { showFlags: 1, showBlue: 'off', showPitLimiter: [] },
       delta: { fallback: 0, showPredicted: 'no', showSectors: null, showTrend: {} }
@@ -1148,7 +1165,10 @@ describe('normalizeSettings: migration', () => {
       ...DEFAULT_INPUTS,
       traceSeconds: 8,
       bars: list(['clutch', 'brake', 'throttle'], ['clutch']),
-      info: list(['gear', 'speed', 'steering'], ['gear', 'speed'])
+      info: list(['gear', 'speed', 'steering'], ['gear', 'speed']),
+      // A file from before the car block and the shift lights: they stay off.
+      sections: list(['trace', 'bars', 'info', 'car'], ['car']),
+      shiftLights: false
     })
     expect(s.widgets.standings).toEqual({
       ...defaultWidget('standings'),

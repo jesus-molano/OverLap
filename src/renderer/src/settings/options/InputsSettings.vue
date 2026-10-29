@@ -7,7 +7,7 @@ import {
   INPUTS_TRACE_WIDTH_MAX,
   INPUTS_TRACE_WIDTH_MIN
 } from '@shared/settings'
-import { OPTION_SCHEMA, PEDAL_COLOR_PRESETS } from '@shared/settingsSchema'
+import { ACCENT_PRESETS, OPTION_SCHEMA, PEDAL_COLOR_PRESETS } from '@shared/settingsSchema'
 import type { InputsOptions } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { overlayState } from '../../composables/useOverlay'
@@ -77,6 +77,16 @@ const infoShown = computed(() => isElementVisible(opts.value.sections, 'info'))
 const showSteering = computed(
   () => infoShown.value && isElementVisible(opts.value.info, 'steering')
 )
+/** The size and the mark are a wheel's: not the bar's. */
+const showWheel = computed(() => showSteering.value && opts.value.steeringStyle !== 'bar')
+const wheelSizeChoices = computed(() =>
+  choiceOptions(I.wheelSize.values, t.value.settings.inputs.wheelSizeChoices)
+)
+// Worded again only when the language changes.
+const accentPresets = computed(() => {
+  const names = t.value.settings.appearance.color.accentNames
+  return ACCENT_PRESETS.map((p) => ({ value: p.value, label: names[p.name] }))
+})
 
 // The editors' words, with the hints of the parts that need one.
 const sectionTexts = computed(() => {
@@ -88,9 +98,11 @@ const sectionTexts = computed(() => {
 })
 const barTexts = computed(() => elementTexts(t.value, 'inputs', 'bars'))
 const infoTexts = computed(() => elementTexts(t.value, 'inputs', 'info'))
+const carTexts = computed(() => elementTexts(t.value, 'inputs', 'car'))
 const setSections = listSetter('inputs', 'sections')
 const setBars = listSetter('inputs', 'bars')
 const setInfo = listSetter('inputs', 'info')
+const setCar = listSetter('inputs', 'car')
 </script>
 
 <template>
@@ -127,6 +139,36 @@ const setInfo = listSetter('inputs', 'info')
       :disabled="!showSteering"
       :apply="set('steeringStyle')"
     />
+    <ChoiceControl
+      :label="t.settings.inputs.wheelSize"
+      :current="opts.wheelSize"
+      :options="wheelSizeChoices"
+      :disabled="!showWheel"
+      :apply="set('wheelSize')"
+    />
+    <ColorControl
+      :label="t.settings.inputs.wheelColor"
+      :help="t.settings.inputs.wheelColorHelp"
+      :current="opts.wheelColor"
+      :presets="accentPresets"
+      :disabled="!showWheel"
+      :apply="set('wheelColor')"
+    />
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.inputs.steeringDegrees"
+      :help="t.settings.inputs.steeringDegreesHelp"
+      :current="opts.steeringDegrees"
+      :disabled="!showSteering"
+      :apply="set('steeringDegrees')"
+    />
+    <ToggleControl
+      kind="switch"
+      :label="t.settings.inputs.shiftLights"
+      :help="t.settings.inputs.shiftLightsHelp"
+      :current="opts.shiftLights"
+      :apply="set('shiftLights')"
+    />
   </PageSection>
 
   <CustomizeSection>
@@ -150,6 +192,13 @@ const setInfo = listSetter('inputs', 'info')
       :spec="I.info"
       :labels="infoTexts"
       :apply="setInfo"
+    />
+    <ElementEditor
+      :title="zoneTitle(t, 'inputs', 'car')"
+      :items="opts.car"
+      :spec="I.car"
+      :labels="carTexts"
+      :apply="setCar"
     />
   </CustomizeSection>
 

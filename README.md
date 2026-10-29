@@ -544,6 +544,23 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Alto automático por defecto (Ventana → Alto): el panel mide lo que su contenido, sin hueco vacío, y
   el texto sigue la escala del widget, no la ventana. Un `settings.json` de antes pasa a alto
   automático una vez.
+- Luces de cambio (`inputs.shiftLights`): una tira de 10 LED arriba, verde → amarillo → rojo desde
+  `DriverCarSLFirstRPM` hasta `DriverCarSLLastRPM` del YAML; desde `SLShiftRPM` se encienden todas
+  en rojo y desde `SLBlinkRPM` parpadean. Un coche sin luces en el YAML las toma de su
+  `DriverCarRedLine`.
+- Bloque «Coche» (`inputs.sections` → `car`, filas en `inputs.car`): RPM, reparto de frenada (`BB`,
+  `dcBrakeBias`), TC (el nivel de `dcTractionControl`: el SDK no dice cuándo actúa) y FFB (el % de
+  `SteeringWheelPctTorque`; en rojo un momento cuando llega al 100 %, el clipping). Una fila sin
+  dato en ese coche (sin reparto o sin TC) no sale.
+- Volante (`inputs.steeringStyle`): barra, minimalista (aro fino), realista (GT con radios) o
+  fórmula (rectangular con empuñaduras), dibujados en SVG y girando con `SteeringWheelAngle` los
+  grados reales, hasta el tope del coche (`SteeringWheelAngleMax`). Tamaño pequeño, mediano o grande
+  (`inputs.wheelSize`), color de la marca (`inputs.wheelColor`) y grados opcionales debajo
+  (`inputs.steeringDegrees`). Un volante grande hace el panel un poco más alto.
+- Un `settings.json` de antes se ve igual: el volante de antes pasa a «realista» y las luces y el
+  bloque «Coche» llegan apagados. En una instalación nueva salen encendidos.
+- Mock: revoluciones por marcha (las luces se llenan en cada marcha y parpadean justo antes de
+  subir), reparto 54,5 → 54,0 → 53,5, TC 4 → 3 y clipping en las curvas más rápidas.
 
 ### Testigos
 

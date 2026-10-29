@@ -226,6 +226,30 @@ export function migrateVisibility(raw: Record<string, unknown>): Record<string, 
   return { ...raw, replays: OPTION_SCHEMA.visibility.replays.default }
 }
 
+/**
+ * The pedals before the wheel styles and the shift lights: the one wheel of before ('wheel') is
+ * the realistic one now, and a section saved without the shift lights (every file of before, as
+ * a saved section always has every field) gets them off, so an upgrade draws what it drew. The
+ * new car block comes hidden too: a saved list missing it gets it hidden (normalizeElements), the
+ * old layout choice hides it (readInputsSections), and a section with neither (older files) gets
+ * the default blocks with it hidden.
+ */
+export function migrateInputs(raw: Record<string, unknown>): Record<string, unknown> {
+  const wheel = raw.steeringStyle === 'wheel'
+  const noLights = !('shiftLights' in raw)
+  const noBlocks = !Array.isArray(raw.sections) && readInputsSections(raw) === null
+  if (!wheel && !noLights && !noBlocks) return raw
+  const blocks = OPTION_SCHEMA.inputs.sections.default.map((e) =>
+    e.id === 'car' ? { ...e, visible: false } : { ...e }
+  )
+  return {
+    ...raw,
+    ...(wheel ? { steeringStyle: 'realistic' } : {}),
+    ...(noLights ? { shiftLights: false } : {}),
+    ...(noBlocks ? { sections: blocks } : {})
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Element lists from the booleans and choices they replaced (customisation, v2.6)
 // ---------------------------------------------------------------------------
@@ -292,15 +316,18 @@ const FOOTER_READINGS: FlagMap = [
   ['conditionsRubber', ['rubber']]
 ]
 
-/** The pedals' old layout choice: the order of the blocks, the trace left out for 'bars'. */
+/**
+ * The pedals' old layout choice: the order of the blocks, the trace left out for 'bars'. The car
+ * block did not exist then: hidden.
+ */
 export const readInputsSections: LegacyReader = (raw) => {
   switch (raw.layout) {
     case 'trace-bars-info':
-      return { visible: { trace: true }, order: ['trace', 'bars', 'info'] }
+      return { visible: { trace: true, car: false }, order: ['trace', 'bars', 'info'] }
     case 'info-bars-trace':
-      return { visible: { trace: true }, order: ['info', 'bars', 'trace'] }
+      return { visible: { trace: true, car: false }, order: ['info', 'bars', 'trace'] }
     case 'bars':
-      return { visible: { trace: false }, order: ['trace', 'bars', 'info'] }
+      return { visible: { trace: false, car: false }, order: ['trace', 'bars', 'info'] }
     default:
       return null
   }
@@ -569,6 +596,7 @@ export function migrateSection(
   if (section === 'standings') out = migrateStandings(out)
   else if (section === 'alerts') out = migrateAlerts(out)
   else if (section === 'visibility') out = migrateVisibility(out)
+  else if (section === 'inputs') out = migrateInputs(out)
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   return migrateLists(section, out)
 }

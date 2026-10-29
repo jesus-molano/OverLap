@@ -194,10 +194,13 @@ describe('SettingsStore with a v3 file', () => {
         { id: 'behind', visible: false }
       ]
     })
+    // The pedals' car block and shift lights came later: off for a file of then.
     expect(s.inputs).toEqual({
       ...DEFAULT_SETTINGS.inputs,
       traceSeconds: 8,
-      bars: DEFAULT_SETTINGS.inputs.bars.map((b) => ({ ...b, visible: b.id !== 'clutch' }))
+      bars: DEFAULT_SETTINGS.inputs.bars.map((b) => ({ ...b, visible: b.id !== 'clutch' })),
+      sections: DEFAULT_SETTINGS.inputs.sections.map((b) => ({ ...b, visible: b.id !== 'car' })),
+      shiftLights: false
     })
     // A file from before v5: the pedals fit their content, the licence takes the outline.
     expect(s.appearance.licenseStyle).toBe('outline')

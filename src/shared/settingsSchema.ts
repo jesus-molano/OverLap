@@ -23,6 +23,7 @@ import type {
   InfoBarEntryId,
   InfoBarSize,
   InputsBarId,
+  InputsCarId,
   InputsInfoId,
   InputsSectionId,
   LicenseStyle,
@@ -35,10 +36,12 @@ import type {
   ShowWhen,
   StandingsClassLineId,
   StandingsColumnId,
+  SteeringStyle,
   TelemetryConfig,
   TrafficGroupId,
   TrafficHeaderId,
   TrafficPartId,
+  WheelSize,
   WidgetSettings
 } from './types'
 
@@ -462,7 +465,8 @@ export const OPTION_SCHEMA = {
   inputs: {
     traceSeconds: { kind: 'int', min: 2, max: 10, default: 5, displayOnly: true },
     // The bars are the widget: they always stay, like the brake and the throttle.
-    sections: elements(idsOf<InputsSectionId>()(['trace', 'bars', 'info']), {
+    // The car block (revs, bias, TC, FFB) is new: files from before get it hidden, at the end.
+    sections: elements(idsOf<InputsSectionId>()(['trace', 'bars', 'info', 'car']), {
       required: ['bars'],
       displayOnly: true
     }),
@@ -487,7 +491,27 @@ export const OPTION_SCHEMA = {
       default: { throttle: '#3ddc84', brake: '#ff4545', clutch: '#4aa3ff' },
       displayOnly: true
     },
-    steeringStyle: { kind: 'enum', values: ['bar', 'wheel'], default: 'bar', displayOnly: true }
+    // A file's old 'wheel' is the realistic one (migrateInputs).
+    steeringStyle: {
+      kind: 'enum',
+      values: idsOf<SteeringStyle>()(['bar', 'minimal', 'realistic', 'formula']),
+      default: 'bar',
+      displayOnly: true
+    },
+    // Medium is the wheel of before.
+    wheelSize: {
+      kind: 'enum',
+      values: idsOf<WheelSize>()(['small', 'medium', 'large']),
+      default: 'medium',
+      displayOnly: true
+    },
+    // The default accent (ACCENT_PRESETS yellow).
+    wheelColor: { kind: 'color', default: '#ffc400', displayOnly: true },
+    steeringDegrees: { kind: 'bool', default: false, displayOnly: true },
+    // On for a new install; a file from before gets it off (migrateInputs), so nothing new shows.
+    shiftLights: { kind: 'bool', default: true, displayOnly: true },
+    // Each readout only shows when the car has it (no bias or TC control: no row).
+    car: elements(idsOf<InputsCarId>()(['rpm', 'bias', 'tc', 'ffb']), { displayOnly: true })
   },
   // Windows and groups decide what the provider looks for, so they are computed.
   traffic: {

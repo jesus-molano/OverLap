@@ -274,7 +274,7 @@ describe('applySettingsPatch', () => {
       },
       inputs: {
         clutchInTrace: false,
-        steeringStyle: 'wheel',
+        steeringStyle: 'formula',
         sections: setElementVisible(current.inputs.sections, 'trace', false)
       }
     })
@@ -305,7 +305,7 @@ describe('applySettingsPatch', () => {
     expect(out.inputs).toEqual({
       ...current.inputs,
       clutchInTrace: false,
-      steeringStyle: 'wheel',
+      steeringStyle: 'formula',
       sections: setElementVisible(current.inputs.sections, 'trace', false)
     })
   })

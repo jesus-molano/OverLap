@@ -312,7 +312,12 @@ describe('diffSettings and the widget options', () => {
         s.inputs.clutchInTrace = !s.inputs.clutchInTrace
         s.inputs.traceWidth = 3
         s.inputs.colors.brake = '#123456'
-        s.inputs.steeringStyle = s.inputs.steeringStyle === 'bar' ? 'wheel' : 'bar'
+        s.inputs.steeringStyle = s.inputs.steeringStyle === 'bar' ? 'formula' : 'bar'
+        s.inputs.wheelSize = 'large'
+        s.inputs.wheelColor = '#123456'
+        s.inputs.steeringDegrees = !s.inputs.steeringDegrees
+        s.inputs.shiftLights = !s.inputs.shiftLights
+        s.inputs.car = flip(s.inputs.car, 'ffb')
         s.inputs.sections = flip(s.inputs.sections, 'trace')
         s.inputs.info.reverse()
       })
