@@ -58,7 +58,11 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return isPersonalBestKeys(cmd.keys)
     // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.
     case 'layout-save':
-      return isName(cmd.name) && isModeOrAbsent(cmd.mode)
+      return (
+        isName(cmd.name) &&
+        isModeOrAbsent(cmd.mode) &&
+        (cmd.car === undefined || normalizeCarRef(cmd.car) !== null)
+      )
     case 'layout-apply':
     case 'layout-delete':
     case 'layout-restore':

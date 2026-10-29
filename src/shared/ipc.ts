@@ -224,6 +224,8 @@ export type LayoutNotice =
   | { kind: 'options-copied'; widgetId: WidgetId; result: 'copied' | 'unchanged' | 'stale' }
   /** «Traer todos los widgets a esta pantalla» (R51): how many moved (0: all were there). */
   | { kind: 'gathered'; count: number }
+  /** Linking `carName` turned «Según el coche» on (R26). */
+  | { kind: 'auto-switch-on'; carName: string }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -443,7 +445,8 @@ export type SettingsCommand =
    * options in effect into every 'full' layout and the shared options, only while `layoutId` (the
    * one in use when the button was armed) still is.
    */
-  | { type: 'layout-save'; name: string; mode?: LayoutMode }
+  /** `car`: linked to the new layout at once («Vincular a …», R26), which turns «Según el coche» on. */
+  | { type: 'layout-save'; name: string; mode?: LayoutMode; car?: CarRef }
   | { type: 'layout-apply'; id: string }
   | { type: 'layout-duplicate'; id: string; name: string }
   | { type: 'layout-rename'; id: string; name: string }

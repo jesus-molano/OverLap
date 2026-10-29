@@ -286,6 +286,38 @@ describe('LayoutControl: the automatic layout', () => {
     expect(h.settings().savedLayouts.links).toEqual([{ ...GT3, layoutId: 'layout-2' }])
     expect(h.settings().savedLayouts.activeId).toBe('layout-2')
   })
+
+  it('linking a car turns «Según el coche» on, says so once, and applies (R26)', async () => {
+    h = harness(twoLayouts())
+    h.control.onCar(GT3)
+    expect(h.settings().layouts.autoSwitch).toBe(false)
+    await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: 'layout-2' })
+    expect(h.settings().layouts.autoSwitch).toBe(true)
+    expect(h.settings().savedLayouts.activeId).toBe('layout-2')
+    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName }])
+    // Already on: nothing more to say.
+    await h.control.command({ type: 'layout-link-car', car: MAZDA, layoutId: 'layout-1' })
+    expect(h.notices).toHaveLength(1)
+  })
+
+  it('saves a new layout linked to the car you are in, the switch on (R26)', async () => {
+    h = harness(twoLayouts())
+    await h.control.command({ type: 'layout-save', name: 'GT3', car: GT3 })
+    const lib = h.settings().savedLayouts
+    expect(lib.activeId).toBe('layout-3')
+    expect(lib.links).toEqual([{ ...GT3, layoutId: 'layout-3' }])
+    expect(h.settings().layouts.autoSwitch).toBe(true)
+    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName }])
+  })
+
+  it('unlinking, or a link that changes nothing, leaves the switch as it is (R26)', async () => {
+    h = harness(twoLayouts())
+    await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: null })
+    expect(h.settings().layouts.autoSwitch).toBe(false)
+    await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: 'layout-9' })
+    expect(h.settings().layouts.autoSwitch).toBe(false)
+    expect(h.notices).toEqual([])
+  })
 })
 
 describe('LayoutControl: commands', () => {

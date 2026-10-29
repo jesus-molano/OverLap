@@ -38,6 +38,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Vincular un coche enciende «Según el coche»**: al vincular un coche a una disposición (en
+  Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado, y la página
+  lo dice con «Deshacer»; quitar un vínculo no lo toca. Si estás en un coche sin disposición y
+  tienes dos o más, la página y el submenú **Disposición** de la bandeja ofrecen **Vincular a «…»**
+  (la que está en uso), y **Guardar la actual** trae marcada «Vincular a <tu coche>». Los coches
+  vinculados salen como etiquetas en cada disposición, y la lista de coches que se pueden vincular
+  incluye los de tus récords personales, sin tener que subirte a ellos otra vez.
 - **El ojo es el símbolo de la visibilidad**: en la barra lateral, cada widget tiene un ojo (como
   en la etiqueta del modo edición) en vez de un punto: abierto si está activado, tachado si no, y
   tenue con un círculo discontinuo si está activado pero una regla lo oculta ahora; al pasar el

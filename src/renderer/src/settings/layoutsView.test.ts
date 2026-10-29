@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import type { PersonalBestSummary } from '@shared/delta/references'
 import { messagesFor } from '@shared/i18n'
 import { applyLayout, linkCar, noteSeenCar, saveLayoutAs, setLayoutMode } from '@shared/layouts'
 import { createDefaultSettings } from '@shared/settings'
 import type { LayoutSort, OverlaySettings } from '@shared/types'
 import {
+  carsOfBests,
+  linkSuggestion,
   LAYOUT_LIST_ROWS,
   carRows,
   layoutList,
@@ -45,6 +48,42 @@ const MANY = [
   'GT4'
 ]
 
+describe('car links (R26)', () => {
+  it('lists the personal bests\u2019 cars once each, newest first, by their car id', () => {
+    const e = (key: string, car: string): PersonalBestSummary => ({
+      key,
+      car,
+      track: 'Spa',
+      layout: '',
+      lapTime: 140,
+      recordedAt: ''
+    })
+    expect(
+      carsOfBests([
+        e('67@219/Grand Prix', 'Mazda MX-5 Cup'),
+        e('132@219/', 'Porsche 911 GT3 R'),
+        e('67@100/', 'Mazda MX-5 Cup'),
+        e('0@1/', 'Nadie'),
+        e('5@1/', '  ')
+      ])
+    ).toEqual([
+      { carId: 67, carName: 'Mazda MX-5 Cup' },
+      { carId: 132, carName: 'Porsche 911 GT3 R' }
+    ])
+  })
+
+  it('offers the layout in use for a car with none, with two layouts or more', () => {
+    const s = createDefaultSettings()
+    const car = { carId: 132, carName: 'Porsche 911 GT3 R' }
+    expect(linkSuggestion(s.savedLayouts, car)).toBeNull()
+    saveLayoutAs(s, 'GT3')
+    expect(linkSuggestion(s.savedLayouts, car)).toEqual({ id: 'layout-2', name: 'GT3' })
+    expect(linkSuggestion(s.savedLayouts, null)).toBeNull()
+    linkCar(s, car, 'layout-1')
+    expect(linkSuggestion(s.savedLayouts, car)).toBeNull()
+  })
+})
+
 describe('layoutList', () => {
   it('a short list in your order: as stored, the one in use in its place, every row movable', () => {
     const s = createDefaultSettings()
@@ -69,7 +108,7 @@ describe('layoutList', () => {
         canMoveUp: false,
         canMoveDown: true,
         mode: 'full',
-        cars: ''
+        cars: []
       },
       {
         id: 'layout-2',
@@ -79,7 +118,7 @@ describe('layoutList', () => {
         canMoveUp: true,
         canMoveDown: false,
         mode: 'full',
-        cars: 'Coches: Mazda MX-5 Cup, Coche 9'
+        cars: ['Mazda MX-5 Cup', 'Coche 9']
       }
     ])
   })

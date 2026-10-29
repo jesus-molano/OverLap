@@ -104,6 +104,7 @@ const ACTIONS = {
   setOverlayHidden: () => {},
   openSettingsFolder: () => {},
   gatherWidgets: () => {},
+  linkCar: () => {},
   quit: () => {}
 }
 
@@ -573,6 +574,36 @@ describe('tray layouts submenu', () => {
     expect(labels({ ...state(s), carId: 99 })[1]).toBe('Mazda')
     s.appearance.language = 'en'
     expect(layoutsMenu({ ...state(s), carId: 67 }, ACTIONS).at(-1)?.label).toBe('Manage layouts…')
+  })
+
+  it('offers to link the car you are in to the layout in use, when it has none (R26)', () => {
+    const s = withLayouts()
+    const onLink = vi.fn()
+    const car = { carId: 132, carName: 'Porsche 911 GT3 R' }
+    const menu = layoutsMenu(
+      { ...state(s), carId: car.carId, carName: car.carName },
+      {
+        ...ACTIONS,
+        linkCar: onLink
+      }
+    )
+    const offer = menu.at(-2)
+    expect(offer?.label).toBe('Vincular Porsche 911 GT3 R a «Mazda»')
+    ;(offer?.click as (() => void) | undefined)?.()
+    expect(onLink).toHaveBeenCalledWith(car, 'layout-2')
+    // Linked already, no car, or a single layout: nothing to offer.
+    const linked = withLayouts()
+    const plain = (st: TrayState): (string | undefined)[] =>
+      layoutsMenu(st, ACTIONS).map((i) => i.label)
+    linkCar(linked, car, 'layout-3')
+    expect(plain({ ...state(linked), carId: 132, carName: car.carName })).not.toContain(
+      offer?.label
+    )
+    expect(plain(state(s))).not.toContain(offer?.label)
+    const one = createDefaultSettings()
+    expect(plain({ ...state(one), carId: 132, carName: car.carName }).join()).not.toContain(
+      'Vincular'
+    )
   })
 
   /** Principal and `n - 1` more ('L2'...), saved a second apart; 'L2' in use last. */

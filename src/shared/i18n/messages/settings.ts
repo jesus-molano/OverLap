@@ -1556,6 +1556,7 @@ export const settingsEs = {
     },
     deleteActive: 'Aplica otra antes de eliminar la que está en uso',
     /** The cars linked to a layout: 'Coches: Mazda MX-5 Cup, BMW M2'. */
+    /** Before the tags of the cars linked to a layout (R26), for screen readers. */
     cars: (list: string) => `Coches: ${list}`,
     saveTitle: 'Guardar la actual',
     saveHelp: 'Una disposición nueva igual a lo que ves ahora; pasa a ser la que está en uso',
@@ -1600,8 +1601,18 @@ export const settingsEs = {
       'Con uno sin vincular se queda la última que usaste. Mientras editas, espera a que salgas.',
     currentCar: 'Coche actual',
     noCar: 'Ningún coche ahora: entra en una sesión de iRacing para vincular el tuyo',
-    seenCars: 'Otros coches recientes',
-    noSeenCars: 'Los coches a los que te subas aparecerán aquí',
+    seenCars: 'Otros coches: recientes y de tus récords',
+    noSeenCars: 'Los coches a los que te subas, o con un récord personal, aparecerán aquí',
+    /** You are in a car with no layout and there are two or more (R26). */
+    linkSuggest: (layout: string) => `Vincular a «${layout}»`,
+    /** In the save form while you are in a car: link it to the new layout (R26). */
+    linkNew: (car: string) => `Vincular a ${car} (se aplicará sola al subirte)`,
+    linkSuggestHelp: (car: string, layout: string) =>
+      `${car} no tiene disposición: con «${layout}» se aplicará sola al subirte`,
+    /** Linking a car turned «Según el coche» on (R26). */
+    autoOn: (car: string) =>
+      `«Según el coche» activado: al subirte a ${car} se aplicará su disposición.`,
+    autoOnUndo: '«Según el coche» activado',
     noLink: 'Sin vincular',
     linkLabel: (car: string) => `Disposición para ${car}`,
     /** A car the session gave no name. */
@@ -2924,8 +2935,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'A car without a link keeps the last one you used. While editing, it waits until you leave.',
     currentCar: 'Current car',
     noCar: 'No car now: join an iRacing session to link yours',
-    seenCars: 'Other recent cars',
-    noSeenCars: 'The cars you get in will show up here',
+    seenCars: 'Other cars: recent and from your records',
+    noSeenCars: 'The cars you get in, or have a personal best in, will show up here',
+    linkSuggest: (layout) => `Link to “${layout}”`,
+    linkNew: (car) => `Link to ${car} (applies by itself when you get in)`,
+    linkSuggestHelp: (car, layout) =>
+      `${car} has no layout: with “${layout}” it applies by itself when you get in`,
+    autoOn: (car) => `“By car” turned on: getting in ${car} will apply its layout.`,
+    autoOnUndo: '“By car” turned on',
     noLink: 'Not linked',
     linkLabel: (car) => `Layout for ${car}`,
     unknownCar: (id) => `Car ${id}`,

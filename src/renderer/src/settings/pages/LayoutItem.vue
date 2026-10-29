@@ -135,10 +135,15 @@ function remove(): void {
         <span v-if="row.active" class="tag">{{ t.settings.layouts.inUse }}</span>
         {{ row.name }}
       </span>
-      <span class="st-help meta" :title="row.cars || undefined">
-        {{ t.settings.layouts.modes[row.mode]
-        }}<template v-if="row.cars"> · {{ row.cars }}</template>
-      </span>
+      <span class="st-help meta">{{ t.settings.layouts.modes[row.mode] }}</span>
+      <!-- Its linked cars, one tag each (R26). -->
+      <ul
+        v-if="row.cars.length > 0"
+        class="car-tags"
+        :aria-label="t.settings.layouts.cars(row.cars.join(', '))"
+      >
+        <li v-for="c in row.cars" :key="c" class="car-tag" :title="c">{{ c }}</li>
+      </ul>
     </div>
 
     <div v-if="!renaming" class="actions">
@@ -256,6 +261,29 @@ function remove(): void {
 .name,
 .meta {
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.car-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 3px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.car-tag {
+  max-width: 16em;
+  padding: 0 7px;
+  overflow: hidden;
+  border: 1px solid var(--st-border-hi);
+  border-radius: var(--st-radius-sm);
+  background: var(--st-surface-hi);
+  color: var(--ov-fg-muted);
+  font-size: 11.5px;
+  line-height: 1.6;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
