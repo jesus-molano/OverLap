@@ -179,7 +179,8 @@ export function boxBounds<Id extends string>(list: List<Id>, index: number, spli
 
 /**
  * Where `id` is as its box numbers it (from 0) and how many rows that box has: the side of the
- * marker it is on, or the whole list without one.
+ * marker it is on, or the whole list without one. A box lists only what is drawn (its hidden rows
+ * wait in the Ocultos group), so only those count, besides `id` itself.
  */
 export function boxPosition<Id extends string>(
   list: List<Id>,
@@ -187,7 +188,9 @@ export function boxPosition<Id extends string>(
   split?: Id
 ): { readonly index: number; readonly total: number } {
   if (split === undefined) return { index: list.findIndex((e) => e.id === id), total: list.length }
-  const rows = sides(list, split)[sideOf(list, id, split)]
+  const rows = sides(list, split)[sideOf(list, id, split)].filter(
+    (r) => r.entry.visible || r.entry.id === id
+  )
   return { index: rows.findIndex((r) => r.entry.id === id), total: rows.length }
 }
 

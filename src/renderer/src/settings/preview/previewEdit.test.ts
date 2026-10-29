@@ -14,11 +14,15 @@ import {
   ghostEls,
   ghostZones,
   isDragDistance,
+  litKeys,
+  markBox,
   marksCss,
   parseEl,
   pickEl,
   sameEl,
+  shownDropList,
   sideBoundary,
+  tipPlace,
   union,
   withGhosts,
   type BarBoxes,
@@ -149,6 +153,14 @@ describe('drops in a line of elements', () => {
       })
     ).toBeNull()
   })
+
+  it('shows a ghost where it is dropped, in one list', () => {
+    const SPEC = elements<string>(['a', 'b', 'c', 'd'], {})
+    const l = list('a b c d', 'd')
+    expect(ids(shownDropList(SPEC, l, 'd', { kind: 'before', id: 'a' }))).toBe('d a b c')
+    // Dropped where it already was: shown in its place.
+    expect(ids(shownDropList(SPEC, l, 'd', { kind: 'after', id: 'c' }))).toBe('a b c d')
+  })
 })
 
 describe('drops in an info bar', () => {
@@ -227,24 +239,103 @@ describe('ghosts', () => {
     // Nothing hidden but the marker: nothing to ghost.
     expect(ghostZones('relative', { ...o, headerBar: list('title split', 'split') })).toEqual([])
   })
+
+  it('never ghosts in one bar what another shown bar of the widget already draws', () => {
+    const o = {
+      headerBar: list('title split remaining'),
+      headerBarSize: 'normal',
+      footerBar: list('remaining title split carCount', 'title carCount'),
+      footerBarSize: 'normal'
+    }
+    const g = withGhosts(o, ['traffic.headerBar', 'traffic.footerBar'])
+    expect(g.ghosts).toEqual(['traffic.footerBar.carCount'])
+    expect(g.options.footerBar.find((e) => e.id === 'title')?.visible).toBe(false)
+    // With the header off, its title is not drawn: the footer's is ghosted again.
+    const off = withGhosts({ ...o, headerBarSize: 'off' }, ['traffic.footerBar'])
+    expect(off.ghosts).toEqual(['traffic.footerBar.title', 'traffic.footerBar.carCount'])
+  })
+})
+
+describe('the tooltip', () => {
+  const stage = box(0, 0, 1000, 300)
+  it('goes beside the widget, on the side nearer the element, at its height', () => {
+    const widget = box(300, 20, 400, 250)
+    const right = tipPlace(box(600, 100, 40, 12), widget, stage)
+    expect(right.side).toBe('right')
+    expect(right.x).toBe(710)
+    expect(right.y).toBe(106)
+    const left = tipPlace(box(320, 100, 40, 12), widget, stage)
+    expect(left.side).toBe('left')
+    expect(left.x).toBe(290)
+    // Near the stage's top it keeps inside it.
+    expect(tipPlace(box(600, 0, 40, 4), widget, stage).y).toBe(26)
+  })
+
+  it('goes into the margin above or below a widget as wide as the stage', () => {
+    const wide = box(20, 60, 960, 150)
+    expect(tipPlace(box(500, 100, 40, 12), wide, stage).side).toBe('above')
+    expect(tipPlace(box(500, 100, 40, 12), wide, stage).y).toBe(56)
+    const low = box(20, 10, 960, 150)
+    const below = tipPlace(box(500, 100, 40, 12), low, stage)
+    expect(below.side).toBe('below')
+    expect(below.y).toBe(164)
+    // Only a thin margin above it (the standings at 1240 px): one line there.
+    const thin = box(120, 23, 760, 270)
+    expect(tipPlace(box(500, 100, 40, 12), thin, stage)).toMatchObject({
+      side: 'above',
+      y: 22,
+      compact: true
+    })
+    // A widget filling the stage: next to the element after all.
+    const full = box(0, 0, 1000, 300)
+    expect(tipPlace(box(500, 100, 40, 12), full, stage)).toMatchObject({
+      side: 'above',
+      y: 94,
+      compact: false
+    })
+    expect(tipPlace(box(500, 10, 40, 12), full, stage)).toMatchObject({ side: 'below', y: 28 })
+  })
 })
 
 describe('the sample stylesheet', () => {
   const S = '[data-pe="x"]'
-  it('ghosts, outlines and fades by attribute, scoped', () => {
-    const css = marksCss(S, {
+  it('ghosts and fades by attribute, scoped; the ghost outline stays outside the element', () => {
+    const marks = {
       hover: { zone: 'relative.columns', id: 'gap' },
       lit: { zone: 'relative.columns', id: 'gap' },
       dragged: { zone: 'fuel.lines', id: 'hero' },
       ghosts: ['relative.headerBar.clock']
-    })
+    } as const
+    const css = marksCss(S, marks)
     expect(css).toContain(`${S} [data-el="relative.headerBar.clock"] {`)
     expect(css).toContain('outline: 1px dashed')
+    expect(css).toContain('outline-offset: 1px')
+    expect(css).not.toMatch(/outline-offset: -|inset/)
     expect(css).toContain('opacity: 0.42')
-    // One rule for the hovered and lit element when they are the same.
-    expect(css.match(/relative\.columns\.gap/g)?.length).toBe(1)
+    // The hovered and lit element are outlined by the layer, not here.
+    expect(css).not.toContain('relative.columns.gap')
     expect(css).toContain(`${S} [data-el="fuel.lines.hero"] {\n  opacity: 0.3;`)
     expect(marksCss(S, { hover: null, lit: null, dragged: null, ghosts: [] })).toBe('')
+  })
+
+  it('outlines the hovered and the lit element once each, none while dragging', () => {
+    const gap = { zone: 'relative.columns', id: 'gap' } as const
+    const sof = { zone: 'relative.headerBar', id: 'sof' } as const
+    expect(litKeys({ hover: gap, lit: gap, dragged: null, ghosts: [] })).toEqual([
+      'relative.columns.gap'
+    ])
+    expect(litKeys({ hover: gap, lit: sof, dragged: null, ghosts: [] })).toEqual([
+      'relative.columns.gap',
+      'relative.headerBar.sof'
+    ])
+    expect(litKeys({ hover: gap, lit: sof, dragged: sof, ghosts: [] })).toEqual([])
+    expect(litKeys({ hover: { ...gap, id: 'x"]' }, lit: null, dragged: null, ghosts: [] })).toEqual(
+      []
+    )
+  })
+
+  it('draws the outline just outside the element, in stage px', () => {
+    expect(markBox(box(110, 60, 20, 10), box(100, 50, 400, 200))).toEqual(box(8, 8, 24, 14))
   })
 
   it('skips anything that is not a plain data-el', () => {

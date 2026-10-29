@@ -267,6 +267,126 @@ export function droppedList<Id extends string>(
   return next.every((e, i) => e.id === list[i]?.id) ? null : next
 }
 
+/**
+ * The list a ghost's drop makes: `id` placed there and shown, in one edit (a ghost is a hidden
+ * element; dropping it where you want it is showing it there). Its own place when the drop
+ * reads the same.
+ */
+export function shownDropList<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  place: Place<Id>
+): ElementEntry<Id>[] {
+  return placedAt(spec, list, id, place).map((e) => (e.id === id ? { id, visible: true } : e))
+}
+
+// ---- The tooltip's place --------------------------------------------------------------------
+
+/** Where the tooltip goes: its anchor point (stage px) and which way it grows from there. */
+export interface TipPlace {
+  readonly x: number
+  readonly y: number
+  /** 'right' of the widget, 'left' of it, 'above' or 'below' it (or, failing all, the element). */
+  readonly side: 'right' | 'left' | 'above' | 'below'
+  /** Its widest (px): the room it has beside the widget. */
+  readonly maxWidth: number
+  /** One line (the name and what it does side by side): the thin margin above a wide widget. */
+  readonly compact: boolean
+}
+
+/** The tooltip's size budget (px): its widest and about its height (two lines). */
+export const TIP_W = 240
+export const TIP_H = 40
+/** Its gap to the widget, and the room it keeps from the stage's edges (px). */
+const TIP_GAP = 10
+const TIP_EDGE = 6
+/** The least room beside the widget worth a tooltip there (px): its text wraps to fit. */
+const TIP_MIN_BESIDE = 120
+/** The stage's foot (the scene switch and the caption): a tooltip below the widget clears it. */
+const STAGE_FOOT = 28
+
+/** The one-line tooltip's height and about half its width (px). */
+const TIP_COMPACT_H = 20
+const TIP_COMPACT_HALF_W = 180
+
+/**
+ * The tooltip of `el` (client px, as every box here) outside the widget's box, so it never
+ * covers what is around the element: beside the widget where the stage has room (the side
+ * nearer the element first), at the element's height; else in the margin above it, or below
+ * it; else on one line in the stage's thin margin above a wide widget; else, a widget filling
+ * the stage, just above the element (below it near the top).
+ */
+export function tipPlace(el: Box, widget: Box, stage: Box): TipPlace {
+  const cy = (el.top + el.bottom) / 2 - stage.top
+  const cx = (el.left + el.right) / 2 - stage.left
+  const h = stage.bottom - stage.top
+  const w = stage.right - stage.left
+  const y = Math.min(Math.max(cy, TIP_EDGE + TIP_H / 2), h - STAGE_FOOT - TIP_H / 2)
+  const right = stage.right - widget.right - TIP_GAP - TIP_EDGE
+  const left = widget.left - stage.left - TIP_GAP - TIP_EDGE
+  const nearRight = (el.left + el.right) / 2 >= (widget.left + widget.right) / 2
+  const sides: readonly ['right' | 'left', number][] = nearRight
+    ? [
+        ['right', right],
+        ['left', left]
+      ]
+    : [
+        ['left', left],
+        ['right', right]
+      ]
+  for (const [side, room] of sides) {
+    if (room < TIP_MIN_BESIDE) continue
+    const x =
+      side === 'right' ? widget.right - stage.left + TIP_GAP : widget.left - stage.left - TIP_GAP
+    return { x, y, side, maxWidth: Math.min(TIP_W, room), compact: false }
+  }
+  const across = (half: number): number =>
+    Math.min(Math.max(cx, half + TIP_EDGE), Math.max(half + TIP_EDGE, w - half - TIP_EDGE))
+  const x = across(TIP_W / 2)
+  const full = { maxWidth: TIP_W, compact: false }
+  if (widget.top - stage.top >= TIP_H + TIP_EDGE) {
+    return { x, y: widget.top - stage.top - 4, side: 'above', ...full }
+  }
+  if (stage.bottom - widget.bottom >= TIP_H + STAGE_FOOT) {
+    return { x, y: widget.bottom - stage.top + 4, side: 'below', ...full }
+  }
+  if (widget.top - stage.top >= TIP_COMPACT_H + 2) {
+    return {
+      x: across(TIP_COMPACT_HALF_W),
+      y: widget.top - stage.top - 1,
+      side: 'above',
+      maxWidth: w - 2 * TIP_EDGE,
+      compact: true
+    }
+  }
+  const below = el.top - stage.top < TIP_H + TIP_EDGE
+  return below
+    ? { x, y: el.bottom - stage.top + 6, side: 'below', ...full }
+    : { x, y: el.top - stage.top - 6, side: 'above', ...full }
+}
+
+/** How far the outline of a lit element stands outside its box (px): it never covers it. */
+export const MARK_OUTSET = 2
+
+/** The outline box of an element's `box` in the stage (px), just outside it. */
+export function markBox(box: Box, stage: Box): Box {
+  return {
+    left: box.left - stage.left - MARK_OUTSET,
+    top: box.top - stage.top - MARK_OUTSET,
+    right: box.right - stage.left + MARK_OUTSET,
+    bottom: box.bottom - stage.top + MARK_OUTSET
+  }
+}
+
+/** The points around a pointer tried when it is on nothing (px): small targets of a scaled sample. */
+export const NEAR_OFFSETS: readonly (readonly [number, number])[] = [
+  [4, 0],
+  [-4, 0],
+  [0, 4],
+  [0, -4]
+]
+
 // ---- Ghosts -----------------------------------------------------------------------------------
 
 /**
@@ -333,12 +453,35 @@ export function withGhosts<T extends object>(
     const field = zone.split('.')[1] as string
     const list = o[field]
     if (!Array.isArray(list)) continue
+    const elsewhere = shownInOtherBar(zone, o)
     out[field] = (list as ElementEntry<string>[]).map((e) => {
-      if (!e.visible && e.id !== SPLIT) ghosts.push(`${zone}.${e.id}`)
+      if (e.visible || e.id === SPLIT) return { id: e.id, visible: true }
+      if (elsewhere.has(e.id)) return e
+      ghosts.push(`${zone}.${e.id}`)
       return { id: e.id, visible: true }
     })
   }
   return { options: out as unknown as T, ghosts }
+}
+
+/**
+ * The items another shown info bar of the same widget already draws (an info bar `zone` only):
+ * never ghosted in this one too (a dashed second "TRÁFICO" in the footer under the header's
+ * reads as a glitch). Empty for any other zone.
+ */
+function shownInOtherBar(zone: CustomizeZoneId, o: Options): ReadonlySet<string> {
+  const [section, field] = zone.split('.') as [string, string]
+  const bars = (INFO_BARS as Readonly<Record<string, readonly (readonly [string, string])[]>>)[
+    section
+  ]
+  const out = new Set<string>()
+  if (bars === undefined || !bars.some(([f]) => f === field)) return out
+  for (const [f, size] of bars) {
+    const list = o[f]
+    if (f === field || o[size] === 'off' || !Array.isArray(list)) continue
+    for (const e of list as ElementEntry<string>[]) if (e.visible && e.id !== SPLIT) out.add(e.id)
+  }
+  return out
 }
 
 /** Every ghosted `data-el` of a page's section (the widget's InfoBar drops them first). */
@@ -363,11 +506,12 @@ const SAFE = /^[a-zA-Z.]+$/
 const sel = (scope: string, key: string): string => `${scope} [data-el="${key}"]`
 
 /**
- * The rules for `marks` under `scope` (the sample's root selector): every copy an element
- * draws (each cell of a column) is outlined at once, by attribute, so nothing in the sample is
- * queried or touched. Ghosts are translucent with a dashed outline; the hovered element and the
- * one lit from the list get a solid one (neutral ink with a dark edge, readable on both scenes);
- * the dragged one fades. Keys that are not plain data-el values are skipped.
+ * The rules for `marks` under `scope` (the sample's root selector), by attribute, so nothing in
+ * the sample is queried or touched for them: ghosts are translucent with a dashed outline just
+ * outside them (never over their text), the dragged element fades. The hovered element and the
+ * one lit from the list are outlined by the layer over the sample instead (litKeys): an outline
+ * here would be clipped by the bars and the cells around it, or cover the element's text. Keys
+ * that are not plain data-el values are skipped.
  */
 export function marksCss(scope: string, marks: Marks): string {
   const rules: string[] = []
@@ -377,20 +521,7 @@ export function marksCss(scope: string, marks: Marks): string {
       `${ghosts.map((k) => sel(scope, k)).join(',\n')} {\n` +
         '  opacity: 0.42;\n' +
         '  outline: 1px dashed rgba(255, 255, 255, 0.85);\n' +
-        '  outline-offset: -1px;\n' +
-        '}'
-    )
-  }
-  const lit = [marks.hover, marks.lit]
-    .filter((m): m is ElRef => m !== null)
-    .map(elKey)
-    .filter((k, i, all) => SAFE.test(k) && all.indexOf(k) === i)
-  if (lit.length > 0) {
-    rules.push(
-      `${lit.map((k) => sel(scope, k)).join(',\n')} {\n` +
-        '  outline: 2px solid rgba(255, 255, 255, 0.95);\n' +
-        '  outline-offset: -2px;\n' +
-        '  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.55);\n' +
+        '  outline-offset: 1px;\n' +
         '}'
     )
   }
@@ -398,4 +529,13 @@ export function marksCss(scope: string, marks: Marks): string {
     rules.push(`${sel(scope, elKey(marks.dragged))} {\n  opacity: 0.3;\n}`)
   }
   return rules.join('\n')
+}
+
+/** The `data-el`s the layer outlines: the hovered and the lit element, once each (none while dragging). */
+export function litKeys(marks: Marks): string[] {
+  if (marks.dragged !== null) return []
+  return [marks.hover, marks.lit]
+    .filter((m): m is ElRef => m !== null)
+    .map(elKey)
+    .filter((k, i, all) => SAFE.test(k) && all.indexOf(k) === i)
 }

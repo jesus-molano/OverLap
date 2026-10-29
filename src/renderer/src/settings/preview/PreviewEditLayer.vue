@@ -11,33 +11,42 @@ import {
   dropInLine,
   droppedList,
   elAction,
+  NEAR_OFFSETS,
   isDragDistance,
+  litKeys,
+  markBox,
   marksCss,
   pickEl,
   sameEl,
+  shownDropList,
+  tipPlace,
   union,
   type BarBoxes,
   type Box,
   type Drop,
   type ElAction,
   type ElRef,
-  type Slot
+  type Slot,
+  type TipPlace
 } from './previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from './usePreviewEdit'
 
 /**
  * The pointer side of editing in the sample (usePreviewEdit.ts): listeners on the sample's root
  * (one set, by delegation: what is under the pointer is the nearest `data-el` of a zone with an
- * editor), the outline of the hovered element with its name and what a click or a drag does,
- * the drop line of a drag, and a short note when the rules refuse something. The outlines and
- * the ghosts are one stylesheet over the sample (marksCss), so nothing in the widget is queried
- * or touched while you point; a drag measures its zone once, when it starts.
+ * editor; on nothing, an element a few px away), the outline of the hovered element with its
+ * name and what a click or a drag does (beside the widget: tipPlace), the drop line of a drag,
+ * and a short note when the rules refuse something. The ghosts and the dragged element's fade
+ * are one stylesheet over the sample (marksCss); the outlines are boxes in this layer just
+ * outside each copy of the element (litKeys, markBox), measured when what is lit changes or the
+ * sample redraws, so they cover no text and no bar clips them. A drag measures its zone once,
+ * when it starts.
  *
  * A press that does not travel is a click: it shows or hides the element (a ghost is shown
  * where it is drawn). One that travels is a drag: the element lands before or after its
  * neighbours (an info bar: on the side the pointer is on), through the zone's editor, so the
- * patch, the rules and the announcement are the list's own. Either opens the zone's accordion.
- * Escape cancels a drag.
+ * patch, the rules and the announcement are the list's own; a ghost dropped is shown there.
+ * Either opens the zone's accordion. Escape cancels a drag.
  */
 const props = defineProps<{
   /** The sample's root (the widget is drawn inside it). */
@@ -51,14 +60,17 @@ const t = useI18n()
 const scope = `pe${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 const scopeSel = `[data-pe="${scope}"]`
 
-/** The name and what the pointer does, over the element. */
+/** The name and what the pointer does, beside the widget (tipPlace). */
 interface Tip {
   readonly style: InlineStyle
-  readonly below: boolean
+  readonly side: TipPlace['side']
+  readonly compact: boolean
   readonly title: string
   readonly text: string
 }
 const tip = shallowRef<Tip | null>(null)
+/** The outlines of the hovered and the lit element (every copy it draws), in the stage. */
+const marks = shallowRef<readonly InlineStyle[]>([])
 const lineStyle = shallowRef<InlineStyle | null>(null)
 const note = shallowRef<string | null>(null)
 let noteTimer: ReturnType<typeof setTimeout> | undefined
@@ -80,13 +92,94 @@ onMounted(() => {
 watchEffect(() => {
   if (pe === null) return
   const css = marksCss(scopeSel, {
-    hover: pe.dragged.value === null ? pe.hover.value : null,
-    lit: pe.dragged.value === null ? pe.lit.value : null,
+    hover: null,
+    lit: null,
     dragged: pe.dragged.value,
     ghosts: pe.ghosts.value
   })
   if (sheet !== null && sheet.textContent !== css) sheet.textContent = css
 })
+
+// ---- The outlines: boxes over the sample, just outside each copy of the element -------------
+
+/** At most this many copies outlined (a column of a long table). */
+const MAX_MARKS = 80
+let marksFrame = 0
+let litNow: readonly string[] = []
+
+function measureMarks(): void {
+  marksFrame = 0
+  const root = props.sample
+  const s = stageBox()
+  if (root === null || s === null || litNow.length === 0) {
+    if (marks.value.length > 0) marks.value = []
+    return
+  }
+  const out: InlineStyle[] = []
+  for (const key of litNow) {
+    for (const node of root.querySelectorAll(`[data-el="${key}"]`)) {
+      const r = node.getBoundingClientRect()
+      if (r.width <= 0 || r.height <= 0 || out.length >= MAX_MARKS) continue
+      const b = markBox(r, s)
+      out.push({
+        left: `${b.left}px`,
+        top: `${b.top}px`,
+        width: `${b.right - b.left}px`,
+        height: `${b.bottom - b.top}px`
+      })
+    }
+  }
+  marks.value = out
+}
+
+/** Measures the outlines on the next frame (once, however many changes come before it). */
+function scheduleMarks(): void {
+  if (marksFrame === 0) marksFrame = requestAnimationFrame(measureMarks)
+}
+
+watch(
+  () =>
+    pe === null
+      ? []
+      : litKeys({
+          hover: pe.hover.value,
+          lit: pe.lit.value,
+          dragged: pe.dragged.value,
+          ghosts: []
+        }),
+  (keys) => {
+    litNow = keys
+    watchSample(keys.length > 0)
+    scheduleMarks()
+  },
+  { flush: 'post' }
+)
+// Ghosts that come or go move what is outlined.
+watch(() => pe?.ghosts.value, scheduleMarks, { flush: 'post' })
+
+/** While something is outlined: whatever the sample redraws or resizes moves the outlines. */
+let sampleObservers: { mo: MutationObserver; ro: ResizeObserver } | null = null
+function watchSample(on: boolean): void {
+  const root = props.sample
+  if (!on || root === null) {
+    sampleObservers?.mo.disconnect()
+    sampleObservers?.ro.disconnect()
+    sampleObservers = null
+    return
+  }
+  if (sampleObservers !== null) return
+  const mo = new MutationObserver(scheduleMarks)
+  mo.observe(root, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-el']
+  })
+  const ro = new ResizeObserver(scheduleMarks)
+  ro.observe(root)
+  if (props.stage !== null) ro.observe(props.stage)
+  sampleObservers = { mo, ro }
+}
 
 // ---- Hit-testing ---------------------------------------------------------------------------
 
@@ -124,18 +217,25 @@ function stageBox(): DOMRect | null {
   return props.stage?.getBoundingClientRect() ?? null
 }
 
-const TIP_HALF_W = 120
+/** The widget's own box in the sample (the box its window stands in), else the sample's. */
+function widgetBox(): DOMRect | null {
+  const root = props.sample
+  if (root === null) return null
+  return (root.querySelector('.ws-box') ?? root).getBoundingClientRect()
+}
 
 function tipFor(box: Box, title: string, text: string): Tip | null {
   const s = stageBox()
-  if (s === null) return null
-  const below = box.top - s.top < 46
-  const x = Math.min(
-    Math.max((box.left + box.right) / 2 - s.left, TIP_HALF_W),
-    Math.max(TIP_HALF_W, s.width - TIP_HALF_W)
-  )
-  const y = below ? box.bottom - s.top + 6 : box.top - s.top - 6
-  return { style: { left: `${x}px`, top: `${y}px` }, below, title, text }
+  const w = widgetBox()
+  if (s === null || w === null) return null
+  const p = tipPlace(box, w, s)
+  return {
+    style: { left: `${p.x}px`, top: `${p.y}px`, maxWidth: `${p.maxWidth}px` },
+    side: p.side,
+    compact: p.compact,
+    title,
+    text
+  }
 }
 
 function showTip(h: Hit): void {
@@ -171,9 +271,31 @@ interface Press {
 }
 let press: Press | null = null
 let lastTarget: EventTarget | null = null
+let lastDirect: Hit | null = null
+let lastNode: Element | null = null
+
+/**
+ * What the pointer at `x`, `y` is on: its target's element, else one a few px away (the small
+ * items of a sample drawn smaller than it is: a bar's 8 px figures).
+ */
+function hitNear(target: EventTarget | null, x: number, y: number): Hit | null {
+  const direct = target === lastTarget ? lastDirect : hitAt(target)
+  lastTarget = target
+  lastDirect = direct
+  if (direct !== null) return direct
+  const root = props.sample
+  if (root === null || !(target instanceof Node) || !root.contains(target)) return null
+  for (const [dx, dy] of NEAR_OFFSETS) {
+    const near = hitAt(document.elementFromPoint(x + dx, y + dy))
+    if (near !== null) return near
+  }
+  return null
+}
 
 function setHover(next: Hit | null): void {
   if (pe === null) return
+  if (next?.node === lastNode && next !== null) return
+  lastNode = next?.node ?? null
   if (!sameEl(pe.hover.value, next?.el ?? null)) pe.hover.value = next?.el ?? null
   if (next === null) tip.value = null
   else showTip(next)
@@ -220,7 +342,7 @@ function measure(zone: CustomizeZoneId, split: boolean): { slots: Slot[]; bar: B
 
 function onDown(e: PointerEvent): void {
   if (e.button !== 0 || press !== null || pe === null) return
-  const hit = hitAt(e.target)
+  const hit = hitNear(e.target, e.clientX, e.clientY)
   if (hit === null) return
   e.preventDefault()
   try {
@@ -268,9 +390,7 @@ function dragTo(p: Press, x: number, y: number): void {
   const m = t.value.settings
   const label = h.label(id)
   const text =
-    inBar !== null
-      ? m.preview.movingSide(label, m.elements.sides[inBar.side])
-      : m.preview.moving(label)
+    inBar !== null ? m.preview.movingSide(m.elements.sides[inBar.side]) : m.preview.moving
   tip.value = tipFor({ left: x, right: x, top: y - 8, bottom: y + 18 }, label, text)
 }
 
@@ -281,14 +401,14 @@ function onMove(e: PointerEvent): void {
     if (p.moving && pe?.dragged.value !== null) dragTo(p, e.clientX, e.clientY)
     return
   }
-  if (p !== null || e.target === lastTarget) return
-  lastTarget = e.target
-  setHover(hitAt(e.target))
+  if (p !== null) return
+  setHover(hitNear(e.target, e.clientX, e.clientY))
 }
 
 function finish(): void {
   press = null
   lastTarget = null
+  lastNode = null
   lineStyle.value = null
   if (pe !== null) pe.dragged.value = null
   setCursor('')
@@ -315,14 +435,20 @@ function onUp(e: PointerEvent): void {
   if (!p.moving) click(p.hit, p.action)
   else if (dragging && drop !== null) {
     const h = p.hit.handle
-    const next = droppedList(h.spec, h.list(), p.hit.el.id, drop.place)
-    if (next !== null) h.commit(next, p.hit.el.id)
-    h.reveal(p.hit.el.id)
+    const id = p.hit.el.id
+    // A ghost dropped is shown where it lands (one patch), never moved while still hidden.
+    if (p.action === 'show') h.showAt(shownDropList(h.spec, h.list(), id, drop.place), id)
+    else {
+      const next = droppedList(h.spec, h.list(), id, drop.place)
+      if (next !== null) h.commit(next, id)
+    }
+    h.reveal(id)
   }
   tip.value = null
   // What is under the pointer now (the element moved, or a ghost came back).
   requestAnimationFrame(() => {
     lastTarget = null
+    lastNode = null
   })
 }
 
@@ -336,6 +462,7 @@ function onCancel(e: PointerEvent): void {
 function onLeave(): void {
   if (press !== null) return
   lastTarget = null
+  lastNode = null
   setHover(null)
 }
 
@@ -392,6 +519,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
   clearTimeout(noteTimer)
   sheet?.remove()
+  cancelAnimationFrame(marksFrame)
+  watchSample(false)
   sheet = null
   if (pe !== null) {
     pe.hover.value = null
@@ -403,7 +532,13 @@ onBeforeUnmount(() => {
 <template>
   <div class="pe" aria-hidden="true">
     <div v-if="lineStyle" class="pe-line" :style="lineStyle" />
-    <div v-if="tip" class="pe-tip" :class="{ 'is-below': tip.below }" :style="tip.style">
+    <div v-for="(m, i) in marks" :key="i" class="pe-mark" :style="m" />
+    <div
+      v-if="tip"
+      class="pe-tip"
+      :class="[`is-${tip.side}`, { 'is-compact': tip.compact }]"
+      :style="tip.style"
+    >
       <span class="pe-tip-title">{{ tip.title }}</span>
       <span class="pe-tip-text">{{ tip.text }}</span>
     </div>
@@ -427,6 +562,20 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7);
 }
 
+/*
+ * The outline of the hovered or lit element: a ring just outside its box (markBox), so it
+ * never covers the element's text and no bar or cell around it clips it. Neutral ink with a
+ * dark edge, readable on both scenes.
+ */
+.pe-mark {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65);
+}
+
+/* Beside the widget (or in the margin above or below it): never over what it is about. */
 .pe-tip {
   position: absolute;
   display: flex;
@@ -448,9 +597,30 @@ onBeforeUnmount(() => {
   transform: translate(-50%, 0);
 }
 
+/* Beside the widget its width is the room there: the text wraps rather than being cut. */
+.pe-tip.is-right {
+  white-space: normal;
+  transform: translate(0, -50%);
+}
+
+.pe-tip.is-left {
+  white-space: normal;
+  transform: translate(-100%, -50%);
+}
+
+/* One line in the thin margin above a wide widget: the name, then what it does. */
+.pe-tip.is-compact {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  padding: 1px 8px 2px;
+}
+
 .pe-tip-title {
+  overflow: hidden;
   font-size: 12px;
   font-weight: var(--ov-w-strong);
+  text-overflow: ellipsis;
 }
 
 .pe-tip-text {

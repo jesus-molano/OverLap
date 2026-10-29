@@ -9,6 +9,7 @@ import {
   REMOVED_WIDGETS,
   SHOWN_WHEN_ADDED,
   freeSpot,
+  migrateCustomizeOpen,
   migrateSection
 } from './migrate'
 
@@ -473,6 +474,23 @@ describe('the element lists from the options they replaced (v2.6)', () => {
     expect(since.headerBarSize).toBe('small')
     expect(since.captions).toBe(true)
     expect('header' in since).toBe(false)
+  })
+
+  it("keeps the traffic's old Cabecera accordion open or closed under its header bar", () => {
+    const open = (list: unknown): string[] =>
+      normalizeSettings({ settingsWindow: { customizeOpen: list } })
+        .settingsWindow.customizeOpen.filter((e) => e.visible)
+        .map((e) => e.id)
+    expect(open([{ id: 'traffic.header', visible: true }])).toEqual(['traffic.headerBar'])
+    expect(open([{ id: 'traffic.header', visible: false }])).toEqual([])
+    // Written since: the new id wins, the old one is a leftover.
+    expect(
+      open([
+        { id: 'traffic.header', visible: true },
+        { id: 'traffic.headerBar', visible: false }
+      ])
+    ).toEqual([])
+    expect(migrateCustomizeOpen({ customizeOpen: 'junk' })).toEqual({ customizeOpen: 'junk' })
   })
 
   it('a file from before the new bars draws the battle, the traffic and the fuel as it did', () => {

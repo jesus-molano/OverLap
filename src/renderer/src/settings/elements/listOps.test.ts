@@ -186,8 +186,11 @@ describe('two sides of an info bar', () => {
 
   it('numbers a row within its box, as the box shows it', () => {
     const list = defaults(BAR)
-    expect(boxPosition(list, 'z', 'split')).toEqual({ index: 0, total: 2 })
+    // w is hidden: it waits in the Ocultos group, not in the right box.
+    expect(boxPosition(list, 'z', 'split')).toEqual({ index: 0, total: 1 })
     expect(boxPosition(list, 'y', 'split')).toEqual({ index: 1, total: 2 })
+    const leftHidden = list.map((e) => (e.id === 'x' ? { ...e, visible: false } : e))
+    expect(boxPosition(leftHidden, 'y', 'split')).toEqual({ index: 0, total: 1 })
     expect(boxPosition(list, 'z', undefined)).toEqual({ index: 3, total: 5 })
   })
 
