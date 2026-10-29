@@ -88,6 +88,9 @@ export const settingsEs = {
   /** Labels several pages share. */
   common: {
     content: 'Contenido',
+    /** The widget page's element editors (settings/layout/CustomizeSection.vue). */
+    customize: 'Personalizar',
+    customizeNote: 'Orden y visibilidad de cada parte',
     show: 'Mostrar',
     layout: 'Disposición',
     keepVisible: 'Mantener visible',
@@ -1163,6 +1166,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   common: {
     content: 'Content',
+    customize: 'Customise',
+    customizeNote: 'Order and visibility of each part',
     show: 'Show',
     layout: 'Layout',
     keepVisible: 'Keep visible',

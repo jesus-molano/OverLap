@@ -95,6 +95,9 @@ function onSelectChange(e: Event): void {
 <style scoped>
 /* The window's height, never more: the page's options scroll inside it. */
 .app {
+  /* Sidebar, page padding, the widest page and the scrollbar's gutter. */
+  --st-app-max: calc(212px + 2 * var(--st-page-pad) + var(--st-page-max) + 14px);
+
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   grid-template-columns: 212px minmax(0, 1fr);
@@ -147,6 +150,19 @@ function onSelectChange(e: Event): void {
   margin: 48px 0;
   color: var(--ov-fg-muted);
   text-align: center;
+}
+
+/*
+ * Ultrawide (21:9, 32:9, triple screens as one): past 2200 px the sidebar and the page stay
+ * together, centred, as wide as the two option columns need (settings.css --st-page-max), instead
+ * of the sidebar at one edge and the page lines running across the screen.
+ */
+@media (min-width: 2200px) {
+  .app {
+    max-width: var(--st-app-max);
+    margin-inline: auto;
+    border-inline: 1px solid var(--st-border);
+  }
 }
 
 @media (max-width: 639px) {

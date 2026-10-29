@@ -1,4 +1,4 @@
-import { BrowserWindow, app, type WebContents } from 'electron'
+import { BrowserWindow, app, screen, type Rectangle, type WebContents } from 'electron'
 import { join } from 'node:path'
 import { DEFAULT_LANGUAGE, messagesFor, type Language } from '@shared/i18n'
 import iconPath from '../../resources/icon.png?asset'
@@ -72,14 +72,60 @@ export function destroySettingsWindow(): void {
   win = null
 }
 
+export interface SettingsWindowSize {
+  readonly width: number
+  readonly height: number
+  readonly minWidth: number
+  readonly minHeight: number
+}
+
+/** Room for the sidebar plus a live sample at the default standings width (540 px). */
+const BASE = { width: 880, height: 760, minWidth: 560, minHeight: 520 } as const
+/** A taller screen (1440p, ultrawide) opens it taller, up to this. */
+const TALLEST = 960
+/** Share of the work area's height it opens at, between the base height and TALLEST. */
+const HEIGHT_SHARE = 0.72
+/** Kept clear around it, so it never opens past the work area (a small or scaled screen). */
+const MARGIN = 24
+
+/**
+ * The opening size in `workArea` (the primary display's): 880 x 760 on a 1080p screen, taller on
+ * a taller one (the preview and the options both gain), never larger than the work area, its
+ * minimum never above that. Maximising it is the page's to use (settings.css: two option
+ * columns, and on an ultrawide the page capped and centred). Pure.
+ */
+export function settingsWindowSize(
+  workArea: Pick<Rectangle, 'width' | 'height'>
+): SettingsWindowSize {
+  // An unknown side (0, NaN) reads as the 1080p work area.
+  const areaW = workArea.width > 0 ? workArea.width : 1920
+  const areaH = workArea.height > 0 ? workArea.height : 1040
+  const roomW = Math.max(1, Math.floor(areaW) - 2 * MARGIN)
+  const roomH = Math.max(1, Math.floor(areaH) - 2 * MARGIN)
+  const tall = Math.min(TALLEST, Math.max(BASE.height, Math.round(areaH * HEIGHT_SHARE)))
+  const width = Math.min(BASE.width, roomW)
+  const height = Math.min(tall, roomH)
+  return {
+    width,
+    height,
+    minWidth: Math.min(BASE.minWidth, width),
+    minHeight: Math.min(BASE.minHeight, height)
+  }
+}
+
+function primaryWorkArea(): Pick<Rectangle, 'width' | 'height'> {
+  try {
+    return screen.getPrimaryDisplay().workArea
+  } catch {
+    return { width: 1920, height: 1040 }
+  }
+}
+
 function createWindow(): BrowserWindow {
   const w = new BrowserWindow({
-    // Room for the sidebar plus a live sample at the default standings width (540 px).
-    width: 880,
-    height: 760,
-    minWidth: 560,
-    minHeight: 520,
+    ...settingsWindowSize(primaryWorkArea()),
     center: true,
+    maximizable: true,
     title: settingsWindowTitle(language),
     icon: iconPath,
     show: false,
