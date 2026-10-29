@@ -38,7 +38,7 @@ import {
   toTelemetryConfig
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
-import { everyBinding, shortcutBindings } from '@shared/shortcuts'
+import { everyBinding, shortcutBindings, type ShortcutAction } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
@@ -63,7 +63,9 @@ import { ShortcutManager } from './shortcutManager'
 import { resolveSource } from './sourceFlag'
 import { TelemetryHost } from './telemetryHost'
 import { OverlayWindows } from './overlayWindows'
-import { createTray, destroyTray, updateTray, type TrayState } from './tray'
+import { commonHiddenReason, createTray, destroyTray, updateTray, type TrayState } from './tray'
+import { OsdWindow } from './osdWindow'
+import { shortcutFeedback } from './shortcutFeedback'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
@@ -358,15 +360,44 @@ function start(): void {
           openSettingsWindow()
           break
       }
+      afterShortcut(action)
     },
     onExitEdit: () => setEditMode(false),
-    onStatus: (next) => sendToSettingsWindow(IPC.shortcutStatus, next),
+    onStatus: (next) => {
+      sendToSettingsWindow(IPC.shortcutStatus, next)
+      // The tray says how many do not work (R37).
+      refreshTray()
+    },
     onButtonsWanted: (wanted) => input.setWanted(wanted),
     // A reader that gave up (or could not read controllers) gets another go.
     onCaptureStart: () => input.retry()
   })
+  /** The confirmation over the game (made the first time a shortcut runs). */
+  const osd = new OsdWindow()
   // Whatever takes the keys away from the settings page ends a capture there.
   onSettingsWindowInactive(() => shortcuts.stopCapture())
+
+  /**
+   * After a shortcut ran: its row on the shortcuts page says so, and a short confirmation over
+   * the game says what it did, or why nothing changed that you can see (R37).
+   */
+  function afterShortcut(action: ShortcutAction): void {
+    sendToSettingsWindow(IPC.shortcutUsed, action)
+    const s = store.settings
+    if (!s.settingsWindow.shortcutToasts) return
+    const lib = s.savedLayouts
+    const hidden = windows.autoHiddenReasons()
+    const msg = shortcutFeedback(messagesFor(s.appearance.language), action, {
+      overlayHidden: windows.userHidden,
+      editMode: windows.editMode,
+      allHiddenBy: commonHiddenReason({ settings: s, autoHidden: hidden }),
+      inSession: sessionKindNow !== null,
+      deltaShowing: s.widgets.delta.visible && hidden.delta === undefined,
+      layoutCount: lib.list.length,
+      layoutName: lib.list.find((l) => l.id === lib.activeId)?.name ?? ''
+    })
+    if (msg) osd.show(msg)
+  }
 
   function trayState(): TrayState {
     return {
@@ -375,7 +406,9 @@ function start(): void {
       editMode: windows.editMode,
       overlayHidden: windows.userHidden,
       autoHidden: windows.autoHiddenReasons(),
-      carId: layouts.car?.carId ?? null
+      carId: layouts.car?.carId ?? null,
+      shortcutsFailing: Object.values(shortcuts.report.actions).filter((a) => a === 'unavailable')
+        .length
     }
   }
 
@@ -660,7 +693,7 @@ function start(): void {
   windows.start()
   telemetry.start()
   createTray(trayState(), {
-    openSettings: openSettingsWindow,
+    openSettings: (page) => openSettingsWindow(page),
     applyLayout: (id) => void layouts.choose(id),
     setWidgetVisible,
     setRadarRange,
@@ -695,6 +728,7 @@ function start(): void {
     safe('unregister shortcuts', () => shortcuts.dispose())
     safe('stop reading controllers', () => input.dispose())
     safe('dispose windows', () => windows.dispose())
+    safe('close the shortcut confirmation', () => osd.dispose())
     safe('flush settings', () => store.flush())
     safe('destroy tray', () => destroyTray())
     let stopped: Promise<void>

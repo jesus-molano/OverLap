@@ -112,7 +112,35 @@ export const coreEs = {
      * While one rule hides every enabled widget (`hiddenNote`: its caption, 'Oculto: fuera del
      * coche').
      */
-    tooltipAutoHidden: (status: string, hiddenNote: string) => `OverLap · ${hiddenNote} · ${status}`
+    tooltipAutoHidden: (status: string, hiddenNote: string) =>
+      `OverLap · ${hiddenNote} · ${status}`,
+    /** Some shortcuts could not be registered (R37): a line under the status, to the page. */
+    shortcutsFailing: (n: number) =>
+      n === 1 ? '1 atajo no funciona…' : `${n} atajos no funcionan…`,
+    /** The same, at the end of the tooltip. */
+    tooltipShortcuts: (n: number) => (n === 1 ? '1 atajo no funciona' : `${n} atajos no funcionan`)
+  },
+  /**
+   * The short confirmation over the game when a shortcut runs (R37): what it did, or why it did
+   * nothing you can see.
+   */
+  osd: {
+    overlayShown: 'Overlay visible',
+    overlayHidden: 'Overlay oculto',
+    /** Shown, but a rule hides every enabled widget now (`caption`: 'Oculto: fuera del coche'). */
+    overlayShownHeld: (caption: string) => `Overlay visible · ${caption}`,
+    editOn: 'Modo edición',
+    editOff: 'Modo edición: terminado',
+    deltaNext: 'Delta: siguiente referencia',
+    /** The delta's reference changes at the start of the next lap. */
+    deltaNextDetail: 'Desde la próxima vuelta, solo en esta sesión',
+    deltaNoSession: 'Delta: no hay sesión',
+    deltaNoSessionDetail: 'La referencia se cambia en pista',
+    deltaHidden: 'Delta oculto',
+    deltaHiddenDetail: 'La referencia ha cambiado, pero el widget no se ve',
+    layout: (name: string) => `Disposición: ${name}`,
+    layoutOnlyOne: 'Solo hay una disposición',
+    layoutOnlyOneDetail: 'Guarda otra en Ajustes › Disposiciones'
   },
   /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
   layoutFiles: {
@@ -258,7 +286,26 @@ export const coreEn: Dict<typeof coreEs> = {
     widgetHidden: (title, hiddenNote) => `${title} (${hiddenNote})`,
     tooltip: (status) => `OverLap · ${status}`,
     tooltipHidden: (status) => `OverLap · Overlay hidden · ${status}`,
-    tooltipAutoHidden: (status, hiddenNote) => `OverLap · ${hiddenNote} · ${status}`
+    tooltipAutoHidden: (status, hiddenNote) => `OverLap · ${hiddenNote} · ${status}`,
+    shortcutsFailing: (n) =>
+      n === 1 ? '1 shortcut is not working…' : `${n} shortcuts are not working…`,
+    tooltipShortcuts: (n) => (n === 1 ? '1 shortcut not working' : `${n} shortcuts not working`)
+  },
+  osd: {
+    overlayShown: 'Overlay shown',
+    overlayHidden: 'Overlay hidden',
+    overlayShownHeld: (caption) => `Overlay shown · ${caption}`,
+    editOn: 'Edit mode',
+    editOff: 'Edit mode: done',
+    deltaNext: 'Delta: next reference',
+    deltaNextDetail: 'From the next lap, this session only',
+    deltaNoSession: 'Delta: no session',
+    deltaNoSessionDetail: 'The reference changes on track',
+    deltaHidden: 'Delta hidden',
+    deltaHiddenDetail: 'The reference changed, but the widget is not showing',
+    layout: (name) => `Layout: ${name}`,
+    layoutOnlyOne: 'There is only one layout',
+    layoutOnlyOneDetail: 'Save another in Settings › Layouts'
   },
   layoutFiles: {
     filter: 'OverLap layout',

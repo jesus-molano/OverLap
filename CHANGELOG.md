@@ -9,6 +9,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Saber si un atajo funciona**: al usar un atajo, un aviso breve arriba de la pantalla, sobre el
+  juego, dice qué ha hecho («Overlay oculto», «Modo edición», «Disposición: GT3») o por qué no se
+  ve nada («Overlay visible · Oculto: fuera del coche», «Solo hay una disposición», «Delta: no hay
+  sesión», «Delta oculto»). No toma el foco ni los clics, y se apaga en **Ajustes › Atajos ›
+  Confirmar sobre el juego** (encendido de serie, también si ya tenías ajustes: es nuevo). En esa
+  página, la fila de cada acción dice «Pulsado hace 3 s» al usarla, para probar un atajo desde el
+  juego. Si un atajo no se puede registrar, la bandeja lo dice bajo el estado («1 atajo no
+  funciona…», que abre Atajos) y en su texto emergente.
 - **El estado, fuera de la bandeja**: el chip de estado de los Ajustes dice debajo qué está oculto
   ahora y por qué («Oculto: fuera del coche», «2 widgets ocultos ahora», «Overlay oculto») o qué
   falla («1 atajo no funciona»). Con un clic abre un panel con la línea de estado entera y qué

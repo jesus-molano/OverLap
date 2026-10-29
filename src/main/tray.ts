@@ -56,6 +56,8 @@ export interface TrayState {
   autoHidden: Partial<Record<WidgetId, HiddenReason | null>>
   /** The car model you are in now (null: none), to mark the layout linked to it. */
   carId?: number | null
+  /** How many shortcuts could not be registered (R37): a line to the shortcuts page. */
+  shortcutsFailing?: number
 }
 
 export interface TrayActions {
@@ -123,6 +125,7 @@ export function updateTray(state: TrayState): void {
     state.settings.radar.rangeM,
     state.settings.visibility.showWhen,
     layoutsKey(state),
+    state.shortcutsFailing ?? 0,
     // '' shown, '-' hidden for no known reason (JSON would turn both undefined and null into null).
     WIDGET_IDS.map((id) => [state.settings.widgets[id].visible, hiddenKey(state.autoHidden[id])])
   ])
@@ -131,11 +134,13 @@ export function updateTray(state: TrayState): void {
   const msg = messagesFor(lang)
   const t = msg.core.tray
   const common = commonHiddenReason(state)
-  const tooltip = state.overlayHidden
+  const failing = state.shortcutsFailing ?? 0
+  const base = state.overlayHidden
     ? t.tooltipHidden(status)
     : common !== undefined
       ? t.tooltipAutoHidden(status, hiddenText(msg, common))
       : t.tooltip(status)
+  const tooltip = failing > 0 ? `${base} · ${t.tooltipShortcuts(failing)}` : base
   tray.setToolTip(tooltip.slice(0, TOOLTIP_MAX))
   tray.setContextMenu(Menu.buildFromTemplate(buildMenu(state, status, actions)))
 }
@@ -243,11 +248,21 @@ function buildMenu(
   if (!ranges.includes(rangeM)) ranges.push(rangeM)
   ranges.sort((a, b) => a - b)
 
+  const failing = state.shortcutsFailing ?? 0
   return [
     { label: status, enabled: false },
     ...(common === undefined
       ? []
       : [{ label: hiddenText(msg, common), enabled: false } satisfies MenuItemConstructorOptions]),
+    // Shortcuts that could not be registered (another app holds them): to the page that says which.
+    ...(failing === 0
+      ? []
+      : [
+          {
+            label: t.shortcutsFailing(failing),
+            click: () => act.openSettings('shortcuts')
+          } satisfies MenuItemConstructorOptions
+        ]),
     { type: 'separator' },
     { label: t.settings, click: () => act.openSettings() },
     { type: 'separator' },

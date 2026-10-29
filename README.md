@@ -307,6 +307,10 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Los avisos van en la casilla a la que se refieren (**Desconectado**, **En uso por otra app**), y
   una frase que haga falta (un atajo rechazado, el aviso de `AltGr`) sale debajo de esa misma
   columna.
+- Al usarlo, un aviso breve arriba de la pantalla dice qué ha hecho, o por qué no se ve nada
+  (por ejemplo, «Solo hay una disposición»); se apaga en **Confirmar sobre el juego**. La fila
+  de la acción dice «Pulsado hace 3 s», para probarlo desde el juego, y si un atajo no se puede
+  registrar, la bandeja lo dice bajo el estado.
 - Un mismo atajo no puede estar en dos acciones (ni dos veces en la misma): la página dice quién
   lo tiene ya.
 - **Una combinación asignada deja de llegar a los demás programas, iRacing incluido**, mientras

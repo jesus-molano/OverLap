@@ -772,7 +772,8 @@ export const OPTION_SCHEMA = {
     nextLayout: { kind: 'accelerator', default: '', displayOnly: true },
     openSettings: { kind: 'accelerator', default: 'Ctrl+Shift+O', displayOnly: true }
   },
-  // The settings window's own; nothing else reads them.
+  // The settings window's own; main also reads shortcutToasts (the confirmation over the game
+  // when a shortcut runs, R37: on for everyone, it is new).
   settingsWindow: {
     stageScene: { kind: 'enum', values: ['dark', 'light'], default: 'dark', displayOnly: true },
     // Each page opens on its first zone; a zone added later starts closed.
@@ -782,7 +783,8 @@ export const OPTION_SCHEMA = {
       displayOnly: true
     }),
     // The hint above a widget page's preview ("Arrastra en la vista previa…") until dismissed.
-    previewHint: { kind: 'bool', default: true, displayOnly: true }
+    previewHint: { kind: 'bool', default: true, displayOnly: true },
+    shortcutToasts: { kind: 'bool', default: true, displayOnly: true }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.

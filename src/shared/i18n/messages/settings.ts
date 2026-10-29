@@ -392,6 +392,15 @@ export const settingsEs = {
   /** "Atajos" page: key combinations and controller buttons. */
   shortcuts: {
     sub: 'Teclas o botones del volante que funcionan en todo Windows, también con iRacing delante',
+    /** A shortcut ran (R37): on its row, to test it from the game. `s`: whole seconds ago. */
+    used: (s: number) => (s === 0 ? 'Pulsado ahora' : `Pulsado hace ${s} s`),
+    /** The confirmation over the game when a shortcut runs (settingsWindow.shortcutToasts). */
+    toasts: {
+      label: 'Confirmar sobre el juego',
+      help: 'Un aviso breve arriba de la pantalla dice qué ha hecho cada atajo («Overlay oculto»)'
+    },
+    /** Under the table: how to test one. */
+    test: 'Pulsa un atajo, aquí o en el juego, para probarlo: su fila dice «Pulsado».',
     subMore: 'También botones de la button box o los pedales.',
     /** The table's column heads: the action, then one column per binding (1 is what 2.1 reads). */
     columns: {
@@ -1883,6 +1892,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   shortcuts: {
     sub: 'Keys or wheel buttons that work all over Windows, with iRacing in front too',
+    used: (s) => (s === 0 ? 'Pressed just now' : `Pressed ${s} s ago`),
+    toasts: {
+      label: 'Confirm over the game',
+      help: 'A short note at the top of the screen says what each shortcut did (“Overlay hidden”)'
+    },
+    test: 'Press a shortcut, here or in the game, to test it: its row says “Pressed”.',
     subMore: 'Button box or pedal buttons too.',
     columns: {
       action: 'Action',

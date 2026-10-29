@@ -1,0 +1,65 @@
+/* The confirmation over the game (osd.ts): a dark pill, centred in its transparent window. */
+html.ov-osd,
+html.ov-osd body,
+html.ov-osd #app {
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+html.ov-osd #app {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.osd-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100% - 16px);
+  margin-top: 6px;
+  padding: 9px 20px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(14, 16, 20, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+  color: #eef1f5;
+  font-family: var(--ov-font);
+  text-align: center;
+}
+
+.osd-text {
+  font-family: var(--ov-font-num);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.osd-detail {
+  color: #aab2bf;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.osd-in {
+  animation: osd-in 140ms ease-out 1;
+}
+
+@keyframes osd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .osd-in {
+    animation: none;
+  }
+}
