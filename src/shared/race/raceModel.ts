@@ -472,7 +472,7 @@ export class RaceModel {
     }
     const before = track.lastD
     const d = advanceTrack(track, lapRaw, pct, this.time, flags, this.onSfLine)
-    updateOrderDistance(track, inPits, before)
+    updateOrderDistance(track, inPits, before, track.creditedLaps > 0 && this.crawling(track))
     if (this.racing) track.seenRacing = true
     // A lap credited without driving it (a towed car in its box) is not a stint lap.
     if (track.creditedLaps > 0) track.stintStartLap += track.creditedLaps

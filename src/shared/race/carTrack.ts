@@ -109,6 +109,8 @@ export class CarTrack {
   jumpT = -Infinity
   /** SessionTime the lap counter started to disagree with the pct near the line; NaN when not. */
   lapMismatchT = NaN
+  /** CarIdxLapDistPct when the lap counter started to disagree (lapMismatchT). */
+  lapMismatchPct = 0
   /** Whole laps the last tick added without driving them (a lap credited in the box). */
   creditedLaps = 0
   /** The lap in progress saw a teleport, a world exit/entry or started mid-lap. */
@@ -220,6 +222,7 @@ export class CarTrack {
     this.lastLine = NO_LINE
     this.jumpT = -Infinity
     this.lapMismatchT = NaN
+    this.lapMismatchPct = 0
     this.creditedLaps = 0
     this.dirty = true
     this.lapOffTrack = false
