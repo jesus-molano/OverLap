@@ -180,7 +180,6 @@ function remove(): void {
   align-items: center;
   gap: 8px 10px;
   min-height: 52px;
-  /* Room for the rail on every row, so the one in use lines up with the rest. */
   padding: 8px 0 8px 10px;
 }
 
@@ -188,9 +187,10 @@ function remove(): void {
   border-top: 1px solid var(--st-border);
 }
 
-/* The one in use: the accent rail, as your own row in the widgets (drawn, taking no room). */
+/* The one in use: the EN USO tag and a slightly lighter row; no coloured edge. */
 .item.is-active {
-  box-shadow: inset var(--ov-bar-w) 0 0 var(--ov-accent);
+  border-radius: 6px;
+  background: var(--st-surface-hi);
 }
 
 .is-placeholder {
