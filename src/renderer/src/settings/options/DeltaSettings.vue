@@ -18,6 +18,8 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
+import PageAppendix from '../layout/PageAppendix.vue'
 import PageSection from '../layout/PageSection.vue'
 import PersonalBestsSection from './PersonalBestsSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
@@ -143,29 +145,33 @@ const setLaps = listSetter('delta', 'laps')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'delta', 'rows')"
-    :items="opts.rows"
-    :spec="S.rows"
-    :labels="rowTexts"
-    :apply="setRows"
-  />
-  <ElementEditor
-    :title="zoneTitle(t, 'delta', 'top')"
-    :items="opts.top"
-    :spec="S.top"
-    :labels="topTexts"
-    :apply="setTop"
-  />
-  <ElementEditor
-    :title="zoneTitle(t, 'delta', 'laps')"
-    :items="opts.laps"
-    :spec="S.laps"
-    :labels="lapTexts"
-    :apply="setLaps"
-  />
+  <CustomizeSection>
+    <ElementEditor
+      :title="zoneTitle(t, 'delta', 'rows')"
+      :items="opts.rows"
+      :spec="S.rows"
+      :labels="rowTexts"
+      :apply="setRows"
+    />
+    <ElementEditor
+      :title="zoneTitle(t, 'delta', 'top')"
+      :items="opts.top"
+      :spec="S.top"
+      :labels="topTexts"
+      :apply="setTop"
+    />
+    <ElementEditor
+      :title="zoneTitle(t, 'delta', 'laps')"
+      :items="opts.laps"
+      :spec="S.laps"
+      :labels="lapTexts"
+      :apply="setLaps"
+    />
+  </CustomizeSection>
 
-  <PersonalBestsSection />
+  <PageAppendix>
+    <PersonalBestsSection />
+  </PageAppendix>
 </template>
 
 <style scoped>

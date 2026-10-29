@@ -2,18 +2,17 @@
 import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { FUEL_STRATEGY } from '@shared/fuel/strategy'
-import { INFO_BAR_SIZES } from '@shared/infoBar'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
-import ChoiceControl from '../controls/ChoiceControl.vue'
-import { choiceOptions } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 
 const opts = useOptions('fuel')
@@ -29,11 +28,6 @@ const MARGIN_PRESETS = [0, 0.5, 1, 2].filter((v) => v >= MARGIN.min && v <= MARG
 const marginText = (v: number): string => t.value.settings.fuel.marginValue(v.toFixed(1))
 /** How much less per lap still counts as within reach, as a whole percentage. */
 const SAVE_PCT = Math.round(FUEL_STRATEGY.saveReach * 100)
-
-const sizeChoices = computed(() =>
-  choiceOptions(INFO_BAR_SIZES, t.value.settings.infoBar.sizeChoices)
-)
-const headTexts = computed(() => elementTexts(t.value, 'fuel', 'headerBar'))
 
 /** Every line's words, with the hint each had as a switch. */
 const lineTexts = computed(() => {
@@ -52,7 +46,6 @@ const lineTexts = computed(() => {
 })
 const finishShown = computed(() => isElementVisible(opts.value.lines, 'finish'))
 
-const setHeader = listSetter('fuel', 'headerBar')
 const setLines = listSetter('fuel', 'lines')
 </script>
 
@@ -79,36 +72,18 @@ const setLines = listSetter('fuel', 'lines')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="zoneTitle(t, 'fuel', 'headerBar')"
-    :items="opts.headerBar"
-    :spec="S.headerBar"
-    :labels="headTexts"
-    :apply="setHeader"
-  >
-    <template #footer>
-      <div class="st-card fu-extras">
-        <ChoiceControl
-          :label="t.settings.infoBar.size"
-          :help="t.settings.infoBar.fitNote"
-          :current="opts.headerBarSize"
-          :options="sizeChoices"
-          :apply="set('headerBarSize')"
-        />
-      </div>
-    </template>
-  </ElementEditor>
+  <CustomizeSection>
+    <InfoBarEditor section="fuel" field="headerBar" />
 
-  <ElementEditor
-    :title="zoneTitle(t, 'fuel', 'lines')"
-    :items="opts.lines"
-    :spec="S.lines"
-    :labels="lineTexts"
-    :apply="setLines"
-  >
-    <template #footer>
-      <p class="st-help fu-note">{{ t.settings.fuel.note }}</p>
-      <div class="st-card fu-extras">
+    <ElementEditor
+      :title="zoneTitle(t, 'fuel', 'lines')"
+      :items="opts.lines"
+      :spec="S.lines"
+      :labels="lineTexts"
+      :note="t.settings.fuel.note"
+      :apply="setLines"
+    >
+      <template #footer>
         <ToggleControl
           kind="switch"
           :label="t.settings.fuel.box"
@@ -117,17 +92,7 @@ const setLines = listSetter('fuel', 'lines')
           :disabled="!finishShown"
           :apply="set('showBox')"
         />
-      </div>
-    </template>
-  </ElementEditor>
+      </template>
+    </ElementEditor>
+  </CustomizeSection>
 </template>
-
-<style scoped>
-.fu-note {
-  margin-top: 8px;
-}
-
-.fu-extras {
-  margin-top: 10px;
-}
-</style>

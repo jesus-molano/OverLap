@@ -361,8 +361,9 @@ En Ajustes → Clasificación, un editor por zona (arrastra ⠿ o ↑ ↓ para o
 oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia al momento:
 
 - **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
-  la ventana se estrecha se van primero las menos importantes, luego la bandera, luego el logotipo
-  y, al final, el número queda en una franja. «Hueco al líder» sigue atado a «Hueco: Ambos» y «Δ
+  la ventana se estrecha se van primero las columnas añadidas (Δ iRating, stint, neumático…),
+  luego la bandera y el logotipo, después las de siempre y, al final, el número queda en una franja:
+  un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a «Hueco: Ambos» y «Δ
   iRating» a «Δ iRating de todos».
 - **Cabeceras de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
   «INT.»… en el orden de las columnas; la del hueco dice «LÍDER» o «DIF.» según el modo y la sesión.
@@ -595,13 +596,15 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   confirmarlo en una carrera oficial.
 - Solo los tuyos: iRacing no da incidentes de los demás pilotos.
 
-### Pie de condiciones (Relativo y Clasificación)
+### Condiciones de pista (barras de información)
 
-- Ya no es un widget aparte: es una línea opcional bajo la tabla del Relativo y de la
-  Clasificación, cada una con su interruptor y sus datos (`relative.conditions*`,
-  `standings.conditions*`). Por defecto está **activado en la Clasificación**, que crece una línea,
-  y **desactivado en el Relativo**: su ventana tiene tamaño fijo y la línea quita alto a las filas.
-- En este orden (iRacing no da pronóstico):
+- Ya no es un widget aparte ni una línea fija: pista, agua, viento, aire y goma son elementos de las
+  barras de información, que van en la cabecera o en el pie del Relativo, la Clasificación o el
+  Combustible (Ajustes → Personalizar; `*.headerBar`, `*.footerBar`). Por defecto el pie está
+  **visible en la Clasificación**, que crece una línea, y **oculto en el Relativo**, donde quitaría
+  alto a las filas. La flecha de la pista y el dial del viento se activan en la fila de su elemento,
+  en cualquier barra (`conditionsTrend`, `conditionsWindDirection`).
+- Los datos (iRacing no da pronóstico):
   - temperatura de la pista (`TrackTempCrew`, en grados enteros: va en pasos de 1 °F) con una
     flecha si sube o baja en los últimos 5 min (sin contar los primeros 10 s de cada sesión);
   - el agua, solo si la hay: **DECLARADA MOJADA** (`WeatherDeclaredWet`), el medidor de
@@ -611,10 +614,10 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
     dial desactivado, con su rótulo: `VIENTO 14 km/h`;
   - el aire (`AirTemp`) y la goma al empezar la sesión (`SessionTrackRubberState`; un «carry over»
     muestra el último estado real: «Media-alta (heredada)»).
-- En una tabla estrecha los datos del final se quitan enteros (primero la goma) y el medidor cambia su
-  palabra por un rótulo corto (`AGUA`); nunca se corta un texto. Grados y velocidad según
+- En una barra estrecha los datos se quitan enteros, primero los menos importantes (la goma), y el
+  medidor cambia su palabra por un rótulo corto (`AGUA`); nunca se corta un texto. Grados y velocidad según
   `appearance.units`.
-- Se calcula una vez por segundo y solo con algún pie activado; las tablas lo llevan en sus datos y el
+- Se calcula una vez por segundo y solo si alguna barra lo muestra; las tablas lo llevan en sus datos y el
   pie solo se vuelve a dibujar cuando cambia lo que muestra.
 - Confirmado en una carrera: `WindDir` es de dónde viene el viento y `YawNorth` gira en sentido
   horario. Falta confirmar la escala de `Precipitation` (se lee 0..1; `src/shared/conditions.ts`).

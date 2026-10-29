@@ -91,11 +91,12 @@ describe('BrandMark', () => {
     }
   })
 
-  it('sizes the slot by the row: plate height, fixed width', () => {
+  it('sizes the slot by the row: plate height, a fixed width never under a badge', () => {
     const css = /<style>([\s\S]*?)<\/style>/.exec(SOURCE)?.[1] ?? ''
     const slot = /\.ov-brand \{([^}]*)\}/.exec(css)?.[1] ?? ''
     expect(slot).toMatch(/height: var\(--ov-plate-h\)/)
-    expect(slot).toMatch(/width: \d*\.?\d+em/)
+    // The same for every row (the slots line up), wide enough for 'AMG' at the minimum text size.
+    expect(slot).toMatch(/width: max\(\d*\.?\d+em, calc\(var\(--ov-min-text\) \* \d*\.?\d+\)\)/)
     expect(css).toMatch(/\.ov-brand__logo \{[^}]*fill: currentColor/)
   })
 })

@@ -14,6 +14,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
 
@@ -152,26 +153,28 @@ const nameHelp = computed(() =>
     />
   </PageSection>
 
-  <ElementEditor
-    :title="groups.title"
-    :items="opts.groups"
-    :spec="S.groups"
-    :labels="groups.labels"
-    :apply="setGroups"
-    empty-hides
-  />
-  <ElementEditor
-    :title="parts.title"
-    :items="opts.parts"
-    :spec="S.parts"
-    :labels="parts.labels"
-    :apply="setParts"
-  />
-  <ElementEditor
-    :title="header.title"
-    :items="opts.header"
-    :spec="S.header"
-    :labels="header.labels"
-    :apply="setHeader"
-  />
+  <CustomizeSection>
+    <ElementEditor
+      :title="groups.title"
+      :items="opts.groups"
+      :spec="S.groups"
+      :labels="groups.labels"
+      :apply="setGroups"
+      empty-hides
+    />
+    <ElementEditor
+      :title="parts.title"
+      :items="opts.parts"
+      :spec="S.parts"
+      :labels="parts.labels"
+      :apply="setParts"
+    />
+    <ElementEditor
+      :title="header.title"
+      :items="opts.header"
+      :spec="S.header"
+      :labels="header.labels"
+      :apply="setHeader"
+    />
+  </CustomizeSection>
 </template>

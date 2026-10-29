@@ -576,6 +576,7 @@ export const OPTION_SCHEMA = {
     // Off, as the header switch it replaced: the name and the SIM tag when on.
     headerBar: infoBar(['title', 'split']),
     headerBarSize: barSize('off'),
+    ...CONDITIONS_EXTRAS,
     lines: elements(
       idsOf<FuelLineId>()([
         'hero',

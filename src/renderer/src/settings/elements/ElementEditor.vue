@@ -55,14 +55,16 @@ const props = withDefaults(
     /** Fixed parts of the widget listed for context above / below the list. */
     fixedBefore?: readonly { readonly key: string; readonly label: string }[]
     fixedAfter?: readonly { readonly key: string; readonly label: string }[]
+    /** A short note about the whole list, under it. */
+    note?: string
   }>(),
-  { emptyHides: false, fixedBefore: () => [], fixedAfter: () => [] }
+  { emptyHides: false, fixedBefore: () => [], fixedAfter: () => [], note: undefined }
 )
 
 defineSlots<{
   /** Options of one row after its label (the trend arrow of 'trackTemp'...). */
   extra?(p: { id: Id; visible: boolean }): unknown
-  /** Below the list (the zone's own options: size, logos...). */
+  /** Below the list (the zone's own options: size, logos...), ruled off from it, one per row. */
   footer?(): unknown
 }>()
 
@@ -335,7 +337,11 @@ function onCancel(e: PointerEvent): void {
         {{ emptyHides ? t.settings.elements.emptyHides : t.settings.elements.empty }}
       </p>
 
-      <slot name="footer" />
+      <p v-if="note" class="st-help ed-note">{{ note }}</p>
+
+      <div v-if="$slots.footer" class="ed-zone">
+        <slot name="footer" />
+      </div>
 
       <div class="ed-foot">
         <button
@@ -529,6 +535,22 @@ function onCancel(e: PointerEvent): void {
 .ed-warn {
   margin-top: 8px;
   color: var(--ov-warn);
+}
+
+.ed-note {
+  margin-top: 8px;
+}
+
+/* The zone's own options: one per row, ruled off from the list and from each other. */
+.ed-zone {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  border-top: 1px solid var(--st-border);
+}
+
+.ed-zone > :deep(* + *) {
+  border-top: 1px solid var(--st-border);
 }
 
 .ed-foot {

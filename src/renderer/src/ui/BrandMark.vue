@@ -45,14 +45,15 @@ const logo = computed(() => (props.text ? null : brandLogo(props.brand)))
 <style>
 /*
  * One slot per make, as tall as the widget's plates and a little wider (most logos are wider
- * than tall), so logos, badges and empty slots line up in a column.
+ * than tall), so logos, badges and empty slots line up in a column. Never narrower than a
+ * three-letter badge at the minimum text size ('AMG' would be cut at 9 px).
  */
 .ov-brand {
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 1.75em;
+  width: max(1.75em, calc(var(--ov-min-text) * 2.4));
   height: var(--ov-plate-h);
   overflow: hidden;
   line-height: 1;

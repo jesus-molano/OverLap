@@ -242,6 +242,8 @@ const DEFAULT_DELTA: DeltaOptions = {
 const DEFAULT_FUEL: FuelOptions = {
   headerBar: bar(['title', 'split']),
   headerBarSize: 'off',
+  conditionsTrend: true,
+  conditionsWindDirection: true,
   lines: list(['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits']),
   showBox: true,
   avgLaps: 5,

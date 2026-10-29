@@ -11,7 +11,7 @@ import { renderToString, type SSRContext } from 'vue/server-renderer'
 import { messagesFor, type Language } from '@shared/i18n'
 import { elementFields, type OptionSection } from '@shared/settingsSchema'
 import * as customize from './customize'
-import { LEADING_ZONES, customizeTargetId, customizeZones } from './customize'
+import { LEADING_ZONES, customizeAppendixId, customizeTargetId, customizeZones } from './customize'
 import SOURCE from './CustomizeSection.vue?raw'
 import WIDGET_PAGE from '../pages/WidgetPage.vue?raw'
 
@@ -59,6 +59,38 @@ describe('customizeTargetId', () => {
     expect(customizeTargetId('v-0-3')).toBe('st-customize-v-0-3')
     expect(customizeTargetId('a:b c#d')).toBe('st-customize-abcd')
     expect(customizeTargetId('x')).toMatch(/^[a-z][\w-]*$/)
+    expect(customizeAppendixId('a:b c#d')).toBe('st-appendix-abcd')
+  })
+})
+
+describe('the widget pages', () => {
+  const PAGES = import.meta.glob<string>('../options/*Settings.vue', {
+    query: '?raw',
+    import: 'default',
+    eager: true
+  })
+
+  it('put every editor of theirs in "Personalizar", in the order of customizeZones', () => {
+    expect(Object.keys(PAGES).length).toBe(10)
+    for (const [path, source] of Object.entries(PAGES)) {
+      const template = source.slice(source.indexOf('<template>'))
+      const open = template.indexOf('<CustomizeSection>')
+      const close = template.indexOf('</CustomizeSection>')
+      expect(open, path).toBeGreaterThan(0)
+      const editors = [...template.matchAll(/<(ElementEditor|InfoBarEditor)\b/g)].map(
+        (m) => m.index
+      )
+      expect(editors.length, path).toBeGreaterThan(0)
+      for (const at of editors) {
+        expect(at > open && at < close, `${path}: an editor outside Personalizar`).toBe(true)
+      }
+    }
+  })
+
+  it('give the zone options to the editor (one look on every page), not a wrapper of their own', () => {
+    for (const [path, source] of Object.entries(PAGES)) {
+      expect(source, path).not.toMatch(/<template #footer>\s*<div/)
+    }
   })
 })
 

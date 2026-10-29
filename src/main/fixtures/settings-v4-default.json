@@ -1,0 +1,432 @@
+{
+  "version": 4,
+  "appearance": {
+    "accent": "#ffc400",
+    "fontScale": 100,
+    "density": "comfortable",
+    "nameFormat": "abbr",
+    "licenseStyle": "soft",
+    "numberStyle": "chip",
+    "colorBlind": false,
+    "units": "metric",
+    "stripes": true,
+    "textHalo": "auto",
+    "showSimPill": true,
+    "language": "es"
+  },
+  "visibility": {
+    "showWhen": "car",
+    "hideWithSimUi": true,
+    "hideInGarage": true,
+    "hideOnSessionScreen": true,
+    "replays": "hide",
+    "showWhileWaiting": false
+  },
+  "widgets": {
+    "relative": {
+      "visible": true,
+      "bounds": {
+        "x": 60,
+        "y": 260,
+        "width": 460,
+        "height": 252
+      },
+      "locked": false,
+      "backgroundOpacity": 0.78,
+      "scale": 100,
+      "autoHeight": false,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "radar": {
+      "visible": true,
+      "bounds": {
+        "x": 540,
+        "y": 260,
+        "width": 220,
+        "height": 260
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": false,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "standings": {
+      "visible": true,
+      "bounds": {
+        "x": 1340,
+        "y": 120,
+        "width": 540,
+        "height": 470
+      },
+      "locked": false,
+      "backgroundOpacity": 0.78,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": true
+    },
+    "battle": {
+      "visible": true,
+      "bounds": {
+        "x": 60,
+        "y": 540,
+        "width": 380,
+        "height": 190
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": false,
+        "qualify": false,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "inputs": {
+      "visible": true,
+      "bounds": {
+        "x": 820,
+        "y": 860,
+        "width": 360,
+        "height": 120
+      },
+      "locked": false,
+      "backgroundOpacity": 0.75,
+      "scale": 100,
+      "autoHeight": false,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "traffic": {
+      "visible": true,
+      "bounds": {
+        "x": 1340,
+        "y": 620,
+        "width": 400,
+        "height": 210
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "alerts": {
+      "visible": true,
+      "bounds": {
+        "x": 760,
+        "y": 90,
+        "width": 400,
+        "height": 70
+      },
+      "locked": false,
+      "backgroundOpacity": 0.85,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "lights": {
+      "visible": true,
+      "bounds": {
+        "x": 760,
+        "y": 320,
+        "width": 300,
+        "height": 54
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "delta": {
+      "visible": true,
+      "bounds": {
+        "x": 760,
+        "y": 230,
+        "width": 400,
+        "height": 80
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": false,
+      "anchor": "top",
+      "showIn": {
+        "practice": true,
+        "qualify": true,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    },
+    "fuel": {
+      "visible": true,
+      "bounds": {
+        "x": 1200,
+        "y": 840,
+        "width": 320,
+        "height": 190
+      },
+      "locked": false,
+      "backgroundOpacity": 0.8,
+      "scale": 100,
+      "autoHeight": true,
+      "anchor": "top",
+      "showIn": {
+        "practice": false,
+        "qualify": false,
+        "race": true
+      },
+      "hideInPits": false,
+      "showOnSessionScreen": false
+    }
+  },
+  "relative": {
+    "carsAhead": 3,
+    "carsBehind": 3,
+    "showClassPosition": true,
+    "showLicense": true,
+    "showIRating": true,
+    "showStint": false,
+    "showTyre": false,
+    "showFlags": true,
+    "nameFormat": "inherit",
+    "showIncidents": true,
+    "conditionsFooter": false,
+    "conditionsTrackTemp": true,
+    "conditionsTrend": true,
+    "conditionsWet": true,
+    "conditionsWind": true,
+    "conditionsWindDirection": true,
+    "conditionsAirTemp": true,
+    "conditionsRubber": true
+  },
+  "radar": {
+    "rangeM": 20,
+    "showRangeLabels": true
+  },
+  "standings": {
+    "mode": "compact",
+    "topRows": 3,
+    "aroundRows": 3,
+    "otherClassLeaders": true,
+    "gapMode": "interval",
+    "columns": [
+      {
+        "id": "gained",
+        "visible": true
+      },
+      {
+        "id": "ir",
+        "visible": true
+      },
+      {
+        "id": "lic",
+        "visible": true
+      },
+      {
+        "id": "delta",
+        "visible": false
+      },
+      {
+        "id": "gap",
+        "visible": true
+      },
+      {
+        "id": "gapLeader",
+        "visible": false
+      },
+      {
+        "id": "last",
+        "visible": true
+      },
+      {
+        "id": "best",
+        "visible": true
+      },
+      {
+        "id": "pit",
+        "visible": true
+      },
+      {
+        "id": "pitLap",
+        "visible": false
+      },
+      {
+        "id": "stint",
+        "visible": false
+      },
+      {
+        "id": "tyre",
+        "visible": false
+      }
+    ],
+    "nameFormat": "inherit",
+    "iRatingDeltaAll": false,
+    "headerIRating": true,
+    "headerSafetyRating": true,
+    "headerIncidents": true,
+    "showSof": true,
+    "showCarCount": true,
+    "showFlags": true,
+    "density": "inherit",
+    "conditionsFooter": true,
+    "conditionsTrackTemp": true,
+    "conditionsTrend": true,
+    "conditionsWet": true,
+    "conditionsWind": true,
+    "conditionsWindDirection": true,
+    "conditionsAirTemp": true,
+    "conditionsRubber": true
+  },
+  "battle": {
+    "thresholdS": 1.5,
+    "showAhead": true,
+    "showBehind": true,
+    "layout": "stacked",
+    "detail": "sectors",
+    "holdS": 3,
+    "showPrediction": true,
+    "showIRatingAtStake": true,
+    "nameFormat": "inherit"
+  },
+  "inputs": {
+    "traceSeconds": 5,
+    "showClutch": true,
+    "showSteering": true,
+    "showGearSpeed": true,
+    "clutchInTrace": true,
+    "traceWidth": 2,
+    "colors": {
+      "throttle": "#3ddc84",
+      "brake": "#ff4545",
+      "clutch": "#4aa3ff"
+    },
+    "steeringStyle": "bar",
+    "layout": "trace-bars-info"
+  },
+  "traffic": {
+    "behindS": 12,
+    "aheadS": 8,
+    "hazardS": 8,
+    "maxEntries": 3,
+    "showFaster": true,
+    "showSlower": true,
+    "showHazards": true,
+    "onlyMulticlass": true,
+    "nameFormat": "inherit"
+  },
+  "alerts": {
+    "showFlags": true,
+    "showBlue": true,
+    "showFurled": true,
+    "showPitLimiter": true,
+    "showPitOverspeed": true,
+    "showPitEntry": true,
+    "showLapsToGo": true,
+    "showTow": true,
+    "showWrongWay": true,
+    "showIncidents": true,
+    "showStalled": true,
+    "showOilPressure": true,
+    "showDamage": true,
+    "showBoxThisLap": true,
+    "showFuelLow": true,
+    "holdS": 3
+  },
+  "delta": {
+    "reference": "pb",
+    "fallback": true,
+    "rangeS": 1,
+    "showPredicted": true,
+    "showSectors": true,
+    "showTrend": true
+  },
+  "fuel": {
+    "showHeader": false,
+    "showGauge": true,
+    "showPerLap": true,
+    "showFinish": true,
+    "showBox": true,
+    "showWindow": true,
+    "showSave": true,
+    "showTyres": true,
+    "showLimits": true,
+    "avgLaps": 5,
+    "marginLaps": 0.5
+  },
+  "lights": {
+    "layout": "row",
+    "onlyWhenLit": false,
+    "showCaptions": false,
+    "showTemps": false,
+    "showRepairTime": true,
+    "showOilPressure": true,
+    "showFuelPressure": true,
+    "showStalled": true,
+    "showRepair": true,
+    "showRepairOptional": true,
+    "showWater": true,
+    "showOilTemp": true,
+    "showTrend": true,
+    "showPitLimiter": false,
+    "showRevLimiter": false
+  },
+  "shortcuts": {
+    "toggleOverlay": "Ctrl+Shift+H",
+    "toggleEditMode": "Ctrl+Shift+E"
+  }
+}

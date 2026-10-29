@@ -24,6 +24,7 @@ import WindowSection from './WindowSection.vue'
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
  * wide window (settings.css: two option columns from 1380 px) they get the second column, beside
  * the window and content options; a page without editors spreads its options over both columns.
+ * Reference sections (a legend, the saved records) follow the editors (PageAppendix moves them).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
 
@@ -83,6 +84,7 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
       </div>
       <div :id="customize.targetId" class="opts-custom" />
     </div>
+    <div :id="customize.appendixId" class="opts-appendix" />
 
     <footer class="page-foot">
       <ConfirmButton
@@ -189,6 +191,11 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
     padding-top: 0;
     border-top: 0;
   }
+}
+
+/* Reference sections after the editors, over the whole width. */
+.opts-appendix:not(:empty) {
+  margin-top: 26px;
 }
 
 .page-foot {

@@ -180,7 +180,6 @@ const SAME_IN_ENGLISH = new Set([
   'settings.appearance.other.unitChoices.metric.hint',
   'settings.appearance.other.unitChoices.imperial.hint',
   'settings.widgetPage.visible',
-  'settings.standings.sof',
   'settings.columns.labels.ir',
   'settings.columns.labels.delta'
 ])

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { StandingsColumnId } from '@shared/types'
 import {
   BRAND_EM,
+  DECORATIONS_BEFORE,
   DROP_ORDER,
   NAME_MIN_EM,
   NARROW_EM,
@@ -204,25 +205,28 @@ describe('fitColumns: the make and the flag', () => {
     expect(flagEm(26)).toBeCloseTo(1.5 * 1.15 + 0.35, 9)
   })
 
-  it('drops after every optional column: the flag first, then the make, then the plate', () => {
+  it('drops after the extra columns, before any the table had: the flag first, then the make', () => {
     const p = prefs({ columns: allColumns(), brand: true, flag: true })
-    let w = 900
-    // While any optional column can still go, both stay.
-    while (fitColumns(p, w, 13).cells.length > 1) {
-      const c = fitColumns(p, w, 13)
-      expect(c.brand && c.flag).toBe(true)
-      w -= 2
-    }
+    const extras = DROP_ORDER.slice(0, DROP_ORDER.indexOf(DECORATIONS_BEFORE))
     const states: string[] = []
-    for (; w > 150; w -= 2) {
+    for (let w = 900; w > 150; w -= 2) {
       const c = fitColumns(p, w, 13)
+      // While an extra column is drawn, both decorations are too.
+      if (extras.some((id) => c.cells.includes(id))) expect(c.brand && c.flag).toBe(true)
+      // A column the table had before them is only dropped once both are gone.
+      if (!c.cells.includes(DECORATIONS_BEFORE)) expect(c.brand || c.flag).toBe(false)
       const s = `${c.flag ? 'F' : ''}${c.brand ? 'B' : ''}${c.numberStyle}`
       if (states.at(-1) !== s) states.push(s)
     }
-    // The make may outlast the flag down to the narrow stripe (NARROW_EM), never the other way.
-    expect(states.slice(0, 2)).toEqual(['FBchip', 'Bchip'])
+    expect(states.slice(0, 3)).toEqual(['FBchip', 'Bchip', 'chip'])
     expect(states.at(-1)).toBe('bare')
-    expect(states.every((x) => !x.startsWith('Fchip'))).toBe(true)
+  })
+
+  it('keeps today’s default columns at the default width with both on', () => {
+    // 540 px at 13 px: the default standings window; every default column stays.
+    const plain = fitColumns(prefs(), 540, 13).cells
+    const c = fitColumns(prefs({ brand: true, flag: true }), 540, 13)
+    expect(c.cells).toEqual(plain)
   })
 
   it('never draws them on a bare stripe, nor before the window is measured if not wanted', () => {

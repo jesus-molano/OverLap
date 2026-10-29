@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue'
-import { INFO_BAR_LINE_EM, INFO_BAR_SCALE, INFO_ITEM_GAP_EM, fitInfoItems } from '@shared/infoBar'
+import { computed, shallowRef, useTemplateRef, watch } from 'vue'
+import {
+  INFO_BAR_LINE_EM,
+  INFO_BAR_SCALE,
+  INFO_BAR_TOP_EM,
+  INFO_ITEM_GAP_EM,
+  INFO_TOP_GAP_EM,
+  fitInfoItems
+} from '@shared/infoBar'
 import type { InfoBarSize, InfoItemId } from '@shared/types'
 import { useElementSize } from '../composables/useElementSize'
 import { vInlineStyle } from '../directives/inlineStyle'
@@ -13,11 +20,15 @@ import SimPill from './SimPill.vue'
 /**
  * An info bar: a header or a footer band of data items (view/infoBar.ts), one line of a fixed
  * height (INFO_BAR_LINE_EM of its text, plus its 1 px rule), so the panels' maths never depend on
- * what it says. Its text follows `size` and never goes below the minimum text size; when the
- * items do not fit the width, the least important go first (fitInfoItems: whole items, never a
- * cut word or a smaller font). The items after the split marker line up at the far end; the SIM
- * tag follows the first item of a header, the preview tag ends it. An item keeps its object while
- * it reads the same (reuseInfoBar), so its component is not rendered again.
+ * what it says; the panel's own header (the head bar with the SIM tag) keeps the header band's
+ * height and spacing (INFO_BAR_TOP_EM, INFO_TOP_GAP_EM). Its text follows `size` and never goes
+ * below the minimum text size; when the items do not fit the width, the least important go first
+ * (fitInfoItems: whole items, never a cut word or a smaller font). The widths are estimates
+ * (INFO_ITEMS[id].em); when what is drawn still overflows (a long value, the SIM or preview tag),
+ * the bar drops the next least important item too, until the width or the list of items changes.
+ * The items after the split marker line up at the far end; the SIM tag follows the first item of
+ * a header, the preview tag ends it. An item keeps its object while it reads the same
+ * (reuseInfoBar), so its component is not rendered again.
  *
  *   <InfoBar :view="head.view.value" :size="head.size.value" place="head" sim :preview="preview" />
  */
@@ -27,7 +38,7 @@ const props = withDefaults(
     size: Exclude<InfoBarSize, 'off'>
     /** 'head': under the panel's top, its rule below; 'foot': its rule above. */
     place: 'head' | 'foot'
-    /** The SIM tag after the first item (headers). */
+    /** The SIM tag after the first item: the panel's own header, the topmost head bar. */
     sim?: boolean
     /** The 'VISTA PREVIA' tag at the end (edit-mode samples). */
     preview?: boolean
@@ -37,6 +48,10 @@ const props = withDefaults(
 
 const root = useTemplateRef<HTMLElement>('root')
 const box = useElementSize(root)
+
+/** The panel's own header: the topmost head bar, the one with the SIM tag. */
+const top = computed(() => props.place === 'head' && props.sim)
+const gapEm = computed(() => (top.value ? INFO_TOP_GAP_EM : INFO_ITEM_GAP_EM))
 
 /** The bar's own font size (px), read again only when its size changes (a resize, a scale). */
 const fontPx = computed(() => {
@@ -49,9 +64,21 @@ const fontPx = computed(() => {
 /** Room for the items (em of the bar's text): its width less its paddings. */
 const widthEm = computed(() => (fontPx.value > 0 ? box.value.w / fontPx.value : 0))
 
+const ids = computed<readonly InfoItemId[]>((prev) => {
+  const next = [...props.view.start, ...props.view.end].map((v) => v.id)
+  return prev !== undefined && prev.length === next.length && prev.every((id, i) => id === next[i])
+    ? prev
+    : next
+})
+
+/** Items dropped beyond the estimates because the drawn bar overflowed. */
+const extra = shallowRef(0)
+watch([ids, widthEm], () => {
+  extra.value = 0
+})
+
 const kept = computed<ReadonlySet<InfoItemId>>((prev) => {
-  const ids = [...props.view.start, ...props.view.end].map((v) => v.id)
-  const next = new Set(fitInfoItems(ids, widthEm.value))
+  const next = new Set(fitInfoItems(ids.value, widthEm.value, gapEm.value, extra.value))
   return prev !== undefined && prev.size === next.size && [...next].every((id) => prev.has(id))
     ? prev
     : next
@@ -64,21 +91,40 @@ const end = computed<readonly InfoItemView[]>(() =>
   props.view.end.filter((v) => kept.value.has(v.id))
 )
 
-const BOXES: Readonly<Record<Exclude<InfoBarSize, 'off'>, InlineStyle>> = Object.freeze({
-  small: boxStyle('small'),
-  normal: boxStyle('normal'),
-  large: boxStyle('large')
-})
+type Size = Exclude<InfoBarSize, 'off'>
+const boxes = (top: boolean): Readonly<Record<Size, InlineStyle>> =>
+  Object.freeze({
+    small: boxStyle('small', top),
+    normal: boxStyle('normal', top),
+    large: boxStyle('large', top)
+  })
+const BOXES = boxes(false)
+const TOP_BOXES = boxes(true)
 
-function boxStyle(size: Exclude<InfoBarSize, 'off'>): InlineStyle {
+function boxStyle(size: Size, top: boolean): InlineStyle {
   return Object.freeze({
     '--ib-scale': String(INFO_BAR_SCALE[size]),
-    '--ib-h': `${INFO_BAR_LINE_EM}em`,
-    '--ib-gap': `${INFO_ITEM_GAP_EM}em`
+    '--ib-h': `${top ? INFO_BAR_TOP_EM : INFO_BAR_LINE_EM}em`,
+    '--ib-gap': `${top ? INFO_TOP_GAP_EM : INFO_ITEM_GAP_EM}em`
   })
 }
 
-const style = computed(() => BOXES[props.size])
+const style = computed(() => (top.value ? TOP_BOXES : BOXES)[props.size])
+
+const overflows = (el: HTMLElement | null): boolean =>
+  el !== null && el.scrollWidth > el.clientWidth + 1
+
+// After each drawing of new values (or a new fit): an item cut by the edge goes instead.
+watch(
+  [() => props.view, kept],
+  () => {
+    const el = root.value
+    if (el === null || widthEm.value <= 0 || kept.value.size <= 1) return
+    const groups = el.querySelectorAll<HTMLElement>('.ov-ibar__group')
+    if (overflows(el) || [...groups].some(overflows)) extra.value += 1
+  },
+  { flush: 'post' }
+)
 </script>
 
 <template>

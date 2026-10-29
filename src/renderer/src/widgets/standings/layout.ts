@@ -5,7 +5,7 @@
  * the window height: the window follows the content, not the other way round (ux §3.1-3.2).
  * Pure.
  */
-import { INFO_BAR_LINE_EM, INFO_BAR_SCALE } from '@shared/infoBar'
+import { INFO_BAR_LINE_EM, INFO_BAR_SCALE, INFO_BAR_TOP_EM } from '@shared/infoBar'
 import type { InfoBarSize, StandingsClassBlock, StandingsRow } from '@shared/types'
 import { DENSITY_EM, type Density } from '@renderer/view/appearance'
 import { BORDER_PX, MIN_TEXT_PX } from './columns'
@@ -59,18 +59,21 @@ export interface Chrome {
 /**
  * Height (CSS px) of one info bar at `fontPx` of panel text: INFO_BAR_LINE_EM of its own text
  * (its size's scale, never below the minimum text size) plus its rule, as ui/InfoBar.vue draws
- * it.
+ * it; INFO_BAR_TOP_EM for the topmost head bar (`top`), the panel's own header.
  */
-export function barPx(size: BarSize, fontPx: number): number {
+export function barPx(size: BarSize, fontPx: number, top = false): number {
   if (!(fontPx > 0)) return 0
-  return INFO_BAR_LINE_EM * Math.max(MIN_TEXT_PX, INFO_BAR_SCALE[size] * fontPx) + BAR_RULE_PX
+  const em = top ? INFO_BAR_TOP_EM : INFO_BAR_LINE_EM
+  return em * Math.max(MIN_TEXT_PX, INFO_BAR_SCALE[size] * fontPx) + BAR_RULE_PX
 }
 
 /** Height (CSS px) of everything but the lines: bars, heads, paddings and the borders. */
 export function chromePx(c: Chrome, fontPx: number): number {
   if (!(fontPx > 0)) return 0
   let px = BORDER_PX
-  for (const size of c.head) px += barPx(size, fontPx)
+  c.head.forEach((size, i) => {
+    px += barPx(size, fontPx, i === 0)
+  })
   if (c.head.length === 0) px += TOP_PAD_EM * fontPx
   if (c.heads) px += HEADS_EM * fontPx
   px += c.foot !== null ? barPx(c.foot, fontPx) : BOTTOM_PAD_EM * fontPx

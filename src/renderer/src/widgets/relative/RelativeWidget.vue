@@ -223,7 +223,8 @@ const panelStyle = computed<InlineStyle>(() => ({
 
 /*
  * The column heads: one fixed-height line on the rows' own grid, so each caption sits over its
- * column whatever the order. Small caps, dim, clipped.
+ * column whatever the order. Small, dim, clipped; the words as the standings' heads write them
+ * ('iR', not 'IR').
  */
 .rl-heads {
   display: grid;
@@ -245,9 +246,8 @@ const panelStyle = computed<InlineStyle>(() => ({
   font-family: var(--ov-font-small);
   font-size: max(var(--ov-min-text), 0.6em);
   font-weight: var(--ov-w-strong);
-  letter-spacing: var(--ov-track-caps);
+  letter-spacing: var(--ov-track-tag);
   line-height: 1;
-  text-transform: uppercase;
   color: var(--ov-fg-dim);
 }
 

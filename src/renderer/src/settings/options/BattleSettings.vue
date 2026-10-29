@@ -19,6 +19,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
+import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { formatSeconds } from '../values'
 
@@ -114,30 +115,30 @@ const setParts = listSetter('battle', 'parts')
     />
   </PageSection>
 
-  <ElementEditor
-    :title="lanes.title"
-    :items="opts.lanes"
-    :spec="B.lanes"
-    :labels="lanes.labels"
-    :apply="setLanes"
-    empty-hides
-  />
-  <ElementEditor
-    :title="rows.title"
-    :items="opts.rows"
-    :spec="B.rows"
-    :labels="rows.labels"
-    :apply="setRows"
-  />
-  <ElementEditor
-    :title="parts.title"
-    :items="opts.parts"
-    :spec="B.parts"
-    :labels="parts.labels"
-    :apply="setParts"
-  >
-    <template #footer>
-      <div class="bt-extras">
+  <CustomizeSection>
+    <ElementEditor
+      :title="lanes.title"
+      :items="opts.lanes"
+      :spec="B.lanes"
+      :labels="lanes.labels"
+      :apply="setLanes"
+      empty-hides
+    />
+    <ElementEditor
+      :title="rows.title"
+      :items="opts.rows"
+      :spec="B.rows"
+      :labels="rows.labels"
+      :apply="setRows"
+    />
+    <ElementEditor
+      :title="parts.title"
+      :items="opts.parts"
+      :spec="B.parts"
+      :labels="parts.labels"
+      :apply="setParts"
+    >
+      <template #footer>
         <ChoiceControl
           :label="t.settings.driverCell.brandMarks"
           :help="t.settings.driverCell.brandMarksHelp"
@@ -152,14 +153,7 @@ const setParts = listSetter('battle', 'parts')
           :current="opts.countryFlags"
           :apply="set('countryFlags')"
         />
-      </div>
-    </template>
-  </ElementEditor>
+      </template>
+    </ElementEditor>
+  </CustomizeSection>
 </template>
-
-<style scoped>
-.bt-extras {
-  margin-top: 8px;
-  border-top: 1px solid var(--st-border);
-}
-</style>

@@ -174,7 +174,12 @@ describe('displayOnlyFields', () => {
     expect(displayOnlyFields('delta')).toEqual(['rangeS', 'rows', 'top', 'laps'])
     // The fuel provider sends every line; the average, the margin and the header bar's data
     // are what it plans with.
-    expect(displayOnlyFields('fuel')).toEqual(['lines', 'showBox'])
+    expect(displayOnlyFields('fuel')).toEqual([
+      'conditionsTrend',
+      'conditionsWindDirection',
+      'lines',
+      'showBox'
+    ])
     // The lights provider leaves out what is not shown; layout, side and captions are drawing.
     expect(displayOnlyFields('lights')).toEqual(['layout', 'labelSide', 'showCaptions'])
   })
