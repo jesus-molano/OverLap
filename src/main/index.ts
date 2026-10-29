@@ -281,6 +281,11 @@ function start(): void {
   // (onButtonsWanted below): otherwise no process, nothing read.
   const input = new InputHost({
     onDevices: (list) => {
+      // Only on a change (the input process sends a list when one is plugged or unplugged).
+      if (list !== null) {
+        const text = list.map((c) => `${c.name} (${c.id}, ${c.buttons} buttons)`).join(', ')
+        console.log(`[input] controllers: ${text === '' ? 'none' : text}`)
+      }
       controllersNow = list
       shortcuts.setControllers(list === null ? null : list.map((c) => c.id))
       rememberControllerNames()
