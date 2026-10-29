@@ -13,14 +13,18 @@ import type { CarLineView } from './view'
 
 /**
  * The cells of one car line, as direct grid items of the line (multi-root): position (or the
- * class tag of another class's leader), driver, then the right-hand columns in the user's
- * order. The parent memoises each line, so this only renders when its line or columns change.
+ * class tag of another class's leader), driver (number, make, flag, name, the 'VR' tag of the
+ * class's fastest lap, icons), then the right-hand columns in the user's order. The parent
+ * memoises each line, so this only renders when its line or columns change.
  */
 const props = defineProps<{ line: CarLineView; cols: Columns }>()
 const t = useI18n()
 
 const numberStyle = computed(() => (props.cols.numberStyle === 'chip' ? 'chip' : 'stripe'))
 const number = computed(() => (props.cols.numberStyle === 'bare' ? '' : props.line.number))
+/** The make and the flag while the columns have room for them (undefined: no slot). */
+const brand = computed(() => (props.cols.brand ? props.line.brand : undefined))
+const country = computed(() => (props.cols.flag ? props.line.country : undefined))
 /** Pit state next to the name when the pit column is not shown (stops alone are not worth it). */
 const inlinePit = computed(() =>
   props.cols.pitInline && props.line.pit !== 'stops' && props.line.pit !== 'none'
@@ -38,7 +42,18 @@ const inlinePit = computed(() =>
       :name="line.name"
       :name-unknown="line.nameUnknown"
       :number-style="numberStyle"
-    />
+      :brand="brand"
+      :country="country"
+    >
+      <span
+        v-if="line.fastest"
+        class="sd-vr"
+        role="img"
+        :aria-label="t.widgets.standings.fastestName"
+        :title="t.widgets.standings.fastestName"
+        >{{ t.widgets.standings.fastestTag }}</span
+      >
+    </DriverCell>
   </span>
   <template v-else>
     <span class="c-pos"
@@ -51,7 +66,17 @@ const inlinePit = computed(() =>
       :name-unknown="line.nameUnknown"
       :number-style="numberStyle"
       :player="line.player"
+      :brand="brand"
+      :country="country"
     >
+      <span
+        v-if="line.fastest"
+        class="sd-vr"
+        role="img"
+        :aria-label="t.widgets.standings.fastestName"
+        :title="t.widgets.standings.fastestName"
+        >{{ t.widgets.standings.fastestTag }}</span
+      >
       <span v-if="line.penalty || line.disconnected || inlinePit" class="sd-icons">
         <PenaltyIcon v-if="line.penalty" :penalty="line.penalty" />
         <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
@@ -252,11 +277,36 @@ const inlinePit = computed(() =>
   line-height: 1;
 }
 
-/* Fastest lap of the class: the purple plate (a racing convention; white reads at 4.8:1). */
+/*
+ * Fastest lap of the class: the purple plate (a racing convention; white reads at 4.8:1), filling
+ * the whole cell so it reads at a glance, with a lit top edge like the other solid plates.
+ */
 .sd-lap.is-best {
+  justify-content: flex-end;
+  width: 100%;
+  padding: 0 0.3em;
   background: var(--ov-best-fill);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22);
   color: #ffffff;
   font-weight: var(--ov-w-solid);
+  text-shadow: none;
+}
+
+/* The row of the class's fastest lap: the same purple plate as its info bar item, 'VR'. */
+.sd-vr {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: var(--ov-plate-h);
+  padding: 0 0.35em;
+  border-radius: var(--ov-radius-chip);
+  background: var(--ov-best-fill);
+  color: #ffffff;
+  font-family: var(--ov-font-small);
+  font-size: max(var(--ov-min-text), var(--ov-t-tag));
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-tag);
+  line-height: 1;
   text-shadow: none;
 }
 

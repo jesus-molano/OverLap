@@ -24,6 +24,19 @@ import {
 
 const M = MINUS
 
+type ClassLine = LineContext['classLine']
+const BOTH: ClassLine = [
+  { id: 'sof', visible: true },
+  { id: 'carCount', visible: true }
+]
+const line = (sof: boolean, cars: boolean, carsFirst = false): ClassLine => {
+  const l: ClassLine = [
+    { id: 'sof', visible: sof },
+    { id: 'carCount', visible: cars }
+  ]
+  return carsFirst ? [...l].reverse() : l
+}
+
 const ES = messagesFor('es')
 const EN = messagesFor('en')
 
@@ -33,8 +46,7 @@ function ctx(over: Partial<LineContext> = {}): LineContext {
     race: true,
     deltaAll: false,
     nameFormat: 'abbr',
-    showSof: true,
-    showCarCount: true,
+    classLine: BOTH,
     showFlags: true,
     gapLeaderShown: false,
     styles: createDriverStyles(),
@@ -194,17 +206,23 @@ describe('gainedCell', () => {
 describe('classMeta', () => {
   it('joins SoF and car count per option, with an en space and no glyph', () => {
     const b = { sof: 2140, carCount: 12 }
-    expect(classMeta(b, true, true, ES)).toBe('SoF 2.1k\u200212 coches')
+    expect(classMeta(b, BOTH, ES)).toBe('SoF 2.1k\u200212 coches')
     expect(META_SEP).toBe('\u2002')
-    expect(classMeta(b, false, true, ES)).toBe('12 coches')
-    expect(classMeta(b, true, false, ES)).toBe('SoF 2.1k')
-    expect(classMeta({ sof: null, carCount: 1 }, true, true, ES)).toBe('1 coche')
-    expect(classMeta(b, false, false, ES)).toBe('')
+    expect(classMeta(b, line(false, true), ES)).toBe('12 coches')
+    expect(classMeta(b, line(true, false), ES)).toBe('SoF 2.1k')
+    expect(classMeta({ sof: null, carCount: 1 }, BOTH, ES)).toBe('1 coche')
+    expect(classMeta(b, line(false, false), ES)).toBe('')
+  })
+
+  it('follows the class line’s order', () => {
+    const b = { sof: 2140, carCount: 12 }
+    expect(classMeta(b, line(true, true, true), ES)).toBe('12 coches\u2002SoF 2.1k')
+    expect(classMeta(b, line(true, false, true), ES)).toBe('SoF 2.1k')
   })
 
   it('says it in English', () => {
-    expect(classMeta({ sof: 2140, carCount: 12 }, true, true, EN)).toBe('SoF 2.1k\u200212 cars')
-    expect(classMeta({ sof: null, carCount: 1 }, true, true, EN)).toBe('1 car')
+    expect(classMeta({ sof: 2140, carCount: 12 }, BOTH, EN)).toBe('SoF 2.1k\u200212 cars')
+    expect(classMeta({ sof: null, carCount: 1 }, BOTH, EN)).toBe('1 car')
   })
 })
 
@@ -239,6 +257,13 @@ describe('toLineViews', () => {
       pit: 'stops',
       pitStops: '1'
     })
+  })
+
+  it('carries the make, the flag and the fastest-lap mark of the row', () => {
+    const v = carView(makeRow({ brand: 'porsche', country: 'ES', bestLapKind: 'class-best' }))
+    expect(v).toMatchObject({ brand: 'porsche', country: 'ES', fastest: true })
+    expect(carView(makeRow()).fastest).toBe(false)
+    expect(carView(makeRow({ lastLapKind: 'class-best' })).fastest).toBe(false)
   })
 
   it('puts state classes on the line', () => {
@@ -338,7 +363,7 @@ describe('toLineViews', () => {
   })
 
   it('builds class lines with their meta and shared colour styles', () => {
-    const c = ctx({ showCarCount: false })
+    const c = ctx({ classLine: line(true, false) })
     const lines = toLineViews([{ kind: 'class', block: block([1, 2], { sof: 1980 }, 1) }], c)
     const v = lines[0] as ClassLineView
     expect(v).toMatchObject({
