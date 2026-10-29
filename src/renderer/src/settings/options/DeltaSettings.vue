@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isElementVisible, visibleIds } from '@shared/elements'
-import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
+import { DELTA_REFERENCE_FIELD, type DeltaReferenceField } from '@shared/delta/choice'
+import type { SessionKind } from '@shared/sessionInfo'
+import { previewSession } from '../../widgets/delta/preview'
 import { referenceRowHelp } from './deltaHelp'
 import {
   DELTA_REFERENCE_VALUES,
@@ -9,7 +11,7 @@ import {
   SHOW_IN_KINDS,
   type NumericSpec
 } from '@shared/settingsSchema'
-import type { DeltaLapId, DeltaReference, ElementEntry } from '@shared/types'
+import type { DeltaLapId, DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -17,7 +19,7 @@ import ChoiceControl from '../controls/ChoiceControl.vue'
 import type { ChoiceOption } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter } from '../editor'
+import { listSetter, optionSetter, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { bindingsText } from '../shortcutsView'
 import { elementTexts, zoneTitle } from '../elements/labels'
@@ -34,17 +36,29 @@ const t = useI18n()
 const set = optionSetter('delta')
 const S = OPTION_SCHEMA.delta
 
-/**
- * The short names fit one line in Spanish ('Óptima de clase'); the full name and what it is are
- * the hover hint.
- */
+/** Each reference by its full name (R21), what it is as its hint; under the label (they wrap). */
 const referenceChoices = computed<readonly ChoiceOption<DeltaReference>[]>(() => {
   const d = t.value.settings.delta
   return DELTA_REFERENCE_VALUES.map((value) => ({
     value,
-    label: d.referencesShort[value],
-    hint: `${d.references[value].label}: ${d.references[value].hint}`
+    label: d.references[value].label,
+    hint: d.references[value].hint
   }))
+})
+
+/** A reference changed: the preview draws that session's (previewSession). */
+function setReference(kind: SessionKind, field: DeltaReferenceField): Setter<DeltaReference> {
+  return (v) => {
+    previewSession.value = kind
+    return set(field)(v)
+  }
+}
+/** 'La vista previa usa la de Carrera: Vuelta óptima'. */
+const previewNote = computed(() => {
+  const d = t.value.settings.delta
+  const kind = previewSession.value
+  const ref = opts.value[DELTA_REFERENCE_FIELD[kind]]
+  return d.previewShows(d.sessions[kind], d.references[ref].label)
 })
 
 /** One row per kind of session (DeltaOptions.reference*), with what the choice is. */
@@ -104,6 +118,14 @@ const topTexts = computed(() => {
 })
 const lapTexts = computed(() => elementTexts(t.value, 'delta', 'laps'))
 
+/** The lines that unfold to their parts, and what is shown of them ('2 de 3 partes'). */
+const PARTS_OF: readonly DeltaRowId[] = ['top', 'laps']
+const partsSummary = computed(() => {
+  const e = t.value.settings.elements
+  const count = (l: readonly ElementEntry<string>[]): string =>
+    e.partsCount(visibleIds(l).length, l.length)
+  return { top: count(opts.value.top), laps: count(opts.value.laps) }
+})
 const setRows = listSetter('delta', 'rows')
 const setTop = listSetter('delta', 'top')
 const setLaps = listSetter('delta', 'laps')
@@ -138,10 +160,12 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
       :key="k.kind"
       :label="k.label"
       :help="k.help"
+      stack
       :current="k.current"
       :options="referenceChoices"
-      :apply="set(k.field)"
+      :apply="setReference(k.kind, k.field)"
     />
+    <p class="st-row st-help dl-cycle">{{ previewNote }}</p>
     <ToggleControl
       v-if="!kinds.every((k) => k.current === 'class')"
       kind="switch"
@@ -165,6 +189,7 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
     />
   </PageSection>
 
+  <!-- One list (R21): each line, and under the top line and the lap times their parts. -->
   <CustomizeSection>
     <ElementEditor
       :title="zoneTitle(t, 'delta', 'rows')"
@@ -172,22 +197,31 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
       :spec="S.rows"
       :labels="rowTexts"
       :apply="setRows"
-    />
-    <ElementEditor
-      :title="zoneTitle(t, 'delta', 'top')"
-      :items="opts.top"
-      :spec="S.top"
-      :labels="topTexts"
-      :apply="setTop"
-    />
-    <ElementEditor
-      :title="zoneTitle(t, 'delta', 'laps')"
-      :items="opts.laps"
-      :spec="S.laps"
-      :labels="lapTexts"
-      :apply="applyLaps"
-      :note="lapsNote"
-    />
+      :parts-of="PARTS_OF"
+      :parts-summary="partsSummary"
+    >
+      <template #parts="{ id }">
+        <ElementEditor
+          v-if="id === 'top'"
+          embedded
+          :title="zoneTitle(t, 'delta', 'top')"
+          :items="opts.top"
+          :spec="S.top"
+          :labels="topTexts"
+          :apply="setTop"
+        />
+        <ElementEditor
+          v-else
+          embedded
+          :title="zoneTitle(t, 'delta', 'laps')"
+          :items="opts.laps"
+          :spec="S.laps"
+          :labels="lapTexts"
+          :apply="applyLaps"
+          :note="lapsNote"
+        />
+      </template>
+    </ElementEditor>
   </CustomizeSection>
 
   <PageAppendix>

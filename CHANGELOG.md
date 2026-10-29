@@ -18,6 +18,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   oyendo). Restablecer es un icono ↺ en su propia columna, `Esc` es una fila más, la nota de que
   las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
   más cortas para cada acción.
+- **Delta en una sola lista**: Personalizar tiene solo «Líneas»; la línea superior y los tiempos
+  de vuelta se despliegan en su propia fila para mostrar sus partes («3 de 3 partes»), en vez de
+  tres acordeones que dependían entre sí. Las referencias se llaman por su nombre completo
+  («Récord personal», «Mejor vuelta de la sesión», «Vuelta óptima»…), con lo que es cada una, y
+  la vista previa dibuja la de la sesión que acabas de cambiar y lo dice debajo («La vista previa
+  usa la de Carrera: Vuelta óptima»).
 - **Lo oculto se ve igual en todas las vistas previas**: con el ratón sobre la vista previa, lo
   que tengas oculto en cualquier lista (columnas, capas, testigos, avisos, líneas…) se dibuja
   translúcido donde iría, y un clic lo vuelve a mostrar; antes solo pasaba con las barras de datos

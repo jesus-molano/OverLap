@@ -1,5 +1,12 @@
+<script lang="ts">
+import type { InjectionKey as Key } from 'vue'
+import type { CustomizeZoneId as Zone } from '@shared/types'
+/** An editor with parts gives the editors embedded in it a way to unfold their row (R21). */
+const PARTS_HOST: Key<(zone: Zone) => void> = Symbol('element-parts')
+</script>
+
 <script setup lang="ts" generic="Id extends string">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useId, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, provide, shallowRef, useId, watch } from 'vue'
 import type { OptionSection } from '@shared/settingsSchema'
 import type { CustomizeZoneId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
@@ -101,6 +108,17 @@ const props = withDefaults(
      * at its default too: an info bar's switch and size. "Restablecer" is on while either is not.
      */
     restAtDefault?: boolean
+    /**
+     * Rows that unfold to show their parts (R21: the delta's top line and lap times), each drawn
+     * by the `parts` slot under its row; `partsSummary` says what is shown of them.
+     */
+    partsOf?: readonly Id[]
+    partsSummary?: Readonly<Partial<Record<Id, string>>>
+    /**
+     * Inside another editor's row (its parts): no accordion or title of its own, never in the
+     * page's "Expandir todo"; still the preview's list for its zone.
+     */
+    embedded?: boolean
   }>(),
   {
     emptyHides: false,
@@ -111,7 +129,10 @@ const props = withDefaults(
     omit: () => [],
     summary: undefined,
     off: false,
-    restAtDefault: true
+    restAtDefault: true,
+    partsOf: () => [],
+    partsSummary: undefined,
+    embedded: false
   }
 )
 
@@ -120,6 +141,8 @@ defineSlots<{
   head?(): unknown
   /** Options of one row after its label (the trend arrow of 'trackTemp'...). */
   extra?(p: { id: Id; visible: boolean }): unknown
+  /** Under a row of `partsOf`, while it is unfolded: that row's parts (an embedded editor). */
+  parts?(p: { id: Id }): unknown
   /** Below the list (the zone's own options: size, logos...), ruled off from it, one per row. */
   footer?(): unknown
 }>()
@@ -201,8 +224,9 @@ const atDefault = computed(() => props.restAtDefault && isDefault(props.spec, cu
 // ---- The accordion ---------------------------------------------------------------------
 
 const zone = computed<CustomizeZoneId | null>(() => zoneOfSpec(props.spec))
-const open = computed(() => zone.value === null || isZoneOpen(zone.value))
-const registry = injectZoneRegistry()
+const open = computed(() => props.embedded || zone.value === null || isZoneOpen(zone.value))
+// An embedded list is not an accordion of the page: it is not opened or closed with the others.
+const registry = props.embedded ? null : injectZoneRegistry()
 watch(
   zone,
   (next, prev) => {
@@ -215,22 +239,42 @@ onBeforeUnmount(() => {
   if (zone.value) registry?.remove(zone.value)
 })
 
+/** The rows of `partsOf` unfolded now (folded at first: the list reads as one). */
+const unfolded = shallowRef<ReadonlySet<Id>>(new Set())
+function toggleParts(id: Id): void {
+  const next = new Set(unfolded.value)
+  if (!next.delete(id)) next.add(id)
+  unfolded.value = next
+}
+/**
+ * The parts stay mounted while folded (their lists are the preview's for their zones): a click
+ * on one of them in the preview unfolds its row (an embedded editor's reveal asks for it).
+ */
+provide(PARTS_HOST, (child: CustomizeZoneId) => {
+  const row = props.partsOf.find((id) => `${zone.value?.split('.')[0]}.${id}` === child)
+  if (row !== undefined && !unfolded.value.has(row)) toggleParts(row)
+  if (zone.value !== null) void setZonesOpen([zone.value], true)
+})
+const unfoldMine = props.embedded ? inject(PARTS_HOST, null) : null
+
 function toggleOpen(next: boolean): void {
   if (zone.value) void setZonesOpen([zone.value], next)
 }
 
 const frame = computed(() =>
-  zone.value === null
-    ? { is: PageSection, props: { title: props.title, card: false, note: countNote.value } }
-    : {
-        is: AccordionSection,
-        props: {
-          title: props.title,
-          summary: props.summary ?? countNote.value,
-          open: open.value,
-          onToggle: toggleOpen
+  props.embedded
+    ? { is: 'div', props: { class: 'ed-embedded' } }
+    : zone.value === null
+      ? { is: PageSection, props: { title: props.title, card: false, note: countNote.value } }
+      : {
+          is: AccordionSection,
+          props: {
+            title: props.title,
+            summary: props.summary ?? countNote.value,
+            open: open.value,
+            onToggle: toggleOpen
+          }
         }
-      }
 )
 
 // ---- Edits -----------------------------------------------------------------------------
@@ -518,7 +562,10 @@ function lightRow(id: Id | null): void {
 
 /** Opens the accordion and brings `id`'s row into view (the sample acted on it). */
 function reveal(id: Id): void {
-  if (zone.value !== null) void setZonesOpen([zone.value], true)
+  if (zone.value !== null) {
+    if (unfoldMine !== null) unfoldMine(zone.value)
+    else void setZonesOpen([zone.value], true)
+  }
   if (hiddenRows.value.some((r) => r.entry.id === id)) hiddenOpen.value = true
   // After the accordion's short opening.
   setTimeout(() => {
@@ -584,7 +631,11 @@ function onCancel(e: PointerEvent): void {
       <!-- Switched off: nothing under the switch but the reset (R20: hide what does not apply). -->
       <template v-if="!off">
         <!-- In "Personalizar" the page says it once: here only for screen readers. -->
-        <p :id="helpId" class="st-help ed-intro" :class="{ 'st-sr-only': registry !== null }">
+        <p
+          :id="helpId"
+          class="st-help ed-intro"
+          :class="{ 'st-sr-only': registry !== null || embedded }"
+        >
           <template v-if="sortable && split !== undefined">
             {{ t.settings.elements.introSides.before }}
             <span class="ed-grip-inline" aria-hidden="true">⠿</span>
@@ -705,6 +756,17 @@ function onCancel(e: PointerEvent): void {
                 <span v-if="$slots.extra" class="ed-extra"
                   ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
                 /></span>
+                <button
+                  v-if="partsOf.includes(r.entry.id)"
+                  type="button"
+                  class="st-btn st-btn-sm st-btn-ghost ed-parts-btn"
+                  :aria-expanded="unfolded.has(r.entry.id)"
+                  :aria-label="t.settings.elements.partsLabel(labelOf(r.entry.id))"
+                  @click="toggleParts(r.entry.id)"
+                >
+                  {{ partsSummary?.[r.entry.id] ?? t.settings.elements.parts }}
+                  <Icon name="chevron" class="ed-parts-chev" />
+                </button>
                 <span v-if="sortable" class="ed-arrows">
                   <button
                     v-if="box.side"
@@ -739,6 +801,15 @@ function onCancel(e: PointerEvent): void {
                     ↓
                   </button>
                 </span>
+                <!-- Its parts, unfolded: a list of their own under the row (R21). -->
+                <div
+                  v-if="partsOf.includes(r.entry.id)"
+                  v-show="unfolded.has(r.entry.id)"
+                  class="ed-sub"
+                  @pointerdown.stop
+                >
+                  <slot :id="r.entry.id" name="parts" />
+                </div>
               </li>
               <li v-if="box.side && box.rows.length === 0" class="ed-row is-empty">
                 {{ t.settings.elements.sideEmpty }}
@@ -949,6 +1020,34 @@ function onCancel(e: PointerEvent): void {
 .ed-fixed-gap {
   flex: none;
   width: calc(28px + 1.4em + 8px);
+}
+
+/* A row with parts wraps them under itself, over its whole width (R21). */
+.ed-row:has(> .ed-sub) {
+  flex-wrap: wrap;
+}
+
+.ed-sub {
+  flex: 1 0 100%;
+  padding: 2px 0 4px calc(28px + 1.4em + 16px);
+}
+
+.ed-parts-btn {
+  flex: none;
+  gap: 4px;
+}
+
+.ed-parts-chev {
+  font-size: 11px;
+}
+
+.ed-parts-btn[aria-expanded='true'] .ed-parts-chev {
+  transform: rotate(180deg);
+}
+
+/* An embedded list: no card of its own, its rows a notch lighter. */
+.ed-embedded .ed {
+  padding: 0;
 }
 
 .ed-row.is-fixed {
