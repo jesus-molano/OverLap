@@ -300,7 +300,7 @@ export const settingsEs = {
   },
   /** "Atajos" page: key combinations and controller buttons. */
   shortcuts: {
-    sub: 'Combinaciones de teclas o botones del volante, la button box o los pedales que funcionan en todo Windows, también con iRacing en primer plano.',
+    sub: 'Combinaciones de teclas o botones del volante, la button box o los pedales que funcionan en todo Windows, también con iRacing en primer plano. Hasta tres por acción.',
     section: 'Atajos globales',
     actions: {
       toggleOverlay: {
@@ -342,19 +342,33 @@ export const settingsEs = {
       'Ese dispositivo no está conectado. Al enchufarlo, el botón vuelve a funcionar sin tocar nada aquí',
     /** A controller's button in the field: 'Botón 12' then the controller's name. */
     buttonAria: (button: string, device: string) => `${button} de ${device}`,
-    change: 'Cambiar',
+    /** Records one more binding for the action (up to three). */
+    add: 'Añadir',
     cancel: 'Cancelar',
-    disable: 'Desactivar',
     reset: 'Restablecer',
-    /** Button names for screen readers: 'Cambiar: Modo edición'. */
-    changeLabel: (action: string) => `Cambiar: ${action}`,
+    /**
+     * Button names for screen readers: a chip ('Cambiar Ctrl+Shift+E: Modo edición'), its ×
+     * ('Quitar Ctrl+Shift+E de Modo edición'), the add button.
+     */
+    changeLabel: (keys: string, action: string) => `Cambiar ${keys}: ${action}`,
+    removeLabel: (keys: string, action: string) => `Quitar ${keys} de ${action}`,
+    addLabel: (action: string) => `Añadir otro atajo: ${action}`,
     cancelLabel: (action: string) => `Cancelar el cambio: ${action}`,
-    disableLabel: (action: string) => `Desactivar: ${action}`,
     resetLabel: (action: string, keys: string) => `Restablecer ${action} a ${keys}`,
+    /**
+     * An action's bindings inside a sentence, any of them does it: 'Ctrl+Shift+H o Botón 24',
+     * 'Ctrl+Shift+E, Botón 3 o F13' (`first`: the others but the last, joined by commas).
+     */
+    anyOf: (first: string, last: string) => `${first} o ${last}`,
     capture: {
-      /** In the field while recording: short, so the field keeps its width. */
+      /** In a new chip while recording. */
       prompt: 'Pulsa las teclas o un botón…',
-      clearHint: 'Esc cancela · Retroceso o Supr lo desactivan',
+      /** In a chip recorded over: short, so the chip keeps its width (the line below explains). */
+      promptShort: 'Pulsa…',
+      /** Recording over a binding: Backspace removes it. */
+      clearHint: 'Esc cancela · Retroceso o Supr lo quitan',
+      /** Recording one more. */
+      addHint: 'Esc cancela',
       /**
        * A button from a controller's first report since the reader started (or it was
        * plugged in): it may be resting down (a rotary, a latched switch), so it is not saved.
@@ -371,9 +385,14 @@ export const settingsEs = {
       reserved: 'Windows o los programas ya usan esa combinación',
       duplicate: (action: string) => `Ya lo usa «${action}»`,
       /** A button another action has: which one was pressed ('Botón 12 · G29 …'), and by whom. */
-      duplicateButton: (button: string, action: string) => `${button} ya lo usa «${action}»`
+      duplicateButton: (button: string, action: string) => `${button} ya lo usa «${action}»`,
+      /** Another binding of the same action. */
+      duplicateSame: 'Esta acción ya tiene esa combinación',
+      duplicateSameButton: (button: string) => `${button} ya es un atajo de esta acción`
     },
     saved: (keys: string) => `Guardado: ${keys}`,
+    /** One binding removed, others left. */
+    removed: (keys: string) => `Quitado: ${keys}`,
     disabled: 'Desactivado: esta acción ya no tiene atajo',
     warnings: {
       altgr:
@@ -382,6 +401,8 @@ export const settingsEs = {
     notes: {
       title: 'Cómo funcionan',
       focus: 'Funcionan aunque iRacing tenga el foco, sin salir del juego.',
+      several:
+        'Cada acción admite hasta tres atajos a la vez, por ejemplo una combinación de teclas y un botón del volante: cualquiera la ejecuta. Pulsa uno para cambiarlo y × para quitarlo.',
       exclusive:
         'Una combinación de teclas asignada deja de llegar a los demás programas, iRacing incluido: no elijas una que uses en el simulador.',
       buttons:
@@ -1548,7 +1569,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     }
   },
   shortcuts: {
-    sub: 'Key combinations or buttons of your wheel, button box or pedals that work all over Windows, with iRacing in front too.',
+    sub: 'Key combinations or buttons of your wheel, button box or pedals that work all over Windows, with iRacing in front too. Up to three per action.',
     section: 'Global shortcuts',
     actions: {
       toggleOverlay: {
@@ -1587,17 +1608,20 @@ export const settingsEn: Dict<typeof settingsEs> = {
     disconnectedHelp:
       'That device isn’t connected. Once you plug it in, the button works again without touching anything here',
     buttonAria: (button, device) => `${button} of ${device}`,
-    change: 'Change',
+    add: 'Add',
     cancel: 'Cancel',
-    disable: 'Disable',
     reset: 'Reset',
-    changeLabel: (action) => `Change: ${action}`,
+    changeLabel: (keys, action) => `Change ${keys}: ${action}`,
+    removeLabel: (keys, action) => `Remove ${keys} from ${action}`,
+    addLabel: (action) => `Add another shortcut: ${action}`,
     cancelLabel: (action) => `Cancel the change: ${action}`,
-    disableLabel: (action) => `Disable: ${action}`,
     resetLabel: (action, keys) => `Reset ${action} to ${keys}`,
+    anyOf: (first, last) => `${first} or ${last}`,
     capture: {
       prompt: 'Press the keys or a button…',
-      clearHint: 'Esc cancels · Backspace or Delete turns it off',
+      promptShort: 'Press…',
+      clearHint: 'Esc cancels · Backspace or Delete remove it',
+      addHint: 'Esc cancels',
       pressAgain: 'Controller found: press the button again'
     },
     errors: {
@@ -1608,9 +1632,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
       needsModifier: 'Add Ctrl or Alt: only F13–F24 work alone',
       reserved: 'Windows or other programs already use that combination',
       duplicate: (action) => `Already used by “${action}”`,
-      duplicateButton: (button, action) => `${button} is already used by “${action}”`
+      duplicateButton: (button, action) => `${button} is already used by “${action}”`,
+      duplicateSame: 'This action already has that combination',
+      duplicateSameButton: (button) => `${button} is already a shortcut of this action`
     },
     saved: (keys) => `Saved: ${keys}`,
+    removed: (keys) => `Removed: ${keys}`,
     disabled: 'Off: this action has no shortcut now',
     warnings: {
       altgr:
@@ -1619,6 +1646,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     notes: {
       title: 'How they work',
       focus: 'They work while iRacing has focus, without leaving the game.',
+      several:
+        'Each action takes up to three shortcuts at once, say a key combination and a button on your wheel: any of them runs it. Click one to change it and × to remove it.',
       exclusive:
         'An assigned key combination no longer reaches other programs, iRacing included: don’t pick one you use in the sim.',
       buttons:

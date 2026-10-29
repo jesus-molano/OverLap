@@ -34,6 +34,7 @@ import {
   toTelemetryConfig
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
+import { everyBinding, shortcutBindings } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, ShowWhen, SourceKind } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
@@ -317,7 +318,7 @@ function start(): void {
     const s = store.settings
     const next = updateDeviceNames(
       s.buttonDeviceNames,
-      boundControllers(Object.values(s.shortcuts)),
+      boundControllers(everyBinding(shortcutBindings(s.shortcuts, s.shortcutsMore))),
       controllersNow ?? []
     )
     if (next === s.buttonDeviceNames) return
@@ -411,7 +412,7 @@ function start(): void {
       windows.broadcastSettings(forOverlays)
     }
     sendToSettingsWindow(IPC.settings, rendererSettings(store.settings, 'settings'))
-    shortcuts.configure(store.settings.shortcuts)
+    shortcuts.configure(store.settings.shortcuts, store.settings.shortcutsMore)
     rememberControllerNames()
     refreshTray()
   }
@@ -521,7 +522,7 @@ function start(): void {
       layout: overlay ? windows.layoutFor(event.sender) : null,
       autoHidden: overlay ? windows.autoHiddenMap() : {},
       overlayHidden: windows.userHidden,
-      shortcutStatus: shortcuts.status,
+      shortcutStatus: shortcuts.report,
       cursorHidden: windows.cursorHidden,
       currentCar: layouts.car,
       saveFailing: store.saveFailing
@@ -600,7 +601,7 @@ function start(): void {
 
   // A combination another application holds is reported on the shortcuts page; the tray
   // menu still does everything.
-  shortcuts.configure(store.settings.shortcuts)
+  shortcuts.configure(store.settings.shortcuts, store.settings.shortcutsMore)
 
   // Quit in two steps: clean up synchronously, then wait (max ~2 s) for the
   // telemetry process to release the SDK before letting Electron quit. Each step

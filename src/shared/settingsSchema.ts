@@ -47,12 +47,12 @@ import type {
 } from './types'
 
 /**
- * Option sections of OverlaySettings (everything but version, widgets, the saved layouts and
- * the controllers' names).
+ * Option sections of OverlaySettings (everything but version, widgets, the saved layouts, the
+ * controllers' names and the shortcuts' extra bindings).
  */
 export type OptionSection = Exclude<
   keyof OverlaySettings,
-  'version' | 'widgets' | 'savedLayouts' | 'buttonDeviceNames'
+  'version' | 'widgets' | 'savedLayouts' | 'buttonDeviceNames' | 'shortcutsMore'
 >
 /** Option sections the telemetry process receives. */
 export type ConfigSection = Exclude<keyof TelemetryConfig, 'enabledWidgets' | 'rules'>

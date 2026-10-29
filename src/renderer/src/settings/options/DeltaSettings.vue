@@ -11,7 +11,7 @@ import {
 } from '@shared/settingsSchema'
 import type { DeltaLapId, DeltaReference, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
-import { useDeviceNames } from '../../composables/useShortcuts'
+import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import type { ChoiceOption } from '../controls/choice'
@@ -19,7 +19,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
-import { bindingText } from '../shortcutsView'
+import { bindingsText } from '../shortcutsView'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageAppendix from '../layout/PageAppendix.vue'
@@ -28,7 +28,7 @@ import PersonalBestsSection from './PersonalBestsSection.vue'
 import { decimalsOf, formatSeconds } from '../values'
 
 const opts = useOptions('delta')
-const shortcuts = useOptions('shortcuts')
+const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
 const t = useI18n()
 const set = optionSetter('delta')
@@ -72,8 +72,8 @@ const fallbackHelp = computed(() => {
 
 /** The cycle shortcut's keys, or where to give it some. */
 const cycleText = computed(() => {
-  // 'Ctrl+Alt+D', or 'Botón 7 · G29 …' for a controller's button.
-  const keys = bindingText(t.value, shortcuts.value.cycleDeltaReference, deviceNames.value)
+  // 'Ctrl+Alt+D', 'Botón 7 de G29 …' for a controller's button, 'Ctrl+Alt+D o Botón 7'.
+  const keys = bindingsText(t.value, shortcuts.value.cycleDeltaReference, deviceNames.value)
   return keys !== '' ? t.value.settings.delta.cycleKeys(keys) : t.value.settings.delta.cycleNoKeys
 })
 

@@ -7,6 +7,7 @@ import { isRecord, mergeSection, mergeWidgetFields, revertDuplicateAccelerators 
 import { defaultBoundsIn } from './geometry'
 import { syncActiveLayout } from './layouts'
 import { normalizeSettings } from './normalize'
+import { patchShortcuts } from './shortcuts'
 
 /**
  * Applies an untrusted patch from the settings window. Returns a new
@@ -14,9 +15,9 @@ import { normalizeSettings } from './normalize'
  * their non-bounds fields, plus the known fields of each option section, are
  * taken; invalid values keep the current one and numbers are clamped like in
  * `normalizeSettings`. A column list replaces the current one (normalised);
- * colour sets merge per colour. A shortcut combination another action has is
- * refused (that action keeps its own, the patched one its current one). Bounds
- * cannot be changed here.
+ * colour sets merge per colour. A shortcut binding another action has is
+ * refused (that action keeps its own, the patched one its current ones:
+ * patchShortcuts). Bounds cannot be changed here.
  */
 export function applySettingsPatch(current: OverlaySettings, patch: unknown): OverlaySettings {
   const out = normalizeSettings(current)
@@ -28,7 +29,10 @@ export function applySettingsPatch(current: OverlaySettings, patch: unknown): Ov
       if (isRecord(p)) mergeWidgetFields(id, out.widgets[id], p)
     }
   }
+  patchShortcuts(out, patch.shortcuts, patch.shortcutBindings)
   for (const section of OPTION_SECTIONS) {
+    // patchShortcuts took it, with the extra bindings.
+    if (section === 'shortcuts') continue
     const p = patch[section]
     if (!isRecord(p)) continue
     const before = { ...out[section] }

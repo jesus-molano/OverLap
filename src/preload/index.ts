@@ -16,7 +16,7 @@ import {
   type WidgetToggleMessage
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
-import type { ShortcutStatusMap } from '@shared/shortcuts'
+import type { ShortcutStatusReport } from '@shared/shortcuts'
 import type {
   CarRef,
   OverlaySettings,
@@ -47,7 +47,7 @@ const api: OverlayApi = {
   onLayout: (cb) => subscribe<OverlayLayout>(IPC.layout, cb),
   onPersonalBests: (cb) => subscribe<PersonalBestList>(IPC.personalBests, cb),
   onOverlayHidden: (cb) => subscribe<boolean>(IPC.overlayHidden, cb),
-  onShortcutStatus: (cb) => subscribe<ShortcutStatusMap>(IPC.shortcutStatus, cb),
+  onShortcutStatus: (cb) => subscribe<ShortcutStatusReport>(IPC.shortcutStatus, cb),
   onCursorHidden: (cb) => subscribe<boolean>(IPC.cursorHidden, cb),
   onCurrentCar: (cb) => subscribe<CarRef | null>(IPC.currentCar, cb),
   onLayoutNotice: (cb) => subscribe<LayoutNotice>(IPC.layoutNotice, cb),

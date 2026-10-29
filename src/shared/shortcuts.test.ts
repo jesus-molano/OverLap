@@ -2,9 +2,26 @@ import { describe, expect, it } from 'vitest'
 import { acceleratorText, keyLabel, keycaps, messagesFor } from './i18n'
 import { OPTION_SCHEMA } from './settingsSchema'
 import { DEFAULT_SETTINGS } from './settings'
-import { SHORTCUT_ACTIONS, checkShortcut, isShortcutAction } from './shortcuts'
+import {
+  MAX_BINDINGS,
+  SHORTCUT_ACTIONS,
+  checkShortcut,
+  emptyMoreShortcuts,
+  everyBinding,
+  firstCombination,
+  isShortcutAction,
+  settleBindings,
+  shortcutBindings,
+  splitBindings,
+  withBinding,
+  type ShortcutSettings
+} from './shortcuts'
 
 const defaults = DEFAULT_SETTINGS.shortcuts
+/** Each action's bindings: the first ones of `first` alone. */
+const only = (first: ShortcutSettings): ReturnType<typeof shortcutBindings> =>
+  shortcutBindings(first)
+const bindings = only(defaults)
 
 describe('shortcut actions', () => {
   it('are the schema fields, in the same (priority) order', () => {
@@ -39,14 +56,14 @@ describe('shortcut actions', () => {
 
 describe('checkShortcut', () => {
   it('accepts a free, assignable combination in its canonical spelling', () => {
-    expect(checkShortcut('toggleOverlay', 'ctrl+alt+shift+o', defaults)).toEqual({
+    expect(checkShortcut('toggleOverlay', 'ctrl+alt+shift+o', bindings)).toEqual({
       ok: true,
       accelerator: 'Ctrl+Alt+Shift+O'
     })
   })
 
   it('refuses the combination of another action and names it', () => {
-    expect(checkShortcut('toggleOverlay', 'CommandOrControl+Shift+E', defaults)).toEqual({
+    expect(checkShortcut('toggleOverlay', 'CommandOrControl+Shift+E', bindings)).toEqual({
       ok: false,
       accelerator: 'Ctrl+Shift+E',
       error: 'duplicate',
@@ -54,18 +71,48 @@ describe('checkShortcut', () => {
     })
   })
 
-  it("accepts the action's own combination again", () => {
-    expect(checkShortcut('toggleEditMode', 'Ctrl+Shift+E', defaults).ok).toBe(true)
+  it("accepts the action's own combination again in its own slot", () => {
+    expect(checkShortcut('toggleEditMode', 'Ctrl+Shift+E', bindings, 0).ok).toBe(true)
   })
 
-  it('always lets an action be turned off', () => {
-    expect(checkShortcut('toggleEditMode', '', defaults)).toEqual({ ok: true, accelerator: '' })
+  it('refuses one more binding that the action already has in another slot', () => {
+    // An addition (the next free slot by default).
+    expect(checkShortcut('toggleEditMode', 'Ctrl+Shift+E', bindings)).toMatchObject({
+      ok: false,
+      error: 'duplicate',
+      conflict: 'toggleEditMode'
+    })
+    const two = { ...bindings, toggleEditMode: ['Ctrl+Shift+E', 'F13'] }
+    expect(checkShortcut('toggleEditMode', 'F13', two, 0)).toMatchObject({
+      ok: false,
+      conflict: 'toggleEditMode'
+    })
+    expect(checkShortcut('toggleEditMode', 'F13', two, 1).ok).toBe(true)
+  })
+
+  it('refuses a binding another action has in any of its slots', () => {
+    const more = { ...bindings, toggleOverlay: ['Ctrl+Shift+H', 'joy:046d:c24f:0:24', 'F14'] }
+    expect(checkShortcut('nextLayout', 'F14', more)).toMatchObject({
+      ok: false,
+      conflict: 'toggleOverlay'
+    })
+    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:24', more)).toMatchObject({
+      ok: false,
+      conflict: 'toggleOverlay'
+    })
+  })
+
+  it('always lets a binding be removed', () => {
+    expect(checkShortcut('toggleEditMode', '', bindings, 0)).toEqual({
+      ok: true,
+      accelerator: ''
+    })
   })
 
   it('passes on the accelerator check: errors and the AltGr warning', () => {
-    expect(checkShortcut('toggleOverlay', 'Ctrl+C', defaults).error).toBe('reserved')
-    expect(checkShortcut('toggleOverlay', 'Shift+H', defaults).error).toBe('needs-modifier')
-    expect(checkShortcut('toggleOverlay', 'Ctrl+Alt+H', defaults)).toEqual({
+    expect(checkShortcut('toggleOverlay', 'Ctrl+C', bindings).error).toBe('reserved')
+    expect(checkShortcut('toggleOverlay', 'Shift+H', bindings).error).toBe('needs-modifier')
+    expect(checkShortcut('toggleOverlay', 'Ctrl+Alt+H', bindings)).toEqual({
       ok: true,
       accelerator: 'Ctrl+Alt+H',
       warning: 'altgr'
@@ -80,7 +127,59 @@ describe('checkShortcut', () => {
       nextLayout: '',
       openSettings: ''
     }
-    expect(checkShortcut('toggleOverlay', 'Ctrl+Shift+H', off).ok).toBe(true)
+    expect(checkShortcut('toggleOverlay', 'Ctrl+Shift+H', only(off)).ok).toBe(true)
+  })
+})
+
+describe('several bindings per action', () => {
+  const G29 = 'joy:046d:c24f:0'
+
+  it('joins the first ones and the others, and splits them back', () => {
+    const more = { ...emptyMoreShortcuts(), toggleOverlay: [`${G29}:24`, 'F13'] }
+    const all = shortcutBindings(defaults, more)
+    expect(all.toggleOverlay).toEqual(['Ctrl+Shift+H', `${G29}:24`, 'F13'])
+    expect(all.cycleDeltaReference).toEqual([])
+    expect(splitBindings(all)).toEqual({ shortcuts: defaults, more })
+    expect(everyBinding(all)).toEqual([
+      'Ctrl+Shift+H',
+      `${G29}:24`,
+      'F13',
+      'Ctrl+Shift+E',
+      'Ctrl+Shift+O'
+    ])
+  })
+
+  it('settles anything into valid, canonical, unique lists of at most three', () => {
+    expect(MAX_BINDINGS).toBe(3)
+    const out = settleBindings({
+      toggleOverlay: ['ctrl+shift+h', 'Shift+H', 7, '', `${G29}:24`, 'F13', 'F14'],
+      // Repeats an earlier action's binding: the earlier one keeps it, the next one moves up.
+      toggleEditMode: ['Ctrl+Shift+H', 'Ctrl+Shift+E', 'Ctrl+Shift+E'],
+      nextLayout: [`${G29}:24`]
+    })
+    expect(out).toEqual({
+      toggleOverlay: ['Ctrl+Shift+H', `${G29}:24`, 'F13'],
+      toggleEditMode: ['Ctrl+Shift+E'],
+      cycleDeltaReference: [],
+      nextLayout: [],
+      openSettings: []
+    })
+  })
+
+  it('puts a binding in a slot, adds one after the last, and removes one (the next move up)', () => {
+    const list = ['Ctrl+Shift+H', `${G29}:24`]
+    expect(withBinding(list, 0, 'F13')).toEqual(['F13', `${G29}:24`])
+    expect(withBinding(list, 2, 'F13')).toEqual(['Ctrl+Shift+H', `${G29}:24`, 'F13'])
+    expect(withBinding(list, 0, '')).toEqual([`${G29}:24`])
+    expect(withBinding(list, 5, '')).toEqual(list)
+    // No fourth one.
+    expect(withBinding([...list, 'F13'], 3, 'F14')).toEqual([...list, 'F13'])
+  })
+
+  it('finds the first key combination (what a menu can show)', () => {
+    expect(firstCombination([`${G29}:24`, 'Ctrl+Shift+H'])).toBe('Ctrl+Shift+H')
+    expect(firstCombination([`${G29}:24`])).toBe('')
+    expect(firstCombination([])).toBe('')
   })
 })
 
@@ -131,23 +230,25 @@ describe('keycaps', () => {
 
 describe('checkShortcut: controller buttons', () => {
   it('accepts a button no other action has, refuses a duplicate', () => {
-    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:7', defaults)).toEqual({
+    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:7', bindings)).toEqual({
       ok: true,
       accelerator: 'joy:046d:c24f:0:7'
     })
     expect(
-      checkShortcut('nextLayout', 'joy:046d:c24f:0:7', {
-        ...defaults,
-        toggleOverlay: 'joy:046d:c24f:0:7'
-      })
+      checkShortcut(
+        'nextLayout',
+        'joy:046d:c24f:0:7',
+        only({ ...defaults, toggleOverlay: 'joy:046d:c24f:0:7' })
+      )
     ).toMatchObject({ ok: false, error: 'duplicate', conflict: 'toggleOverlay' })
     // The same button on another controller is another binding.
     expect(
-      checkShortcut('nextLayout', 'joy:046d:c24f:0:7', {
-        ...defaults,
-        toggleOverlay: 'joy:1dd2:2201:0:7'
-      }).ok
+      checkShortcut(
+        'nextLayout',
+        'joy:046d:c24f:0:7',
+        only({ ...defaults, toggleOverlay: 'joy:1dd2:2201:0:7' })
+      ).ok
     ).toBe(true)
-    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:0', defaults).ok).toBe(false)
+    expect(checkShortcut('nextLayout', 'joy:046d:c24f:0:0', bindings).ok).toBe(false)
   })
 })
