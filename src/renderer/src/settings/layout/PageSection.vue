@@ -2,13 +2,15 @@
 import { computed, inject, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
-import { WIDGET_PAGE, resetWidget } from '../undo/restore'
+import { WIDGET_PAGE, resetWidget, type PageResetPart } from '../undo/restore'
 import ResetIcon from './ResetIcon.vue'
 
 /**
- * A titled block of a settings page: caps caption, optional note, rows in a card. On a widget page
- * a section that `resets` a part of it ('options': Contenido and Personalizar, 'window': Ventana y
- * visibilidad) has its ↺ at the end of its head (R24), the same as the page's "Restablecer…" menu.
+ * A titled block of a settings page: caps caption, optional note, rows in a card. A section that
+ * can be reset has its ↺ at the end of its head (R24), the same as its page's "Restablecer…" item:
+ * on a widget page `resets` names the part ('content': Contenido, 'driver': Piloto, 'window':
+ * Ventana y visibilidad), which resets only that section; elsewhere `resetLabel` names it and the
+ * page handles the `reset` event (Apariencia's sections).
  */
 const props = withDefaults(
   defineProps<{
@@ -16,22 +18,27 @@ const props = withDefaults(
     note?: string
     /** Rows go straight into a card (default); off for custom content (column editor). */
     card?: boolean
-    resets?: 'options' | 'window'
+    resets?: PageResetPart
+    /** Outside a widget page: the ↺'s name ('Restablecer Color'); it emits `reset`. */
+    resetLabel?: string
   }>(),
-  { note: undefined, card: true, resets: undefined }
+  { note: undefined, card: true, resets: undefined, resetLabel: undefined }
 )
+const emit = defineEmits<{ reset: [] }>()
 
 const titleId = useId()
 const t = useI18n()
 const widget = inject(WIDGET_PAGE, null)
 const reset = computed(() => {
+  if (props.resetLabel !== undefined) return props.resetLabel
   if (props.resets === undefined || widget === null) return null
   const r = t.value.settings.widgetPage.reset
   return r.sectionLabel(r[props.resets].label, widgetTitle(t.value, widget))
 })
 
 function onReset(): void {
-  if (props.resets !== undefined && widget !== null) resetWidget(widget, props.resets)
+  if (props.resetLabel !== undefined) emit('reset')
+  else if (props.resets !== undefined && widget !== null) resetWidget(widget, props.resets)
 }
 </script>
 

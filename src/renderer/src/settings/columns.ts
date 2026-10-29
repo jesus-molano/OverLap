@@ -19,17 +19,20 @@ import type {
 } from '@shared/types'
 import type { ElementChange } from './elements/listOps'
 
-/** Keys of the fixed left block, listed (locked) above the editable columns. */
-export const FIXED_COLUMN_KEYS = ['pos', 'num', 'name'] as const
+/**
+ * Keys of the fixed left block, listed (locked) above the editable columns: the position and the
+ * driver (its number with it, as in the relative's «Piloto», R10).
+ */
+export const FIXED_COLUMN_KEYS = ['pos', 'name'] as const
 
 export type FixedColumnKey = (typeof FIXED_COLUMN_KEYS)[number]
 
-/** The fixed left block, worded by `m`. */
+/** The fixed left block, worded by `m`, each with why it does not move. */
 export function fixedColumns(
   m: Messages
-): readonly { readonly key: FixedColumnKey; readonly label: string }[] {
-  const labels = m.settings.columns.fixed
-  return FIXED_COLUMN_KEYS.map((key) => ({ key, label: labels[key] }))
+): readonly { readonly key: FixedColumnKey; readonly label: string; readonly hint: string }[] {
+  const { fixed, fixedHints } = m.settings.columns
+  return FIXED_COLUMN_KEYS.map((key) => ({ key, label: fixed[key], hint: fixedHints[key] }))
 }
 
 export function setColumnVisible(

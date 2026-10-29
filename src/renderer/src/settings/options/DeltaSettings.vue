@@ -152,7 +152,7 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
 <template>
   <PageSection
     :title="t.settings.common.content"
-    resets="options"
+    resets="content"
     :note="t.settings.delta.referenceBySessionNote"
   >
     <ChoiceControl

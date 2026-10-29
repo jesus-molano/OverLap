@@ -66,7 +66,7 @@ const setParts = listSetter('battle', 'parts')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" resets="options">
+  <PageSection :title="t.settings.common.content" resets="content">
     <SliderControl
       :label="t.settings.battle.threshold"
       :help="t.settings.battle.thresholdHelp"

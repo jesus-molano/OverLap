@@ -18,7 +18,7 @@ import { widgetTitle } from '@shared/i18n'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
 import { offerSectionUndo } from '../undo/restore'
 import ElementEditor from './ElementEditor.vue'
-import { elementTexts, zoneTitle } from './labels'
+import { barItemTexts, zoneTitle } from './labels'
 import { shownCount, type ElementChange, type SpecRules } from './listOps'
 
 /**
@@ -91,7 +91,8 @@ function copyTo(target: InfoBarSection): void {
   void updateSection(target, fields as never)
   done()
 }
-const labels = computed(() => elementTexts(t.value, props.section, 'headerBar'))
+/** The items' names and hints (the standings' SoF and cars that its class lines say, R13). */
+const labels = computed(() => barItemTexts(t.value, props.section, raw.value))
 const switchLabel = computed(() => t.value.settings.infoBar.show[props.field])
 const sizeChoices = computed(() =>
   choiceOptions(INFO_BAR_SIZES, t.value.settings.infoBar.sizeChoices)

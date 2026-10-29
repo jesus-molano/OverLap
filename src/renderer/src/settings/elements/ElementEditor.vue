@@ -14,7 +14,7 @@ import Icon from '../../ui/Icon.vue'
 import AccordionSection from '../layout/AccordionSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
-import type { ElRef } from '../preview/previewEdit'
+import type { ElRef, PreviewZoneId } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
 import { offerSectionRestore } from '../undo/restore'
 import { undoSlot, type UndoKind } from '../undo/undo'
@@ -91,7 +91,11 @@ const props = withDefaults(
     /** With nothing shown the whole widget hides (a stronger warning). */
     emptyHides?: boolean
     /** Fixed parts of the widget listed for context above / below the list. */
-    fixedBefore?: readonly { readonly key: string; readonly label: string }[]
+    fixedBefore?: readonly {
+      readonly key: string
+      readonly label: string
+      readonly hint?: string
+    }[]
     fixedAfter?: readonly { readonly key: string; readonly label: string }[]
     /** A short note about the whole list, under it. */
     note?: string
@@ -119,8 +123,18 @@ const props = withDefaults(
      * page's "Expandir todo"; still the preview's list for its zone.
      */
     embedded?: boolean
-    /** One of several lists of a zone (the alerts' groups): no "nothing shown" note of its own. */
+    /** One of several lists of a zone: no "nothing shown" note of its own. */
     quietEmpty?: boolean
+    /**
+     * Subheads inside one fixed-order list (the alerts' groups, R12): the label drawn above the
+     * row of each id named here, so a long list reads in groups with one reset and one help.
+     */
+    groups?: Readonly<Partial<Record<Id, string>>>
+    /**
+     * The list's zone for the preview when it is not one of "Personalizar"'s (the alerts, kept as
+     * their switches): a click on one of its elements in the sample hides it, as its eye does.
+     */
+    previewZone?: PreviewZoneId
   }>(),
   {
     emptyHides: false,
@@ -135,7 +149,9 @@ const props = withDefaults(
     partsOf: () => [],
     partsSummary: undefined,
     embedded: false,
-    quietEmpty: false
+    quietEmpty: false,
+    groups: undefined,
+    previewZone: undefined
   }
 )
 
@@ -548,9 +564,12 @@ function onUp(e: PointerEvent): void {
 
 const preview = injectPreviewEdit()
 
+/** The zone the preview knows this list by: its own, or the one the page gives it. */
+const previewZoneOf = computed<PreviewZoneId | null>(() => zone.value ?? props.previewZone ?? null)
+
 /** The element of this zone the sample points at, or the list lights: its row is lit. */
 const litId = computed<string | null>(() => {
-  const z = zone.value
+  const z = previewZoneOf.value
   if (preview === null || z === null) return null
   for (const el of [preview.hover.value, preview.lit.value]) if (el?.zone === z) return el.id
   return null
@@ -558,7 +577,7 @@ const litId = computed<string | null>(() => {
 const hiddenLit = computed(() => hiddenRows.value.some((r) => r.entry.id === litId.value))
 
 function lightRow(id: Id | null): void {
-  const z = zone.value
+  const z = previewZoneOf.value
   if (preview === null || z === null) return
   preview.lightFromList(id === null ? null : ({ zone: z, id } satisfies ElRef))
 }
@@ -579,7 +598,7 @@ function reveal(id: Id): void {
 
 if (preview !== null) {
   watch(
-    zone,
+    previewZoneOf,
     (z, _prev, onCleanup) => {
       if (z === null) return
       const handle: ZoneHandle = {
@@ -661,7 +680,10 @@ function onCancel(e: PointerEvent): void {
             <span class="ed-eye is-locked" :title="t.settings.elements.fixedTag">
               <Icon name="lock" :label="t.settings.elements.fixedTag" />
             </span>
-            <span class="ed-name">{{ f.label }}</span>
+            <span class="ed-text">
+              <span class="ed-name">{{ f.label }}</span>
+              <span v-if="f.hint" class="ed-hint">{{ f.hint }}</span>
+            </span>
           </li>
         </ul>
 
@@ -694,126 +716,129 @@ function onCancel(e: PointerEvent): void {
               class="ed-list"
               :aria-label="box.side ? `${title}: ${t.settings.elements.sides[box.side]}` : title"
             >
-              <li
-                v-for="(r, n) in box.rows"
-                :key="r.entry.id"
-                class="ed-row"
-                :class="{
-                  'is-dragged': dragId === r.entry.id,
-                  'is-off': !r.entry.visible,
-                  'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
-                  'is-lit': litId === r.entry.id && dragId === null
-                }"
-                :data-row="r.entry.id"
-                @pointerenter="lightRow(r.entry.id)"
-                @pointerleave="lightRow(null)"
-                @focusin="lightRow(r.entry.id)"
-                @focusout="lightRow(null)"
-              >
-                <button
-                  v-if="sortable"
-                  type="button"
-                  class="ed-handle"
-                  data-focus="handle"
-                  :aria-label="t.settings.elements.move(labelOf(r.entry.id))"
-                  :aria-describedby="helpId"
-                  @pointerdown="onHandleDown($event, r.entry.id)"
-                  @keydown="onHandleKey($event, r.entry.id, r.index)"
+              <template v-for="(r, n) in box.rows" :key="r.entry.id">
+                <li v-if="groups?.[r.entry.id]" class="ed-group" role="presentation">
+                  {{ groups[r.entry.id] }}
+                </li>
+                <li
+                  class="ed-row"
+                  :class="{
+                    'is-dragged': dragId === r.entry.id,
+                    'is-off': !r.entry.visible,
+                    'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
+                    'is-lit': litId === r.entry.id && dragId === null
+                  }"
+                  :data-row="r.entry.id"
+                  @pointerenter="lightRow(r.entry.id)"
+                  @pointerleave="lightRow(null)"
+                  @focusin="lightRow(r.entry.id)"
+                  @focusout="lightRow(null)"
                 >
-                  <span aria-hidden="true">⠿</span>
-                </button>
-                <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
-                <span
-                  v-if="isRequired(spec, r.entry.id)"
-                  class="ed-eye is-locked"
-                  :title="t.settings.elements.required"
-                >
-                  <Icon name="lock" :label="t.settings.elements.required" />
-                </span>
-                <button
-                  v-else
-                  type="button"
-                  class="ed-eye"
-                  data-focus="eye"
-                  :aria-pressed="r.entry.visible"
-                  :aria-label="
-                    r.entry.visible
-                      ? t.settings.elements.hide(labelOf(r.entry.id))
-                      : t.settings.elements.show(labelOf(r.entry.id))
-                  "
-                  @click="onEye(r.entry.id, !r.entry.visible)"
-                >
-                  <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
-                </button>
-                <span class="ed-text">
-                  <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
-                  <span v-if="blockedBy(spec, shown, r.entry.id) !== null" class="ed-hint">{{
-                    t.settings.elements.needsParent(
-                      labelOf(blockedBy(spec, shown, r.entry.id) as Id)
-                    )
-                  }}</span>
-                  <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
-                    labels[r.entry.id]?.hint
-                  }}</span>
-                </span>
-                <span v-if="$slots.extra" class="ed-extra"
-                  ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
-                /></span>
-                <button
-                  v-if="partsOf.includes(r.entry.id)"
-                  type="button"
-                  class="st-btn st-btn-sm st-btn-ghost ed-parts-btn"
-                  :aria-expanded="unfolded.has(r.entry.id)"
-                  :aria-label="t.settings.elements.partsLabel(labelOf(r.entry.id))"
-                  @click="toggleParts(r.entry.id)"
-                >
-                  {{ partsSummary?.[r.entry.id] ?? t.settings.elements.parts }}
-                  <Icon name="chevron" class="ed-parts-chev" />
-                </button>
-                <span v-if="sortable" class="ed-arrows">
                   <button
-                    v-if="box.side"
+                    v-if="sortable"
                     type="button"
-                    class="st-btn st-btn-icon st-btn-ghost"
-                    data-focus="side"
-                    :aria-label="sideLabel(r.entry.id, box.side)"
-                    :title="sideLabel(r.entry.id, box.side)"
-                    :disabled="dragId !== null"
-                    @click="moveAcross(r.entry.id)"
+                    class="ed-handle"
+                    data-focus="handle"
+                    :aria-label="t.settings.elements.move(labelOf(r.entry.id))"
+                    :aria-describedby="helpId"
+                    @pointerdown="onHandleDown($event, r.entry.id)"
+                    @keydown="onHandleKey($event, r.entry.id, r.index)"
                   >
-                    {{ box.side === 'left' ? '→' : '←' }}
+                    <span aria-hidden="true">⠿</span>
                   </button>
+                  <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
+                  <span
+                    v-if="isRequired(spec, r.entry.id)"
+                    class="ed-eye is-locked"
+                    :title="t.settings.elements.required"
+                  >
+                    <Icon name="lock" :label="t.settings.elements.required" />
+                  </span>
                   <button
+                    v-else
                     type="button"
-                    class="st-btn st-btn-icon st-btn-ghost"
-                    data-focus="up"
-                    :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
-                    :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
-                    @click="move(r.entry.id, -1, 'up')"
+                    class="ed-eye"
+                    data-focus="eye"
+                    :aria-pressed="r.entry.visible"
+                    :aria-label="
+                      r.entry.visible
+                        ? t.settings.elements.hide(labelOf(r.entry.id))
+                        : t.settings.elements.show(labelOf(r.entry.id))
+                    "
+                    @click="onEye(r.entry.id, !r.entry.visible)"
                   >
-                    ↑
+                    <Icon :name="r.entry.visible ? 'eye' : 'eye-off'" />
                   </button>
+                  <span class="ed-text">
+                    <span class="ed-name">{{ labelOf(r.entry.id) }}</span>
+                    <span v-if="blockedBy(spec, shown, r.entry.id) !== null" class="ed-hint">{{
+                      t.settings.elements.needsParent(
+                        labelOf(blockedBy(spec, shown, r.entry.id) as Id)
+                      )
+                    }}</span>
+                    <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
+                      labels[r.entry.id]?.hint
+                    }}</span>
+                  </span>
+                  <span v-if="$slots.extra" class="ed-extra"
+                    ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"
+                  /></span>
                   <button
+                    v-if="partsOf.includes(r.entry.id)"
                     type="button"
-                    class="st-btn st-btn-icon st-btn-ghost"
-                    data-focus="down"
-                    :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
-                    :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
-                    @click="move(r.entry.id, 1, 'down')"
+                    class="st-btn st-btn-sm st-btn-ghost ed-parts-btn"
+                    :aria-expanded="unfolded.has(r.entry.id)"
+                    :aria-label="t.settings.elements.partsLabel(labelOf(r.entry.id))"
+                    @click="toggleParts(r.entry.id)"
                   >
-                    ↓
+                    {{ partsSummary?.[r.entry.id] ?? t.settings.elements.parts }}
+                    <Icon name="chevron" class="ed-parts-chev" />
                   </button>
-                </span>
-                <!-- Its parts, unfolded: a list of their own under the row (R21). -->
-                <div
-                  v-if="partsOf.includes(r.entry.id)"
-                  v-show="unfolded.has(r.entry.id)"
-                  class="ed-sub"
-                  @pointerdown.stop
-                >
-                  <slot :id="r.entry.id" name="parts" />
-                </div>
-              </li>
+                  <span v-if="sortable" class="ed-arrows">
+                    <button
+                      v-if="box.side"
+                      type="button"
+                      class="st-btn st-btn-icon st-btn-ghost"
+                      data-focus="side"
+                      :aria-label="sideLabel(r.entry.id, box.side)"
+                      :title="sideLabel(r.entry.id, box.side)"
+                      :disabled="dragId !== null"
+                      @click="moveAcross(r.entry.id)"
+                    >
+                      {{ box.side === 'left' ? '→' : '←' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="st-btn st-btn-icon st-btn-ghost"
+                      data-focus="up"
+                      :aria-label="t.settings.elements.moveUp(labelOf(r.entry.id))"
+                      :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
+                      @click="move(r.entry.id, -1, 'up')"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      class="st-btn st-btn-icon st-btn-ghost"
+                      data-focus="down"
+                      :aria-label="t.settings.elements.moveDown(labelOf(r.entry.id))"
+                      :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
+                      @click="move(r.entry.id, 1, 'down')"
+                    >
+                      ↓
+                    </button>
+                  </span>
+                  <!-- Its parts, unfolded: a list of their own under the row (R21). -->
+                  <div
+                    v-if="partsOf.includes(r.entry.id)"
+                    v-show="unfolded.has(r.entry.id)"
+                    class="ed-sub"
+                    @pointerdown.stop
+                  >
+                    <slot :id="r.entry.id" name="parts" />
+                  </div>
+                </li>
+              </template>
               <li v-if="box.side && box.rows.length === 0" class="ed-row is-empty">
                 {{ t.settings.elements.sideEmpty }}
               </li>
@@ -958,6 +983,21 @@ function onCancel(e: PointerEvent): void {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* A group's subhead inside one list (the alerts' groups): a caption, as a section's. */
+.ed-group {
+  padding: 8px 2px 2px;
+  color: var(--ov-fg-muted);
+  font-family: var(--ov-font-small);
+  font-size: 11px;
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+}
+
+.ed-group:first-child {
+  padding-top: 0;
 }
 
 /* Measured by the rows' narrow layout (below). */

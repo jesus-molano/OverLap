@@ -30,6 +30,18 @@ export {
 } from './patch'
 export { toTelemetryConfig } from './config'
 export {
+  APPEARANCE_PARTS,
+  APPEARANCE_PART_FIELDS,
+  appearancePartDefaults,
+  OPTION_PARTS,
+  hasOptionPart,
+  optionPartDefaults,
+  optionPartFields,
+  optionPartOf,
+  type AppearancePart,
+  type OptionPart
+} from './optionParts'
+export {
   applyDrag,
   clampRectToDisplay,
   clampRectToDisplays,

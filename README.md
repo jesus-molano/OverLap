@@ -193,13 +193,14 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
   mismos botones 80/100/125/150 % en los diez; en Relativo, Radar y Delta cambia el tamaño de su
   ventana, como la rueda en modo edición), alto automático o fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
   entrada a boxes).
-- **Restablecer y deshacer**: arriba de cada página de widget, **Restablecer…** dice qué devuelve
-  a fábrica (Contenido y Personalizar, Ventana y visibilidad, Posición y tamaño, o todo), y cada
-  sección tiene su icono ↺ en la cabecera. Es un solo clic: un aviso abajo dice qué se ha
-  restablecido (y en qué disposición, si tienes varias) con **Deshacer** (o `Ctrl+Z`) durante unos
-  segundos. Lo mismo al restablecer una lista, la apariencia o los atajos, al ocultar un widget y
-  al eliminar una disposición. Solo borrar récords personales pide un segundo clic: eso no se
-  puede deshacer.
+- **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia y Atajos),
+  **Restablecer…** dice qué devuelve a fábrica, sección por sección (en un widget: Contenido,
+  Piloto, Personalizar, Ventana y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
+  icono ↺ en la cabecera, que restablece solo esa sección. Es un solo clic: un aviso abajo dice qué
+  se ha restablecido (y en qué disposición, si tienes varias) con **Deshacer** (o `Ctrl+Z`)
+  durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Global» en todos
+  los widgets, al ocultar un widget y al eliminar una disposición. Solo borrar récords personales
+  pide un segundo clic: eso no se puede deshacer.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
   Una regla para todas las páginas: **Contenido** es el comportamiento (cuántos, cuánto tiempo,

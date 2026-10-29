@@ -162,6 +162,17 @@ export const FLAG_OPTION: Readonly<Partial<Record<FlagKind, AlertToggle>>> = {
   blue: 'showBlue'
 }
 
+/**
+ * The switch that shows an alert of `kind` (its eye in Avisos › Personalizar, R12): a notice's
+ * own, the blue and furled flags' own, and the flags' for every other flag.
+ */
+export function alertToggleOf(kind: AlertKind): AlertToggle {
+  const own =
+    (NOTICE_OPTION as Readonly<Partial<Record<AlertKind, AlertToggle>>>)[kind] ??
+    (FLAG_OPTION as Readonly<Partial<Record<AlertKind, AlertToggle>>>)[kind]
+  return own ?? 'showFlags'
+}
+
 /** Every on/off option, in the schema's (settings page) order. */
 export const ALERT_TOGGLES: readonly AlertToggle[] = (
   Object.keys(OPTION_SCHEMA.alerts) as (keyof AlertsOptions)[]

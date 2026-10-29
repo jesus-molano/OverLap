@@ -409,8 +409,10 @@ describe('controller buttons', () => {
     if (!r) throw new Error('no row')
     expect(r).toMatchObject({ status: 'unavailable', badge: 'Desconectado' })
     expect(r.bindings[0]).toMatchObject({ accelerator: `${G29}:12`, off: true })
-    // The cell says "Desconectado" (the sentence is its tooltip): no line under it.
-    expect(rowMessages(es, r, null, null)).toEqual([])
+    // The cell says "Desconectado" (only its icon when narrow): what it means, under it (R58).
+    expect(rowMessages(es, r, null, null)).toEqual([
+      { text: es.settings.shortcuts.disconnectedHelp, tone: 'warn', slot: 0 }
+    ])
     expect(rowAnnouncement(es, r, null, null, names)).toBe(es.settings.shortcuts.disconnectedHelp)
   })
 
@@ -425,6 +427,7 @@ describe('controller buttons', () => {
     if (!both) throw new Error('no row')
     expect(both.badge).toBe('En uso por otra aplicación')
     expect(rowMessages(es, both, null, null)).toEqual([
+      { text: es.settings.shortcuts.disconnectedHelp, tone: 'warn', slot: 2 },
       { text: es.settings.shortcuts.unavailableHelp, tone: 'warn', slot: 0 }
     ])
     expect(rowAnnouncement(es, both, null, null, names)).toBe(

@@ -22,6 +22,7 @@ import {
   outlineBoxes,
   parseEl,
   pickEl,
+  previewHintOf,
   sameEl,
   shownDropList,
   sideBoundary,
@@ -363,5 +364,38 @@ describe('the sample stylesheet', () => {
       ghosts: ['a.b.c"] , body {']
     })
     expect(css).toBe('')
+  })
+})
+
+describe('previewHintOf (R41: the hint promises what the page allows)', () => {
+  it('offers the drag only where a shown list can be reordered', () => {
+    expect(
+      previewHintOf([
+        { zone: 'relative.columns', fixedOrder: false, off: false },
+        { zone: 'relative.headerBar', fixedOrder: false, off: true }
+      ])
+    ).toEqual({ sortable: true, ghosts: 'all' })
+    expect(previewHintOf([{ zone: 'radar.parts', fixedOrder: true, off: false }])).toEqual({
+      sortable: false,
+      ghosts: 'all'
+    })
+  })
+
+  it('says the alerts come back from their list: they are not drawn ghosted', () => {
+    expect(
+      previewHintOf([
+        { zone: 'alerts.alerts', fixedOrder: true, off: false },
+        { zone: 'alerts.parts', fixedOrder: true, off: false }
+      ])
+    ).toEqual({ sortable: false, ghosts: 'some' })
+    expect(previewHintOf([{ zone: 'alerts.alerts', fixedOrder: true, off: false }])).toEqual({
+      sortable: false,
+      ghosts: 'none'
+    })
+  })
+
+  it('shows nothing without a list in use', () => {
+    expect(previewHintOf([])).toBeNull()
+    expect(previewHintOf([{ zone: 'fuel.headerBar', fixedOrder: false, off: true }])).toBeNull()
   })
 })

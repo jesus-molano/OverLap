@@ -12,6 +12,7 @@
 import { describe, expect, it } from 'vitest'
 import { NodeTypes, type ElementNode, type TemplateChildNode } from '@vue/compiler-core'
 import { parse } from 'vue/compiler-sfc'
+import { ALERT_TOGGLES } from '@shared/alerts'
 import { INFO_BARS } from '@shared/infoBar'
 import { CUSTOMIZE_ZONE_IDS, OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
 
@@ -107,7 +108,11 @@ describe('data-el on the widgets', () => {
   })
 
   it('names nothing that is in no zone', () => {
-    const known = new Set(CUSTOMIZE_ZONE_IDS.flatMap((z) => idsOf(z).map((id) => `${z}.${id}`)))
+    const known = new Set([
+      ...CUSTOMIZE_ZONE_IDS.flatMap((z) => idsOf(z).map((id) => `${z}.${id}`)),
+      // The alerts, a preview zone of their own (R12): stored as their switches, not as a list.
+      ...ALERT_TOGGLES.map((k) => `alerts.alerts.${k}`)
+    ])
     for (const { path, names } of FILES) {
       for (const v of names.literal) expect(known.has(v), `${path}: ${v}`).toBe(true)
       for (const z of names.looped)

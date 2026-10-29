@@ -205,9 +205,11 @@ export function relativeColumns(
     if (id === 'tyre' && !x.tyres) continue
     if (!cells.includes(id)) cells.push(id)
   }
-  // Required: a list main normalised always has them; a missing one goes where it is by default.
+  // The driver is required: a list main normalised always has it; a missing one goes where it is
+  // by default. The gap can be hidden (R10, as in the standings); a list without it at all (not
+  // normalised) still draws it at the end.
   if (!cells.includes('driver')) cells.splice(cells.includes('pos') ? 1 : 0, 0, 'driver')
-  if (!cells.includes('gap')) cells.push('gap')
+  if (!cells.includes('gap') && !list.some((e) => e.id === 'gap')) cells.push('gap')
   const tracks = cells.map((id) =>
     id === 'driver' ? 'minmax(0, 1fr)' : `${RELATIVE_COL_EM[id]}em`
   )

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue'
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from '@shared/i18n'
-import { FONT_SCALE_MAX, FONT_SCALE_MIN } from '@shared/settings'
+import {
+  APPEARANCE_PARTS,
+  FONT_SCALE_MAX,
+  FONT_SCALE_MIN,
+  type AppearancePart
+} from '@shared/settings'
 import { ACCENT_PRESETS, OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema'
-import type { ShowWhen } from '@shared/types'
+import type { SettingsPatch, ShowWhen } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -20,9 +25,11 @@ import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
-import { inheritDriverBlocks, ownDriverBlocks } from '@shared/driverBlock'
-import { optionSetter, updateSettings } from '../editor'
-import { resetAppearance } from '../undo/restore'
+import { inheritDriverBlocks, ownDriverBlocks, type DriverBlockOptions } from '@shared/driverBlock'
+import { optionSetter } from '../editor'
+import { followGlobal, resetAppearance, resetAppearancePart } from '../undo/restore'
+import ResetMenu from '../layout/ResetMenu.vue'
+import type { ResetItem } from '../layout/resetItems'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import SampleStage from '../layout/SampleStage.vue'
@@ -122,8 +129,16 @@ const setBackground = (pct: number): Promise<void> => set('backgroundOpacity')(f
 const { settings } = useOverlayState()
 const ownBg = computed(() => (settings.value ? ownBackgrounds(settings.value.widgets) : []))
 const followedMsg = ref('')
-async function followGlobal(): Promise<void> {
-  await updateSettings(followGlobalPatch(ownBg.value))
+/** One click, then "Deshacer" (R11): each widget's own background comes back. */
+async function followGlobalBg(): Promise<void> {
+  const ids = ownBg.value
+  const widgets = settings.value?.widgets
+  if (ids.length === 0 || widgets === undefined) return
+  const before: NonNullable<SettingsPatch['widgets']> = {}
+  for (const id of ids) before[id] = { backgroundOpacity: widgets[id].backgroundOpacity }
+  await followGlobal(ids, (m) => m.settings.appearance.color.background, followGlobalPatch(ids), {
+    widgets: before
+  })
   followedMsg.value = t.value.settings.appearance.color.followGlobalDone
 }
 /**
@@ -132,10 +147,42 @@ async function followGlobal(): Promise<void> {
  */
 const ownBlocks = computed(() => (settings.value ? ownDriverBlocks(settings.value) : []))
 const followedBlocksMsg = ref('')
+/** One click, then "Deshacer" (R11): each widget's own «Piloto» values come back. */
 async function followBlocks(): Promise<void> {
-  await updateSettings(inheritDriverBlocks(ownBlocks.value))
+  const ids = ownBlocks.value
+  const s = settings.value
+  if (ids.length === 0 || s === null) return
+  const before: Record<string, DriverBlockOptions> = {}
+  for (const id of ids) {
+    const { nameFormat, brandMarks, countryFlags, showFlags } = s[id]
+    before[id] = { nameFormat, brandMarks, countryFlags, showFlags }
+  }
+  await followGlobal(
+    ids,
+    (m) => m.settings.driverBlock.title,
+    inheritDriverBlocks(ids),
+    before as SettingsPatch
+  )
   followedBlocksMsg.value = t.value.settings.appearance.rows.followGlobalDone
 }
+
+/**
+ * "Restablecer…" (R24): each section of the page, then all of it (the language never changes),
+ * the same resets as the ↺ in the sections' heads. One click, then "Deshacer".
+ */
+const resetItems = computed<ResetItem[]>(() => {
+  const a = t.value.settings.appearance
+  const items: ResetItem[] = APPEARANCE_PARTS.map((part) => ({
+    id: part,
+    label: a[part].title,
+    description: a.reset[part],
+    run: () => resetAppearancePart(part)
+  }))
+  items.push({ id: 'all', ...a.reset.all, run: resetAppearance })
+  return items
+})
+const resetLabel = (part: AppearancePart): string =>
+  t.value.settings.appearance.reset.sectionLabel(t.value.settings.appearance[part].title)
 /** Which widgets the text size changes, by name (the auto-height ones). */
 const fontScaleHelp = computed(() => fontScaleHelpText(t.value, locale.value))
 
@@ -151,13 +198,16 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
   <PageFrame :labelledby="titleId">
     <template #top>
       <header class="page-head">
-        <h1 :id="titleId" class="page-title">{{ t.settings.nav.appearance }}</h1>
-        <HelpText
-          tag="p"
-          class="page-sub"
-          :text="t.settings.appearance.sub"
-          :more="t.settings.appearance.subMore"
-        />
+        <div class="page-titles">
+          <h1 :id="titleId" class="page-title">{{ t.settings.nav.appearance }}</h1>
+          <HelpText
+            tag="p"
+            class="page-sub"
+            :text="t.settings.appearance.sub"
+            :more="t.settings.appearance.subMore"
+          />
+        </div>
+        <ResetMenu :label="t.settings.appearance.reset.menuLabel" :items="resetItems" />
       </header>
 
       <SampleStage class="stage">
@@ -181,7 +231,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         </ChoiceControl>
       </PageSection>
 
-      <PageSection :title="t.settings.appearance.color.title">
+      <PageSection
+        :title="t.settings.appearance.color.title"
+        :reset-label="resetLabel('color')"
+        @reset="resetAppearancePart('color')"
+      >
         <ColorControl
           :label="t.settings.appearance.color.accent"
           :help="t.settings.appearance.color.accentHelp"
@@ -201,7 +255,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         />
         <div v-if="ownBg.length > 0" class="st-row own-bg">
           <p class="st-help">{{ t.settings.appearance.color.ownBackgrounds(ownBg.length) }}</p>
-          <button type="button" class="st-btn st-btn-sm" @click="followGlobal">
+          <button type="button" class="st-btn st-btn-sm" @click="followGlobalBg">
             {{ t.settings.appearance.color.followGlobal }}
           </button>
         </div>
@@ -218,7 +272,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         />
       </PageSection>
 
-      <PageSection :title="t.settings.appearance.text.title">
+      <PageSection
+        :title="t.settings.appearance.text.title"
+        :reset-label="resetLabel('text')"
+        @reset="resetAppearancePart('text')"
+      >
         <SliderControl
           :label="t.settings.appearance.text.fontScale"
           :help="fontScaleHelp.help"
@@ -240,7 +298,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         />
       </PageSection>
 
-      <PageSection :title="t.settings.appearance.rows.title">
+      <PageSection
+        :title="t.settings.appearance.rows.title"
+        :reset-label="resetLabel('rows')"
+        @reset="resetAppearancePart('rows')"
+      >
         <ChoiceControl
           :label="t.settings.common.density"
           :help="t.settings.appearance.rows.densityHelp"
@@ -337,7 +399,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         </ChoiceControl>
       </PageSection>
 
-      <PageSection :title="t.settings.appearance.screen.title">
+      <PageSection
+        :title="t.settings.appearance.screen.title"
+        :reset-label="resetLabel('screen')"
+        @reset="resetAppearancePart('screen')"
+      >
         <ChoiceControl
           stack
           :label="t.settings.appearance.screen.showWhen"
@@ -386,7 +452,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         />
       </PageSection>
 
-      <PageSection :title="t.settings.appearance.other.title">
+      <PageSection
+        :title="t.settings.appearance.other.title"
+        :reset-label="resetLabel('other')"
+        @reset="resetAppearancePart('other')"
+      >
         <ChoiceControl
           :label="t.settings.appearance.other.units"
           :help="t.settings.appearance.other.unitsHelp"
@@ -404,18 +474,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
       </PageSection>
     </div>
 
-    <footer class="page-foot">
-      <!-- One click, then "Deshacer" in the toast (R11). -->
-      <button
-        type="button"
-        class="st-btn"
-        :title="t.settings.appearance.reset.description"
-        @click="resetAppearance"
-      >
-        {{ t.settings.appearance.reset.label }}
-      </button>
-    </footer>
-
     <template #foot>
       <slot />
     </template>
@@ -423,11 +481,21 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 </template>
 
 <style scoped>
+/* The title and its line, then "Restablecer…" at the end (as on a widget page). */
 .page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-bottom: 14px;
+}
+
+.page-titles {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-bottom: 14px;
+  min-width: 0;
 }
 
 .page-title {
@@ -478,13 +546,5 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
   margin-right: -2px;
   border-radius: 1px;
   background: var(--cls, #33ceff);
-}
-
-.page-foot {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--st-border);
 }
 </style>

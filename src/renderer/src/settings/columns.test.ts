@@ -34,17 +34,12 @@ describe('visibility', () => {
 
 describe('fixedColumns', () => {
   it('lists the fixed left block in both languages', () => {
-    expect(fixedColumns(messagesFor('es')).map((c) => c.label)).toEqual([
-      'Posición',
-      'Número',
-      'Piloto'
-    ])
-    expect(fixedColumns(messagesFor('en')).map((c) => c.label)).toEqual([
-      'Position',
-      'Number',
-      'Driver'
-    ])
-    expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'num', 'name'])
+    expect(fixedColumns(messagesFor('es')).map((c) => c.label)).toEqual(['Posición', 'Piloto'])
+    expect(fixedColumns(messagesFor('en')).map((c) => c.label)).toEqual(['Position', 'Driver'])
+    expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'name'])
+    // The number is the driver's, as in the relative (R10); why they do not move, said.
+    expect(fixedColumns(messagesFor('es'))[1]?.hint).toContain('número')
+    expect(messagesFor('es').settings.relative.driverHelp).toBe('Con el número del coche')
   })
 })
 

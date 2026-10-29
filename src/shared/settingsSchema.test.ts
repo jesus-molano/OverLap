@@ -268,7 +268,9 @@ describe('element lists (v2.6)', () => {
   })
 
   it('makes the cores required and the small fixed groups fixed in order', () => {
-    expect(OPTION_SCHEMA.relative.columns.required).toEqual(['driver', 'gap'])
+    // The gap can be hidden in the relative as in the standings (R10).
+    expect(OPTION_SCHEMA.relative.columns.required).toEqual(['driver'])
+    expect(OPTION_SCHEMA.standings.columns.required).toEqual([])
     expect(OPTION_SCHEMA.traffic.parts.required).toEqual(['driver', 'value'])
     expect(OPTION_SCHEMA.delta.rows.required).toEqual(['top'])
     expect(OPTION_SCHEMA.fuel.lines.required).toEqual(['hero'])
@@ -466,10 +468,22 @@ describe('v2.2 delta specs', () => {
         expect(s.references[ref].label, `${lang} ${ref}`).toBeTruthy()
         expect(s.references[ref].hint, `${lang} ${ref}`).toBeTruthy()
         expect(s.referenceHelp[ref], `${lang} ${ref}`).toBeTruthy()
-        expect(s.referencesShort[ref], `${lang} ${ref}`).toBeTruthy()
       }
     }
     expect(messagesFor('es').settings.delta.references.pb.label).toBe('Récord personal')
+    // The lap times' parts use the same names (R21).
+    const items = messagesFor('es').settings.items.delta.laps
+    const refs = messagesFor('es').settings.delta.references
+    expect([items.best, items.optimal, items.pb]).toEqual([
+      refs.session.label,
+      refs.optimal.label,
+      refs.pb.label
+    ])
+    const en = messagesFor('en').settings
+    expect([en.items.delta.laps.best, en.items.delta.laps.pb]).toEqual([
+      en.delta.references.session.label,
+      en.delta.references.pb.label
+    ])
     expect(messagesFor('en').settings.delta.references.pb.label).toBe('Personal best')
     expect(messagesFor('es').settings.delta.references.optimal.label).toBe('Vuelta óptima')
     expect(messagesFor('en').settings.delta.references.classOptimal.label).toBe('Class optimal')

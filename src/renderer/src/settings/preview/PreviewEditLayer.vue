@@ -8,7 +8,6 @@ import {
   watch,
   watchEffect
 } from 'vue'
-import type { CustomizeZoneId } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import type { InlineStyle } from '../../view/styles'
 import type { Side } from '../elements/listOps'
@@ -37,6 +36,7 @@ import {
   type Drop,
   type ElAction,
   type ElRef,
+  type PreviewZoneId,
   type Slot,
   type TipPlace
 } from './previewEdit'
@@ -380,7 +380,7 @@ function setCursor(c: string): void {
 }
 
 /** Every element of `zone` as drawn now, and an info bar's boxes: once per drag. */
-function measure(zone: CustomizeZoneId, split: boolean): { slots: Slot[]; bar: BarBoxes | null } {
+function measure(zone: PreviewZoneId, split: boolean): { slots: Slot[]; bar: BarBoxes | null } {
   const root = props.sample
   if (root === null) return { slots: [], bar: null }
   const byId = new Map<string, { boxes: Box[]; side?: Side }>()
@@ -493,7 +493,7 @@ function click(h: Hit, action: ElAction): void {
   if (action === 'show') handle.setVisible(el.id, true)
   else if (action === 'move-hide' || action === 'hide') {
     handle.setVisible(el.id, false)
-    if (!GHOST_ZONES.has(el.zone)) say(p.hiddenNote(label))
+    if (!(GHOST_ZONES as ReadonlySet<string>).has(el.zone)) say(p.hiddenNote(label))
   } else say(p.refused.required(label))
   handle.reveal(el.id)
 }

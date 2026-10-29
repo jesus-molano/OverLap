@@ -66,6 +66,30 @@ export const ALERT_GROUPS: readonly AlertGroup[] = [
   group('fuel', ['showBoxThisLap', 'showFuelLow'])
 ]
 
+/**
+ * Every alert as one fixed-order list (R12): the groups' ids in the page's order, each group's
+ * name as a subhead above its first row (ALERT_GROUP_HEADS), one reset and one help for all.
+ */
+export const ALERTS_SPEC: SpecRules<AlertKey> = {
+  ids: ALERT_GROUPS.flatMap((g) => g.spec.ids),
+  default: ALERT_GROUPS.flatMap((g) => g.spec.default),
+  required: [],
+  fixedOrder: true,
+  parents: Object.assign({}, ...ALERT_GROUPS.map((g) => g.spec.parents)) as Readonly<
+    Partial<Record<AlertKey, AlertKey>>
+  >
+}
+
+/** The first alert of each group: its subhead goes above it. */
+export const ALERT_GROUP_HEADS: readonly (readonly [AlertKey, AlertGroupKey])[] = ALERT_GROUPS.map(
+  (g) => [g.spec.ids[0] as AlertKey, g.key] as const
+)
+
+/** Every alert's switch as the one list. */
+export function allAlertItems(o: AlertsOptions): ElementEntry<AlertKey>[] {
+  return ALERTS_SPEC.ids.map((id) => ({ id, visible: o[id] }))
+}
+
 /** A group's switches as its list. */
 export function alertItems(g: AlertGroup, o: AlertsOptions): ElementEntry<AlertKey>[] {
   return g.spec.ids.map((id) => ({ id, visible: o[id] }))

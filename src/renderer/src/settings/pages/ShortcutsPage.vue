@@ -6,8 +6,11 @@ import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useShortcuts } from '../../composables/useShortcuts'
 import HelpText from '../controls/HelpText.vue'
+import Icon from '../../ui/Icon.vue'
 import { resetShortcuts } from '../undo/restore'
 import Keycaps from '../layout/Keycaps.vue'
+import ResetMenu from '../layout/ResetMenu.vue'
+import type { ResetItem } from '../layout/resetItems'
 import PageFrame from '../layout/PageFrame.vue'
 import ShortcutRow from '../layout/ShortcutRow.vue'
 import { buttonBindingCount, shortcutRows } from '../shortcutsView'
@@ -48,19 +51,31 @@ const resetDescription = computed(() => {
   const r = t.value.settings.shortcuts.resetAll
   return buttonCount.value > 0 ? r.descriptionButtons(buttonCount.value) : r.description
 })
+/** "Restablecer…" at the top, as on every page (R24); each row keeps its own ↺. */
+const resetItems = computed<ResetItem[]>(() => [
+  {
+    id: 'all',
+    label: t.value.settings.shortcuts.resetAll.label,
+    description: resetDescription.value,
+    run: resetShortcuts
+  }
+])
 </script>
 
 <template>
   <PageFrame class="sc-page" :labelledby="titleId">
     <template #top>
       <header class="page-head">
-        <h1 :id="titleId" class="page-title">{{ t.settings.nav.shortcuts }}</h1>
-        <HelpText
-          tag="p"
-          class="page-sub"
-          :text="t.settings.shortcuts.sub"
-          :more="t.settings.shortcuts.subMore"
-        />
+        <div class="page-titles">
+          <h1 :id="titleId" class="page-title">{{ t.settings.nav.shortcuts }}</h1>
+          <HelpText
+            tag="p"
+            class="page-sub"
+            :text="t.settings.shortcuts.sub"
+            :more="t.settings.shortcuts.subMore"
+          />
+        </div>
+        <ResetMenu :label="t.settings.shortcuts.resetAll.menuLabel" :items="resetItems" />
       </header>
     </template>
 
@@ -103,7 +118,10 @@ const resetDescription = computed(() => {
         </div>
         <div class="sc-cell sc-cell-fixed" role="cell" data-slot="0" data-n="1">
           <Keycaps :keys="escapeCaps" />
-          <span class="sc-fixed-tag">{{ t.settings.shortcuts.escape.tag }}</span>
+          <!-- The same lock as an always-shown element of a list (R10), where the × goes. -->
+          <span class="sc-fixed-lock" :title="t.settings.shortcuts.escape.tag"
+            ><Icon name="lock" :label="t.settings.shortcuts.escape.tag"
+          /></span>
         </div>
         <div class="sc-cell is-empty" role="cell" data-slot="1" data-n="2">
           <span aria-hidden="true">—</span>
@@ -135,13 +153,6 @@ const resetDescription = computed(() => {
       <p class="st-help note">{{ t.settings.shortcuts.notes.buttonBox }}</p>
     </details>
 
-    <footer class="page-foot">
-      <!-- One click, then "Deshacer" in the toast (R11): the buttons come back with it. -->
-      <button type="button" class="st-btn" :title="resetDescription" @click="resetShortcuts">
-        {{ t.settings.shortcuts.resetAll.label }}
-      </button>
-    </footer>
-
     <template #foot>
       <slot />
     </template>
@@ -149,11 +160,21 @@ const resetDescription = computed(() => {
 </template>
 
 <style scoped>
+/* The title and its line, then "Restablecer…" at the end (as on a widget page). */
 .page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-bottom: 14px;
+}
+
+.page-titles {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-bottom: 14px;
+  min-width: 0;
 }
 
 .page-title {
@@ -244,7 +265,7 @@ const resetDescription = computed(() => {
   }
 }
 
-/* Esc: a fixed cell, its keys and "FIJO" inside, without a field's fill. */
+/* Esc: a fixed cell, its keys and the lock inside, without a field's fill. */
 .sc-cell-fixed {
   align-items: center;
   justify-content: space-between;
@@ -252,13 +273,10 @@ const resetDescription = computed(() => {
   background: transparent;
 }
 
-.sc-fixed-tag {
+.sc-fixed-lock {
+  display: inline-flex;
   color: var(--ov-fg-dim);
-  font-family: var(--ov-font-small);
-  font-size: 11px;
-  font-weight: var(--ov-w-strong);
-  letter-spacing: var(--ov-track-caps);
-  text-transform: uppercase;
+  font-size: 13px;
 }
 
 .sc-legend {
@@ -292,14 +310,6 @@ const resetDescription = computed(() => {
   margin-top: 8px;
   font-size: 12.5px;
   line-height: 1.5;
-}
-
-.page-foot {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--st-border);
 }
 </style>
 
@@ -637,9 +647,13 @@ const resetDescription = computed(() => {
   display: none;
 }
 
-/* A cell under about 160 px: the short prompt. */
+/* A cell under about 160 px: the short prompt, a warning by its icon (its sentence is under). */
 @container sc (max-width: 719px) {
   .sc-table .sc-prompt-long {
+    display: none;
+  }
+
+  .sc-table .sc-tag-text {
     display: none;
   }
 

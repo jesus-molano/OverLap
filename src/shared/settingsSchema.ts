@@ -458,7 +458,8 @@ export const OPTION_SCHEMA = {
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
       hidden: ['pit', 'tyre', 'stint'],
-      required: ['driver', 'gap'],
+      // The driver only, as in the standings (R10): «Hueco» can be hidden in both tables.
+      required: ['driver'],
       displayOnly: true
     }),
     // The name (R13: session data is on by default in the standings only).

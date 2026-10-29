@@ -57,7 +57,7 @@ const setIcons = listSetter('lights', 'icons')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" resets="options" :note="t.settings.lights.note">
+  <PageSection :title="t.settings.common.content" resets="content" :note="t.settings.lights.note">
     <ChoiceControl
       :label="t.settings.lights.layout"
       :current="opts.layout"

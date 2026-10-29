@@ -6,7 +6,10 @@ import { DELTA_FALLBACK } from '@shared/delta/choice'
 import type { Messages } from '@shared/i18n'
 import type { DeltaReference } from '@shared/types'
 
-/** 'Tus mejores sectores … · Si no existe: Récord → Óptima de clase'. */
+/**
+ * 'Tus mejores sectores … · Si no existe: Récord personal → Vuelta óptima de clase': each
+ * reference by its full name, the selectors' (R21).
+ */
 export function referenceRowHelp(ref: DeltaReference, fallback: boolean, m: Messages): string {
   const d = m.settings.delta
   const hint = d.references[ref].hint
@@ -15,6 +18,6 @@ export function referenceRowHelp(ref: DeltaReference, fallback: boolean, m: Mess
   const tail =
     rest.length === 0
       ? d.fallbackNone
-      : d.fallbackThen(rest.map((r) => d.referencesShort[r]).join(' → '))
+      : d.fallbackThen(rest.map((r) => d.references[r].label).join(' → '))
   return `${hint} · ${tail}`
 }

@@ -9,7 +9,13 @@ import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import SliderControl from '../controls/SliderControl.vue'
 import { listSetter, optionSetter, updateSection } from '../editor'
-import { ALERT_GROUPS, alertItems, alertPatch, type AlertKey } from '../alertsList'
+import {
+  ALERTS_SPEC,
+  ALERT_GROUP_HEADS,
+  allAlertItems,
+  alertPatch,
+  type AlertKey
+} from '../alertsList'
 import type { ElementText } from '../elements/listOps'
 import AccordionSection from '../layout/AccordionSection.vue'
 import ElementEditor from '../elements/ElementEditor.vue'
@@ -41,9 +47,17 @@ const holds = computed(
     opts.value.showOilPressure
 )
 
-const partTexts = computed(() => elementTexts(t.value, 'alerts', 'parts'))
+/** The band's extras, each with what it is, as every alert has. */
+const partTexts = computed(() => {
+  const base = elementTexts(t.value, 'alerts', 'parts')
+  const a = t.value.settings.alerts
+  return {
+    notes: { label: base.notes.label, hint: a.notesHelp },
+    chips: { label: base.chips.label, hint: a.chipsHelp }
+  }
+})
 
-/** The alerts as eye lists, one per group (alertsList.ts), worded with their old hints. */
+/** The alerts as one eye list in groups (alertsList.ts), worded with their old hints. */
 const alertTexts = computed<Readonly<Record<AlertKey, ElementText>>>(() => {
   const a = t.value.settings.alerts
   return {
@@ -64,19 +78,17 @@ const alertTexts = computed<Readonly<Record<AlertKey, ElementText>>>(() => {
     showFuelLow: { label: a.fuelLow, hint: a.fuelLowHelp(FUEL_ALERT.lowLaps) }
   }
 })
-const groups = computed(() => {
-  const a = t.value.settings.alerts
-  return ALERT_GROUPS.map((g) => ({
-    key: g.key,
-    spec: g.spec,
-    title: a.groups[g.key],
-    items: alertItems(g, opts.value),
-    note: g.key === 'engine' ? a.engineNote : undefined
-  }))
+const alertItemsNow = computed(() => allAlertItems(opts.value))
+/** Each group's name above its first alert: one list, one reset, one help (R12). */
+const groupHeads = computed(() => {
+  const g = t.value.settings.alerts.groups
+  return Object.fromEntries(ALERT_GROUP_HEADS.map(([id, key]) => [id, g[key]])) as Partial<
+    Record<AlertKey, string>
+  >
 })
 /** '12 de 15 visibles', as every list's count. */
 const alertsSummary = computed(() => {
-  const all = groups.value.flatMap((g) => g.items)
+  const all = alertItemsNow.value
   return t.value.settings.elements.count(all.filter((e) => e.visible).length, all.length)
 })
 const alertsOpen = shallowRef(true)
@@ -86,7 +98,7 @@ const setParts = listSetter('alerts', 'parts')
 </script>
 
 <template>
-  <PageSection :title="t.settings.common.content" resets="options">
+  <PageSection :title="t.settings.common.content" resets="content">
     <!-- Which alerts: their lists, in Personalizar (R12). Here what the page does with them. -->
     <p v-if="nothing" class="st-row st-help st-help-warn al-nothing" role="status">
       {{ t.settings.alerts.nothing }}
@@ -107,8 +119,8 @@ const setParts = listSetter('alerts', 'parts')
 
   <CustomizeSection>
     <!--
-      Which alerts (R12): an eye list per group, as Testigos' and Radar's, first as every page's
-      main list; its own accordion, open until closed.
+      Which alerts (R12): one eye list in groups, as Testigos' and Radar's, first as every page's
+      main list; its own accordion, open until closed. A click on an alert in the preview hides it.
     -->
     <AccordionSection
       :title="t.settings.alerts.listTitle"
@@ -116,17 +128,17 @@ const setParts = listSetter('alerts', 'parts')
       :open="alertsOpen"
       @toggle="alertsOpen = $event"
     >
-      <div class="al-groups">
+      <div class="al-list">
         <ElementEditor
-          v-for="g in groups"
-          :key="g.key"
-          :title="g.title"
-          :items="g.items"
-          :spec="g.spec"
+          :title="t.settings.alerts.listTitle"
+          :items="alertItemsNow"
+          :spec="ALERTS_SPEC"
           :labels="alertTexts"
           :apply="setAlerts"
-          :note="g.note"
-          quiet-empty
+          :groups="groupHeads"
+          :note="t.settings.alerts.engineNote"
+          preview-zone="alerts.alerts"
+          embedded
         />
       </div>
     </AccordionSection>
@@ -139,3 +151,17 @@ const setParts = listSetter('alerts', 'parts')
     />
   </CustomizeSection>
 </template>
+
+<style scoped>
+/* The one list inside its accordion, inset as every zone's list is (ElementEditor .ed). */
+.al-list {
+  padding: 12px 14px 10px;
+}
+
+/* No frame of its own inside the accordion: one card, as every zone. */
+.al-list :deep(.ed) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+</style>

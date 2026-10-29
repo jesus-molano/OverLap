@@ -5,14 +5,21 @@
  * compile. The settings pages pass these to ElementEditor.vue.
  */
 import { widgetTitle, type Messages } from '@shared/i18n'
-import { INFO_BAR_ENTRY_IDS } from '@shared/infoBar'
+import { isElementVisible } from '@shared/elements'
+import { INFO_BAR_ENTRY_IDS, type InfoBarSection } from '@shared/infoBar'
 import {
   CUSTOMIZE_ZONE_IDS,
   type ElementField,
   type ElementIdOf,
   type OptionSection
 } from '@shared/settingsSchema'
-import type { CustomizeZoneId, InfoBarEntryId, LightKind, StandingsColumnId } from '@shared/types'
+import type {
+  CustomizeZoneId,
+  ElementEntry,
+  InfoBarEntryId,
+  LightKind,
+  StandingsColumnId
+} from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import type { ElementText } from './listOps'
 
@@ -209,4 +216,26 @@ export function elementTexts<S extends OptionSection, F extends ElementField<S>>
   field: F
 ): Texts<ElementIdOf<S, F>> {
   return ZONES[section][field].items(m)
+}
+
+/**
+ * An info bar's items, named and explained. In the standings, the SoF and the car count that its
+ * class lines show say so (R13): with several classes the bar leaves them to those lines
+ * (widgets/standings/bars.ts), so a multiclass table, the preview's, never draws them in the bar.
+ */
+export function barItemTexts(
+  m: Messages,
+  section: InfoBarSection,
+  options: Readonly<Record<string, unknown>>
+): Texts<InfoBarEntryId> {
+  const base = elementTexts(m, section, 'headerBar')
+  if (section !== 'standings') return base
+  const classLine = options.classLine as readonly Readonly<ElementEntry<string>>[] | undefined
+  const out = { ...base }
+  for (const id of ['sof', 'carCount'] as const) {
+    if (classLine !== undefined && isElementVisible(classLine, id)) {
+      out[id] = { label: base[id].label, hint: m.settings.standings.inClassLine }
+    }
+  }
+  return out
 }

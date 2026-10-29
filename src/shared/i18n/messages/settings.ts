@@ -85,8 +85,14 @@ export const settingsEs = {
   preview: {
     /** Above the preview until dismissed (settingsWindow.previewHint). */
     hint: 'Arrastra en la vista previa para ordenar; clic para mostrar u ocultar',
-    /** One text on every page (R41): every preview ghosts what is hidden. */
+    /** Where no list can be reordered (Radar, Avisos, Testigos): no drag promised. */
+    hintFixed: 'Clic en la vista previa para mostrar u ocultar; el orden es fijo',
+    /** The same text on every page whose lists all ghost what is hidden (R41). */
     hintMore: 'Lo oculto se ve translúcido mientras editas, donde cabe: un clic lo muestra.',
+    /** Some lists ghost, some do not (Avisos: its alerts come back from their list). */
+    hintMoreSome:
+      'Lo oculto se ve translúcido donde cabe (un clic lo muestra); si no, desde su lista.',
+    hintMoreNone: 'Lo oculto vuelve desde su lista, debajo.',
     hintDismiss: 'Entendido',
     hintDismissLabel: 'Ocultar este consejo',
     /** Under an element's name on hover: what the pointer does to it. */
@@ -187,7 +193,7 @@ export const settingsEs = {
       /** Widgets whose page says «Propio» (every one, in a file from before 2.3). */
       ownBackgrounds: (n: number) =>
         n === 1 ? '1 widget tiene su propio fondo' : `${n} widgets tienen su propio fondo`,
-      followGlobal: 'Usar el global en todos',
+      followGlobal: 'Usar «Global» en todos',
       followGlobalDone: 'Todos los widgets siguen el fondo global',
       colorBlind: 'Paleta para daltónicos',
       colorBlindHelp:
@@ -234,7 +240,7 @@ export const settingsEs = {
         n === 1
           ? '1 widget usa su propio bloque «Piloto»'
           : `${n} widgets usan su propio bloque «Piloto»`,
-      followGlobal: 'Usar el global en todos',
+      followGlobal: 'Usar «Global» en todos',
       followGlobalDone: 'Todos los widgets siguen el bloque «Piloto» global',
       brandLogos: 'Color del logo',
       brandLogosHelp: 'La marca de cada coche, donde se muestre',
@@ -308,10 +314,24 @@ export const settingsEs = {
       waiting: 'Mantener «Esperando a iRacing»',
       waitingHelp: 'Sin iRacing, Posiciones y Relativo siguen con el aviso en vez de ocultarse'
     },
+    /**
+     * The page's resets (R24), as a widget page's: "Restablecer…" at the top and an icon in each
+     * section's head (its title names it). One click, then "Deshacer".
+     */
     reset: {
-      label: 'Restablecer apariencia',
-      description:
-        'Vuelve la apariencia a los valores por defecto; el idioma, la visibilidad y las opciones de cada widget no cambian'
+      /** The menu's name for screen readers. */
+      menuLabel: 'Restablecer Apariencia',
+      color: 'Color de acento, fondo de los widgets y paleta para daltónicos, de fábrica',
+      text: 'Tamaño y contorno del texto, de fábrica',
+      rows: 'Filas, licencia, número y los valores globales del bloque Piloto, de fábrica',
+      screen: 'Cuándo se muestra el overlay, de fábrica',
+      other: 'Unidades y etiqueta SIM, de fábrica',
+      all: {
+        label: 'Toda la página',
+        description: 'Todo lo anterior; el idioma y las opciones de cada widget no cambian'
+      },
+      /** A section head's icon: 'Restablecer Color'. */
+      sectionLabel: (section: string) => `Restablecer ${section}`
     }
   },
   /** "Atajos" page: key combinations and controller buttons. */
@@ -446,7 +466,9 @@ export const settingsEs = {
       buttonBox: 'Consejo: F13–F24 (muchas button box y teclados de macros) van sin Ctrl ni Alt.'
     },
     resetAll: {
-      label: 'Restablecer atajos',
+      /** The page's "Restablecer…" (R24): its name for screen readers, then its one item. */
+      menuLabel: 'Restablecer Atajos',
+      label: 'Todos los atajos',
       description: 'Vuelve todos los atajos a los de fábrica',
       /** With `n` controller buttons assigned: they are removed (no button is a default). */
       descriptionButtons: (n: number) =>
@@ -470,9 +492,18 @@ export const settingsEs = {
       menu: 'Restablecer…',
       /** The menu's name for screen readers. */
       menuLabel: (widget: string) => `Restablecer ${widget}`,
-      options: {
-        label: 'Contenido y Personalizar',
-        description: 'Lo que muestra el widget, de fábrica; su ventana y su posición no cambian'
+      content: {
+        label: 'Contenido',
+        description:
+          'Lo que hace el widget, de fábrica; Piloto, Personalizar y la ventana no cambian'
+      },
+      driver: {
+        label: 'Piloto',
+        description: 'Nombre, logo, bandera y sanciones vuelven a «Global» (Apariencia)'
+      },
+      customize: {
+        label: 'Personalizar',
+        description: 'Cada lista y lo que va con ella, de fábrica; Contenido y Piloto no cambian'
       },
       window: {
         label: 'Ventana y visibilidad',
@@ -544,7 +575,8 @@ export const settingsEs = {
       bottom: { label: 'Arriba', hint: 'El borde de abajo se queda fijo' }
     },
     /** A free-size widget (Relativo, Radar, Delta): the scale is its window's. */
-    scaleFreeHelp: 'Tamaño de la ventana; el texto se ajusta a ella. También con la rueda',
+    scaleFreeHelp:
+      'Tamaño de la ventana (el texto se ajusta); también con la rueda del ratón en modo edición',
     /** Its height row, off: why. */
     heightFree: 'Libre en este widget: el contenido llena la ventana que le des',
     showIn: 'Mostrar en',
@@ -597,6 +629,8 @@ export const settingsEs = {
     tyre: 'Neumático',
     /** Column hints (R10: the same words as the standings'). */
     posHelp: 'En tu clase',
+    /** The number is the driver cell's, as in the standings (R10). */
+    driverHelp: 'Con el número del coche',
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
@@ -629,7 +663,9 @@ export const settingsEs = {
     deltaAll: 'iRating en juego de todos',
     deltaAllHelp:
       'El iRating que se gana o se pierde en cada fila, no solo en la tuya (activa la columna)',
-    classLine: 'Línea de clase'
+    classLine: 'Línea de clase',
+    /** A header or footer item the class lines say instead, with several classes (R13). */
+    inClassLine: 'Con varias clases va en la línea de clase, no aquí'
   },
   /** Standings column editor. */
   columns: {
@@ -641,11 +677,18 @@ export const settingsEs = {
       help: 'Las columnas que comparten, en el mismo orden y con el mismo ojo',
       done: (other: string) => `Columnas igualadas con ${other}`
     },
-    /** The same words as the relative's columns (R10). */
+    /**
+     * The same words and hints as the relative's columns (R10): the number is the driver cell's,
+     * in both tables; here the two stay at the start of the row (the class and leader lines span
+     * them).
+     */
     fixed: {
       pos: 'Posición',
-      num: 'Número',
       name: 'Piloto'
+    },
+    fixedHints: {
+      pos: 'En tu clase · siempre al principio de la fila',
+      name: 'Con el número del coche · siempre tras la posición'
     },
     labels: {
       gained: 'Puestos ganados',
@@ -784,9 +827,11 @@ export const settingsEs = {
     /** `s`: the incident's own minimum time on screen. */
     incidentsHelp: (s: number) =>
       `Al sumar puntos, al menos ${s}${NB}s: «+2x Pérdida de control · V5 · S3 · grava»`,
-    /** Under the engine group: where the other lights went. */
-    engineNote:
-      'Las temperaturas, la presión de gasolina y las reparaciones opcionales están en Testigos',
+    /** Under the list: where the other engine lights went. */
+    engineNote: 'Temperaturas, presión de gasolina y reparaciones opcionales: en Testigos',
+    /** The band's extras (alerts.parts), described as every alert is. */
+    notesHelp: 'Una línea bajo el aviso: «hasta poder salir», «LIMITADOR OFF»',
+    chipsHelp: 'Las demás banderas y avisos activos, en pequeño bajo el principal',
     stalled: 'Motor calado',
     stalledHelp: 'Con el coche en pista',
     oilPressure: 'Presión de aceite',
@@ -814,14 +859,6 @@ export const settingsEs = {
     previewShows: (session: string, reference: string) =>
       `La vista previa usa la de ${session}: ${reference}`,
     sessions: { practice: 'Práctica', qualify: 'Clasificación', race: 'Carrera' },
-    /** Short names that fit the selector on one line ('Óptima de clase'). */
-    referencesShort: {
-      pb: 'Récord',
-      session: 'Mejor',
-      optimal: 'Óptima',
-      class: 'Vuelta rápida de clase',
-      classOptimal: 'Óptima de clase'
-    },
     /** The cycle shortcut, under the selector: 'Ctrl+Alt+D pasa a la siguiente en la sesión'. */
     cycleKeys: (keys: string) => `${keys} pasa a la siguiente solo en esta sesión, sin guardarla`,
     cycleNoKeys: 'Con un atajo en «Atajos» la cambias sin salir del coche',
@@ -1128,8 +1165,8 @@ export const settingsEs = {
     resetDone: (zone: string) => `${zone}: por defecto.`,
     /** The toast after hiding or moving an element (settings/undo/UndoToast.vue). */
     undo: {
-      hidden: (item: string) => `«${item}» oculto`,
-      moved: (item: string) => `«${item}» movido`,
+      hidden: (item: string) => `Ocultado: «${item}»`,
+      moved: (item: string) => `Movido: «${item}»`,
       /**
        * A bigger change, said with what it was and, with two layouts or more, where
        * (`where`: inLayout's words or ''): 'Restablecido: Columnas · en «Principal»'.
@@ -1138,13 +1175,19 @@ export const settingsEs = {
       inLayout: (name: string) => ` · en «${name}»`,
       inShared: ' · en las opciones comunes',
       /** What was reset ('Restablecido: …'). */
-      whatOptions: (widget: string) => `opciones de ${widget}`,
-      whatWindow: (widget: string) => `ventana de ${widget}`,
-      whatBounds: (widget: string) => `posición y tamaño de ${widget}`,
-      whatAll: (widget: string) => `todo ${widget}`,
-      whatAppearance: 'apariencia',
-      whatShortcuts: 'atajos',
-      widgetHidden: (widget: string) => `${widget} oculto`,
+      /** A part of a page by its section's name: 'Contenido de Relativo'. */
+      whatPart: (part: string, widget: string) => `${part} de ${widget}`,
+      whatBounds: (widget: string) => `Posición y tamaño de ${widget}`,
+      /** Worded so that no widget's name needs agreeing with it: 'Posiciones (todo)'. */
+      whatAll: (widget: string) => `${widget} (todo)`,
+      whatAppearance: 'Apariencia (toda la página)',
+      whatShortcuts: 'Atajos (todos)',
+      /** One action's bindings (its row's ↺): 'Atajos de «Modo edición»'. */
+      whatShortcut: (action: string) => `Atajos de «${action}»`,
+      /** «Usar el global en todos»: 'Global en Fondo (3 widgets)'. */
+      whatFollowGlobal: (what: string, n: number) =>
+        `Global en ${what} (${n === 1 ? '1 widget' : `${n} widgets`})`,
+      widgetHidden: (widget: string) => `Ocultado: ${widget}`,
       layoutDeleted: (name: string) => `Disposición «${name}» eliminada`,
       action: 'Deshacer',
       dismiss: 'Cerrar aviso',
@@ -1257,7 +1300,13 @@ export const settingsEs = {
         laps: 'Tiempos de vuelta'
       },
       top: { state: 'Estado de la vuelta', predicted: 'Vuelta prevista', reference: 'Referencia' },
-      laps: { last: 'Última vuelta', best: 'Mejor vuelta', optimal: 'Vuelta óptima', pb: 'Récord' }
+      // The references' own names (R21): the same words as the selectors above.
+      laps: {
+        last: 'Última vuelta',
+        best: 'Mejor vuelta de la sesión',
+        optimal: 'Vuelta óptima',
+        pb: 'Récord personal'
+      }
     },
     fuel: {
       lines: {
@@ -1531,7 +1580,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   preview: {
     hint: 'Drag in the preview to reorder; click to show or hide',
+    hintFixed: 'Click in the preview to show or hide; the order is fixed',
     hintMore: 'What is hidden shows translucent while you edit, where it fits: a click shows it.',
+    hintMoreSome:
+      'What is hidden shows translucent where it fits (a click shows it); if not, from its list.',
+    hintMoreNone: 'What is hidden comes back from its list, below.',
     hintDismiss: 'Got it',
     hintDismissLabel: 'Hide this tip',
     actions: {
@@ -1617,7 +1670,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'The opacity of those set to “Global” on their page; the content stays opaque',
       ownBackgrounds: (n) =>
         n === 1 ? '1 widget has its own background' : `${n} widgets have their own background`,
-      followGlobal: 'Use the global one on all',
+      followGlobal: 'Use Global on all',
       followGlobalDone: 'Every widget follows the global background',
       colorBlind: 'Colour-blind palette',
       colorBlindHelp: 'Blue and orange instead of green and red; arrows and icons stay the same'
@@ -1658,7 +1711,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         n === 1
           ? '1 widget uses its own “Driver” block'
           : `${n} widgets use their own “Driver” block`,
-      followGlobal: 'Use the global one in all',
+      followGlobal: 'Use Global on all',
       followGlobalDone: 'Every widget follows the global “Driver” block',
       brandLogos: 'Logo colour',
       brandLogosHelp: "Each car's make, wherever it shows",
@@ -1718,9 +1771,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
       waitingHelp: 'Without iRacing, Standings and Relative keep the notice instead of hiding'
     },
     reset: {
-      label: 'Reset appearance',
-      description:
-        'Returns the appearance to its defaults; the language, the visibility and each widget’s options stay as they are'
+      menuLabel: 'Reset Appearance',
+      color: 'Accent colour, widget background and colour-blind palette, back to default',
+      text: 'Text size and outline, back to default',
+      rows: 'Rows, licence, number and the Driver block’s global values, back to default',
+      screen: 'When the overlay shows, back to default',
+      other: 'Units and SIM tag, back to default',
+      all: {
+        label: 'The whole page',
+        description: 'All of the above; the language and each widget’s options stay as they are'
+      },
+      sectionLabel: (section) => `Reset ${section}`
     }
   },
   shortcuts: {
@@ -1823,7 +1884,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       buttonBox: 'Tip: F13–F24 work without Ctrl or Alt: map them to a button box or a macro pad.'
     },
     resetAll: {
-      label: 'Reset shortcuts',
+      menuLabel: 'Reset Shortcuts',
+      label: 'All shortcuts',
       description: 'Returns every shortcut to its default',
       descriptionButtons: (n) =>
         n === 1
@@ -1840,9 +1902,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
     reset: {
       menu: 'Reset…',
       menuLabel: (widget) => `Reset ${widget}`,
-      options: {
-        label: 'Content and Customize',
-        description: 'What the widget shows, back to default; its window and position don’t change'
+      content: {
+        label: 'Content',
+        description: 'What the widget does, back to default; Driver, Customize and the window stay'
+      },
+      driver: {
+        label: 'Driver',
+        description: 'Name, logo, flag and penalties go back to “Global” (Appearance)'
+      },
+      customize: {
+        label: 'Customize',
+        description: 'Every list and what goes with it, back to default; Content and Driver stay'
       },
       window: {
         label: 'Window and visibility',
@@ -1904,7 +1974,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       top: { label: 'Down', hint: 'The top edge stays put' },
       bottom: { label: 'Up', hint: 'The bottom edge stays put' }
     },
-    scaleFreeHelp: 'The window’s size; the text fits it. The mouse wheel does it too',
+    scaleFreeHelp:
+      'The window’s size (the text fits it); you can also use the mouse wheel in edit mode',
     heightFree: 'Free in this widget: the content fills the window you give it',
     showIn: 'Show in',
     showInKinds: {
@@ -1947,6 +2018,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
     posHelp: 'In your class',
+    driverHelp: 'With the car number',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
       'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
@@ -1978,7 +2050,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     deltaAll: 'iRating at stake for everyone',
     deltaAllHelp: 'The iRating won or lost on every row, not just yours (turns the column on)',
-    classLine: 'Class line'
+    classLine: 'Class line',
+    inClassLine: 'With several classes it goes on the class line, not here'
   },
   columns: {
     title: 'Columns',
@@ -1990,8 +2063,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     fixed: {
       pos: 'Position',
-      num: 'Number',
       name: 'Driver'
+    },
+    fixedHints: {
+      pos: 'In your class · always at the start of the row',
+      name: 'With the car number · always after the position'
     },
     labels: {
       gained: 'Positions gained',
@@ -2125,8 +2201,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     incidents: 'Incidents',
     incidentsHelp: (s) =>
       `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
-    engineNote:
-      'The temperatures, the fuel pressure and the optional repairs are in Warning lights',
+    engineNote: 'Temperatures, fuel pressure and optional repairs: in Warning lights',
+    notesHelp: 'A line under the alert: “until you can leave”, “LIMITER OFF”',
+    chipsHelp: 'The other active flags and alerts, small under the main one',
     stalled: 'Engine stalled',
     stalledHelp: 'With the car on track',
     oilPressure: 'Oil pressure',
@@ -2147,13 +2224,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     referenceBySessionNote: 'Reference per session: a change applies when the next lap starts',
     previewShows: (session, reference) => `The preview uses the ${session} one: ${reference}`,
     sessions: { practice: 'Practice', qualify: 'Qualifying', race: 'Race' },
-    referencesShort: {
-      pb: 'Best ever',
-      session: 'Session best',
-      optimal: 'Optimal',
-      class: 'Class fastest lap',
-      classOptimal: 'Class optimal'
-    },
     cycleKeys: (keys) => `${keys} moves to the next one for this session only, not saved`,
     cycleNoKeys: 'Give it a shortcut in “Shortcuts” to change it from the car',
     lapTimes: 'Lap times',
@@ -2408,18 +2478,19 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hidden: (item) => `${item} hidden.`,
     resetDone: (zone) => `${zone}: defaults.`,
     undo: {
-      hidden: (item) => `“${item}” hidden`,
-      moved: (item) => `“${item}” moved`,
+      hidden: (item) => `Hidden: “${item}”`,
+      moved: (item) => `Moved: “${item}”`,
       reset: (what, where) => `Reset: ${what}${where}`,
       inLayout: (name) => ` · in “${name}”`,
       inShared: ' · in the shared options',
-      whatOptions: (widget) => `${widget} options`,
-      whatWindow: (widget) => `${widget} window`,
-      whatBounds: (widget) => `${widget} position and size`,
-      whatAll: (widget) => `all of ${widget}`,
-      whatAppearance: 'appearance',
-      whatShortcuts: 'shortcuts',
-      widgetHidden: (widget) => `${widget} hidden`,
+      whatPart: (part, widget) => `${part} of ${widget}`,
+      whatBounds: (widget) => `Position and size of ${widget}`,
+      whatAll: (widget) => `${widget} (all)`,
+      whatAppearance: 'Appearance (the whole page)',
+      whatShortcuts: 'Shortcuts (all)',
+      whatShortcut: (action) => `Shortcuts of “${action}”`,
+      whatFollowGlobal: (what, n) => `Global in ${what} (${n === 1 ? '1 widget' : `${n} widgets`})`,
+      widgetHidden: (widget) => `Hidden: ${widget}`,
       layoutDeleted: (name) => `Layout “${name}” deleted`,
       action: 'Undo',
       dismiss: 'Dismiss',
@@ -2516,7 +2587,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     delta: {
       rows: { top: 'Top line', bar: 'Bar', sectors: 'Sectors', laps: 'Lap times' },
       top: { state: 'Lap state', predicted: 'Predicted lap', reference: 'Reference' },
-      laps: { last: 'Last lap', best: 'Best lap', optimal: 'Optimal lap', pb: 'Personal best' }
+      laps: { last: 'Last lap', best: 'Session best', optimal: 'Optimal lap', pb: 'Personal best' }
     },
     fuel: {
       lines: {

@@ -10,6 +10,7 @@ import ts from 'typescript'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
+import * as i18n from '@shared/i18n'
 import { messagesFor } from '@shared/i18n'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
@@ -141,6 +142,9 @@ const Section = compile(SECTION, 'CustomizeSection.vue', {
   vue,
   './customize': customize,
   './zonesOpen': zonesOpen,
+  '@shared/i18n': i18n,
+  './ResetIcon.vue': { default: Stub },
+  '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
   '../../composables/useI18n': { useI18n: () => t }
 })
 const Editor = compile(EDITOR, 'ElementEditor.vue', {
