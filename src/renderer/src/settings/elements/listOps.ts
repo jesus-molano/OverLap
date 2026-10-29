@@ -19,7 +19,13 @@ export interface ElementText {
 
 /** What one edit did, for the page's `apply` (coupled options: the standings' gap mode...). */
 export type ElementChange<Id extends string> =
-  | { readonly kind: 'visible'; readonly id: Id; readonly visible: boolean }
+  | {
+      readonly kind: 'visible'
+      readonly id: Id
+      readonly visible: boolean
+      /** Shown back by "Deshacer" (undo/undo.ts): the hide's coupled options may come back too. */
+      readonly undo?: true
+    }
   | { readonly kind: 'move'; readonly id: Id; readonly to: number }
   | { readonly kind: 'reset' }
 

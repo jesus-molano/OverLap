@@ -385,11 +385,39 @@ describe('ElementEditor undo', () => {
     expect(apply).toHaveBeenCalledTimes(2)
     expect(apply.mock.calls[1]).toEqual([
       spec.default.map((e) => ({ id: e.id, visible: e.visible })),
-      { kind: 'visible', id, visible: true }
+      { kind: 'visible', id, visible: true, undo: true }
     ])
     await vue.nextTick()
     unmount()
     detachToast()
+  })
+
+  it('announces the undo even when its words are the last ones it said', async () => {
+    const id = (target as ElementEntry<string>).id
+    const detachToast = undo.undoSlot.attach()
+    // No toast first: the hide and the show are announced by the editor itself.
+    detachToast()
+    const { root, unmount } = columns(() => new Promise(() => {}))
+    const region = (): string =>
+      textOf(all(root, (n) => n.props['aria-live'] === 'polite')[0] as TestNode)
+    fire(eyeOf(root, id))
+    await vue.nextTick()
+    fire(eyeOf(root, id))
+    await vue.nextTick()
+    const shownWords = region()
+    expect(shownWords).toContain(`L-${id}`)
+    // With the toast: the hide is its to announce, and the undo says the same words again.
+    const detach2 = undo.undoSlot.attach()
+    fire(eyeOf(root, id))
+    await vue.nextTick()
+    expect(region()).toBe(shownWords)
+    expect(undo.undoSlot.undo()).toBe(true)
+    await vue.nextTick()
+    expect(region()).toBe('')
+    await vue.nextTick()
+    expect(region()).toBe(shownWords)
+    unmount()
+    detach2()
   })
 
   it('withdraws its offer when it goes', () => {

@@ -6,6 +6,7 @@ import type { StandingsColumn, StandingsOptions } from '@shared/types'
 import {
   columnVisiblePatch,
   columnsEditPatch,
+  deltaAllDroppedAfter,
   deltaAllPatch,
   fixedColumns,
   gapModePatch,
@@ -75,6 +76,35 @@ describe('columnsEditPatch', () => {
     const next = setColumnVisible(o.columns, 'delta', false)
     const p = columnsEditPatch(o, next, { kind: 'visible', id: 'delta', visible: false })
     expect(p.iRatingDeltaAll).toBe(false)
+  })
+
+  it('"Deshacer" after hiding the delta column turns "Δ iRating de todos" back on', () => {
+    const o = opts({
+      iRatingDeltaAll: true,
+      columns: setColumnVisible(opts().columns, 'delta', true)
+    })
+    const hidden = setColumnVisible(o.columns, 'delta', false)
+    const hide = { kind: 'visible', id: 'delta', visible: false } as const
+    const p = columnsEditPatch(o, hidden, hide)
+    const dropped = deltaAllDroppedAfter(false, hide, p)
+    expect(dropped).toBe(true)
+    // A move in between keeps it.
+    const moved = deltaAllDroppedAfter(dropped, { kind: 'move', id: 'ir', to: 1 }, {})
+    expect(moved).toBe(true)
+    const off = opts({ ...o, ...p })
+    const undo = { kind: 'visible', id: 'delta', visible: true, undo: true } as const
+    const back = columnsEditPatch(off, o.columns, undo, moved)
+    expect(back.iRatingDeltaAll).toBe(true)
+    expect(isColumnVisible(back.columns ?? [], 'delta')).toBe(true)
+    // Showing it by hand never does, nor an undo when the hide left the option alone.
+    const show = { kind: 'visible', id: 'delta', visible: true } as const
+    expect(columnsEditPatch(off, o.columns, show, true).iRatingDeltaAll).toBeUndefined()
+    expect(columnsEditPatch(off, o.columns, undo, false).iRatingDeltaAll).toBeUndefined()
+    // The column's visibility changed another way, or a reset: over.
+    expect(deltaAllDroppedAfter(true, show, {})).toBe(false)
+    expect(deltaAllDroppedAfter(true, { kind: 'reset' }, {})).toBe(false)
+    const quiet = columnsEditPatch(opts(), hidden, hide)
+    expect(deltaAllDroppedAfter(false, hide, quiet)).toBe(false)
   })
 
   it('a reset brings the gap mode and "Δ iRating de todos" in line with the default list', () => {

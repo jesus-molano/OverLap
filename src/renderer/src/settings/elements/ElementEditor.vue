@@ -234,8 +234,21 @@ const frame = computed(() =>
 // ---- Edits -----------------------------------------------------------------------------
 
 const message = shallowRef('')
+let saying = 0
+/**
+ * Announces `text`, the same words again too (emptied first): a hide the toast announced leaves
+ * the last words here as they were, and its undo can say them again ('SoF visible.').
+ */
 function say(text: string): void {
-  message.value = text
+  const n = ++saying
+  if (message.value !== text) {
+    message.value = text
+    return
+  }
+  message.value = ''
+  void nextTick(() => {
+    if (n === saying) message.value = text
+  })
 }
 
 const labelOf = (id: Id): string => props.labels[id]?.label ?? id
@@ -289,7 +302,7 @@ function offerUndo(
 function undoTo(kind: UndoKind, id: Id, next: ElementEntry<Id>[]): void {
   const before = current.value
   if (kind === 'hide') {
-    void send(next, { kind: 'visible', id, visible: true })
+    void send(next, { kind: 'visible', id, visible: true, undo: true })
     say(visibilityMessage(t.value, labelOf(id), true))
     return
   }
