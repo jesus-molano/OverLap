@@ -556,7 +556,13 @@ describe('resetWidgetOptions', () => {
 describe('applySettingsPatch: shortcuts', () => {
   function withShortcuts(toggleOverlay: string, toggleEditMode: string): OverlaySettings {
     const s = createDefaultSettings()
-    s.shortcuts = { toggleOverlay, toggleEditMode, cycleDeltaReference: '', nextLayout: '' }
+    s.shortcuts = {
+      toggleOverlay,
+      toggleEditMode,
+      cycleDeltaReference: '',
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
+    }
     return s
   }
 
@@ -565,7 +571,8 @@ describe('applySettingsPatch: shortcuts', () => {
     toggleOverlay,
     toggleEditMode,
     cycleDeltaReference: '',
-    nextLayout: ''
+    nextLayout: '',
+    openSettings: 'Ctrl+Shift+O'
   })
 
   it('assigns a valid combination in its canonical spelling', () => {

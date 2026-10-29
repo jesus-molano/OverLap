@@ -13,16 +13,18 @@ describe('shortcut actions', () => {
       'toggleOverlay',
       'toggleEditMode',
       'cycleDeltaReference',
-      'nextLayout'
+      'nextLayout',
+      'openSettings'
     ])
   })
 
-  it('default to Ctrl+Shift+H (show / hide) and Ctrl+Shift+E (edit mode); no delta cycle', () => {
+  it('default to Ctrl+Shift+H (show / hide), Ctrl+Shift+E (edit mode) and Ctrl+Shift+O (settings)', () => {
     expect(defaults).toEqual({
       toggleOverlay: 'Ctrl+Shift+H',
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: 'Ctrl+Shift+O'
     })
   })
 
@@ -75,7 +77,8 @@ describe('checkShortcut', () => {
       toggleOverlay: '',
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: ''
     }
     expect(checkShortcut('toggleOverlay', 'Ctrl+Shift+H', off).ok).toBe(true)
   })

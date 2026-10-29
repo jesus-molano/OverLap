@@ -345,7 +345,8 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
       toggleOverlay: 'F13',
       toggleEditMode: '',
       cycleDeltaReference: '',
-      nextLayout: ''
+      nextLayout: '',
+      openSettings: ''
     }
     createTray(state(settings), ACTIONS)
     expect(item('Ocultar overlay')).toMatchObject({
