@@ -23,6 +23,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Lo del widget primero** en cada página: Contenido, Personalizar y, al final, «Ventana y
   visibilidad» (tamaño, fondo, cuándo se muestra y bloqueo, en ese orden) antes de los botones de
   restablecer. Antes la ventana ocupaba hasta diez filas por encima de lo que hace el widget.
+- **Un fondo para todos los widgets**: en Apariencia, «Fondo de los widgets» (80 % por defecto)
+  con botones rápidos de 25, 50, 80 y 100 %. En la página de cada widget, «Fondo» sigue el global
+  («Global (80 %)») o usa una opacidad propia, con los mismos botones. En una instalación nueva
+  todos usan el global; si ya tenías ajustes, cada widget conserva su opacidad (antes había 75, 78,
+  80 y 85 % sin motivo). La ayuda ya no habla de «coches» en widgets sin coches.
 
 ### Corregido
 

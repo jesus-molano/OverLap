@@ -368,6 +368,16 @@ export const OPTION_SCHEMA = {
   appearance: {
     accent: { kind: 'color', default: '#ffc400', displayOnly: true },
     fontScale: { kind: 'int', min: 80, max: 150, default: 100, step: 5, displayOnly: true },
+    // The widgets' background: one value they all follow until one is given its own.
+    backgroundOpacity: {
+      kind: 'number',
+      min: 0,
+      max: 1,
+      decimals: null,
+      default: 0.8,
+      step: 0.01,
+      displayOnly: true
+    },
     density: {
       kind: 'enum',
       values: ['comfortable', 'compact'],
@@ -746,18 +756,18 @@ export const OPTION_SCHEMA = {
 } as const satisfies OptionSchema
 
 /**
- * Per-widget fields that are not option sections (bounds are handled apart).
- * The real background opacity default is per widget (WIDGET_DEFS); `autoHeight`,
- * `showIn` and `showOnSessionScreen` defaults come from WIDGET_DEFS too.
+ * Per-widget fields that are not option sections (bounds are handled apart). The background
+ * opacity is 'inherit' by default (appearance.backgroundOpacity) or a number in this range;
+ * `autoHeight`, `showIn` and `showOnSessionScreen` defaults come from WIDGET_DEFS.
  */
 export const WIDGET_FIELD_SCHEMA = {
-  backgroundOpacity: { kind: 'number', min: 0, max: 1, decimals: null, default: 0.78, step: 0.01 },
+  backgroundOpacity: { kind: 'number', min: 0, max: 1, decimals: null, default: 0.8, step: 0.01 },
   scale: { kind: 'int', min: 60, max: 200, default: 100, step: 5 },
   anchor: { kind: 'enum', values: ['top', 'bottom'], default: 'top' },
   hideInPits: { kind: 'bool', default: false }
 } as const satisfies {
   readonly [F in 'backgroundOpacity' | 'scale' | 'anchor' | 'hideInPits']: SpecFor<
-    WidgetSettings[F]
+    Exclude<WidgetSettings[F], 'inherit'>
   >
 }
 

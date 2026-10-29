@@ -208,13 +208,17 @@ export function mergeWidgetFields(
   const s = WIDGET_FIELD_SCHEMA
   target.visible = pickBoolean(raw.visible, target.visible)
   target.locked = pickBoolean(raw.locked, target.locked)
-  target.backgroundOpacity = clampNumber(
-    raw.backgroundOpacity,
-    s.backgroundOpacity.min,
-    s.backgroundOpacity.max,
-    target.backgroundOpacity,
-    s.backgroundOpacity.decimals
-  )
+  // 'inherit', or a number of the range (a file's own number stays as it was).
+  if (raw.backgroundOpacity === 'inherit') target.backgroundOpacity = 'inherit'
+  else if (isFiniteNumber(raw.backgroundOpacity)) {
+    target.backgroundOpacity = clampNumber(
+      raw.backgroundOpacity,
+      s.backgroundOpacity.min,
+      s.backgroundOpacity.max,
+      s.backgroundOpacity.default,
+      s.backgroundOpacity.decimals
+    )
+  }
   target.scale = clampNumber(raw.scale, s.scale.min, s.scale.max, target.scale, 0)
   // Only auto-height widgets can follow their content.
   target.autoHeight =

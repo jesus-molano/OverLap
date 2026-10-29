@@ -176,6 +176,9 @@ export const settingsEs = {
         pink: 'Rosa',
         white: 'Blanco'
       },
+      background: 'Fondo de los widgets',
+      backgroundHelp:
+        'La opacidad de los que tienen «Global» en su página; el contenido sigue opaco',
       colorBlind: 'Paleta para daltónicos',
       colorBlindHelp:
         'Azul y naranja en lugar de verde y rojo; las flechas y los iconos se mantienen'
@@ -472,9 +475,12 @@ export const settingsEs = {
     title: 'Ventana y visibilidad',
     locked: 'Bloqueado',
     lockedHelp: 'No se mueve ni se redimensiona, ni siquiera en modo edición',
+    /** Its background: the global one (Apariencia) or its own opacity. */
+    background: 'Fondo',
+    backgroundInheritHint: 'El de Apariencia',
+    backgroundOwn: { label: 'Propio', hint: 'Una opacidad solo para este widget' },
     opacity: 'Opacidad del fondo',
-    opacityHelp:
-      'Solo el panel: el texto y los coches siguen opacos. Por debajo del 35 % el texto lleva contorno (ver Apariencia)',
+    opacityHelp: 'Solo el fondo del panel: el contenido sigue opaco',
     scale: 'Escala',
     scaleHelp: 'Tamaño del texto de este widget; también con la rueda del ratón en modo edición',
     height: 'Alto',
@@ -1481,6 +1487,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
         pink: 'Pink',
         white: 'White'
       },
+      background: 'Widget background',
+      backgroundHelp:
+        'The opacity of those set to “Global” on their page; the content stays opaque',
       colorBlind: 'Colour-blind palette',
       colorBlindHelp: 'Blue and orange instead of green and red; arrows and icons stay the same'
     },
@@ -1721,9 +1730,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
     title: 'Window and visibility',
     locked: 'Locked',
     lockedHelp: 'Can’t be moved or resized, not even in edit mode',
+    background: 'Background',
+    backgroundInheritHint: 'As set in Appearance',
+    backgroundOwn: { label: 'Own', hint: 'An opacity for this widget only' },
     opacity: 'Background opacity',
-    opacityHelp:
-      'Only the panel: text and cars stay opaque. Below 35% the text gets an outline (see Appearance)',
+    opacityHelp: 'Only the panel’s background: the content stays opaque',
     scale: 'Scale',
     scaleHelp: 'This widget’s text size; you can also use the mouse wheel in edit mode',
     height: 'Height',

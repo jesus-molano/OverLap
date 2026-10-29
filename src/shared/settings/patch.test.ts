@@ -509,7 +509,7 @@ describe('resetWidgetOptions', () => {
     ] as const) {
       const out = resetWidgetOptions(current, id)
       expect(out[id]).toEqual(DEFAULT_SETTINGS[id])
-      expect(out.widgets[id].backgroundOpacity).toBe(WIDGET_DEFS[id].defaultBackgroundOpacity)
+      expect(out.widgets[id].backgroundOpacity).toBe('inherit')
       expect(out.widgets[id].bounds).toEqual(current.widgets[id].bounds)
     }
     const out = resetWidgetOptions(current, 'inputs')

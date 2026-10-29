@@ -1,5 +1,6 @@
 import { computed, type ComputedRef } from 'vue'
 import { clamp01, isFiniteNumber } from '@shared/num'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { AppearanceSettings } from '@shared/types'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { widgetFontPx } from '../view/appearance'
@@ -15,6 +16,15 @@ export const LOW_BG_ALPHA = 0.35
 export function clampOpacity(a: unknown, fallback: number): number {
   return isFiniteNumber(a) ? clamp01(a) : fallback
 }
+
+/** The opacity a widget's panel uses: its own, or the global one for 'inherit'. */
+export function widgetOpacity(own: unknown, global: unknown): number {
+  const fallback = clampOpacity(global, DEFAULT_BG_ALPHA)
+  return own === 'inherit' ? fallback : clampOpacity(own, fallback)
+}
+
+/** appearance.backgroundOpacity's default (every widget's since 2.3). */
+const DEFAULT_BG_ALPHA = OPTION_SCHEMA.appearance.backgroundOpacity.default
 
 /** Whether text gets the halo: forced on/off, or 'auto' = only over a see-through panel. */
 export function haloOn(mode: AppearanceSettings['textHalo'], alpha: number): boolean {
@@ -45,7 +55,7 @@ export function useWidgetSurface(id: WidgetId = injectWidgetId()): WidgetSurface
   const appearance = useAppearance()
   const def = WIDGET_DEFS[id]
   const bgAlpha = computed(() =>
-    clampOpacity(prefs.value.backgroundOpacity, def.defaultBackgroundOpacity)
+    widgetOpacity(prefs.value.backgroundOpacity, appearance.value.backgroundOpacity)
   )
   const lowBg = computed(() => bgAlpha.value < LOW_BG_ALPHA)
   const halo = computed(() => haloOn(appearance.value.textHalo, bgAlpha.value))
