@@ -15,7 +15,8 @@ import type { Tone } from '@renderer/ui/tones'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { orderStyle, placesOf } from '../orderStyle'
-import { previewDelta } from './preview'
+import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
+import { previewDelta, previewSession } from './preview'
 import {
   REFERENCE_NOTE_MS,
   deltaRows,
@@ -66,8 +67,8 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  // The race's reference: the one most drivers set the widget up for.
-  () => previewDelta(options.value.referenceRace)
+  // The race's reference, or the session's the settings page changed last (previewSession).
+  () => previewDelta(options.value[DELTA_REFERENCE_FIELD[previewSession.value]])
 )
 
 // Display options, each kept while equal: another option or a drag re-renders nothing.

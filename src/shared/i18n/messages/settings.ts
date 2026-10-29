@@ -805,6 +805,9 @@ export const settingsEs = {
      */
     referenceBySessionNote:
       'Referencia por sesión: un cambio se aplica al empezar la próxima vuelta',
+    /** Under the three rows: which one the preview draws (R21: the reference in use, seen). */
+    previewShows: (session: string, reference: string) =>
+      `La vista previa usa la de ${session}: ${reference}`,
     sessions: { practice: 'Práctica', qualify: 'Clasificación', race: 'Carrera' },
     /** Short names that fit the selector on one line ('Óptima de clase'). */
     referencesShort: {
@@ -1104,6 +1107,10 @@ export const settingsEs = {
     /** A fixed row of the widget, listed for context (not in the list). */
     /** A column that is always there, in its place: the same lock as an always-shown one. */
     fixedTag: 'Siempre visible y en su sitio',
+    /** A row that unfolds to its parts (R21): 'Partes', '2 de 3 partes'. */
+    parts: 'Partes',
+    partsCount: (shown: number, total: number) => `${shown} de ${total} partes`,
+    partsLabel: (row: string) => `Partes de «${row}»`,
     /** A child whose parent is hidden: 'Necesita «iRating»'. */
     needsParent: (parent: string) => `Necesita «${parent}»`,
     reset: 'Restablecer',
@@ -2122,6 +2129,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   delta: {
     reference: 'Reference',
     referenceBySessionNote: 'Reference per session: a change applies when the next lap starts',
+    previewShows: (session, reference) => `The preview uses the ${session} one: ${reference}`,
     sessions: { practice: 'Practice', qualify: 'Qualifying', race: 'Race' },
     referencesShort: {
       pb: 'Best ever',
@@ -2373,6 +2381,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hide: (item) => `Hide ${item} in the widget`,
     required: 'Always shown',
     fixedTag: 'Always shown, in its place',
+    parts: 'Parts',
+    partsCount: (shown, total) => `${shown} of ${total} parts`,
+    partsLabel: (row) => `Parts of “${row}”`,
     needsParent: (parent) => `Needs “${parent}”`,
     reset: 'Reset',
     resetLabel: (zone) => `Reset ${zone}`,

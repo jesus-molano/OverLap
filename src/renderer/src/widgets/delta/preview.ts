@@ -4,7 +4,16 @@
  * sector) is drawn. The reference follows the option, so its label reads as it will on track
  * (the widget names it in its language; the class best is an invented driver's).
  */
+import { shallowRef } from 'vue'
+import type { SessionKind } from '@shared/sessionInfo'
 import type { DeltaData, DeltaReference } from '@shared/types'
+
+/**
+ * Whose reference the sample draws: the race's (the one most drivers set the widget up for), or
+ * the session whose reference the settings page changed last (R21: the reference in use, seen in
+ * the preview). Per window: the overlay's edit mode keeps the race's.
+ */
+export const previewSession = shallowRef<SessionKind>('race')
 
 const DELTA = -0.24
 
