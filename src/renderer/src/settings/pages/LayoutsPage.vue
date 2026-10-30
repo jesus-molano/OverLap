@@ -398,7 +398,12 @@ function onLink(car: CarRow, e: Event): void {
               autocomplete="off"
               spellcheck="false"
             />
-            <button type="submit" class="st-btn" :disabled="!canSave">
+            <button
+              type="submit"
+              class="st-btn"
+              :disabled="!canSave"
+              :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
+            >
               {{ t.settings.layouts.save }}
             </button>
           </div>
@@ -427,6 +432,7 @@ function onLink(car: CarRow, e: Event): void {
             type="button"
             class="st-btn"
             :disabled="!roomLeft"
+            :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
             :aria-label="t.settings.layouts.examples.addLabel(e.name)"
             @click="addExample(e.kind)"
           >
@@ -539,6 +545,7 @@ function onLink(car: CarRow, e: Event): void {
             type="button"
             class="st-btn"
             :disabled="!roomLeft"
+            :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
             @click="cmd.importOne(importMode)"
           >
             {{ t.settings.layouts.import }}

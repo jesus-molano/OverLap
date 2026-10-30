@@ -146,6 +146,7 @@ const resetItems = computed<ResetItem[]>(() => {
           <ToggleControl
             kind="switch"
             :label="t.settings.widgetPage.visible"
+            :name="t.settings.widgetPage.visibleName(title)"
             :current="prefs.visible"
             :apply="setVisible"
           />
@@ -162,7 +163,7 @@ const resetItems = computed<ResetItem[]>(() => {
       </p>
 
       <PreviewHint />
-      <SampleStage class="stage">
+      <SampleStage class="stage" :description="t.settings.preview.description(title)">
         <WidgetSample :widget-id="widgetId" />
       </SampleStage>
     </template>

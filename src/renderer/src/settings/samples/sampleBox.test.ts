@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { SAMPLE_MAX_HEIGHT_PX, SAMPLE_ZOOM, sampleBox, sampleZoom } from './sampleBox'
+import {
+  SAMPLE_MAX_HEIGHT_PX,
+  SAMPLE_CROP_BELOW,
+  SAMPLE_ZOOM,
+  sampleBox,
+  sampleZoom,
+  stageCrop
+} from './sampleBox'
 
 describe('sampleBox', () => {
   it('draws the widget at its real size when the page has room', () => {
@@ -8,8 +15,32 @@ describe('sampleBox', () => {
       height: 296,
       scale: 1,
       outerWidth: 460,
-      outerHeight: 296
+      outerHeight: 296,
+      cropped: false
     })
+  })
+
+  it('below 75 % draws the real size and scrolls to the rest instead (R53)', () => {
+    // The standings (680 px) on the 760 px window's stage (~455 px): 67 % would put its 9 px
+    // captions at 6 px.
+    const box = sampleBox(680, 400, 455)
+    expect(box.scale).toBe(1)
+    expect(box.outerWidth).toBe(680)
+    expect(box.outerHeight).toBe(400)
+    expect(box.cropped).toBe(true)
+    // At 75 % and above it still fits the page.
+    expect(sampleBox(540, 300, 450)).toMatchObject({ cropped: false })
+    expect(sampleBox(600, 300, 600 * SAMPLE_CROP_BELOW)).toMatchObject({ scale: 0.75 })
+  })
+
+  it('gives the stage the crop that keeps the whole at 75 % or more', () => {
+    expect(stageCrop(1)).toEqual({ below: SAMPLE_CROP_BELOW, scale: 1 })
+    // Already at the floor from the width: any more and it crops, at its real size.
+    expect(stageCrop(SAMPLE_CROP_BELOW)).toEqual({ below: 1, scale: 1 })
+    expect(stageCrop(0.9).below).toBeCloseTo(0.75 / 0.9, 9)
+    // Zoomed in a wide page: back to 1:1 before it crops.
+    expect(stageCrop(1.5)).toEqual({ below: 0.5, scale: 1 / 1.5 })
+    expect(stageCrop(Number.NaN)).toEqual({ below: SAMPLE_CROP_BELOW, scale: 1 })
   })
 
   it('keeps the real layout size and scales the whole widget down to the page width', () => {

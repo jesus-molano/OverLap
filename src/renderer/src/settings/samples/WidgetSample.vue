@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import type { WidgetId } from '@shared/widgets'
 import { useElementSize } from '../../composables/useElementSize'
 import { useAutoHeight } from '../../composables/useWidgetSettings'
 import { provideSampleHost, provideWidgetId } from '../../composables/widgetContext'
 import type { InlineStyle } from '../../view/styles'
 import { WIDGET_COMPONENTS } from '../../widgets'
+import { injectSampleScale } from '../layout/sampleScale'
 import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { sampleBox } from './sampleBox'
 import { useSampleHeight, useSampleWidth } from './useSampleWidth'
@@ -65,6 +66,15 @@ const box = computed(() => {
   const h = autoHeight.value ? (contentHeight.value ?? windowHeight.value) : windowHeight.value
   return sampleBox(width.value, h, areaSize.value.w)
 })
+/** Told to the stage: with it, its height fit keeps the whole above the floor (R53). */
+const stageScale = injectSampleScale()
+watch(
+  () => box.value.scale,
+  (s) => {
+    if (stageScale !== null) stageScale.value = s
+  },
+  { immediate: true }
+)
 const outerStyle = computed<InlineStyle>(() => ({
   width: `${box.value.outerWidth}px`,
   height: `${box.value.outerHeight}px`
@@ -78,7 +88,12 @@ const component = WIDGET_COMPONENTS[id]
 </script>
 
 <template>
-  <div ref="area" class="ws" :class="{ 'is-editable': edit !== null }" aria-hidden="true">
+  <div
+    ref="area"
+    class="ws"
+    :class="{ 'is-editable': edit !== null, 'is-cropped': box.cropped }"
+    aria-hidden="true"
+  >
     <div class="ws-box" :style="outerStyle">
       <!-- Stands in for the widget's window (its body styles included). -->
       <div class="ws-window" :style="windowStyle">
@@ -95,6 +110,17 @@ const component = WIDGET_COMPONENTS[id]
   width: 100%;
   min-width: 0;
   pointer-events: none;
+}
+
+/*
+ * Too wide for the page to draw it at 75 % (R53): its real size, its left part, and the rest a
+ * sideways scroll away (the wheel with Mayús, or the bar).
+ */
+.ws.is-cropped {
+  justify-content: safe center;
+  overflow-x: auto;
+  pointer-events: auto;
+  scrollbar-width: thin;
 }
 
 /* Editable in place (settings/preview): the pointer reaches what the widget draws. */

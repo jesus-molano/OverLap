@@ -26,11 +26,20 @@ import PreviewEditLayer from '../preview/PreviewEditLayer.vue'
 import { injectPreviewEdit } from '../preview/usePreviewEdit'
 import { optionSetter } from '../editor'
 import { useDraft } from '../useDraft'
+import { stageCrop } from '../samples/sampleBox'
+import { provideSampleScale } from './sampleScale'
 import { editingLimit, stageFit } from './stageFit'
 import { injectPreviewFold, type PreviewFold } from './previewFold'
 
-/** `caption`: the figure caption (default: the sample-data note in the current language). */
-withDefaults(defineProps<{ caption?: string }>(), { caption: undefined })
+/**
+ * `caption`: the figure caption (default: the sample-data note in the current language).
+ * `description`: what a screen reader hears for the preview (R48; the sample itself is hidden
+ * from it).
+ */
+withDefaults(defineProps<{ caption?: string; description?: string }>(), {
+  caption: undefined,
+  description: undefined
+})
 
 type Scene = SettingsWindowOptions['stageScene']
 
@@ -96,13 +105,17 @@ watch(sampleSize, () => {
 })
 onBeforeUnmount(() => clearTimeout(settleTimer))
 
+/** The sample's own width fit: with the stage's, never below 75 %; there it crops (R53). */
+const sampleScale = provideSampleScale()
 const fit = computed(() => {
   const limit = Math.floor(limitSize.value.h)
   const frozen = ghosting.value || settling.value
-  return stageFit(sampleSize.value, {
-    w: sampleSize.value.w,
-    h: frozen ? editingLimit(limit, rest.value) : limit
-  })
+  return stageFit(
+    sampleSize.value,
+    { w: sampleSize.value.w, h: frozen ? editingLimit(limit, rest.value) : limit },
+    // The folded strip is an overview: it still draws the whole sample, smaller.
+    folded.value ? null : stageCrop(sampleScale.value)
+  )
 })
 watch(fit, (f) => {
   if (!ghosting.value && !settling.value && f.height > 0) rest.value = f.height
@@ -121,7 +134,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
     <div class="scene" aria-hidden="true" />
     <div ref="limit" class="limit" aria-hidden="true" />
     <div class="content">
-      <div class="fit" :style="fitStyle">
+      <div class="fit" :style="fitStyle" :data-cropped="fit.cropped || undefined">
         <div ref="sample" class="sample" :style="sampleStyle">
           <slot />
         </div>
@@ -172,6 +185,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
       </div>
     </div>
     <figcaption class="caption">{{ caption ?? t.settings.sample.caption }}</figcaption>
+    <p v-if="description" class="st-sr-only">{{ description }}</p>
   </figure>
 </template>
 
@@ -341,6 +355,11 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 /* The space the scaled sample takes; its unscaled layout box must not show past it. */
 .fit {
   overflow: clip;
+}
+
+/* Taller than the stage at the smallest size (R53): its first rows, fading out at the foot. */
+.fit[data-cropped] {
+  mask-image: linear-gradient(180deg, #000 calc(100% - 24px), transparent);
 }
 
 .sample {

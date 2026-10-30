@@ -67,6 +67,7 @@ function onChange(e: Event): void {
       class="st-switch"
       :checked="value"
       :disabled="disabled"
+      :aria-label="name"
       :aria-describedby="help ? helpId : undefined"
       @change="onChange"
     />

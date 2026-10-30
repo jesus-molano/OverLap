@@ -13,9 +13,11 @@ export interface Size {
 export interface StageFit {
   /** Drawn at this factor (<= 1). */
   readonly scale: number
-  /** The space it takes once scaled (px; 0 for an unknown side). */
+  /** The space it takes once scaled (px; 0 for an unknown side), never more than the box. */
   readonly width: number
   readonly height: number
+  /** Too small to read at the fitted size: drawn larger, only its top part shows (R53). */
+  readonly cropped: boolean
 }
 
 const usable = (v: number): boolean => Number.isFinite(v) && v > 0
@@ -34,11 +36,27 @@ export function fitScale(content: Size, box: Size): number {
   return scale
 }
 
-/** `content` scaled to fit `box`, with the space it then takes (rounded up: nothing is cut). */
-export function stageFit(content: Size, box: Size): StageFit {
-  const scale = fitScale(content, box)
-  const side = (v: number): number => (usable(v) ? Math.ceil(v * scale - EPSILON) : 0)
-  return { scale, width: side(content.w), height: side(content.h) }
+/** Below `below`, the content is drawn at `scale` instead and cropped (sampleBox stageCrop). */
+export interface Crop {
+  readonly below: number
+  readonly scale: number
+}
+
+/**
+ * `content` scaled to fit `box`, with the space it then takes (rounded up: nothing is cut); where
+ * that would be below `crop.below` (R53: the text would be too small to read) it is drawn at
+ * `crop.scale` instead, takes the box's height and `cropped` says that its foot is left out.
+ */
+export function stageFit(content: Size, box: Size, crop: Crop | null = null): StageFit {
+  const fits = fitScale(content, box)
+  const cropped = crop !== null && fits < crop.below - EPSILON && crop.scale > fits
+  const scale = cropped ? Math.min(1, crop.scale) : fits
+  const side = (v: number, max: number): number => {
+    if (!usable(v)) return 0
+    const px = Math.ceil(v * scale - EPSILON)
+    return cropped && usable(max) ? Math.min(px, Math.floor(max)) : px
+  }
+  return { scale, width: side(content.w, box.w), height: side(content.h, box.h), cropped }
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * The accordions of "Personalizar" mounted for real: AccordionSection (aria-expanded, inert, the
- * header's control of its body), CustomizeSection's "Expandir todo / Contraer todo" (only with
+ * header's control of its body), CustomizeSection's "Expandir todo" / "Contraer todo" (only with
  * more than one zone; never disabled, so the focus stays) and ElementEditor joining and leaving
  * its page's registry. The components are compiled here with Vue's own compiler (the test
  * runner has no Vue plugin) and mounted through a minimal renderer (no DOM in the node
@@ -282,7 +282,7 @@ const allButtons = (root: TestNode): TestNode[] =>
   all(root, byClass('cz-all')).flatMap((n) => all(n, (c) => c.tag === 'button'))
 
 describe('CustomizeSection', () => {
-  it('has "Expandir todo / Contraer todo" only with more than one zone', async () => {
+  it('has one "Expandir todo" / "Contraer todo" button only with more than one zone', async () => {
     const one = page(['columns'])
     await vue.nextTick()
     expect(one.zones()).toEqual(['relative.columns'])
@@ -290,30 +290,34 @@ describe('CustomizeSection', () => {
     const three = page(['columns', 'headerBar', 'footerBar'])
     await vue.nextTick()
     expect(three.zones()).toEqual(['relative.columns', 'relative.headerBar', 'relative.footerBar'])
-    expect(allButtons(three.root).map(textOf)).toEqual(['Expandir todo', 'Contraer todo'])
+    expect(allButtons(three.root).map(textOf)).toEqual(['Expandir todo'])
   })
 
-  it('opens and closes every zone, and never disables a button (it keeps the focus)', async () => {
+  it('opens every zone, then turns into "Contraer todo" and closes them (R47)', async () => {
     const { root } = page(['columns', 'headerBar', 'footerBar'])
     await vue.nextTick()
-    const [expand, collapse] = allButtons(root)
-    // Only the first zone is open by default.
-    expect(expand?.props['aria-disabled']).toBe(false)
-    fire(expand)
+    const button = (): TestNode => {
+      const b = allButtons(root)[0]
+      if (b === undefined) throw new Error('no button')
+      return b
+    }
+    // Only the first zone is open by default: the button opens the rest.
+    expect(allButtons(root)).toHaveLength(1)
+    expect(textOf(button())).toBe('Expandir todo')
+    // Never dimmed: it always does something.
+    expect(button().props['aria-disabled']).toBeUndefined()
+    expect(button().props.disabled).toBeUndefined()
+    fire(button())
     expect(sent).toHaveLength(1)
     // Shown at once, before main answers.
     expect(zonesOpen.isZoneOpen('relative.footerBar')).toBe(true)
     answer(sent[0] as OpenList)
     await vue.nextTick()
-    expect(expand?.props['aria-disabled']).toBe(true)
-    expect(expand?.props.disabled).toBeUndefined()
-    // Nothing to do: nothing sent.
-    fire(expand)
-    expect(sent).toHaveLength(1)
-    fire(collapse)
+    expect(textOf(button())).toBe('Contraer todo')
+    fire(button())
     answer(sent[1] as OpenList)
     await vue.nextTick()
-    expect(collapse?.props['aria-disabled']).toBe(true)
+    expect(textOf(button())).toBe('Expandir todo')
     expect(
       ['columns', 'headerBar', 'footerBar'].some((f) =>
         zonesOpen.isZoneOpen(`relative.${f}` as CustomizeZoneId)
