@@ -3,10 +3,9 @@ import { computed, useId } from 'vue'
 import { OPTION_SCHEMA, SHOW_WHEN } from '@shared/settingsSchema'
 import type { ShowWhen } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
-import { useI18n, useLocale } from '../../composables/useI18n'
+import { useI18n, useLanguage, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
-import Icon from '../../ui/Icon.vue'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions, type ChoiceOption } from '../controls/choice'
 import HelpText from '../controls/HelpText.vue'
@@ -14,6 +13,7 @@ import MatrixCell from '../controls/MatrixCell.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter, showInSetter, widgetSetter } from '../editor'
 import NavIcon from '../layout/NavIcon.vue'
+import VisibilityDot from '../layout/VisibilityDot.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import ResetMenu from '../layout/ResetMenu.vue'
@@ -22,6 +22,7 @@ import { useNavigate } from '../navigate'
 import { outOfCarHidesSessionScreen, replaysHelp as replaysHelpText } from '../replayWidgets'
 import { MATRIX_COLUMNS, matrixRows, type MatrixColumn } from '../visibilityMatrix'
 import { resetAppearancePart, setWidgetVisible } from '../undo/restore'
+import { heldCaption } from '../statusSummary'
 
 /**
  * «Visibilidad» (R34): when the overlay shows at all (settings.visibility, moved here from
@@ -34,7 +35,8 @@ const t = useI18n()
 const locale = useLocale()
 const titleId = useId()
 const navigate = useNavigate()
-const { settings } = useOverlayState()
+const { settings, autoHiddenOf, overlayHidden } = useOverlayState()
+const lang = useLanguage()
 const visibility = useOptions('visibility')
 const setVisibility = optionSetter('visibility')
 
@@ -82,7 +84,7 @@ function applyOf(id: WidgetId, col: MatrixColumn): (on: boolean) => Promise<unkn
     case 'visible':
       return (on) => setWidgetVisible(id, on)
     case 'pits':
-      return (on) => set('hideInPits')(!on)
+      return set('hideInPits')
     case 'session':
       return set('showOnSessionScreen')
     case 'locked':
@@ -100,6 +102,7 @@ const groups = computed(() =>
         ...g,
         rows: g.rows.map((r) => ({
           ...r,
+          held: heldCaption(t.value, lang.value, overlayHidden.value, autoHiddenOf[r.id].value),
           cells: r.cells.map((c) => ({ ...c, apply: applyOf(r.id, c.col) }))
         }))
       }))
@@ -214,11 +217,19 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
                 >
                   <NavIcon :page="r.id" />
                   <span>{{ r.name }}</span>
-                  <Icon v-if="!r.on" name="eye-off" class="vm-off" />
                 </button>
               </th>
               <td v-for="c in r.cells" :key="c.col" class="vm-cell" :data-col="c.col">
+                <!-- Visible: the sidebar's eye, the one symbol of visibility (R35). -->
+                <VisibilityDot
+                  v-if="c.col === 'visible'"
+                  :title="r.name"
+                  :current="c.current"
+                  :apply="c.apply"
+                  :held="r.held"
+                />
                 <MatrixCell
+                  v-else
                   :label="c.label"
                   :current="c.current"
                   :disabled="c.disabled"
@@ -336,10 +347,6 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
 
 .vm-link:hover {
   background: var(--st-hover);
-}
-
-.vm-off {
-  color: var(--ov-fg-dim);
 }
 
 /* A widget turned off: its row reads quieter; its cells still change. */

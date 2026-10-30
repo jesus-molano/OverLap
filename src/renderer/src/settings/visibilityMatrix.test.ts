@@ -42,13 +42,15 @@ describe('matrixRows (R34)', () => {
     expect(ticks(rowOf(groups, 'relative'))).toMatchObject({ practice: true, race: true })
   })
 
-  it('reads the pits as shown there, and fixes it for the alerts with the reason', () => {
+  it('reads the pits as the page does («Ocultar en boxes»), fixed for the alerts with why', () => {
     const s = createDefaultSettings()
     s.widgets.relative.hideInPits = true
+    s.widgets.standings.hideInPits = false
     const groups = matrixRows(es, s, s.visibility)
-    expect(ticks(rowOf(groups, 'relative')).pits).toBe(false)
+    expect(ticks(rowOf(groups, 'relative')).pits).toBe(true)
+    expect(ticks(rowOf(groups, 'standings')).pits).toBe(false)
     const alerts = rowOf(groups, 'alerts').cells.find((c) => c.col === 'pits')
-    expect(alerts).toMatchObject({ current: true, disabled: true })
+    expect(alerts).toMatchObject({ current: false, disabled: true })
     expect(alerts?.hint).toContain('Avisos')
   })
 

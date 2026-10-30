@@ -17,7 +17,10 @@ export interface MatrixCellView {
   col: MatrixColumn
   /** Its accessible name: 'Batalla: Práctica'. */
   label: string
-  /** Ticked: shown there (the pits: not hidden there), on, or locked. */
+  /**
+   * Ticked: on, shown in that session, hidden in the pits, kept on the session screen or locked:
+   * each the same meaning as its row on the widget's page («Ocultar en boxes» included).
+   */
   current: boolean
   disabled: boolean
   /** Why it cannot change (its tooltip), when it cannot. */
@@ -62,7 +65,7 @@ export function matrixRows(
       cells: [
         cell('visible', w.visible),
         ...SHOW_IN_KINDS.map((kind) => cell(kind, w.showIn[kind])),
-        cell('pits', pitsFixed || !w.hideInPits, pitsFixed ? v.pitsAlways(name) : undefined),
+        cell('pits', !pitsFixed && w.hideInPits, pitsFixed ? v.pitsAlways(name) : undefined),
         cell('session', session.on, session.disabled ? session.help : undefined),
         cell('locked', w.locked)
       ]

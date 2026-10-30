@@ -41,10 +41,10 @@ import WindowSection from './WindowSection.vue'
  *
  * The editors are the options component's (CustomizeSection moves them into .opts-custom). In a
  * wide window (settings.css: two option columns from 1100 px) they get the second column, and the
- * first stacks the content options, «Ventana y visibilidad» and the reference sections, each
- * column as tall as its own content (R14); a page without editors spreads its options over both
- * columns. Reference sections (a legend, the saved records) follow the editors (PageAppendix
- * moves them).
+ * first stacks the content options, the reference sections and «Ventana y visibilidad», each
+ * column as tall as its own content (R14): the same order as one column, the window's rules last
+ * in both; a page without editors spreads its options over both columns. Reference sections (a
+ * legend, the saved records) follow the editors (PageAppendix moves them).
  * The live sample is editable in place for the page's element lists (settings/preview).
  */
 const props = defineProps<{ widgetId: WidgetId }>()
@@ -164,9 +164,9 @@ const resetItems = computed<ResetItem[]>(() => {
 
     <!--
       One column: Contenido, Personalizar, the reference sections, Ventana y visibilidad (R04).
-      Two (settings.css, from 1100 px): Contenido, then Ventana y visibilidad and the reference
-      sections down the left, Personalizar down the right, each column as tall as its own (R14);
-      a page without editors spreads its sections over both.
+      Two (settings.css, from 1100 px): Contenido, then the reference sections and Ventana y
+      visibilidad down the left (the same order), Personalizar down the right, each column as
+      tall as its own (R14); a page without editors spreads its sections over both.
     -->
     <div class="opts" :class="hasCustom ? 'has-custom' : 'st-cols'">
       <div class="opts-main">
@@ -254,8 +254,8 @@ const resetItems = computed<ResetItem[]>(() => {
 
 /*
  * Two columns (R14): Personalizar down the right, spanning every row; the left stacks Contenido,
- * Ventana y visibilidad and the reference sections, sized by their own content (the last row
- * takes what Personalizar has more), so no gap opens under Contenido.
+ * the reference sections and Ventana y visibilidad (the one-column order), sized by their own
+ * content (the last row takes what Personalizar has more), so no gap opens under Contenido.
  */
 @media (min-width: 1100px) {
   .opts.has-custom {
@@ -270,11 +270,11 @@ const resetItems = computed<ResetItem[]>(() => {
     grid-area: 1 / 1;
   }
 
-  .has-custom .opts-window {
+  .has-custom .opts-appendix {
     grid-area: 2 / 1;
   }
 
-  .has-custom .opts-appendix {
+  .has-custom .opts-window {
     grid-area: 3 / 1;
   }
 
