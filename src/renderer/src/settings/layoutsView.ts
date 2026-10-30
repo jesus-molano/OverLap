@@ -116,13 +116,14 @@ export function layoutList(
   const query = many ? opts.query.trim() : ''
   const active = lib.list.find((l) => l.id === lib.activeId)
   const pin = active !== undefined && (many || opts.sort !== 'custom')
-  const reorder = opts.sort === 'custom' && query === ''
   const matches = (l: SavedLayout): boolean => layoutMatches(m, lib, l, query)
   const others = sortLayouts(
     lib.list.filter((l) => !pin || l !== active),
     opts.sort,
     opts.locale
   ).filter(matches)
+  // In your order, unfiltered, and with something to move past: one row alone has no arrows.
+  const reorder = opts.sort === 'custom' && query === '' && others.length > 1
   const last = others.length - 1
   const row = (l: SavedLayout, i: number | null): LayoutRow => {
     const cars = linkedCarLabels(m, lib, l.id)

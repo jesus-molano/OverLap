@@ -1989,10 +1989,11 @@ export const settingsEs = {
       noneCursor: 'Ya estaban todos en la pantalla del ratón.',
       undoCursor: 'Widgets traídos a la pantalla del ratón'
     },
+    /** Where a layout is exported: each row's own «Exportar…»; here, its import. */
     filesHelp:
-      'Exporta una disposición a un .json para guardarla o compartirla; importarla no la aplica',
+      'Cada disposición se exporta con «Exportar…» en su fila; importarla aquí no la aplica',
     filesMore:
-      'Lleva sus opciones si las tiene. Un archivo de una versión anterior, sin opciones, recibe las opciones comunes.',
+      'El archivo es un .json, para guardarla o compartirla. Lleva sus opciones si las tiene. Un archivo de una versión anterior, sin opciones, recibe las opciones comunes.',
     import: 'Importar…',
     notices: {
       exported: (name: string) => `Exportada: ${name}`,
@@ -3635,9 +3636,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
       undoCursor: 'Widgets brought to the mouse’s screen'
     },
     filesHelp:
-      'Export a layout to a .json file to keep or share it; importing one does not apply it',
+      'Each layout is exported with “Export…” on its row; importing one here does not apply it',
     filesMore:
-      'It carries its options if it has them. A file from an older version, without options, gets the shared options.',
+      'The file is a .json, to keep or share it. It carries its options if it has them. A file from an older version, without options, gets the shared options.',
     import: 'Import…',
     notices: {
       exported: (name) => `Exported: ${name}`,
