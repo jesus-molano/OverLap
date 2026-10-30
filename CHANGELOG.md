@@ -602,6 +602,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **El motivo de una fila desactivada se lee bien**: en una fila que no se puede cambiar ahora
+  («Ocultar en boxes» en Avisos, «Crece hacia» sin altura automática), solo se atenúan su nombre y
+  su control; la ayuda que dice por qué mantiene el gris de siempre, con su contraste completo
+  (antes se atenuaba también y quedaba en unos 2,8:1).
 - **Un solo punto del color elegido**: con un color predefinido elegido, el selector de color libre
   se ve como una rueda de colores (para elegir otro) y no como un segundo punto del mismo color;
   se pinta con el color en cuanto es uno tuyo. En los dos diálogos de **Estilo**, «Guardando en»
