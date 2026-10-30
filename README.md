@@ -125,7 +125,10 @@ la pantalla de sesión.
 Tu rival de clase de delante y el de detrás mientras estén a menos del hueco que elijas (1,5 s por
 defecto): el hueco y su tendencia, la predicción («Le alcanzas en ~4 v de 19»), la diferencia por
 sector y por vuelta y el iRating en juego. Uno encima del otro o lado a lado. Por defecto, solo en
-carrera. Opcionales: cabecera y pie con datos de la sesión (ver más abajo).
+carrera. El hueco, sin signo (el medido, de serie) o **como Relativo** (el mismo tiempo, positivo
+delante y negativo detrás); y cada frase de la predicción («Le alcanzas en…», «Te alcanza en…»,
+«Necesitas…», «No le alcanzas») con su ojo, en las partes de su línea. Opcionales: cabecera y pie
+con datos de la sesión (ver más abajo).
 
 ### Pedales
 

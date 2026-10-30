@@ -174,6 +174,7 @@ describe('displayOnlyFields', () => {
       'conditionsTrend',
       'conditionsWindDirection',
       'layout',
+      'prediction',
       'brandMarks',
       'countryFlags',
       'showFlags',

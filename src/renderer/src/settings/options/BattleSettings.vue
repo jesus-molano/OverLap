@@ -6,6 +6,7 @@ import {
   BATTLE_THRESHOLD_MAX_S,
   BATTLE_THRESHOLD_MIN_S
 } from '@shared/settings'
+import { visibleIds } from '@shared/elements'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -73,6 +74,19 @@ const parts = computed(() => {
 const setLanes = listSetter('battle', 'lanes')
 const setRows = listSetter('battle', 'rows')
 const setParts = listSetter('battle', 'parts')
+const setPrediction = listSetter('battle', 'prediction')
+/** The prediction row unfolds to what it may say (2.4), as Delta's lines to their parts. */
+const PARTS_OF = ['prediction'] as const
+const predictionTexts = computed(() => elementTexts(t.value, 'battle', 'prediction'))
+const partsSummary = computed(() => ({
+  prediction: t.value.settings.elements.partsCount(
+    visibleIds(opts.value.prediction).length,
+    opts.value.prediction.length
+  )
+}))
+const gapStyleChoices = computed(() =>
+  choiceOptions(B.gapStyle.values, t.value.settings.battle.gapStyleChoices)
+)
 /** «Lado a lado» in a window too narrow for it: drawn stacked, and said so. */
 const noRoom = useNoRoom()
 </script>
@@ -110,6 +124,13 @@ const noRoom = useNoRoom()
       :note="noRoom('battle.layout.side', t.settings.preview.noRoomSide)"
       :apply="set('layout')"
     />
+    <ChoiceControl
+      :label="t.settings.battle.gapStyle"
+      :help="t.settings.battle.gapStyleHelp"
+      :current="opts.gapStyle"
+      :options="gapStyleChoices"
+      :apply="set('gapStyle')"
+    />
   </PageSection>
 
   <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
@@ -130,7 +151,20 @@ const noRoom = useNoRoom()
       :spec="B.rows"
       :labels="rows.labels"
       :apply="setRows"
-    />
+      :parts-of="PARTS_OF"
+      :parts-summary="partsSummary"
+    >
+      <template #parts>
+        <ElementEditor
+          embedded
+          :title="zoneTitle(t, 'battle', 'prediction')"
+          :items="opts.prediction"
+          :spec="B.prediction"
+          :labels="predictionTexts"
+          :apply="setPrediction"
+        />
+      </template>
+    </ElementEditor>
     <ElementEditor
       :title="parts.title"
       :items="opts.parts"

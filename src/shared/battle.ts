@@ -18,6 +18,8 @@ import type { RatingField } from './ratings/field'
 import { ClassRatingsCache, iRatingAtStake } from './ratings/projection'
 import { isRatedEvent } from './ratings/rated'
 import { OPTION_SCHEMA, clampOption } from './settingsSchema'
+import { relativeGapOf } from './relative'
+import type { TelemetryFrame } from './telemetry'
 import type { BattleData, BattleOpponent, BattleOptions, DriverEntry, SessionMeta } from './types'
 
 export const BATTLE = {
@@ -170,6 +172,14 @@ interface Run {
   distLeft: number | null
   prev: BattleData | null
   stake: (oppIdx: number) => number | null
+  /** Relativo's gap to a car (battle.gapStyle 'relative'); null: not asked for. */
+  relativeGap: ((idx: number) => number | null) | null
+}
+
+/** Relativo's gap to `idx` in 0.1 s steps, as it is drawn; null when not asked for or unknown. */
+function relativeGapS(run: Run, idx: number): number | null {
+  const g = run.relativeGap?.(idx) ?? null
+  return g === null || !Number.isFinite(g) ? null : quantise(g, 10)
 }
 
 /**
@@ -192,7 +202,9 @@ export class BattleProvider {
     session: SessionMeta,
     race: RaceView,
     opts: BattleOptions,
-    prev: BattleData | null = null
+    prev: BattleData | null = null,
+    /** The tick, for Relativo's own gap (battle.gapStyle 'relative'); none: no such gap. */
+    frame: TelemetryFrame | null = null
   ): BattleData {
     const playerIdx = race.playerCarIdx
     const player = playerIdx >= 0 ? race.car(playerIdx) : undefined
@@ -241,7 +253,11 @@ export class BattleProvider {
       holdS: clampOption(OPTION_SCHEMA.battle.holdS, opts.holdS),
       distLeft: distanceLeft(remaining, player.distance),
       prev,
-      stake: this.stakeFor(session, race, opts, me.classId, playerIdx)
+      stake: this.stakeFor(session, race, opts, me.classId, playerIdx),
+      relativeGap:
+        opts.gapStyle === 'relative' && frame !== null
+          ? (idx) => relativeGapOf(frame, session, playerIdx, idx)
+          : null
     }
     // A car ahead that took the flag can no longer be caught.
     if (showAhead && aheadCar && !aheadCar.finished) {
@@ -330,6 +346,7 @@ export class BattleProvider {
       carIdx: car.carIdx,
       inPits: car.inPits,
       gapS: quantise(gap, 10),
+      relativeGapS: relativeGapS(run, car.carIdx),
       trendSPerLap: trend,
       lapsToCatch,
       catchesBeforeEnd,
@@ -376,6 +393,7 @@ function opponentEqual(a: BattleOpponent | null, b: BattleOpponent | null): bool
     identityEqual(a, b) &&
     a.inPits === b.inPits &&
     a.gapS === b.gapS &&
+    a.relativeGapS === b.relativeGapS &&
     a.trendSPerLap === b.trendSPerLap &&
     a.lapsToCatch === b.lapsToCatch &&
     a.catchesBeforeEnd === b.catchesBeforeEnd &&

@@ -33,6 +33,7 @@ import {
   hasOpponents,
   laneParts,
   laneRows,
+  predictionParts,
   toLaneViews,
   type BattleSide,
   type LaneOptions,
@@ -77,7 +78,9 @@ const laneOptions = computed<LaneOptions>((prev) => {
       brand: brandMarksOn(block.value.brandMarks, multiBrand.value),
       flag: block.value.countryFlags,
       penalties: block.value.showFlags,
-      nameFormat: nameFormat.value
+      nameFormat: nameFormat.value,
+      prediction: predictionParts((id) => isElementVisible(o.prediction, id)),
+      gapStyle: o.gapStyle
     },
     deepEqual
   )
@@ -227,7 +230,11 @@ useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
             <div v-if="row === 'prediction'" class="lane__catch" data-el="battle.rows.prediction">
               <Badge v-if="lane.lastLap" tone="warn">{{ t.widgets.battle.lastLap }}</Badge>
               <template v-else-if="lane.catch">
-                <span class="lane__verdict" :class="`ov-tone-${lane.catch.tone}`">
+                <span
+                  class="lane__verdict"
+                  :class="`ov-tone-${lane.catch.tone}`"
+                  :data-el="`battle.prediction.${lane.catch.kind}`"
+                >
                   <Icon :name="lane.catch.icon" />
                   <span class="lane__verdict-text">{{ lane.catch.text }}</span>
                 </span>

@@ -114,7 +114,7 @@ export function createProviders(): ProviderSet {
       },
       battle: (ctx, prev) =>
         withInfo(
-          battle.compute(ctx.session, ctx.race, ctx.config.battle, prev),
+          battle.compute(ctx.session, ctx.race, ctx.config.battle, prev, ctx.frame),
           info(ctx, sectionInfoItems('battle', ctx.config.battle))
         ),
       inputs: (ctx) => computeInputs(ctx.frame, ctx.session),
