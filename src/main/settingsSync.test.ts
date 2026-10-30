@@ -111,6 +111,12 @@ describe('isSettingsCommand', () => {
     expect(isSettingsCommand({ type: 'undo-notice', id: '3' })).toBe(false)
     expect(isSettingsCommand({ type: 'set-overlay-hidden', hidden: true })).toBe(true)
     expect(isSettingsCommand({ type: 'capture-shortcuts', on: false })).toBe(true)
+    // Edit mode's keys passed on by the settings window (R38): only those edit mode has.
+    expect(isSettingsCommand({ type: 'edit-key', key: 'Shift+Left' })).toBe(true)
+    expect(isSettingsCommand({ type: 'edit-key', key: 'Tab' })).toBe(true)
+    expect(isSettingsCommand({ type: 'edit-key', key: 'Ctrl+Z' })).toBe(true)
+    expect(isSettingsCommand({ type: 'edit-key', key: 'Ctrl+Shift+H' })).toBe(false)
+    expect(isSettingsCommand({ type: 'edit-key', key: 3 })).toBe(false)
     expect(isSettingsCommand({ type: 'reset-widget-bounds', widgetId: 'relative' })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-options', widgetId: 'standings' })).toBe(true)
     // A part of the page (R24), and bounds put back by an undo (R11).

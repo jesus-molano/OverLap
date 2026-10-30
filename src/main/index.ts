@@ -460,40 +460,7 @@ function start(): void {
     },
     // The arrows in edit mode (R38): the widget last touched, 1 px (Shift: 10), Ctrl: its size.
     // Tab and Shift+Tab pick the widget the arrows move, Ctrl+Z puts the last change back.
-    onNudge: (key) => {
-      const m = messagesFor(store.settings.appearance.language)
-      const t = m.core.osd
-      const toasts = store.settings.settingsWindow.shortcutToasts
-      const dir = PICK_KEYS[key]
-      if (dir !== undefined) {
-        const id = windows.pick(dir)
-        if (!toasts) return
-        osd.show(
-          id === null
-            ? { text: t.pickedNone, detail: '' }
-            : { text: t.picked(widgetTitle(m, id)), detail: t.pickedDetail },
-          gameArea()
-        )
-        return
-      }
-      if (key === EDIT_UNDO_KEY) {
-        const done = windows.undoEdit()
-        if (done !== null) noticeUndo.drop()
-        if (!toasts) return
-        osd.show(
-          {
-            text: done === null ? t.editUndoNone : t.editUndone(editStepText(m, done)),
-            detail: done === null ? '' : t.pickedDetail
-          },
-          gameArea()
-        )
-        return
-      }
-      const step = NUDGE_KEYS[key]
-      if (step === undefined) return
-      if (windows.nudge(step) !== null || !toasts) return
-      osd.show({ text: t.nudgeNone, detail: t.nudgeNoneDetail }, gameArea())
-    },
+    onNudge: (key) => editKey(key),
     onStatus: (next) => {
       sendToSettingsWindow(IPC.shortcutStatus, next)
       // The tray says how many do not work (R37).
@@ -505,10 +472,51 @@ function start(): void {
   })
   /** The confirmation over the game (made the first time a shortcut runs). */
   const osd = new OsdWindow()
+
+  /**
+   * An edit-mode key (R38): the arrows move the widget last touched, 1 px (Shift: 10), Ctrl: its
+   * size; Tab and Shift+Tab pick the widget the arrows move, Ctrl+Z puts the last change back.
+   * From the global shortcuts over the game, and from the settings window where its focus is free.
+   */
+  function editKey(key: string): void {
+    const m = messagesFor(store.settings.appearance.language)
+    const t = m.core.osd
+    const toasts = store.settings.settingsWindow.shortcutToasts
+    const dir = PICK_KEYS[key]
+    if (dir !== undefined) {
+      const id = windows.pick(dir)
+      if (!toasts) return
+      osd.show(
+        id === null
+          ? { text: t.pickedNone, detail: '' }
+          : { text: t.picked(widgetTitle(m, id)), detail: t.pickedDetail },
+        gameArea()
+      )
+      return
+    }
+    if (key === EDIT_UNDO_KEY) {
+      const done = windows.undoEdit()
+      if (done !== null) noticeUndo.drop()
+      if (!toasts) return
+      osd.show(
+        {
+          text: done === null ? t.editUndoNone : t.editUndone(editStepText(m, done)),
+          detail: done === null ? '' : t.pickedDetail
+        },
+        gameArea()
+      )
+      return
+    }
+    const step = NUDGE_KEYS[key]
+    if (step === undefined) return
+    if (windows.nudge(step) !== null || !toasts) return
+    osd.show({ text: t.nudgeNone, detail: t.nudgeNoneDetail }, gameArea())
+  }
   // Whatever takes the keys away from the settings page ends a capture there.
   onSettingsWindowInactive(() => shortcuts.stopCapture())
   // The arrows are the settings window's own while it is in front (its sliders, lists and
-  // fields); edit mode takes them only from the other programs (R38).
+  // fields); edit mode takes them only from the other programs (R38). Where its focus is free,
+  // the window passes them on ('edit-key', settings/editKeys.ts).
   app.on('browser-window-focus', () => shortcuts.setNudgeBlocked(isSettingsWindowFocused()))
   app.on('browser-window-blur', () => shortcuts.setNudgeBlocked(isSettingsWindowFocused()))
 
@@ -972,6 +980,10 @@ function start(): void {
         setEditMode(raw.on)
         // «Editar posición» on a widget's page: that panel is pointed out (R25).
         if (raw.on && raw.focus !== undefined) windows.focusWidget(raw.focus)
+        break
+      // The settings window in front passes them on where its focus is free (R38).
+      case 'edit-key':
+        if (windows.editMode) editKey(raw.key)
         break
       case 'set-overlay-hidden':
         setOverlayHidden(raw.hidden)
