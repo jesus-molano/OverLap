@@ -370,6 +370,7 @@ describe('applySettingsPatch', () => {
     expect(out.standings.columns.map((c) => c.id)).toEqual([
       'gap',
       'last',
+      'flags',
       'gained',
       'ir',
       'lic',

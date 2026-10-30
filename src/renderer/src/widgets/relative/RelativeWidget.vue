@@ -222,6 +222,9 @@ if (injectSampleHost() !== null) {
                   ><Badge v-if="slot.towed" tone="warn">{{ t.widgets.common.tow }}</Badge
                   ><Badge v-else-if="slot.inPits">{{ t.widgets.common.pit }}</Badge></span
                 >
+                <span v-else-if="cell === 'flags'" class="c-flags" data-el="relative.columns.flags"
+                  ><PenaltyIcon v-if="slot.penalty" :penalty="slot.penalty"
+                /></span>
                 <span v-else-if="cell === 'lic'" class="c-lic" data-el="relative.columns.lic"
                   ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
                 /></span>
@@ -361,16 +364,20 @@ if (injectSampleHost() !== null) {
 }
 
 /* Dim the content, not the row, so the striping stays even; the PIT badge and flag stay bright. */
-.rl-row.is-pits > :not(.c-driver),
+.rl-row.is-pits > :not(.c-driver):not(.c-flags),
 .rl-row.is-pits > .c-driver > :deep(:not(.rl-pit):not(.rl-flag)) {
   opacity: var(--ov-o-dim);
 }
 
-/* The flag after the name, a notch under the text like the standings' icons. */
+/* The flag after the name (or in its column), a notch under the text like the standings' icons. */
+.rl-flag,
+.c-flags {
+  font-size: 0.85em;
+}
+
 .rl-flag {
   display: inline-flex;
   flex: none;
-  font-size: 0.85em;
 }
 
 /* Secondary in a relative, by design: plain figures, bright on your own row. */
@@ -392,6 +399,7 @@ if (injectSampleHost() !== null) {
 }
 
 .c-lic,
+.c-flags,
 .c-tyre {
   display: flex;
   justify-content: center;

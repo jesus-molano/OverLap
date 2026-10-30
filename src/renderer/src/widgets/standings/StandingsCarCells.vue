@@ -31,6 +31,8 @@ const inlinePit = computed(() =>
     ? props.line.pit
     : null
 )
+/** The penalty flag after the name while the flags have no column of their own. */
+const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalty : null))
 </script>
 
 <template>
@@ -77,8 +79,8 @@ const inlinePit = computed(() =>
         :title="t.widgets.standings.fastestName"
         >{{ t.widgets.standings.fastestTag }}</span
       >
-      <span v-if="line.penalty || line.disconnected || inlinePit" class="sd-icons">
-        <PenaltyIcon v-if="line.penalty" :penalty="line.penalty" />
+      <span v-if="inlinePenalty || line.disconnected || inlinePit" class="sd-icons">
+        <PenaltyIcon v-if="inlinePenalty" :penalty="inlinePenalty" />
         <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
         <Icon v-if="inlinePit === 'finished'" name="chequered" />
         <Icon
@@ -91,8 +93,11 @@ const inlinePit = computed(() =>
     </DriverCell>
   </template>
   <template v-for="id in cols.cells" :key="id">
+    <span v-if="id === 'flags'" class="c-flags" data-el="standings.columns.flags"
+      ><PenaltyIcon v-if="line.penalty" :penalty="line.penalty"
+    /></span>
     <span
-      v-if="id === 'gained'"
+      v-else-if="id === 'gained'"
       class="c-gained"
       data-el="standings.columns.gained"
       :class="`ov-tone-${line.gainedTone}`"
@@ -158,6 +163,7 @@ const inlinePit = computed(() =>
 .c-pos,
 .c-lic,
 .c-pit,
+.c-flags,
 .c-tyre {
   display: flex;
   justify-content: center;
@@ -208,6 +214,11 @@ const inlinePit = computed(() =>
 
 .sd-plug {
   color: var(--ov-fg-muted);
+}
+
+/* The flag in its own column, at the size of the icons after the name. */
+.c-flags {
+  font-size: 0.85em;
 }
 
 .sd-inline-pit {
@@ -395,7 +406,7 @@ const inlinePit = computed(() =>
  * Row states (classes on the line, see view.ts). The line belongs to the parent component, so
  * every cell is named: a scoped `.is-pits > :not(…)` or `> *` puts this component's scope
  * attribute on the line itself and matches nothing.
- * Pits dim everything but the pit state (and the driver's icons).
+ * Pits dim everything but the pit state (and the driver's icons, the penalty flags' column too).
  */
 .is-pits > .c-pos,
 .is-pits > .c-lead > *,
@@ -416,6 +427,7 @@ const inlinePit = computed(() =>
 .is-disconnected > .c-pos,
 .is-disconnected > .c-lead > *,
 .is-disconnected > .c-driver,
+.is-disconnected > .c-flags,
 .is-disconnected > .c-gained,
 .is-disconnected > .c-ir,
 .is-disconnected > .c-lic,

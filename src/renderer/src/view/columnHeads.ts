@@ -17,7 +17,7 @@ import type {
 export type HeadAlign = 'start' | 'center' | 'end'
 
 export interface ColumnHead {
-  /** 'POS', 'INT.', 'LÍDER'; '' for a column with no caption (the tyre ring is a glyph). */
+  /** 'POS', 'INT.', 'LÍDER'; '' for a column with no caption (the tyre ring, the flags: glyphs). */
   readonly label: string
   readonly align: HeadAlign
 }
@@ -65,6 +65,7 @@ export function relativeHead(
     case 'pit':
       return { label: h.pit, align: 'center' }
     case 'tyre':
+    case 'flags':
       return { label: '', align: 'center' }
     case 'stint':
       return { label: h.stint, align: 'end' }
@@ -85,6 +86,8 @@ export function standingsHead(
       return { label: h.pos, align: 'start' }
     case 'name':
       return { label: h.driver, align: 'start' }
+    case 'flags':
+      return { label: '', align: 'center' }
     case 'gained':
       return { label: h.gained, align: 'end' }
     case 'ir':

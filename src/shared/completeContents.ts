@@ -5,7 +5,8 @@
  * it is still what you have.
  *
  * What it turns on, the same rule in the ten widgets:
- * - every column and element of every list (rows, parts, lines, lights, groups...), in your order;
+ * - every column and element of every list (rows, parts, lines, lights, groups...), in your order,
+ *   but a column that only moves what is already drawn (the penalty flags');
  * - the info bars that were off, at «Normal», each with the items its widget shows by default
  *   (the tables' footers with every track condition, the air and the rubber too), plus the ones
  *   you had on: never the same datum in every bar;
@@ -72,6 +73,12 @@ export const COMPLETE_SWITCHES: {
 
 /** The track temperature's arrow and the wind's dial: on wherever a widget has them. */
 const CONDITIONS_SWITCHES = ['conditionsTrend', 'conditionsWindDirection'] as const
+
+/**
+ * Elements that only move what is already drawn: the penalty flags' column (their flags are after
+ * the name without it). «Completo» leaves them as they are.
+ */
+const PLACEMENT_ELEMENTS: readonly string[] = ['flags']
 
 /** The «Piloto» block's own switches: their «No» goes back to «Global». */
 const DRIVER_FLAGS = ['countryFlags', 'showFlags'] as const
@@ -154,7 +161,7 @@ export function completeSection(section: LayoutSection, options: Fields): Record
       const list = value as readonly ElementEntry[]
       const next = isBar(specs, field)
         ? barItems(spec, list)
-        : list.map((e) => ({ id: e.id, visible: true }))
+        : list.map((e) => ({ id: e.id, visible: e.visible || !PLACEMENT_ELEMENTS.includes(e.id) }))
       if (!sameList(list, next)) out[field] = next
     } else if (field.endsWith('BarSize')) {
       if (value === 'off') out[field] = 'normal'

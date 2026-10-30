@@ -145,8 +145,8 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   // iRating then licence, the gap before the hidden PIT (its badge after the name), stint and
   // tyre, in the standings' order (R10).
   columns: list(
-    ['pos', 'driver', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
-    ['pit', 'tyre', 'stint']
+    ['pos', 'driver', 'flags', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
+    ['flags', 'pit', 'tyre', 'stint']
   ),
   // One rule for the bars (R13): session data on by default in the standings only.
   headerBar: bar(['title', 'split']),
@@ -168,6 +168,8 @@ const DEFAULT_RADAR: RadarOptions = {
   parts: list(['guides', 'sideAlerts', 'rangeLabels'])
 }
 const DEFAULT_COLUMNS: StandingsColumn[] = [
+  // The penalty flags' column: hidden, they go after the name.
+  { id: 'flags', visible: false },
   { id: 'gained', visible: true },
   { id: 'ir', visible: true },
   { id: 'lic', visible: true },
@@ -247,7 +249,7 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   hazardS: 8,
   maxEntries: 3,
   groups: list(['hazard', 'slower', 'faster']),
-  parts: list(['icon', 'cls', 'driver', 'lead', 'value', 'sector']),
+  parts: list(['icon', 'cls', 'driver', 'flags', 'lead', 'value', 'sector'], ['flags']),
   headerBar: bar(['title', 'split']),
   headerBarSize: 'normal',
   footerBar: bar(['split', 'carCount']),
@@ -640,13 +642,13 @@ describe('DEFAULT_SETTINGS', () => {
     const a = createDefaultSettings()
     a.widgets.relative.bounds.x = 999
     a.widgets.battle.showIn.practice = true
-    a.standings.columns[0]!.visible = false
+    a.standings.columns[1]!.visible = false
     a.inputs.colors.brake = '#000000'
     a.appearance.accent = '#123456'
     const b = createDefaultSettings()
     expect(b.widgets.relative.bounds.x).toBe(WIDGET_DEFS.relative.defaultBounds.x)
     expect(b.widgets.battle.showIn.practice).toBe(false)
-    expect(b.standings.columns[0]!.visible).toBe(true)
+    expect(b.standings.columns[1]!.visible).toBe(true)
     expect(b.inputs.colors.brake).toBe('#ff4545')
     expect(b.appearance.accent).toBe('#ffc400')
     expect(WIDGET_DEFS.battle.defaultShowIn.practice).toBe(false)
@@ -722,7 +724,10 @@ describe('normalizeSettings: basics', () => {
     }
     s.relative = {
       ...DEFAULT_RELATIVE,
-      columns: list(['gap', 'driver', 'pos', 'lic', 'ir', 'tyre', 'stint', 'pit'], ['ir', 'pit']),
+      columns: list(
+        ['gap', 'driver', 'flags', 'pos', 'lic', 'ir', 'tyre', 'stint', 'pit'],
+        ['ir', 'pit']
+      ),
       headerBar: bar(['clock', 'split', 'remaining', 'incidents']),
       headerBarSize: 'large',
       footerBarSize: 'small',
@@ -1202,6 +1207,7 @@ describe('normalizeColumns', () => {
     expect(out.map((c) => [c.id, c.visible])).toEqual([
       ['last', true],
       ['gap', false],
+      ['flags', false],
       ['gained', false],
       ['ir', false],
       ['lic', false],
@@ -1374,8 +1380,8 @@ describe('normalizeSettings: migration', () => {
       ...OLD_RELATIVE_BARS,
       // Its old toggles on today's list: iRating, licence (off), the PIT column hidden.
       columns: list(
-        ['pos', 'driver', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
-        ['lic', 'pit', 'tyre', 'stint']
+        ['pos', 'driver', 'flags', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
+        ['flags', 'lic', 'pit', 'tyre', 'stint']
       )
     })
     expect(s.radar).toEqual({
@@ -1417,6 +1423,7 @@ describe('normalizeSettings: migration', () => {
     }
     const s = normalizeSettings(v3)
     expect(cols(s)).toEqual([
+      '-flags',
       '-gained',
       '+ir',
       '+lic',

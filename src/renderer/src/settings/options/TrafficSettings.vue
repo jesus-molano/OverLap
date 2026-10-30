@@ -72,10 +72,14 @@ const groups = computed(() => {
     }
   }
 })
-const parts = computed(() => ({
-  title: zoneTitle(t.value, 'traffic', 'parts'),
-  labels: elementTexts(t.value, 'traffic', 'parts')
-}))
+const parts = computed(() => {
+  const l = elementTexts(t.value, 'traffic', 'parts')
+  return {
+    title: zoneTitle(t.value, 'traffic', 'parts'),
+    // The flags worded as the tables' «Banderas» column.
+    labels: { ...l, flags: { label: l.flags.label, hint: t.value.settings.columns.hints.flags } }
+  }
+})
 /**
  * The sample draws the field the option changed last needs (previewTrafficField, as Delta's
  * session): a look window, cars spread further away (a longer window brings them in); the count

@@ -45,8 +45,8 @@ describe('standingsHead', () => {
     for (const m of [ES, EN]) {
       for (const id of STANDINGS_COLUMN_IDS) {
         const h = standingsHead(id, RACE, m)
-        // The tyre is a glyph; the rest a short caption.
-        if (id === 'tyre') expect(h.label).toBe('')
+        // The tyre and the penalty flags are glyphs; the rest a short caption.
+        if (id === 'tyre' || id === 'flags') expect(h.label).toBe('')
         else expect(h.label.length, id).toBeGreaterThan(0)
         expect(h.label.length, id).toBeLessThanOrEqual(7)
       }

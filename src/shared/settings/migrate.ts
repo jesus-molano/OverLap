@@ -402,7 +402,8 @@ export const LIST_MIGRATIONS: { readonly [S in OptionSection]?: readonly ListMig
           ['showStint', ['stint']]
         ]),
         // The order those files were drawn in (the gap last), so a shown tyre stays where it was.
-        ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+        // The flags' column (2.4, hidden) where it goes today: right after the name.
+        ['pos', 'driver', 'flags', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
         ['tyre', 'stint']
       )
     },
@@ -660,6 +661,51 @@ export function migrateWidgetsV5(
 }
 
 /**
+ * Ids added to a list after files saved it, hidden, that such a list gets at their default place
+ * (after the nearest id before them in the spec) instead of at the end: turned on, they land
+ * where a new install has them. The penalty flags' column (2.4) goes right after the name.
+ */
+const NEW_ELEMENTS: Readonly<
+  Partial<Record<OptionSection, Readonly<Record<string, readonly string[]>>>>
+> = {
+  relative: { columns: ['flags'] },
+  standings: { columns: ['flags'] },
+  traffic: { parts: ['flags'] }
+}
+
+/**
+ * The section with each NEW_ELEMENTS id its saved lists lack inserted, hidden, at its default
+ * place (nothing visible changes). `raw` itself when there is nothing to do.
+ */
+export function placeNewElements(
+  section: string,
+  raw: Record<string, unknown>
+): Record<string, unknown> {
+  const fields = NEW_ELEMENTS[section as OptionSection]
+  if (fields === undefined) return raw
+  const specs = OPTION_SCHEMA[section as OptionSection] as Readonly<Record<string, unknown>>
+  let out: Record<string, unknown> | null = null
+  for (const [field, added] of Object.entries(fields)) {
+    const list = raw[field]
+    const spec = specs[field] as ElementsSpec | undefined
+    if (!Array.isArray(list) || spec?.kind !== 'elements') continue
+    let next: unknown[] = list
+    const ids = (): string[] => next.map((e: unknown) => (isRecord(e) ? String(e.id) : ''))
+    for (const id of added) {
+      if (ids().includes(id)) continue
+      const at = spec.ids.indexOf(id)
+      let after = -1
+      for (let i = at - 1; i >= 0 && after < 0; i--) after = ids().indexOf(spec.ids[i] ?? '')
+      next = [...next.slice(0, after + 1), { id, visible: false }, ...next.slice(after + 1)]
+    }
+    if (next === list) continue
+    out ??= { ...raw }
+    out[field] = next
+  }
+  return out ?? raw
+}
+
+/**
  * Section-level migrations, keyed by section; untouched sections pass through. `file` is the
  * whole file, for an option that moved from one section to another and for its version. The
  * lists come last, from the fields the earlier steps leave (the v3 standings header, the lights
@@ -687,7 +733,8 @@ export function migrateSection(
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
   else if (section === 'battle' || section === 'traffic') out = migrateDriverBlock(section, out)
-  return migrateLists(section, migrateOldBars(section, out, file))
+  // After the lists the old switches give, so those get the new ids at their place too.
+  return placeNewElements(section, migrateLists(section, migrateOldBars(section, out, file)))
 }
 
 /**

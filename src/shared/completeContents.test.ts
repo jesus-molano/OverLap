@@ -37,8 +37,12 @@ describe('«Completo»: everything on in the ten widgets', () => {
     s.relative.columns = [...s.relative.columns].reverse()
     const after = applySettingsPatch(s, completePatch(s))
     expect(after.relative.columns.map((c) => c.id)).toEqual(s.relative.columns.map((c) => c.id))
-    expect(after.relative.columns.every((c) => c.visible)).toBe(true)
-    expect(after.standings.columns.every((c) => c.visible)).toBe(true)
+    // All but the penalty flags' column, which only moves what is drawn after the name.
+    const shown = (l: readonly { id: string; visible: boolean }[]): boolean =>
+      l.every((c) => c.visible === (c.id !== 'flags'))
+    expect(shown(after.relative.columns)).toBe(true)
+    expect(shown(after.standings.columns)).toBe(true)
+    expect(shown(after.traffic.parts)).toBe(true)
     expect(after.fuel.lines.every((c) => c.visible)).toBe(true)
     expect(after.lights.icons.every((c) => c.visible)).toBe(true)
     expect(after.delta.laps.every((c) => c.visible)).toBe(true)

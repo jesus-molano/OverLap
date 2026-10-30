@@ -45,6 +45,8 @@ const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(()
     ...base,
     pos: { label: base.pos.label, hint: fixed.pos },
     driver: { label: base.driver.label, hint: fixed.name },
+    // As the standings' column of the same name (R10).
+    flags: { label: base.flags.label, hint: t.value.settings.columns.hints.flags },
     pit: { label: base.pit.label, hint: r.pitHelp },
     tyre: { label: base.tyre.label, hint: r.tyreHelp },
     stint: { label: base.stint.label, hint: r.stintHelp }

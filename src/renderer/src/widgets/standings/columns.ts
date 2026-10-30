@@ -10,9 +10,12 @@ import type { AppearanceSettings, StandingsColumnId, StandingsOptions } from '@s
  * First to go when the window narrows. 'gap' never goes (nor the position and the name). The
  * stint extras go before the best lap, which goes before anything that was there first. The flag
  * and the make's mark (DECORATIONS_BEFORE) go before the best lap too: a decoration never costs a
- * column the table had before it.
+ * column the table had before it. The penalty flags' column goes first of all: its flags then go
+ * after the name, as they do with the column hidden.
  */
 export const DROP_ORDER = [
+  // Never lost: without their column the flags go back after the name.
+  'flags',
   'delta',
   'gapLeader',
   'pitLap',
@@ -52,6 +55,8 @@ interface ColumnWidth {
 }
 
 const COLUMN_WIDTH: Readonly<Record<StandingsColumnId, ColumnWidth>> = {
+  // One flag badge, centred (as the tyre's ring), at the icons' 0.85em.
+  flags: { w: 1.3, text: 0.85 },
   gained: { w: 1.9, text: 0.75 },
   ir: { w: 2.4, text: 0.82 },
   lic: { w: 2.7, text: 0.72 },
@@ -109,6 +114,8 @@ export interface ColumnPrefs {
   brand: boolean
   /** The driver's flag before the name (countryFlags). */
   flag: boolean
+  /** The penalty flags are drawn (the «Piloto» block's showFlags); false if absent. */
+  penalties?: boolean
   /** The text floor (px, theme.css --ov-min-text: 10 with «Texto mínimo de 10 px»); 9 if absent. */
   minText?: number
   /** The position track (showPosition); on if absent. */
@@ -128,6 +135,8 @@ export interface Columns {
   readonly flag: boolean
   /** The pit column is not shown: pit state goes as an icon after the name. */
   readonly pitInline: boolean
+  /** The penalty flags are drawn and their column is not: they go after the name. */
+  readonly flagsInline: boolean
   /** Width the name gets (em); below NAME_MIN_EM only when nothing else could go. */
   readonly nameEm: number
   /** Row width (em) these columns were fitted to. */
@@ -144,6 +153,7 @@ export interface Columns {
  * - 'gapLeader' when the gap mode is 'both' (or the column is on), never in 'leader' mode,
  *   where 'gap' already shows the gap to the leader.
  * - 'tyre' only while some row has a compound: the same 'H' on every row says nothing.
+ * - 'flags' only while the penalty flags are drawn (the «Piloto» block).
  */
 export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnPrefs): boolean {
   switch (id) {
@@ -157,6 +167,8 @@ export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnP
       return p.gapMode !== 'leader' && (visible || p.gapMode === 'both')
     case 'tyre':
       return visible && p.tyres
+    case 'flags':
+      return visible && p.penalties === true
     default:
       return visible
   }
@@ -242,6 +254,7 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
   for (const id of cells) tracks.push(em(widthAt(columnWidth(id, p), fontPx, minPx)))
   const template = tracks.join(' ')
   const pitInline = !cells.includes('pit')
+  const flagsInline = p.penalties === true && !cells.includes('flags')
   return {
     cells,
     template,
@@ -249,10 +262,11 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     brand,
     flag,
     pitInline,
+    flagsInline,
     pos,
     nameEm: measured ? round2(widthEm - fixedEm(cells)) : 0,
     widthEm: round2(widthEm),
-    key: `${cells.join(',')}|${numberStyle}|${brand ? 'b' : ''}${flag ? 'f' : ''}|${template}`
+    key: `${cells.join(',')}|${numberStyle}|${brand ? 'b' : ''}${flag ? 'f' : ''}${flagsInline ? 'p' : ''}|${template}`
   }
 }
 
@@ -273,7 +287,8 @@ export function withoutRoom(
   if (!(cols.widthEm > 0)) return { columns: [], brand: false, flag: false }
   const wanted = fitColumns(p, 0, 0).cells
   return {
-    columns: wanted.filter((id) => !cols.cells.includes(id)),
+    // The flags' column is never lost: its flags go after the name.
+    columns: wanted.filter((id) => id !== 'flags' && !cols.cells.includes(id)),
     brand: p.brand && !cols.brand,
     flag: p.flag && !cols.flag
   }
