@@ -4,7 +4,7 @@
  * `target` (a fresh copy); invalid ones keep target's value: the default when
  * normalising, the current value when patching.
  */
-import { normalizeHexColor } from '../colors'
+import { FOLLOW_ACCENT, normalizeHexColor } from '../colors'
 import {
   OPTION_SCHEMA,
   WIDGET_FIELD_SCHEMA,
@@ -126,6 +126,7 @@ export function validateOption(spec: OptionSpec, raw: unknown, current: unknown)
     case 'enum':
       return pickEnum(raw, spec.values, current as string)
     case 'color':
+      if (spec.followsAccent === true && raw === FOLLOW_ACCENT) return FOLLOW_ACCENT
       return normalizeHexColor(raw) ?? current
     case 'colors': {
       const base = current as Record<string, string>

@@ -428,7 +428,7 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 - Volante (`inputs.steeringStyle`): barra, minimalista (aro fino), realista (GT con radios) o
   fórmula (rectangular con empuñaduras), dibujados en SVG y girando con `SteeringWheelAngle` los
   grados reales, hasta el tope del coche (`SteeringWheelAngleMax`). Tamaño pequeño, mediano o grande
-  (`inputs.wheelSize`), color de la marca (`inputs.wheelColor`) y grados opcionales debajo
+  (`inputs.wheelSize`), color de la marca (`inputs.wheelColor`: el acento de Apariencia, `accent`, o uno propio) y grados opcionales debajo
   (`inputs.steeringDegrees`). Un volante grande hace el panel un poco más alto.
 - Un `settings.json` de antes se ve igual: el volante de antes pasa a «realista» y las luces y el
   bloque «Coche» llegan apagados. En una instalación nueva salen encendidos.

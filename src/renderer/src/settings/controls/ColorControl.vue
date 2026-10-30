@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, useId } from 'vue'
-import { normalizeHexColor } from '@shared/colors'
+import { FOLLOW_ACCENT, normalizeHexColor } from '@shared/colors'
 import { useI18n } from '../../composables/useI18n'
 import { useDraft } from '../useDraft'
 import { hexDigits } from '../values'
@@ -8,7 +8,9 @@ import { hexDigits } from '../values'
 /**
  * A colour: preset swatches (radios), the system picker and a hex field. The picker streams
  * through the settings throttle while it is dragged; the hex field applies on Enter or blur
- * and goes back to the current colour when the text is not a colour.
+ * and goes back to the current colour when the text is not a colour. With `inherit` (R46), a
+ * first radio, labelled as a name format's «Global (…)» is, follows Apariencia's accent: the
+ * value 'accent', drawn in the accent's colour; the picker and the hex field then show it.
  */
 const props = withDefaults(
   defineProps<{
@@ -19,8 +21,10 @@ const props = withDefaults(
     presets: readonly { readonly value: string; readonly label: string }[]
     apply: (value: string) => Promise<unknown>
     disabled?: boolean
+    /** «Acento (global)»: its label and the accent it shows now. */
+    inherit?: { readonly label: string; readonly color: string }
   }>(),
-  { help: undefined, disabled: false }
+  { help: undefined, disabled: false, inherit: undefined }
 )
 
 const t = useI18n()
@@ -35,13 +39,19 @@ const { value, input, commit } = useDraft(
 const swatches = computed(() =>
   props.presets.map((p) => ({ ...p, style: { background: p.value } }))
 )
-const isPreset = computed(() => props.presets.some((p) => p.value === value.value))
+const following = computed(() => props.inherit !== undefined && value.value === FOLLOW_ACCENT)
+/** The colour drawn: the accent while following it. */
+const shown = computed(() => (following.value && props.inherit ? props.inherit.color : value.value))
+const inheritStyle = computed(() => ({ background: props.inherit?.color }))
+const isPreset = computed(
+  () => following.value || props.presets.some((p) => p.value === value.value)
+)
 const pickerLabel = computed(() => t.value.settings.controls.customColorLabel(props.label))
 const hexLabel = computed(() => t.value.settings.controls.hexLabel(props.label))
 
 /** Text being typed in the hex field; null while it shows the current colour. */
 const typed = shallowRef<string | null>(null)
-const text = computed(() => typed.value ?? hexDigits(value.value))
+const text = computed(() => typed.value ?? hexDigits(shown.value))
 const invalid = computed(() => typed.value !== null && normalizeHexColor(typed.value) === null)
 
 function pickerValue(e: Event): string | null {
@@ -66,7 +76,7 @@ function applyTyped(): void {
   if (typed.value === null) return
   const v = normalizeHexColor(typed.value)
   typed.value = null
-  if (v !== null && v !== value.value) commit(v)
+  if (v !== null && v !== shown.value) commit(v)
 }
 
 function revertTyped(): void {
@@ -86,13 +96,27 @@ function revertTyped(): void {
         :aria-labelledby="labelId"
         :aria-describedby="help ? helpId : undefined"
       >
+        <label v-if="inherit" class="swatch swatch-inherit" :title="inherit.label">
+          <input
+            type="radio"
+            class="swatch-input"
+            :name="id"
+            :value="FOLLOW_ACCENT"
+            :checked="following"
+            :disabled="disabled"
+            :aria-label="inherit.label"
+            @change="commit(FOLLOW_ACCENT)"
+          />
+          <span class="swatch-dot" :style="inheritStyle" />
+          <span class="swatch-text">{{ inherit.label }}</span>
+        </label>
         <label v-for="s in swatches" :key="s.value" class="swatch" :title="s.label">
           <input
             type="radio"
             class="swatch-input"
             :name="id"
             :value="s.value"
-            :checked="value === s.value"
+            :checked="!following && value === s.value"
             :disabled="disabled"
             :aria-label="s.label"
             @change="commit(s.value)"
@@ -104,7 +128,7 @@ function revertTyped(): void {
         <input
           type="color"
           class="picker"
-          :value="value"
+          :value="shown"
           :disabled="disabled"
           :aria-label="pickerLabel"
           :title="t.settings.controls.customColor"
@@ -154,6 +178,24 @@ function revertTyped(): void {
   padding: 3px;
   border-radius: 50%;
   cursor: pointer;
+}
+
+/* «Acento (global)»: the accent's dot and its words, a pill (its ring follows the pill). */
+.swatch-inherit {
+  align-items: center;
+  gap: 8px;
+  padding: 3px 12px 3px 3px;
+  border-radius: 999px;
+}
+
+.swatch-text {
+  color: var(--ov-fg-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.swatch-inherit:has(.swatch-input:checked) .swatch-text {
+  color: var(--ov-fg);
 }
 
 .swatch-input {

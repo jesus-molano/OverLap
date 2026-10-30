@@ -95,10 +95,12 @@ export interface EnumSpec<T extends string = string> extends SpecBase {
   readonly values: readonly T[]
   readonly default: T
 }
-/** '#rrggbb', lowercase. */
+/** '#rrggbb', lowercase; or 'accent' (FOLLOW_ACCENT) where `followsAccent` allows it. */
 export interface ColorSpec extends SpecBase {
   readonly kind: 'color'
   readonly default: string
+  /** «Acento (global)» is offered first: the value 'accent' follows Apariencia's accent. */
+  readonly followsAccent?: true
 }
 /** Fixed set of named colours. */
 export interface ColorsSpec<K extends string = string> extends SpecBase {
@@ -618,8 +620,9 @@ export const OPTION_SCHEMA = {
       default: 'medium',
       displayOnly: true
     },
-    // The default accent (ACCENT_PRESETS yellow).
-    wheelColor: { kind: 'color', default: '#ffc400', displayOnly: true },
+    // Apariencia's accent (R46) for a new install; a saved colour (the old default, the yellow
+    // accent) stays its own.
+    wheelColor: { kind: 'color', default: 'accent', followsAccent: true, displayOnly: true },
     steeringDegrees: { kind: 'bool', default: false, displayOnly: true },
     // On for a new install; a file from before gets it off (migrateInputs), so nothing new shows.
     shiftLights: { kind: 'bool', default: true, displayOnly: true },

@@ -2,7 +2,8 @@
 import { computed, onMounted, useTemplateRef, watch } from 'vue'
 import { deepEqual } from '@shared/equal'
 import { speedUnit } from '@shared/format'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import { colorOrAccent } from '@shared/colors'
+import { ACCENT_PRESETS } from '@shared/settingsSchema'
 import { SHIFT_LEDS, ledBand, shiftLit, shiftPhase } from '@shared/shiftLights'
 import type { InputsData } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
@@ -99,7 +100,8 @@ const wheel = computed<WheelStyle | null>(() => {
 })
 /** The wheel's accent and size (wheel.ts WHEEL_SIZE_EM), on its box. */
 const wheelStyle = computed<InlineStyle>((prev) => {
-  const accent = hexOr(options.value.wheelColor, OPTION_SCHEMA.inputs.wheelColor.default)
+  const own = colorOrAccent(options.value.wheelColor, appearance.value.accent)
+  const accent = hexOr(own, hexOr(appearance.value.accent, ACCENT_PRESETS[0].value))
   const size = `${WHEEL_SIZE_EM[options.value.wheelSize] ?? WHEEL_SIZE_EM.medium}em`
   return prev?.['--wheel-accent'] === accent && prev['--wheel-size'] === size
     ? prev

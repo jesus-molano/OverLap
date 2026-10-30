@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
+  FOLLOW_ACCENT,
   classColorToCss,
+  colorOrAccent,
   contrastText,
   irColorToCss,
   licenseChipColor,
@@ -8,6 +10,13 @@ import {
   normalizeHexColor,
   relativeLuminance
 } from './colors'
+
+describe('colorOrAccent (R46)', () => {
+  it('gives the accent for a colour that follows it, its own colour otherwise', () => {
+    expect(colorOrAccent(FOLLOW_ACCENT, '#33ccff')).toBe('#33ccff')
+    expect(colorOrAccent('#ff8800', '#33ccff')).toBe('#ff8800')
+  })
+})
 
 describe('irColorToCss', () => {
   it('converts numbers as js-yaml parses them', () => {

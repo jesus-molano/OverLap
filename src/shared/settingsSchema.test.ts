@@ -53,6 +53,8 @@ describe('OPTION_SCHEMA', () => {
           expect(new Set(spec.values).size, name).toBe(spec.values.length)
           break
         case 'color':
+          // A colour, or the accent where the spec follows it (R46).
+          if (spec.followsAccent === true && spec.default === 'accent') break
           expect(normalizeHexColor(spec.default), name).toBe(spec.default)
           break
         case 'colors':

@@ -9,6 +9,7 @@ import {
 } from '@shared/settings'
 import { ACCENT_PRESETS, OPTION_SCHEMA, PEDAL_COLOR_PRESETS } from '@shared/settingsSchema'
 import type { InputsOptions } from '@shared/types'
+import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { overlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -92,6 +93,13 @@ const accentPresets = computed(() => {
   return ACCENT_PRESETS.map((p) => ({ value: p.value, label: names[p.name] }))
 })
 
+/** «Acento (global)» first (R46): the wheel's mark follows Apariencia's accent. */
+const appearance = useAppearance()
+const wheelInherit = computed(() => ({
+  label: t.value.settings.inputs.wheelColorAccent,
+  color: appearance.value.accent
+}))
+
 // The editors' words, with the hints of the parts that need one.
 const sectionTexts = computed(() => {
   const base = elementTexts(t.value, 'inputs', 'sections')
@@ -157,6 +165,7 @@ const setCar = listSetter('inputs', 'car')
       :help="t.settings.inputs.wheelColorHelp"
       :current="opts.wheelColor"
       :presets="accentPresets"
+      :inherit="wheelInherit"
       :apply="set('wheelColor')"
     />
     <ToggleControl

@@ -64,6 +64,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lateral y la nota de cada página de widget dicen «overlay oculto». Si no se puede cargar el
   módulo nativo del SDK de iRacing, lo dice un aviso en todas las páginas, con los mismos botones;
   el aviso de que no se guarda también abre el registro en vez de explicar dónde está.
+- **Marca central del volante con «Acento (global)»**: en Pedales, el color de la marca central
+  tiene como primera opción **Acento (global)**, que sigue al color de acento de Apariencia (como
+  «Global (…)» en el formato de nombre). Es la opción de serie en una instalación nueva; si ya
+  tenías ajustes, la marca conserva su color (el amarillo de antes) hasta que la elijas.
 
 ### Cambiado
 

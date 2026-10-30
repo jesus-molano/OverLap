@@ -84,6 +84,17 @@ export function contrastText(cssHex: string): '#000000' | '#ffffff' {
   return luminanceOf(value) > 0.179 ? BLACK : WHITE
 }
 
+/**
+ * A colour setting that follows Apariencia's accent instead of a colour of its own (R46: the
+ * wheel's centre mark), as a name format's «Global» follows Apariencia's.
+ */
+export const FOLLOW_ACCENT = 'accent'
+
+/** A colour setting's colour: its own '#rrggbb', or the accent when it follows it. */
+export function colorOrAccent(value: string, accent: string): string {
+  return value === FOLLOW_ACCENT ? accent : value
+}
+
 /** Settings colours: '#rrggbb' or '#rgb' (the '#' is optional), any case. */
 const SETTINGS_HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i
 
