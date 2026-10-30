@@ -1,6 +1,6 @@
 {
   "name": "overlap",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "OverLap: overlay de sim racing para iRacing (relativo, radar, clasificación, batalla, delta y más)",
   "main": "./out/main/index.js",
   "author": "Jesús Molano",
