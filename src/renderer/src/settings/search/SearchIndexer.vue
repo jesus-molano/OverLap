@@ -4,6 +4,7 @@ import { isWidgetId } from '@shared/widgets'
 import { provideOptionsView } from '../../composables/searchUnlock'
 import { useI18n } from '../../composables/useI18n'
 import { SETTINGS_PAGES, pageTitle } from '../nav'
+import AboutPage from '../pages/AboutPage.vue'
 import AppearancePage from '../pages/AppearancePage.vue'
 import LayoutsPage from '../pages/LayoutsPage.vue'
 import ShortcutsPage from '../pages/ShortcutsPage.vue'
@@ -38,6 +39,7 @@ const component = computed(() => {
   if (p === 'visibility') return VisibilityPage
   if (p === 'shortcuts') return ShortcutsPage
   if (p === 'layouts') return LayoutsPage
+  if (p === 'about') return AboutPage
   return WidgetPage
 })
 const props = computed(() =>

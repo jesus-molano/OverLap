@@ -20,6 +20,7 @@ import type { ControllerInfo } from './controllers'
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
 import type { ShortcutAction, ShortcutStatusReport } from './shortcuts'
+import type { BackupError } from './backup'
 import type { LayoutExample } from './layoutExamples'
 import type { LayoutFileError } from './layouts'
 import type {
@@ -78,6 +79,8 @@ export type TelemetryInMessage =
   | { type: 'delete-bests'; keys: string[] }
   /** From the settings window: delete every personal best. */
   | { type: 'clear-bests' }
+  /** «Importar todo» (R40): a personal-bests file's text, merged (a faster lap wins). */
+  | { type: 'merge-bests'; text: string }
   /**
    * The delta's cycle shortcut: the next reference for the current session only. The settings
    * are never changed by it (the DeltaProvider keeps it).
@@ -234,6 +237,18 @@ export type LayoutNotice =
   | { kind: 'gathered'; count: number; to: 'window' | 'cursor'; undo: number | null }
   /** Linking `carName` turned «Según el coche» on (R26); `undo` as above. */
   | { kind: 'auto-switch-on'; carName: string; undo: number | null }
+  | BackupNotice
+
+/**
+ * «Acerca de y ayuda» (R40): what became of «Exportar todo» (the file written), «Importar todo»
+ * (`bests`: the file had personal bests, merged) and «Restablecer todo»; `undo` as above.
+ */
+export type BackupNotice =
+  | { kind: 'backup-exported'; file: string }
+  | { kind: 'backup-export-failed' }
+  | { kind: 'backup-imported'; bests: boolean; undo: number | null }
+  | { kind: 'backup-import-failed'; error: BackupError }
+  | { kind: 'reset-all'; undo: number | null }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -469,6 +484,15 @@ export type SettingsCommand =
   | { type: 'layout-set-mode'; id: string; mode: LayoutMode }
   | { type: 'layout-options-to-all'; widgetId: WidgetId; layoutId: string }
   | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
+  /**
+   * «Acerca de y ayuda» (R40): every setting and the personal bests to a file or back (a file
+   * dialog; main answers on IPC.layoutNotice), every setting to its default (with «Deshacer»),
+   * and the guide or the issues page in the browser.
+   */
+  | { type: 'backup-export' }
+  | { type: 'backup-import' }
+  | { type: 'reset-all' }
+  | { type: 'open-help'; page: 'guide' | 'issues' }
   /** An example layout (R57, layoutExamples.ts), added at the end, not applied; `name` cleaned by main. */
   | { type: 'layout-example'; kind: LayoutExample; name: string }
 
@@ -491,6 +515,8 @@ export interface InitialState {
   currentCar: CarRef | null
   /** Settings window: changes are not reaching the disk (see `IPC.saveFailing`). */
   saveFailing?: boolean
+  /** The app's version ('2.2.0'), for «Acerca de y ayuda» (R40). */
+  appVersion?: string
 }
 
 export type Unsubscribe = () => void

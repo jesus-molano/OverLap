@@ -96,6 +96,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lateral o la casilla de la bandeja (que muestra el atajo al lado del widget), y el aviso sobre el
   juego dice «Relativo oculto» o «Relativo visible» y, si aun así no se ve, por qué. Ninguna tiene
   atajo de serie; el grupo dice cuántas tienen y se abre solo si alguna lo tiene.
+- **Página «Acerca de y ayuda»**, al pie de la barra lateral: la versión, **Guía de uso** e
+  **Informar de un problema** (en el navegador), una ayuda rápida que lleva a la página de cada
+  respuesta, **Exportar todo…** (todos los ajustes, con todas las disposiciones y sus opciones, y
+  tus récords, en un archivo) e **Importar todo…** (pone esos ajustes al momento, con **Deshacer**
+  aquí y en la bandeja, y suma los récords del archivo a los tuyos: gana la vuelta más rápida; un
+  archivo de una versión más nueva o que no es una copia se rechaza diciendo por qué), **Abrir
+  carpeta**, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y **Restablecer
+  todo** (como recién instalado, en tu idioma; tus récords se quedan; pide confirmación y se
+  deshace). El botón de la carpeta de ajustes deja el pie de la barra lateral y el de la ventana
+  estrecha; sigue en la bandeja.
 
 ### Cambiado
 

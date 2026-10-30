@@ -57,7 +57,13 @@ el `.exe` con OverLap ya en marcha abre los Ajustes.
 Si iRacing no está abierto, Relativo y Posiciones muestran «Esperando a iRacing…» unos segundos y
 se ocultan; OverLap se conecta solo en cuanto arranca el simulador.
 
-Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes > Abrir carpeta de ajustes**).
+Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Acerca de y ayuda › Abrir carpeta**,
+o la bandeja). En esa página, **Exportar todo…** guarda en un archivo todos los ajustes (Apariencia,
+atajos, visibilidad y todas las disposiciones con sus opciones) y tus récords, e **Importar todo…**
+los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**) y
+los récords del archivo se suman a los tuyos (gana la vuelta más rápida). Ahí están también la
+versión, una ayuda rápida, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y
+**Restablecer todo** (como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
 
 ## Widgets
 

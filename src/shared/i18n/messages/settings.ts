@@ -37,8 +37,7 @@ export const settingsEs = {
     nativeMissing:
       'No se pudo cargar el módulo nativo del SDK de iRacing: los widgets no recibirán datos. Vuelve a descargar OverLap; si sigue, copia el diagnóstico.',
     loading: 'Cargando ajustes…',
-    footNote: 'Los cambios se aplican al momento y se guardan solos.',
-    openFolder: 'Abrir carpeta de ajustes'
+    footNote: 'Los cambios se aplican al momento y se guardan solos.'
   },
   /** The welcome of a first run (R07). */
   welcome: {
@@ -136,6 +135,87 @@ export const settingsEs = {
     openLog: 'Abrir registro',
     openLogHelp: 'overlap.log, lo que pasó en esta sesión y la anterior.'
   },
+  /** «Acerca de y ayuda» (R40): the version, help, a backup of everything, files, a new start. */
+  about: {
+    sub: 'La versión, ayuda rápida, una copia de todo y empezar de nuevo',
+    app: {
+      title: 'OverLap',
+      version: (v: string) => `Versión ${v}`,
+      versionHelp: 'Overlay de iRacing gratuito, sin cuenta ni conexión',
+      guide: 'Guía de uso',
+      issues: 'Informar de un problema',
+      external: 'Se abre en el navegador'
+    },
+    help: {
+      title: 'Ayuda rápida',
+      /** One line each: a question, and the page that answers it. */
+      items: {
+        visibility: {
+          q: '¿No ves un widget?',
+          a: 'Visibilidad dice cuándo y dónde se ve cada uno'
+        },
+        edit: {
+          q: '¿Moverlo o cambiar su tamaño?',
+          a: 'Modo edición, abajo a la izquierda o con su atajo'
+        },
+        search: {
+          q: '¿Dónde está un ajuste?',
+          a: 'Escríbelo en «Buscar ajuste», arriba a la izquierda'
+        },
+        layouts: { q: '¿Uno distinto por coche?', a: 'Disposiciones, con «Según el coche»' }
+      },
+      go: (page: string) => `Ir a ${page}`
+    },
+    backup: {
+      title: 'Copia de seguridad',
+      exportLabel: 'Guardar una copia',
+      importLabel: 'Recuperar una copia',
+      export: 'Exportar todo…',
+      exportHelp:
+        'Apariencia, atajos, visibilidad, todas las disposiciones con sus opciones y tus récords, en un archivo',
+      import: 'Importar todo…',
+      importHelp: 'Pone los ajustes del archivo (se puede deshacer) y suma sus récords a los tuyos',
+      exported: (file: string) => `Guardado en «${file}»`,
+      exportFailed: 'No se ha podido guardar el archivo',
+      imported: 'Ajustes importados',
+      importedBests: 'Ajustes importados; sus récords se han sumado a los tuyos',
+      errors: {
+        json: 'El archivo no se puede leer: no es un JSON válido',
+        format: 'No es una copia de OverLap (¿una disposición? Se importa en Disposiciones)',
+        version: 'Es de una versión más nueva de OverLap: actualiza para importarla',
+        'too-big': 'El archivo es demasiado grande para ser una copia de OverLap',
+        read: 'No se ha podido leer el archivo'
+      },
+      /** The undo toast and the tray's «Deshacer: …». */
+      undoImport: 'Ajustes importados'
+    },
+    files: {
+      title: 'Archivos y diagnóstico',
+      folderLabel: 'Carpeta de ajustes',
+      diagnosticsLabel: 'Diagnóstico',
+      folder: 'Abrir carpeta',
+      folderHelp: 'Donde están los ajustes, los récords y el registro (también en la bandeja)',
+      log: 'Abrir registro',
+      diagnostics: 'Copiar diagnóstico',
+      diagnosticsHelp: 'Versiones, estado y pantallas, sin nombres, para pedir ayuda'
+    },
+    restart: {
+      title: 'Empezar de nuevo',
+      welcomeLabel: 'Bienvenida',
+      welcome: 'Ver la bienvenida',
+      welcomeHelp:
+        'Los tres pasos del primer arranque: idioma y unidades, widgets y dónde está todo'
+    },
+    reset: {
+      rowLabel: 'Todos los ajustes',
+      label: 'Restablecer todo',
+      confirm: 'Pulsa otra vez para restablecer todo',
+      description: 'Todos los ajustes como recién instalado, en este idioma; tus récords se quedan',
+      help: 'Todos los ajustes como recién instalado, en este idioma; tus récords se quedan. Se puede deshacer',
+      done: 'Todo restablecido',
+      undo: 'Todo restablecido'
+    }
+  },
   nav: {
     title: 'Ajustes',
     sections: 'Secciones de ajustes',
@@ -144,6 +224,8 @@ export const settingsEs = {
     visibility: 'Visibilidad',
     shortcuts: 'Atajos',
     layouts: 'Disposiciones',
+    /** At the foot of the sidebar (R40). */
+    about: 'Acerca de y ayuda',
     widgets: 'Widgets',
     /** What each shortcut at the foot of the sidebar does. */
     keys: {
@@ -1826,8 +1908,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     nativeMissing:
       'Couldn’t load the native iRacing SDK module: the widgets will get no data. Download OverLap again; if it goes on, copy the diagnostics.',
     loading: 'Loading settings…',
-    footNote: 'Changes apply instantly and are saved automatically.',
-    openFolder: 'Open settings folder'
+    footNote: 'Changes apply instantly and are saved automatically.'
   },
   welcome: {
     step: (n, of) => `Step ${n} of ${of}`,
@@ -1906,6 +1987,77 @@ export const settingsEn: Dict<typeof settingsEs> = {
     openLog: 'Open log',
     openLogHelp: 'overlap.log, what happened in this session and the one before.'
   },
+  about: {
+    sub: 'The version, quick help, a copy of everything and a fresh start',
+    app: {
+      title: 'OverLap',
+      version: (v) => `Version ${v}`,
+      versionHelp: 'A free iRacing overlay, no account or connection needed',
+      guide: 'User guide',
+      issues: 'Report a problem',
+      external: 'Opens in the browser'
+    },
+    help: {
+      title: 'Quick help',
+      items: {
+        visibility: {
+          q: 'A widget does not show?',
+          a: 'Visibility says when and where each one shows'
+        },
+        edit: { q: 'Move or resize it?', a: 'Edit mode, bottom left or with its shortcut' },
+        search: { q: 'Where is a setting?', a: 'Type it in “Search settings”, top left' },
+        layouts: { q: 'A different one per car?', a: 'Layouts, with “By car”' }
+      },
+      go: (page) => `Go to ${page}`
+    },
+    backup: {
+      title: 'Backup',
+      exportLabel: 'Save a copy',
+      importLabel: 'Restore a copy',
+      export: 'Export everything…',
+      exportHelp:
+        'Appearance, shortcuts, visibility, every layout with its options and your personal bests, in one file',
+      import: 'Import everything…',
+      importHelp: 'Puts in the file’s settings (it can be undone) and adds its bests to yours',
+      exported: (file) => `Saved as “${file}”`,
+      exportFailed: 'The file could not be saved',
+      imported: 'Settings imported',
+      importedBests: 'Settings imported; its personal bests were added to yours',
+      errors: {
+        json: 'The file cannot be read: it is not valid JSON',
+        format: 'It is not an OverLap backup (a layout? Import it in Layouts)',
+        version: 'It is from a newer OverLap: update to import it',
+        'too-big': 'The file is too big to be an OverLap backup',
+        read: 'The file could not be read'
+      },
+      undoImport: 'Settings imported'
+    },
+    files: {
+      title: 'Files and diagnostics',
+      folderLabel: 'Settings folder',
+      diagnosticsLabel: 'Diagnostics',
+      folder: 'Open folder',
+      folderHelp: 'Where the settings, personal bests and log are (also in the tray)',
+      log: 'Open log',
+      diagnostics: 'Copy diagnostics',
+      diagnosticsHelp: 'Versions, status and screens, with no names, to ask for help'
+    },
+    restart: {
+      title: 'Start again',
+      welcomeLabel: 'Welcome',
+      welcome: 'Show the welcome',
+      welcomeHelp: 'The first run’s three steps: language and units, widgets and where things are'
+    },
+    reset: {
+      rowLabel: 'Every setting',
+      label: 'Reset everything',
+      confirm: 'Press again to reset everything',
+      description: 'Every setting as newly installed, in this language; your personal bests stay',
+      help: 'Every setting as newly installed, in this language; your personal bests stay. It can be undone',
+      done: 'Everything reset',
+      undo: 'Everything reset'
+    }
+  },
   nav: {
     title: 'Settings',
     sections: 'Settings sections',
@@ -1913,6 +2065,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     visibility: 'Visibility',
     shortcuts: 'Shortcuts',
     layouts: 'Layouts',
+    about: 'About and help',
     widgets: 'Widgets',
     keys: {
       editMode: 'edit mode',

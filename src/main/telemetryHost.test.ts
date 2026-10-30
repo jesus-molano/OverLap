@@ -259,10 +259,13 @@ describe('TelemetryHost', () => {
     expect(host.clearBests()).toBe(true)
     // The delta's cycle shortcut goes to the process (it never touches the settings).
     expect(host.cycleDeltaReference()).toBe(true)
-    expect(c.postMessage.mock.calls.slice(-3)).toEqual([
+    // «Importar todo» (R40): the bests file's text, merged by the process.
+    expect(host.mergeBests('{"version":1}')).toBe(true)
+    expect(c.postMessage.mock.calls.slice(-4)).toEqual([
       [{ type: 'delete-bests', keys: ['67@219/Grand Prix'] }],
       [{ type: 'clear-bests' }],
-      [{ type: 'cycle-delta-reference' }]
+      [{ type: 'cycle-delta-reference' }],
+      [{ type: 'merge-bests', text: '{"version":1}' }]
     ])
     c.postMessage.mockImplementationOnce(() => {
       throw new Error('port closed')

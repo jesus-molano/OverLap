@@ -26,6 +26,11 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
   shortcuts: [{ d: 'M9.25 1.75 3.75 9h4l-1 5.25L12.25 7h-4z' }],
   // Panels placed on a screen: a layout.
   layouts: [{ d: 'M2.25 2.75h5v5h-5zM9.75 2.75h4v3h-4zM9.75 8.25h4v5h-4zM2.25 10.25h5v3h-5z' }],
+  // An «i» in a circle: about and help (R40).
+  about: [
+    { d: 'M8 1.75a6.25 6.25 0 1 0 0 12.5 6.25 6.25 0 1 0 0-12.5zM8 7.25v4' },
+    { d: 'M8 4.4a.9.9 0 1 0 0 1.8.9.9 0 1 0 0-1.8z', fill: true }
+  ],
   // Rows around a highlighted one.
   relative: [{ d: 'M3 3.5h10M3 12.5h10' }, { d: 'M2.5 6.25h11v3.5h-11z', fill: true }],
   // Car between two side alerts.

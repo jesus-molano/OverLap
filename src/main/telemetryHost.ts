@@ -95,6 +95,11 @@ export class TelemetryHost {
     return this.alive && this.post({ type: 'clear-bests' })
   }
 
+  /** «Importar todo» (R40): merges a personal-bests file's text; false when none is running. */
+  mergeBests(text: string): boolean {
+    return this.alive && this.post({ type: 'merge-bests', text })
+  }
+
   /** Asks the process to shut down, kills it after 1 s. Never restarts it afterwards. */
   stop(): Promise<void> {
     if (this.stopping) return this.stopping
