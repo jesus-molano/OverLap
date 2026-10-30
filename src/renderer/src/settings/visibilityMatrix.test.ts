@@ -26,7 +26,7 @@ describe('matrixRows (R34)', () => {
     }
   })
 
-  it('shows the defaults a new user does not see: battle and fuel in races only', () => {
+  it('shows the defaults a new user does not see: battle in races, fuel in practice and races', () => {
     const s = createDefaultSettings()
     const groups = matrixRows(es, s, s.visibility)
     expect(ticks(rowOf(groups, 'battle'))).toMatchObject({
@@ -35,7 +35,7 @@ describe('matrixRows (R34)', () => {
       race: true
     })
     expect(ticks(rowOf(groups, 'fuel'))).toMatchObject({
-      practice: false,
+      practice: true,
       qualify: false,
       race: true
     })

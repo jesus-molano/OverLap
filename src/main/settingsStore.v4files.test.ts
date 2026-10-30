@@ -86,6 +86,8 @@ describe('the untouched v4 file', () => {
     // Its own background opacities stay (the old per-widget defaults, saved): only a fresh
     // install follows the global one.
     for (const id of WIDGET_IDS) {
+      // Its sessions too: the fuel stays race-only (R44 is for new installs).
+      expected.widgets[id].showIn = { ...DEFAULT_V4.widgets[id].showIn }
       expected.widgets[id].backgroundOpacity = DEFAULT_V4.widgets[id].backgroundOpacity
     }
     // Its one layout, and the shared options, have the options as loaded.

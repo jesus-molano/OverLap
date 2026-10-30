@@ -532,7 +532,7 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 
 ### Combustible
 
-- Para carreras largas; por defecto solo en carrera. En grande, los litros (`FuelLevel`) y las
+- Para carreras largas; por defecto en práctica (donde se mide el consumo) y en carrera. En grande, los litros (`FuelLevel`) y las
   vueltas que te dan (verde si llegas a meta, rojo con menos de 2 y sin llegar) y, a la derecha, las
   vueltas que quedan (las del modelo de carrera: en carreras a tiempo, con el ritmo del líder).
 - El consumo se mide en cada paso por meta, solo en vueltas limpias: sin pit lane, amarilla, grúa,

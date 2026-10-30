@@ -182,8 +182,8 @@ posición, la ventana de parada («V17–V33») y las paradas («1 parada»); el
 quita una parada, como una barra con el recorte; el coche visto desde arriba con el desgaste de cada
 neumático en tres franjas (de verde a rojo, o de azul a naranja con la paleta para daltónicos,
 medido en tu última parada) y los juegos que quedan; y las reparaciones rápidas si la sesión las
-limita. Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, solo en
-carrera. Opcionales: cabecera y pie con datos de la sesión.
+limita. Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
+(donde se mide el consumo) y en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
 ## Ajustes y personalización
 
