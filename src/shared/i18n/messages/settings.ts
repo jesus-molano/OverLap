@@ -615,7 +615,7 @@ export const settingsEs = {
         barItemsHidden: (n: number) =>
           n === 1 ? '1 dato menos en sus barras' : `${n} datos menos en sus barras`,
         /** Its lists back in their default order (how many is not said: a line, not a count). */
-        order: 'el orden de serie',
+        order: 'sus listas en el orden de serie',
         optionsDefault: (n: number) =>
           n === 1 ? '1 opción a su valor de serie' : `${n} opciones a su valor de serie`,
         /** A free-size widget (Relativo, Delta) grows instead of shrinking its text. */
@@ -2515,7 +2515,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         barsOff: (n) => (n === 1 ? '1 fewer info bar' : `${n} fewer info bars`),
         barItemsHidden: (n) =>
           n === 1 ? '1 fewer datum in its bars' : `${n} fewer data in its bars`,
-        order: 'the default order',
+        order: 'its lists back in their default order',
         optionsDefault: (n) =>
           n === 1 ? '1 option back to its default' : `${n} options back to their defaults`,
         grows: 'a bigger window so its text keeps its size',

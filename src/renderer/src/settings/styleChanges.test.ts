@@ -74,7 +74,10 @@ describe('the style confirmation’s list', () => {
     s.relative.columns = [...s.relative.columns].reverse()
     const groups = styleChangeGroups(es, planStyle(s, 'overlap').changes)
     expect(groups).toEqual([
-      { title: 'Lo que muestra cada widget', lines: [{ text: 'Relativo: el orden de serie' }] }
+      {
+        title: 'Lo que muestra cada widget',
+        lines: [{ text: 'Relativo: sus listas en el orden de serie' }]
+      }
     ])
   })
 

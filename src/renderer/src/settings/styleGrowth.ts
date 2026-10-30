@@ -6,12 +6,15 @@
  * follows their content. Pure: the fit of each, as the widgets compute it (relative/view.ts,
  * the delta's --dl-fit-h / --dl-fit-w).
  */
+import type { AppearancePreset } from '@shared/appearancePresets'
 import { brandMarksOn } from '@shared/carBrands'
 import { driverBlock } from '@shared/driverBlock'
 import { isElementVisible, visibleIds } from '@shared/elements'
+import { deepEqual } from '@shared/equal'
 import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
-import type { OverlaySettings, Rect, SettingsPatch } from '@shared/types'
+import { DEFAULT_SETTINGS } from '@shared/settings'
+import type { OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
 import { DELTA_FIT_TOP_EM, DELTA_ROW_FIT_EM } from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
@@ -109,23 +112,56 @@ export function freeGrowth(
 }
 
 /**
- * «OverLap» after «Completo» (R56, «todo de serie»): the free widgets whose contents `patch`
- * puts back go back to their default size too, from the same top-left corner (so a window
- * «Completo» grew shrinks again); only those whose size is not already the default.
+ * «OverLap» after «Completo» (R56, «todo de serie»): the free widgets whose contents go back
+ * from `before` to `after` go back to their default size too, from the same top-left corner (so
+ * a window «Completo» grew shrinks again). The default size fits the default contents; what
+ * OverLap keeps (how many cars, the rows' density, the names) can need more, so the window is the
+ * default one grown by just what keeps the text at its default size (grownBounds): the text never
+ * shrinks. Only those not already at that size.
  */
 export function defaultSizes(
-  s: Readonly<OverlaySettings>,
-  patch: SettingsPatch
+  before: Readonly<OverlaySettings>,
+  after: Readonly<OverlaySettings>
 ): Partial<Record<GrowingWidget, Rect>> {
   const out: Partial<Record<GrowingWidget, Rect>> = {}
-  const touched = patch as Readonly<Record<string, object | undefined>>
   for (const id of GROWING_WIDGETS) {
-    const fields = touched[id]
-    if (fields === undefined || Object.keys(fields).length === 0) continue
-    const bounds = s.widgets[id].bounds
+    if (deepEqual(before[id], after[id])) continue
+    const bounds = after.widgets[id].bounds
     const { width, height } = WIDGET_DEFS[id].defaultBounds
-    if (bounds.width === width && bounds.height === height) continue
-    out[id] = { ...bounds, width, height }
+    const def = { ...bounds, width, height }
+    const base = { ...after, [id]: DEFAULT_SETTINGS[id] } as OverlaySettings
+    const next = grownBounds(def, FITS[id](base), FITS[id](after)) ?? def
+    if (next.width === bounds.width && next.height === bounds.height) continue
+    out[id] = next
   }
   return out
+}
+
+/** The free windows a style resizes, and the sizes "Deshacer" puts them back to. */
+export interface StyleWindows {
+  readonly resize: Partial<Record<GrowingWidget, Rect>>
+  readonly restore: Partial<Record<GrowingWidget, Rect>>
+}
+
+/**
+ * The free windows style `p` resizes going from `before` to `after`: «Completo» grows those its
+ * contents need (freeGrowth), «OverLap» puts those whose contents it resets back to their default
+ * size (defaultSizes); the looks alone resize none. `restore`: each as it was before.
+ */
+export function styleWindows(
+  p: AppearancePreset,
+  before: Readonly<OverlaySettings>,
+  after: Readonly<OverlaySettings>
+): StyleWindows {
+  const resize =
+    p === 'complete'
+      ? freeGrowth(before, after)
+      : p === 'overlap'
+        ? defaultSizes(before, after)
+        : {}
+  const restore: Partial<Record<GrowingWidget, Rect>> = {}
+  for (const id of Object.keys(resize) as GrowingWidget[]) {
+    restore[id] = { ...before.widgets[id].bounds }
+  }
+  return { resize, restore }
 }
