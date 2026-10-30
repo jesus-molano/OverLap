@@ -9,6 +9,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Hora en pista en la cabecera y el pie**: un dato nuevo, **Hora en pista**, en el catálogo de
+  las barras de Relativo, Posiciones, Combustible, Tráfico y Batalla: la hora del día en el
+  simulador (que corre con la sesión), con el mismo formato que la hora local (24 h, «14:32») y un
+  sol delante para distinguirlas. Apagado de serie: se añade con **+ Añadir dato**.
 - **Más coches de las otras clases en Posiciones**: en modo compacto, **Coches de otras clases**
   (de 0 a 10, con el mismo selector que «Primeros puestos» y «Alrededor de ti») sustituye al
   interruptor «Líderes de otras clases». Con 1 (lo de siempre) cada otra clase es la línea de su

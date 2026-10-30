@@ -16,7 +16,7 @@ import type { TelemetryFrame } from '@shared/telemetry'
 import { lapTimeS } from './car'
 import type { CarIncident, SimCar } from './car'
 import { mockBrakeBias, mockFfbTorque, mockTractionControl } from './cockpit'
-import { CLOCK_LEFT_AT_START_S, START_SESSION_TIME_S } from './constants'
+import { CLOCK_LEFT_AT_START_S, START_SESSION_TIME_S, START_TIME_OF_DAY_S } from './constants'
 import {
   DEFAULT_PLAYER_CAR_IDX,
   MOCK_CLASSES,
@@ -672,6 +672,7 @@ export class MockRace {
     v.SessionState[0] = SESSION_STATE_OF[phase]
     v.CarLeftRight[0] = this.carLeftRight
     v.SessionTimeRemain[0] = Math.max(0, CLOCK_LEFT_AT_START_S - this.elapsedS)
+    v.SessionTimeOfDay[0] = (START_TIME_OF_DAY_S + this.elapsedS) % 86400
     v.SessionFlags[0] =
       (this.caution ? SessionFlag.Caution : 0) |
       (this.elapsedS < this.greenUntilS ? SessionFlag.Green : 0) |

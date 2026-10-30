@@ -31,6 +31,7 @@ export interface MockVars extends MockWeatherVars, MockFuelVars {
   /** TireIndex in DriverTires (tyres.ts), -1 for no car. */
   CarIdxTireCompound: number[]
   SessionTimeRemain: number[]
+  SessionTimeOfDay: number[]
   SessionLapsRemainEx: number[]
   SessionFlags: number[]
   PlayerCarMyIncidentCount: number[]
@@ -99,6 +100,7 @@ export class MockFrameBuffer {
     CarIdxSessionFlags: perCar(0),
     CarIdxTireCompound: perCar(-1),
     SessionTimeRemain: [0],
+    SessionTimeOfDay: [0],
     SessionLapsRemainEx: [0],
     SessionFlags: [0],
     PlayerCarMyIncidentCount: [0],

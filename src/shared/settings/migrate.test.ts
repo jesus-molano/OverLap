@@ -834,6 +834,28 @@ describe('«Líderes de otras clases» becomes «Coches de otras clases» (2.4)'
   })
 })
 
+describe('«Hora en pista» (2.4): a new item every bar offers, hidden', () => {
+  it('goes into a saved bar hidden, nothing shown changes', () => {
+    const headerBar = [
+      { id: 'title', visible: true },
+      { id: 'split', visible: true },
+      { id: 'clock', visible: true }
+    ]
+    const s = normalizeSettings({ version: 5, relative: { headerBar } })
+    const shown = s.relative.headerBar.filter((e) => e.visible).map((e) => e.id)
+    expect(shown).toEqual(['title', 'split', 'clock'])
+    expect(s.relative.headerBar.find((e) => e.id === 'simClock')).toEqual({
+      id: 'simClock',
+      visible: false
+    })
+    // Off in every bar of a new install.
+    const d = createDefaultSettings()
+    for (const bar of [d.relative.headerBar, d.standings.footerBar, d.battle.headerBar]) {
+      expect(bar.find((e) => e.id === 'simClock')?.visible).toBe(false)
+    }
+  })
+})
+
 describe('migrateOldBars (R13: new defaults for new installs only)', () => {
   const shown = (l: unknown): string[] =>
     (l as { id: string; visible: boolean }[]).filter((e) => e.visible).map((e) => e.id)

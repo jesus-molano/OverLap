@@ -257,7 +257,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   ven sus elementos; la opción de un elemento, en su fila).
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
-  quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora, SoF, coches, incidentes,
+  quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
   viento, aire, goma; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus

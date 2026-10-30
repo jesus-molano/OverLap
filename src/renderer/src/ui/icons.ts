@@ -142,6 +142,14 @@ export const ICONS = {
     { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },
     { d: 'M8 4.75V8l2.25 1.5', kind: 'stroke' }
   ],
+  /** The sim's time of day (the «Hora en pista» item): a sun. */
+  sun: [
+    { d: 'M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6z', kind: 'stroke' },
+    {
+      d: 'M8 1v1.75M8 13.25V15M1 8h1.75M13.25 8H15M3.05 3.05l1.24 1.24M11.71 11.71l1.24 1.24M3.05 12.95l1.24-1.24M11.71 4.29l1.24-1.24',
+      kind: 'stroke'
+    }
+  ],
   /** Disconnected car. */
   plug: [{ d: 'M6 1.5v3M10 1.5v3M4.5 4.5h7V7a3.5 3.5 0 0 1-7 0zM8 10.5v4', kind: 'stroke' }],
   /** Hidden by a "Mostrar en" / "Ocultar en boxes" rule: a struck-through eye. */

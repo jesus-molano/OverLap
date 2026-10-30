@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ConditionsFeed } from './conditions'
 import { FuelTracker } from './fuel/tracker'
-import { InfoFeed, NO_INFO, fastestLapOf, infoBarDataEqual } from './infoFeed'
+import { InfoFeed, NO_INFO, fastestLapOf, infoBarDataEqual, simMinutesOf } from './infoFeed'
 import { EMPTY_RACE_VIEW } from './race/emptyRaceView'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { PRACTICE, makeDriver, makeFrame, makeSession } from './race/testing/raceSim'
@@ -171,6 +171,28 @@ describe('InfoFeed', () => {
   })
 })
 
+describe('the sim time (simClock)', () => {
+  it('reads SessionTimeOfDay in whole minutes, only for that item', () => {
+    const { feed } = feedWith()
+    const w = world()
+    w.frame.SessionTimeOfDay[0] = 14 * 3600 + 32 * 60 + 59.9
+    expect(feed.get(w.frame, w.session, w.race, ['simClock'], 5)).toEqual({
+      ...NO_INFO,
+      simMinutes: 14 * 60 + 32
+    })
+    expect(feed.get(w.frame, w.session, w.race, ['clock', 'sof'], 5)?.simMinutes).toBeNull()
+  })
+
+  it('wraps at midnight and is null when unknown', () => {
+    expect(simMinutesOf(0)).toBe(0)
+    expect(simMinutesOf(86399)).toBe(1439)
+    expect(simMinutesOf(86400 + 61)).toBe(1)
+    expect(simMinutesOf(undefined)).toBeNull()
+    expect(simMinutesOf(Number.NaN)).toBeNull()
+    expect(simMinutesOf(-5)).toBeNull()
+  })
+})
+
 describe('fastestLapOf', () => {
   it('any class with -1; null when nobody has a lap; yours marked', () => {
     const w = world({ best: [58, null, 59] })
@@ -197,6 +219,7 @@ describe('infoBarDataEqual', () => {
       { incidents: { mine: 1, team: null, limit: null } },
       { classPosition: 2 },
       { fuelLaps: 4.2 },
+      { simMinutes: 600 },
       {
         fastestLap: { lapTime: 60, carIdx: 1, carNumber: '9', driverName: '', isPlayer: false }
       }

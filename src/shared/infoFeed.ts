@@ -44,7 +44,8 @@ export const NO_INFO: Readonly<InfoBarData> = Object.freeze({
   safetyRating: null,
   fastestLap: null,
   conditions: null,
-  fuelLaps: null
+  fuelLaps: null,
+  simMinutes: null
 })
 
 /** What the asking provider already computed (the standings' header): taken as it is. */
@@ -192,8 +193,15 @@ export class InfoFeed {
           ? Math.round((raw / avg) * 10) / 10
           : null
     }
+    if (need('simTime')) out.simMinutes = simMinutesOf(frame.SessionTimeOfDay[0])
     return out
   }
+}
+
+/** Whole minutes since midnight (0..1439) of a time of day in seconds; null when unknown. */
+export function simMinutesOf(seconds: number | undefined): number | null {
+  if (!isFiniteNumber(seconds) || seconds < 0) return null
+  return Math.floor(seconds / 60) % 1440
 }
 
 /** The registered entries of a class (pace car and spectators left out). */
@@ -244,6 +252,7 @@ export function infoBarDataEqual(a: InfoBarData | null, b: InfoBarData | null): 
     safetyEqual(a.safetyRating, b.safetyRating) &&
     fastestEqual(a.fastestLap, b.fastestLap) &&
     footerConditionsEqual(a.conditions, b.conditions) &&
-    same(a.fuelLaps, b.fuelLaps)
+    same(a.fuelLaps, b.fuelLaps) &&
+    a.simMinutes === b.simMinutes
   )
 }
