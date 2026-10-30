@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import { createDefaultSettings } from '@shared/settings'
 import { anonymous, diagnosticsText, type DiagnosticsInput } from './diagnostics'
 
@@ -18,7 +19,8 @@ function input(over: Partial<DiagnosticsInput> = {}): DiagnosticsInput {
         toggleEditMode: 'unavailable',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'ok'
+        openSettings: 'ok',
+        ...NO_WIDGET_STATUS
       },
       unavailable: ['CommandOrControl+Shift+E']
     },

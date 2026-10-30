@@ -1,6 +1,9 @@
 import { hiddenText, type Messages } from '@shared/i18n'
 import type { OsdMessage, UsedShortcut } from '@shared/ipc'
+import { widgetOfAction } from '@shared/shortcuts'
 import type { HiddenReason, OverlaySettings } from '@shared/types'
+import type { WidgetId } from '@shared/widgets'
+import { widgetTitle } from '@shared/i18n'
 
 /** The state just after a shortcut ran, as the confirmation needs it. */
 export interface FeedbackState {
@@ -15,6 +18,11 @@ export interface FeedbackState {
   layoutCount: number
   /** The layout in use now (after the shortcut). */
   layoutName: string
+  /**
+   * A «Más acciones» shortcut's widget (R52), after it ran: its name, whether it is on, and what
+   * keeps it off the screen while on (the overlay hidden by you, or a rule), null for nothing.
+   */
+  widget?: { name: string; visible: boolean; held: string | null }
 }
 
 /**
@@ -49,6 +57,12 @@ export function shortcutFeedback(
       return { text: t.layout(s.layoutName), detail: '' }
     case 'openSettings':
       return null
+    default: {
+      const w = s.widget
+      if (w === undefined) return null
+      if (!w.visible) return { text: t.widgetHidden(w.name), detail: '' }
+      return { text: t.widgetShown(w.name), detail: w.held ?? '' }
+    }
   }
 }
 
@@ -61,6 +75,8 @@ export interface LiveState {
   /** A visibility rule hides the delta now. */
   deltaHeld: boolean
   inSession: boolean
+  /** Every widget a rule hides now, and why (a «Más acciones» shortcut says it). */
+  autoHidden?: Readonly<Partial<Record<WidgetId, HiddenReason | null>>>
 }
 
 /**
@@ -82,6 +98,26 @@ export function shortcutConfirmation(
     inSession: live.inSession,
     deltaShowing: settings.widgets.delta.visible && !live.deltaHeld,
     layoutCount: lib.list.length,
-    layoutName: lib.list.find((l) => l.id === lib.activeId)?.name ?? ''
+    layoutName: lib.list.find((l) => l.id === lib.activeId)?.name ?? '',
+    widget: widgetState(m, action, settings, live)
   })
+}
+
+/** A «Más acciones» shortcut's widget as the confirmation says it; undefined for another action. */
+function widgetState(
+  m: Messages,
+  action: UsedShortcut,
+  settings: OverlaySettings,
+  live: LiveState
+): FeedbackState['widget'] {
+  const id = widgetOfAction(action)
+  if (id === null) return undefined
+  const visible = settings.widgets[id].visible
+  const reason = live.overlayHidden ? null : (live.autoHidden?.[id] ?? null)
+  const held = live.overlayHidden
+    ? m.core.osd.widgetHeldByYou
+    : reason === null
+      ? null
+      : hiddenText(m, reason)
+  return { name: widgetTitle(m, id), visible, held }
 }

@@ -152,6 +152,11 @@ export const coreEs = {
     layout: (name: string) => `Disposición: ${name}`,
     layoutOnlyOne: 'Solo hay una disposición',
     layoutOnlyOneDetail: 'Guarda otra en Ajustes › Disposiciones',
+    /** «Más acciones» (R52): a widget shown or hidden by its shortcut. */
+    widgetShown: (name: string) => `${name} visible`,
+    widgetHidden: (name: string) => `${name} oculto`,
+    /** Shown, but the overlay is hidden by you: nothing appears yet. */
+    widgetHeldByYou: 'El overlay está oculto: muéstralo con su atajo o desde la bandeja',
     /** The tray's «Traer todos los widgets a esta pantalla» (R51), on the screen they came to. */
     gathered: (n: number) => (n === 1 ? '1 widget traído aquí' : `${n} widgets traídos aquí`),
     gatheredDetail: 'Deshacer, en la bandeja',
@@ -332,6 +337,9 @@ export const coreEn: Dict<typeof coreEs> = {
     layout: (name) => `Layout: ${name}`,
     layoutOnlyOne: 'There is only one layout',
     layoutOnlyOneDetail: 'Save another in Settings › Layouts',
+    widgetShown: (name) => `${name} shown`,
+    widgetHidden: (name) => `${name} hidden`,
+    widgetHeldByYou: 'The overlay is hidden: show it with its shortcut or from the tray',
     gathered: (n) => (n === 1 ? '1 widget brought here' : `${n} widgets brought here`),
     gatheredDetail: 'Undo it from the tray',
     gatheredNone: 'They were all on this screen already',

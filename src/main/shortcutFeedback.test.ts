@@ -88,6 +88,26 @@ describe('shortcutConfirmation (R37)', () => {
     expect(shortcutConfirmation(es, 'nextLayout', n, LIVE)?.text).toBe('Disposición: GT3')
   })
 
+  it('says a «Más acciones» shortcut by its widget, and what still keeps it off (R52)', () => {
+    const s = createDefaultSettings()
+    expect(shortcutConfirmation(es, 'toggleRelative', s, LIVE)).toEqual({
+      text: 'Relativo visible',
+      detail: ''
+    })
+    s.widgets.fuel.visible = false
+    expect(shortcutConfirmation(en, 'toggleFuel', s, LIVE)?.text).toBe('Fuel hidden')
+    // Shown, but a rule holds it, or the overlay is hidden by you.
+    const held = shortcutConfirmation(es, 'toggleBattle', s, {
+      ...LIVE,
+      autoHidden: { battle: 'practice' }
+    })
+    expect(held?.text).toBe('Batalla visible')
+    expect(held?.detail).toMatch(/práctica/i)
+    expect(
+      shortcutConfirmation(es, 'toggleBattle', s, { ...LIVE, overlayHidden: true })?.detail
+    ).toBe(es.core.osd.widgetHeldByYou)
+  })
+
   it('says Esc leaving edit mode as the edit-mode shortcut off', () => {
     const s = createDefaultSettings()
     expect(shortcutConfirmation(es, 'exitEdit', s, LIVE)?.text).toBe('Modo edición: terminado')

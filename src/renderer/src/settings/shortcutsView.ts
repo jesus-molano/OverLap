@@ -7,12 +7,14 @@
  */
 import type { AcceleratorError, AcceleratorWarning } from '@shared/accelerator'
 import { fallbackControllerName, isButtonBinding, parseButtonBinding } from '@shared/controllers'
-import { acceleratorText, keycaps, type Messages } from '@shared/i18n'
+import { acceleratorText, keycaps, widgetTitle, type Messages } from '@shared/i18n'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import {
   EXIT_EDIT_ACCELERATOR,
   MAX_BINDINGS,
   SHORTCUT_ACTIONS,
+  widgetOfAction,
+  type MainShortcutAction,
   sameList,
   type ShortcutAction,
   type ShortcutBindings,
@@ -150,6 +152,20 @@ function badgeOf(m: Messages, status: ShortcutStatus, off: readonly BindingView[
   return off.every((b) => b.button !== null) ? t.disconnected : t.unavailable
 }
 
+/**
+ * An action's name and help: a main one's from the dictionary; a «Más acciones» one (R52) said
+ * with its widget's name ('Mostrar u ocultar Relativo').
+ */
+export function actionText(
+  m: Messages,
+  action: ShortcutAction
+): { readonly label: string; readonly help: string } {
+  const id = widgetOfAction(action)
+  const t = m.settings.shortcuts
+  if (id === null) return t.actions[action as MainShortcutAction]
+  return { label: t.widgetAction(widgetTitle(m, id)), help: t.widgetActionHelp }
+}
+
 /** One row per action, SHORTCUT_ACTIONS order. */
 export function shortcutRows(
   m: Messages,
@@ -157,7 +173,6 @@ export function shortcutRows(
   status: Readonly<ShortcutStatusReport> | null,
   names: DeviceNames = {}
 ): ShortcutRowView[] {
-  const t = m.settings.shortcuts
   const unavailable = new Set(status?.unavailable ?? [])
   return SHORTCUT_ACTIONS.map((action) => {
     const list = bindings[action]
@@ -178,8 +193,7 @@ export function shortcutRows(
       chips.length === 0 ? 'disabled' : off.length > 0 ? 'unavailable' : 'ok'
     return {
       action,
-      label: t.actions[action].label,
-      help: t.actions[action].help,
+      ...actionText(m, action),
       bindings: chips,
       status: rowStatus,
       badge: badgeOf(m, rowStatus, off),
@@ -299,7 +313,7 @@ export function refusalText(
       if (conflict !== undefined && conflict === action) {
         return button ? e.duplicateSameButton(button) : e.duplicateSame
       }
-      const label = conflict ? m.settings.shortcuts.actions[conflict].label : ''
+      const label = conflict ? actionText(m, conflict).label : ''
       return button ? e.duplicateButton(button, label) : e.duplicate(label)
     }
   }

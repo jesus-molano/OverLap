@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NO_WIDGET_SHORTCUTS, NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import { SHORTCUT_CAPTURE_LEASE_MS } from '@shared/ipc'
 import {
   emptyMoreShortcuts,
@@ -15,7 +16,8 @@ const DEFAULTS: ShortcutSettings = {
   toggleEditMode: 'Ctrl+Shift+E',
   cycleDeltaReference: '',
   nextLayout: '',
-  openSettings: ''
+  openSettings: '',
+  ...NO_WIDGET_SHORTCUTS
 }
 
 let registry: FakeGlobalShortcut
@@ -68,7 +70,8 @@ describe('ShortcutManager registration', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
   })
 
@@ -117,14 +120,16 @@ describe('ShortcutManager registration', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
     expect(statuses.at(-1)).toEqual({
       toggleOverlay: 'disabled',
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
   })
 
@@ -136,7 +141,8 @@ describe('ShortcutManager registration', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
     expect(statuses).toEqual([
       {
@@ -144,7 +150,8 @@ describe('ShortcutManager registration', () => {
         toggleEditMode: 'ok',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'disabled'
+        openSettings: 'disabled',
+        ...NO_WIDGET_STATUS
       }
     ])
     expect(console.warn).toHaveBeenCalledOnce()
@@ -161,14 +168,16 @@ describe('ShortcutManager registration', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
     expect(statuses.at(-1)).toEqual({
       toggleOverlay: 'ok',
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
     expect(press('Ctrl+Shift+H')).toBe(true)
   })
@@ -191,7 +200,8 @@ describe('ShortcutManager registration', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
   })
 })
@@ -219,7 +229,8 @@ describe('ShortcutManager Escape', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
   })
 })
@@ -272,7 +283,8 @@ describe('ShortcutManager capture', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
 
     manager.stopCapture()
@@ -294,7 +306,8 @@ describe('ShortcutManager capture', () => {
       toggleEditMode: 'ok',
       cycleDeltaReference: 'disabled',
       nextLayout: 'disabled',
-      openSettings: 'disabled'
+      openSettings: 'disabled',
+      ...NO_WIDGET_STATUS
     })
   })
 

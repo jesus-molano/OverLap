@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { NO_WIDGET_SHORTCUTS } from '@shared/testing/shortcuts'
 import { applyLayout, linkCar, renameLayout, saveLayoutAs } from '@shared/layouts'
 import { RADAR_RANGE_PRESETS_M, createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
@@ -422,9 +423,14 @@ describe('tray menu: hiding the overlay and the shortcuts', () => {
       toggleEditMode: '',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: ''
+      openSettings: '',
+      ...NO_WIDGET_SHORTCUTS,
+      toggleRelative: 'F14'
     }
     createTray(state(settings), ACTIONS)
+    // A widget's «Más acciones» shortcut by its checkbox (R52).
+    expect(widgetItems()[0]).toMatchObject({ accelerator: 'F14', registerAccelerator: false })
+    expect(widgetItems()[1]?.accelerator).toBeUndefined()
     expect(item('Mostrar el overlay')).toMatchObject({
       accelerator: 'F13',
       registerAccelerator: false

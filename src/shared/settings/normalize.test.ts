@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { NO_WIDGET_MORE, NO_WIDGET_SHORTCUTS } from '../testing/shortcuts'
 import type {
   AlertsOptions,
   AppearanceSettings,
@@ -284,7 +285,8 @@ const DEFAULT_SHORTCUTS: ShortcutSettings = {
   toggleEditMode: 'Ctrl+Shift+E',
   cycleDeltaReference: '',
   nextLayout: '',
-  openSettings: 'Ctrl+Shift+O'
+  openSettings: 'Ctrl+Shift+O',
+  ...NO_WIDGET_SHORTCUTS
 }
 const DEFAULT_DELTA: DeltaOptions = {
   referencePractice: 'pb',
@@ -492,7 +494,8 @@ describe('DEFAULT_SETTINGS', () => {
         toggleEditMode: [],
         cycleDeltaReference: [],
         nextLayout: [],
-        openSettings: []
+        openSettings: [],
+        ...NO_WIDGET_MORE()
       },
       buttonDeviceNames: {}
     })
@@ -1463,7 +1466,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleEditMode: '',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
   })
 
@@ -1508,7 +1512,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleEditMode: '',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
     // A default counts: an edited first action that takes the second's default wins it.
     expect(normalizeSettings({ shortcuts: { toggleOverlay: 'Ctrl+Shift+E' } }).shortcuts).toEqual({
@@ -1516,7 +1521,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleEditMode: '',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
     expect(
       normalizeSettings({ shortcuts: { toggleOverlay: '', toggleEditMode: '' } }).shortcuts
@@ -1525,7 +1531,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleEditMode: '',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
   })
 
@@ -1536,7 +1543,8 @@ describe('normalizeSettings: shortcuts', () => {
       toggleEditMode: 'Ctrl+Alt+PageUp',
       cycleDeltaReference: 'Ctrl+Alt+D',
       nextLayout: '',
-      openSettings: ''
+      openSettings: '',
+      ...NO_WIDGET_SHORTCUTS
     }
     expect(normalizeSettings(JSON.parse(JSON.stringify(saved)))).toEqual(saved)
   })
@@ -1629,7 +1637,8 @@ describe('normalizeSettings: controller buttons', () => {
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: '',
       nextLayout: 'joy:1dd2:2201:0:40',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
     expect(s.buttonDeviceNames).toEqual({
       [G29]: 'G29 Driving Force Racing Wheel',
@@ -1650,7 +1659,8 @@ describe('normalizeSettings: controller buttons', () => {
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: 'Ctrl+Alt+D',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
     // Saved and read again: the same.
     expect(normalizeSettings(JSON.parse(JSON.stringify(before)))).toEqual(before)
@@ -1689,7 +1699,8 @@ describe('normalizeSettings: several bindings per action', () => {
     toggleEditMode: [],
     cycleDeltaReference: [],
     nextLayout: [],
-    openSettings: []
+    openSettings: [],
+    ...NO_WIDGET_MORE()
   }
 
   it('gives a file without extra bindings (every file before 2.2) none, its shortcuts as they are', () => {

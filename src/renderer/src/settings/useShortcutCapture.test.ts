@@ -3,6 +3,7 @@
  * Chromium delivers them to the settings window (capture phase on the window).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NO_WIDGET_SHORTCUTS } from '@shared/testing/shortcuts'
 import { effectScope } from 'vue'
 import { SHORTCUT_CAPTURE_RENEW_MS, type ControllerPress } from '@shared/ipc'
 import { DEFAULT_SETTINGS } from '@shared/settings'
@@ -335,7 +336,8 @@ describe('useShortcutCapture: buttons', () => {
       toggleEditMode: 'Ctrl+Shift+H',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: ''
+      openSettings: '',
+      ...NO_WIDGET_SHORTCUTS
     })
     expect(capture.assign('toggleOverlay', 0, 'Ctrl+Shift+H')).toBe(false)
     expect(saved).toEqual([])

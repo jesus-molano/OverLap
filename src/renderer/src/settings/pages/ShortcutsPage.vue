@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, shallowRef, useId } from 'vue'
 import { keycaps } from '@shared/i18n'
-import { EXIT_EDIT_ACCELERATOR, MAX_BINDINGS } from '@shared/shortcuts'
+import { EXIT_EDIT_ACCELERATOR, MAX_BINDINGS, widgetOfAction } from '@shared/shortcuts'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useShortcuts } from '../../composables/useShortcuts'
@@ -47,6 +47,21 @@ const names = computed(() => ({
 const rows = computed(() =>
   shortcutRows(t.value, capture.bindings.value, shortcutStatus.value, names.value)
 )
+/**
+ * The main actions, then «Más acciones» (R52): one row per widget, folded under a row of its
+ * own that says how many are assigned. It opens by itself while one of them is recording or
+ * when one is assigned (yours stay in sight); otherwise only on a click.
+ */
+const mainRows = computed(() => rows.value.filter((r) => widgetOfAction(r.action) === null))
+const widgetRows = computed(() => rows.value.filter((r) => widgetOfAction(r.action) !== null))
+const assignedMore = computed(() => widgetRows.value.filter((r) => r.bindings.length > 0).length)
+const moreToggled = shallowRef<boolean | null>(null)
+const moreOpen = computed(() => {
+  const active = capture.active.value
+  if (active !== null && widgetOfAction(active.action) !== null) return true
+  return moreToggled.value ?? assignedMore.value > 0
+})
+const moreId = useId()
 const escapeCaps = computed(() => keycaps(t.value, EXIT_EDIT_ACCELERATOR))
 const deleteCaps = computed(() => keycaps(t.value, 'Delete'))
 
@@ -112,7 +127,7 @@ const resetItems = computed<ResetItem[]>(() => [
         >
       </div>
       <ShortcutRow
-        v-for="row in rows"
+        v-for="row in mainRows"
         :key="row.action"
         :row="row"
         :capture="capture"
@@ -142,6 +157,34 @@ const resetItems = computed<ResetItem[]>(() => [
         <div class="sc-cell is-empty" role="cell" data-slot="2" data-n="3">
           <span aria-hidden="true">—</span>
         </div>
+      </div>
+      <!-- «Más acciones» (R52): folded; a row of its own, then one row per widget. -->
+      <div class="sc-more" role="row">
+        <div class="sc-more-cell" role="cell">
+          <button
+            type="button"
+            class="sc-more-btn"
+            :aria-expanded="moreOpen"
+            :aria-controls="moreId"
+            @click="moreToggled = !moreOpen"
+          >
+            <Icon name="chevron" class="sc-more-chev" />
+            <span class="st-label">{{ t.settings.shortcuts.more.title }}</span>
+            <span class="sc-more-count">{{ t.settings.shortcuts.more.summary(assignedMore) }}</span>
+          </button>
+          <span class="st-help">{{ t.settings.shortcuts.more.help }}</span>
+        </div>
+      </div>
+      <div v-show="moreOpen" :id="moreId" class="sc-more-rows" role="rowgroup">
+        <ShortcutRow
+          v-for="row in widgetRows"
+          :key="row.action"
+          :row="row"
+          :capture="capture"
+          :names="names"
+          :used="usedAgo(usedAt[row.action], now)"
+          :pressed-at="usedAt[row.action] ?? null"
+        />
       </div>
     </div>
 
@@ -185,6 +228,61 @@ const resetItems = computed<ResetItem[]>(() => [
 </template>
 
 <style scoped>
+/* «Más acciones» (R52): the fold's row, a full-width button with its count. */
+.sc-more {
+  padding: 10px 0;
+  border-top: 1px solid var(--st-border);
+}
+
+.sc-more-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sc-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ov-fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sc-more-btn:focus-visible {
+  outline: 2px solid var(--st-focus);
+  outline-offset: 2px;
+}
+
+.sc-more-chev {
+  transform: rotate(-90deg);
+  transition: transform 120ms ease;
+}
+
+.sc-more-btn[aria-expanded='true'] .sc-more-chev {
+  transform: none;
+}
+
+.sc-more-count {
+  margin-left: auto;
+  color: var(--ov-fg-muted);
+  font-size: 12px;
+}
+
+.sc-more-cell > .st-help {
+  padding-left: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-more-chev {
+    transition: none;
+  }
+}
+
 /* The title and its line, then "Restablecer…" at the end (as on a widget page). */
 .page-head {
   display: flex;

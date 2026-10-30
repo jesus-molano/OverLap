@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { WIDGET_SHORTCUT_ACTIONS } from '@shared/shortcuts'
+import { NO_WIDGET_SHORTCUTS, NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import { messagesFor } from '@shared/i18n'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import {
@@ -34,7 +36,8 @@ const custom: ShortcutSettings = {
   toggleEditMode: '',
   cycleDeltaReference: 'Ctrl+Alt+D',
   nextLayout: '',
-  openSettings: ''
+  openSettings: '',
+  ...NO_WIDGET_SHORTCUTS
 }
 /** What main reports when `unavailable` (bindings) do not work; the per-action part unused. */
 const report = (...unavailable: string[]): ShortcutStatusReport => ({
@@ -43,7 +46,8 @@ const report = (...unavailable: string[]): ShortcutStatusReport => ({
     toggleEditMode: 'ok',
     cycleDeltaReference: 'ok',
     nextLayout: 'ok',
-    openSettings: 'ok'
+    openSettings: 'ok',
+    ...NO_WIDGET_STATUS
   },
   unavailable
 })
@@ -63,8 +67,17 @@ describe('shortcutRows', () => {
       'toggleEditMode',
       'cycleDeltaReference',
       'nextLayout',
-      'openSettings'
+      'openSettings',
+      ...WIDGET_SHORTCUT_ACTIONS
     ])
+    // «Más acciones» (R52): said with the widget's name, unbound, nothing to reset.
+    expect(rows.find((r) => r.action === 'toggleRelative')).toMatchObject({
+      label: 'Mostrar u ocultar Relativo',
+      help: 'Su «Visible», como el ojo de la barra lateral',
+      bindings: [],
+      status: 'disabled',
+      canReset: false
+    })
     expect(rows[0]).toMatchObject({
       label: 'Mostrar u ocultar el overlay',
       bindings: [

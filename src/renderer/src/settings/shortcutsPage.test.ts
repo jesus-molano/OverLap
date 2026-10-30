@@ -72,6 +72,18 @@ describe('shortcuts page', () => {
     expect(ROW + PAGE).not.toMatch(/border-left:/)
   })
 
+  it('folds the widgets’ shortcuts under «Más acciones», a row of the same table (R52)', () => {
+    const page = templateOf(PAGE)
+    // The main rows first, then the fold's row and the widgets' rows, inside the table.
+    expect(page).toMatch(/v-for="row in mainRows"/)
+    expect(page).toMatch(
+      /<div class="sc-more" role="row">[\s\S]*?:aria-expanded="moreOpen"[\s\S]*?<div v-show="moreOpen"[^>]*role="rowgroup">\s*<ShortcutRow\s+v-for="row in widgetRows"/
+    )
+    // It opens by itself while one of them records, or when one is assigned.
+    expect(PAGE).toMatch(/widgetOfAction\(active\.action\) !== null\) return true/)
+    expect(PAGE).toMatch(/moreToggled\.value \?\? assignedMore\.value > 0/)
+  })
+
   it('lists the configured keys in the sidebar instead of fixed ones', () => {
     expect(templateOf(SIDEBAR)).not.toMatch(/<kbd>[^{<]/)
     expect(SIDEBAR).toContain('sidebarKeys(t.value, shortcuts.value, deviceNames.value)')
