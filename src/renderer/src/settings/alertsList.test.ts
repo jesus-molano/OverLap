@@ -10,9 +10,15 @@ import {
   ALERT_GROUPS,
   ALERT_GROUP_HEADS,
   alertItems,
+  SHARED_EVENTS,
+  alertOfLight,
   alertPatch,
-  allAlertItems
+  allAlertItems,
+  lightOfAlert,
+  lightShown,
+  lightsPatch
 } from './alertsList'
+import { LIGHT_ORDER } from '@shared/lights'
 import ALERTS from './options/AlertsSettings.vue?raw'
 import LIGHTS from './options/LightsSettings.vue?raw'
 import STANDINGS from './options/StandingsSettings.vue?raw'
@@ -90,5 +96,40 @@ describe('the Contenido / Personalizar rule', () => {
     // An element's option on its row: every row's stake on the stake column's.
     expect(contentOf(STANDINGS)).not.toContain('setDeltaAll')
     expect(STANDINGS).toMatch(/<template #extra="\{ id, visible \}">[\s\S]*?id === 'delta'/)
+  })
+})
+
+describe('Avisos and Testigos: the events both have (R39)', () => {
+  it("pairs each shared event's alert with its light, both ways", () => {
+    expect(SHARED_EVENTS.map(([a]) => a)).toEqual([
+      'showStalled',
+      'showOilPressure',
+      'showPitLimiter'
+    ])
+    for (const [alert, light] of SHARED_EVENTS) {
+      expect(ALERTS_SPEC.ids).toContain(alert)
+      expect(LIGHT_ORDER).toContain(light)
+      expect(lightOfAlert(alert)).toBe(light)
+      expect(alertOfLight(light)).toBe(alert)
+    }
+    // Only those: the flags have no light, the temperatures no alert.
+    expect(lightOfAlert('showFlags')).toBeNull()
+    expect(alertOfLight('water')).toBeNull()
+  })
+
+  it("turns a light on or off in Testigos' list, its place kept", () => {
+    const lights = DEFAULT_SETTINGS.lights
+    expect(lightShown(lights, 'pitLimiter')).toBe(false)
+    const on = lightsPatch(lights, 'pitLimiter', true)
+    expect(lightShown(on, 'pitLimiter')).toBe(true)
+    expect(on.icons.map((e) => e.id)).toEqual(lights.icons.map((e) => e.id))
+    expect(lightShown(lightsPatch(on, 'pitLimiter', false), 'pitLimiter')).toBe(false)
+  })
+
+  it('gives each page a box for the other on those rows, and a line with a button to it', () => {
+    expect(ALERTS).toMatch(/<template #extra="\{ id \}">[\s\S]*?lightBox\(id\)/)
+    expect(ALERTS).toMatch(/<SiblingLink[^>]*page="lights"/)
+    expect(LIGHTS).toMatch(/<template #extra="\{ id \}">[\s\S]*?alertBox\(id\)/)
+    expect(LIGHTS).toMatch(/<SiblingLink[^>]*page="alerts"/)
   })
 })

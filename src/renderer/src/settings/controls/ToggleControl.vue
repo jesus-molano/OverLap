@@ -16,8 +16,17 @@ const props = withDefaults(
     disabled?: boolean
     /** Help shown in the warning colour (e.g. a rule that hides the widget everywhere). */
     warn?: boolean
+    /** The accessible name when the visible label is short ('Testigo' in a row of a list). */
+    name?: string
   }>(),
-  { help: undefined, more: undefined, kind: 'checkbox', disabled: false, warn: false }
+  {
+    help: undefined,
+    more: undefined,
+    kind: 'checkbox',
+    disabled: false,
+    warn: false,
+    name: undefined
+  }
 )
 
 const id = useId()
@@ -61,6 +70,7 @@ function onChange(e: Event): void {
       type="checkbox"
       :checked="value"
       :disabled="disabled"
+      :aria-label="name"
       :aria-describedby="help ? helpId : undefined"
       @change="onChange"
     />

@@ -5,7 +5,8 @@
  * belong to the flags, the overspeed to the limiter: their eye greys out while it is hidden. Pure.
  */
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
-import type { AlertsOptions, ElementEntry } from '@shared/types'
+import { isElementVisible, setElementVisible } from '@shared/elements'
+import type { AlertsOptions, ElementEntry, LightKind, LightsOptions } from '@shared/types'
 import type { SpecRules } from './elements/listOps'
 
 /** An alert switch of the section (its `show*` fields). */
@@ -100,4 +101,39 @@ export function alertPatch(next: readonly ElementEntry<AlertKey>[]): Partial<Ale
   const out: Partial<Record<AlertKey, boolean>> = {}
   for (const e of next) out[e.id] = e.visible
   return out
+}
+
+/**
+ * The events both widgets have (R39): the banner in Avisos and the lamp in Testigos. Each page's
+ * row of one of them has a box for the other, so an event is never on in one place without a
+ * hint that it is in the other.
+ */
+export const SHARED_EVENTS: readonly (readonly [AlertKey, LightKind])[] = [
+  ['showStalled', 'stalled'],
+  ['showOilPressure', 'oilPressure'],
+  ['showPitLimiter', 'pitLimiter']
+]
+
+/** The Testigos lamp of an alert, null when Testigos has none. */
+export function lightOfAlert(id: string): LightKind | null {
+  return SHARED_EVENTS.find(([a]) => a === id)?.[1] ?? null
+}
+
+/** The Avisos switch of a lamp, null when Avisos has none. */
+export function alertOfLight(id: string): AlertKey | null {
+  return SHARED_EVENTS.find(([, l]) => l === id)?.[0] ?? null
+}
+
+/** Whether Testigos shows the lamp. */
+export function lightShown(o: Pick<LightsOptions, 'icons'>, kind: LightKind): boolean {
+  return isElementVisible(o.icons, kind)
+}
+
+/** Testigos' list with one lamp shown or hidden (its place kept). */
+export function lightsPatch(
+  o: Pick<LightsOptions, 'icons'>,
+  kind: LightKind,
+  on: boolean
+): Pick<LightsOptions, 'icons'> {
+  return { icons: setElementVisible(o.icons, kind, on) }
 }

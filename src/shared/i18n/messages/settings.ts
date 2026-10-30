@@ -1014,7 +1014,14 @@ export const settingsEs = {
     incidentsHelp: (s: number) =>
       `Al sumar puntos, al menos ${s}${NB}s: «+2x Pérdida de control · V5 · S3 · grava»`,
     /** Under the list: where the other engine lights went. */
-    engineNote: 'Temperaturas, presión de gasolina y reparaciones opcionales: en Testigos',
+    /**
+     * The events Avisos and Testigos share (R39): each row's «Testigo» box lights the same event
+     * in Testigos, and a line under the list says so, with a button to the page.
+     */
+    alsoLight: 'Testigo',
+    alsoLightLabel: (alert: string) => `${alert}: también su testigo en Testigos`,
+    sharedNote:
+      'Motor calado, presión de aceite y limitador de boxes son también testigos: «Testigo» enciende o apaga el suyo. Temperaturas, presión de gasolina y reparaciones opcionales: solo en Testigos',
     /** The band's extras (alerts.parts), described as every alert is. */
     notesHelp: 'Una línea bajo el aviso: «hasta poder salir», «LIMITADOR OFF»',
     chipsHelp: 'Las demás banderas y avisos activos, en pequeño bajo el principal',
@@ -1149,6 +1156,11 @@ export const settingsEs = {
   },
   lights: {
     note: 'Como los testigos del salpicadero: en gris apagados, encendidos con su color y su forma',
+    /** The events it shares with Avisos (R39): «Aviso» shows the same event's banner there. */
+    alsoAlert: 'Aviso',
+    alsoAlertLabel: (light: string) => `${light}: también su aviso en Avisos`,
+    sharedNote:
+      'Motor calado, presión de aceite y limitador de boxes son también avisos: «Aviso» enciende o apaga el suyo',
     layout: 'Orientación',
     layoutChoices: {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
@@ -1329,6 +1341,8 @@ export const settingsEs = {
     movedLeft: (item: string) => `${item}: a la izquierda.`,
     movedRight: (item: string) => `${item}: a la derecha.`,
     count: (visible: number, total: number) => `${visible} de ${total} visibles`,
+    /** A button to another page (SiblingLink). */
+    goTo: (page: string) => `Ir a ${page}`,
     move: (item: string) => `Mover ${item}`,
     moveUp: (item: string) => `Subir ${item}`,
     moveDown: (item: string) => `Bajar ${item}`,
@@ -2560,7 +2574,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     incidents: 'Incidents',
     incidentsHelp: (s) =>
       `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
-    engineNote: 'Temperatures, fuel pressure and optional repairs: in Warning lights',
+    alsoLight: 'Light',
+    alsoLightLabel: (alert) => `${alert}: its light in Warning lights too`,
+    sharedNote:
+      'Stalled engine, oil pressure and pit limiter are warning lights too: “Light” turns theirs on or off. Temperatures, fuel pressure and optional repairs: in Warning lights only',
     notesHelp: 'A line under the alert: “until you can leave”, “LIMITER OFF”',
     chipsHelp: 'The other active flags and alerts, small under the main one',
     stalled: 'Engine stalled',
@@ -2669,6 +2686,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   lights: {
     note: 'Like a dashboard’s warning lights: grey when off, lit with their colour and their shape',
+    alsoAlert: 'Alert',
+    alsoAlertLabel: (light) => `${light}: its alert in Alerts too`,
+    sharedNote:
+      'Stalled engine, oil pressure and pit limiter are alerts too: “Alert” turns theirs on or off',
     layout: 'Orientation',
     layoutChoices: {
       row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
@@ -2825,6 +2846,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     movedLeft: (item) => `${item}: on the left.`,
     movedRight: (item) => `${item}: on the right.`,
     count: (visible, total) => `${visible} of ${total} shown`,
+    goTo: (page) => `Go to ${page}`,
     move: (item) => `Move ${item}`,
     moveUp: (item) => `Move ${item} up`,
     moveDown: (item) => `Move ${item} down`,

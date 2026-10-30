@@ -146,7 +146,9 @@ presión de aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», c
 incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
 con su ojo en **Personalizar › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
 Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
-daltónicos).
+daltónicos). Motor calado, presión de aceite y limitador de boxes son también testigos: su fila
+tiene una casilla **Testigo** que enciende o apaga el suyo en Testigos, y al revés (**Aviso** en
+la página de Testigos).
 
 ### Testigos
 
