@@ -278,10 +278,15 @@ describe('the edit-mode sample', () => {
     expect(v.wetness).toEqual({ label: 'Agua', value: 'Algo húmedo', cells: 2 })
   })
 
-  it('matches the default options of both tables but the switch', () => {
+  it('matches the default options of both tables but the switch, the air and the rubber', () => {
+    // A new install leaves the air and the rubber out of the footers since R30.
     for (const section of ['relative', 'standings'] as const) {
       const o = DEFAULT_SETTINGS[section]
-      expect({ ...footerReadingsOf(o), conditionsFooter: true }).toEqual(ALL_ON)
+      expect({ ...footerReadingsOf(o), conditionsFooter: true }).toEqual({
+        ...ALL_ON,
+        conditionsAirTemp: false,
+        conditionsRubber: false
+      })
     }
   })
 })

@@ -389,9 +389,14 @@ describe('fuelView', () => {
 
   it('waits for the reading when the window keeps its own height (auto height off)', () => {
     // As before the redesign: no line to push the others out of a window sized for them.
-    const fixed = fuelViewOptions(DEFAULT_SETTINGS.fuel, false)
+    // Every line shown (the tyres and the limits are hidden for a new install since R30).
+    const all = {
+      ...DEFAULT_SETTINGS.fuel,
+      lines: DEFAULT_SETTINGS.fuel.lines.map((e) => ({ ...e, visible: true }))
+    }
+    const fixed = fuelViewOptions(all, false)
     expect(fixed.tyresBeforeReading).toBe(false)
-    expect(fuelViewOptions(DEFAULT_SETTINGS.fuel).tyresBeforeReading).toBe(true)
+    expect(fuelViewOptions(all).tyresBeforeReading).toBe(true)
     const before = fuelView(data({ tyres: null }), fixed, ES)
     expect(before.tyres).toBeNull()
     expect(linesOf(before, fixed.order)).not.toContain('tyres')
@@ -419,12 +424,15 @@ describe('fuelView', () => {
     expect(linesOf(EMPTY_VIEW)).toEqual([])
   })
 
-  it('takes its options from the defaults (only the header is off)', () => {
+  it('takes its options from the defaults (the header off, the tyres and the limits hidden)', () => {
     const o = DEFAULT_SETTINGS.fuel
     expect(o.headerBarSize).toBe('off')
     const v = fuelView(PREVIEW_FUEL, fuelViewOptions(o), ES)
-    expect(linesOf(v, fuelViewOptions(o).order)).toEqual(linesOf(v))
-    expect(linesOf(v)).toHaveLength(8)
+    // R30: six lines for a new install; a file's own list stays (migrate.ts).
+    expect(linesOf(v, fuelViewOptions(o).order)).toEqual(
+      linesOf(v).filter((l) => l !== 'tyres' && l !== 'limits')
+    )
+    expect(linesOf(v, fuelViewOptions(o).order)).toHaveLength(6)
   })
 
   it('draws the lines in the order of fuel.lines, the hidden ones left out', () => {

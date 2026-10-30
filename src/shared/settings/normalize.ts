@@ -16,6 +16,7 @@ import { bindingsOf, settleShortcuts } from './shortcuts'
 import {
   HIDDEN_WHEN_ADDED,
   SHOWN_WHEN_ADDED,
+  keepBeforeFewerDefaults,
   migrateSection,
   migrateWidgetsV5,
   placeNewWidget,
@@ -58,7 +59,7 @@ export function normalizeSettings(raw: unknown): OverlaySettings {
     }
   }
   for (const section of OPTION_SECTIONS) {
-    const r = migrateSection(section, raw[section], raw)
+    const r = keepBeforeFewerDefaults(section, migrateSection(section, raw[section], raw))
     if (!isRecord(r)) continue
     mergeSection(out[section], r, sectionSpecs(section))
     disableDuplicateAccelerators(out[section], sectionSpecs(section))

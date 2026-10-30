@@ -136,6 +136,8 @@ async function runLoop(
   })
   const config = defaultTelemetryConfig()
   config.visibility = { ...config.visibility, ...visibility }
+  // The standings' second header line (its SR), off for a new install since R30.
+  config.standings = { ...config.standings, subheaderBarSize: 'normal' }
   loop.setConfig(config)
   await loop.start()
   return run

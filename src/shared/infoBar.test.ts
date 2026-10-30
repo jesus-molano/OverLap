@@ -79,14 +79,10 @@ describe('reading the bars of a section', () => {
       'sof',
       'incidents',
       'remaining',
-      'iRating',
-      'fastestLap',
-      'safetyRating',
+      // R30: no second header line (iRating, SR) and no air or rubber for a new install.
       'trackTemp',
       'wet',
       'wind',
-      'airTemp',
-      'rubber',
       'carCount'
     ])
     // The fuel's header is off by default, and every footer that is new; the traffic's header is
@@ -94,7 +90,10 @@ describe('reading the bars of a section', () => {
     expect(sectionInfoItems('fuel', s.fuel)).toEqual([])
     expect(sectionInfoItems('battle', s.battle)).toEqual([])
     expect(sectionInfoItems('traffic', s.traffic)).toEqual(['title'])
-    expect(infoItemShown('standings', s.standings, 'iRating')).toBe(true)
+    expect(infoItemShown('standings', s.standings, 'iRating')).toBe(false)
+    expect(
+      infoItemShown('standings', { ...s.standings, subheaderBarSize: 'normal' }, 'iRating')
+    ).toBe(true)
     expect(infoItemShown('relative', s.relative, 'trackTemp')).toBe(false)
   })
 

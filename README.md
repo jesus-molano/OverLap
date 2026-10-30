@@ -107,8 +107,10 @@ Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o co
 se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados, iRating,
 licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la
 más rápida de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de
-sesión, tus incidentes, tu iRating en juego y tu SR proyectado; pie con las condiciones de pista
-(temperatura y su tendencia, agua y lluvia, viento con un dial que apunta a tu coche, aire y goma).
+sesión y tus incidentes; pie con las condiciones de pista (temperatura y su tendencia, agua y
+lluvia, viento con un dial que apunta a tu coche) y los coches. A un clic en Personalizar: una
+segunda línea con tu iRating en juego, tu SR proyectado y la vuelta rápida de clase, y el aire y la
+goma en el pie (de serie no salen en una instalación nueva, para leerla de un vistazo).
 
 Antes de la verde muestra la parrilla entera, y al acabar la sesión se queda con los resultados en
 la pantalla de sesión.
@@ -192,7 +194,7 @@ posición, la ventana de parada («V17–V33») y las paradas («1 parada»); el
 quita una parada, como una barra con el recorte; el coche visto desde arriba con el desgaste de cada
 neumático en tres franjas (de verde a rojo, o de azul a naranja con la paleta para daltónicos,
 medido en tu última parada) y los juegos que quedan; y las reparaciones rápidas si la sesión las
-limita. Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
+limita (estas dos líneas, a un clic en Personalizar: no salen de serie en una instalación nueva). Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
 (donde se mide el consumo) y en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
 ## Ajustes y personalización

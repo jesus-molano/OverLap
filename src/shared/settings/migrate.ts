@@ -24,7 +24,13 @@
  * licence, the pedals' auto height) once.
  */
 import { INFO_ITEM_IDS } from '../infoBar'
-import { OPTION_SCHEMA, type ElementsSpec, type OptionSection } from '../settingsSchema'
+import {
+  CONDITIONS_FOOTER_BEFORE,
+  OPTION_SCHEMA,
+  infoBar,
+  type ElementsSpec,
+  type OptionSection
+} from '../settingsSchema'
 import type {
   ElementEntry,
   OverlaySettings,
@@ -588,7 +594,8 @@ export function migrateLists(
     const legacy = read(raw)
     if (spec?.kind !== 'elements' || legacy === null) continue
     out ??= { ...raw }
-    out[field] = listFromLegacy(spec, legacy)
+    // Over the list that version drew (R30 hides more for a new install only).
+    out[field] = listFromLegacy(beforeFewerSpec(section, field, spec), legacy)
   }
   for (const { field, read } of values) {
     if (field in raw) continue
@@ -779,6 +786,49 @@ export function migrateRelativeColumns(raw: unknown): unknown {
     visible: e.visible
   }))
   return { ...raw, columns }
+}
+
+/**
+ * R30 (2.3) shows fewer figures by default, for a new install only: the standings without their
+ * second header line (iRating, SR, margin, fastest lap) and without the air and the rubber in the
+ * footer, the fuel without its tyres and its limits. Every file saves these fields, so a file's
+ * own values already stay; a section a file saved without one of them (written before the field
+ * existed) gets what that version drew, not the new default. Fresh values for each use.
+ */
+const BEFORE_FEWER_DEFAULTS: Readonly<
+  Partial<Record<OptionSection, Readonly<Record<string, () => unknown>>>>
+> = {
+  relative: { footerBar: () => copyList(infoBar(CONDITIONS_FOOTER_BEFORE).default) },
+  standings: {
+    subheaderBarSize: () => 'normal',
+    footerBar: () => copyList(infoBar([...CONDITIONS_FOOTER_BEFORE, 'carCount']).default)
+  },
+  fuel: { lines: () => OPTION_SCHEMA.fuel.lines.ids.map((id) => ({ id, visible: true })) }
+}
+
+const copyList = (l: readonly Readonly<ElementEntry>[]): ElementEntry[] => l.map((e) => ({ ...e }))
+
+/** `spec` with the default of before R30 when that list changed then (BEFORE_FEWER_DEFAULTS). */
+function beforeFewerSpec(section: string, field: string, spec: ElementsSpec): ElementsSpec {
+  const before = BEFORE_FEWER_DEFAULTS[section as OptionSection]?.[field]
+  return before === undefined ? spec : { ...spec, default: before() as ElementEntry[] }
+}
+
+/**
+ * A top-level section the file saved, with what it drew before R30 where it lacks those fields
+ * (BEFORE_FEWER_DEFAULTS); a section it never saved takes the new defaults. Not for a layout's
+ * sections: a field they lack follows the options in effect. `raw` itself when nothing changes.
+ */
+export function keepBeforeFewerDefaults(section: string, raw: unknown): unknown {
+  const before = BEFORE_FEWER_DEFAULTS[section as OptionSection]
+  if (before === undefined || !isRecord(raw)) return raw
+  let out: Record<string, unknown> | null = null
+  for (const [field, value] of Object.entries(before)) {
+    if (field in raw) continue
+    out ??= { ...raw }
+    out[field] = value()
+  }
+  return out ?? raw
 }
 
 /** Accordions of "Personalizar" that were renamed: the old id and the one that took its place. */

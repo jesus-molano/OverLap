@@ -350,8 +350,14 @@ const CONDITIONS_EXTRAS = {
   conditionsWindDirection: { kind: 'bool', default: true, displayOnly: true }
 } as const
 
-/** A table's footer: the track conditions, in the order of the footer it replaced. */
-const CONDITIONS_FOOTER: readonly InfoBarEntryId[] = [
+/**
+ * A table's footer: the track conditions, in the order of the footer it replaced. Since R30 a new
+ * install leaves out the air and the rubber (two more figures to read in a glance; they stay in
+ * the list, hidden); a section a file saved keeps them (migrate.ts BEFORE_FEWER_DEFAULTS).
+ */
+export const CONDITIONS_FOOTER: readonly InfoBarEntryId[] = ['trackTemp', 'wet', 'wind', 'split']
+/** The conditions footer of before R30, for the files that saved one (migrate.ts). */
+export const CONDITIONS_FOOTER_BEFORE: readonly InfoBarEntryId[] = [
   'trackTemp',
   'wet',
   'wind',
@@ -527,7 +533,8 @@ export const OPTION_SCHEMA = {
     headerBar: infoBar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
     headerBarSize: barSize('normal'),
     subheaderBar: infoBar(['iRating', 'fastestLap', 'split', 'safetyRating']),
-    subheaderBarSize: barSize('normal'),
+    // Off for a new install (R30: fewer figures in a glance); a file's own size stays.
+    subheaderBarSize: barSize('off'),
     // On by default: the standings grows by the line (auto height), and it is the table you
     // look at between sessions too. The conditions on the left, the cars on the right (R13).
     footerBar: infoBar([...CONDITIONS_FOOTER, 'carCount']),
@@ -748,7 +755,8 @@ export const OPTION_SCHEMA = {
         'tyres',
         'limits'
       ]),
-      { required: ['hero'], displayOnly: true }
+      // The tyres and the session's limits hidden for a new install (R30); a file's list stays.
+      { hidden: ['tyres', 'limits'], required: ['hero'], displayOnly: true }
     ),
     showBox: { kind: 'bool', default: true, displayOnly: true },
     avgLaps: { kind: 'int', min: 2, max: 10, default: 5 },
