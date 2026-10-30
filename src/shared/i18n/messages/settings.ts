@@ -499,7 +499,8 @@ export const settingsEs = {
     /** The confirmation over the game when a shortcut runs (settingsWindow.shortcutToasts). */
     toasts: {
       label: 'Confirmar sobre el juego',
-      help: 'Un aviso breve arriba de la pantalla dice qué ha hecho cada atajo («Overlay oculto»)'
+      help: 'Un aviso breve arriba de la pantalla dice qué ha hecho cada atajo («Overlay oculto»)',
+      more: 'Sale en la pantalla donde están tus widgets. También confirma Esc al salir del modo edición, y «Traer todos…» y «Vincular…» de la bandeja.'
     },
     /** Under the table: how to test one. */
     test: 'Pulsa un atajo, aquí o en el juego, para probarlo: su fila dice «Pulsado».',
@@ -1666,7 +1667,14 @@ export const settingsEs = {
       gathered: (n: number) =>
         n === 1 ? '1 widget traído a esta pantalla.' : `${n} widgets traídos a esta pantalla.`,
       none: 'Ya estaban todos en esta pantalla.',
-      undo: 'Widgets traídos a esta pantalla'
+      undo: 'Widgets traídos a esta pantalla',
+      /** From the tray: to the screen the mouse was on, maybe not this window's. */
+      gatheredCursor: (n: number) =>
+        n === 1
+          ? '1 widget traído a la pantalla del ratón (desde la bandeja).'
+          : `${n} widgets traídos a la pantalla del ratón (desde la bandeja).`,
+      noneCursor: 'Ya estaban todos en la pantalla del ratón.',
+      undoCursor: 'Widgets traídos a la pantalla del ratón'
     },
     filesHelp:
       'Exporta una disposición a un .json para guardarla o compartirla; importarla no la aplica',
@@ -2107,7 +2115,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     used: (s) => (s === 0 ? 'Pressed just now' : `Pressed ${s} s ago`),
     toasts: {
       label: 'Confirm over the game',
-      help: 'A short note at the top of the screen says what each shortcut did (“Overlay hidden”)'
+      help: 'A short note at the top of the screen says what each shortcut did (“Overlay hidden”)',
+      more: 'It shows on the screen your widgets are on. It also confirms Esc leaving edit mode, and the tray’s “Bring every widget…” and “Link…”.'
     },
     test: 'Press a shortcut, here or in the game, to test it: its row says “Pressed”.',
     subMore: 'Button box or pedal buttons too.',
@@ -3076,7 +3085,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
       gathered: (n) =>
         n === 1 ? '1 widget brought to this screen.' : `${n} widgets brought to this screen.`,
       none: 'They were all on this screen already.',
-      undo: 'Widgets brought to this screen'
+      undo: 'Widgets brought to this screen',
+      gatheredCursor: (n) =>
+        n === 1
+          ? '1 widget brought to the mouse’s screen (from the tray).'
+          : `${n} widgets brought to the mouse’s screen (from the tray).`,
+      noneCursor: 'They were all on the mouse’s screen already.',
+      undoCursor: 'Widgets brought to the mouse’s screen'
     },
     filesHelp:
       'Export a layout to a .json file to keep or share it; importing one does not apply it',

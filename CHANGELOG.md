@@ -33,7 +33,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Traer todos los widgets a esta pantalla**: en la bandeja (a la pantalla donde está el ratón) y
   en **Disposiciones › Pantallas** (a la de la ventana de Ajustes). Los widgets de otra pantalla,
   o de una que ya no está conectada, vienen al mismo sitio relativo y con su tamaño, sin salirse;
-  los que ya estaban no se mueven. La página dice cuántos ha traído, con «Deshacer».
+  los que ya estaban no se mueven. La página dice cuántos ha traído y a qué pantalla (la del ratón,
+  si fue desde la bandeja), y desde la bandeja también lo dice un aviso sobre esa pantalla. Durante
+  un minuto se deshace desde la página o con **Deshacer: …** en la bandeja.
 - **«Editar posición» en cada widget, y ⚙ en su etiqueta**: junto a «Visible», un botón entra en
   el modo edición y señala ese widget sobre el juego con un borde que parpadea; si ya editas, lo
   vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el
@@ -43,10 +45,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Saber si un atajo funciona**: al usar un atajo, un aviso breve arriba de la pantalla, sobre el
   juego, dice qué ha hecho («Overlay oculto», «Modo edición», «Disposición: GT3») o por qué no se
   ve nada («Overlay visible · Oculto: fuera del coche», «Solo hay una disposición», «Delta: no hay
-  sesión», «Delta oculto»). No toma el foco ni los clics, y se apaga en **Ajustes › Atajos ›
+  sesión», «Delta oculto»), en la pantalla donde están tus widgets; también al salir del modo
+  edición con `Esc`. No toma el foco ni los clics, y se apaga en **Ajustes › Atajos ›
   Confirmar sobre el juego** (encendido de serie, también si ya tenías ajustes: es nuevo). En esa
-  página, la fila de cada acción dice «Pulsado hace 3 s» al usarla, para probar un atajo desde el
-  juego. Si un atajo no se puede registrar, la bandeja lo dice bajo el estado («1 atajo no
+  página, la fila de cada acción (y la de `Esc`) dice «Pulsado hace 3 s» al usarla y destella con
+  cada pulsación, para probar un atajo desde el juego. Si un atajo no se puede registrar, la bandeja lo dice bajo el estado («1 atajo no
   funciona…», que abre Atajos) y en su texto emergente.
 - **El estado, fuera de la bandeja**: el chip de estado de los Ajustes dice debajo qué está oculto
   ahora y por qué («Oculto: fuera del coche», «2 widgets ocultos ahora», «Overlay oculto») o qué
@@ -73,10 +76,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   secciones de referencia, cada columna con su propio alto: ya no queda un hueco vacío bajo
   Contenido. A una columna, el orden sigue siendo Contenido › Personalizar › Ventana y visibilidad.
 - **Vincular un coche enciende «Según el coche»**: al vincular un coche a una disposición (en
-  Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado, y la página
-  lo dice con «Deshacer»; quitar un vínculo no lo toca. Si estás en un coche sin disposición y
-  tienes dos o más, la página y el submenú **Disposición** de la bandeja ofrecen **Vincular a «…»**
-  (la que está en uso), y **Guardar la actual** trae marcada «Vincular a <tu coche>». Los coches
+  Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado; la página
+  lo dice con «Deshacer» (también en la bandeja, y desde ella un aviso sobre el juego), que lo apaga
+  y vuelve a la disposición que tenías si ha aplicado otra; quitar un vínculo no lo toca. Si estás
+  en un coche sin disposición y tienes dos o más, la página y el submenú **Disposición** de la
+  bandeja ofrecen **Vincular a «…»** (la que está en uso), y **Guardar la actual** ofrece «Vincular
+  a <tu coche>», marcada solo si «Según el coche» ya está activado: guardar nunca lo activa sin
+  que lo marques. Los coches
   vinculados salen como etiquetas en cada disposición, y la lista de coches que se pueden vincular
   incluye los de tus récords personales, sin tener que subirte a ellos otra vez.
 - **El ojo es el símbolo de la visibilidad**: en la barra lateral, cada widget tiene un ojo (como
@@ -88,7 +94,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Widgets agrupados**: la barra lateral de los Ajustes, su selector en una ventana estrecha y la
   bandeja ordenan los diez widgets en tres grupos: **Pista y rivales** (Relativo, Posiciones,
   Batalla, Tráfico, Radar), **Tu vuelta** (Delta, Combustible, Pedales) y **Estado del coche**
-  (Avisos, Testigos). En la bandeja, una línea separa cada grupo.
+  (Avisos, Testigos). En la bandeja, cada grupo lleva su nombre y una línea lo separa del
+  siguiente.
 
 - **Atajos en tabla, una columna por atajo**: cada acción es una fila y cada atajo tiene su
   columna (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como en la pantalla de controles de

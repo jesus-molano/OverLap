@@ -56,6 +56,8 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return true
     case 'delete-personal-bests':
       return isPersonalBestKeys(cmd.keys)
+    case 'undo-notice':
+      return typeof cmd.id === 'number' && Number.isSafeInteger(cmd.id) && cmd.id > 0
     // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.
     case 'layout-save':
       return (

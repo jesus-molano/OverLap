@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createDefaultSettings } from '@shared/settings'
 import type { Rect } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
-import { gatherBounds, gatheredRect } from './gather'
+import { gatherBounds, gatheredRect, moveWidgets } from './gather'
 import type { DisplayInfo } from './overlayLayout'
 
 const LEFT: DisplayInfo = {
@@ -76,5 +76,22 @@ describe('gatherBounds (R51)', () => {
     expect(Object.keys(out)).toEqual(['fuel'])
     // Everything to the right display instead: the nine others move.
     expect(Object.keys(gatherBounds(bounds, [LEFT, RIGHT], RIGHT))).toHaveLength(9)
+  })
+})
+
+describe('moveWidgets (R51)', () => {
+  it('moves only the widgets given, and keeps what undoes it', () => {
+    const s = createDefaultSettings()
+    const fuelWas = { ...s.widgets.fuel.bounds }
+    const radarWas = { ...s.widgets.radar.bounds }
+    const to = { x: 2000, y: 100, width: fuelWas.width, height: fuelWas.height }
+    const { settings, before } = moveWidgets(s, { fuel: to })
+    expect(settings.widgets.fuel.bounds).toEqual(to)
+    expect(settings.widgets.radar.bounds).toEqual(radarWas)
+    expect(before).toEqual({ fuel: fuelWas })
+    // The undo is the same move back.
+    expect(moveWidgets(settings, before).settings.widgets.fuel.bounds).toEqual(fuelWas)
+    // The settings it was given are left as they were.
+    expect(s.widgets.fuel.bounds).toEqual(fuelWas)
   })
 })

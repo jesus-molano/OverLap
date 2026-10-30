@@ -103,6 +103,8 @@ export const coreEs = {
     editMode: 'Modo edición',
     /** Every widget to the display where the cursor is (R51). */
     gatherWidgets: 'Traer todos los widgets a esta pantalla',
+    /** What the tray or the settings window just did, undone (R26, R51). */
+    undo: (what: string) => `Deshacer: ${what}`,
     /** Checked while the overlay is shown (the user's own hide, as the shortcut). */
     showOverlay: 'Mostrar el overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
@@ -149,7 +151,14 @@ export const coreEs = {
     deltaHiddenDetail: 'La referencia ha cambiado, pero el widget no se ve',
     layout: (name: string) => `Disposición: ${name}`,
     layoutOnlyOne: 'Solo hay una disposición',
-    layoutOnlyOneDetail: 'Guarda otra en Ajustes › Disposiciones'
+    layoutOnlyOneDetail: 'Guarda otra en Ajustes › Disposiciones',
+    /** The tray's «Traer todos los widgets a esta pantalla» (R51), on the screen they came to. */
+    gathered: (n: number) => (n === 1 ? '1 widget traído aquí' : `${n} widgets traídos aquí`),
+    gatheredDetail: 'Deshacer, en la bandeja',
+    gatheredNone: 'Ya estaban todos en esta pantalla',
+    /** The tray's «Vincular X a «Y»» (R26). */
+    autoOn: '«Según el coche» activado',
+    linked: (car: string, layout: string) => `${car} → «${layout}»`
   },
   /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
   layoutFiles: {
@@ -293,6 +302,7 @@ export const coreEn: Dict<typeof coreEs> = {
     linkCar: (car, layout) => `Link ${car} to “${layout}”`,
     editMode: 'Edit mode',
     gatherWidgets: 'Bring every widget to this screen',
+    undo: (what) => `Undo: ${what}`,
     showOverlay: 'Show the overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',
@@ -322,7 +332,12 @@ export const coreEn: Dict<typeof coreEs> = {
     deltaHiddenDetail: 'The reference changed, but the widget is not showing',
     layout: (name) => `Layout: ${name}`,
     layoutOnlyOne: 'There is only one layout',
-    layoutOnlyOneDetail: 'Save another in Settings › Layouts'
+    layoutOnlyOneDetail: 'Save another in Settings › Layouts',
+    gathered: (n) => (n === 1 ? '1 widget brought here' : `${n} widgets brought here`),
+    gatheredDetail: 'Undo it from the tray',
+    gatheredNone: 'They were all on this screen already',
+    autoOn: '“By car” turned on',
+    linked: (car, layout) => `${car} → “${layout}”`
   },
   layoutFiles: {
     filter: 'OverLap layout',

@@ -15,11 +15,12 @@ import {
   type ScaleStepMessage,
   type SettingsCommand,
   type SettingsWindowPage,
+  type UsedShortcut,
   type WidgetToggleMessage
 } from '@shared/ipc'
 import type { PersonalBestList } from '@shared/delta/references'
 import type { WidgetId } from '@shared/widgets'
-import type { ShortcutAction, ShortcutStatusReport } from '@shared/shortcuts'
+import type { ShortcutStatusReport } from '@shared/shortcuts'
 import type {
   CarRef,
   OverlaySettings,
@@ -57,7 +58,7 @@ const api: OverlayApi = {
   onSettingsPage: (cb) => subscribe<SettingsWindowPage>(IPC.settingsPage, cb),
   onSaveFailing: (cb) => subscribe<boolean>(IPC.saveFailing, cb),
   onControllerPress: (cb) => subscribe<ControllerPress>(IPC.controllerPress, cb),
-  onShortcutUsed: (cb) => subscribe<ShortcutAction>(IPC.shortcutUsed, cb),
+  onShortcutUsed: (cb) => subscribe<UsedShortcut>(IPC.shortcutUsed, cb),
   onOsd: (cb) => subscribe<OsdMessage>(IPC.osd, cb),
   commitBounds: (msg: BoundsCommit) => ipcRenderer.send(IPC.commitBounds, msg),
   scaleStep: (msg: ScaleStepMessage) => ipcRenderer.send(IPC.scaleStep, msg),

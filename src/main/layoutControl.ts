@@ -9,6 +9,7 @@
  * cancelled), then windows, telemetry, renderers and tray follow, with one broadcast. It works in
  * edit mode too (it is what you asked for); only the automatic switch waits for edit mode to end.
  */
+import type { Messages } from '@shared/i18n'
 import type { LayoutNotice, SettingsCommand } from '@shared/ipc'
 import { LayoutAutoSwitch } from '@shared/layoutAuto'
 import {
@@ -57,6 +58,11 @@ export interface LayoutControlDeps {
   isEditing(): boolean
   /** To the settings window (IPC.layoutNotice). */
   notify(notice: LayoutNotice): void
+  /**
+   * Keeps the «Deshacer» of what a command did, in main so the page and the tray can both undo
+   * it (NoticeUndo.keep); returns the id its notice carries. Absent: nothing to undo.
+   */
+  keepUndo?(what: (m: Messages) => string, undo: () => void): number
   /** To the settings window (IPC.currentCar). */
   carChanged(car: CarRef | null): void
   /** The file dialogs, built when needed (their parent is the settings window). */
@@ -132,9 +138,8 @@ export class LayoutControl {
             switchedOn = true
           }
         })
-        if (switchedOn && car !== null) {
-          this.deps.notify({ kind: 'auto-switch-on', carName: car.carName })
-        }
+        // The new layout is the one in use already: undoing only turns the switch off again.
+        if (switchedOn && car !== null) this.saidAutoOn(car, null)
         break
       }
       case 'layout-set-mode':
@@ -176,6 +181,7 @@ export class LayoutControl {
         const car = normalizeCarRef(cmd.car)
         if (car === null) return
         // Linking means "use this one in that car": «Según el coche» on too (R26), said once.
+        const before = this.deps.getSettings().savedLayouts.activeId
         let switchedOn = false
         this.change((s) => {
           if (linkCar(s, car, cmd.layoutId) && cmd.layoutId !== null && !s.layouts.autoSwitch) {
@@ -183,9 +189,10 @@ export class LayoutControl {
             switchedOn = true
           }
         })
-        if (switchedOn) this.deps.notify({ kind: 'auto-switch-on', carName: car.carName })
         // Linking the car you are in: its layout now, if the automatic mode is on.
         if (this.auto.car?.carId === car.carId) this.reevaluate()
+        // Said once the layout it applied is in use, so the page's «Deshacer» belongs to it.
+        if (switchedOn) this.saidAutoOn(car, before)
         break
       }
       case 'layout-export':
@@ -241,6 +248,28 @@ export class LayoutControl {
     this.deps.notify(
       layout ? { kind: 'imported', name: layout.name } : { kind: 'import-failed', error: 'full' }
     )
+  }
+
+  /**
+   * «Según el coche» went on by linking `car` (R26): the notice, with a «Deshacer» that turns it
+   * off and, when it applied the car's layout, puts back the one in use before (`before`; null:
+   * none to put back).
+   */
+  private saidAutoOn(car: CarRef, before: string | null): void {
+    const applied = this.deps.getSettings().savedLayouts.activeId
+    const undo =
+      this.deps.keepUndo?.(
+        (m) => m.settings.layouts.autoOnUndo,
+        () => {
+          this.change((s) => {
+            s.layouts.autoSwitch = false
+          })
+          const now = this.deps.getSettings().savedLayouts.activeId
+          // Only while the layout it applied is still the one in use (nothing chose another).
+          if (before !== null && before !== applied && now === applied) this.choose(before)
+        }
+      ) ?? null
+    this.deps.notify({ kind: 'auto-switch-on', carName: car.carName, undo })
   }
 
   private reevaluate(): void {

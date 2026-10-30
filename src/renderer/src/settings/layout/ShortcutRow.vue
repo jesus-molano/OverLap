@@ -39,8 +39,10 @@ const props = withDefaults(
     names: DeviceNames
     /** Seconds since its shortcut last ran, while recent (R37: «Pulsado hace 3 s»); else null. */
     used?: number | null
+    /** When it last ran (performance.now() ms): each press restarts the line's flash (keyed). */
+    pressedAt?: number | null
   }>(),
-  { used: null }
+  { used: null, pressedAt: null }
 )
 
 const t = useI18n()
@@ -62,15 +64,6 @@ const refused = computed(() => messages.value.some((m) => m.tone === 'error'))
 const announcement = computed(() =>
   rowAnnouncement(t.value, props.row, props.capture.feedback.value, recording.value, props.names)
 )
-/** A new press restarts the line's flash (keyed): seconds going back to 0 mean one. */
-let usedPresses = 0
-let lastUsed: number | null = null
-const usedKey = computed(() => {
-  const u = props.used
-  if (u !== null && (lastUsed === null || u < lastUsed)) usedPresses++
-  lastUsed = u
-  return usedPresses
-})
 /** The cell whose binding was just saved: a short flash of its border. */
 const flash = shallowRef<number | null>(null)
 let flashTimer: ReturnType<typeof setTimeout> | undefined
@@ -142,7 +135,7 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
     <div class="sc-act" role="rowheader">
       <span class="st-label">{{ row.label }}</span>
       <span class="st-help">{{ row.help }}</span>
-      <span v-if="used !== null" :key="usedKey" class="sc-used">{{
+      <span v-if="used !== null" :key="pressedAt ?? 0" class="sc-used">{{
         t.settings.shortcuts.used(used)
       }}</span>
     </div>

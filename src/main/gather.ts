@@ -1,4 +1,5 @@
-import type { Rect } from '@shared/types'
+import { setWidgetBounds } from '@shared/settings'
+import type { OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { owningDisplay, type DisplayInfo } from './overlayLayout'
 
@@ -55,4 +56,23 @@ export function gatherBounds(
     if (next !== null) out[id] = next
   }
   return out
+}
+
+/**
+ * `s` with each widget in `bounds` there (setWidgetBounds: rounded, kept sane), and what they
+ * were before, for the «Deshacer» that puts them back (R51). Pure.
+ */
+export function moveWidgets(
+  s: OverlaySettings,
+  bounds: Partial<Record<WidgetId, Rect>>
+): { settings: OverlaySettings; before: Partial<Record<WidgetId, Rect>> } {
+  let next = s
+  const before: Partial<Record<WidgetId, Rect>> = {}
+  for (const id of WIDGET_IDS) {
+    const b = bounds[id]
+    if (b === undefined) continue
+    before[id] = { ...s.widgets[id].bounds }
+    next = setWidgetBounds(next, id, b)
+  }
+  return { settings: next, before }
 }

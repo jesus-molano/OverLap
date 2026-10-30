@@ -1,7 +1,6 @@
 import { hiddenText, type Messages } from '@shared/i18n'
-import type { OsdMessage } from '@shared/ipc'
-import type { ShortcutAction } from '@shared/shortcuts'
-import type { HiddenReason } from '@shared/types'
+import type { OsdMessage, UsedShortcut } from '@shared/ipc'
+import type { HiddenReason, OverlaySettings } from '@shared/types'
 
 /** The state just after a shortcut ran, as the confirmation needs it. */
 export interface FeedbackState {
@@ -26,7 +25,7 @@ export interface FeedbackState {
  */
 export function shortcutFeedback(
   m: Messages,
-  action: ShortcutAction,
+  action: UsedShortcut,
   s: FeedbackState
 ): OsdMessage | null {
   const t = m.core.osd
@@ -38,6 +37,9 @@ export function shortcutFeedback(
         : { text: t.overlayShownHeld(hiddenText(m, s.allHiddenBy)), detail: '' }
     case 'toggleEditMode':
       return { text: s.editMode ? t.editOn : t.editOff, detail: '' }
+    // Esc, the fixed shortcut: it only ever leaves edit mode.
+    case 'exitEdit':
+      return { text: t.editOff, detail: '' }
     case 'cycleDeltaReference':
       if (!s.inSession) return { text: t.deltaNoSession, detail: t.deltaNoSessionDetail }
       if (!s.deltaShowing) return { text: t.deltaHidden, detail: t.deltaHiddenDetail }
@@ -48,4 +50,38 @@ export function shortcutFeedback(
     case 'openSettings':
       return null
   }
+}
+
+/** What main knows right after a shortcut ran, besides the settings. */
+export interface LiveState {
+  overlayHidden: boolean
+  editMode: boolean
+  /** tray.commonHiddenReason of the rules now. */
+  allHiddenBy: HiddenReason | undefined
+  /** A visibility rule hides the delta now. */
+  deltaHeld: boolean
+  inSession: boolean
+}
+
+/**
+ * The confirmation over the game after `action` ran (main's afterShortcut): none with
+ * «Confirmar sobre el juego» off; the layout named is the one in use after the shortcut. Pure.
+ */
+export function shortcutConfirmation(
+  m: Messages,
+  action: UsedShortcut,
+  settings: OverlaySettings,
+  live: LiveState
+): OsdMessage | null {
+  if (!settings.settingsWindow.shortcutToasts) return null
+  const lib = settings.savedLayouts
+  return shortcutFeedback(m, action, {
+    overlayHidden: live.overlayHidden,
+    editMode: live.editMode,
+    allHiddenBy: live.allHiddenBy,
+    inSession: live.inSession,
+    deltaShowing: settings.widgets.delta.visible && !live.deltaHeld,
+    layoutCount: lib.list.length,
+    layoutName: lib.list.find((l) => l.id === lib.activeId)?.name ?? ''
+  })
 }

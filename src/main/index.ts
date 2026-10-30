@@ -24,7 +24,7 @@ import {
 } from '@shared/controllers'
 import type { PersonalBestList } from '@shared/delta/references'
 import { messagesFor } from '@shared/i18n'
-import { IPC, type InitialState, type RendererView } from '@shared/ipc'
+import { IPC, type InitialState, type RendererView, type UsedShortcut } from '@shared/ipc'
 import { deepEqual } from '@shared/equal'
 import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
 import { stepScale } from '@shared/panelGeometry'
@@ -39,13 +39,15 @@ import {
   toTelemetryConfig
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
-import { everyBinding, shortcutBindings, type ShortcutAction } from '@shared/shortcuts'
+import { everyBinding, shortcutBindings } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, Rect, ShowWhen, SourceKind } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
 import { diagnosticsText } from './diagnostics'
 import { applyFirstRun } from './firstRun'
-import { gatherBounds } from './gather'
+import { NoticeUndo } from './noticeUndo'
+import { gameDisplay } from './osdPlace'
+import { gatherBounds, moveWidgets } from './gather'
 import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
@@ -68,7 +70,7 @@ import { TelemetryHost } from './telemetryHost'
 import { OverlayWindows } from './overlayWindows'
 import { commonHiddenReason, createTray, destroyTray, updateTray, type TrayState } from './tray'
 import { OsdWindow } from './osdWindow'
-import { shortcutFeedback } from './shortcutFeedback'
+import { shortcutConfirmation } from './shortcutFeedback'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
@@ -212,7 +214,10 @@ function start(): void {
   })
 
   // The saved layouts: the tray, the shortcut, the settings window and the automatic switch.
+  /** The «Deshacer» of a car linked or widgets brought here, for the page and the tray alike. */
+  const noticeUndo = new NoticeUndo(() => refreshTray())
   const layouts = new LayoutControl({
+    keepUndo: (what, undo) => noticeUndo.keep(what, undo),
     getSettings: () => store.settings,
     update: (mutate) => void store.update(mutate),
     sync: (prev) => syncSettings(prev),
@@ -375,7 +380,11 @@ function start(): void {
       }
       afterShortcut(action)
     },
-    onExitEdit: () => setEditMode(false),
+    // Esc: said as Ctrl+Shift+E off is, on its row and over the game (R37).
+    onExitEdit: () => {
+      setEditMode(false)
+      afterShortcut('exitEdit')
+    },
     onStatus: (next) => {
       sendToSettingsWindow(IPC.shortcutStatus, next)
       // The tray says how many do not work (R37).
@@ -394,22 +403,35 @@ function start(): void {
    * After a shortcut ran: its row on the shortcuts page says so, and a short confirmation over
    * the game says what it did, or why nothing changed that you can see (R37).
    */
-  function afterShortcut(action: ShortcutAction): void {
+  function afterShortcut(action: UsedShortcut): void {
     sendToSettingsWindow(IPC.shortcutUsed, action)
     const s = store.settings
-    if (!s.settingsWindow.shortcutToasts) return
-    const lib = s.savedLayouts
     const hidden = windows.autoHiddenReasons()
-    const msg = shortcutFeedback(messagesFor(s.appearance.language), action, {
+    const msg = shortcutConfirmation(messagesFor(s.appearance.language), action, s, {
       overlayHidden: windows.userHidden,
       editMode: windows.editMode,
       allHiddenBy: commonHiddenReason({ settings: s, autoHidden: hidden }),
-      inSession: sessionKindNow !== null,
-      deltaShowing: s.widgets.delta.visible && hidden.delta === undefined,
-      layoutCount: lib.list.length,
-      layoutName: lib.list.find((l) => l.id === lib.activeId)?.name ?? ''
+      deltaHeld: hidden.delta !== undefined,
+      inSession: sessionKindNow !== null
     })
-    if (msg) osd.show(msg)
+    if (msg) osd.show(msg, gameArea())
+  }
+
+  /** The work area of the display the game is on (osdPlace.gameDisplay): the widgets' one. */
+  function gameArea(): Rect | undefined {
+    try {
+      const s = store.settings
+      const displays = screen.getAllDisplays().map((d) => ({
+        id: d.id,
+        bounds: d.bounds,
+        workArea: d.workArea,
+        scaleFactor: d.scaleFactor
+      }))
+      const on = WIDGET_IDS.filter((id) => s.widgets[id].visible).map((id) => s.widgets[id].bounds)
+      return gameDisplay(on, displays, screen.getPrimaryDisplay().id)?.workArea
+    } catch {
+      return undefined
+    }
   }
 
   function trayState(): TrayState {
@@ -422,7 +444,8 @@ function start(): void {
       carId: layouts.car?.carId ?? null,
       carName: layouts.car?.carName ?? '',
       shortcutsFailing: Object.values(shortcuts.report.actions).filter((a) => a === 'unavailable')
-        .length
+        .length,
+      undo: noticeUndo.label(messagesFor(store.settings.appearance.language))
     }
   }
 
@@ -534,9 +557,10 @@ function start(): void {
    * «Traer todos los widgets a esta pantalla» (R51): every widget on another display, or left on
    * one that is unplugged, to the display at `point` (the tray: where the cursor is; the
    * settings window: its own), at the same relative place. One change, then the windows move;
-   * the settings window is told how many moved.
+   * the settings window is told how many moved, with a «Deshacer» main keeps (the tray has it
+   * too); from the tray, the confirmation over that display says it as well.
    */
-  function gatherWidgets(point: { x: number; y: number }): void {
+  function gatherWidgets(point: { x: number; y: number }, to: 'window' | 'cursor'): void {
     const all = screen.getAllDisplays().map((d) => ({
       id: d.id,
       bounds: d.bounds,
@@ -555,19 +579,45 @@ function start(): void {
       all,
       target
     )
-    const ids = Object.keys(moved) as WidgetId[]
-    if (ids.length > 0) {
-      const prev = store.settings
-      store.update((draft) => {
-        let next = draft
-        for (const id of ids) next = setWidgetBounds(next, id, moved[id])
-        Object.assign(draft, next)
-      })
-      windows.reloadBoundsOf(ids)
-      syncSettings(prev)
+    const count = Object.keys(moved).length
+    let undo: number | null = null
+    if (count > 0) {
+      const before = placeWidgets(moved)
+      const layoutId = store.settings.savedLayouts.activeId
+      undo = noticeUndo.keep(
+        (m) =>
+          to === 'cursor' ? m.settings.layouts.screens.undoCursor : m.settings.layouts.screens.undo,
+        () => {
+          // Another layout since: its places are not the ones to put back.
+          if (store.settings.savedLayouts.activeId === layoutId) placeWidgets(before)
+        }
+      )
     }
-    console.log(`[main] gathered ${ids.length} widget(s) on display ${target.id}`)
-    sendToSettingsWindow(IPC.layoutNotice, { kind: 'gathered', count: ids.length })
+    console.log(`[main] gathered ${count} widget(s) on display ${target.id}`)
+    sendToSettingsWindow(IPC.layoutNotice, { kind: 'gathered', count, to, undo })
+    if (to === 'cursor' && store.settings.settingsWindow.shortcutToasts) {
+      const t = messagesFor(store.settings.appearance.language).core.osd
+      osd.show(
+        count > 0
+          ? { text: t.gathered(count), detail: t.gatheredDetail }
+          : { text: t.gatheredNone, detail: '' },
+        target.workArea
+      )
+    }
+  }
+
+  /** Widgets to `bounds` (one change, the windows moved); what they were, to put them back. */
+  function placeWidgets(bounds: Partial<Record<WidgetId, Rect>>): Partial<Record<WidgetId, Rect>> {
+    const prev = store.settings
+    let before: Partial<Record<WidgetId, Rect>> = {}
+    store.update((draft) => {
+      const r = moveWidgets(draft, bounds)
+      before = r.before
+      Object.assign(draft, r.settings)
+    })
+    windows.reloadBoundsOf(Object.keys(bounds) as WidgetId[])
+    syncSettings(prev)
+    return before
   }
 
   /** The centre of the settings window (the primary display's when it is not open). */
@@ -752,7 +802,7 @@ function start(): void {
         copyDiagnostics()
         break
       case 'gather-widgets':
-        gatherWidgets(settingsWindowPoint())
+        gatherWidgets(settingsWindowPoint(), 'window')
         break
       case 'refresh-personal-bests':
         sendPersonalBests()
@@ -765,6 +815,9 @@ function start(): void {
       case 'clear-personal-bests':
         if (!telemetry.clearBests()) sendPersonalBests()
         break
+      case 'undo-notice':
+        noticeUndo.run(raw.id)
+        break
     }
   })
 
@@ -773,18 +826,34 @@ function start(): void {
   createTray(trayState(), {
     openSettings: (page) => openSettingsWindow(page),
     applyLayout: (id) => void layouts.choose(id),
+    // From the tray the settings window may be closed: the confirmation over the game says what
+    // it did, and the tray's «Deshacer» undoes «Según el coche» going on (R26, R37).
     linkCar: (car, layoutId) => {
+      const wasAuto = store.settings.layouts.autoSwitch
       layouts
         .command({ type: 'layout-link-car', car, layoutId })
+        .then(() => {
+          const s = store.settings
+          if (!s.settingsWindow.shortcutToasts) return
+          const t = messagesFor(s.appearance.language).core.osd
+          const name = s.savedLayouts.list.find((l) => l.id === layoutId)?.name ?? ''
+          osd.show(
+            !wasAuto && s.layouts.autoSwitch
+              ? { text: t.autoOn, detail: t.linked(car.carName, name) }
+              : { text: t.linked(car.carName, name), detail: '' },
+            gameArea()
+          )
+        })
         .catch((err: unknown) => console.error('[main] link car:', err))
     },
+    undo: () => void noticeUndo.run(),
     setWidgetVisible,
     setRadarRange,
     setShowWhen,
     setEditMode,
     setOverlayHidden,
     openSettingsFolder,
-    gatherWidgets: () => gatherWidgets(screen.getCursorScreenPoint()),
+    gatherWidgets: () => gatherWidgets(screen.getCursorScreenPoint(), 'cursor'),
     quit: () => app.quit()
   })
   // `--settings` (e.g. a desktop shortcut) opens the settings window on start. A first run
@@ -816,6 +885,7 @@ function start(): void {
     safe('stop reading controllers', () => input.dispose())
     safe('dispose windows', () => windows.dispose())
     safe('close the shortcut confirmation', () => osd.dispose())
+    safe('forget the undo', () => noticeUndo.dispose())
     safe('flush settings', () => store.flush())
     safe('destroy tray', () => destroyTray())
     let stopped: Promise<void>

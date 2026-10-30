@@ -1,20 +1,19 @@
 import { BrowserWindow, app, screen } from 'electron'
 import { join } from 'node:path'
 import { IPC, type OsdMessage } from '@shared/ipc'
+import type { Rect } from '@shared/types'
+import { OSD_SIZE, osdBounds } from './osdPlace'
 
 /** How long the confirmation stays over the game. */
 export const OSD_SHOW_MS = 1_800
-/** Its window: the pill is drawn in the middle, the rest is transparent. */
-const SIZE = { width: 520, height: 84 } as const
-/** Below the top edge of the primary display's work area. */
-const TOP_GAP = 36
 
 /**
  * The short confirmation over the game when a shortcut runs (R37: «Overlay oculto»,
  * «Disposición: GT3», «Solo hay una disposición»). Like the overlay windows: transparent,
  * frameless, click-through, never focusable (WS_EX_NOACTIVATE), not in the taskbar or Alt+Tab,
  * shown with showInactive only, so it never takes the focus from the sim. Made the first time it
- * is needed, at the top centre of the primary display; hidden again after OSD_SHOW_MS.
+ * is needed, at the top centre of the display it is given (the game's: main's gameDisplay), the
+ * primary one without; hidden again after OSD_SHOW_MS.
  */
 export class OsdWindow {
   private win: BrowserWindow | null = null
@@ -22,10 +21,11 @@ export class OsdWindow {
   private pending: OsdMessage | null = null
   private hideTimer: ReturnType<typeof setTimeout> | undefined
 
-  show(msg: OsdMessage): void {
+  /** `area`: the work area of the display to show it on (the primary one when absent). */
+  show(msg: OsdMessage, area?: Rect): void {
     const w = this.window()
     if (!w) return
-    this.place(w)
+    this.place(w, area)
     if (!this.ready) {
       // Shown once its page listens (did-finish-load).
       this.pending = msg
@@ -50,15 +50,9 @@ export class OsdWindow {
     }, OSD_SHOW_MS)
   }
 
-  private place(w: BrowserWindow): void {
+  private place(w: BrowserWindow, area?: Rect): void {
     try {
-      const area = screen.getPrimaryDisplay().workArea
-      w.setBounds({
-        x: Math.round(area.x + (area.width - SIZE.width) / 2),
-        y: area.y + TOP_GAP,
-        width: SIZE.width,
-        height: SIZE.height
-      })
+      w.setBounds(osdBounds(area ?? screen.getPrimaryDisplay().workArea))
     } catch {
       // No display information: it stays where it was.
     }
@@ -78,7 +72,7 @@ export class OsdWindow {
   private create(): BrowserWindow {
     this.ready = false
     const w = new BrowserWindow({
-      ...SIZE,
+      ...OSD_SIZE,
       show: false,
       frame: false,
       transparent: true,

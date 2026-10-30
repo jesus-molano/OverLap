@@ -162,7 +162,7 @@ export const IPC = {
    * shortcuts page records a binding (no action runs then).
    */
   controllerPress: 'overlay:controller-press',
-  /** main -> settings window, `ShortcutAction`: a shortcut ran (its row says so, R37). */
+  /** main -> settings window, `UsedShortcut`: a shortcut ran (its row says so, R37). */
   shortcutUsed: 'overlay:shortcut-used',
   /** main -> the confirmation window over the game, `OsdMessage` (R37). */
   osd: 'overlay:osd',
@@ -183,6 +183,9 @@ export interface OpenWidgetPageMessage {
   session: number
   widget: WidgetId
 }
+
+/** A shortcut that ran: a configured action, or Esc leaving edit mode (its fixed row). */
+export type UsedShortcut = ShortcutAction | 'exitEdit'
 
 /** What the confirmation over the game says: a line, and a smaller one under it. */
 export interface OsdMessage {
@@ -222,10 +225,14 @@ export type LayoutFileNotice =
 export type LayoutNotice =
   | LayoutFileNotice
   | { kind: 'options-copied'; widgetId: WidgetId; result: 'copied' | 'unchanged' | 'stale' }
-  /** «Traer todos los widgets a esta pantalla» (R51): how many moved (0: all were there). */
-  | { kind: 'gathered'; count: number }
-  /** Linking `carName` turned «Según el coche» on (R26). */
-  | { kind: 'auto-switch-on'; carName: string }
+  /**
+   * «Traer todos los widgets a esta pantalla» (R51): how many moved (0: all were there), to
+   * which screen (the settings window's, or the cursor's from the tray), and the id that undoes
+   * it (`undo-notice`; null: nothing to undo).
+   */
+  | { kind: 'gathered'; count: number; to: 'window' | 'cursor'; undo: number | null }
+  /** Linking `carName` turned «Según el coche» on (R26); `undo` as above. */
+  | { kind: 'auto-switch-on'; carName: string; undo: number | null }
 
 export interface AutoHiddenState {
   hidden: boolean
@@ -417,6 +424,8 @@ export type SettingsCommand =
    * (R51); main answers on IPC.layoutNotice ('gathered').
    */
   | { type: 'gather-widgets' }
+  /** «Deshacer» of a notice that carries an `undo` id (R26, R51): main keeps what it undoes. */
+  | { type: 'undo-notice'; id: number }
   /** `part`: what of it (WidgetResetPart: 'all' when absent). */
   | { type: 'reset-widget-options'; widgetId: WidgetId; part?: WidgetResetPart }
   /** The widget's bounds set to `bounds` (a reset undone, a free widget's «Escala»). */
@@ -513,7 +522,7 @@ export interface OverlayApi {
   /** Settings window only: a controller's button went down while recording a shortcut. */
   onControllerPress(cb: (press: ControllerPress) => void): Unsubscribe
   /** Settings window only: a shortcut ran. */
-  onShortcutUsed(cb: (action: ShortcutAction) => void): Unsubscribe
+  onShortcutUsed(cb: (action: UsedShortcut) => void): Unsubscribe
   /** The confirmation window over the game only: what to say now. */
   onOsd(cb: (msg: OsdMessage) => void): Unsubscribe
   /** Overlay windows: a panel changed (drag end, wheel notch, fitted height, drop elsewhere). */

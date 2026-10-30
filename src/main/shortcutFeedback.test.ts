@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
-import { shortcutFeedback, type FeedbackState } from './shortcutFeedback'
+import { createDefaultSettings, normalizeSettings } from '@shared/settings'
+import { saveLayoutAs } from '@shared/layouts'
+import {
+  shortcutConfirmation,
+  shortcutFeedback,
+  type FeedbackState,
+  type LiveState
+} from './shortcutFeedback'
 
 const es = messagesFor('es')
 const en = messagesFor('en')
@@ -56,5 +63,41 @@ describe('shortcutFeedback (R37)', () => {
 
   it('says nothing for opening the settings (the window shows)', () => {
     expect(shortcutFeedback(es, 'openSettings', BASE)).toBeNull()
+  })
+})
+
+describe('shortcutConfirmation (R37)', () => {
+  const LIVE: LiveState = {
+    overlayHidden: false,
+    editMode: false,
+    allHiddenBy: undefined,
+    deltaHeld: false,
+    inSession: true
+  }
+
+  it('says nothing with «Confirmar sobre el juego» off', () => {
+    const s = createDefaultSettings()
+    s.settingsWindow.shortcutToasts = false
+    expect(shortcutConfirmation(es, 'toggleOverlay', s, LIVE)).toBeNull()
+  })
+
+  it('names the layout in use after the shortcut', () => {
+    const s = createDefaultSettings()
+    saveLayoutAs(s, 'GT3')
+    const n = normalizeSettings(s)
+    expect(shortcutConfirmation(es, 'nextLayout', n, LIVE)?.text).toBe('Disposición: GT3')
+  })
+
+  it('says Esc leaving edit mode as the edit-mode shortcut off', () => {
+    const s = createDefaultSettings()
+    expect(shortcutConfirmation(es, 'exitEdit', s, LIVE)?.text).toBe('Modo edición: terminado')
+    expect(shortcutConfirmation(en, 'exitEdit', s, LIVE)?.text).toBe('Edit mode: done')
+  })
+
+  it('reads a rule hiding the delta as not showing', () => {
+    const s = createDefaultSettings()
+    expect(
+      shortcutConfirmation(es, 'cycleDeltaReference', s, { ...LIVE, deltaHeld: true })?.text
+    ).toBe('Delta oculto')
   })
 })

@@ -36,6 +36,7 @@ const { settings, shortcutStatus } = useOverlayState()
 const capture = useShortcutCapture(windowCaptureDeps())
 /** When each shortcut last ran: its row says so, to test it (R37). */
 const { usedAt, now } = useShortcutUsed()
+const escUsed = computed(() => usedAgo(usedAt.value.exitEdit, now.value))
 const windowOptions = useOptions('settingsWindow')
 
 /** The controllers' names: the saved ones, and those of the buttons just pressed here. */
@@ -117,12 +118,16 @@ const resetItems = computed<ResetItem[]>(() => [
         :capture="capture"
         :names="names"
         :used="usedAgo(usedAt[row.action], now)"
+        :pressed-at="usedAt[row.action] ?? null"
       />
-      <!-- Esc: a row like the others, its first cell fixed. -->
+      <!-- Esc: a row like the others, its first cell fixed; it says when it ran too (R37). -->
       <div class="sc-item sc-fixed" role="row">
         <div class="sc-act" role="rowheader">
           <span class="st-label">{{ t.settings.shortcuts.escape.label }}</span>
           <span class="st-help">{{ t.settings.shortcuts.escape.help }}</span>
+          <span v-if="escUsed !== null" :key="usedAt.exitEdit ?? 0" class="sc-used">{{
+            t.settings.shortcuts.used(escUsed)
+          }}</span>
         </div>
         <div class="sc-cell sc-cell-fixed" role="cell" data-slot="0" data-n="1">
           <Keycaps :keys="escapeCaps" />
@@ -153,6 +158,7 @@ const resetItems = computed<ResetItem[]>(() => [
         kind="switch"
         :label="t.settings.shortcuts.toasts.label"
         :help="t.settings.shortcuts.toasts.help"
+        :more="t.settings.shortcuts.toasts.more"
         :current="windowOptions.shortcutToasts"
         :apply="optionSetter('settingsWindow')('shortcutToasts')"
       />

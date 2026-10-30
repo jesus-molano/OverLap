@@ -15,6 +15,7 @@ import type { CarRef, OverlaySettings } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
+import { NoticeUndo } from './noticeUndo'
 
 const MAZDA = { carId: 67, carName: 'Mazda MX-5 Cup' }
 const GT3 = { carId: 132, carName: 'Porsche 911 GT3 R (992)' }
@@ -33,6 +34,8 @@ interface Harness {
   /** A change from elsewhere (the settings window's patch). */
   edit(mutate: (s: OverlaySettings) => void): void
   files: { [K in keyof LayoutFileDeps]: ReturnType<typeof vi.fn> }
+  /** What main keeps for «Deshacer» (R26). */
+  undo: NoticeUndo
 }
 
 function harness(initial: OverlaySettings): Harness {
@@ -45,6 +48,7 @@ function harness(initial: OverlaySettings): Harness {
   const reloaded: WidgetId[][] = []
   const notices: LayoutNotice[] = []
   const cars: (CarRef | null)[] = []
+  const undo = new NoticeUndo()
   const files = {
     pickSavePath: vi.fn(async (name: string) => `C:/out/${name}`),
     pickOpenPath: vi.fn(async () => 'C:/in/layout.json'),
@@ -75,6 +79,7 @@ function harness(initial: OverlaySettings): Harness {
     },
     isEditing: () => editing,
     notify: (n) => void notices.push(n),
+    keepUndo: (what, fn) => undo.keep(what, fn),
     carChanged: (car) => void cars.push(car),
     files: () => files as unknown as LayoutFileDeps,
     importedName: () => 'Importada',
@@ -94,7 +99,8 @@ function harness(initial: OverlaySettings): Harness {
       mutate(draft)
       current = normalizeSettings(draft)
     },
-    files
+    files,
+    undo
   }
 }
 
@@ -294,10 +300,33 @@ describe('LayoutControl: the automatic layout', () => {
     await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: 'layout-2' })
     expect(h.settings().layouts.autoSwitch).toBe(true)
     expect(h.settings().savedLayouts.activeId).toBe('layout-2')
-    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName }])
+    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName, undo: 1 }])
     // Already on: nothing more to say.
     await h.control.command({ type: 'layout-link-car', car: MAZDA, layoutId: 'layout-1' })
     expect(h.notices).toHaveLength(1)
+  })
+
+  it('«Deshacer» turns the switch off and puts back the layout it applied over (R26)', async () => {
+    h = harness(twoLayouts())
+    h.control.onCar(GT3)
+    await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: 'layout-2' })
+    expect(h.settings().savedLayouts.activeId).toBe('layout-2')
+    expect(h.undo.run(1)).toBe(true)
+    expect(h.settings().layouts.autoSwitch).toBe(false)
+    expect(h.settings().savedLayouts.activeId).toBe('layout-1')
+    // The link stays: only «Según el coche» was undone.
+    expect(h.settings().savedLayouts.links).toEqual([{ ...GT3, layoutId: 'layout-2' }])
+  })
+
+  it('«Deshacer» leaves a layout chosen since then alone (R26)', async () => {
+    h = harness(twoLayouts())
+    // Not in that car: nothing applied, so nothing to put back.
+    await h.control.command({ type: 'layout-link-car', car: GT3, layoutId: 'layout-2' })
+    expect(h.settings().savedLayouts.activeId).toBe('layout-1')
+    h.control.choose('layout-2')
+    expect(h.undo.run()).toBe(true)
+    expect(h.settings().layouts.autoSwitch).toBe(false)
+    expect(h.settings().savedLayouts.activeId).toBe('layout-2')
   })
 
   it('saves a new layout linked to the car you are in, the switch on (R26)', async () => {
@@ -307,7 +336,7 @@ describe('LayoutControl: the automatic layout', () => {
     expect(lib.activeId).toBe('layout-3')
     expect(lib.links).toEqual([{ ...GT3, layoutId: 'layout-3' }])
     expect(h.settings().layouts.autoSwitch).toBe(true)
-    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName }])
+    expect(h.notices).toEqual([{ kind: 'auto-switch-on', carName: GT3.carName, undo: 1 }])
   })
 
   it('unlinking, or a link that changes nothing, leaves the switch as it is (R26)', async () => {
