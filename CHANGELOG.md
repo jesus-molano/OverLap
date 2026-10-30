@@ -583,6 +583,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **Un solo punto del color elegido**: con un color predefinido elegido, el selector de color libre
+  se ve como una rueda de colores (para elegir otro) y no como un segundo punto del mismo color;
+  se pinta con el color en cuanto es uno tuyo. En los dos diálogos de **Estilo**, «Guardando en»
+  va apilado (el título y debajo dónde), como en las páginas de los widgets.
 - **Disposiciones, más ordenada**: al editar una disposición, **Guardar** y **Cancelar** van juntos
   al final de la línea y es el campo del nombre el que se estrecha (antes «Cancelar» caía solo a
   otra línea). Con una sola disposición ya no salen las flechas para ordenarla, que no hacían

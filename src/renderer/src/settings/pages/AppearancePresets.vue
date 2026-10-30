@@ -228,11 +228,14 @@ function cancel(): void {
           <span>{{ text.confirm.takeBack }}</span>
         </label>
       </template>
-      <p class="cd-where">
+      <!-- Stacked as the widget pages' «Guardando en» block: the caption, then where. -->
+      <div class="cd-where">
         <Icon name="save" class="cd-where-icon" />
-        <span class="cd-where-label">{{ t.settings.widgetPage.target.savingIn }}</span>
-        <span>{{ where }}</span>
-      </p>
+        <p class="cd-where-text">
+          <span class="cd-where-label">{{ t.settings.widgetPage.target.savingIn }}</span>
+          <span>{{ where }}</span>
+        </p>
+      </div>
     </ConfirmDialog>
   </section>
 </template>
@@ -359,16 +362,25 @@ function cancel(): void {
 
 .cd-where {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
+  align-items: flex-start;
+  gap: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--st-border);
   color: var(--ov-fg-muted);
 }
 
 .cd-where-icon {
+  flex: none;
+  margin-top: 2px;
   color: var(--ov-fg-dim);
+}
+
+.cd-where-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
 }
 
 .cd-where-label {
