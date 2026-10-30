@@ -4,6 +4,7 @@
  * away what Completo added. A convenience: without it (another device, cleared storage) the
  * offer is not made and the page only says that Completo's contents stay.
  */
+import type { AppearancePreset } from '@shared/appearancePresets'
 import type { SettingsPatch } from '@shared/types'
 import { browserStorage } from './nav'
 
@@ -34,5 +35,26 @@ export function forgetBeforeComplete(): void {
     browserStorage()?.setItem(COMPLETE_BEFORE_KEY, 'null')
   } catch {
     // Not worth surfacing.
+  }
+}
+
+/**
+ * Notes style `p` being applied: «Completo» remembers `contents` (what the widgets showed before
+ * it); «OverLap», which puts every content back as it comes, and a take-back forget it. Returns
+ * how to put the memory back as it was, for "Deshacer" (undoing OverLap over Completo offers the
+ * take-back again).
+ */
+export function noteStyleApplied(
+  p: AppearancePreset,
+  contents: SettingsPatch,
+  tookBack: boolean
+): () => void {
+  const was = beforeComplete()
+  if (p === 'complete') rememberBeforeComplete(contents)
+  else if (p === 'overlap' || tookBack) forgetBeforeComplete()
+  else return () => {}
+  return () => {
+    if (was === null) forgetBeforeComplete()
+    else rememberBeforeComplete(was)
   }
 }

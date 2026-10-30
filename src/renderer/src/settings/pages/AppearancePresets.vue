@@ -22,7 +22,7 @@ import { sendCommand, updateSettings } from '../editor'
 import { foldGroups, styleChangeGroups, styleWhere } from '../styleChanges'
 import { styleWindows } from '../styleGrowth'
 import { offerRestore } from '../undo/restore'
-import { beforeComplete, forgetBeforeComplete, rememberBeforeComplete } from '../completeBefore'
+import { beforeComplete, noteStyleApplied } from '../completeBefore'
 import SiblingLink from '../layout/SiblingLink.vue'
 
 /**
@@ -92,17 +92,18 @@ const where = computed(() =>
  * for all of it: the settings first (which also puts back a window the text size scaled), then
  * each resized window as it was.
  */
-async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
+async function apply(p: AppearancePreset, plan: StylePlan, tookBack = false): Promise<void> {
   const before = now.value
   const back = undoPatch(before, plan.patch)
   // What the widgets showed before Completo, for a later look to offer back; OverLap puts the
-  // contents back as they come, so after it there is nothing left to offer.
-  if (p === 'complete') rememberBeforeComplete(contentsBack(back))
-  else if (p === 'overlap') forgetBeforeComplete()
+  // contents back as they come, so after it (or a take-back) there is nothing left to offer.
+  // "Deshacer" puts that memory back too.
+  const unnote = noteStyleApplied(p, contentsBack(back), tookBack)
   let restore: Partial<Record<WidgetId, Rect>> = {}
   offerRestore(
     (m) => m.settings.appearance.presets.applied(m.settings.appearance.presets.choices[p].label),
     async () => {
+      unnote()
       await updateSettings(back)
       for (const [id, bounds] of Object.entries(restore)) {
         sendCommand({ type: 'set-widget-bounds', widgetId: id as WidgetId, bounds })
@@ -155,8 +156,7 @@ function confirmApply(): void {
   asking.value = null
   if (a === null) return
   if (a.back !== null && takeBack.value) {
-    forgetBeforeComplete()
-    void apply(a.id, { ...a.plan, patch: mergePatches(a.back, a.plan.patch) })
+    void apply(a.id, { ...a.plan, patch: mergePatches(a.back, a.plan.patch) }, true)
     return
   }
   void apply(a.id, a.plan)

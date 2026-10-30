@@ -135,26 +135,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   sobre el juego, con su contorno siempre; sin filas alternas, logos ni banderas, número en franja y
   licencia solo letra), **Compacto** (pequeño pero legible: filas compactas, texto al 85 % sin bajar
   del texto mínimo, apellidos, número en franja y licencia solo letra, sin logos ni banderas de
-  país) y **Completo** (todo a la vista en los
-  diez widgets de la disposición en uso: cada columna y elemento, las barras de información con sus
-  datos, los títulos de columna, las condiciones completas, cada aviso y testigo, logos siempre y
-  fondo al 90 %; los widgets que pueden crecen en alto, y Relativo y Delta agrandan su ventana lo
-  justo para que el texto no encoja). Limpio y Compacto solo cambian el aspecto: al dejar
-  **Completo** por uno de ellos, la ventana de confirmación dice que lo que Completo añadió a los
-  widgets se queda y ofrece, sin marcar, **Quitar también lo que añadió Completo** (cada widget
-  vuelve a lo que mostraba antes; se recuerda en esta ventana al aplicar Completo); con OverLap se
-  va siempre, porque vuelve todo de serie, y su ventana lo enumera. Se marca el que
-  coincide con lo que tienes (OverLap, solo si el aspecto y lo que muestra cada widget están de
-  serie); si ajustas algo a mano, aquí o en la página de un widget, dice «Personalizado». Debajo,
-  los controles de siempre como **Ajuste fino del estilo**. Si un estilo va a cambiar algo que pusiste tú (un
-  aspecto ajustado a mano, o lo que muestra cada widget con **Completo** y **OverLap**), antes
-  pregunta: una ventana «¿Aplicar el estilo …?» dice qué cambia, de antes a después («Fondo de los
-  widgets: 80 % → 90 %», «Posiciones: se muestran 5 columnas más»; con OverLap, «Posiciones: se
-  ocultan 5 columnas», «Relativo: ventana al tamaño de serie»), plegado si es largo, y dónde se
-  guarda; **Aplicar** o **Cancelar** (o `Esc`). De un estilo a otro se aplica al momento. Todo se
-  deshace con **Deshacer**, ventanas incluidas; no tocan el acento, la Accesibilidad, la etiqueta
-  SIM, el idioma, las unidades, los sitios ni qué widgets se ven. Quien tuviera el aspecto «Como
-  iRacing» (ya no está) lo conserva tal cual, como «Personalizado».
+  país) y **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna y
+  elemento, las barras de información con sus datos, los títulos de columna, las condiciones
+  completas, cada aviso y testigo, logos siempre y fondo al 90 %; los widgets que pueden crecen en
+  alto, y Relativo y Delta agrandan su ventana lo justo para que el texto no encoja). Limpio y
+  Compacto solo cambian el aspecto: al dejar **Completo** por uno de ellos, la ventana de
+  confirmación dice que lo que Completo añadió a los widgets se queda y ofrece, sin marcar,
+  **Quitar también lo que añadió Completo** (cada widget vuelve a lo que mostraba antes; se recuerda
+  en esta ventana al aplicar Completo); con OverLap se va siempre, porque vuelve todo de serie, y su
+  ventana lo enumera. Se marca el que coincide con lo que tienes (OverLap, solo si el aspecto y lo
+  que muestra cada widget están de serie); si ajustas algo a mano, aquí o en la página de un widget,
+  dice «Personalizado». Debajo, los controles de siempre como **Ajuste fino del estilo**. Si un
+  estilo va a cambiar algo que pusiste tú (un aspecto ajustado a mano, o lo que muestra cada widget
+  con **Completo** y **OverLap**), o deja Completo, antes pregunta: una ventana «¿Aplicar el estilo
+  …?» dice qué cambia, de antes a después («Fondo de los widgets: 80 % → 90 %», «Posiciones: se
+  muestran 5 columnas más»; con OverLap, «Posiciones: se ocultan 5 columnas», «Relativo: ventana al
+  tamaño de serie»), plegado si es largo, y dónde se guarda; **Aplicar** o **Cancelar** (o `Esc`).
+  Si no, se aplica al momento. Todo se deshace con **Deshacer**, ventanas incluidas (y, tras
+  deshacer OverLap o la casilla, vuelve la oferta de quitar lo de Completo); no tocan el acento, la
+  Accesibilidad, la etiqueta SIM, el idioma, las unidades, los sitios ni qué widgets se ven. Quien
+  tuviera el aspecto «Como iRacing» (ya no está) lo conserva tal cual, como «Personalizado».
 - **Atajos para mostrar u ocultar cada widget**: en **Atajos**, bajo las acciones de siempre, un
   grupo plegado **Más acciones** tiene una fila por widget («Mostrar u ocultar Relativo»…), con las
   mismas tres casillas, botones del volante incluidos. Hacen lo mismo que el ojo de la barra
