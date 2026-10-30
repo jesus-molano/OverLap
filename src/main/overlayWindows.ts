@@ -1031,6 +1031,12 @@ export class OverlayWindows implements OverlayWindowHost {
     if (rect !== undefined) this.record({ kind: 'rect', id, rect: { ...rect } }, how)
   }
 
+  /** A widget's place and size now (edit mode's undo words: a move or a resize). */
+  rectOf(id: WidgetId): Rect | undefined {
+    const r = this.rects.get(id)
+    return r === undefined ? undefined : { ...r }
+  }
+
   /** What Ctrl+Z would put back now (undefined: nothing). */
   lastEdit(): EditStep | undefined {
     return this.editing ? this.history.peek() : undefined

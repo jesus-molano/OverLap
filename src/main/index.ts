@@ -239,7 +239,7 @@ function start(): void {
     // Edit mode's last change: the tray offers «Deshacer: mover Relativo» too (R38).
     onEditChange: (step) => {
       noticeUndo.keep(
-        (m) => editStepText(m, step),
+        (m) => editStepText(m, step, windows.rectOf(step.id)),
         () => void windows.undoEdit(),
         () => windows.lastEdit() === step
       )
@@ -495,12 +495,15 @@ function start(): void {
       return
     }
     if (key === EDIT_UNDO_KEY) {
+      // Said as it was made: a move or a resize, seen before it goes back.
+      const last = windows.lastEdit()
+      const said = last === undefined ? '' : editStepText(m, last, windows.rectOf(last.id))
       const done = windows.undoEdit()
       if (done !== null) noticeUndo.drop()
       if (!toasts) return
       osd.show(
         {
-          text: done === null ? t.editUndoNone : t.editUndone(editStepText(m, done)),
+          text: done === null ? t.editUndoNone : t.editUndone(said),
           detail: done === null ? '' : t.pickedDetail
         },
         gameArea()

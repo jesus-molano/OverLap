@@ -312,7 +312,8 @@ juego.
   entonces son suyas.
 - `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
   las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
-  también **Deshacer: mover …**. Al salir del modo edición se olvidan.
+  también **Deshacer: …** con lo que hiciste («mover Relativo», «cambiar el tamaño de Relativo»,
+  «ocultar Batalla»). Al salir del modo edición se olvidan.
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde

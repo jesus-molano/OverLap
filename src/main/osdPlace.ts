@@ -2,7 +2,9 @@ import type { Rect } from '@shared/types'
 import { owningDisplay, type DisplayInfo } from './overlayLayout'
 
 /** The confirmation's window: the pill is drawn in the middle, the rest is transparent. */
-export const OSD_SIZE = { width: 520, height: 84 } as const
+// Tall enough for a text on two lines and a detail on two (a long layout or car name): the
+// window lets every click through, so its transparent rest is never in the way.
+export const OSD_SIZE = { width: 520, height: 120 } as const
 /** Below the top edge of its display's work area. */
 const TOP_GAP = 36
 

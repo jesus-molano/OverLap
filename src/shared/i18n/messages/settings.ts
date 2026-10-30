@@ -31,7 +31,7 @@ export const settingsEs = {
       ],
       /** The chip of each widget: what its buttons do. */
       chip: { before: 'En la etiqueta: ojo, candado y', gear: 'engranaje', after: '(sus ajustes)' },
-      exit: 'Salir'
+      exit: 'Salir del modo edición'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
     /** Main could not write settings.json; it keeps retrying. */
@@ -254,7 +254,7 @@ export const settingsEs = {
     keys: {
       editMode: 'modo edición',
       overlay: 'mostrar u ocultar',
-      exit: 'salir de edición'
+      exit: 'salir del modo edición'
     },
     /** The user hid the overlay (tray, shortcut): a line above every page. */
     hidden: {
@@ -275,7 +275,7 @@ export const settingsEs = {
     tooltipKeys: (keys: string) =>
       `Mover y redimensionar los widgets (${keys}). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera`,
     enter: 'Modo edición',
-    exit: 'Salir de edición'
+    exit: 'Salir del modo edición'
   },
   /**
    * The «Visibilidad» page (R34): the overlay's rules, then one table of where each widget shows,
@@ -2051,7 +2051,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         { key: 'Esc', text: 'exit' }
       ],
       chip: { before: 'On the label: eye, padlock and', gear: 'gear', after: '(its settings)' },
-      exit: 'Exit'
+      exit: 'Exit edit mode'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
     saveError:
@@ -2238,7 +2238,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     keys: {
       editMode: 'edit mode',
       overlay: 'show or hide',
-      exit: 'leave editing'
+      exit: 'exit edit mode'
     },
     hidden: {
       title: 'Overlay hidden',
@@ -2646,7 +2646,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     widgetAction: (widget) => `Show or hide ${widget}`,
     escape: {
-      label: 'Leave edit mode',
+      label: 'Exit edit mode',
       help: 'Only while editing',
       tag: 'Fixed'
     },

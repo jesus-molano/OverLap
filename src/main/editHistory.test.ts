@@ -48,9 +48,35 @@ describe('editStepText', () => {
     const es = messagesFor('es')
     const en = messagesFor('en')
     expect(editStepText(es, { kind: 'rect', id: 'relative', rect: rect(0) })).toBe('mover Relativo')
-    expect(editStepText(en, { kind: 'scale', id: 'standings', scale: 100 })).toBe('Standings scale')
+    expect(editStepText(en, { kind: 'scale', id: 'standings', scale: 100 })).toBe(
+      'change the scale of Standings'
+    )
     expect(editStepText(es, { kind: 'toggle', id: 'radar', field: 'locked', value: false })).toBe(
       'bloquear Radar'
     )
+  })
+
+  it('tells a move from a resize by the place and size now', () => {
+    const es = messagesFor('es')
+    const en = messagesFor('en')
+    const before = rect(0)
+    const step = { kind: 'rect', id: 'relative', rect: before } as const
+    const moved = { ...before, x: before.x + 20 }
+    const wider = { ...before, x: before.x - 10, width: before.width + 10 }
+    expect(editStepText(es, step, moved)).toBe('mover Relativo')
+    expect(editStepText(es, step, wider)).toBe('cambiar el tamaño de Relativo')
+    expect(editStepText(en, step, wider)).toBe('resize Relative')
+  })
+
+  it('says the way a toggle went: it kept the value before', () => {
+    const es = messagesFor('es')
+    const en = messagesFor('en')
+    const shown = { kind: 'toggle', id: 'battle', field: 'visible', value: true } as const
+    expect(editStepText(es, shown)).toBe('ocultar Batalla')
+    expect(editStepText(es, { ...shown, value: false })).toBe('mostrar Batalla')
+    expect(editStepText(en, shown)).toBe('hide Battle')
+    const locked = { kind: 'toggle', id: 'radar', field: 'locked', value: true } as const
+    expect(editStepText(es, locked)).toBe('desbloquear Radar')
+    expect(editStepText(en, locked)).toBe('unlock Radar')
   })
 })

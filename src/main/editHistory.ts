@@ -66,11 +66,22 @@ export class EditHistory {
   }
 }
 
-/** What a change put back is, in `m`'s words ('mover Relativo'). */
-export function editStepText(m: Messages, step: EditStep): string {
+/**
+ * What a change was, in `m`'s words, as it was made ('mover Relativo', 'cambiar el tamaño de
+ * Relativo', 'ocultar Batalla'): `now`, the widget's place and size after it, tells a move from a
+ * resize (a resize when its width or height changed); a toggle did the opposite of what it kept.
+ */
+export function editStepText(m: Messages, step: EditStep, now?: Rect): string {
   const w = widgetTitle(m, step.id)
   const e = m.core.tray.editStep
-  if (step.kind === 'rect') return e.rect(w)
+  if (step.kind === 'rect') {
+    const resized =
+      now !== undefined &&
+      (Math.round(now.width) !== Math.round(step.rect.width) ||
+        Math.round(now.height) !== Math.round(step.rect.height))
+    return resized ? e.resize(w) : e.move(w)
+  }
   if (step.kind === 'scale') return e.scale(w)
-  return step.field === 'visible' ? e.visible(w) : e.locked(w)
+  if (step.field === 'visible') return step.value ? e.hide(w) : e.show(w)
+  return step.value ? e.unlock(w) : e.lock(w)
 }

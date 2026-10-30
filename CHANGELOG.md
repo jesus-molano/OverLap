@@ -14,7 +14,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   siguiente o al anterior (de arriba abajo, sin los ocultos ni los bloqueados), también con el
   cursor oculto por el juego, con un aviso breve «Flechas: Relativo». `Ctrl+Z` deshace el último
   cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
-  el anterior, y la bandeja ofrece **Deshacer: mover Relativo**; mantener una flecha o girar la
+  el anterior, y la bandeja ofrece **Deshacer: mover Relativo** (o «cambiar el tamaño de Relativo»,
+  «ocultar Batalla»: lo que hiciste); mantener una flecha o girar la
   rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
   se toman mientras editas; con los Ajustes delante, funcionan mientras no estés en un campo, un
   deslizador o una lista (ver **Cambiado**).
@@ -200,6 +201,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Salir del modo edición se llama igual en todas partes**: el botón de la barra lateral, el del
+  aviso de los Ajustes, la fila de Atajos y la leyenda de la barra lateral dicen «Salir del modo
+  edición» (antes también «Salir de edición», «salir de edición» y «Salir»); sobre cada widget
+  sigue «Esc: salir», que es la misma palabra. En inglés, «Exit edit mode» (antes también «Leave
+  edit mode» y «leave editing»). El deshacer del modo edición dice lo que hiciste: «cambiar el
+  tamaño de Relativo» si cambiaste su tamaño (antes «mover»), «ocultar Batalla» o «mostrar
+  Batalla» (antes «mostrar u ocultar»), «desbloquear» y «cambiar la escala de».
+- **El primer aviso de las flechas cabe entero**: «Primero elige un widget: arrástralo o pulsa
+  Tab» (antes una frase más larga que se cortaba por los lados), y lo mismo con «Nada que mover:
+  todos ocultos o bloqueados» y «Overlay oculto: muéstralo con su atajo o la bandeja». Si un nombre
+  largo no cabe, el aviso pasa a dos líneas en vez de cortarse. Una prueba mide que cada aviso
+  cabe en una línea en los dos idiomas.
 - **Las teclas del modo edición funcionan también con los Ajustes delante**: justo después de
   **Editar posición**, las flechas mueven el widget, `Tab` y `Mayús+Tab` eligen otro y `Ctrl+Z`
   deshace, como dice el aviso de los Ajustes, sin tener que ir antes al juego. Las flechas y
