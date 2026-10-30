@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { DEFAULT_SETTINGS } from '@shared/settings'
+import { LAYOUT_EXAMPLES, type LayoutExample } from '@shared/layoutExamples'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
+import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
+import { bindingText } from '../shortcutsView'
 import { LAYOUT_SORTS } from '@shared/settingsSchema'
 import type { LayoutMode, LayoutSort } from '@shared/types'
 import { useI18n, useLocale } from '../../composables/useI18n'
@@ -102,6 +105,26 @@ const notice = computed(() => {
   const n = layoutNotice.value
   return n !== null && isFileNotice(n) ? noticeText(t.value, n) : null
 })
+
+/** The example layouts (R57): added, never applied; then how to switch to them. */
+const shortcuts = useShortcuts()
+const deviceNames = useDeviceNames()
+const examples = computed(() =>
+  LAYOUT_EXAMPLES.map((kind) => ({ kind, ...t.value.settings.layouts.examples[kind] }))
+)
+const addedExample = shallowRef<LayoutExample | null>(null)
+const addedText = computed(() => {
+  const kind = addedExample.value
+  if (kind === null) return null
+  const first = shortcuts.value.nextLayout[0]
+  const keys = first === undefined ? null : bindingText(t.value, first, deviceNames.value)
+  const e = t.value.settings.layouts.examples
+  return e.added(e[kind].name, keys)
+})
+function addExample(kind: LayoutExample): void {
+  cmd.example(kind, t.value.settings.layouts.examples[kind].name)
+  addedExample.value = kind
+}
 
 const newName = shallowRef('')
 /**
@@ -388,6 +411,28 @@ function onLink(car: CarRow, e: Event): void {
             <span class="st-help">{{ t.settings.layouts.modeHints[saveMode] }}</span>
           </div>
         </form>
+      </PageSection>
+
+      <PageSection
+        :title="t.settings.layouts.examples.title"
+        :note="t.settings.layouts.examples.note"
+      >
+        <div v-for="e in examples" :key="e.kind" class="st-row st-row-wrap">
+          <div class="st-row-text">
+            <span class="st-label">{{ e.name }}</span>
+            <span class="st-help">{{ e.hint }}</span>
+          </div>
+          <button
+            type="button"
+            class="st-btn"
+            :disabled="!roomLeft"
+            :aria-label="t.settings.layouts.examples.addLabel(e.name)"
+            @click="addExample(e.kind)"
+          >
+            {{ t.settings.layouts.examples.add }}
+          </button>
+        </div>
+        <p v-if="addedText" class="st-row st-help" role="status">{{ addedText }}</p>
       </PageSection>
 
       <PageSection :title="t.settings.layouts.autoTitle">

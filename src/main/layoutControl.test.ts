@@ -178,6 +178,22 @@ describe('LayoutControl: applying', () => {
     expect(usedAt('layout-4')).toBeUndefined()
   })
 
+  it('adds an example layout at the end without applying it (R57)', async () => {
+    const before = h.settings().savedLayouts.activeId
+    await h.control.command({ type: 'layout-example', kind: 'light', name: 'Ligera' })
+    const list = h.settings().savedLayouts.list
+    expect(list.at(-1)?.name).toBe('Ligera')
+    expect(list.at(-1)?.widgets.standings.visible).toBe(false)
+    expect(h.settings().savedLayouts.activeId).toBe(before)
+    // «Siguiente disposición» reaches it.
+    const id = list.at(-1)?.id
+    for (let i = 0; i < list.length && h.settings().savedLayouts.activeId !== id; i++) {
+      h.control.next()
+    }
+    expect(h.settings().savedLayouts.activeId).toBe(id)
+    expect(h.settings().widgets.standings.visible).toBe(false)
+  })
+
   it('moves past the pinned one in use when the page asks', async () => {
     await h.control.command({ type: 'layout-save', name: 'GT3' })
     // Principal, Mazda, [GT3]: Principal goes below Mazda; the one in use cannot move itself.

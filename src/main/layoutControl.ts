@@ -11,6 +11,7 @@
  */
 import type { Messages } from '@shared/i18n'
 import type { LayoutNotice, SettingsCommand } from '@shared/ipc'
+import { addExampleLayout } from '@shared/layoutExamples'
 import { LayoutAutoSwitch } from '@shared/layoutAuto'
 import {
   applyLayout,
@@ -158,6 +159,9 @@ export class LayoutControl {
         break
       case 'layout-duplicate':
         this.change((s) => void duplicateLayout(s, cmd.id, cmd.name))
+        break
+      case 'layout-example':
+        this.change((s) => void addExampleLayout(s, cmd.kind, cmd.name))
         break
       case 'layout-rename':
         this.change((s) => void renameLayout(s, cmd.id, cmd.name))
