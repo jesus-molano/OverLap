@@ -19,6 +19,7 @@ import {
   isLayoutSection,
   type OptionSection
 } from '@shared/settingsSchema'
+import { hasOptionPart } from '@shared/settings'
 import { WIDGET_IDS } from '@shared/widgets'
 import * as customize from './customize'
 import { INFO_BARS } from '@shared/infoBar'
@@ -160,8 +161,12 @@ describe('the widget pages', () => {
       const template = source.slice(source.indexOf('<template>'))
       const customize = template.search(/<CustomizeSection[\s>]/)
       const before = [...template.slice(0, customize).matchAll(/<PageSection\b([^>]*)>/g)]
-      expect(before.length, path).toBe(1)
-      expect(before[0]?.[1], path).toContain(':title="t.settings.common.content"')
+      // A page whose every option is how a part is drawn has no «Contenido» (Pedales, R12).
+      const id = WIDGET_IDS.find((w) => path.toLowerCase().endsWith(`/${w}settings.vue`))
+      expect(id, path).toBeDefined()
+      const content = id !== undefined && hasOptionPart(id, 'content')
+      expect(before.length, path).toBe(content ? 1 : 0)
+      if (content) expect(before[0]?.[1], path).toContain(':title="t.settings.common.content"')
       // The page's reference sections (a legend, the records) go after the editors.
       const after = template.slice(template.indexOf('</CustomizeSection>'))
       expect(after.replace(/<PageAppendix>[\s\S]*?<\/PageAppendix>/g, ''), path).not.toMatch(
@@ -239,7 +244,14 @@ function compileSection(lang: Language): vue.Component {
     './ResetIcon.vue': { default: vue.defineComponent({ render: () => null }) },
     '../../ui/Icon.vue': { default: vue.defineComponent({ render: () => null }) },
     // Outside a widget page (no WIDGET_PAGE provided): no ↺.
-    '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
+    '../undo/restore': {
+      WIDGET_PAGE: Symbol('widget-page'),
+      resetWidget: () => undefined,
+      widgetPartAtDefault: () => false
+    },
+    '../../composables/useOverlay': {
+      useOverlayState: () => ({ settings: vue.shallowRef(null) })
+    },
     '../../composables/useI18n': { useI18n: () => vue.computed(() => messagesFor(lang)) }
   }
   const exports: { default?: vue.Component } = {}

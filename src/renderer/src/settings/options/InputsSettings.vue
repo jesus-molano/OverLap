@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { isElementVisible } from '@shared/elements'
 import {
   INPUTS_TRACE_MAX_S,
   INPUTS_TRACE_MIN_S,
@@ -23,7 +22,6 @@ import ElementEditor from '../elements/ElementEditor.vue'
 import { useParentGate } from '../elements/parentGate'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
-import PageSection from '../layout/PageSection.vue'
 import { formatPx, formatSeconds, stepValues } from '../values'
 
 const opts = useOptions('inputs')
@@ -78,12 +76,8 @@ const I = OPTION_SCHEMA.inputs
 const steeringChoices = computed(() =>
   choiceOptions(I.steeringStyle.values, t.value.settings.inputs.steeringChoices)
 )
-const infoShown = computed(() => isElementVisible(opts.value.sections, 'info'))
-const showSteering = computed(
-  () => infoShown.value && isElementVisible(opts.value.info, 'steering')
-)
 /** The size and the mark are a wheel's: not the bar's. */
-const showWheel = computed(() => showSteering.value && opts.value.steeringStyle !== 'bar')
+const showWheel = computed(() => opts.value.steeringStyle !== 'bar')
 const wheelSizeChoices = computed(() =>
   choiceOptions(I.wheelSize.values, t.value.settings.inputs.wheelSizeChoices)
 )
@@ -111,6 +105,16 @@ const shiftRow = computed(() => [
     toggle: (v: boolean) => void setShiftLights(v)
   }
 ])
+/**
+ * The steering row's folded options (R12, as the trace's): its look, said on its button
+ * ('Realista · Mediano', 'Barra').
+ */
+const steeringSummary = computed(() => {
+  const i = t.value.settings.inputs
+  const style = i.steeringChoices[opts.value.steeringStyle].label
+  const size = i.wheelSizeChoices[opts.value.wheelSize].label
+  return { steering: showWheel.value ? `${style} · ${size}` : style }
+})
 /** The trace row's folded options, said on its button ('8 s · 2 px'). */
 const traceSummary = computed(() => ({
   trace: `${seconds(opts.value.traceSeconds)} · ${formatPx(t.value, opts.value.traceWidth)}`
@@ -151,34 +155,7 @@ const carGate = useParentGate({
 </script>
 
 <template>
-  <!-- Contenido: only the wheel's modes (R12); what shows or hides a part is in Personalizar. -->
-  <PageSection :title="t.settings.common.content" resets="content">
-    <ChoiceControl
-      v-if="showSteering"
-      :label="t.settings.inputs.steeringStyle"
-      :current="opts.steeringStyle"
-      :options="steeringChoices"
-      :apply="set('steeringStyle')"
-    />
-    <p v-else class="st-row st-help in-colors-note">{{ t.settings.inputs.steeringOff }}</p>
-    <ChoiceControl
-      v-if="showWheel"
-      :label="t.settings.inputs.wheelSize"
-      :current="opts.wheelSize"
-      :options="wheelSizeChoices"
-      :apply="set('wheelSize')"
-    />
-    <ColorControl
-      v-if="showWheel"
-      :label="t.settings.inputs.wheelColor"
-      :help="t.settings.inputs.wheelColorHelp"
-      :current="opts.wheelColor"
-      :presets="accentPresets"
-      :inherit="wheelInherit"
-      :apply="set('wheelColor')"
-    />
-  </PageSection>
-
+  <!-- No Contenido: every option is how a part is drawn, on its row (R12). -->
   <CustomizeSection>
     <!--
       The shift lights are the widget's fixed top strip, shown or hidden by their eye; the trace's
@@ -245,18 +222,44 @@ const carGate = useParentGate({
       :items="opts.info"
       :spec="I.info"
       :labels="infoTexts"
+      :parts-of="['steering']"
+      :parts-summary="steeringSummary"
       :apply="infoGate.apply"
       :note="infoGate.note.value"
     >
-      <!-- An element's option in its own row (R12): the degrees under the wheel. -->
-      <template #extra="{ id, visible }">
-        <ToggleControl
-          v-if="id === 'steering' && visible"
-          :label="t.settings.inputs.steeringDegrees"
-          :help="t.settings.inputs.steeringDegreesHelp"
-          :current="opts.steeringDegrees"
-          :apply="set('steeringDegrees')"
-        />
+      <!-- The wheel's options in its own row (R12), folded as the trace's: its look, its degrees. -->
+      <template #parts="{ id }">
+        <div v-if="id === 'steering'" class="in-trace">
+          <ChoiceControl
+            :label="t.settings.inputs.steeringStyle"
+            :current="opts.steeringStyle"
+            :options="steeringChoices"
+            :apply="set('steeringStyle')"
+          />
+          <ChoiceControl
+            v-if="showWheel"
+            :label="t.settings.inputs.wheelSize"
+            :current="opts.wheelSize"
+            :options="wheelSizeChoices"
+            :apply="set('wheelSize')"
+          />
+          <ColorControl
+            v-if="showWheel"
+            :label="t.settings.inputs.wheelColor"
+            :help="t.settings.inputs.wheelColorHelp"
+            :current="opts.wheelColor"
+            :presets="accentPresets"
+            :inherit="wheelInherit"
+            :apply="set('wheelColor')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.inputs.steeringDegrees"
+            :help="t.settings.inputs.steeringDegreesHelp"
+            :current="opts.steeringDegrees"
+            :apply="set('steeringDegrees')"
+          />
+        </div>
       </template>
     </ElementEditor>
     <ElementEditor

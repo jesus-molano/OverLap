@@ -4,4 +4,6 @@ export interface ResetItem {
   readonly label: string
   readonly description: string
   readonly run: () => void
+  /** Nothing to reset: that part is as it comes (dimmed, saying so; R47). */
+  readonly disabled?: boolean
 }

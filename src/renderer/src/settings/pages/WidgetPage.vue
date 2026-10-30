@@ -11,7 +11,9 @@ import {
   resetBounds,
   resetWidget,
   resetWidgetAll,
-  setWidgetVisible
+  setWidgetVisible,
+  widgetPartAtDefault,
+  type PageResetPart
 } from '../undo/restore'
 import type { ResetItem } from '../layout/resetItems'
 import ResetMenu from '../layout/ResetMenu.vue'
@@ -106,12 +108,20 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 const resetItems = computed<ResetItem[]>(() => {
   const r = t.value.settings.widgetPage.reset
   const id = props.widgetId
+  const s = settings.value
+  // The position and «everything» stay on: the factory place depends on the screen.
+  const atDefault = (p: PageResetPart): boolean => s !== null && widgetPartAtDefault(s, id, p)
   const parts: OptionPart[] = ['content', 'driver', 'customize']
   const items: ResetItem[] = parts
     .filter((p) => hasOptionPart(id, p))
-    .map((p) => ({ id: p, ...r[p], run: () => resetWidget(id, p) }))
+    .map((p) => ({ id: p, ...r[p], run: () => resetWidget(id, p), disabled: atDefault(p) }))
   items.push(
-    { id: 'window', ...r.window, run: () => resetWidget(id, 'window') },
+    {
+      id: 'window',
+      ...r.window,
+      run: () => resetWidget(id, 'window'),
+      disabled: atDefault('window')
+    },
     { id: 'bounds', ...r.bounds, run: () => resetBounds(id) },
     { id: 'all', ...r.all, run: () => resetWidgetAll(id) }
   )

@@ -148,7 +148,12 @@ const Section = compile(SECTION, 'CustomizeSection.vue', {
   '@shared/i18n': i18n,
   './ResetIcon.vue': { default: Stub },
   '../../ui/Icon.vue': { default: Stub },
-  '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
+  '../undo/restore': {
+    WIDGET_PAGE: Symbol('widget-page'),
+    resetWidget: () => undefined,
+    widgetPartAtDefault: () => false
+  },
+  '../../composables/useOverlay': { useOverlayState: () => ({ settings: vue.shallowRef(null) }) },
   '../../composables/useI18n': { useI18n: () => t }
 })
 /** What the page's sample has no room for (useNoRoom's stub reads it). */

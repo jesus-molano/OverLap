@@ -3,7 +3,8 @@ import Icon from '../../ui/Icon.vue'
 import { computed, inject, onBeforeUnmount, onMounted, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
-import { WIDGET_PAGE, resetWidget } from '../undo/restore'
+import { useOverlayState } from '../../composables/useOverlay'
+import { WIDGET_PAGE, resetWidget, widgetPartAtDefault } from '../undo/restore'
 import ResetIcon from './ResetIcon.vue'
 import { injectCustomizeHost } from './customize'
 import { isZoneOpen, pageIntro, provideZoneRegistry, setZonesOpen } from './zonesOpen'
@@ -36,6 +37,12 @@ const resetLabel = computed(() => {
   const r = t.value.settings.widgetPage.reset
   return r.sectionLabel(r.customize.label, widgetTitle(t.value, widget))
 })
+const { settings } = useOverlayState()
+/** Every list as it comes: its ↺ dimmed, saying so (R47). */
+const atDefault = computed(() => {
+  const s = settings.value
+  return widget !== null && s !== null && widgetPartAtDefault(s, widget, 'customize')
+})
 function onReset(): void {
   if (widget !== null) resetWidget(widget, 'customize')
 }
@@ -63,7 +70,7 @@ onBeforeUnmount(() => {
         <!-- The same head as every section of the page (R55): the title in caps, its ↺ on its line. -->
         <div class="st-section-head">
           <h2 :id="titleId" class="st-section-title">{{ t.settings.common.customize }}</h2>
-          <ResetIcon v-if="resetLabel" :label="resetLabel" @reset="onReset" />
+          <ResetIcon v-if="resetLabel" :label="resetLabel" :disabled="atDefault" @reset="onReset" />
         </div>
         <!-- The page's one drag and eye explanation (each list keeps it for screen readers). -->
         <p class="cz-note">
@@ -86,7 +93,12 @@ onBeforeUnmount(() => {
           <template v-else>{{ t.settings.elements.introFixed }}</template>
         </p>
         <span v-if="registry.zones.value.length > 1" class="cz-all">
-          <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="toggleAll">
+          <button
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost"
+            data-nofind
+            @click="toggleAll"
+          >
             {{ anyClosed ? t.settings.common.expandAll : t.settings.common.collapseAll }}
           </button>
         </span>

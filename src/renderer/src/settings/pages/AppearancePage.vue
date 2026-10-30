@@ -19,7 +19,8 @@ import NumberBadge from '../../ui/NumberBadge.vue'
 import { createDriverStyles } from '../../view/styles'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions, type ChoiceOption } from '../controls/choice'
-import { densityChoices, nameExample, nameFormatChoices } from '../controls/choices'
+import { densityChoices, flagChoices, nameExample, nameFormatChoices } from '../controls/choices'
+import { fromChoice, toChoice, type BoolChoice } from '../controls/choice'
 import ColorControl from '../controls/ColorControl.vue'
 import HelpText from '../controls/HelpText.vue'
 import SliderControl from '../controls/SliderControl.vue'
@@ -28,7 +29,13 @@ import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
 import { inheritDriverBlocks, ownDriverBlocks, type DriverBlockOptions } from '@shared/driverBlock'
 import { optionSetter } from '../editor'
 import { useNavigate } from '../navigate'
-import { followGlobal, resetAppearance, resetAppearancePart } from '../undo/restore'
+import {
+  appearanceAtDefault,
+  appearancePartAtDefault,
+  followGlobal,
+  resetAppearance,
+  resetAppearancePart
+} from '../undo/restore'
 import ResetMenu from '../layout/ResetMenu.vue'
 import type { ResetItem } from '../layout/resetItems'
 import PageFrame from '../layout/PageFrame.vue'
@@ -51,6 +58,12 @@ const t = useI18n()
 const locale = useLocale()
 const titleId = useId()
 const set = optionSetter('appearance')
+/** The «Piloto» block's flags as «Sí / No», the same control as on each widget (R08). */
+const yesNo = computed(() => flagChoices(t.value))
+const setFlag =
+  (key: 'countryFlags' | 'penaltyFlags') =>
+  (v: BoolChoice): Promise<unknown> =>
+    set(key)(fromChoice(v))
 
 const A = OPTION_SCHEMA.appearance
 /** Slider readout in the current language; a new function only when the language changes. */
@@ -151,11 +164,21 @@ const resetItems = computed<ResetItem[]>(() => {
     id: part,
     label: a[part].title,
     description: a.reset[part],
-    run: () => resetAppearancePart(part)
+    run: () => resetAppearancePart(part),
+    disabled: partAtDefault(part)
   }))
-  items.push({ id: 'all', ...a.reset.all, run: resetAppearance })
+  const s = settings.value
+  items.push({
+    id: 'all',
+    ...a.reset.all,
+    run: resetAppearance,
+    disabled: s !== null && appearanceAtDefault(s)
+  })
   return items
 })
+/** That section as it comes: its ↺ and its menu item dimmed, saying so (R47). */
+const partAtDefault = (part: AppearancePart): boolean =>
+  settings.value !== null && appearancePartAtDefault(settings.value, part)
 const resetLabel = (part: AppearancePart): string =>
   t.value.settings.appearance.reset.sectionLabel(t.value.settings.appearance[part].title)
 /** Which widgets the text size changes, by name (the auto-height ones). */
@@ -210,6 +233,7 @@ const readLinks = computed(() => {
         <PageSection
           :title="t.settings.appearance.color.title"
           :reset-label="resetLabel('color')"
+          :reset-disabled="partAtDefault('color')"
           @reset="resetAppearancePart('color')"
         >
           <ColorControl
@@ -243,6 +267,7 @@ const readLinks = computed(() => {
         <PageSection
           :title="t.settings.appearance.text.title"
           :reset-label="resetLabel('text')"
+          :reset-disabled="partAtDefault('text')"
           @reset="resetAppearancePart('text')"
         >
           <SliderControl
@@ -270,6 +295,7 @@ const readLinks = computed(() => {
         <PageSection
           :title="t.settings.appearance.rows.title"
           :reset-label="resetLabel('rows')"
+          :reset-disabled="partAtDefault('rows')"
           @reset="resetAppearancePart('rows')"
         >
           <ChoiceControl
@@ -333,19 +359,19 @@ const readLinks = computed(() => {
             :options="brandMarkChoices"
             :apply="set('brandMarks')"
           />
-          <ToggleControl
-            kind="switch"
+          <ChoiceControl
             :label="t.settings.driverCell.countryFlags"
             :help="t.settings.driverCell.countryFlagsHelp"
-            :current="appearance.countryFlags"
-            :apply="set('countryFlags')"
+            :current="toChoice(appearance.countryFlags)"
+            :options="yesNo"
+            :apply="setFlag('countryFlags')"
           />
-          <ToggleControl
-            kind="switch"
+          <ChoiceControl
             :label="t.settings.common.penaltyFlags"
             :help="t.settings.common.penaltyFlagsHelp"
-            :current="appearance.penaltyFlags"
-            :apply="set('penaltyFlags')"
+            :current="toChoice(appearance.penaltyFlags)"
+            :options="yesNo"
+            :apply="setFlag('penaltyFlags')"
           />
           <div v-if="ownBlocks.length > 0" class="st-row own-bg">
             <p class="st-help">{{ t.settings.appearance.rows.ownBlocks(ownBlocks.length) }}</p>
@@ -389,6 +415,7 @@ const readLinks = computed(() => {
         <PageSection
           :title="t.settings.appearance.other.title"
           :reset-label="resetLabel('other')"
+          :reset-disabled="partAtDefault('other')"
           @reset="resetAppearancePart('other')"
         >
           <ChoiceControl
@@ -412,6 +439,7 @@ const readLinks = computed(() => {
         <PageSection
           :title="t.settings.appearance.access.title"
           :reset-label="resetLabel('access')"
+          :reset-disabled="partAtDefault('access')"
           @reset="resetAppearancePart('access')"
         >
           <ToggleControl

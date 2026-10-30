@@ -242,8 +242,8 @@ describe('relativeColumns', () => {
   })
 
   it('follows the list’s order after the position and the driver, which always start the row', () => {
-    // [pos driver ir lic pit tyre stint gap] → [gap ir pos driver lic pit tyre stint]
-    let list = moveElement(DEF, 7, 0)
+    // [pos driver ir lic gap pit stint tyre] → [gap ir pos driver lic pit stint tyre]
+    let list = moveElement(DEF, 4, 0)
     list = moveElement(list, 3, 1)
     expect(list.map((e) => e.id)).toEqual([
       'gap',
@@ -252,8 +252,8 @@ describe('relativeColumns', () => {
       'driver',
       'lic',
       'pit',
-      'tyre',
-      'stint'
+      'stint',
+      'tyre'
     ])
     // A file that moved them (before R10) draws them at the start, as the standings do.
     const c = relativeColumns(list, plain)
@@ -277,7 +277,8 @@ describe('relativeColumns', () => {
   it('gives the PIT badge a column of its own when it is shown (R10)', () => {
     const list = DEF.map((e) => (e.id === 'pit' ? { ...e, visible: true } : e))
     const c = relativeColumns(list, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'pit', 'gap'])
+    // After the gap, as the standings' «Boxes» (R10).
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'pit'])
     expect(c.pitInline).toBe(false)
     expect(c.fitEm).toBeGreaterThan(RELATIVE_FIT_EM)
   })

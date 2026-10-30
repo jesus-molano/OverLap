@@ -9,7 +9,8 @@ import type { ResetItem } from './resetItems'
  * (a widget, Apariencia, Atajos): what each item resets, by the name of its section, and one click
  * each (the toast offers "Deshacer" and names the layout). The same resets as the icons in the
  * sections' heads, plus the page's "everything". A disclosure: Escape or a click elsewhere closes
- * it, the focus goes back to its button.
+ * it, the focus goes back to its button. An item with nothing to reset is dimmed and says so, as
+ * the ↺ of its section (R47).
  */
 defineProps<{
   /** The menu's name for screen readers ('Restablecer Relativo'). */
@@ -53,9 +54,16 @@ function onFocusOut(e: FocusEvent): void {
     </button>
     <ul v-if="open" class="reset-list">
       <li v-for="item in items" :key="item.id">
-        <button type="button" class="reset-item" @click="run(item)">
+        <button
+          type="button"
+          class="reset-item"
+          :disabled="item.disabled === true"
+          @click="run(item)"
+        >
           <span class="reset-label">{{ item.label }}</span>
-          <span class="reset-desc">{{ item.description }}</span>
+          <span class="reset-desc">{{
+            item.disabled === true ? t.settings.elements.atDefault : item.description
+          }}</span>
         </button>
       </li>
       <li class="reset-note">{{ t.settings.widgetPage.reset.undoNote }}</li>
@@ -102,7 +110,15 @@ function onFocusOut(e: FocusEvent): void {
   cursor: pointer;
 }
 
-.reset-item:hover,
+.reset-item:disabled {
+  cursor: default;
+}
+
+.reset-item:disabled .reset-label {
+  color: var(--ov-fg-dim);
+}
+
+.reset-item:hover:not(:disabled),
 .reset-item:focus-visible {
   background: var(--st-hover);
 }

@@ -80,6 +80,14 @@ export function flagChoicesInherit(
 
 const BOOL_CHOICES: readonly BoolChoice[] = ['on', 'off']
 
+/**
+ * «Sí», «No»: a global of the «Piloto» block in Apariencia, the same control as the widgets' own
+ * (flagChoicesInherit) without the «Global» it is.
+ */
+export function flagChoices(m: Messages): readonly ChoiceOption<BoolChoice>[] {
+  return choiceOptions(BOOL_CHOICES, m.settings.choices.onOff)
+}
+
 /** The make logo's «Global (Auto)», then Auto / Siempre / Nunca. */
 export function brandChoicesInherit(
   m: Messages,

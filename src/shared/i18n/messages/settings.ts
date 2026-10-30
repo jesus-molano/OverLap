@@ -918,7 +918,8 @@ export const settingsEs = {
       },
       driver: {
         label: 'Piloto',
-        description: 'Nombre, logo, bandera y sanciones vuelven a «Global» (Apariencia)'
+        description:
+          'Formato de nombre, logo, bandera del país y banderas de penalización vuelven a «Global» (Apariencia)'
       },
       customize: {
         label: 'Personalizar',
@@ -1054,7 +1055,7 @@ export const settingsEs = {
     carsBehind: 'Coches detrás',
     columns: 'Columnas',
     stint: 'Vueltas del stint',
-    stintHelp: 'Desde su última parada, o desde la salida',
+    stintHelp: 'Desde su última parada, o desde la salida (7 v)',
     tyre: 'Neumático',
     /** Column hints; the position's and the driver's are the standings' (columns.fixedHints). */
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
@@ -1177,8 +1178,6 @@ export const settingsEs = {
     clutchInTraceHelp: 'Desactívalo si cambias con levas',
     steering: 'Volante',
     steeringStyle: 'Estilo del volante',
-    /** Contenido with the wheel hidden: where its options went. */
-    steeringOff: 'El volante está oculto en Datos: muéstralo allí para elegir su estilo',
     steeringChoices: {
       bar: { label: 'Barra' },
       minimal: { label: 'Minimalista', hint: 'Un aro fino con la marca del centro' },
@@ -1420,10 +1419,7 @@ export const settingsEs = {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
       column: { label: 'En columna' }
     },
-    /**
-     * lights.labelSide: where the captions and values go in a column. Its own row only for the
-     * values with the captions off (with them on, "Rótulos" says the side).
-     */
+    /** lights.labelSide: where the captions and values go in a column (its row only then). */
     labelSide: 'Lado de los textos',
     labelSideChoices: {
       right: { label: 'A la derecha' },
@@ -1434,15 +1430,9 @@ export const settingsEs = {
     /** Under it while on: the sample still draws the unlit lights, translucent. */
     onlyWhenLitSample:
       'La vista previa dibuja los apagados translúcidos, para que veas su ojo y su sitio',
-    /** lights.showCaptions with, in a column, lights.labelSide: one choice. */
+    /** lights.showCaptions: a switch, as its neighbours (Temperaturas, Tiempo de reparación). */
     captions: 'Rótulos',
     captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
-    captionsChoices: {
-      off: { label: 'No' },
-      on: { label: 'Sí' },
-      right: { label: 'Derecha' },
-      left: { label: 'Izquierda' }
-    },
     temps: 'Temperaturas',
     tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
@@ -2754,7 +2744,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       driver: {
         label: 'Driver',
-        description: 'Name, logo, flag and penalties go back to “Global” (Appearance)'
+        description:
+          'Name format, logo, country flag and penalty flags go back to “Global” (Appearance)'
       },
       customize: {
         label: 'Customize',
@@ -2864,7 +2855,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsBehind: 'Cars behind',
     columns: 'Columns',
     stint: 'Stint laps',
-    stintHelp: 'Since its last stop, or since the start',
+    stintHelp: 'Since its last stop, or since the start (7 L)',
     tyre: 'Tyre',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
@@ -2973,7 +2964,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     clutchInTraceHelp: 'Turn it off if you shift with paddles',
     steering: 'Steering',
     steeringStyle: 'Steering style',
-    steeringOff: 'Steering is hidden in Readouts: show it there to choose its style',
     steeringChoices: {
       bar: { label: 'Bar' },
       minimal: { label: 'Minimal', hint: 'A thin ring with the centre mark' },
@@ -3188,12 +3178,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'The preview draws the unlit ones translucent, so you see their eye and their place',
     captions: 'Captions',
     captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
-    captionsChoices: {
-      off: { label: 'No' },
-      on: { label: 'Yes' },
-      right: { label: 'Right' },
-      left: { label: 'Left' }
-    },
     temps: 'Temperatures',
     tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',

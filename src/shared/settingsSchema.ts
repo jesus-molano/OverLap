@@ -285,11 +285,13 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   // iRating then licence, as in the standings and the battle (R10).
   'ir',
   'lic',
-  // Hidden: the PIT badge goes after the name (as the standings do without their "Boxes").
+  // The gap before the pit, stint and tyre columns, in the standings' order (R10): the columns
+  // both tables have come in the same order. Hidden, the PIT badge goes after the name (as the
+  // standings do without their "Boxes").
+  'gap',
   'pit',
-  'tyre',
   'stint',
-  'gap'
+  'tyre'
 ])
 
 /**
