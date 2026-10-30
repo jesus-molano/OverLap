@@ -279,11 +279,12 @@ export function relativeFontPx(
   slots: number,
   rowEm: number,
   chromeEm: number,
-  fitEm: number
+  fitEm: number,
+  minPx = FONT_MIN_PX
 ): number {
   const byHeight = heightPx / (slots * rowEm + chromeEm)
   const byWidth = widthPx / fitEm
-  return Math.min(FONT_MAX_PX, Math.max(FONT_MIN_PX, Math.min(byHeight, byWidth)))
+  return Math.min(FONT_MAX_PX, Math.max(minPx, Math.min(byHeight, byWidth)))
 }
 
 /**

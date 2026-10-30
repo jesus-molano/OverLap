@@ -56,6 +56,13 @@ describe('barPx', () => {
     expect(barPx('small', 10)).toBeCloseTo(INFO_BAR_LINE_EM * 9 + BAR_RULE_PX, 9)
     expect(barPx('normal', 0)).toBe(0)
   })
+
+  it('keeps 10 px text with «Texto mínimo de 10 px» (R15), in the chrome too', () => {
+    expect(barPx('small', 10, false, 10)).toBeCloseTo(INFO_BAR_LINE_EM * 10 + BAR_RULE_PX, 9)
+    expect(barPx('normal', 13, false, 10)).toBe(barPx('normal', 13))
+    expect(chromePx({ ...TWO, minText: 10 }, 9)).toBeGreaterThan(chromePx(TWO, 9))
+    expect(chromePx({ ...TWO, minText: 9 }, 13)).toBe(chromePx(TWO, 13))
+  })
 })
 
 describe('chromePx', () => {

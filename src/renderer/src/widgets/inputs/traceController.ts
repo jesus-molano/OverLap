@@ -46,6 +46,8 @@ export interface TraceSettings {
   readonly clutch: boolean
   readonly outline: boolean
   readonly colors: TraceColors
+  /** The brake wider than the throttle (the colour-blind palette, R36). */
+  readonly wideBrake?: boolean
 }
 
 /**
@@ -217,7 +219,7 @@ export class TraceController {
 }
 
 function styleOf(s: TraceSettings): TraceStyle {
-  return { clutch: s.clutch, outline: s.outline, colors: s.colors }
+  return { clutch: s.clutch, outline: s.outline, colors: s.colors, wideBrake: s.wideBrake === true }
 }
 
 function sameSettings(a: TraceSettings, b: TraceSettings): boolean {
@@ -226,6 +228,7 @@ function sameSettings(a: TraceSettings, b: TraceSettings): boolean {
     a.lineCss === b.lineCss &&
     a.clutch === b.clutch &&
     a.outline === b.outline &&
+    a.wideBrake === b.wideBrake &&
     a.colors.throttle === b.colors.throttle &&
     a.colors.brake === b.colors.brake &&
     a.colors.abs === b.colors.abs &&

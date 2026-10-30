@@ -87,12 +87,12 @@ const NUMBER_WIDTH: Readonly<Record<NumberStyle, ColumnWidth>> = {
 /** The make's mark in the name track (BrandMark: 1.75em wide), with the driver cell's gap. */
 export const BRAND_EM = 1.75 + 0.35
 /** The plate height (theme.css --ov-plate-h): 1.15em, never below the minimum text + 4 px. */
-function plateEm(fontPx: number): number {
-  return fontPx > 0 ? Math.max(1.15, (MIN_TEXT_PX + 4) / fontPx) : 1.15
+function plateEm(fontPx: number, minPx = MIN_TEXT_PX): number {
+  return fontPx > 0 ? Math.max(1.15, (minPx + 4) / fontPx) : 1.15
 }
 /** The flag in the name track (CountryFlag: 3:2 at the plate height), with the cell's gap. */
-export function flagEm(fontPx: number): number {
-  return 1.5 * plateEm(fontPx) + 0.35
+export function flagEm(fontPx: number, minPx = MIN_TEXT_PX): number {
+  return 1.5 * plateEm(fontPx, minPx) + 0.35
 }
 
 export interface ColumnPrefs {
@@ -109,6 +109,8 @@ export interface ColumnPrefs {
   brand: boolean
   /** The driver's flag before the name (countryFlags). */
   flag: boolean
+  /** The text floor (px, theme.css --ov-min-text: 10 with «Texto mínimo de 10 px»); 9 if absent. */
+  minText?: number
 }
 
 export interface Columns {
@@ -156,9 +158,9 @@ export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnP
   }
 }
 
-/** Width (em of the row font) of a cell whose text is `text` em, given the 9 px floor. */
-function widthAt(c: ColumnWidth, fontPx: number): number {
-  const floor = fontPx > 0 ? MIN_TEXT_PX / fontPx : 1
+/** Width (em of the row font) of a cell whose text is `text` em, given the text floor. */
+function widthAt(c: ColumnWidth, fontPx: number, minPx = MIN_TEXT_PX): number {
+  const floor = fontPx > 0 ? minPx / fontPx : 1
   return c.w * Math.max(1, floor / c.text)
 }
 
@@ -198,12 +200,13 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
   let numberStyle: NumberStyle = p.numberStyle === 'stripe' ? 'stripe' : 'chip'
   let brand = p.brand
   let flag = p.flag
+  const minPx = p.minText ?? MIN_TEXT_PX
 
   const fixedEm = (cells: readonly StandingsColumnId[]): number => {
-    let sum = widthAt(POS_WIDTH, fontPx) + widthAt(NUMBER_WIDTH[numberStyle], fontPx)
+    let sum = widthAt(POS_WIDTH, fontPx, minPx) + widthAt(NUMBER_WIDTH[numberStyle], fontPx, minPx)
     if (brand) sum += BRAND_EM
-    if (flag) sum += flagEm(fontPx)
-    for (const id of cells) sum += widthAt(columnWidth(id, p), fontPx)
+    if (flag) sum += flagEm(fontPx, minPx)
+    for (const id of cells) sum += widthAt(columnWidth(id, p), fontPx, minPx)
     // Tracks: position, name, then the cells.
     return sum + COL_GAP_EM * (cells.length + 1)
   }
@@ -229,8 +232,8 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     }
   }
 
-  const tracks = [em(widthAt(POS_WIDTH, fontPx)), 'minmax(0, 1fr)']
-  for (const id of cells) tracks.push(em(widthAt(columnWidth(id, p), fontPx)))
+  const tracks = [em(widthAt(POS_WIDTH, fontPx, minPx)), 'minmax(0, 1fr)']
+  for (const id of cells) tracks.push(em(widthAt(columnWidth(id, p), fontPx, minPx)))
   const template = tracks.join(' ')
   const pitInline = !cells.includes('pit')
   return {

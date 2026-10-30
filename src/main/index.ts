@@ -65,7 +65,8 @@ import {
   openSettingsWindow,
   openSettingsWindowHandle,
   sendToSettingsWindow,
-  setSettingsWindowLanguage
+  setSettingsWindowLanguage,
+  setSettingsWindowZoom
 } from './settingsWindow'
 import { installLogFile } from './logFile'
 import { ShortcutManager } from './shortcutManager'
@@ -196,6 +197,7 @@ function start(): void {
   let overlaySettingsSent: OverlaySettings | null = null
   console.log(`[main] source: ${source}, settings: ${store.file}`)
   setSettingsWindowLanguage(store.settings.appearance.language)
+  setSettingsWindowZoom(store.settings.appearance.settingsZoom)
 
   /**
    * The «Deshacer» of a car linked, widgets brought here, an import or a reset, for the page and
@@ -540,6 +542,7 @@ function start(): void {
     if (diff.telemetryConfigChanged) telemetry.sendConfig(toTelemetryConfig(store.settings))
     // A new interface language: window titles here, the tray below, every renderer on its own.
     setSettingsWindowLanguage(store.settings.appearance.language)
+    setSettingsWindowZoom(store.settings.appearance.settingsZoom)
     windows.applySettings(store.settings)
     // The renderers' copies leave out the layouts' options (rendererSettings); the overlays'
     // is not sent again when none of it changed (a rename, a car link, another layout's options).

@@ -56,7 +56,10 @@ const STALE_MS = 500
 const HZ = WIDGET_DEFS.inputs.hz
 /** A clipping moment stays lit at least this long, so a single tick still reads. */
 const FFB_FLASH_MS = 300
-/** Half a blink of the shift lights over the blink RPM (about 5 a second). */
+/**
+ * Half a blink of the shift lights over the blink RPM (about 5 a second). With Accesibilidad's
+ * «Sin parpadeos» (R27) they stay steady instead, in another colour (.shift--steady).
+ */
 const BLINK_HALF_MS = 90
 const LEDS: readonly ('green' | 'yellow' | 'red')[] = Array.from({ length: SHIFT_LEDS }, (_, i) =>
   ledBand(i)
@@ -111,7 +114,7 @@ const units = computed(() => appearance.value.units)
 const unitLabel = computed(() => speedUnit(units.value))
 /** One source for the bars (CSS variables on the root) and the canvas. */
 const palette = computed<PedalPalette>((prev) => {
-  const next = pedalPalette(options.value.colors)
+  const next = pedalPalette(options.value.colors, appearance.value.colorBlind)
   return prev !== undefined && deepEqual(prev, next) ? prev : next
 })
 const traceSettings = computed<TraceSettings>((prev) =>
@@ -121,7 +124,9 @@ const traceSettings = computed<TraceSettings>((prev) =>
     clutch: options.value.clutchInTrace,
     // The dark underlay follows the text halo: over the bare game, or when forced on.
     outline: halo.value,
-    colors: palette.value.trace
+    colors: palette.value.trace,
+    // The colour-blind palette tells the brake from the throttle by width too (R36).
+    wideBrake: appearance.value.colorBlind
   })
 )
 
@@ -184,6 +189,7 @@ const slots = {
   ffbClip: new ClassSlot('car-row--clip'),
   shiftOn: new ClassSlot('shift--on'),
   blinkOff: new ClassSlot('shift--blink-off'),
+  steady: new ClassSlot('shift--steady'),
   leds: Array.from({ length: SHIFT_LEDS }, () => new ClassSlot('led--on'))
 }
 
@@ -202,7 +208,9 @@ function writeShift(d: Readonly<InputsData>, nowMs: number): void {
     slots.leds[i]?.set((leds?.[i] as HTMLElement | undefined) ?? null, i < lit)
   }
   slots.shiftOn.set(strip, p !== 'fill')
-  slots.blinkOff.set(strip, p === 'blink' && Math.floor(nowMs / BLINK_HALF_MS) % 2 === 1)
+  const still = appearance.value.noFlashing
+  slots.steady.set(strip, p === 'blink' && still)
+  slots.blinkOff.set(strip, p === 'blink' && !still && Math.floor(nowMs / BLINK_HALF_MS) % 2 === 1)
 }
 
 function writeReadout(d: Readonly<InputsData>): void {
@@ -488,21 +496,21 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   flex-direction: column;
   gap: 0.35em;
   padding: 0.4em 0.5em;
-  font-size: clamp(9px, min(100cqh / 9, 100cqw / 26), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 9, 100cqw / 26), 15px);
   line-height: 1.15;
 }
 
 /* The shift lights take a row of their own: a little less font for the same window. */
 .inputs--shift .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 10, 100cqw / 26), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 10, 100cqw / 26), 15px);
 }
 
 .inputs--car .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 9, 100cqw / 30), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 9, 100cqw / 30), 15px);
 }
 
 .inputs--car.inputs--shift .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 10, 100cqw / 30), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 10, 100cqw / 30), 15px);
 }
 
 /* The blocks side by side. */
@@ -519,19 +527,19 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 .inputs:not(.inputs--trace) .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 9, 100cqw / 12.5), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 9, 100cqw / 12.5), 15px);
 }
 
 .inputs--shift:not(.inputs--trace) .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 10, 100cqw / 12.5), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 10, 100cqw / 12.5), 15px);
 }
 
 .inputs--car:not(.inputs--trace) .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 9, 100cqw / 17), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 9, 100cqw / 17), 15px);
 }
 
 .inputs--car.inputs--shift:not(.inputs--trace) .inputs__panel {
-  font-size: clamp(9px, min(100cqh / 10, 100cqw / 17), 15px);
+  font-size: clamp(var(--ov-min-text), min(100cqh / 10, 100cqw / 17), 15px);
 }
 
 /*
@@ -611,6 +619,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .shift--blink-off .led {
   background: color-mix(in srgb, var(--led) 16%, var(--ov-well));
   box-shadow: none;
+}
+
+/* «Sin parpadeos» (R27): over the blink RPM the strip stays lit, in blue instead of red. */
+.shift--steady .led {
+  --led: var(--ov-info);
 }
 
 /* ---- Trace ---------------------------------------------------------------- */

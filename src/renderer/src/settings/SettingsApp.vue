@@ -35,11 +35,14 @@ import { MISS_MS, revealTarget, type RevealTarget } from './search/reveal'
 import SettingsSearch from './search/SettingsSearch.vue'
 import type { SearchEntry } from './search/settingsSearch'
 import { useSaveFailing } from './saveFailing'
+import { useSettingsZoom } from './useSettingsZoom'
 
 // Main is the source of truth: these follow its broadcasts (and the replies to our updates).
 const { editMode, settings, status } = useOverlayState()
 const t = useI18n()
 const lang = useLanguage()
+// Ctrl + / Ctrl − / Ctrl 0 and Ctrl with the wheel (R29).
+useSettingsZoom()
 
 const storage = browserStorage()
 const page = shallowRef<SettingsPage>(initialPage(location.search, storage))

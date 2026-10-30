@@ -97,4 +97,9 @@ const pulseKey = computed(() => {
     animation: none;
   }
 }
+
+/* «Sin parpadeos» (R27). */
+:root[data-flash='off'] .dot {
+  animation: none;
+}
 </style>

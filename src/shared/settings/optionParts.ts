@@ -85,17 +85,19 @@ export function optionPartDefaults<S extends WidgetId>(
 
 /**
  * Apariencia's sections, each with its ↺ and its item in the page's "Restablecer…" (R24): the
- * global look (`appearance`) by section, and «Pantalla» (`visibility`). The language has none: it
- * is not a look, and a reset never changes it.
+ * global look (`appearance`) by section, «Accesibilidad» (the colour-blind palette and the other
+ * needs, all in one place) and «Pantalla» (`visibility`). The language has none: it is not a look,
+ * and a reset never changes it.
  */
-export type AppearancePart = 'color' | 'text' | 'rows' | 'screen' | 'other'
+export type AppearancePart = 'color' | 'text' | 'rows' | 'screen' | 'other' | 'access'
 
 export const APPEARANCE_PARTS: readonly AppearancePart[] = [
   'color',
   'text',
   'rows',
   'screen',
-  'other'
+  'other',
+  'access'
 ]
 
 export const APPEARANCE_PART_FIELDS: Readonly<
@@ -104,7 +106,7 @@ export const APPEARANCE_PART_FIELDS: Readonly<
     { readonly section: 'appearance' | 'visibility'; readonly fields: readonly string[] }
   >
 > = {
-  color: { section: 'appearance', fields: ['accent', 'backgroundOpacity', 'colorBlind'] },
+  color: { section: 'appearance', fields: ['accent', 'backgroundOpacity'] },
   text: { section: 'appearance', fields: ['fontScale', 'textHalo'] },
   rows: {
     section: 'appearance',
@@ -121,7 +123,11 @@ export const APPEARANCE_PART_FIELDS: Readonly<
     ]
   },
   screen: { section: 'visibility', fields: fieldsOf('visibility') },
-  other: { section: 'appearance', fields: ['units', 'showSimPill'] }
+  other: { section: 'appearance', fields: ['units', 'showSimPill'] },
+  access: {
+    section: 'appearance',
+    fields: ['colorBlind', 'largeLabels', 'noFlashing', 'settingsZoom']
+  }
 }
 
 /** `part` of Apariencia at its defaults: { section, fields } to patch it with. */

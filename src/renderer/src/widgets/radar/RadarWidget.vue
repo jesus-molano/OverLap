@@ -10,6 +10,7 @@ import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidget
 import { useOption } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
+import { minTextPx } from '@renderer/view/appearance'
 import {
   BEZEL,
   BEZEL_TOP_PATH,
@@ -107,7 +108,9 @@ const trackKnown = computed(() => content.value?.trackLengthKnown === true)
 // Labels never render under the 9 px text floor: their size follows the window (resize only).
 const root = useTemplateRef<HTMLElement>('root')
 const size = useElementSize(root)
-const labelFont = computed(() => labelFontUnits(size.value.w, size.value.h))
+const labelFont = computed(() =>
+  labelFontUnits(size.value.w, size.value.h, minTextPx(appearance.value))
+)
 const guides = computed(() => rangeGuides(range.value, labelFont.value ?? LABEL_FONT))
 const rangeLabels = computed(() => {
   const font = labelFont.value

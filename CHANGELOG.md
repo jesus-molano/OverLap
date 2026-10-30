@@ -9,6 +9,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
+  reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
+  eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
+  - **Paleta para daltónicos** (pasa aquí desde «Color»): ahora también llega a **Pedales**: los
+    pedales con sus colores de serie pasan a azul (acelerador) y naranja (freno), el embrague a
+    gris, el ABS a blanco, y la traza del freno es más gruesa que la del acelerador, para
+    distinguirlas por la forma; un color que hayas elegido se queda.
+  - **Texto mínimo de 10 px**: las etiquetas más pequeñas de los diez widgets (títulos de
+    columna, pies, cabeceras, chips) pasan de 9 a 10 px. Ningún widget se ensancha: donde no cabe, se
+    quita antes un dato o una columna, como al estrecharlos.
+  - **Sin parpadeos**: las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear
+    unas cinco veces por segundo al pasarte de vueltas, y tampoco parpadean el borde de **Editar
+    posición** ni el punto de «Esperando a iRacing». La ayuda de **Luces de cambio** en Pedales
+    dice dónde está.
+  - **Tamaño de esta ventana**: amplía o reduce la ventana de Ajustes entre el 80 y el 150 %
+    (también con `Ctrl` y `+` o `-`, `Ctrl+0` para volver al 100 %, o `Ctrl` y la rueda), y
+    se recuerda. Solo cambia esta ventana: los widgets siguen con **Tamaño del texto**.
+
+  Su ↺ y su línea en **Restablecer…** las vuelven a apagar; **Estilo** no las toca.
+
 - **Bienvenida en el primer arranque**: una instalación nueva abre los Ajustes con una bienvenida
   de tres pasos (idioma y unidades; qué widgets usar; dónde está todo: la bandeja, los tres atajos
   y **Probar con datos de ejemplo**, que enseña los widgets en tu pantalla en el modo edición), y
@@ -149,6 +169,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Doblado o doblándote, también por la forma**: el número de un coche que te dobla lleva una
+  muesca arriba a la derecha y el de un doblado, abajo, además del rojo o el azul que ya tenían (en
+  Relativo y Tráfico, el mismo componente). Va dentro del número: no ocupa más sitio.
 - **Combustible, más gráfico y con menos texto**: cada línea es una cifra y su dibujo. Arriba, las
   **vueltas de combustible en grande** (en el color del plan), los litros y, tras una bandera a
   cuadros, «QUEDAN» y las vueltas que quedan. El **depósito** va marcado en vueltas de combustible

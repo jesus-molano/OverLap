@@ -437,6 +437,13 @@ export const OPTION_SCHEMA = {
     countryFlags: { kind: 'bool', default: true, displayOnly: true },
     penaltyFlags: { kind: 'bool', default: true, displayOnly: true },
     colorBlind: { kind: 'bool', default: false, displayOnly: true },
+    // Accesibilidad (R15, R27): off by default, so a widget looks and moves as it always did
+    // until you choose it. The minimum text from 9 to 10 px; no blinking anywhere in the overlay.
+    largeLabels: { kind: 'bool', default: false, displayOnly: true },
+    noFlashing: { kind: 'bool', default: false, displayOnly: true },
+    // The settings window's own zoom (R29), in %: Ctrl + / Ctrl − / Ctrl 0 and Ctrl + wheel too.
+    // Here, with the rest of Accesibilidad (its reset), though only that window reads it.
+    settingsZoom: { kind: 'int', min: 80, max: 150, default: 100, step: 10, displayOnly: true },
     units: { kind: 'enum', values: ['metric', 'imperial'], default: 'metric', displayOnly: true },
     stripes: { kind: 'bool', default: true, displayOnly: true },
     textHalo: { kind: 'enum', values: ['auto', 'on', 'off'], default: 'auto', displayOnly: true },

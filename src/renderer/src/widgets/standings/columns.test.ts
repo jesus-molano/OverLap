@@ -31,6 +31,21 @@ function prefs(over: Partial<ColumnPrefs> = {}): ColumnPrefs {
   }
 }
 
+describe('the 10 px text floor (R15)', () => {
+  it('changes nothing until it is chosen', () => {
+    expect(fitColumns(prefs({ minText: 9 }), 540, 13)).toEqual(fitColumns(prefs(), 540, 13))
+    expect(flagEm(9, 9)).toBe(flagEm(9))
+  })
+
+  it('gives small cells more room at a small font, so the same width keeps fewer columns', () => {
+    const at9 = fitColumns(prefs({ columns: allColumns() }), 540, 10)
+    const at10 = fitColumns(prefs({ columns: allColumns(), minText: 10 }), 540, 10)
+    expect(at10.cells.length).toBeLessThanOrEqual(at9.cells.length)
+    expect(at10.template).not.toBe(at9.template)
+    expect(flagEm(9, 10)).toBeGreaterThan(flagEm(9, 9))
+  })
+})
+
 /** Wanted columns missing at `widthPx`, listed in DROP_ORDER (anything else sorts first). */
 function dropped(p: ColumnPrefs, widthPx: number, fontPx = 13): string[] {
   const all = fitColumns(p, 0, fontPx).cells

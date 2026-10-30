@@ -27,7 +27,16 @@ describe('Apariencia presets (R56)', () => {
   })
 
   it('never touches what is yours or a need: accent, colour-blind palette, SIM tag, language, units', () => {
-    for (const f of ['accent', 'colorBlind', 'showSimPill', 'language', 'units']) {
+    for (const f of [
+      'accent',
+      'colorBlind',
+      'largeLabels',
+      'noFlashing',
+      'settingsZoom',
+      'showSimPill',
+      'language',
+      'units'
+    ]) {
       expect(PRESET_FIELDS as readonly string[]).not.toContain(f)
     }
   })
@@ -58,7 +67,7 @@ describe('the presets’ hints name what they set as the controls do', () => {
       expect(hint).toContain(a.rows.stripes.toLowerCase())
       expect(hint).toContain(a.rows.numberChoices.stripe.label.toLowerCase())
       expect(hint).toContain(a.rows.licenseChoices.letter.label.toLowerCase())
-      expect(a.presets.help.toLowerCase()).toContain(a.color.colorBlind.toLowerCase())
+      expect(a.presets.help.toLowerCase()).toContain(a.access.title.toLowerCase())
     }
   })
 })

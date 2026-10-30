@@ -28,6 +28,8 @@ const WILL_CHANGE_DIRS = ['widgets/inputs/', 'widgets/radar/']
 const TRANSITION_OK = new Set(['opacity', 'transform', 'visibility', 'none'])
 const MAX_BLUR_PX = 2
 const MIN_TEXT_PX = 9
+/** Accesibilidad's «Texto mínimo de 10 px» (R15): theme.css raises the floor to this. */
+const LARGE_MIN_PX = 10
 const EM_PX = 16
 
 interface Decl {
@@ -234,8 +236,8 @@ describe('renderer CSS', () => {
     expect(violations).toEqual([])
   })
 
-  it('keeps the text floor at 9 px or more', () => {
+  it('keeps the text floor at 9 px or more, 10 px with «Texto mínimo de 10 px» (R15)', () => {
     const floor = customProperties().get('--ov-min-text')
-    expect(floor).toEqual([`${MIN_TEXT_PX}px`])
+    expect(floor).toEqual([`${MIN_TEXT_PX}px`, `${LARGE_MIN_PX}px`])
   })
 })

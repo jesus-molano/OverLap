@@ -485,7 +485,29 @@ export const settingsEs = {
       followGlobalDone: 'Todos los widgets siguen el fondo global',
       colorBlind: 'Paleta para daltónicos',
       colorBlindHelp:
-        'Azul y naranja en lugar de verde y rojo; las flechas y los iconos se mantienen'
+        'Azul y naranja en lugar de verde y rojo, también en Pedales; las formas se mantienen',
+      colorBlindMore:
+        'Los pedales con sus colores de serie pasan a azul (acelerador) y naranja (freno), y la traza del freno es más gruesa; un color que hayas elegido se queda.'
+    },
+    /**
+     * Accesibilidad (R15, R27, R29): every need in one place, each off until chosen, so nothing
+     * changes for someone who does not need it.
+     */
+    access: {
+      title: 'Accesibilidad',
+      largeLabels: 'Texto mínimo de 10 px',
+      largeLabelsHelp:
+        'Las etiquetas más pequeñas de los widgets pasan de 9 a 10 px, sin ensanchar ninguno',
+      largeLabelsMore:
+        'Donde un widget no tiene sitio para el texto más grande, quita antes un dato o una columna, como al estrecharlo.',
+      noFlashing: 'Sin parpadeos',
+      noFlashingHelp:
+        'Las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear al cortar',
+      noFlashingMore:
+        'Tampoco parpadean el borde de «Editar posición» ni el punto de «Esperando a iRacing».',
+      settingsZoom: 'Tamaño de esta ventana',
+      settingsZoomHelp: 'También con Ctrl y + o - (Ctrl y 0: 100 %), o con Ctrl y la rueda',
+      settingsZoomMore: 'Solo cambia la ventana de Ajustes; los widgets tienen «Tamaño del texto».'
     },
     text: {
       title: 'Texto',
@@ -542,7 +564,7 @@ export const settingsEs = {
     /** Named looks at the top (R56), the controls below as the fine tuning. */
     presets: {
       title: 'Estilo',
-      help: 'Todo a la vez; no toca acento, paleta para daltónicos, etiqueta SIM, idioma ni unidades',
+      help: 'Todo a la vez; no toca acento, Accesibilidad, etiqueta SIM, idioma ni unidades',
       choices: {
         overlap: { label: 'OverLap', hint: 'El de serie: filas cómodas, logos y banderas' },
         iracing: {
@@ -633,11 +655,13 @@ export const settingsEs = {
     reset: {
       /** The menu's name for screen readers. */
       menuLabel: 'Restablecer Apariencia',
-      color: 'Color de acento, fondo de los widgets y paleta para daltónicos, de fábrica',
+      color: 'Color de acento y fondo de los widgets, de fábrica',
       text: 'Tamaño y contorno del texto, de fábrica',
       rows: 'Filas, licencia, número y los valores globales del bloque Piloto, de fábrica',
       screen: 'Cuándo se muestra el overlay, de fábrica',
       other: 'Unidades y etiqueta SIM, de fábrica',
+      access:
+        'Paleta para daltónicos, texto mínimo, parpadeos y tamaño de esta ventana, de fábrica',
       all: {
         label: 'Toda la página',
         description: 'Todo lo anterior; el idioma y las opciones de cada widget no cambian'
@@ -1114,6 +1138,9 @@ export const settingsEs = {
     shiftLights: 'Luces de cambio',
     shiftLightsHelp:
       'Se encienden con las revoluciones hasta el punto de cambio del coche, donde se ponen todas en rojo, y parpadean si te pasas',
+    /** Where their blinking is turned off (R27): Apariencia's Accesibilidad, for every widget. */
+    shiftLightsMore:
+      'Para que se queden fijas (en azul) en vez de parpadear: «Sin parpadeos», en Accesibilidad de la página Apariencia.',
     /** In «Contenido», after the trace options: one colour per pedal. */
     pedalColors: {
       throttle: 'Color del acelerador',
@@ -2331,7 +2358,24 @@ export const settingsEn: Dict<typeof settingsEs> = {
       followGlobal: 'Use Global on all',
       followGlobalDone: 'Every widget follows the global background',
       colorBlind: 'Colour-blind palette',
-      colorBlindHelp: 'Blue and orange instead of green and red; arrows and icons stay the same'
+      colorBlindHelp: 'Blue and orange instead of green and red, in Inputs too; the shapes stay',
+      colorBlindMore:
+        'Pedals in their default colours turn blue (throttle) and orange (brake), and the brake trace is thicker; a colour you chose stays.'
+    },
+    access: {
+      title: 'Accessibility',
+      largeLabels: '10 px minimum text',
+      largeLabelsHelp: 'The widgets’ smallest labels go from 9 to 10 px, without widening any',
+      largeLabelsMore:
+        'Where a widget has no room for the larger text, it drops a piece of data or a column sooner, as when you make it narrower.',
+      noFlashing: 'No flashing',
+      noFlashingHelp:
+        'The Inputs shift lights stay steady in blue instead of flashing at the limiter',
+      noFlashingMore:
+        'The “Edit position” ring and the “Waiting for iRacing” dot do not flash either.',
+      settingsZoom: 'Size of this window',
+      settingsZoomHelp: 'Also with Ctrl and + or - (Ctrl and 0: 100%), or Ctrl and the wheel',
+      settingsZoomMore: 'Only the Settings window changes; the widgets have “Text size”.'
     },
     text: {
       title: 'Text',
@@ -2381,7 +2425,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     presets: {
       title: 'Style',
-      help: 'A whole look at once; the accent, colour-blind palette, SIM tag, language and units stay',
+      help: 'A whole look at once; the accent, Accessibility, SIM tag, language and units stay',
       choices: {
         overlap: { label: 'OverLap', hint: 'The default: comfortable rows, logos and flags' },
         iracing: {
@@ -2453,11 +2497,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     reset: {
       menuLabel: 'Reset Appearance',
-      color: 'Accent colour, widget background and colour-blind palette, back to default',
+      color: 'Accent colour and widget background, back to default',
       text: 'Text size and outline, back to default',
       rows: 'Rows, licence, number and the Driver block’s global values, back to default',
       screen: 'When the overlay shows, back to default',
       other: 'Units and SIM tag, back to default',
+      access:
+        'Colour-blind palette, minimum text, flashing and the size of this window, back to default',
       all: {
         label: 'The whole page',
         description: 'All of the above; the language and each widget’s options stay as they are'
@@ -2844,6 +2890,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     shiftLights: 'Shift lights',
     shiftLightsHelp:
       "Light up with the revs to the car's shift point, all red there, and blink if you go past it",
+    shiftLightsMore:
+      'To keep them steady (in blue) instead of flashing: “No flashing”, in Accessibility on the Appearance page.',
     pedalColors: {
       throttle: 'Throttle colour',
       brake: 'Brake colour',
