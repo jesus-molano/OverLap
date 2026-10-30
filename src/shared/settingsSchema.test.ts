@@ -251,6 +251,8 @@ describe('element lists (v2.6)', () => {
     expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.laps)).toEqual(['pb'])
     expect(hidden(OPTION_SCHEMA.lights.icons)).toEqual(['pitLimiter', 'revLimiter'])
+    // R30: fewer figures for a new install (a file's list stays: migrate.ts).
+    expect(hidden(OPTION_SCHEMA.fuel.lines)).toEqual(['tyres', 'limits'])
     for (const spec of [
       OPTION_SCHEMA.radar.parts,
       OPTION_SCHEMA.standings.classLine,
@@ -262,8 +264,7 @@ describe('element lists (v2.6)', () => {
       OPTION_SCHEMA.traffic.groups,
       OPTION_SCHEMA.traffic.parts,
       OPTION_SCHEMA.alerts.parts,
-      OPTION_SCHEMA.delta.top,
-      OPTION_SCHEMA.fuel.lines
+      OPTION_SCHEMA.delta.top
     ] as ElementsSpec[]) {
       expect(hidden(spec)).toEqual([])
     }
@@ -316,7 +317,8 @@ describe('info bars (v2.6)', () => {
     // session data on by default in the standings only.
     expect(shown(o.relative.headerBar)).toEqual(['title', 'split'])
     expect(o.relative.headerBarSize.default).toBe('normal')
-    const weather = ['trackTemp', 'wet', 'wind', 'airTemp', 'rubber', 'split']
+    // Without the air and the rubber since R30 (hidden in the list).
+    const weather = ['trackTemp', 'wet', 'wind', 'split']
     // The relative's footer is off (its readings preset), the standings' on.
     expect(shown(o.relative.footerBar)).toEqual(weather)
     expect(o.relative.footerBarSize.default).toBe('off')
@@ -336,6 +338,8 @@ describe('info bars (v2.6)', () => {
       'split',
       'safetyRating'
     ])
+    // Its line itself off for a new install since R30.
+    expect(o.standings.subheaderBarSize.default).toBe('off')
     expect(shown(o.fuel.headerBar)).toEqual(['title', 'split'])
     expect(shown(o.fuel.footerBar)).toEqual(['trackTemp', 'split'])
     expect(shown(o.battle.headerBar)).toEqual(['title', 'split', 'remaining'])

@@ -128,7 +128,17 @@ const DEFAULT_VISIBILITY: VisibilityOptions = {
   replays: 'hide',
   showWhileWaiting: false
 }
-const FOOTER: readonly InfoBarEntryId[] = ['trackTemp', 'wet', 'wind', 'airTemp', 'rubber', 'split']
+/** The conditions footer of a new install since R30: no air and no rubber (hidden). */
+const FOOTER: readonly InfoBarEntryId[] = ['trackTemp', 'wet', 'wind', 'split']
+/** The one of before R30, which a section saved without a footer list keeps. */
+const FOOTER_BEFORE: readonly InfoBarEntryId[] = [
+  'trackTemp',
+  'wet',
+  'wind',
+  'airTemp',
+  'rubber',
+  'split'
+]
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
   carsBehind: 3,
@@ -140,7 +150,7 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   // One rule for the bars (R13): session data on by default in the standings only.
   headerBar: bar(['title', 'split']),
   headerBarSize: 'normal',
-  // The conditions footer: off in the relative (a free-size window), every reading on.
+  // The conditions footer: off in the relative (a free-size window); air and rubber hidden (R30).
   footerBar: bar(FOOTER),
   footerBarSize: 'off',
   conditionsTrend: true,
@@ -180,8 +190,9 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   headerBar: bar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
   headerBarSize: 'normal',
   subheaderBar: bar(['iRating', 'fastestLap', 'split', 'safetyRating']),
-  subheaderBarSize: 'normal',
-  // The conditions footer: on in the standings (it grows by the line), every reading on.
+  // Off for a new install since R30 (fewer figures in a glance).
+  subheaderBarSize: 'off',
+  // The conditions footer: on in the standings (it grows by the line); air and rubber hidden.
   footerBar: bar([...FOOTER, 'carCount']),
   footerBarSize: 'normal',
   conditionsTrend: true,
@@ -252,10 +263,28 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
  * The bars a section saved before they were lists (a file of version 4 or older) keeps: those of
  * before 2.3 (migrateOldBars), not R13's new defaults.
  */
-const OLD_RELATIVE_BARS = { headerBar: bar(['title', 'session', 'split', 'incidents']) }
+const OLD_RELATIVE_BARS = {
+  headerBar: bar(['title', 'session', 'split', 'incidents']),
+  footerBar: bar(FOOTER_BEFORE)
+}
 const OLD_STANDINGS_BARS = {
   headerBar: bar(['session', 'sof', 'carCount', 'split', 'incidents', 'remaining']),
-  footerBar: bar(FOOTER)
+  footerBar: bar(FOOTER_BEFORE),
+  subheaderBarSize: 'normal' as const
+}
+/**
+ * What a section a file saved without them keeps (R30 is for a new install only): the standings'
+ * second header line and the air and the rubber in its footer; every fuel line.
+ */
+const BEFORE_FEWER = {
+  standings: {
+    subheaderBarSize: 'normal' as const,
+    footerBar: bar([...FOOTER_BEFORE, 'carCount'])
+  },
+  relative: { footerBar: bar(FOOTER_BEFORE) },
+  fuel: {
+    lines: list(['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits'])
+  }
 }
 const OLD_BATTLE_BARS = {
   headerBar: bar(['title', 'split']),
@@ -308,7 +337,11 @@ const DEFAULT_FUEL: FuelOptions = {
   footerBarSize: 'off',
   conditionsTrend: true,
   conditionsWindDirection: true,
-  lines: list(['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits']),
+  // The tyres and the limits hidden for a new install since R30.
+  lines: list(
+    ['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits'],
+    ['tyres', 'limits']
+  ),
   showBox: true,
   avgLaps: 5,
   marginLaps: 0.5
@@ -799,7 +832,8 @@ describe('normalizeSettings: basics', () => {
       height: def.height
     })
     expect(s.widgets.radar.bounds).toEqual(WIDGET_DEFS.radar.defaultBounds)
-    expect(s.relative).toEqual(DEFAULT_RELATIVE)
+    // A relative section the file saved keeps the footer list of before R30.
+    expect(s.relative).toEqual({ ...DEFAULT_RELATIVE, ...BEFORE_FEWER.relative })
     expect(s.radar).toEqual(DEFAULT_RADAR)
   })
 
@@ -891,6 +925,7 @@ describe('normalizeSettings: options', () => {
         .relative
     ).toEqual({
       ...DEFAULT_RELATIVE,
+      ...BEFORE_FEWER.relative,
       carsAhead: 0,
       carsBehind: 10
     })
@@ -901,6 +936,7 @@ describe('normalizeSettings: options', () => {
       }).relative
     ).toEqual({
       ...DEFAULT_RELATIVE,
+      ...BEFORE_FEWER.relative,
       carsAhead: 3,
       carsBehind: 0
     })
@@ -1044,7 +1080,7 @@ describe('normalizeSettings: options', () => {
       },
       traffic: { nameFormat: 'short' }
     })
-    expect(s).toEqual(withOldDriverBlocks(DEFAULT_SETTINGS))
+    expect(s).toEqual(withBeforeFewer(withOldDriverBlocks(DEFAULT_SETTINGS), 'standings'))
     const ok = normalizeSettings({
       appearance: {
         density: 'compact',
@@ -1108,7 +1144,7 @@ describe('normalizeSettings: options', () => {
       alerts: { showFlags: 1, showBlue: 'off', showPitLimiter: [] },
       delta: { fallback: 0, showPredicted: 'no', showSectors: null, showTrend: {} }
     })
-    expect(bad).toEqual(withOldDriverBlocks(DEFAULT_SETTINGS))
+    expect(bad).toEqual(withBeforeFewer(withOldDriverBlocks(DEFAULT_SETTINGS), 'standings'))
     const ok = normalizeSettings({
       version: SETTINGS_VERSION,
       traffic: { showFaster: false, showHazards: false, onlyMulticlass: false },
@@ -1773,6 +1809,33 @@ describe('normalizeSettings: several bindings per action', () => {
 })
 
 /** `settings` as a file with a battle and a traffic section from before 2.3 loads. */
+/**
+ * `settings` with the sections a file saved (`sections`) as they looked before R30 where the
+ * file lacked those fields (BEFORE_FEWER), in every copy (the file's and each layout's).
+ */
+function withBeforeFewer(
+  settings: OverlaySettings,
+  ...sections: (keyof typeof BEFORE_FEWER)[]
+): OverlaySettings {
+  const out = structuredClone(settings)
+  const mark: Record<string, string> = {
+    standings: 'topRows',
+    relative: 'carsAhead',
+    fuel: 'avgLaps'
+  }
+  const walk = (node: unknown): void => {
+    if (typeof node !== 'object' || node === null) return
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      const s = sections.find((x) => x === k)
+      if (s !== undefined && typeof v === 'object' && v !== null && mark[s]! in v) {
+        Object.assign(v, structuredClone(BEFORE_FEWER[s]))
+      } else walk(v)
+    }
+  }
+  walk(out)
+  return out
+}
+
 function withOldDriverBlocks(settings: OverlaySettings): OverlaySettings {
   const out = structuredClone(settings)
   // Every copy of the sections: the file's, and each layout's and the shared options' own.

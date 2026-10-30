@@ -172,6 +172,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Doblado o doblándote, también por la forma**: el número de un coche que te dobla lleva una
   muesca arriba a la derecha y el de un doblado, abajo, además del rojo o el azul que ya tenían (en
   Relativo y Tráfico, el mismo componente). Va dentro del número: no ocupa más sitio.
+- **Menos cifras de serie, solo en una instalación nueva**: Posiciones empieza sin su segunda
+  línea de cabecera (iRating y SR en juego, margen y vuelta rápida de clase) y sin aire ni goma en
+  el pie (que sigue con pista, agua, viento y coches); Combustible, sin las líneas de neumáticos y
+  de límites (reparaciones rápidas y juegos); el pie de Relativo, cuando lo enciendes, tampoco
+  trae aire ni goma. Todo sigue en sus listas de Personalizar, a un clic. **Si ya tenías ajustes,
+  nada cambia**: tus widgets dibujan lo mismo (también un archivo antiguo sin esas listas, que
+  recibe lo que dibujaba su versión); solo **Restablecer** lleva a lo nuevo.
 - **Combustible, más gráfico y con menos texto**: cada línea es una cifra y su dibujo. Arriba, las
   **vueltas de combustible en grande** (en el color del plan), los litros y, tras una bandera a
   cuadros, «QUEDAN» y las vueltas que quedan. El **depósito** va marcado en vueltas de combustible

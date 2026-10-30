@@ -11,6 +11,7 @@ import {
   SHOWN_WHEN_ADDED,
   freeSpot,
   migrateCustomizeOpen,
+  keepBeforeFewerDefaults,
   migrateOldBars,
   migrateRelativeColumns,
   migrateRelativeDensity,
@@ -368,8 +369,22 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       },
       lights: { ...d.lights, repairCrewTag: false },
       // Their old switches draw the bars they drew then (migrateOldBars), not R13's defaults.
-      relative: { ...d.relative, ...migrateOldBars('relative', {}, { version: 4 }) },
-      standings: { ...d.standings, ...migrateOldBars('standings', {}, { version: 4 }) },
+      relative: {
+        ...d.relative,
+        ...(keepBeforeFewerDefaults(
+          'relative',
+          migrateOldBars('relative', {}, { version: 4 })
+        ) as object)
+      },
+      standings: {
+        ...d.standings,
+        ...(keepBeforeFewerDefaults(
+          'standings',
+          migrateOldBars('standings', {}, { version: 4 })
+        ) as object)
+      },
+      // R30 is for a new install only: a fuel section of before keeps every line.
+      fuel: { ...d.fuel, ...(keepBeforeFewerDefaults('fuel', {}) as object) },
       // What the «Piloto» block added stays off (migrateDriverBlock).
       battle: { ...d.battle, showFlags: false, countryFlags: false },
       traffic: { ...d.traffic, brandMarks: 'off', countryFlags: false, showFlags: false }
@@ -732,5 +747,69 @@ describe('migrateOldBars (R13: new defaults for new installs only)', () => {
     expect(shown(r.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
     const odd = migrateOldBars('relative', {}, { version: 'x' })
     expect(shown(odd.headerBar)).toEqual(['title', 'session', 'split', 'incidents'])
+  })
+})
+
+describe('fewer figures by default, for a new install only (R30)', () => {
+  const visible = (l: readonly { id: string; visible: boolean }[]): string[] =>
+    l.filter((e) => e.visible).map((e) => e.id)
+
+  it('a new install: no second header line, no air or rubber, no tyres or limits', () => {
+    const d = createDefaultSettings()
+    expect(d.standings.subheaderBarSize).toBe('off')
+    expect(visible(d.standings.footerBar)).toEqual([
+      'trackTemp',
+      'wet',
+      'wind',
+      'split',
+      'carCount'
+    ])
+    expect(visible(d.relative.footerBar)).toEqual(['trackTemp', 'wet', 'wind', 'split'])
+    expect(visible(d.fuel.lines)).toEqual(['hero', 'gauge', 'perLap', 'finish', 'window', 'save'])
+    // Still in the lists, one click away.
+    expect(d.fuel.lines.map((e) => e.id)).toContain('tyres')
+    expect(d.standings.footerBar.map((e) => e.id)).toContain('airTemp')
+  })
+
+  it('a file keeps what it saved, the old defaults included', () => {
+    const before = normalizeSettings({
+      version: 6,
+      standings: {
+        subheaderBarSize: 'normal',
+        footerBar: createDefaultSettings().standings.footerBar
+      },
+      fuel: { lines: [{ id: 'tyres', visible: true }] }
+    })
+    expect(before.standings.subheaderBarSize).toBe('normal')
+    expect(visible(before.fuel.lines)).toContain('tyres')
+    // An explicit choice of the new look stays too.
+    expect(
+      normalizeSettings({ standings: { subheaderBarSize: 'off' } }).standings.subheaderBarSize
+    ).toBe('off')
+  })
+
+  it('a section saved without those fields draws as that version did', () => {
+    const s = normalizeSettings({ version: 6, standings: { topRows: 4 }, fuel: { avgLaps: 3 } })
+    expect(s.standings.subheaderBarSize).toBe('normal')
+    expect(visible(s.standings.footerBar)).toEqual([
+      'trackTemp',
+      'wet',
+      'wind',
+      'airTemp',
+      'rubber',
+      'split',
+      'carCount'
+    ])
+    expect(visible(s.fuel.lines)).toHaveLength(8)
+    // A section the file never saved takes the new defaults.
+    expect(normalizeSettings({ version: 6, radar: {} }).standings.subheaderBarSize).toBe('off')
+    // Not a layout's section: a field it lacks follows the options in effect.
+    expect(keepBeforeFewerDefaults('battle', { holdS: 2 })).toEqual({ holdS: 2 })
+  })
+
+  it('reads the old switches over the list that version drew', () => {
+    const s = normalizeSettings({ fuel: { showLimits: false } })
+    expect(visible(s.fuel.lines)).toContain('tyres')
+    expect(visible(s.fuel.lines)).not.toContain('limits')
   })
 })

@@ -39,7 +39,12 @@ const DEFAULTS = defaultTelemetryConfig()
  * before v2.6): these runs check its whole chain (pb -> session -> class).
  */
 function withRecord(config: TelemetryConfig): TelemetryConfig {
-  return { ...config, delta: { ...config.delta, ...everySession('pb') } }
+  return {
+    ...config,
+    delta: { ...config.delta, ...everySession('pb') },
+    // The standings' second header line (iRating, SR), off for a new install since R30.
+    standings: { ...config.standings, subheaderBarSize: 'normal' }
+  }
 }
 
 function everySession(

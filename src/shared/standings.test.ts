@@ -221,9 +221,13 @@ function makeFrame(
 const RACE = makeFrame()
 const PRACTICE = makeFrame({ sessionNum: 1 })
 
-/** Every column shown, the iRating change on every row: the provider computes everything. */
+/**
+ * Every column shown, the iRating change on every row and the second header line (iRating, SR:
+ * off for a new install since R30): the provider computes everything.
+ */
 const OPTS: StandingsOptions = {
   ...createDefaultSettings().standings,
+  subheaderBarSize: 'normal',
   topRows: 3,
   aroundRows: 2,
   columns: createDefaultSettings().standings.columns.map((c) => ({ ...c, visible: true })),

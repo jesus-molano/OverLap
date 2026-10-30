@@ -26,8 +26,10 @@ function oldBars(section: 'relative' | 'standings' | 'battle'): Record<string, u
     string,
     unknown
   >
-  const out: Record<string, unknown> = { headerBar: s.headerBar }
-  if (section !== 'relative') out.footerBar = s.footerBar
+  // A saved section keeps what it drew before R30 too: the footer's air and rubber, and the
+  // standings' second header line (keepBeforeFewerDefaults).
+  const out: Record<string, unknown> = { headerBar: s.headerBar, footerBar: s.footerBar }
+  if (section === 'standings') out.subheaderBarSize = s.subheaderBarSize
   return out
 }
 

@@ -48,7 +48,10 @@ const WEATHER: ConditionsData = {
 }
 
 function config(): TelemetryConfig {
-  const c = toTelemetryConfig(createDefaultSettings())
+  const s = createDefaultSettings()
+  // The standings' second header line (iRating, SR): off for a new install since R30.
+  s.standings.subheaderBarSize = 'normal'
+  const c = toTelemetryConfig(s)
   return { ...c, battle: { ...c.battle, holdS: 0 } }
 }
 

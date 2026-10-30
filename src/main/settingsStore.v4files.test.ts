@@ -44,7 +44,13 @@ function oldBars(section: 'relative' | 'standings' | 'battle' | 'traffic' | 'fue
     string,
     unknown
   >
-  return { headerBar: s.headerBar, footerBar: s.footerBar }
+  // What it drew before R30 too: the standings' second header line, every fuel line.
+  return {
+    headerBar: s.headerBar,
+    footerBar: s.footerBar,
+    ...('subheaderBarSize' in s ? { subheaderBarSize: s.subheaderBarSize } : {}),
+    ...(section === 'fuel' ? { lines: s.lines } : {})
+  }
 }
 
 describe('the untouched v4 file', () => {
