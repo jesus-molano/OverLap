@@ -159,6 +159,7 @@ describe('displayOnlyFields', () => {
     // The columns and the info bars decide what the provider computes.
     expect(displayOnlyFields('standings')).toEqual([
       'gapMode',
+      'showPosition',
       'conditionsTrend',
       'conditionsWindDirection',
       'classLine',

@@ -2,14 +2,17 @@
 import { computed, shallowRef, useId, useTemplateRef } from 'vue'
 import {
   APPEARANCE_PRESETS,
+  contentsBack,
   matchingPreset,
+  mergePatches,
+  leavesComplete,
   planStyle,
   undoPatch,
   type AppearancePreset,
   type StylePlan
 } from '@shared/appearancePresets'
 import { DEFAULT_SETTINGS, applySettingsPatch } from '@shared/settings'
-import type { Rect } from '@shared/types'
+import type { Rect, SettingsPatch } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -19,13 +22,16 @@ import { sendCommand, updateSettings } from '../editor'
 import { foldGroups, styleChangeGroups, styleWhere } from '../styleChanges'
 import { styleWindows } from '../styleGrowth'
 import { offerRestore } from '../undo/restore'
+import { beforeComplete, forgetBeforeComplete, rememberBeforeComplete } from '../completeBefore'
+import SiblingLink from '../layout/SiblingLink.vue'
 
 /**
  * Apariencia's named styles (R56): one radio card each, the one the settings match checked; none
  * when tuned by hand («Personalizado»). Choosing one that would change what you set yourself (the
  * look tuned by hand, or the widgets' contents with «Completo» and «OverLap», which puts them
  * back as they come) first says what changes and where (ConfirmDialog); otherwise it applies at
- * once. Either way "Deshacer" puts it all back.
+ * once. Leaving «Completo» for Limpio or Compacto (looks alone) asks too: what Completo added
+ * stays, with the offer, unticked, to take it away. Either way "Deshacer" puts it all back.
  */
 const t = useI18n()
 const { settings } = useOverlayState()
@@ -44,7 +50,16 @@ const asking = shallowRef<{
   id: AppearancePreset
   plan: StylePlan
   windows: readonly WidgetId[]
+  /**
+   * Leaving «Completo» for a look alone (Limpio, Compacto): its contents stay, said in the
+   * dialog, with the offer to take them away when what the widgets showed before it is
+   * remembered (completeBefore.ts). Never for «OverLap», which puts every content back as it comes.
+   */
+  leaving: boolean
+  back: SettingsPatch | null
 } | null>(null)
+/** «Quitar también lo que añadió Completo», ticked in the dialog. */
+const takeBack = shallowRef(false)
 const expanded = shallowRef(false)
 const card = shallowRef<HTMLElement | null>(null)
 
@@ -64,7 +79,12 @@ const folded = computed(() =>
 const where = computed(() =>
   asking.value === null
     ? ''
-    : styleWhere(t.value, now.value.savedLayouts, asking.value.plan.contents)
+    : styleWhere(
+        t.value,
+        now.value.savedLayouts,
+        // Taking Completo's contents back changes the layout's widgets too.
+        asking.value.plan.contents || (asking.value.back !== null && takeBack.value)
+      )
 )
 
 /**
@@ -75,6 +95,10 @@ const where = computed(() =>
 async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
   const before = now.value
   const back = undoPatch(before, plan.patch)
+  // What the widgets showed before Completo, for a later look to offer back; OverLap puts the
+  // contents back as they come, so after it there is nothing left to offer.
+  if (p === 'complete') rememberBeforeComplete(contentsBack(back))
+  else if (p === 'overlap') forgetBeforeComplete()
   let restore: Partial<Record<WidgetId, Rect>> = {}
   offerRestore(
     (m) => m.settings.appearance.presets.applied(m.settings.appearance.presets.choices[p].label),
@@ -109,19 +133,33 @@ function syncRadios(): void {
 function choose(p: AppearancePreset, e: Event): void {
   const plan = planStyle(now.value, p)
   if (Object.keys(plan.patch).length === 0) return
-  if (!plan.confirm) {
+  const leaving = leavesComplete(current.value, p)
+  if (!plan.confirm && !leaving) {
     void apply(p, plan)
     return
   }
   card.value = e.target instanceof HTMLElement ? e.target : null
   expanded.value = false
-  asking.value = { id: p, plan, windows: resizing(p, plan) }
+  takeBack.value = false
+  asking.value = {
+    id: p,
+    plan,
+    windows: resizing(p, plan),
+    leaving,
+    back: leaving ? beforeComplete() : null
+  }
 }
 
 function confirmApply(): void {
   const a = asking.value
   asking.value = null
-  if (a !== null) void apply(a.id, a.plan)
+  if (a === null) return
+  if (a.back !== null && takeBack.value) {
+    forgetBeforeComplete()
+    void apply(a.id, { ...a.plan, patch: mergePatches(a.back, a.plan.patch) })
+    return
+  }
+  void apply(a.id, a.plan)
 }
 
 function cancel(): void {
@@ -162,6 +200,7 @@ function cancel(): void {
     <p class="st-help custom" role="status">
       {{ current === null ? text.custom : '' }}
     </p>
+    <SiblingLink :text="text.seeLayouts" page="layouts" />
     <h2 class="st-section-title fine">{{ text.fine }}</h2>
 
     <ConfirmDialog
@@ -197,6 +236,13 @@ function cancel(): void {
       >
         {{ expanded ? text.confirm.less : text.confirm.more(folded.hidden) }}
       </button>
+      <template v-if="asking.leaving">
+        <p class="cd-intro">{{ text.confirm.completeStays }}</p>
+        <label v-if="asking.back !== null" class="st-check cd-back">
+          <input v-model="takeBack" type="checkbox" />
+          <span>{{ text.confirm.takeBack }}</span>
+        </label>
+      </template>
       <p class="cd-where">
         <Icon name="save" class="cd-where-icon" />
         <span class="cd-where-label">{{ t.settings.widgetPage.target.savingIn }}</span>
@@ -319,6 +365,10 @@ function cancel(): void {
 }
 
 .cd-more {
+  align-self: flex-start;
+}
+
+.cd-back {
   align-self: flex-start;
 }
 

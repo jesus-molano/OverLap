@@ -42,12 +42,13 @@ const lineTexts = computed(() => {
   return {
     ...base,
     gauge: { label: base.gauge.label, hint: f.gaugeHelp },
-    perLap: { label: base.perLap.label, hint: f.perLapHelp },
-    finish: { label: base.finish.label, hint: f.finishHelp },
-    window: { label: base.window.label, hint: f.windowHelp },
-    save: { label: base.save.label, hint: f.saveHelp(SAVE_PCT) },
-    tyres: { label: base.tyres.label, hint: f.tyresHelp },
-    limits: { label: base.limits.label, hint: f.limitsHelp }
+    // One line each (R31), the rest behind its ⓘ.
+    perLap: { label: base.perLap.label, hint: f.perLapHelp, more: f.perLapMore },
+    finish: { label: base.finish.label, hint: f.finishHelp, more: f.finishMore },
+    window: { label: base.window.label, hint: f.windowHelp, more: f.windowMore },
+    save: { label: base.save.label, hint: f.saveHelp, more: f.saveMore(SAVE_PCT) },
+    tyres: { label: base.tyres.label, hint: f.tyresHelp, more: f.tyresMore },
+    limits: { label: base.limits.label, hint: f.limitsHelp, more: f.limitsMore }
   }
 })
 const finishShown = computed(() => isElementVisible(opts.value.lines, 'finish'))
@@ -95,6 +96,7 @@ const setLines = listSetter('fuel', 'lines')
           kind="switch"
           :label="t.settings.fuel.box"
           :help="t.settings.fuel.boxHelp"
+          :more="t.settings.fuel.boxMore"
           :current="opts.showBox"
           :apply="set('showBox')"
         />

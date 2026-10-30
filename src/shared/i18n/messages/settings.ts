@@ -19,10 +19,13 @@ export const settingsEs = {
       title: 'Modo edición',
       keys: [
         { key: 'Arrastra', text: 'mover' },
-        { key: 'Bordes', text: 'ancho' },
+        { key: 'Bordes', text: 'tamaño' },
         { key: 'Rueda', text: 'escala' },
-        // R38: the widget last touched, 1 px (Mayús: 10); with Ctrl, its size.
-        { key: 'Flechas', text: 'afinar' },
+        // R38: the widget last touched, 1 px (Mayús: 10); with Ctrl, its size. The same words
+        // as the hint over each widget (core.editFrame.hintLong).
+        { key: 'Flechas', text: 'mover (Ctrl: tamaño)' },
+        { key: 'Tab', text: 'otro widget' },
+        { key: 'Ctrl+Z', text: 'deshacer' },
         { key: 'Alt', text: 'sin imán' },
         { key: 'Esc', text: 'salir' }
       ],
@@ -504,13 +507,17 @@ export const settingsEs = {
         'Donde un widget no tiene sitio para el texto más grande, quita antes un dato o una columna, como al estrecharlo.',
       noFlashing: 'Sin parpadeos',
       noFlashingHelp:
-        'Las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear al cortar',
+        'Las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear en el corte',
       noFlashingMore:
         'Tampoco parpadean el borde de «Editar posición» ni el punto de «Esperando a iRacing».',
       settingsZoom: 'Tamaño de esta ventana',
       settingsZoomHelp: 'También con Ctrl y + o - (Ctrl y 0: 100 %), o con Ctrl y la rueda',
-      settingsZoomMore: 'Solo cambia la ventana de Ajustes; los widgets tienen «Tamaño del texto».'
+      settingsZoomMore: 'Solo cambia la ventana de Ajustes; los widgets tienen «Tamaño del texto».',
+      /** The links to «Texto»'s reading aids, at the section's foot. */
+      readBetter: 'Para leer mejor los widgets, en Texto:'
     },
+    /** The group of what no style touches: Idioma, Otros, Accesibilidad. */
+    general: 'General',
     text: {
       title: 'Texto',
       fontScale: 'Tamaño del texto',
@@ -578,7 +585,7 @@ export const settingsEs = {
         },
         compact: {
           label: 'Compacto',
-          hint: 'Pequeño y legible: filas compactas, texto al 85 %, apellidos, sin logos ni banderas de país'
+          hint: 'Pequeño y legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo letra, sin logos ni banderas de país'
         },
         complete: {
           label: 'Completo',
@@ -630,12 +637,20 @@ export const settingsEs = {
         contentsWhere: (name: string) =>
           `el aspecto global y el contenido de los widgets en «${name}»`,
         contentsShared: 'el aspecto global y el contenido de los widgets en las opciones comunes',
+        /** Leaving «Completo»: what it added to the widgets stays, unless taken away. */
+        completeStays:
+          'Lo que «Completo» añadió a los widgets se queda; este estilo solo cambia el aspecto.',
+        takeBack:
+          'Quitar también lo que añadió Completo (cada widget vuelve a lo que mostraba antes)',
         apply: 'Aplicar',
         cancel: 'Cancelar'
       },
       /** Under the cards, when the look matches none of them. */
       custom: 'Personalizado: lo has ajustado a mano, abajo o en la página de algún widget',
-      fine: 'Ajuste fino',
+      fine: 'Ajuste fino del estilo',
+      /** Where the widgets shown are chosen: the layouts' examples. */
+      seeLayouts:
+        'Qué widgets se ven lo eligen las disposiciones: «Ligera» y «Los diez» en Ejemplos',
       /** The undo toast. */
       applied: (name: string) => `Estilo «${name}» aplicado`
     },
@@ -987,6 +1002,9 @@ export const settingsEs = {
     },
     anchor: 'Crece hacia',
     anchorHelp: 'Arriba si lo tienes pegado al borde inferior de la pantalla',
+    /** Off, with why: the height does not follow the content. */
+    anchorFixed: 'No aplica: solo con «Alto: Automático»',
+    anchorFree: 'No aplica: este widget no cambia de alto por sí solo',
     // The anchor is the edge that stays put: anchored at the top, it grows downwards.
     anchorChoices: {
       top: { label: 'Abajo', hint: 'El borde de arriba se queda fijo' },
@@ -1010,6 +1028,8 @@ export const settingsEs = {
       'Visibilidad solo muestra el overlay en carrera: en práctica y clasificación no se ve',
     hideInPits: 'Ocultar en boxes',
     hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box',
+    /** Avisos: off, with why (its job includes the pits). */
+    hideInPitsNo: 'No aplica: ocultaría los avisos del limitador y de la entrada a boxes',
     sessionScreen: 'Mostrar en la pantalla de sesión',
     sessionScreenHelp:
       'Fuera del coche, sobre los resultados y el chat de iRacing (aunque el overlay sea solo para el coche)',
@@ -1050,10 +1070,7 @@ export const settingsEs = {
     stint: 'Vueltas del stint',
     stintHelp: 'Desde su última parada, o desde la salida',
     tyre: 'Neumático',
-    /** Column hints (R10: the same words as the standings'). */
-    posHelp: 'En tu clase',
-    /** The number is the driver cell's, as in the standings (R10). */
-    driverHelp: 'Con el número del coche',
+    /** Column hints; the position's and the driver's are the standings' (columns.fixedHints). */
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
@@ -1081,7 +1098,8 @@ export const settingsEs = {
       `La vista previa te pone en P${position}: así se ven por separado los primeros puestos y los coches de alrededor`,
     previewSingle:
       'La vista previa muestra solo tu clase: así se ven el SoF y los coches en las barras',
-    gap: 'Hueco',
+    /** On the gap column's own row (R12): to whom it is measured. */
+    gap: 'Medido',
     gapHelp: 'Fuera de carrera, el hueco es a la mejor vuelta',
     gapChoices: {
       interval: { label: 'Al de delante' },
@@ -1136,8 +1154,8 @@ export const settingsEs = {
     hints: {
       gained: 'Solo en carrera: puestos ganados desde la salida',
       delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
-      gap: 'Según «Hueco»: al de delante o al líder',
-      gapLeader: 'Con «Hueco: Ambos»',
+      gap: 'Al de delante o al líder: elígelo en su fila',
+      gapLeader: 'Se muestra con «Ambos» en la fila Hueco',
       last: 'Fuera de carrera, la mejor vuelta',
       best: 'Solo en carrera: fuera de carrera ya la muestra «Última vuelta»',
       pit: 'PIT, OUT o GRÚA y las paradas; oculta, PIT va tras el nombre',
@@ -1160,7 +1178,10 @@ export const settingsEs = {
       laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' }
     },
     predictionHelp: '«Le alcanzas en ~4 v de 19»',
-    atStakeHelp: 'Cuánto iRating vale ese puesto'
+    atStakeHelp: 'Cuánto iRating vale ese puesto',
+    /** The parts' iRating and licence: named as the tables' columns, whose they are said here. */
+    ratingHelp: 'El del rival, como la columna iRating de las tablas',
+    licenseHelp: 'La del rival, como la columna Licencia de las tablas'
   },
   inputs: {
     traceSeconds: 'Segundos de traza',
@@ -1170,6 +1191,8 @@ export const settingsEs = {
     clutchInTraceHelp: 'Desactívalo si cambias con levas',
     steering: 'Volante',
     steeringStyle: 'Estilo del volante',
+    /** Contenido with the wheel hidden: where its options went. */
+    steeringOff: 'El volante está oculto en Datos: muéstralo allí para elegir su estilo',
     steeringChoices: {
       bar: { label: 'Barra' },
       minimal: { label: 'Minimalista', hint: 'Un aro fino con la marca del centro' },
@@ -1189,12 +1212,9 @@ export const settingsEs = {
     steeringDegrees: 'Grados del volante',
     steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
     shiftLights: 'Luces de cambio',
-    shiftLightsHelp:
-      'Se encienden con las revoluciones hasta el punto de cambio del coche, donde se ponen todas en rojo, y parpadean si te pasas',
-    /** Where their blinking is turned off (R27): Apariencia's Accesibilidad, for every widget. */
-    shiftLightsMore:
-      'Para que se queden fijas (en azul) en vez de parpadear: «Sin parpadeos», en Accesibilidad de la página Apariencia.',
-    /** In «Contenido», after the trace options: one colour per pedal. */
+    /** The shift lights' row in «Bloques»: where they are. */
+    shiftLightsRow: 'Arriba del widget, hasta el punto de cambio; fijas con «Sin parpadeos»',
+    /** Under «Bloques»: one colour per pedal (its bar and its trace). */
     pedalColors: {
       throttle: 'Color del acelerador',
       brake: 'Color del freno',
@@ -1352,7 +1372,7 @@ export const settingsEs = {
     /** The class best under a session's selector: nothing after it. */
     fallbackNone: 'Sin otra si no existe',
     fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
-    range: 'Escala de la barra',
+    range: 'Rango de la barra',
     rangeHelp:
       'Diferencia con la que la barra llega al final, a cada lado; más allá se marca el extremo',
     predicted: 'Vuelta prevista',
@@ -1367,30 +1387,32 @@ export const settingsEs = {
     /** The hero line is always drawn; these are the others. */
     lines: 'Líneas',
     gauge: 'Depósito',
-    gaugeHelp:
-      'El depósito marcado en vueltas de combustible, con una raya donde llega lo que necesitas hasta meta',
+    gaugeHelp: 'El depósito en vueltas de combustible, con una raya en lo que necesitas hasta meta',
     perLap: 'Consumo por vuelta',
-    perLapHelp:
-      'La media de tus últimas vueltas limpias y una línea con ellas: la última y la que más gastó, marcadas',
+    perLapHelp: 'La media de tus últimas vueltas limpias, con una línea de ellas',
+    perLapMore: 'En la línea van marcadas la última y la que más gastó.',
     finish: 'Repostar y para meta',
-    finishHelp:
-      'Lo que echar en la próxima parada y, al final, lo que necesitas hasta meta con el margen (Para meta)',
+    finishHelp: 'Lo que echar en la próxima parada y lo que necesitas hasta meta',
+    finishMore:
+      'Al final de la carrera, lo que necesitas hasta meta ya con el margen («Para meta»).',
     box: 'Menú de boxes',
-    boxHelp:
-      'La gasolina del menú de boxes como una barra marcada en lo que hay que echar; en naranja si no llega',
+    boxHelp: 'La gasolina del menú de boxes, marcada en lo que hay que echar',
+    boxMore: 'La barra sale en naranja si lo que has puesto no llega.',
     window: 'Ventana de boxes',
-    windowHelp:
-      'La carrera como una línea hasta la bandera: dónde vas, las vueltas en que puedes parar y terminar, y las paradas',
+    windowHelp: 'La carrera como una línea hasta la bandera, con las paradas',
+    windowMore: 'Dónde vas y las vueltas en las que puedes parar y aun así terminar.',
     save: 'Ahorro',
+    saveHelp: 'Lo que gastar por vuelta para ahorrarte una parada',
     /** `pct`: FUEL_STRATEGY.saveReach as a whole percentage. */
-    saveHelp: (pct: number) =>
-      `Lo que gastar por vuelta para ahorrarte una parada y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
+    saveMore: (pct: number) =>
+      `Y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos).`,
     tyres: 'Neumáticos',
-    tyresHelp:
-      'El coche visto desde arriba: cada neumático en tres franjas, de un borde al otro, como lo midió el equipo en tu última parada (iRacing solo lo mide en el box), y los juegos que quedan. Hasta esa lectura sale atenuado; con el alto fijo, la línea espera a la lectura',
+    tyresHelp: 'Cada neumático en tres franjas, de tu última parada, y los juegos que quedan',
+    tyresMore:
+      'El coche visto desde arriba, de un borde al otro de cada neumático, como lo midió el equipo (iRacing solo lo mide en el box). Hasta esa lectura sale atenuado; con el alto fijo, la línea espera a la lectura.',
     limits: 'Reparaciones rápidas',
-    limitsHelp:
-      'Las reparaciones rápidas que te quedan si la sesión las limita; también los juegos de neumáticos mientras no se dibuja la línea de neumáticos',
+    limitsHelp: 'Las reparaciones rápidas que te quedan, si la sesión las limita',
+    limitsMore: 'También los juegos de neumáticos mientras no se dibuja la línea de neumáticos.',
     /** «Contenido»'s note: how the numbers are worked out. */
     calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
@@ -1441,12 +1463,15 @@ export const settingsEs = {
     repairTimeHelp:
       'Lo que tardará el equipo en boxes: «REPARAR · 42 s (equipo)», «OPC. · 38 s (equipo)»',
     repairCrewTag: 'Marcar tiempo del equipo',
-    repairCrewTagHelp:
-      'iRacing da el tiempo de los mecánicos, que puede correr más despacio que el reloj: «42 s (equipo)», «42 s eq.» si la ventana es estrecha',
+    repairCrewTagHelp: 'El tiempo de los mecánicos, que puede ir más lento que el reloj',
+    repairCrewTagMore:
+      'iRacing da ese tiempo: «42 s (equipo)», o «42 s eq.» si la ventana es estrecha.',
     repairRealTime: 'Cuenta atrás real (estimada)',
     /** `s`: REPAIR_CLOCK.windowS. */
-    repairRealTimeHelp: (s: number) =>
-      `Parado en tu box con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s y muestra los segundos reales que faltan, a menudo más: «42 s (equipo)» puede ser «≈ 95 s (real)». Hasta saberlo, remolcado o fuera del box, la del equipo. Nunca sube ni pasa de 0`,
+    repairRealTimeHelp: 'Parado en tu box, los segundos reales que faltan: «≈ 95 s (real)»',
+    /** `s`: REPAIR_CLOCK.windowS. */
+    repairRealTimeMore: (s: number) =>
+      `Con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s; a menudo falta más de lo que dice: «42 s (equipo)» puede ser «≈ 95 s (real)». Hasta saberlo, remolcado o fuera del box, sale la del equipo. Nunca sube ni pasa de 0.`,
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
@@ -1722,8 +1747,8 @@ export const settingsEs = {
       lanes: { ahead: 'Coche de delante', behind: 'Coche de detrás' },
       rows: { prediction: 'Predicción de alcance', sectors: 'Sectores', laps: 'Vueltas' },
       parts: {
-        rating: 'iRating del rival',
-        license: 'Licencia del rival',
+        rating: 'iRating',
+        license: 'Licencia',
         trendNote: 'Texto de la tendencia',
         stake: 'iRating en juego'
       }
@@ -1952,7 +1977,10 @@ export const settingsEs = {
         name: 'Ligera',
         hint: 'Relativo (2 coches delante y 2 detrás), Radar, Delta, Combustible y Avisos'
       },
-      full: { name: 'Completa', hint: 'Los diez widgets' },
+      /** Not «Completa»: «Completo» is a style (Apariencia), a look, not which widgets show. */
+      full: { name: 'Los diez', hint: 'Los diez widgets' },
+      /** Where the look is chosen: Apariencia's styles. */
+      seeStyles: 'El aspecto (Limpio, Compacto, Completo) se elige en Estilo, en Apariencia',
       add: 'Añadir',
       addLabel: (name: string) => `Añadir la disposición de ejemplo «${name}»`,
       /** After adding one: how to switch, with the shortcut when there is one. */
@@ -2037,9 +2065,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'Edit mode',
       keys: [
         { key: 'Drag', text: 'move' },
-        { key: 'Edges', text: 'width' },
+        { key: 'Edges', text: 'size' },
         { key: 'Wheel', text: 'scale' },
-        { key: 'Arrows', text: 'nudge' },
+        { key: 'Arrows', text: 'move (Ctrl: size)' },
+        { key: 'Tab', text: 'next widget' },
+        { key: 'Ctrl+Z', text: 'undo' },
         { key: 'Alt', text: 'no snap' },
         { key: 'Esc', text: 'exit' }
       ],
@@ -2424,13 +2454,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'Where a widget has no room for the larger text, it drops a piece of data or a column sooner, as when you make it narrower.',
       noFlashing: 'No flashing',
       noFlashingHelp:
-        'The Inputs shift lights stay steady in blue instead of flashing at the limiter',
+        'The Inputs shift lights stay steady in blue instead of flashing on the rev limiter',
       noFlashingMore:
         'The “Edit position” ring and the “Waiting for iRacing” dot do not flash either.',
       settingsZoom: 'Size of this window',
       settingsZoomHelp: 'Also with Ctrl and + or - (Ctrl and 0: 100%), or Ctrl and the wheel',
-      settingsZoomMore: 'Only the Settings window changes; the widgets have “Text size”.'
+      settingsZoomMore: 'Only the Settings window changes; the widgets have “Text size”.',
+      readBetter: 'To read the widgets better, in Text:'
     },
+    general: 'General',
     text: {
       title: 'Text',
       fontScale: 'Text size',
@@ -2491,7 +2523,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         },
         compact: {
           label: 'Compact',
-          hint: 'Small and legible: compact rows, text at 85%, surnames, no logos or country flags'
+          hint: 'Small and legible: compact rows, text at 85%, surnames, number on a stripe, licence as a letter, no logos or country flags'
         },
         complete: {
           label: 'Complete',
@@ -2525,11 +2557,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
         lookWhere: 'the global look',
         contentsWhere: (name) => `the global look and the widgets’ contents in “${name}”`,
         contentsShared: 'the global look and the widgets’ contents in the shared options',
+        completeStays:
+          'What “Complete” added to the widgets stays; this style only changes the look.',
+        takeBack: 'Also take away what Complete added (each widget back to what it showed before)',
         apply: 'Apply',
         cancel: 'Cancel'
       },
       custom: 'Custom: you tuned it by hand, below or on a widget’s page',
-      fine: 'Fine tuning',
+      fine: 'Fine tuning of the style',
+      seeLayouts: 'Which widgets show is the layouts’ choice: “Light” and “All ten” in Examples',
       applied: (name) => `“${name}” style applied`
     },
     other: {
@@ -2803,6 +2839,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     anchor: 'Grows',
     anchorHelp: 'Up if it sits against the bottom edge of the screen',
+    anchorFixed: 'Not available: only with “Height: Automatic”',
+    anchorFree: 'Not available: this widget never changes height by itself',
     anchorChoices: {
       top: { label: 'Down', hint: 'The top edge stays put' },
       bottom: { label: 'Up', hint: 'The bottom edge stays put' }
@@ -2821,6 +2859,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     showInRaceOnly: 'Visibility only shows the overlay in races: not in practice or qualifying',
     hideInPits: 'Hide in the pits',
     hideInPitsHelp: 'While you are on pit road or stopped in your pit box',
+    hideInPitsNo: 'Not available: it would hide the pit limiter and pit entry alerts',
     sessionScreen: 'Show on the session screen',
     sessionScreenHelp:
       'Out of the car, over iRacing’s results and chat (even with the overlay for the car only)',
@@ -2850,8 +2889,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     stint: 'Stint laps',
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
-    posHelp: 'In your class',
-    driverHelp: 'With the car number',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
       'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
@@ -2878,7 +2915,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `The preview puts you in P${position}: so the top rows and the cars around you show apart`,
     previewSingle:
       'The preview shows your class only: so the SoF and the car count show in the bars',
-    gap: 'Gap',
+    gap: 'Measured',
     gapHelp: 'Outside a race, the gap is to the best lap',
     gapChoices: {
       interval: { label: 'Interval' },
@@ -2923,8 +2960,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hints: {
       gained: 'Race only: positions gained since the start',
       delta: 'What you win or lose in your position (or everyone’s, with the option)',
-      gap: 'Set by “Gap”: to the car ahead or to the leader',
-      gapLeader: 'Only with “Gap: Both”',
+      gap: 'To the car ahead or to the leader: choose it on its row',
+      gapLeader: 'Shown with “Both” on the Gap row',
       last: 'Outside races, the best lap',
       best: 'Race only: outside races “Last lap” already shows it',
       pit: 'PIT, OUT or TOW and the stops; hidden, PIT goes after the name',
@@ -2947,7 +2984,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
     predictionHelp: '“Catching in ~4 L of 19”',
-    atStakeHelp: 'How much iRating that position is worth'
+    atStakeHelp: 'How much iRating that position is worth',
+    ratingHelp: 'The rival’s, as the tables’ iRating column',
+    licenseHelp: 'The rival’s, as the tables’ Licence column'
   },
   inputs: {
     traceSeconds: 'Trace length',
@@ -2957,6 +2996,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     clutchInTraceHelp: 'Turn it off if you shift with paddles',
     steering: 'Steering',
     steeringStyle: 'Steering style',
+    steeringOff: 'Steering is hidden in Readouts: show it there to choose its style',
     steeringChoices: {
       bar: { label: 'Bar' },
       minimal: { label: 'Minimal', hint: 'A thin ring with the centre mark' },
@@ -2975,10 +3015,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     steeringDegrees: 'Steering angle',
     steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
     shiftLights: 'Shift lights',
-    shiftLightsHelp:
-      "Light up with the revs to the car's shift point, all red there, and blink if you go past it",
-    shiftLightsMore:
-      'To keep them steady (in blue) instead of flashing: “No flashing”, in Accessibility on the Appearance page.',
+    shiftLightsRow: 'At the top, up to the shift point; steady with “No flashing”',
     pedalColors: {
       throttle: 'Throttle colour',
       brake: 'Brake colour',
@@ -3108,7 +3145,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fallbackThen: (chain) => `If missing: ${chain}`,
     fallbackNone: 'Nothing after it if missing',
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
-    range: 'Bar scale',
+    range: 'Bar range',
     rangeHelp:
       'The time difference that fills the bar on each side; anything beyond is shown at the end',
     predicted: 'Predicted lap',
@@ -3122,28 +3159,29 @@ export const settingsEn: Dict<typeof settingsEs> = {
     note: 'What you burn on each clean lap: no pit lane, caution, tow or the race’s first lap',
     lines: 'Lines',
     gauge: 'Tank',
-    gaugeHelp: 'The tank graduated in laps of fuel, marked where the fuel to the flag reaches',
+    gaugeHelp: 'The tank in laps of fuel, marked where the fuel to the finish reaches',
     perLap: 'Use per lap',
-    perLapHelp:
-      'The average of your last clean laps and a line of them, the last one and the thirstiest marked',
+    perLapHelp: 'The average of your last clean laps, with a line of them',
+    perLapMore: 'On the line, the last one and the thirstiest are marked.',
     finish: 'Add and to finish',
-    finishHelp:
-      'What to add at the next stop and, at the end, what you need to the finish with the margin (To finish)',
+    finishHelp: 'What to add at the next stop and what you need to the finish',
+    finishMore: 'At the end of the race, what you need to the finish with the margin (To finish).',
     box: 'Pit menu',
-    boxHelp:
-      'The fuel set in the pit menu as a bar marked at what to add; orange when it falls short',
+    boxHelp: 'The fuel set in the pit menu, marked at what to add',
+    boxMore: 'The bar turns orange when what you set is not enough.',
     window: 'Pit window',
-    windowHelp:
-      'The race as a line to the flag: where you are, the laps you can stop on and still finish, and the stops',
+    windowHelp: 'The race as a line to the flag, with the stops',
+    windowMore: 'Where you are and the laps you can stop on and still finish.',
     save: 'Saving',
-    saveHelp: (pct) =>
-      `What to burn per lap to save a stop and how much to cut, when within reach (up to ${pct}% less)`,
+    saveHelp: 'What to burn per lap to save a stop',
+    saveMore: (pct) => `And how much to cut, when within reach (up to ${pct}% less).`,
     tyres: 'Tyres',
-    tyresHelp:
-      'The car from above: each tyre in three bands, edge to edge, as the crew measured it at your last stop (iRacing only measures it in the stall), and the sets left. Dimmed until that reading; with a fixed height the line waits for it',
+    tyresHelp: 'Each tyre in three bands, from your last stop, and the sets left',
+    tyresMore:
+      'The car from above, edge to edge of each tyre, as the crew measured it (iRacing only measures it in the stall). Dimmed until that reading; with a fixed height the line waits for it.',
     limits: 'Fast repairs',
-    limitsHelp:
-      'The fast repairs you have left when the session limits them; the tyre sets too while the tyres line is not drawn',
+    limitsHelp: 'The fast repairs you have left, when the session limits them',
+    limitsMore: 'The tyre sets too, while the tyres line is not drawn.',
     calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',
@@ -3185,11 +3223,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
     repairTimeHelp:
       'How long the crew will take in the pits: “REPAIR · 42 s (crew)”, “OPT. · 38 s (crew)”',
     repairCrewTag: 'Mark as crew time',
-    repairCrewTagHelp:
-      'iRacing gives the mechanics’ time, which can run slower than the clock: “42 s (crew)”, “42 s crew” in a narrow window',
+    repairCrewTagHelp: 'The mechanics’ time, which can run slower than the clock',
+    repairCrewTagMore: 'iRacing gives that time: “42 s (crew)”, or “42 s crew” in a narrow window.',
     repairRealTime: 'Real countdown (estimated)',
-    repairRealTimeHelp: (s) =>
-      `Stopped in your stall with the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s and shows the real seconds left, often more: “42 s (crew)” can be “≈ 95 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0`,
+    repairRealTimeHelp: 'Stopped in your stall, the real seconds left: “≈ 95 s (real)”',
+    repairRealTimeMore: (s) =>
+      `With the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s; often more is left than it says: “42 s (crew)” can be “≈ 95 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0.`,
     trend: 'Rising temperature',
     trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average`,
     help: {
@@ -3201,7 +3240,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       water: 'The car’s own light',
       oilTemp: 'The car’s own light',
       pitLimiter: 'On, in blue',
-      revLimiter: 'On the limiter, in blue'
+      revLimiter: 'On the rev limiter, in blue'
     },
     legend: 'Legend',
     legendNote: 'What each light means and what to do',
@@ -3411,8 +3450,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       lanes: { ahead: 'Car ahead', behind: 'Car behind' },
       rows: { prediction: 'Catch prediction', sectors: 'Sectors', laps: 'Laps' },
       parts: {
-        rating: 'Rival iRating',
-        license: 'Rival licence',
+        rating: 'iRating',
+        license: 'Licence',
         trendNote: 'Trend text',
         stake: 'iRating at stake'
       }
@@ -3603,7 +3642,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
         name: 'Light',
         hint: 'Relative (2 cars ahead and 2 behind), Radar, Delta, Fuel and Alerts'
       },
-      full: { name: 'Full', hint: 'All ten widgets' },
+      full: { name: 'All ten', hint: 'All ten widgets' },
+      seeStyles: 'The look (Clean, Compact, Complete) is chosen in Style, on Appearance',
       add: 'Add',
       addLabel: (name) => `Add the example layout “${name}”`,
       added: (name, keys) =>

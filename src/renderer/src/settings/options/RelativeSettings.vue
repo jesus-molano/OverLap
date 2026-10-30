@@ -2,7 +2,8 @@
 import { computed, shallowRef } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { RELATIVE_CARS_MAX, RELATIVE_CARS_MIN } from '@shared/settings'
-import { OPTION_SCHEMA } from '@shared/settingsSchema'
+import { OPTION_SCHEMA, RELATIVE_PINNED_COLUMNS } from '@shared/settingsSchema'
+import { setElementVisible } from '@shared/elements'
 import type { RelativeColumnId } from '@shared/types'
 import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
@@ -38,10 +39,12 @@ const R = OPTION_SCHEMA.relative
 const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(() => {
   const base = elementTexts(t.value, 'relative', 'columns')
   const r = t.value.settings.relative
+  // The row's fixed start, worded as the standings' (R10).
+  const fixed = t.value.settings.columns.fixedHints
   return {
     ...base,
-    pos: { label: base.pos.label, hint: r.posHelp },
-    driver: { label: base.driver.label, hint: r.driverHelp },
+    pos: { label: base.pos.label, hint: fixed.pos },
+    driver: { label: base.driver.label, hint: fixed.name },
     pit: { label: base.pit.label, hint: r.pitHelp },
     tyre: { label: base.tyre.label, hint: r.tyreHelp },
     stint: { label: base.stint.label, hint: r.stintHelp }
@@ -55,10 +58,13 @@ const standings = useOptions('standings')
 const matched = shallowRef('')
 function matchStandings(): void {
   const done = offerSectionRestore('relative', zoneTitle(t.value, 'relative', 'columns'))
-  void listSetter(
-    'relative',
-    'columns'
-  )(matchSharedColumns(opts.value.columns, standings.value.columns))
+  // The position too: shown or hidden as the standings' (R10).
+  const next = setElementVisible(
+    matchSharedColumns(opts.value.columns, standings.value.columns),
+    'pos',
+    standings.value.showPosition
+  )
+  void listSetter('relative', 'columns')(next)
   done()
   matched.value = t.value.settings.columns.match.done(widgetTitle(t.value, 'standings'))
 }
@@ -109,6 +115,7 @@ const densityNote = computed(() => {
       :items="opts.columns"
       :spec="R.columns"
       :labels="columnTexts"
+      :pinned="RELATIVE_PINNED_COLUMNS"
       :apply="listSetter('relative', 'columns')"
     >
       <template #footer>

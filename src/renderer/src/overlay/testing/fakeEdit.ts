@@ -153,6 +153,7 @@ export interface FakeSlot extends SlotHandle {
   readonly autoHeight: ShallowRef<boolean>
   readonly locked: ShallowRef<boolean>
   readonly ghost: ShallowRef<boolean>
+  readonly touched: ShallowRef<boolean>
   readonly shown: ShallowRef<boolean>
   readonly autoHidden: ShallowRef<AutoHiddenState>
   readonly placement: ShallowRef<number>
@@ -173,6 +174,7 @@ export function createFakeSlot(id: WidgetId, rect: Rect, log: LogEntry[] = []): 
     autoHeight: shallowRef(false),
     locked: shallowRef(false),
     ghost: shallowRef(false),
+    touched: shallowRef(false),
     shown: shallowRef(true),
     autoHidden: shallowRef<AutoHiddenState>({ hidden: false, reason: null }),
     placement: shallowRef(1),

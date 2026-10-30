@@ -1443,6 +1443,11 @@ export interface StandingsOptions {
   gapMode: 'interval' | 'leader' | 'both'
   /** Every column id exactly once, in order (normalisation fixes missing/duplicated ids). */
   columns: StandingsColumn[]
+  /**
+   * The position at the start of each row (R10: hidden as the relative's can be); off, another
+   * class's leader line loses its class tag too (its number plate keeps the class colour).
+   */
+  showPosition: boolean
   /** The header's first line: session, your class, incidents, what is left. */
   headerBar: ElementList<InfoBarEntryId>
   headerBarSize: InfoBarSize

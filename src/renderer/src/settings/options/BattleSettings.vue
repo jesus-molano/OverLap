@@ -62,7 +62,12 @@ const parts = computed(() => {
   const l = elementTexts(t.value, 'battle', 'parts')
   return {
     title: zoneTitle(t.value, 'battle', 'parts'),
-    labels: { ...l, stake: { label: l.stake.label, hint: t.value.settings.battle.atStakeHelp } }
+    labels: {
+      ...l,
+      rating: { label: l.rating.label, hint: t.value.settings.battle.ratingHelp },
+      license: { label: l.license.label, hint: t.value.settings.battle.licenseHelp },
+      stake: { label: l.stake.label, hint: t.value.settings.battle.atStakeHelp }
+    }
   }
 })
 const setLanes = listSetter('battle', 'lanes')

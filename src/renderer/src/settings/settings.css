@@ -179,6 +179,17 @@ html.ov-settings .st-scroll:focus-visible {
   html.ov-settings .st-cols .st-section {
     break-inside: avoid;
   }
+
+  /*
+   * Two fixed columns (.st-grid2 > .st-col): each section stays in its column whatever the
+   * others' height (Apariencia, Disposiciones); in one column they stack in order.
+   */
+  html.ov-settings .st-grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--st-col-gap);
+  }
 }
 
 @media (max-width: 639px) {

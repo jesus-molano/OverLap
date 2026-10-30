@@ -13,7 +13,7 @@
 import type { GlobalShortcut } from 'electron'
 import { buttonBinding, isButtonBinding, parseButtonBinding } from '@shared/controllers'
 import { SHORTCUT_CAPTURE_LEASE_MS } from '@shared/ipc'
-import { NUDGE_KEYS } from '@shared/nudge'
+import { EDIT_KEYS } from '@shared/nudge'
 import {
   EXIT_EDIT_ACCELERATOR,
   SHORTCUT_ACTIONS,
@@ -47,8 +47,9 @@ export interface ShortcutManagerOptions {
   /** Escape was pressed while editing. */
   onExitEdit(): void
   /**
-   * An arrow combination was pressed while editing (R38: NUDGE_KEYS, its canonical spelling).
-   * Without it, the arrows are never taken. Held down, it repeats: no burst guard.
+   * An edit-mode key was pressed while editing (R38: EDIT_KEYS, its canonical spelling: the
+   * arrows, Tab and Shift+Tab, Ctrl+Z). Without it, none is ever taken. Held down, it repeats:
+   * no burst guard.
    */
   onNudge?(key: string): void
   /**
@@ -257,7 +258,7 @@ export class ShortcutManager {
     if (this.editing) out.set(EXIT_EDIT_ACCELERATOR, 'exitEdit')
     // After every configured shortcut: a combination of yours stays yours.
     if (this.editing && !this.nudgeBlocked && this.opts.onNudge !== undefined) {
-      for (const key of Object.keys(NUDGE_KEYS)) if (!out.has(key)) out.set(key, `nudge:${key}`)
+      for (const key of EDIT_KEYS) if (!out.has(key)) out.set(key, `nudge:${key}`)
     }
     return out
   }

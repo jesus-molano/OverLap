@@ -111,13 +111,17 @@ export interface ColumnPrefs {
   flag: boolean
   /** The text floor (px, theme.css --ov-min-text: 10 with «Texto mínimo de 10 px»); 9 if absent. */
   minText?: number
+  /** The position track (showPosition); on if absent. */
+  pos?: boolean
 }
 
 export interface Columns {
   /** Right-hand cells of a car row, in the user's order. */
   readonly cells: readonly StandingsColumnId[]
-  /** grid-template-columns of a car row: position, name (1fr), then `cells`. */
+  /** grid-template-columns of a car row: position (when `pos`), name (1fr), then `cells`. */
   readonly template: string
+  /** The position track is drawn (showPosition). */
+  readonly pos: boolean
   readonly numberStyle: NumberStyle
   /** The make's mark and the flag are drawn in the name track (they fit). */
   readonly brand: boolean
@@ -201,14 +205,16 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
   let brand = p.brand
   let flag = p.flag
   const minPx = p.minText ?? MIN_TEXT_PX
+  const pos = p.pos !== false
+  const posEm = pos ? widthAt(POS_WIDTH, fontPx, minPx) : 0
 
   const fixedEm = (cells: readonly StandingsColumnId[]): number => {
-    let sum = widthAt(POS_WIDTH, fontPx, minPx) + widthAt(NUMBER_WIDTH[numberStyle], fontPx, minPx)
+    let sum = posEm + widthAt(NUMBER_WIDTH[numberStyle], fontPx, minPx)
     if (brand) sum += BRAND_EM
     if (flag) sum += flagEm(fontPx, minPx)
     for (const id of cells) sum += widthAt(columnWidth(id, p), fontPx, minPx)
     // Tracks: position, name, then the cells.
-    return sum + COL_GAP_EM * (cells.length + 1)
+    return sum + COL_GAP_EM * (cells.length + (pos ? 1 : 0))
   }
 
   let cells = shown
@@ -232,7 +238,7 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     }
   }
 
-  const tracks = [em(widthAt(POS_WIDTH, fontPx, minPx)), 'minmax(0, 1fr)']
+  const tracks = pos ? [em(posEm), 'minmax(0, 1fr)'] : ['minmax(0, 1fr)']
   for (const id of cells) tracks.push(em(widthAt(columnWidth(id, p), fontPx, minPx)))
   const template = tracks.join(' ')
   const pitInline = !cells.includes('pit')
@@ -243,6 +249,7 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     brand,
     flag,
     pitInline,
+    pos,
     nameEm: measured ? round2(widthEm - fixedEm(cells)) : 0,
     widthEm: round2(widthEm),
     key: `${cells.join(',')}|${numberStyle}|${brand ? 'b' : ''}${flag ? 'f' : ''}|${template}`

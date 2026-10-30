@@ -27,6 +27,9 @@ export interface IncidentCountView {
   readonly team: string
   /** 'pen. a 17x', 'DQ a 25x'; '' without limits. */
   readonly limit: string
+  /** The same in full words ('equipo 7x', 'penalización a 17x'), drawn where they fit (R50). */
+  readonly teamLong: string
+  readonly limitLong: string
   /**
    * neutral; warn: the next limit is INCIDENT_WARN_MARGIN or less away; bad: the DQ is
    * reached. The words say it too (the colour is never alone).
@@ -50,12 +53,31 @@ export function toIncidentCountView(
   const counted = team ?? mine
   const at = c.limit !== null ? whole(c.limit.at) : null
   let limit = ''
+  let limitLong = ''
   let tone: IncidentCountView['tone'] = 'neutral'
   if (c.limit !== null && at !== null && at > 0) {
     limit = c.limit.kind === 'dq' ? t.dqAt(at) : t.penaltyAt(at)
+    limitLong = c.limit.kind === 'dq' ? limit : t.penaltyAtLong(at)
     const left = at - counted
     if (left <= 0) tone = 'bad'
     else if (left <= INCIDENT_WARN_MARGIN) tone = 'warn'
   }
-  return { count: t.count(mine), team: team !== null ? t.team(team) : '', limit, tone }
+  return {
+    count: t.count(mine),
+    team: team !== null ? t.team(team) : '',
+    limit,
+    teamLong: team !== null ? t.teamLong(team) : '',
+    limitLong,
+    tone
+  }
+}
+
+/**
+ * Whether the header draws the count's extras in full words (R50): from the short words, only
+ * when the bar's free room (`freePx`: its width less what its groups take) holds what the long
+ * ones add (`addPx`); once drawn, while nothing overflows. Never a wider widget or a cut word.
+ */
+export function incidentsLong(freePx: number, addPx: number, drawnLong: boolean): boolean {
+  if (!(addPx > 0)) return false
+  return drawnLong ? freePx >= -0.5 : freePx >= addPx + 1
 }

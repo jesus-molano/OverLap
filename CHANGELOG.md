@@ -9,6 +9,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **El modo edición sabe a qué widget van las flechas, y deshace**: la etiqueta del widget al que
+  se aplican las flechas lleva el borde en el color de edición; `Tab` y `Mayús+Tab` pasan al widget
+  siguiente o al anterior (de arriba abajo, sin los ocultos ni los bloqueados), también con el
+  cursor oculto por el juego, con un aviso breve «Flechas: Relativo». `Ctrl+Z` deshace el último
+  cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
+  el anterior, y la bandeja ofrece **Deshacer: mover Relativo**; mantener una flecha o girar la
+  rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
+  se toman mientras editas y con los Ajustes detrás, como las flechas.
 - **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
   reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
   eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
@@ -126,14 +134,19 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   coches o filas más holgadas, para que el texto no encoja), **Limpio** (sin fondo: solo el texto
   sobre el juego, con su contorno siempre; sin filas alternas, logos ni banderas, número en franja y
   licencia solo letra), **Compacto** (pequeño pero legible: filas compactas, texto al 85 % sin bajar
-  del texto mínimo, apellidos, sin logos ni banderas de país) y **Completo** (todo a la vista en los
+  del texto mínimo, apellidos, número en franja y licencia solo letra, sin logos ni banderas de
+  país) y **Completo** (todo a la vista en los
   diez widgets de la disposición en uso: cada columna y elemento, las barras de información con sus
   datos, los títulos de columna, las condiciones completas, cada aviso y testigo, logos siempre y
   fondo al 90 %; los widgets que pueden crecen en alto, y Relativo y Delta agrandan su ventana lo
-  justo para que el texto no encoja). Limpio y Compacto solo cambian el aspecto. Se marca el que
+  justo para que el texto no encoja). Limpio y Compacto solo cambian el aspecto: al dejar
+  **Completo** por uno de ellos, la ventana de confirmación dice que lo que Completo añadió a los
+  widgets se queda y ofrece, sin marcar, **Quitar también lo que añadió Completo** (cada widget
+  vuelve a lo que mostraba antes; se recuerda en esta ventana al aplicar Completo); con OverLap se
+  va siempre, porque vuelve todo de serie, y su ventana lo enumera. Se marca el que
   coincide con lo que tienes (OverLap, solo si el aspecto y lo que muestra cada widget están de
   serie); si ajustas algo a mano, aquí o en la página de un widget, dice «Personalizado». Debajo,
-  los controles de siempre como **Ajuste fino**. Si un estilo va a cambiar algo que pusiste tú (un
+  los controles de siempre como **Ajuste fino del estilo**. Si un estilo va a cambiar algo que pusiste tú (un
   aspecto ajustado a mano, o lo que muestra cada widget con **Completo** y **OverLap**), antes
   pregunta: una ventana «¿Aplicar el estilo …?» dice qué cambia, de antes a después («Fondo de los
   widgets: 80 % → 90 %», «Posiciones: se muestran 5 columnas más»; con OverLap, «Posiciones: se
@@ -196,6 +209,79 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Las mismas palabras sobre el juego y en los Ajustes**: la ayuda sobre cada widget dice «Rueda:
+  escala · Flechas: mover · Alt: sin imán · Esc: salir» (más corta en los estrechos), y el aviso
+  de modo edición de los Ajustes usa los mismos pares («Bordes: tamaño», «Flechas: mover (Ctrl:
+  tamaño)», «Tab: otro widget», «Ctrl+Z: deshacer»), igual en inglés («Wheel: scale», «Arrows:
+  move»).
+- **«iRacing oculta el cursor» nombra la tecla**: el aviso dice «Pulsa Ctrl+Shift+O para abrir los
+  Ajustes, que liberan el cursor, o Alt+Tab» (con tu atajo de **Abrir los Ajustes**) y que, sin
+  cursor, `Tab` elige un widget y las flechas lo mueven.
+- **La etiqueta de un widget estrecho dice su tamaño entero**: por debajo de 300 px quita antes la
+  escala y escribe el tamaño junto («220×220»), en lugar de cortarlo («220 …»).
+- **El texto de segundo plano se lee sobre un cielo claro**: con el contorno del texto puesto (en
+  «Auto», con el fondo por debajo del 65 %), el gris de las etiquetas y cifras secundarias (P11,
+  iRating, «PISTA», «SoF», «LÍDER») sube hacia el blanco del texto principal. Con el fondo de serie
+  (80 %) no hay contorno y nada cambia; ningún widget crece.
+- **La cabecera de incidentes, con palabras completas si caben**: en Relativo y Posiciones,
+  «equipo 7x» y «penalización a 17x» en lugar de «eq. 7x» y «pen. a 17x» cuando la cabecera tiene
+  sitio para ellas (se mide, como en los chips de Avisos); si no, las abreviaturas de siempre.
+  Ningún widget se ensancha.
+- **Apariencia, en dos grupos sin columnas vacías**: bajo los estilos, **Ajuste fino del estilo**
+  (Color y Texto a la izquierda, Filas y pilotos a la derecha) y debajo **General** (Idioma y Otros
+  a la izquierda, Accesibilidad a la derecha), cada sección siempre en su columna. Disposiciones
+  hace lo mismo: a la izquierda la lista y «Guardar la actual», a la derecha Cambio automático,
+  Ejemplos, Pantallas y Archivos, tengas las disposiciones que tengas.
+- **Personalizar con la cabecera de las demás secciones**: el título en versalitas con su ↺ en la
+  misma línea; la explicación y «Expandir todo» van debajo.
+- **Tamaño de esta ventana con los botones de siempre**: 80/100/125/150 %, como Tamaño del texto y
+  Escala; el deslizador va de 5 en 5 y `Ctrl` y `+` o `-` siguen de 10 en 10.
+- **Accesibilidad lleva al Texto**: al pie, «Para leer mejor los widgets, en Texto:» con dos
+  botones, **Tamaño del texto** y **Contorno del texto**, que llevan a cada uno y lo señalan.
+- **Buscar ajuste entiende palabras de uso diario**: «zoom», «ampliar» o «lupa» encuentran
+  **Tamaño de esta ventana**; «bloquear» o «fijar», **Bloqueado**; «parpadeo» o «destello», **Sin
+  parpadeos**; «daltonismo», la paleta para daltónicos (y lo mismo en inglés); y cada estilo se
+  encuentra por su nombre («Limpio», «Compacto»).
+- **Estilos y disposiciones, cada uno a lo suyo**: la disposición de ejemplo «Completa» pasa a
+  llamarse **Los diez** («All ten»), para no confundirse con el estilo **Completo**; Estilo dice
+  que qué widgets se ven lo eligen las disposiciones (con «Ir a Disposiciones») y Ejemplos dice que
+  el aspecto se elige en Estilo (con «Ir a Apariencia»).
+- **Las mismas palabras para el corte**: en inglés, «No flashing» dice «on the rev limiter» (no
+  «at the limiter», que en la app es el limitador de boxes), como Testigos; en español, «en el
+  corte», como Testigos.
+- **Pedales, con la misma regla que los demás widgets**: lo que enciende o apaga una parte del
+  widget va en **Personalizar**, y en Contenido quedan solo los modos del volante (estilo, tamaño y
+  color). **Luces de cambio** es una fila con su ojo arriba de **Bloques** (la tira de arriba del
+  widget); las opciones de la **Traza** (segundos, grosor, embrague) se despliegan en su propia fila,
+  con su resumen en el botón («5 s · 2 px»); **Grados del volante** va en la fila **Volante** de
+  Datos, y los colores de los pedales, bajo la lista de Bloques. **Buscar ajuste** abre la fila
+  plegada donde está lo que buscas. Los valores no cambian.
+- **Una línea de ayuda por fila**: en Combustible (Consumo, Repostar y para meta, Ventana de boxes,
+  Ahorro, Neumáticos, Reparaciones rápidas, Menú de boxes) y en Testigos (Marcar tiempo del equipo,
+  Cuenta atrás real), la ayuda de cada fila cabe en una línea y el resto va tras su ⓘ, como en el
+  resto de los Ajustes.
+- **Las dos tablas, una sola regla para Posición y Piloto**: en **Relativo** y en **Posiciones**,
+  **Posición** y **Piloto** van en el mismo bloque fijo al principio de la lista de columnas, con
+  las mismas pistas («siempre al principio de la fila», «siempre tras la posición»): Piloto con su
+  candado y Posición con su ojo en las dos, así que ahora también se puede ocultar la posición en
+  Posiciones (el líder de otra clase pierde entonces su etiqueta de clase; su número sigue en el
+  color de la clase). El recuento «x de n visibles» cuenta lo mismo en las dos, solo las columnas
+  que se mueven, e **Igualar con** copia también si se ve la posición. **Si en Relativo habías
+  movido Posición o Piloto a otro sitio de la fila, ahora vuelven al principio, como en
+  Posiciones**; lo demás de tu orden se queda.
+- **«Medido» del Hueco, en su fila**: en Posiciones, el selector «Al de delante / Al líder /
+  Ambos» deja Contenido y va dentro de la fila **Hueco** de Columnas, como «iRating en juego de
+  todos» en la suya; «Hueco al líder» dice «Se muestra con «Ambos» en la fila Hueco». Lo restablece
+  el ↺ de Personalizar, junto con sus columnas.
+- **Ventana y visibilidad, las mismas filas en los diez widgets**: en **Avisos**, «Ocultar en
+  boxes» ya no desaparece: sale apagada y desactivada con su motivo («No aplica: ocultaría los
+  avisos del limitador y de la entrada a boxes»), como «Mostrar en la pantalla de sesión» donde no
+  aplica. **Crece hacia** también está siempre: desactivada con «No aplica: solo con «Alto:
+  Automático»» o «No aplica: este widget no cambia de alto por sí solo».
+- **Un nombre para cada cosa**: en Delta, «Escala de la barra» pasa a **Rango de la barra** («Bar
+  range»), porque «Escala» es el tamaño del widget en los diez; en Batalla, «iRating del rival» y
+  «Licencia del rival» pasan a **iRating** y **Licencia**, como las columnas de Relativo y
+  Posiciones, con «del rival» en su ayuda.
 - **Doblado o doblándote, también por la forma**: el número de un coche que te dobla lleva una
   muesca arriba a la derecha y el de un doblado, abajo, además del rojo o el azul que ya tenían (en
   Relativo y Tráfico, el mismo componente). Va dentro del número: no ocupa más sitio.

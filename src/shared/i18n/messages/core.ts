@@ -104,6 +104,13 @@ export const coreEs = {
     gatherWidgets: 'Traer todos los widgets a esta pantalla',
     /** What the tray or the settings window just did, undone (R26, R51). */
     undo: (what: string) => `Deshacer: ${what}`,
+    /** Edit mode's last change (R38), for «Deshacer: …» and the Ctrl+Z notice. */
+    editStep: {
+      rect: (widget: string) => `mover ${widget}`,
+      scale: (widget: string) => `escala de ${widget}`,
+      visible: (widget: string) => `mostrar u ocultar ${widget}`,
+      locked: (widget: string) => `bloquear ${widget}`
+    },
     /** Checked while the overlay is shown (the user's own hide, as the shortcut). */
     showOverlay: 'Mostrar el overlay',
     openSettingsFolder: 'Abrir carpeta de ajustes',
@@ -167,8 +174,15 @@ export const coreEs = {
     autoOn: '«Según el coche» activado',
     linked: (car: string, layout: string) => `${car} → «${layout}»`,
     /** An arrow in edit mode with no widget touched yet (R38). */
-    nudgeNone: 'Arrastra o toca un widget primero',
-    nudgeNoneDetail: 'Luego, las flechas lo mueven 1 px (Mayús: 10) y Ctrl con ellas, su tamaño'
+    nudgeNone: 'Arrastra o toca un widget primero, o pulsa Tab para elegirlo',
+    nudgeNoneDetail: 'Luego, las flechas lo mueven 1 px (Mayús: 10) y Ctrl con ellas, su tamaño',
+    /** Tab in edit mode (R38): the widget the arrows move now. */
+    picked: (widget: string) => `Flechas: ${widget}`,
+    pickedDetail: 'Tab: el siguiente · Mayús+Tab: el anterior · Ctrl+Z: deshacer',
+    pickedNone: 'Ningún widget se puede mover: están ocultos o bloqueados',
+    /** Ctrl+Z in edit mode: what came back ('Relativo: posición y tamaño'). */
+    editUndone: (what: string) => `Deshecho: ${what}`,
+    editUndoNone: 'Nada que deshacer en este modo edición'
   },
   /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
   layoutFiles: {
@@ -190,11 +204,13 @@ export const coreEs = {
     locked: 'Bloqueado',
     /** Height of an auto-height widget in the size readout: '460 × auto'. */
     autoHeight: 'auto',
-    /** With the edit-mode shortcut (`keys`: acceleratorText); the NoKey ones when it has none. */
-    hintLong: (keys: string) => `Rueda: tamaño · Flechas: mover · Alt: sin imán · ${keys} salir`,
-    hintLongNoKey: 'Rueda: tamaño · Flechas: mover · Alt: sin imán',
-    hintShort: (keys: string) => `Rueda: tamaño · ${keys} salir`,
-    hintShortNoKey: 'Rueda: tamaño',
+    /**
+     * By panel width, the same words as the settings window's banner (settings.app.editBanner,
+     * R38): the wheel scales, the arrows move, Esc leaves.
+     */
+    hintLong: 'Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir',
+    hintShort: 'Rueda: escala · Esc: salir',
+    hintTiny: 'Esc: salir',
     /** A dragged widget whose pointer left this display: releasing moves it there. */
     dropOnOtherDisplay: 'Suelta para moverlo a la otra pantalla',
     /** A disabled widget, drawn in edit mode as a ghost at its place. */
@@ -213,7 +229,10 @@ export const coreEs = {
     /** Edit mode while the game hides the mouse cursor (you are in the car). */
     cursorHidden: {
       title: 'iRacing oculta el cursor',
-      body: 'Para mover los widgets, abre los Ajustes de OverLap desde la bandeja o pulsa Alt+Tab para ir al escritorio: así recuperas el cursor.'
+      body: 'Para mover los widgets, abre los Ajustes de OverLap desde la bandeja o pulsa Alt+Tab para ir al escritorio: así recuperas el cursor.',
+      /** With the «Abrir los Ajustes» shortcut's first combination ('Ctrl+Shift+O'). */
+      bodyKeys: (keys: string) =>
+        `Pulsa ${keys} para abrir los Ajustes, que liberan el cursor, o Alt+Tab. Sin cursor: Tab elige un widget y las flechas lo mueven.`
     }
   },
   /**
@@ -314,6 +333,12 @@ export const coreEn: Dict<typeof coreEs> = {
     editMode: 'Edit mode',
     gatherWidgets: 'Bring every widget to this screen',
     undo: (what) => `Undo: ${what}`,
+    editStep: {
+      rect: (widget) => `move ${widget}`,
+      scale: (widget) => `${widget} scale`,
+      visible: (widget) => `show or hide ${widget}`,
+      locked: (widget) => `lock ${widget}`
+    },
     showOverlay: 'Show the overlay',
     openSettingsFolder: 'Open settings folder',
     quit: 'Quit',
@@ -352,8 +377,13 @@ export const coreEn: Dict<typeof coreEs> = {
     gatheredNone: 'They were all on this screen already',
     autoOn: '“By car” turned on',
     linked: (car, layout) => `${car} → “${layout}”`,
-    nudgeNone: 'Drag or touch a widget first',
-    nudgeNoneDetail: 'Then the arrows move it 1 px (Shift: 10) and, with Ctrl, change its size'
+    nudgeNone: 'Drag or touch a widget first, or press Tab to pick it',
+    nudgeNoneDetail: 'Then the arrows move it 1 px (Shift: 10) and, with Ctrl, change its size',
+    picked: (widget) => `Arrows: ${widget}`,
+    pickedDetail: 'Tab: next · Shift+Tab: previous · Ctrl+Z: undo',
+    pickedNone: 'No widget can move: they are hidden or locked',
+    editUndone: (what) => `Undone: ${what}`,
+    editUndoNone: 'Nothing to undo in this edit mode'
   },
   layoutFiles: {
     filter: 'OverLap layout',
@@ -368,10 +398,9 @@ export const coreEn: Dict<typeof coreEs> = {
   editFrame: {
     locked: 'Locked',
     autoHeight: 'auto',
-    hintLong: (keys) => `Scroll: size · Arrows: move · Alt: no snap · ${keys} exit`,
-    hintLongNoKey: 'Scroll: size · Arrows: move · Alt: no snap',
-    hintShort: (keys) => `Scroll: size · ${keys} exit`,
-    hintShortNoKey: 'Scroll: size',
+    hintLong: 'Wheel: scale · Arrows: move · Alt: no snap · Esc: exit',
+    hintShort: 'Wheel: scale · Esc: exit',
+    hintTiny: 'Esc: exit',
     dropOnOtherDisplay: 'Release to move it to the other display',
     hidden: 'Hidden',
     show: (widget) => `Show ${widget}`,
@@ -383,7 +412,9 @@ export const coreEn: Dict<typeof coreEs> = {
     underRadar: 'The radar covers it',
     cursorHidden: {
       title: 'iRacing is hiding the cursor',
-      body: 'To move the widgets, open OverLap’s settings from the tray or press Alt+Tab to go to the desktop: that frees the cursor.'
+      body: 'To move the widgets, open OverLap’s settings from the tray or press Alt+Tab to go to the desktop: that frees the cursor.',
+      bodyKeys: (keys) =>
+        `Press ${keys} to open the settings, which free the cursor, or Alt+Tab. Without it: Tab picks a widget and the arrows move it.`
     }
   },
   keys: {

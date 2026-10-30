@@ -128,6 +128,15 @@ export function setsContents(id: AppearancePreset): boolean {
   return id === 'complete' || id === 'overlap'
 }
 
+/**
+ * Whether going from style `from` (the one the settings match, or null) to `to` leaves
+ * «Completo» for a look alone (Limpio, Compacto): what Completo added then stays, and the dialog
+ * offers to take it away. Never for «OverLap», which puts every content back as it comes.
+ */
+export function leavesComplete(from: AppearancePreset | null, to: AppearancePreset): boolean {
+  return from === 'complete' && !setsContents(to)
+}
+
 /** The widgets' contents a style sets, as a patch of what it changes in `s` ({} for a look). */
 function contentsPatch(s: Readonly<OverlaySettings>, id: AppearancePreset): SettingsPatch {
   if (id === 'complete') return completePatch(s)
@@ -309,6 +318,37 @@ export function undoPatch(s: Readonly<OverlaySettings>, patch: SettingsPatch): S
       } else if (!deepEqual(section[field], value)) back[field] = section[field]
     }
     if (Object.keys(back).length > 0) out[key] = back
+  }
+  return out as SettingsPatch
+}
+
+/**
+ * The contents part of a "Deshacer" patch of «Completo» (undoPatch): what each widget showed
+ * before it, without the look. Kept to offer it back when another style is chosen. Pure.
+ */
+export function contentsBack(back: SettingsPatch): SettingsPatch {
+  const out: Record<string, unknown> = {}
+  for (const [key, fields] of Object.entries(back as Record<string, unknown>)) {
+    if (key !== 'appearance') out[key] = fields
+  }
+  return out as SettingsPatch
+}
+
+/** `a` then `b`, section by section (and widget by widget): `b`'s fields win. Pure. */
+export function mergePatches(a: SettingsPatch, b: SettingsPatch): SettingsPatch {
+  const out: Record<string, Record<string, unknown>> = {}
+  for (const p of [a, b] as Record<string, unknown>[]) {
+    for (const [key, fields] of Object.entries(p)) {
+      if (typeof fields !== 'object' || fields === null) continue
+      const into = (out[key] ??= {})
+      for (const [field, value] of Object.entries(fields as Record<string, unknown>)) {
+        const was = into[field]
+        into[field] =
+          key === 'widgets' && typeof was === 'object' && was !== null
+            ? { ...(was as object), ...(value as object) }
+            : value
+      }
+    }
   }
   return out as SettingsPatch
 }

@@ -196,7 +196,8 @@ const colPrefs = computed<ColumnPrefs>(() => ({
   numberStyle: appearance.value.numberStyle,
   brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
   flag: block.value.countryFlags,
-  minText: minText.value
+  minText: minText.value,
+  pos: opts.value.showPosition
 }))
 const cols = computed<Columns>((prev) =>
   reuseColumns(prev, fitColumns(colPrefs.value, widthPx.value, fontPx.value))

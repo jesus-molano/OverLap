@@ -221,7 +221,8 @@ coches por grupo al cambiar las entradas de Tráfico. Una lista que va dentro de
 (los datos del coche en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de
 sus elementos se muestra también el bloque.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
-lleva a él (abre su sección y lo señala); lo que ahora oculta otro ajuste sale marcado «con otro
+lleva a él (abre su sección y lo señala), también por palabras de uso diario («zoom», «bloquear»,
+«parpadeo», «daltonismo») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
 ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
 coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero no se ve ahora: una regla lo oculta o has ocultado el overlay (el
@@ -264,14 +265,18 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie, o lo justo más si
   muestras más coches, para que el texto no encoja), **Limpio** (sin fondo: solo el texto sobre el
   juego, con su contorno; sin filas alternas, logos ni banderas), **Compacto** (pequeño pero
-  legible: filas compactas, texto al 85 %, apellidos) y **Completo** (todo a la vista en los diez
-  widgets de la disposición en uso: cada columna, elemento, barra de información y aviso; los
-  widgets crecen para que el texto no encoja). Si va a cambiar algo que pusiste tú, antes te dice
-  qué cambia (de antes a después) y dónde se guarda, y esperas a **Aplicar**; todo se deshace con
-  **Deshacer**. El resto de Apariencia queda como **Ajuste fino**, y si lo tocas (o lo que muestra
-  un widget, con OverLap o Completo) el estilo pasa a «Personalizado». Limpio y Compacto solo
-  cambian el aspecto. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
-  unidades, los sitios ni qué widgets se ven.
+  legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo letra) y
+  **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna,
+  elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
+  cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
+  esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
+  Apariencia queda como **Ajuste fino del estilo** (Color y Texto a la izquierda, Filas y pilotos a
+  la derecha), y si lo tocas (o lo que muestra un widget, con OverLap o Completo) el estilo pasa a
+  «Personalizado». Limpio y Compacto solo cambian el aspecto: al dejar **Completo** por uno de
+  ellos, lo que Completo añadió se queda, salvo que marques «Quitar también lo que añadió
+  Completo» (cada widget vuelve a lo que mostraba antes); con **OverLap** se va siempre, porque
+  vuelve todo de serie. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
+  unidades, los sitios ni qué widgets se ven (eso lo eligen las disposiciones).
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los diez widgets:
   en Relativo, Radar y Delta, que llenan su ventana con el texto, agranda su ventana en la misma
@@ -279,11 +284,12 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país y banderas de penalización.
-- **Accesibilidad** (al final de Apariencia), todo apagado de serie: **paleta para daltónicos**
+- **Accesibilidad** (en el grupo **General** de Apariencia, con Idioma y Otros), todo apagado de serie: **paleta para daltónicos**
   (azul y naranja en lugar de verde y rojo, también en los pedales, con la traza del freno más
   gruesa), **texto mínimo de 10 px** (en vez de 9; ningún widget se ensancha, quitan antes un dato),
   **sin parpadeos** (las luces de cambio fijas en azul) y el **tamaño de esta ventana** (80–150 %,
-  también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda).
+  también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda; botones 80/100/125/150 %, como los demás
+  tamaños). Al pie, dos botones llevan a **Tamaño del texto** y **Contorno del texto**.
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
   de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,
   banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio.
@@ -296,11 +302,17 @@ página de un widget, **Editar posición** (junto a «Visible») entra y señala
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
-  ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
+  ratón lo escala. La ayuda sobre cada widget y el aviso de los Ajustes usan las mismas palabras
+  («Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir»). Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
   línea marca dónde se ha pegado (con `Alt` o `Shift` pulsado, no).
 - Para afinar, las **flechas** mueven 1 px el último widget que has tocado (`Mayús`: 10 px) y
-  `Ctrl` + flechas cambian su tamaño. Funcionan con el juego o el escritorio delante; con los
-  Ajustes delante, las flechas son de los Ajustes.
+  `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
+  sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
+  abajo), también sin cursor, con un aviso «Flechas: Relativo». Funcionan con el juego o el
+  escritorio delante; con los Ajustes delante, son de los Ajustes.
+- `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
+  las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
+  también **Deshacer: mover …**. Al salir del modo edición se olvidan.
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
@@ -309,8 +321,9 @@ juego.
   **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
   poder recuperarlo.
 - Sal con `Esc`, con el mismo atajo o desde la bandeja. Salir en mitad de un arrastre lo cancela.
-- Con iRacing delante y tú en el coche, el simulador oculta el cursor: abre los Ajustes desde la
-  bandeja o pulsa `Alt+Tab` para recuperarlo. Lo más cómodo es colocar los widgets en el garaje o en
+- Con iRacing delante y tú en el coche, el simulador oculta el cursor: el aviso sobre el juego
+  nombra el atajo de **Abrir los Ajustes** (que liberan el cursor) y `Alt+Tab`, y recuerda que
+  `Tab` y las flechas mueven los widgets sin él. Lo más cómodo es colocar los widgets en el garaje o en
   los menús.
 - Para que la rueda funcione sobre un widget, Windows necesita _Configuración > Bluetooth y
   dispositivos > Mouse > Desplazar ventanas inactivas al mantener el puntero sobre ellas_.
@@ -340,7 +353,7 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
 - **Ejemplos**: **Ligera** (Relativo con 2 coches delante y 2 detrás, Radar, Delta, Combustible y
-  Avisos) y **Completa** (los diez widgets) se añaden a la lista con tus widgets donde están, sin
+  Avisos) y **Los diez** (los diez widgets) se añaden a la lista con tus widgets donde están, sin
   aplicarse; con **Siguiente disposición** alternas entre menos y más información en carrera.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
   uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche

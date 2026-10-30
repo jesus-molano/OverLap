@@ -204,6 +204,8 @@ export interface LayoutInput {
   placements: ReadonlyMap<WidgetId, number>
   /** Hosted widgets the user disabled (edit mode draws them as ghosts); none when absent. */
   ghosts?: ReadonlySet<WidgetId>
+  /** Edit mode: the widget the arrows apply to (OverlayPanel.touched). */
+  touched?: WidgetId | null
   session: number
   ackSeq: number
   revision: number
@@ -229,6 +231,7 @@ export function buildLayout(i: LayoutInput): OverlayLayout {
       placement: i.placements.get(widget) ?? 0
     }
     if (i.ghosts?.has(widget) === true) panel.ghost = true
+    if (i.touched === widget) panel.touched = true
     panels.push(panel)
   }
   return { revision: i.revision, session: i.session, ackSeq: i.ackSeq, display, panels }
@@ -268,6 +271,7 @@ export function sameLayoutContent(a: OverlayLayout, b: OverlayLayout): boolean {
       p.widget === q.widget &&
       p.placement === q.placement &&
       p.ghost === q.ghost &&
+      p.touched === q.touched &&
       rectsEqual(p.rect, q.rect)
     )
   })
