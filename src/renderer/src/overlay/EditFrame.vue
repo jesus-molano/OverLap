@@ -516,7 +516,8 @@ onBeforeUnmount(() => {
 
 .chip-touched {
   border-color: var(--ov-edit);
-  box-shadow: 0 0 0 1px var(--ov-edit);
+  background: color-mix(in srgb, var(--ov-edit) 28%, rgba(10, 12, 16, 0.94));
+  box-shadow: 0 0 0 2px var(--ov-edit);
 }
 
 .chip-locked {
