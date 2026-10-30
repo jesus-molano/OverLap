@@ -43,6 +43,8 @@ const CVD = rule(":root[data-cvd='on']")
 const SURFACE = rule(':root, .ov-surface')
 
 const PROX = Array.from({ length: 12 }, (_, i) => `--ov-prox-${i}`)
+/** The tyre wear ramp, spent (0) to fresh (8). */
+const WEAR = Array.from({ length: 9 }, (_, i) => `--ov-wear-${i}`)
 
 /** Tokens other components are written against (spec §2.1). */
 const ROOT_TOKENS = [
@@ -73,6 +75,7 @@ const ROOT_TOKENS = [
   '--ov-flag-green',
   '--ov-flag-orange',
   ...PROX,
+  ...WEAR,
   '--ov-fg',
   '--ov-fg-muted',
   '--ov-fg-dim',
@@ -244,7 +247,15 @@ describe('theme tokens', () => {
   })
 
   it('switches every meaning colour in the colour-blind palette', () => {
-    const needed = ['--ov-good', '--ov-bad', '--ov-warn', '--ov-alert', '--ov-lap-behind', ...PROX]
+    const needed = [
+      '--ov-good',
+      '--ov-bad',
+      '--ov-warn',
+      '--ov-alert',
+      '--ov-lap-behind',
+      ...PROX,
+      ...WEAR
+    ]
     expect(needed.filter((t) => !CVD.has(t))).toEqual([])
     // Distinguishable pairs: lapped vs gaining, warn vs bad.
     expect(color(CVD, '--ov-lap-behind')).not.toBe(color(CVD, '--ov-good'))
@@ -311,6 +322,50 @@ describe('radar proximity ramp', () => {
       const { h, s } = hue(color(ROOT, t))
       if (s > 0.1) expect(h < 20 || h > 180).toBe(true)
     }
+  })
+})
+
+describe('tyre wear ramp', () => {
+  const dist = (a: string, b: string): number => {
+    const [x, y] = [rgb(a), rgb(b)]
+    return Math.hypot(...x.map((v, i) => v - (y[i] ?? 0)))
+  }
+
+  for (const [name, decls] of [
+    ['default', ROOT],
+    ['colour-blind', CVD]
+  ] as const) {
+    it(`${name}: nine steps apart from each other, spent in "bad" and fresh in "good"`, () => {
+      const ramp = WEAR.map((t) => color(decls, t))
+      expect(ramp[0]).toBe(color(decls, '--ov-bad'))
+      expect(ramp[8]).toBe(color(decls, '--ov-good'))
+      for (let i = 0; i < ramp.length; i++) {
+        for (let j = i + 1; j < ramp.length; j++) {
+          expect(dist(ramp[i] ?? '', ramp[j] ?? ''), `${WEAR[i]} vs ${WEAR[j]}`).toBeGreaterThan(25)
+        }
+      }
+    })
+  }
+
+  it('default: green through yellow to red, one way (green falls, red never does)', () => {
+    const ramp = WEAR.map((t) => rgb(color(ROOT, t)))
+    for (let i = 1; i < ramp.length; i++) {
+      expect(ramp[i]?.[1]).toBeGreaterThan(ramp[i - 1]?.[1] ?? 255)
+      expect(ramp[i]?.[0]).toBeLessThanOrEqual(ramp[i - 1]?.[0] ?? 0)
+    }
+    expect(color(ROOT, '--ov-wear-4')).toBe(color(ROOT, '--ov-flag-yellow'))
+  })
+
+  it('colour-blind: blue to orange through grey, never the lifted warn yellow', () => {
+    const ramp = WEAR.map((t) => rgb(color(CVD, t)))
+    for (let i = 1; i < ramp.length; i++) {
+      const [r0, , b0] = ramp[i - 1] ?? [0, 0, 0]
+      const [r1, , b1] = ramp[i] ?? [0, 0, 0]
+      expect(r1).toBeLessThan(r0)
+      expect(b1).toBeGreaterThan(b0)
+    }
+    expect(hue(color(CVD, '--ov-wear-4')).s).toBeLessThan(0.15)
+    for (const t of WEAR) expect(dist(color(CVD, t), color(CVD, '--ov-warn'))).toBeGreaterThan(60)
   })
 })
 

@@ -985,6 +985,8 @@ export interface FuelData {
   avgL: number | null
   /** Litres of your last lap driven without a refuel, tow or reset (clean or not), to 0.01. */
   lastL: number | null
+  /** That last lap was one of the clean laps behind avgL (the newest of recentL). */
+  lastClean: boolean
   /** The most of those clean laps, to 0.01. */
   maxL: number | null
   /** Clean laps behind avgL (0: measuring). */

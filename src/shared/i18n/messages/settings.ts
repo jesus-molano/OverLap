@@ -1110,9 +1110,9 @@ export const settingsEs = {
     perLap: 'Consumo por vuelta',
     perLapHelp:
       'La media de tus últimas vueltas limpias y una línea con ellas: la última y la que más gastó, marcadas',
-    finish: 'Para meta y repostar',
+    finish: 'Repostar y para meta',
     finishHelp:
-      'Lo que echar en la próxima parada y, tras la bandera, lo que necesitas hasta meta con el margen',
+      'Lo que echar en la próxima parada y, al final, lo que necesitas hasta meta con el margen (Para meta)',
     box: 'Menú de boxes',
     boxHelp:
       'La gasolina del menú de boxes como una barra marcada en lo que hay que echar; en naranja si no llega',
@@ -1125,10 +1125,10 @@ export const settingsEs = {
       `Lo que gastar por vuelta para ahorrarte una parada y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
     tyres: 'Neumáticos',
     tyresHelp:
-      'El coche visto desde arriba: cada neumático en tres franjas, de un borde al otro, como lo midió el equipo en tu última parada (iRacing solo lo mide en el box), y los juegos que quedan',
-    limits: 'Reparaciones y juegos',
+      'El coche visto desde arriba: cada neumático en tres franjas, de un borde al otro, como lo midió el equipo en tu última parada (iRacing solo lo mide en el box), y los juegos que quedan. Hasta esa lectura sale atenuado; con el alto fijo, la línea espera a la lectura',
+    limits: 'Reparaciones rápidas',
     limitsHelp:
-      'Las reparaciones rápidas que te quedan si la sesión las limita; también los juegos de neumáticos cuando la línea de neumáticos está oculta',
+      'Las reparaciones rápidas que te quedan si la sesión las limita; también los juegos de neumáticos mientras no se dibuja la línea de neumáticos',
     /** «Contenido»'s note: how the numbers are worked out. */
     calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
@@ -1494,11 +1494,11 @@ export const settingsEs = {
         hero: 'Combustible y vueltas',
         gauge: 'Depósito',
         perLap: 'Consumo por vuelta',
-        finish: 'Para meta y repostar',
+        finish: 'Repostar y para meta',
         window: 'Ventana de parada',
         save: 'Ahorro',
         tyres: 'Neumáticos',
-        limits: 'Reparaciones y juegos'
+        limits: 'Reparaciones rápidas'
       }
     }
   },
@@ -2630,9 +2630,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     perLap: 'Use per lap',
     perLapHelp:
       'The average of your last clean laps and a line of them, the last one and the thirstiest marked',
-    finish: 'To finish and to add',
+    finish: 'Add and to finish',
     finishHelp:
-      'What to add at the next stop and, after the flag, what you need to the finish with the margin',
+      'What to add at the next stop and, at the end, what you need to the finish with the margin (To finish)',
     box: 'Pit menu',
     boxHelp:
       'The fuel set in the pit menu as a bar marked at what to add; orange when it falls short',
@@ -2644,10 +2644,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `What to burn per lap to save a stop and how much to cut, when within reach (up to ${pct}% less)`,
     tyres: 'Tyres',
     tyresHelp:
-      'The car from above: each tyre in three bands, edge to edge, as the crew measured it at your last stop (iRacing only measures it in the stall), and the sets left',
-    limits: 'Repairs and tyre sets',
+      'The car from above: each tyre in three bands, edge to edge, as the crew measured it at your last stop (iRacing only measures it in the stall), and the sets left. Dimmed until that reading; with a fixed height the line waits for it',
+    limits: 'Fast repairs',
     limitsHelp:
-      'The fast repairs you have left when the session limits them; the tyre sets too while the tyres line is hidden',
+      'The fast repairs you have left when the session limits them; the tyre sets too while the tyres line is not drawn',
     calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',
@@ -2947,11 +2947,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
         hero: 'Fuel and laps',
         gauge: 'Tank',
         perLap: 'Use per lap',
-        finish: 'To finish and add',
+        finish: 'Add and to finish',
         window: 'Pit window',
         save: 'Saving',
         tyres: 'Tyres',
-        limits: 'Repairs and sets'
+        limits: 'Fast repairs'
       }
     }
   },

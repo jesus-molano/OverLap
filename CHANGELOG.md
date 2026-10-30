@@ -69,22 +69,31 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 - **Combustible, más gráfico y con menos texto**: cada línea es una cifra y su dibujo. Arriba, las
   **vueltas de combustible en grande** (en el color del plan), los litros y, tras una bandera a
-  cuadros, las vueltas que quedan. El **depósito** va marcado en vueltas de combustible (una raya
-  por vuelta, más fuerte cada cinco), con una raya donde llega lo que necesitas hasta meta y, si no
-  llegas, ese tramo rayado en rojo. El **consumo** lleva una línea con tus vueltas limpias: la media
-  en discontinua, la que más gastó en naranja y la última en blanco (separada y unida a trazos si no
-  fue limpia). **Repostar** muestra el **menú de boxes como una barra** marcada en lo que hay que
-  echar (verde si llega, naranja si no) y, tras la bandera, lo que necesitas hasta meta. La
-  **ventana** es la carrera como una línea hasta la bandera: lo corrido, tu posición, las vueltas en
-  que puedes parar (verde si está abierta, roja si cierra en esta vuelta) y las paradas con el
-  signo de boxes. El **ahorro** es una barra que acaba en tu media, con el recorte rayado y su
-  porcentaje («−9 %»). Los **neumáticos** son el coche visto desde arriba: cada neumático en tres
-  franjas de un borde al otro (iRacing mide por fuera, centro y dentro), coloreadas de verde (nuevo)
-  a amarillo, naranja y rojo (gastado), con el % de su franja más gastada al lado y «última parada ·
-  V13»; antes de la primera lectura el coche sale atenuado («sin lectura · se miden en boxes»), así
-  el widget no cambia de alto cuando llega. Los juegos de neumáticos que quedan van con el coche; la
-  línea de reparaciones los dice solo si ocultas la de neumáticos. Las líneas, su orden, lo que
-  tenías oculto, la edición en la vista previa y los fantasmas siguen igual; no hay ajustes nuevos.
+  cuadros, «QUEDAN» y las vueltas que quedan. El **depósito** va marcado en vueltas de combustible
+  (una raya por vuelta, más fuerte cada cinco), con una raya donde llega lo que necesitas hasta meta
+  y, si no llegas, ese tramo rayado en rojo. El **consumo** lleva una línea con tus vueltas limpias:
+  la media en discontinua, la que más gastó en naranja y la última en blanco (separada y unida a
+  trazos si no fue limpia, aunque gastara lo mismo). **Repostar** muestra el **menú de boxes como
+  una barra** marcada en lo que hay que echar (verde si llega, naranja si no) y, al final,
+  «PARA META» y los litros hasta meta. La **ventana** es la carrera como una línea hasta la
+  bandera: lo corrido, tu posición y las vueltas en que puedes parar (verde si está abierta, roja si
+  cierra en esta vuelta), y las paradas dichas con palabras («1 parada», «sin parar»). El
+  **ahorro** es una barra que acaba en tu media, con el recorte rayado y su porcentaje («−9 %»).
+  Los **neumáticos** son el coche visto desde arriba: cada neumático en tres franjas de un borde al
+  otro (izquierda, centro y derecha vistas desde arriba, como las da iRacing), coloreadas de verde
+  (nuevo) a amarillo, naranja y rojo (gastado), o de azul a gris y naranja con la paleta para
+  daltónicos, con el % de su franja más gastada al lado y «última parada · V13». En la lista,
+  «Para meta y repostar» pasa a llamarse **«Repostar y para meta»** y «Reparaciones y juegos»,
+  **«Reparaciones rápidas»**: los juegos de neumáticos que quedan van ahora con el coche, y esa
+  línea los dice solo mientras no se dibuja la de neumáticos. Las líneas, su orden, lo que tenías
+  oculto, la edición en la vista previa y los fantasmas siguen igual; no hay ajustes nuevos.
+- **La línea de neumáticos de Combustible sale antes de la primera parada** (cambio visible si ya
+  usabas el widget): antes no aparecía hasta que una parada medía los neumáticos; ahora, con el
+  **alto automático** (el de serie), el coche sale atenuado desde el principio («sin lectura · se
+  miden en boxes», o «sin lectura» si el widget es estrecho), así el widget no cambia de alto
+  cuando llega la lectura, aunque en carreras sin parada es como tres líneas más alto. Si la
+  ocultas en Personalizar › Líneas, desaparece como antes. Con el **alto fijo** sigue como antes:
+  la línea espera a la lectura, para no sacar las otras de una ventana hecha a su medida.
 - **«+ Añadir dato» en las barras**: en cabeceras, segundas líneas y pies, la lista «Ocultos (n)»
   pasa a ser **+ Añadir dato (n)**: cada dato oculto tiene **← Izquierda** y **Derecha →**, para
   ponerlo al final del lado que elijas (el lado donde estaba, resaltado).

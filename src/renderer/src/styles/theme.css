@@ -90,6 +90,19 @@
   --ov-prox-9: #ed5c52;
   --ov-prox-10: #f65146;
   --ov-prox-11: #ff4438;
+  /*
+   * Tyre wear ramp, spent (0) to fresh (8): red, orange, yellow by the middle, green. Its own
+   * tokens, so the colour-blind palette can redraw it end to end (warn and yellow would meet).
+   */
+  --ov-wear-0: #ff6b6b;
+  --ov-wear-1: #ff8556;
+  --ov-wear-2: #ff9e40;
+  --ov-wear-3: #ffb830;
+  --ov-wear-4: #ffd21f;
+  --ov-wear-5: #bbd542;
+  --ov-wear-6: #8bd85b;
+  --ov-wear-7: #64da70;
+  --ov-wear-8: #3ddc84;
 
   /* Text tiers (contrast at the default opacity over a white sky / dark asphalt). */
   --ov-fg: #f3f5f8; /* 9.1 / 16.7 */
@@ -195,6 +208,16 @@
   --ov-prox-9: #ea9f4b;
   --ov-prox-10: #f59f39;
   --ov-prox-11: #ff9f1a;
+  /* Wear: blue when fresh, through grey, to the orange of "bad" when spent. */
+  --ov-wear-0: #ff9f1a;
+  --ov-wear-1: #e29c3c;
+  --ov-wear-2: #c5995e;
+  --ov-wear-3: #a79681;
+  --ov-wear-4: #8a93a3;
+  --ov-wear-5: #7798ba;
+  --ov-wear-6: #659dd1;
+  --ov-wear-7: #52a2e8;
+  --ov-wear-8: #3fa7ff;
 }
 
 /*

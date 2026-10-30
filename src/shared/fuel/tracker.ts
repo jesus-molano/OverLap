@@ -121,6 +121,8 @@ export class FuelTracker {
   private carried: number[] = []
   private samplesView: FuelSamples = NO_SAMPLES
   private last: number | null = null
+  /** `last` was a clean lap: the newest of `current`. */
+  private lastClean = false
 
   /** floor(distance) at the S/F crossing the lap in progress started at; NaN: none. */
   private anchorLap = Number.NaN
@@ -157,6 +159,11 @@ export class FuelTracker {
   /** Litres of your last lap driven without a refuel, tow or jump; null otherwise. */
   get lastLapL(): number | null {
     return this.last
+  }
+
+  /** That last lap was a clean one: the newest of `samples` (of this session, this car). */
+  get lastLapClean(): boolean {
+    return this.last !== null && this.lastClean
   }
 
   /** The last tyre reading of this session, null before any. */
@@ -241,6 +248,7 @@ export class FuelTracker {
       this.trackConfig = session.trackConfig
       this.current = []
       this.carried = []
+      this.lastClean = false
       this.updateSamples()
     }
     const num = isFiniteNumber(sessionNum) ? sessionNum : -1
@@ -258,6 +266,7 @@ export class FuelTracker {
 
   private closeLap(lap: number, fuel: number, race: RaceView, player: number): void {
     const used = this.anchorFuel - fuel
+    this.lastClean = false
     if (!this.lapOk || !(used >= FUEL_TRACK.minLapL)) {
       this.last = null
       return
@@ -266,6 +275,7 @@ export class FuelTracker {
     const rec = race.car(player)?.laps[0]
     if (rec === undefined || rec.lap !== lap || !rec.clean) return
     this.current = [used, ...this.current].slice(0, FUEL_TRACK.maxSamples)
+    this.lastClean = true
     this.updateSamples()
   }
 

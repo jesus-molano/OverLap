@@ -117,6 +117,11 @@ describe('FuelTracker laps', () => {
     s.run(20) // crosses 3.0
     expect(s.tracker.samples.laps).toHaveLength(1)
     expect(s.tracker.lastLapL).toBeCloseTo(BURN, 2)
+    // Burnt as much as a clean lap, but it is not one: the sparkline draws it apart.
+    expect(s.tracker.lastLapClean).toBe(false)
+    s.run(30) // a clean lap again
+    expect(s.tracker.samples.laps).toHaveLength(2)
+    expect(s.tracker.lastLapClean).toBe(true)
   })
 
   it('leaves out a lap with a refuel, also as the last lap', () => {
@@ -145,6 +150,7 @@ describe('FuelTracker laps', () => {
     caution = false
     expect(s.tracker.samples.laps).toHaveLength(1)
     expect(s.tracker.lastLapL).toBeCloseTo(BURN, 2)
+    expect(s.tracker.lastLapClean).toBe(false)
   })
 
   it('leaves out a lap you did not drive all of, a tow and a jump', () => {

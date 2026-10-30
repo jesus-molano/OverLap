@@ -31,7 +31,8 @@ const ALL_ON: FuelViewOptions = {
   showWindow: true,
   showSave: true,
   showTyres: true,
-  showLimits: true
+  showLimits: true,
+  tyresBeforeReading: true
 }
 
 const NO_STOP: FuelFinish = {
@@ -123,7 +124,9 @@ describe('fuelView', () => {
     expect(v.tyres).toEqual({
       label: 'Neumáticos',
       note: 'última parada · V13',
+      shortNote: 'V13',
       measured: true,
+      a11y: `Neumáticos: DI 78${NB}%, DD 74${NB}%, TI 86${NB}%, TD 82${NB}%`,
       tyres: [
         { name: 'DI', value: '78', bands: [4, 4, 5] },
         { name: 'DD', value: '74', bands: [4, 3, 3] },
@@ -145,7 +148,12 @@ describe('fuelView', () => {
     expect(v.finish?.box).toMatchObject({ label: 'Menu', value: '20' })
     expect(v.window).toMatchObject({ value: 'L17–L33', stopsText: '1 stop' })
     expect(v.save).toMatchObject({ note: 'no stop', cut: '−9%' })
-    expect(v.tyres).toMatchObject({ label: 'Tyres', note: 'last stop · L13' })
+    expect(v.tyres).toMatchObject({
+      label: 'Tyres',
+      note: 'last stop · L13',
+      shortNote: 'L13',
+      a11y: 'Tyres: FL 78%, FR 74%, RL 86%, RR 82%'
+    })
     expect(v.tyres?.tyres.map((c) => c.name)).toEqual(['FL', 'FR', 'RL', 'RR'])
     expect(v.tyres?.sets?.unit).toBe('sets')
     expect(fuelView(data({ tyreSets: 1 }), ALL_ON, EN).tyres?.sets?.unit).toBe('set')
@@ -162,13 +170,16 @@ describe('fuelView', () => {
       showWindow: false,
       showSave: false,
       showTyres: false,
-      showLimits: false
+      showLimits: false,
+      tyresBeforeReading: false
     }
     expect(linesOf(fuelView(PREVIEW_FUEL, none, ES))).toEqual(['hero'])
     for (const k of Object.keys(ALL_ON) as (keyof FuelViewOptions)[]) {
       if (k === 'order') continue
       const v = fuelView(PREVIEW_FUEL, { ...ALL_ON, [k]: false }, ES)
       if (k === 'showBox') expect(v.finish?.box).toBeNull()
+      // Measured tyres are drawn either way.
+      else if (k === 'tyresBeforeReading') expect(linesOf(v), k).toHaveLength(8)
       else expect(linesOf(v), k).toHaveLength(7)
     }
   })
@@ -334,7 +345,9 @@ describe('fuelView', () => {
     expect(v.tyres).toEqual({
       label: 'Neumáticos',
       note: 'sin lectura · se miden en boxes',
+      shortNote: 'sin lectura',
       measured: false,
+      a11y: 'Neumáticos: sin lectura · se miden en boxes',
       tyres: ['DI', 'DD', 'TI', 'TD'].map((name) => ({
         name,
         value: '—',
@@ -348,6 +361,21 @@ describe('fuelView', () => {
       repairs: null,
       sets: { label: 'Juegos neum.', value: '2', unit: '', pips: 2 }
     })
+  })
+
+  it('waits for the reading when the window keeps its own height (auto height off)', () => {
+    // As before the redesign: no line to push the others out of a window sized for them.
+    const fixed = fuelViewOptions(DEFAULT_SETTINGS.fuel, false)
+    expect(fixed.tyresBeforeReading).toBe(false)
+    expect(fuelViewOptions(DEFAULT_SETTINGS.fuel).tyresBeforeReading).toBe(true)
+    const before = fuelView(data({ tyres: null }), fixed, ES)
+    expect(before.tyres).toBeNull()
+    expect(linesOf(before, fixed.order)).not.toContain('tyres')
+    // The sets are not lost meanwhile: the limits line says them until the car is drawn.
+    expect(before.limits?.sets).toMatchObject({ value: '2' })
+    const after = fuelView(PREVIEW_FUEL, fixed, ES)
+    expect(after.tyres?.measured).toBe(true)
+    expect(after.limits?.sets).toBeNull()
   })
 
   it('draws a reading without its bands in one piece', () => {
@@ -410,7 +438,7 @@ describe('fuelView', () => {
 
 describe('sparkOf', () => {
   it('joins a last lap that was not clean with a dashed tail', () => {
-    const s = sparkOf([3, 3.1], 3.4, 3.05)
+    const s = sparkOf([3, 3.1], 3.4, 3.05, false)
     expect(s?.points).toBe('3,17 50,13.5')
     expect(s?.tail).toEqual({ x: 50, y: 13.5 })
     expect(s?.last).toEqual({ x: 97, y: 3 })
@@ -419,12 +447,26 @@ describe('sparkOf', () => {
 
   it('keeps a steady run flat, and needs two points', () => {
     // 0.01 L apart on 3 L a lap: within the 4 % floor, near the middle of the box.
-    const s = sparkOf([3, 3.01], 3.01, 3.005)
+    const s = sparkOf([3, 3.01], 3.01, 3.005, true)
     expect(s?.avgY).toBe(10)
     expect(Math.abs((s?.last?.y ?? 0) - 10)).toBeLessThan(2)
-    expect(sparkOf([3], 3, 3)).toBeNull()
-    expect(sparkOf([], 3, 3)).toBeNull()
-    expect(sparkOf([3], 3.2, 3)).toMatchObject({ points: '3,17', tail: { x: 3, y: 17 } })
+    expect(sparkOf([3], 3, 3, true)).toBeNull()
+    expect(sparkOf([], 3, 3, false)).toBeNull()
+    expect(sparkOf([3], 3.2, 3, false)).toMatchObject({ points: '3,17', tail: { x: 3, y: 17 } })
+  })
+
+  it('tells a last lap that was not clean by the lap, not by its litres', () => {
+    // A caution lap that burnt just what the newest clean one did is still drawn apart.
+    const caution = sparkOf([3, 3.1], 3.1, 3.05, false)
+    expect(caution?.tail?.x).toBe(50)
+    expect(caution?.last).toEqual({ x: 97, y: caution?.tail?.y })
+    // The newest clean lap itself: its own point, no tail.
+    const clean = sparkOf([3, 3.1], 3.1, 3.05, true)
+    expect(clean?.tail).toBeNull()
+    expect(clean?.last?.x).toBe(97)
+    expect(clean?.points.split(' ')).toHaveLength(2)
+    // Clean but nothing to be the newest of (another car's laps went): apart.
+    expect(sparkOf([], 3.1, 3.05, true)).toBeNull()
   })
 })
 
