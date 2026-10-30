@@ -14,10 +14,12 @@ import type { Messages } from '@shared/i18n'
 import type {
   CarPenalty,
   BattleData,
+  BattleGapStyle,
   BattleLaneId,
   BattleOpponent,
   BattleOptions,
   BattlePartId,
+  BattlePredictionId,
   BattleRowId,
   NameFormat
 } from '@shared/types'
@@ -61,6 +63,8 @@ export interface TrendView {
 
 /** The catch prediction: icon + verdict + muted numbers ('Le alcanzas en ~4 v' 'de 19'). */
 export interface CatchView {
+  /** Which saying it is (battle.prediction: its eye, and the preview's data-el). */
+  readonly kind: BattlePredictionId
   readonly icon: IconName
   readonly text: string
   readonly note: string
@@ -114,6 +118,30 @@ export interface LaneOptions {
   /** The black flag, meatball and furled flag badges (the «Piloto» block's showFlags). */
   readonly penalties: boolean
   readonly nameFormat: NameFormat
+  /** What the prediction row may say (battle.prediction); every saying when absent. */
+  readonly prediction?: Readonly<Record<BattlePredictionId, boolean>>
+  /** The big gap: measured and unsigned (absent too), or Relativo's signed time. */
+  readonly gapStyle?: BattleGapStyle
+}
+
+/** Every saying of the prediction row shown (battle.prediction's default). */
+export const ALL_PREDICTIONS: Readonly<Record<BattlePredictionId, boolean>> = Object.freeze({
+  catchIn: true,
+  caughtIn: true,
+  need: true,
+  noCatch: true
+})
+
+/** battle.prediction as one flag per saying. */
+export function predictionParts(
+  shown: (id: BattlePredictionId) => boolean
+): Readonly<Record<BattlePredictionId, boolean>> {
+  return {
+    catchIn: shown('catchIn'),
+    caughtIn: shown('caughtIn'),
+    need: shown('need'),
+    noCatch: shown('noCatch')
+  }
 }
 
 /** The rows every lane has with these options. */
@@ -189,9 +217,13 @@ export function arrangement(
   return layout === 'side' && lanes > 1 && widthEm >= SIDE_MIN_EM ? 'side' : 'stack'
 }
 
-export function gapView(gapS: number | null): GapView {
+/**
+ * The big gap: measured and unsigned ('0.6' + 's'), or with `relative` the signed time of the
+ * Relativo widget, in its format ('0.6' ahead, '−0.6' behind: formatGap, as its gap column).
+ */
+export function gapView(gapS: number | null, relative = false): GapView {
   if (!finite(gapS)) return { value: DASH, unit: '' }
-  const g = formatGap(Math.abs(gapS))
+  const g = formatGap(relative ? gapS : Math.abs(gapS))
   return g.includes(':') ? { value: g, unit: '' } : { value: g, unit: 's' }
 }
 
@@ -237,8 +269,20 @@ export function catchView(
   op: BattleOpponent,
   side: BattleSide,
   lapsRemaining: number | null,
-  m: Messages
+  m: Messages,
+  shown: Readonly<Record<BattlePredictionId, boolean>> = ALL_PREDICTIONS
 ): CatchView | null {
+  const v = catchSaying(op, side, lapsRemaining, m)
+  // A saying hidden in battle.prediction leaves the row blank (it keeps its height).
+  return v !== null && shown[v.kind] ? { kind: v.kind, ...v.view } : null
+}
+
+function catchSaying(
+  op: BattleOpponent,
+  side: BattleSide,
+  lapsRemaining: number | null,
+  m: Messages
+): { kind: BattlePredictionId; view: Omit<CatchView, 'kind'> } | null {
   if (op.inPits || !finite(op.trendSPerLap)) return null
   const t = m.widgets.battle
   const laps = finite(op.lapsToCatch) ? formatLaps(op.lapsToCatch, m) : null
@@ -250,18 +294,37 @@ export function catchView(
     const needed = finite(op.neededSPerLap) && op.neededSPerLap > 0 ? op.neededSPerLap : null
     const need = needed === null ? '' : t.need(t.perLap(formatTrend(needed)))
     if (laps !== null && !late) {
-      return { icon: 'check', text: t.catchIn(laps), note: of, tone: 'good' }
+      return {
+        kind: 'catchIn',
+        view: { icon: 'check', text: t.catchIn(laps), note: of, tone: 'good' }
+      }
     }
     if (laps !== null) {
       return need !== ''
-        ? { icon: 'minus', text: need, note: t.atThisPace(against), tone: 'bad' }
-        : { icon: 'minus', text: t.noCatch, note: against, tone: 'bad' }
+        ? {
+            kind: 'need',
+            view: { icon: 'minus', text: need, note: t.atThisPace(against), tone: 'bad' }
+          }
+        : {
+            kind: 'noCatch',
+            view: { icon: 'minus', text: t.noCatch, note: against, tone: 'bad' }
+          }
     }
-    return need !== '' ? { icon: 'minus', text: need, note: '', tone: 'neutral' } : null
+    return need !== ''
+      ? { kind: 'need', view: { icon: 'minus', text: need, note: '', tone: 'neutral' } }
+      : null
   }
   if (laps === null) return null
-  if (late) return { icon: 'check', text: t.noCaught, note: against, tone: 'good' }
-  return { icon: 'alert', text: t.caughtIn(laps), note: of, tone: 'bad' }
+  if (late) {
+    return {
+      kind: 'noCatch',
+      view: { icon: 'check', text: t.noCaught, note: against, tone: 'good' }
+    }
+  }
+  return {
+    kind: 'caughtIn',
+    view: { icon: 'alert', text: t.caughtIn(laps), note: of, tone: 'bad' }
+  }
 }
 
 function deltaChip(label: string, delta: number | null): DeltaChipView {
@@ -357,12 +420,15 @@ export function toLaneView(
     tagIcon: TAG_ICONS[side],
     driver: laneDriver(op, o, styles, m),
     inPits: op.inPits,
-    gap: gapView(op.gapS),
+    gap: o.gapStyle === 'relative' ? gapView(op.relativeGapS, true) : gapView(op.gapS),
     // Without its words the trend keeps the chevron and the number (never colour alone).
     trend: o.parts.trendNote ? trend : { ...trend, note: '' },
     tone: op.inPits ? 'dim' : trend.tone,
     stake: o.parts.stake ? stakeText(op.iRatingAtStake) : null,
-    catch: rows.catch && !lastLap ? catchView(op, side, d.lapsRemaining, m) : null,
+    catch:
+      rows.catch && !lastLap
+        ? catchView(op, side, d.lapsRemaining, m, o.prediction ?? ALL_PREDICTIONS)
+        : null,
     lastLap,
     sectors: rows.sectors
       ? sectorChips(

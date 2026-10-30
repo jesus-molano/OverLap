@@ -117,6 +117,8 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'repairRealTime',
   // Drawing.
   'nameFormat',
+  // Batalla's big gap: unsigned or as Relativo, the same information either way.
+  'gapStyle',
   'density',
   'layout',
   'labelSide',

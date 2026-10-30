@@ -1183,6 +1183,16 @@ export const settingsEs = {
       laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' }
     },
     predictionHelp: '«Le alcanzas en ~4 v de 19»',
+    /** The big gap (2.4): measured as always, or the Relativo widget's signed time. */
+    gapStyle: 'Hueco',
+    gapStyleHelp: 'El número grande de cada rival',
+    gapStyleChoices: {
+      plain: { label: 'Sin signo', hint: '«0.6 s» delante o detrás: el hueco medido' },
+      relative: {
+        label: 'Como Relativo',
+        hint: 'El mismo tiempo que Relativo, con su signo: positivo delante, negativo detrás'
+      }
+    },
     atStakeHelp: 'Cuánto iRating vale ese puesto',
     /** The parts' iRating and licence: named as the tables' columns, whose they are said here. */
     ratingHelp: 'El del rival, como la columna iRating de las tablas',
@@ -1699,6 +1709,7 @@ export const settingsEs = {
       lanes: 'Rivales',
       rows: 'Líneas',
       parts: 'Detalles',
+      prediction: 'Predicción de alcance',
       headerBar: 'Cabecera',
       footerBar: 'Pie'
     },
@@ -1746,6 +1757,13 @@ export const settingsEs = {
         license: 'Licencia',
         trendNote: 'Texto de la tendencia',
         stake: 'iRating en juego'
+      },
+      /** The prediction line's sayings, worded as the widget says them. */
+      prediction: {
+        catchIn: 'Le alcanzas en…',
+        caughtIn: 'Te alcanza en…',
+        need: 'Necesitas… (el ritmo)',
+        noCatch: 'No le alcanzas · No te alcanza'
       }
     },
     inputs: {
@@ -2991,6 +3009,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
     predictionHelp: '“Catching in ~4 laps of 19”',
+    gapStyle: 'Gap',
+    gapStyleHelp: 'Each rival’s big number',
+    gapStyleChoices: {
+      plain: { label: 'Unsigned', hint: '“0.6 s” ahead or behind: the measured gap' },
+      relative: {
+        label: 'As Relative',
+        hint: 'The same time as Relative, with its sign: positive ahead, negative behind'
+      }
+    },
     atStakeHelp: 'How much iRating that position is worth',
     ratingHelp: 'The rival’s, as the tables’ iRating column',
     licenseHelp: 'The rival’s, as the tables’ Licence column'
@@ -3414,6 +3441,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       lanes: 'Rivals',
       rows: 'Lines',
       parts: 'Details',
+      prediction: 'Catch prediction',
       headerBar: 'Header',
       footerBar: 'Footer'
     },
@@ -3455,6 +3483,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
         license: 'Licence',
         trendNote: 'Trend text',
         stake: 'iRating at stake'
+      },
+      prediction: {
+        catchIn: 'Catching in…',
+        caughtIn: 'Catches you in…',
+        need: 'Need… (the pace)',
+        noCatch: 'Out of reach · Safe to the flag'
       }
     },
     inputs: {

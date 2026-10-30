@@ -13,6 +13,7 @@ import type {
   AlertsPartId,
   BattleLaneId,
   BattlePartId,
+  BattlePredictionId,
   BattleRowId,
   CustomizeZoneId,
   DeltaLapId,
@@ -395,6 +396,8 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'standings.footerBar',
   'battle.lanes',
   'battle.rows',
+  // The prediction row's parts, unfolded under it (2.4).
+  'battle.prediction',
   'battle.parts',
   'battle.headerBar',
   'battle.footerBar',
@@ -595,10 +598,17 @@ export const OPTION_SCHEMA = {
       hidden: ['laps'],
       computed: ['prediction']
     }),
+    // The prediction row's sayings (2.4): one at a time per lane, so in a fixed order; all shown.
+    prediction: elements(idsOf<BattlePredictionId>()(['catchIn', 'caughtIn', 'need', 'noCatch']), {
+      fixedOrder: true,
+      displayOnly: true
+    }),
     parts: elements(idsOf<BattlePartId>()(['rating', 'license', 'trendNote', 'stake']), {
       fixedOrder: true,
       computed: ['stake']
     }),
+    // The measured gap as always; Relativo's signed time is computed only when chosen (2.4).
+    gapStyle: { kind: 'enum', values: ['plain', 'relative'], default: 'plain' },
     holdS: { kind: 'number', min: 0, max: 10, decimals: 1, default: 3, step: 0.5 },
     // The same «Piloto» block as the others (its flag was off by default before 2.3).
     ...DRIVER_BLOCK,

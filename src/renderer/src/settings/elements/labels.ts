@@ -126,6 +126,10 @@ const ZONES: ZoneWords = {
       title: (m) => m.settings.zones.battle.parts,
       items: (m) => plain(m.settings.items.battle.parts)
     },
+    prediction: {
+      title: (m) => m.settings.zones.battle.prediction,
+      items: (m) => plain(m.settings.items.battle.prediction)
+    },
     headerBar: { title: (m) => m.settings.zones.battle.headerBar, items: infoBarTexts },
     footerBar: { title: (m) => m.settings.zones.battle.footerBar, items: infoBarTexts }
   },

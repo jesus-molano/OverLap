@@ -223,6 +223,9 @@ const DEFAULT_BATTLE: BattleOptions = {
   layout: 'stacked',
   rows: list(['prediction', 'sectors', 'laps'], ['laps']),
   parts: list(['rating', 'license', 'trendNote', 'stake']),
+  // 2.4: every saying of the prediction, and the measured gap as always.
+  prediction: list(['catchIn', 'caughtIn', 'need', 'noCatch']),
+  gapStyle: 'plain',
   holdS: 3,
   brandMarks: 'inherit',
   countryFlags: 'inherit',
@@ -389,6 +392,7 @@ const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
   'standings.footerBar',
   'battle.lanes',
   'battle.rows',
+  'battle.prediction',
   'battle.parts',
   'battle.headerBar',
   'battle.footerBar',

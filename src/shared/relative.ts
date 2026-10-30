@@ -89,6 +89,33 @@ export function estimateGap(
   return d === 0 ? 0 : d
 }
 
+/**
+ * The gap the Relativo widget shows from `focusIdx` to car `idx` (estimateGap on this frame, with
+ * the focus class lap as the ruler): + ahead, − behind; null when either car is not on track or a
+ * time is unknown. For another widget that says the same time (Batalla's «Como Relativo»).
+ */
+export function relativeGapOf(
+  frame: TelemetryFrame,
+  session: SessionMeta,
+  focusIdx: number,
+  idx: number
+): number | null {
+  const pctF = frame.CarIdxLapDistPct[focusIdx]
+  const pct = frame.CarIdxLapDistPct[idx]
+  if (!isValidPct(pctF) || !isValidPct(pct)) return null
+  const focus = session.drivers.get(focusIdx)
+  const d = session.drivers.get(idx)
+  if (!focus || !d) return null
+  return estimateGap(
+    frame.CarIdxEstTime[idx] ?? NaN,
+    frame.CarIdxEstTime[focusIdx] ?? NaN,
+    pct,
+    pctF,
+    d.classEstLapTime,
+    referenceLapTime(focus, session)
+  )
+}
+
 /** Lap relations only make sense in a race once the green flag has dropped. */
 export function lapRelationsActive(sessionType: string | null, sessionState: number): boolean {
   return isRaceSession(sessionType) && sessionState >= SessionState.Racing

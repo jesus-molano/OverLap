@@ -520,6 +520,11 @@ export interface BattleOpponent {
   /** Current time gap in seconds (always positive). */
   gapS: number
   /**
+   * The gap as the Relativo widget computes it (estimateGap: + ahead, − behind, 0.1 s steps),
+   * only with battle.gapStyle 'relative'; null otherwise or when unknown.
+   */
+  relativeGapS: number | null
+  /**
    * Seconds per lap the gap changes in YOUR favour (+ = you gain: closing on
    * the car ahead or pulling away from the car behind); null with too little
    * clean data.
@@ -1249,6 +1254,17 @@ export type BattleLaneId = 'ahead' | 'behind'
 export type BattleRowId = 'prediction' | 'sectors' | 'laps'
 /** Smaller parts of a lane: the rival's iRating and licence, the trend's words, iR at stake. */
 export type BattlePartId = 'rating' | 'license' | 'trendNote' | 'stake'
+/**
+ * The prediction line's sayings (the 'prediction' row's parts): you catch the car ahead ('Le
+ * alcanzas en ~4 v'), the car behind catches you ('Te alcanza en ~11 v'), the pace you need ('Necesitas
+ * +0.24 s/v'), and that nobody catches anybody before the end ('No le alcanzas', 'No te alcanza').
+ */
+export type BattlePredictionId = 'catchIn' | 'caughtIn' | 'need' | 'noCatch'
+/**
+ * How a lane's big gap reads: 'plain' the measured gap without a sign ('0.6 s', as always),
+ * 'relative' the Relativo widget's own signed time ('0.6' ahead, '−0.6' behind).
+ */
+export type BattleGapStyle = 'plain' | 'relative'
 /** The traffic groups, top to bottom (TrafficKind). */
 export type TrafficGroupId = 'hazard' | 'slower' | 'faster'
 /**
@@ -1513,6 +1529,10 @@ export interface BattleOptions {
   rows: ElementList<BattleRowId>
   /** Smaller parts of each lane (the iRating at stake is computed only while shown). */
   parts: ElementList<BattlePartId>
+  /** What the prediction row may say (its parts); a hidden saying leaves the row blank. */
+  prediction: ElementList<BattlePredictionId>
+  /** The big gap: measured, unsigned (default), or Relativo's signed time (computed only then). */
+  gapStyle: BattleGapStyle
   /** Keep an opponent shown this long (s, 0..10) after it leaves the threshold. */
   holdS: number
   /** The «Piloto» block (DriverBlockOptions), in the rival's cell. */
@@ -1725,6 +1745,7 @@ export type CustomizeZoneId =
   | 'battle.headerBar'
   | 'battle.lanes'
   | 'battle.rows'
+  | 'battle.prediction'
   | 'battle.parts'
   | 'battle.footerBar'
   | 'inputs.sections'

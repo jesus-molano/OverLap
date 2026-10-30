@@ -9,6 +9,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Batalla: el hueco como en Relativo, y cada frase de la predicción a tu gusto**: en Contenido,
+  **Hueco** elige entre **Sin signo** (el hueco medido, «0.6 s», como siempre y de serie) y **Como
+  Relativo** (el mismo tiempo que Relativo, con su signo y su formato: positivo delante, negativo
+  detrás). La línea **Predicción de alcance** se despliega en sus partes, cada una con su ojo: «Le
+  alcanzas en…», «Te alcanza en…», «Necesitas…» (el ritmo) y «No le alcanzas · No te alcanza»;
+  una frase oculta deja la línea en blanco, sin mover nada. Todo visible de serie.
 - **Hora en pista en la cabecera y el pie**: un dato nuevo, **Hora en pista**, en el catálogo de
   las barras de Relativo, Posiciones, Combustible, Tráfico y Batalla: la hora del día en el
   simulador (que corre con la sesión), con el mismo formato que la hora local (24 h, «14:32») y un

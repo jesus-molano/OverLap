@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { elementOrder, isElementVisible, visibleIds } from '@shared/elements'
-import { MINUS } from '@shared/format'
+import { MINUS, formatGap } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
-import type { BattleData, BattleOpponent } from '@shared/types'
+import type { BattleData, BattleOpponent, BattlePredictionId } from '@shared/types'
 import { createDriverStyles } from '@renderer/view/styles'
 import { PREVIEW_BATTLE, previewBattle } from './preview'
 import {
@@ -19,6 +19,7 @@ import {
   LANE_ORDER,
   laneParts,
   laneRows,
+  predictionParts,
   sectorChips,
   stakeText,
   toLaneView,
@@ -46,6 +47,7 @@ function opponent(over: Partial<BattleOpponent> = {}): BattleOpponent {
     brand: 'porsche',
     country: 'ES',
     gapS: 0.8,
+    relativeGapS: null,
     trendSPerLap: 0.1,
     lapsToCatch: null,
     catchesBeforeEnd: null,
@@ -139,6 +141,16 @@ describe('gapView / trendView', () => {
     expect(gapView(NaN)).toEqual({ value: '—', unit: '' })
   })
 
+  it('as Relativo: its signed time, in its format (formatGap: + ahead, minus behind)', () => {
+    expect(gapView(0.64, true)).toEqual({ value: '0.6', unit: 's' })
+    expect(gapView(-1.2, true)).toEqual({ value: `${M}1.2`, unit: 's' })
+    expect(gapView(-0.04, true)).toEqual({ value: '0.0', unit: 's' })
+    expect(gapView(-65, true)).toEqual({ value: `${M}1:05`, unit: '' })
+    expect(gapView(null, true)).toEqual({ value: '—', unit: '' })
+    // The very string of Relativo's gap column.
+    expect(gapView(-2.04, true).value).toBe(formatGap(-2.04))
+  })
+
   it('+ is in your favour on both sides, with a chevron and words', () => {
     expect(trendView(0.15, 'ahead', ES)).toEqual({
       icon: 'arrow-up',
@@ -173,6 +185,7 @@ describe('catchView', () => {
     expect(
       catchView(opponent({ lapsToCatch: 4.2, catchesBeforeEnd: true }), 'ahead', 19, ES)
     ).toEqual({
+      kind: 'catchIn',
       icon: 'check',
       text: `Le alcanzas en ~4${NB}v`,
       note: `de${NB}19`,
@@ -193,6 +206,7 @@ describe('catchView', () => {
       ES
     )
     expect(v).toEqual({
+      kind: 'need',
       icon: 'minus',
       text: `Necesitas +0.24${NB}s/v`,
       note: `a este ritmo ~12${NB}v de${NB}5`,
@@ -201,6 +215,7 @@ describe('catchView', () => {
     expect(
       catchView(opponent({ lapsToCatch: 12, catchesBeforeEnd: false }), 'ahead', 5, ES)
     ).toEqual({
+      kind: 'noCatch',
       icon: 'minus',
       text: 'No le alcanzas',
       note: `~12${NB}v de${NB}5`,
@@ -212,6 +227,7 @@ describe('catchView', () => {
     expect(
       catchView(opponent({ trendSPerLap: -0.1, neededSPerLap: 0.18 }), 'ahead', 8, ES)
     ).toEqual({
+      kind: 'need',
       icon: 'minus',
       text: `Necesitas +0.18${NB}s/v`,
       note: '',
@@ -223,10 +239,17 @@ describe('catchView', () => {
   it('behind: when it catches you, or that it will not', () => {
     expect(
       catchView(opponent({ lapsToCatch: 11.6, catchesBeforeEnd: true }), 'behind', 19, ES)
-    ).toEqual({ icon: 'alert', text: `Te alcanza en ~12${NB}v`, note: `de${NB}19`, tone: 'bad' })
+    ).toEqual({
+      kind: 'caughtIn',
+      icon: 'alert',
+      text: `Te alcanza en ~12${NB}v`,
+      note: `de${NB}19`,
+      tone: 'bad'
+    })
     expect(
       catchView(opponent({ lapsToCatch: 9, catchesBeforeEnd: false }), 'behind', 4, ES)
     ).toEqual({
+      kind: 'noCatch',
       icon: 'check',
       text: 'No te alcanza',
       note: `~9${NB}v de${NB}4`,
@@ -234,6 +257,32 @@ describe('catchView', () => {
     })
     // neededSPerLap is an ahead-only field; not closing behind says nothing.
     expect(catchView(opponent({ neededSPerLap: 0.3 }), 'behind', 4, ES)).toBeNull()
+  })
+
+  it('says only what battle.prediction shows: a hidden saying leaves the row blank (2.4)', () => {
+    const only = (id: BattlePredictionId): Record<BattlePredictionId, boolean> =>
+      predictionParts((x) => x === id)
+    const catching = opponent({ lapsToCatch: 4.2, catchesBeforeEnd: true })
+    expect(catchView(catching, 'ahead', 19, ES, only('catchIn'))?.kind).toBe('catchIn')
+    expect(catchView(catching, 'ahead', 19, ES, only('caughtIn'))).toBeNull()
+    const caught = opponent({ lapsToCatch: 11.6, catchesBeforeEnd: true })
+    expect(catchView(caught, 'behind', 19, ES, only('caughtIn'))?.kind).toBe('caughtIn')
+    expect(catchView(caught, 'behind', 19, ES, only('catchIn'))).toBeNull()
+    const slow = opponent({ lapsToCatch: 12, catchesBeforeEnd: false, neededSPerLap: 0.24 })
+    expect(catchView(slow, 'ahead', 5, ES, only('need'))?.kind).toBe('need')
+    expect(catchView(slow, 'ahead', 5, ES, only('noCatch'))).toBeNull()
+    const safe = opponent({ lapsToCatch: 9, catchesBeforeEnd: false })
+    expect(catchView(safe, 'behind', 4, ES, only('noCatch'))?.text).toBe('No te alcanza')
+    // The lane keeps the row (blank): what decides its height is battle.rows.
+    const lane = toLaneView(
+      catching,
+      'ahead',
+      { lapsRemaining: 19, playerLastLaps: [] },
+      { ...OPTS, prediction: only('need') },
+      createDriverStyles(),
+      ES
+    )
+    expect(lane.catch).toBeNull()
   })
 
   it('nothing while the trend is measured or the opponent is in the pits', () => {
@@ -309,6 +358,19 @@ describe('delta chips', () => {
 
 describe('toLaneView', () => {
   const styles = createDriverStyles()
+
+  it('draws the big gap as chosen: measured and unsigned, or as Relativo (2.4)', () => {
+    const op = opponent({ gapS: 0.8, relativeGapS: -0.9 })
+    const d = { lapsRemaining: 19, playerLastLaps: [] }
+    expect(toLaneView(op, 'behind', d, OPTS, styles, ES).gap).toEqual({ value: '0.8', unit: 's' })
+    const rel = toLaneView(op, 'behind', d, { ...OPTS, gapStyle: 'relative' }, styles, ES)
+    expect(rel.gap).toEqual({ value: `${M}0.9`, unit: 's' })
+    // Not computed (yet): a dash, never the other gap with a made-up sign.
+    const none = opponent({ relativeGapS: null })
+    expect(
+      toLaneView(none, 'ahead', d, { ...OPTS, gapStyle: 'relative' }, styles, ES).gap.value
+    ).toBe('—')
+  })
 
   it('builds every row of a lane', () => {
     const op = opponent({

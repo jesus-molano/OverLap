@@ -18,6 +18,7 @@ const AHEAD: BattleOpponent = Object.freeze({
   brand: 'porsche',
   country: 'FR',
   gapS: 0.6,
+  relativeGapS: 0.6,
   trendSPerLap: 0.15,
   lapsToCatch: 4,
   catchesBeforeEnd: true,
@@ -40,6 +41,8 @@ const BEHIND: BattleOpponent = Object.freeze({
   brand: 'lamborghini',
   country: 'IT',
   gapS: 1,
+  // Behind: Relativo's minus.
+  relativeGapS: -1,
   trendSPerLap: -0.09,
   lapsToCatch: 11.1,
   catchesBeforeEnd: true,

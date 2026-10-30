@@ -46,7 +46,14 @@ describe('customizeZones', () => {
     expect(customizeZones('relative')).toEqual(['columns', 'headerBar', 'footerBar'])
     expect(customizeZones('fuel')).toEqual(['lines', 'headerBar', 'footerBar'])
     expect(customizeZones('traffic')).toEqual(['groups', 'parts', 'headerBar', 'footerBar'])
-    expect(customizeZones('battle')).toEqual(['lanes', 'rows', 'parts', 'headerBar', 'footerBar'])
+    expect(customizeZones('battle')).toEqual([
+      'lanes',
+      'rows',
+      'prediction',
+      'parts',
+      'headerBar',
+      'footerBar'
+    ])
     for (const id of WIDGET_IDS) expect(customizeZones(id)[0], id).toBe(MAIN_ZONES[id])
   })
 

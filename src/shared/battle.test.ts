@@ -3,6 +3,7 @@ import { BATTLE, BattleProvider, battleEqual, gapSlope } from './battle'
 import { SessionFlag } from './flags'
 import { NO_INCIDENT_LIMITS } from './incidents/limits'
 import type { LapRecord, RaceCarState, RaceView } from './race/raceView'
+import { makeFrame } from './race/testing/raceSim'
 import { iRatingDeltas } from './ratings/irating'
 import { createDefaultSettings } from './settings'
 import type {
@@ -475,6 +476,43 @@ describe('opponents and visibility', () => {
     expect(compute(session, race).lapsRemaining).toBe(8)
     race.remaining.set(0, -1)
     expect(compute(session, race).lapsRemaining).toBe(0)
+  })
+})
+
+describe('the gap as Relativo (gapStyle, 2.4)', () => {
+  /** The tick Relativo reads: you at mid-lap, car 1 0.83 s ahead, car 2 1.23 s behind. */
+  function frame(): ReturnType<typeof makeFrame> {
+    const f = makeFrame()
+    f.PlayerCarIdx[0] = 0
+    f.CarIdxLapDistPct[0] = 0.5
+    f.CarIdxEstTime[0] = 50
+    f.CarIdxLapDistPct[1] = 0.508
+    f.CarIdxEstTime[1] = 50.83
+    f.CarIdxLapDistPct[2] = 0.49
+    f.CarIdxEstTime[2] = 48.77
+    return f
+  }
+
+  it('sends Relativo’s own signed time only when chosen, in 0.1 s steps', () => {
+    const { race, session } = scenario()
+    const rel = { ...OPTS, gapStyle: 'relative' as const }
+    const d = battle.compute(session, race, rel, null, frame())
+    expect(d.ahead).toMatchObject({ gapS: 0.8, relativeGapS: 0.8 })
+    expect(d.behind).toMatchObject({ gapS: 1.2, relativeGapS: -1.2 })
+    // Measured (the default), or without the tick: not computed.
+    expect(battle.compute(session, race, OPTS, null, frame()).ahead?.relativeGapS).toBeNull()
+    expect(battle.compute(session, race, rel).ahead?.relativeGapS).toBeNull()
+  })
+
+  it('is null for a car Relativo cannot place, and counts in the payload equality', () => {
+    const { race, session } = scenario()
+    const rel = { ...OPTS, gapStyle: 'relative' as const }
+    const f = frame()
+    f.CarIdxLapDistPct[2] = -1
+    const d = battle.compute(session, race, rel, null, f)
+    expect(d.behind?.relativeGapS).toBeNull()
+    const e = battle.compute(session, race, rel, null, frame())
+    expect(battleEqual(d, e)).toBe(false)
   })
 })
 
