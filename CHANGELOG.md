@@ -134,6 +134,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   multiclase** de Tráfico, **Usar la siguiente si no existe** de Delta y **Margen** y **Vueltas
   para la media** de Combustible llevan la misma nota, con el mismo icono, en vez de parecer que
   no hacen nada.
+- **La vista previa enseña lo que acabas de cambiar**, como ya hacía Delta con la referencia de
+  cada sesión (y lo dice debajo de la opción): en **Posiciones**, al cambiar **Primeros puestos**
+  o **Alrededor de ti** te pone en P10, así los dos bloques se ven por separado y cada número
+  cambia algo; al mostrar u ocultar el SoF o los coches en una cabecera, segunda línea o pie, la
+  vista previa enseña solo tu clase (con varias clases van en la línea de clase), y al tocar la
+  línea de clase o los líderes de otras clases vuelven todas. En **Tráfico**, la vista previa
+  aplica **Mirar atrás**, **Mirar delante** y **Peligros hasta** como en carrera, con coches más
+  lejos que se ven al alargarlos, y al cambiar **Entradas por grupo** pone cinco coches cerca en
+  cada grupo. En **Testigos**, con **Solo encendidos** la vista previa dibuja los apagados
+  translúcidos, así su ojo y su orden se ven. En **Pedales**, la traza de ejemplo va en tiempo
+  real: con más segundos se ve la curva anterior, con menos solo el final de esta (antes era la
+  misma curva estirada). Sobre el juego, el modo edición sigue enseñando la muestra de siempre.
 
 ### Cambiado
 

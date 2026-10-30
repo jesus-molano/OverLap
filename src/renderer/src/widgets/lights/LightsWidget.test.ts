@@ -32,4 +32,14 @@ describe('the warning lights strip', () => {
     expect(SOURCE).toMatch(/\.wl-strip--left > \.wl-light \{\s*flex-direction: row-reverse;/)
     expect(SOURCE).toMatch(/\.wl-strip--left \{\s*align-items: flex-end;/)
   })
+
+  it('draws the unlit lights translucent in the settings sample with «Solo encendidos» only', () => {
+    // Only in the settings page's sample (a sample host), never over the game or its edit mode.
+    expect(SOURCE).toMatch(
+      /unlitShown = computed\(\s*\(\) => inSample && phase\.value === 'preview' && shownFilter\.value\.onlyWhenLit\s*\)/
+    )
+    expect(SOURCE).toMatch(/'wl-light--unlit': unlitShown && light\.level === 'off'/)
+    // As the preview's ghosts are drawn (previewEdit.ts marksCss).
+    expect(SOURCE).toMatch(/\.wl-light--unlit \{\s*opacity: 0\.42;/)
+  })
 })

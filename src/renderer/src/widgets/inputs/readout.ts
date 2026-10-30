@@ -265,16 +265,46 @@ export function previewSample(t: number): PreviewSample {
   return { throttle: q(throttle), brake: q(brake), clutch: q(clutch), abs: t >= 0.52 && t < 0.58 }
 }
 
+/** One preview corner (previewSample from 0 to 1), in seconds: the default trace's length. */
+export const PREVIEW_CORNER_S = 5
+/** The exit before it, from the previous corner's trail back to full throttle. */
+export const PREVIEW_EXIT_S = 0.8
+
+/**
+ * Preview inputs `ageS` seconds before now, in real time: the corner being driven now over the
+ * last PREVIEW_CORNER_S, and before it the same corner again, each one joined to the next by its
+ * exit (the throttle back to full), so a longer trace shows more of the lap instead of the same
+ * corner stretched, and a shorter one only its end.
+ */
+export function previewSampleAgo(ageS: number): PreviewSample {
+  const a = Math.max(0, ageS)
+  if (a <= PREVIEW_CORNER_S) return previewSample(1 - a / PREVIEW_CORNER_S)
+  const back = (a - PREVIEW_CORNER_S) % (PREVIEW_CORNER_S + PREVIEW_EXIT_S)
+  if (back >= PREVIEW_EXIT_S) {
+    return previewSample(1 - (back - PREVIEW_EXIT_S) / PREVIEW_CORNER_S)
+  }
+  // The exit, newest end first: full throttle where the next corner starts, the trail behind.
+  const x = 1 - back / PREVIEW_EXIT_S
+  const end = previewSample(1)
+  return {
+    throttle: q(end.throttle + (1 - end.throttle) * x),
+    brake: q(end.brake * (1 - x)),
+    clutch: 0,
+    abs: false
+  }
+}
+
 /**
  * Replaces the ring's content with `seconds` of preview samples at `hz`, ending at time
- * PREVIEW_READOUT.t (as many as the ring holds).
+ * PREVIEW_READOUT.t (as many as the ring holds), in real time (previewSampleAgo).
  */
 export function fillPreview(ring: SampleRing, seconds: number, hz: number): void {
   ring.clear()
   const rate = Math.max(1, hz)
   const n = Math.max(2, Math.min(Math.round(seconds * rate) + 1, ring.capacity))
   for (let i = 0; i < n; i++) {
-    const s = previewSample(i / (n - 1))
-    ring.push(PREVIEW_READOUT.t - (n - 1 - i) / rate, s.throttle, s.brake, s.clutch, s.abs)
+    const age = (n - 1 - i) / rate
+    const s = previewSampleAgo(age)
+    ring.push(PREVIEW_READOUT.t - age, s.throttle, s.brake, s.clutch, s.abs)
   }
 }

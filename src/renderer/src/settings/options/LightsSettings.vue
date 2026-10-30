@@ -83,6 +83,9 @@ function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void
       :current="opts.onlyWhenLit"
       :apply="set('onlyWhenLit')"
     />
+    <p v-if="opts.onlyWhenLit" class="st-row st-help wl-sample-note">
+      {{ t.settings.lights.onlyWhenLitSample }}
+    </p>
   </PageSection>
 
   <CustomizeSection>
@@ -168,3 +171,9 @@ function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void
     <LightsLegend :opts="opts" />
   </PageAppendix>
 </template>
+
+<style scoped>
+.wl-sample-note {
+  display: block;
+}
+</style>

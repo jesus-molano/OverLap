@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { INFO_BARS } from '@shared/infoBar'
 import {
@@ -35,6 +35,7 @@ import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import DriverSection from './DriverSection.vue'
 import { offerSectionRestore } from '../undo/restore'
+import { DEEP_POSITION, previewField, type PreviewField } from '../../widgets/standings/preview'
 
 /**
  * The standings' page: what the table shows (mode, rows, gap, names), then one editor per zone
@@ -94,6 +95,46 @@ function matchRelative(): void {
 const compactOff = computed(() => opts.value.mode === 'full')
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
 const fixed = computed(() => fixedColumns(t.value))
+
+/**
+ * The sample draws the field the option changed last needs (previewField, as Delta's session):
+ * the top rows and the rows around you, with you further down (two blocks, each count seen);
+ * the SoF or the car count of an info bar, your class alone (with several classes they are the
+ * class lines'); the class line or the other leaders, every class again. Said under Contenido.
+ */
+function sampleField(next: Partial<PreviewField>): void {
+  previewField.value = { ...previewField.value, ...next }
+}
+function withField<V>(next: Partial<PreviewField>, apply: Setter<V>): Setter<V> {
+  return (v) => {
+    sampleField(next)
+    return apply(v)
+  }
+}
+const setTopRows = withField({ deep: true }, set('topRows'))
+const setAroundRows = withField({ deep: true }, set('aroundRows'))
+const setLeaders = withField({ singleClass: false }, set('otherClassLeaders'))
+const setClassLine = withField({ singleClass: false }, listSetter('standings', 'classLine'))
+/** Where the bars have the SoF and the car count: a change there draws your class alone. */
+const barsClassItems = computed(() =>
+  INFO_BARS.standings
+    .map(([field]) =>
+      opts.value[field]
+        .filter((e) => e.id === 'sof' || e.id === 'carCount')
+        .map((e) => `${e.id}:${e.visible ? 1 : 0}`)
+        .join(',')
+    )
+    .join('|')
+)
+watch(barsClassItems, () => sampleField({ singleClass: true }))
+const sampleNotes = computed(() => {
+  const s = t.value.settings.standings
+  const f = previewField.value
+  return [
+    ...(f.deep && !compactOff.value ? [s.previewDeep(DEEP_POSITION)] : []),
+    ...(f.singleClass ? [s.previewSingle] : [])
+  ]
+})
 </script>
 
 <template>
@@ -114,7 +155,7 @@ const fixed = computed(() => fixedColumns(t.value))
           :current="opts.topRows"
           :min="STANDINGS_ROWS_MIN"
           :max="STANDINGS_ROWS_MAX"
-          :apply="set('topRows')"
+          :apply="setTopRows"
         />
         <StepperControl
           :label="t.settings.standings.aroundRows"
@@ -122,14 +163,14 @@ const fixed = computed(() => fixedColumns(t.value))
           :current="opts.aroundRows"
           :min="STANDINGS_ROWS_MIN"
           :max="STANDINGS_ROWS_MAX"
-          :apply="set('aroundRows')"
+          :apply="setAroundRows"
         />
         <ToggleControl
           kind="switch"
           :label="t.settings.standings.leaders"
           :help="t.settings.standings.leadersHelp"
           :current="opts.otherClassLeaders"
-          :apply="set('otherClassLeaders')"
+          :apply="setLeaders"
         />
       </div>
     </fieldset>
@@ -146,6 +187,7 @@ const fixed = computed(() => fixedColumns(t.value))
       :options="densityChoices"
       :apply="set('density')"
     />
+    <p v-for="n in sampleNotes" :key="n" class="st-row st-help sd-sample-note">{{ n }}</p>
   </PageSection>
 
   <!-- The «Piloto» block: the same rows here as in the other driver widgets (R08). -->
@@ -193,7 +235,7 @@ const fixed = computed(() => fixedColumns(t.value))
       :items="opts.classLine"
       :spec="S.classLine"
       :labels="elementTexts(t, 'standings', 'classLine')"
-      :apply="listSetter('standings', 'classLine')"
+      :apply="setClassLine"
     />
 
     <InfoBarEditor
@@ -206,6 +248,10 @@ const fixed = computed(() => fixedColumns(t.value))
 </template>
 
 <style scoped>
+.sd-sample-note {
+  display: block;
+}
+
 .compact-body {
   clear: both;
   display: flex;

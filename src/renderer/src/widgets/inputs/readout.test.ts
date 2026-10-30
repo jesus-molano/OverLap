@@ -14,7 +14,9 @@ import {
   gearKind,
   gearLabel,
   pedalPercent,
+  PREVIEW_CORNER_S,
   previewSample,
+  previewSampleAgo,
   rpmLabel,
   speedLabel,
   steerTransform,
@@ -239,5 +241,41 @@ describe('preview', () => {
     const small = new SampleRing(50)
     fillPreview(small, 5, 60)
     expect(small.length).toBe(50)
+  })
+})
+
+describe('the preview trace in real time', () => {
+  /** Brake applications (rising past half) in `seconds` of preview. */
+  function stops(seconds: number): number {
+    let n = 0
+    let on = false
+    for (let a = seconds; a >= 0; a -= 1 / 60) {
+      const b = previewSampleAgo(a).brake
+      if (!on && b > 0.5) n++
+      on = b > 0.5
+    }
+    return n
+  }
+
+  it('shows more of the lap in a longer trace, not the same corner stretched', () => {
+    expect(stops(PREVIEW_CORNER_S)).toBe(1)
+    expect(stops(10)).toBe(2)
+    // A short one: only the end of the corner (no straight before it).
+    for (let a = 0; a <= 2; a += 0.1) expect(previewSampleAgo(a).throttle).toBeLessThan(1)
+  })
+
+  it('joins each corner to the next without a jump', () => {
+    for (let a = 0; a < 20; a += 0.01) {
+      const x = previewSampleAgo(a)
+      const y = previewSampleAgo(a + 0.01)
+      expect(Math.abs(x.throttle - y.throttle), `throttle at ${a}`).toBeLessThan(0.35)
+      expect(Math.abs(x.brake - y.brake), `brake at ${a}`).toBeLessThan(0.35)
+    }
+  })
+
+  it('draws the default 5 s exactly as before (one corner, from full throttle)', () => {
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+      expect(previewSampleAgo((1 - t) * PREVIEW_CORNER_S)).toEqual(previewSample(t))
+    }
   })
 })

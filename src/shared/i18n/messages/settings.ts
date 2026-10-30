@@ -990,6 +990,11 @@ export const settingsEs = {
     aroundRowsHelp: 'Coches por delante y por detrás de ti',
     leaders: 'Líderes de otras clases',
     leadersHelp: 'Una línea con el líder de cada otra clase',
+    /** Under Contenido while the sample draws another field (previewField), as Delta says its. */
+    previewDeep: (position: number) =>
+      `La vista previa te pone en P${position}: así se ven por separado los primeros puestos y los coches de alrededor`,
+    previewSingle:
+      'La vista previa muestra solo tu clase: así se ven el SoF y los coches en las barras',
     gap: 'Hueco',
     gapHelp: 'Fuera de carrera, el hueco es a la mejor vuelta',
     gapChoices: {
@@ -1128,6 +1133,8 @@ export const settingsEs = {
     hazardRangeHelp: 'Avisa de un coche parado o lento a menos de este tiempo por delante',
     entries: 'Entradas por grupo',
     entriesHelp: 'Los más cercanos primero',
+    /** Under Contenido while the sample draws its busy field (previewTrafficField). */
+    previewBusy: 'La vista previa pone cinco coches cerca en cada grupo: así se ve cuántos muestra',
     multiclass: 'Solo en multiclase',
     multiclassHelp:
       'Sin otras clases en pista solo avisa de quien te dobla (o con bandera azul) y de los peligros'
@@ -1327,6 +1334,9 @@ export const settingsEs = {
     },
     onlyWhenLit: 'Solo encendidos',
     onlyWhenLitHelp: 'Sin los apagados; el widget se oculta mientras no hay ninguno encendido',
+    /** Under it while on: the sample still draws the unlit lights, translucent. */
+    onlyWhenLitSample:
+      'La vista previa dibuja los apagados translúcidos, para que veas su ojo y su sitio',
     /** lights.showCaptions with, in a column, lights.labelSide: one choice. */
     captions: 'Rótulos',
     captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
@@ -2715,6 +2725,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     aroundRowsHelp: 'Cars ahead of and behind you',
     leaders: 'Other class leaders',
     leadersHelp: 'A line with the leader of each other class',
+    previewDeep: (position) =>
+      `The preview puts you in P${position}: so the top rows and the cars around you show apart`,
+    previewSingle:
+      'The preview shows your class only: so the SoF and the car count show in the bars',
     gap: 'Gap',
     gapHelp: 'Outside a race, the gap is to the best lap',
     gapChoices: {
@@ -2840,6 +2854,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hazardRangeHelp: 'Warns about a stopped or slow car less than this far ahead',
     entries: 'Entries per group',
     entriesHelp: 'Closest first',
+    previewBusy: 'The preview puts five cars close by in each group: so you see how many it shows',
     multiclass: 'Multiclass only',
     multiclassHelp:
       'With no other classes on track, it only warns about cars lapping you (or under blue flag) and hazards'
@@ -3003,6 +3018,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     onlyWhenLit: 'Lit only',
     onlyWhenLitHelp: 'Without the lights that are off; the widget hides while none is lit',
+    onlyWhenLitSample:
+      'The preview draws the unlit ones translucent, so you see their eye and their place',
     captions: 'Captions',
     captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
     captionsChoices: {

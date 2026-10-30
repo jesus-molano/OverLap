@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { formatDriverName } from '@shared/format'
 import { lineMetrics, linesEm, panelHeightPx, planLines } from './layout'
-import { previewStandings, type PreviewOptions } from './preview'
+import { DEEP_POSITION, previewStandings, type PreviewOptions } from './preview'
 
 const DEFAULTS: PreviewOptions = DEFAULT_SETTINGS.standings
 
@@ -116,5 +116,38 @@ describe('previewStandings', () => {
     expect(a).not.toBe(b)
     expect(a.classes[0]?.rows[0]).not.toBe(b.classes[0]?.rows[0])
     expect(a).toEqual(b)
+  })
+})
+
+describe('previewStandings in the field the settings page asks for', () => {
+  const deep = { deep: true, singleClass: false }
+  const positionsIn = (field: typeof deep, o: Partial<PreviewOptions> = {}): number[][] =>
+    previewStandings({ ...DEFAULTS, ...o }, field).classes.map((c) =>
+      c.rows.map((r) => r.classPosition)
+    )
+
+  it('puts you further down, so the top rows and the rows around you are two blocks', () => {
+    const d = previewStandings(DEFAULTS, deep)
+    const you = d.classes[0]?.rows.find((r) => r.isPlayer)
+    expect(you?.classPosition).toBe(DEEP_POSITION)
+    expect(you?.driverName).toBe('Alejandro Ruiz')
+    expect(d.info?.classPosition).toBe(DEEP_POSITION)
+    expect(positionsIn(deep)[0]).toEqual([1, 2, 3, 7, 8, 9, 10, 11, 12])
+    // Each count now changes what is drawn.
+    expect(positionsIn(deep, { topRows: 4 })[0]).toEqual([1, 2, 3, 4, 7, 8, 9, 10, 11, 12])
+    expect(positionsIn(deep, { aroundRows: 4 })[0]).toEqual([1, 2, 3, 6, 7, 8, 9, 10, 11, 12])
+    expect(d.classes[0]?.rows.some((r) => r.gapBefore)).toBe(true)
+  })
+
+  it('keeps the gaps of each place, so the table still reads from the leader down', () => {
+    const rows = previewStandings({ ...DEFAULTS, mode: 'full' }, deep).classes[0]?.rows ?? []
+    const base = previewStandings({ ...DEFAULTS, mode: 'full' }).classes[0]?.rows ?? []
+    expect(rows.map((r) => r.gapToLeader)).toEqual(base.map((r) => r.gapToLeader))
+    expect(new Set(rows.map((r) => r.driverName))).toEqual(new Set(base.map((r) => r.driverName)))
+  })
+
+  it('draws your class alone for the info bars, and every class by default', () => {
+    expect(previewStandings(DEFAULTS, { deep: false, singleClass: true }).classes).toHaveLength(1)
+    expect(previewStandings(DEFAULTS).classes).toHaveLength(2)
   })
 })
