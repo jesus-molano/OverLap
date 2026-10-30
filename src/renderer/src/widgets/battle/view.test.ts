@@ -541,11 +541,11 @@ describe('English', () => {
     expect(toLaneView(opponent(), 'ahead', battle(), OPTS, styles, EN).tag).toBe('AHEAD')
   })
 
-  it('says the prediction in English, with laps as L', () => {
+  it('says the prediction in English, with laps as laps, never L (litres)', () => {
     expect(
       catchView(opponent({ lapsToCatch: 4.2, catchesBeforeEnd: true }), 'ahead', 19, EN)
     ).toMatchObject({
-      text: `Catching in ~4${NB}L`,
+      text: `Catching in ~4${NB}laps`,
       note: `of${NB}19`
     })
     expect(
@@ -555,13 +555,13 @@ describe('English', () => {
         5,
         EN
       )
-    ).toMatchObject({ text: `Need +0.24${NB}s/lap`, note: `at this pace ~12${NB}L of${NB}5` })
+    ).toMatchObject({ text: `Need +0.24${NB}s/lap`, note: `at this pace ~12${NB}laps of${NB}5` })
     expect(
       catchView(opponent({ lapsToCatch: 12, catchesBeforeEnd: false }), 'ahead', 5, EN)?.text
     ).toBe('Out of reach')
     expect(
       catchView(opponent({ lapsToCatch: 11.6, catchesBeforeEnd: true }), 'behind', 19, EN)?.text
-    ).toBe(`Catches you in ~12${NB}L`)
+    ).toBe(`Catches you in ~12${NB}laps`)
     expect(
       catchView(opponent({ lapsToCatch: 9, catchesBeforeEnd: false }), 'behind', 4, EN)?.text
     ).toBe('Safe to the flag')

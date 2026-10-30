@@ -69,6 +69,8 @@ describe('fuelView', () => {
       fuelUnit: 'L',
       laps: '17.6',
       lapsUnit: 'v',
+      // In full words where they fit (R50: FuelWidget measures it).
+      lapsUnitLong: 'vueltas',
       tone: 'neutral',
       note: '',
       left: { label: 'Quedan', value: '18.7', unit: 'v' }

@@ -48,8 +48,12 @@ export const widgetsEs = {
     underOne: `<${NB}1${NB}v`,
     /** A timed session with its estimated laps: '38:19  ≈19 v'. */
     timed: (clock: string, laps: number) => `${clock}${SEP}≈${laps}${NB}v`,
+    /** The same in full words, drawn where they fit (R50: FitWords). */
+    timedLong: (clock: string, laps: number) =>
+      `${clock}${SEP}≈${laps}${NB}${laps === 1 ? 'vuelta' : 'vueltas'}`,
     /** Laps left in a session by laps. */
     left: (n: number) => (n === 1 ? `Queda 1${NB}v` : `Quedan ${n}${NB}v`),
+    leftLong: (n: number) => (n === 1 ? `Queda 1${NB}vuelta` : `Quedan ${n}${NB}vueltas`),
     /** After a count drawn on its own ('7' + 'v': a stint of 7 laps). */
     unit: 'v',
     /** Lap number n, as in the battle's lap chips: 'V12' (a stop on lap 12). */
@@ -369,6 +373,8 @@ export const widgetsEs = {
   fuel: {
     /** After a number of laps ('12.9 v'). */
     laps: 'v',
+    /** The same in full words, on the hero line where they fit (R50). */
+    lapsLong: 'vueltas',
     /** After litres per lap ('2.96 L/v'). */
     perLap: 'L/v',
     /** After US gallons per lap, in imperial (R54). */
@@ -495,11 +501,14 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     testing: 'TESTING'
   },
   laps: {
-    about: (n) => `~${n}${NB}L`,
-    underOne: `<${NB}1${NB}L`,
+    // Laps never as 'L', which is litres (the fuel's '39.7 L').
+    about: (n) => `~${n}${NB}${n === 1 ? 'lap' : 'laps'}`,
+    underOne: `<${NB}1${NB}lap`,
     timed: (clock, laps) => `${clock}${SEP}≈${laps}${NB}laps`,
+    timedLong: (clock, laps) => `${clock}${SEP}≈${laps}${NB}${laps === 1 ? 'lap' : 'laps'}`,
     left: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`),
-    unit: 'L',
+    leftLong: (n) => (n === 1 ? `1${NB}lap left` : `${n}${NB}laps left`),
+    unit: 'lp',
     number: (n) => `L${n}`
   },
   incidents: {
@@ -707,6 +716,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   },
   fuel: {
     laps: 'laps',
+    lapsLong: 'laps',
     perLap: 'L/lap',
     perLapGal: 'gal/lap',
     measuring: 'measuring…',

@@ -458,7 +458,7 @@ describe('best lap, last stop, stint and tyre cells', () => {
       tyre: 'W',
       penalty: 'furled'
     })
-    expect(carView(row, ctx({ m: EN }))).toMatchObject({ pitLap: 'L9', stintUnit: 'L' })
+    expect(carView(row, ctx({ m: EN }))).toMatchObject({ pitLap: 'L9', stintUnit: 'lp' })
     // Without its option the badge goes; the rest of the line stays.
     expect(carView(row, ctx({ showFlags: false }))).toMatchObject({ penalty: null, tyre: 'W' })
     // Unknown stint and tyre: no stint at all, a dash for the tyre.

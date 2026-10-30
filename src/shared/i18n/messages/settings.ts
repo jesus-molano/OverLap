@@ -2856,7 +2856,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsBehind: 'Cars behind',
     columns: 'Columns',
     stint: 'Stint laps',
-    stintHelp: 'Since its last stop, or since the start (7 L)',
+    stintHelp: 'Since its last stop, or since the start (7 lp)',
     tyre: 'Tyre',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
@@ -2935,7 +2935,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       best: 'Race only: outside races “Last lap” already shows it',
       pit: 'PIT, OUT or TOW and the stops; hidden, PIT goes after the name',
       pitLap: 'Race only: the lap of its last stop (L12)',
-      stint: 'Since its last stop, or since the start (7 L)',
+      stint: 'Since its last stop, or since the start (7 lp)',
       tyre: 'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
     }
   },
@@ -2952,7 +2952,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       laps: { label: 'Laps', hint: 'The last three laps' }
     },
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
-    predictionHelp: '“Catching in ~4 L of 19”',
+    predictionHelp: '“Catching in ~4 laps of 19”',
     atStakeHelp: 'How much iRating that position is worth',
     ratingHelp: 'The rival’s, as the tables’ iRating column',
     licenseHelp: 'The rival’s, as the tables’ Licence column'

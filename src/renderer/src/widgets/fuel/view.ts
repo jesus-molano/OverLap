@@ -71,6 +71,11 @@ export interface HeroView {
   /** Laps the fuel lasts, '—' while measuring. */
   readonly laps: string
   readonly lapsUnit: string
+  /**
+   * The laps' unit in full words ('vueltas'), for the hero line and its «Quedan» while they fit
+   * (R50: FuelWidget measures a hidden copy); the same as `lapsUnit` where it is already whole.
+   */
+  readonly lapsUnitLong: string
   /** good: it reaches the flag; bad: under two laps and short; neutral otherwise. */
   readonly tone: Tone
   /** 'midiendo…' while no clean lap is measured and the consumption line is off, else ''. */
@@ -537,6 +542,7 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
     fuelUnit: volumeUnit(o.units),
     laps: d.lapsOfFuel === null ? DASH : fixed(d.lapsOfFuel, 1),
     lapsUnit: f.laps,
+    lapsUnitLong: f.lapsLong,
     tone,
     // The consumption line says it when it is drawn.
     note: d.lapsOfFuel === null && !o.showPerLap ? f.measuring : '',

@@ -373,7 +373,7 @@ describe('stint, tyre and flag cells', () => {
     })
     expect(toSlotView(row(1, { stintLaps: 0 }), 0, styles, 'full', EN)).toMatchObject({
       stint: '0',
-      stintUnit: 'L'
+      stintUnit: 'lp'
     })
     expect(toSlotView(row(1), 0, styles, 'full', ES)).toMatchObject({ stint: '', stintUnit: '' })
   })
