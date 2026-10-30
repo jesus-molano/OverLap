@@ -4,6 +4,7 @@ import { isElementVisible } from '@shared/elements'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
+import { behaviourNote } from '../controls/previewNote'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -18,6 +19,9 @@ import { formatSeconds } from '../values'
 
 const opts = useOptions('traffic')
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 const set = optionSetter('traffic')
 
 interface SecondsSlider {
@@ -128,6 +132,7 @@ const setParts = listSetter('traffic', 'parts')
       :label="t.settings.traffic.multiclass"
       :help="t.settings.traffic.multiclassHelp"
       :current="opts.onlyMulticlass"
+      :note="behaviour"
       :apply="set('onlyMulticlass')"
     />
   </PageSection>

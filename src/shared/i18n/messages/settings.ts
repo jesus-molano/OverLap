@@ -389,7 +389,10 @@ export const settingsEs = {
     /** A choice the size of the widget makes invisible (Relativo's density): the same note. */
     noEffect: (size: string) => `No se nota a ${size}${NB}px`,
     noEffectDensity:
-      'A este tamaño el ancho fija el texto: la densidad se nota en un widget más ancho o con más coches'
+      'A este tamaño el ancho fija el texto: la densidad se nota en un widget más ancho o con más coches',
+    /** Options that act during the session only, never in the preview: one wording everywhere. */
+    behaviour: 'No cambia la vista previa',
+    behaviourHelp: 'Actúa durante la sesión, sobre el juego'
   },
   controls: {
     customColor: 'Color personalizado',
@@ -2229,7 +2232,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `At ${px}${NB}px wide they do not fit side by side: drawn stacked; widen the widget`,
     noEffect: (size) => `No visible change at ${size}${NB}px`,
     noEffectDensity:
-      'At this size the width sets the text: density shows in a wider widget or with more cars'
+      'At this size the width sets the text: density shows in a wider widget or with more cars',
+    behaviour: 'Not shown in the preview',
+    behaviourHelp: 'Acts during the session, over the game'
   },
   controls: {
     customColor: 'Custom colour',

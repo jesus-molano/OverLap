@@ -16,6 +16,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
+import { behaviourNote } from '../controls/previewNote'
 import type { ChoiceOption } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -34,6 +35,9 @@ const opts = useOptions('delta')
 const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 const set = optionSetter('delta')
 const S = OPTION_SCHEMA.delta
 
@@ -170,6 +174,7 @@ const lapsGate = useParentGate({
       :label="t.settings.delta.fallback"
       :help="fallbackHelp"
       :current="opts.fallback"
+      :note="behaviour"
       :apply="set('fallback')"
     />
     <p class="st-row st-help dl-cycle">{{ cycleText }}</p>

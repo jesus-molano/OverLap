@@ -128,6 +128,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lista **Coche** (o **Datos**) dice debajo que no se ve y por qué, y al mostrar uno de sus
   elementos se muestra también el bloque, como ya hacían los tiempos de vuelta de Delta, que
   ahora lo dicen con las mismas palabras. Ocultar u ordenar nunca toca el bloque.
+- **«No cambia la vista previa» en las opciones que actúan durante la sesión**: cuándo se ve un
+  widget (**Mostrar en**, **Ocultar en boxes**, **Mostrar en la pantalla de sesión**),
+  **Bloqueado**, **Crece hacia**, el umbral y **Mantener visible** de Batalla y Avisos, **Solo en
+  multiclase** de Tráfico, **Usar la siguiente si no existe** de Delta y **Margen** y **Vueltas
+  para la media** de Combustible llevan la misma nota, con el mismo icono, en vez de parecer que
+  no hacen nada.
 
 ### Cambiado
 

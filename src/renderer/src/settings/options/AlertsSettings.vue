@@ -8,6 +8,7 @@ import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import SliderControl from '../controls/SliderControl.vue'
+import { behaviourNote } from '../controls/previewNote'
 import { listSetter, optionSetter, updateSection } from '../editor'
 import {
   ALERTS_SPEC,
@@ -34,6 +35,9 @@ const opts = useOptions('alerts')
 const lights = useOptions('lights')
 const set = optionSetter('alerts')
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 
 const HOLD: NumericSpec = OPTION_SCHEMA.alerts.holdS
 const HOLD_PRESETS_S = [0, 3, 5].filter((s) => s >= HOLD.min && s <= HOLD.max)
@@ -132,6 +136,7 @@ function lightBox(id: AlertKey): { on: boolean; set: (on: boolean) => Promise<vo
       :step="HOLD.step"
       :format="seconds"
       :presets="HOLD_PRESETS_S"
+      :note="behaviour"
       :apply="set('holdS')"
     />
   </PageSection>
