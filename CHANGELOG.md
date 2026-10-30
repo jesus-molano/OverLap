@@ -382,9 +382,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   por debajo del 65 % de opacidad (antes, del 35 %), así que un panel al 50 % sobre un cielo
   blanco ya se lee. El gris tenue (unidades, títulos de columna) es un poco más claro. Con la vista
   previa en «Día» y el fondo por debajo del 60 %, el control del fondo avisa de que se leerá mal.
-- **La ayuda de «Tamaño del texto»** (Apariencia) dice exactamente a qué widgets cambia (Posiciones,
-  Batalla, Pedales, Tráfico, Avisos, Testigos y Combustible) y cuáles ajustan el texto a su ventana
-  (Relativo, Radar y Delta). Antes solo nombraba Clasificación y Batalla.
+- **«Tamaño del texto» cambia los diez widgets** (Apariencia): multiplica la «Escala» de cada uno.
+  Relativo, Radar y Delta, que llenan su ventana con el texto y no cambiaban, ahora agrandan o
+  encogen su ventana en la misma proporción (desde su centro), en la disposición en uso y en las
+  demás; su «Escala» sigue diciendo lo mismo (100 % es su tamaño de fábrica por el tamaño del
+  texto), y «Posición y tamaño» los devuelve a ese tamaño. Para leer mejor en 4K basta con subir el
+  tamaño del texto, sin tocar después la escala de tres páginas. Antes la ayuda decía que esos tres
+  no cambiaban; ahora dice «Cambia los diez widgets» y, tras su ⓘ, cómo crece su ventana.
 - **Opciones que vuelves a activar ya no dejan una línea congelada**, ni en la vista previa ni
   sobre el juego. Al ocultar y volver a mostrar una parte de Delta (tiempos de vuelta, referencia,
   estado), de Avisos (la banda de bandera, los otros avisos en chips), de Combustible (cualquier

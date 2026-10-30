@@ -264,7 +264,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   daltónicos, la etiqueta SIM, el idioma ni las unidades.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
-  y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
+  y naranja en lugar de verde y rojo), tamaño del texto (multiplica la escala de los diez widgets:
+  en Relativo, Radar y Delta, que llenan su ventana con el texto, agranda su ventana en la misma
+  proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país y banderas de penalización.

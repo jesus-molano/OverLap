@@ -83,9 +83,17 @@ const { settings } = useOverlayState()
 const bounds = computed(
   () => settings.value?.widgets[props.widgetId].bounds ?? def.value.defaultBounds
 )
-const freePercent = computed(() => freeScalePercent(bounds.value, def.value.defaultBounds))
+const freePercent = computed(() =>
+  freeScalePercent(bounds.value, def.value.defaultBounds, appearance.value.fontScale)
+)
 const setFreeScale: Setter<number> = (pct) => {
-  const next = freeScaleBounds(bounds.value, def.value.defaultBounds, pct, def.value.minSize)
+  const next = freeScaleBounds(
+    bounds.value,
+    def.value.defaultBounds,
+    pct,
+    def.value.minSize,
+    appearance.value.fontScale
+  )
   sendCommand({ type: 'set-widget-bounds', widgetId: props.widgetId, bounds: next })
   return Promise.resolve()
 }

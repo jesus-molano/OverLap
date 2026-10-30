@@ -84,7 +84,14 @@ const subtitle = computed(() => {
   if (def.value.sizeModel === 'free') {
     return w.sizeFree(
       size.value,
-      formatPercent(t.value, freeScalePercent(bounds.value, def.value.defaultBounds))
+      formatPercent(
+        t.value,
+        freeScalePercent(
+          bounds.value,
+          def.value.defaultBounds,
+          settings.value?.appearance.fontScale
+        )
+      )
     )
   }
   const scale = formatPercent(t.value, prefs.value.scale)

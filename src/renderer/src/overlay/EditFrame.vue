@@ -19,6 +19,7 @@ import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vu
 import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
 import { firstCombination } from '@shared/shortcuts'
 import { TOPMOST_WIDGET, WIDGET_DEFS } from '@shared/widgets'
+import { useAppearance } from '../composables/useAppearance'
 import { useI18n } from '../composables/useI18n'
 import { useShortcuts } from '../composables/useShortcuts'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
@@ -38,6 +39,7 @@ const session = injectEditSession()
 const def = WIDGET_DEFS[slot.id]
 const prefs = useWidgetSettings(slot.id)
 const t = useI18n()
+const appearance = useAppearance()
 const shortcuts = useShortcuts()
 
 const edit = createPanelEdit({
@@ -94,7 +96,7 @@ const scaleText = computed(() =>
   t.value.core.percent(
     def.sizeModel === 'auto-height'
       ? prefs.value.scale
-      : freeScalePercent(slot.rect.value, def.defaultBounds)
+      : freeScalePercent(slot.rect.value, def.defaultBounds, appearance.value.fontScale)
   )
 )
 

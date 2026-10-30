@@ -482,12 +482,11 @@ export const settingsEs = {
     text: {
       title: 'Texto',
       fontScale: 'Tamaño del texto',
-      /**
-       * `scaled`: the widgets whose text it changes (auto height: 'Posiciones, Batalla…'); `free`:
-       * those that fit their text to their window instead ('Relativo, Radar y Delta').
-       */
-      fontScaleHelp: (scaled: string) => `Cambia ${scaled}`,
-      fontScaleMore: (free: string) => `${free} no: ajustan el texto al tamaño de su ventana.`,
+      /** Every widget: it multiplies each one's «Escala» (R09). */
+      fontScaleHelp: 'Cambia los diez widgets: multiplica la «Escala» de cada uno',
+      /** `free`: the widgets whose text fills their window ('Relativo, Radar y Delta'). */
+      fontScaleMore: (free: string) =>
+        `${free} llenan su ventana con el texto: su ventana crece o encoge en la misma proporción, en todas tus disposiciones.`,
       halo: 'Contorno del texto',
       haloHelp: 'Un borde oscuro fino para leer el texto sobre el juego',
       haloChoices: {
@@ -2322,8 +2321,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     text: {
       title: 'Text',
       fontScale: 'Text size',
-      fontScaleHelp: (scaled) => `Changes ${scaled}`,
-      fontScaleMore: (free) => `Not ${free}: they fit their text to their window.`,
+      fontScaleHelp: 'Changes all ten widgets: it multiplies each one’s “Scale”',
+      fontScaleMore: (free) =>
+        `${free} fill their window with their text: their window grows or shrinks by the same amount, in all your layouts.`,
       halo: 'Text outline',
       haloHelp: 'A thin dark edge that keeps text readable over the game',
       haloChoices: {
