@@ -183,6 +183,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       class="fu-panel"
       :class="{
         'fu-panel--fixed': !autoHeight,
+        'fu-panel--gal': viewOptions.units === 'imperial',
         'fu-panel--head': showHeader,
         'fu-panel--foot': showFooter
       }"
@@ -1077,6 +1078,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 /* ---- Narrow windows: the figures and graphics keep their room, the words go first ------ */
+
+/* Gallons (R54): «gal» is wider than «L», so the menu's caption goes a little sooner. */
+@container fuel (max-width: 27em) {
+  .fu-panel--gal .fu-menu__label {
+    display: none;
+  }
+}
 
 @container fuel (max-width: 23em) {
   .fu-note,
