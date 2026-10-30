@@ -222,6 +222,8 @@ export function searchSettings(
     else if (wholes.some((w) => text.includes(w))) score = 1
     else if (forms.every((f) => hasForm(text, f))) score = 2
     else if (forms.every((f) => hasForm(near, f))) score = 3
+    // Some of the words in its name, the rest in its help: before one that has them only there.
+    else if (forms.some((f) => hasForm(text, f))) score = 4
     else score = 5
     // A page or a section a little before a label with the same score; one that another
     // setting hides now a little after.
@@ -265,7 +267,8 @@ ${e.context}`
 const OPTION_SELECTOR = '.st-seg-text'
 /**
  * The buttons a page acts with («Exportar todo…», «Editar posición», «Restablecer…»): not an
- * icon, a form's submit or a part count that changes with every click.
+ * icon, a form's submit, a part count that changes with every click or one marked data-nofind (a
+ * list's own «Restablecer», a link to a setting found by its own name).
  */
 const ACTION_SELECTOR =
   'button.st-btn:not(.st-btn-icon):not(.ed-parts-btn):not([type="submit"]):not([data-nofind])'
