@@ -1438,14 +1438,17 @@ export type StandingsColumnId =
 export type StandingsColumn = ElementEntry<StandingsColumnId>
 
 export interface StandingsOptions {
-  /** compact: top rows + window around you + other class leaders; full: every car of every class. */
+  /** compact: top rows + window around you + other classes' first cars; full: every car of every class. */
   mode: 'compact' | 'full'
   /** Compact: leading rows of your class (0..10). */
   topRows: number
   /** Compact: rows above and below you (0..10). */
   aroundRows: number
-  /** Compact: one line with the leader of each other class. */
-  otherClassLeaders: boolean
+  /**
+   * Compact: the first cars of each other class (0..10): 0 none, 1 its leader on one line, more
+   * under its class line. Replaces the old otherClassLeaders switch (true: 1, false: 0).
+   */
+  otherClassRows: number
   /** Which gap the 'gap' column shows ('both' = interval, plus gapLeader as its own column). */
   gapMode: 'interval' | 'leader' | 'both'
   /** Every column id exactly once, in order (normalisation fixes missing/duplicated ids). */

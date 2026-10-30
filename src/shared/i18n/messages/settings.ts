@@ -1085,7 +1085,7 @@ export const settingsEs = {
   standings: {
     mode: 'Modo',
     modeChoices: {
-      compact: { label: 'Compacto', hint: 'Primeros, tu entorno y líderes de otras clases' },
+      compact: { label: 'Compacto', hint: 'Primeros, tu entorno y los primeros de otras clases' },
       full: { label: 'Completo', hint: 'Todos los coches de todas las clases' }
     },
     compact: 'Modo compacto',
@@ -1093,8 +1093,9 @@ export const settingsEs = {
     topRowsHelp: 'Filas de cabeza de tu clase',
     aroundRows: 'Alrededor de ti',
     aroundRowsHelp: 'Coches por delante y por detrás de ti',
-    leaders: 'Líderes de otras clases',
-    leadersHelp: 'Una línea con el líder de cada otra clase',
+    otherClassRows: 'Coches de otras clases',
+    otherClassRowsHelp:
+      'Los primeros de cada otra clase, bajo su nombre; 1: solo el líder, en una línea; 0: ninguno',
     /** Under Contenido while the sample draws another field (previewField), as Delta says its. */
     previewDeep: (position: number) =>
       `La vista previa te pone en P${position}: así se ven por separado los primeros puestos y los coches de alrededor`,
@@ -2899,7 +2900,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
   standings: {
     mode: 'Mode',
     modeChoices: {
-      compact: { label: 'Compact', hint: 'The front, the cars around you and other class leaders' },
+      compact: {
+        label: 'Compact',
+        hint: 'The front, the cars around you and the front of other classes'
+      },
       full: { label: 'Full', hint: 'Every car in every class' }
     },
     compact: 'Compact mode',
@@ -2907,8 +2911,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     topRowsHelp: 'Rows from the front of your class',
     aroundRows: 'Around you',
     aroundRowsHelp: 'Cars ahead of and behind you',
-    leaders: 'Other class leaders',
-    leadersHelp: 'A line with the leader of each other class',
+    otherClassRows: 'Cars of other classes',
+    otherClassRowsHelp:
+      'The front of each other class, under its name; 1: the leader alone, on one line; 0: none',
     previewDeep: (position) =>
       `The preview puts you in P${position}: so the top rows and the cars around you show apart`,
     previewSingle:

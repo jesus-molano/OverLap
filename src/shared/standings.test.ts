@@ -437,9 +437,21 @@ describe('classes', () => {
     expect(data.classes.slice(1).every((b) => b.rows[0]?.classPosition === 1)).toBe(true)
   })
 
-  it('compact: no other classes without otherClassLeaders', () => {
-    const data = compute(RACE, session, race, { ...OPTS, otherClassLeaders: false })
+  it('compact: no other classes with otherClassRows at 0', () => {
+    const data = compute(RACE, session, race, { ...OPTS, otherClassRows: 0 })
     expect(data.classes.map((b) => b.classId)).toEqual([5])
+  })
+
+  it('compact: the first otherClassRows cars of each other class, in order', () => {
+    const data = compute(RACE, session, race, { ...OPTS, otherClassRows: 3 })
+    expect(data.classes.slice(1).map(carIdxs)).toEqual([
+      [30, 31, 32],
+      [20, 21],
+      [10, 11]
+    ])
+    expect(data.classes.slice(1).every((b) => b.rows.every((r) => !r.gapBefore))).toBe(true)
+    // Your class keeps its own counts.
+    expect(carIdxs(block(data, 0))).toEqual(carIdxs(block(compute(RACE, session, race, OPTS), 0)))
   })
 
   it('compact: skips another class nobody in which is classified yet', () => {

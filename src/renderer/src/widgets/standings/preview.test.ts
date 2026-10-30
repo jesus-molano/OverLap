@@ -60,7 +60,8 @@ describe('previewStandings', () => {
     const sep = previewStandings({ ...DEFAULTS, topRows: 1, aroundRows: 1 }).classes[0]?.rows
     expect(sep?.map((r) => r.gapBefore)).toEqual([false, true, false, false])
     expect(positions({ topRows: 0, aroundRows: 0 })).toEqual([[5], [1]])
-    expect(positions({ otherClassLeaders: false })).toEqual([[1, 2, 3, 4, 5, 6, 7, 8]])
+    expect(positions({ otherClassRows: 0 })).toEqual([[1, 2, 3, 4, 5, 6, 7, 8]])
+    expect(positions({ otherClassRows: 3 }).slice(1)).toEqual([[1, 2, 3]])
     const full = positions({ mode: 'full' })
     expect(full[0]).toHaveLength(12)
     expect(full[1]).toHaveLength(5)

@@ -575,6 +575,15 @@ function trafficCaptions(raw: Readonly<Record<string, unknown>>): unknown {
   return trafficHeaderShows(raw, 'captions')
 }
 
+/**
+ * «Líderes de otras clases» (a switch until 2.4) became how many cars of each other class: on, its
+ * leader (1); off, none (0).
+ */
+function otherClassRowsOf(raw: Readonly<Record<string, unknown>>): unknown {
+  const v = raw.otherClassLeaders
+  return typeof v === 'boolean' ? (v ? 1 : 0) : undefined
+}
+
 /** One scalar option of a section and how it is read from the fields it replaced. */
 export interface ValueMigration {
   readonly field: string
@@ -584,7 +593,10 @@ export interface ValueMigration {
 /** Every scalar that replaced older fields, by section (only while the file lacks it). */
 export const VALUE_MIGRATIONS: { readonly [S in OptionSection]?: readonly ValueMigration[] } = {
   relative: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
-  standings: [{ field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') }],
+  standings: [
+    { field: 'footerBarSize', read: sizeFromSwitch('conditionsFooter') },
+    { field: 'otherClassRows', read: otherClassRowsOf }
+  ],
   fuel: [{ field: 'headerBarSize', read: sizeFromSwitch('showHeader') }],
   traffic: [
     { field: 'headerBarSize', read: trafficHeaderSize },

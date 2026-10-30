@@ -56,6 +56,11 @@ export interface CarLineView extends DriverCellView {
   css: string
   /** Class short name of a one-line leader ('LMP2'), else ''. */
   classTag: string
+  /**
+   * A one-line leader's class SoF ('SoF 2.7k'), as its class line would say it (the class line's
+   * SoF shown and known), else ''.
+   */
+  classSof: string
   player: boolean
   /** The car's make and the driver's flag code ('' none): drawn when the columns have room. */
   brand: BrandId
@@ -253,7 +258,7 @@ function carCss(row: StandingsRow, alt: boolean, sep: boolean, leader: boolean):
 function toCarView(
   row: DisplayRow,
   ctx: LineContext,
-  o: { alt: boolean; sep: boolean; classTag: string }
+  o: { alt: boolean; sep: boolean; classTag: string; classSof?: string }
 ): CarLineView {
   const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m, ctx.gapLeaderShown)
   const gapLeader = gapLeaderCell(row, ctx.race)
@@ -268,6 +273,7 @@ function toCarView(
     kind: leader ? 'leader' : 'car',
     css: carCss(row, o.alt, o.sep, leader),
     classTag: o.classTag,
+    classSof: o.classSof ?? '',
     player: row.isPlayer,
     brand: row.brand,
     country: row.country,
@@ -368,7 +374,9 @@ export function toLineViews(lines: readonly PlannedLine[], ctx: LineContext): Li
     if (l.kind === 'class') return toClassView(l.block, ctx)
     if (l.kind === 'leader') {
       const tag = className(l.block, ctx.m)
-      return toCarView(l.row, ctx, { alt: false, sep: false, classTag: tag })
+      // Its class line folded into it: the SoF of every class, also on one line (2.4).
+      const sof = classMetaParts(l.block, ctx.classLine, ctx.m).find((p) => p.id === 'sof')
+      return toCarView(l.row, ctx, { alt: false, sep: false, classTag: tag, classSof: sof?.text })
     }
     return toCarView(l.row, ctx, { alt: l.alt, sep: l.gapBefore, classTag: '' })
   })

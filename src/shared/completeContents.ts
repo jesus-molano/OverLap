@@ -12,7 +12,8 @@
  *   you had on: never the same datum in every bar;
  * - the switches that add something to read (column titles, captions, the trend arrows, every
  *   alert...); the «Piloto» block's own «No» back to «Global» (the style shows logos and flags);
- * - the standings' gap to the leader as its own column («Ambos») and the iRating at stake of all;
+ * - the standings' gap to the leader as its own column («Ambos»), the iRating at stake of all and
+ *   the other classes' leaders when none were shown;
  * - the height following the content in the widgets that can, so what was added never falls off.
  *
  * What it never touches: how a widget behaves (the cars it shows, its references, its timers,
@@ -34,7 +35,6 @@ export const COMPLETE_SWITCHES: {
   radar: {},
   standings: {
     columnHeads: true,
-    otherClassLeaders: true,
     iRatingDeltaAll: true,
     showPosition: true
   },
@@ -173,6 +173,9 @@ export function completeSection(section: LayoutSection, options: Fields): Record
       if (value === 'off') out[field] = 'inherit'
     } else if (section === 'standings' && field === 'gapMode') {
       set(field, 'both')
+    } else if (section === 'standings' && field === 'otherClassRows') {
+      // The other classes back as their leader at least (the old switch on); more stay.
+      if (value === 0) out[field] = 1
     } else if (field in COMPLETE_SWITCHES[section]) {
       set(field, COMPLETE_SWITCHES[section][field])
     }

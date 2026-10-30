@@ -4,7 +4,7 @@
  * warning), stints and stops, tyres known for your car model only, names that exercise every
  * name format, flags for most drivers, and the info bars' data of your class (its SoF, entries
  * and fastest lap, your projections, the conditions). Rows are picked with the same rules as the provider (top rows, rows
- * around you, other class leaders), so the window is sized on what the current options really
+ * around you, the first cars of the other classes), so the window is sized on what the current options really
  * show. A field of several makes (the LMP2s are all Dallaras), so the brand marks show in 'auto'
  * mode. Pure.
  */
@@ -25,7 +25,7 @@ import type {
 
 export type PreviewOptions = Pick<
   StandingsOptions,
-  'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders'
+  'mode' | 'topRows' | 'aroundRows' | 'otherClassRows'
 >
 
 /**
@@ -508,6 +508,7 @@ export function previewStandings(
   const full = o.mode === 'full'
   const top = clampOption(OPTION_SCHEMA.standings.topRows, o.topRows)
   const around = clampOption(OPTION_SCHEMA.standings.aroundRows, o.aroundRows)
+  const others = clampOption(OPTION_SCHEMA.standings.otherClassRows, o.otherClassRows)
   const classes: StandingsClassBlock[] = []
   for (const c of CLASSES) {
     if (field.singleClass && !c.block.isPlayerClass) continue
@@ -515,7 +516,8 @@ export function previewStandings(
     let rows: DisplayRow[]
     if (full) rows = all.map((r) => ({ ...r, gapBefore: false }))
     else if (c.block.isPlayerClass) rows = compactRows(all, top, around)
-    else if (o.otherClassLeaders && c.rows[0]) rows = [{ ...c.rows[0], gapBefore: false }]
+    else if (others > 0 && c.rows[0])
+      rows = c.rows.slice(0, others).map((r) => ({ ...r, gapBefore: false }))
     else continue
     classes.push({ ...c.block, rows })
   }

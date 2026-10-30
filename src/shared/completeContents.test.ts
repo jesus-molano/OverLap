@@ -14,7 +14,7 @@ import { LAYOUT_SECTIONS, OPTION_SCHEMA, type OptionSpec } from './settingsSchem
 import { WIDGET_DEFS } from './widgets'
 
 const RULED = new Set(['conditionsTrend', 'conditionsWindDirection', 'countryFlags', 'showFlags'])
-RULED.add('brandMarks').add('gapMode')
+RULED.add('brandMarks').add('gapMode').add('otherClassRows')
 
 describe('«Completo»: everything on in the ten widgets', () => {
   it('classifies every field of every widget section: set by a rule, or left on purpose', () => {

@@ -343,6 +343,33 @@ describe('toLineViews', () => {
     const leader = lines[3] as CarLineView
     expect(leader.classTag).toBe('LMP2')
     expect(leader.css).toBe('sd-line sd-car sd-leader')
+    expect((lines[1] as CarLineView).classSof).toBe('')
+  })
+
+  it('gives a one-line leader its class SoF, as its class line says it (2.4)', () => {
+    const classes = [
+      block([1, 2], {}, 1),
+      block([1], { classId: 2, className: 'LMP2', sof: 2690, carCount: 9 })
+    ]
+    const plan = planLines(classes, { oneLineLeaders: true }, lineMetrics('compact'))
+    const sof = (c: LineContext): string => (toLineViews(plan, c)[3] as CarLineView).classSof
+    // The SoF alone: the car count stays on the class lines.
+    expect(sof(ctx())).toBe('SoF 2.7k')
+    // The class line's SoF hidden: none here either.
+    expect(
+      sof(
+        ctx({
+          classLine: [
+            { id: 'sof', visible: false },
+            { id: 'carCount', visible: true }
+          ]
+        })
+      )
+    ).toBe('')
+    // Unknown SoF: nothing.
+    const none = [classes[0]!, block([1], { classId: 2, className: 'LMP2', sof: 0 })]
+    const plan0 = planLines(none, { oneLineLeaders: true }, lineMetrics('compact'))
+    expect((toLineViews(plan0, ctx())[3] as CarLineView).classSof).toBe('')
   })
 
   it('words a class without a name in the window language, on its line and as a leader tag', () => {

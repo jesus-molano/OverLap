@@ -31,6 +31,8 @@ const inlinePit = computed(() =>
     ? props.line.pit
     : null
 )
+/** A one-line leader's SoF is its class line's (the preview's highlight follows that eye). */
+const LEAD_SOF_EL = 'standings.classLine.sof'
 /** The penalty flag after the name while the flags have no column of their own. */
 const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalty : null))
 </script>
@@ -55,6 +57,9 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
         :title="t.widgets.standings.fastestName"
         >{{ t.widgets.standings.fastestTag }}</span
       >
+      <span v-if="line.classSof" class="sd-lead-sof" :data-el="LEAD_SOF_EL">{{
+        line.classSof
+      }}</span>
     </DriverCell>
   </span>
   <template v-else>
@@ -182,6 +187,16 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
  */
 .c-lead {
   display: contents;
+}
+
+/* The class's SoF on its leader's line, as the class line sets it: at the cell's end, secondary. */
+.sd-lead-sof {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-text);
+  color: var(--ov-fg-muted);
 }
 
 /*
