@@ -174,11 +174,14 @@ con tu última, tu mejor, tu óptima y tu récord.
 
 <img src="docs/screenshots/combustible.png" alt="Combustible" width="320">
 
-Litros y vueltas que te dan (en verde si llegas a meta), vueltas que quedan, el depósito con la
-marca de lo que necesitas, consumo (media, última y máximo), lo que falta para meta y lo que hay que
-echar junto a lo que tienes en el menú de boxes, la ventana de parada («V17–V33»), el ahorro por
-vuelta que te quita una parada, la última lectura de neumáticos y las reparaciones rápidas y juegos
-que quedan si la sesión los limita. Solo mide vueltas limpias, y el plan no cambia dentro de la
+Más dibujo que texto: las vueltas que te da el combustible en grande (en verde si llegas a meta),
+los litros y las vueltas que quedan; el depósito marcado en vueltas, con una raya donde llega lo que
+necesitas; el consumo con una línea de tus últimas vueltas limpias (media, última y la que más
+gastó); lo que hay que echar junto a una barra del menú de boxes; la carrera como una línea con tu
+posición y la ventana de parada («V17–V33»); el ahorro por vuelta que te quita una parada, como una
+barra con el recorte; el coche visto desde arriba con el desgaste de cada neumático en tres franjas
+(de verde a rojo, medido en tu última parada) y los juegos que quedan; y las reparaciones rápidas
+si la sesión las limita. Solo mide vueltas limpias, y el plan no cambia dentro de la
 vuelta. Por defecto, solo en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
 ## Ajustes y personalización
