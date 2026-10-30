@@ -57,12 +57,13 @@ const session = makeSession(1, { pitSpec: SPEC })
 describe('consumption', () => {
   it('averages the last avgLaps clean laps, with the most of them', () => {
     const c = consumption({ laps: [3, 2, 4, 1, 1, 1], carried: false }, 3)
-    expect(c).toEqual({ avgL: 3, maxL: 4, samples: 3, carried: false })
+    expect(c).toEqual({ avgL: 3, maxL: 4, samples: 3, carried: false, laps: [3, 2, 4] })
     expect(consumption({ laps: [3], carried: true }, 5)).toEqual({
       avgL: 3,
       maxL: 3,
       samples: 1,
-      carried: true
+      carried: true,
+      laps: [3]
     })
     expect(consumption({ laps: [], carried: false }, 5).avgL).toBeNull()
     // The option is clamped like everywhere else (2..10).
@@ -71,6 +72,16 @@ describe('consumption', () => {
 })
 
 describe('computeFuel', () => {
+  it('sends the laps behind the average, oldest first, for the sparkline', () => {
+    const t = tracker([3.041, 2.9, 3.111], { last: 3.041 })
+    const d = computeFuel(frame(), session, race(10.5, 15), t, { ...OPTS, avgLaps: 2 })
+    expect(d.recentL).toEqual([2.9, 3.04])
+    expect(fuelEqual(d, { ...d, recentL: [2.9, 3.04] })).toBe(true)
+    expect(fuelEqual(d, { ...d, recentL: [2.9, 3.05] })).toBe(false)
+    const none = computeFuel(frame(), session, race(10.5, 15), tracker([]), OPTS)
+    expect(none.recentL).toEqual([])
+  })
+
   it('plans to the flag from the measured average', () => {
     const d = computeFuel(
       frame(),

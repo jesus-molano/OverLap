@@ -50,25 +50,38 @@ const WEAR_VARS = [
 ] as const
 
 type Wear = readonly [number, number, number, number]
+type Band3 = readonly [number, number, number]
+type Bands = readonly [Band3, Band3, Band3, Band3]
 
 /**
- * Tread left per tyre (front left, front right, rear left, rear right), 0..1: the most worn of
- * its three bands. The SDK's '%' is read as 0..1 like every '%' variable; a value above 1 as
- * already in percent. Null when any band is missing or not a number.
+ * Tread left in every band of every tyre (front left, front right, rear left, rear right; each
+ * left, middle, right), 0..1. The SDK's '%' is read as 0..1 like every '%' variable; a value
+ * above 1 as already in percent. Null when any band is missing or not a number.
  */
-export function tyreWear(frame: TelemetryFrame): Wear | null {
-  const out: number[] = []
-  for (const bands of WEAR_VARS) {
-    let min = Infinity
-    for (const name of bands) {
+export function tyreBands(frame: TelemetryFrame): Bands | null {
+  const out: Band3[] = []
+  for (const names of WEAR_VARS) {
+    const tyre: number[] = []
+    for (const name of names) {
       const v = frame[name][0]
       if (!isFiniteNumber(v) || v < 0) return null
-      min = Math.min(min, v > 1 ? v / 100 : v)
+      tyre.push(Math.min(1, v > 1 ? v / 100 : v))
     }
-    out.push(Math.min(1, min))
+    out.push(tyre as unknown as Band3)
   }
-  return out as unknown as Wear
+  return out as unknown as Bands
 }
+
+/** Tread left per tyre, 0..1: the most worn of its three bands. */
+const wearOf = (b: Bands): Wear => b.map((t) => Math.min(...t)) as unknown as Wear
+
+/** tyreBands' tyres, each as its most worn band; null when any band is missing. */
+export function tyreWear(frame: TelemetryFrame): Wear | null {
+  const b = tyreBands(frame)
+  return b === null ? null : wearOf(b)
+}
+
+const pct = (v: number): number => Math.round(v * 100)
 
 function sameWear(a: Wear, b: Wear): boolean {
   return a.every((v, i) => Math.abs(v - (b[i] ?? NaN)) < FUEL_TRACK.wearEps)
@@ -290,23 +303,25 @@ export class FuelTracker {
       this.stallBest = null
       return
     }
-    const wear = tyreWear(frame)
+    const bands = tyreBands(frame)
+    const wear = bands === null ? null : wearOf(bands)
     if (!this.inStall) {
       this.inStall = true
       this.stallStart = wear
       this.stallBest = null
       return
     }
-    if (wear === null) return
+    if (wear === null || bands === null) return
     if (this.stallStart !== null && sameWear(wear, this.stallStart)) return
     if (wear.every((v) => v >= FUEL_TRACK.freshWear)) return
     if (this.stallBest !== null && meanOf(wear) >= meanOf(this.stallBest)) return
     this.stallBest = wear
     this.reading = Object.freeze({
       lap: Math.max(0, lapsCompleted),
-      wearPct: Object.freeze(
-        wear.map((v) => Math.round(v * 100))
-      ) as unknown as TyreReading['wearPct']
+      wearPct: Object.freeze(wear.map(pct)) as unknown as TyreReading['wearPct'],
+      bands: Object.freeze(
+        bands.map((t) => Object.freeze(t.map(pct)))
+      ) as unknown as TyreReading['bands']
     })
   }
 }

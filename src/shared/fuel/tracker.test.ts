@@ -9,7 +9,7 @@ import {
   type MutableFrame
 } from '../race/testing/raceSim'
 import type { SessionMeta } from '../types'
-import { FuelTracker, tyreWear } from './tracker'
+import { FuelTracker, tyreBands, tyreWear } from './tracker'
 
 /** Litres per lap of the test car. */
 const BURN = 2.5
@@ -280,13 +280,22 @@ describe('FuelTracker tyres', () => {
     expect(s.tracker.tyres).toBeNull()
     wear = [0.84, 0.81, 0.78, 0.79, 0.76, 0.74, 0.89, 0.88, 0.86, 0.86, 0.84, 0.82]
     s.run(1)
-    expect(s.tracker.tyres).toEqual({ lap: 3, wearPct: [78, 74, 86, 82] })
+    expect(s.tracker.tyres).toEqual({
+      lap: 3,
+      wearPct: [78, 74, 86, 82],
+      bands: [
+        [84, 81, 78],
+        [79, 76, 74],
+        [89, 88, 86],
+        [86, 84, 82]
+      ]
+    })
     // New tyres go on: the reading stays.
     wear = []
     s.run(1)
     stall = false
     s.run(1)
-    expect(s.tracker.tyres).toEqual({ lap: 3, wearPct: [78, 74, 86, 82] })
+    expect(s.tracker.tyres).toMatchObject({ lap: 3, wearPct: [78, 74, 86, 82] })
   })
 
   it('takes nothing from a stay that changes nothing or shows a new set', () => {
@@ -302,6 +311,22 @@ describe('FuelTracker tyres', () => {
     setWear(s.frame, Array(12).fill(0.998))
     s.run(1)
     expect(s.tracker.tyres).toBeNull()
+  })
+
+  it('reads every band of every tyre, left to right as iRacing names them', () => {
+    const s = new FuelSim()
+    setWear(s.frame, [0.9, 0.8, 0.85, 1, 1, 1, 0.5, 0.6, 0.7, 0.95, 0.94, 0.93])
+    expect(tyreBands(s.frame)).toEqual([
+      [0.9, 0.8, 0.85],
+      [1, 1, 1],
+      [0.5, 0.6, 0.7],
+      [0.95, 0.94, 0.93]
+    ])
+    // Over 1 is already a percentage; a value past 100 % is new tread.
+    setWear(s.frame, [90, 80, 85, 100, 101, 100, 50, 60, 70, 95, 94, 93])
+    expect(tyreBands(s.frame)?.[1]).toEqual([1, 1, 1])
+    s.frame.RRwearR[0] = -1
+    expect(tyreBands(s.frame)).toBeNull()
   })
 
   it('reads the tread per tyre as its most worn band, 0..1 or already in percent', () => {

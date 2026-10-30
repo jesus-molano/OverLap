@@ -157,6 +157,10 @@ describe('mock fuel through a session, with the real providers', () => {
     const reading = after[0]?.payload.tyres
     const worst = (c: keyof typeof MOCK_WEAR): number => Math.round(Math.min(...MOCK_WEAR[c]) * 100)
     expect(reading?.wearPct).toEqual([worst('LF'), worst('RF'), worst('LR'), worst('RR')])
+    // Every band, as the sim wrote it: the widget draws the tread across each tyre.
+    const bands = (c: keyof typeof MOCK_WEAR): number[] =>
+      MOCK_WEAR[c].map((v) => Math.round(v * 100))
+    expect(reading?.bands).toEqual([bands('LF'), bands('RF'), bands('LR'), bands('RR')])
     expect(reading?.lap).toBe(Math.floor(samples[stallAt]?.d ?? 0))
     expect(after[0]?.sets).toBe(MOCK_FUEL.tyreSets - 2)
     expect(after[0]?.payload).toMatchObject({ fastRepairs: 1, tyreSets: 2, boxL: 20, tankL: 85 })

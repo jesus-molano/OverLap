@@ -15,7 +15,7 @@
  * replay's live point, and nothing is shown while the replay system is on (the tape, or its live
  * point).
  */
-import { deepEqual } from '../equal'
+import { arrayEqual, deepEqual } from '../equal'
 import { isFiniteNumber } from '../num'
 import type { RaceView } from '../race/raceView'
 import { resolvePlayerCarIdx } from '../sessionInfo'
@@ -44,19 +44,21 @@ export interface Consumption {
   readonly maxL: number | null
   readonly samples: number
   readonly carried: boolean
+  /** The laps behind the average, newest first. */
+  readonly laps: readonly number[]
 }
 
 export function consumption(s: FuelSamples, avgLaps: number): Consumption {
   const n = clampOption(OPTION_SCHEMA.fuel.avgLaps, avgLaps)
   const laps = s.laps.slice(0, n)
-  if (laps.length === 0) return { avgL: null, maxL: null, samples: 0, carried: false }
+  if (laps.length === 0) return { avgL: null, maxL: null, samples: 0, carried: false, laps }
   let sum = 0
   let max = 0
   for (const l of laps) {
     sum += l
     max = Math.max(max, l)
   }
-  return { avgL: sum / laps.length, maxL: max, samples: laps.length, carried: s.carried }
+  return { avgL: sum / laps.length, maxL: max, samples: laps.length, carried: s.carried, laps }
 }
 
 interface Plan {
@@ -139,6 +141,7 @@ export function computeFuel(
     lastL: last === null ? null : round2(last),
     maxL: cons.maxL === null ? null : round2(cons.maxL),
     samples: cons.samples,
+    recentL: cons.laps.map(round2).reverse(),
     carried: cons.carried,
     finish: plan.finish,
     boxL: boxLitres(frame),
@@ -188,6 +191,7 @@ export function fuelEqual(a: FuelData, b: FuelData): boolean {
     a.lastL === b.lastL &&
     a.maxL === b.maxL &&
     a.samples === b.samples &&
+    arrayEqual(a.recentL, b.recentL) &&
     a.carried === b.carried &&
     a.boxL === b.boxL &&
     a.fastRepairs === b.fastRepairs &&

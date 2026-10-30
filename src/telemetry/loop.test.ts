@@ -283,6 +283,7 @@ const FUEL: FuelData = {
   lastL: null,
   maxL: null,
   samples: 0,
+  recentL: [],
   carried: false,
   finish: null,
   boxL: null,
