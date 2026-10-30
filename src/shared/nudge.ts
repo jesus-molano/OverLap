@@ -67,3 +67,22 @@ export function nudgeRect(
   const y = Math.min(Math.max(Math.round(rect.y + step.dy), Math.ceil(area.y)), bottom - height)
   return { x, y, width, height }
 }
+
+/**
+ * Tab and Shift+Tab while editing: the arrows go to the next or the previous widget, so they
+ * work with the cursor hidden by the game too (R38).
+ */
+export const PICK_KEYS: Readonly<Record<string, 1 | -1>> = Object.freeze({
+  Tab: 1,
+  'Shift+Tab': -1
+})
+
+/** Ctrl+Z while editing: the last drag, resize, wheel step or chip click goes back (R38). */
+export const EDIT_UNDO_KEY = 'Ctrl+Z'
+
+/** Every key edit mode takes besides Esc, in accelerator.ts's spelling. */
+export const EDIT_KEYS: readonly string[] = Object.freeze([
+  ...Object.keys(NUDGE_KEYS),
+  ...Object.keys(PICK_KEYS),
+  EDIT_UNDO_KEY
+])

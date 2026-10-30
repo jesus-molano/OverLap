@@ -141,6 +141,8 @@ const SAME_IN_ENGLISH = new Set([
   'settings.visibilityPage.cell',
   // Key names on the edit-mode banner.
   'settings.app.editBanner.keys[4].key',
+  'settings.app.editBanner.keys[6].key',
+  'settings.app.editBanner.keys[7].key',
   'settings.app.editBanner.keys[5].key',
   // 'No' reads the same in both.
   'settings.infoBar.sizeChoices.off.label',

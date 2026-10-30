@@ -23,11 +23,11 @@ import {
   type ControllerInfo
 } from '@shared/controllers'
 import type { PersonalBestList } from '@shared/delta/references'
-import { messagesFor, type Messages } from '@shared/i18n'
+import { messagesFor, widgetTitle, type Messages } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView, type UsedShortcut } from '@shared/ipc'
 import { deepEqual } from '@shared/equal'
 import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
-import { NUDGE_KEYS } from '@shared/nudge'
+import { EDIT_UNDO_KEY, NUDGE_KEYS, PICK_KEYS } from '@shared/nudge'
 import { stepScale } from '@shared/panelGeometry'
 import {
   defaultLayoutOffsetX,
@@ -47,6 +47,7 @@ import { createCursorProbe } from './cursorProbe'
 import { diagnosticsText } from './diagnostics'
 import { applyFirstRun } from './firstRun'
 import { NoticeUndo } from './noticeUndo'
+import { editStepText } from './editHistory'
 import { gameDisplay } from './osdPlace'
 import { gatherBounds, moveWidgets } from './gather'
 import { InputHost } from './inputHost'
@@ -228,6 +229,20 @@ function start(): void {
       changeSettings((s) => {
         s.widgets[id].scale = stepScale(s.widgets[id].scale, step)
       })
+    },
+    // Ctrl+Z on a wheel step (R38): the «Escala» it had.
+    onScaleSet: (id, scale) => {
+      changeSettings((s) => {
+        s.widgets[id].scale = scale
+      })
+    },
+    // Edit mode's last change: the tray offers «Deshacer: mover Relativo» too (R38).
+    onEditChange: (step) => {
+      noticeUndo.keep(
+        (m) => editStepText(m, step),
+        () => void windows.undoEdit(),
+        () => windows.lastEdit() === step
+      )
     },
     // An edit chip's ⚙: the widget's own page in the settings window (R25).
     onOpenWidgetPage: (id) => openSettingsWindow(id),
@@ -444,11 +459,39 @@ function start(): void {
       afterShortcut('exitEdit')
     },
     // The arrows in edit mode (R38): the widget last touched, 1 px (Shift: 10), Ctrl: its size.
+    // Tab and Shift+Tab pick the widget the arrows move, Ctrl+Z puts the last change back.
     onNudge: (key) => {
+      const m = messagesFor(store.settings.appearance.language)
+      const t = m.core.osd
+      const toasts = store.settings.settingsWindow.shortcutToasts
+      const dir = PICK_KEYS[key]
+      if (dir !== undefined) {
+        const id = windows.pick(dir)
+        if (!toasts) return
+        osd.show(
+          id === null
+            ? { text: t.pickedNone, detail: '' }
+            : { text: t.picked(widgetTitle(m, id)), detail: t.pickedDetail },
+          gameArea()
+        )
+        return
+      }
+      if (key === EDIT_UNDO_KEY) {
+        const done = windows.undoEdit()
+        if (done !== null) noticeUndo.drop()
+        if (!toasts) return
+        osd.show(
+          {
+            text: done === null ? t.editUndoNone : t.editUndone(editStepText(m, done)),
+            detail: done === null ? '' : t.pickedDetail
+          },
+          gameArea()
+        )
+        return
+      }
       const step = NUDGE_KEYS[key]
       if (step === undefined) return
-      if (windows.nudge(step) !== null || !store.settings.settingsWindow.shortcutToasts) return
-      const t = messagesFor(store.settings.appearance.language).core.osd
+      if (windows.nudge(step) !== null || !toasts) return
       osd.show({ text: t.nudgeNone, detail: t.nudgeNoneDetail }, gameArea())
     },
     onStatus: (next) => {
@@ -827,6 +870,8 @@ function start(): void {
   /** Tray, shortcut, settings window: entering edit mode shows a hidden overlay first. */
   function setEditMode(on: boolean): void {
     changeModes(() => windows.setEditMode(on))
+    // Edit mode's «Deshacer» goes with it (its changes are forgotten, R38).
+    if (!on) noticeUndo.prune()
   }
 
   /** Tray, shortcut, settings window: hiding leaves edit mode first, as Escape does. */

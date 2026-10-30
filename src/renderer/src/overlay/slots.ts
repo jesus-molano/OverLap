@@ -235,6 +235,7 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
   const autoHeight = computed(() => def.sizeModel === 'auto-height' && prefs.value.autoHeight)
   const locked = computed(() => prefs.value.locked)
   const ghost = computed(() => panel.value?.ghost === true)
+  const touched = computed(() => panel.value?.touched === true)
   const shown = computed(() =>
     widgetShown({
       userVisible: !ghost.value,
@@ -392,6 +393,7 @@ export function useSlot(registry: OverlayRegistry, id: WidgetId): SlotView {
     autoHeight,
     locked,
     ghost,
+    touched,
     shown,
     autoHidden,
     placement,
