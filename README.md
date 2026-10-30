@@ -86,7 +86,7 @@ el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo r
 defecto en Posiciones, y aquí con un clic en su cabecera.
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
-Posiciones), neumático y vueltas del stint, banderas de penalización tras el nombre, títulos de
+Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), banderas de penalización tras el nombre, títulos de
 columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
 juego, SR proyectado, condiciones de pista…).
 
@@ -221,8 +221,10 @@ coches por grupo al cambiar las entradas de Tráfico. Una lista que va dentro de
 (los datos del coche en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de
 sus elementos se muestra también el bloque.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
-lleva a él (abre su sección y lo señala), también por palabras de uso diario («zoom», «bloquear»,
-«parpadeo», «daltonismo») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
+lleva a él (abre su sección y lo señala), también los botones («exportar», «editar posición»,
+«restablecer») y las opciones de cada selector («imperiales», «apellido», «English»), por palabras
+de uso diario («zoom», «bloquear», «parpadeo», «daltonismo», «galones», «rpm», «tecla», «botón del
+volante», «por coche», «letra grande») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
 ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
 coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero no se ve ahora: una regla lo oculta o has ocultado el overlay (el
