@@ -239,6 +239,31 @@ export function tempUnit(units: AppearanceSettings['units']): '°C' | '°F' {
   return units === 'imperial' ? '°F' : '°C'
 }
 
+/** Litres in a US gallon. */
+const LITRES_PER_GALLON = 3.785411784
+
+/** A volume (litres, as the SDK sends it) in the chosen units (R54): US gallons in imperial. */
+export function volumeIn(litres: number, units: AppearanceSettings['units']): number {
+  return units === 'imperial' ? litres / LITRES_PER_GALLON : litres
+}
+
+export function volumeUnit(units: AppearanceSettings['units']): 'L' | 'gal' {
+  return units === 'imperial' ? 'gal' : 'L'
+}
+
+const METRES_PER_FOOT = 0.3048
+
+/**
+ * A distance (metres) in the chosen units (R54): metres with at most one decimal ('12.5 m'), or
+ * whole feet in imperial ('66 ft'); `unit` false drops the unit.
+ */
+export function formatDistance(m: number, units: AppearanceSettings['units'], unit = true): string {
+  if (units !== 'imperial') return formatMetres(m, unit)
+  if (!Number.isFinite(m)) return DASH
+  const text = String(Math.round(m / METRES_PER_FOOT) || 0)
+  return unit ? `${text}${NBSP}ft` : text
+}
+
 // ---------------------------------------------------------------------------
 // Driver names
 // ---------------------------------------------------------------------------

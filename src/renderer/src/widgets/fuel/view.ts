@@ -25,12 +25,17 @@ import { deepEqual } from '@shared/equal'
 import { FUEL_STRATEGY } from '@shared/fuel/strategy'
 import { FUEL_ALERT } from '@shared/notices/fuel'
 import type { Messages } from '@shared/i18n'
-import type { FuelData, FuelFinish, FuelLineId, FuelOptions } from '@shared/types'
+import { volumeIn, volumeUnit } from '@shared/format'
+import type {
+  AppearanceSettings,
+  FuelData,
+  FuelFinish,
+  FuelLineId,
+  FuelOptions
+} from '@shared/types'
 import type { Tone } from '@renderer/ui/tones'
 
 const DASH = '—'
-/** Litres, in every language. */
-export const LITRES = 'L'
 /** The pit menu covers what to add when it is at most this short (L, its own rounding). */
 const BOX_SLACK_L = 0.05
 /** Tank graduations closer than this (fraction of the tank) are noise: one every 5 laps, or none. */
@@ -61,6 +66,8 @@ export interface ReadingView {
 
 export interface HeroView {
   readonly fuel: string
+  /** 'L' or 'gal' (Apariencia › Unidades, R54). */
+  readonly fuelUnit: string
   /** Laps the fuel lasts, '—' while measuring. */
   readonly laps: string
   readonly lapsUnit: string
@@ -116,6 +123,7 @@ export interface PerLapView extends ReadingView {
 export interface BoxView {
   readonly label: string
   readonly value: string
+  readonly unit: string
   readonly tone: Tone
   /** The menu's litres and what to add, 0..1 of the bar. */
   readonly fill: number
@@ -224,6 +232,8 @@ export interface FuelView {
  * lines shown and their order (fuel.lines), the box flag.
  */
 export interface FuelViewOptions {
+  /** Litres, or US gallons in imperial (R54); the plan is in litres, only what is drawn changes. */
+  readonly units: AppearanceSettings['units']
   /** The lines top to bottom, as the user put them (fuel.lines; the hero always shown). */
   readonly order: readonly LineId[]
   readonly showGauge: boolean
@@ -247,10 +257,12 @@ export interface FuelViewOptions {
  */
 export function fuelViewOptions(
   o: Pick<FuelOptions, 'lines' | 'showBox'>,
-  autoHeight = true
+  autoHeight = true,
+  units: AppearanceSettings['units'] = 'metric'
 ): FuelViewOptions {
   const shown = (id: FuelLineId): boolean => isElementVisible(o.lines, id)
   return {
+    units,
     order: elementOrder(o.lines),
     showGauge: shown('gauge'),
     showPerLap: shown('perLap'),
@@ -353,33 +365,37 @@ export function sparkOf(
 
 function finishView(d: FuelData, finish: FuelFinish, o: FuelViewOptions, m: Messages): FinishView {
   const f = m.widgets.fuel
-  const need: ReadingView = { label: f.need, value: fixed(finish.needL, 1), unit: LITRES }
+  const vol = (l: number): string => fixed(volumeIn(l, o.units), 1)
+  const unit = volumeUnit(o.units)
+  const need: ReadingView = { label: f.need, value: vol(finish.needL), unit }
   if (finish.stops === 0) {
     // On the last lap no stop is left: short of the flag is all there is to say.
     return finish.short
       ? {
           need,
-          add: { label: f.short, value: fixed(Math.max(0, finish.deficitL), 1), unit: LITRES },
+          add: { label: f.short, value: vol(Math.max(0, finish.deficitL)), unit },
           addTone: 'bad',
           box: null
         }
       : {
           need,
-          add: { label: f.spare, value: fixed(Math.max(0, -finish.deficitL), 1), unit: LITRES },
+          add: { label: f.spare, value: vol(Math.max(0, -finish.deficitL)), unit },
           addTone: 'good',
           box: null
         }
   }
   const add: ReadingView = finish.fill
     ? { label: f.add, value: f.fill, unit: '' }
-    : { label: f.add, value: `+${fixed(finish.addL, 1)}`, unit: LITRES }
+    : { label: f.add, value: `+${vol(finish.addL)}`, unit }
   const boxL = d.boxL
   let box: BoxView | null = null
   if (o.showBox && boxL !== null && finite(boxL)) {
     const scale = Math.max(boxL, finish.addL, 1) * BOX_HEADROOM
     box = {
       label: f.menu,
-      value: fixed(boxL, boxL % 1 === 0 ? 0 : 1),
+      // The menu's whole litres stay whole; gallons always with a decimal.
+      value: o.units === 'imperial' ? vol(boxL) : fixed(boxL, boxL % 1 === 0 ? 0 : 1),
+      unit,
       tone: boxL + BOX_SLACK_L >= finish.addL ? 'good' : 'warn',
       fill: frac(boxL / scale),
       mark: frac(finish.addL / scale)
@@ -432,23 +448,29 @@ function windowView(finish: FuelFinish, m: Messages): WindowView {
   }
 }
 
-function perLapView(d: FuelData, m: Messages): PerLapView {
+function perLapView(d: FuelData, o: FuelViewOptions, m: Messages): PerLapView {
   const f = m.widgets.fuel
+  const vol = (l: number): string => fixed(volumeIn(l, o.units), 2)
   if (d.avgL === null) {
-    const last = d.lastL !== null ? f.last(fixed(d.lastL, 2)) : ''
+    const last = d.lastL !== null ? f.last(vol(d.lastL)) : ''
     return { label: f.use, value: f.measuring, unit: '', note: last, measuring: true, spark: null }
   }
   return {
     label: f.use,
-    value: fixed(d.avgL, 2),
-    unit: f.perLap,
+    value: vol(d.avgL),
+    unit: o.units === 'imperial' ? f.perLapGal : f.perLap,
     note: d.carried ? f.carried : '',
     measuring: false,
     spark: sparkOf(d.recentL, d.lastL, d.avgL, d.lastClean)
   }
 }
 
-function saveView(d: FuelData, finish: FuelFinish, m: Messages): SaveView | null {
+function saveView(
+  d: FuelData,
+  finish: FuelFinish,
+  o: FuelViewOptions,
+  m: Messages
+): SaveView | null {
   const saveL = finish.saveL
   const avg = d.avgL
   if (finish.stops === 0 || saveL === null || avg === null || !(avg > 0)) return null
@@ -456,8 +478,8 @@ function saveView(d: FuelData, finish: FuelFinish, m: Messages): SaveView | null
   const least = avg * (1 - 2 * FUEL_STRATEGY.saveReach)
   return {
     label: f.save,
-    value: fixed(saveL, 2),
-    unit: f.perLap,
+    value: fixed(volumeIn(saveL, o.units), 2),
+    unit: o.units === 'imperial' ? f.perLapGal : f.perLap,
     note: finish.stops - 1 === 0 ? f.noStop : f.saveFor(finish.stops - 1),
     target: frac((saveL - least) / (avg - least)),
     cut: f.cut(Math.max(0, Math.round(((avg - saveL) / avg) * 100)))
@@ -509,7 +531,8 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
   const finish = d.finish
   const tone = fuelTone(d.lapsOfFuel, finish)
   const hero: HeroView = {
-    fuel: fixed(d.fuelL, 1),
+    fuel: fixed(volumeIn(d.fuelL, o.units), 1),
+    fuelUnit: volumeUnit(o.units),
     laps: d.lapsOfFuel === null ? DASH : fixed(d.lapsOfFuel, 1),
     lapsUnit: f.laps,
     tone,
@@ -536,10 +559,10 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
   return {
     hero,
     gauge,
-    perLap: o.showPerLap ? perLapView(d, m) : null,
+    perLap: o.showPerLap ? perLapView(d, o, m) : null,
     finish: o.showFinish && finish !== null ? finishView(d, finish, o, m) : null,
     window: o.showWindow && finish !== null ? windowView(finish, m) : null,
-    save: o.showSave && finish !== null ? saveView(d, finish, m) : null,
+    save: o.showSave && finish !== null ? saveView(d, finish, o, m) : null,
     tyres: tyresDrawn
       ? tyresView(
           d,

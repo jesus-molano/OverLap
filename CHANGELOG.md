@@ -73,6 +73,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   que enciende o apaga su testigo en Testigos, y en la lista de Testigos la casilla **Aviso** hace
   lo mismo con su aviso; bajo cada lista, una línea lo explica con un botón **Ir a Testigos** /
   **Ir a Avisos**. La nota de Avisos sobre temperaturas y reparaciones va en esa misma línea.
+- **Unidades imperiales también en Combustible y en el radar**: con **Apariencia › Unidades ›
+  Imperiales**, Combustible muestra galones (EE. UU.): lo que queda, el consumo por vuelta
+  (`gal/v`), lo que hay que echar, el menú de boxes y el ahorro; el plan y las vueltas no
+  cambian. El alcance del radar (en sus marcas, en su página y en la bandeja) se lee en pies; el
+  ajuste se sigue guardando en metros. El aviso «COMBUSTIBLE · 1.6 V» sigue en vueltas.
 
 ### Cambiado
 

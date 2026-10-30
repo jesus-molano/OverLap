@@ -244,7 +244,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
-  imperiales y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
+  imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país y banderas de penalización.
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
   de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,

@@ -87,7 +87,7 @@ export const coreEs = {
   tray: {
     settings: 'Ajustes…',
     radarRange: 'Alcance del radar',
-    rangeMeters: (m: number) => `${m} m`,
+    /** A radar range ('20 m', '66 ft'): format.ts formatDistance, in Apariencia's units. */
     /** The submenu with the showWhen choices. */
     showWhen: 'Cuándo mostrar',
     /** The submenu with the saved layouts (the one in use checked). */
@@ -293,7 +293,6 @@ export const coreEn: Dict<typeof coreEs> = {
   tray: {
     settings: 'Settings…',
     radarRange: 'Radar range',
-    rangeMeters: (m) => `${m} m`,
     showWhen: 'When to show',
     layouts: 'Layout',
     manageLayouts: 'Manage layouts…',
