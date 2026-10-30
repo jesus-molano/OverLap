@@ -1720,6 +1720,8 @@ export interface SettingsWindowOptions {
    * 'pinned' keeps it whole, 'small' keeps it a strip.
    */
   previewFold: 'auto' | 'pinned' | 'small'
+  /** The welcome is pending (R07): main sets it on a first run, the welcome clears it. */
+  welcome: boolean
 }
 
 /** How the saved layouts change by themselves (settings.savedLayouts holds the layouts). */

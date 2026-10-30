@@ -1,5 +1,6 @@
 import {
   Menu,
+  Notification,
   app,
   clipboard,
   dialog,
@@ -568,6 +569,17 @@ function start(): void {
     return { x: b.x + b.width / 2, y: b.y + b.height / 2 }
   }
 
+  /** A first run: a Windows notification says where OverLap is (no window stays open). */
+  function sayInTheTray(): void {
+    try {
+      if (!Notification.isSupported()) return
+      const t = messagesFor(store.settings.appearance.language).core.firstRun
+      new Notification({ title: t.title, body: t.body, silent: true }).show()
+    } catch (err) {
+      console.warn('[main] first-run notification:', err)
+    }
+  }
+
   /** overlap.log, in the system's text viewer (the folder when there is no log yet). */
   function openLog(): void {
     const file = join(userData, 'overlap.log')
@@ -766,8 +778,16 @@ function start(): void {
     gatherWidgets: () => gatherWidgets(screen.getCursorScreenPoint()),
     quit: () => app.quit()
   })
-  // `--settings` (e.g. a desktop shortcut) opens the settings window on start.
-  if (process.argv.includes('--settings')) openSettingsWindow()
+  // `--settings` (e.g. a desktop shortcut) opens the settings window on start. A first run
+  // opens it on the welcome (R07): language and units, which widgets, where everything is; and
+  // Windows says once that OverLap lives in the tray.
+  if (store.fresh) {
+    changeSettings((s) => {
+      s.settingsWindow.welcome = true
+    })
+    sayInTheTray()
+  }
+  if (store.fresh || process.argv.includes('--settings')) openSettingsWindow()
 
   // A combination another application holds is reported on the shortcuts page; the tray
   // menu still does everything.

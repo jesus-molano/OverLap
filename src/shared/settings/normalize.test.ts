@@ -386,7 +386,8 @@ const DEFAULT_SETTINGS_WINDOW: SettingsWindowOptions = {
   ),
   previewHint: true,
   shortcutToasts: true,
-  previewFold: 'auto'
+  previewFold: 'auto',
+  welcome: false
 }
 
 /** Visibility of `id` in a list (the tests read the lists through this). */
@@ -674,7 +675,8 @@ describe('normalizeSettings: basics', () => {
       customizeOpen: list(CUSTOMIZE_ZONES, ['relative.columns', 'fuel.lines']),
       previewHint: false,
       shortcutToasts: false,
-      previewFold: 'small'
+      previewFold: 'small',
+      welcome: true
     }
     s.shortcuts = { ...DEFAULT_SHORTCUTS, cycleDeltaReference: 'Ctrl+Alt+D' }
     s.widgets.traffic = { ...s.widgets.traffic, anchor: 'bottom', scale: 90, hideInPits: true }

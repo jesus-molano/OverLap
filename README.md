@@ -182,6 +182,11 @@ vuelta. Por defecto, solo en carrera. Opcionales: cabecera y pie con datos de la
 
 ## Ajustes y personalización
 
+La primera vez, OverLap abre los Ajustes con una **bienvenida** de tres pasos: idioma y unidades,
+qué widgets usar (seis marcados de inicio) y dónde está todo, con **Probar con datos de ejemplo**
+para ver los widgets en tu pantalla y colocarlos. Windows avisa de que OverLap queda en la
+bandeja.
+
 ![Ajustes: página del Relativo](docs/screenshots/ajustes-relativo.png)
 
 Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arrancándolo con
