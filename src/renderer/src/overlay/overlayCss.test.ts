@@ -110,3 +110,27 @@ describe('overlay window CSS', () => {
     expect(moving).toEqual([])
   })
 })
+
+describe('the halo’s text tiers', () => {
+  /** Relative luminance of a #rrggbb colour. */
+  const lum = (hex: string): number => {
+    const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    const [r, g, b] = c.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)) as [
+      number,
+      number,
+      number
+    ]
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  }
+  it('brings the muted and dim text towards --ov-fg under the halo, nowhere else', () => {
+    const theme = rulesOf('styles/theme.css', SOURCES['styles/theme.css'] ?? '')
+    const halo = theme.find((r) => r.selectors.includes('.ov-halo'))
+    const value = (prop: string): string => halo?.decls.find((d) => d.prop === prop)?.value ?? ''
+    const root = theme.flatMap((r) => r.decls)
+    const base = (prop: string): string => root.find((d) => d.prop === prop)?.value ?? ''
+    for (const tier of ['--ov-fg-muted', '--ov-fg-dim']) {
+      expect(lum(value(tier)), tier).toBeGreaterThan(lum(base(tier).slice(0, 7)))
+      expect(lum(value(tier)), tier).toBeLessThan(lum(base('--ov-fg').slice(0, 7)))
+    }
+  })
+})

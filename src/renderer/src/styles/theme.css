@@ -366,8 +366,15 @@ body {
   height: 100%;
 }
 
-/* Text over a see-through panel: an inherited halo, off again on solid fills (.ov-solid). */
+/*
+ * Text over a see-through panel: an inherited halo, off again on solid fills (.ov-solid). The
+ * second and third text tiers come up towards --ov-fg there: over a bright sky at half opacity
+ * the default grey reads at about 1.4:1 before the halo. The default panel (80 %) has no halo, so
+ * nothing changes for it, and nothing grows.
+ */
 .ov-halo {
+  --ov-fg-muted: #d9dee6;
+  --ov-fg-dim: #cdd3dc;
   text-shadow: var(--ov-text-halo);
 }
 

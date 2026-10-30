@@ -190,6 +190,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **El texto de segundo plano se lee sobre un cielo claro**: con el contorno del texto puesto (en
+  «Auto», con el fondo por debajo del 65 %), el gris de las etiquetas y cifras secundarias (P11,
+  iRating, «PISTA», «SoF», «LÍDER») sube hacia el blanco del texto principal. Con el fondo de serie
+  (80 %) no hay contorno y nada cambia; ningún widget crece.
+- **La cabecera de incidentes, con palabras completas si caben**: en Relativo y Posiciones,
+  «equipo 7x» y «penalización a 17x» en lugar de «eq. 7x» y «pen. a 17x» cuando la cabecera tiene
+  sitio para ellas (se mide, como en los chips de Avisos); si no, las abreviaturas de siempre.
+  Ningún widget se ensancha.
 - **Apariencia, en dos grupos sin columnas vacías**: bajo los estilos, **Ajuste fino del estilo**
   (Color y Texto a la izquierda, Filas y pilotos a la derecha) y debajo **General** (Idioma y Otros
   a la izquierda, Accesibilidad a la derecha), cada sección siempre en su columna. Disposiciones
