@@ -34,6 +34,7 @@ import type { ElementChange } from '../elements/listOps'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import DriverSection from './DriverSection.vue'
+import { useNoRoom } from '../preview/useNoRoom'
 import { offerSectionRestore } from '../undo/restore'
 import { DEEP_POSITION, previewField, type PreviewField } from '../../widgets/standings/preview'
 
@@ -95,6 +96,11 @@ function matchRelative(): void {
 const compactOff = computed(() => opts.value.mode === 'full')
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
 const fixed = computed(() => fixedColumns(t.value))
+/** «Ambos» draws the gap to the leader in its column: «No cabe» while the width drops it. */
+const noRoom = useNoRoom()
+const gapNote = computed(() =>
+  opts.value.gapMode === 'both' ? noRoom.value('standings.columns.gapLeader') : undefined
+)
 
 /**
  * The sample draws the field the option changed last needs (previewField, as Delta's session):
@@ -179,6 +185,7 @@ const sampleNotes = computed(() => {
       :help="t.settings.standings.gapHelp"
       :current="opts.gapMode"
       :options="gapChoices"
+      :note="gapNote"
       :apply="setGapMode"
     />
     <ChoiceControl
