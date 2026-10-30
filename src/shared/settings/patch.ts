@@ -1,6 +1,6 @@
 /** Changes requested by the settings window and its one-shot commands. */
 import type { OptionSection } from '../settingsSchema'
-import type { OverlaySettings, Rect } from '../types'
+import type { OverlaySettings, Rect, Size } from '../types'
 import { WIDGET_DEFS, WIDGET_IDS, isWidgetId, type WidgetId } from '../widgets'
 import { OPTION_SECTIONS, defaultOptions, defaultWidgetSettings, sectionSpecs } from './defaults'
 import {
@@ -45,8 +45,50 @@ export function applySettingsPatch(current: OverlaySettings, patch: unknown): Ov
     mergeSection(out[section], p, sectionSpecs(section))
     revertDuplicateAccelerators(out[section], before, sectionSpecs(section))
   }
+  scaleFreeWindows(out, current.appearance.fontScale, out.appearance.fontScale)
   syncActiveLayout(out)
   return out
+}
+
+/** The widgets whose text fills their window (Relativo, Radar, Delta): no font of their own. */
+export const FREE_SIZE_WIDGETS: readonly WidgetId[] = WIDGET_IDS.filter(
+  (id) => WIDGET_DEFS[id].sizeModel === 'free'
+)
+
+/**
+ * `rect` scaled by `ratio` about its centre, at least `min`: how the global text size reaches a
+ * free-size widget, whose text fills its window. Pure.
+ */
+export function scaleRectAbout(rect: Rect, ratio: number, min: Size): Rect {
+  const width = Math.max(min.width, Math.round(rect.width * ratio))
+  const height = Math.max(min.height, Math.round(rect.height * ratio))
+  return {
+    x: Math.round(rect.x + (rect.width - width) / 2),
+    y: Math.round(rect.y + (rect.height - height) / 2),
+    width,
+    height
+  }
+}
+
+/**
+ * «Tamaño del texto» multiplies every widget (R09): an auto-height one's font follows it at
+ * render time; a free-size one's text fills its window, so its window grows or shrinks by the
+ * same ratio, in the layout in use and in every saved one (each keeps its own size for the
+ * widget, times the text size). `from` → `to` in %; nothing when they are equal.
+ */
+function scaleFreeWindows(s: OverlaySettings, from: number, to: number): void {
+  if (!(from > 0) || !(to > 0) || from === to) return
+  const ratio = to / from
+  const lib = s.savedLayouts
+  for (const id of FREE_SIZE_WIDGETS) {
+    const min = WIDGET_DEFS[id].minSize
+    s.widgets[id].bounds = scaleRectAbout(s.widgets[id].bounds, ratio, min)
+    for (const l of lib.list) {
+      if (l.id === lib.activeId) continue
+      const w = l.widgets[id]
+      w.bounds = scaleRectAbout(w.bounds, ratio, min)
+    }
+  }
 }
 
 /**
@@ -62,7 +104,13 @@ export function resetWidgetBounds(
   // The id usually comes straight from IPC.
   if (!isWidgetId(id)) return out
   const def = WIDGET_DEFS[id].defaultBounds
-  out.widgets[id].bounds = area !== undefined ? defaultBoundsIn(def, area) : { ...def }
+  const placed = area !== undefined ? defaultBoundsIn(def, area) : { ...def }
+  // A free-size widget's factory window times the text size (scaleFreeWindows), same corner.
+  const ratio = out.appearance.fontScale / 100
+  out.widgets[id].bounds =
+    WIDGET_DEFS[id].sizeModel === 'free' && ratio !== 1
+      ? { ...scaleRectAbout(placed, ratio, WIDGET_DEFS[id].minSize), x: placed.x, y: placed.y }
+      : placed
   syncActiveLayout(out)
   return out
 }

@@ -4,8 +4,9 @@ import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { widgetList } from './replayWidgets'
 
 /**
- * The widgets the global text size changes: the auto-height ones (their font is 13 px x their
- * scale x the text size, useWidgetSurface); the free-size ones fit their text to their window.
+ * How the global text size reaches each widget: the auto-height ones' font is 13 px x their
+ * scale x the text size (useWidgetSurface); the free-size ones fill their window with their
+ * text, so their window grows by it (scaleFreeWindows in settings/patch.ts).
  */
 export function fontScaleWidgets(): { scaled: WidgetId[]; free: WidgetId[] } {
   const scaled = WIDGET_IDS.filter((id) => WIDGET_DEFS[id].sizeModel === 'auto-height')
@@ -14,14 +15,14 @@ export function fontScaleWidgets(): { scaled: WidgetId[]; free: WidgetId[] } {
 }
 
 /**
- * The help of "Tamaño del texto": exactly which widgets it changes (the line), and which it does
- * not (behind its ⓘ).
+ * The help of "Tamaño del texto": it changes every widget (the line), and how it does it in the
+ * free-size ones (behind its ⓘ).
  */
 export function fontScaleHelp(m: Messages, locale: string): { help: string; more: string } {
-  const { scaled, free } = fontScaleWidgets()
+  const { free } = fontScaleWidgets()
   const text = m.settings.appearance.text
   return {
-    help: text.fontScaleHelp(widgetList(m, locale, scaled)),
+    help: text.fontScaleHelp,
     more: text.fontScaleMore(widgetList(m, locale, free))
   }
 }

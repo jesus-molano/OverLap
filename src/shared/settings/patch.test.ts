@@ -449,6 +449,7 @@ describe('applySettingsPatch', () => {
 describe('resetWidgetBounds', () => {
   it('resets only that widget bounds', () => {
     const current = customSettings()
+    current.appearance.fontScale = 100
     const out = resetWidgetBounds(current, 'relative')
     expect(out.widgets.relative).toEqual({
       ...current.widgets.relative,
@@ -838,5 +839,54 @@ describe('setWidgetBounds', () => {
     expect(setWidgetBounds(current, 'radar', 'nope').widgets.radar.bounds).toEqual(
       current.widgets.radar.bounds
     )
+  })
+})
+
+describe('«Tamaño del texto» on the free-size widgets (R09)', () => {
+  it('grows their windows by the same ratio, about the centre, and back', () => {
+    const s = createDefaultSettings()
+    s.widgets.relative.bounds = { x: 100, y: 200, width: 400, height: 240 }
+    const big = applySettingsPatch(s, { appearance: { fontScale: 150 } })
+    expect(big.widgets.relative.bounds).toEqual({ x: 0, y: 140, width: 600, height: 360 })
+    // An auto-height widget's window is untouched: its font follows the text size.
+    expect(big.widgets.standings.bounds).toEqual(s.widgets.standings.bounds)
+    const back = applySettingsPatch(big, { appearance: { fontScale: 100 } })
+    expect(back.widgets.relative.bounds).toEqual(s.widgets.relative.bounds)
+    // The layout in use follows (syncActiveLayout).
+    const active = back.savedLayouts.list.find((l) => l.id === back.savedLayouts.activeId)
+    expect(active?.widgets.relative.bounds).toEqual(s.widgets.relative.bounds)
+  })
+
+  it('reaches every saved layout once, not only the one in use', () => {
+    const s = createDefaultSettings()
+    const other = structuredClone(s.savedLayouts.list[0]!)
+    other.id = 'layout-2'
+    other.name = 'Otra'
+    other.widgets.delta.bounds = { x: 0, y: 0, width: 300, height: 100 }
+    s.savedLayouts.list.push(other)
+    const out = applySettingsPatch(s, { appearance: { fontScale: 120 } })
+    const saved = out.savedLayouts.list.find((l) => l.id === 'layout-2')
+    expect(saved?.widgets.delta.bounds).toEqual({ x: -30, y: -10, width: 360, height: 120 })
+    const def = WIDGET_DEFS.delta.defaultBounds
+    expect(out.widgets.delta.bounds.width).toBe(Math.round(def.width * 1.2))
+  })
+
+  it('leaves the windows alone when the text size does not change', () => {
+    const s = createDefaultSettings()
+    const out = applySettingsPatch(s, { appearance: { accent: '#22d3ee' } })
+    expect(out.widgets.radar.bounds).toEqual(s.widgets.radar.bounds)
+  })
+
+  it('resets a free-size window to its factory size times the text size', () => {
+    const s = createDefaultSettings()
+    s.appearance.fontScale = 150
+    const def = WIDGET_DEFS.relative.defaultBounds
+    const out = resetWidgetBounds(s, 'relative')
+    expect(out.widgets.relative.bounds).toEqual({
+      x: def.x,
+      y: def.y,
+      width: Math.round(def.width * 1.5),
+      height: Math.round(def.height * 1.5)
+    })
   })
 })

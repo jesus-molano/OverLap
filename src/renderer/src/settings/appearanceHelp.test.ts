@@ -3,17 +3,17 @@ import { messagesFor } from '@shared/i18n'
 import { fontScaleHelp, fontScaleWidgets } from './appearanceHelp'
 
 describe('fontScaleHelp', () => {
-  it('names the auto-height widgets as changed and the free ones as not', () => {
+  it('says it changes every widget, and how the free-size ones grow (R09)', () => {
     const { scaled, free } = fontScaleWidgets()
     expect(scaled).toEqual(['standings', 'battle', 'inputs', 'traffic', 'alerts', 'lights', 'fuel'])
     expect(free).toEqual(['relative', 'radar', 'delta'])
     expect(fontScaleHelp(messagesFor('es'), 'es')).toEqual({
-      help: 'Cambia Posiciones, Batalla, Pedales, Tráfico, Avisos, Testigos y Combustible',
-      more: 'Relativo, Radar y Delta no: ajustan el texto al tamaño de su ventana.'
+      help: 'Cambia los diez widgets: multiplica la «Escala» de cada uno',
+      more: 'Relativo, Radar y Delta llenan su ventana con el texto: su ventana crece o encoge en la misma proporción, en todas tus disposiciones.'
     })
     expect(fontScaleHelp(messagesFor('en'), 'en')).toEqual({
-      help: 'Changes Standings, Battle, Inputs, Traffic, Alerts, Warning lights, and Fuel',
-      more: 'Not Relative, Radar, and Delta: they fit their text to their window.'
+      help: 'Changes all ten widgets: it multiplies each one’s “Scale”',
+      more: 'Relative, Radar, and Delta fill their window with their text: their window grows or shrinks by the same amount, in all your layouts.'
     })
   })
 })

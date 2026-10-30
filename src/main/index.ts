@@ -888,6 +888,11 @@ function start(): void {
     changeSettings((s) => {
       Object.assign(s, applySettingsPatchFor(s, patch, forLayout))
     })
+    // «Tamaño del texto» resizes the free-size widgets' windows (scaleFreeWindows).
+    const resized = WIDGET_IDS.filter(
+      (id) => !rectsEqual(prev.widgets[id].bounds, store.settings.widgets[id].bounds)
+    )
+    if (resized.length > 0) windows.reloadBoundsOf(resized)
     console.log(
       `[settings] change: ${keys}${typeof forLayout === 'string' ? ` (layout ${forLayout})` : ''}`
     )

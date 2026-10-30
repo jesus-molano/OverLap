@@ -27,3 +27,13 @@ describe('free-size «Escala» (R09)', () => {
     expect(out.height).toBeGreaterThanOrEqual(REL.minSize.height)
   })
 })
+
+describe('free-size «Escala» times the text size (R09)', () => {
+  it('reads 100 % at the factory width times the text size', () => {
+    const at150 = { ...REL.defaultBounds, width: REL.defaultBounds.width * 1.5 }
+    expect(freeScalePercent(at150, REL.defaultBounds, 150)).toBe(100)
+    const out = freeScaleBounds(at150, REL.defaultBounds, 80, REL.minSize, 150)
+    expect(out.width).toBe(Math.round(REL.defaultBounds.width * 1.2))
+    expect(freeScalePercent(out, REL.defaultBounds, 150)).toBe(80)
+  })
+})

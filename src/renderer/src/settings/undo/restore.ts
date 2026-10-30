@@ -148,7 +148,13 @@ export function resetWidget(id: WidgetId, part: PageResetPart): void {
   resetWidgetOptions(id, 'window')
   let resized = false
   if (def.sizeModel === 'free') {
-    const next = freeScaleBounds(bounds, def.defaultBounds, 100, def.minSize)
+    const next = freeScaleBounds(
+      bounds,
+      def.defaultBounds,
+      100,
+      def.minSize,
+      s.appearance.fontScale
+    )
     if (!deepEqual(next, bounds)) {
       sendCommand({ type: 'set-widget-bounds', widgetId: id, bounds: next })
       resized = true
