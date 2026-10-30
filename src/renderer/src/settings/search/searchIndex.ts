@@ -1,4 +1,5 @@
 import { shallowRef } from 'vue'
+import type { OverlaySettings } from '@shared/types'
 import type { SearchEntry } from './settingsSearch'
 
 /** Every page's searchable things, once harvested (null: not yet, or the language changed). */
@@ -6,35 +7,33 @@ export const searchIndex = shallowRef<SearchEntry[] | null>(null)
 /** SettingsApp renders the pages out of sight to harvest them while this is on. */
 export const indexing = shallowRef(false)
 
-/**
- * The index no longer matches the pages when `changes` passed what was harvested: a setting
- * changed what they show (a mode, a list item shown), or there is none yet. Counted, so a change
- * during a harvest keeps it stale for the next search.
- */
-let changes = 1
-let harvested = 0
-let startedAt = 0
+/** The settings the index was harvested with (null: none yet, or the language changed). */
+let harvestedWith: string | null = null
+let startedWith = ''
 
-/** The settings changed since the harvest: the next search harvests again. */
-export function markIndexStale(): void {
-  changes++
+/**
+ * What a page can show depends on (a mode, a list item shown, a layout's name): the settings
+ * without the widgets' places, which change on every drag and every fitted height.
+ */
+export function settingsKey(s: OverlaySettings | null): string {
+  return JSON.stringify(s, (k, v: unknown) => (k === 'bounds' ? undefined : v))
 }
 
 /** The language changed: the pages say other words; the old index is not shown meanwhile. */
-export function dropIndex(): void {
+export function dropIndex(key: string): void {
   searchIndex.value = null
-  changes++
+  harvestedWith = null
   // A harvest under way starts again in the new language (SettingsApp keys it by language).
-  if (indexing.value) startedAt = changes
+  if (indexing.value) startedWith = key
 }
 
 /**
- * The search box got the focus: the pages harvested again when anything changed since (the
- * old index answers meanwhile).
+ * The search box got the focus: the pages harvested again when the settings (`key`,
+ * settingsKey) changed since, the old index answering meanwhile.
  */
-export function wantIndex(): void {
-  if (indexing.value || harvested === changes) return
-  startedAt = changes
+export function wantIndex(key: string): void {
+  if (indexing.value || harvestedWith === key) return
+  startedWith = key
   indexing.value = true
 }
 
@@ -42,14 +41,13 @@ export function wantIndex(): void {
 export function indexDone(entries: SearchEntry[]): void {
   indexing.value = false
   searchIndex.value = entries
-  harvested = startedAt
+  harvestedWith = startedWith
 }
 
 /** For the tests: as when the window opened. */
 export function resetIndexForTests(): void {
   searchIndex.value = null
   indexing.value = false
-  changes = 1
-  harvested = 0
-  startedAt = 0
+  harvestedWith = null
+  startedWith = ''
 }

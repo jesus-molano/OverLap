@@ -3,7 +3,8 @@ import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vu
 import { useI18n } from '../../composables/useI18n'
 import { pageTitle } from '../nav'
 import { useNavigate } from '../navigate'
-import { searchIndex, wantIndex } from './searchIndex'
+import { useOverlayState } from '../../composables/useOverlay'
+import { searchIndex, settingsKey, wantIndex } from './searchIndex'
 import { searchSettings, type SearchResult } from './settingsSearch'
 
 /**
@@ -65,8 +66,10 @@ watch(shown, async (on) => {
 })
 watch(results, () => (active.value = 0))
 
+const { settings } = useOverlayState()
+/** Harvested again when a setting changed what the pages show since the last time (R33). */
 function onFocus(): void {
-  wantIndex()
+  wantIndex(settingsKey(settings.value))
   open.value = true
 }
 
