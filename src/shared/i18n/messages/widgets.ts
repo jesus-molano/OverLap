@@ -386,6 +386,9 @@ export const widgetsEs = {
     /** What is left of the session's fast repairs and tyre sets (iRacing's limits). */
     repairs: 'Rep. rápidas',
     sets: 'Juegos neum.',
+    /** The same in full words, drawn where the line has room for them (R50). */
+    repairsLong: 'Reparaciones rápidas',
+    setsLong: 'Juegos de neumáticos',
     /** The last lap while measuring ('últ. 3.02'). */
     last: (v: string) => `últ.${NB}${v}`,
     /** The average comes from the last session with this car and track. */
@@ -713,6 +716,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     tyres: 'Tyres',
     repairs: 'Fast repairs',
     sets: 'Tyre sets',
+    repairsLong: 'Fast repairs',
+    setsLong: 'Tyre sets',
     last: (v) => `last${NB}${v}`,
     carried: 'from the last session',
     fill: 'FULL',

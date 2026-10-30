@@ -179,6 +179,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   trae aire ni goma. Todo sigue en sus listas de Personalizar, a un clic. **Si ya tenías ajustes,
   nada cambia**: tus widgets dibujan lo mismo (también un archivo antiguo sin esas listas, que
   recibe lo que dibujaba su versión); solo **Restablecer** lleva a lo nuevo.
+- **Palabras completas donde caben**: los chips de Avisos dicen «PRESIÓN ACEITE», «ENTRA ESTA
+  VUELTA» o «COMBUSTIBLE · 1.6 V» cuando todos caben en su fila, y la línea de límites de
+  Combustible, «Reparaciones rápidas» y «Juegos de neumáticos» cuando caben en su ancho. Si no
+  caben, siguen las abreviaturas de siempre («P. ACEITE», «BOX ESTA V.», «REP. RÁPIDAS»): ningún
+  widget se ensancha ni gana una fila por ellas.
 - **Combustible, más gráfico y con menos texto**: cada línea es una cifra y su dibujo. Arriba, las
   **vueltas de combustible en grande** (en el color del plan), los litros y, tras una bandera a
   cuadros, «QUEDAN» y las vueltas que quedan. El **depósito** va marcado en vueltas de combustible

@@ -4,6 +4,7 @@ import { alertToggleOf, type AlertKind } from '@shared/alerts'
 import { isElementVisible } from '@shared/elements'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useContentSize } from '@renderer/composables/useContentSize'
+import { useLongFits } from '@renderer/composables/useLongFits'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
@@ -103,6 +104,13 @@ const showNotes = computed(() => isElementVisible(options.value.parts, 'notes'))
 const chips = computed(() =>
   isElementVisible(options.value.parts, 'chips') ? flags.value.secondary : NO_CHIPS
 )
+/**
+ * The chips in full words ('PRESIÓN ACEITE', 'ENTRA ESTA VUELTA') while all of them fit the row
+ * in one line so (R50: a hidden copy measures it); otherwise the short words, as always. The
+ * row never wraps or grows for them.
+ */
+const chipsLong = useLongFits(useTemplateRef('chipsProbe'), useTemplateRef('chipsRow'))
+const anyLongChip = computed(() => chips.value.some((f) => f.chipLong !== f.chip))
 
 const hero = computed(() => limiterHero(flags.value, limiter.value))
 /**
@@ -200,12 +208,20 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
         <PreviewTag v-if="previewTag === 'flag'" class="alerts__preview" />
       </div>
 
-      <div v-if="chips.length > 0" class="chips" data-el="alerts.parts.chips">
+      <div v-if="chips.length > 0" ref="chipsRow" class="chips" data-el="alerts.parts.chips">
         <span v-for="f in chips" :key="f.kind" class="chip" :data-el="alertEl(f.kind)">
           <span class="chip__mark al-tile" :class="[`al-fill-${f.fill}`, `al-tile--${f.mark}`]" />
-          <span class="chip__text">{{ f.chip }}</span>
+          <span class="chip__text">{{ chipsLong ? f.chipLong : f.chip }}</span>
         </span>
         <PreviewTag v-if="previewTag === 'chips'" class="alerts__preview" />
+        <!-- The same row in full words, unseen: measured to know whether they fit (R50). -->
+        <span v-if="anyLongChip" ref="chipsProbe" class="chips__probe" aria-hidden="true">
+          <span v-for="f in chips" :key="f.kind" class="chip">
+            <span class="chip__mark" />
+            <span class="chip__text">{{ f.chipLong }}</span>
+          </span>
+          <PreviewTag v-if="previewTag === 'chips'" class="alerts__preview" />
+        </span>
       </div>
 
       <IncidentLine
@@ -523,12 +539,26 @@ const isQuiet = (fill: AlertFill): boolean => fill === 'warn' || fill === 'info'
 /* ---- Other flags: recessed cells with a mini flag ------------------------------------ */
 
 .chips {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.3em;
   min-width: 0;
   padding: 0.35em 0.6em 0.35em calc(var(--ov-bar-w) + 0.35em);
+  overflow: clip;
+}
+
+/* The row in full words, laid out on one line and never seen or hit (R50). */
+.chips__probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 0.3em;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .chip {

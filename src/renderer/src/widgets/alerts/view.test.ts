@@ -750,3 +750,20 @@ describe('incident line', () => {
     expect(layoutKey(flags, null, null)).toBe(layoutKey(flags, null))
   })
 })
+
+describe('chips in full words where they fit (R50)', () => {
+  it('keeps the short chip and gives the full words beside it', () => {
+    const oil = noticeView({ kind: 'oilPressure' } as AlertNotice, ES)
+    expect(oil.chip).toBe('P. ACEITE')
+    expect(oil.chipLong).toBe('PRESIÓN ACEITE')
+    const box = noticeView({ kind: 'boxThisLap' } as AlertNotice, ES)
+    expect(box.chip).toBe('BOX ESTA V.')
+    expect(box.chipLong).toBe('ENTRA ESTA VUELTA')
+    const fuel = noticeView({ kind: 'fuelLow', laps: 1.6 } as AlertNotice, ES)
+    expect(fuel.chip).toBe(`COMB.${NB}1.6${NB}V`)
+    expect(fuel.chipLong).toBe(`COMBUSTIBLE${NB}·${NB}1.6${NB}V`)
+    // A chip with no short form is its label either way.
+    const stalled = noticeView({ kind: 'stalled' } as AlertNotice, ES)
+    expect(stalled.chipLong).toBe(stalled.chip)
+  })
+})
