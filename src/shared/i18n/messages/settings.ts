@@ -933,6 +933,8 @@ export const settingsEs = {
     },
     wheelColor: 'Color de la marca central',
     wheelColorHelp: 'La marca del centro del volante, arriba cuando vas recto',
+    /** First swatch (R46): follows Apariencia's accent, as a name format's «Global». */
+    wheelColorAccent: 'Acento (global)',
     steeringDegrees: 'Grados del volante',
     steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
     shiftLights: 'Luces de cambio',
@@ -2481,6 +2483,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     wheelColor: 'Centre mark colour',
     wheelColorHelp: "The wheel's centre mark, on top when you drive straight",
+    wheelColorAccent: 'Accent (global)',
     steeringDegrees: 'Steering angle',
     steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
     shiftLights: 'Shift lights',

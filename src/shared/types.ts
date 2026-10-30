@@ -1514,7 +1514,7 @@ export interface InputsOptions {
   steeringStyle: SteeringStyle
   /** The wheel's size (the bar keeps its own). */
   wheelSize: WheelSize
-  /** The wheel's accent: its straight-ahead mark (#rrggbb). */
+  /** The wheel's straight-ahead mark: #rrggbb, or 'accent' for Apariencia's accent (R46). */
   wheelColor: string
   /** The wheel's angle in degrees, under the wheel or the bar. */
   steeringDegrees: boolean

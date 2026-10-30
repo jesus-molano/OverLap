@@ -219,7 +219,7 @@ const DEFAULT_INPUTS: InputsOptions = {
   colors: { throttle: '#3ddc84', brake: '#ff4545', clutch: '#4aa3ff' },
   steeringStyle: 'bar',
   wheelSize: 'medium',
-  wheelColor: '#ffc400',
+  wheelColor: 'accent',
   steeringDegrees: false,
   shiftLights: true,
   car: list(['rpm', 'bias', 'tc', 'ffb'])
@@ -617,6 +617,19 @@ describe('normalizeSettings: basics', () => {
     for (const raw of [undefined, null, 42, 'x', [], true]) {
       expect(normalizeSettings(raw)).toEqual(DEFAULT_SETTINGS)
     }
+  })
+
+  it("follows the accent with the wheel's mark: new installs, and a file that chose it (R46)", () => {
+    expect(DEFAULT_SETTINGS.inputs.wheelColor).toBe('accent')
+    expect(normalizeSettings({ inputs: { wheelColor: 'accent' } }).inputs.wheelColor).toBe('accent')
+    // A saved colour (the old default, the yellow accent) stays its own.
+    expect(normalizeSettings({ inputs: { wheelColor: '#FFC400' } }).inputs.wheelColor).toBe(
+      '#ffc400'
+    )
+    // Only where the schema allows it: the accent itself is a colour.
+    expect(normalizeSettings({ appearance: { accent: 'accent' } }).appearance.accent).toBe(
+      DEFAULT_SETTINGS.appearance.accent
+    )
   })
 
   it('never returns the frozen defaults', () => {
