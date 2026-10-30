@@ -119,22 +119,28 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   la nombra como ha quedado («Ligera (2)» si ya había una) y recuerda que alternas con el atajo
   **Siguiente disposición** (con sus teclas) o desde la bandeja; si ya no cabe, lo dice.
 - **Estilos en Apariencia**: arriba, cuatro estilos con nombre, cada uno distinto a simple vista:
-  **OverLap** (el de serie: fondo al 80 %, filas cómodas, logos y banderas), **Limpio** (sin
+  **OverLap** (todo de serie: el aspecto, fondo al 80 %, filas cómodas, logos y banderas, y
+  también lo que muestra cada widget de la disposición en uso: cada columna, elemento, barra y
+  opción que **Completo** enciende vuelve a su valor y su orden de serie, la altura automática a
+  la suya, y Relativo y Delta a su tamaño de serie, desde la misma esquina), **Limpio** (sin
   fondo: solo el texto sobre el juego, con su contorno siempre; sin filas alternas, logos ni
   banderas, número en franja y licencia solo letra), **Compacto** (pequeño pero legible: filas
   compactas, texto al 85 % sin bajar del texto mínimo, apellidos, sin logos ni banderas de país) y
   **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna y
   elemento, las barras de información con sus datos, los títulos de columna, las condiciones
   completas, cada aviso y testigo, logos siempre y fondo al 90 %; los widgets que pueden crecen
-  en alto, y Relativo y Delta agrandan su ventana lo justo para que el texto no encoja). Se marca
-  el que coincide con lo que tienes; si ajustas algo a mano dice «Personalizado». Debajo, los
+  en alto, y Relativo y Delta agrandan su ventana lo justo para que el texto no encoja). Limpio y
+  Compacto solo cambian el aspecto. Se marca el que coincide con lo que tienes (OverLap, solo si el
+  aspecto y lo que muestra cada widget están de serie); si ajustas algo a mano, aquí o en la página
+  de un widget, dice «Personalizado». Debajo, los
   controles de siempre como **Ajuste fino**. Si un estilo va a cambiar algo que pusiste tú (un
-  aspecto ajustado a mano, o lo que muestra cada widget con **Completo**), antes pregunta: una
-  ventana «¿Aplicar el estilo …?» dice qué cambia, de antes a después («Fondo de los widgets:
-  80 % → 90 %», «Posiciones: se muestran 5 columnas más»), plegado si es largo, y dónde se
+  aspecto ajustado a mano, o lo que muestra cada widget con **Completo** y **OverLap**), antes
+  pregunta: una ventana «¿Aplicar el estilo …?» dice qué cambia, de antes a después («Fondo de los
+  widgets: 80 % → 90 %», «Posiciones: se muestran 5 columnas más»; con OverLap, «Posiciones: se
+  ocultan 5 columnas», «Relativo: ventana al tamaño de serie»), plegado si es largo, y dónde se
   guarda; **Aplicar** o **Cancelar** (o `Esc`). De un estilo a otro se aplica al momento. Todo se
-  deshace con **Deshacer**; no tocan el acento, la Accesibilidad, la etiqueta SIM, el idioma ni
-  las unidades, ni los widgets con valores propios. Quien tuviera el aspecto «Como iRacing» (ya
+  deshace con **Deshacer**, ventanas incluidas; no tocan el acento, la Accesibilidad, la etiqueta
+  SIM, el idioma, las unidades, los sitios ni qué widgets se ven. Quien tuviera el aspecto «Como iRacing» (ya
   no está) lo conserva tal cual, como «Personalizado».
 - **Atajos para mostrar u ocultar cada widget**: en **Atajos**, bajo las acciones de siempre, un
   grupo plegado **Más acciones** tiene una fila por widget («Mostrar u ocultar Relativo»…), con las

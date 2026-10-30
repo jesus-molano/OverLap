@@ -4,7 +4,9 @@ import {
   COMPLETE_SWITCHES,
   completePatch,
   completeSection,
-  isComplete
+  defaultContentsPatch,
+  isComplete,
+  isDefaultContents
 } from './completeContents'
 import { isElementVisible } from './elements'
 import { applySettingsPatch, createDefaultSettings } from './settings'
@@ -123,5 +125,47 @@ describe('«Completo»: everything on in the ten widgets', () => {
     for (const section of LAYOUT_SECTIONS) {
       expect(completeSection(section, after[section] as never), section).toEqual({})
     }
+  })
+})
+
+describe('«OverLap» puts every widget back as it comes («todo de serie»)', () => {
+  it('a new install is already there', () => {
+    expect(defaultContentsPatch(createDefaultSettings())).toEqual({})
+    expect(isDefaultContents(createDefaultSettings())).toBe(true)
+  })
+
+  it('undoes «Completo» field by field: columns, order, bars, switches, auto height', () => {
+    const s = createDefaultSettings()
+    const complete = applySettingsPatch(s, completePatch(s))
+    complete.relative.columns = [...complete.relative.columns].reverse()
+    complete.widgets.fuel.autoHeight = false
+    expect(isDefaultContents(complete)).toBe(false)
+    const back = applySettingsPatch(complete, defaultContentsPatch(complete))
+    for (const section of LAYOUT_SECTIONS) expect(back[section], section).toEqual(s[section])
+    expect(back.widgets.fuel.autoHeight).toBe(true)
+    expect(isDefaultContents(back)).toBe(true)
+    expect(defaultContentsPatch(back)).toEqual({})
+  })
+
+  it('leaves what «Completo» leaves: behaviour, drawing, numbers, places, which widgets show', () => {
+    const s = createDefaultSettings()
+    s.relative.carsAhead = 5
+    s.standings.mode = 'full'
+    s.battle.layout = 'side'
+    s.delta.referenceRace = 'pb'
+    s.relative.density = 'compact'
+    s.widgets.radar.visible = false
+    s.widgets.relative.bounds = { x: 10, y: 20, width: 700, height: 400 }
+    s.standings.columnHeads = !s.standings.columnHeads
+    const patch = defaultContentsPatch(s) as Record<string, Record<string, unknown>>
+    expect(Object.keys(patch)).toEqual(['standings'])
+    expect(Object.keys(patch.standings ?? {})).toEqual(['columnHeads'])
+    const after = applySettingsPatch(s, patch)
+    expect(after.relative).toMatchObject({ carsAhead: 5, density: 'compact' })
+    expect(after.standings.mode).toBe('full')
+    expect(after.battle.layout).toBe('side')
+    expect(after.delta.referenceRace).toBe('pb')
+    expect(after.widgets.radar.visible).toBe(false)
+    expect(after.widgets.relative.bounds).toEqual(s.widgets.relative.bounds)
   })
 })

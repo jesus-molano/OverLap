@@ -10,7 +10,7 @@ import {
   type StylePlan
 } from '@shared/appearancePresets'
 import { DEFAULT_SETTINGS, applySettingsPatch } from '@shared/settings'
-import type { Rect } from '@shared/types'
+import type { OverlaySettings, Rect } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -18,14 +18,15 @@ import Icon from '../../ui/Icon.vue'
 import ConfirmDialog from '../ConfirmDialog.vue'
 import { sendCommand, updateSettings } from '../editor'
 import { foldGroups, styleChangeGroups, styleWhere } from '../styleChanges'
-import { freeGrowth } from '../styleGrowth'
+import { defaultSizes, freeGrowth } from '../styleGrowth'
 import { offerRestore } from '../undo/restore'
 
 /**
  * Apariencia's named styles (R56): one radio card each, the one the settings match checked; none
  * when tuned by hand («Personalizado»). Choosing one that would change what you set yourself (the
- * look tuned by hand, or the widgets' contents with «Completo») first says what changes and where
- * (ConfirmDialog); otherwise it applies at once. Either way "Deshacer" puts it all back.
+ * look tuned by hand, or the widgets' contents with «Completo» and «OverLap», which puts them
+ * back as they come) first says what changes and where (ConfirmDialog); otherwise it applies at
+ * once. Either way "Deshacer" puts it all back.
  */
 const t = useI18n()
 const { settings } = useOverlayState()
@@ -39,11 +40,11 @@ const current = computed(() => matchingPreset(now.value))
 const text = computed(() => t.value.settings.appearance.presets)
 const cards = computed(() => APPEARANCE_PRESETS.map((p) => ({ id: p, ...text.value.choices[p] })))
 
-/** The style waiting for «Aplicar», with what it changes and the free windows that grow. */
+/** The style waiting for «Aplicar», with what it changes and the free windows it resizes. */
 const asking = shallowRef<{
   id: AppearancePreset
   plan: StylePlan
-  grown: readonly WidgetId[]
+  windows: readonly WidgetId[]
 } | null>(null)
 const expanded = shallowRef(false)
 const card = shallowRef<HTMLElement | null>(null)
@@ -51,7 +52,12 @@ const card = shallowRef<HTMLElement | null>(null)
 const groups = computed(() =>
   asking.value === null
     ? []
-    : styleChangeGroups(t.value, asking.value.plan.changes, asking.value.grown)
+    : styleChangeGroups(
+        t.value,
+        asking.value.plan.changes,
+        asking.value.windows,
+        asking.value.id === 'overlap' ? 'defaultSize' : 'grows'
+      )
 )
 const folded = computed(() =>
   expanded.value ? { groups: groups.value, hidden: 0 } : foldGroups(groups.value)
@@ -63,9 +69,25 @@ const where = computed(() =>
 )
 
 /**
- * Applies `plan`, then grows the free windows its contents need (styleGrowth), with one
- * "Deshacer" for all of it: the settings first (which also puts back a window the text size
- * scaled), then each grown window as it was.
+ * The free windows style `p` resizes going from `before` to `after` (styleGrowth): «Completo»
+ * grows those its contents need, «OverLap» puts those whose contents it resets back to their
+ * default size.
+ */
+function resized(
+  p: AppearancePreset,
+  plan: StylePlan,
+  before: Readonly<OverlaySettings>,
+  after: Readonly<OverlaySettings>
+): Partial<Record<WidgetId, Rect>> {
+  if (p === 'complete') return freeGrowth(before, after)
+  if (p === 'overlap') return defaultSizes(before, plan.patch)
+  return {}
+}
+
+/**
+ * Applies `plan`, then resizes the free windows it changes (resized), with one "Deshacer" for
+ * all of it: the settings first (which also puts back a window the text size scaled), then each
+ * resized window as it was.
  */
 async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
   const before = now.value
@@ -81,17 +103,17 @@ async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
     }
   )
   await updateSettings(plan.patch)
-  if (!setsContents(p)) return
-  for (const [id, bounds] of Object.entries(freeGrowth(before, now.value))) {
+  for (const [id, bounds] of Object.entries(resized(p, plan, before, now.value))) {
     const widgetId = id as WidgetId
     sizes.set(widgetId, { ...before.widgets[widgetId].bounds })
     sendCommand({ type: 'set-widget-bounds', widgetId, bounds })
   }
 }
 
-/** The free windows that would grow with `plan` (said in the confirmation). */
-function growing(plan: StylePlan): WidgetId[] {
-  return Object.keys(freeGrowth(now.value, applySettingsPatch(now.value, plan.patch))) as WidgetId[]
+/** The free windows style `p` would resize (said in the confirmation). */
+function resizing(p: AppearancePreset, plan: StylePlan): WidgetId[] {
+  const after = applySettingsPatch(now.value, plan.patch)
+  return Object.keys(resized(p, plan, now.value, after)) as WidgetId[]
 }
 
 /** The radios back to what the settings are (a cancelled choice left its own checked). */
@@ -110,7 +132,7 @@ function choose(p: AppearancePreset, e: Event): void {
   }
   card.value = e.target instanceof HTMLElement ? e.target : null
   expanded.value = false
-  asking.value = { id: p, plan, grown: setsContents(p) ? growing(plan) : [] }
+  asking.value = { id: p, plan, windows: resizing(p, plan) }
 }
 
 function confirmApply(): void {

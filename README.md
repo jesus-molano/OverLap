@@ -260,15 +260,17 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
-- **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (el de serie),
+- **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (todo de serie:
+  el aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie),
   **Limpio** (sin fondo: solo el texto sobre el juego, con su contorno; sin filas alternas, logos
   ni banderas), **Compacto** (pequeño pero legible: filas compactas, texto al 85 %, apellidos) y
   **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna,
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**. El resto de Apariencia queda como
-  **Ajuste fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la
-  Accesibilidad, la etiqueta SIM, el idioma ni las unidades.
+  **Ajuste fino**, y si lo tocas (o lo que muestra un widget, con OverLap o Completo) el estilo
+  pasa a «Personalizado». Limpio y Compacto solo cambian el aspecto. No cambian el acento, la
+  Accesibilidad, la etiqueta SIM, el idioma, las unidades, los sitios ni qué widgets se ven.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los diez widgets:
   en Relativo, Radar y Delta, que llenan su ventana con el texto, agranda su ventana en la misma

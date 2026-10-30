@@ -18,6 +18,8 @@
  * when it hides), how it is drawn (orientation, density, the wheel...), its place and size, and
  * whether it is shown at all.
  */
+import { deepEqual } from './equal'
+import { defaultWidgetSettings, specDefault } from './settings/defaults'
 import { CONDITIONS_FOOTER_BEFORE, LAYOUT_SECTIONS, OPTION_SCHEMA } from './settingsSchema'
 import type { LayoutSection, OptionSpec } from './settingsSchema'
 import type { ElementEntry, OverlaySettings, SettingsPatch } from './types'
@@ -187,4 +189,36 @@ export function completePatch(s: Readonly<OverlaySettings>): SettingsPatch {
 /** Whether every widget already shows all «Completo» turns on. */
 export function isComplete(s: Readonly<OverlaySettings>): boolean {
   return Object.keys(completePatch(s)).length === 0
+}
+
+/**
+ * «OverLap» after «Completo» (the user's «todo de serie»): every field «Completo» rules over
+ * (every field of a widget section not in COMPLETE_LEAVES) back to its default value, lists in
+ * their default order, and the auto height back to the widget's own default. What «Completo»
+ * leaves (behaviour, drawing, your numbers), places, sizes and which widgets show stay as they
+ * are. The patch that does it, only the fields it changes ({} when all are at their defaults).
+ */
+export function defaultContentsPatch(s: Readonly<OverlaySettings>): SettingsPatch {
+  const patch: Record<string, unknown> = {}
+  const widgets: Record<string, { autoHeight: boolean }> = {}
+  for (const section of LAYOUT_SECTIONS) {
+    const specs = OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>
+    const options = s[section] as unknown as Fields
+    const out: Record<string, unknown> = {}
+    for (const [field, spec] of Object.entries(specs)) {
+      if (COMPLETE_LEAVES.includes(field)) continue
+      const value = specDefault(spec)
+      if (!deepEqual(options[field], value)) out[field] = value
+    }
+    if (Object.keys(out).length > 0) patch[section] = out
+    const { autoHeight } = defaultWidgetSettings(section)
+    if (s.widgets[section].autoHeight !== autoHeight) widgets[section] = { autoHeight }
+  }
+  if (Object.keys(widgets).length > 0) patch.widgets = widgets
+  return patch as SettingsPatch
+}
+
+/** Whether every widget shows what it shows on a new install (what «OverLap» puts back). */
+export function isDefaultContents(s: Readonly<OverlaySettings>): boolean {
+  return Object.keys(defaultContentsPatch(s)).length === 0
 }

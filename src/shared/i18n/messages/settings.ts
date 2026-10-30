@@ -570,7 +570,7 @@ export const settingsEs = {
       choices: {
         overlap: {
           label: 'OverLap',
-          hint: 'El de serie: fondo al 80 %, filas cómodas, logos y banderas'
+          hint: 'Todo de serie: fondo al 80 %, filas cómodas, logos y banderas, y lo que muestra cada widget'
         },
         clean: {
           label: 'Limpio',
@@ -606,8 +606,22 @@ export const settingsEs = {
         barItems: (n: number) =>
           n === 1 ? '1 dato más en sus barras' : `${n} datos más en sus barras`,
         options: (n: number) => (n === 1 ? '1 opción más activada' : `${n} opciones más activadas`),
+        /** Back to the defaults («OverLap» after «Completo»): what goes away. */
+        columnsHidden: (n: number) =>
+          n === 1 ? 'se oculta 1 columna' : `se ocultan ${n} columnas`,
+        elementsHidden: (n: number) => (n === 1 ? '1 elemento menos' : `${n} elementos menos`),
+        barsOff: (n: number) =>
+          n === 1 ? '1 barra de información menos' : `${n} barras de información menos`,
+        barItemsHidden: (n: number) =>
+          n === 1 ? '1 dato menos en sus barras' : `${n} datos menos en sus barras`,
+        /** Its lists back in their default order (how many is not said: a line, not a count). */
+        order: 'el orden de serie',
+        optionsDefault: (n: number) =>
+          n === 1 ? '1 opción a su valor de serie' : `${n} opciones a su valor de serie`,
         /** A free-size widget (Relativo, Delta) grows instead of shrinking its text. */
         grows: 'ventana más grande para que el texto no encoja',
+        /** …and back to its default size with «OverLap». */
+        defaultSize: 'ventana al tamaño de serie',
         /** The rest of a long list, folded. */
         more: (n: number) => (n === 1 ? 'Y 1 cambio más' : `Y ${n} cambios más`),
         less: 'Ver menos',
@@ -620,7 +634,7 @@ export const settingsEs = {
         cancel: 'Cancelar'
       },
       /** Under the cards, when the look matches none of them. */
-      custom: 'Personalizado: lo has ajustado a mano abajo',
+      custom: 'Personalizado: lo has ajustado a mano, abajo o en la página de algún widget',
       fine: 'Ajuste fino',
       /** The undo toast. */
       applied: (name: string) => `Estilo «${name}» aplicado`
@@ -2469,7 +2483,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       choices: {
         overlap: {
           label: 'OverLap',
-          hint: 'The default: background at 80%, comfortable rows, logos and flags'
+          hint: 'All as it comes: background at 80%, comfortable rows, logos and flags, and what each widget shows'
         },
         clean: {
           label: 'Clean',
@@ -2496,7 +2510,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
         bars: (n) => (n === 1 ? '1 more info bar' : `${n} more info bars`),
         barItems: (n) => (n === 1 ? '1 more datum in its bars' : `${n} more data in its bars`),
         options: (n) => (n === 1 ? '1 more option on' : `${n} more options on`),
+        columnsHidden: (n) => (n === 1 ? '1 column hidden' : `${n} columns hidden`),
+        elementsHidden: (n) => (n === 1 ? '1 fewer element' : `${n} fewer elements`),
+        barsOff: (n) => (n === 1 ? '1 fewer info bar' : `${n} fewer info bars`),
+        barItemsHidden: (n) =>
+          n === 1 ? '1 fewer datum in its bars' : `${n} fewer data in its bars`,
+        order: 'the default order',
+        optionsDefault: (n) =>
+          n === 1 ? '1 option back to its default' : `${n} options back to their defaults`,
         grows: 'a bigger window so its text keeps its size',
+        defaultSize: 'the window back to its default size',
         more: (n) => (n === 1 ? 'And 1 more change' : `And ${n} more changes`),
         less: 'Show less',
         lookWhere: 'the global look',
@@ -2505,7 +2528,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         apply: 'Apply',
         cancel: 'Cancel'
       },
-      custom: 'Custom: you tuned it by hand below',
+      custom: 'Custom: you tuned it by hand, below or on a widget’s page',
       fine: 'Fine tuning',
       applied: (name) => `“${name}” style applied`
     },

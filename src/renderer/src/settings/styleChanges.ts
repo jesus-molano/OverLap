@@ -81,12 +81,14 @@ function valueText(m: Messages, field: PresetField, value: PresetValues[PresetFi
 /**
  * The changes worded, in two groups: the look (one line a field, old → new), then what each
  * widget shows (one line a widget, in the sidebar's order: «Posiciones: se muestran 5 columnas
- * más, 1 barra de información más»); `grown`: the free widgets whose window grows (styleGrowth).
+ * más, 1 barra de información más»); `windows`: the free widgets whose window changes size
+ * (styleGrowth), said as `windowLine`: grown with «Completo», back to its default with «OverLap».
  */
 export function styleChangeGroups(
   m: Messages,
   changes: readonly StyleChange[],
-  grown: readonly WidgetId[] = []
+  windows: readonly WidgetId[] = [],
+  windowLine: 'grows' | 'defaultSize' = 'grows'
 ): ChangeGroup[] {
   const c = m.settings.appearance.presets.confirm
   const out: ChangeGroup[] = []
@@ -104,9 +106,11 @@ export function styleChangeGroups(
   if (look.length > 0) out.push({ title: c.look, lines: look })
   const widgets = WIDGET_IDS.flatMap((id) => {
     const parts = changes.flatMap((ch) =>
-      ch.kind === 'widget' && ch.widget === id ? [c[ch.what](ch.count)] : []
+      ch.kind === 'widget' && ch.widget === id
+        ? [ch.what === 'order' ? c.order : c[ch.what](ch.count)]
+        : []
     )
-    if (grown.includes(id)) parts.push(c.grows)
+    if (windows.includes(id)) parts.push(c[windowLine])
     return parts.length > 0 ? [{ text: c.widgetLine(widgetTitle(m, id), parts.join(', ')) }] : []
   })
   if (widgets.length > 0) out.push({ title: c.contents, lines: widgets })
