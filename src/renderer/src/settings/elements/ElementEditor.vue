@@ -1472,32 +1472,30 @@ function onCancel(e: PointerEvent): void {
   font-size: var(--st-t-help);
 }
 
-.ed-extra {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
+/*
+ * A row's own option goes on a line of its own under the name, at any width: inline, an option
+ * with its help took the row's width and squeezed the name into a column of single words.
+ */
+.ed-row:has(.ed-extra:not(:empty)) {
+  flex-wrap: wrap;
+  row-gap: 2px;
 }
 
-/*
- * A narrow list (a narrow window, or a column of a wide one): a row's own option goes on a line
- * of its own under the name, so the name keeps its width and the arrows stay in the row.
- */
-@container ed-lists (max-width: 520px) {
-  .ed-row:has(.ed-extra) {
-    flex-wrap: wrap;
-    row-gap: 2px;
-  }
+.ed-row:has(.ed-extra:not(:empty)) .ed-text {
+  flex-basis: 0;
+}
 
-  .ed-row:has(.ed-extra) .ed-text {
-    flex-basis: 0;
-  }
+.ed-extra {
+  display: flex;
+  flex: 1 1 100%;
+  order: 1;
+  align-items: center;
+  min-width: 0;
+  padding: 0 0 4px 40px;
+}
 
-  .ed-extra {
-    flex: 1 1 100%;
-    order: 1;
-    min-width: 0;
-    padding: 0 0 4px 40px;
-  }
+.ed-extra:empty {
+  display: none;
 }
 
 .ed-arrows {
