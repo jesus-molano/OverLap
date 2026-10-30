@@ -21,7 +21,7 @@ import type { ResetItem } from '../layout/resetItems'
 import { useNavigate } from '../navigate'
 import { outOfCarHidesSessionScreen, replaysHelp as replaysHelpText } from '../replayWidgets'
 import { MATRIX_COLUMNS, matrixRows, type MatrixColumn } from '../visibilityMatrix'
-import { resetAppearancePart, setWidgetVisible } from '../undo/restore'
+import { appearancePartAtDefault, resetAppearancePart, setWidgetVisible } from '../undo/restore'
 import { heldCaption } from '../statusSummary'
 
 /**
@@ -64,13 +64,18 @@ const replayChoices = computed(() =>
 )
 const replaysHelp = computed(() => replaysHelpText(t.value, locale.value, visibility.value))
 
+/** The rules as they come: the ↺ and the menu item dimmed, saying so (R47). */
+const screenAtDefault = computed(
+  () => settings.value !== null && appearancePartAtDefault(settings.value, 'screen')
+)
 /** "Restablecer…" at the top, as on every page (R24): the rules of the overlay. */
 const resetItems = computed<ResetItem[]>(() => [
   {
     id: 'screen',
     label: t.value.settings.appearance.screen.title,
     description: t.value.settings.appearance.reset.screen,
-    run: () => resetAppearancePart('screen')
+    run: () => resetAppearancePart('screen'),
+    disabled: screenAtDefault.value
   }
 ])
 const screenResetLabel = computed(() =>
@@ -131,6 +136,7 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
     <PageSection
       :title="t.settings.appearance.screen.title"
       :reset-label="screenResetLabel"
+      :reset-disabled="screenAtDefault"
       @reset="resetAppearancePart('screen')"
     >
       <ChoiceControl

@@ -1216,6 +1216,15 @@ function onCancel(e: PointerEvent): void {
   flex-wrap: wrap;
 }
 
+/*
+ * Its name and help take what the row leaves (a long help wraps inside it), so the handle, the
+ * eye, «N de M partes» and the arrows stay on its one line, as on every other row (Delta's
+ * «Tiempos de vuelta»).
+ */
+.ed-row:has(> .ed-sub) > .ed-text {
+  flex: 1 1 0;
+}
+
 .ed-sub {
   flex: 1 0 100%;
   padding: 2px 0 4px calc(32px + 1.4em + 16px);

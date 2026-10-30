@@ -198,6 +198,39 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Un ↺ sin nada que hacer se apaga, como los «Restablecer» de las listas**: el ↺ de cada sección
+  (Contenido, Piloto, Personalizar, Ventana y visibilidad, las de Apariencia y Visibilidad) y su
+  línea en **Restablecer…** salen atenuados cuando esa parte está como viene de serie, y dicen
+  «Nada que restablecer: está como viene de serie». «Posición y tamaño» y «Todo» siguen activos: la
+  posición de fábrica depende de la pantalla.
+- **La misma opción, el mismo control y el mismo nombre**: en **Apariencia › Filas y pilotos**,
+  «Bandera del país» y «Banderas de penalización» son un selector «Sí / No», como en cada widget
+  (antes eran interruptores). La línea Piloto de **Restablecer…** dice «Formato de nombre, logo,
+  bandera del país y banderas de penalización vuelven a «Global»» (antes «sanciones», una palabra
+  que no usaba ningún control). En **Testigos › Personalizar**, «Rótulos» es un interruptor, como
+  «Temperaturas» y «Tiempo de reparación» debajo; en columna, «Lado de los textos» sale debajo
+  mientras haya un texto que colocar (antes «Rótulos» era «No / Derecha / Izquierda»). Lo guardado
+  no cambia.
+- **Pedales sin «Contenido»**: el estilo del volante, su tamaño y el color de la marca central
+  pasan a la fila **Volante** de Personalizar › Datos, que se despliega como la de la Traza y dice
+  en su botón cómo es («Realista · Mediano», «Barra»), junto a **Grados del volante**. Así todo lo
+  del volante está en su fila, y su ↺ es el de Personalizar.
+- **Las columnas que comparten Relativo y Posiciones, en el mismo orden**: en Relativo, el hueco va
+  antes de Boxes, Vueltas del stint y Neumático, como en Posiciones (antes Neumático iba antes que
+  Vueltas del stint y el hueco al final). Las tres van ocultas de serie, así que nada visible
+  cambia; una lista que ya habías tocado se queda como estaba, y un ajuste antiguo con el neumático
+  a la vista lo sigue viendo en su sitio. La ayuda de Vueltas del stint es la misma en las dos.
+- **Buscar ajuste encuentra también los botones y las opciones**: «exportar» lleva a **Exportar
+  todo…** (Acerca de) y a **Exportar…** (Disposiciones), «editar posición» y «mover» al botón de
+  cada widget, «restablecer» a **Restablecer…**; y cada opción de un selector sale por su nombre
+  («Imperiales» de Unidades, «Apellido» de Formato de nombre, «English» de Idioma), con el selector
+  al que pertenece debajo, también por lo que dice su ayuda («galones», «pies»). Entiende más
+  palabras de uso diario: «rpm» y «cambio de marcha» llevan a **Luces de cambio**, «tecla»,
+  «teclado», «botón del volante» o «button box» a **Atajos**, «sanciones» a **Banderas de
+  penalización**, «copia» o «backup» a **Exportar todo…**, «letra grande» o «más grande» a
+  **Tamaño del texto** (y después al texto mínimo de 10 px), y «por coche» a **Según el coche**.
+  Las palabras que no distinguen nada («por», «de», «el», «the», «by») ya no hacen que falle una
+  búsqueda.
 - **Las mismas palabras sobre el juego y en los Ajustes**: la ayuda sobre cada widget dice «Rueda:
   escala · Flechas: mover · Alt: sin imán · Esc: salir» (más corta en los estrechos), y el aviso
   de modo edición de los Ajustes usa los mismos pares («Bordes: tamaño», «Flechas: mover (Ctrl:
@@ -537,6 +570,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **Delta › Líneas: la fila «Tiempos de vuelta» en una sola línea**: el asa, el ojo, el nombre con
+  su ayuda, «3 de 4 partes» y las flechas ya no se reparten en tres renglones (a cualquier ancho y
+  en los dos idiomas); la ayuda larga se parte dentro de su sitio, como en las demás filas.
 - **Texto legible sobre fondos claros**: con «Contorno del texto» en «Auto», el contorno se pone
   por debajo del 65 % de opacidad (antes, del 35 %), así que un panel al 50 % sobre un cielo
   blanco ya se lee. El gris tenue (unidades, títulos de columna) es un poco más claro. Con la vista

@@ -303,6 +303,23 @@ export function fromFlags(flags: FlagMap): LegacyReader {
 }
 
 /**
+ * `read`, in the order `order` the old fields drew the list in, when one of `moved` (ids today's
+ * default puts elsewhere) shows: what shows stays where it was; with them hidden, nothing visible
+ * moves and the list is today's default.
+ */
+function inOrder(
+  read: LegacyReader,
+  order: readonly string[],
+  moved: readonly string[]
+): LegacyReader {
+  return (raw) => {
+    const legacy = read(raw)
+    if (legacy === null || !moved.some((id) => legacy.visible[id] === true)) return legacy
+    return { ...legacy, order: [...order] }
+  }
+}
+
+/**
  * The list `spec` describes, from what the old fields said: the default with their visibility and
  * order applied (ids they did not cover keep the default), normalised.
  */
@@ -376,13 +393,18 @@ export const LIST_MIGRATIONS: { readonly [S in OptionSection]?: readonly ListMig
   relative: [
     {
       field: 'columns',
-      read: fromFlags([
-        ['showClassPosition', ['pos']],
-        ['showLicense', ['lic']],
-        ['showIRating', ['ir']],
-        ['showTyre', ['tyre']],
-        ['showStint', ['stint']]
-      ])
+      read: inOrder(
+        fromFlags([
+          ['showClassPosition', ['pos']],
+          ['showLicense', ['lic']],
+          ['showIRating', ['ir']],
+          ['showTyre', ['tyre']],
+          ['showStint', ['stint']]
+        ]),
+        // The order those files were drawn in (the gap last), so a shown tyre stays where it was.
+        ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+        ['tyre', 'stint']
+      )
     },
     { field: 'headerBar', read: fromFlags([['showIncidents', ['incidents']]]) },
     { field: 'footerBar', read: fromFlags(FOOTER_READINGS) }
@@ -766,12 +788,19 @@ export function migrateRelativeDensity(raw: unknown, file: Record<string, unknow
   return 'density' in raw ? raw : { ...raw, density: 'comfortable' }
 }
 
-/** The relative's columns as they came before 2.3 (licence before iRating, no PIT column). */
-const OLD_RELATIVE_COLUMNS = ['pos', 'driver', 'lic', 'ir', '-tyre', '-stint', 'gap']
+/**
+ * The relative's columns as they came before: before 2.3 (licence before iRating, no PIT column),
+ * then until the gap went before the pit, stint and tyre columns, as in the standings.
+ */
+const OLD_RELATIVE_COLUMNS: readonly (readonly string[])[] = [
+  ['pos', 'driver', 'lic', 'ir', '-tyre', '-stint', 'gap'],
+  ['pos', 'driver', 'ir', 'lic', '-pit', '-tyre', '-stint', 'gap']
+]
 
 /**
  * 2.3 put the relative's iRating before its licence (R10), as the standings and the battle draw
- * them. A list nobody changed (exactly the old default) takes the new one, written out: a missing
+ * them, and later its gap before its hidden pit, stint and tyre columns, in the standings' order
+ * (nothing visible moves). A list nobody changed (exactly an old default) takes the new one: a missing
  * field takes its fallback's, and a layout's fallback is the options in effect (another layout's
  * columns), not the default. Any other list is kept. `raw` itself when there is nothing to do.
  */
@@ -780,7 +809,7 @@ export function migrateRelativeColumns(raw: unknown): unknown {
   const ids = raw.columns.map((e: unknown) =>
     isRecord(e) ? `${e.visible === false ? '-' : ''}${String(e.id)}` : '?'
   )
-  if (ids.join(',') !== OLD_RELATIVE_COLUMNS.join(',')) return raw
+  if (!OLD_RELATIVE_COLUMNS.some((old) => ids.join(',') === old.join(','))) return raw
   const columns = OPTION_SCHEMA.relative.columns.default.map((e) => ({
     id: e.id,
     visible: e.visible

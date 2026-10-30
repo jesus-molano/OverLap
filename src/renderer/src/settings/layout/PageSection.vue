@@ -2,7 +2,8 @@
 import { computed, inject, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
-import { WIDGET_PAGE, resetWidget, type PageResetPart } from '../undo/restore'
+import { useOverlayState } from '../../composables/useOverlay'
+import { WIDGET_PAGE, resetWidget, widgetPartAtDefault, type PageResetPart } from '../undo/restore'
 import ResetIcon from './ResetIcon.vue'
 
 /**
@@ -21,8 +22,16 @@ const props = withDefaults(
     resets?: PageResetPart
     /** Outside a widget page: the ↺'s name ('Restablecer Color'); it emits `reset`. */
     resetLabel?: string
+    /** Outside a widget page: that part is as it comes (its ↺ dimmed, saying so). */
+    resetDisabled?: boolean
   }>(),
-  { note: undefined, card: true, resets: undefined, resetLabel: undefined }
+  {
+    note: undefined,
+    card: true,
+    resets: undefined,
+    resetLabel: undefined,
+    resetDisabled: false
+  }
 )
 const emit = defineEmits<{ reset: [] }>()
 
@@ -36,6 +45,15 @@ const reset = computed(() => {
   return r.sectionLabel(r[props.resets].label, widgetTitle(t.value, widget))
 })
 
+const { settings } = useOverlayState()
+/** Nothing to reset: the part is as it comes (R47), as the lists' «Restablecer». */
+const atDefault = computed(() => {
+  if (props.resetLabel !== undefined) return props.resetDisabled
+  const s = settings.value
+  if (props.resets === undefined || widget === null || s === null) return false
+  return widgetPartAtDefault(s, widget, props.resets)
+})
+
 function onReset(): void {
   if (props.resetLabel !== undefined) emit('reset')
   else if (props.resets !== undefined && widget !== null) resetWidget(widget, props.resets)
@@ -47,7 +65,7 @@ function onReset(): void {
     <div class="st-section-head">
       <h2 :id="titleId" class="st-section-title">{{ title }}</h2>
       <span v-if="note" class="st-section-note">{{ note }}</span>
-      <ResetIcon v-if="reset" :label="reset" @reset="onReset" />
+      <ResetIcon v-if="reset" :label="reset" :disabled="atDefault" @reset="onReset" />
     </div>
     <div :class="{ 'st-card': card }">
       <slot />

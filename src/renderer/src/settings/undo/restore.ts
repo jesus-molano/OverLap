@@ -15,6 +15,7 @@ import { widgetTitle, type Messages } from '@shared/i18n'
 import {
   DEFAULT_SETTINGS,
   appearancePartDefaults,
+  defaultWidgetSettings,
   optionPartDefaults,
   type AppearancePart,
   type OptionPart
@@ -123,6 +124,69 @@ export function optionPartPatch(
     return { ...patch, ...columnsEditPatch(o, columns, { kind: 'reset' }) }
   }
   return patch
+}
+
+/**
+ * Whether `part` of `id`'s page is as it comes from the factory (its ↺ and its «Restablecer…»
+ * item then have nothing to do, R47): every field its reset would set already has that value.
+ * «Ventana y visibilidad» of a free-size widget also needs its window at 100 %. Pure.
+ */
+export function widgetPartAtDefault(
+  s: OverlaySettings,
+  id: WidgetId,
+  part: PageResetPart
+): boolean {
+  if (part !== 'window') {
+    const now = s[id] as unknown as Readonly<Record<string, unknown>>
+    return Object.entries(optionPartPatch(s, id, part)).every(([k, v]) => deepEqual(now[k], v))
+  }
+  const w = s.widgets[id]
+  const factory = defaultWidgetSettings(id)
+  const fields = [
+    'scale',
+    'autoHeight',
+    'anchor',
+    'backgroundOpacity',
+    'showIn',
+    'hideInPits',
+    'showOnSessionScreen'
+  ] as const
+  if (!fields.every((f) => deepEqual(w[f], factory[f]))) return false
+  const def = WIDGET_DEFS[id]
+  if (def.sizeModel !== 'free') return true
+  const next = freeScaleBounds(
+    w.bounds,
+    def.defaultBounds,
+    100,
+    def.minSize,
+    s.appearance.fontScale
+  )
+  return deepEqual(next, w.bounds)
+}
+
+/** Whether a section of Apariencia (or «Pantalla» of Visibilidad) is as it comes. Pure. */
+export function appearancePartAtDefault(s: OverlaySettings, part: AppearancePart): boolean {
+  const { section, fields } = appearancePartDefaults(part)
+  const now = s[section] as unknown as Readonly<Record<string, unknown>>
+  return Object.entries(fields).every(([k, v]) => deepEqual(now[k], v))
+}
+
+/** Whether the whole of Apariencia is as it comes (the language never counts). Pure. */
+export function appearanceAtDefault(s: OverlaySettings): boolean {
+  const now: Partial<OverlaySettings['appearance']> = { ...s.appearance }
+  const factory: Partial<OverlaySettings['appearance']> = { ...DEFAULT_SETTINGS.appearance }
+  delete now.language
+  delete factory.language
+  return deepEqual(now, factory)
+}
+
+/** Whether every shortcut is its factory combination alone (no button, no extra one). Pure. */
+export function shortcutsAtDefault(s: OverlaySettings): boolean {
+  const now = shortcutBindings(s.shortcuts, s.shortcutsMore)
+  return Object.entries(now).every(([action, list]) => {
+    const factory = DEFAULT_SETTINGS.shortcuts[action as ShortcutAction]
+    return deepEqual(list, factory === '' ? [] : [factory])
+  })
 }
 
 /**

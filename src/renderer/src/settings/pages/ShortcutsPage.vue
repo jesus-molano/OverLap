@@ -7,7 +7,7 @@ import { useOverlayState } from '../../composables/useOverlay'
 import { useShortcuts } from '../../composables/useShortcuts'
 import HelpText from '../controls/HelpText.vue'
 import Icon from '../../ui/Icon.vue'
-import { resetShortcuts } from '../undo/restore'
+import { resetShortcuts, shortcutsAtDefault } from '../undo/restore'
 import Keycaps from '../layout/Keycaps.vue'
 import ResetMenu from '../layout/ResetMenu.vue'
 import type { ResetItem } from '../layout/resetItems'
@@ -80,7 +80,8 @@ const resetItems = computed<ResetItem[]>(() => [
     id: 'all',
     label: t.value.settings.shortcuts.resetAll.label,
     description: resetDescription.value,
-    run: resetShortcuts
+    run: resetShortcuts,
+    disabled: settings.value !== null && shortcutsAtDefault(settings.value)
   }
 ])
 </script>
