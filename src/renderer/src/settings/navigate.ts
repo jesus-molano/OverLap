@@ -1,12 +1,16 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { SettingsPage } from './nav'
+import type { SearchEntry } from './search/settingsSearch'
 
 /**
  * Going to another page from inside one (the status panel's «Ver Atajos», a search result, the
  * overview's widget names): SettingsApp provides it, anything below asks for it. `target`, when
- * given, is what to reveal there (settings/reveal.ts).
+ * given, is what to reveal there (search/reveal.ts).
  */
-export type Navigate = (page: SettingsPage, target?: string) => void
+export type Navigate = (
+  page: SettingsPage,
+  target?: Pick<SearchEntry, 'text' | 'context' | 'kind'>
+) => void
 
 const NAVIGATE: InjectionKey<Navigate> = Symbol('navigate')
 

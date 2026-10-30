@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import './settings.css'
-import { computed, onUnmounted, shallowRef, useId } from 'vue'
+import { computed, onUnmounted, shallowRef, useId, watch } from 'vue'
 import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
@@ -27,6 +27,11 @@ import VisibilityPage from './pages/VisibilityPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 import UndoToast from './undo/UndoToast.vue'
 import { provideNavigate } from './navigate'
+import SearchIndexer from './search/SearchIndexer.vue'
+import { indexWanted, searchIndex } from './search/searchIndex'
+import { revealTarget } from './search/reveal'
+import SettingsSearch from './search/SettingsSearch.vue'
+import type { SearchEntry } from './search/settingsSearch'
 import { useSaveFailing } from './saveFailing'
 
 // Main is the source of truth: these follow its broadcasts (and the replies to our updates).
@@ -81,8 +86,18 @@ const saveFailing = useSaveFailing()
 const nativeMissing = computed(
   () => status.value?.state === 'error' && status.value.note === 'native-missing'
 )
-// Pages and panels go to another page through this (the status panel, a search result…).
-provideNavigate((next) => select(next))
+// Pages and panels go to another page through this (the status panel, a search result…): a
+// search result is revealed there (its accordion opened, scrolled to, pointed out; R33).
+provideNavigate((next, target) => {
+  select(next)
+  if (target) void revealTarget(() => document.querySelector('main.content'), target)
+})
+/** The search box got the focus: every page harvested once, out of sight (SearchIndexer). */
+function onIndexed(entries: SearchEntry[]): void {
+  searchIndex.value = entries
+}
+// Another language: the pages say other words, harvested again on the next search.
+watch(lang, () => (searchIndex.value = null))
 
 function exitEdit(): void {
   sendCommand({ type: 'set-edit-mode', on: false })
@@ -122,6 +137,7 @@ function openLog(): void {
               </optgroup>
             </template>
           </select>
+          <SettingsSearch class="topbar-search" />
           <StatusChip />
           <EditModeButton compact />
         </div>
@@ -173,6 +189,7 @@ function openLog(): void {
 
       <UndoToast />
     </div>
+    <SearchIndexer v-if="indexWanted && searchIndex === null" @done="onIndexed" />
   </div>
 </template>
 
@@ -302,6 +319,11 @@ function openLog(): void {
     padding: 10px 0;
     border-bottom: 1px solid var(--st-border);
     background: var(--st-bg);
+  }
+
+  .topbar-search {
+    flex: 1 1 100%;
+    order: 9;
   }
 
   .page-select {

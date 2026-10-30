@@ -9,6 +9,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Buscar ajuste**: un buscador arriba de la barra lateral (y de la barra de una ventana estrecha)
+  encuentra cualquier ajuste de cualquier página por sus palabras, sin importar mayúsculas ni
+  tildes: controles, secciones, acordeones y cada dato de las listas («vueltas combustible» da
+  «Vueltas de combustible» en el pie de Posiciones, en la cabecera de Relativo…), con su página y
+  su sección debajo. Con las flechas y `Intro` o un clic, lleva a la página, abre el acordeón o la
+  lista donde está, lo centra y lo señala un momento. Lee las páginas tal como se ven, en el idioma
+  de la ventana.
 - **Página «Visibilidad»**: junto a Apariencia, con **Cuándo se ve el overlay** (que estaba en
   Apariencia; su «Restablecer» va con ella y el de Apariencia ya no lo toca) y una tabla **Dónde se
   ve cada widget**: una fila por widget, agrupados, y columnas Visible, Práctica, Clasificación,
@@ -44,6 +51,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **«+ Añadir dato» en las barras**: en cabeceras, segundas líneas y pies, la lista «Ocultos (n)»
+  pasa a ser **+ Añadir dato (n)**: cada dato oculto tiene **← Izquierda** y **Derecha →**, para
+  ponerlo al final del lado que elijas (el lado donde estaba, resaltado).
 - **Más sitio para los ajustes**: al bajar por las opciones, la vista previa se pliega en una
   franja de unos 120 px (con «Ver entera») y vuelve al subir; al pie de la vista previa, **Al
   bajar: Se pliega / Fija / Franja** lo cambia y se recuerda. La ventana de Ajustes se abre más

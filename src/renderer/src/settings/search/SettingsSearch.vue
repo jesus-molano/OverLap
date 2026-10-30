@@ -1,0 +1,237 @@
+<script setup lang="ts">
+import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { useI18n } from '../../composables/useI18n'
+import { pageTitle } from '../nav'
+import { useNavigate } from '../navigate'
+import { searchIndex, wantIndex } from './searchIndex'
+import { searchSettings, type SearchResult } from './settingsSearch'
+
+/**
+ * «Buscar ajuste» (R33), at the top of the sidebar (and of the narrow window's bar): type a few
+ * words, pick a result (arrows and Enter, or a click) and the window goes to its page, opens
+ * what hides it and points it out. A combobox with its list in a popover under it (the top
+ * layer: the sidebar never cuts it). The pages are harvested the first time it gets the focus.
+ */
+const t = useI18n()
+const navigate = useNavigate()
+const listId = useId()
+const input = useTemplateRef<HTMLInputElement>('input')
+const panel = useTemplateRef<HTMLElement>('panel')
+const query = shallowRef('')
+const active = shallowRef(0)
+const open = shallowRef(false)
+
+const results = computed<SearchResult[]>(() =>
+  searchIndex.value === null
+    ? []
+    : searchSettings(searchIndex.value, query.value, (p) => pageTitle(t.value, p))
+)
+const preparing = computed(() => searchIndex.value === null && query.value.trim() !== '')
+const empty = computed(
+  () => searchIndex.value !== null && query.value.trim() !== '' && results.value.length === 0
+)
+const shown = computed(
+  () => open.value && (results.value.length > 0 || preparing.value || empty.value)
+)
+
+/** 'Combustible › Pie' under each result: its page and where on it. */
+function whereOf(r: SearchResult): string {
+  const page = pageTitle(t.value, r.page)
+  if (r.kind === 'page') return t.value.settings.search.page
+  return r.context === '' ? page : `${page} › ${r.context}`
+}
+
+function place(): void {
+  const i = input.value
+  const p = panel.value
+  if (!i || !p) return
+  const r = i.getBoundingClientRect()
+  const w = Math.max(r.width, Math.min(380, window.innerWidth - 16))
+  p.style.width = `${Math.round(w)}px`
+  p.style.left = `${Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8)))}px`
+  p.style.top = `${Math.round(r.bottom + 4)}px`
+}
+
+watch(shown, async (on) => {
+  await nextTick()
+  const p = panel.value
+  if (!p) return
+  if (on) {
+    if (!p.matches(':popover-open')) p.showPopover()
+    place()
+  } else if (p.matches(':popover-open')) p.hidePopover()
+})
+watch(results, () => (active.value = 0))
+
+function onFocus(): void {
+  wantIndex()
+  open.value = true
+}
+
+function onBlur(): void {
+  // A click on a result lands first (pointerdown keeps the focus on the field).
+  open.value = false
+}
+
+function go(r: SearchResult | undefined): void {
+  if (!r) return
+  open.value = false
+  query.value = ''
+  input.value?.blur()
+  navigate(r.page, { text: r.text, context: r.context, kind: r.kind })
+}
+
+function onKey(e: KeyboardEvent): void {
+  const n = results.value.length
+  if (e.key === 'ArrowDown' && n > 0) {
+    e.preventDefault()
+    open.value = true
+    active.value = (active.value + 1) % n
+  } else if (e.key === 'ArrowUp' && n > 0) {
+    e.preventDefault()
+    active.value = (active.value - 1 + n) % n
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    go(results.value[active.value])
+  } else if (e.key === 'Escape') {
+    if (query.value === '' && !open.value) return
+    e.preventDefault()
+    e.stopPropagation()
+    if (open.value && query.value !== '') query.value = ''
+    else open.value = false
+  }
+}
+
+const optionId = (i: number): string => `${listId}-${i}`
+</script>
+
+<template>
+  <div class="search" role="search">
+    <span class="search-icon" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="14" height="14">
+        <path d="M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.4 10.4l3.1 3.1" />
+      </svg>
+    </span>
+    <input
+      ref="input"
+      v-model="query"
+      type="search"
+      class="st-field search-field"
+      role="combobox"
+      :placeholder="t.settings.search.placeholder"
+      :aria-label="t.settings.search.label"
+      :aria-expanded="shown"
+      :aria-controls="listId"
+      aria-autocomplete="list"
+      :aria-activedescendant="shown && results.length > 0 ? optionId(active) : undefined"
+      autocomplete="off"
+      spellcheck="false"
+      @focus="onFocus"
+      @blur="onBlur"
+      @input="open = true"
+      @keydown="onKey"
+    />
+    <div ref="panel" popover="manual" class="search-panel">
+      <p v-if="preparing" class="search-note">{{ t.settings.search.preparing }}</p>
+      <p v-else-if="empty" class="search-note">{{ t.settings.search.none(query.trim()) }}</p>
+      <ul :id="listId" role="listbox" class="search-list" :aria-label="t.settings.search.label">
+        <li
+          v-for="(r, i) in results"
+          :id="optionId(i)"
+          :key="`${r.page}\n${r.text}\n${r.context}`"
+          role="option"
+          class="search-item"
+          :aria-selected="i === active"
+          @pointerdown.prevent
+          @pointerenter="active = i"
+          @click="go(r)"
+        >
+          <span class="search-text">{{ r.text }}</span>
+          <span class="search-where">{{ whereOf(r) }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.search-icon {
+  position: absolute;
+  left: 9px;
+  display: inline-flex;
+  color: var(--ov-fg-dim);
+  pointer-events: none;
+}
+
+.search-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* Above html.ov-settings .st-field's padding: room for the magnifier. */
+.search .search-field {
+  width: 100%;
+  min-width: 0;
+  padding-left: 28px;
+  font-size: 13px;
+}
+
+.search-panel {
+  position: fixed;
+  inset: auto;
+  max-height: min(420px, 70vh);
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--st-border-strong);
+  border-radius: var(--st-radius);
+  background: var(--st-surface-hi);
+  box-shadow:
+    var(--st-lit),
+    0 0 0 1px rgb(0 0 0 / 35%);
+  color: var(--ov-fg);
+}
+
+.search-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: var(--st-radius-sm);
+  cursor: pointer;
+}
+
+.search-item[aria-selected='true'] {
+  background: var(--st-hover);
+}
+
+.search-text {
+  font-size: 13px;
+  font-weight: var(--ov-w-strong);
+}
+
+.search-where,
+.search-note {
+  color: var(--ov-fg-muted);
+  font-size: 12px;
+}
+
+.search-note {
+  padding: 6px 10px;
+}
+</style>
