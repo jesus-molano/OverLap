@@ -40,6 +40,15 @@ export const settingsEs = {
     footNote: 'Los cambios se aplican al momento y se guardan solos.',
     openFolder: 'Abrir carpeta de ajustes'
   },
+  /** «Buscar ajuste» (R33): the search at the top of the sidebar. */
+  search: {
+    placeholder: 'Buscar ajuste',
+    label: 'Buscar un ajuste en todas las páginas',
+    preparing: 'Preparando la búsqueda…',
+    none: (q: string) => `Ningún ajuste con «${q}»`,
+    /** Under a result that is a whole page. */
+    page: 'Página'
+  },
   /**
    * The status chip (sidebar, narrow top bar) and its panel (R35): the connection, what is
    * hidden now and why, what does not work, «Copiar diagnóstico» and the log.
@@ -1258,6 +1267,12 @@ export const settingsEs = {
     /** An info bar's hidden items, in their own collapsed group under the two boxes. */
     hiddenGroup: (n: number) => `Ocultos (${n})`,
     hiddenGroupHelp: 'Al mostrar uno, va al final de su lado',
+    /** An info bar's hidden items, to add (R33): «+ Añadir dato (8)». */
+    addItem: (n: number) => `Añadir dato (${n})`,
+    addItemHelp: 'Elige el dato y a qué lado va',
+    /** One of its side buttons: 'Añadir SoF a la izquierda'. */
+    /** `side`: its side's name in lower case ('izquierda'). */
+    addTo: (item: string, side: string) => `Añadir ${item} a la ${side}`,
     /** A hidden item's side, after its name. */
     hiddenSide: { left: 'Izquierda', right: 'Derecha' },
     toLeft: (item: string) => `Pasar ${item} a la izquierda`,
@@ -1690,6 +1705,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
     loading: 'Loading settings…',
     footNote: 'Changes apply instantly and are saved automatically.',
     openFolder: 'Open settings folder'
+  },
+  search: {
+    placeholder: 'Search settings',
+    label: 'Search a setting on every page',
+    preparing: 'Getting the search ready…',
+    none: (q) => `No setting with “${q}”`,
+    page: 'Page'
   },
   status: {
     chipAria: (label) => `Status: ${label}. Show details`,
@@ -2695,6 +2717,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sideEmpty: 'Nothing on this side: drag an element here',
     hiddenGroup: (n) => `Hidden (${n})`,
     hiddenGroupHelp: 'Shown again, an element goes to the end of its side',
+    addItem: (n) => `Add a data item (${n})`,
+    addItemHelp: 'Pick the item and the side it goes on',
+    addTo: (item, side) => `Add ${item} on the ${side}`,
     hiddenSide: { left: 'Left', right: 'Right' },
     toLeft: (item) => `Move ${item} to the left`,
     toRight: (item) => `Move ${item} to the right`,

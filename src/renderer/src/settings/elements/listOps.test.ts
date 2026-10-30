@@ -22,6 +22,7 @@ import {
   movedPast,
   placeOfSlot,
   placedAt,
+  addedToSide,
   shownAtSideEnd,
   sides,
   toggled,
@@ -247,6 +248,16 @@ describe('places by neighbour, an info bar with its hidden items apart', () => {
       ['b', 'left', 1],
       ['d', 'right', 4]
     ])
+  })
+
+  it('adds a hidden item to the side you pick, at its end (R33)', () => {
+    const l = (['b', 'a', 'split', 'd', 'c'] as B[]).map((id) => ({
+      id,
+      visible: id !== 'b' && id !== 'd'
+    }))
+    expect(order(addedToSide(BAR, l, 'b', 'split', 'right'))).toBe('a split (d) c b')
+    expect(order(addedToSide(BAR, l, 'd', 'split', 'left'))).toBe('(b) a d split c')
+    expect(order(addedToSide(BAR, l, 'b', 'split', 'left'))).toBe('a b split (d) c')
   })
 
   it('shows a hidden item at the end of its side, the marker kept', () => {

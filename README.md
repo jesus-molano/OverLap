@@ -190,8 +190,9 @@ cada página hay una vista previa del widget sobre un fondo de circuito de noche
 por las opciones se pliega en una franja (o queda fija, o siempre en franja: **Al bajar**, en su
 pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
 derecha.
-La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
-coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
+Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
+lleva a él (abre su sección y lo señala). La barra lateral agrupa los widgets en **Pista y
+rivales**, **Tu vuelta** y **Estado del coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero una regla lo oculta ahora (el ratón encima dice cuál). El **chip de
 estado** de arriba dice qué está oculto y por qué; con un clic abre un panel con qué hacer,
 **Copiar diagnóstico** (para un informe de error, sin nombres) y **Abrir registro**.
@@ -216,7 +217,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   ven sus elementos; la opción de un elemento, en su fila).
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
-  quieras del mismo catálogo (título, sesión, tiempo restante, hora, SoF, coches, incidentes,
+  quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora, SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
   viento, aire, goma; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus

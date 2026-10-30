@@ -7,6 +7,7 @@ import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
 import StatusChip from '../StatusChip.vue'
+import SettingsSearch from '../search/SettingsSearch.vue'
 import { sendCommand } from '../editor'
 import { setWidgetVisible } from '../undo/restore'
 import { GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
@@ -66,6 +67,7 @@ function openSettingsFolder(): void {
       <h1 class="title">{{ t.settings.nav.title }}</h1>
       <StatusChip />
     </div>
+    <SettingsSearch class="side-search" />
 
     <nav class="nav" :aria-label="t.settings.nav.sections">
       <button
@@ -136,7 +138,7 @@ function openSettingsFolder(): void {
   top: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   height: 100vh;
   overflow-y: auto;
   padding: 18px 12px 14px;
@@ -160,6 +162,10 @@ function openSettingsFolder(): void {
   letter-spacing: 0.005em;
 }
 
+.side-search {
+  margin: -6px 0 -4px;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -167,7 +173,7 @@ function openSettingsFolder(): void {
 }
 
 .nav-group {
-  margin: 12px 8px 4px;
+  margin: 10px 8px 2px;
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
   font-size: 11px;
@@ -198,8 +204,8 @@ function openSettingsFolder(): void {
   align-items: center;
   gap: 10px;
   min-width: 0;
-  min-height: 34px;
-  padding: 6px 10px;
+  min-height: 32px;
+  padding: 5px 10px;
   border: 0;
   border-radius: var(--st-radius-sm);
   background: transparent;

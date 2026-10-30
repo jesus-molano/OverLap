@@ -36,6 +36,7 @@ import {
   movedTo,
   movedMessage,
   placeOfSlot,
+  addedToSide,
   placedAt,
   shownAtSideEnd,
   shownCount,
@@ -208,7 +209,10 @@ const boxes = computed<readonly Box[]>(() => {
   return [{ side: null, rows }]
 })
 
-/** An info bar's hidden items, under the boxes ("Ocultos (N)", closed until you open it). */
+/**
+ * An info bar's hidden items, under the boxes: «+ Añadir dato (N)» (R33), closed until you open
+ * it; each one goes to the side you pick.
+ */
 const hiddenRows = computed(() => bar.value?.hidden ?? [])
 const hiddenOpen = shallowRef(false)
 const hiddenListId = `${useId()}-hidden`
@@ -454,6 +458,22 @@ function moveTo(id: Id, index: number): void {
 }
 
 /** To the other side of the marker, at its nearest end. */
+/** A side's name in lower case, inside a sentence ('izquierda'). */
+const sideName = (side: Side): string =>
+  t.value.settings.elements.hiddenSide[side].toLocaleLowerCase()
+
+/** The two sides of an info bar, in their order on the line. */
+const SIDES: readonly Side[] = ['left', 'right']
+
+/** «+ Añadir dato» (R33): a hidden item of an info bar shown at the end of the side chosen. */
+function addTo(id: Id, side: Side): void {
+  if (props.split === undefined) return
+  const next = addedToSide(props.spec, current.value, id, props.split, side)
+  void send(next, { kind: 'visible', id, visible: true })
+  say(visibilityMessage(t.value, labelOf(id), true))
+  void refocusEye(id)
+}
+
 function moveAcross(id: Id): void {
   if (props.split === undefined) return
   const before = current.value
@@ -863,17 +883,15 @@ function onCancel(e: PointerEvent): void {
             :aria-controls="hiddenListId"
             @click="hiddenOpen = !hiddenOpen"
           >
-            <span class="ed-hidden-chev" aria-hidden="true"><Icon name="chevron" /></span>
-            <span class="ed-hidden-name">{{
-              t.settings.elements.hiddenGroup(hiddenRows.length)
-            }}</span>
-            <span class="ed-hidden-help">{{ t.settings.elements.hiddenGroupHelp }}</span>
+            <span class="ed-hidden-chev" aria-hidden="true"><Icon name="plus" /></span>
+            <span class="ed-hidden-name">{{ t.settings.elements.addItem(hiddenRows.length) }}</span>
+            <span class="ed-hidden-help">{{ t.settings.elements.addItemHelp }}</span>
           </button>
           <ul
             v-show="hiddenOpen"
             :id="hiddenListId"
             class="ed-list ed-hidden-list"
-            :aria-label="`${title}: ${t.settings.elements.hiddenGroup(hiddenRows.length)}`"
+            :aria-label="`${title}: ${t.settings.elements.addItem(hiddenRows.length)}`"
           >
             <li
               v-for="r in hiddenRows"
@@ -902,7 +920,20 @@ function onCancel(e: PointerEvent): void {
                   labels[r.entry.id]?.hint
                 }}</span>
               </span>
-              <span class="ed-tag ed-side-tag">{{ t.settings.elements.hiddenSide[r.side] }}</span>
+              <span class="ed-add-sides">
+                <button
+                  v-for="side in SIDES"
+                  :key="side"
+                  type="button"
+                  class="st-btn st-btn-sm ed-add"
+                  :class="{ 'is-own': side === r.side }"
+                  :aria-label="t.settings.elements.addTo(labelOf(r.entry.id), sideName(side))"
+                  @click="addTo(r.entry.id, side)"
+                >
+                  {{ side === 'left' ? '←' : '' }} {{ t.settings.elements.hiddenSide[side] }}
+                  {{ side === 'right' ? '→' : '' }}
+                </button>
+              </span>
             </li>
           </ul>
         </div>
@@ -1189,7 +1220,24 @@ function onCancel(e: PointerEvent): void {
 }
 
 .ed-hidden.is-open .ed-hidden-chev {
+  transform: rotate(45deg);
+}
+
+/* «+ Añadir dato»: the plus turns into a × while the list is open. */
+.ed-hidden-chev {
   transform: none;
+}
+
+.ed-add-sides {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+
+/* The side it was on: the first choice, raised. */
+.ed-add.is-own {
+  border-color: var(--st-border-strong);
+  color: var(--ov-fg);
 }
 
 @media (prefers-reduced-motion: no-preference) {

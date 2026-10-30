@@ -173,6 +173,34 @@ html.ov-settings .st-scroll:focus-visible {
   }
 }
 
+/*
+ * A search result shown on its page (R33, search/reveal.ts): an outline in the focus colour all
+ * round it that fades out (never a rail), none with reduced motion past the first moment.
+ */
+html.ov-settings .st-found {
+  outline: 2px solid var(--st-focus);
+  outline-offset: 2px;
+  border-radius: var(--st-radius-sm);
+  animation: st-found 1800ms ease-out 1 forwards;
+}
+
+@keyframes st-found {
+  0%,
+  60% {
+    outline-color: var(--st-focus);
+  }
+
+  100% {
+    outline-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ov-settings .st-found {
+    animation: none;
+  }
+}
+
 /* ---- Buttons ------------------------------------------------------------ */
 
 html.ov-settings .st-btn {
