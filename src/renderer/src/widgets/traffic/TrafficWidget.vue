@@ -27,7 +27,7 @@ import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles } from '@renderer/view/styles'
-import { PREVIEW_TRAFFIC, previewOptions } from './preview'
+import { previewOptions, previewTraffic, previewTrafficField } from './preview'
 import TrafficKindIcon from './TrafficKindIcon.vue'
 import {
   NO_DRIVER_EXTRAS,
@@ -86,7 +86,21 @@ const { data, phase } = useWidgetPhase(ID, {
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  () => PREVIEW_TRAFFIC
+  () => previewData.value
+)
+/**
+ * The sample: the look windows applied as the provider applies them, in the field the settings
+ * page's last change needs (previewTrafficField; the spread one in the overlay).
+ */
+const previewData = computed(() =>
+  previewTraffic(
+    {
+      behindS: options.value.behindS,
+      aheadS: options.value.aheadS,
+      hazardS: options.value.hazardS
+    },
+    previewTrafficField.value
+  )
 )
 
 /**
@@ -105,7 +119,7 @@ const slots = computed<readonly TrafficSlotView[]>((prev) => {
   const d = content.value
   if (d === null) return prev ?? NO_SLOTS
   const o =
-    d === PREVIEW_TRAFFIC
+    d === previewData.value
       ? previewOptions(viewOptions.value, elementOrder(options.value.groups))
       : viewOptions.value
   const b = block.value

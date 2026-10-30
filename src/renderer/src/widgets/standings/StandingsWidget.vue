@@ -46,7 +46,7 @@ import {
   type Chrome,
   type PlannedLine
 } from './layout'
-import { previewStandings } from './preview'
+import { previewField, previewStandings } from './preview'
 import StandingsCarCells from './StandingsCarCells.vue'
 import StandingsClassCells from './StandingsClassCells.vue'
 import StandingsHeads from './StandingsHeads.vue'
@@ -94,8 +94,9 @@ const body = computed<'table' | 'status' | 'empty' | 'none'>(() => {
 })
 const shown = computed(() => body.value !== 'none')
 
-// Built only in edit mode without data, so the sample costs nothing while racing.
-const preview = computed(() => previewStandings(opts.value))
+// Built only in edit mode without data, so the sample costs nothing while racing. The field is
+// the one the settings page's last change needs (previewField; the default in the overlay).
+const preview = computed(() => previewStandings(opts.value, previewField.value))
 /** What is drawn; while hidden, what was drawn last (it stays put through the fade-out). */
 const payload = computed<StandingsData | null>((prev) => {
   if (phase.value === 'live') return data.value

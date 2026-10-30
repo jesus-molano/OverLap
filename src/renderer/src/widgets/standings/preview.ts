@@ -8,6 +8,7 @@
  * show. A field of several makes (the LMP2s are all Dallaras), so the brand marks show in 'auto'
  * mode. Pure.
  */
+import { shallowRef } from 'vue'
 import type { BrandId } from '@shared/carBrands'
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
 import { PREVIEW_INFO } from '@renderer/view/infoBar'
@@ -26,6 +27,27 @@ export type PreviewOptions = Pick<
   StandingsOptions,
   'mode' | 'topRows' | 'aroundRows' | 'otherClassLeaders'
 >
+
+/**
+ * The field the settings page's sample draws, as the option you changed last needs it (as
+ * Delta's previewSession): `deep`, you further down your class (DEEP_POSITION), so the top rows
+ * and the rows around you are two blocks and each count shows (the default P5 makes them one);
+ * `singleClass`, your class alone, so the SoF and the car count go in the info bars (with
+ * several classes they are the class lines'). Per window: the overlay's edit mode keeps the
+ * default.
+ */
+export interface PreviewField {
+  readonly deep: boolean
+  readonly singleClass: boolean
+}
+export const PREVIEW_FIELD_DEFAULT: PreviewField = Object.freeze({
+  deep: false,
+  singleClass: false
+})
+export const previewField = shallowRef<PreviewField>(PREVIEW_FIELD_DEFAULT)
+
+/** Your class position in the `deep` field. */
+export const DEEP_POSITION = 10
 
 const LIC = {
   A: '#0153db',
@@ -441,6 +463,26 @@ const INFO: Readonly<InfoBarData> = Object.freeze({
 
 type DisplayRow = StandingsClassBlock['rows'][number]
 
+/**
+ * Your class with you at `at` (1-based): the drivers in the same order, you moved there; each
+ * place keeps its gaps (the table still reads leader to last), each driver the rest of his row.
+ */
+function withPlayerAt(rows: readonly StandingsRow[], at: number): StandingsRow[] {
+  const player = rows.find((r) => r.isPlayer)
+  if (player === undefined) return [...rows]
+  const order = rows.filter((r) => r !== player)
+  order.splice(Math.min(Math.max(at - 1, 0), order.length), 0, player)
+  return order.map((r, i) => ({
+    ...r,
+    classPosition: i + 1,
+    interval: rows[i]?.interval ?? null,
+    gapToLeader: rows[i]?.gapToLeader ?? null
+  }))
+}
+
+const GT3_DEEP = withPlayerAt(GT3_ROWS, DEEP_POSITION)
+const INFO_DEEP: Readonly<InfoBarData> = Object.freeze({ ...INFO, classPosition: DEEP_POSITION })
+
 /** Compact selection of the player's class: the top rows, then the rows around you. */
 function compactRows(rows: readonly StandingsRow[], top: number, around: number): DisplayRow[] {
   const p = rows.findIndex((r) => r.isPlayer)
@@ -455,16 +497,24 @@ function compactRows(rows: readonly StandingsRow[], top: number, around: number)
   return out
 }
 
-/** The sample payload for these options (a fresh object: the caller memoises). */
-export function previewStandings(o: PreviewOptions): StandingsData {
+/**
+ * The sample payload for these options (a fresh object: the caller memoises), in the default
+ * field or the one `field` asks for (previewField).
+ */
+export function previewStandings(
+  o: PreviewOptions,
+  field: PreviewField = PREVIEW_FIELD_DEFAULT
+): StandingsData {
   const full = o.mode === 'full'
   const top = clampOption(OPTION_SCHEMA.standings.topRows, o.topRows)
   const around = clampOption(OPTION_SCHEMA.standings.aroundRows, o.aroundRows)
   const classes: StandingsClassBlock[] = []
   for (const c of CLASSES) {
+    if (field.singleClass && !c.block.isPlayerClass) continue
+    const all = field.deep && c.block.isPlayerClass ? GT3_DEEP : c.rows
     let rows: DisplayRow[]
-    if (full) rows = c.rows.map((r) => ({ ...r, gapBefore: false }))
-    else if (c.block.isPlayerClass) rows = compactRows(c.rows, top, around)
+    if (full) rows = all.map((r) => ({ ...r, gapBefore: false }))
+    else if (c.block.isPlayerClass) rows = compactRows(all, top, around)
     else if (o.otherClassLeaders && c.rows[0]) rows = [{ ...c.rows[0], gapBefore: false }]
     else continue
     classes.push({ ...c.block, rows })
@@ -472,7 +522,7 @@ export function previewStandings(o: PreviewOptions): StandingsData {
   return {
     header: HEADER,
     classes,
-    info: INFO,
+    info: field.deep ? INFO_DEEP : INFO,
     multiBrand: true
   }
 }

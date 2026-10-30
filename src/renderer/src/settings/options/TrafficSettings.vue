@@ -8,7 +8,7 @@ import { behaviourNote } from '../controls/previewNote'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter } from '../editor'
+import { listSetter, optionSetter, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
@@ -16,6 +16,7 @@ import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import DriverSection from './DriverSection.vue'
 import { formatSeconds } from '../values'
+import { previewTrafficField, type TrafficPreviewField } from '../../widgets/traffic/preview'
 
 const opts = useOptions('traffic')
 const t = useI18n()
@@ -75,6 +76,21 @@ const parts = computed(() => ({
   title: zoneTitle(t.value, 'traffic', 'parts'),
   labels: elementTexts(t.value, 'traffic', 'parts')
 }))
+/**
+ * The sample draws the field the option changed last needs (previewTrafficField, as Delta's
+ * session): a look window, cars spread further away (a longer window brings them in); the count
+ * per group, five cars close by in each group. Said under Contenido.
+ */
+function withField<V>(field: TrafficPreviewField, apply: Setter<V>): Setter<V> {
+  return (v) => {
+    previewTrafficField.value = field
+    return apply(v)
+  }
+}
+const setBehind = withField('spread', set('behindS'))
+const setAhead = withField('spread', set('aheadS'))
+const setHazard = withField('spread', set('hazardS'))
+const setEntries = withField('busy', set('maxEntries'))
 const setGroups = listSetter('traffic', 'groups')
 const setParts = listSetter('traffic', 'parts')
 </script>
@@ -91,7 +107,7 @@ const setParts = listSetter('traffic', 'parts')
       :step="BEHIND.step"
       :format="BEHIND.format"
       :presets="BEHIND.presets"
-      :apply="set('behindS')"
+      :apply="setBehind"
     />
     <SliderControl
       v-if="showSlower"
@@ -103,7 +119,7 @@ const setParts = listSetter('traffic', 'parts')
       :step="AHEAD.step"
       :format="AHEAD.format"
       :presets="AHEAD.presets"
-      :apply="set('aheadS')"
+      :apply="setAhead"
     />
     <SliderControl
       v-if="showHazards"
@@ -115,7 +131,7 @@ const setParts = listSetter('traffic', 'parts')
       :step="HAZARD.step"
       :format="HAZARD.format"
       :presets="HAZARD.presets"
-      :apply="set('hazardS')"
+      :apply="setHazard"
     />
     <StepperControl
       v-if="!nothing"
@@ -124,8 +140,11 @@ const setParts = listSetter('traffic', 'parts')
       :current="opts.maxEntries"
       :min="ENTRIES.min"
       :max="ENTRIES.max"
-      :apply="set('maxEntries')"
+      :apply="setEntries"
     />
+    <p v-if="previewTrafficField === 'busy'" class="st-row st-help tr-sample-note">
+      {{ t.settings.traffic.previewBusy }}
+    </p>
     <ToggleControl
       v-if="!noClasses"
       kind="switch"
@@ -171,3 +190,9 @@ const setParts = listSetter('traffic', 'parts')
     <InfoBarEditor section="traffic" field="footerBar" />
   </CustomizeSection>
 </template>
+
+<style scoped>
+.tr-sample-note {
+  display: block;
+}
+</style>

@@ -11,6 +11,7 @@ import {
   useWidgetSettings
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
+import { injectSampleHost } from '@renderer/composables/widgetContext'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView, reuseViews } from '@renderer/view/reuse'
@@ -63,12 +64,26 @@ const shownFilter = computed<LightsFilter>((prev) => {
   if (phase.value === 'live') return filter.value
   return prev ?? filter.value
 })
+/**
+ * The settings page's sample with «Solo encendidos»: the unlit lights are drawn too, translucent,
+ * so their eye and their order show (over the game, and in its edit mode, they are left out).
+ */
+const inSample = injectSampleHost() !== null
+const unlitShown = computed(
+  () => inSample && phase.value === 'preview' && shownFilter.value.onlyWhenLit
+)
+const drawnFilter = computed<LightsFilter>((prev) =>
+  reuseView(
+    prev,
+    unlitShown.value ? { ...shownFilter.value, onlyWhenLit: false } : shownFilter.value
+  )
+)
 
 // Each light keeps its object while equal: a repair second re-renders that light alone.
 const lights = computed<readonly LightView[]>((prev) =>
   reuseViews(
     prev,
-    lightsView(content.value ?? { lights: [] }, shownFilter.value, appearance.value.units, t.value)
+    lightsView(content.value ?? { lights: [] }, drawnFilter.value, appearance.value.units, t.value)
   )
 )
 
@@ -109,7 +124,10 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           :key="light.kind"
           v-memo="[light]"
           class="wl-light"
-          :class="`wl-light--${light.level}`"
+          :class="[
+            `wl-light--${light.level}`,
+            { 'wl-light--unlit': unlitShown && light.level === 'off' }
+          ]"
           :data-el="`lights.icons.${light.kind}`"
         >
           <LightTile :icon="light.icon" :level="light.level" :label="light.label" />
@@ -185,6 +203,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 /* A reading sits close to its own light, so it never reads as the next one's. */
+/* The settings sample with «Solo encendidos»: an unlit light, as the preview's ghosts are drawn. */
+.wl-light--unlit {
+  opacity: 0.42;
+}
+
 .wl-light {
   display: flex;
   flex: none;
