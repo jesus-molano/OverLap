@@ -26,6 +26,7 @@ import ACCORDION from './AccordionSection.vue?raw'
 import SECTION from './CustomizeSection.vue?raw'
 import EDITOR from '../elements/ElementEditor.vue?raw'
 import NOTE from '../controls/PreviewNote.vue?raw'
+import HELP from '../controls/HelpText.vue?raw'
 
 type OpenList = ElementEntry<CustomizeZoneId>[]
 const sent: OpenList[] = []
@@ -153,6 +154,11 @@ const Section = compile(SECTION, 'CustomizeSection.vue', {
 /** What the page's sample has no room for (useNoRoom's stub reads it). */
 const noRoomEls = vue.shallowRef<ReadonlySet<string>>(new Set())
 const Note = compile(NOTE, 'PreviewNote.vue', { vue, '../../ui/Icon.vue': { default: Stub } })
+const Help = compile(HELP, 'HelpText.vue', {
+  vue,
+  '../../ui/Icon.vue': { default: Stub },
+  '../../composables/useI18n': { useI18n: () => t }
+})
 const Editor = compile(EDITOR, 'ElementEditor.vue', {
   vue,
   '../../composables/useI18n': { useI18n: () => t },
@@ -175,7 +181,8 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
           noRoomEls.value.has(el) ? { kind: 'room', text: 'No cabe a 460 px' } : undefined
       )
   },
-  '../controls/PreviewNote.vue': { default: Note }
+  '../controls/PreviewNote.vue': { default: Note },
+  '../controls/HelpText.vue': { default: Help }
 })
 
 function mount(render: () => vue.VNode): { root: TestNode; unmount: () => void } {

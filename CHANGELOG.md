@@ -190,6 +190,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Pedales, con la misma regla que los demás widgets**: lo que enciende o apaga una parte del
+  widget va en **Personalizar**, y en Contenido quedan solo los modos del volante (estilo, tamaño y
+  color). **Luces de cambio** es una fila con su ojo arriba de **Bloques** (la tira de arriba del
+  widget); las opciones de la **Traza** (segundos, grosor, embrague) se despliegan en su propia fila,
+  con su resumen en el botón («5 s · 2 px»); **Grados del volante** va en la fila **Volante** de
+  Datos, y los colores de los pedales, bajo la lista de Bloques. **Buscar ajuste** abre la fila
+  plegada donde está lo que buscas. Los valores no cambian.
+- **Una línea de ayuda por fila**: en Combustible (Consumo, Repostar y para meta, Ventana de boxes,
+  Ahorro, Neumáticos, Reparaciones rápidas, Menú de boxes) y en Testigos (Marcar tiempo del equipo,
+  Cuenta atrás real), la ayuda de cada fila cabe en una línea y el resto va tras su ⓘ, como en el
+  resto de los Ajustes.
 - **Las dos tablas, una sola regla para Posición y Piloto**: en **Relativo** y en **Posiciones**,
   **Posición** y **Piloto** van en el mismo bloque fijo al principio de la lista de columnas, con
   las mismas pistas («siempre al principio de la fila», «siempre tras la posición»): Piloto con su
