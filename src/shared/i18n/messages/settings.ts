@@ -415,6 +415,31 @@ export const settingsEs = {
         mono: { label: 'Monocromo', hint: 'Todas en el color del texto' }
       }
     },
+    /** Named looks at the top (R56), the controls below as the fine tuning. */
+    presets: {
+      title: 'Estilo',
+      help: 'Todo el aspecto de una vez; no cambia el acento, los daltónicos, el idioma ni las unidades',
+      choices: {
+        overlap: { label: 'OverLap', hint: 'El de serie: filas cómodas, logos y banderas' },
+        iracing: {
+          label: 'Como iRacing',
+          hint: 'Oscuro y apretado, nombre completo, licencia sólida, sin logos ni banderas'
+        },
+        clean: {
+          label: 'Limpio',
+          hint: 'Fondo más claro, sin franjas, logos ni banderas, licencia en letra'
+        },
+        compact: {
+          label: 'Compacto',
+          hint: 'Lo más posible en poco sitio: filas compactas, texto al 90 %, apellidos'
+        }
+      },
+      /** Under the cards, when the look matches none of them. */
+      custom: 'Personalizado: lo has ajustado a mano abajo',
+      fine: 'Ajuste fino',
+      /** The undo toast. */
+      applied: (name: string) => `Estilo «${name}» aplicado`
+    },
     other: {
       title: 'Otros',
       units: 'Unidades',
@@ -1698,7 +1723,7 @@ export const settingsEs = {
       /** After adding one: how to switch, with the shortcut when there is one. */
       added: (name: string, keys: string | null) =>
         keys === null
-          ? `«${name}» añadida. Cámbiate a ella desde la lista o la bandeja`
+          ? `«${name}» añadida. Cámbiate a ella desde la lista o la bandeja, o dale un atajo a «Siguiente disposición» en Atajos`
           : `«${name}» añadida. Alterna con «Siguiente disposición» (${keys}) o desde la bandeja`
     },
     saveTitle: 'Guardar la actual',
@@ -2097,6 +2122,28 @@ export const settingsEn: Dict<typeof settingsEs> = {
         color: { label: 'Colour', hint: 'Each make in its own colours: Ferrari yellow, BMW blue' },
         mono: { label: 'Monochrome', hint: 'All in the text colour' }
       }
+    },
+    presets: {
+      title: 'Style',
+      help: 'A whole look at once; the accent, colour-blind palette, language and units stay',
+      choices: {
+        overlap: { label: 'OverLap', hint: 'The default: comfortable rows, logos and flags' },
+        iracing: {
+          label: 'Like iRacing',
+          hint: 'Dark and tight, full names, solid licences, no logos or flags'
+        },
+        clean: {
+          label: 'Clean',
+          hint: 'Lighter background, no stripes, logos or flags, licence as a letter'
+        },
+        compact: {
+          label: 'Compact',
+          hint: 'The most in little room: compact rows, text at 90%, surnames'
+        }
+      },
+      custom: 'Custom: you tuned it by hand below',
+      fine: 'Fine tuning',
+      applied: (name) => `“${name}” style applied`
     },
     other: {
       title: 'Other',
@@ -3151,7 +3198,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       addLabel: (name) => `Add the example layout “${name}”`,
       added: (name, keys) =>
         keys === null
-          ? `“${name}” added. Switch to it from the list or the tray`
+          ? `“${name}” added. Switch to it from the list or the tray, or give “Next layout” a shortcut in Shortcuts`
           : `“${name}” added. Switch with “Next layout” (${keys}) or from the tray`
     },
     saveTitle: 'Save the current one',

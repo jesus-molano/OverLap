@@ -83,6 +83,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   aplicarla: «Ligera» muestra Relativo (con 2 coches delante y 2 detrás, o menos si ya tenías
   menos), Radar, Delta, Combustible y Avisos; «Completa», los diez widgets. Al añadirla, la página
   recuerda que alternas con el atajo **Siguiente disposición** (con sus teclas) o desde la bandeja.
+- **Estilos en Apariencia**: arriba, cuatro estilos con nombre ponen el aspecto entero de una vez:
+  **OverLap** (el de serie), **Como iRacing** (oscuro y apretado, nombre completo, licencia
+  sólida, sin logos ni banderas), **Limpio** (fondo más claro, sin franjas, logos ni banderas) y
+  **Compacto** (filas compactas, texto al 90 %, apellidos). Se marca el que coincide con lo que
+  tienes; si ajustas algo a mano dice «Personalizado». Debajo, los controles de siempre como
+  **Ajuste fino**. Elegir uno se deshace con **Deshacer**; no tocan el acento, la paleta para
+  daltónicos, el idioma ni las unidades, ni los widgets con valores propios.
 
 ### Cambiado
 
