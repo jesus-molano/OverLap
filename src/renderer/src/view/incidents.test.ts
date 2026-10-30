@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { NBSP } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
 import type { IncidentCount } from '@shared/types'
-import { INCIDENT_WARN_MARGIN, PREVIEW_INCIDENTS, toIncidentCountView } from './incidents'
+import {
+  INCIDENT_WARN_MARGIN,
+  PREVIEW_INCIDENTS,
+  incidentsLong,
+  toIncidentCountView
+} from './incidents'
 
 const ES = messagesFor('es')
 const EN = messagesFor('en')
@@ -21,6 +26,8 @@ describe('toIncidentCountView', () => {
       count: '11x',
       team: '',
       limit: '',
+      teamLong: '',
+      limitLong: '',
       tone: 'neutral'
     })
   })
@@ -31,6 +38,9 @@ describe('toIncidentCountView', () => {
       count: '3x',
       team: `eq.${NB}7x`,
       limit: `pen.${NB}a${NB}17x`,
+      // In full words where the header has room (R50).
+      teamLong: `equipo${NB}7x`,
+      limitLong: `penalización${NB}a${NB}17x`,
       tone: 'neutral'
     })
     expect(toIncidentCountView(c, EN)).toMatchObject({
@@ -65,5 +75,16 @@ describe('toIncidentCountView', () => {
       tone: 'neutral'
     })
     expect(toIncidentCountView(PREVIEW_INCIDENTS, EN)?.limit).toBe(`DQ${NB}at${NB}17x`)
+  })
+})
+
+describe('incidentsLong (R50)', () => {
+  it('goes to full words only with the room they add, and keeps them while nothing overflows', () => {
+    expect(incidentsLong(300, 60, false)).toBe(true)
+    expect(incidentsLong(40, 60, false)).toBe(false)
+    expect(incidentsLong(0, 60, true)).toBe(true)
+    expect(incidentsLong(-3, 60, true)).toBe(false)
+    // Nothing longer to draw.
+    expect(incidentsLong(300, 0, false)).toBe(false)
   })
 })

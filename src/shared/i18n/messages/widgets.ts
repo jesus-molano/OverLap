@@ -64,6 +64,9 @@ export const widgetsEs = {
     /** The session's next limit. */
     penaltyAt: (n: number) => `pen.${NB}a${NB}${n}x`,
     dqAt: (n: number) => `DQ${NB}a${NB}${n}x`,
+    /** The same in full words, drawn only where the header has room for them (R50). */
+    teamLong: (n: number) => `equipo${NB}${n}x`,
+    penaltyAtLong: (n: number) => `penalización${NB}a${NB}${n}x`,
     /** The points an incident added: '+2x'. */
     added: (n: number) => `+${n}x`,
     /** The lap it happened on ('V5'; the sector is common.sector). */
@@ -504,6 +507,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     team: (n) => `team${NB}${n}x`,
     penaltyAt: (n) => `pen.${NB}at${NB}${n}x`,
     dqAt: (n) => `DQ${NB}at${NB}${n}x`,
+    teamLong: (n) => `team${NB}${n}x`,
+    penaltyAtLong: (n) => `penalty${NB}at${NB}${n}x`,
     added: (n) => `+${n}x`,
     lap: (n) => `L${n}`,
     kinds: {
