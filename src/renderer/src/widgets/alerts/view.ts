@@ -56,6 +56,11 @@ export interface FlagView {
   readonly note: string
   /** Text of the small chip when the alert is not the main one. */
   readonly chip: string
+  /**
+   * The chip in full words ('PRESIÓN ACEITE' for 'P. ACEITE'), drawn while the chips row has room
+   * for every chip so (R50: AlertsWidget measures it); the label itself.
+   */
+  readonly chipLong: string
   readonly fill: AlertFill
   readonly ink: FlagInk
   readonly mark: FlagMark
@@ -143,6 +148,7 @@ function flagLike(
     short: w.short,
     note: w.note,
     chip: w.chip !== '' ? w.chip : w.label,
+    chipLong: w.label,
     fill,
     ink: INK[fill],
     mark,

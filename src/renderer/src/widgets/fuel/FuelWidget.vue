@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue'
 import { arrayEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useInfoBar } from '@renderer/composables/useInfoBar'
+import { useLongFits } from '@renderer/composables/useLongFits'
 import { useAppearance } from '@renderer/composables/useAppearance'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
@@ -169,6 +170,11 @@ const shown = useReveal(
 // It only exists once there are lines (and then keeps the last ones while hidden), so the first
 // height measured is the real one.
 const panel = useTemplateRef('panel')
+/**
+ * The limits line in full words ('Reparaciones rápidas', 'Juegos de neumáticos') while they fit
+ * its width (R50: a hidden copy measures it); otherwise the short words, as always.
+ */
+const limitsLong = useLongFits(useTemplateRef('limitsProbe'), useTemplateRef('limitsLine'))
 useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
 /** The window grows upwards: the panel hugs the bottom edge while the window waits to shrink. */
@@ -448,25 +454,47 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
       <div
         v-if="view.limits"
+        ref="limitsLine"
         v-inline-style="orderStyle(place.limits ?? 0)"
         data-el="fuel.lines.limits"
         class="fu-line"
       >
         <span v-if="view.limits.repairs" class="fu-count">
-          <span class="fu-label">{{ view.limits.repairs.label }}</span>
+          <span class="fu-label">{{
+            limitsLong ? view.limits.repairs.long : view.limits.repairs.label
+          }}</span>
           <span class="fu-num">{{ view.limits.repairs.value }}</span>
           <span v-if="view.limits.repairs.pips > 0" class="fu-pips" aria-hidden="true">
             <span v-for="k in view.limits.repairs.pips" :key="k" class="fu-pip" />
           </span>
         </span>
         <span v-if="view.limits.sets" class="fu-count fu-end">
-          <span class="fu-label">{{ view.limits.sets.label }}</span>
+          <span class="fu-label">{{
+            limitsLong ? view.limits.sets.long : view.limits.sets.label
+          }}</span>
           <span class="fu-num">{{ view.limits.sets.value }}</span>
           <span v-if="view.limits.sets.pips > 0" class="fu-pips" aria-hidden="true">
             <span v-for="k in view.limits.sets.pips" :key="k" class="fu-pip" />
           </span>
         </span>
         <PreviewTag v-if="tagLine === 'limits'" class="fu-tag" />
+        <!-- The same line in full words, unseen: measured to know whether they fit (R50). -->
+        <span ref="limitsProbe" class="fu-probe" aria-hidden="true">
+          <span
+            v-for="c in [view.limits.repairs, view.limits.sets]"
+            :key="c?.long"
+            class="fu-count"
+          >
+            <template v-if="c">
+              <span class="fu-label">{{ c.long }}</span>
+              <span class="fu-num">{{ c.value }}</span>
+              <span v-if="c.pips > 0" class="fu-pips">
+                <span v-for="k in c.pips" :key="k" class="fu-pip" />
+              </span>
+            </template>
+          </span>
+          <PreviewTag v-if="tagLine === 'limits'" class="fu-tag" />
+        </span>
       </div>
 
       <InfoBar
@@ -565,6 +593,19 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   overflow: hidden;
   white-space: nowrap;
   contain: strict;
+}
+
+/* A line in full words, laid out on one line and never seen or hit (R50: useLongFits). */
+.fu-probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .fu-end {

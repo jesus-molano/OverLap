@@ -208,6 +208,8 @@ export interface TyresView {
 export interface CountView extends ReadingView {
   /** One pip per unit left when there are at most MAX_PIPS, else 0. */
   readonly pips: number
+  /** The label in full words ('Reparaciones rápidas'), where the line has room (R50). */
+  readonly long: string
 }
 
 export interface LimitsView {
@@ -519,9 +521,9 @@ function tyresView(d: FuelData, m: Messages, sets: ReadingView | null): TyresVie
   }
 }
 
-function countOf(label: string, n: number | null, unit = ''): CountView | null {
+function countOf(label: string, n: number | null, long = label, unit = ''): CountView | null {
   if (n === null || !finite(n)) return null
-  return { label, value: String(n), unit, pips: n >= 0 && n <= MAX_PIPS ? n : 0 }
+  return { label, long, value: String(n), unit, pips: n >= 0 && n <= MAX_PIPS ? n : 0 }
 }
 
 /** What to draw. */
@@ -552,8 +554,8 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
   const setsCount = tyresDrawn ? null : d.tyreSets
   const limits = o.showLimits
     ? {
-        repairs: countOf(f.repairs, d.fastRepairs),
-        sets: countOf(f.sets, setsCount)
+        repairs: countOf(f.repairs, d.fastRepairs, f.repairsLong),
+        sets: countOf(f.sets, setsCount, f.setsLong)
       }
     : null
   return {

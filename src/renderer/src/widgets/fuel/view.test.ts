@@ -139,7 +139,13 @@ describe('fuelView', () => {
     })
     // The sets are the tyres line's: the limits keep the repairs.
     expect(v.limits).toEqual({
-      repairs: { label: 'Rep. rápidas', value: '1', unit: '', pips: 1 },
+      repairs: {
+        label: 'Rep. rápidas',
+        long: 'Reparaciones rápidas',
+        value: '1',
+        unit: '',
+        pips: 1
+      },
       sets: null
     })
   })
@@ -209,7 +215,13 @@ describe('fuelView', () => {
 
   it('says the sets in the limits line when the tyres line is off', () => {
     const v = fuelView(PREVIEW_FUEL, { ...ALL_ON, showTyres: false }, ES)
-    expect(v.limits?.sets).toEqual({ label: 'Juegos neum.', value: '2', unit: '', pips: 2 })
+    expect(v.limits?.sets).toEqual({
+      label: 'Juegos neum.',
+      long: 'Juegos de neumáticos',
+      value: '2',
+      unit: '',
+      pips: 2
+    })
     // Past MAX_PIPS a count is a figure alone.
     expect(fuelView(data({ fastRepairs: 9 }), ALL_ON, ES).limits?.repairs?.pips).toBe(0)
   })
@@ -383,7 +395,13 @@ describe('fuelView', () => {
     const noTyres = { ...ALL_ON, showTyres: false }
     expect(fuelView(data({ fastRepairs: null }), noTyres, ES).limits).toEqual({
       repairs: null,
-      sets: { label: 'Juegos neum.', value: '2', unit: '', pips: 2 }
+      sets: {
+        label: 'Juegos neum.',
+        long: 'Juegos de neumáticos',
+        value: '2',
+        unit: '',
+        pips: 2
+      }
     })
   })
 
