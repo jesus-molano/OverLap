@@ -38,7 +38,8 @@ html.ov-osd #app {
   font-size: 19px;
   font-weight: 600;
   line-height: 1.25;
-  white-space: nowrap;
+  /* One line in both languages (osdFit.test.ts); a long name goes to a second, balanced one. */
+  text-wrap: balance;
 }
 
 .osd-detail {

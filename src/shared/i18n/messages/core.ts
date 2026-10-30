@@ -106,10 +106,14 @@ export const coreEs = {
     undo: (what: string) => `Deshacer: ${what}`,
     /** Edit mode's last change (R38), for «Deshacer: …» and the Ctrl+Z notice. */
     editStep: {
-      rect: (widget: string) => `mover ${widget}`,
-      scale: (widget: string) => `escala de ${widget}`,
-      visible: (widget: string) => `mostrar u ocultar ${widget}`,
-      locked: (widget: string) => `bloquear ${widget}`
+      move: (widget: string) => `mover ${widget}`,
+      /** A change of its width or height (its edges, Ctrl and the arrows). */
+      resize: (widget: string) => `cambiar el tamaño de ${widget}`,
+      scale: (widget: string) => `cambiar la escala de ${widget}`,
+      show: (widget: string) => `mostrar ${widget}`,
+      hide: (widget: string) => `ocultar ${widget}`,
+      lock: (widget: string) => `bloquear ${widget}`,
+      unlock: (widget: string) => `desbloquear ${widget}`
     },
     /** Checked while the overlay is shown (the user's own hide, as the shortcut). */
     showOverlay: 'Mostrar el overlay',
@@ -165,7 +169,7 @@ export const coreEs = {
     widgetShown: (name: string) => `Visible: ${name}`,
     widgetHidden: (name: string) => `Oculto: ${name}`,
     /** Shown, but the overlay is hidden by you: nothing appears yet. */
-    widgetHeldByYou: 'El overlay está oculto: muéstralo con su atajo o desde la bandeja',
+    widgetHeldByYou: 'Overlay oculto: muéstralo con su atajo o la bandeja',
     /** The tray's «Traer todos los widgets a esta pantalla» (R51), on the screen they came to. */
     gathered: (n: number) => (n === 1 ? '1 widget traído aquí' : `${n} widgets traídos aquí`),
     gatheredDetail: 'Deshacer, en la bandeja',
@@ -174,12 +178,12 @@ export const coreEs = {
     autoOn: '«Según el coche» activado',
     linked: (car: string, layout: string) => `${car} → «${layout}»`,
     /** An arrow in edit mode with no widget touched yet (R38). */
-    nudgeNone: 'Arrastra o toca un widget primero, o pulsa Tab para elegirlo',
+    nudgeNone: 'Primero elige un widget: arrástralo o pulsa Tab',
     nudgeNoneDetail: 'Luego, las flechas lo mueven 1 px (Mayús: 10) y Ctrl con ellas, su tamaño',
     /** Tab in edit mode (R38): the widget the arrows move now. */
     picked: (widget: string) => `Flechas: ${widget}`,
     pickedDetail: 'Tab: el siguiente · Mayús+Tab: el anterior · Ctrl+Z: deshacer',
-    pickedNone: 'Ningún widget se puede mover: están ocultos o bloqueados',
+    pickedNone: 'Nada que mover: todos ocultos o bloqueados',
     /** Ctrl+Z in edit mode: what came back ('Relativo: posición y tamaño'). */
     editUndone: (what: string) => `Deshecho: ${what}`,
     editUndoNone: 'Nada que deshacer en este modo edición'
@@ -336,10 +340,13 @@ export const coreEn: Dict<typeof coreEs> = {
     gatherWidgets: 'Bring every widget to this screen',
     undo: (what) => `Undo: ${what}`,
     editStep: {
-      rect: (widget) => `move ${widget}`,
-      scale: (widget) => `${widget} scale`,
-      visible: (widget) => `show or hide ${widget}`,
-      locked: (widget) => `lock ${widget}`
+      move: (widget) => `move ${widget}`,
+      resize: (widget) => `resize ${widget}`,
+      scale: (widget) => `change the scale of ${widget}`,
+      show: (widget) => `show ${widget}`,
+      hide: (widget) => `hide ${widget}`,
+      lock: (widget) => `lock ${widget}`,
+      unlock: (widget) => `unlock ${widget}`
     },
     showOverlay: 'Show the overlay',
     openSettingsFolder: 'Open settings folder',
@@ -373,7 +380,7 @@ export const coreEn: Dict<typeof coreEs> = {
     layoutOnlyOneDetail: 'Save another in Settings › Layouts',
     widgetShown: (name) => `${name} shown`,
     widgetHidden: (name) => `${name} hidden`,
-    widgetHeldByYou: 'The overlay is hidden: show it with its shortcut or from the tray',
+    widgetHeldByYou: 'Overlay hidden: show it with its shortcut or the tray',
     gathered: (n) => (n === 1 ? '1 widget brought here' : `${n} widgets brought here`),
     gatheredDetail: 'Undo it from the tray',
     gatheredNone: 'They were all on this screen already',

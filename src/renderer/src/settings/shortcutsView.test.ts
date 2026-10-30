@@ -161,14 +161,14 @@ describe('sidebarKeys', () => {
     expect(sidebarKeys(es, defaults)).toEqual([
       { id: 'toggleEditMode', keys: 'Ctrl+Mayús+E', label: 'modo edición', button: false },
       { id: 'toggleOverlay', keys: 'Ctrl+Mayús+H', label: 'mostrar u ocultar', button: false },
-      { id: 'exit', keys: 'Esc', label: 'salir de edición', button: false }
+      { id: 'exit', keys: 'Esc', label: 'salir del modo edición', button: false }
     ])
   })
 
   it('leaves a turned-off shortcut out', () => {
     expect(sidebarKeys(en, B(custom))).toEqual([
       { id: 'toggleOverlay', keys: 'Ctrl+Alt+PgDn', label: 'show or hide', button: false },
-      { id: 'exit', keys: 'Esc', label: 'leave editing', button: false }
+      { id: 'exit', keys: 'Esc', label: 'exit edit mode', button: false }
     ])
   })
 
