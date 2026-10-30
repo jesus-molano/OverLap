@@ -195,14 +195,14 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   max-width: 100%;
-  padding: 3px 10px;
+  padding: 3px 12px;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface);
   color: var(--ov-fg);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.4;
   text-align: left;
   cursor: pointer;
@@ -228,7 +228,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
 .sub {
   color: var(--ov-fg-muted);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
 }
 
 /* Grey until there is something to say: the accent means you, never a state. */
@@ -270,7 +270,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
   inset: auto;
   width: min(340px, calc(100vw - 16px));
   margin: 0;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border: 1px solid var(--st-border-strong);
   border-radius: var(--st-radius);
   background: var(--st-surface-hi);
@@ -278,7 +278,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
     var(--st-lit),
     0 0 0 1px rgb(0 0 0 / 35%);
   color: var(--ov-fg);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   line-height: 1.45;
 }
 
@@ -286,7 +286,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
   margin-bottom: 8px;
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -300,7 +300,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 .block.row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .block.row .line {
@@ -308,9 +308,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 }
 
 .block-title {
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   font-weight: var(--ov-w-strong);
 }
 
@@ -318,7 +318,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
+  gap: 4px 8px;
 }
 
 .strong {
@@ -331,21 +331,21 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
 .help {
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .list {
   margin: 4px 0 0;
   padding-left: 16px;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--st-border);
 }
 </style>

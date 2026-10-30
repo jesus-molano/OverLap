@@ -213,7 +213,7 @@ function openLog(): void {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding-top: 22px;
+  padding-top: 24px;
 }
 
 .topbar {
@@ -221,12 +221,12 @@ function openLog(): void {
 }
 
 .banner {
-  margin-bottom: 14px;
-  padding: 9px 12px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
   border: 1px solid color-mix(in srgb, var(--ov-edit) 45%, transparent);
   border-radius: var(--st-radius);
   background: color-mix(in srgb, var(--ov-edit) 10%, var(--st-bg));
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   line-height: 1.5;
 }
 
@@ -248,7 +248,7 @@ function openLog(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 14px;
+  gap: 4px 16px;
 }
 
 .edit-key {

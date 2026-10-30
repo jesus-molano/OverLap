@@ -211,9 +211,9 @@ function remove(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px 12px;
   min-height: 52px;
-  padding: 8px 0 8px 10px;
+  padding: 8px 0 8px 12px;
 }
 
 .item + .item {
@@ -276,26 +276,26 @@ function remove(): void {
 
 .car-tag {
   max-width: 16em;
-  padding: 0 7px;
+  padding: 0 8px;
   overflow: hidden;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
   color: var(--ov-fg-muted);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
   line-height: 1.6;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .tag {
-  margin-right: 6px;
-  padding: 1px 6px;
+  margin-right: 8px;
+  padding: 1px 8px;
   border-radius: var(--ov-radius-chip);
   background: var(--ov-accent);
   color: var(--ov-accent-fg);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-solid);
   letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
@@ -312,7 +312,7 @@ function remove(): void {
   display: flex;
   flex: 1 1 14em;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   padding-right: 8px;
 }
@@ -321,7 +321,7 @@ function remove(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
+  gap: 8px 12px;
 }
 
 .name-field {

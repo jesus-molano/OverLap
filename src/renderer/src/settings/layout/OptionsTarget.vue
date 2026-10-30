@@ -92,9 +92,9 @@ function toAll(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 14px;
-  margin-bottom: 14px;
-  padding: 10px 12px;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+  padding: 12px 12px;
   border: 1px solid color-mix(in srgb, var(--tg-tone) 22%, var(--st-border));
   border-radius: var(--st-radius);
   background:
@@ -114,7 +114,7 @@ function toAll(): void {
   flex: none;
   align-self: flex-start;
   margin-top: 2px;
-  font-size: 18px;
+  font-size: var(--st-t-title);
   color: var(--ov-fg);
 }
 
@@ -128,7 +128,7 @@ function toAll(): void {
 }
 
 .label {
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -137,7 +137,7 @@ function toAll(): void {
 
 .name {
   overflow: hidden;
-  font-size: 14px;
+  font-size: var(--st-t-body);
   font-weight: var(--ov-w-strong);
   text-overflow: ellipsis;
   white-space: nowrap;

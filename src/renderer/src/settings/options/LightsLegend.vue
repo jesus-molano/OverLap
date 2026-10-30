@@ -100,7 +100,7 @@ const rows = computed<readonly Row[]>(() => {
 .looks {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px 16px;
+  gap: 12px 16px;
   margin: 0;
   padding: 12px 0;
   list-style: none;
@@ -109,7 +109,7 @@ const rows = computed<readonly Row[]>(() => {
 .look {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -123,13 +123,13 @@ const rows = computed<readonly Row[]>(() => {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-top: 1px solid var(--st-border);
 }
 
 /* The lights at the size of the page's text, a little larger than over the game. */
 .tile {
-  font-size: 15px;
+  font-size: var(--st-t-body);
 }
 
 .entry-text {
@@ -142,7 +142,7 @@ const rows = computed<readonly Row[]>(() => {
 /* What to do: the line to remember, in the page's own text colour. */
 .action {
   color: var(--ov-fg);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
   line-height: 1.4;
 }
 </style>

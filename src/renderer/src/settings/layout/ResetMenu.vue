@@ -69,7 +69,7 @@ function onFocusOut(e: FocusEvent): void {
 }
 
 .reset-toggle {
-  gap: 6px;
+  gap: 8px;
 }
 
 .reset-list {
@@ -92,7 +92,7 @@ function onFocusOut(e: FocusEvent): void {
   flex-direction: column;
   gap: 1px;
   width: 100%;
-  padding: 7px 10px;
+  padding: 8px 12px;
   border: 0;
   border-radius: var(--st-radius-sm);
   background: transparent;
@@ -109,19 +109,19 @@ function onFocusOut(e: FocusEvent): void {
 
 .reset-label {
   color: var(--ov-fg);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .reset-desc {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.35;
 }
 
 .reset-note {
-  padding: 6px 10px 4px;
+  padding: 8px 12px 4px;
   border-top: 1px solid var(--st-border);
   color: var(--ov-fg-dim);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
 }
 </style>

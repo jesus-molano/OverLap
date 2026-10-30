@@ -116,6 +116,25 @@ export const ICONS = {
   'arrow-up': [{ d: 'M8 3.5l5.5 7h-11z' }],
   /** Losing / down. */
   'arrow-down': [{ d: 'M8 12.5l-5.5-7h11z' }],
+  /** More information behind a help line (R55: instead of the ⓘ character). */
+  info: [
+    { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },
+    { d: 'M8 7.25v4', kind: 'stroke' },
+    { d: 'M8 4.1a.95.95 0 1 1 0 1.9.95.95 0 0 1 0-1.9z' }
+  ],
+  /** A drag handle: two columns of three dots. */
+  grip: [
+    {
+      d: 'M5.5 2.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM10.5 2.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM5.5 6.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM10.5 6.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM5.5 11a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM10.5 11a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z'
+    }
+  ],
+  /** Move one place up / down / to the other side (a list's arrows). */
+  'step-up': [{ d: 'M8 13V3.5M4 7.5l4-4 4 4', kind: 'stroke' }],
+  'step-down': [{ d: 'M8 3v9.5M4 8.5l4 4 4-4', kind: 'stroke' }],
+  'step-left': [{ d: 'M13 8H3.5M7.5 4l-4 4 4 4', kind: 'stroke' }],
+  'step-right': [{ d: 'M3 8h9.5M8.5 4l4 4-4 4', kind: 'stroke' }],
+  /** Either side (an info bar's two sides). */
+  'swap-h': [{ d: 'M2.5 8h11M5.5 5l-3 3 3 3M10.5 5l3 3-3 3', kind: 'stroke' }],
   /** An accordion's header: open below (turned upside down while open). */
   chevron: [{ d: 'M4 6l4 4 4-4', kind: 'stroke' }],
   /** Time remaining. */

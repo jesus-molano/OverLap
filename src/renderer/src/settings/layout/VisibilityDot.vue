@@ -63,7 +63,7 @@ const label = computed(() => t.value.settings.visibility.label(props.title))
   border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-dim);
-  font-size: 14px;
+  font-size: var(--st-t-body);
   cursor: pointer;
 }
 

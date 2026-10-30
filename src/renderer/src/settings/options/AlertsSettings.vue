@@ -184,7 +184,7 @@ function lightBox(id: AlertKey): { on: boolean; set: (on: boolean) => Promise<vo
 <style scoped>
 /* The one list inside its accordion, inset as every zone's list is (ElementEditor .ed). */
 .al-list {
-  padding: 12px 14px 10px;
+  padding: 12px 16px 12px;
 }
 
 /* No frame of its own inside the accordion: one card, as every zone. */

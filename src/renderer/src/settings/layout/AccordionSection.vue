@@ -74,7 +74,7 @@ const bodyId = `${id}-body`
   gap: 12px;
   width: 100%;
   min-height: 44px;
-  padding: 8px 12px 8px 14px;
+  padding: 8px 12px 8px 16px;
   border: 0;
   border-radius: calc(var(--st-radius) - 1px);
   background: transparent;
@@ -101,14 +101,14 @@ const bodyId = `${id}-body`
 .acc-title {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: var(--st-t-ui);
   font-weight: var(--ov-w-strong);
 }
 
 .acc-summary {
   flex: none;
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   font-variant-numeric: tabular-nums;
 }
 
@@ -116,7 +116,7 @@ const bodyId = `${id}-body`
   display: inline-flex;
   flex: none;
   color: var(--ov-fg-muted);
-  font-size: 16px;
+  font-size: var(--st-t-title);
   transition: transform 160ms ease;
 }
 

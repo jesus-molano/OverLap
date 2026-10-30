@@ -40,6 +40,6 @@ const navigate = useNavigate()
 }
 
 .sib-go {
-  gap: 6px;
+  gap: 8px;
 }
 </style>

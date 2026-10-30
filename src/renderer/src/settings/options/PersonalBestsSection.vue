@@ -137,13 +137,13 @@ function removeCurrent(): void {
 <style scoped>
 /* «AHORA» is you (the car you are driving now), so it keeps the accent: a solid tag. */
 .now {
-  margin-right: 6px;
-  padding: 1px 6px;
+  margin-right: 8px;
+  padding: 1px 8px;
   border-radius: var(--ov-radius-chip);
   background: var(--ov-accent);
   color: var(--ov-accent-fg);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-solid);
   letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
@@ -169,7 +169,7 @@ function removeCurrent(): void {
   align-items: center;
   gap: 12px;
   min-height: 48px;
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 .item + .item {
@@ -178,7 +178,7 @@ function removeCurrent(): void {
 
 /* Your current car's record: the accent rail, as your row in the widgets. */
 .item.is-now {
-  padding-left: 10px;
+  padding-left: 12px;
   box-shadow: inset var(--ov-bar-w) 0 0 var(--ov-accent);
 }
 

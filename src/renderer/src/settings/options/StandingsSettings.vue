@@ -215,7 +215,7 @@ const fixed = computed(() => fixedColumns(t.value))
 }
 
 .compact-body > :deep(.st-row) {
-  padding: 7px 0;
+  padding: 8px 0;
 }
 
 .compact-body > * + * {

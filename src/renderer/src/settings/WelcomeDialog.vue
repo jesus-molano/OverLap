@@ -253,7 +253,7 @@ const noneId = useId()
   gap: 12px;
   width: min(560px, 100%);
   max-height: calc(100vh - 32px);
-  padding: 22px 24px 18px;
+  padding: 24px 24px 16px;
   overflow-y: auto;
   border: 1px solid var(--st-border-strong);
   border-radius: var(--st-radius);
@@ -266,7 +266,7 @@ const noneId = useId()
 .wl-steps {
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -274,7 +274,7 @@ const noneId = useId()
 
 .wl-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
@@ -285,11 +285,11 @@ const noneId = useId()
 
 .wl-text {
   color: var(--ov-fg-muted);
-  font-size: 13.5px;
+  font-size: var(--st-t-ui);
 }
 
 .wl-card {
-  padding: 0 14px;
+  padding: 0 16px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -304,9 +304,9 @@ const noneId = useId()
 .wl-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -316,7 +316,7 @@ const noneId = useId()
   padding: 0 4px;
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -324,25 +324,25 @@ const noneId = useId()
 
 .wl-widget {
   align-items: center;
-  font-size: 13.5px;
+  font-size: var(--st-t-ui);
 }
 
 .wl-points {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
-  padding-left: 18px;
-  font-size: 13.5px;
+  padding-left: 16px;
+  font-size: var(--st-t-ui);
 }
 
 .wl-keys {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 6px 12px;
+  gap: 8px 12px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .wl-keys dd {
@@ -355,7 +355,7 @@ const noneId = useId()
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -369,7 +369,7 @@ const noneId = useId()
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .wl-gap {

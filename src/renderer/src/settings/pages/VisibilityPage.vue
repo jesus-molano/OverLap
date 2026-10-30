@@ -255,8 +255,8 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px 20px;
-  margin-bottom: 14px;
+  gap: 8px 24px;
+  margin-bottom: 16px;
 }
 
 .page-titles {
@@ -268,7 +268,7 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
@@ -276,7 +276,7 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
 .page-sub {
   max-width: 46em;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 /* The table scrolls sideways in its own box in a narrow window; the page never does. */
@@ -288,20 +288,20 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
   width: 100%;
   min-width: 600px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .vm th,
 .vm td {
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-bottom: 1px solid var(--st-border);
 }
 
 .vm thead th {
-  padding-block: 10px 8px;
+  padding-block: 12px 8px;
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   line-height: 1.25;
@@ -319,9 +319,9 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
 }
 
 .vm-group th {
-  padding: 12px 6px 4px;
+  padding: 12px 8px 4px;
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   font-weight: var(--ov-w-strong);
   text-align: left;
 }
@@ -336,7 +336,7 @@ const raceOnly = computed(() => visibility.value.showWhen === 'race')
   align-items: center;
   gap: 8px;
   min-height: 30px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border: 0;
   border-radius: var(--st-radius-sm);
   background: transparent;

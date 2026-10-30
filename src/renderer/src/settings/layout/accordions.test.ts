@@ -144,6 +144,7 @@ const Section = compile(SECTION, 'CustomizeSection.vue', {
   './zonesOpen': zonesOpen,
   '@shared/i18n': i18n,
   './ResetIcon.vue': { default: Stub },
+  '../../ui/Icon.vue': { default: Stub },
   '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
   '../../composables/useI18n': { useI18n: () => t }
 })
