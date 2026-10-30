@@ -9,7 +9,8 @@ guardar una disposición distinta para cada coche.
   [Privacidad y anti-cheat](#privacidad-y-anti-cheat)).
 - Los widgets van en ventanas transparentes, siempre encima, que nunca cogen el foco y dejan pasar
   los clics al juego.
-- En español (por defecto) o en inglés.
+- En español o en inglés: la primera vez, en el idioma de Windows (si no es ninguno de los dos, en
+  inglés).
 
 ![Relativo, delta, radar, testigos y posiciones de OverLap](docs/screenshots/overlap.png)
 
@@ -182,10 +183,10 @@ vuelta. Por defecto, solo en carrera. Opcionales: cabecera y pie con datos de la
 
 ## Ajustes y personalización
 
-La primera vez, OverLap abre los Ajustes con una **bienvenida** de tres pasos: idioma y unidades,
-qué widgets usar (seis marcados de inicio) y dónde está todo, con **Probar con datos de ejemplo**
-para ver los widgets en tu pantalla y colocarlos. Windows avisa de que OverLap queda en la
-bandeja.
+La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
+una **bienvenida** de tres pasos: idioma y unidades, qué widgets usar (seis marcados de inicio, al
+menos uno) y dónde está todo, con **Probar con datos de ejemplo** para ver los widgets en tu
+pantalla y colocarlos. Windows avisa de que OverLap queda en la bandeja.
 
 ![Ajustes: página del Relativo](docs/screenshots/ajustes-relativo.png)
 

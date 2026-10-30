@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WIDGET_IDS } from '@shared/widgets'
-import { WELCOME_STEPS, WELCOME_WIDGETS, welcomeWidgetsPatch } from './welcome'
+import { WELCOME_STEPS, WELCOME_WIDGETS, welcomeCanGoOn, welcomeWidgetsPatch } from './welcome'
 
 describe('welcome (R07)', () => {
   it('starts with the core widgets ticked, not all ten', () => {
@@ -15,5 +15,12 @@ describe('welcome (R07)', () => {
     expect(patch.widgets?.relative).toEqual({ visible: true })
     expect(patch.widgets?.radar).toEqual({ visible: true })
     expect(patch.widgets?.fuel).toEqual({ visible: false })
+  })
+
+  it('does not go on from the widgets step with none ticked', () => {
+    expect(welcomeCanGoOn('widgets', new Set())).toBe(false)
+    expect(welcomeCanGoOn('widgets', new Set(['fuel']))).toBe(true)
+    expect(welcomeCanGoOn('start', new Set())).toBe(true)
+    expect(welcomeCanGoOn('where', new Set())).toBe(true)
   })
 })
