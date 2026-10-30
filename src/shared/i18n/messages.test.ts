@@ -145,6 +145,8 @@ const SAME_IN_ENGLISH = new Set([
   'core.widgetTitles.radar',
   // The app's own look, by its name.
   'settings.appearance.presets.choices.overlap.label',
+  // A widget's name and what changes in it, both already translated.
+  'settings.appearance.presets.confirm.widgetLine',
   'settings.about.app.title',
   'core.widgetTitles.delta',
   'core.tray.widgetHidden',

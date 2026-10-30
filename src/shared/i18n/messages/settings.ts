@@ -568,19 +568,56 @@ export const settingsEs = {
       title: 'Estilo',
       help: 'Todo a la vez; no toca acento, Accesibilidad, etiqueta SIM, idioma ni unidades',
       choices: {
-        overlap: { label: 'OverLap', hint: 'El de serie: filas cómodas, logos y banderas' },
-        iracing: {
-          label: 'Como iRacing',
-          hint: 'Oscuro y apretado, nombre completo, licencia sólida, sin logos ni banderas'
+        overlap: {
+          label: 'OverLap',
+          hint: 'El de serie: fondo al 80 %, filas cómodas, logos y banderas'
         },
         clean: {
           label: 'Limpio',
-          hint: 'Fondo más transparente, sin filas alternas, logos ni banderas, número en franja, licencia solo letra'
+          hint: 'Sin fondo, solo el texto con su contorno: sin filas alternas, logos ni banderas, número en franja, licencia solo letra'
         },
         compact: {
           label: 'Compacto',
-          hint: 'Lo más posible en poco sitio: filas compactas, texto al 90 %, apellidos'
+          hint: 'Pequeño y legible: filas compactas, texto al 85 %, apellidos, sin logos ni banderas de país'
+        },
+        complete: {
+          label: 'Completo',
+          hint: 'Todo a la vista: cada columna, dato y barra de los diez widgets, logos siempre, fondo al 90 %'
         }
+      },
+      /**
+       * Before a style changes what you set yourself (the look tuned by hand, the widgets'
+       * contents): what changes, old → new, and where it is kept.
+       */
+      confirm: {
+        title: (name: string) => `¿Aplicar el estilo ${name}?`,
+        intro: 'Esto cambiará de lo que tienes ahora:',
+        look: 'Aspecto de todos los widgets',
+        contents: 'Lo que muestra cada widget',
+        /** One widget's line: 'Posiciones: se muestran 5 columnas más, 1 barra de información más'. */
+        widgetLine: (widget: string, what: string) => `${widget}: ${what}`,
+        /** Read between a value before and after (the arrow between them is an icon). */
+        to: 'a',
+        columns: (n: number) =>
+          n === 1 ? 'se muestra 1 columna más' : `se muestran ${n} columnas más`,
+        elements: (n: number) => (n === 1 ? '1 elemento más' : `${n} elementos más`),
+        bars: (n: number) =>
+          n === 1 ? '1 barra de información más' : `${n} barras de información más`,
+        barItems: (n: number) =>
+          n === 1 ? '1 dato más en sus barras' : `${n} datos más en sus barras`,
+        options: (n: number) => (n === 1 ? '1 opción más activada' : `${n} opciones más activadas`),
+        /** A free-size widget (Relativo, Delta) grows instead of shrinking its text. */
+        grows: 'ventana más grande para que el texto no encoja',
+        /** The rest of a long list, folded. */
+        more: (n: number) => (n === 1 ? 'Y 1 cambio más' : `Y ${n} cambios más`),
+        less: 'Ver menos',
+        /** Where it is kept: the global look, and the widgets' contents of the layout in use. */
+        lookWhere: 'el aspecto global',
+        contentsWhere: (name: string) =>
+          `el aspecto global y el contenido de los widgets en «${name}»`,
+        contentsShared: 'el aspecto global y el contenido de los widgets en las opciones comunes',
+        apply: 'Aplicar',
+        cancel: 'Cancelar'
       },
       /** Under the cards, when the look matches none of them. */
       custom: 'Personalizado: lo has ajustado a mano abajo',
@@ -2430,19 +2467,43 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'Style',
       help: 'A whole look at once; the accent, Accessibility, SIM tag, language and units stay',
       choices: {
-        overlap: { label: 'OverLap', hint: 'The default: comfortable rows, logos and flags' },
-        iracing: {
-          label: 'Like iRacing',
-          hint: 'Dark and tight, full names, solid licences, no logos or flags'
+        overlap: {
+          label: 'OverLap',
+          hint: 'The default: background at 80%, comfortable rows, logos and flags'
         },
         clean: {
           label: 'Clean',
-          hint: 'More see-through background, no alternating rows, logos or flags, number as a stripe, licence letter only'
+          hint: 'No background, only the text and its outline: no alternating rows, logos or flags, number as a stripe, licence letter only'
         },
         compact: {
           label: 'Compact',
-          hint: 'The most in little room: compact rows, text at 90%, surnames'
+          hint: 'Small and legible: compact rows, text at 85%, surnames, no logos or country flags'
+        },
+        complete: {
+          label: 'Complete',
+          hint: 'Everything in view: every column, datum and bar of the ten widgets, logos always, background at 90%'
         }
+      },
+      confirm: {
+        title: (name) => `Apply the ${name} style?`,
+        intro: 'This will change what you have now:',
+        look: 'Look of every widget',
+        contents: 'What each widget shows',
+        widgetLine: (widget, what) => `${widget}: ${what}`,
+        to: 'to',
+        columns: (n) => (n === 1 ? '1 more column shown' : `${n} more columns shown`),
+        elements: (n) => (n === 1 ? '1 more element' : `${n} more elements`),
+        bars: (n) => (n === 1 ? '1 more info bar' : `${n} more info bars`),
+        barItems: (n) => (n === 1 ? '1 more datum in its bars' : `${n} more data in its bars`),
+        options: (n) => (n === 1 ? '1 more option on' : `${n} more options on`),
+        grows: 'a bigger window so its text keeps its size',
+        more: (n) => (n === 1 ? 'And 1 more change' : `And ${n} more changes`),
+        less: 'Show less',
+        lookWhere: 'the global look',
+        contentsWhere: (name) => `the global look and the widgets’ contents in “${name}”`,
+        contentsShared: 'the global look and the widgets’ contents in the shared options',
+        apply: 'Apply',
+        cancel: 'Cancel'
       },
       custom: 'Custom: you tuned it by hand below',
       fine: 'Fine tuning',

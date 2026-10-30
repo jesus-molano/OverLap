@@ -1,52 +1,143 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, shallowRef, useId, useTemplateRef } from 'vue'
 import {
   APPEARANCE_PRESETS,
   matchingPreset,
-  presetFieldsOf,
-  presetValues,
-  type AppearancePreset
+  planStyle,
+  setsContents,
+  undoPatch,
+  type AppearancePreset,
+  type StylePlan
 } from '@shared/appearancePresets'
-import { useAppearance } from '../../composables/useAppearance'
+import { DEFAULT_SETTINGS, applySettingsPatch } from '@shared/settings'
+import type { Rect } from '@shared/types'
+import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
+import { useOverlayState } from '../../composables/useOverlay'
 import Icon from '../../ui/Icon.vue'
-import { updateSettings } from '../editor'
+import ConfirmDialog from '../ConfirmDialog.vue'
+import { sendCommand, updateSettings } from '../editor'
+import { foldGroups, styleChangeGroups, styleWhere } from '../styleChanges'
+import { freeGrowth } from '../styleGrowth'
 import { offerRestore } from '../undo/restore'
 
 /**
- * Apariencia's named looks (R56): one radio card each, the one the look matches checked; none
- * when it was tuned by hand («Personalizado»). Choosing one sets the global look at once, with
- * "Deshacer" (the look as it was). The controls below are the fine tuning.
+ * Apariencia's named styles (R56): one radio card each, the one the settings match checked; none
+ * when tuned by hand («Personalizado»). Choosing one that would change what you set yourself (the
+ * look tuned by hand, or the widgets' contents with «Completo») first says what changes and where
+ * (ConfirmDialog); otherwise it applies at once. Either way "Deshacer" puts it all back.
  */
-const appearance = useAppearance()
 const t = useI18n()
+const { settings } = useOverlayState()
 const id = useId()
 const titleId = `${id}-title`
 const helpId = `${id}-help`
+const group = useTemplateRef<HTMLElement>('group')
 
-const current = computed(() => matchingPreset(appearance.value))
-const cards = computed(() =>
-  APPEARANCE_PRESETS.map((p) => ({ id: p, ...t.value.settings.appearance.presets.choices[p] }))
+const now = computed(() => settings.value ?? DEFAULT_SETTINGS)
+const current = computed(() => matchingPreset(now.value))
+const text = computed(() => t.value.settings.appearance.presets)
+const cards = computed(() => APPEARANCE_PRESETS.map((p) => ({ id: p, ...text.value.choices[p] })))
+
+/** The style waiting for «Aplicar», with what it changes and the free windows that grow. */
+const asking = shallowRef<{
+  id: AppearancePreset
+  plan: StylePlan
+  grown: readonly WidgetId[]
+} | null>(null)
+const expanded = shallowRef(false)
+const card = shallowRef<HTMLElement | null>(null)
+
+const groups = computed(() =>
+  asking.value === null
+    ? []
+    : styleChangeGroups(t.value, asking.value.plan.changes, asking.value.grown)
+)
+const folded = computed(() =>
+  expanded.value ? { groups: groups.value, hidden: 0 } : foldGroups(groups.value)
+)
+const where = computed(() =>
+  asking.value === null
+    ? ''
+    : styleWhere(t.value, now.value.savedLayouts, setsContents(asking.value.id))
 )
 
-function choose(p: AppearancePreset): void {
-  if (current.value === p) return
-  const before = presetFieldsOf(appearance.value)
-  void updateSettings({ appearance: presetValues(p) })
+/**
+ * Applies `plan`, then grows the free windows its contents need (styleGrowth), with one
+ * "Deshacer" for all of it: the settings first (which also puts back a window the text size
+ * scaled), then each grown window as it was.
+ */
+async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
+  const before = now.value
+  const back = undoPatch(before, plan.patch)
+  const sizes = new Map<WidgetId, Rect>()
   offerRestore(
     (m) => m.settings.appearance.presets.applied(m.settings.appearance.presets.choices[p].label),
-    () => void updateSettings({ appearance: before })
+    async () => {
+      await updateSettings(back)
+      for (const [id, bounds] of sizes) {
+        sendCommand({ type: 'set-widget-bounds', widgetId: id, bounds })
+      }
+    }
   )
+  await updateSettings(plan.patch)
+  if (!setsContents(p)) return
+  for (const [id, bounds] of Object.entries(freeGrowth(before, now.value))) {
+    const widgetId = id as WidgetId
+    sizes.set(widgetId, { ...before.widgets[widgetId].bounds })
+    sendCommand({ type: 'set-widget-bounds', widgetId, bounds })
+  }
+}
+
+/** The free windows that would grow with `plan` (said in the confirmation). */
+function growing(plan: StylePlan): WidgetId[] {
+  return Object.keys(freeGrowth(now.value, applySettingsPatch(now.value, plan.patch))) as WidgetId[]
+}
+
+/** The radios back to what the settings are (a cancelled choice left its own checked). */
+function syncRadios(): void {
+  for (const input of group.value?.querySelectorAll<HTMLInputElement>('.card-input') ?? []) {
+    input.checked = input.value === current.value
+  }
+}
+
+function choose(p: AppearancePreset, e: Event): void {
+  const plan = planStyle(now.value, p)
+  if (Object.keys(plan.patch).length === 0) return
+  if (!plan.confirm) {
+    void apply(p, plan)
+    return
+  }
+  card.value = e.target instanceof HTMLElement ? e.target : null
+  expanded.value = false
+  asking.value = { id: p, plan, grown: setsContents(p) ? growing(plan) : [] }
+}
+
+function confirmApply(): void {
+  const a = asking.value
+  asking.value = null
+  if (a !== null) void apply(a.id, a.plan)
+}
+
+function cancel(): void {
+  asking.value = null
+  syncRadios()
 }
 </script>
 
 <template>
   <section class="st-section presets" :aria-labelledby="titleId">
     <div class="st-section-head">
-      <h2 :id="titleId" class="st-section-title">{{ t.settings.appearance.presets.title }}</h2>
-      <span :id="helpId" class="st-section-note">{{ t.settings.appearance.presets.help }}</span>
+      <h2 :id="titleId" class="st-section-title">{{ text.title }}</h2>
+      <span :id="helpId" class="st-section-note">{{ text.help }}</span>
     </div>
-    <div class="cards" role="radiogroup" :aria-labelledby="titleId" :aria-describedby="helpId">
+    <div
+      ref="group"
+      class="cards"
+      role="radiogroup"
+      :aria-labelledby="titleId"
+      :aria-describedby="helpId"
+    >
       <label v-for="c in cards" :key="c.id" class="card">
         <input
           type="radio"
@@ -54,7 +145,7 @@ function choose(p: AppearancePreset): void {
           :name="id"
           :value="c.id"
           :checked="current === c.id"
-          @change="choose(c.id)"
+          @change="choose(c.id, $event)"
         />
         <span class="card-head">
           <span class="card-name">{{ c.label }}</span>
@@ -64,9 +155,49 @@ function choose(p: AppearancePreset): void {
       </label>
     </div>
     <p class="st-help custom" role="status">
-      {{ current === null ? t.settings.appearance.presets.custom : '' }}
+      {{ current === null ? text.custom : '' }}
     </p>
-    <h2 class="st-section-title fine">{{ t.settings.appearance.presets.fine }}</h2>
+    <h2 class="st-section-title fine">{{ text.fine }}</h2>
+
+    <ConfirmDialog
+      v-if="asking"
+      :title="text.confirm.title(text.choices[asking.id].label)"
+      :apply-label="text.confirm.apply"
+      :cancel-label="text.confirm.cancel"
+      :return-focus="card"
+      @apply="confirmApply"
+      @cancel="cancel"
+    >
+      <p class="cd-intro">{{ text.confirm.intro }}</p>
+      <div v-for="g in folded.groups" :key="g.title" class="cd-group">
+        <h3 class="cd-group-title">{{ g.title }}</h3>
+        <ul class="cd-lines">
+          <li v-for="(line, i) in g.lines" :key="i">
+            <template v-if="line.to !== undefined">
+              {{ line.text }}: {{ line.from }}
+              <Icon name="step-right" class="cd-to" />
+              <span class="st-sr-only">{{ text.confirm.to }}</span>
+              {{ line.to }}
+            </template>
+            <template v-else>{{ line.text }}</template>
+          </li>
+        </ul>
+      </div>
+      <button
+        v-if="folded.hidden > 0 || expanded"
+        type="button"
+        class="st-btn st-btn-ghost st-btn-sm cd-more"
+        :aria-expanded="expanded"
+        @click="expanded = !expanded"
+      >
+        {{ expanded ? text.confirm.less : text.confirm.more(folded.hidden) }}
+      </button>
+      <p class="cd-where">
+        <Icon name="save" class="cd-where-icon" />
+        <span class="cd-where-label">{{ t.settings.widgetPage.target.savingIn }}</span>
+        <span>{{ where }}</span>
+      </p>
+    </ConfirmDialog>
   </section>
 </template>
 
@@ -147,5 +278,65 @@ function choose(p: AppearancePreset): void {
 
 .fine {
   margin-top: 16px;
+}
+
+/* The dialog's body: slot content, so these scoped rules reach it through the teleport. */
+.cd-intro {
+  color: var(--ov-fg-muted);
+}
+
+.cd-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cd-group-title {
+  color: var(--ov-fg-dim);
+  font-family: var(--ov-font-small);
+  font-size: var(--st-t-caption);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+}
+
+.cd-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.cd-to {
+  color: var(--ov-fg-dim);
+  vertical-align: -0.125em;
+}
+
+.cd-more {
+  align-self: flex-start;
+}
+
+.cd-where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--st-border);
+  color: var(--ov-fg-muted);
+}
+
+.cd-where-icon {
+  color: var(--ov-fg-dim);
+}
+
+.cd-where-label {
+  color: var(--ov-fg-dim);
+  font-family: var(--ov-font-small);
+  font-size: var(--st-t-caption);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
 }
 </style>
