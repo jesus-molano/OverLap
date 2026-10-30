@@ -7,9 +7,35 @@ export interface EditFocus {
   n: number
 }
 
-const focus = shallowRef<EditFocus | null>(null)
+/** How long a widget stays pointed out: the ring's three pulses (EditFrame, 3 × 700 ms). */
+export const EDIT_FOCUS_MS = 2_100
+
+/**
+ * The widget pointed out by «Editar posición» (R25), for a moment only: it goes after
+ * EDIT_FOCUS_MS (with reduced motion too, where the ring does not pulse) and as soon as edit
+ * mode ends, so entering edit mode again later (the shortcut, the tray) points nothing out.
+ */
+export class EditFocusState {
+  readonly focus: ShallowRef<EditFocus | null> = shallowRef(null)
+  private count = 0
+  private timer: ReturnType<typeof setTimeout> | undefined
+
+  point(widget: WidgetId): void {
+    this.count++
+    this.focus.value = { widget, n: this.count }
+    clearTimeout(this.timer)
+    this.timer = setTimeout(() => this.clear(), EDIT_FOCUS_MS)
+  }
+
+  clear(): void {
+    clearTimeout(this.timer)
+    this.timer = undefined
+    if (this.focus.value !== null) this.focus.value = null
+  }
+}
+
+const state = new EditFocusState()
 let started = false
-let count = 0
 
 /**
  * «Editar posición» on a widget's page (R25): main enters edit mode and names the widget; its
@@ -18,10 +44,12 @@ let count = 0
 export function useEditFocus(): Readonly<ShallowRef<EditFocus | null>> {
   if (!started) {
     started = true
-    window.overlay.onEditFocus((widget) => {
-      count++
-      focus.value = { widget, n: count }
-    })
+    window.overlay.onEditFocus((widget) => state.point(widget))
   }
-  return focus
+  return state.focus
+}
+
+/** Edit mode ended: nothing stays pointed out for the next time. */
+export function clearEditFocus(): void {
+  state.clear()
 }

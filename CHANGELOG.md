@@ -37,8 +37,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   si fue desde la bandeja), y desde la bandeja también lo dice un aviso sobre esa pantalla. Durante
   un minuto se deshace desde la página o con **Deshacer: …** en la bandeja.
 - **«Editar posición» en cada widget, y ⚙ en su etiqueta**: junto a «Visible», un botón entra en
-  el modo edición y señala ese widget sobre el juego con un borde que parpadea; si ya editas, lo
-  vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el
+  el modo edición y señala ese widget sobre el juego con un borde que parpadea tres veces (con
+  movimiento reducido, fijo durante ese rato) y se va; si ya editas, lo vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el
   candado, un **⚙** que abre su página de ajustes. El aviso del modo edición en los Ajustes es una
   línea de teclas (`Arrastra` mover · `Bordes` ancho · `Rueda` escala · `Alt` sin imán · `Esc`
   salir) con un botón **Salir**, en vez de dos líneas de texto.
