@@ -532,7 +532,11 @@ describe('the element lists from the options they replaced (v2.6)', () => {
   it('a file that has the list keeps it: the old fields are ignored', () => {
     const columns = [{ id: 'gap', visible: true }]
     const s = normalizeSettings({ relative: { columns, showClassPosition: true } })
-    expect(s.relative.columns[0]).toEqual({ id: 'gap', visible: true })
+    // The flags' column (2.4) goes in hidden, before the list's own entries here.
+    expect(s.relative.columns.filter((e) => e.id !== 'flags')[0]).toEqual({
+      id: 'gap',
+      visible: true
+    })
     expect(s.relative.columns.find((e) => e.id === 'pos')?.visible).toBe(false)
   })
 })
@@ -669,13 +673,23 @@ describe('migrateRelativeColumns (R10)', () => {
 
   it('gives an untouched list today’s default (iRating before the licence)', () => {
     const s = normalizeSettings({ relative: { columns: L('pos driver lic ir -tyre -stint gap') } })
-    expect(s.relative.columns.map((e) => e.id).slice(0, 4)).toEqual(['pos', 'driver', 'ir', 'lic'])
+    expect(s.relative.columns.map((e) => e.id).slice(0, 5)).toEqual([
+      'pos',
+      'driver',
+      'flags',
+      'ir',
+      'lic'
+    ])
   })
 
   it('keeps a list of its own, the new PIT column hidden at its end', () => {
     const own = L('pos driver lic ir tyre -stint gap')
     const s = normalizeSettings({ relative: { columns: own } })
-    expect(s.relative.columns).toEqual([...own, { id: 'pit', visible: false }])
+    // The flags' column (2.4) hidden after the name.
+    expect(s.relative.columns).toEqual([
+      ...L('pos driver -flags lic ir tyre -stint gap'),
+      { id: 'pit', visible: false }
+    ])
   })
 
   it('gives each saved layout its own columns, never the options in effect', () => {
@@ -699,17 +713,25 @@ describe('migrateRelativeColumns (R10)', () => {
     expect(ids(lb?.options?.sections.relative.columns)).toEqual(
       ids(OPTION_SCHEMA.relative.columns.default)
     )
-    expect(ids(s.relative.columns)).toEqual([...ids(custom), '-pit'])
+    expect(ids(s.relative.columns)).toEqual([
+      'gap',
+      'driver',
+      '-flags',
+      ...ids(custom).slice(2),
+      '-pit'
+    ])
   })
 
   it('puts the gap before the pit, stint and tyre of an untouched list, as the standings', () => {
     const s = normalizeSettings({
       relative: { columns: L('pos driver ir lic -pit -tyre -stint gap') }
     })
-    expect(s.relative.columns).toEqual(L('pos driver ir lic gap -pit -stint -tyre'))
-    // One with a column shown keeps its order (it is what it draws).
+    expect(s.relative.columns).toEqual(L('pos driver -flags ir lic gap -pit -stint -tyre'))
+    // One with a column shown keeps its order (it is what it draws), the flags' added hidden.
     const own = L('pos driver ir lic -pit tyre -stint gap')
-    expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(own)
+    expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(
+      L('pos driver -flags ir lic -pit tyre -stint gap')
+    )
     // An old file's switches too: its tyre stays before the gap.
     const old = normalizeSettings({ version: 4, relative: { showTyre: true } }).relative.columns
     expect(old.filter((e) => e.visible).map((e) => e.id)).toEqual([
@@ -736,6 +758,47 @@ describe('migrateRelativeColumns (R10)', () => {
     }) as Record<string, unknown>
     expect(out.carsAhead).toBe(2)
     expect(out.columns).toEqual(OPTION_SCHEMA.relative.columns.default)
+  })
+})
+
+describe('the penalty flags’ column (2.4)', () => {
+  it('goes into a saved list hidden, right after the name, so nothing moves', () => {
+    const s = normalizeSettings({
+      version: 5,
+      standings: {
+        columns: [
+          { id: 'gap', visible: true },
+          { id: 'gained', visible: true }
+        ]
+      },
+      relative: {
+        columns: [
+          { id: 'driver', visible: true },
+          { id: 'gap', visible: true }
+        ]
+      },
+      traffic: {
+        parts: [
+          { id: 'icon', visible: true },
+          { id: 'driver', visible: true },
+          { id: 'value', visible: true }
+        ]
+      }
+    })
+    const ids = (l: readonly { id: string; visible: boolean }[]): string[] =>
+      l.map((e) => `${e.visible ? '' : '-'}${e.id}`)
+    expect(ids(s.standings.columns).slice(0, 3)).toEqual(['-flags', 'gap', 'gained'])
+    expect(ids(s.relative.columns).slice(0, 3)).toEqual(['driver', '-flags', 'gap'])
+    expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', '-flags', 'value'])
+  })
+
+  it('keeps a list that already has it as it is', () => {
+    const columns = [
+      { id: 'gap', visible: true },
+      { id: 'flags', visible: true }
+    ]
+    const s = normalizeSettings({ version: 5, standings: { columns } })
+    expect(s.standings.columns.slice(0, 2)).toEqual(columns)
   })
 })
 

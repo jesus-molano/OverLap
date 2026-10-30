@@ -242,14 +242,15 @@ describe('relativeColumns', () => {
   })
 
   it('follows the list’s order after the position and the driver, which always start the row', () => {
-    // [pos driver ir lic gap pit stint tyre] → [gap ir pos driver lic pit stint tyre]
-    let list = moveElement(DEF, 4, 0)
-    list = moveElement(list, 3, 1)
+    // [pos driver flags ir lic gap pit stint tyre] → [gap ir pos driver flags lic pit stint tyre]
+    let list = moveElement(DEF, 5, 0)
+    list = moveElement(list, 4, 1)
     expect(list.map((e) => e.id)).toEqual([
       'gap',
       'ir',
       'pos',
       'driver',
+      'flags',
       'lic',
       'pit',
       'stint',
@@ -260,6 +261,27 @@ describe('relativeColumns', () => {
     expect(c.cells).toEqual(['pos', 'driver', 'gap', 'ir', 'lic'])
     expect(c.template).toBe('1.9em minmax(0, 1fr) 3.1em 2.4em 2.8em')
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
+  })
+
+  it('draws the penalty flags in their own column when shown, else after the name', () => {
+    // Hidden by default: after the name, as before the column existed.
+    const off = relativeColumns(DEF, plain)
+    expect(off.cells).not.toContain('flags')
+    expect(off.flags).toBe(true)
+    const shown = setElementVisible(DEF, 'flags', true)
+    const on = relativeColumns(shown, plain)
+    expect(on.cells).toEqual(['pos', 'driver', 'flags', 'ir', 'lic', 'gap'])
+    expect(on.flags).toBe(false)
+    expect(on.template).toBe('1.9em minmax(0, 1fr) 1.3em 2.4em 2.8em 3.1em')
+    expect(on.fitEm).toBeGreaterThan(off.fitEm)
+    expect(on.key).not.toBe(off.key)
+    // The «Piloto» block's switch off: no flags anywhere, nor their column.
+    const none = relativeColumns(shown, { ...plain, flags: false })
+    expect(none.cells).not.toContain('flags')
+    expect(none.flags).toBe(false)
+    // Moved like any column.
+    const moved = relativeColumns(moveElement(shown, 2, 8), plain)
+    expect(moved.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'flags'])
   })
 
   it('hides the gap like any column, as the standings do (R10)', () => {

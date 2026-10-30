@@ -139,6 +139,8 @@ export function toSlotViews(
 /** Column widths (em of the row font). The driver cell takes the rest. */
 export const RELATIVE_COL_EM = {
   pos: 1.9,
+  // One flag badge, centred (as the tyre's ring).
+  flags: 1.3,
   lic: 2.8,
   ir: 2.4,
   pit: 2.6,
@@ -159,7 +161,7 @@ export const FLAG_FIT_EM = Math.ceil((1.5 * 1.15 + CELL_GAP_EM) * 100) / 100
 export interface RelativeColumns {
   /** The cells a row draws, in the list's order (the driver cell always among them). */
   cells: readonly RelativeColumnId[]
-  /** Penalty flag badges after the name. */
+  /** Penalty flag badges after the name: on, and without their own column (the `flags` cell). */
   flags: boolean
   /**
    * The PIT / tow badge after the name: the PIT column is hidden (as the standings put it
@@ -205,6 +207,8 @@ export function relativeColumns(
   const cells: RelativeColumnId[] = []
   for (const id of visibleIds(pinFirst(list, RELATIVE_PINNED_COLUMNS))) {
     if (id === 'tyre' && !x.tyres) continue
+    // The flags' column only while the «Piloto» block draws them.
+    if (id === 'flags' && !x.flags) continue
     if (!cells.includes(id)) cells.push(id)
   }
   // The driver is required: a list main normalised always has it; a missing one goes where it is
@@ -219,11 +223,12 @@ export function relativeColumns(
   if (cells.includes('tyre')) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
+  if (cells.includes('flags')) fitEm += RELATIVE_COL_EM.flags + COL_GAP_EM
   if (x.brand) fitEm += BRAND_FIT_EM
   if (x.country) fitEm += FLAG_FIT_EM
   return {
     cells,
-    flags: x.flags,
+    flags: x.flags && !cells.includes('flags'),
     pitInline: !cells.includes('pit'),
     brand: x.brand,
     country: x.country,

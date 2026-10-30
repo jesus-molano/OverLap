@@ -7,6 +7,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Añadido
+
+- **Las banderas de penalización, en su propia columna**: Relativo y Posiciones tienen una columna
+  **Banderas** (y Tráfico una parte **Banderas**) que se muestra, se oculta y se ordena como las
+  demás. Una regla en los cuatro widgets del bloque «Piloto»: su fila «Banderas de penalización»
+  decide si salen; la columna, dónde. Oculta (de serie, también al actualizar), van tras el nombre
+  como hasta ahora; si la ventana se estrecha, la columna es la primera en irse y las banderas
+  vuelven tras el nombre. Batalla, sin columnas, las sigue llevando tras el nombre. «Completo» no
+  la enciende: no añade nada que no se vea ya. **Puestos ganados** ya era una columna
+  independiente que se ordena como las demás (solo sale en carrera, donde existe el dato).
+
 ## [2.3.1] - 2026-10-30
 
 ### Corregido

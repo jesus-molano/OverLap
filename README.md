@@ -86,7 +86,7 @@ el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo r
 defecto en Posiciones, y aquí con un clic en su cabecera.
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
-Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), banderas de penalización tras el nombre, títulos de
+Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), banderas de penalización (tras el nombre o en su columna «Banderas»), títulos de
 columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
 juego, SR proyectado, condiciones de pista…).
 
@@ -104,7 +104,8 @@ solo cuando no hay nadie cerca.
 <img src="docs/screenshots/clasificacion.png" alt="Posiciones" width="540">
 
 Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o completo. Columnas que
-se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados, iRating,
+se ordenan arrastrando y se esconden solas si la ventana se estrecha: banderas de penalización
+(oculta de serie: las banderas van tras el nombre), puestos ganados (solo en carrera), iRating,
 licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la
 más rápida de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de
 sesión y tus incidentes; pie con las condiciones de pista (temperatura y su tendencia, agua y
@@ -294,7 +295,10 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   tamaños). Al pie, dos botones llevan a **Tamaño del texto** y **Contorno del texto**.
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
   de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,
-  banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio.
+  banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio. Las
+  banderas de penalización salen o no según su fila; dónde, lo decide la columna «Banderas» de
+  Relativo y Posiciones (y la parte «Banderas» de Tráfico): oculta, tras el nombre; visible, en su
+  sitio de la lista, que se ordena como las demás. Batalla, sin columnas, las lleva tras el nombre.
 - **Récords personales**: la lista por coche y trazado, con borrar uno, el actual o todos.
 
 ## Modo edición

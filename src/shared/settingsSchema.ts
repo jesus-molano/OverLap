@@ -261,6 +261,8 @@ function barSize(def: InfoBarSize): EnumSpec<InfoBarSize> {
 
 /** Right-hand standings columns in their default order. */
 export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
+  // The penalty flags first: turned on, they land right after the name, where they were.
+  'flags',
   'gained',
   'ir',
   'lic',
@@ -282,6 +284,9 @@ export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
 export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'pos',
   'driver',
+  // The penalty flags in a column of their own, right after the name as the standings' (hidden:
+  // they stay after the name, as the PIT badge without its column).
+  'flags',
   // iRating then licence, as in the standings and the battle (R10).
   'ir',
   'lic',
@@ -482,7 +487,7 @@ export const OPTION_SCHEMA = {
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
-      hidden: ['pit', 'tyre', 'stint'],
+      hidden: ['flags', 'pit', 'tyre', 'stint'],
       // The driver only, as in the standings (R10): «Hueco» can be hidden in both tables.
       required: ['driver'],
       displayOnly: true
@@ -536,7 +541,7 @@ export const OPTION_SCHEMA = {
     // Not display-only: the provider may skip what no visible column shows. The best lap is the
     // extra most asked for; stint, last stop and tyre are for longer races.
     columns: elements(STANDINGS_COLUMN_IDS, {
-      hidden: ['delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
+      hidden: ['flags', 'delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
     }),
     // The row's fixed start, hidden as the relative's position can be (R10).
     showPosition: { kind: 'bool', default: true, displayOnly: true },
@@ -663,10 +668,15 @@ export const OPTION_SCHEMA = {
     maxEntries: { kind: 'int', min: 1, max: 5, default: 3 },
     // Top to bottom as on track: what is ahead of you first, the faster cars behind last.
     groups: elements(idsOf<TrafficGroupId>()(['hazard', 'slower', 'faster'])),
-    parts: elements(idsOf<TrafficPartId>()(['icon', 'cls', 'driver', 'lead', 'value', 'sector']), {
-      required: ['driver', 'value'],
-      displayOnly: true
-    }),
+    // The penalty flags as the tables' «Banderas» column: hidden, after the name.
+    parts: elements(
+      idsOf<TrafficPartId>()(['icon', 'cls', 'driver', 'flags', 'lead', 'value', 'sector']),
+      {
+        hidden: ['flags'],
+        required: ['driver', 'value'],
+        displayOnly: true
+      }
+    ),
     // Shown, as the title band it replaced (its old `header` list gives the switch: migrate.ts).
     headerBar: infoBar(['title', 'split']),
     headerBarSize: barSize('normal'),

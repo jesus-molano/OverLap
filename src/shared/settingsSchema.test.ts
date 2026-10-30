@@ -95,9 +95,9 @@ describe('OPTION_SCHEMA', () => {
     const hidden = OPTION_SCHEMA.standings.columns.default
       .filter((c) => !c.visible)
       .map((c) => c.id)
-    expect(hidden).toEqual(['delta', 'gapLeader', 'pitLap', 'stint', 'tyre'])
+    expect(hidden).toEqual(['flags', 'delta', 'gapLeader', 'pitLap', 'stint', 'tyre'])
     // The best lap goes right after the last one, the stint extras after the pit column.
-    expect(STANDINGS_COLUMN_IDS.slice(6)).toEqual([
+    expect(STANDINGS_COLUMN_IDS.slice(7)).toEqual([
       'last',
       'best',
       'pit',
@@ -217,7 +217,8 @@ describe('element lists (v2.6)', () => {
     const spec = OPTION_SCHEMA.standings.columns
     expect(spec.kind).toBe('elements')
     expect(spec.ids).toEqual([...STANDINGS_COLUMN_IDS])
-    expect(spec.default[0]).toEqual({ id: 'gained', visible: true })
+    expect(spec.default[0]).toEqual({ id: 'flags', visible: false })
+    expect(spec.default[1]).toEqual({ id: 'gained', visible: true })
     expect(spec.fixedOrder).toBe(false)
   })
 
@@ -247,13 +248,15 @@ describe('element lists (v2.6)', () => {
     const hidden = (spec: ElementsSpec): string[] =>
       spec.default.filter((e) => !e.visible).map((e) => e.id)
     // The PIT column (R10) hidden: its badge goes after the name, as before.
-    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['pit', 'stint', 'tyre'])
+    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['flags', 'pit', 'stint', 'tyre'])
     expect(hidden(OPTION_SCHEMA.battle.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.laps)).toEqual(['pb'])
     expect(hidden(OPTION_SCHEMA.lights.icons)).toEqual(['pitLimiter', 'revLimiter'])
     // R30: fewer figures for a new install (a file's list stays: migrate.ts).
     expect(hidden(OPTION_SCHEMA.fuel.lines)).toEqual(['tyres', 'limits'])
+    // The penalty flags' cell, as the tables' column: hidden, the flags after the name.
+    expect(hidden(OPTION_SCHEMA.traffic.parts)).toEqual(['flags'])
     for (const spec of [
       OPTION_SCHEMA.radar.parts,
       OPTION_SCHEMA.standings.classLine,
@@ -263,7 +266,6 @@ describe('element lists (v2.6)', () => {
       OPTION_SCHEMA.inputs.bars,
       OPTION_SCHEMA.inputs.info,
       OPTION_SCHEMA.traffic.groups,
-      OPTION_SCHEMA.traffic.parts,
       OPTION_SCHEMA.alerts.parts,
       OPTION_SCHEMA.delta.top
     ] as ElementsSpec[]) {

@@ -79,7 +79,7 @@ describe('toTelemetryConfig', () => {
     const s = createDefaultSettings()
     const c = toTelemetryConfig(s)
     c.radar.rangeM = 10
-    c.standings.columns[0]!.visible = false
+    c.standings.columns[1]!.visible = false
     c.inputs.colors.brake = '#000000'
     c.rules.radar.showIn.race = false
     c.traffic.maxEntries = 1
@@ -89,7 +89,7 @@ describe('toTelemetryConfig', () => {
     c.relative.headerBar[0]!.visible = false
     c.rules.traffic.hideInPits = true
     expect(s.radar.rangeM).toBe(20)
-    expect(s.standings.columns[0]!.visible).toBe(true)
+    expect(s.standings.columns[1]!.visible).toBe(true)
     expect(s.inputs.colors.brake).toBe('#ff4545')
     expect(s.widgets.radar.showIn.race).toBe(true)
     expect(s.traffic.maxEntries).toBe(3)

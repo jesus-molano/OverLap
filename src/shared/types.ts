@@ -1237,9 +1237,11 @@ export type ElementList<Id extends string = string> = ElementEntry<Id>[]
 
 /**
  * Cells of a relative row, left to right. `driver` (number plate, brand mark, flag, name and its
- * badges) and `gap` always stay.
+ * badges) and `gap` always stay. `flags`: the penalty flags in a column of their own (hidden,
+ * they go after the name, as the PIT badge without its column).
  */
-export type RelativeColumnId = 'pos' | 'driver' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap'
+export type RelativeColumnId =
+  'pos' | 'driver' | 'flags' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap'
 /** What a class line (and a single-class header) says about the class, in that order. */
 export type StandingsClassLineId = 'sof' | 'carCount'
 export type BattleLaneId = 'ahead' | 'behind'
@@ -1249,8 +1251,11 @@ export type BattleRowId = 'prediction' | 'sectors' | 'laps'
 export type BattlePartId = 'rating' | 'license' | 'trendNote' | 'stake'
 /** The traffic groups, top to bottom (TrafficKind). */
 export type TrafficGroupId = 'hazard' | 'slower' | 'faster'
-/** Cells of a traffic line, left to right; `driver` and `value` always stay. */
-export type TrafficPartId = 'icon' | 'cls' | 'driver' | 'lead' | 'value' | 'sector'
+/**
+ * Cells of a traffic line, left to right; `driver` and `value` always stay. `flags` as the
+ * tables' column of the same name.
+ */
+export type TrafficPartId = 'icon' | 'cls' | 'driver' | 'flags' | 'lead' | 'value' | 'sector'
 /** The pedals' blocks, in reading order (the trace hidden is the old 'bars' layout). */
 export type InputsSectionId = 'trace' | 'bars' | 'info' | 'car'
 export type InputsBarId = 'clutch' | 'brake' | 'throttle'
@@ -1411,9 +1416,11 @@ export interface RadarOptions {
  * (position, number, name) is fixed. 'gap' follows gapMode, 'gapLeader' is the
  * gap to the class leader shown as its own column. 'best' is the best lap in
  * races ('last' shows it elsewhere), 'pitLap' the lap of the last stop, 'stint'
- * the laps since then and 'tyre' the compound.
+ * the laps since then and 'tyre' the compound. 'flags' the penalty flags in a column of their
+ * own (hidden, they go after the name).
  */
 export type StandingsColumnId =
+  | 'flags'
   | 'gained'
   | 'ir'
   | 'lic'

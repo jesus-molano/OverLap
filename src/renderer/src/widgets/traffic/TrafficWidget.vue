@@ -70,10 +70,21 @@ const viewOptions = computed<TrafficViewOptions>((prev) =>
     deepEqual
   )
 )
-/** The cells of a car line, left to right (traffic.parts; the driver and the value always). */
+/**
+ * The cells of a car line, left to right (traffic.parts; the driver and the value always). The
+ * flags' cell only while the «Piloto» block draws them.
+ */
 const parts = computed<readonly TrafficPartId[]>((prev) =>
-  reuseView(prev, visibleIds(options.value.parts, OPTION_SCHEMA.traffic.parts.ids), deepEqual)
+  reuseView(
+    prev,
+    visibleIds(options.value.parts, OPTION_SCHEMA.traffic.parts.ids).filter(
+      (id) => id !== 'flags' || block.value.showFlags
+    ),
+    deepEqual
+  )
 )
+/** The penalty flag after the name: the flags have no cell of their own. */
+const flagsInline = computed(() => !parts.value.includes('flags'))
 const leadShown = computed(() => parts.value.includes('lead'))
 
 // Look-ahead windows and 'Solo en multiclase' are the provider's: it simply sends no entries.
@@ -224,7 +235,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
                 :brand="slot.brand"
                 :country="slot.country"
               >
-                <span v-if="slot.penalty" class="tr-flag"
+                <span v-if="flagsInline && slot.penalty" class="tr-flag"
                   ><PenaltyIcon :penalty="slot.penalty"
                 /></span>
                 <Badge
@@ -240,6 +251,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
                 slot.hazard
               }}</Badge>
             </template>
+            <span v-else-if="part === 'flags'" class="tr-flags" data-el="traffic.parts.flags"
+              ><PenaltyIcon v-if="slot.penalty" :penalty="slot.penalty"
+            /></span>
             <span v-else-if="part === 'lead'" class="tr-lead" data-el="traffic.parts.lead">
               <Badge v-if="slot.hazard" :tone="slot.hazardTone">{{ slot.hazard }}</Badge>
               <span class="tr-verb">{{ slot.lead }}</span>
@@ -430,6 +444,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 .tr-flag {
   display: inline-flex;
   flex: none;
+  font-size: 0.85em;
+}
+
+/* The flag in its own cell: one badge wide, empty without one, so the lines keep their columns. */
+.tr-flags {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  width: 1.3em;
   font-size: 0.85em;
 }
 

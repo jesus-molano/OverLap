@@ -435,7 +435,8 @@ export const settingsEs = {
     iRating: 'iRating',
     /** The per-car flag badges of the four driver widgets (the «Piloto» block). */
     penaltyFlags: 'Banderas de penalización',
-    penaltyFlagsHelp: 'Negra, reparación y aviso (negra enrollada), tras el nombre'
+    penaltyFlagsHelp:
+      'Negra, reparación y aviso (negra enrollada), tras el nombre o en la columna «Banderas»'
   },
   /** Option lists shared by several pages. */
   choices: {
@@ -1138,6 +1139,7 @@ export const settingsEs = {
       name: 'Con el número del coche · siempre tras la posición'
     },
     labels: {
+      flags: 'Banderas',
       gained: 'Puestos ganados',
       ir: 'iRating',
       lic: 'Licencia',
@@ -1153,6 +1155,7 @@ export const settingsEs = {
     },
     /** Short help under a column label (only some columns have one). */
     hints: {
+      flags: 'En su propia columna; oculta, tras el nombre (con «Banderas de penalización» activa)',
       gained: 'Solo en carrera: puestos ganados desde la salida',
       delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
       gap: 'Al de delante o al líder: elígelo en su fila',
@@ -1717,6 +1720,7 @@ export const settingsEs = {
       columns: {
         pos: 'Posición',
         driver: 'Piloto',
+        flags: 'Banderas',
         ir: 'iRating',
         lic: 'Licencia',
         pit: 'Boxes',
@@ -1765,6 +1769,7 @@ export const settingsEs = {
         icon: 'Icono',
         cls: 'Clase',
         driver: 'Piloto',
+        flags: 'Banderas',
         lead: 'Texto antes del tiempo',
         value: 'Tiempo',
         sector: 'Sector'
@@ -2384,7 +2389,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     license: 'Licence',
     iRating: 'iRating',
     penaltyFlags: 'Penalty flags',
-    penaltyFlagsHelp: 'Black flag, meatball and warning (furled black flag), after the name'
+    penaltyFlagsHelp:
+      'Black flag, meatball and warning (furled black flag), after the name or in the Flags column'
   },
   choices: {
     nameFormat: {
@@ -2936,6 +2942,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       name: 'With the car number · always after the position'
     },
     labels: {
+      flags: 'Flags',
       gained: 'Positions gained',
       ir: 'iRating',
       lic: 'Licence',
@@ -2950,6 +2957,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       tyre: 'Tyre'
     },
     hints: {
+      flags: 'In a column of their own; hidden, after the name (with Penalty flags on)',
       gained: 'Race only: positions gained since the start',
       delta: 'What you win or lose in your position (or everyone’s, with the option)',
       gap: 'To the car ahead or to the leader: choose it on its row',
@@ -3415,6 +3423,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       columns: {
         pos: 'Position',
         driver: 'Driver',
+        flags: 'Flags',
         ir: 'iRating',
         lic: 'Licence',
         pit: 'Pits',
@@ -3463,6 +3472,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         icon: 'Icon',
         cls: 'Class',
         driver: 'Driver',
+        flags: 'Flags',
         lead: 'Words before the time',
         value: 'Time',
         sector: 'Sector'

@@ -93,6 +93,7 @@ describe('fitColumns', () => {
       [...ids].reverse(),
       [
         'tyre',
+        'flags',
         'last',
         'gained',
         'stint',
@@ -107,7 +108,7 @@ describe('fitColumns', () => {
       ]
     ]
     for (const order of orders) {
-      const p = prefs({ columns: allColumns(order), iRatingDeltaAll: true })
+      const p = prefs({ columns: allColumns(order), iRatingDeltaAll: true, penalties: true })
       let prev: string[] = []
       for (let w = 900; w >= 200; w -= 5) {
         const d = dropped(p, w)
@@ -119,6 +120,29 @@ describe('fitColumns', () => {
       expect(prev).toEqual([...DROP_ORDER])
       expect(fitColumns(p, 200, 13).cells).toEqual(['gap'])
     }
+  })
+
+  it('draws the penalty flags in their column when shown, else after the name', () => {
+    const shown = defaultColumns().map((c) => (c.id === 'flags' ? { ...c, visible: true } : c))
+    const on = fitColumns(prefs({ columns: shown, penalties: true }), 900, 13)
+    expect(on.cells[0]).toBe('flags')
+    expect(on.flagsInline).toBe(false)
+    // Hidden (the default): after the name, as before the column existed.
+    const off = fitColumns(prefs({ penalties: true }), 900, 13)
+    expect(off.cells).not.toContain('flags')
+    expect(off.flagsInline).toBe(true)
+    expect(off.key).not.toBe(on.key)
+    // The «Piloto» block's switch off: neither.
+    const none = fitColumns(prefs({ columns: shown, penalties: false }), 900, 13)
+    expect(none.cells).not.toContain('flags')
+    expect(none.flagsInline).toBe(false)
+    // Too narrow for the column: the flags go back after the name, never lost.
+    const narrow = fitColumns(prefs({ columns: shown, penalties: true }), 300, 13)
+    expect(narrow.cells).not.toContain('flags')
+    expect(narrow.flagsInline).toBe(true)
+    expect(withoutRoom(prefs({ columns: shown, penalties: true }), narrow).columns).not.toContain(
+      'flags'
+    )
   })
 
   it('never drops the gap and keeps the name at NAME_MIN_EM while anything can go', () => {

@@ -172,7 +172,17 @@ describe('a customised v4 file', () => {
 
   it('turns the relative’s switches into its columns and bars', () => {
     const r = load(CUSTOM_V4).settings.relative
-    expect(ids(r.columns)).toEqual(['-pos', 'driver', 'ir', '-lic', '-pit', 'tyre', 'stint', 'gap'])
+    expect(ids(r.columns)).toEqual([
+      '-pos',
+      'driver',
+      '-flags',
+      'ir',
+      '-lic',
+      '-pit',
+      'tyre',
+      'stint',
+      'gap'
+    ])
     expect(r.headerBar.find((e) => e.id === 'incidents')?.visible).toBe(false)
     expect(r.footerBarSize).toBe('normal')
     expect(ids(r.footerBar).slice(0, 5)).toEqual([
@@ -193,7 +203,7 @@ describe('a customised v4 file', () => {
 
   it('keeps the standings’ columns in their order and turns the header switches into bars', () => {
     const s = load(CUSTOM_V4).settings.standings
-    expect(ids(s.columns).slice(0, 4)).toEqual(['gap', '-gained', 'ir', 'lic'])
+    expect(ids(s.columns).slice(0, 5)).toEqual(['-flags', 'gap', '-gained', 'ir', 'lic'])
     expect(s.columns.find((c) => c.id === 'delta')?.visible).toBe(true)
     expect(s.columns.find((c) => c.id === 'tyre')?.visible).toBe(true)
     const shown = (list: readonly ElementEntry[], id: string): boolean | undefined =>
@@ -286,6 +296,7 @@ describe('a hand-edited v4 file', () => {
     expect(ids(s.relative.columns)).toEqual([
       'pos',
       'driver',
+      '-flags',
       'ir',
       'lic',
       '-pit',

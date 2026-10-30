@@ -196,6 +196,7 @@ const colPrefs = computed<ColumnPrefs>(() => ({
   numberStyle: appearance.value.numberStyle,
   brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
   flag: block.value.countryFlags,
+  penalties: block.value.showFlags,
   minText: minText.value,
   pos: opts.value.showPosition
 }))

@@ -46,9 +46,11 @@ describe('standings row states', () => {
     expect(bare).toEqual([])
   })
 
-  it('dims every cell of a car in the pits but its pit state and driver', () => {
+  it('dims every cell of a car in the pits but its pit state, driver and penalty flags', () => {
     const dimmed = cells.filter((c) => dims('pits', c))
-    expect(dimmed.sort()).toEqual(cells.filter((c) => c !== 'c-pit' && c !== 'c-driver').sort())
+    expect(dimmed.sort()).toEqual(
+      cells.filter((c) => !['c-pit', 'c-driver', 'c-flags'].includes(c)).sort()
+    )
     // The driver's plate and name step back too, its state icons stay.
     expect(selectors).toContain('.is-pits > .c-driver > :deep(:not(.sd-icons))')
   })
