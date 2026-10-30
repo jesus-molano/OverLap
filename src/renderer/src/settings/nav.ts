@@ -10,6 +10,9 @@ export const GLOBAL_PAGES = ['appearance', 'visibility', 'shortcuts', 'layouts']
 
 export type GlobalPage = (typeof GLOBAL_PAGES)[number]
 
+/** Below this width the sidebar is a rail of icons (R49; SettingsApp's grid follows it). */
+export const RAIL_QUERY = '(max-width: 639px)'
+
 /** At the foot of the sidebar, after the widgets: «Acerca de y ayuda» (R40). */
 export const FOOT_PAGES = ['about'] as const
 

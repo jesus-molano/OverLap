@@ -324,6 +324,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lo mismo y solo cambia el texto cuando cambia el comportamiento: «Sigue al coche que miras: se
   oculta al rebobinar una repetición», «Solo tiene datos de tu coche: se oculta en repeticiones, en
   la pantalla de sesión y si miras otro coche»…
+- **Ventana estrecha con barra de iconos**: por debajo de 640 px, la barra lateral se queda en una
+  columna de iconos en vez de un desplegable: cada página a un clic, el ojo de cada widget al lado
+  de su icono (se sigue viendo y cambiando qué está oculto), una raya entre grupos y el nombre al
+  pasar el ratón (y para lectores de pantalla). El buscador, el chip de estado y **Modo edición**
+  van en la barra de arriba.
 
 ### Corregido
 
