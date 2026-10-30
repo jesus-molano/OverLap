@@ -42,7 +42,13 @@ provideSampleHost({
     })
   },
   globalAppearance: props.global,
-  ...(edit !== null && !props.global ? { viewOptions: edit.viewOptions, ghosts: edit.ghosts } : {})
+  ...(edit !== null && !props.global
+    ? {
+        viewOptions: edit.viewOptions,
+        ghosts: edit.ghosts,
+        reportNoRoom: edit.reportNoRoom
+      }
+    : {})
 })
 onBeforeUnmount(() => {
   if (frame !== 0) cancelAnimationFrame(frame)

@@ -2,6 +2,8 @@
 import { useId } from 'vue'
 import { useDraft } from '../useDraft'
 import HelpText from './HelpText.vue'
+import PreviewNote from './PreviewNote.vue'
+import type { PreviewNoteSpec } from './previewNote'
 
 const props = withDefaults(
   defineProps<{
@@ -18,6 +20,8 @@ const props = withDefaults(
     warn?: boolean
     /** The accessible name when the visible label is short ('Testigo' in a row of a list). */
     name?: string
+    /** Why the preview does not show it (PreviewNote: no room, or the session only). */
+    note?: PreviewNoteSpec
   }>(),
   {
     help: undefined,
@@ -25,7 +29,8 @@ const props = withDefaults(
     kind: 'checkbox',
     disabled: false,
     warn: false,
-    name: undefined
+    name: undefined,
+    note: undefined
   }
 )
 
@@ -53,6 +58,7 @@ function onChange(e: Event): void {
         :text="help"
         :more="more"
       />
+      <PreviewNote :note="note" />
     </label>
     <input
       :id="id"
@@ -84,6 +90,7 @@ function onChange(e: Event): void {
         :text="help"
         :more="more"
       />
+      <PreviewNote :note="note" />
     </span>
   </label>
 </template>

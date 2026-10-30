@@ -24,6 +24,7 @@ import * as zonesOpen from './zonesOpen'
 import ACCORDION from './AccordionSection.vue?raw'
 import SECTION from './CustomizeSection.vue?raw'
 import EDITOR from '../elements/ElementEditor.vue?raw'
+import NOTE from '../controls/PreviewNote.vue?raw'
 
 type OpenList = ElementEntry<CustomizeZoneId>[]
 const sent: OpenList[] = []
@@ -148,6 +149,9 @@ const Section = compile(SECTION, 'CustomizeSection.vue', {
   '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
   '../../composables/useI18n': { useI18n: () => t }
 })
+/** What the page's sample has no room for (useNoRoom's stub reads it). */
+const noRoomEls = vue.shallowRef<ReadonlySet<string>>(new Set())
+const Note = compile(NOTE, 'PreviewNote.vue', { vue, '../../ui/Icon.vue': { default: Stub } })
 const Editor = compile(EDITOR, 'ElementEditor.vue', {
   vue,
   '../../composables/useI18n': { useI18n: () => t },
@@ -160,7 +164,16 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
   '../undo/restore': { offerSectionRestore: () => () => false },
   '../undo/undo': undo,
   '../useOptimistic': useOptimistic,
-  './listOps': listOps
+  './listOps': listOps,
+  // The sample's report, as the test sets it (noRoomEls).
+  '../preview/useNoRoom': {
+    useNoRoom: () =>
+      vue.computed(
+        () => (el: string) =>
+          noRoomEls.value.has(el) ? { kind: 'room', text: 'No cabe a 460 px' } : undefined
+      )
+  },
+  '../controls/PreviewNote.vue': { default: Note }
 })
 
 function mount(render: () => vue.VNode): { root: TestNode; unmount: () => void } {
@@ -436,5 +449,27 @@ describe('ElementEditor undo', () => {
     unmount()
     expect(undo.undoSlot.shown.value).toBeNull()
     detachToast()
+  })
+})
+
+describe('ElementEditor and the room in the sample', () => {
+  afterEach(() => {
+    noRoomEls.value = new Set()
+  })
+
+  it('marks «No cabe» on a shown row the sample has no room for, and on no other row', async () => {
+    noRoomEls.value = new Set(['relative.columns.ir', 'relative.columns.tyre'])
+    const { root, unmount } = mount(() => editor('columns'))
+    await vue.nextTick()
+    const rowText = (id: string): string =>
+      textOf(all(root, (n) => n.props['data-row'] === id)[0] as TestNode)
+    expect(rowText('ir')).toContain('No cabe a 460 px')
+    // Hidden (tyre): nothing to say, it is not drawn anyway.
+    expect(rowText('tyre')).not.toContain('No cabe')
+    expect(rowText('lic')).not.toContain('No cabe')
+    noRoomEls.value = new Set()
+    await vue.nextTick()
+    expect(rowText('ir')).not.toContain('No cabe')
+    unmount()
   })
 })

@@ -21,7 +21,7 @@ import {
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { useWidgetTitle } from '@renderer/composables/useWidgetTitle'
-import { injectPanelHost } from '@renderer/composables/widgetContext'
+import { injectPanelHost, useNoRoomReport } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
@@ -29,7 +29,7 @@ import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { barInfo } from './bars'
-import { fitColumns, reuseColumns, type Columns } from './columns'
+import { fitColumns, reuseColumns, withoutRoom, type ColumnPrefs, type Columns } from './columns'
 import { reuseHeads, toHeadsView, type HeadsView } from './heads'
 import {
   BOTTOM_PAD_EM,
@@ -180,26 +180,29 @@ const widthPx = computed(() =>
 )
 /** The provider names no compound while the whole field runs the same one: no tyre column. */
 const tyres = computed(() => (classes.value ?? []).some((c) => c.rows.some((r) => r.tyre !== null)))
+const colPrefs = computed<ColumnPrefs>(() => ({
+  columns: opts.value.columns,
+  gapMode: opts.value.gapMode,
+  iRatingDeltaAll: opts.value.iRatingDeltaAll,
+  race: race.value,
+  tyres: tyres.value,
+  licenseStyle: appearance.value.licenseStyle,
+  numberStyle: appearance.value.numberStyle,
+  brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
+  flag: block.value.countryFlags
+}))
 const cols = computed<Columns>((prev) =>
-  reuseColumns(
-    prev,
-    fitColumns(
-      {
-        columns: opts.value.columns,
-        gapMode: opts.value.gapMode,
-        iRatingDeltaAll: opts.value.iRatingDeltaAll,
-        race: race.value,
-        tyres: tyres.value,
-        licenseStyle: appearance.value.licenseStyle,
-        numberStyle: appearance.value.numberStyle,
-        brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
-        flag: block.value.countryFlags
-      },
-      widthPx.value,
-      fontPx.value
-    )
-  )
+  reuseColumns(prev, fitColumns(colPrefs.value, widthPx.value, fontPx.value))
 )
+// The settings preview's lists say which columns (and the mark, the flag) have no room here.
+useNoRoomReport(() => {
+  const out = withoutRoom(colPrefs.value, cols.value)
+  return [
+    ...out.columns.map((id) => `standings.columns.${id}`),
+    ...(out.brand ? ['standings.driver.brandMarks'] : []),
+    ...(out.flag ? ['standings.driver.countryFlags'] : [])
+  ]
+})
 /** The column heads: one per drawn track, so they follow the order and the narrow fitting. */
 const heads = computed<HeadsView>((prev) =>
   reuseHeads(

@@ -3,6 +3,8 @@ import { useId } from 'vue'
 import { useDraft } from '../useDraft'
 import type { ChoiceOption } from './choice'
 import HelpText from './HelpText.vue'
+import PreviewNote from './PreviewNote.vue'
+import type { PreviewNoteSpec } from './previewNote'
 
 /**
  * One value out of a few, as a segmented control of native radios (arrow keys move the
@@ -20,8 +22,10 @@ const props = withDefaults(
     disabled?: boolean
     /** Label above the options instead of beside them (long option lists). */
     stack?: boolean
+    /** Why the preview does not show it (PreviewNote: no room, or the session only). */
+    note?: PreviewNoteSpec
   }>(),
-  { help: undefined, more: undefined, disabled: false, stack: false }
+  { help: undefined, more: undefined, disabled: false, stack: false, note: undefined }
 )
 
 defineSlots<{ option?(props: { option: ChoiceOption<T> }): unknown }>()
@@ -40,6 +44,7 @@ const { value, commit } = useDraft(
     <span class="st-row-text" :class="{ 'st-disabled': disabled }">
       <span :id="labelId" class="st-label">{{ label }}</span>
       <HelpText v-if="help" :id="helpId" class="st-help" :text="help" :more="more" />
+      <PreviewNote :note="note" />
     </span>
     <div
       class="st-seg"

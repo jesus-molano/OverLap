@@ -114,6 +114,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   ultrapanorámica como en el primer arranque; tus récords se quedan; pide confirmación y se
   deshace). El botón de la carpeta de ajustes deja el pie de la barra lateral y el de la ventana
   estrecha; sigue en la bandeja.
+- **«No cabe a 540 px»: la vista previa dice lo que el ancho deja fuera**: cuando el ancho del
+  widget no deja sitio para algo que tienes visible, su fila lo dice con el mismo icono y las
+  mismas palabras en todas las listas: columnas de Posiciones, datos de cabeceras, segundas
+  líneas y pies de los seis widgets con barras, y el logo y la bandera del bloque «Piloto» de
+  Posiciones. Al pasar el ratón explica qué hacer (ensanchar el widget u ocultar otro dato). En
+  Batalla, **Lado a lado** en una ventana estrecha dice que se dibuja apilada, y en Relativo la
+  **Densidad** dice «No se nota a 460 × 252 px» cuando el ancho fija el tamaño del texto (así,
+  con las dos densidades se ve igual). Antes el ojo o la opción parecían no hacer nada. No hay
+  ajustes nuevos.
 
 ### Cambiado
 

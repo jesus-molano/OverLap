@@ -375,7 +375,21 @@ export const settingsEs = {
     moving: 'Suelta para colocarlo aquí',
     movingSide: (side: string) => `Suelta para colocarlo aquí · ${side}`,
     /** After hiding an element the preview cannot draw ghosted. */
-    hiddenNote: (item: string) => `${item} oculto: vuelve a mostrarlo desde su lista`
+    hiddenNote: (item: string) => `${item} oculto: vuelve a mostrarlo desde su lista`,
+    /**
+     * The same note on every list and choice whose effect the widget's width hides (the preview
+     * draws it without it): «No cabe a 540 px», and what to do as its detail.
+     */
+    noRoom: (px: number) => `No cabe a ${px}${NB}px`,
+    noRoomHelp: (px: number) =>
+      `A ${px}${NB}px de ancho no hay sitio para esto: ensancha el widget u oculta otro dato`,
+    /** Batalla's «Lado a lado» in a window too narrow for it. */
+    noRoomSide: (px: number) =>
+      `A ${px}${NB}px de ancho no caben lado a lado: se dibujan apiladas; ensancha el widget`,
+    /** A choice the size of the widget makes invisible (Relativo's density): the same note. */
+    noEffect: (size: string) => `No se nota a ${size}${NB}px`,
+    noEffectDensity:
+      'A este tamaño el ancho fija el texto: la densidad se nota en un widget más ancho o con más coches'
   },
   controls: {
     customColor: 'Color personalizado',
@@ -2204,7 +2218,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     moving: 'Drop to place it here',
     movingSide: (side) => `Drop to place it here · ${side}`,
-    hiddenNote: (item) => `${item} hidden: show it again from its list`
+    hiddenNote: (item) => `${item} hidden: show it again from its list`,
+    noRoom: (px) => `No room at ${px}${NB}px`,
+    noRoomHelp: (px) =>
+      `At ${px}${NB}px wide there is no room for this: widen the widget or hide another item`,
+    noRoomSide: (px) =>
+      `At ${px}${NB}px wide they do not fit side by side: drawn stacked; widen the widget`,
+    noEffect: (size) => `No visible change at ${size}${NB}px`,
+    noEffectDensity:
+      'At this size the width sets the text: density shows in a wider widget or with more cars'
   },
   controls: {
     customColor: 'Custom colour',

@@ -250,3 +250,21 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
 export function reuseColumns(prev: Columns | undefined, next: Columns): Columns {
   return prev !== undefined && prev.key === next.key ? prev : next
 }
+
+/**
+ * What `p` asks for that `cols` (fitted from it) has no room for: the columns the width dropped,
+ * in the user's order, and the make's mark and the flag when they went too. Nothing before the
+ * width is measured.
+ */
+export function withoutRoom(
+  p: ColumnPrefs,
+  cols: Columns
+): { readonly columns: readonly StandingsColumnId[]; brand: boolean; flag: boolean } {
+  if (!(cols.widthEm > 0)) return { columns: [], brand: false, flag: false }
+  const wanted = fitColumns(p, 0, 0).cells
+  return {
+    columns: wanted.filter((id) => !cols.cells.includes(id)),
+    brand: p.brand && !cols.brand,
+    flag: p.flag && !cols.flag
+  }
+}

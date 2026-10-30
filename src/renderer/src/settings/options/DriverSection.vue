@@ -15,6 +15,7 @@ import {
 } from '../controls/choices'
 import { optionSetter, type Setter } from '../editor'
 import PageSection from '../layout/PageSection.vue'
+import { useNoRoom } from '../preview/useNoRoom'
 
 /**
  * The «Piloto» block (R08): the same four rows, in the same place (after Contenido) and order, on
@@ -40,6 +41,8 @@ const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.
 const brandChoices = computed(() => brandChoicesInherit(t.value, appearance.value.brandMarks))
 const countryChoices = computed(() => flagChoicesInherit(t.value, appearance.value.countryFlags))
 const penaltyChoices = computed(() => flagChoicesInherit(t.value, appearance.value.penaltyFlags))
+/** The mark and the flag the preview has no room for at the widget's width (Posiciones). */
+const noRoom = useNoRoom()
 </script>
 
 <template>
@@ -56,6 +59,7 @@ const penaltyChoices = computed(() => flagChoicesInherit(t.value, appearance.val
       :help="t.settings.driverCell.brandMarksHelp"
       :current="opts.brandMarks"
       :options="brandChoices"
+      :note="noRoom(`${section}.driver.brandMarks`)"
       :apply="setBrand"
     />
     <ChoiceControl
@@ -63,6 +67,7 @@ const penaltyChoices = computed(() => flagChoicesInherit(t.value, appearance.val
       :help="t.settings.driverCell.countryFlagsHelp"
       :current="toFlagChoice(opts.countryFlags)"
       :options="countryChoices"
+      :note="noRoom(`${section}.driver.countryFlags`)"
       :apply="setCountryChoice"
     />
     <ChoiceControl
