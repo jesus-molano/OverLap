@@ -1105,28 +1105,30 @@ export const settingsEs = {
     /** The hero line is always drawn; these are the others. */
     lines: 'Líneas',
     gauge: 'Depósito',
-    gaugeHelp: 'Barra del combustible frente a lo que cabe, con una marca en lo que necesitas',
+    gaugeHelp:
+      'El depósito marcado en vueltas de combustible, con una raya donde llega lo que necesitas hasta meta',
     perLap: 'Consumo por vuelta',
-    perLapHelp: 'La media de tus últimas vueltas limpias, la última y la que más gastó',
+    perLapHelp:
+      'La media de tus últimas vueltas limpias y una línea con ellas: la última y la que más gastó, marcadas',
     finish: 'Para meta y repostar',
     finishHelp:
-      'Lo que necesitas hasta la bandera con el margen y lo que echar en la próxima parada',
+      'Lo que echar en la próxima parada y, tras la bandera, lo que necesitas hasta meta con el margen',
     box: 'Menú de boxes',
     boxHelp:
-      'La gasolina puesta en el menú de boxes, junto a lo que hay que echar; en naranja si no llega',
+      'La gasolina del menú de boxes como una barra marcada en lo que hay que echar; en naranja si no llega',
     window: 'Ventana de boxes',
     windowHelp:
-      'La primera y la última vuelta en que puedes parar y terminar, y las paradas que quedan',
+      'La carrera como una línea hasta la bandera: dónde vas, las vueltas en que puedes parar y terminar, y las paradas',
     save: 'Ahorro',
     /** `pct`: FUEL_STRATEGY.saveReach as a whole percentage. */
     saveHelp: (pct: number) =>
-      `Lo que gastar por vuelta para ahorrarte una parada, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
+      `Lo que gastar por vuelta para ahorrarte una parada y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
     tyres: 'Neumáticos',
     tyresHelp:
-      'El desgaste que midió el equipo en tu última parada: iRacing solo lo mide en el box',
+      'El coche visto desde arriba: cada neumático en tres franjas, de un borde al otro, como lo midió el equipo en tu última parada (iRacing solo lo mide en el box), y los juegos que quedan',
     limits: 'Reparaciones y juegos',
     limitsHelp:
-      'Las reparaciones rápidas y los juegos de neumáticos que te quedan, si la sesión los limita',
+      'Las reparaciones rápidas que te quedan si la sesión las limita; también los juegos de neumáticos cuando la línea de neumáticos está oculta',
     /** «Contenido»'s note: how the numbers are worked out. */
     calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
@@ -2624,23 +2626,28 @@ export const settingsEn: Dict<typeof settingsEs> = {
     note: 'What you burn on each clean lap: no pit lane, caution, tow or the race’s first lap',
     lines: 'Lines',
     gauge: 'Tank',
-    gaugeHelp: 'A bar of the fuel against what the tank holds, marked where you need it',
+    gaugeHelp: 'The tank graduated in laps of fuel, marked where the fuel to the flag reaches',
     perLap: 'Use per lap',
-    perLapHelp: 'The average of your last clean laps, the last one and the thirstiest',
+    perLapHelp:
+      'The average of your last clean laps and a line of them, the last one and the thirstiest marked',
     finish: 'To finish and to add',
-    finishHelp: 'What you need to the flag with the margin, and what to add at the next stop',
+    finishHelp:
+      'What to add at the next stop and, after the flag, what you need to the finish with the margin',
     box: 'Pit menu',
-    boxHelp: 'The fuel set in the pit menu, next to what to add; orange when it falls short',
+    boxHelp:
+      'The fuel set in the pit menu as a bar marked at what to add; orange when it falls short',
     window: 'Pit window',
-    windowHelp: 'The first and last lap you can stop on and still finish, and the stops left',
+    windowHelp:
+      'The race as a line to the flag: where you are, the laps you can stop on and still finish, and the stops',
     save: 'Saving',
     saveHelp: (pct) =>
-      `What to burn per lap to save a stop, when within reach (up to ${pct}% less)`,
+      `What to burn per lap to save a stop and how much to cut, when within reach (up to ${pct}% less)`,
     tyres: 'Tyres',
     tyresHelp:
-      'The wear the crew measured at your last stop: iRacing only measures it in the stall',
+      'The car from above: each tyre in three bands, edge to edge, as the crew measured it at your last stop (iRacing only measures it in the stall), and the sets left',
     limits: 'Repairs and tyre sets',
-    limitsHelp: 'The fast repairs and tyre sets you have left, when the session limits them',
+    limitsHelp:
+      'The fast repairs you have left when the session limits them; the tyre sets too while the tyres line is hidden',
     calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',

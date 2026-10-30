@@ -380,19 +380,18 @@ export const widgetsEs = {
     short: 'Faltan',
     window: 'Ventana',
     save: 'Ahorro',
-    tyres: 'Neum.',
+    tyres: 'Neumáticos',
     /** What is left of the session's fast repairs and tyre sets (iRacing's limits). */
     repairs: 'Rep. rápidas',
     sets: 'Juegos neum.',
-    /** After the average ('últ. 3.02 · máx. 3.10'). */
+    /** The last lap while measuring ('últ. 3.02'). */
     last: (v: string) => `últ.${NB}${v}`,
-    max: (v: string) => `máx.${NB}${v}`,
     /** The average comes from the last session with this car and track. */
     carried: 'de la sesión anterior',
     /** The next stop fills the tank. */
     fill: 'LLENO',
-    /** What the pit menu adds ('menú 20 L', like the option 'Menú de boxes'). */
-    box: (litres: string) => `menú${NB}${litres}${NB}L`,
+    /** Before the pit menu's bar and litres (like the option 'Menú de boxes'). */
+    menu: 'Menú',
     /** The pit window: 'V24–V28', or 'V24' when it is one lap. */
     window1: (lap: number) => `V${lap}`,
     windowN: (from: number, to: number) => `V${from}–V${to}`,
@@ -401,8 +400,15 @@ export const widgetsEs = {
     noStop: 'sin parar',
     /** What saving that much gets you: one stop less. */
     saveFor: (n: number) => (n === 1 ? 'con 1 parada' : `con ${n} paradas`),
-    /** The lap of the tyre reading ('V13'). */
-    readingLap: (lap: number) => `V${lap}`,
+    /** How much less per lap the saving is ('−9 %'). */
+    cut: (pct: number) => `−${pct}${NB}%`,
+    /** When the tyres were measured: the stop's lap. */
+    readingAt: (lap: number) => `última parada · V${lap}`,
+    /** No stop measured them yet (iRacing reads the tread in the pit stall only). */
+    noReading: 'sin lectura · se miden en boxes',
+    /** After the dry sets left ('2 juegos'). */
+    setOne: 'juego',
+    setMany: 'juegos',
     /** Front left, front right, rear left, rear right. */
     corners: ['DI', 'DD', 'TI', 'TD']
   },
@@ -701,16 +707,19 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     repairs: 'Fast repairs',
     sets: 'Tyre sets',
     last: (v) => `last${NB}${v}`,
-    max: (v) => `max${NB}${v}`,
     carried: 'from the last session',
     fill: 'FULL',
-    box: (litres) => `menu${NB}${litres}${NB}L`,
+    menu: 'Menu',
     window1: (lap) => `L${lap}`,
     windowN: (from, to) => `L${from}–L${to}`,
     stops: (n) => (n === 1 ? '1 stop' : `${n} stops`),
     noStop: 'no stop',
     saveFor: (n) => (n === 1 ? 'with 1 stop' : `with ${n} stops`),
-    readingLap: (lap) => `L${lap}`,
+    cut: (pct) => `−${pct}%`,
+    readingAt: (lap) => `last stop · L${lap}`,
+    noReading: 'no reading · measured in the pits',
+    setOne: 'set',
+    setMany: 'sets',
     corners: ['FL', 'FR', 'RL', 'RR']
   },
   heads: {

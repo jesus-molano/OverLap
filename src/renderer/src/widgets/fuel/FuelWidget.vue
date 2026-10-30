@@ -13,17 +13,28 @@ import {
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
-import Badge from '@renderer/ui/Badge.vue'
+import Icon from '@renderer/ui/Icon.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { reuseView } from '@renderer/view/reuse'
 import type { InlineStyle } from '@renderer/view/styles'
 import { orderStyle, placesOf } from '../orderStyle'
+import {
+  CAR_AXLES,
+  CAR_BODY,
+  CAR_COCKPIT,
+  CAR_VIEWBOX,
+  TYRE_BANDS,
+  TYRE_GROOVES,
+  TYRE_OUTLINES
+} from './carShape'
 import { PREVIEW_FUEL } from './preview'
 import {
   EMPTY_VIEW,
   LITRES,
+  SPARK_H,
+  SPARK_W,
   fuelView,
   fuelViewOptions,
   layoutKey,
@@ -31,10 +42,12 @@ import {
   reuseParts,
   type FuelView,
   type FuelViewOptions,
-  type LineId
+  type LineId,
+  type SparkDot
 } from './view'
 
 const ID = 'fuel'
+const SPARK_BOX = `0 0 ${SPARK_W} ${SPARK_H}`
 
 const options = useOptions(ID)
 const prefs = useWidgetSettings(ID)
@@ -86,18 +99,57 @@ const lines = computed<readonly LineId[]>((prev) => {
 /** Without the header, the VISTA PREVIA tag goes at the end of the first line it fits on. */
 const tagLine = computed<LineId | null>(() => {
   if (!preview.value || showHeader.value) return null
-  // The hero's figures and the gauge have no room for it: the first line under them takes it.
-  return lines.value.find((id) => id !== 'hero' && id !== 'gauge') ?? 'hero'
+  // The hero's figures, the gauge and the car have no room for it: the first line under them.
+  return lines.value.find((id) => id !== 'hero' && id !== 'gauge' && id !== 'tyres') ?? 'hero'
 })
 
-const fillStyle = computed<InlineStyle | undefined>(() => {
+// ---- Geometry to inline styles (fractions of a track; each line its own, so a payload that
+// moves one bar rewrites one element) ----
+
+const pct = (v: number): string => `${(v * 100).toFixed(1)}%`
+const at = (v: number): InlineStyle => ({ left: pct(v) })
+const span = (from: number, to: number): InlineStyle => ({
+  left: pct(from),
+  width: pct(Math.max(0, to - from))
+})
+const grow = (v: number): InlineStyle => ({ transform: `scaleX(${v})` })
+
+const tank = computed(() => {
   const g = view.value.gauge
-  return g === null ? undefined : { transform: `scaleX(${g.fill})` }
+  if (g === null) return null
+  return {
+    fill: grow(g.fill),
+    short: g.short && g.need !== null ? span(g.fill, g.need) : undefined,
+    need: g.need === null ? undefined : at(g.need),
+    laps: g.lapStep === null ? undefined : { '--fu-step': pct(g.lapStep) },
+    five: g.fiveStep === null ? undefined : { '--fu-step': pct(g.fiveStep) }
+  }
 })
-const needStyle = computed<InlineStyle | undefined>(() => {
-  const need = view.value.gauge?.need ?? null
-  return need === null ? undefined : { left: `${(need * 100).toFixed(1)}%` }
+
+const box = computed(() => {
+  const b = view.value.finish?.box ?? null
+  return b === null ? null : { fill: grow(b.fill), mark: at(b.mark) }
 })
+
+const race = computed(() => {
+  const w = view.value.window
+  if (w === null) return null
+  const tr = w.track
+  return {
+    past: grow(tr.now),
+    win: tr.from !== null && tr.to !== null ? span(tr.from, Math.max(tr.to, tr.from)) : undefined,
+    now: at(tr.now)
+  }
+})
+
+const save = computed(() => {
+  const s = view.value.save
+  return s === null ? null : { keep: grow(s.target), cut: span(s.target, 1) }
+})
+
+/** A sparkline dot: a zero-length round-capped stroke, round whatever the box's stretch. */
+const dot = (p: SparkDot): string => `M${p.x} ${p.y}h0`
+const join = (a: SparkDot, b: SparkDot): string => `M${a.x} ${a.y}L${b.x} ${b.y}`
 
 const wanted = computed(
   () => (phase.value === 'live' || phase.value === 'preview') && lines.value.length > 0
@@ -145,24 +197,23 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         />
       </template>
 
-      <!-- The fuel and the laps it lasts (in the tone of the plan), the laps to go at the end. -->
+      <!-- The laps the fuel lasts (big, in the tone of the plan), the litres, the laps to go. -->
       <div
         v-if="view.hero"
         v-inline-style="orderStyle(place.hero ?? 0)"
         data-el="fuel.lines.hero"
         class="fu-hero"
       >
-        <span class="fu-big">
-          <span class="ov-t-hero">{{ view.hero.fuel }}</span>
-          <span class="fu-unit-hero ov-unit">{{ LITRES }}</span>
-        </span>
         <span class="fu-big" :class="`ov-tone-${view.hero.tone}`">
           <span class="ov-t-hero">{{ view.hero.laps }}</span>
           <span class="fu-unit-hero ov-unit">{{ view.hero.lapsUnit }}</span>
         </span>
+        <span class="fu-num fu-litres"
+          >{{ view.hero.fuel }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
+        >
         <span v-if="view.hero.note" class="fu-note">{{ view.hero.note }}</span>
-        <span v-if="view.hero.left" class="fu-read fu-read--end">
-          <span class="fu-label">{{ view.hero.left.label }}</span>
+        <span v-if="view.hero.left" class="fu-flagged fu-hero__left" :title="view.hero.left.label">
+          <Icon name="chequered" :label="view.hero.left.label" class="fu-ico" />
           <span class="fu-num"
             >{{ view.hero.left.value
             }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.left.unit }}</span></span
@@ -171,130 +222,226 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <PreviewTag v-if="tagLine === 'hero'" class="fu-tag" />
       </div>
 
-      <!-- The tank: the fuel against what it holds, a tick where the fuel to the flag reaches. -->
+      <!--
+        The tank: the fuel against what it holds, graduated in laps of fuel (every lap, stronger
+        every five); the flag mark where the fuel to the flag reaches, the gap to it shaded.
+      -->
       <div
-        v-if="view.gauge"
+        v-if="view.gauge && tank"
         v-inline-style="orderStyle(place.gauge ?? 0)"
         data-el="fuel.lines.gauge"
         class="fu-gauge"
         aria-hidden="true"
       >
-        <span class="fu-gauge__track">
+        <span class="fu-tank">
           <span
-            v-inline-style="fillStyle"
-            class="fu-gauge__fill"
-            :class="`fu-gauge__fill--${view.gauge.tone}`"
+            v-inline-style="tank.fill"
+            class="fu-tank__fill"
+            :class="`fu-tank__fill--${view.gauge.tone}`"
           />
-          <span v-if="view.gauge.need !== null" v-inline-style="needStyle" class="fu-gauge__need" />
+          <span v-if="tank.short" v-inline-style="tank.short" class="fu-tank__short" />
+          <span v-if="tank.laps" v-inline-style="tank.laps" class="fu-tank__ticks" />
+          <span
+            v-if="tank.five"
+            v-inline-style="tank.five"
+            class="fu-tank__ticks fu-tank__ticks--five"
+          />
+          <span v-if="tank.need" v-inline-style="tank.need" class="fu-tank__need" />
         </span>
       </div>
 
+      <!-- Litres per lap, and the laps behind it as a line: the average dashed, max and last. -->
       <div
         v-if="view.perLap"
         v-inline-style="orderStyle(place.perLap ?? 0)"
         data-el="fuel.lines.perLap"
         class="fu-line"
       >
-        <span class="fu-read">
-          <span class="fu-label">{{ view.perLap.label }}</span>
-          <span v-if="view.perLap.measuring" class="fu-text fu-text--muted">{{
-            view.perLap.value
-          }}</span>
-          <span v-else class="fu-num"
-            >{{ view.perLap.value
-            }}<span class="fu-unit ov-unit">&nbsp;{{ view.perLap.unit }}</span></span
-          >
-          <span v-if="view.perLap.note" class="fu-note">{{ view.perLap.note }}</span>
-        </span>
+        <span class="fu-label">{{ view.perLap.label }}</span>
+        <span v-if="view.perLap.measuring" class="fu-text fu-text--muted">{{
+          view.perLap.value
+        }}</span>
+        <span v-else class="fu-num"
+          >{{ view.perLap.value
+          }}<span class="fu-unit ov-unit">&nbsp;{{ view.perLap.unit }}</span></span
+        >
+        <svg
+          v-if="view.perLap.spark"
+          class="fu-spark"
+          :viewBox="SPARK_BOX"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <line
+            class="fu-spark__avg"
+            x1="0"
+            :x2="SPARK_W"
+            :y1="view.perLap.spark.avgY"
+            :y2="view.perLap.spark.avgY"
+          />
+          <polyline class="fu-spark__line" :points="view.perLap.spark.points" />
+          <path
+            v-if="view.perLap.spark.tail && view.perLap.spark.last"
+            class="fu-spark__tail"
+            :d="join(view.perLap.spark.tail, view.perLap.spark.last)"
+          />
+          <path
+            v-if="view.perLap.spark.max"
+            class="fu-spark__dot fu-spark__dot--max"
+            :d="dot(view.perLap.spark.max)"
+          />
+          <path
+            v-if="view.perLap.spark.last"
+            class="fu-spark__dot"
+            :d="dot(view.perLap.spark.last)"
+          />
+        </svg>
+        <span v-if="view.perLap.note" class="fu-note">{{ view.perLap.note }}</span>
         <PreviewTag v-if="tagLine === 'perLap'" class="fu-tag" />
       </div>
 
+      <!-- What to add (or spare, or short), the pit menu as a bar marked where you need it. -->
       <div
         v-if="view.finish"
         v-inline-style="orderStyle(place.finish ?? 0)"
         data-el="fuel.lines.finish"
         class="fu-line"
       >
-        <span class="fu-read">
-          <span class="fu-label">{{ view.finish.need.label }}</span>
-          <span class="fu-num"
-            >{{ view.finish.need.value
-            }}<span class="fu-unit ov-unit">&nbsp;{{ view.finish.need.unit }}</span></span
+        <span class="fu-label">{{ view.finish.add.label }}</span>
+        <span class="fu-num" :class="`ov-tone-${view.finish.addTone}`"
+          >{{ view.finish.add.value
+          }}<span v-if="view.finish.add.unit" class="fu-unit ov-unit"
+            >&nbsp;{{ view.finish.add.unit }}</span
+          ></span
+        >
+        <span
+          v-if="view.finish.box && box"
+          class="fu-menu"
+          :class="`ov-tone-${view.finish.box.tone}`"
+        >
+          <span class="fu-label fu-menu__label">{{ view.finish.box.label }}</span>
+          <span class="fu-bar fu-menu__bar" aria-hidden="true">
+            <span v-inline-style="box.fill" class="fu-bar__fill" />
+            <span v-inline-style="box.mark" class="fu-bar__mark" />
+          </span>
+          <span class="fu-num fu-num--small"
+            >{{ view.finish.box.value
+            }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
           >
         </span>
-        <span class="fu-read fu-read--end">
-          <span class="fu-label">{{ view.finish.add.label }}</span>
-          <span class="fu-num" :class="`ov-tone-${view.finish.addTone}`"
-            >{{ view.finish.add.value
-            }}<span v-if="view.finish.add.unit" class="fu-unit ov-unit"
-              >&nbsp;{{ view.finish.add.unit }}</span
-            ></span
-          >
-          <Badge
-            v-if="view.finish.box"
-            class="fu-box"
-            :tone="view.finish.box.tone"
-            variant="outline"
-            >{{ view.finish.box.text }}</Badge
+        <span class="fu-flagged fu-end" :title="view.finish.need.label">
+          <Icon name="chequered" :label="view.finish.need.label" class="fu-ico" />
+          <span class="fu-num fu-num--small"
+            >{{ view.finish.need.value
+            }}<span class="fu-unit ov-unit">&nbsp;{{ view.finish.need.unit }}</span></span
           >
         </span>
         <PreviewTag v-if="tagLine === 'finish'" class="fu-tag" />
       </div>
 
+      <!-- The race as a line to the flag: you, and the laps you can stop at the end of. -->
       <div
-        v-if="view.window"
+        v-if="view.window && race"
         v-inline-style="orderStyle(place.window ?? 0)"
         data-el="fuel.lines.window"
         class="fu-line"
       >
-        <span class="fu-read">
-          <span class="fu-label">{{ view.window.label }}</span>
-          <span class="fu-num" :class="`ov-tone-${view.window.tone}`">{{ view.window.value }}</span>
+        <span class="fu-label">{{ view.window.label }}</span>
+        <span class="fu-race" aria-hidden="true">
+          <span class="fu-race__track">
+            <span v-inline-style="race.past" class="fu-race__past" />
+            <span
+              v-if="race.win"
+              v-inline-style="race.win"
+              class="fu-race__win"
+              :class="`fu-race__win--${view.window.tone}`"
+            />
+          </span>
+          <span v-inline-style="race.now" class="fu-race__now" />
+          <Icon name="chequered" class="fu-race__flag" />
         </span>
-        <span class="fu-read fu-read--end">
-          <span class="fu-text" :class="`ov-tone-${view.window.stopsTone}`">{{
-            view.window.stops
-          }}</span>
+        <span
+          v-if="view.window.value"
+          class="fu-num fu-num--small"
+          :class="`ov-tone-${view.window.tone}`"
+          >{{ view.window.value }}</span
+        >
+        <span
+          v-if="view.window.stops > 0"
+          class="fu-stops"
+          :title="view.window.stopsText"
+          :aria-label="view.window.stopsText"
+        >
+          <Icon name="pit" class="fu-ico" />
+          <span class="fu-num fu-num--small">{{ view.window.stops }}</span>
         </span>
+        <span v-else class="fu-text fu-stops" :class="`ov-tone-${view.window.stopsTone}`">{{
+          view.window.stopsText
+        }}</span>
         <PreviewTag v-if="tagLine === 'window'" class="fu-tag" />
       </div>
 
+      <!-- The target per lap on a bar that ends at your average: the stripes are the cut. -->
       <div
-        v-if="view.save"
+        v-if="view.save && save"
         v-inline-style="orderStyle(place.save ?? 0)"
         data-el="fuel.lines.save"
         class="fu-line"
       >
-        <span class="fu-read">
-          <span class="fu-label">{{ view.save.label }}</span>
-          <span class="fu-num"
-            >{{ view.save.value
-            }}<span class="fu-unit ov-unit">&nbsp;{{ view.save.unit }}</span></span
-          >
-          <span class="fu-note">{{ view.save.note }}</span>
+        <span class="fu-label">{{ view.save.label }}</span>
+        <span class="fu-num"
+          >{{ view.save.value
+          }}<span class="fu-unit ov-unit">&nbsp;{{ view.save.unit }}</span></span
+        >
+        <span class="fu-bar fu-save" aria-hidden="true">
+          <span v-inline-style="save.keep" class="fu-bar__fill fu-save__keep" />
+          <span v-inline-style="save.cut" class="fu-save__cut" />
         </span>
+        <span class="fu-num fu-num--small ov-tone-warn">{{ view.save.cut }}</span>
+        <span class="fu-note fu-end">{{ view.save.note }}</span>
         <PreviewTag v-if="tagLine === 'save'" class="fu-tag" />
       </div>
 
-      <!-- The tread left at the last stop: one figure per tyre, front pair first. -->
+      <!--
+        The car from above: each tyre's three tread bands on the wear ramp and its most worn %,
+        as the crew measured them at the last stop; dim until a stop does.
+      -->
       <div
         v-if="view.tyres"
         v-inline-style="orderStyle(place.tyres ?? 0)"
         data-el="fuel.lines.tyres"
-        class="fu-line"
+        class="fu-tyres"
+        :class="{ 'is-dim': !view.tyres.measured }"
       >
-        <span class="fu-read">
+        <span class="fu-car">
+          <span class="fu-car__num fu-car__num--l fu-num">{{ view.tyres.tyres[0].value }}</span>
+          <svg class="fu-car__svg" :viewBox="CAR_VIEWBOX" aria-hidden="true">
+            <path class="fu-car__axle" :d="CAR_AXLES" />
+            <path class="fu-car__body" :d="CAR_BODY" />
+            <path class="fu-car__cockpit" :d="CAR_COCKPIT" />
+            <template v-for="(tyre, i) in view.tyres.tyres" :key="tyre.name">
+              <path
+                v-for="(level, j) in tyre.bands"
+                :key="j"
+                :d="TYRE_BANDS[i]?.[j]"
+                :class="level === null ? 'fu-w' : `fu-w fu-w${level}`"
+              />
+              <path class="fu-car__tyre" :d="TYRE_OUTLINES[i]" />
+            </template>
+            <path class="fu-car__grooves" :d="TYRE_GROOVES" />
+          </svg>
+          <span class="fu-car__num fu-car__num--r fu-num">{{ view.tyres.tyres[1].value }}</span>
+          <span class="fu-car__num fu-car__num--l fu-num">{{ view.tyres.tyres[2].value }}</span>
+          <span class="fu-car__num fu-car__num--r fu-num">{{ view.tyres.tyres[3].value }}</span>
+        </span>
+        <span class="fu-tyres__meta">
           <span class="fu-label">{{ view.tyres.label }}</span>
-          <span class="fu-note fu-note--lap">{{ view.tyres.lap }}</span>
-        </span>
-        <span class="fu-tyres">
-          <span v-for="c in view.tyres.corners" :key="c.name" class="fu-tyre">
-            <span class="fu-label">{{ c.name }}</span>
-            <span class="fu-num fu-num--small">{{ c.value }}</span>
+          <span class="fu-note fu-tyres__when">{{ view.tyres.note }}</span>
+          <span v-if="view.tyres.sets" class="fu-tyres__sets" :title="view.tyres.sets.label">
+            <span class="fu-num fu-num--small">{{ view.tyres.sets.value }}</span>
+            <span class="fu-unit ov-unit">{{ view.tyres.sets.unit }}</span>
           </span>
-          <span class="fu-pct fu-unit ov-unit">%</span>
         </span>
-        <PreviewTag v-if="tagLine === 'tyres'" class="fu-tag" />
       </div>
 
       <div
@@ -303,13 +450,19 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         data-el="fuel.lines.limits"
         class="fu-line"
       >
-        <span v-if="view.limits.repairs" class="fu-read">
+        <span v-if="view.limits.repairs" class="fu-count">
           <span class="fu-label">{{ view.limits.repairs.label }}</span>
           <span class="fu-num">{{ view.limits.repairs.value }}</span>
+          <span v-if="view.limits.repairs.pips > 0" class="fu-pips" aria-hidden="true">
+            <span v-for="k in view.limits.repairs.pips" :key="k" class="fu-pip" />
+          </span>
         </span>
-        <span v-if="view.limits.sets" class="fu-read fu-read--end">
+        <span v-if="view.limits.sets" class="fu-count fu-end">
           <span class="fu-label">{{ view.limits.sets.label }}</span>
           <span class="fu-num">{{ view.limits.sets.value }}</span>
+          <span v-if="view.limits.sets.pips > 0" class="fu-pips" aria-hidden="true">
+            <span v-for="k in view.limits.sets.pips" :key="k" class="fu-pip" />
+          </span>
         </span>
         <PreviewTag v-if="tagLine === 'limits'" class="fu-tag" />
       </div>
@@ -363,13 +516,13 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   justify-content: center;
 }
 
-/* ---- Hero: the fuel and its laps ------------------------------------------------- */
+/* ---- Hero: the laps of fuel, the litres, the laps to go ----------------------------- */
 
 .fu-hero {
   display: flex;
   flex: none;
   align-items: baseline;
-  gap: 0.7em;
+  gap: 0.6em;
   min-width: 0;
   height: 2.6em;
   padding: 0.25em 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
@@ -389,18 +542,21 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   font-size: max(var(--ov-min-text), calc(var(--ov-t-hero) * var(--ov-t-unit-hero)));
 }
 
+.fu-hero__left {
+  margin-left: auto;
+}
+
 /* ---- Lines --------------------------------------------------------------------- */
 
 /*
- * One reading per side: the left one gives way (its words end in an ellipsis), the right one
- * keeps its size against the right edge. Fixed heights, so contain: strict is safe: a new value
- * re-lays out its own line only.
+ * A caption, one figure and its graphic; whatever is at the end keeps its size against the
+ * right edge. Fixed heights, so contain: strict is safe: a new value re-lays out its own line.
  */
 .fu-line {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 0.8em;
+  gap: 0.5em;
   min-width: 0;
   height: 1.75em;
   padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
@@ -409,23 +565,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   contain: strict;
 }
 
-.fu-read {
-  display: flex;
-  flex: 0 1 auto;
-  align-items: baseline;
-  gap: 0.4em;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.fu-read--end {
-  flex: none;
+.fu-end {
   margin-left: auto;
-}
-
-/* Alone on its line (the left reading is off), it starts where the others do. */
-.fu-read--end:first-child {
-  margin-left: 0;
 }
 
 .fu-label {
@@ -444,6 +585,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   font-size: var(--ov-t-lead);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .fu-num--small {
@@ -455,9 +597,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 .fu-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: none;
   font-weight: var(--ov-w-strong);
 }
 
@@ -466,7 +606,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   color: var(--ov-fg-muted);
 }
 
-/* Words after a number ('últ. 3.02 · máx. 3.10'): context, so muted, and the first to give way. */
+/* Words after a figure: context, so muted, and the first to give way. */
 .fu-note {
   min-width: 0;
   overflow: hidden;
@@ -475,26 +615,22 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   color: var(--ov-fg-muted);
 }
 
-.fu-note--lap {
-  flex: none;
-}
-
-.fu-box {
-  align-self: center;
-}
-
-.fu-tyres {
+/* A figure after a sign (the chequered flag: to the flag; the pit sign: stops). */
+.fu-flagged,
+.fu-stops {
   display: flex;
   flex: none;
-  align-items: baseline;
-  gap: 0.55em;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.fu-ico {
+  font-size: 0.85em;
+  color: var(--ov-fg-muted);
+}
+
+.fu-stops {
   margin-left: auto;
-}
-
-.fu-tyre {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25em;
 }
 
 .fu-tag {
@@ -503,9 +639,39 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   margin-left: auto;
 }
 
-.fu-read--end + .fu-tag,
-.fu-tyres + .fu-tag {
+.fu-end + .fu-tag,
+.fu-stops + .fu-tag {
   margin-left: 0;
+}
+
+/* ---- Bars: a recessed track, a fill growing from the left (a transform) ----------- */
+
+.fu-bar {
+  position: relative;
+  flex: 1 1 auto;
+  height: 0.4em;
+  border-radius: 1px;
+  background: var(--ov-well);
+  box-shadow: inset 0 0 0 1px var(--ov-tick);
+}
+
+.fu-bar__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 1px;
+  transform-origin: 0 50%;
+  background: currentColor;
+  opacity: 0.75;
+}
+
+/* A mark across a bar: where you need it to reach. */
+.fu-bar__mark {
+  position: absolute;
+  top: -0.2em;
+  bottom: -0.2em;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ov-fg);
 }
 
 /* ---- Tank gauge --------------------------------------------------------------------- */
@@ -514,75 +680,412 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   display: flex;
   flex: none;
   align-items: center;
-  height: 0.75em;
+  height: 1.1em;
   padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
   contain: strict;
 }
 
-/* A recessed track; the fill grows from the left (a transform, eased between payloads). */
-.fu-gauge__track {
+.fu-tank {
   position: relative;
   flex: 1 1 auto;
-  height: 0.35em;
-  border-radius: 1px;
+  height: 0.6em;
+  border-radius: 2px;
   background: var(--ov-well);
   box-shadow: inset 0 0 0 1px var(--ov-tick);
-  overflow: hidden;
 }
 
-.fu-gauge__fill {
+.fu-tank__fill {
   position: absolute;
   inset: 0;
+  border-radius: 2px;
   transform-origin: 0 50%;
   background: var(--ov-fg-muted);
   transition: transform 0.8s ease-out;
 }
 
-.fu-gauge__fill--good {
+.fu-tank__fill--good {
   background: var(--ov-good);
 }
 
-.fu-gauge__fill--bad {
+.fu-tank__fill--bad {
   background: var(--ov-bad);
 }
 
-/* Where the fuel to the flag reaches: a tick across the track. */
-.fu-gauge__need {
+/* What is missing to the flag: the stretch between the fuel and the mark, striped. */
+.fu-tank__short {
   position: absolute;
   top: 0;
   bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ov-bad) 55%, transparent) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+/* One lap of fuel per graduation: a cut across the fill, stronger every five laps. */
+.fu-tank__ticks {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 calc(var(--fu-step) - 1px),
+    rgba(12, 14, 18, 0.45) calc(var(--fu-step) - 1px) var(--fu-step)
+  );
+}
+
+.fu-tank__ticks--five {
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 calc(var(--fu-step) - 1.5px),
+    rgba(12, 14, 18, 0.85) calc(var(--fu-step) - 1.5px) var(--fu-step)
+  );
+}
+
+/* Where the fuel to the flag reaches: a mark standing out of the tank. */
+.fu-tank__need {
+  position: absolute;
+  top: -0.25em;
+  bottom: -0.25em;
   width: 2px;
   margin-left: -1px;
   background: var(--ov-fg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fu-gauge__fill {
+  .fu-tank__fill {
     transition: none;
   }
 }
 
-/* ---- Narrow windows: the figures keep their room, the words go first ------------------ */
+/* ---- Consumption sparkline ------------------------------------------------------------ */
 
-@container fuel (max-width: 22em) {
-  .fu-box,
-  .fu-note {
+.fu-spark {
+  flex: 1 1 auto;
+  min-width: 3em;
+  max-width: 10em;
+  height: 1.15em;
+  overflow: visible;
+}
+
+.fu-spark__avg {
+  stroke: var(--ov-tick-major);
+  stroke-width: 1px;
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.fu-spark__line,
+.fu-spark__tail {
+  fill: none;
+  stroke: var(--ov-fg-muted);
+  stroke-width: 1.4px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The last lap was not a clean one: off the line, joined dashed. */
+.fu-spark__tail {
+  stroke-dasharray: 2 2;
+}
+
+.fu-spark__dot {
+  stroke: var(--ov-fg);
+  stroke-width: 5px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.fu-spark__dot--max {
+  stroke: var(--ov-warn);
+  stroke-width: 4px;
+}
+
+/* ---- Pit menu against what to add ------------------------------------------------------- */
+
+.fu-menu {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 0.35em;
+  min-width: 0;
+}
+
+.fu-menu__label {
+  color: inherit;
+}
+
+.fu-menu__bar {
+  flex: 0 0 3.2em;
+}
+
+/* ---- The race: past, window, you, the flag ------------------------------------------- */
+
+.fu-race {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 4em;
+  height: 100%;
+  padding-right: 0.95em;
+}
+
+.fu-race__track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 0.3em;
+  border-radius: 1px;
+  background: var(--ov-well);
+  box-shadow: inset 0 0 0 1px var(--ov-tick);
+}
+
+.fu-race__past {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 50%;
+  background: var(--ov-tick-major);
+}
+
+.fu-race__win {
+  position: absolute;
+  top: -0.2em;
+  bottom: -0.2em;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ov-fg-muted) 22%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ov-fg-muted);
+}
+
+.fu-race__win--good {
+  background: color-mix(in srgb, var(--ov-good) 30%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ov-good);
+}
+
+.fu-race__win--bad {
+  background: color-mix(in srgb, var(--ov-bad) 35%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ov-bad);
+}
+
+/* You: a needle across the line (inside the track's own width, the flag after it). */
+.fu-race__now {
+  position: absolute;
+  top: 0.3em;
+  bottom: 0.3em;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ov-fg);
+}
+
+.fu-race__flag {
+  position: absolute;
+  right: 0;
+  font-size: 0.8em;
+  color: var(--ov-fg-muted);
+}
+
+/* ---- Saving: what you keep, what to cut --------------------------------------------- */
+
+.fu-save {
+  flex: 0 1 5em;
+  min-width: 2.5em;
+}
+
+.fu-save__keep {
+  color: var(--ov-good);
+}
+
+.fu-save__cut {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ov-warn) 75%, transparent) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+/* ---- Tyres: the car from above ------------------------------------------------------- */
+
+.fu-tyres {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.8em;
+  min-width: 0;
+  height: 4.8em;
+  padding: 0 0.6em 0 calc(var(--ov-bar-w) + 0.35em);
+  overflow: hidden;
+  white-space: nowrap;
+  contain: strict;
+}
+
+/* The figures beside their tyres: front pair on the first row, rear on the second. */
+.fu-car {
+  display: grid;
+  flex: none;
+  grid-template-columns: 2.1em auto 2.1em;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  column-gap: 0.4em;
+}
+
+.fu-car__svg {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  width: 3.15em;
+  height: 4.3em;
+  overflow: visible;
+}
+
+.fu-car__num--l {
+  grid-column: 1;
+  justify-self: end;
+}
+
+.fu-car__num--r {
+  grid-column: 3;
+  justify-self: start;
+}
+
+.fu-car__axle {
+  fill: none;
+  stroke: var(--ov-tick-major);
+  stroke-width: 1.2;
+}
+
+.fu-car__body {
+  fill: var(--ov-chip-faint);
+  stroke: var(--ov-tick-major);
+  stroke-width: 0.8;
+}
+
+.fu-car__cockpit {
+  fill: var(--ov-well);
+}
+
+.fu-car__tyre {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.8;
+}
+
+.fu-car__grooves {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 0.6;
+}
+
+/* The wear ramp, fresh to spent; no reading: an empty well. */
+.fu-w {
+  fill: var(--ov-well);
+}
+
+/* Green when new, yellow by the middle (78 %), orange and then red when spent. */
+.fu-w8 {
+  fill: var(--ov-good);
+}
+
+.fu-w7 {
+  fill: color-mix(in oklab, var(--ov-good) 80%, var(--ov-flag-yellow));
+}
+
+.fu-w6 {
+  fill: color-mix(in oklab, var(--ov-good) 60%, var(--ov-flag-yellow));
+}
+
+.fu-w5 {
+  fill: color-mix(in oklab, var(--ov-good) 35%, var(--ov-flag-yellow));
+}
+
+.fu-w4 {
+  fill: var(--ov-flag-yellow);
+}
+
+.fu-w3 {
+  fill: color-mix(in oklab, var(--ov-flag-yellow) 50%, var(--ov-warn));
+}
+
+.fu-w2 {
+  fill: var(--ov-warn);
+}
+
+.fu-w1 {
+  fill: color-mix(in oklab, var(--ov-warn) 50%, var(--ov-bad));
+}
+
+.fu-w0 {
+  fill: var(--ov-bad);
+}
+
+.fu-tyres__meta {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15em;
+  min-width: 0;
+  text-align: right;
+}
+
+.fu-tyres__when {
+  max-width: 100%;
+}
+
+.fu-tyres__sets {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25em;
+}
+
+/* Nothing measured yet: the car stays, quiet. */
+.fu-tyres.is-dim .fu-car {
+  opacity: var(--ov-o-dim);
+}
+
+.fu-tyres.is-dim .fu-car__num {
+  color: var(--ov-fg-dim);
+}
+
+/* ---- Counts left: a figure and a pip each ------------------------------------------- */
+
+.fu-count {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.fu-pips {
+  display: flex;
+  gap: 0.18em;
+}
+
+.fu-pip {
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 1px;
+  background: var(--ov-fg-muted);
+}
+
+/* ---- Narrow windows: the figures and graphics keep their room, the words go first ------ */
+
+@container fuel (max-width: 23em) {
+  .fu-note,
+  .fu-menu__label {
     display: none;
   }
 
-  .fu-note--lap {
-    display: inline;
+  .fu-tyres__when {
+    display: block;
   }
 }
 
-/*
- * The hero's two figures and the four tyres keep their room: the laps to go, the reading's lap
- * and the % sign go.
- */
-@container fuel (max-width: 21em) {
-  .fu-hero .fu-read--end,
-  .fu-note--lap,
-  .fu-pct {
+@container fuel (max-width: 20em) {
+  .fu-hero__left,
+  .fu-menu,
+  .fu-pips,
+  .fu-tyres__when {
     display: none;
   }
 }
