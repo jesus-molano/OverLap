@@ -77,10 +77,22 @@ export interface FlushableStore extends PersonalBestStore {
   clear(): number
   /**
    * Takes the bests of a personal-bests file's text (a backup, R40): each key it has that this
-   * store lacks, or where its lap is faster; the others stay. Returns how many it took (0 for a
-   * text that is not such a file).
+   * store lacks, or where its lap is faster; the others stay. Never drops one of its own: a new
+   * key is taken only while there is room (the newest first), the rest are `skipped`. Nothing
+   * taken from a text that is not such a file.
    */
-  merge(text: string): number
+  merge(text: string): BestsMerge
+  /**
+   * Every best as the file holds them, pending writes included (for «Exportar todo», R40); null
+   * for a store only in memory.
+   */
+  text(): string | null
+}
+
+/** What a merge did: the laps taken (new or faster), and the new ones left out for lack of room. */
+export interface BestsMerge {
+  readonly taken: number
+  readonly skipped: number
 }
 
 /** A stored lap with the names of its car and layout. */
@@ -261,25 +273,31 @@ function createStore(file: string | null, opts: FileStoreOptions): FlushableStor
     },
     merge: (text) => {
       const parsed = parse(text)
-      if (!parsed) return 0
+      if (!parsed) return { taken: 0, skipped: 0 }
       let taken = 0
-      // Oldest first, as offer() keeps them; the cap drops the oldest.
-      const entries = parsed.entries.sort((a, b) => compareText(a[1].recordedAt, b[1].recordedAt))
+      let skipped = 0
+      // Newest first: when room runs out, the older new ones are the ones left out. Nothing of
+      // this store is ever evicted for them (an import cannot be undone for the bests).
+      const entries = parsed.entries.sort((a, b) => compareText(b[1].recordedAt, a[1].recordedAt))
       for (const [key, best] of entries) {
         adoptLegacy(key)
         const cur = bests.get(key)
         if (cur && cur.lapTime <= best.lapTime) continue
+        if (!cur && bests.size >= maxEntries) {
+          skipped++
+          continue
+        }
         bests.delete(key)
         bests.set(key, withNames(best, cur ?? NO_LABEL, best))
-        if (!cur) evictOldest(bests, maxEntries, key)
         taken++
       }
       if (taken > 0) {
         saveNow()
         changed()
       }
-      return taken
-    }
+      return { taken, skipped }
+    },
+    text: () => (file === null ? null : serialize(bests))
   }
 }
 

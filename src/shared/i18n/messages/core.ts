@@ -87,7 +87,6 @@ export const coreEs = {
   tray: {
     settings: 'Ajustes…',
     radarRange: 'Alcance del radar',
-    /** A radar range ('20 m', '66 ft'): format.ts formatDistance, in Apariencia's units. */
     /** The submenu with the showWhen choices. */
     showWhen: 'Cuándo mostrar',
     /** The submenu with the saved layouts (the one in use checked). */
@@ -152,9 +151,12 @@ export const coreEs = {
     layout: (name: string) => `Disposición: ${name}`,
     layoutOnlyOne: 'Solo hay una disposición',
     layoutOnlyOneDetail: 'Guarda otra en Ajustes › Disposiciones',
-    /** «Más acciones» (R52): a widget shown or hidden by its shortcut. */
-    widgetShown: (name: string) => `${name} visible`,
-    widgetHidden: (name: string) => `${name} oculto`,
+    /**
+     * «Más acciones» (R52): a widget shown or hidden by its shortcut. Label first, so no name
+     * («Posiciones», «Batalla», «Avisos») has to agree with it, as the undo's «Ocultado: …».
+     */
+    widgetShown: (name: string) => `Visible: ${name}`,
+    widgetHidden: (name: string) => `Oculto: ${name}`,
     /** Shown, but the overlay is hidden by you: nothing appears yet. */
     widgetHeldByYou: 'El overlay está oculto: muéstralo con su atajo o desde la bandeja',
     /** The tray's «Traer todos los widgets a esta pantalla» (R51), on the screen they came to. */

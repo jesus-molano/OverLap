@@ -233,7 +233,12 @@ export function carRows(
 
 /** Whether `n` is about an export or an import (the layouts page shows those). */
 export function isFileNotice(n: LayoutNotice): n is LayoutFileNotice {
-  return n.kind !== 'options-copied' && n.kind !== 'gathered' && n.kind !== 'auto-switch-on'
+  return (
+    n.kind === 'exported' ||
+    n.kind === 'export-failed' ||
+    n.kind === 'imported' ||
+    n.kind === 'import-failed'
+  )
 }
 
 /**

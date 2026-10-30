@@ -160,9 +160,17 @@ export class LayoutControl {
       case 'layout-duplicate':
         this.change((s) => void duplicateLayout(s, cmd.id, cmd.name))
         break
-      case 'layout-example':
-        this.change((s) => void addExampleLayout(s, cmd.kind, cmd.name))
+      case 'layout-example': {
+        // Said once it is there, by the name it got (unique), or that there was no room.
+        const added: { id: string | null } = { id: null }
+        this.change((s) => (added.id = addExampleLayout(s, cmd.kind, cmd.name)))
+        const name =
+          this.deps.getSettings().savedLayouts.list.find((l) => l.id === added.id)?.name ?? null
+        this.deps.notify(
+          name === null ? { kind: 'example-failed' } : { kind: 'example-added', name }
+        )
         break
+      }
       case 'layout-rename':
         this.change((s) => void renameLayout(s, cmd.id, cmd.name))
         break

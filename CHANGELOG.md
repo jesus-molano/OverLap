@@ -64,11 +64,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lateral y la nota de cada página de widget dicen «overlay oculto». Si no se puede cargar el
   módulo nativo del SDK de iRacing, lo dice un aviso en todas las páginas, con los mismos botones;
   el aviso de que no se guarda también abre el registro en vez de explicar dónde está.
-- **Marca central del volante con «Acento (global)»**: en Pedales, el color de la marca central
-  tiene como primera opción **Acento (global)**, que sigue al color de acento de Apariencia (como
+- **Marca central del volante con «Global (acento)»**: en Pedales, el color de la marca central
+  tiene como primera opción **Global (acento)**, que sigue al color de acento de Apariencia (como
   «Global (…)» en el formato de nombre). Es la opción de serie en una instalación nueva; si ya
   tenías ajustes, la marca conserva su color (el amarillo de antes) hasta que la elijas.
-- **Avisos y Testigos, enlazados**: motor calado, presión de aceite y limitador de boxes están en
+- **Avisos y Testigos, enlazados**: motor calado, presión de aceite, limitador de boxes y daños
+  (la reparación obligatoria: «Daños» en Avisos, «Reparación obligatoria» en Testigos) están en
   los dos widgets. En **Personalizar › Avisos**, la fila de cada uno tiene una casilla **Testigo**
   que enciende o apaga su testigo en Testigos, y en la lista de Testigos la casilla **Aviso** hace
   lo mismo con su aviso; bajo cada lista, una línea lo explica con un botón **Ir a Testigos** /
@@ -77,33 +78,40 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   Imperiales**, Combustible muestra galones (EE. UU.): lo que queda, el consumo por vuelta
   (`gal/v`), lo que hay que echar, el menú de boxes y el ahorro; el plan y las vueltas no
   cambian. El alcance del radar (en sus marcas, en su página y en la bandeja) se lee en pies; el
-  ajuste se sigue guardando en metros. El aviso «COMBUSTIBLE · 1.6 V» sigue en vueltas.
+  ajuste se sigue guardando en metros. El aviso «COMBUSTIBLE · 1.6 V» sigue en vueltas. Cambio
+  visible si ya usabas unidades imperiales: Combustible pasa de litros a galones y el radar, de
+  metros a pies.
 - **Disposiciones de ejemplo «Ligera» y «Completa»**: en **Disposiciones › Ejemplos**, **Añadir**
   pone al final de la lista una disposición con tus widgets donde están y sus opciones, sin
   aplicarla: «Ligera» muestra Relativo (con 2 coches delante y 2 detrás, o menos si ya tenías
   menos), Radar, Delta, Combustible y Avisos; «Completa», los diez widgets. Al añadirla, la página
-  recuerda que alternas con el atajo **Siguiente disposición** (con sus teclas) o desde la bandeja.
+  la nombra como ha quedado («Ligera (2)» si ya había una) y recuerda que alternas con el atajo
+  **Siguiente disposición** (con sus teclas) o desde la bandeja; si ya no cabe, lo dice.
 - **Estilos en Apariencia**: arriba, cuatro estilos con nombre ponen el aspecto entero de una vez:
   **OverLap** (el de serie), **Como iRacing** (oscuro y apretado, nombre completo, licencia
-  sólida, sin logos ni banderas), **Limpio** (fondo más claro, sin franjas, logos ni banderas) y
+  sólida, sin logos ni banderas), **Limpio** (fondo más transparente, sin filas alternas, logos
+  ni banderas, número en franja y licencia solo letra) y
   **Compacto** (filas compactas, texto al 90 %, apellidos). Se marca el que coincide con lo que
   tienes; si ajustas algo a mano dice «Personalizado». Debajo, los controles de siempre como
   **Ajuste fino**. Elegir uno se deshace con **Deshacer**; no tocan el acento, la paleta para
-  daltónicos, el idioma ni las unidades, ni los widgets con valores propios.
+  daltónicos, la etiqueta SIM, el idioma ni las unidades, ni los widgets con valores propios.
 - **Atajos para mostrar u ocultar cada widget**: en **Atajos**, bajo las acciones de siempre, un
   grupo plegado **Más acciones** tiene una fila por widget («Mostrar u ocultar Relativo»…), con las
   mismas tres casillas, botones del volante incluidos. Hacen lo mismo que el ojo de la barra
   lateral o la casilla de la bandeja (que muestra el atajo al lado del widget), y el aviso sobre el
-  juego dice «Relativo oculto» o «Relativo visible» y, si aun así no se ve, por qué. Ninguna tiene
+  juego dice «Oculto: Relativo» o «Visible: Relativo» y, si aun así no se ve, por qué. Ninguna tiene
   atajo de serie; el grupo dice cuántas tienen y se abre solo si alguna lo tiene.
 - **Página «Acerca de y ayuda»**, al pie de la barra lateral: la versión, **Guía de uso** e
-  **Informar de un problema** (en el navegador), una ayuda rápida que lleva a la página de cada
-  respuesta, **Exportar todo…** (todos los ajustes, con todas las disposiciones y sus opciones, y
-  tus récords, en un archivo) e **Importar todo…** (pone esos ajustes al momento, con **Deshacer**
-  aquí y en la bandeja, y suma los récords del archivo a los tuyos: gana la vuelta más rápida; un
-  archivo de una versión más nueva o que no es una copia se rechaza diciendo por qué), **Abrir
+  **Informar de un problema** (en el navegador), una ayuda rápida con un botón en cada pregunta
+  (la página que responde, **Modo edición** o **Buscar ajuste**), **Exportar todo…** (todos los
+  ajustes, con todas las disposiciones y sus opciones, y tus récords, incluso el de hace un
+  segundo, en un archivo) e **Importar todo…** (pone esos ajustes al momento, con **Deshacer** aquí
+  y en la bandeja mientras no cambies nada más, y suma los récords del archivo a los tuyos: gana
+  la vuelta más rápida, ninguno de los tuyos se borra y, si la lista está llena, dice cuántos no
+  caben; un archivo de una versión más nueva o que no es una copia se rechaza diciendo por qué), **Abrir
   carpeta**, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y **Restablecer
-  todo** (como recién instalado, en tu idioma; tus récords se quedan; pide confirmación y se
+  todo** (como recién instalado, en tu idioma, con los widgets centrados en una pantalla
+  ultrapanorámica como en el primer arranque; tus récords se quedan; pide confirmación y se
   deshace). El botón de la carpeta de ajustes deja el pie de la barra lateral y el de la ventana
   estrecha; sigue en la bandeja.
 

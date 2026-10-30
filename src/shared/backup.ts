@@ -5,8 +5,13 @@
  * file does; the bests go to the telemetry process, which merges them (a faster lap wins, none is
  * lost). Pure.
  */
-import { SETTINGS_VERSION, normalizeSettings } from './settings'
-import type { OverlaySettings } from './types'
+import {
+  SETTINGS_VERSION,
+  defaultLayoutOffsetX,
+  normalizeSettings,
+  placeDefaultLayout
+} from './settings'
+import type { OverlaySettings, Rect } from './types'
 
 export const BACKUP_FORMAT = 'overlap-backup'
 export const BACKUP_VERSION = 1
@@ -109,14 +114,20 @@ export function parseBackup(text: string): BackupRead {
 
 /**
  * «Restablecer todo» (R40): every setting as on a new install (one layout, the default shortcuts,
- * the default look and rules), in the language in use; no welcome. The personal bests stay.
+ * the default look and rules), in the language in use; no welcome. The personal bests stay. The
+ * widgets placed as a first run places them on `primaryArea`: centred on an ultrawide screen.
  */
-export function factorySettings(current: Readonly<OverlaySettings>): OverlaySettings {
+export function factorySettings(
+  current: Readonly<OverlaySettings>,
+  primaryArea?: Rect
+): OverlaySettings {
   // Through the normaliser: the one layout is named in that language, as on a first run.
-  return normalizeSettings({
+  const fresh = normalizeSettings({
     version: SETTINGS_VERSION,
     appearance: { language: current.appearance.language }
   })
+  if (primaryArea === undefined || defaultLayoutOffsetX(primaryArea) === 0) return fresh
+  return placeDefaultLayout(fresh, primaryArea)
 }
 
 /** What an import puts in effect: the file's settings, never with the first-run welcome. */

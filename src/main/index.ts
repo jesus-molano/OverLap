@@ -23,7 +23,7 @@ import {
   type ControllerInfo
 } from '@shared/controllers'
 import type { PersonalBestList } from '@shared/delta/references'
-import { messagesFor } from '@shared/i18n'
+import { messagesFor, type Messages } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView, type UsedShortcut } from '@shared/ipc'
 import { deepEqual } from '@shared/equal'
 import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
@@ -197,12 +197,28 @@ function start(): void {
   console.log(`[main] source: ${source}, settings: ${store.file}`)
   setSettingsWindowLanguage(store.settings.appearance.language)
 
+  /**
+   * The «Deshacer» of a car linked, widgets brought here, an import or a reset, for the page and
+   * the tray alike (before any change can reach syncSettings, which prunes it).
+   */
+  const noticeUndo = new NoticeUndo(() => refreshTray())
+  /**
+   * The settings an import's or a reset's «Deshacer» stands for (keepSettingsUndo); an auto
+   * height fitting after it moves it along, any other change makes the offer go.
+   */
+  let settingsUndoBase: { after: OverlaySettings } | null = null
+
   const windows = new OverlayWindows({
     getSettings: () => store.settings,
-    onBoundsCommitted: (id, bounds) => {
-      changeSettings((s) => {
+    onBoundsCommitted: (id, bounds, fit) => {
+      const prev = store.settings
+      store.update((s) => {
         s.widgets[id].bounds = bounds
       })
+      // An auto height following its content is no change of yours: an import's or a reset's
+      // «Deshacer» stays (its widgets fit their new content right after it).
+      if (fit === true && settingsUndoBase?.after === prev) settingsUndoBase.after = store.settings
+      syncSettings(prev)
     },
     // Through the normal settings path: the settings window's slider follows the wheel.
     onScaleStep: (id, step) => {
@@ -222,8 +238,6 @@ function start(): void {
   })
 
   // The saved layouts: the tray, the shortcut, the settings window and the automatic switch.
-  /** The «Deshacer» of a car linked or widgets brought here, for the page and the tray alike. */
-  const noticeUndo = new NoticeUndo(() => refreshTray())
   const layouts = new LayoutControl({
     keepUndo: (what, undo) => noticeUndo.keep(what, undo),
     getSettings: () => store.settings,
@@ -255,7 +269,11 @@ function start(): void {
     const t = messagesFor(store.settings.appearance.language).core.layoutFiles
     return {
       ...fileDeps(t.backupFilter, BACKUP_EXTENSION),
-      readBests: () => {
+      // The process's memory first: a lap of the last 2 s, or one kept while writes fail, is
+      // not in the file yet.
+      readBests: async () => {
+        const live = await telemetry.bestsText()
+        if (live !== null) return live
         try {
           return readFileSync(join(userData, PERSONAL_BESTS_FILE), 'utf8')
         } catch {
@@ -317,7 +335,10 @@ function start(): void {
     onSessionKind: (kind) => {
       sessionKindNow = kind
     },
-    onPlayerCar: (car) => layouts.onCar(car)
+    onPlayerCar: (car) => layouts.onCar(car),
+    // An import's bests (R40): how it went, under «Importar todo».
+    onBestsMerged: (taken, skipped) =>
+      sendToSettingsWindow(IPC.layoutNotice, { kind: 'backup-bests-merged', taken, skipped })
   })
 
   /**
@@ -530,6 +551,8 @@ function start(): void {
     sendToSettingsWindow(IPC.settings, rendererSettings(store.settings, 'settings'))
     shortcuts.configure(store.settings.shortcuts, store.settings.shortcutsMore)
     rememberControllerNames()
+    // An import's or a reset's «Deshacer» goes with the first change after it.
+    noticeUndo.prune()
     refreshTray()
   }
 
@@ -680,26 +703,37 @@ function start(): void {
       return
     }
     const before = replaceSettings(importedSettings(read))
-    if (read.bests !== null) telemetry.mergeBests(read.bests)
-    const undo = noticeUndo.keep(
-      (m) => m.settings.about.backup.undoImport,
-      () => void replaceSettings(before)
+    const undo = keepSettingsUndo(before, (m) => m.settings.about.backup.undoImport)
+    // The telemetry process merges them and says how it went (onBestsMerged); none running:
+    // the notice says they were not added, the file can be imported again.
+    const bests =
+      read.bests === null ? 'none' : telemetry.mergeBests(read.bests) ? 'merging' : 'not-merged'
+    console.log(`[main] settings imported from a backup (bests: ${bests})`)
+    sendToSettingsWindow(IPC.layoutNotice, { kind: 'backup-imported', bests, undo })
+  }
+
+  /**
+   * The «Deshacer» of an import or a reset: `before` back, but only while nothing has changed
+   * since (another change would be lost with it): the next change drops the offer
+   * (noticeUndo.prune in syncSettings).
+   */
+  function keepSettingsUndo(before: OverlaySettings, what: (m: Messages) => string): number {
+    const base = { after: store.settings }
+    settingsUndoBase = base
+    return noticeUndo.keep(
+      what,
+      () => void replaceSettings(before),
+      () => store.settings === base.after
     )
-    console.log('[main] settings imported from a backup')
-    sendToSettingsWindow(IPC.layoutNotice, {
-      kind: 'backup-imported',
-      bests: read.bests !== null,
-      undo
-    })
   }
 
   /** «Restablecer todo» (R40): a new install's settings, in the language in use; «Deshacer». */
   function resetEverything(): void {
-    const before = replaceSettings(factorySettings(store.settings))
-    const undo = noticeUndo.keep(
-      (m) => m.settings.about.reset.undo,
-      () => void replaceSettings(before)
+    // Placed as a first run places them: centred on an ultrawide primary screen.
+    const before = replaceSettings(
+      factorySettings(store.settings, screen.getPrimaryDisplay().workArea)
     )
+    const undo = keepSettingsUndo(before, (m) => m.settings.about.reset.undo)
     console.log('[main] every setting reset')
     sendToSettingsWindow(IPC.layoutNotice, { kind: 'reset-all', undo })
   }

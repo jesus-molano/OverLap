@@ -99,6 +99,16 @@ export function parseTelemetryMessage(raw: unknown): TelemetryOutMessage | null 
       const list = parseBestList(raw.list)
       return list ? { type: 'bests', list } : null
     }
+    case 'bests-merged': {
+      const { taken, skipped } = raw
+      if (!isCount(taken) || !isCount(skipped)) return null
+      return { type: 'bests-merged', taken, skipped }
+    }
+    case 'bests-text': {
+      const { id, text } = raw
+      if (!Number.isSafeInteger(id) || (text !== null && typeof text !== 'string')) return null
+      return { type: 'bests-text', id: id as number, text }
+    }
     case 'session-kind': {
       const { kind } = raw
       if (kind !== null && !includes(SESSION_KINDS, kind)) return null
@@ -112,6 +122,10 @@ export function parseTelemetryMessage(raw: unknown): TelemetryOutMessage | null 
     default:
       return null
   }
+}
+
+function isCount(v: unknown): v is number {
+  return Number.isSafeInteger(v) && (v as number) >= 0
 }
 
 /** Names and dates are short display strings. */

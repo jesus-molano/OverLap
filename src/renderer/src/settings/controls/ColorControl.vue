@@ -21,7 +21,7 @@ const props = withDefaults(
     presets: readonly { readonly value: string; readonly label: string }[]
     apply: (value: string) => Promise<unknown>
     disabled?: boolean
-    /** «Acento (global)»: its label and the accent it shows now. */
+    /** «Global (acento)»: its label and the accent it shows now. */
     inherit?: { readonly label: string; readonly color: string }
   }>(),
   { help: undefined, disabled: false, inherit: undefined }
@@ -180,7 +180,7 @@ function revertTyped(): void {
   cursor: pointer;
 }
 
-/* «Acento (global)»: the accent's dot and its words, a pill (its ring follows the pill). */
+/* «Global (acento)»: the accent's dot and its words, a pill (its ring follows the pill). */
 .swatch-inherit {
   align-items: center;
   gap: 8px;

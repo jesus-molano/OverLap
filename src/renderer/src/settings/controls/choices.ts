@@ -49,7 +49,7 @@ export function densityChoicesInherit(
   ]
 }
 
-/** 'Ejemplo: Pierre-Étienne Duvalier → P. Duvalier' for the format a widget ends up using. */
+/** 'Ejemplo: Pierre-Étienne Duvalier se ve «P. Duvalier»' for the format a widget ends up using. */
 export function nameExample(m: Messages, format: NameFormat): string {
   return m.settings.choices.example(SAMPLE_NAME, formatDriverName(SAMPLE_NAME, format))
 }

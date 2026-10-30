@@ -73,11 +73,15 @@ describe('shortcutRows', () => {
     // «Más acciones» (R52): said with the widget's name, unbound, nothing to reset.
     expect(rows.find((r) => r.action === 'toggleRelative')).toMatchObject({
       label: 'Mostrar u ocultar Relativo',
-      help: 'Su «Visible», como el ojo de la barra lateral',
+      help: '',
       bindings: [],
       status: 'disabled',
       canReset: false
     })
+    // The fold's help says what they do, once: no row repeats it.
+    for (const a of WIDGET_SHORTCUT_ACTIONS) {
+      expect(rows.find((r) => r.action === a)?.help).toBe('')
+    }
     expect(rows[0]).toMatchObject({
       label: 'Mostrar u ocultar el overlay',
       bindings: [

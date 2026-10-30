@@ -104,7 +104,8 @@ describe('Avisos and Testigos: the events both have (R39)', () => {
     expect(SHARED_EVENTS.map(([a]) => a)).toEqual([
       'showStalled',
       'showOilPressure',
-      'showPitLimiter'
+      'showPitLimiter',
+      'showDamage'
     ])
     for (const [alert, light] of SHARED_EVENTS) {
       expect(ALERTS_SPEC.ids).toContain(alert)
@@ -115,6 +116,10 @@ describe('Avisos and Testigos: the events both have (R39)', () => {
     // Only those: the flags have no light, the temperatures no alert.
     expect(lightOfAlert('showFlags')).toBeNull()
     expect(alertOfLight('water')).toBeNull()
+    // Damage is the mandatory repair (one flag for both); the optional one has no alert.
+    expect(lightOfAlert('showDamage')).toBe('repair')
+    expect(alertOfLight('repair')).toBe('showDamage')
+    expect(alertOfLight('repairOptional')).toBeNull()
   })
 
   it("turns a light on or off in Testigos' list, its place kept", () => {

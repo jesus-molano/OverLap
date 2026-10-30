@@ -91,7 +91,7 @@ describe('shortcutConfirmation (R37)', () => {
   it('says a «Más acciones» shortcut by its widget, and what still keeps it off (R52)', () => {
     const s = createDefaultSettings()
     expect(shortcutConfirmation(es, 'toggleRelative', s, LIVE)).toEqual({
-      text: 'Relativo visible',
+      text: 'Visible: Relativo',
       detail: ''
     })
     s.widgets.fuel.visible = false
@@ -101,11 +101,26 @@ describe('shortcutConfirmation (R37)', () => {
       ...LIVE,
       autoHidden: { battle: 'practice' }
     })
-    expect(held?.text).toBe('Batalla visible')
+    expect(held?.text).toBe('Visible: Batalla')
     expect(held?.detail).toMatch(/práctica/i)
     expect(
       shortcutConfirmation(es, 'toggleBattle', s, { ...LIVE, overlayHidden: true })?.detail
     ).toBe(es.core.osd.widgetHeldByYou)
+  })
+
+  it('names feminine and plural widgets with no agreement to get wrong (R52)', () => {
+    const s = createDefaultSettings()
+    s.widgets.standings.visible = false
+    s.widgets.lights.visible = false
+    s.widgets.battle.visible = false
+    expect(shortcutConfirmation(es, 'toggleStandings', s, LIVE)?.text).toBe('Oculto: Posiciones')
+    expect(shortcutConfirmation(es, 'toggleLights', s, LIVE)?.text).toBe('Oculto: Testigos')
+    expect(shortcutConfirmation(es, 'toggleBattle', s, LIVE)?.text).toBe('Oculto: Batalla')
+    s.widgets.alerts.visible = true
+    expect(shortcutConfirmation(es, 'toggleAlerts', s, LIVE)?.text).toBe('Visible: Avisos')
+    for (const id of ['toggleStandings', 'toggleLights', 'toggleBattle'] as const) {
+      expect(shortcutConfirmation(es, id, s, LIVE)?.text).not.toMatch(/ (visible|oculto)$/)
+    }
   })
 
   it('says Esc leaving edit mode as the edit-mode shortcut off', () => {

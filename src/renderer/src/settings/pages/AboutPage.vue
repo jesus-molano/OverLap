@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef, useId, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import Icon from '../../ui/Icon.vue'
 import HelpText from '../controls/HelpText.vue'
 import { sendCommand, updateSettings } from '../editor'
 import ConfirmButton from '../layout/ConfirmButton.vue'
+import EditModeButton from '../layout/EditModeButton.vue'
 import NavIcon from '../layout/NavIcon.vue'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import { useLayoutState } from '../layoutsView'
 import { pageTitle, type SettingsPage } from '../nav'
 import { useNavigate } from '../navigate'
+import { requestSearchFocus } from '../search/focusSearch'
 import { offerRestore } from '../undo/restore'
 
 /**
@@ -29,7 +32,7 @@ onMounted(() => {
   void window.overlay.getInitialState().then((init) => (version.value = init.appVersion ?? ''))
 })
 
-/** Each question, and the page that answers it. */
+/** Each question, and the page or the control that answers it (every row has its button). */
 const HELP: readonly {
   key: 'visibility' | 'edit' | 'search' | 'layouts'
   page: SettingsPage | null
@@ -58,7 +61,10 @@ const backupText = computed(() => {
     case 'backup-export-failed':
       return { text: b.exportFailed, error: true }
     case 'backup-imported':
-      return { text: n.bests ? b.importedBests : b.imported, error: false }
+      if (n.bests === 'not-merged') return { text: b.importedBestsNot, error: true }
+      return { text: n.bests === 'merging' ? b.importedBests : b.imported, error: false }
+    case 'backup-bests-merged':
+      return { text: b.bestsMerged(n.taken, n.skipped), error: false }
     case 'backup-import-failed':
       return { text: b.errors[n.error], error: true }
     default:
@@ -132,6 +138,21 @@ const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welc
           >
             <NavIcon :page="h.page" />
             <span>{{ h.go }}</span>
+          </button>
+          <!-- Where the window has it at any width: the sidebar's foot, or the narrow bar. -->
+          <EditModeButton
+            v-else-if="h.key === 'edit'"
+            compact
+            class="st-btn-sm st-btn-ghost ab-go"
+          />
+          <button
+            v-else-if="h.key === 'search'"
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost ab-go"
+            @click="requestSearchFocus"
+          >
+            <Icon name="search" />
+            <span>{{ t.settings.search.placeholder }}</span>
           </button>
         </div>
       </PageSection>

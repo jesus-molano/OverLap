@@ -58,6 +58,8 @@ const LIVE: OverlayStatus = { state: 'mock', source: 'mock', note: 'none', detai
 
 let settings: OverlaySettings
 let committed: Array<[WidgetId, Rect]>
+/** The commits that were only an auto height fitted to the content. */
+let fitted: WidgetId[]
 let scaleSteps: Array<[WidgetId, 1 | -1]>
 let toggles: Array<[WidgetId, 'visible' | 'locked', boolean]>
 /** What the cursor probe answers (null: unknown). */
@@ -164,13 +166,15 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
   settings = createDefaultSettings()
   committed = []
+  fitted = []
   scaleSteps = []
   toggles = []
   cursorShowing = true
   windows = new OverlayWindows({
     getSettings: () => settings,
-    onBoundsCommitted: (id, bounds) => {
+    onBoundsCommitted: (id, bounds, fit) => {
       committed.push([id, bounds])
+      if (fit === true) fitted.push(id)
       changeSettings((s) => (s.widgets[id].bounds = bounds))
     },
     onScaleStep: (id, step) => scaleSteps.push([id, step]),
@@ -1070,6 +1074,8 @@ describe('OverlayWindows commits', () => {
     expect(layouts(w)).toHaveLength(count)
     vi.advanceTimersByTime(COMMIT_DELAY_MS)
     expect(committed).toEqual([['standings', { ...saved, height: 1040 - saved.y }]])
+    // Said as a fit (nobody moved it): main keeps an import's «Deshacer» through it.
+    expect(fitted).toEqual(['standings'])
 
     // Free widgets and auto height off: nothing.
     commit(w, { kind: 'fit', widget: 'relative', height: 400 })

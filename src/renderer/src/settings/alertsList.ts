@@ -111,7 +111,9 @@ export function alertPatch(next: readonly ElementEntry<AlertKey>[]): Partial<Ale
 export const SHARED_EVENTS: readonly (readonly [AlertKey, LightKind])[] = [
   ['showStalled', 'stalled'],
   ['showOilPressure', 'oilPressure'],
-  ['showPitLimiter', 'pitLimiter']
+  ['showPitLimiter', 'pitLimiter'],
+  // One flag for both (MandatoryRepairs): «Daños» in Avisos, «Reparación obligatoria» in Testigos.
+  ['showDamage', 'repair']
 ]
 
 /** The Testigos lamp of an alert, null when Testigos has none. */

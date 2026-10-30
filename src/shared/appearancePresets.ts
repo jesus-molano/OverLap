@@ -1,7 +1,8 @@
 /**
  * Named looks for Apariencia (R56): one click sets the global look as a whole, and Apariencia's
  * controls below stay the fine tuning. They set only the look: the accent (yours), the
- * colour-blind palette (a need, not a look), the language and the units never change. Widgets
+ * colour-blind palette (a need, not a look), the SIM tag (a data-state cue, beside the units),
+ * the language and the units never change. Widgets
  * with values of their own keep them (no per-widget themes). Pure.
  */
 import { OPTION_SCHEMA } from './settingsSchema'
@@ -25,8 +26,7 @@ export const PRESET_FIELDS = [
   'brandMarks',
   'brandLogos',
   'countryFlags',
-  'penaltyFlags',
-  'showSimPill'
+  'penaltyFlags'
 ] as const satisfies readonly (keyof AppearanceSettings)[]
 
 export type PresetField = (typeof PRESET_FIELDS)[number]
@@ -48,8 +48,7 @@ const OVERLAP: PresetValues = {
   brandMarks: A.brandMarks.default,
   brandLogos: A.brandLogos.default,
   countryFlags: A.countryFlags.default,
-  penaltyFlags: A.penaltyFlags.default,
-  showSimPill: A.showSimPill.default
+  penaltyFlags: A.penaltyFlags.default
 }
 
 const VALUES: Readonly<Record<AppearancePreset, PresetValues>> = {
@@ -62,10 +61,10 @@ const VALUES: Readonly<Record<AppearancePreset, PresetValues>> = {
     licenseStyle: 'solid',
     nameFormat: 'full',
     brandMarks: 'off',
-    countryFlags: false,
-    showSimPill: false
+    countryFlags: false
   },
-  // Fewer things drawn: lighter glass, no stripes, letters for licences, no marks or flags.
+  // Fewer things drawn: more see-through glass, no alternating rows, the number as a stripe,
+  // letters for licences, no marks or flags.
   clean: {
     ...OVERLAP,
     backgroundOpacity: 0.6,
@@ -75,8 +74,7 @@ const VALUES: Readonly<Record<AppearancePreset, PresetValues>> = {
     brandMarks: 'off',
     brandLogos: 'mono',
     countryFlags: false,
-    penaltyFlags: false,
-    showSimPill: false
+    penaltyFlags: false
   },
   // Most in least room: tight rows, smaller text, surnames, numbers as a stripe.
   compact: {

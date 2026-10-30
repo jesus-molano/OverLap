@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import SETTINGS_CSS from './settings.css?raw'
+import SETTINGS_MESSAGES from '@shared/i18n/messages/settings.ts?raw'
 
 const SOURCES = import.meta.glob(['./**/*.vue', './*.css'], {
   query: '?raw',
@@ -23,6 +24,9 @@ const templateOf = (src: string): string =>
   (/<template>([\s\S]*)<\/template>/.exec(src)?.[1] ?? '').replace(/<!--[\s\S]*?-->/g, '')
 
 const withoutComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, '')
+
+/** The symbols an icon draws (ui/icons.ts), never typed as text in Ajustes. */
+const SYMBOLS = /[↑↓←→⠿ⓘ×▲▼◉−✕⚙▸]/g
 
 const TOKENS = ['caption', 'help', 'ui', 'body', 'title', 'page'] as const
 
@@ -70,8 +74,14 @@ describe('settings visual system (R55)', () => {
     for (const [path, src] of Object.entries(SOURCES)) {
       if (!path.endsWith('.vue')) continue
       const tpl = templateOf(src)
-      for (const m of tpl.matchAll(/[↑↓←→⠿ⓘ×▲▼◉−✕]/g)) bad.push(`${path}: ${m[0]}`)
+      for (const m of tpl.matchAll(SYMBOLS)) bad.push(`${path}: ${m[0]}`)
     }
+    expect(bad).toEqual([])
+  })
+
+  it('types none of them in its texts either (both languages), only in comments', () => {
+    const code = SETTINGS_MESSAGES.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+    const bad = code.split('\n').filter((line) => line.match(SYMBOLS) !== null)
     expect(bad).toEqual([])
   })
 

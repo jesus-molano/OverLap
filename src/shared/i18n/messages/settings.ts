@@ -25,7 +25,7 @@ export const settingsEs = {
         { key: 'Esc', text: 'salir' }
       ],
       /** The chip of each widget: what its buttons do. */
-      chip: 'En la etiqueta: ojo, candado y ⚙ (sus ajustes)',
+      chip: { before: 'En la etiqueta: ojo, candado y', gear: 'engranaje', after: '(sus ajustes)' },
       exit: 'Salir'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
@@ -155,11 +155,11 @@ export const settingsEs = {
         },
         edit: {
           q: '¿Moverlo o cambiar su tamaño?',
-          a: 'Modo edición, abajo a la izquierda o con su atajo'
+          a: 'Con el botón Modo edición o con su atajo'
         },
         search: {
           q: '¿Dónde está un ajuste?',
-          a: 'Escríbelo en «Buscar ajuste», arriba a la izquierda'
+          a: 'Escríbelo en «Buscar ajuste»'
         },
         layouts: { q: '¿Uno distinto por coche?', a: 'Disposiciones, con «Según el coche»' }
       },
@@ -177,7 +177,26 @@ export const settingsEs = {
       exported: (file: string) => `Guardado en «${file}»`,
       exportFailed: 'No se ha podido guardar el archivo',
       imported: 'Ajustes importados',
-      importedBests: 'Ajustes importados; sus récords se han sumado a los tuyos',
+      importedBests: 'Ajustes importados; sumando sus récords a los tuyos…',
+      /** No telemetry process running: the settings are in, the bests are not (yet). */
+      importedBestsNot:
+        'Ajustes importados, pero sus récords no: vuelve a importar el archivo cuando OverLap esté en marcha del todo',
+      /** The bests merged: those taken, and the new ones left out (the list is full). */
+      bestsMerged: (taken: number, skipped: number) => {
+        const got =
+          taken === 0
+            ? 'ningún récord nuevo ni más rápido'
+            : taken === 1
+              ? '1 récord nuevo o más rápido'
+              : `${taken} récords nuevos o más rápidos`
+        const left =
+          skipped === 0
+            ? ''
+            : skipped === 1
+              ? '; 1 no cabe (has llegado al máximo y ninguno de los tuyos se borra)'
+              : `; ${skipped} no caben (has llegado al máximo y ninguno de los tuyos se borra)`
+        return `Ajustes importados; ${got}${left}`
+      },
       errors: {
         json: 'El archivo no se puede leer: no es un JSON válido',
         format: 'No es una copia de OverLap (¿una disposición? Se importa en Disposiciones)',
@@ -407,7 +426,7 @@ export const settingsEs = {
     /** A switch that can follow Apariencia's: 'Global (Sí)', 'Sí', 'No'. */
     onOff: { on: { label: 'Sí' }, off: { label: 'No' } },
     flagInheritHint: 'Lo que diga Apariencia',
-    example: (sample: string, formatted: string) => `Ejemplo: ${sample} → ${formatted}`
+    example: (sample: string, formatted: string) => `Ejemplo: ${sample} se ve «${formatted}»`
   },
   appearance: {
     /** One line under the title; the rest behind its ⓘ (`…More`, as every long help here). */
@@ -499,7 +518,7 @@ export const settingsEs = {
     /** Named looks at the top (R56), the controls below as the fine tuning. */
     presets: {
       title: 'Estilo',
-      help: 'Todo el aspecto de una vez; no cambia el acento, los daltónicos, el idioma ni las unidades',
+      help: 'Todo a la vez; no toca acento, paleta para daltónicos, etiqueta SIM, idioma ni unidades',
       choices: {
         overlap: { label: 'OverLap', hint: 'El de serie: filas cómodas, logos y banderas' },
         iracing: {
@@ -508,7 +527,7 @@ export const settingsEs = {
         },
         clean: {
           label: 'Limpio',
-          hint: 'Fondo más claro, sin franjas, logos ni banderas, licencia en letra'
+          hint: 'Fondo más transparente, sin filas alternas, logos ni banderas, número en franja, licencia solo letra'
         },
         compact: {
           label: 'Compacto',
@@ -652,8 +671,8 @@ export const settingsEs = {
         n === 0 ? 'Ninguna asignada' : n === 1 ? '1 asignada' : `${n} asignadas`,
       help: 'Lo mismo que su ojo en la barra lateral o la bandeja; sin atajo de serie'
     },
+    /** «Más acciones»' rows: the fold's help says what they are, once (no help per row). */
     widgetAction: (widget: string) => `Mostrar u ocultar ${widget}`,
-    widgetActionHelp: 'Su «Visible», como el ojo de la barra lateral',
     /** The fixed Esc row. */
     escape: {
       label: 'Salir del modo edición',
@@ -1058,7 +1077,7 @@ export const settingsEs = {
     wheelColor: 'Color de la marca central',
     wheelColorHelp: 'La marca del centro del volante, arriba cuando vas recto',
     /** First swatch (R46): follows Apariencia's accent, as a name format's «Global». */
-    wheelColorAccent: 'Acento (global)',
+    wheelColorAccent: 'Global (acento)',
     steeringDegrees: 'Grados del volante',
     steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
     shiftLights: 'Luces de cambio',
@@ -1138,7 +1157,7 @@ export const settingsEs = {
     alsoLight: 'Testigo',
     alsoLightLabel: (alert: string) => `${alert}: también su testigo en Testigos`,
     sharedNote:
-      'Motor calado, presión de aceite y limitador de boxes son también testigos: «Testigo» enciende o apaga el suyo. Temperaturas, presión de gasolina y reparaciones opcionales: solo en Testigos',
+      'Motor calado, presión de aceite, limitador de boxes y daños son también testigos: «Testigo» enciende o apaga el suyo. Temperaturas, presión de gasolina y daños leves: solo en Testigos',
     /** The band's extras (alerts.parts), described as every alert is. */
     notesHelp: 'Una línea bajo el aviso: «hasta poder salir», «LIMITADOR OFF»',
     chipsHelp: 'Las demás banderas y avisos activos, en pequeño bajo el principal',
@@ -1277,7 +1296,7 @@ export const settingsEs = {
     alsoAlert: 'Aviso',
     alsoAlertLabel: (light: string) => `${light}: también su aviso en Avisos`,
     sharedNote:
-      'Motor calado, presión de aceite y limitador de boxes son también avisos: «Aviso» enciende o apaga el suyo',
+      'Motor calado, presión de aceite, limitador de boxes y daños que hay que reparar son también avisos: «Aviso» enciende o apaga el suyo',
     layout: 'Orientación',
     layoutChoices: {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
@@ -1653,7 +1672,7 @@ export const settingsEs = {
      */
     copyTo: 'Copiar a',
     copyToLabel: (bar: string, widget: string) => `Copiar «${bar}» a ${widget}`,
-    copied: (bar: string, widget: string) => `Copiado: ${bar} → ${widget}`,
+    copied: (bar: string, widget: string) => `Copiado a ${widget}: ${bar}`,
     items: {
       title: 'Título del widget',
       session: 'Sesión',
@@ -1902,7 +1921,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         { key: 'Alt', text: 'no snap' },
         { key: 'Esc', text: 'exit' }
       ],
-      chip: 'On the label: eye, padlock and ⚙ (its settings)',
+      chip: { before: 'On the label: eye, padlock and', gear: 'gear', after: '(its settings)' },
       exit: 'Exit'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
@@ -2007,8 +2026,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
           q: 'A widget does not show?',
           a: 'Visibility says when and where each one shows'
         },
-        edit: { q: 'Move or resize it?', a: 'Edit mode, bottom left or with its shortcut' },
-        search: { q: 'Where is a setting?', a: 'Type it in “Search settings”, top left' },
+        edit: { q: 'Move or resize it?', a: 'With the Edit mode button or its shortcut' },
+        search: { q: 'Where is a setting?', a: 'Type it in “Search settings”' },
         layouts: { q: 'A different one per car?', a: 'Layouts, with “By car”' }
       },
       go: (page) => `Go to ${page}`
@@ -2025,7 +2044,24 @@ export const settingsEn: Dict<typeof settingsEs> = {
       exported: (file) => `Saved as “${file}”`,
       exportFailed: 'The file could not be saved',
       imported: 'Settings imported',
-      importedBests: 'Settings imported; its personal bests were added to yours',
+      importedBests: 'Settings imported; adding its personal bests to yours…',
+      importedBestsNot:
+        'Settings imported, but not its personal bests: import the file again once OverLap is fully running',
+      bestsMerged: (taken, skipped) => {
+        const got =
+          taken === 0
+            ? 'no new or faster personal best'
+            : taken === 1
+              ? '1 new or faster personal best'
+              : `${taken} new or faster personal bests`
+        const left =
+          skipped === 0
+            ? ''
+            : skipped === 1
+              ? '; 1 does not fit (the list is full, and none of yours is deleted)'
+              : `; ${skipped} do not fit (the list is full, and none of yours is deleted)`
+        return `Settings imported; ${got}${left}`
+      },
       errors: {
         json: 'The file cannot be read: it is not valid JSON',
         format: 'It is not an OverLap backup (a layout? Import it in Layouts)',
@@ -2210,7 +2246,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     densityInheritHint: 'As set in Appearance',
     onOff: { on: { label: 'Yes' }, off: { label: 'No' } },
     flagInheritHint: 'As set in Appearance',
-    example: (sample, formatted) => `Example: ${sample} → ${formatted}`
+    example: (sample, formatted) => `Example: ${sample} shows as “${formatted}”`
   },
   appearance: {
     sub: 'The look shared by every widget',
@@ -2290,7 +2326,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     presets: {
       title: 'Style',
-      help: 'A whole look at once; the accent, colour-blind palette, language and units stay',
+      help: 'A whole look at once; the accent, colour-blind palette, SIM tag, language and units stay',
       choices: {
         overlap: { label: 'OverLap', hint: 'The default: comfortable rows, logos and flags' },
         iracing: {
@@ -2299,7 +2335,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         },
         clean: {
           label: 'Clean',
-          hint: 'Lighter background, no stripes, logos or flags, licence as a letter'
+          hint: 'More see-through background, no alternating rows, logos or flags, number as a stripe, licence letter only'
         },
         compact: {
           label: 'Compact',
@@ -2417,7 +2453,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       help: 'The same as its eye in the sidebar or the tray; none by default'
     },
     widgetAction: (widget) => `Show or hide ${widget}`,
-    widgetActionHelp: 'Its “Visible”, as the eye in the sidebar',
     escape: {
       label: 'Leave edit mode',
       help: 'Only while editing',
@@ -2743,7 +2778,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     wheelColor: 'Centre mark colour',
     wheelColorHelp: "The wheel's centre mark, on top when you drive straight",
-    wheelColorAccent: 'Accent (global)',
+    wheelColorAccent: 'Global (accent)',
     steeringDegrees: 'Steering angle',
     steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
     shiftLights: 'Shift lights',
@@ -2811,10 +2846,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     incidents: 'Incidents',
     incidentsHelp: (s) =>
       `When you get points, for ${s}${NB}s at least: “+2x Loss of control · L5 · S3 · gravel”`,
-    alsoLight: 'Light',
+    alsoLight: 'Warning light',
     alsoLightLabel: (alert) => `${alert}: its light in Warning lights too`,
     sharedNote:
-      'Stalled engine, oil pressure and pit limiter are warning lights too: “Light” turns theirs on or off. Temperatures, fuel pressure and optional repairs: in Warning lights only',
+      'Stalled engine, oil pressure, pit limiter and damage are warning lights too: “Warning light” turns theirs on or off. Temperatures, fuel pressure and minor damage: in Warning lights only',
     notesHelp: 'A line under the alert: “until you can leave”, “LIMITER OFF”',
     chipsHelp: 'The other active flags and alerts, small under the main one',
     stalled: 'Engine stalled',
@@ -2926,7 +2961,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     alsoAlert: 'Alert',
     alsoAlertLabel: (light) => `${light}: its alert in Alerts too`,
     sharedNote:
-      'Stalled engine, oil pressure and pit limiter are alerts too: “Alert” turns theirs on or off',
+      'Stalled engine, oil pressure, pit limiter and damage you must repair are alerts too: “Alert” turns theirs on or off',
     layout: 'Orientation',
     layoutChoices: {
       row: { label: 'Row', hint: 'Lights that do not fit the width go on below' },
@@ -3231,7 +3266,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   infoBar: {
     copyTo: 'Copy to',
     copyToLabel: (bar, widget) => `Copy “${bar}” to ${widget}`,
-    copied: (bar, widget) => `Copied: ${bar} → ${widget}`,
+    copied: (bar, widget) => `Copied to ${widget}: ${bar}`,
     items: {
       title: 'Widget title',
       session: 'Session',

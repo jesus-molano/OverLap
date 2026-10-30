@@ -14,8 +14,11 @@ import type { OverlaySettings } from '@shared/types'
 import type { LayoutFileDeps } from './layoutFiles'
 
 export interface BackupDeps extends LayoutFileDeps {
-  /** The personal-bests file's text, null when there is none or it cannot be read. */
-  readBests(): string | null
+  /**
+   * The personal bests' text (from the telemetry process's memory, else their file), null when
+   * there are none or they cannot be read.
+   */
+  readBests(): string | null | Promise<string | null>
   /** The file name only, for the notice. */
   baseName(path: string): string
 }
@@ -32,7 +35,7 @@ export async function exportBackup(
   const path = await deps.pickSavePath(backupFileName(now))
   if (path === null) return null
   try {
-    deps.writeText(path, backupText(settings, deps.readBests(), app, now))
+    deps.writeText(path, backupText(settings, await deps.readBests(), app, now))
     return { ok: true, file: deps.baseName(path) }
   } catch (err) {
     console.warn(`[backup] could not write ${path}:`, err)

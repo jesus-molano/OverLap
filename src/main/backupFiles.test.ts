@@ -18,6 +18,14 @@ function deps(over: Partial<BackupDeps> = {}): BackupDeps & { written: Map<strin
 }
 
 describe('backup files (R40)', () => {
+  it('waits for the bests when they come from the telemetry process', async () => {
+    const d = deps({ readBests: () => Promise.resolve('{"version":1,"bests":{"k":1}}') })
+    const r = await exportBackup(createDefaultSettings(), '2.2.0', new Date(2026, 9, 30), d)
+    expect(r).toEqual({ ok: true, file: 'OverLap-2026-10-30.json' })
+    const text = d.written.get('C:/docs/OverLap-2026-10-30.json') ?? ''
+    expect(text).toContain('"k"')
+  })
+
   it('writes everything where the user chooses, named by the date', async () => {
     const d = deps()
     const r = await exportBackup(createDefaultSettings(), '2.2.0', new Date(2026, 9, 30), d)

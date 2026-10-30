@@ -9,6 +9,7 @@ import APP from './SettingsApp.vue?raw'
 import FOOTER from './layout/SettingsFooter.vue?raw'
 import SIDEBAR from './layout/SettingsSidebar.vue?raw'
 import ABOUT from './pages/AboutPage.vue?raw'
+import SEARCH from './search/SettingsSearch.vue?raw'
 import { pageTitle } from './nav'
 
 describe('«Acerca de y ayuda» (R40)', () => {
@@ -43,5 +44,21 @@ describe('«Acerca de y ayuda» (R40)', () => {
   it('is named in both languages', () => {
     expect(pageTitle(messagesFor('es'), 'about')).toBe('Acerca de y ayuda')
     expect(pageTitle(messagesFor('en'), 'about')).toBe('About and help')
+  })
+})
+
+describe('«Ayuda rápida» (R40, R49)', () => {
+  it('gives every question a button, and words that hold at any window width', () => {
+    // Visibility and layouts go to their page; edit mode and the search are the controls.
+    expect(ABOUT).toMatch(/<EditModeButton\s+v-else-if="h.key === 'edit'"/)
+    expect(ABOUT).toMatch(/v-else-if="h.key === 'search'"[\s\S]*?@click="requestSearchFocus"/)
+    expect(SEARCH).toContain('window.addEventListener(FOCUS_SEARCH_EVENT, focusField)')
+    expect(SEARCH).toContain('window.removeEventListener(FOCUS_SEARCH_EVENT, focusField)')
+    // The narrow window (R49) moves both to its top bar: no side named.
+    for (const lang of ['es', 'en'] as const) {
+      for (const item of Object.values(messagesFor(lang).settings.about.help.items)) {
+        expect(item.a).not.toMatch(/izquierda|derecha|abajo|arriba|left|right|bottom|top/i)
+      }
+    }
   })
 })

@@ -112,18 +112,19 @@ const deviceNames = useDeviceNames()
 const examples = computed(() =>
   LAYOUT_EXAMPLES.map((kind) => ({ kind, ...t.value.settings.layouts.examples[kind] }))
 )
-const addedExample = shallowRef<LayoutExample | null>(null)
+/** Said once main has added it, by the name it got («Ligera (2)»), or that it did not fit. */
 const addedText = computed(() => {
-  const kind = addedExample.value
-  if (kind === null) return null
+  const n = layoutNotice.value
+  if (n?.kind === 'example-failed') {
+    return { text: t.value.settings.layouts.full(MAX_LAYOUTS), error: true }
+  }
+  if (n?.kind !== 'example-added') return null
   const first = shortcuts.value.nextLayout[0]
   const keys = first === undefined ? null : bindingText(t.value, first, deviceNames.value)
-  const e = t.value.settings.layouts.examples
-  return e.added(e[kind].name, keys)
+  return { text: t.value.settings.layouts.examples.added(n.name, keys), error: false }
 })
 function addExample(kind: LayoutExample): void {
   cmd.example(kind, t.value.settings.layouts.examples[kind].name)
-  addedExample.value = kind
 }
 
 const newName = shallowRef('')
@@ -432,7 +433,14 @@ function onLink(car: CarRow, e: Event): void {
             {{ t.settings.layouts.examples.add }}
           </button>
         </div>
-        <p v-if="addedText" class="st-row st-help" role="status">{{ addedText }}</p>
+        <p
+          v-if="addedText"
+          class="st-row st-help"
+          :class="{ 'st-help-warn': addedText.error }"
+          role="status"
+        >
+          {{ addedText.text }}
+        </p>
       </PageSection>
 
       <PageSection :title="t.settings.layouts.autoTitle">

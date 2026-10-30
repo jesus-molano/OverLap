@@ -9,7 +9,12 @@ import {
   parseBackup
 } from './backup'
 import { saveLayoutAs } from './layouts'
-import { createDefaultSettings, normalizeSettings } from './settings'
+import {
+  createDefaultSettings,
+  defaultLayoutOffsetX,
+  normalizeSettings,
+  placeDefaultLayout
+} from './settings'
 
 const BESTS = JSON.stringify({ version: 1, bests: { 'a|b|c': { lapTime: 90 } } })
 
@@ -90,6 +95,19 @@ describe('«Restablecer todo» and what an import puts in (R40)', () => {
     expect(r.settingsWindow.welcome).toBe(false)
     const fresh = normalizeSettings({ version: 6, appearance: { language: 'en' } })
     expect(r).toEqual(fresh)
+  })
+
+  it('places the widgets as a first run does: centred on an ultrawide screen only', () => {
+    const s = createDefaultSettings()
+    const wide = { x: 0, y: 0, width: 5120, height: 1400 }
+    const plain = { x: 0, y: 0, width: 1920, height: 1040 }
+    const offset = defaultLayoutOffsetX(wide)
+    expect(offset).toBeGreaterThan(0)
+    expect(factorySettings(s, wide)).toEqual(placeDefaultLayout(factorySettings(s), wide))
+    expect(factorySettings(s, wide).widgets.relative.bounds.x).toBe(
+      factorySettings(s).widgets.relative.bounds.x + offset
+    )
+    expect(factorySettings(s, plain)).toEqual(factorySettings(s))
   })
 
   it('never brings the first-run welcome back with an import', () => {

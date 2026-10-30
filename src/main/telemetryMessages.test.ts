@@ -75,6 +75,26 @@ describe('parseTelemetryMessage', () => {
     }
   })
 
+  it('parses how a merge went and the bests for an export (R40)', () => {
+    expect(parseTelemetryMessage({ type: 'bests-merged', taken: 2, skipped: 0 })).toEqual({
+      type: 'bests-merged',
+      taken: 2,
+      skipped: 0
+    })
+    expect(parseTelemetryMessage({ type: 'bests-merged', taken: -1, skipped: 0 })).toBeNull()
+    expect(parseTelemetryMessage({ type: 'bests-merged', taken: 1 })).toBeNull()
+    expect(parseTelemetryMessage({ type: 'bests-text', id: 4, text: null })).toEqual({
+      type: 'bests-text',
+      id: 4,
+      text: null
+    })
+    expect(parseTelemetryMessage({ type: 'bests-text', id: 4, text: '{}' })?.type).toBe(
+      'bests-text'
+    )
+    expect(parseTelemetryMessage({ type: 'bests-text', id: 'x', text: '{}' })).toBeNull()
+    expect(parseTelemetryMessage({ type: 'bests-text', id: 4, text: 7 })).toBeNull()
+  })
+
   it('parses the kind of session, null included, and nothing else', () => {
     for (const kind of ['practice', 'qualify', 'race', null]) {
       expect(parseTelemetryMessage({ type: 'session-kind', kind })).toEqual({

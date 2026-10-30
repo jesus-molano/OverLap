@@ -277,6 +277,37 @@ describe('TelemetryHost', () => {
     await host.stop()
   })
 
+  it('asks the running process for its bests to export, the file otherwise (R40)', async () => {
+    vi.useFakeTimers()
+    try {
+      const onBestsMerged = vi.fn()
+      const host = makeHost(undefined, { onBestsMerged })
+      // None running: the caller reads the file.
+      await expect(host.bestsText()).resolves.toBeNull()
+      host.start()
+      const c = child(0)
+      c.emit('spawn')
+      const asked = host.bestsText()
+      const sent = c.postMessage.mock.calls.at(-1)?.[0] as { type: string; id: number }
+      expect(sent.type).toBe('bests-text')
+      c.emit('message', { type: 'bests-text', id: sent.id, text: '{"version":1,"bests":{}}' })
+      await expect(asked).resolves.toBe('{"version":1,"bests":{}}')
+      // No answer in time, or the process gone first: null (the file).
+      const late = host.bestsText(500)
+      vi.advanceTimersByTime(500)
+      await expect(late).resolves.toBeNull()
+      // How an import's merge went reaches main.
+      c.emit('message', { type: 'bests-merged', taken: 3, skipped: 1 })
+      expect(onBestsMerged).toHaveBeenCalledWith(3, 1)
+      const gone = host.bestsText()
+      c.emit('exit', 1)
+      await expect(gone).resolves.toBeNull()
+      await host.stop()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('kills a child that ignores the shutdown request', async () => {
     const host = makeHost()
     host.start()
