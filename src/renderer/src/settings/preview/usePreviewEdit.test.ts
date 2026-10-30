@@ -78,3 +78,27 @@ describe('providePreviewEdit ghosts', () => {
     expect(e.ghosts.value).toEqual(['fuel.lines.perLap', 'fuel.lines.finish'])
   })
 })
+
+describe('providePreviewEdit no room', () => {
+  it('joins what every part of the sample has no room for, and forgets a part that has room', () => {
+    const scope = effectScope()
+    const e = scope.run(() => providePreviewEdit('fuel'))
+    if (!e) throw new Error('no coordinator')
+    const head = {}
+    const foot = {}
+    expect(e.noRoom.value.size).toBe(0)
+    e.reportNoRoom(head, ['fuel.headerBar.sof'])
+    e.reportNoRoom(foot, ['fuel.footerBar.clock', 'fuel.footerBar.wind'])
+    expect([...e.noRoom.value].sort()).toEqual([
+      'fuel.footerBar.clock',
+      'fuel.footerBar.wind',
+      'fuel.headerBar.sof'
+    ])
+    const before = e.noRoom.value
+    // The same report again changes nothing (the set keeps its identity).
+    e.reportNoRoom(foot, ['fuel.footerBar.clock', 'fuel.footerBar.wind'])
+    expect(e.noRoom.value).toBe(before)
+    e.reportNoRoom(head, [])
+    expect([...e.noRoom.value].sort()).toEqual(['fuel.footerBar.clock', 'fuel.footerBar.wind'])
+  })
+})

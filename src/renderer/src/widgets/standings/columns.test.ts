@@ -11,6 +11,7 @@ import {
   reuseColumns,
   flagEm,
   rowWidthEm,
+  withoutRoom,
   type ColumnPrefs
 } from './columns'
 import { allColumns, defaultColumns } from './testing/rows'
@@ -290,5 +291,37 @@ describe('reuseColumns', () => {
     const c = fitColumns(prefs(), 250, 13)
     expect(reuseColumns(a, c)).toBe(c)
     expect(reuseColumns(undefined, a)).toBe(a)
+  })
+})
+
+describe('withoutRoom', () => {
+  it('names the wanted columns the width dropped, in the list order, and nothing that fits', () => {
+    const p = prefs({ columns: allColumns() })
+    const wide = fitColumns(p, 2000, 13)
+    expect(withoutRoom(p, wide)).toEqual({ columns: [], brand: false, flag: false })
+    const narrow = fitColumns(p, 460, 13)
+    const out = withoutRoom(p, narrow)
+    expect(out.columns.length).toBeGreaterThan(0)
+    for (const id of out.columns) expect(narrow.cells).not.toContain(id)
+    const listed = p.columns.map((c) => c.id)
+    expect([...out.columns]).toEqual(listed.filter((id) => out.columns.includes(id)))
+  })
+
+  it('never names a column that is off for the options (not wanted), only for the width', () => {
+    const p = prefs({ columns: allColumns(), race: false })
+    const out = withoutRoom(p, fitColumns(p, 300, 13))
+    expect(out.columns).not.toContain('gained')
+    expect(out.columns).not.toContain('best')
+  })
+
+  it('says when the mark and the flag went for the width', () => {
+    const p = prefs({ brand: true, flag: true })
+    expect(withoutRoom(p, fitColumns(p, 2000, 13))).toMatchObject({ brand: false, flag: false })
+    expect(withoutRoom(p, fitColumns(p, 200, 13))).toMatchObject({ brand: true, flag: true })
+  })
+
+  it('says nothing before the width is measured', () => {
+    const p = prefs({ columns: allColumns(), brand: true })
+    expect(withoutRoom(p, fitColumns(p, 0, 13))).toEqual({ columns: [], brand: false, flag: false })
   })
 })

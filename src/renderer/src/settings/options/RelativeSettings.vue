@@ -19,6 +19,7 @@ import type { ElementText } from '../elements/listOps'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
 import DriverSection from './DriverSection.vue'
+import { useNoRoom } from '../preview/useNoRoom'
 import { matchSharedColumns } from '../columns'
 import { offerSectionRestore } from '../undo/restore'
 
@@ -62,6 +63,16 @@ function matchStandings(): void {
   matched.value = t.value.settings.columns.match.done(widgetTitle(t.value, 'standings'))
 }
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
+/** A window the width sets the text of draws both densities the same: said on the choice. */
+const noRoom = useNoRoom()
+const densityNote = computed(() => {
+  const p = t.value.settings.preview
+  return noRoom.value(
+    'relative.density',
+    () => p.noEffectDensity,
+    (w, h) => p.noEffect(`${w} × ${h}`)
+  )
+})
 </script>
 
 <template>
@@ -84,6 +95,7 @@ const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.
       :label="t.settings.common.density"
       :current="opts.density"
       :options="densityChoices"
+      :note="densityNote"
       :apply="set('density')"
     />
   </PageSection>

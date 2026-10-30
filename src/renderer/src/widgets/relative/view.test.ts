@@ -15,8 +15,10 @@ import {
   RELATIVE_FIT_EM,
   RELATIVE_ROW_EM,
   chromeEm,
+  densityShows,
   layoutSlots,
   relativeColumns,
+  relativeFontPx,
   relativeHeads,
   relativeRowEm,
   toSlotView,
@@ -420,5 +422,28 @@ describe('previewRelative', () => {
     expect([...flags].sort()).toEqual(['black', 'furled', 'meatball'])
     expect(rows.every((r) => r.stintLaps !== null)).toBe(true)
     expect(new Set(rows.map((r) => r.tyre))).toEqual(new Set(['Hard', 'Wet', null]))
+  })
+})
+
+describe('densityShows', () => {
+  const fit = RELATIVE_FIT_EM
+  it('is false while the width sets the text (a narrow window draws both densities the same)', () => {
+    // 380 px wide, 600 px high, 7 rows: the width caps the text below what the height allows.
+    expect(densityShows(380, 600, 7, CHROME_BASE_EM, fit)).toBe(false)
+  })
+
+  it('is true while the height sets the text for one of them (a wide, short window)', () => {
+    expect(densityShows(900, 200, 7, CHROME_BASE_EM, fit)).toBe(true)
+  })
+
+  it('is true before the window is measured', () => {
+    expect(densityShows(0, 0, 7, CHROME_BASE_EM, fit)).toBe(true)
+  })
+
+  it('draws the text as the panel does: the smaller of the two fits, between 9 and 30 px', () => {
+    expect(relativeFontPx(1000, 200, 5, 2, 0, 20)).toBeCloseTo(20)
+    expect(relativeFontPx(200, 1000, 5, 2, 0, 20)).toBeCloseTo(10)
+    expect(relativeFontPx(50, 1000, 5, 2, 0, 20)).toBe(9)
+    expect(relativeFontPx(5000, 5000, 1, 1, 0, 1)).toBe(30)
   })
 })

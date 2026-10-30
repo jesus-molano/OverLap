@@ -4,6 +4,8 @@ import { useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useDraft } from '../useDraft'
 import { clampInt, parseIntInRange } from '../values'
+import PreviewNote from './PreviewNote.vue'
+import type { PreviewNoteSpec } from './previewNote'
 
 const props = withDefaults(
   defineProps<{
@@ -14,8 +16,10 @@ const props = withDefaults(
     max: number
     apply: (value: number) => Promise<unknown>
     disabled?: boolean
+    /** Why the preview does not show it (PreviewNote: no room, or the session only). */
+    note?: PreviewNoteSpec
   }>(),
-  { help: undefined, disabled: false }
+  { help: undefined, disabled: false, note: undefined }
 )
 
 const t = useI18n()
@@ -48,6 +52,7 @@ function onChange(e: Event): void {
     <span class="st-row-text" :class="{ 'st-disabled': disabled }">
       <label :id="labelId" :for="id" class="st-label">{{ label }}</label>
       <span v-if="help" :id="helpId" class="st-help">{{ help }}</span>
+      <PreviewNote :note="note" />
     </span>
     <div class="st-stepper" role="group" :aria-labelledby="labelId">
       <button

@@ -16,6 +16,9 @@ import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
 import type { ElRef, PreviewZoneId } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
+import { useNoRoom } from '../preview/useNoRoom'
+import PreviewNote from '../controls/PreviewNote.vue'
+import type { PreviewNoteSpec } from '../controls/previewNote'
 import { offerSectionRestore } from '../undo/restore'
 import { undoSlot, type UndoKind } from '../undo/undo'
 import { useOptimistic } from '../useOptimistic'
@@ -602,6 +605,19 @@ const litId = computed<string | null>(() => {
 })
 const hiddenLit = computed(() => hiddenRows.value.some((r) => r.entry.id === litId.value))
 
+/** The shown rows the sample has no room for at the widget's width: «No cabe a 540 px». */
+const noRoom = useNoRoom()
+const roomNotes = computed<ReadonlyMap<Id, PreviewNoteSpec>>(() => {
+  const z = previewZoneOf.value
+  const out = new Map<Id, PreviewNoteSpec>()
+  if (z === null) return out
+  for (const e of rowEntries.value) {
+    const note = e.visible ? noRoom.value(`${z}.${e.id}`) : undefined
+    if (note !== undefined) out.set(e.id, note)
+  }
+  return out
+})
+
 function lightRow(id: Id | null): void {
   const z = previewZoneOf.value
   if (preview === null || z === null) return
@@ -815,6 +831,7 @@ function onCancel(e: PointerEvent): void {
                     <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
                       labels[r.entry.id]?.hint
                     }}</span>
+                    <PreviewNote :note="roomNotes.get(r.entry.id)" />
                   </span>
                   <span v-if="$slots.extra" class="ed-extra"
                     ><slot :id="r.entry.id" name="extra" :visible="r.entry.visible"

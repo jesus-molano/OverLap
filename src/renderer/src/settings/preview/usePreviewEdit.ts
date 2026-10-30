@@ -10,6 +10,10 @@
  * list) the sample draws the hidden elements of the ghosted zones (previewEdit.ts GHOST_ZONES)
  * where they would go, ghosted. Preview only: the overlay windows have no sample host, so they
  * never see any of this.
+ *
+ * The sample also says what it draws without room (its width drops it: an info bar's item, a
+ * column, a layout): its widgets report those `data-el`s (useNoRoomReport) and the lists mark
+ * them «No cabe» (NoRoomTag), so an eye or a choice that seems to do nothing says why.
  */
 import {
   computed,
@@ -81,6 +85,17 @@ export interface PreviewEdit {
   readonly ghosts: ComputedRef<readonly string[]>
   /** `options` of `section` as the sample draws them now (the ghosts shown). */
   viewOptions<T extends object>(section: string, options: T): T
+  /** The `data-el`s the sample has no room for now ('standings.columns.tyre'), from all parts. */
+  readonly noRoom: ComputedRef<ReadonlySet<string>>
+  /** One part of the sample (`source`) has no room for `els` now ([] once it has or is gone). */
+  reportNoRoom(source: object, els: readonly string[]): void
+}
+
+/** Every part's report as one set: what the sample has no room for. */
+export function noRoomOf(reports: ReadonlyMap<object, readonly string[]>): ReadonlySet<string> {
+  const out = new Set<string>()
+  for (const els of reports.values()) for (const el of els) out.add(el)
+  return out
 }
 
 const KEY: InjectionKey<PreviewEdit> = Symbol('preview-edit')
@@ -131,6 +146,14 @@ export function providePreviewEdit(section: OptionSection): PreviewEdit {
     () => withGhosts(raw.value, ghosted.value, except.value).ghosts
   )
 
+  const reports = shallowRef<ReadonlyMap<object, readonly string[]>>(new Map())
+  const noRoom = computed<ReadonlySet<string>>((prev) => {
+    const next = noRoomOf(reports.value)
+    return prev !== undefined && prev.size === next.size && [...next].every((el) => prev.has(el))
+      ? prev
+      : next
+  })
+
   const edit: PreviewEdit = {
     section,
     zones,
@@ -168,6 +191,15 @@ export function providePreviewEdit(section: OptionSection): PreviewEdit {
     viewOptions(s, options) {
       if (s !== section) return options
       return withGhosts(options, ghosted.value, except.value).options
+    },
+    noRoom,
+    reportNoRoom(source, els) {
+      const before = reports.value.get(source) ?? []
+      if (before.length === els.length && before.every((el, i) => el === els[i])) return
+      const next = new Map(reports.value)
+      if (els.length === 0) next.delete(source)
+      else next.set(source, [...els])
+      reports.value = next
     }
   }
   provide(KEY, edit)

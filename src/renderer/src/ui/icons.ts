@@ -165,6 +165,19 @@ export const ICONS = {
   wheel: [
     { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },
     { d: 'M1.9 7.25 6 8.25h4l4.1-1M8 10v4.2', kind: 'stroke' }
+  ],
+  /** No room at this width (the preview's «No cabe»): two walls pressing in on a line. */
+  'no-room': [
+    { d: 'M1.75 3v10M14.25 3v10', kind: 'stroke' },
+    { d: 'M4 8h2.5M5.25 6.25 6.75 8l-1.5 1.75M12 8H9.5M10.75 6.25 9.25 8l1.5 1.75', kind: 'stroke' }
+  ],
+  /** Acts while you drive, the preview never shows it: a frame with a play mark beside it. */
+  'no-preview': [
+    {
+      d: 'M2.5 3.5h11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z',
+      kind: 'stroke'
+    },
+    { d: 'M6.75 5.75v4.5L10.5 8z' }
   ]
 } as const satisfies Record<string, readonly IconShape[]>
 

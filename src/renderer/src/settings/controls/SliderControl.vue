@@ -5,6 +5,8 @@ import type { InlineStyle } from '../../view/styles'
 import { useDraft } from '../useDraft'
 import { rangeFill, snapToStep } from '../values'
 import HelpText from './HelpText.vue'
+import PreviewNote from './PreviewNote.vue'
+import type { PreviewNoteSpec } from './previewNote'
 
 const props = withDefaults(
   defineProps<{
@@ -21,8 +23,17 @@ const props = withDefaults(
     /** Quick-pick buttons under the slider. */
     presets?: readonly number[]
     disabled?: boolean
+    /** Why the preview does not show it (PreviewNote: no room, or the session only). */
+    note?: PreviewNoteSpec
   }>(),
-  { help: undefined, more: undefined, step: 1, presets: () => [], disabled: false }
+  {
+    help: undefined,
+    more: undefined,
+    step: 1,
+    presets: () => [],
+    disabled: false,
+    note: undefined
+  }
 )
 
 const id = useId()
@@ -87,6 +98,7 @@ function onChange(e: Event): void {
       :text="help"
       :more="more"
     />
+    <PreviewNote :note="note" />
     <div v-if="presets.length > 0" class="st-presets" role="group" :aria-label="presetsLabel">
       <button
         v-for="p in presets"

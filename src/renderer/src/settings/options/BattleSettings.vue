@@ -18,6 +18,7 @@ import InfoBarEditor from '../elements/InfoBarEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
+import { useNoRoom } from '../preview/useNoRoom'
 import DriverSection from './DriverSection.vue'
 import { formatSeconds } from '../values'
 
@@ -63,6 +64,8 @@ const parts = computed(() => {
 const setLanes = listSetter('battle', 'lanes')
 const setRows = listSetter('battle', 'rows')
 const setParts = listSetter('battle', 'parts')
+/** «Lado a lado» in a window too narrow for it: drawn stacked, and said so. */
+const noRoom = useNoRoom()
 </script>
 
 <template>
@@ -93,6 +96,7 @@ const setParts = listSetter('battle', 'parts')
       :label="t.settings.common.layout"
       :current="opts.layout"
       :options="layoutChoices"
+      :note="noRoom('battle.layout.side', t.settings.preview.noRoomSide)"
       :apply="set('layout')"
     />
   </PageSection>

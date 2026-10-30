@@ -264,6 +264,46 @@ export function relativeRowEm(density: unknown): number {
   return density === 'compact' ? RELATIVE_ROW_EM.compact : RELATIVE_ROW_EM.comfortable
 }
 
+/** The text's floor and cap (px), as RelativeWidget's .rl-panel clamps it. */
+const FONT_MIN_PX = 9
+const FONT_MAX_PX = 30
+
+/**
+ * The text size (px) a relative of `widthPx` × `heightPx` draws at (RelativeWidget .rl-panel):
+ * `slots` rows of `rowEm` and the bars' `chromeEm` fill the height, unless the columns
+ * (`fitEm`) need the width first.
+ */
+export function relativeFontPx(
+  widthPx: number,
+  heightPx: number,
+  slots: number,
+  rowEm: number,
+  chromeEm: number,
+  fitEm: number
+): number {
+  const byHeight = heightPx / (slots * rowEm + chromeEm)
+  const byWidth = widthPx / fitEm
+  return Math.min(FONT_MAX_PX, Math.max(FONT_MIN_PX, Math.min(byHeight, byWidth)))
+}
+
+/**
+ * Whether the density changes what a relative of this size draws: the rows always fill the
+ * height, so it only shows while the height sets the text for one of them; a narrow window
+ * (the width sets it) draws both the same. Unmeasured: true.
+ */
+export function densityShows(
+  widthPx: number,
+  heightPx: number,
+  slots: number,
+  chromeEm: number,
+  fitEm: number
+): boolean {
+  if (!(widthPx > 0) || !(heightPx > 0) || slots <= 0) return true
+  const at = (rowEm: number): number =>
+    relativeFontPx(widthPx, heightPx, slots, rowEm, chromeEm, fitEm)
+  return Math.abs(at(RELATIVE_ROW_EM.comfortable) - at(RELATIVE_ROW_EM.compact)) >= 0.25
+}
+
 /** The panel's lines besides the rows: what the font fit divides the height by, with the rows. */
 export interface ChromeParts {
   /** The header bar's text scale (INFO_BAR_SCALE), null when it is not drawn. */

@@ -1,4 +1,12 @@
-import { hasInjectionContext, inject, provide, type InjectionKey, type Ref } from 'vue'
+import {
+  hasInjectionContext,
+  inject,
+  onBeforeUnmount,
+  provide,
+  watch,
+  type InjectionKey,
+  type Ref
+} from 'vue'
 import type { Size } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 
@@ -32,6 +40,11 @@ export interface SampleHost {
    */
   readonly viewOptions?: <T extends object>(section: string, options: T) => T
   readonly ghosts?: Readonly<Ref<readonly string[]>>
+  /**
+   * What a part of the sample (`source`) draws without room now, as `data-el`s: the settings
+   * lists mark them «No cabe» (useNoRoomReport). Absent outside a widget page.
+   */
+  readonly reportNoRoom?: (source: object, els: readonly string[]) => void
 }
 
 const SAMPLE_HOST: InjectionKey<SampleHost> = Symbol('sample-host')
@@ -44,6 +57,19 @@ export function provideSampleHost(host: SampleHost): void {
 /** The sample host the widget is drawn in; null over the game (or outside setup). */
 export function injectSampleHost(): SampleHost | null {
   return hasInjectionContext() ? inject(SAMPLE_HOST, null) : null
+}
+
+/**
+ * Reports to the sample host what this component draws without room (`els()`: `data-el`s such
+ * as 'standings.columns.tyre') whenever it changes, and nothing once it is unmounted. Over the
+ * game (no host) it does nothing. Setup only.
+ */
+export function useNoRoomReport(els: () => readonly string[]): void {
+  const report = injectSampleHost()?.reportNoRoom
+  if (report === undefined) return
+  const source = {}
+  watch(els, (next) => report(source, next), { immediate: true })
+  onBeforeUnmount(() => report(source, []))
 }
 
 /**

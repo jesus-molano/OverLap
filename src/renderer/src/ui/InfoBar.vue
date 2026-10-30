@@ -9,7 +9,7 @@ import {
   fitInfoItems
 } from '@shared/infoBar'
 import type { InfoBarSize, InfoItemId } from '@shared/types'
-import { injectSampleHost } from '../composables/widgetContext'
+import { injectSampleHost, useNoRoomReport } from '../composables/widgetContext'
 import { vInlineStyle } from '../directives/inlineStyle'
 import type { InfoBarView, InfoItemView } from '../view/infoBar'
 import type { InlineStyle } from '../view/styles'
@@ -98,6 +98,18 @@ const kept = computed<ReadonlySet<InfoItemId>>((prev) => {
     ? prev
     : next
 })
+
+/**
+ * The settings preview's lists say which shown items this bar has no room for («No cabe»): the
+ * ones it drops, not the ghosts (hidden anyway). Nothing over the game.
+ */
+useNoRoomReport(() =>
+  props.zone === undefined || widthEm.value <= 0
+    ? []
+    : ids.value
+        .filter((id) => !kept.value.has(id) && !ghosts.value.has(id))
+        .map((id) => itemEls.value[id] ?? '')
+)
 
 const start = computed<readonly InfoItemView[]>(() =>
   props.view.start.filter((v) => kept.value.has(v.id))

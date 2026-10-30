@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { brandMarksOn } from '@shared/carBrands'
 import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
@@ -16,6 +16,8 @@ import {
   useOptions
 } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
+import { useElementSize } from '@renderer/composables/useElementSize'
+import { injectSampleHost, useNoRoomReport } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
@@ -29,6 +31,7 @@ import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { previewRelative } from './preview'
 import {
   chromeEm,
+  densityShows,
   layoutSlots,
   relativeColumns,
   relativeHeads,
@@ -132,10 +135,28 @@ const panelStyle = computed<InlineStyle>(() => ({
   '--rl-fit': String(cols.value.fitEm),
   '--rl-chrome': String(chrome.value)
 }))
+
+// A window the width sets the text of draws both densities the same: the settings page says so
+// on the density choice (the preview's note). Measured in the settings sample only.
+const root = useTemplateRef<HTMLElement>('root')
+if (injectSampleHost() !== null) {
+  const rootSize = useElementSize(root)
+  useNoRoomReport(() =>
+    densityShows(
+      rootSize.value.w,
+      rootSize.value.h,
+      slots.value.length,
+      chrome.value,
+      cols.value.fitEm
+    )
+      ? []
+      : ['relative.density']
+  )
+}
 </script>
 
 <template>
-  <div class="ov-root rl-root ov-fade" :class="{ 'is-shown': shown }">
+  <div ref="root" class="ov-root rl-root ov-fade" :class="{ 'is-shown': shown }">
     <WidgetPanel fill :surface="panelStyle" :halo="halo" class="rl-panel">
       <template v-if="headed" #header>
         <InfoBar

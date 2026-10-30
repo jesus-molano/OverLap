@@ -17,6 +17,7 @@ import {
 } from '@renderer/composables/useWidgetSettings'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
+import { useNoRoomReport } from '@renderer/composables/widgetContext'
 import Badge from '@renderer/ui/Badge.vue'
 import Chip from '@renderer/ui/Chip.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
@@ -118,6 +119,12 @@ const root = useTemplateRef<HTMLElement>('root')
 const rootSize = useElementSize(root)
 const widthEm = computed(() => (rootSize.value.w > 0 ? rootSize.value.w / fontPx.value : Infinity))
 const layout = computed(() => arrangement(options.value.layout, lanes.value.length, widthEm.value))
+// «Lado a lado» drawn stacked for want of width: the settings page says «No cabe» on the choice.
+useNoRoomReport(() =>
+  options.value.layout === 'side' && lanes.value.length > 1 && layout.value !== 'side'
+    ? ['battle.layout.side']
+    : []
+)
 /** Everything the panel height depends on besides the width and the font. */
 const layoutKey = computed(
   () =>
