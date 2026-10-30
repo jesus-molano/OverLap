@@ -11,6 +11,7 @@ import {
   formatIRatingDelta,
   formatLapTime,
   formatLaps,
+  formatDistance,
   formatMetres,
   formatRemaining,
   formatSafetyRating,
@@ -27,7 +28,9 @@ import {
   speedUnit,
   tempDeltaIn,
   tempIn,
-  tempUnit
+  tempUnit,
+  volumeIn,
+  volumeUnit
 } from './format'
 import { messagesFor } from './i18n'
 import type { NameFormat } from './types'
@@ -410,5 +413,21 @@ describe('shownDriverName', () => {
     expect(shownDriverName('', undefined, '7', EN)).toEqual({ text: 'Driver #7', unknown: true })
     expect(shownDriverName('', undefined, '', ES).text).toBe('Piloto')
     expect(shownDriverName('', undefined, '', EN).text).toBe('Driver')
+  })
+})
+
+describe('imperial volumes and distances (R54)', () => {
+  it('gives US gallons in imperial, litres otherwise', () => {
+    expect(volumeIn(37.854, 'imperial')).toBeCloseTo(10, 3)
+    expect(volumeIn(37.854, 'metric')).toBe(37.854)
+    expect(volumeUnit('imperial')).toBe('gal')
+    expect(volumeUnit('metric')).toBe('L')
+  })
+
+  it('gives whole feet in imperial, metres otherwise', () => {
+    expect(formatDistance(20, 'imperial')).toBe('66\u00a0ft')
+    expect(formatDistance(20, 'imperial', false)).toBe('66')
+    expect(formatDistance(12.5, 'metric')).toBe('12.5\u00a0m')
+    expect(formatDistance(Number.NaN, 'imperial')).toBe('—')
   })
 })

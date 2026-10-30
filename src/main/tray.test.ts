@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { applyLayout, linkCar, renameLayout, saveLayoutAs } from '@shared/layouts'
-import { createDefaultSettings } from '@shared/settings'
+import { RADAR_RANGE_PRESETS_M, createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings } from '@shared/types'
 import { WIDGET_IDS } from '@shared/widgets'
 import {
@@ -357,7 +357,7 @@ describe('tray menu', () => {
       'Battle (hidden in practice)',
       'Inputs',
       'Radar range',
-      '20 m',
+      '20\u00a0m',
       'Edit mode',
       'Open settings folder',
       'Quit'
@@ -468,6 +468,18 @@ describe('tray menu: when to show the overlay', () => {
       )
     )
   }
+
+  it('names the radar ranges in feet with imperial units, still setting metres (R54)', () => {
+    const settings = createDefaultSettings()
+    settings.appearance.units = 'imperial'
+    const setRadarRange = vi.fn()
+    createTray(state(settings), { ...ACTIONS, setRadarRange })
+    const menu = item('Alcance del radar')
+    const labels = menu.submenu?.map((i) => i.label) ?? []
+    expect(labels.every((l) => /^\d+\u00a0ft$/.test(l ?? ''))).toBe(true)
+    menu.submenu?.[0]?.click?.({ checked: true })
+    expect(setRadarRange).toHaveBeenCalledWith(Math.min(...RADAR_RANGE_PRESETS_M))
+  })
 
   it('offers the three choices, the current one checked, and sets them through the action', () => {
     const setShowWhen = vi.fn()

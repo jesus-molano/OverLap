@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, useId, useTemplateRef } from 'vue'
 import { isElementVisible } from '@shared/elements'
-import { formatMetres } from '@shared/format'
+import { formatDistance } from '@shared/format'
 import { OPTION_SCHEMA, clampOption } from '@shared/settingsSchema'
+import { useAppearance } from '@renderer/composables/useAppearance'
 import { useElementSize } from '@renderer/composables/useElementSize'
 import { injectSampleHost } from '@renderer/composables/widgetContext'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
@@ -54,6 +55,7 @@ const { data, phase } = useWidgetPhase('radar', {
 })
 
 const shown = computed(() => phase.value === 'live' || phase.value === 'preview')
+const appearance = useAppearance()
 const configuredRange = computed(() => clampOption(OPTION_SCHEMA.radar.rangeM, rangeOption.value))
 /** Live data, the sample in edit mode, or the last frame (kept through the fade-out). */
 const content = useShownContent(
@@ -110,7 +112,12 @@ const guides = computed(() => rangeGuides(range.value, labelFont.value ?? LABEL_
 const rangeLabels = computed(() => {
   const font = labelFont.value
   if (!showRangeLabels.value || font === null || !trackKnown.value) return null
-  return { half: formatMetres(range.value / 2), full: formatMetres(range.value), font }
+  const units = appearance.value.units
+  return {
+    half: formatDistance(range.value / 2, units),
+    full: formatDistance(range.value, units),
+    font
+  }
 })
 </script>
 

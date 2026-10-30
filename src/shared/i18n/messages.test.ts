@@ -144,7 +144,6 @@ const SAME_IN_ENGLISH = new Set([
   'settings.choices.onOff.off.label',
   'core.widgetTitles.radar',
   'core.widgetTitles.delta',
-  'core.tray.rangeMeters',
   'core.tray.widgetHidden',
   'core.tray.tooltip',
   'core.tray.tooltipAutoHidden',

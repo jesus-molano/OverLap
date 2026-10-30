@@ -418,10 +418,10 @@ export const settingsEs = {
     other: {
       title: 'Otros',
       units: 'Unidades',
-      unitsHelp: 'Velocidades y temperaturas de los widgets',
+      unitsHelp: 'Velocidad, temperaturas, combustible y el alcance del radar de los widgets',
       unitChoices: {
-        metric: { label: 'Métricas', hint: 'km/h, °C' },
-        imperial: { label: 'Imperiales', hint: 'mph, °F' }
+        metric: { label: 'Métricas', hint: 'km/h, °C, litros, metros' },
+        imperial: { label: 'Imperiales', hint: 'mph, °F, galones, pies' }
       },
       simPill: 'Etiqueta SIM',
       simPillHelp: 'Marca los widgets cuando los datos son simulados'
@@ -2084,10 +2084,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     other: {
       title: 'Other',
       units: 'Units',
-      unitsHelp: 'Speeds and temperatures in the widgets',
+      unitsHelp: 'Speed, temperatures, fuel and the radar range in the widgets',
       unitChoices: {
-        metric: { label: 'Metric', hint: 'km/h, °C' },
-        imperial: { label: 'Imperial', hint: 'mph, °F' }
+        metric: { label: 'Metric', hint: 'km/h, °C, litres, metres' },
+        imperial: { label: 'Imperial', hint: 'mph, °F, gallons, feet' }
       },
       simPill: 'SIM tag',
       simPillHelp: 'Marks the widgets when the data is simulated'

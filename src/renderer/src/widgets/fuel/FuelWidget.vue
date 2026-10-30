@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue'
 import { arrayEqual } from '@shared/equal'
 import { useContentSize } from '@renderer/composables/useContentSize'
 import { useInfoBar } from '@renderer/composables/useInfoBar'
+import { useAppearance } from '@renderer/composables/useAppearance'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useReveal } from '@renderer/composables/useReveal'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
@@ -32,7 +33,6 @@ import {
 import { PREVIEW_FUEL } from './preview'
 import {
   EMPTY_VIEW,
-  LITRES,
   SPARK_H,
   SPARK_W,
   fuelView,
@@ -54,13 +54,14 @@ const prefs = useWidgetSettings(ID)
 const autoHeight = useAutoHeight(ID)
 const { surfaceStyle, halo } = useWidgetSurface(ID)
 const t = useI18n()
+const appearance = useAppearance()
 
 /**
  * The drawing options, one object while they are equal: a drag re-renders nothing. With the auto
  * height off the tyres line waits for a reading (the window is sized for the lines it has).
  */
 const viewOptions = computed<FuelViewOptions>((prev) =>
-  reuseView(prev, fuelViewOptions(options.value, autoHeight.value))
+  reuseView(prev, fuelViewOptions(options.value, autoHeight.value, appearance.value.units))
 )
 
 // Payloads come only when something shown changes (SKIP_EMIT), so there is no freshness timer: a
@@ -212,7 +213,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <span class="fu-unit-hero ov-unit">&nbsp;{{ view.hero.lapsUnit }}</span>
         </span>
         <span class="fu-num fu-litres"
-          >{{ view.hero.fuel }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
+          >{{ view.hero.fuel
+          }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.fuelUnit }}</span></span
         >
         <span v-if="view.hero.note" class="fu-note">{{ view.hero.note }}</span>
         <span v-if="view.hero.left" class="fu-flagged fu-hero__left">
@@ -330,7 +332,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           </span>
           <span class="fu-num fu-num--small"
             >{{ view.finish.box.value
-            }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
+            }}<span class="fu-unit ov-unit">&nbsp;{{ view.finish.box.unit }}</span></span
           >
         </span>
         <!-- Its caption in words (PARA META): no flag here, it would be the third in a few rows. -->

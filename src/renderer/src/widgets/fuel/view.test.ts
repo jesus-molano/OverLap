@@ -23,6 +23,7 @@ const EN = messagesFor('en')
 const NB = ' '
 
 const ALL_ON: FuelViewOptions = {
+  units: 'metric',
   order: ['hero', 'gauge', 'perLap', 'finish', 'window', 'save', 'tyres', 'limits'],
   showGauge: true,
   showPerLap: true,
@@ -65,6 +66,7 @@ describe('fuelView', () => {
     ])
     expect(v.hero).toEqual({
       fuel: '52.0',
+      fuelUnit: 'L',
       laps: '17.6',
       lapsUnit: 'v',
       tone: 'neutral',
@@ -99,7 +101,7 @@ describe('fuelView', () => {
       add: { label: 'Repostar', value: '+4.9', unit: 'L' },
       addTone: 'neutral',
       // 20 L in the menu on a bar to 25 L, marked at the 4.9 L to add.
-      box: { label: 'Menú', value: '20', tone: 'good', fill: 0.8, mark: 0.196 }
+      box: { label: 'Menú', value: '20', unit: 'L', tone: 'good', fill: 0.8, mark: 0.196 }
     })
     // You at lap 16.5 of 35.2, the window from the end of lap 17 to the end of lap 33.
     expect(v.window).toEqual({
@@ -142,6 +144,26 @@ describe('fuelView', () => {
     })
   })
 
+  it('draws US gallons in imperial, the plan unchanged (R54)', () => {
+    const v = fuelView(PREVIEW_FUEL, { ...ALL_ON, units: 'imperial' }, EN)
+    const metric = fuelView(PREVIEW_FUEL, ALL_ON, EN)
+    // 52.0 L is 13.7 gal; the laps it lasts do not change.
+    expect(v.hero).toMatchObject({ fuel: '13.7', fuelUnit: 'gal', laps: metric.hero?.laps })
+    expect(v.perLap).toMatchObject({ unit: 'gal/lap' })
+    expect(Number(v.perLap?.value)).toBeCloseTo(Number(metric.perLap?.value) / 3.785411784, 2)
+    expect(v.finish?.need.unit).toBe('gal')
+    expect(v.finish?.add.unit).toBe('gal')
+    expect(v.finish?.box).toMatchObject({
+      unit: 'gal',
+      value: '5.3',
+      tone: metric.finish?.box?.tone
+    })
+    expect(v.save?.unit).toBe('gal/lap')
+    // The drawings are fractions: the same in either unit.
+    expect(v.gauge).toEqual(metric.gauge)
+    expect(fuelView(PREVIEW_FUEL, { ...ALL_ON, units: 'imperial' }, ES).perLap?.unit).toBe('gal/v')
+  })
+
   it('says it in English, with the same figures', () => {
     const v = fuelView(PREVIEW_FUEL, ALL_ON, EN)
     expect(v.hero?.left).toEqual({ label: 'To go', value: '18.7', unit: 'laps' })
@@ -162,6 +184,7 @@ describe('fuelView', () => {
 
   it('leaves out each line with its option; the hero always stays', () => {
     const none: FuelViewOptions = {
+      units: 'metric',
       order: ALL_ON.order,
       showGauge: false,
       showPerLap: false,
@@ -175,7 +198,7 @@ describe('fuelView', () => {
     }
     expect(linesOf(fuelView(PREVIEW_FUEL, none, ES))).toEqual(['hero'])
     for (const k of Object.keys(ALL_ON) as (keyof FuelViewOptions)[]) {
-      if (k === 'order') continue
+      if (k === 'order' || k === 'units') continue
       const v = fuelView(PREVIEW_FUEL, { ...ALL_ON, [k]: false }, ES)
       if (k === 'showBox') expect(v.finish?.box).toBeNull()
       // Measured tyres are drawn either way.
@@ -314,6 +337,7 @@ describe('fuelView', () => {
     expect(fuelView(data({ boxL: 0 }), ALL_ON, ES).finish?.box).toEqual({
       label: 'Menú',
       value: '0',
+      unit: 'L',
       tone: 'warn',
       fill: 0,
       mark: 0.8

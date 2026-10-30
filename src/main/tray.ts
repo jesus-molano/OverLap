@@ -14,6 +14,7 @@ import {
   widgetTitle,
   type Language
 } from '@shared/i18n'
+import { formatDistance } from '@shared/format'
 import type { SettingsWindowPage } from '@shared/ipc'
 import { linkSuggestion, linkedLayoutId, recentLayouts } from '@shared/layouts'
 import { RADAR_RANGE_PRESETS_M } from '@shared/settings'
@@ -321,7 +322,7 @@ function buildMenu(
     {
       label: t.radarRange,
       submenu: ranges.map((m): MenuItemConstructorOptions => ({
-        label: t.rangeMeters(m),
+        label: formatDistance(m, settings.appearance.units),
         type: 'radio',
         checked: m === rangeM,
         click: () => act.setRadarRange(m)

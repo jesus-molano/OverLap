@@ -368,6 +368,8 @@ export const widgetsEs = {
     laps: 'v',
     /** After litres per lap ('2.96 L/v'). */
     perLap: 'L/v',
+    /** After US gallons per lap, in imperial (R54). */
+    perLapGal: 'gal/v',
     /** No clean lap measured yet. */
     measuring: 'midiendo…',
     /** Captions before each reading (drawn in caps). */
@@ -698,6 +700,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   fuel: {
     laps: 'laps',
     perLap: 'L/lap',
+    perLapGal: 'gal/lap',
     measuring: 'measuring…',
     left: 'To go',
     use: 'Use',

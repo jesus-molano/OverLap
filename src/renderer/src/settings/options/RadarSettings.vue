@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatMetres } from '@shared/format'
+import { formatDistance } from '@shared/format'
+import { useAppearance } from '../../composables/useAppearance'
 import { RADAR_RANGE_MAX_M, RADAR_RANGE_MIN_M, RADAR_RANGE_PRESETS_M } from '@shared/settings'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
@@ -15,7 +16,9 @@ import PageSection from '../layout/PageSection.vue'
 const opts = useOptions('radar')
 const set = optionSetter('radar')
 const t = useI18n()
-const format = (m: number): string => formatMetres(m)
+const appearance = useAppearance()
+/** Metres, or feet in imperial (R54); the setting stays in metres. */
+const format = (m: number): string => formatDistance(m, appearance.value.units)
 
 const partTexts = computed(() => {
   const base = elementTexts(t.value, 'radar', 'parts')
