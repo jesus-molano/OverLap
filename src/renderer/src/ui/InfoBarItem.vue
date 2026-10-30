@@ -8,6 +8,7 @@ import Badge from './Badge.vue'
 import Chip from './Chip.vue'
 import Icon from './Icon.vue'
 import IncidentCount from './IncidentCount.vue'
+import FitWords from './FitWords.vue'
 
 /**
  * One item of an info bar (InfoBar.vue), drawn as the headers and the conditions footer drew it:
@@ -41,7 +42,7 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
     </template>
     <template v-else-if="item.id === 'remaining'">
       <Icon :name="item.finished ? 'chequered' : 'clock'" class="ib-rem-icon" />
-      <span class="ib-lead-num">{{ item.text }}</span>
+      <FitWords text-class="ib-lead-num" :short="item.text" :long="item.textLong" />
     </template>
     <template v-else-if="item.id === 'clock'">
       <span class="ib-num">{{ item.text }}</span>
@@ -200,8 +201,8 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
   color: var(--ov-fg);
 }
 
-/* What is left: the one thing to read at a glance on a header. */
-.ib-lead-num {
+/* What is left: the one thing to read at a glance on a header (its words drawn by FitWords). */
+.ib-remaining :deep(.ib-lead-num) {
   font-family: var(--ov-font-num);
   font-size: var(--ov-t-lead);
   font-weight: var(--ov-w-strong);

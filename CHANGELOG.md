@@ -201,6 +201,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Vueltas con todas sus letras donde caben, y nunca «L» en inglés**: el número grande de
+  **Combustible** y su «Quedan» dicen «17.6 vueltas» y «18.7 vueltas» mientras quepan en la línea, y
+  la cabecera de **Posiciones** (y cualquier cabecera con el tiempo restante) dice «≈19 vueltas» o
+  «Quedan 12 vueltas» cuando le sobra sitio; si no, «v» como siempre. Ningún widget se ensancha ni
+  pierde un dato por ello. En inglés, las vueltas ya no se escriben «L», que es la unidad de los
+  litros: «Catching in ~4 laps», «< 1 lap», y la columna de stint «7 lp».
 - **Salir del modo edición se llama igual en todas partes**: el botón de la barra lateral, el del
   aviso de los Ajustes, la fila de Atajos y la leyenda de la barra lateral dicen «Salir del modo
   edición» (antes también «Salir de edición», «salir de edición» y «Salir»); sobre cada widget
