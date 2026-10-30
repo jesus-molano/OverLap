@@ -9,6 +9,7 @@ import {
 } from 'vue'
 import type { DragStateMessage, EditChip, EditChipsMessage } from '@shared/ipc'
 import { rectsEqual } from '@shared/settings'
+import { NO_GUIDES, type SnapGuides } from '@shared/snap'
 import type { Rect } from '@shared/types'
 import { PAINT_ORDER, type WidgetId } from '@shared/widgets'
 import { useOverlayState } from '../composables/useOverlay'
@@ -29,6 +30,10 @@ export interface EditSession {
   readonly editing: Readonly<Ref<boolean>>
   /** A drag runs in this window (one at a time, whichever panel). */
   readonly dragging: Readonly<Ref<boolean>>
+  /** The lines the dragged panel snaps to now (R38), drawn over the window; NO_GUIDES: none. */
+  readonly guides: Readonly<Ref<SnapGuides>>
+  /** The drag's guides (DragSession.onGuides). */
+  setGuides(guides: SnapGuides): void
   /** This document's `OverlayLayout.session`, echoed by every message to main (0: none yet). */
   session(): number
   /** Starts `owner`'s drag and the drag lease; false while editing is off or another drag runs. */
@@ -75,6 +80,7 @@ export function createEditSession(deps: EditSessionDeps): EditSessionHandle {
   })
   const frames = deps.frames ?? ANIMATION_FRAMES
   const dragging = shallowRef(false)
+  const guides = shallowRef<SnapGuides>(NO_GUIDES)
   let owner: DragOwner | null = null
   let disposed = false
 
@@ -120,6 +126,7 @@ export function createEditSession(deps: EditSessionDeps): EditSessionHandle {
     if (owner !== o) return
     owner = null
     dragging.value = false
+    guides.value = NO_GUIDES
     lease.setDragging(false)
   }
 
@@ -144,6 +151,10 @@ export function createEditSession(deps: EditSessionDeps): EditSessionHandle {
     registry: deps.registry,
     editing: deps.editing,
     dragging,
+    guides,
+    setGuides(g: SnapGuides): void {
+      if (!disposed && owner !== null) guides.value = g
+    },
     session: deps.session,
     beginDrag(o: DragOwner): boolean {
       if (disposed || !deps.editing.value || owner !== null) return false
@@ -174,7 +185,7 @@ const EDIT_SESSION: InjectionKey<EditSession> = Symbol('overlay-edit-session')
  * sent to main, and the state the panels' interactions share. Called once from OverlayApp's
  * setup; everything it installs is removed with that scope.
  */
-export function useEditSession(registry: SlotRegistry): void {
+export function useEditSession(registry: SlotRegistry): EditSession {
   const state = useOverlayState()
   const session = createEditSession({
     registry,
@@ -185,6 +196,7 @@ export function useEditSession(registry: SlotRegistry): void {
   })
   provide(EDIT_SESSION, session)
   onScopeDispose(() => session.dispose())
+  return session
 }
 
 /** The session of this window, for the panels' edit frames (setup only). Throws outside one. */

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { NO_GUIDES } from '@shared/snap'
 import type { Rect } from '@shared/types'
 import {
   canStart,
   confineResize,
   dragRect,
+  dragSnap,
   grabOffset,
   handlesFor,
   isOutside,
@@ -130,5 +132,37 @@ describe('grabOffset', () => {
     expect(grabOffset({ x: 450.4, y: 310.6 }, start)).toEqual({ x: 50, y: 11 })
     expect(grabOffset({ x: 390, y: 290 }, start)).toEqual({ x: 0, y: 0 })
     expect(grabOffset({ x: 900, y: 900 }, start)).toEqual({ x: 200, y: 100 })
+  })
+})
+
+describe('dragSnap (R38)', () => {
+  const display = rect(0, 0, 1920, 1080)
+  const c: DragContext = {
+    minSize: { width: 120, height: 60 },
+    display,
+    workArea: rect(0, 0, 1920, 1040),
+    targets: [rect(1000, 200, 300, 200)]
+  }
+
+  it('gives the lines a move snapped to, the display middle included', () => {
+    const start = rect(700, 500, 200, 100)
+    const toEdge = dragSnap(start, 'move', 97, 0, c, false)
+    expect(toEdge.rect.x).toBe(800)
+    expect(toEdge.guides.xs).toEqual([1000])
+    const toMiddle = dragSnap(start, 'move', 157, 0, c, false)
+    expect(toMiddle.rect.x).toBe(860)
+    expect(toMiddle.guides.xs).toEqual([960])
+    // Alt (or Shift): no snapping, no guides.
+    expect(dragSnap(start, 'move', 157, 0, c, true).guides).toBe(NO_GUIDES)
+    expect(dragRect(start, 'move', 157, 0, c, false)).toEqual(toMiddle.rect)
+  })
+
+  it('draws the display edge it snapped to, and none when the edge only stopped it', () => {
+    const atEdge = dragSnap(rect(10, 10, 200, 100), 'move', -5, 0, c, false)
+    expect(atEdge.rect.x).toBe(0)
+    expect(atEdge.guides.xs).toEqual([0])
+    const stopped = dragSnap(rect(10, 650, 200, 100), 'move', -40, 0, c, false)
+    expect(stopped.rect.x).toBe(0)
+    expect(stopped.guides).toBe(NO_GUIDES)
   })
 })

@@ -7,6 +7,7 @@ import {
   type OverlayLayout,
   type OverlayPanel
 } from '@shared/ipc'
+import { NUDGE_KEYS } from '@shared/nudge'
 import { createDefaultSettings } from '@shared/settings'
 import type { OverlaySettings, OverlayStatus, Rect, WidgetDataMessage } from '@shared/types'
 import { PAINT_ORDER, WIDGET_IDS, type WidgetId } from '@shared/widgets'
@@ -1866,5 +1867,41 @@ describe('OverlayWindows hidden by the user', () => {
     expect(only().isVisible()).toBe(false)
     windows.setUserHidden(false)
     expect(only().isVisible()).toBe(true)
+  })
+})
+
+describe('OverlayWindows arrows (R38)', () => {
+  it('moves the widget last dragged, inside its display, and saves it once after a pause', () => {
+    start()
+    windows.setEditMode(true)
+    const w = only()
+    // Nothing touched yet: nothing to move.
+    expect(windows.nudge(NUDGE_KEYS.Left!)).toBeNull()
+    drag(w, 'radar', { x: 300, y: 400, width: 220, height: 260 })
+    committed = []
+    expect(windows.nudge(NUDGE_KEYS.Left!)).toBe('radar')
+    expect(windows.nudge(NUDGE_KEYS['Shift+Down']!)).toBe('radar')
+    expect(panel(w, 'radar')?.rect).toEqual({ x: 299, y: 410, width: 220, height: 260 })
+    expect(committed).toEqual([])
+    vi.advanceTimersByTime(COMMIT_DELAY_MS)
+    expect(committed).toEqual([['radar', { x: 299, y: 410, width: 220, height: 260 }]])
+    // Ctrl: the size, never below the minimum.
+    windows.nudge(NUDGE_KEYS['Ctrl+Shift+Left']!)
+    expect(panel(w, 'radar')?.rect).toEqual({ x: 299, y: 410, width: 210, height: 260 })
+  })
+
+  it('leaves a widget pointed out from its page, never a locked one, and only in edit mode', () => {
+    start()
+    windows.setEditMode(true)
+    const w = only()
+    windows.focusWidget('relative')
+    const before = panel(w, 'relative')?.rect
+    expect(windows.nudge(NUDGE_KEYS.Right!)).toBe('relative')
+    expect(panel(w, 'relative')?.rect).toEqual({ ...before!, x: before!.x + 1 })
+    changeSettings((s) => (s.widgets.relative.locked = true))
+    expect(windows.nudge(NUDGE_KEYS.Right!)).toBeNull()
+    changeSettings((s) => (s.widgets.relative.locked = false))
+    windows.setEditMode(false)
+    expect(windows.nudge(NUDGE_KEYS.Right!)).toBeNull()
   })
 })

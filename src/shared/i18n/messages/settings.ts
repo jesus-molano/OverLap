@@ -21,6 +21,8 @@ export const settingsEs = {
         { key: 'Arrastra', text: 'mover' },
         { key: 'Bordes', text: 'ancho' },
         { key: 'Rueda', text: 'escala' },
+        // R38: the widget last touched, 1 px (Mayús: 10); with Ctrl, its size.
+        { key: 'Flechas', text: 'afinar' },
         { key: 'Alt', text: 'sin imán' },
         { key: 'Esc', text: 'salir' }
       ],
@@ -1986,6 +1988,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         { key: 'Drag', text: 'move' },
         { key: 'Edges', text: 'width' },
         { key: 'Wheel', text: 'scale' },
+        { key: 'Arrows', text: 'nudge' },
         { key: 'Alt', text: 'no snap' },
         { key: 'Esc', text: 'exit' }
       ],

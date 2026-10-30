@@ -3,6 +3,7 @@ import { useI18n } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import Icon from '../ui/Icon.vue'
 import { createSlotRegistry, provideOverlayRegistry } from './slots'
+import { computed } from 'vue'
 import { useEditSession } from './useEditSession'
 import WidgetSlot from './WidgetSlot.vue'
 
@@ -19,14 +20,34 @@ const { editMode, cursorHidden } = useOverlayState()
 const t = useI18n()
 const registry = createSlotRegistry()
 provideOverlayRegistry(registry)
-useEditSession(registry)
+const session = useEditSession(registry)
 const widgets = registry.widgets
+/**
+ * While a panel is dragged, the lines it snaps to (another panel's edge, the display's edge or
+ * its middle), across the display (R38).
+ */
+const guideLines = computed(() => {
+  const d = registry.display.value?.bounds
+  const g = session.guides.value
+  if (d === undefined || (g.xs.length === 0 && g.ys.length === 0)) return []
+  return [
+    ...g.xs.map((x) => ({
+      key: `x${x}`,
+      style: { left: `${x}px`, top: `${d.y}px`, width: '1px', height: `${d.height}px` }
+    })),
+    ...g.ys.map((y) => ({
+      key: `y${y}`,
+      style: { left: `${d.x}px`, top: `${y}px`, width: `${d.width}px`, height: '1px' }
+    }))
+  ]
+})
 </script>
 
 <template>
   <div class="ov-overlay" :class="{ 'is-editing': editMode }">
     <WidgetSlot v-for="id in widgets" :key="id" :widget="id" />
     <div class="ov-chips" data-ov-chips />
+    <div v-for="l in guideLines" :key="l.key" class="ov-guide" :style="l.style" />
     <div v-if="editMode && cursorHidden" class="ov-cursor-hint" role="status">
       <Icon name="alert" class="ov-cursor-hint__icon" />
       <span class="ov-cursor-hint__text">
@@ -54,6 +75,15 @@ const widgets = registry.widgets
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
+}
+
+/* A snap guide (R38): a hairline in the edit colour, under the chips, never taking the mouse. */
+.ov-guide {
+  position: absolute;
+  z-index: 2;
+  background: var(--ov-edit);
+  opacity: 0.85;
   pointer-events: none;
 }
 

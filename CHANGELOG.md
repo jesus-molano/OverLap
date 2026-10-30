@@ -29,6 +29,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
   Su ↺ y su línea en **Restablecer…** las vuelven a apagar; **Estilo** no las toca.
 
+- **Modo edición más preciso**: las **flechas** mueven 1 px el último widget que has arrastrado,
+  escalado, tocado en su etiqueta o señalado con **Editar posición** (con `Mayús`, 10 px), y con
+  `Ctrl` cambian su ancho y su alto (el alto no, si se ajusta a su contenido); se guarda al soltar
+  la tecla. Solo mientras editas y con los Ajustes detrás: con la ventana de Ajustes delante, las
+  flechas siguen siendo suyas, y una combinación que ya uses en Atajos sigue siendo tuya. Si aún no
+  has tocado ninguno, un aviso sobre el juego lo dice. Al arrastrar, una **línea de ajuste** marca
+  el borde de otro widget o de la pantalla al que se pega, y el widget también se pega al **centro
+  de la pantalla**. El ojo y el candado de la etiqueta miden 24 × 24 px (antes 20 × 17) y los
+  bordes para cambiar el tamaño, 11 px (antes 8); los widgets no cambian de tamaño. La línea de
+  teclas del modo edición en los Ajustes y la ayuda sobre cada widget nombran las flechas.
+
 - **Bienvenida en el primer arranque**: una instalación nueva abre los Ajustes con una bienvenida
   de tres pasos (idioma y unidades; qué widgets usar; dónde está todo: la bandeja, los tres atajos
   y **Probar con datos de ejemplo**, que enseña los widgets en tu pantalla en el modo edición), y

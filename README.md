@@ -289,8 +289,11 @@ página de un widget, **Editar posición** (junto a «Visible») entra y señala
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
-  ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o `Shift`
-  pulsado, no).
+  ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
+  línea marca dónde se ha pegado (con `Alt` o `Shift` pulsado, no).
+- Para afinar, las **flechas** mueven 1 px el último widget que has tocado (`Mayús`: 10 px) y
+  `Ctrl` + flechas cambian su tamaño. Funcionan con el juego o el escritorio delante; con los
+  Ajustes delante, las flechas son de los Ajustes.
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde

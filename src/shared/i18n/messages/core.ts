@@ -165,7 +165,10 @@ export const coreEs = {
     gatheredNone: 'Ya estaban todos en esta pantalla',
     /** The tray's «Vincular X a «Y»» (R26). */
     autoOn: '«Según el coche» activado',
-    linked: (car: string, layout: string) => `${car} → «${layout}»`
+    linked: (car: string, layout: string) => `${car} → «${layout}»`,
+    /** An arrow in edit mode with no widget touched yet (R38). */
+    nudgeNone: 'Arrastra o toca un widget primero',
+    nudgeNoneDetail: 'Luego, las flechas lo mueven 1 px (Mayús: 10) y Ctrl con ellas, su tamaño'
   },
   /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
   layoutFiles: {
@@ -188,8 +191,8 @@ export const coreEs = {
     /** Height of an auto-height widget in the size readout: '460 × auto'. */
     autoHeight: 'auto',
     /** With the edit-mode shortcut (`keys`: acceleratorText); the NoKey ones when it has none. */
-    hintLong: (keys: string) => `Rueda: tamaño · Alt: sin imán · ${keys} salir`,
-    hintLongNoKey: 'Rueda: tamaño · Alt: sin imán',
+    hintLong: (keys: string) => `Rueda: tamaño · Flechas: mover · Alt: sin imán · ${keys} salir`,
+    hintLongNoKey: 'Rueda: tamaño · Flechas: mover · Alt: sin imán',
     hintShort: (keys: string) => `Rueda: tamaño · ${keys} salir`,
     hintShortNoKey: 'Rueda: tamaño',
     /** A dragged widget whose pointer left this display: releasing moves it there. */
@@ -348,7 +351,9 @@ export const coreEn: Dict<typeof coreEs> = {
     gatheredDetail: 'Undo it from the tray',
     gatheredNone: 'They were all on this screen already',
     autoOn: '“By car” turned on',
-    linked: (car, layout) => `${car} → “${layout}”`
+    linked: (car, layout) => `${car} → “${layout}”`,
+    nudgeNone: 'Drag or touch a widget first',
+    nudgeNoneDetail: 'Then the arrows move it 1 px (Shift: 10) and, with Ctrl, change its size'
   },
   layoutFiles: {
     filter: 'OverLap layout',
@@ -363,8 +368,8 @@ export const coreEn: Dict<typeof coreEs> = {
   editFrame: {
     locked: 'Locked',
     autoHeight: 'auto',
-    hintLong: (keys) => `Scroll: size · Alt: no snap · ${keys} exit`,
-    hintLongNoKey: 'Scroll: size · Alt: no snap',
+    hintLong: (keys) => `Scroll: size · Arrows: move · Alt: no snap · ${keys} exit`,
+    hintLongNoKey: 'Scroll: size · Arrows: move · Alt: no snap',
     hintShort: (keys) => `Scroll: size · ${keys} exit`,
     hintShortNoKey: 'Scroll: size',
     dropOnOtherDisplay: 'Release to move it to the other display',

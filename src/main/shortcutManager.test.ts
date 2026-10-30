@@ -572,3 +572,66 @@ describe('ShortcutManager several bindings per action', () => {
     expect(wanted).toEqual([true, false])
   })
 })
+
+describe('the arrows in edit mode (R38)', () => {
+  let nudges: string[]
+  let m: ShortcutManager
+
+  beforeEach(() => {
+    nudges = []
+    m = new ShortcutManager({
+      registry,
+      onAction: (a) => actions.push(a),
+      onExitEdit: () => exits++,
+      onNudge: (key) => nudges.push(key),
+      onStatus: () => {}
+    })
+  })
+
+  afterEach(() => m.dispose())
+
+  it('takes the arrows only while editing, and gives them back after', () => {
+    m.configure(DEFAULTS)
+    expect(registry.registered()).not.toContain('Left')
+    m.setEditing(true)
+    expect(registry.registered()).toEqual(
+      expect.arrayContaining(['Left', 'Shift+Right', 'Ctrl+Up', 'Ctrl+Shift+Down', 'Escape'])
+    )
+    m.setEditing(false)
+    expect(registry.registered().some((a) => /Left|Right|Up|Down/.test(a))).toBe(false)
+  })
+
+  it('repeats while held: no burst guard for a nudge', () => {
+    m.configure(DEFAULTS)
+    m.setEditing(true)
+    expect(press('Left', 0)).toBe(true)
+    expect(press('Left', 30)).toBe(true)
+    expect(press('Ctrl+Shift+Down', 30)).toBe(true)
+    expect(nudges).toEqual(['Left', 'Left', 'Ctrl+Shift+Down'])
+    expect(actions).toEqual([])
+  })
+
+  it('leaves the arrows to the settings window while it is in front', () => {
+    m.configure(DEFAULTS)
+    m.setEditing(true)
+    m.setNudgeBlocked(true)
+    expect(registry.registered()).not.toContain('Left')
+    expect(registry.registered()).toContain('Escape')
+    m.setNudgeBlocked(false)
+    expect(registry.registered()).toContain('Left')
+  })
+
+  it('never takes a combination one of your shortcuts uses', () => {
+    m.configure({ ...DEFAULTS, nextLayout: 'Ctrl+Right' })
+    m.setEditing(true)
+    expect(press('Ctrl+Right')).toBe(true)
+    expect(actions).toEqual(['nextLayout'])
+    expect(nudges).toEqual([])
+  })
+
+  it('is never registered without a handler', () => {
+    manager.configure(DEFAULTS)
+    manager.setEditing(true)
+    expect(registry.registered()).not.toContain('Left')
+  })
+})

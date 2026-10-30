@@ -10,9 +10,10 @@
  * rect); on cancel the listeners go first, so releasing the capture cannot commit it.
  */
 import { rectsEqual } from '@shared/settings'
+import { NO_GUIDES, type SnapGuides } from '@shared/snap'
 import type { Point, Rect } from '@shared/types'
 import type { SlotHandle } from './contract'
-import { dragRect, grabOffset, isOutside, type DragContext, type DragMode } from './dragMath'
+import { dragSnap, grabOffset, isOutside, type DragContext, type DragMode } from './dragMath'
 import type { Frames } from './timers'
 
 /** The fields of a pointer event a drag reads. */
@@ -55,6 +56,8 @@ export interface DragSessionOptions {
   onCrossing(crossing: boolean): void
   /** Runs once, last, when the drag ended or was cancelled. */
   onDone(): void
+  /** The lines the panel snaps to now (R38: drawn while dragging); NO_GUIDES at the end. */
+  onGuides?(guides: SnapGuides): void
 }
 
 const EVENTS: readonly DragEventType[] = [
@@ -75,6 +78,7 @@ export class DragSession {
   /** Last rect drawn; null while it is still `start`. */
   private rect: Rect | null = null
   private crossing = false
+  private guides: SnapGuides = NO_GUIDES
   private raf = 0
   private started = false
   private finished = false
@@ -166,12 +170,21 @@ export class DragSession {
     const { start, mode, ctx, slot } = this.o
     const dx = Math.round(this.x - this.p0.x)
     const dy = Math.round(this.y - this.p0.y)
-    const r = dragRect(start, mode, dx, dy, ctx, this.noSnap)
+    const { rect: r, guides } = dragSnap(start, mode, dx, dy, ctx, this.noSnap)
     if (!rectsEqual(r, this.rect ?? start)) {
       this.rect = r
       slot.setDragRect(r)
     }
+    this.setGuides(guides)
     this.setCrossing(mode === 'move' && isOutside(this.x, this.y, ctx.display))
+  }
+
+  private setGuides(g: SnapGuides): void {
+    const same = (a: readonly number[], b: readonly number[]): boolean =>
+      a.length === b.length && a.every((v, i) => v === b[i])
+    if (same(g.xs, this.guides.xs) && same(g.ys, this.guides.ys)) return
+    this.guides = g
+    this.o.onGuides?.(g)
   }
 
   private setCrossing(on: boolean): void {
@@ -202,6 +215,7 @@ export class DragSession {
 
   private finish(): void {
     this.setCrossing(false)
+    this.setGuides(NO_GUIDES)
     this.o.onDone()
   }
 }

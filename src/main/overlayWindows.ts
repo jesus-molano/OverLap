@@ -15,6 +15,7 @@ import {
   type AutoHiddenState,
   type OverlayLayout
 } from '@shared/ipc'
+import { nudgeRect, type NudgeStep } from '@shared/nudge'
 import { widgetShown } from '@shared/panelGeometry'
 import { rectsEqual } from '@shared/settings'
 import type {
@@ -122,6 +123,11 @@ export class OverlayWindows implements OverlayWindowHost {
   private numbers = new Map<number, number>()
   /** Where each widget is drawn now (screen DIP, integers, fitted heights included). */
   private readonly rects = new Map<WidgetId, Rect>()
+  /**
+   * The widget last moved, resized, scaled, toggled from its chip or pointed out («Editar
+   * posición») in edit mode: the arrows move it (R38: nudge). Null until one is.
+   */
+  private touched: WidgetId | null = null
   /** `OverlayPanel.placement`: bumped whenever main moves a panel on its own. */
   private readonly placements = new Map<WidgetId, number>()
   /** The window hosting each enabled widget. */
@@ -844,6 +850,7 @@ export class OverlayWindows implements OverlayWindowHost {
     const id = msg.widget
     const out = decideCommit(msg, this.commitContext(w, id))
     if (out.accepted) {
+      if (msg.kind !== 'fit') this.touched = id
       this.rects.set(id, out.rect)
       if (out.save === 'wheel') this.wheelSaves.restart(id)
       else if (out.save === 'fit') this.fitSaves.restart(id)
@@ -885,6 +892,7 @@ export class OverlayWindows implements OverlayWindowHost {
     const w = msg ? this.windowOf(event.sender) : undefined
     if (!msg || !w || msg.session !== w.session) return
     if (acceptScaleStep(this.commitContext(w, msg.widget))) {
+      this.touched = msg.widget
       this.opts.onScaleStep(msg.widget, msg.step)
     }
   }
@@ -907,6 +915,7 @@ export class OverlayWindows implements OverlayWindowHost {
     const w = msg ? this.windowOf(event.sender) : undefined
     if (!msg || !w || msg.session !== w.session || !this.editing) return
     if (this.owner.get(msg.widget) !== w) return
+    this.touched = msg.widget
     this.opts.onWidgetToggle(msg.widget, msg.field, msg.value)
   }
 
@@ -925,7 +934,34 @@ export class OverlayWindows implements OverlayWindowHost {
    */
   focusWidget(id: WidgetId): void {
     if (!this.editing || !this.started || this.disposed) return
+    this.touched = id
     this.broadcast(IPC.editFocus, id)
+  }
+
+  /**
+   * An arrow in edit mode (R38): the widget last touched moves or changes size by `step`, inside
+   * its display and never below its minimum (an auto height keeps its height), saved like a turn
+   * of the wheel (debounced, so a held arrow writes once). Nothing for a locked or hidden widget,
+   * or while a drag runs. The widget it applies to (null: none touched yet, or it cannot move).
+   */
+  nudge(step: NudgeStep): WidgetId | null {
+    if (!this.editing || !this.started || this.disposed) return null
+    const id = this.touched
+    if (id === null || this.isGhost(id)) return null
+    const prefs = this.opts.getSettings().widgets[id]
+    const rect = this.rects.get(id)
+    if (prefs.locked || rect === undefined) return null
+    const now = performance.now()
+    for (const w of this.pool.values()) if (w.dragUntil > now) return null
+    const display = owningDisplay(rect, this.displays)
+    if (display === undefined) return null
+    const next = nudgeRect(rect, step, WIDGET_DEFS[id].minSize, display.bounds, prefs.autoHeight)
+    if (rectsEqual(next, rect)) return id
+    this.rects.set(id, next)
+    this.fitSaves.cancel(id)
+    this.wheelSaves.restart(id)
+    this.pushLayouts()
+    return id
   }
 
   /** Where a window's edit chips are (edit mode, its current document only). */
