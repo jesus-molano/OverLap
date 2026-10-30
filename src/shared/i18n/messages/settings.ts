@@ -1162,6 +1162,8 @@ export const settingsEs = {
     clutchInTraceHelp: 'Desactívalo si cambias con levas',
     steering: 'Volante',
     steeringStyle: 'Estilo del volante',
+    /** Contenido with the wheel hidden: where its options went. */
+    steeringOff: 'El volante está oculto en Datos: muéstralo allí para elegir su estilo',
     steeringChoices: {
       bar: { label: 'Barra' },
       minimal: { label: 'Minimalista', hint: 'Un aro fino con la marca del centro' },
@@ -1181,12 +1183,9 @@ export const settingsEs = {
     steeringDegrees: 'Grados del volante',
     steeringDegreesHelp: 'Cuánto giras, bajo el volante o la barra',
     shiftLights: 'Luces de cambio',
-    shiftLightsHelp:
-      'Se encienden con las revoluciones hasta el punto de cambio del coche, donde se ponen todas en rojo, y parpadean si te pasas',
-    /** Where their blinking is turned off (R27): Apariencia's Accesibilidad, for every widget. */
-    shiftLightsMore:
-      'Para que se queden fijas (en azul) en vez de parpadear: «Sin parpadeos», en Accesibilidad de la página Apariencia.',
-    /** In «Contenido», after the trace options: one colour per pedal. */
+    /** The shift lights' row in «Bloques»: where they are. */
+    shiftLightsRow: 'Arriba del widget, hasta el punto de cambio; fijas con «Sin parpadeos»',
+    /** Under «Bloques»: one colour per pedal (its bar and its trace). */
     pedalColors: {
       throttle: 'Color del acelerador',
       brake: 'Color del freno',
@@ -1359,30 +1358,32 @@ export const settingsEs = {
     /** The hero line is always drawn; these are the others. */
     lines: 'Líneas',
     gauge: 'Depósito',
-    gaugeHelp:
-      'El depósito marcado en vueltas de combustible, con una raya donde llega lo que necesitas hasta meta',
+    gaugeHelp: 'El depósito en vueltas de combustible, con una raya en lo que necesitas hasta meta',
     perLap: 'Consumo por vuelta',
-    perLapHelp:
-      'La media de tus últimas vueltas limpias y una línea con ellas: la última y la que más gastó, marcadas',
+    perLapHelp: 'La media de tus últimas vueltas limpias, con una línea de ellas',
+    perLapMore: 'En la línea van marcadas la última y la que más gastó.',
     finish: 'Repostar y para meta',
-    finishHelp:
-      'Lo que echar en la próxima parada y, al final, lo que necesitas hasta meta con el margen (Para meta)',
+    finishHelp: 'Lo que echar en la próxima parada y lo que necesitas hasta meta',
+    finishMore:
+      'Al final de la carrera, lo que necesitas hasta meta ya con el margen («Para meta»).',
     box: 'Menú de boxes',
-    boxHelp:
-      'La gasolina del menú de boxes como una barra marcada en lo que hay que echar; en naranja si no llega',
+    boxHelp: 'La gasolina del menú de boxes, marcada en lo que hay que echar',
+    boxMore: 'La barra sale en naranja si lo que has puesto no llega.',
     window: 'Ventana de boxes',
-    windowHelp:
-      'La carrera como una línea hasta la bandera: dónde vas, las vueltas en que puedes parar y terminar, y las paradas',
+    windowHelp: 'La carrera como una línea hasta la bandera, con las paradas',
+    windowMore: 'Dónde vas y las vueltas en las que puedes parar y aun así terminar.',
     save: 'Ahorro',
+    saveHelp: 'Lo que gastar por vuelta para ahorrarte una parada',
     /** `pct`: FUEL_STRATEGY.saveReach as a whole percentage. */
-    saveHelp: (pct: number) =>
-      `Lo que gastar por vuelta para ahorrarte una parada y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos)`,
+    saveMore: (pct: number) =>
+      `Y cuánto recortar, si está a tu alcance (hasta un ${pct}${NB}% menos).`,
     tyres: 'Neumáticos',
-    tyresHelp:
-      'El coche visto desde arriba: cada neumático en tres franjas, de un borde al otro, como lo midió el equipo en tu última parada (iRacing solo lo mide en el box), y los juegos que quedan. Hasta esa lectura sale atenuado; con el alto fijo, la línea espera a la lectura',
+    tyresHelp: 'Cada neumático en tres franjas, de tu última parada, y los juegos que quedan',
+    tyresMore:
+      'El coche visto desde arriba, de un borde al otro de cada neumático, como lo midió el equipo (iRacing solo lo mide en el box). Hasta esa lectura sale atenuado; con el alto fijo, la línea espera a la lectura.',
     limits: 'Reparaciones rápidas',
-    limitsHelp:
-      'Las reparaciones rápidas que te quedan si la sesión las limita; también los juegos de neumáticos mientras no se dibuja la línea de neumáticos',
+    limitsHelp: 'Las reparaciones rápidas que te quedan, si la sesión las limita',
+    limitsMore: 'También los juegos de neumáticos mientras no se dibuja la línea de neumáticos.',
     /** «Contenido»'s note: how the numbers are worked out. */
     calcNote: 'Los avisos de combustible usan la misma media, sin el margen',
     avgLaps: 'Vueltas para la media',
@@ -1433,12 +1434,15 @@ export const settingsEs = {
     repairTimeHelp:
       'Lo que tardará el equipo en boxes: «REPARAR · 42 s (equipo)», «OPC. · 38 s (equipo)»',
     repairCrewTag: 'Marcar tiempo del equipo',
-    repairCrewTagHelp:
-      'iRacing da el tiempo de los mecánicos, que puede correr más despacio que el reloj: «42 s (equipo)», «42 s eq.» si la ventana es estrecha',
+    repairCrewTagHelp: 'El tiempo de los mecánicos, que puede ir más lento que el reloj',
+    repairCrewTagMore:
+      'iRacing da ese tiempo: «42 s (equipo)», o «42 s eq.» si la ventana es estrecha.',
     repairRealTime: 'Cuenta atrás real (estimada)',
     /** `s`: REPAIR_CLOCK.windowS. */
-    repairRealTimeHelp: (s: number) =>
-      `Parado en tu box con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s y muestra los segundos reales que faltan, a menudo más: «42 s (equipo)» puede ser «≈ 95 s (real)». Hasta saberlo, remolcado o fuera del box, la del equipo. Nunca sube ni pasa de 0`,
+    repairRealTimeHelp: 'Parado en tu box, los segundos reales que faltan: «≈ 95 s (real)»',
+    /** `s`: REPAIR_CLOCK.windowS. */
+    repairRealTimeMore: (s: number) =>
+      `Con el servicio en marcha, mide cuánto baja la cifra del equipo en los últimos ${s}${NB}s; a menudo falta más de lo que dice: «42 s (equipo)» puede ser «≈ 95 s (real)». Hasta saberlo, remolcado o fuera del box, sale la del equipo. Nunca sube ni pasa de 0.`,
     trend: 'Temperatura al alza',
     /** `s`: ENGINE_TREND.sustainS. */
     trendHelp: (s: number) =>
@@ -2943,6 +2947,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     clutchInTraceHelp: 'Turn it off if you shift with paddles',
     steering: 'Steering',
     steeringStyle: 'Steering style',
+    steeringOff: 'Steering is hidden in Readouts: show it there to choose its style',
     steeringChoices: {
       bar: { label: 'Bar' },
       minimal: { label: 'Minimal', hint: 'A thin ring with the centre mark' },
@@ -2961,10 +2966,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     steeringDegrees: 'Steering angle',
     steeringDegreesHelp: 'How far you turn, under the wheel or the bar',
     shiftLights: 'Shift lights',
-    shiftLightsHelp:
-      "Light up with the revs to the car's shift point, all red there, and blink if you go past it",
-    shiftLightsMore:
-      'To keep them steady (in blue) instead of flashing: “No flashing”, in Accessibility on the Appearance page.',
+    shiftLightsRow: 'At the top, up to the shift point; steady with “No flashing”',
     pedalColors: {
       throttle: 'Throttle colour',
       brake: 'Brake colour',
@@ -3108,28 +3110,29 @@ export const settingsEn: Dict<typeof settingsEs> = {
     note: 'What you burn on each clean lap: no pit lane, caution, tow or the race’s first lap',
     lines: 'Lines',
     gauge: 'Tank',
-    gaugeHelp: 'The tank graduated in laps of fuel, marked where the fuel to the flag reaches',
+    gaugeHelp: 'The tank in laps of fuel, marked where the fuel to the finish reaches',
     perLap: 'Use per lap',
-    perLapHelp:
-      'The average of your last clean laps and a line of them, the last one and the thirstiest marked',
+    perLapHelp: 'The average of your last clean laps, with a line of them',
+    perLapMore: 'On the line, the last one and the thirstiest are marked.',
     finish: 'Add and to finish',
-    finishHelp:
-      'What to add at the next stop and, at the end, what you need to the finish with the margin (To finish)',
+    finishHelp: 'What to add at the next stop and what you need to the finish',
+    finishMore: 'At the end of the race, what you need to the finish with the margin (To finish).',
     box: 'Pit menu',
-    boxHelp:
-      'The fuel set in the pit menu as a bar marked at what to add; orange when it falls short',
+    boxHelp: 'The fuel set in the pit menu, marked at what to add',
+    boxMore: 'The bar turns orange when what you set is not enough.',
     window: 'Pit window',
-    windowHelp:
-      'The race as a line to the flag: where you are, the laps you can stop on and still finish, and the stops',
+    windowHelp: 'The race as a line to the flag, with the stops',
+    windowMore: 'Where you are and the laps you can stop on and still finish.',
     save: 'Saving',
-    saveHelp: (pct) =>
-      `What to burn per lap to save a stop and how much to cut, when within reach (up to ${pct}% less)`,
+    saveHelp: 'What to burn per lap to save a stop',
+    saveMore: (pct) => `And how much to cut, when within reach (up to ${pct}% less).`,
     tyres: 'Tyres',
-    tyresHelp:
-      'The car from above: each tyre in three bands, edge to edge, as the crew measured it at your last stop (iRacing only measures it in the stall), and the sets left. Dimmed until that reading; with a fixed height the line waits for it',
+    tyresHelp: 'Each tyre in three bands, from your last stop, and the sets left',
+    tyresMore:
+      'The car from above, edge to edge of each tyre, as the crew measured it (iRacing only measures it in the stall). Dimmed until that reading; with a fixed height the line waits for it.',
     limits: 'Fast repairs',
-    limitsHelp:
-      'The fast repairs you have left when the session limits them; the tyre sets too while the tyres line is not drawn',
+    limitsHelp: 'The fast repairs you have left, when the session limits them',
+    limitsMore: 'The tyre sets too, while the tyres line is not drawn.',
     calcNote: 'The fuel alerts use the same average, without the margin',
     avgLaps: 'Laps to average',
     avgLapsHelp: 'How many of your last clean laps are averaged',
@@ -3171,11 +3174,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
     repairTimeHelp:
       'How long the crew will take in the pits: “REPAIR · 42 s (crew)”, “OPT. · 38 s (crew)”',
     repairCrewTag: 'Mark as crew time',
-    repairCrewTagHelp:
-      'iRacing gives the mechanics’ time, which can run slower than the clock: “42 s (crew)”, “42 s crew” in a narrow window',
+    repairCrewTagHelp: 'The mechanics’ time, which can run slower than the clock',
+    repairCrewTagMore: 'iRacing gives that time: “42 s (crew)”, or “42 s crew” in a narrow window.',
     repairRealTime: 'Real countdown (estimated)',
-    repairRealTimeHelp: (s) =>
-      `Stopped in your stall with the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s and shows the real seconds left, often more: “42 s (crew)” can be “≈ 95 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0`,
+    repairRealTimeHelp: 'Stopped in your stall, the real seconds left: “≈ 95 s (real)”',
+    repairRealTimeMore: (s) =>
+      `With the service on, it measures how fast the crew’s figure falls over the last ${s}${NB}s; often more is left than it says: “42 s (crew)” can be “≈ 95 s (real)”. Until it knows, towed or out of the stall, the crew’s. It never rises nor goes below 0.`,
     trend: 'Rising temperature',
     trendHelp: (s) => `Water or oil turns yellow after ${s}${NB}s well above your average`,
     help: {

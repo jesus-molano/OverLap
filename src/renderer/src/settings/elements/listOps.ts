@@ -14,7 +14,9 @@ export type List<Id extends string> = readonly Readonly<ElementEntry<Id>>[]
 /** An element's words in the editor. */
 export interface ElementText {
   readonly label: string
+  /** One line (about 90 characters, R31); the rest behind its ⓘ (`more`). */
   readonly hint?: string
+  readonly more?: string
 }
 
 /** What one edit did, for the page's `apply` (coupled options: the standings' gap mode...). */

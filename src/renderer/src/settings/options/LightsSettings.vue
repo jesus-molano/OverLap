@@ -144,6 +144,7 @@ function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void
           kind="switch"
           :label="t.settings.lights.repairCrewTag"
           :help="t.settings.lights.repairCrewTagHelp"
+          :more="t.settings.lights.repairCrewTagMore"
           :current="opts.repairCrewTag"
           :apply="set('repairCrewTag')"
         />
@@ -151,7 +152,8 @@ function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void
           v-if="!noRepairs && opts.showRepairTime"
           kind="switch"
           :label="t.settings.lights.repairRealTime"
-          :help="t.settings.lights.repairRealTimeHelp(REPAIR_CLOCK.windowS)"
+          :help="t.settings.lights.repairRealTimeHelp"
+          :more="t.settings.lights.repairRealTimeMore(REPAIR_CLOCK.windowS)"
           :current="opts.repairRealTime"
           :apply="set('repairRealTime')"
         />

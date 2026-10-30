@@ -17,6 +17,7 @@ import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../lay
 import type { ElRef, PreviewZoneId } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
 import { useNoRoom } from '../preview/useNoRoom'
+import HelpText from '../controls/HelpText.vue'
 import PreviewNote from '../controls/PreviewNote.vue'
 import type { PreviewNoteSpec } from '../controls/previewNote'
 import { offerSectionRestore } from '../undo/restore'
@@ -904,9 +905,12 @@ function onCancel(e: PointerEvent): void {
                         labelOf(blockedBy(spec, shown, r.entry.id) as Id)
                       )
                     }}</span>
-                    <span v-else-if="labels[r.entry.id]?.hint" class="ed-hint">{{
-                      labels[r.entry.id]?.hint
-                    }}</span>
+                    <HelpText
+                      v-else-if="labels[r.entry.id]?.hint"
+                      class="ed-hint"
+                      :text="labels[r.entry.id]?.hint ?? ''"
+                      :more="labels[r.entry.id]?.more"
+                    />
                     <PreviewNote :note="roomNotes.get(r.entry.id)" />
                   </span>
                   <span v-if="$slots.extra" class="ed-extra"

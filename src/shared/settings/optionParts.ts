@@ -28,6 +28,15 @@ const CUSTOMIZE_EXTRAS: Readonly<Partial<Record<WidgetId, readonly string[]>>> =
   relative: ['columnHeads'],
   standings: ['columnHeads', 'iRatingDeltaAll', 'showPosition', 'gapMode'],
   traffic: ['captions'],
+  // The shift lights' row, the trace's options in its row and the pedals' colours (R12).
+  inputs: [
+    'shiftLights',
+    'traceSeconds',
+    'traceWidth',
+    'clutchInTrace',
+    'colors',
+    'steeringDegrees'
+  ],
   fuel: ['showBox'],
   lights: [
     'showCaptions',
