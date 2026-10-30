@@ -51,9 +51,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   falla («1 atajo no funciona»). Con un clic abre un panel con la línea de estado entera y qué
   hacer, qué widgets oculta una regla y por qué, los atajos que no funcionan (con «Ver Atajos») y
   los botones **Copiar diagnóstico** (versiones, estado, pantallas y atajos, sin nombres ni tu
-  usuario) y **Abrir registro** (`overlap.log`). Si no se puede cargar el módulo nativo del SDK de
-  iRacing, lo dice un aviso en todas las páginas, con los mismos botones; el aviso de que no se
-  guarda también abre el registro en vez de explicar dónde está.
+  usuario, tampoco dentro del texto de un error) y **Abrir registro** (`overlap.log`). Si has
+  ocultado tú el overlay, el panel dice «Todos: has ocultado el overlay», y los ojos de la barra
+  lateral y la nota de cada página de widget dicen «overlay oculto». Si no se puede cargar el
+  módulo nativo del SDK de iRacing, lo dice un aviso en todas las páginas, con los mismos botones;
+  el aviso de que no se guarda también abre el registro en vez de explicar dónde está.
 
 ### Cambiado
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, provide, useId } from 'vue'
-import { LOCALES, hiddenText, widgetTitle } from '@shared/i18n'
+import { widgetTitle } from '@shared/i18n'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { useI18n, useLanguage } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
@@ -28,6 +28,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
 import { sendCommand } from '../editor'
 import { freeScalePercent } from '../freeScale'
+import { heldCaption } from '../statusSummary'
 import { useOverlayState } from '../../composables/useOverlay'
 import WindowSection from './WindowSection.vue'
 
@@ -64,20 +65,17 @@ const setVisible = (on: boolean): Promise<void> => setWidgetVisible(props.widget
 // Its sections' reset icons (PageSection) reset this widget.
 provide(WIDGET_PAGE, props.widgetId)
 
-const { settings, autoHiddenOf, editMode } = useOverlayState()
+const { settings, autoHiddenOf, overlayHidden, editMode } = useOverlayState()
 
 /** «Editar posición» (R25): edit mode, this widget pointed out over the game (again if on). */
 function editPosition(): void {
   sendCommand({ type: 'set-edit-mode', on: true, focus: props.widgetId })
 }
 const lang = useLanguage()
-/** On, but a rule hides it now: why, in lower case ('oculto en práctica'), as the sidebar's eye. */
-const held = computed(() => {
-  const a = autoHiddenOf[props.widgetId].value
-  if (!a.hidden) return null
-  const caption = hiddenText(t.value, a.reason)
-  return caption.charAt(0).toLocaleLowerCase(LOCALES[lang.value]) + caption.slice(1)
-})
+/** On, but not showing now (overlay hidden by you, or a rule): why, as the sidebar's eye says. */
+const held = computed(() =>
+  heldCaption(t.value, lang.value, overlayHidden.value, autoHiddenOf[props.widgetId].value)
+)
 const bounds = computed(
   () => settings.value?.widgets[props.widgetId].bounds ?? def.value.defaultBounds
 )

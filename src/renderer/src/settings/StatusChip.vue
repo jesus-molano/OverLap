@@ -149,8 +149,11 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
     <section class="block">
       <p class="line">{{ summary.enabled }}</p>
-      <h3 class="block-title">{{ t.settings.status.hiddenTitle }}</h3>
-      <ul v-if="summary.hiddenLines.length > 0" class="list">
+      <h3 class="block-title">
+        {{ overlayHidden ? t.settings.status.hiddenNowTitle : t.settings.status.hiddenTitle }}
+      </h3>
+      <p v-if="overlayHidden" class="help">{{ t.settings.status.allByYou }}</p>
+      <ul v-else-if="summary.hiddenLines.length > 0" class="list">
         <li v-for="l in summary.hiddenLines" :key="l">{{ l }}</li>
       </ul>
       <p v-else class="help">{{ t.settings.status.noneHidden }}</p>
