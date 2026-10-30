@@ -240,6 +240,11 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
+- **Estilo** (arriba de Apariencia): **OverLap** (el de serie), **Como iRacing**, **Limpio** o
+  **Compacto** ponen de una vez el aspecto entero (fondo, tamaño del texto, filas, licencia,
+  número, nombre, logos y banderas), con **Deshacer**; el resto de Apariencia queda como **Ajuste
+  fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la paleta para
+  daltónicos, el idioma ni las unidades.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,

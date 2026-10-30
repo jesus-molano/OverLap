@@ -32,6 +32,7 @@ import ResetMenu from '../layout/ResetMenu.vue'
 import type { ResetItem } from '../layout/resetItems'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
+import AppearancePresets from './AppearancePresets.vue'
 import SampleStage from '../layout/SampleStage.vue'
 import { fontScaleHelp as fontScaleHelpText } from '../appearanceHelp'
 import { SAMPLE_CHIPS } from '../samples/sampleData'
@@ -187,6 +188,9 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         <WidgetSample widget-id="standings" global />
       </SampleStage>
     </template>
+
+    <!-- Named looks first (R56); the sections below are the fine tuning. -->
+    <AppearancePresets />
 
     <!-- Two columns in a wide window (settings.css .st-cols). -->
     <div class="st-cols">
