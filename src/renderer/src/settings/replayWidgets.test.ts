@@ -4,10 +4,17 @@ import { createDefaultSettings } from '@shared/settings'
 import { SHOW_WHEN } from '@shared/settingsSchema'
 import { CameraState, screenHiddenReason, type ScreenFacts } from '@shared/simScreen'
 import type { VisibilityOptions } from '@shared/types'
-import { WIDGET_IDS, canShowOnSessionScreen, followsCamera, inCarOnly } from '@shared/widgets'
+import {
+  WIDGET_IDS,
+  canShowOnSessionScreen,
+  followsCamera,
+  inCarOnly,
+  type WidgetId
+} from '@shared/widgets'
 import {
   liveOnlyWidgets,
   outOfCarHidesSessionScreen,
+  replayFacts,
   replayNote,
   replaysHelp,
   sessionScreenRuleOn,
@@ -46,44 +53,66 @@ describe('replay rule wording', () => {
     })
   })
 
-  it('tells each widget page what a replay does to it', () => {
-    expect(replayNote(es, 'relative', FOLLOW)).toBe(
-      'En directo sigue al coche que miras; al rebobinar una repetición se oculta'
+  it('tells each widget page what a replay does to it, in one sentence pattern (R45)', () => {
+    const note = (m: typeof es, id: WidgetId, c: Choices): string =>
+      replayNote(m, m === es ? LOCALES.es : LOCALES.en, id, c)
+    expect(note(es, 'relative', FOLLOW)).toBe(
+      'Sigue al coche que miras: se oculta al rebobinar una repetición'
     )
     // The standings keep the live race when you rewind.
-    expect(replayNote(es, 'standings', FOLLOW)).toBe(
-      'En directo sigue al coche que miras; al rebobinar mantiene la carrera en directo'
+    expect(note(es, 'standings', FOLLOW)).toBe(
+      'Sigue al coche que miras: al rebobinar mantiene la carrera en directo'
     )
     // Replays hidden (the default): watching from out of the car hides them too.
-    expect(replayNote(es, 'standings', HIDE)).toBe(
-      'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Visibilidad)'
+    expect(note(es, 'standings', HIDE)).toBe(
+      'Sigue al coche que miras: se oculta en repeticiones y al mirar otros coches desde fuera del coche (Visibilidad)'
     )
-    expect(replayNote(es, 'standings', HIDE_ALWAYS)).toBe(
-      'Al rebobinar se oculta (Visibilidad); en directo sigue al coche que miras'
+    expect(note(es, 'standings', HIDE_ALWAYS)).toBe(
+      'Sigue al coche que miras: se oculta al rebobinar una repetición (Visibilidad)'
     )
     // Your car's data only hides whatever the rule says.
     for (const choices of [FOLLOW, HIDE, HIDE_ALWAYS]) {
-      expect(replayNote(es, 'alerts', choices)).toBe(
+      expect(note(es, 'alerts', choices)).toBe(
         'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche'
       )
       // Nothing while the replay system is on: the session screen either (no switch for it).
-      expect(replayNote(en, 'fuel', choices)).toBe(
+      expect(note(en, 'fuel', choices)).toBe(
         'Only your car’s data: hidden in replays, on the session screen and when you watch another car'
       )
-      expect(replayNote(es, 'fuel', choices)).toBe(
+      expect(note(es, 'fuel', choices)).toBe(
         'Solo tiene datos de tu coche: se oculta en repeticiones, en la pantalla de sesión y si miras otro coche'
       )
       // The ones with data only from inside the car: out of it too (no session-screen switch).
-      expect(replayNote(es, 'inputs', choices)).toBe(
-        'Solo tiene datos de tu coche y desde dentro: se oculta fuera del coche (también en la pantalla de sesión), en repeticiones y si miras otro coche'
+      expect(note(es, 'inputs', choices)).toBe(
+        'Solo tiene datos de tu coche: se oculta en repeticiones, fuera del coche (también en la pantalla de sesión) y si miras otro coche'
       )
-      expect(replayNote(en, 'delta', choices)).toBe(
-        'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car'
+      expect(note(en, 'delta', choices)).toBe(
+        'Only your car’s data: hidden in replays, out of the car (the session screen too) and when you watch another car'
       )
     }
-    expect(replayNote(en, 'battle', FOLLOW)).toBe(
-      'Live, it follows the car you are watching; hidden when you rewind a replay'
+    expect(note(en, 'battle', FOLLOW)).toBe(
+      'Follows the car you are watching: hidden when you rewind a replay'
     )
+  })
+
+  it('reads the same for widgets that behave the same, and differently only when they do', () => {
+    for (const choices of [FOLLOW, HIDE, HIDE_ALWAYS]) {
+      const byFacts = new Map<string, Set<string>>()
+      for (const id of WIDGET_IDS) {
+        const key = JSON.stringify(replayFacts(id, choices))
+        const set = byFacts.get(key) ?? new Set<string>()
+        set.add(replayNote(es, LOCALES.es, id, choices))
+        byFacts.set(key, set)
+      }
+      // One text per behaviour...
+      for (const texts of byFacts.values()) expect(texts.size).toBe(1)
+      // ...and as many texts as behaviours.
+      const all = new Set(WIDGET_IDS.map((id) => replayNote(es, LOCALES.es, id, choices)))
+      expect(all.size).toBe(byFacts.size)
+    }
+    // Avisos and Combustible differ on the session screen, and say so.
+    expect(replayFacts('alerts', FOLLOW).hides).not.toContain('sessionScreen')
+    expect(replayFacts('fuel', FOLLOW).hides).toContain('sessionScreen')
   })
 
   it('has nothing to show out of the car only for the radar, the pedals, the lights and the delta', () => {

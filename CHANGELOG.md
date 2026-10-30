@@ -280,6 +280,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Combustible también en práctica** en una instalación nueva: sale en práctica (donde se mide el
   consumo por vuelta) y en carrera; en clasificación sigue oculto. Si ya tenías ajustes, Combustible
   sigue donde lo tenías.
+- **Una sola forma de explicar las repeticiones**: la nota de «Ventana» de cada widget se forma
+  con los mismos datos (de quién son los datos, dónde se oculta, si al rebobinar mantiene la
+  carrera en directo y si lo decide Visibilidad), así que dos widgets que se comportan igual dicen
+  lo mismo y solo cambia el texto cuando cambia el comportamiento: «Sigue al coche que miras: se
+  oculta al rebobinar una repetición», «Solo tiene datos de tu coche: se oculta en repeticiones, en
+  la pantalla de sesión y si miras otro coche»…
 
 ### Corregido
 
