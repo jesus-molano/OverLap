@@ -352,11 +352,6 @@ export function barRows<Id extends string>(
 }
 
 /**
- * The list with the hidden `id` shown at the end of the side it is on (where the bar draws it
- * last): just before the marker on the left, last of all on the right. The marker stays where
- * it is, so the stored format is the same. A copy shown in place without a marker.
- */
-/**
  * «+ Añadir dato» (R33): `id` shown at the end of `side` of an info bar (the left box ends just
  * before the marker `split`, the right one at the end of the list), whichever side it was on.
  */
@@ -373,6 +368,11 @@ export function addedToSide<Id extends string>(
   return movedTo(spec, shown, id, shown.length - 1)
 }
 
+/**
+ * The list with the hidden `id` shown at the end of the side it is on (where the bar draws it
+ * last): just before the marker on the left, last of all on the right. The marker stays where
+ * it is, so the stored format is the same. A copy shown in place without a marker.
+ */
 export function shownAtSideEnd<Id extends string>(
   spec: SpecRules<Id>,
   list: List<Id>,

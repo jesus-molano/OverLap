@@ -457,7 +457,6 @@ function moveTo(id: Id, index: number): void {
   void refocus(id, 'handle')
 }
 
-/** To the other side of the marker, at its nearest end. */
 /** A side's name in lower case, inside a sentence ('izquierda'). */
 const sideName = (side: Side): string =>
   t.value.settings.elements.hiddenSide[side].toLocaleLowerCase()
@@ -474,6 +473,7 @@ function addTo(id: Id, side: Side): void {
   void refocusEye(id)
 }
 
+/** To the other side of the marker, at its nearest end. */
 function moveAcross(id: Id): void {
   if (props.split === undefined) return
   const before = current.value
