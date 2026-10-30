@@ -29,8 +29,8 @@ import UndoToast from './undo/UndoToast.vue'
 import WelcomeDialog from './WelcomeDialog.vue'
 import { provideNavigate } from './navigate'
 import SearchIndexer from './search/SearchIndexer.vue'
-import { indexWanted, searchIndex } from './search/searchIndex'
-import { revealTarget } from './search/reveal'
+import { dropIndex, indexDone, indexing, markIndexStale } from './search/searchIndex'
+import { MISS_MS, revealTarget, type RevealTarget } from './search/reveal'
 import SettingsSearch from './search/SettingsSearch.vue'
 import type { SearchEntry } from './search/settingsSearch'
 import { useSaveFailing } from './saveFailing'
@@ -91,14 +91,40 @@ const nativeMissing = computed(
 // search result is revealed there (its accordion opened, scrolled to, pointed out; R33).
 provideNavigate((next, target) => {
   select(next)
-  if (target) void revealTarget(() => document.querySelector('main.content'), target)
+  searchMiss.value = null
+  if (target) void reveal(target)
 })
-/** The search box got the focus: every page harvested once, out of sight (SearchIndexer). */
-function onIndexed(entries: SearchEntry[]): void {
-  searchIndex.value = entries
+const contentRoot = (): Element | null => document.querySelector('main.content')
+/**
+ * A result the page does not show now (another setting hides it): its section or accordion
+ * shown instead, and a line saying why (R33).
+ */
+const searchMiss = shallowRef<{ text: string; context: string } | null>(null)
+let missTimer: ReturnType<typeof setTimeout> | undefined
+async function reveal(target: RevealTarget): Promise<void> {
+  if (await revealTarget(contentRoot, target)) return
+  if (target.context !== '') {
+    await revealTarget(contentRoot, { text: target.context, context: '', kind: 'section' }, 4)
+  }
+  searchMiss.value = { text: target.text, context: target.context }
+  clearTimeout(missTimer)
+  missTimer = setTimeout(() => (searchMiss.value = null), MISS_MS)
 }
-// Another language: the pages say other words, harvested again on the next search.
-watch(lang, () => (searchIndex.value = null))
+onUnmounted(() => clearTimeout(missTimer))
+const missText = computed(() => {
+  const m = searchMiss.value
+  if (m === null) return null
+  const s = t.value.settings.search
+  return m.context === '' ? s.missHere(m.text) : s.miss(m.text, m.context)
+})
+/** The search box got the focus and the settings changed since: harvested again (SearchIndexer). */
+function onIndexed(entries: SearchEntry[]): void {
+  indexDone(entries)
+}
+// Another language: the pages say other words, harvested again (now, if a harvest is under way).
+watch(lang, () => dropIndex())
+// A setting can change what a page shows (a mode, a list item): the next search harvests again.
+watch(settings, () => markIndexStale())
 
 function exitEdit(): void {
   sendCommand({ type: 'set-edit-mode', on: false })
@@ -168,6 +194,7 @@ function openLog(): void {
             {{ t.settings.status.openLog }}
           </button>
         </div>
+        <p v-if="missText" class="banner" role="status">{{ missText }}</p>
         <div v-if="saveFailing" class="banner banner-error banner-actions" role="alert">
           <p class="banner-text">{{ t.settings.app.saveError }}</p>
           <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="openLog">
@@ -190,7 +217,7 @@ function openLog(): void {
 
       <UndoToast />
     </div>
-    <SearchIndexer v-if="indexWanted && searchIndex === null" @done="onIndexed" />
+    <SearchIndexer v-if="indexing" :key="lang" @done="onIndexed" />
     <!-- A first run (R07): main sets it, the welcome clears it. -->
     <WelcomeDialog v-if="settings?.settingsWindow.welcome === true" />
   </div>

@@ -18,6 +18,8 @@ export interface SearchEntry {
   context: string
   /** Its help line, matched with less weight; '' when none. */
   help: string
+  /** Not on the page now: another setting of its section shows it (a mode, an item shown). */
+  gated?: boolean
 }
 
 export interface SearchResult extends SearchEntry {
@@ -62,8 +64,10 @@ export function searchSettings(
     else if (words.every((w) => text.includes(w))) score = 2
     else if (words.every((w) => near.includes(w))) score = 3
     else score = 5
-    // A page or a section a little before a label with the same score.
+    // A page or a section a little before a label with the same score; one that another
+    // setting hides now a little after.
     if (e.kind === 'page' || e.kind === 'section') score -= 0.5
+    if (e.gated === true) score += 0.25
     const key = `${e.page}\n${e.text}\n${e.context}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -71,6 +75,29 @@ export function searchSettings(
   }
   out.sort((a, b) => a.score - b.score || a.text.length - b.text.length)
   return out.slice(0, limit)
+}
+
+/**
+ * A page's entries as it is (`shown`) and with everything that can show shown (`all`): the
+ * first ones, then those only the second has, marked `gated`. Pure.
+ */
+export function mergeGated(
+  shown: readonly SearchEntry[],
+  all: readonly SearchEntry[]
+): SearchEntry[] {
+  const key = (e: SearchEntry): string => `${e.page}
+${e.kind}
+${e.text}
+${e.context}`
+  const have = new Set(shown.map(key))
+  const out = [...shown]
+  for (const e of all) {
+    const k = key(e)
+    if (have.has(k)) continue
+    have.add(k)
+    out.push({ ...e, gated: true })
+  }
+  return out
 }
 
 /** What a page holds that can be searched: the selectors and the kind of each. */

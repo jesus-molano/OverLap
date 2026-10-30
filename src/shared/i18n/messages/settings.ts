@@ -78,7 +78,13 @@ export const settingsEs = {
     preparing: 'Preparando la búsqueda…',
     none: (q: string) => `Ningún ajuste con «${q}»`,
     /** Under a result that is a whole page. */
-    page: 'Página'
+    page: 'Página',
+    /** Under a result another setting hides now (Posiciones › Modo compacto · con otro ajuste). */
+    gated: 'con otro ajuste',
+    /** The result is not on its page now: its section is shown instead. */
+    miss: (what: string, where: string) =>
+      `«${what}» no se ve ahora: aparece con otro ajuste de «${where}».`,
+    missHere: (what: string) => `«${what}» no se ve ahora: aparece con otro ajuste de esta página.`
   },
   /**
    * The status chip (sidebar, narrow top bar) and its panel (R35): the connection, what is
@@ -1780,7 +1786,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     label: 'Search a setting on every page',
     preparing: 'Getting the search ready…',
     none: (q) => `No setting with “${q}”`,
-    page: 'Page'
+    page: 'Page',
+    gated: 'with another setting',
+    miss: (what, where) => `“${what}” is not showing now: another setting in “${where}” shows it.`,
+    missHere: (what) => `“${what}” is not showing now: another setting on this page shows it.`
   },
   status: {
     chipAria: (label) => `Status: ${label}. Show details`,

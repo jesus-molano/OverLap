@@ -23,7 +23,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   «Vueltas de combustible» en el pie de Posiciones, en la cabecera de Relativo…), con su página y
   su sección debajo. Con las flechas y `Intro` o un clic, lleva a la página, abre el acordeón o la
   lista donde está, lo centra y lo señala un momento. Lee las páginas tal como se ven, en el idioma
-  de la ventana.
+  de la ventana, y vuelve a leerlas si cambias un ajuste; también encuentra lo que ahora oculta otro
+  ajuste («Primeros puestos» con Posiciones en «Completo»), marcado «con otro ajuste»: al elegirlo,
+  lleva a su sección y dice por qué no se ve.
 - **Página «Visibilidad»**: junto a Apariencia, con **Cuándo se ve el overlay** (que estaba en
   Apariencia; su «Restablecer» va con ella y el de Apariencia ya no lo toca) y una tabla **Dónde se
   ve cada widget**: una fila por widget, agrupados, y columnas Visible, Práctica, Clasificación,

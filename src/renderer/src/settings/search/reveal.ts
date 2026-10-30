@@ -2,6 +2,11 @@ import { REVEAL_SELECTOR, contextOf, type SearchEntry } from './settingsSearch'
 
 /** How long a found setting stays pointed out. */
 export const FOUND_MS = 1800
+/** How long the line saying a result is not shown now stays. */
+export const MISS_MS = 8000
+
+/** What a search result reveals on its page. */
+export type RevealTarget = Pick<SearchEntry, 'text' | 'context' | 'kind'>
 
 const clean = (s: string | null | undefined): string => (s ?? '').replace(/\s+/g, ' ').trim()
 

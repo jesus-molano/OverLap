@@ -38,7 +38,9 @@ const shown = computed(
 function whereOf(r: SearchResult): string {
   const page = pageTitle(t.value, r.page)
   if (r.kind === 'page') return t.value.settings.search.page
-  return r.context === '' ? page : `${page} › ${r.context}`
+  const where = r.context === '' ? page : `${page} › ${r.context}`
+  // Not on the page now: another setting there shows it.
+  return r.gated === true ? `${where} · ${t.value.settings.search.gated}` : where
 }
 
 function place(): void {

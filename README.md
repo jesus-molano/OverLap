@@ -197,9 +197,11 @@ por las opciones se pliega en una franja (o queda fija, o siempre en franja: **A
 pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
 derecha.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
-lleva a él (abre su sección y lo señala). La barra lateral agrupa los widgets en **Pista y
-rivales**, **Tu vuelta** y **Estado del coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
-discontinuo, está activado pero una regla lo oculta ahora (el ratón encima dice cuál). El **chip de
+lleva a él (abre su sección y lo señala); lo que ahora oculta otro ajuste sale marcado «con otro
+ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
+coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
+discontinuo, está activado pero no se ve ahora: una regla lo oculta o has ocultado el overlay (el
+ratón encima dice por qué). El **chip de
 estado** de arriba dice qué está oculto y por qué; con un clic abre un panel con qué hacer,
 **Copiar diagnóstico** (para un informe de error, sin nombres) y **Abrir registro**.
 

@@ -13,6 +13,7 @@ import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
 import { inherit, type Density } from '../view/appearance'
 import { useAppearance } from './useAppearance'
 import { useOverlayState } from './useOverlay'
+import { injectOptionsView } from './searchUnlock'
 import { injectSampleHost, injectWidgetId } from './widgetContext'
 
 export type { OptionSection }
@@ -59,8 +60,11 @@ export function useOptions<K extends OptionSection>(section: K): ComputedRef<Ove
   const { settings } = useOverlayState()
   // The settings window's sample while you edit in it draws its hidden elements ghosted.
   const view = injectSampleHost()?.viewOptions
+  // The search's indexer: everything that can show, shown (searchUnlock).
+  const unlock = injectOptionsView()
   return computed((prev) => {
-    const own = settings.value?.[section] ?? DEFAULT_SETTINGS[section]
+    const stored = settings.value?.[section] ?? DEFAULT_SETTINGS[section]
+    const own = unlock ? (unlock(section, stored) as OverlaySettings[K]) : stored
     return stable(prev, view ? view(section, own) : own)
   })
 }
