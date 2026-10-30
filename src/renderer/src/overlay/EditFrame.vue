@@ -31,7 +31,7 @@ import { createPanelEdit } from './panelEdit'
 import { slotStyle } from './slotGeometry'
 import { ANIMATION_FRAMES } from './timers'
 import { injectEditSession } from './useEditSession'
-import { useEditFocus } from './editFocus'
+import { clearEditFocus, useEditFocus } from './editFocus'
 
 const slot = injectSlot()
 const session = injectEditSession()
@@ -134,12 +134,16 @@ function openPage(): void {
 
 /**
  * «Editar posición» on this widget's page (R25): a ring pulses round the panel for a moment
- * (keyed by the request, so pressing it again pulses again).
+ * (keyed by the request, so pressing it again pulses again). It goes after the pulses, and
+ * leaving edit mode forgets it, so a later edit session points nothing out.
  */
 const editFocus = useEditFocus()
 const focusN = computed(() =>
   editMode.value && editFocus.value?.widget === slot.id ? editFocus.value.n : 0
 )
+watch(editMode, (on) => {
+  if (!on) clearEditFocus()
+})
 
 function toggle(field: ToggleField): void {
   const msg = toggleMessage(slot, field, session.session(), editMode.value)
