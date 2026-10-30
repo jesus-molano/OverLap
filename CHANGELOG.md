@@ -198,6 +198,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **«Mayús» en toda la app**: la tabla de Atajos, el pie de la barra lateral, la bienvenida, el
+  aviso de cursor oculto y la ayuda de **Modo edición** escriben `Ctrl+Mayús+E` y `Ctrl+Mayús+H`,
+  como ya decían los avisos del modo edición («Mayús+Tab») y como se escriben **Supr** o **Re
+  Pág**; mientras grabas una combinación, la tecla pulsada se llama igual. En inglés sigue siendo
+  «Shift». Lo guardado no cambia.
 - **Un ↺ sin nada que hacer se apaga, como los «Restablecer» de las listas**: el ↺ de cada sección
   (Contenido, Piloto, Personalizar, Ventana y visibilidad, las de Apariencia y Visibilidad) y su
   línea en **Restablecer…** salen atenuados cuando esa parte está como viene de serie, y dicen

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { WIDGET_IDS, WIDGET_LIST_ORDER } from './widgets'
 import { NO_WIDGET_MORE, NO_WIDGET_SHORTCUTS } from './testing/shortcuts'
-import { acceleratorText, keyLabel, keycaps, messagesFor } from './i18n'
+import { acceleratorText, keyLabel, keycaps, messagesFor, modifierLabels } from './i18n'
 import { OPTION_SCHEMA } from './settingsSchema'
 import { DEFAULT_SETTINGS } from './settings'
 import {
@@ -214,13 +214,21 @@ describe('keycaps', () => {
   const es = messagesFor('es')
   const en = messagesFor('en')
 
-  it('keeps Ctrl, Alt, Shift, letters, digits and F-keys in every language', () => {
+  it('keeps Ctrl, Alt, letters, digits and F-keys in every language', () => {
     for (const m of [es, en]) {
-      expect(keycaps(m, 'Ctrl+Alt+Shift+E')).toEqual(['Ctrl', 'Alt', 'Shift', 'E'])
-      expect(acceleratorText(m, 'Ctrl+Shift+H')).toBe('Ctrl+Shift+H')
       expect(acceleratorText(m, 'Alt+7')).toBe('Alt+7')
       expect(acceleratorText(m, 'F13')).toBe('F13')
     }
+  })
+
+  it('names Shift as each keyboard prints it, as the edit-mode hints do («Mayús+Tab»)', () => {
+    expect(keycaps(es, 'Ctrl+Alt+Shift+E')).toEqual(['Ctrl', 'Alt', 'Mayús', 'E'])
+    expect(acceleratorText(es, 'Ctrl+Shift+H')).toBe('Ctrl+Mayús+H')
+    expect(keycaps(en, 'Ctrl+Alt+Shift+E')).toEqual(['Ctrl', 'Alt', 'Shift', 'E'])
+    expect(acceleratorText(en, 'Ctrl+Shift+H')).toBe('Ctrl+Shift+H')
+    expect(modifierLabels(es, { ctrl: true, alt: false, shift: true })).toEqual(['Ctrl', 'Mayús'])
+    // The edit-mode hint uses the same word.
+    expect(es.core.osd.pickedDetail).toContain('Mayús+Tab')
   })
 
   it('prints the keys Spanish keyboards label differently', () => {

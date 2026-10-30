@@ -88,9 +88,9 @@ describe('shortcutRows', () => {
         {
           accelerator: 'Ctrl+Shift+H',
           slot: 0,
-          keys: ['Ctrl', 'Shift', 'H'],
+          keys: ['Ctrl', 'Mayús', 'H'],
           button: null,
-          text: 'Ctrl+Shift+H',
+          text: 'Ctrl+Mayús+H',
           off: false
         }
       ],
@@ -117,7 +117,7 @@ describe('shortcutRows', () => {
     expect(r.bindings[0]?.keys).toEqual(['Ctrl', 'Alt', 'Av Pág'])
     expect(r.canReset).toBe(true)
     expect(r.defaultAccelerator).toBe('Ctrl+Shift+H')
-    expect(r.defaultKeys).toBe('Ctrl+Shift+H')
+    expect(r.defaultKeys).toBe('Ctrl+Mayús+H')
     // The factory one with another beside it: a reset removes the other.
     const more = row(B(DEFAULT_SETTINGS.shortcuts, { toggleOverlay: ['F13'] }), 0)
     expect(more.canReset).toBe(true)
@@ -128,7 +128,7 @@ describe('shortcutRows', () => {
     const three = B(DEFAULT_SETTINGS.shortcuts, { toggleOverlay: [`${G29}:24`, 'F13'] })
     const r = shortcutRows(es, three, OK, { [G29]: 'G29' })[0]
     expect(r?.bindings.map((b) => [b.slot, b.text])).toEqual([
-      [0, 'Ctrl+Shift+H'],
+      [0, 'Ctrl+Mayús+H'],
       [1, 'Botón 24 · G29'],
       [2, 'F13']
     ])
@@ -159,8 +159,8 @@ describe('shortcutRows', () => {
 describe('sidebarKeys', () => {
   it('lists edit mode, show / hide and Esc with their configured keys', () => {
     expect(sidebarKeys(es, defaults)).toEqual([
-      { id: 'toggleEditMode', keys: 'Ctrl+Shift+E', label: 'modo edición', button: false },
-      { id: 'toggleOverlay', keys: 'Ctrl+Shift+H', label: 'mostrar u ocultar', button: false },
+      { id: 'toggleEditMode', keys: 'Ctrl+Mayús+E', label: 'modo edición', button: false },
+      { id: 'toggleOverlay', keys: 'Ctrl+Mayús+H', label: 'mostrar u ocultar', button: false },
       { id: 'exit', keys: 'Esc', label: 'salir de edición', button: false }
     ])
   })
@@ -174,7 +174,7 @@ describe('sidebarKeys', () => {
 
   it('shows the first binding only (the sidebar is narrow)', () => {
     const more = B(DEFAULT_SETTINGS.shortcuts, { toggleEditMode: ['joy:046d:c24f:0:3'] })
-    expect(sidebarKeys(es, more)[0]?.keys).toBe('Ctrl+Shift+E')
+    expect(sidebarKeys(es, more)[0]?.keys).toBe('Ctrl+Mayús+E')
   })
 
   it('prefers a key combination to a button, and draws a button without its controller', () => {
@@ -204,7 +204,7 @@ describe('sidebarKeys', () => {
 describe('editModeTooltip', () => {
   it('names the configured shortcut, or none, and says this window frees the cursor', () => {
     expect(editModeTooltip(es, defaults)).toBe(
-      'Mover y redimensionar los widgets (Ctrl+Shift+E). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera'
+      'Mover y redimensionar los widgets (Ctrl+Mayús+E). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera'
     )
     expect(editModeTooltip(en, B({ ...DEFAULT_SETTINGS.shortcuts, toggleEditMode: 'F13' }))).toBe(
       'Move and resize the widgets (F13). In the car iRacing hides the cursor: start here, this window frees it'
@@ -217,7 +217,7 @@ describe('editModeTooltip', () => {
   it('names every binding, compactly, when there are several', () => {
     const more = B(DEFAULT_SETTINGS.shortcuts, { toggleEditMode: ['joy:046d:c24f:0:24'] })
     expect(editModeTooltip(es, more, { 'joy:046d:c24f:0': 'G29' })).toContain(
-      '(Ctrl+Shift+E o Botón 24)'
+      '(Ctrl+Mayús+E o Botón 24)'
     )
   })
 })

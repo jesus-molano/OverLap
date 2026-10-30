@@ -295,14 +295,14 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 
 ## Modo edición
 
-Entra con `Ctrl+Shift+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
+Entra con `Ctrl+Mayús+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
 página de un widget, **Editar posición** (junto a «Visible») entra y señala ese widget sobre el
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
   ratón lo escala. La ayuda sobre cada widget y el aviso de los Ajustes usan las mismas palabras
   («Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir»). Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
-  línea marca dónde se ha pegado (con `Alt` o `Shift` pulsado, no).
+  línea marca dónde se ha pegado (con `Alt` o `Mayús` pulsado, no).
 - Para afinar, las **flechas** mueven 1 px el último widget que has tocado (`Mayús`: 10 px) y
   `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
   sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
@@ -365,14 +365,14 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 
 Son globales: funcionan con iRacing en primer plano. Cada acción puede tener **hasta tres atajos a
 la vez**, cada uno una combinación de teclas o un botón del volante, la button box, los pedales o
-el cambio (ver [Botones del volante](#botones-del-volante)): por ejemplo `Ctrl+Shift+H` y el
+el cambio (ver [Botones del volante](#botones-del-volante)): por ejemplo `Ctrl+Mayús+H` y el
 botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la acción.
 
 | Atajo (por defecto) | Acción                                                      |
 | ------------------- | ----------------------------------------------------------- |
-| `Ctrl+Shift+H`      | Mostrar u ocultar todo el overlay de golpe                  |
-| `Ctrl+Shift+E`      | Entrar o salir del modo edición                             |
-| `Ctrl+Shift+O`      | Abrir los Ajustes (o traerlos al frente)                    |
+| `Ctrl+Mayús+H`      | Mostrar u ocultar todo el overlay de golpe                  |
+| `Ctrl+Mayús+E`      | Entrar o salir del modo edición                             |
+| `Ctrl+Mayús+O`      | Abrir los Ajustes (o traerlos al frente)                    |
 | (sin asignar)       | Siguiente disposición                                       |
 | (sin asignar)       | Cambiar la referencia del delta                             |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |

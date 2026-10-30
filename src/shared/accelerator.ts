@@ -346,7 +346,7 @@ export function readKeyboardEvent(e: KeyInput): KeyReading {
   return { kind: 'key', accelerator: formatAccelerator({ ...held, key }), held }
 }
 
-/** Ctrl, Alt, Shift: the same words in every language (they are printed so on the keys). */
+/** Ctrl, Alt, Shift, as stored; shown in the interface's words by modifierLabels (i18n). */
 export function modifierCaps(held: HeldModifiers): string[] {
   const out: string[] = []
   if (held.ctrl) out.push('Ctrl')
