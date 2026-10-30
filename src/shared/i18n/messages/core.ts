@@ -236,10 +236,12 @@ export const coreEs = {
     }
   },
   /**
-   * Keys as a Spanish keyboard prints them (keycaps, acceleratorText). Ctrl, Alt, Shift, the
+   * Keys as a Spanish keyboard prints them (keycaps, acceleratorText). Ctrl, Alt, the
    * letters, digits, F-keys, Esc and the arrows read the same in every language.
    */
   keys: {
+    /** The Shift modifier as a Spanish keyboard prints it, everywhere a key is named (R55). */
+    shift: 'Mayús',
     space: 'Espacio',
     insert: 'Insert',
     delete: 'Supr',
@@ -418,6 +420,7 @@ export const coreEn: Dict<typeof coreEs> = {
     }
   },
   keys: {
+    shift: 'Shift',
     space: 'Space',
     insert: 'Ins',
     delete: 'Delete',
