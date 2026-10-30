@@ -7,6 +7,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [2.3.1] - 2026-10-30
+
+### Corregido
+
+- **La opción de una fila de Personalizar va debajo de su nombre**: «iRating en juego de todos» en
+  Posiciones ocupaba la fila y dejaba el nombre en una columna de palabras sueltas. Ahora la opción
+  de una fila (también «Medido» en Hueco) va en su propia línea, a cualquier ancho.
+- **Los atajos de la barra lateral no se parten**: con «Mayús» la tecla es más larga, y la
+  explicación pasa entera a la línea de abajo en vez de partirse en palabras sueltas.
+
 ## [2.3.0] - 2026-10-30
 
 ### Añadido
@@ -1009,6 +1019,7 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[2.3.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.1
 [2.3.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.0
 [2.2.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.2.0
 [2.1.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.1.1

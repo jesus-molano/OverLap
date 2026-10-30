@@ -111,7 +111,7 @@ const groups = computed(() =>
     <div class="foot">
       <EditModeButton v-if="!rail" />
       <dl v-if="!rail" class="keys">
-        <template v-for="k in keys" :key="k.id">
+        <div v-for="k in keys" :key="k.id" class="key-row">
           <dt>
             <span v-if="k.button" class="key-button" :title="k.title">
               <Icon name="wheel" class="key-button-icon" />
@@ -120,7 +120,7 @@ const groups = computed(() =>
             <kbd v-else>{{ k.keys }}</kbd>
           </dt>
           <dd>{{ k.label }}</dd>
-        </template>
+        </div>
       </dl>
       <!-- «Acerca de y ayuda» (R40): the folder, the log, a backup... (the tray keeps the folder). -->
       <button
@@ -267,15 +267,25 @@ const groups = computed(() =>
 
 .keys {
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px 8px;
+  gap: 4px;
   margin: 0;
   color: var(--ov-fg-dim);
   font-size: var(--st-t-help);
 }
 
+/*
+ * One shortcut per row: the label stays beside its key when both fit, and otherwise moves whole
+ * to the line below, never broken into a column of single words beside a long key.
+ */
+.key-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+}
+
 .keys dd {
+  flex: 1 1 auto;
   margin: 0;
 }
 
