@@ -112,7 +112,9 @@ describe('buttons, options and everyday phrases (five-of-five)', () => {
     e('shortcuts', 'label', 'Mostrar u ocultar el overlay', 'Acciones'),
     e('appearance', 'label', 'Tamaño del texto', 'Texto', 'Multiplica la escala'),
     e('appearance', 'label', 'Texto mínimo de 10 px', 'Accesibilidad', 'Para leerlo más grande'),
-    e('relative', 'label', 'Banderas de penalización', 'Piloto')
+    e('relative', 'label', 'Banderas de penalización', 'Piloto'),
+    // A label whose help alone has both words: after one that has some in its name.
+    e('battle', 'label', 'Escala', 'Ventana', 'Texto y ventana más grandes o más pequeños')
   ]
   const texts = (q: string): string[] => searchSettings(MORE, q, title).map((x) => x.text)
   const first = (q: string): string | undefined => texts(q)[0]

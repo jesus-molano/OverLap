@@ -487,6 +487,7 @@ const readLinks = computed(() => {
                 :key="l.text"
                 type="button"
                 class="st-btn st-btn-sm st-btn-ghost"
+                data-nofind
                 @click="navigate('appearance', l)"
               >
                 {{ l.text }}
