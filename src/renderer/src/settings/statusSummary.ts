@@ -3,7 +3,14 @@
  * now and why, what does not work. The same facts as the tray (its status line, its "(oculto en
  * práctica)" notes), outside it. Pure.
  */
-import { hiddenText, statusText, widgetTitle, type Messages } from '@shared/i18n'
+import {
+  LOCALES,
+  hiddenText,
+  statusText,
+  widgetTitle,
+  type Language,
+  type Messages
+} from '@shared/i18n'
 import type { ShortcutStatusReport } from '@shared/shortcuts'
 import type { ConnectionState, HiddenReason, OverlaySettings, OverlayStatus } from '@shared/types'
 import { WIDGET_LIST_ORDER, type WidgetId } from '@shared/widgets'
@@ -117,4 +124,22 @@ export function statusSummary(m: Messages, input: StatusSummaryInput): StatusSum
     shortcutsFailing: failing,
     nativeMissing: s?.state === 'error' && s.note === 'native-missing'
   }
+}
+
+/**
+ * Why a widget that is on does not show now, in lower case as in the tray ('oculto en práctica',
+ * 'overlay oculto'), for the sidebar's eye and the widget page's note; null when it shows. The
+ * overlay hidden by you hides every widget, so it is the reason before any rule.
+ */
+export function heldCaption(
+  m: Messages,
+  lang: Language,
+  overlayHidden: boolean,
+  auto: { hidden: boolean; reason: HiddenReason | null }
+): string | null {
+  let caption: string
+  if (overlayHidden) caption = m.settings.status.sub.overlayHidden
+  else if (auto.hidden) caption = hiddenText(m, auto.reason)
+  else return null
+  return caption.charAt(0).toLocaleLowerCase(LOCALES[lang]) + caption.slice(1)
 }

@@ -4,7 +4,7 @@ import { createDefaultSettings } from '@shared/settings'
 import type { ShortcutStatusReport } from '@shared/shortcuts'
 import type { OverlayStatus } from '@shared/types'
 import { WIDGET_IDS } from '@shared/widgets'
-import { statusSummary, type StatusSummaryInput } from './statusSummary'
+import { heldCaption, statusSummary, type StatusSummaryInput } from './statusSummary'
 
 const es = messagesFor('es')
 const en = messagesFor('en')
@@ -97,5 +97,19 @@ describe('statusSummary (R35)', () => {
     expect(s.connection).toBe(en.core.status.nativeMissing)
     expect(s.advice).toBe('Without it there is no iRacing data. Download OverLap again.')
     expect(statusSummary(en, input({ settings: null, status: null })).sub).toBeNull()
+  })
+})
+
+describe('heldCaption (R35)', () => {
+  const shown = { hidden: false, reason: null }
+  it('is null while the widget shows', () => {
+    expect(heldCaption(es, 'es', false, shown)).toBeNull()
+  })
+  it('says the rule, in lower case', () => {
+    expect(heldCaption(es, 'es', false, { hidden: true, reason: 'practice' })).toMatch(/^oculto/)
+  })
+  it('says the overlay hidden by you before any rule, in both languages', () => {
+    expect(heldCaption(es, 'es', true, shown)).toBe('overlay oculto')
+    expect(heldCaption(en, 'en', true, { hidden: true, reason: 'practice' })).toBe('overlay hidden')
   })
 })

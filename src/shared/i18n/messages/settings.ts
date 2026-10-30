@@ -111,10 +111,14 @@ export const settingsEs = {
     show: 'Mostrar',
     enabled: (on: number, total: number) => `${on} de ${total} widgets activados`,
     hiddenTitle: 'Ocultos ahora por una regla',
+    /** The same heading while you have hidden the overlay (no rule needed). */
+    hiddenNowTitle: 'Ocultos ahora',
     /** One rule hides every enabled widget: 'Todos los activados · Oculto: fuera del coche'. */
     allHidden: (caption: string) => `Todos los activados · ${caption}`,
     hiddenOne: (widget: string, caption: string) => `${widget} · ${caption}`,
     noneHidden: 'Ninguno: se ven todos los activados (si estás en pista).',
+    /** The overlay hidden by you: every widget is hidden, whatever the rules say. */
+    allByYou: 'Todos: has ocultado el overlay.',
     shortcutsFailing: (n: number) =>
       n === 1 ? '1 atajo no funciona.' : `${n} atajos no funcionan.`,
     openShortcuts: 'Ver Atajos',
@@ -1295,9 +1299,6 @@ export const settingsEs = {
     sides: { left: 'Izquierda', right: 'Derecha' },
     sidesHelp: { left: 'Al principio de la línea', right: 'Al final de la línea' },
     sideEmpty: 'Nada a este lado: arrastra aquí un elemento',
-    /** An info bar's hidden items, in their own collapsed group under the two boxes. */
-    hiddenGroup: (n: number) => `Ocultos (${n})`,
-    hiddenGroupHelp: 'Al mostrar uno, va al final de su lado',
     /** An info bar's hidden items, to add (R33): «+ Añadir dato (8)». */
     addItem: (n: number) => `Añadir dato (${n})`,
     addItemHelp: 'Elige el dato y a qué lado va',
@@ -1796,9 +1797,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
     show: 'Show',
     enabled: (on, total) => `${on} of ${total} widgets turned on`,
     hiddenTitle: 'Hidden now by a rule',
+    hiddenNowTitle: 'Hidden now',
     allHidden: (caption) => `Every one turned on · ${caption}`,
     hiddenOne: (widget, caption) => `${widget} · ${caption}`,
     noneHidden: 'None: every widget turned on shows (when you are on track).',
+    allByYou: 'All of them: you hid the overlay.',
     shortcutsFailing: (n) =>
       n === 1 ? '1 shortcut is not working.' : `${n} shortcuts are not working.`,
     openShortcuts: 'Open Shortcuts',
@@ -2775,8 +2778,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sides: { left: 'Left', right: 'Right' },
     sidesHelp: { left: 'At the start of the line', right: 'At the end of the line' },
     sideEmpty: 'Nothing on this side: drag an element here',
-    hiddenGroup: (n) => `Hidden (${n})`,
-    hiddenGroupHelp: 'Shown again, an element goes to the end of its side',
     addItem: (n) => `Add a data item (${n})`,
     addItemHelp: 'Pick the item and the side it goes on',
     addTo: (item, side) => `Add ${item} on the ${side}`,

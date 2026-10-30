@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createDefaultSettings } from '@shared/settings'
-import { diagnosticsText, type DiagnosticsInput } from './diagnostics'
+import { anonymous, diagnosticsText, type DiagnosticsInput } from './diagnostics'
 
 function input(over: Partial<DiagnosticsInput> = {}): DiagnosticsInput {
   return {
@@ -55,6 +55,24 @@ describe('diagnosticsText (R35)', () => {
     expect(diagnosticsText(input({ logFile: 'D:\\logs\\overlap.log' }))).toContain(
       'Log: D:\\logs\\overlap.log'
     )
+  })
+
+  it('leaves the user name out of the error detail too (R35)', () => {
+    const detail =
+      "Cannot find module 'c:/users/ana/AppData/Local/Programs/OverLap/irsdk.node'; " +
+      "ENOENT: open 'C:\\\\Users\\\\Ana\\\\Documents\\\\iRacing\\\\x.ibt'"
+    const text = diagnosticsText(
+      input({ status: { state: 'error', source: 'iracing', note: 'native-missing', detail } })
+    )
+    expect(text).not.toMatch(/ana/i)
+    expect(text).toContain("'%USERPROFILE%/AppData/Local/Programs/OverLap/irsdk.node'")
+    expect(text).toContain("'%USERPROFILE%\\\\Documents\\\\iRacing\\\\x.ibt'")
+  })
+
+  it('replaces only the whole home folder', () => {
+    expect(anonymous('C:\\Users\\Anabel\\x', 'C:\\Users\\Ana')).toBe('C:\\Users\\Anabel\\x')
+    expect(anonymous('at C:\\Users\\Ana', 'C:\\Users\\Ana')).toBe('at %USERPROFILE%')
+    expect(anonymous('C:\\Users\\Ana\\x', '')).toBe('C:\\Users\\Ana\\x')
   })
 
   it('names no layout, car or driver', () => {

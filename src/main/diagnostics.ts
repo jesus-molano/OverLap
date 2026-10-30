@@ -51,7 +51,7 @@ export function diagnosticsText(d: DiagnosticsInput): string {
   return [
     `OverLap ${d.version} (Electron ${v.electron ?? '?'}, Chrome ${v.chrome ?? '?'}, Node ${v.node ?? '?'})`,
     `OS: ${d.os}`,
-    `Status: ${st.state} source=${st.source} note=${st.note}${st.detail ? ` detail=${st.detail}` : ''}`,
+    `Status: ${st.state} source=${st.source} note=${st.note}${st.detail ? ` detail=${anonymous(st.detail, d.home)}` : ''}`,
     `Overlay hidden by the user: ${d.overlayHidden ? 'yes' : 'no'}; edit mode: ${d.editMode ? 'on' : 'off'}`,
     `Show when: ${s.visibility.showWhen}; replays: ${s.visibility.replays}`,
     `Language: ${s.appearance.language}; layouts: ${s.savedLayouts.list.length}; auto switch: ${s.layouts.autoSwitch ? 'on' : 'off'}`,
@@ -66,9 +66,15 @@ export function diagnosticsText(d: DiagnosticsInput): string {
   ].join('\n')
 }
 
-/** `path` with `home` (any case, either slash) written as %USERPROFILE%. */
-function anonymous(path: string, home: string): string {
-  if (home === '') return path
-  const norm = (p: string): string => p.replace(/\\/g, '/').toLowerCase()
-  return norm(path).startsWith(norm(home)) ? `%USERPROFILE%${path.slice(home.length)}` : path
+/**
+ * `text` with every `home` in it (any case, either slash, doubled backslashes too) written as
+ * %USERPROFILE%: a path, or an error message that holds one ("ENOENT: open 'C:\Users\…'").
+ */
+export function anonymous(text: string, home: string): string {
+  const parts = home.split(/[\\/]+/).filter((p) => p !== '')
+  if (parts.length === 0) return text
+  const escaped = parts.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  // Only the whole folder: 'C:\Users\Ana' is not the start of 'C:\Users\Anabel'.
+  const re = new RegExp(`${escaped.join('[\\\\/]+')}(?=$|[\\\\/\\s'"\`),;:])`, 'gi')
+  return text.replace(re, '%USERPROFILE%')
 }

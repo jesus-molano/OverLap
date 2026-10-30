@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LOCALES, hiddenText, widgetTitle } from '@shared/i18n'
+import { widgetTitle } from '@shared/i18n'
 import { WIDGET_GROUPS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { useI18n, useLanguage } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import Icon from '../../ui/Icon.vue'
 import StatusChip from '../StatusChip.vue'
+import { heldCaption } from '../statusSummary'
 import SettingsSearch from '../search/SettingsSearch.vue'
 import { sendCommand } from '../editor'
 import { setWidgetVisible } from '../undo/restore'
@@ -19,7 +20,7 @@ import VisibilityDot from './VisibilityDot.vue'
 defineProps<{ page: SettingsPage }>()
 const emit = defineEmits<{ select: [page: SettingsPage] }>()
 
-const { settings, autoHiddenOf } = useOverlayState()
+const { settings, autoHiddenOf, overlayHidden } = useOverlayState()
 const t = useI18n()
 const lang = useLanguage()
 const shortcuts = useShortcuts()
@@ -33,12 +34,9 @@ const keys = computed(() => sidebarKeys(t.value, shortcuts.value, deviceNames.va
 const visibleKey = computed(() =>
   WIDGET_IDS.map((id) => (settings.value?.widgets[id].visible === false ? '0' : '1')).join('')
 )
-/** On but hidden now by a rule: why, in lower case as in the tray ('oculto en práctica'). */
+/** On but not showing now (the overlay hidden by you, or a rule): why, as in the tray. */
 function heldOf(id: WidgetId): string | null {
-  const a = autoHiddenOf[id].value
-  if (!a.hidden) return null
-  const caption = hiddenText(t.value, a.reason)
-  return caption.charAt(0).toLocaleLowerCase(LOCALES[lang.value]) + caption.slice(1)
+  return heldCaption(t.value, lang.value, overlayHidden.value, autoHiddenOf[id].value)
 }
 
 /** The widgets in their groups (R42): the track and rivals, your lap, your car. */
