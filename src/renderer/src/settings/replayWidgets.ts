@@ -43,19 +43,70 @@ export function replaysHelp(
   return { help: v.showWhen === 'always' ? h.hideAlways : h.hide }
 }
 
-/** What one widget does while a replay plays, for its "Ventana" section. */
+/** Where a widget hides, in the order the note says them. */
+export type ReplayPlace = keyof Messages['settings']['window']['replay']['places']
+
+/** The facts a widget page's replay note is built from (R45). */
+export interface ReplayFacts {
+  /** Whose data: the car on camera, or only yours (hidden whenever the camera is elsewhere). */
+  readonly data: 'camera' | 'own'
+  readonly hides: readonly ReplayPlace[]
+  /** Rewinding keeps the live race (the standings, with replays followed). */
+  readonly keepsLive: boolean
+  /** Visibilidad's replay rule decides it, not the widget. */
+  readonly rule: boolean
+}
+
+/**
+ * What one widget does in replays, as facts: your car's data only hides in every replay and with
+ * another car on camera, plus out of the car when it only has data inside it (also the session
+ * screen) or on the session screen when it shows nothing while the replay system is on. A widget
+ * that follows the camera hides when you rewind, unless it keeps the live race; with replays
+ * hidden (Visibilidad), in every replay and, with the overlay only for the car, while you watch
+ * from out of it.
+ */
+export function replayFacts(
+  id: WidgetId,
+  v: Pick<VisibilityOptions, 'replays' | 'showWhen'>
+): ReplayFacts {
+  if (!followsCamera(id)) {
+    const extra: ReplayPlace[] = inCarOnly(id)
+      ? ['outOfCar']
+      : canShowOnSessionScreen(id)
+        ? []
+        : ['sessionScreen']
+    return { data: 'own', hides: ['replays', ...extra, 'otherCar'], keepsLive: false, rule: false }
+  }
+  if (v.replays === 'hide') {
+    const hides: ReplayPlace[] =
+      v.showWhen === 'always' ? ['rewind'] : ['replays', 'otherCarOutOfCar']
+    return { data: 'camera', hides, keepsLive: false, rule: true }
+  }
+  const keepsLive = keepsLiveInReplay(id)
+  return { data: 'camera', hides: keepsLive ? [] : ['rewind'], keepsLive, rule: false }
+}
+
+/**
+ * What one widget does while a replay plays, for its "Ventana" section: one sentence built from
+ * its facts (replayFacts), so two widgets that behave alike read alike (R45). `locale` joins the
+ * places the way the language lists things.
+ */
 export function replayNote(
   m: Messages,
+  locale: string,
   id: WidgetId,
   v: Pick<VisibilityOptions, 'replays' | 'showWhen'>
 ): string {
   const r = m.settings.window.replay
-  if (inCarOnly(id)) return r.inCarOnly
-  // Nothing while the replay system is on: the session screen either (no switch for it).
-  if (!canShowOnSessionScreen(id)) return r.noSessionScreen
-  if (!followsCamera(id)) return r.liveOnly
-  if (v.replays === 'hide') return v.showWhen === 'always' ? r.hidden : r.hiddenOutOfCar
-  return keepsLiveInReplay(id) ? r.keepsLive : r.follows
+  const f = replayFacts(id, v)
+  const parts: string[] = []
+  if (f.hides.length > 0) {
+    const places = f.hides.map((p) => r.places[p])
+    parts.push(r.hides(new Intl.ListFormat(locale, { type: 'conjunction' }).format(places)))
+  }
+  if (f.keepsLive) parts.push(r.keepsLive)
+  const lead = f.data === 'camera' ? r.camera : r.ownCar
+  return `${lead}: ${parts.join('; ')}${f.rule ? ` (${r.rule})` : ''}`
 }
 
 /**

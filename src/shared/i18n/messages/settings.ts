@@ -779,22 +779,29 @@ export const settingsEs = {
     /** Where it cannot apply: an in-car widget (WidgetDef.inCarOnly) or the fuel (noSessionScreen). */
     sessionScreenNoData: 'No aplica: solo tiene datos dentro del coche',
     sessionScreenNoReplay: 'No aplica: con las repeticiones activas no muestra nada',
-    /** What the widget does in a replay (Visibilidad decides the rest). */
+    /**
+     * What the widget does in a replay, built from facts (R45, replayWidgets.ts replayNote): whose
+     * data it shows, where it hides, whether it keeps the live race when you rewind, and whether
+     * Visibilidad's rule decides it. The same behaviour always reads the same.
+     */
     replay: {
-      /** The standings: they keep the live race. */
-      keepsLive: 'En directo sigue al coche que miras; al rebobinar mantiene la carrera en directo',
-      follows: 'En directo sigue al coche que miras; al rebobinar una repetición se oculta',
-      liveOnly: 'Solo tiene datos de tu coche: se oculta en repeticiones y si miras otro coche',
-      /** The radar, the pedals, the delta: no session-screen switch either. */
-      inCarOnly:
-        'Solo tiene datos de tu coche y desde dentro: se oculta fuera del coche (también en la pantalla de sesión), en repeticiones y si miras otro coche',
-      /** The fuel: nothing while the replay system is on, so no session-screen switch either. */
-      noSessionScreen:
-        'Solo tiene datos de tu coche: se oculta en repeticiones, en la pantalla de sesión y si miras otro coche',
-      hidden: 'Al rebobinar se oculta (Visibilidad); en directo sigue al coche que miras',
-      /** Replays hidden with the overlay only in the car: watching from out of it hides too. */
-      hiddenOutOfCar:
-        'Se oculta en repeticiones y al mirar otros coches desde fuera del coche (Visibilidad)'
+      /** Whose data: the car on camera (relative, standings, battle, traffic) or yours only. */
+      camera: 'Sigue al coche que miras',
+      ownCar: 'Solo tiene datos de tu coche',
+      /** The places, joined as a list ('en repeticiones, en la pantalla de sesión y …'). */
+      hides: (places: string) => `se oculta ${places}`,
+      /** The standings, with replays followed. */
+      keepsLive: 'al rebobinar mantiene la carrera en directo',
+      /** The global rule decides it. */
+      rule: 'Visibilidad',
+      places: {
+        rewind: 'al rebobinar una repetición',
+        replays: 'en repeticiones',
+        otherCarOutOfCar: 'al mirar otros coches desde fuera del coche',
+        outOfCar: 'fuera del coche (también en la pantalla de sesión)',
+        sessionScreen: 'en la pantalla de sesión',
+        otherCar: 'si miras otro coche'
+      }
     }
   },
   relative: {
@@ -2346,17 +2353,19 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sessionScreenNoData: 'Not available: it only has data in the car',
     sessionScreenNoReplay: 'Not available: it shows nothing while replays are on',
     replay: {
-      keepsLive:
-        'Live, it follows the car you are watching; when you rewind, it keeps the live race',
-      follows: 'Live, it follows the car you are watching; hidden when you rewind a replay',
-      liveOnly: 'Only your car’s data: hidden in replays and when you watch another car',
-      inCarOnly:
-        'Only your car’s data, from inside it: hidden out of the car (the session screen too), in replays and when you watch another car',
-      noSessionScreen:
-        'Only your car’s data: hidden in replays, on the session screen and when you watch another car',
-      hidden: 'Hidden when you rewind (Visibility); live, it follows the car you watch',
-      hiddenOutOfCar:
-        'Hidden in replays and while you watch other cars from out of the car (Visibility)'
+      camera: 'Follows the car you are watching',
+      ownCar: 'Only your car’s data',
+      hides: (places) => `hidden ${places}`,
+      keepsLive: 'when you rewind, it keeps the live race',
+      rule: 'Visibility',
+      places: {
+        rewind: 'when you rewind a replay',
+        replays: 'in replays',
+        otherCarOutOfCar: 'while you watch other cars from out of the car',
+        outOfCar: 'out of the car (the session screen too)',
+        sessionScreen: 'on the session screen',
+        otherCar: 'when you watch another car'
+      }
     }
   },
   relative: {

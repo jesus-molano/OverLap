@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { WIDGET_SCALE_MAX, WIDGET_SCALE_MIN, WIDGET_SCALE_STEP } from '@shared/settings'
 import { SHOW_IN_KINDS, WIDGET_FIELD_SCHEMA } from '@shared/settingsSchema'
 import { WIDGET_DEFS, canHideInPits, type WidgetId } from '@shared/widgets'
-import { useI18n } from '../../composables/useI18n'
+import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOptions, useWidgetSettings } from '../../composables/useWidgetSettings'
 import { useAppearance } from '../../composables/useAppearance'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -98,7 +98,8 @@ const showIn = computed(() => {
 const nowhere = computed(() => SHOW_IN_KINDS.every((k) => !prefs.value.showIn[k]))
 /** Replays are a global rule (Visibilidad): only what it means for this widget. */
 const visibility = useOptions('visibility')
-const replay = computed(() => replayNote(t.value, props.widgetId, visibility.value))
+const locale = useLocale()
+const replay = computed(() => replayNote(t.value, locale.value, props.widgetId, visibility.value))
 /** The overlay only in races (Visibilidad): practice and qualifying never show. */
 const showInHelp = computed(() => {
   const w = t.value.settings.window
