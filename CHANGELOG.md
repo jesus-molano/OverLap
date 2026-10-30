@@ -190,6 +190,33 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Apariencia, en dos grupos sin columnas vacías**: bajo los estilos, **Ajuste fino del estilo**
+  (Color y Texto a la izquierda, Filas y pilotos a la derecha) y debajo **General** (Idioma y Otros
+  a la izquierda, Accesibilidad a la derecha), cada sección siempre en su columna. Disposiciones
+  hace lo mismo: a la izquierda la lista y «Guardar la actual», a la derecha Cambio automático,
+  Ejemplos, Pantallas y Archivos, tengas las disposiciones que tengas.
+- **Personalizar con la cabecera de las demás secciones**: el título en versalitas con su ↺ en la
+  misma línea; la explicación y «Expandir todo» van debajo.
+- **Tamaño de esta ventana con los botones de siempre**: 80/100/125/150 %, como Tamaño del texto y
+  Escala; el deslizador va de 5 en 5 y `Ctrl` y `+` o `-` siguen de 10 en 10.
+- **Accesibilidad lleva al Texto**: al pie, «Para leer mejor los widgets, en Texto:» con dos
+  botones, **Tamaño del texto** y **Contorno del texto**, que llevan a cada uno y lo señalan.
+- **Buscar ajuste entiende palabras de uso diario**: «zoom», «ampliar» o «lupa» encuentran
+  **Tamaño de esta ventana**; «bloquear» o «fijar», **Bloqueado**; «parpadeo» o «destello», **Sin
+  parpadeos**; «daltonismo», la paleta para daltónicos (y lo mismo en inglés); y cada estilo se
+  encuentra por su nombre («Limpio», «Compacto»).
+- **Dejar Completo**: al elegir otro estilo estando en **Completo**, la ventana de confirmación dice
+  que lo que Completo añadió a los widgets se queda y ofrece **Quitar también lo que añadió
+  Completo** (cada widget vuelve a lo que mostraba antes; se recuerda en esta ventana al aplicar
+  Completo), con **Deshacer** como siempre.
+- **Estilos y disposiciones, cada uno a lo suyo**: la disposición de ejemplo «Completa» pasa a
+  llamarse **Los diez** («All ten»), para no confundirse con el estilo **Completo**; Estilo dice
+  que qué widgets se ven lo eligen las disposiciones (con «Ir a Disposiciones») y Ejemplos dice que
+  el aspecto se elige en Estilo (con «Ir a Apariencia»). La tarjeta **Compacto** dice todo lo que
+  cambia: también el número en franja y la licencia solo letra.
+- **Las mismas palabras para el corte**: en inglés, «No flashing» dice «on the rev limiter» (no
+  «at the limiter», que en la app es el limitador de boxes), como Testigos; en español, «en el
+  corte», como Testigos.
 - **Pedales, con la misma regla que los demás widgets**: lo que enciende o apaga una parte del
   widget va en **Personalizar**, y en Contenido quedan solo los modos del volante (estilo, tamaño y
   color). **Luces de cambio** es una fila con su ojo arriba de **Bloques** (la tira de arriba del

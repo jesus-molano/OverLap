@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   APPEARANCE_PRESETS,
   PRESET_FIELDS,
+  contentsBack,
   matchingPreset,
+  mergePatches,
   planStyle,
   presetFieldsOf,
   presetValues,
@@ -247,5 +249,33 @@ describe('the styles’ hints name what they set as the controls do', () => {
       expect(c.compact.hint).toContain(String(presetValues('compact').fontScale))
       expect(c.complete.hint).toContain(String(presetValues('complete').backgroundOpacity * 100))
     }
+  })
+})
+
+describe('leaving «Completo»', () => {
+  it('keeps what each widget showed before it, and puts it back with another style', () => {
+    const s = createDefaultSettings()
+    const plan = planStyle(s, 'complete')
+    const back = contentsBack(undoPatch(s, plan.patch))
+    expect('appearance' in back).toBe(false)
+    const full = applySettingsPatch(s, plan.patch)
+    expect(isComplete(full)).toBe(true)
+    // OverLap's look and the contents from before: the settings as they were.
+    const overlap = planStyle(full, 'overlap')
+    const after = applySettingsPatch(full, mergePatches(back, overlap.patch))
+    expect(after.standings).toEqual(s.standings)
+    expect(after.alerts).toEqual(s.alerts)
+    expect(matchingPreset(after)).toBe('overlap')
+  })
+
+  it('merges two patches section by section, the second winning', () => {
+    const merged = mergePatches(
+      { appearance: { density: 'compact' }, widgets: { radar: { scale: 80 } } },
+      { appearance: { stripes: false }, widgets: { radar: { locked: true } } }
+    ) as Record<string, unknown>
+    expect(merged).toEqual({
+      appearance: { density: 'compact', stripes: false },
+      widgets: { radar: { scale: 80, locked: true } }
+    })
   })
 })

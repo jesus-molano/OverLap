@@ -60,7 +60,11 @@ onBeforeUnmount(() => {
   <Teleport defer :to="host ? `#${host.targetId}` : 'body'" :disabled="host === null">
     <section class="cz" :aria-labelledby="titleId">
       <header class="cz-head">
-        <h2 :id="titleId" class="cz-title">{{ t.settings.common.customize }}</h2>
+        <!-- The same head as every section of the page (R55): the title in caps, its ↺ on its line. -->
+        <div class="st-section-head">
+          <h2 :id="titleId" class="st-section-title">{{ t.settings.common.customize }}</h2>
+          <ResetIcon v-if="resetLabel" :label="resetLabel" @reset="onReset" />
+        </div>
         <!-- The page's one drag and eye explanation (each list keeps it for screen readers). -->
         <p class="cz-note">
           <template v-if="intro === 'sides'">
@@ -86,7 +90,6 @@ onBeforeUnmount(() => {
             {{ anyClosed ? t.settings.common.expandAll : t.settings.common.collapseAll }}
           </button>
         </span>
-        <ResetIcon v-if="resetLabel" class="cz-reset" :label="resetLabel" @reset="onReset" />
       </header>
       <div class="cz-body">
         <slot />
@@ -96,7 +99,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* A group above the zones' own captions: a rule, a title in the Display face, a short note. */
+/* A group above the zones' own captions: a rule, the sections' head, then its note and buttons. */
 .cz {
   min-width: 0;
 }
@@ -111,14 +114,14 @@ onBeforeUnmount(() => {
   border-top: 1px solid var(--st-border-hi);
 }
 
-.cz-title {
-  font-family: var(--ov-font-num);
-  font-size: var(--st-t-body);
-  font-weight: var(--ov-w-strong);
-  letter-spacing: 0.01em;
+.cz-head > .st-section-head {
+  flex: 1 1 100%;
+  margin-bottom: 0;
 }
 
 .cz-note {
+  flex: 1 1 20em;
+  margin: 0 2px;
   color: var(--ov-fg-dim);
   font-size: var(--st-t-help);
 }
@@ -129,16 +132,6 @@ onBeforeUnmount(() => {
   gap: 2px;
   margin-left: auto;
   align-self: center;
-}
-
-/* Its ↺ at the very end, after "Expandir todo" when there is one. */
-.cz-reset {
-  margin-left: auto;
-  align-self: center;
-}
-
-.cz-all + .cz-reset {
-  margin-left: 0;
 }
 
 .cz-glyph {
