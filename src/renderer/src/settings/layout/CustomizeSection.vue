@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Icon from '../../ui/Icon.vue'
 import { computed, inject, onBeforeUnmount, onMounted, useId } from 'vue'
 import { widgetTitle } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
@@ -68,14 +69,18 @@ onBeforeUnmount(() => {
         <p class="cz-note">
           <template v-if="intro === 'sides'">
             {{ t.settings.elements.introSides.before }}
-            <span class="cz-glyph" aria-hidden="true">⠿</span>
+            <Icon name="grip" class="cz-glyph" />
+            {{ t.settings.elements.introSides.use }}
+            <Icon name="step-up" class="cz-glyph" /><Icon name="step-down" class="cz-glyph" />
             {{ t.settings.elements.introSides.middle }}
-            <span class="cz-glyph" aria-hidden="true">← →</span>
+            <Icon name="swap-h" class="cz-glyph" />
             {{ t.settings.elements.introSides.after }}
           </template>
           <template v-else-if="intro === 'sortable'">
             {{ t.settings.elements.intro.before }}
-            <span class="cz-glyph" aria-hidden="true">⠿</span>
+            <Icon name="grip" class="cz-glyph" />
+            {{ t.settings.elements.intro.use }}
+            <Icon name="step-up" class="cz-glyph" /><Icon name="step-down" class="cz-glyph" />
             {{ t.settings.elements.intro.after }}
           </template>
           <template v-else>{{ t.settings.elements.introFixed }}</template>
@@ -118,21 +123,21 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 2px 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--st-border-hi);
 }
 
 .cz-title {
   font-family: var(--ov-font-num);
-  font-size: 15px;
+  font-size: var(--st-t-body);
   font-weight: var(--ov-w-strong);
   letter-spacing: 0.01em;
 }
 
 .cz-note {
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 /* Every accordion at once, at the far end of the heading. */

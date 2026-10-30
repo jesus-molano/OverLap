@@ -245,14 +245,14 @@ const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welc
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
 
 .page-sub {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .ab-version {
@@ -266,6 +266,6 @@ const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welc
 }
 
 .ab-go {
-  gap: 6px;
+  gap: 8px;
 }
 </style>

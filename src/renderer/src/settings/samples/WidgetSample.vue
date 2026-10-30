@@ -109,7 +109,7 @@ const component = WIDGET_COMPONENTS[id]
   overflow: hidden;
   transform-origin: 0 0;
   font-family: var(--ov-font);
-  font-size: 16px;
+  font-size: var(--st-t-title);
   line-height: normal;
   color: var(--ov-fg);
   font-variant-numeric: tabular-nums;

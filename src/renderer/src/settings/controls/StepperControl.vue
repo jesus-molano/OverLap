@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Icon from '../../ui/Icon.vue'
 import { useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useDraft } from '../useDraft'
@@ -56,7 +57,7 @@ function onChange(e: Event): void {
         :disabled="disabled || value <= min"
         @click="step(-1)"
       >
-        −
+        <Icon name="minus" />
       </button>
       <input
         :id="id"
@@ -80,7 +81,7 @@ function onChange(e: Event): void {
         :disabled="disabled || value >= max"
         @click="step(1)"
       >
-        +
+        <Icon name="plus" />
       </button>
     </div>
   </div>

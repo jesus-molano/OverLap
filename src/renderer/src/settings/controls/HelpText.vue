@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Icon from '../../ui/Icon.vue'
 import { shallowRef, useId } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 
@@ -37,8 +38,9 @@ function toggle(e: Event): void {
         :title="t.settings.controls.moreInfo"
         @click="toggle"
       >
-        <span aria-hidden="true">ⓘ</span
-        ><span class="st-sr-only">{{ t.settings.controls.moreInfo }}</span></button
+        <Icon name="info" class="st-more-icon" /><span class="st-sr-only">{{
+          t.settings.controls.moreInfo
+        }}</span></button
       ><span v-show="open" :id="moreId" class="st-more-text">{{ more }}</span></template
     ></component
   >

@@ -244,7 +244,7 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
       :class="[`at-${line.slot ?? 0}`, `is-${line.tone}`]"
       aria-hidden="true"
     >
-      <span class="sc-msg-mark">▲</span>{{ line.text }}
+      <Icon name="arrow-up" class="sc-msg-mark" />{{ line.text }}
     </p>
     <!-- Always in the page (a live region must exist before it speaks): all of it, in words. -->
     <span :id="liveId" class="st-sr-only" aria-live="polite">{{ announcement }}</span>

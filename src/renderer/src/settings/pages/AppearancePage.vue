@@ -411,8 +411,8 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px 20px;
-  margin-bottom: 14px;
+  gap: 8px 24px;
+  margin-bottom: 16px;
 }
 
 .page-titles {
@@ -424,7 +424,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
@@ -432,11 +432,11 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 .page-sub {
   max-width: 46em;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .stage {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .day-note {
@@ -448,7 +448,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 6px 12px;
+  gap: 8px 12px;
 }
 
 .own-bg .st-help {
@@ -456,7 +456,7 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 }
 
 .opt-chip {
-  font-size: 11px;
+  font-size: var(--st-t-caption);
 }
 
 .opt-brand {

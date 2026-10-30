@@ -668,7 +668,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 1px;
   max-width: 240px;
-  padding: 4px 8px 5px;
+  padding: 4px 8px 4px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--st-radius-sm);
   background: rgba(11, 13, 16, 0.92);
@@ -704,7 +704,7 @@ onBeforeUnmount(() => {
 
 .pe-tip-title {
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--st-t-help);
   font-weight: var(--ov-w-strong);
   text-overflow: ellipsis;
 }
@@ -712,7 +712,7 @@ onBeforeUnmount(() => {
 .pe-tip-text {
   overflow: hidden;
   color: var(--ov-fg-muted);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   text-overflow: ellipsis;
 }
 
@@ -723,12 +723,12 @@ onBeforeUnmount(() => {
   bottom: 28px;
   z-index: 2;
   max-width: calc(100% - 32px);
-  padding: 4px 10px;
+  padding: 4px 12px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--st-radius-sm);
   background: rgba(11, 13, 16, 0.92);
   color: var(--ov-fg);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   transform: translateX(-50%);
   pointer-events: none;
 }

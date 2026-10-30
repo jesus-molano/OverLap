@@ -230,7 +230,7 @@ const resetItems = computed<ResetItem[]>(() => [
 <style scoped>
 /* «Más acciones» (R52): the fold's row, a full-width button with its count. */
 .sc-more {
-  padding: 10px 0;
+  padding: 12px 0;
   border-top: 1px solid var(--st-border);
 }
 
@@ -270,7 +270,7 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-more-count {
   margin-left: auto;
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .sc-more-cell > .st-help {
@@ -289,8 +289,8 @@ const resetItems = computed<ResetItem[]>(() => [
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px 20px;
-  margin-bottom: 14px;
+  gap: 8px 24px;
+  margin-bottom: 16px;
 }
 
 .page-titles {
@@ -302,7 +302,7 @@ const resetItems = computed<ResetItem[]>(() => [
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
@@ -310,7 +310,7 @@ const resetItems = computed<ResetItem[]>(() => [
 .page-sub {
   max-width: 46em;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 /* A table, not running text: wider than the other pages (cells of about 200 px). */
@@ -321,12 +321,12 @@ const resetItems = computed<ResetItem[]>(() => [
 /* A neutral note (not a warning): what keys do to iRacing. */
 .sc-exclusive {
   margin-bottom: 12px;
-  padding: 9px 12px;
+  padding: 8px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
   line-height: 1.45;
 }
 
@@ -336,7 +336,7 @@ const resetItems = computed<ResetItem[]>(() => [
 
 .sc-table {
   container: sc / inline-size;
-  padding: 4px 14px 2px;
+  padding: 4px 16px 2px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -348,13 +348,13 @@ const resetItems = computed<ResetItem[]>(() => [
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) 30px;
   gap: 8px;
-  padding: 10px 0 8px;
+  padding: 12px 0 8px;
 }
 
 .sc-h {
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -366,7 +366,7 @@ const resetItems = computed<ResetItem[]>(() => [
 }
 
 .sc-h-primary {
-  font-size: 10px;
+  font-size: var(--st-t-caption);
   font-weight: normal;
   letter-spacing: 0;
   text-transform: none;
@@ -392,40 +392,40 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-cell-fixed {
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px 0 8px;
+  padding: 0 12px 0 8px;
   background: transparent;
 }
 
 .sc-fixed-lock {
   display: inline-flex;
   color: var(--ov-fg-dim);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .sc-legend {
-  margin-top: 10px;
+  margin-top: 12px;
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.8;
 }
 
 /* The confirmation over the game: a switch of its own under the table. */
 .sc-toasts {
   margin-top: 12px;
-  padding: 0 14px;
+  padding: 0 16px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
 }
 
 .sc-notes {
-  margin-top: 14px;
-  padding: 10px 14px;
+  margin-top: 16px;
+  padding: 12px 16px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .sc-notes summary {
@@ -440,7 +440,7 @@ const resetItems = computed<ResetItem[]>(() => [
 .note {
   display: block;
   margin-top: 8px;
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
   line-height: 1.5;
 }
 </style>
@@ -597,7 +597,7 @@ const resetItems = computed<ResetItem[]>(() => [
     top: 50%;
     left: -14px;
     color: var(--ov-fg-dim);
-    font-size: 11px;
+    font-size: var(--st-t-caption);
     transform: translateY(-50%);
   }
 }
@@ -642,7 +642,7 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-table .sc-keys {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* A combination stays on one line in its cell. */
@@ -655,7 +655,7 @@ const resetItems = computed<ResetItem[]>(() => [
   .sc-table .sc-cell .cap {
     min-width: 1.6em;
     padding: 1px 4px;
-    font-size: 11.5px;
+    font-size: var(--st-t-help);
   }
 
   .sc-table .sc-cell .caps {
@@ -663,7 +663,7 @@ const resetItems = computed<ResetItem[]>(() => [
   }
 
   .sc-table .sc-cell-main {
-    padding: 0 6px;
+    padding: 0 8px;
   }
 }
 
@@ -682,7 +682,7 @@ const resetItems = computed<ResetItem[]>(() => [
   border-radius: var(--st-radius-sm);
   background: var(--st-field);
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   opacity: 0;
   transform: translateY(-50%);
   cursor: pointer;
@@ -704,14 +704,14 @@ const resetItems = computed<ResetItem[]>(() => [
   align-items: center;
   gap: 8px;
   min-width: 0;
-  padding-right: 18px;
-  font-size: 12.5px;
+  padding-right: 16px;
+  font-size: var(--st-t-ui);
 }
 
 .sc-table .sc-button-icon {
   flex: none;
   color: var(--ov-fg-muted);
-  font-size: 14px;
+  font-size: var(--st-t-body);
 }
 
 .sc-table .sc-button-name {
@@ -727,7 +727,7 @@ const resetItems = computed<ResetItem[]>(() => [
   min-width: 0;
   overflow: hidden;
   color: var(--ov-fg-muted);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -743,7 +743,7 @@ const resetItems = computed<ResetItem[]>(() => [
 }
 
 .sc-table .sc-warn-icon {
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 /* Not working (unplugged, or held by another application): kept, dimmed, outlined in warning. */
@@ -771,7 +771,7 @@ const resetItems = computed<ResetItem[]>(() => [
 
 .sc-table .sc-prompt {
   color: var(--ov-fg);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
   font-weight: var(--ov-w-strong);
 }
 
@@ -818,9 +818,9 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-table .sc-assign {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 /* Saved: a short flash of the border (none with reduced motion). */
@@ -841,11 +841,11 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-table .sc-used {
   align-self: flex-start;
   margin-top: 2px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: var(--st-radius-sm);
   background: color-mix(in srgb, var(--st-ok) 14%, transparent);
   color: var(--st-ok);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
   font-weight: var(--ov-w-strong);
   animation: sc-used 900ms ease-out 1;
 }
@@ -874,7 +874,7 @@ const resetItems = computed<ResetItem[]>(() => [
   border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-muted);
-  font-size: 14px;
+  font-size: var(--st-t-body);
   cursor: pointer;
 }
 
@@ -892,7 +892,7 @@ const resetItems = computed<ResetItem[]>(() => [
 .sc-table .sc-msg {
   margin-top: -2px;
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.4;
 }
 
@@ -905,7 +905,7 @@ const resetItems = computed<ResetItem[]>(() => [
 }
 
 .sc-table .sc-msg-mark {
-  margin-right: 5px;
-  font-size: 9px;
+  margin-right: 4px;
+  font-size: var(--st-t-caption);
 }
 </style>

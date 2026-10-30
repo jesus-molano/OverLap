@@ -1429,15 +1429,18 @@ export const settingsEs = {
   /** The shared element editor (settings/elements/ElementEditor.vue): its chrome. */
   elements: {
     /** Split around the drag handle glyph. */
+    /** Around the grip and arrow icons (R55: icons, not characters). */
     intro: {
       before: 'Arrastra',
-      after: 'o usa ↑ ↓ para ordenar; el ojo muestra u oculta cada elemento en el widget.'
+      use: 'o usa',
+      after: 'para ordenar; el ojo muestra u oculta cada elemento en el widget.'
     },
     introFixed: 'El ojo muestra u oculta cada elemento en el widget; su orden es fijo.',
     /** An info bar's list, split around the drag handle glyph and the side button's. */
     introSides: {
       before: 'Arrastra',
-      middle: 'o usa ↑ ↓ para ordenar, y',
+      use: 'o usa',
+      middle: 'para ordenar, y',
       after: 'para pasar al otro lado; el ojo muestra u oculta cada elemento.'
     },
     /** An info bar's two ends: what goes at the start of the line, what at its far end. */
@@ -3057,12 +3060,14 @@ export const settingsEn: Dict<typeof settingsEs> = {
   elements: {
     intro: {
       before: 'Drag',
-      after: 'or use ↑ ↓ to reorder; the eye shows or hides each element in the widget.'
+      use: 'or use',
+      after: 'to reorder; the eye shows or hides each element in the widget.'
     },
     introFixed: 'The eye shows or hides each element in the widget; their order is fixed.',
     introSides: {
       before: 'Drag',
-      middle: 'or use ↑ ↓ to reorder, and',
+      use: 'or use',
+      middle: 'to reorder, and',
       after: 'to move to the other side; the eye shows or hides each element.'
     },
     sides: { left: 'Left', right: 'Right' },

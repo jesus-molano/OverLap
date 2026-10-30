@@ -41,13 +41,13 @@ const keys = computed(() => bindingsText(t.value, shortcuts.value.toggleOverlay,
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 14px;
-  padding: 5px 6px 5px 12px;
+  margin-bottom: 16px;
+  padding: 4px 8px 4px 12px;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius);
   background: var(--st-surface);
   color: var(--ov-fg-muted);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   line-height: 1.4;
 }
 

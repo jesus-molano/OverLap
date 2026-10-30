@@ -163,13 +163,13 @@ function revertTyped(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 16px;
+  gap: 12px 16px;
 }
 
 .swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .swatch {
@@ -190,7 +190,7 @@ function revertTyped(): void {
 
 .swatch-text {
   color: var(--ov-fg-muted);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   white-space: nowrap;
 }
 
@@ -286,7 +286,7 @@ function revertTyped(): void {
 .hex {
   width: 6.2em;
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   text-transform: lowercase;
 }
 </style>

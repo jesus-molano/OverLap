@@ -357,14 +357,14 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* A dark pill that reads on either scene. */
 .scene-switch {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 1px 1px 1px 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--st-radius);
@@ -374,7 +374,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 .scene-label {
   color: var(--ov-fg-muted);
   font-family: var(--ov-font-small);
-  font-size: 10.5px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -389,7 +389,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
 .scene-seg .st-seg-text {
   min-height: 18px;
   padding: 1px 8px;
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
 }
 
 .caption {
@@ -398,7 +398,7 @@ const sampleStyle = computed<InlineStyle | undefined>(() =>
   bottom: 6px;
   color: var(--scene-ink);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   letter-spacing: 0.02em;
   text-shadow: var(--scene-ink-shadow);
   pointer-events: none;

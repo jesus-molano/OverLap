@@ -186,8 +186,8 @@ const optionId = (i: number): string => `${listId}-${i}`
 .search .search-field {
   width: 100%;
   min-width: 0;
-  padding-left: 28px;
-  font-size: 13px;
+  padding-left: 32px;
+  font-size: var(--st-t-ui);
 }
 
 .search-panel {
@@ -216,7 +216,7 @@ const optionId = (i: number): string => `${listId}-${i}`
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: var(--st-radius-sm);
   cursor: pointer;
 }
@@ -226,17 +226,17 @@ const optionId = (i: number): string => `${listId}-${i}`
 }
 
 .search-text {
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   font-weight: var(--ov-w-strong);
 }
 
 .search-where,
 .search-note {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .search-note {
-  padding: 6px 10px;
+  padding: 8px 12px;
 }
 </style>

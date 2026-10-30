@@ -37,9 +37,9 @@ const text = computed(() => props.keys.join('+'))
 /* Above the window's kbd (settings.css): a key you read at a glance, not inline text. */
 .cap {
   min-width: 1.9em;
-  padding: 2px 7px;
+  padding: 2px 8px;
   font-family: var(--ov-font-num);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
   line-height: 1.3;
   text-align: center;
 }

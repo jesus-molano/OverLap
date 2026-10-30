@@ -558,12 +558,12 @@ function onLink(car: CarRow, e: Event): void {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
@@ -571,18 +571,18 @@ function onLink(car: CarRow, e: Event): void {
 .page-sub {
   max-width: 46em;
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .link-new {
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .find {
   display: flex;
   flex: 1 1 16em;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -598,7 +598,7 @@ function onLink(car: CarRow, e: Event): void {
 .search {
   width: 100%;
   min-width: 0;
-  padding-right: 28px;
+  padding-right: 32px;
 }
 
 /* Our own clear button instead of the native cross, which Tab cannot reach. */
@@ -633,7 +633,7 @@ function onLink(car: CarRow, e: Event): void {
   flex: none;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px 12px;
   margin-left: auto;
 }
 
@@ -647,7 +647,7 @@ function onLink(car: CarRow, e: Event): void {
 
 /* The pinned one stands apart from the rest: a gap and a stronger, thicker line, then the others. */
 .pinned {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .pinned-body {
@@ -655,7 +655,7 @@ function onLink(car: CarRow, e: Event): void {
 }
 
 .apart-note {
-  padding: 0 0 8px 10px;
+  padding: 0 0 8px 12px;
 }
 
 /*
@@ -665,7 +665,7 @@ function onLink(car: CarRow, e: Event): void {
  */
 .pinned.is-scroll,
 .list-box.is-scroll {
-  margin-right: -13px;
+  margin-right: -12px;
   padding-right: 2px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
@@ -695,7 +695,7 @@ function onLink(car: CarRow, e: Event): void {
 }
 
 .empty {
-  padding: 14px 0 14px 10px;
+  padding: 16px 0 16px 12px;
 }
 
 .save {
@@ -718,7 +718,7 @@ function onLink(car: CarRow, e: Event): void {
 .cars-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -729,12 +729,12 @@ function onLink(car: CarRow, e: Event): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
 .car-name {
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -748,7 +748,7 @@ function onLink(car: CarRow, e: Event): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
+  gap: 8px 12px;
   width: 100%;
 }
 

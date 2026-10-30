@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Icon from '../../ui/Icon.vue'
 import { computed } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -48,7 +49,7 @@ const shown = computed(() => hint.value.value && texts.value !== null && !fold.f
 
 <template>
   <div v-if="shown" class="pe-hint">
-    <span class="pe-hint-icon" aria-hidden="true">{{ kind?.sortable ? '⠿' : '◉' }}</span>
+    <Icon :name="kind?.sortable ? 'grip' : 'eye'" class="pe-hint-icon" />
     <p class="pe-hint-text">
       <span class="pe-hint-main">{{ texts?.main }}</span>
       <span class="pe-hint-more">{{ texts?.more }}</span>
@@ -68,9 +69,9 @@ const shown = computed(() => hint.value.value && texts.value !== null && !fold.f
 .pe-hint {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
-  padding: 5px 6px 5px 10px;
+  padding: 4px 8px 4px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -80,7 +81,7 @@ const shown = computed(() => hint.value.value && texts.value !== null && !fold.f
   display: inline-flex;
   flex: none;
   color: var(--ov-fg-muted);
-  font-size: 14px;
+  font-size: var(--st-t-body);
 }
 
 .pe-hint-text {
@@ -89,7 +90,7 @@ const shown = computed(() => hint.value.value && texts.value !== null && !fold.f
   flex-wrap: wrap;
   gap: 0 8px;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .pe-hint-main {

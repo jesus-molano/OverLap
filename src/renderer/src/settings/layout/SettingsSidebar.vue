@@ -146,10 +146,10 @@ const groups = computed(() =>
   top: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   height: 100vh;
   overflow-y: auto;
-  padding: 18px 12px 14px;
+  padding: 16px 12px 16px;
   border-right: 1px solid var(--st-border);
   background: var(--st-sidebar);
 }
@@ -159,19 +159,19 @@ const groups = computed(() =>
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 .title {
   font-family: var(--ov-font-num);
-  font-size: 18px;
+  font-size: var(--st-t-title);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
   letter-spacing: 0.005em;
 }
 
 .side-search {
-  margin: -6px 0 -4px;
+  margin: -8px 0 -4px;
 }
 
 .nav {
@@ -181,10 +181,10 @@ const groups = computed(() =>
 }
 
 .nav-group {
-  margin: 10px 8px 2px;
+  margin: 12px 8px 2px;
   color: var(--ov-fg-dim);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -210,15 +210,15 @@ const groups = computed(() =>
   display: flex;
   flex: 1 1 auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
   min-height: 32px;
-  padding: 5px 10px;
+  padding: 4px 12px;
   border: 0;
   border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-muted);
-  font-size: 13.5px;
+  font-size: var(--st-t-ui);
   text-align: left;
   cursor: pointer;
 }
@@ -272,7 +272,7 @@ const groups = computed(() =>
   gap: 4px 8px;
   margin: 0;
   color: var(--ov-fg-dim);
-  font-size: 11.5px;
+  font-size: var(--st-t-help);
 }
 
 .keys dd {
@@ -314,7 +314,7 @@ const groups = computed(() =>
 .sidebar.is-rail {
   gap: 8px;
   overflow-x: hidden;
-  padding: 12px 6px;
+  padding: 12px 8px;
   scrollbar-width: thin;
 }
 
@@ -322,7 +322,7 @@ const groups = computed(() =>
   flex: 0 0 auto;
   justify-content: center;
   width: 32px;
-  padding: 5px 0;
+  padding: 4px 0;
 }
 
 .is-rail .nav-li {
@@ -343,7 +343,7 @@ const groups = computed(() =>
   content: '';
   display: block;
   height: 1px;
-  margin: 6px 4px;
+  margin: 8px 4px;
   background: var(--st-border);
 }
 

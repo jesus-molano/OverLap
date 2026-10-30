@@ -16,11 +16,11 @@ const t = useI18n()
 
 <style scoped>
 .foot {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .foot-note {
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 </style>

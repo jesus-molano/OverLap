@@ -686,14 +686,24 @@ function onCancel(e: PointerEvent): void {
         >
           <template v-if="sortable && split !== undefined">
             {{ t.settings.elements.introSides.before }}
-            <span class="ed-grip-inline" aria-hidden="true">⠿</span>
+            <Icon name="grip" class="ed-grip-inline" />
+            {{ t.settings.elements.introSides.use }}
+            <Icon name="step-up" class="ed-grip-inline" /><Icon
+              name="step-down"
+              class="ed-grip-inline"
+            />
             {{ t.settings.elements.introSides.middle }}
-            <span class="ed-grip-inline" aria-hidden="true">← →</span>
+            <Icon name="swap-h" class="ed-grip-inline" />
             {{ t.settings.elements.introSides.after }}
           </template>
           <template v-else-if="sortable">
             {{ t.settings.elements.intro.before }}
-            <span class="ed-grip-inline" aria-hidden="true">⠿</span>
+            <Icon name="grip" class="ed-grip-inline" />
+            {{ t.settings.elements.intro.use }}
+            <Icon name="step-up" class="ed-grip-inline" /><Icon
+              name="step-down"
+              class="ed-grip-inline"
+            />
             {{ t.settings.elements.intro.after }}
           </template>
           <template v-else>{{ t.settings.elements.introFixed }}</template>
@@ -770,7 +780,7 @@ function onCancel(e: PointerEvent): void {
                     @pointerdown="onHandleDown($event, r.entry.id)"
                     @keydown="onHandleKey($event, r.entry.id, r.index)"
                   >
-                    <span aria-hidden="true">⠿</span>
+                    <Icon name="grip" />
                   </button>
                   <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
                   <span
@@ -831,7 +841,7 @@ function onCancel(e: PointerEvent): void {
                       :disabled="dragId !== null"
                       @click="moveAcross(r.entry.id)"
                     >
-                      {{ box.side === 'left' ? '→' : '←' }}
+                      <Icon :name="box.side === 'left' ? 'step-right' : 'step-left'" />
                     </button>
                     <button
                       type="button"
@@ -841,7 +851,7 @@ function onCancel(e: PointerEvent): void {
                       :disabled="!canStep(r.entry.id, r.index, -1) || dragId !== null"
                       @click="move(r.entry.id, -1, 'up')"
                     >
-                      ↑
+                      <Icon name="step-up" />
                     </button>
                     <button
                       type="button"
@@ -851,7 +861,7 @@ function onCancel(e: PointerEvent): void {
                       :disabled="!canStep(r.entry.id, r.index, 1) || dragId !== null"
                       @click="move(r.entry.id, 1, 'down')"
                     >
-                      ↓
+                      <Icon name="step-down" />
                     </button>
                   </span>
                   <!-- Its parts, unfolded: a list of their own under the row (R21). -->
@@ -930,8 +940,9 @@ function onCancel(e: PointerEvent): void {
                   :aria-label="t.settings.elements.addTo(labelOf(r.entry.id), sideName(side))"
                   @click="addTo(r.entry.id, side)"
                 >
-                  {{ side === 'left' ? '←' : '' }} {{ t.settings.elements.hiddenSide[side] }}
-                  {{ side === 'right' ? '→' : '' }}
+                  <Icon v-if="side === 'left'" name="step-left" />
+                  {{ t.settings.elements.hiddenSide[side] }}
+                  <Icon v-if="side === 'right'" name="step-right" />
                 </button>
               </span>
             </li>
@@ -978,7 +989,7 @@ function onCancel(e: PointerEvent): void {
 
 <style scoped>
 .ed {
-  padding: 12px 14px 10px;
+  padding: 12px 16px 12px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -997,7 +1008,7 @@ function onCancel(e: PointerEvent): void {
 .ed-head {
   display: flex;
   flex-direction: column;
-  margin: -6px 0 10px;
+  margin: -8px 0 12px;
   border-bottom: 1px solid var(--st-border);
 }
 
@@ -1006,7 +1017,7 @@ function onCancel(e: PointerEvent): void {
 }
 
 .ed-intro {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .ed-grip-inline {
@@ -1027,7 +1038,7 @@ function onCancel(e: PointerEvent): void {
   padding: 8px 2px 2px;
   color: var(--ov-fg-muted);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -1052,7 +1063,7 @@ function onCancel(e: PointerEvent): void {
 .ed-lists.has-sides {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .has-sides .ed-box {
@@ -1067,14 +1078,14 @@ function onCancel(e: PointerEvent): void {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 2px 10px;
+  gap: 2px 12px;
   margin: 2px 4px 8px;
 }
 
 .ed-side-name {
   color: var(--ov-fg);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -1082,7 +1093,7 @@ function onCancel(e: PointerEvent): void {
 
 .ed-side-help {
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .ed-row {
@@ -1090,7 +1101,7 @@ function onCancel(e: PointerEvent): void {
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  padding: 4px 6px;
+  padding: 4px 8px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
@@ -1109,7 +1120,7 @@ function onCancel(e: PointerEvent): void {
 
 .ed-sub {
   flex: 1 0 100%;
-  padding: 2px 0 4px calc(28px + 1.4em + 16px);
+  padding: 2px 0 4px calc(32px + 1.4em + 16px);
 }
 
 .ed-parts-btn {
@@ -1118,7 +1129,7 @@ function onCancel(e: PointerEvent): void {
 }
 
 .ed-parts-chev {
-  font-size: 11px;
+  font-size: var(--st-t-caption);
 }
 
 .ed-parts-btn[aria-expanded='true'] .ed-parts-chev {
@@ -1143,7 +1154,7 @@ function onCancel(e: PointerEvent): void {
   border-style: dashed;
   background: transparent;
   color: var(--ov-fg-dim);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .ed-row.is-off .ed-name,
@@ -1182,17 +1193,17 @@ function onCancel(e: PointerEvent): void {
 
 /* An info bar's hidden items: a quiet disclosure under the two boxes. */
 .ed-hidden {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .ed-hidden-btn {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 2px 10px;
+  gap: 2px 12px;
   width: 100%;
   min-height: 34px;
-  padding: 6px 8px;
+  padding: 8px 8px;
   border: 1px dashed var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: transparent;
@@ -1215,7 +1226,7 @@ function onCancel(e: PointerEvent): void {
 .ed-hidden-chev {
   display: inline-flex;
   align-self: center;
-  font-size: 12px;
+  font-size: var(--st-t-help);
   transform: rotate(-90deg);
 }
 
@@ -1249,18 +1260,18 @@ function onCancel(e: PointerEvent): void {
 .ed-hidden-name {
   color: var(--ov-fg);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
 }
 
 .ed-hidden-help {
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .ed-hidden-list {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .ed-side-tag {
@@ -1281,7 +1292,7 @@ function onCancel(e: PointerEvent): void {
   border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-muted);
-  font-size: 16px;
+  font-size: var(--st-t-title);
 }
 
 .ed-handle {
@@ -1299,7 +1310,7 @@ function onCancel(e: PointerEvent): void {
 }
 
 .ed-eye.is-locked {
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   color: var(--ov-fg-dim);
   cursor: default;
 }
@@ -1321,7 +1332,7 @@ function onCancel(e: PointerEvent): void {
   width: 1.4em;
   color: var(--ov-fg-muted);
   font-family: var(--ov-font-num);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   font-weight: var(--ov-w-strong);
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -1335,9 +1346,9 @@ function onCancel(e: PointerEvent): void {
 }
 
 .ed-tag {
-  margin-right: 6px;
+  margin-right: 8px;
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-tag);
   text-transform: uppercase;
@@ -1350,7 +1361,7 @@ function onCancel(e: PointerEvent): void {
 
 .ed-hint {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 .ed-extra {
@@ -1377,7 +1388,7 @@ function onCancel(e: PointerEvent): void {
     flex: 1 1 100%;
     order: 1;
     min-width: 0;
-    padding: 0 0 4px 36px;
+    padding: 0 0 4px 40px;
   }
 }
 
@@ -1400,7 +1411,7 @@ function onCancel(e: PointerEvent): void {
 .ed-zone {
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
+  margin-top: 12px;
   border-top: 1px solid var(--st-border);
 }
 

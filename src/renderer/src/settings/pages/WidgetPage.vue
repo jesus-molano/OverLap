@@ -191,8 +191,8 @@ const resetItems = computed<ResetItem[]>(() => {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px 20px;
-  margin-bottom: 14px;
+  gap: 8px 24px;
+  margin-bottom: 16px;
 }
 
 .page-titles {
@@ -204,14 +204,14 @@ const resetItems = computed<ResetItem[]>(() => {
 
 .page-title {
   font-family: var(--ov-font-num);
-  font-size: 22px;
+  font-size: var(--st-t-page);
   font-weight: var(--ov-w-strong);
   line-height: 1.2;
 }
 
 .page-sub {
   color: var(--ov-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--st-t-ui);
 }
 
 .visible-toggle {
@@ -225,7 +225,7 @@ const resetItems = computed<ResetItem[]>(() => {
 }
 
 .visible-toggle :deep(.st-row) {
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 .hidden-note {
@@ -238,18 +238,18 @@ const resetItems = computed<ResetItem[]>(() => {
   border-radius: var(--st-radius);
   background: var(--st-surface);
   color: var(--ov-fg-muted);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
 }
 
 .stage {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 /* One column: the editors after the options, then the reference sections and the window. */
 .has-custom .opts-custom,
 .opts-appendix:not(:empty),
 .opts-window {
-  margin-top: 26px;
+  margin-top: 24px;
 }
 
 /*

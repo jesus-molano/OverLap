@@ -237,6 +237,7 @@ function compileSection(lang: Language): vue.Component {
     './zonesOpen': zonesOpen,
     '@shared/i18n': i18n,
     './ResetIcon.vue': { default: vue.defineComponent({ render: () => null }) },
+    '../../ui/Icon.vue': { default: vue.defineComponent({ render: () => null }) },
     // Outside a widget page (no WIDGET_PAGE provided): no ↺.
     '../undo/restore': { WIDGET_PAGE: Symbol('widget-page'), resetWidget: () => undefined },
     '../../composables/useI18n': { useI18n: () => vue.computed(() => messagesFor(lang)) }

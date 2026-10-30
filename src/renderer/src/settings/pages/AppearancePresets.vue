@@ -86,7 +86,7 @@ function choose(p: AppearancePreset): void {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   background: var(--st-surface);
@@ -126,7 +126,7 @@ function choose(p: AppearancePreset): void {
 
 .card-name {
   color: var(--ov-fg);
-  font-size: 14px;
+  font-size: var(--st-t-body);
   font-weight: var(--ov-w-strong);
 }
 
@@ -136,7 +136,7 @@ function choose(p: AppearancePreset): void {
 
 .card-hint {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.4;
 }
 

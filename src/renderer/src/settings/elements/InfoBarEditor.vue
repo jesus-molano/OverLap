@@ -167,7 +167,7 @@ const summary = computed(() => {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 6px 12px;
+  gap: 8px 12px;
 }
 
 .ib-copy-list {

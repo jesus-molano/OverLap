@@ -329,6 +329,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   de su icono (se sigue viendo y cambiando qué está oculto), una raya entre grupos y el nombre al
   pasar el ratón (y para lectores de pantalla). El buscador, el chip de estado y **Modo edición**
   van en la barra de arriba.
+- **Ajustes más ordenados a la vista**: seis tamaños de letra en vez de catorce (pies y etiquetas,
+  ayudas, controles, texto, títulos de sección y de página), los espacios en una escala de 4 px
+  (4, 8, 12, 16, 24 y 32) y todos los símbolos como iconos del mismo juego: las flechas para
+  ordenar, el asa de arrastre, el ⓘ de las ayudas, los − y + de los contadores, la × del aviso de
+  deshacer y la marca de los avisos de Atajos, con el mismo grosor y color que los demás iconos.
+  Los Ajustes siguen solo en tema oscuro.
 
 ### Corregido
 

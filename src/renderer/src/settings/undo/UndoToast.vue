@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Icon from '../../ui/Icon.vue'
 /**
  * The settings window's "Deshacer" toast (undo.ts): «SoF» oculto · Deshacer, at the foot of the
  * page for a few seconds after an element is hidden (a click in the live sample, its eye in the
@@ -154,7 +155,7 @@ watch(
           :title="t.settings.elements.undo.dismiss"
           @click="close"
         >
-          <span aria-hidden="true">×</span>
+          <Icon name="close" />
         </button>
         <span class="undo-bar" aria-hidden="true" />
       </div>
@@ -180,10 +181,10 @@ watch(
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   max-width: 100%;
   min-height: 44px;
-  padding: 6px 6px 6px 14px;
+  padding: 8px 8px 8px 16px;
   overflow: hidden;
   border: 1px solid var(--st-border-strong);
   border-radius: var(--st-radius);
@@ -194,7 +195,7 @@ watch(
     0 0 0 1px rgba(0, 0, 0, 0.55),
     0 3px 0 rgba(0, 0, 0, 0.45);
   color: var(--ov-fg);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   pointer-events: auto;
 }
 
@@ -214,13 +215,13 @@ watch(
   padding: 0 4px;
   border-bottom-width: 1px;
   color: var(--ov-fg-muted);
-  font-size: 10px;
+  font-size: var(--st-t-caption);
   font-weight: normal;
 }
 
 .undo-close {
   flex: none;
-  font-size: 17px;
+  font-size: var(--st-t-title);
   line-height: 1;
 }
 

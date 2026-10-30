@@ -46,10 +46,21 @@ html.ov-settings {
   --st-radius: 8px;
   --st-radius-sm: 5px;
   /* Page column: side padding and the widest it gets (wider in a wide window, below). */
-  --st-page-pad: 28px;
+  --st-page-pad: 24px;
   --st-page-max: 780px;
   /* Between two option columns (wide window). */
   --st-col-gap: 32px;
+  /*
+   * Type (R55): six sizes, every text of this window on one of them (ui/styleBudget.test.ts
+   * checks it): captions and tags, help lines, controls, body text, section and dialog titles,
+   * page titles. Spacing runs on 4 px: 4, 8, 12, 16, 24, 32 (1 to 3 px only for hairlines).
+   */
+  --st-t-caption: 11px;
+  --st-t-help: 12px;
+  --st-t-ui: 13px;
+  --st-t-body: 14px;
+  --st-t-title: 17px;
+  --st-t-page: 22px;
 
   /* The document keeps theme.css's full height and never scrolls: each page's options do. */
   color-scheme: dark;
@@ -64,7 +75,7 @@ html.ov-settings #app {
 }
 
 html.ov-settings body {
-  font-size: 14px;
+  font-size: var(--st-t-body);
   line-height: 1.45;
 }
 
@@ -127,7 +138,7 @@ html.ov-settings .st-band > * {
 html.ov-settings .st-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  padding-bottom: 20px;
+  padding-bottom: 24px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -207,7 +218,7 @@ html.ov-settings .st-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   min-height: 32px;
   padding: 4px 12px;
   border: 1px solid var(--st-border-hi);
@@ -215,7 +226,7 @@ html.ov-settings .st-btn {
   background: var(--st-surface-hi);
   box-shadow: var(--st-lit);
   color: var(--ov-fg);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   line-height: 1.2;
   cursor: pointer;
 }
@@ -237,8 +248,8 @@ html.ov-settings .st-btn[aria-disabled='true'] {
 
 html.ov-settings .st-btn-sm {
   min-height: 26px;
-  padding: 2px 10px;
-  font-size: 12px;
+  padding: 2px 12px;
+  font-size: var(--st-t-help);
 }
 
 html.ov-settings .st-btn-icon {
@@ -275,7 +286,7 @@ html.ov-settings .st-btn-danger:hover:not(:disabled, [aria-disabled='true']) {
 html.ov-settings .st-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* Selected preset: raised, like a chosen segment (after the hover rule, which it overrides). */
@@ -294,7 +305,7 @@ html.ov-settings .st-section {
 }
 
 html.ov-settings .st-section + .st-section {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 html.ov-settings .st-section-head {
@@ -308,7 +319,7 @@ html.ov-settings .st-section-head {
 html.ov-settings .st-section-title {
   color: var(--ov-fg-muted);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   letter-spacing: var(--ov-track-caps);
   text-transform: uppercase;
@@ -316,7 +327,7 @@ html.ov-settings .st-section-title {
 
 html.ov-settings .st-section-note {
   color: var(--ov-fg-dim);
-  font-size: 12px;
+  font-size: var(--st-t-help);
 }
 
 /* «Igualar con…» (R10): what it does, and the button at the end of the line. */
@@ -340,7 +351,7 @@ html.ov-settings .st-reset-icon {
   border-radius: var(--st-radius-sm);
   background: transparent;
   color: var(--ov-fg-dim);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   cursor: pointer;
 }
 
@@ -357,7 +368,7 @@ html.ov-settings .st-reset-icon:disabled {
 /* In a section's head, beside its title. */
 html.ov-settings .st-section-head .st-reset-icon {
   align-self: center;
-  margin: -6px 0 -6px auto;
+  margin: -8px 0 -8px auto;
 }
 
 html.ov-settings .st-card {
@@ -376,7 +387,7 @@ html.ov-settings .st-row {
   justify-content: space-between;
   gap: 8px 16px;
   min-width: 0;
-  padding: 11px 0;
+  padding: 12px 0;
 }
 
 /* :not() raises the specificity above .st-fieldset's border reset. */
@@ -426,7 +437,7 @@ html.ov-settings .st-label {
 
 html.ov-settings .st-help {
   color: var(--ov-fg-muted);
-  font-size: 12px;
+  font-size: var(--st-t-help);
   line-height: 1.4;
 }
 
@@ -508,7 +519,7 @@ html.ov-settings .st-range::-webkit-slider-thumb {
   appearance: none;
   width: 14px;
   height: 14px;
-  margin-top: -5px;
+  margin-top: -4px;
   border-radius: 50%;
   background: var(--st-sel);
   box-shadow: 0 0 0 3px var(--st-surface);
@@ -563,12 +574,12 @@ html.ov-settings .st-seg-input:disabled {
 html.ov-settings .st-seg-text {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 26px;
-  padding: 3px 11px;
+  padding: 3px 12px;
   border-radius: var(--st-radius-sm);
   color: var(--ov-fg-muted);
-  font-size: 13px;
+  font-size: var(--st-t-ui);
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -696,7 +707,7 @@ html.ov-settings .st-fieldset {
   display: block;
   min-width: 0;
   margin: 0;
-  padding: 11px 0;
+  padding: 12px 0;
   border: 0;
 }
 
@@ -711,7 +722,7 @@ html.ov-settings .st-checks {
   clear: both;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 22px;
+  gap: 8px 24px;
 }
 
 /* ---- Stepper and text fields -------------------------------------------- */
@@ -726,14 +737,14 @@ html.ov-settings .st-stepper {
 html.ov-settings .st-step {
   width: 32px;
   padding: 0;
-  font-size: 16px;
+  font-size: var(--st-t-title);
   line-height: 1;
 }
 
 html.ov-settings .st-number,
 html.ov-settings .st-field {
   height: 32px;
-  padding: 0 6px;
+  padding: 0 8px;
   border: 1px solid var(--st-border-hi);
   border-radius: var(--st-radius-sm);
   background: var(--st-field);
@@ -773,7 +784,7 @@ html.ov-settings .st-field[type='search']::-webkit-search-cancel-button {
   appearance: none;
   width: 12px;
   height: 12px;
-  margin-left: 6px;
+  margin-left: 8px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' fill='none' stroke='%23aeb7c4' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")
     center / 12px 12px no-repeat;
   cursor: pointer;
@@ -782,7 +793,7 @@ html.ov-settings .st-field[type='search']::-webkit-search-cancel-button {
 /* Drop-downs: a drawn chevron instead of the native arrow. */
 html.ov-settings select.st-field {
   appearance: none;
-  padding-right: 26px;
+  padding-right: 24px;
   background: var(--st-field)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23aeb7c4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     right 8px center / 12px 12px no-repeat;
@@ -797,14 +808,14 @@ html.ov-settings select.st-field option {
 /* ---- Keys --------------------------------------------------------------- */
 
 html.ov-settings kbd {
-  padding: 0 5px;
+  padding: 0 4px;
   border: 1px solid var(--st-border-hi);
   border-bottom-width: 2px;
   border-radius: 4px;
   background: var(--st-surface);
   color: var(--ov-fg);
   font-family: var(--ov-font-small);
-  font-size: 11px;
+  font-size: var(--st-t-caption);
   font-weight: var(--ov-w-strong);
   white-space: nowrap;
 }
