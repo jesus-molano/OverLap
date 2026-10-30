@@ -55,9 +55,12 @@ const autoHeight = useAutoHeight(ID)
 const { surfaceStyle, halo } = useWidgetSurface(ID)
 const t = useI18n()
 
-/** The drawing options, one object while they are equal: a drag re-renders nothing. */
+/**
+ * The drawing options, one object while they are equal: a drag re-renders nothing. With the auto
+ * height off the tyres line waits for a reading (the window is sized for the lines it has).
+ */
 const viewOptions = computed<FuelViewOptions>((prev) =>
-  reuseView(prev, fuelViewOptions(options.value))
+  reuseView(prev, fuelViewOptions(options.value, autoHeight.value))
 )
 
 // Payloads come only when something shown changes (SKIP_EMIT), so there is no freshness timer: a
@@ -206,14 +209,15 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       >
         <span class="fu-big" :class="`ov-tone-${view.hero.tone}`">
           <span class="ov-t-hero">{{ view.hero.laps }}</span>
-          <span class="fu-unit-hero ov-unit">{{ view.hero.lapsUnit }}</span>
+          <span class="fu-unit-hero ov-unit">&nbsp;{{ view.hero.lapsUnit }}</span>
         </span>
         <span class="fu-num fu-litres"
           >{{ view.hero.fuel }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
         >
         <span v-if="view.hero.note" class="fu-note">{{ view.hero.note }}</span>
-        <span v-if="view.hero.left" class="fu-flagged fu-hero__left" :title="view.hero.left.label">
-          <Icon name="chequered" :label="view.hero.left.label" class="fu-ico" />
+        <span v-if="view.hero.left" class="fu-flagged fu-hero__left">
+          <Icon name="chequered" class="fu-ico" />
+          <span class="fu-label fu-flag-label">{{ view.hero.left.label }}</span>
           <span class="fu-num"
             >{{ view.hero.left.value
             }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.left.unit }}</span></span
@@ -329,8 +333,9 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
             }}<span class="fu-unit ov-unit">&nbsp;{{ LITRES }}</span></span
           >
         </span>
-        <span class="fu-flagged fu-end" :title="view.finish.need.label">
-          <Icon name="chequered" :label="view.finish.need.label" class="fu-ico" />
+        <!-- Its caption in words (PARA META): no flag here, it would be the third in a few rows. -->
+        <span class="fu-flagged fu-end">
+          <span class="fu-label">{{ view.finish.need.label }}</span>
           <span class="fu-num fu-num--small"
             >{{ view.finish.need.value
             }}<span class="fu-unit ov-unit">&nbsp;{{ view.finish.need.unit }}</span></span
@@ -366,16 +371,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           :class="`ov-tone-${view.window.tone}`"
           >{{ view.window.value }}</span
         >
-        <span
-          v-if="view.window.stops > 0"
-          class="fu-stops"
-          :title="view.window.stopsText"
-          :aria-label="view.window.stopsText"
-        >
-          <Icon name="pit" class="fu-ico" />
-          <span class="fu-num fu-num--small">{{ view.window.stops }}</span>
-        </span>
-        <span v-else class="fu-text fu-stops" :class="`ov-tone-${view.window.stopsTone}`">{{
+        <!-- In words, '1 parada': a pit sign and a count read as a position (P1). -->
+        <span class="fu-text fu-stops" :class="`ov-tone-${view.window.stopsTone}`">{{
           view.window.stopsText
         }}</span>
         <PreviewTag v-if="tagLine === 'window'" class="fu-tag" />
@@ -413,7 +410,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         class="fu-tyres"
         :class="{ 'is-dim': !view.tyres.measured }"
       >
-        <span class="fu-car">
+        <!-- One name for the car and its figures ('Neumáticos: DI 78 %, …'): an image's label. -->
+        <span class="fu-car" role="img" :aria-label="view.tyres.a11y">
           <span class="fu-car__num fu-car__num--l fu-num">{{ view.tyres.tyres[0].value }}</span>
           <svg class="fu-car__svg" :viewBox="CAR_VIEWBOX" aria-hidden="true">
             <path class="fu-car__axle" :d="CAR_AXLES" />
@@ -437,6 +435,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
         <span class="fu-tyres__meta">
           <span class="fu-label">{{ view.tyres.label }}</span>
           <span class="fu-note fu-tyres__when">{{ view.tyres.note }}</span>
+          <span class="fu-note fu-tyres__short">{{ view.tyres.shortNote }}</span>
           <span v-if="view.tyres.sets" class="fu-tyres__sets" :title="view.tyres.sets.label">
             <span class="fu-num fu-num--small">{{ view.tyres.sets.value }}</span>
             <span class="fu-unit ov-unit">{{ view.tyres.sets.unit }}</span>
@@ -537,8 +536,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   align-items: baseline;
 }
 
+/* The space before it is a no-break one in the text, as every unit's ('17.6 laps'). */
 .fu-unit-hero {
-  margin-left: 0.15em;
   font-size: max(var(--ov-min-text), calc(var(--ov-t-hero) * var(--ov-t-unit-hero)));
 }
 
@@ -615,7 +614,7 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   color: var(--ov-fg-muted);
 }
 
-/* A figure after a sign (the chequered flag: to the flag; the pit sign: stops). */
+/* A figure after its caption (PARA META), or the flag and its caption (QUEDAN); stops in words. */
 .fu-flagged,
 .fu-stops {
   display: flex;
@@ -816,7 +815,8 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 }
 
 .fu-menu__bar {
-  flex: 0 0 3.2em;
+  flex: 0 1 3.2em;
+  min-width: 1.6em;
 }
 
 /* ---- The race: past, window, you, the flag ------------------------------------------- */
@@ -981,41 +981,42 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   fill: var(--ov-well);
 }
 
-/* Green when new, yellow by the middle (78 %), orange and then red when spent. */
+/* Green when new, yellow by the middle (78 %), orange and then red when spent; blue to orange
+ * through grey in the colour-blind palette (theme.css --ov-wear-N). */
 .fu-w8 {
-  fill: var(--ov-good);
+  fill: var(--ov-wear-8);
 }
 
 .fu-w7 {
-  fill: color-mix(in oklab, var(--ov-good) 80%, var(--ov-flag-yellow));
+  fill: var(--ov-wear-7);
 }
 
 .fu-w6 {
-  fill: color-mix(in oklab, var(--ov-good) 60%, var(--ov-flag-yellow));
+  fill: var(--ov-wear-6);
 }
 
 .fu-w5 {
-  fill: color-mix(in oklab, var(--ov-good) 35%, var(--ov-flag-yellow));
+  fill: var(--ov-wear-5);
 }
 
 .fu-w4 {
-  fill: var(--ov-flag-yellow);
+  fill: var(--ov-wear-4);
 }
 
 .fu-w3 {
-  fill: color-mix(in oklab, var(--ov-flag-yellow) 50%, var(--ov-warn));
+  fill: var(--ov-wear-3);
 }
 
 .fu-w2 {
-  fill: var(--ov-warn);
+  fill: var(--ov-wear-2);
 }
 
 .fu-w1 {
-  fill: color-mix(in oklab, var(--ov-warn) 50%, var(--ov-bad));
+  fill: var(--ov-wear-1);
 }
 
 .fu-w0 {
-  fill: var(--ov-bad);
+  fill: var(--ov-wear-0);
 }
 
 .fu-tyres__meta {
@@ -1030,6 +1031,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .fu-tyres__when {
   max-width: 100%;
+}
+
+/* The note in a word or two, for when the sentence has no room ('V13', 'sin lectura'). */
+.fu-tyres__short {
+  display: none;
 }
 
 .fu-tyres__sets {
@@ -1085,8 +1091,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
   .fu-hero__left,
   .fu-menu,
   .fu-pips,
+  .fu-flag-label,
   .fu-tyres__when {
     display: none;
+  }
+
+  /* The dim car still says why: 'sin lectura'. */
+  .fu-tyres__short {
+    display: block;
   }
 }
 </style>

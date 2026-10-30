@@ -17,6 +17,7 @@ export const PREVIEW_FUEL: FuelData = Object.freeze({
   lapsOfFuel: 17.6,
   avgL: 2.96,
   lastL: 3.02,
+  lastClean: true,
   maxL: 3.1,
   samples: 5,
   recentL: Object.freeze([2.93, 3.1, 2.88, 2.87, 3.02]),

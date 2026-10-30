@@ -281,6 +281,7 @@ const FUEL: FuelData = {
   lapsOfFuel: null,
   avgL: null,
   lastL: null,
+  lastClean: false,
   maxL: null,
   samples: 0,
   recentL: [],

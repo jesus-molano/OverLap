@@ -406,6 +406,10 @@ export const widgetsEs = {
     readingAt: (lap: number) => `última parada · V${lap}`,
     /** No stop measured them yet (iRacing reads the tread in the pit stall only). */
     noReading: 'sin lectura · se miden en boxes',
+    /** The same where the words give way (a narrow widget). */
+    noReadingShort: 'sin lectura',
+    /** A tyre and its most worn band, for screen readers ('DI 78 %'). */
+    tyreAt: (name: string, pct: string) => `${name} ${pct}${NB}%`,
     /** After the dry sets left ('2 juegos'). */
     setOne: 'juego',
     setMany: 'juegos',
@@ -718,6 +722,8 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     cut: (pct) => `−${pct}%`,
     readingAt: (lap) => `last stop · L${lap}`,
     noReading: 'no reading · measured in the pits',
+    noReadingShort: 'no reading',
+    tyreAt: (name, pct) => `${name} ${pct}%`,
     setOne: 'set',
     setMany: 'sets',
     corners: ['FL', 'FR', 'RL', 'RR']

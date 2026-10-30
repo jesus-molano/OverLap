@@ -2,19 +2,21 @@
  * FuelData to what the fuel widget ('Combustible') draws: a hero line and up to seven lines,
  * each one figure and one small graphic rather than a row of words. Pure.
  *
- *   17.6 v  52.0 L                                   [flag] 18.7 v
+ *   17.6 v  52.0 L                            [flag] QUEDAN 18.7 v
  *   [=========|=========|====////|------]   the tank in laps of fuel; the flag mark: what you need
  *   CONSUMO 2.96 L/v  ~~~~~~~~~~~~~~~~~~·   the laps behind the average: avg, max and last marked
- *   REPOSTAR +4.9 L  MENÚ [====|=====] 20          [flag] 56.8 L
- *   VENTANA  [---====V====---------[flag]]   V17–V33   [P] 1
+ *   REPOSTAR +4.9 L  MENÚ [====|=====] 20 L         PARA META 56.8 L
+ *   VENTANA  [---====V====---------[flag]]   V17–V33   1 parada
  *   AHORRO   2.70 L/v  [=======|//]  −9 %               sin parar
  *    78 [▮▮] [▮▮] 74        NEUMÁTICOS
  *    86 [▮▮] [▮▮] 82        última parada · V13   2 juegos
  *   REP. RÁPIDAS 1 ■
  *
  * The fuel and the laps it lasts are always drawn; every other line is an option and goes when
- * it has nothing to say (no stop: no saving; no session limits), except the tyres, drawn dim
- * until a stop measures them so the panel does not jump when one does. Geometry is worked out
+ * it has nothing to say (no stop: no saving; no session limits), except the tyres: with the auto
+ * height on they are drawn dim until a stop measures them, so the panel does not jump when one
+ * does; with it off (a window of its own size) the line waits for the reading, as it always did,
+ * rather than push the other lines out of a window sized for them. Geometry is worked out
  * here (fractions of a track, a sparkline in a 100 x 20 box, a wear level per band), so the
  * component only binds it. Litres always (the unit is not translated); words come from `m`.
  */
@@ -66,7 +68,7 @@ export interface HeroView {
   readonly tone: Tone
   /** 'midiendo…' while no clean lap is measured and the consumption line is off, else ''. */
   readonly note: string
-  /** The laps still to drive, after a chequered flag (its label is the flag's name), or null. */
+  /** The laps still to drive, after a chequered flag and its caption ('QUEDAN'), or null. */
   readonly left: ReadingView | null
 }
 
@@ -121,7 +123,7 @@ export interface BoxView {
 }
 
 export interface FinishView {
-  /** The fuel to the flag (after a flag; the label is its name). */
+  /** The fuel to the flag, after its caption ('PARA META'). */
   readonly need: ReadingView
   /** 'REPOSTAR +15.7 L', 'REPOSTAR LLENO', 'SOBRAN 2.3 L' or, on the last lap, 'FALTAN 0.4 L'. */
   readonly add: ReadingView
@@ -142,9 +144,9 @@ export interface WindowView extends ReadingView {
   /** bad: it closes on this lap; good: it is open; neutral: not yet, or no stop. */
   readonly tone: Tone
   readonly track: TrackView
-  /** Stops still needed: drawn as a pit sign and a count; 0 says `stopsText`. */
+  /** Stops still needed. */
   readonly stops: number
-  /** '1 parada', 'sin parar' (the pit sign's name, or the words when there is none). */
+  /** What is drawn: '1 parada', 'sin parar' (in words: a pit sign and a count reads as P1). */
   readonly stopsText: string
   readonly stopsTone: Tone
 }
@@ -172,7 +174,7 @@ export type WearLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 const WEAR_STEPS = [96, 92, 88, 84, 78, 70, 60, 50] as const
 
 export interface TyreView {
-  /** 'DI': its name, for the accessible label. */
+  /** 'DI': its name (in the line's accessible label). */
   readonly name: string
   /** The most worn band, whole % ('78'), '—' without a reading. */
   readonly value: string
@@ -184,7 +186,11 @@ export interface TyresView {
   readonly label: string
   /** 'última parada · V13', or that nothing was measured yet. */
   readonly note: string
+  /** The note once the words give way (narrow): 'V13', or 'sin lectura'. */
+  readonly shortNote: string
   readonly measured: boolean
+  /** Every tyre named with its figure ('Neumáticos: DI 78 %, DD 74 %, …'), for screen readers. */
+  readonly a11y: string
   /** Front left, front right, rear left, rear right. */
   readonly tyres: readonly [TyreView, TyreView, TyreView, TyreView]
   /** Dry sets left when the session limits them ('2 juegos'), else null. */
@@ -198,7 +204,7 @@ export interface CountView extends ReadingView {
 
 export interface LimitsView {
   readonly repairs: CountView | null
-  /** Null when the tyres line is drawn: the sets are said there. */
+  /** Null when the tyres line is drawn (shown, and measured or drawn dim): the sets are there. */
   readonly sets: CountView | null
 }
 
@@ -228,10 +234,21 @@ export interface FuelViewOptions {
   readonly showSave: boolean
   readonly showTyres: boolean
   readonly showLimits: boolean
+  /**
+   * The tyres line is drawn dim before a reading: the window follows the panel's height
+   * (fuel.autoHeight). Otherwise the line waits for a reading, as before the redesign.
+   */
+  readonly tyresBeforeReading: boolean
 }
 
-/** The view's options from the widget's (its lines list and the box flag). */
-export function fuelViewOptions(o: Pick<FuelOptions, 'lines' | 'showBox'>): FuelViewOptions {
+/**
+ * The view's options from the widget's (its lines list and the box flag) and whether its window
+ * follows its height (the widget's autoHeight).
+ */
+export function fuelViewOptions(
+  o: Pick<FuelOptions, 'lines' | 'showBox'>,
+  autoHeight = true
+): FuelViewOptions {
   const shown = (id: FuelLineId): boolean => isElementVisible(o.lines, id)
   return {
     order: elementOrder(o.lines),
@@ -242,7 +259,8 @@ export function fuelViewOptions(o: Pick<FuelOptions, 'lines' | 'showBox'>): Fuel
     showWindow: shown('window'),
     showSave: shown('save'),
     showTyres: shown('tyres'),
-    showLimits: shown('limits')
+    showLimits: shown('limits'),
+    tyresBeforeReading: autoHeight
   }
 }
 
@@ -297,11 +315,13 @@ function steps(avgL: number | null, tank: number): Pick<GaugeView, 'lapStep' | '
 export function sparkOf(
   recent: readonly number[],
   lastL: number | null,
-  avgL: number
+  avgL: number,
+  lastClean: boolean
 ): SparkView | null {
   const clean = recent.filter(finite)
   const newest = clean[clean.length - 1]
-  const lastApart = lastL !== null && finite(lastL) && newest !== lastL
+  // Which lap it was, not its litres: a caution lap can burn just what the newest clean one did.
+  const lastApart = lastL !== null && finite(lastL) && !(lastClean && newest !== undefined)
   const all = lastApart ? [...clean, lastL] : clean
   if (all.length < 2) return null
   let lo = Math.min(avgL, ...all)
@@ -424,7 +444,7 @@ function perLapView(d: FuelData, m: Messages): PerLapView {
     unit: f.perLap,
     note: d.carried ? f.carried : '',
     measuring: false,
-    spark: sparkOf(d.recentL, d.lastL, d.avgL)
+    spark: sparkOf(d.recentL, d.lastL, d.avgL, d.lastClean)
   }
 }
 
@@ -446,10 +466,15 @@ function saveView(d: FuelData, finish: FuelFinish, m: Messages): SaveView | null
 
 const NO_BANDS = [null, null, null] as const
 
+/** The payload carries the four tyres' tread. */
+function measured(t: FuelData['tyres']): t is NonNullable<FuelData['tyres']> {
+  return t !== null && Array.isArray(t.wearPct) && t.wearPct.length === 4
+}
+
 function tyresView(d: FuelData, m: Messages, sets: ReadingView | null): TyresView {
   const f = m.widgets.fuel
   const t = d.tyres
-  const ok = t !== null && Array.isArray(t.wearPct) && t.wearPct.length === 4
+  const ok = measured(t)
   const tyres = [0, 1, 2, 3].map((i): TyreView => {
     const name = f.corners[i] ?? ''
     const v = ok ? t.wearPct[i] : undefined
@@ -464,7 +489,9 @@ function tyresView(d: FuelData, m: Messages, sets: ReadingView | null): TyresVie
   return {
     label: f.tyres,
     note: ok ? f.readingAt(t.lap) : f.noReading,
+    shortNote: ok ? f.window1(t.lap) : f.noReadingShort,
     measured: ok,
+    a11y: `${f.tyres}: ${ok ? tyres.map((y) => f.tyreAt(y.name, y.value)).join(', ') : f.noReading}`,
     tyres,
     sets
   }
@@ -498,7 +525,8 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
     gauge = { fill, need, short: need !== null && need > fill, tone, ...steps(d.avgL, tank) }
   }
   // The sets are the tyres' when that line is drawn (one place for each figure).
-  const setsCount = o.showTyres ? null : d.tyreSets
+  const tyresDrawn = o.showTyres && (o.tyresBeforeReading || measured(d.tyres))
+  const setsCount = tyresDrawn ? null : d.tyreSets
   const limits = o.showLimits
     ? {
         repairs: countOf(f.repairs, d.fastRepairs),
@@ -512,7 +540,7 @@ export function fuelView(d: FuelData, o: FuelViewOptions, m: Messages): FuelView
     finish: o.showFinish && finish !== null ? finishView(d, finish, o, m) : null,
     window: o.showWindow && finish !== null ? windowView(finish, m) : null,
     save: o.showSave && finish !== null ? saveView(d, finish, m) : null,
-    tyres: o.showTyres
+    tyres: tyresDrawn
       ? tyresView(
           d,
           m,

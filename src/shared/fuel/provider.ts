@@ -139,6 +139,7 @@ export function computeFuel(
     lapsOfFuel: fuelL !== null && cons.avgL !== null ? round1(fuelL / cons.avgL) : null,
     avgL: cons.avgL === null ? null : round2(cons.avgL),
     lastL: last === null ? null : round2(last),
+    lastClean: last !== null && tracker.lastLapClean,
     maxL: cons.maxL === null ? null : round2(cons.maxL),
     samples: cons.samples,
     recentL: cons.laps.map(round2).reverse(),
@@ -189,6 +190,7 @@ export function fuelEqual(a: FuelData, b: FuelData): boolean {
     a.lapsOfFuel === b.lapsOfFuel &&
     a.avgL === b.avgL &&
     a.lastL === b.lastL &&
+    a.lastClean === b.lastClean &&
     a.maxL === b.maxL &&
     a.samples === b.samples &&
     arrayEqual(a.recentL, b.recentL) &&

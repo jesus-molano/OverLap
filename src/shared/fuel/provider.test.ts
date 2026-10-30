@@ -15,6 +15,7 @@ function tracker(
   o: {
     carried?: boolean
     last?: number | null
+    lastClean?: boolean
     tyres?: TyreReading | null
     start?: LapStart | null
   } = {}
@@ -23,6 +24,7 @@ function tracker(
   return {
     samples,
     lastLapL: o.last ?? null,
+    lastLapClean: o.lastClean ?? false,
     tyres: o.tyres ?? null,
     lapStart: o.start ?? null
   } as unknown as FuelTracker
@@ -80,6 +82,32 @@ describe('computeFuel', () => {
     expect(fuelEqual(d, { ...d, recentL: [2.9, 3.05] })).toBe(false)
     const none = computeFuel(frame(), session, race(10.5, 15), tracker([]), OPTS)
     expect(none.recentL).toEqual([])
+  })
+
+  it('says whether the last lap was the newest clean one, not just as many litres', () => {
+    const laps = [3.04, 2.9]
+    const clean = computeFuel(
+      frame(),
+      session,
+      race(10.5, 15),
+      tracker(laps, { last: 3.04, lastClean: true }),
+      OPTS
+    )
+    const caution = computeFuel(
+      frame(),
+      session,
+      race(10.5, 15),
+      tracker(laps, { last: 3.04 }),
+      OPTS
+    )
+    expect(clean.lastClean).toBe(true)
+    expect(caution.lastClean).toBe(false)
+    expect(fuelEqual(clean, caution)).toBe(false)
+    // No last lap: never clean.
+    expect(
+      computeFuel(frame(), session, race(10.5, 15), tracker(laps, { lastClean: true }), OPTS)
+        .lastClean
+    ).toBe(false)
   })
 
   it('plans to the flag from the measured average', () => {
