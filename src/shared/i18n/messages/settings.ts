@@ -40,6 +40,37 @@ export const settingsEs = {
     footNote: 'Los cambios se aplican al momento y se guardan solos.',
     openFolder: 'Abrir carpeta de ajustes'
   },
+  /** The welcome of a first run (R07). */
+  welcome: {
+    step: (n: number, of: number) => `Paso ${n} de ${of}`,
+    start: {
+      title: 'Bienvenido a OverLap',
+      text: 'Widgets sobre iRacing: relativo, posiciones, delta, combustible y más. Primero, tu idioma y tus unidades.'
+    },
+    widgets: {
+      title: 'Elige tus widgets',
+      text: 'Empieza con estos; los demás se activan con un clic en la barra lateral o en la bandeja.',
+      none: 'Sin ninguno no verás nada sobre el juego: elige al menos uno.'
+    },
+    where: {
+      title: 'Dónde está todo',
+      tray: 'OverLap vive en la bandeja de Windows, junto al reloj (o bajo ^): su icono abre estos Ajustes, los widgets, las disposiciones y el modo edición.',
+      car: 'Los widgets salen solos al subirte al coche en iRacing; fuera de él se ocultan.',
+      try: 'Probar con datos de ejemplo',
+      tryHelp: 'Muestra los widgets en tu pantalla, en el modo edición: arrástralos a su sitio.',
+      trying: 'Mueve los widgets a su sitio; Esc o «Salir» arriba terminan el modo edición.'
+    },
+    /** The shortcuts that matter on day one. */
+    keys: {
+      edit: 'mover los widgets (modo edición)',
+      overlay: 'mostrar u ocultar el overlay',
+      settings: 'abrir estos Ajustes'
+    },
+    skip: 'Saltar',
+    back: 'Atrás',
+    next: 'Siguiente',
+    done: 'Empezar'
+  },
   /** «Buscar ajuste» (R33): the search at the top of the sidebar. */
   search: {
     placeholder: 'Buscar ajuste',
@@ -1705,6 +1736,35 @@ export const settingsEn: Dict<typeof settingsEs> = {
     loading: 'Loading settings…',
     footNote: 'Changes apply instantly and are saved automatically.',
     openFolder: 'Open settings folder'
+  },
+  welcome: {
+    step: (n, of) => `Step ${n} of ${of}`,
+    start: {
+      title: 'Welcome to OverLap',
+      text: 'Widgets over iRacing: relative, standings, delta, fuel and more. First, your language and your units.'
+    },
+    widgets: {
+      title: 'Pick your widgets',
+      text: 'Start with these; the others are one click away in the sidebar or the tray.',
+      none: 'With none you will see nothing over the game: pick at least one.'
+    },
+    where: {
+      title: 'Where everything is',
+      tray: 'OverLap lives in the Windows tray, by the clock (or under ^): its icon opens these settings, the widgets, the layouts and edit mode.',
+      car: 'The widgets show by themselves when you get in the car in iRacing; out of it they hide.',
+      try: 'Try with sample data',
+      tryHelp: 'Shows the widgets on your screen, in edit mode: drag them into place.',
+      trying: 'Move the widgets into place; Esc or “Exit” at the top ends edit mode.'
+    },
+    keys: {
+      edit: 'move the widgets (edit mode)',
+      overlay: 'show or hide the overlay',
+      settings: 'open these settings'
+    },
+    skip: 'Skip',
+    back: 'Back',
+    next: 'Next',
+    done: 'Start'
   },
   search: {
     placeholder: 'Search settings',

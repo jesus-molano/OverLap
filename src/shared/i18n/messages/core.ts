@@ -124,6 +124,11 @@ export const coreEs = {
     /** The same, at the end of the tooltip. */
     tooltipShortcuts: (n: number) => (n === 1 ? '1 atajo no funciona' : `${n} atajos no funcionan`)
   },
+  /** A first run (R07): the Windows notification that says where OverLap lives. */
+  firstRun: {
+    title: 'OverLap está en la bandeja',
+    body: 'Su icono, junto al reloj (o en ^), abre los Ajustes, los widgets y el modo edición.'
+  },
   /**
    * The short confirmation over the game when a shortcut runs (R37): what it did, or why it did
    * nothing you can see.
@@ -298,6 +303,10 @@ export const coreEn: Dict<typeof coreEs> = {
     shortcutsFailing: (n) =>
       n === 1 ? '1 shortcut is not working…' : `${n} shortcuts are not working…`,
     tooltipShortcuts: (n) => (n === 1 ? '1 shortcut not working' : `${n} shortcuts not working`)
+  },
+  firstRun: {
+    title: 'OverLap is in the tray',
+    body: 'Its icon, by the clock (or under ^), opens the settings, the widgets and edit mode.'
   },
   osd: {
     overlayShown: 'Overlay shown',

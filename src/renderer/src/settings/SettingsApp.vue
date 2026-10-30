@@ -26,6 +26,7 @@ import ShortcutsPage from './pages/ShortcutsPage.vue'
 import VisibilityPage from './pages/VisibilityPage.vue'
 import WidgetPage from './pages/WidgetPage.vue'
 import UndoToast from './undo/UndoToast.vue'
+import WelcomeDialog from './WelcomeDialog.vue'
 import { provideNavigate } from './navigate'
 import SearchIndexer from './search/SearchIndexer.vue'
 import { indexWanted, searchIndex } from './search/searchIndex'
@@ -190,6 +191,8 @@ function openLog(): void {
       <UndoToast />
     </div>
     <SearchIndexer v-if="indexWanted && searchIndex === null" @done="onIndexed" />
+    <!-- A first run (R07): main sets it, the welcome clears it. -->
+    <WelcomeDialog v-if="settings?.settingsWindow.welcome === true" />
   </div>
 </template>
 

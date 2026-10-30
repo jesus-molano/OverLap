@@ -792,7 +792,10 @@ export const OPTION_SCHEMA = {
       values: ['auto', 'pinned', 'small'],
       default: 'auto',
       displayOnly: true
-    }
+    },
+    // The welcome of a first run (R07): main sets it on a fresh install only; a file without it
+    // (every existing user) never sees it.
+    welcome: { kind: 'bool', default: false, displayOnly: true }
   },
   // Main's alone (the layouts themselves are settings.savedLayouts, layouts.ts). Off: a layout
   // changes only when you change it. The order is the settings window's alone.
