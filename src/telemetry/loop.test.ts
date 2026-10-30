@@ -1012,27 +1012,25 @@ describe('TelemetryLoop', () => {
     expect(h.calls.radar).toHaveLength(0)
     expect(h.data('battle')).toHaveLength(0)
     expect(h.data('relative').length).toBeGreaterThan(0)
-    // Battle and fuel are race-only by default.
+    // The battle is race-only by default (the fuel shows in practice too, R44).
     expect(autoHidden(h)).toEqual([
       { type: 'auto-hidden', widget: 'radar', hidden: true, reason: 'practice' },
-      { type: 'auto-hidden', widget: 'battle', hidden: true, reason: 'practice' },
-      { type: 'auto-hidden', widget: 'fuel', hidden: true, reason: 'practice' }
+      { type: 'auto-hidden', widget: 'battle', hidden: true, reason: 'practice' }
     ])
 
     // The race session starts: all are shown again and computed at once, with no stale prev.
     h.source.version = 2
     h.source.sessionRaw = { name: 'S2', type: 'Race' }
     await h.run(1)
-    expect(autoHidden(h).slice(3)).toEqual([
+    expect(autoHidden(h).slice(2)).toEqual([
       { type: 'auto-hidden', widget: 'radar', hidden: false, reason: null },
-      { type: 'auto-hidden', widget: 'battle', hidden: false, reason: null },
-      { type: 'auto-hidden', widget: 'fuel', hidden: false, reason: null }
+      { type: 'auto-hidden', widget: 'battle', hidden: false, reason: null }
     ])
     expect(h.calls.radar).toHaveLength(1)
     expect(h.calls.radar[0]?.prev).toBeNull()
     expect(h.data('battle')).toHaveLength(1)
     await h.run(20)
-    expect(autoHidden(h)).toHaveLength(6)
+    expect(autoHidden(h)).toHaveLength(4)
   })
 
   it('tells main the kind of session when it changes (the delta cycle shortcut acts on it)', async () => {
@@ -1101,8 +1099,8 @@ describe('TelemetryLoop', () => {
     h.source.sessionRaw = { name: 'S1', type: 'Practice' }
     h.source.frame = playerFrame()
     await h.run(1 + 2)
-    // Battle and fuel are race-only by default.
-    const hidden = (['battle', 'fuel'] as const).map((widget) => ({
+    // The battle is race-only by default (the fuel shows in practice too, R44).
+    const hidden = (['battle'] as const).map((widget) => ({
       type: 'auto-hidden',
       widget,
       hidden: true,
@@ -1112,7 +1110,7 @@ describe('TelemetryLoop', () => {
     expect(autoHidden(h)).toEqual(hidden)
     h.source.alive = false
     await h.run(1)
-    expect(autoHidden(h).slice(-2)).toEqual(shown)
+    expect(autoHidden(h).slice(-1)).toEqual(shown)
     // Reconnected to the same practice: hidden again.
     await h.run(1 + 1)
     expect(autoHidden(h)).toEqual([...hidden, ...shown, ...hidden])
@@ -1778,12 +1776,12 @@ describe('TelemetryLoop when to show the overlay', () => {
     expect(autoHidden(h)).toEqual(hidden(WIDGET_IDS, 'not-race'))
     expect(h.calls.relative).toHaveLength(0)
     // Always: the practice shows, out of the car too; each widget's own rules still apply
-    // (the battle and the fuel are for races by default).
+    // (the battle is for races by default; the fuel for practice and races, R44).
     config.visibility = { ...config.visibility, showWhen: 'always' }
     h.loop.setConfig({ ...config })
     h.source.frame = OUT_OF_CAR
     await h.run(1)
-    const raceOnly = new Set<WidgetId>(['battle', 'fuel'])
+    const raceOnly = new Set<WidgetId>(['battle'])
     expect(autoHidden(h).slice(WIDGET_IDS.length)).toEqual(
       WIDGET_IDS.map((widget) =>
         raceOnly.has(widget)

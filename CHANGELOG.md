@@ -273,6 +273,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Ayudas de una línea** en Apariencia, Atajos y Disposiciones: cada ayuda cabe en una línea (unos
   90 caracteres) y el resto está tras su ⓘ, que la despliega debajo. Los subtítulos de Atajos y
   Disposiciones y las notas de «Cómo funcionan» pasan de párrafos a una línea.
+- **Combustible también en práctica** en una instalación nueva: sale en práctica (donde se mide el
+  consumo por vuelta) y en carrera; en clasificación sigue oculto. Si ya tenías ajustes, Combustible
+  sigue donde lo tenías.
 
 ### Corregido
 

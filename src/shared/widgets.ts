@@ -177,8 +177,8 @@ export const WIDGET_DEFS = {
   },
   // Fuel moves a tenth of a litre every few seconds: twice a second is plenty (the laps are
   // measured on every tick anyway). Bottom right, beside the pedals and under the traffic (clear
-  // of its sample), its own sample's height (190 px at 100 %) inside the work area; races only by
-  // default, like the battle.
+  // of its sample), its own sample's height (190 px at 100 %) inside the work area. Practice and
+  // races by default (R44): practice is where the use per lap is measured; a saved file keeps its own.
   fuel: {
     id: 'fuel',
     hz: 2,
@@ -186,7 +186,7 @@ export const WIDGET_DEFS = {
     minSize: { width: 180, height: 40 },
     defaultVisible: true,
     sizeModel: 'auto-height',
-    defaultShowIn: { practice: false, qualify: false, race: true },
+    defaultShowIn: { practice: true, qualify: false, race: true },
     noSessionScreen: true
   }
 } as const satisfies Record<string, WidgetDef>

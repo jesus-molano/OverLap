@@ -523,13 +523,20 @@ describe('DEFAULT_SETTINGS', () => {
     expect(w.bounds.height).toBeLessThanOrEqual(60)
   })
 
-  it('makes the fuel widget auto-height and race-only', () => {
+  it('makes the fuel widget auto-height, in practice and races (R44)', () => {
     expect(DEFAULT_SETTINGS.widgets.fuel.autoHeight).toBe(true)
     expect(DEFAULT_SETTINGS.widgets.fuel.showIn).toEqual({
-      practice: false,
+      practice: true,
       qualify: false,
       race: true
     })
+  })
+
+  it('keeps a saved fuel widget race-only (R44 changes the default of new installs only)', () => {
+    const s = normalizeSettings({
+      widgets: { fuel: { showIn: { practice: false, qualify: false, race: true } } }
+    })
+    expect(s.widgets.fuel.showIn).toEqual({ practice: false, qualify: false, race: true })
   })
 
   it('takes the traffic, alerts and delta windows from WIDGET_DEFS', () => {
