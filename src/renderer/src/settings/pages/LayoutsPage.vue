@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef,
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { MAX_LAYOUTS, MAX_LAYOUT_NAME, canAddLayout, layoutName } from '@shared/layouts'
 import { LAYOUT_SORTS } from '@shared/settingsSchema'
-import type { LayoutMode, LayoutSort, Rect } from '@shared/types'
+import type { LayoutMode, LayoutSort } from '@shared/types'
 import { useI18n, useLocale } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -11,7 +11,6 @@ import HelpText from '../controls/HelpText.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { optionSetter, sendCommand } from '../editor'
 import { offerRestore } from '../undo/restore'
-import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import PageFrame from '../layout/PageFrame.vue'
 import PageSection from '../layout/PageSection.vue'
 import { usePersonalBests } from '../personalBests'
@@ -85,11 +84,14 @@ const autoOnText = computed(() => {
     ? t.value.settings.layouts.autoOn(n.carName)
     : null
 })
+// Main keeps what «Deshacer» undoes (the switch off, and the layout it applied put back), so
+// the tray can undo it too.
 watch(layoutNotice, (n) => {
-  if (n === null || n.kind !== 'auto-switch-on') return
+  if (n === null || n.kind !== 'auto-switch-on' || n.undo === null) return
+  const id = n.undo
   offerRestore(
     (m) => m.settings.layouts.autoOnUndo,
-    () => void setAutoSwitch(false)
+    () => sendCommand({ type: 'undo-notice', id })
   )
 })
 const currentRow = computed<CarRow | null>(() => cars.value.find((c) => c.current) ?? null)
@@ -104,12 +106,13 @@ const notice = computed(() => {
 const newName = shallowRef('')
 /**
  * «Vincular a <coche actual>» in the save form (R26): ticked while the car you are in has no
- * layout yet (one it has stays unless you tick it).
+ * layout yet and «Según el coche» is on already; with it off, saving never turns it on unless
+ * you tick this (one the car has stays unless you tick it).
  */
-const linkNew = shallowRef(true)
+const linkNew = shallowRef(false)
 watch(
-  () => currentRow.value?.layoutId ?? '',
-  (id) => (linkNew.value = id === ''),
+  () => [currentRow.value?.layoutId ?? '', options.value.autoSwitch] as const,
+  ([id, auto]) => (linkNew.value = id === '' && auto),
   { immediate: true }
 )
 /** What the next layout saved, and the next one imported, restore. */
@@ -195,14 +198,10 @@ onBeforeUnmount(() => boxSizes.disconnect())
 
 /**
  * «Traer aquí» (R51): main moves every widget on another display to this window's one and says
- * how many; when some moved, "Deshacer" puts each back where it was.
+ * how many (the tray's, to the mouse's screen, is said too); when some moved, "Deshacer" asks
+ * main to put each back where it was (main keeps where: the tray can undo it as well).
  */
-let gatherSnapshot: Partial<Record<WidgetId, Rect>> | null = null
-
 function gather(): void {
-  const s = settings.value
-  if (!s) return
-  gatherSnapshot = Object.fromEntries(WIDGET_IDS.map((id) => [id, { ...s.widgets[id].bounds }]))
   layoutNotice.value = null
   sendCommand({ type: 'gather-widgets' })
 }
@@ -211,22 +210,17 @@ const gatheredText = computed(() => {
   const n = layoutNotice.value
   if (n === null || n.kind !== 'gathered') return null
   const g = t.value.settings.layouts.screens
+  if (n.to === 'cursor') return n.count > 0 ? g.gatheredCursor(n.count) : g.noneCursor
   return n.count > 0 ? g.gathered(n.count) : g.none
 })
 
 watch(layoutNotice, (n) => {
-  if (n === null || n.kind !== 'gathered') return
-  const before = gatherSnapshot
-  gatherSnapshot = null
-  if (before === null || n.count === 0) return
+  if (n === null || n.kind !== 'gathered' || n.undo === null) return
+  const id = n.undo
+  const cursor = n.to === 'cursor'
   offerRestore(
-    (m) => m.settings.layouts.screens.undo,
-    () => {
-      for (const id of WIDGET_IDS) {
-        const bounds = before[id]
-        if (bounds) sendCommand({ type: 'set-widget-bounds', widgetId: id, bounds })
-      }
-    }
+    (m) => (cursor ? m.settings.layouts.screens.undoCursor : m.settings.layouts.screens.undo),
+    () => sendCommand({ type: 'undo-notice', id })
   )
 })
 

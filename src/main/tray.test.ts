@@ -104,6 +104,7 @@ const ACTIONS = {
   setOverlayHidden: () => {},
   openSettingsFolder: () => {},
   gatherWidgets: () => {},
+  undo: () => {},
   linkCar: () => {},
   quit: () => {}
 }
@@ -238,26 +239,33 @@ describe('tray menu', () => {
     })
   })
 
-  it('lists the widgets in their three groups, a separator between two (R42)', () => {
+  it('lists the widgets in their three named groups, a separator between two (R42)', () => {
     createTray(state(createDefaultSettings()), ACTIONS)
     const menu = fake.menus.at(-1) ?? []
-    const first = menu.findIndex((i) => i.label === 'Relativo')
-    const block = menu.slice(first, first + 12).map((i) => i.label ?? i.type)
+    const first = menu.findIndex((i) => i.label === 'Pista y rivales')
+    const block = menu.slice(first, first + 15).map((i) => i.label ?? i.type)
+    // Each group's name is a label you cannot click, as the status line.
+    for (const name of ['Pista y rivales', 'Tu vuelta', 'Estado del coche']) {
+      expect(menu.find((i) => i.label === name)?.enabled).toBe(false)
+    }
     expect(block).toEqual([
+      'Pista y rivales',
       'Relativo',
       'Posiciones',
       'Batalla',
       'Tráfico',
       'Radar',
       'separator',
+      'Tu vuelta',
       'Delta',
       'Combustible',
       'Pedales',
       'separator',
+      'Estado del coche',
       'Avisos',
       'Testigos'
     ])
-    expect(menu[first + 12]).toEqual({ type: 'separator' })
+    expect(menu[first + 15]).toEqual({ type: 'separator' })
   })
 
   it('says under the status how many shortcuts do not work, to their page (R37)', () => {
@@ -285,6 +293,23 @@ describe('tray menu', () => {
     )
     item('Traer todos los widgets a esta pantalla').click?.({ checked: false })
     expect(gatherWidgets).toHaveBeenCalledOnce()
+  })
+
+  it('offers «Deshacer» for what main keeps, after «Traer todos…» (R26, R51)', () => {
+    const undo = vi.fn()
+    createTray(state(createDefaultSettings()), { ...ACTIONS, undo })
+    expect(labels().some((l) => l.startsWith('Deshacer'))).toBe(false)
+    updateTray({
+      ...state(createDefaultSettings()),
+      undo: 'Widgets traídos a la pantalla del ratón'
+    })
+    const all = labels()
+    const at = all.indexOf('Deshacer: Widgets traídos a la pantalla del ratón')
+    expect(at).toBe(all.indexOf('Traer todos los widgets a esta pantalla') + 1)
+    item('Deshacer: Widgets traídos a la pantalla del ratón').click?.({ checked: false })
+    expect(undo).toHaveBeenCalledOnce()
+    updateTray({ ...state(createDefaultSettings()), undo: null })
+    expect(labels().some((l) => l.startsWith('Deshacer'))).toBe(false)
   })
 
   it('rebuilds the menu only when a rule note changes', () => {

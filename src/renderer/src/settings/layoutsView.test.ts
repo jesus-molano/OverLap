@@ -277,7 +277,7 @@ describe('noticeText', () => {
     expect(isFileNotice({ kind: 'imported', name: 'GT3' })).toBe(true)
     const copied = { kind: 'options-copied', widgetId: 'radar', result: 'stale' } as const
     expect(isFileNotice(copied)).toBe(false)
-    expect(isFileNotice({ kind: 'gathered', count: 2 })).toBe(false)
+    expect(isFileNotice({ kind: 'gathered', count: 2, to: 'window', undo: 1 })).toBe(false)
     for (const m of [es, en]) {
       const done = m.settings.widgetPage.target.toAll.done
       for (const r of ['copied', 'unchanged', 'stale'] as const) expect(done[r]).not.toBe('')

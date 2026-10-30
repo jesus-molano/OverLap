@@ -104,6 +104,11 @@ describe('isSettingsCommand', () => {
     expect(isSettingsCommand({ type: 'set-edit-mode', on: true, focus: 'fuel' })).toBe(true)
     expect(isSettingsCommand({ type: 'open-log' })).toBe(true)
     expect(isSettingsCommand({ type: 'copy-diagnostics' })).toBe(true)
+    // «Deshacer» of a notice main keeps (R26, R51): a positive whole id only.
+    expect(isSettingsCommand({ type: 'undo-notice', id: 3 })).toBe(true)
+    expect(isSettingsCommand({ type: 'undo-notice', id: 0 })).toBe(false)
+    expect(isSettingsCommand({ type: 'undo-notice', id: 1.5 })).toBe(false)
+    expect(isSettingsCommand({ type: 'undo-notice', id: '3' })).toBe(false)
     expect(isSettingsCommand({ type: 'set-overlay-hidden', hidden: true })).toBe(true)
     expect(isSettingsCommand({ type: 'capture-shortcuts', on: false })).toBe(true)
     expect(isSettingsCommand({ type: 'reset-widget-bounds', widgetId: 'relative' })).toBe(true)

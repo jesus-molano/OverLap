@@ -1,11 +1,12 @@
 import { onBeforeUnmount, shallowRef, type ShallowRef } from 'vue'
-import type { ShortcutAction } from '@shared/shortcuts'
+import type { UsedShortcut } from '@shared/ipc'
 
 /** How long a row says it was pressed («Pulsado hace 12 s»), seconds. */
 export const USED_SHOWN_S = 60
 
-/** When each action's shortcut last ran (performance.now() ms), from main (R37). */
-const usedAt = shallowRef<Partial<Record<ShortcutAction, number>>>({})
+/** When each action's shortcut last ran (performance.now() ms), from main (R37); Esc leaving
+ * edit mode too ('exitEdit'). A press is its own time, so two in the same second are two. */
+const usedAt = shallowRef<Partial<Record<UsedShortcut, number>>>({})
 let started = false
 
 /** Listened to once per window: a shortcut ran (main says which action). */
@@ -32,7 +33,7 @@ export function usedAgo(at: number | undefined, now: number): number | null {
  * shortcuts page says «Pulsado hace 3 s» on its row, to test a binding from the game.
  */
 export function useShortcutUsed(): {
-  usedAt: Readonly<ShallowRef<Partial<Record<ShortcutAction, number>>>>
+  usedAt: Readonly<ShallowRef<Partial<Record<UsedShortcut, number>>>>
   now: Readonly<ShallowRef<number>>
 } {
   start()

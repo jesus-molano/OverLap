@@ -253,8 +253,9 @@ juego.
   ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o `Shift`
   pulsado, no).
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
-  los widgets a esta pantalla** (en la bandeja, o en **Disposiciones › Pantallas**) los recupera
-  de una vez.
+  los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
+  Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
+  cualquiera de los dos sitios (**Deshacer: …** en la bandeja).
 - La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar), un **candado** (bloquear) y un
   **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
   poder recuperarlo.
@@ -291,8 +292,10 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
   **Siguiente disposición**.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
   uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche
-  lo activa. Estando en un coche sin disposición, la página y la bandeja ofrecen **Vincular a «…»**,
-  y al guardar una nueva puedes vincularla a tu coche. Cada disposición muestra sus coches como
+  lo activa (con **Deshacer**, en la página o en la bandeja, que también vuelve a la disposición
+  que tenías). Estando en un coche sin disposición, la página y la bandeja ofrecen **Vincular a
+  «…»**, y al guardar una nueva puedes vincularla a tu coche (marcado de inicio solo si **Según el
+  coche** ya está activado). Cada disposición muestra sus coches como
   etiquetas. Un coche sin vínculo se queda con la última que usaste.
 
 ## Atajos de teclado
@@ -324,9 +327,11 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Los avisos van en la casilla a la que se refieren (**Desconectado**, **En uso por otra app**), y
   una frase que haga falta (un atajo rechazado, el aviso de `AltGr`) sale debajo de esa misma
   columna.
-- Al usarlo, un aviso breve arriba de la pantalla dice qué ha hecho, o por qué no se ve nada
-  (por ejemplo, «Solo hay una disposición»); se apaga en **Confirmar sobre el juego**. La fila
-  de la acción dice «Pulsado hace 3 s», para probarlo desde el juego, y si un atajo no se puede
+- Al usarlo (también `Esc` al salir del modo edición), un aviso breve arriba de la pantalla
+  donde están tus widgets dice qué ha hecho, o por qué no se ve nada (por ejemplo, «Solo hay una
+  disposición»); también confirma **Traer todos…** y **Vincular…** de la bandeja. Se apaga en
+  **Confirmar sobre el juego**. La fila de la acción dice «Pulsado hace 3 s», para probarlo desde
+  el juego, y si un atajo no se puede
   registrar, la bandeja lo dice bajo el estado.
 - Un mismo atajo no puede estar en dos acciones (ni dos veces en la misma): la página dice quién
   lo tiene ya.

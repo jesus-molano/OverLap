@@ -60,6 +60,11 @@ export interface TrayState {
   carName?: string
   /** How many shortcuts could not be registered (R37): a line to the shortcuts page. */
   shortcutsFailing?: number
+  /**
+   * What «Deshacer» would undo now (main's NoticeUndo: a car linked, widgets brought here), in
+   * the interface language; null or absent: nothing.
+   */
+  undo?: string | null
 }
 
 export interface TrayActions {
@@ -76,6 +81,8 @@ export interface TrayActions {
   setEditMode(on: boolean): void
   setOverlayHidden(hidden: boolean): void
   openSettingsFolder(): void
+  /** Undoes what `TrayState.undo` says (R26, R51). */
+  undo(): void
   /** Every widget to the display where the cursor is (R51). */
   gatherWidgets(): void
   quit(): void
@@ -132,6 +139,7 @@ export function updateTray(state: TrayState): void {
     state.settings.visibility.showWhen,
     layoutsKey(state),
     state.shortcutsFailing ?? 0,
+    state.undo ?? null,
     // '' shown, '-' hidden for no known reason (JSON would turn both undefined and null into null).
     WIDGET_IDS.map((id) => [state.settings.widgets[id].visible, hiddenKey(state.autoHidden[id])])
   ])
@@ -293,10 +301,11 @@ function buildMenu(
     { label: t.settings, click: () => act.openSettings() },
     { type: 'separator' },
     // The checkbox is what the user enabled; a rule hiding the widget right now only adds a note
-    // (none when the line under the status already says why they all are). In their groups, as
-    // in the settings window (R42), a separator between two.
+    // (none when the line under the status already says why they all are). In their groups,
+    // named as in the settings window (R42), a separator between two.
     ...WIDGET_GROUPS.flatMap((g, i): MenuItemConstructorOptions[] => [
       ...(i > 0 ? [{ type: 'separator' } satisfies MenuItemConstructorOptions] : []),
+      { label: msg.core.widgetGroups[g.id], enabled: false },
       ...g.widgets.map((id): MenuItemConstructorOptions => ({
         label: widgetLabel(
           lang,
@@ -347,6 +356,8 @@ function buildMenu(
     },
     // A monitor unplugged, a widget lost on another one: all of them here (R51).
     { label: t.gatherWidgets, click: () => act.gatherWidgets() },
+    // What the tray or the settings window just did, undone from here too (R26, R51).
+    ...(state.undo ? [{ label: t.undo(state.undo), click: () => act.undo() }] : []),
     { label: t.openSettingsFolder, click: () => act.openSettingsFolder() },
     { type: 'separator' },
     { label: t.quit, click: () => act.quit() }
