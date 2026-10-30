@@ -188,6 +188,12 @@ describe('layoutList', () => {
     })
   })
 
+  it('gives a layout alone no arrows to order it: there is nothing to move past', () => {
+    const one = layoutList(es, createDefaultSettings().savedLayouts, opts())
+    expect(one).toMatchObject({ total: 1, reorder: false })
+    expect(one.rows[0]).toMatchObject({ canMoveUp: false, canMoveDown: false })
+  })
+
   it('ignores a search with too few layouts to offer one', () => {
     const s = library(['Mazda'])
     expect(layoutList(es, s.savedLayouts, opts('custom', 'zzz'))).toMatchObject({

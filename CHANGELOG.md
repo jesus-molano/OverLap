@@ -575,6 +575,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **Disposiciones, más ordenada**: al editar una disposición, **Guardar** y **Cancelar** van juntos
+  al final de la línea y es el campo del nombre el que se estrecha (antes «Cancelar» caía solo a
+  otra línea). Con una sola disposición ya no salen las flechas para ordenarla, que no hacían
+  nada; con varias miden 24 × 24 px, como el resto de botones de icono (antes 22 × 18). La ayuda de
+  **Archivos** dice dónde se exporta: con **Exportar…** en la fila de cada disposición.
 - **Delta › Líneas: la fila «Tiempos de vuelta» en una sola línea**: el asa, el ojo, el nombre con
   su ayuda, «3 de 4 partes» y las flechas ya no se reparten en tres renglones (a cualquier ancho y
   en los dos idiomas); la ayuda larga se parte dentro de su sitio, como en las demás filas.
