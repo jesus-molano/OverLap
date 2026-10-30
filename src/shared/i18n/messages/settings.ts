@@ -189,16 +189,16 @@ export const settingsEs = {
       practice: 'Práctica',
       qualify: 'Clasificación',
       race: 'Carrera',
-      pits: 'Boxes',
+      pits: 'Ocultar en boxes',
       session: 'Pantalla de sesión',
       locked: 'Bloqueado'
     },
     colHints: {
-      visible: 'Activado: se dibuja sobre el juego',
+      visible: 'El ojo de la barra lateral: abierto si está activado, tenue si ahora no se ve',
       practice: 'Se ve en las sesiones de práctica',
       qualify: 'Se ve en clasificación',
       race: 'Se ve en carrera',
-      pits: 'Se ve también en boxes (sin marcar: se oculta en boxes)',
+      pits: 'Se oculta mientras estás en boxes, como «Ocultar en boxes» en su página',
       session: 'Se queda en la pantalla de sesión, con los resultados',
       locked: 'No se mueve en el modo edición'
     },
@@ -1309,8 +1309,7 @@ export const settingsEs = {
     /** An info bar's hidden items, to add (R33): «+ Añadir dato (8)». */
     addItem: (n: number) => `Añadir dato (${n})`,
     addItemHelp: 'Elige el dato y a qué lado va',
-    /** One of its side buttons: 'Añadir SoF a la izquierda'. */
-    /** `side`: its side's name in lower case ('izquierda'). */
+    /** One of its side buttons: 'Añadir SoF a la izquierda' (`side` in lower case). */
     addTo: (item: string, side: string) => `Añadir ${item} a la ${side}`,
     /** A hidden item's side, after its name. */
     hiddenSide: { left: 'Izquierda', right: 'Derecha' },
@@ -1655,8 +1654,10 @@ export const settingsEs = {
         `Elimina la disposición ${name} y sus coches vinculados (se puede deshacer)`
     },
     deleteActive: 'Aplica otra antes de eliminar la que está en uso',
-    /** The cars linked to a layout: 'Coches: Mazda MX-5 Cup, BMW M2'. */
-    /** Before the tags of the cars linked to a layout (R26), for screen readers. */
+    /**
+     * Before the tags of the cars linked to a layout (R26), for screen readers: 'Coches: Mazda
+     * MX-5 Cup, BMW M2'.
+     */
     cars: (list: string) => `Coches: ${list}`,
     saveTitle: 'Guardar la actual',
     saveHelp: 'Una disposición nueva igual a lo que ves ahora; pasa a ser la que está en uso',
@@ -1869,16 +1870,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
       practice: 'Practice',
       qualify: 'Qualifying',
       race: 'Race',
-      pits: 'Pits',
+      pits: 'Hide in the pits',
       session: 'Session screen',
       locked: 'Locked'
     },
     colHints: {
-      visible: 'On: drawn over the game',
+      visible: 'The sidebar’s eye: open when on, faint when it is not showing now',
       practice: 'Shows in practice sessions',
       qualify: 'Shows in qualifying',
       race: 'Shows in races',
-      pits: 'Shows in the pits too (unticked: hides in the pits)',
+      pits: 'Hidden while you are in the pits, as “Hide in the pits” on its page',
       session: 'Stays on the session screen, with the results',
       locked: 'Does not move in edit mode'
     },

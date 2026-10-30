@@ -28,10 +28,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   lleva a su sección y dice por qué no se ve.
 - **Página «Visibilidad»**: junto a Apariencia, con **Cuándo se ve el overlay** (que estaba en
   Apariencia; su «Restablecer» va con ella y el de Apariencia ya no lo toca) y una tabla **Dónde se
-  ve cada widget**: una fila por widget, agrupados, y columnas Visible, Práctica, Clasificación,
-  Carrera, Boxes, Pantalla de sesión y Bloqueado. Cada casilla cambia el mismo ajuste que su página
-  y el nombre del widget lleva a ella; una casilla que no se puede cambiar dice por qué. Con «Solo
-  en carrera», la tabla avisa de que práctica y clasificación no se ven.
+  ve cada widget**: una fila por widget, agrupados, y columnas Visible (el mismo ojo que la barra
+  lateral), Práctica, Clasificación, Carrera, Ocultar en boxes, Pantalla de sesión y Bloqueado,
+  marcadas con el mismo sentido que en la página del widget. Cada casilla cambia el mismo ajuste
+  que su página y el nombre del widget lleva a ella; una casilla que no se puede cambiar dice por
+  qué. Con «Solo en carrera», la tabla avisa de que práctica y clasificación no se ven.
 - **Traer todos los widgets a esta pantalla**: en la bandeja (a la pantalla donde está el ratón) y
   en **Disposiciones › Pantallas** (a la de la ventana de Ajustes). Los widgets de otra pantalla,
   o de una que ya no está conectada, vienen al mismo sitio relativo y con su tamaño, sin salirse;
@@ -74,9 +75,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   bajar: Se pliega / Fija / Franja** lo cambia y se recuerda. La ventana de Ajustes se abre más
   alta (880 × 900 en una pantalla 1080p; en 1440p, 1152 × 1200) y las opciones pasan a dos
   columnas desde 1100 px de ancho (antes 1380). En las páginas de widget a dos columnas,
-  «Personalizar» va a la derecha y la izquierda apila «Contenido», «Ventana y visibilidad» y las
-  secciones de referencia, cada columna con su propio alto: ya no queda un hueco vacío bajo
-  Contenido. A una columna, el orden sigue siendo Contenido › Personalizar › Ventana y visibilidad.
+  «Personalizar» va a la derecha y la izquierda apila «Contenido», las secciones de referencia y
+  «Ventana y visibilidad», cada columna con su propio alto: ya no queda un hueco vacío bajo
+  Contenido. A una columna, el orden es el mismo: Contenido › Personalizar › referencias › Ventana y
+  visibilidad.
 - **Vincular un coche enciende «Según el coche»**: al vincular un coche a una disposición (en
   Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado; la página
   lo dice con «Deshacer» (también en la bandeja, y desde ella un aviso sobre el juego), que lo apaga

@@ -378,8 +378,9 @@ En **Ajustes > Visibilidad**:
   (cada widget puede tener su excepción).
 - Cada widget tiene además sus propias reglas: en qué sesiones se muestra y si se oculta en boxes.
   Debajo, la tabla **Dónde se ve cada widget** las reúne todas (visible, práctica, clasificación,
-  carrera, boxes, pantalla de sesión y bloqueado), una fila por widget: cada casilla es el mismo
-  ajuste que en su página, y su nombre lleva a ella.
+  carrera, ocultar en boxes, pantalla de sesión y bloqueado), una fila por widget: cada casilla es
+  el mismo ajuste, con el mismo sentido, que en su página (la columna Visible es el ojo de la barra
+  lateral), y su nombre lleva a ella.
 - El modo edición siempre enseña todos los widgets, con el motivo si alguno está oculto.
 
 Para OBS, usa la captura de ventana «Pantalla N · OverLap» (trae todos los widgets de esa pantalla)

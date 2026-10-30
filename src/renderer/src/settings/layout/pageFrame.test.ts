@@ -168,8 +168,9 @@ describe('settings window: wide and ultrawide', () => {
     // The left rows are as tall as their own content; the last takes what the editors have more.
     expect(grid.get('grid-template-rows')).toBe('auto auto auto 1fr')
     expect(declarations(css, '.has-custom .opts-main').get('grid-area')).toBe('1 / 1')
-    expect(declarations(css, '.has-custom .opts-window').get('grid-area')).toBe('2 / 1')
-    expect(declarations(css, '.has-custom .opts-appendix').get('grid-area')).toBe('3 / 1')
+    // The left in the one-column order (Contenido, the references, Ventana): no reading jump at 1100 px.
+    expect(declarations(css, '.has-custom .opts-appendix').get('grid-area')).toBe('2 / 1')
+    expect(declarations(css, '.has-custom .opts-window').get('grid-area')).toBe('3 / 1')
     expect(declarations(css, '.has-custom .opts-custom').get('grid-area')).toBe('1 / 2 / -1 / 3')
     // One column: the DOM order is the page's order (R04): Contenido, Personalizar, Ventana.
     const t = templateOf(WIDGET_PAGE)
