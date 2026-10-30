@@ -16,7 +16,13 @@ import ChoiceControl from './controls/ChoiceControl.vue'
 import { choiceOptions, type ChoiceOption } from './controls/choice'
 import { optionSetter, sendCommand, updateSettings } from './editor'
 import NavIcon from './layout/NavIcon.vue'
-import { WELCOME_STEPS, WELCOME_WIDGETS, welcomeWidgetsPatch, type WelcomeStep } from './welcome'
+import {
+  WELCOME_STEPS,
+  WELCOME_WIDGETS,
+  welcomeCanGoOn,
+  welcomeWidgetsPatch,
+  type WelcomeStep
+} from './welcome'
 
 /**
  * The welcome of a first run (R07): main opens the settings window on it
@@ -85,6 +91,7 @@ function tryIt(): void {
 }
 
 async function next(): Promise<void> {
+  if (blocked.value) return
   if (step.value === 'widgets') await updateSettings(welcomeWidgetsPatch(picked.value))
   if (last.value) {
     finish()
@@ -117,6 +124,9 @@ watch(step, () => void focusTitle())
 onMounted(() => void focusTitle())
 
 const allOff = computed(() => WIDGET_IDS.every((id) => !picked.value.has(id)))
+/** With nothing ticked, «Siguiente» waits: a first run with nothing on screen is what R07 ends. */
+const blocked = computed(() => !welcomeCanGoOn(step.value, picked.value))
+const noneId = useId()
 </script>
 
 <template>
@@ -174,7 +184,9 @@ const allOff = computed(() => WIDGET_IDS.every((id) => !picked.value.has(id)))
             </label>
           </fieldset>
         </div>
-        <p v-if="allOff" class="st-help st-help-warn">{{ t.settings.welcome.widgets.none }}</p>
+        <p v-if="allOff" :id="noneId" class="st-help st-help-warn" role="status">
+          {{ t.settings.welcome.widgets.none }}
+        </p>
       </template>
 
       <template v-else>
@@ -209,7 +221,13 @@ const allOff = computed(() => WIDGET_IDS.every((id) => !picked.value.has(id)))
         <button v-if="at > 0" type="button" class="st-btn" @click="back">
           {{ t.settings.welcome.back }}
         </button>
-        <button type="button" class="st-btn wl-next" @click="next">
+        <button
+          type="button"
+          class="st-btn wl-next"
+          :disabled="blocked"
+          :aria-describedby="blocked ? noneId : undefined"
+          @click="next"
+        >
           {{ last ? t.settings.welcome.done : t.settings.welcome.next }}
         </button>
       </footer>
@@ -366,7 +384,7 @@ const allOff = computed(() => WIDGET_IDS.every((id) => !picked.value.has(id)))
   font-weight: var(--ov-w-strong);
 }
 
-.wl .wl-next:hover {
+.wl .wl-next:hover:not(:disabled) {
   background: #ffffff;
 }
 </style>

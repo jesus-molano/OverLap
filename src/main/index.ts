@@ -44,6 +44,7 @@ import type { OverlaySettings, OverlayStatus, Rect, ShowWhen, SourceKind } from 
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
 import { diagnosticsText } from './diagnostics'
+import { applyFirstRun } from './firstRun'
 import { gatherBounds } from './gather'
 import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
@@ -161,6 +162,14 @@ function start(): void {
   store.onSaveFailing = (failing) => sendToSettingsWindow(IPC.saveFailing, failing)
   // A first run on an ultrawide screen: the default layout in its middle, not at its left edge.
   const primaryArea = screen.getPrimaryDisplay().workArea
+  // A first run (R07): the system's language before the tray, the notification and the
+  // welcome say anything, and the welcome on. An existing file keeps both as they are.
+  if (store.fresh) {
+    const preferred = app.getPreferredSystemLanguages()
+    store.update((s) => {
+      applyFirstRun(s, true, preferred)
+    })
+  }
   if (store.fresh && defaultLayoutOffsetX(primaryArea) > 0) {
     const area = primaryArea
     store.update((s) => {
@@ -780,13 +789,8 @@ function start(): void {
   })
   // `--settings` (e.g. a desktop shortcut) opens the settings window on start. A first run
   // opens it on the welcome (R07): language and units, which widgets, where everything is; and
-  // Windows says once that OverLap lives in the tray.
-  if (store.fresh) {
-    changeSettings((s) => {
-      s.settingsWindow.welcome = true
-    })
-    sayInTheTray()
-  }
+  // Windows says once, in the system's language, that OverLap lives in the tray.
+  if (store.fresh) sayInTheTray()
   if (store.fresh || process.argv.includes('--settings')) openSettingsWindow()
 
   // A combination another application holds is reported on the shortcuts page; the tray

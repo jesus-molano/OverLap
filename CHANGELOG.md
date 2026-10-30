@@ -12,9 +12,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Bienvenida en el primer arranque**: una instalación nueva abre los Ajustes con una bienvenida
   de tres pasos (idioma y unidades; qué widgets usar; dónde está todo: la bandeja, los tres atajos
   y **Probar con datos de ejemplo**, que enseña los widgets en tu pantalla en el modo edición), y
-  Windows avisa una vez de que OverLap está en la bandeja. **En una instalación nueva**, la
-  bienvenida empieza con seis widgets marcados (Relativo, Posiciones, Delta, Combustible, Avisos y
-  Pedales) en vez de los diez; «Saltar» deja los diez. Si ya tenías ajustes, no la ves.
+  Windows avisa una vez de que OverLap está en la bandeja. **En una instalación nueva**, todo sale
+  en el idioma de Windows (español si es el tuyo; si no, inglés) y la bienvenida empieza con seis
+  widgets marcados (Relativo, Posiciones, Delta, Combustible, Avisos y Pedales) en vez de los diez;
+  «Siguiente» espera a que haya al menos uno y «Saltar» deja los diez. Si ya tenías ajustes, no la
+  ves.
 - **Buscar ajuste**: un buscador arriba de la barra lateral (y de la barra de una ventana estrecha)
   encuentra cualquier ajuste de cualquier página por sus palabras, sin importar mayúsculas ni
   tildes: controles, secciones, acordeones y cada dato de las listas («vueltas combustible» da

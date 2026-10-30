@@ -29,3 +29,11 @@ export function welcomeWidgetsPatch(on: ReadonlySet<WidgetId>): SettingsPatch {
   for (const id of WIDGET_IDS) widgets[id] = { visible: on.has(id) }
   return { widgets }
 }
+
+/**
+ * Whether «Siguiente» goes on: not from the widgets step with nothing ticked (a first run with
+ * nothing over the game is what the welcome is there to end). «Saltar» keeps them all.
+ */
+export function welcomeCanGoOn(step: WelcomeStep, picked: ReadonlySet<WidgetId>): boolean {
+  return step !== 'widgets' || WIDGET_IDS.some((id) => picked.has(id))
+}
