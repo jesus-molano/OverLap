@@ -34,6 +34,7 @@ import {
 import { useDraft } from '../useDraft'
 import LayoutItem from './LayoutItem.vue'
 import LayoutModeChoice from './LayoutModeChoice.vue'
+import SiblingLink from '../layout/SiblingLink.vue'
 
 /**
  * The saved layouts (settings.savedLayouts): the list (apply, edit the name and what it restores,
@@ -268,298 +269,306 @@ function onLink(car: CarRow, e: Event): void {
       </header>
     </template>
 
-    <div class="st-cols">
-      <PageSection :title="t.settings.layouts.listTitle" :note="t.settings.layouts.listNote">
-        <div v-if="view.total > 1" class="st-row st-row-wrap tools">
-          <div v-if="view.many" class="find" role="search">
-            <label :for="searchId" class="st-sr-only">{{ t.settings.layouts.search }}</label>
-            <span class="search-box">
-              <input
-                :id="searchId"
-                ref="search"
-                v-model="query"
-                type="search"
-                class="st-field search"
-                :placeholder="t.settings.layouts.searchPlaceholder"
-                autocomplete="off"
-                spellcheck="false"
-                @keydown.esc="onSearchEsc"
-              />
-              <button
-                v-if="query !== ''"
-                type="button"
-                class="st-btn st-btn-ghost st-btn-icon clear"
-                :aria-label="t.settings.layouts.clearSearch"
-                :title="t.settings.layouts.clearSearch"
-                @click="clearSearch"
-              >
-                <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">
-                  <path d="M4 4l8 8M12 4l-8 8" class="cross" />
-                </svg>
-              </button>
-            </span>
-            <span class="st-help count" aria-live="polite">{{
-              view.query !== '' ? t.settings.layouts.matches(view.shown, view.total) : ''
-            }}</span>
-          </div>
-          <div class="sort-by">
-            <span :id="sortLabelId" class="st-label">{{ t.settings.layouts.sort }}</span>
-            <div class="st-seg" role="radiogroup" :aria-labelledby="sortLabelId">
-              <label
-                v-for="s in LAYOUT_SORTS"
-                :key="s"
-                class="st-seg-item"
-                :title="t.settings.layouts.sortHints[s]"
-              >
+    <!--
+      Two fixed columns in a wide window (settings.css .st-grid2): the list and saving on the left,
+      the rest on the right, so no section changes column as the list grows.
+    -->
+    <div class="st-grid2">
+      <div class="st-col">
+        <PageSection :title="t.settings.layouts.listTitle" :note="t.settings.layouts.listNote">
+          <div v-if="view.total > 1" class="st-row st-row-wrap tools">
+            <div v-if="view.many" class="find" role="search">
+              <label :for="searchId" class="st-sr-only">{{ t.settings.layouts.search }}</label>
+              <span class="search-box">
                 <input
-                  type="radio"
-                  class="st-seg-input"
-                  :name="sortName"
-                  :value="s"
-                  :checked="sort === s"
-                  @change="setSort(s)"
+                  :id="searchId"
+                  ref="search"
+                  v-model="query"
+                  type="search"
+                  class="st-field search"
+                  :placeholder="t.settings.layouts.searchPlaceholder"
+                  autocomplete="off"
+                  spellcheck="false"
+                  @keydown.esc="onSearchEsc"
                 />
-                <span class="st-seg-text">{{ t.settings.layouts.sorts[s] }}</span>
-              </label>
+                <button
+                  v-if="query !== ''"
+                  type="button"
+                  class="st-btn st-btn-ghost st-btn-icon clear"
+                  :aria-label="t.settings.layouts.clearSearch"
+                  :title="t.settings.layouts.clearSearch"
+                  @click="clearSearch"
+                >
+                  <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">
+                    <path d="M4 4l8 8M12 4l-8 8" class="cross" />
+                  </svg>
+                </button>
+              </span>
+              <span class="st-help count" aria-live="polite">{{
+                view.query !== '' ? t.settings.layouts.matches(view.shown, view.total) : ''
+              }}</span>
+            </div>
+            <div class="sort-by">
+              <span :id="sortLabelId" class="st-label">{{ t.settings.layouts.sort }}</span>
+              <div class="st-seg" role="radiogroup" :aria-labelledby="sortLabelId">
+                <label
+                  v-for="s in LAYOUT_SORTS"
+                  :key="s"
+                  class="st-seg-item"
+                  :title="t.settings.layouts.sortHints[s]"
+                >
+                  <input
+                    type="radio"
+                    class="st-seg-input"
+                    :name="sortName"
+                    :value="s"
+                    :checked="sort === s"
+                    @change="setSort(s)"
+                  />
+                  <span class="st-seg-text">{{ t.settings.layouts.sorts[s] }}</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="lists">
-          <div v-if="view.pinned" class="pinned" :class="{ 'is-scroll': view.many }">
-            <div class="pinned-body">
-              <ul class="list" :aria-label="t.settings.layouts.inUse">
+          <div class="lists">
+            <div v-if="view.pinned" class="pinned" :class="{ 'is-scroll': view.many }">
+              <div class="pinned-body">
+                <ul class="list" :aria-label="t.settings.layouts.inUse">
+                  <LayoutItem
+                    :row="view.pinned"
+                    order="space"
+                    :around-active="true"
+                    :room-left="roomLeft"
+                    :renaming="renaming === view.pinned.id"
+                    @rename="(open: boolean) => onRename(lib.activeId, open)"
+                  />
+                </ul>
+                <p v-if="!view.pinnedMatches" class="st-help apart-note">
+                  {{ t.settings.layouts.pinnedNoMatch }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Many layouts: a box of its own, about LAYOUT_LIST_ROWS rows tall (Tab, keys, wheel). -->
+            <div
+              ref="listBox"
+              class="list-box"
+              :class="{ 'is-scroll': view.many, 'is-scrolled': scrollable && scrolled }"
+              :tabindex="scrollable ? 0 : undefined"
+              :role="scrollable ? 'region' : undefined"
+              :aria-label="scrollable ? t.settings.layouts.listTitle : undefined"
+              @scroll.passive="measureBox"
+            >
+              <ul
+                v-if="view.rows.length > 0"
+                ref="listRows"
+                class="list"
+                :aria-label="scrollable ? undefined : t.settings.layouts.listTitle"
+              >
                 <LayoutItem
-                  :row="view.pinned"
-                  order="space"
-                  :around-active="true"
+                  v-for="r in view.rows"
+                  :key="r.id"
+                  :row="r"
+                  :order="view.reorder ? 'move' : 'space'"
+                  :around-active="view.aroundActive"
                   :room-left="roomLeft"
-                  :renaming="renaming === view.pinned.id"
-                  @rename="(open: boolean) => onRename(lib.activeId, open)"
+                  :renaming="renaming === r.id"
+                  @rename="(open: boolean) => onRename(r.id, open)"
                 />
               </ul>
-              <p v-if="!view.pinnedMatches" class="st-help apart-note">
-                {{ t.settings.layouts.pinnedNoMatch }}
+              <p v-else-if="view.query !== ''" class="st-help empty">
+                {{ t.settings.layouts.noMatch(view.query) }}
               </p>
             </div>
           </div>
+        </PageSection>
 
-          <!-- Many layouts: a box of its own, about LAYOUT_LIST_ROWS rows tall (Tab, keys, wheel). -->
-          <div
-            ref="listBox"
-            class="list-box"
-            :class="{ 'is-scroll': view.many, 'is-scrolled': scrollable && scrolled }"
-            :tabindex="scrollable ? 0 : undefined"
-            :role="scrollable ? 'region' : undefined"
-            :aria-label="scrollable ? t.settings.layouts.listTitle : undefined"
-            @scroll.passive="measureBox"
-          >
-            <ul
-              v-if="view.rows.length > 0"
-              ref="listRows"
-              class="list"
-              :aria-label="scrollable ? undefined : t.settings.layouts.listTitle"
-            >
-              <LayoutItem
-                v-for="r in view.rows"
-                :key="r.id"
-                :row="r"
-                :order="view.reorder ? 'move' : 'space'"
-                :around-active="view.aroundActive"
-                :room-left="roomLeft"
-                :renaming="renaming === r.id"
-                @rename="(open: boolean) => onRename(r.id, open)"
+        <PageSection :title="t.settings.layouts.saveTitle">
+          <form class="st-row st-row-stack" @submit.prevent="save">
+            <label :for="saveId" class="st-row-text">
+              <span class="st-label">{{ t.settings.layouts.nameLabel }}</span>
+              <span class="st-help">{{
+                roomLeft ? t.settings.layouts.saveHelp : t.settings.layouts.full(MAX_LAYOUTS)
+              }}</span>
+            </label>
+            <div class="save">
+              <input
+                :id="saveId"
+                v-model="newName"
+                type="text"
+                class="st-field name-field"
+                :maxlength="MAX_LAYOUT_NAME"
+                :placeholder="t.settings.layouts.savePlaceholder"
+                :disabled="!roomLeft"
+                autocomplete="off"
+                spellcheck="false"
               />
-            </ul>
-            <p v-else-if="view.query !== ''" class="st-help empty">
-              {{ t.settings.layouts.noMatch(view.query) }}
-            </p>
-          </div>
-        </div>
-      </PageSection>
+              <button
+                type="submit"
+                class="st-btn"
+                :disabled="!canSave"
+                :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
+              >
+                {{ t.settings.layouts.save }}
+              </button>
+            </div>
+            <label v-if="currentRow" class="st-check link-new">
+              <input v-model="linkNew" type="checkbox" :disabled="!roomLeft" />
+              <span>{{ t.settings.layouts.linkNew(currentRow.label) }}</span>
+            </label>
+            <div class="mode">
+              <span :id="saveModeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
+              <LayoutModeChoice v-model="saveMode" :labelledby="saveModeId" :disabled="!roomLeft" />
+              <span class="st-help">{{ t.settings.layouts.modeHints[saveMode] }}</span>
+            </div>
+          </form>
+        </PageSection>
+      </div>
+      <div class="st-col">
+        <PageSection :title="t.settings.layouts.autoTitle">
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.layouts.auto"
+            :help="t.settings.layouts.autoHelp"
+            :more="t.settings.layouts.autoMore"
+            :current="options.autoSwitch"
+            :apply="setAutoSwitch"
+          />
 
-      <PageSection :title="t.settings.layouts.saveTitle">
-        <form class="st-row st-row-stack" @submit.prevent="save">
-          <label :for="saveId" class="st-row-text">
-            <span class="st-label">{{ t.settings.layouts.nameLabel }}</span>
-            <span class="st-help">{{
-              roomLeft ? t.settings.layouts.saveHelp : t.settings.layouts.full(MAX_LAYOUTS)
-            }}</span>
-          </label>
-          <div class="save">
-            <input
-              :id="saveId"
-              v-model="newName"
-              type="text"
-              class="st-field name-field"
-              :maxlength="MAX_LAYOUT_NAME"
-              :placeholder="t.settings.layouts.savePlaceholder"
-              :disabled="!roomLeft"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <button
-              type="submit"
-              class="st-btn"
-              :disabled="!canSave"
-              :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
+          <div class="st-row st-row-wrap">
+            <div class="st-row-text">
+              <span class="st-label">{{ t.settings.layouts.currentCar }}</span>
+              <span class="st-help">{{
+                currentRow ? currentRow.label : t.settings.layouts.noCar
+              }}</span>
+            </div>
+            <select
+              v-if="currentRow"
+              class="st-field link"
+              :value="currentRow.layoutId"
+              :aria-label="t.settings.layouts.linkLabel(currentRow.label)"
+              @change="onLink(currentRow, $event)"
             >
-              {{ t.settings.layouts.save }}
+              <option value="">{{ t.settings.layouts.noLink }}</option>
+              <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
+            </select>
+          </div>
+          <div v-if="suggestion && currentRow" class="st-row st-row-wrap suggest">
+            <span class="st-help">{{
+              t.settings.layouts.linkSuggestHelp(currentRow.label, suggestion.name)
+            }}</span>
+            <button type="button" class="st-btn st-btn-sm" @click="linkSuggested">
+              {{ t.settings.layouts.linkSuggest(suggestion.name) }}
             </button>
           </div>
-          <label v-if="currentRow" class="st-check link-new">
-            <input v-model="linkNew" type="checkbox" :disabled="!roomLeft" />
-            <span>{{ t.settings.layouts.linkNew(currentRow.label) }}</span>
-          </label>
-          <div class="mode">
-            <span :id="saveModeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
-            <LayoutModeChoice v-model="saveMode" :labelledby="saveModeId" :disabled="!roomLeft" />
-            <span class="st-help">{{ t.settings.layouts.modeHints[saveMode] }}</span>
-          </div>
-        </form>
-      </PageSection>
+          <p v-if="autoOnText" class="st-row st-help" role="status">{{ autoOnText }}</p>
 
-      <PageSection
-        :title="t.settings.layouts.examples.title"
-        :note="t.settings.layouts.examples.note"
-      >
-        <div v-for="e in examples" :key="e.kind" class="st-row st-row-wrap">
-          <div class="st-row-text">
-            <span class="st-label">{{ e.name }}</span>
-            <span class="st-help">{{ e.hint }}</span>
+          <div class="st-row st-row-stack">
+            <span class="st-label">{{ t.settings.layouts.seenCars }}</span>
+            <p v-if="otherCars.length === 0" class="st-help">{{ t.settings.layouts.noSeenCars }}</p>
+            <ul v-else class="cars-list">
+              <li v-for="c in otherCars" :key="c.car.carId" class="car">
+                <span class="car-name">{{ c.label }}</span>
+                <select
+                  class="st-field link"
+                  :value="c.layoutId"
+                  :aria-label="t.settings.layouts.linkLabel(c.label)"
+                  @change="onLink(c, $event)"
+                >
+                  <option value="">{{ t.settings.layouts.noLink }}</option>
+                  <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
+                </select>
+              </li>
+            </ul>
           </div>
-          <button
-            type="button"
-            class="st-btn"
-            :disabled="!roomLeft"
-            :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
-            :aria-label="t.settings.layouts.examples.addLabel(e.name)"
-            @click="addExample(e.kind)"
-          >
-            {{ t.settings.layouts.examples.add }}
-          </button>
-        </div>
-        <p
-          v-if="addedText"
-          class="st-row st-help"
-          :class="{ 'st-help-warn': addedText.error }"
-          role="status"
+          <p v-if="!options.autoSwitch && lib.links.length > 0" class="st-row st-help st-help-warn">
+            {{ t.settings.layouts.autoOff }}
+          </p>
+        </PageSection>
+
+        <PageSection
+          :title="t.settings.layouts.examples.title"
+          :note="t.settings.layouts.examples.note"
         >
-          {{ addedText.text }}
-        </p>
-      </PageSection>
-
-      <PageSection :title="t.settings.layouts.autoTitle">
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.layouts.auto"
-          :help="t.settings.layouts.autoHelp"
-          :more="t.settings.layouts.autoMore"
-          :current="options.autoSwitch"
-          :apply="setAutoSwitch"
-        />
-
-        <div class="st-row st-row-wrap">
-          <div class="st-row-text">
-            <span class="st-label">{{ t.settings.layouts.currentCar }}</span>
-            <span class="st-help">{{
-              currentRow ? currentRow.label : t.settings.layouts.noCar
-            }}</span>
-          </div>
-          <select
-            v-if="currentRow"
-            class="st-field link"
-            :value="currentRow.layoutId"
-            :aria-label="t.settings.layouts.linkLabel(currentRow.label)"
-            @change="onLink(currentRow, $event)"
-          >
-            <option value="">{{ t.settings.layouts.noLink }}</option>
-            <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
-          </select>
-        </div>
-        <div v-if="suggestion && currentRow" class="st-row st-row-wrap suggest">
-          <span class="st-help">{{
-            t.settings.layouts.linkSuggestHelp(currentRow.label, suggestion.name)
-          }}</span>
-          <button type="button" class="st-btn st-btn-sm" @click="linkSuggested">
-            {{ t.settings.layouts.linkSuggest(suggestion.name) }}
-          </button>
-        </div>
-        <p v-if="autoOnText" class="st-row st-help" role="status">{{ autoOnText }}</p>
-
-        <div class="st-row st-row-stack">
-          <span class="st-label">{{ t.settings.layouts.seenCars }}</span>
-          <p v-if="otherCars.length === 0" class="st-help">{{ t.settings.layouts.noSeenCars }}</p>
-          <ul v-else class="cars-list">
-            <li v-for="c in otherCars" :key="c.car.carId" class="car">
-              <span class="car-name">{{ c.label }}</span>
-              <select
-                class="st-field link"
-                :value="c.layoutId"
-                :aria-label="t.settings.layouts.linkLabel(c.label)"
-                @change="onLink(c, $event)"
-              >
-                <option value="">{{ t.settings.layouts.noLink }}</option>
-                <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
-              </select>
-            </li>
-          </ul>
-        </div>
-        <p v-if="!options.autoSwitch && lib.links.length > 0" class="st-row st-help st-help-warn">
-          {{ t.settings.layouts.autoOff }}
-        </p>
-      </PageSection>
-
-      <PageSection :title="t.settings.layouts.screens.title">
-        <div class="st-row st-row-wrap">
-          <div class="st-row-text">
-            <span class="st-label">{{ t.settings.layouts.screens.gather }}</span>
-            <span class="st-help">{{ t.settings.layouts.screens.gatherHelp }}</span>
-          </div>
-          <button type="button" class="st-btn" @click="gather">
-            {{ t.settings.layouts.screens.button }}
-          </button>
-        </div>
-        <p v-if="gatheredText" class="st-row st-help" role="status">{{ gatheredText }}</p>
-      </PageSection>
-
-      <PageSection :title="t.settings.layouts.filesTitle">
-        <div class="st-row st-row-wrap">
-          <HelpText
-            class="st-help files-help"
-            :text="t.settings.layouts.filesHelp"
-            :more="t.settings.layouts.filesMore"
-          />
-        </div>
-        <div class="st-row st-row-wrap">
-          <div class="mode import-mode">
-            <span :id="importModeId" class="st-label">{{ t.settings.layouts.importMode }}</span>
-            <LayoutModeChoice
-              v-model="importMode"
-              :labelledby="importModeId"
+          <div v-for="e in examples" :key="e.kind" class="st-row st-row-wrap">
+            <div class="st-row-text">
+              <span class="st-label">{{ e.name }}</span>
+              <span class="st-help">{{ e.hint }}</span>
+            </div>
+            <button
+              type="button"
+              class="st-btn"
               :disabled="!roomLeft"
-            />
-            <span class="st-help">{{ t.settings.layouts.modeHints[importMode] }}</span>
+              :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
+              :aria-label="t.settings.layouts.examples.addLabel(e.name)"
+              @click="addExample(e.kind)"
+            >
+              {{ t.settings.layouts.examples.add }}
+            </button>
           </div>
-          <button
-            type="button"
-            class="st-btn"
-            :disabled="!roomLeft"
-            :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
-            @click="cmd.importOne(importMode)"
+          <p
+            v-if="addedText"
+            class="st-row st-help"
+            :class="{ 'st-help-warn': addedText.error }"
+            role="status"
           >
-            {{ t.settings.layouts.import }}
-          </button>
-        </div>
-        <p
-          v-if="notice"
-          class="st-row st-help"
-          :class="{ 'st-help-warn': notice.error }"
-          role="status"
-        >
-          {{ notice.text }}
-        </p>
-      </PageSection>
+            {{ addedText.text }}
+          </p>
+          <SiblingLink :text="t.settings.layouts.examples.seeStyles" page="appearance" />
+        </PageSection>
+
+        <PageSection :title="t.settings.layouts.screens.title">
+          <div class="st-row st-row-wrap">
+            <div class="st-row-text">
+              <span class="st-label">{{ t.settings.layouts.screens.gather }}</span>
+              <span class="st-help">{{ t.settings.layouts.screens.gatherHelp }}</span>
+            </div>
+            <button type="button" class="st-btn" @click="gather">
+              {{ t.settings.layouts.screens.button }}
+            </button>
+          </div>
+          <p v-if="gatheredText" class="st-row st-help" role="status">{{ gatheredText }}</p>
+        </PageSection>
+
+        <PageSection :title="t.settings.layouts.filesTitle">
+          <div class="st-row st-row-wrap">
+            <HelpText
+              class="st-help files-help"
+              :text="t.settings.layouts.filesHelp"
+              :more="t.settings.layouts.filesMore"
+            />
+          </div>
+          <div class="st-row st-row-wrap">
+            <div class="mode import-mode">
+              <span :id="importModeId" class="st-label">{{ t.settings.layouts.importMode }}</span>
+              <LayoutModeChoice
+                v-model="importMode"
+                :labelledby="importModeId"
+                :disabled="!roomLeft"
+              />
+              <span class="st-help">{{ t.settings.layouts.modeHints[importMode] }}</span>
+            </div>
+            <button
+              type="button"
+              class="st-btn"
+              :disabled="!roomLeft"
+              :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
+              @click="cmd.importOne(importMode)"
+            >
+              {{ t.settings.layouts.import }}
+            </button>
+          </div>
+          <p
+            v-if="notice"
+            class="st-row st-help"
+            :class="{ 'st-help-warn': notice.error }"
+            role="status"
+          >
+            {{ notice.text }}
+          </p>
+        </PageSection>
+      </div>
     </div>
 
     <template #foot>

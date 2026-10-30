@@ -504,13 +504,17 @@ export const settingsEs = {
         'Donde un widget no tiene sitio para el texto más grande, quita antes un dato o una columna, como al estrecharlo.',
       noFlashing: 'Sin parpadeos',
       noFlashingHelp:
-        'Las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear al cortar',
+        'Las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear en el corte',
       noFlashingMore:
         'Tampoco parpadean el borde de «Editar posición» ni el punto de «Esperando a iRacing».',
       settingsZoom: 'Tamaño de esta ventana',
       settingsZoomHelp: 'También con Ctrl y + o - (Ctrl y 0: 100 %), o con Ctrl y la rueda',
-      settingsZoomMore: 'Solo cambia la ventana de Ajustes; los widgets tienen «Tamaño del texto».'
+      settingsZoomMore: 'Solo cambia la ventana de Ajustes; los widgets tienen «Tamaño del texto».',
+      /** The links to «Texto»'s reading aids, at the section's foot. */
+      readBetter: 'Para leer mejor los widgets, en Texto:'
     },
+    /** The group of what no style touches: Idioma, Otros, Accesibilidad. */
+    general: 'General',
     text: {
       title: 'Texto',
       fontScale: 'Tamaño del texto',
@@ -578,7 +582,7 @@ export const settingsEs = {
         },
         compact: {
           label: 'Compacto',
-          hint: 'Pequeño y legible: filas compactas, texto al 85 %, apellidos, sin logos ni banderas de país'
+          hint: 'Pequeño y legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo letra, sin logos ni banderas de país'
         },
         complete: {
           label: 'Completo',
@@ -616,12 +620,20 @@ export const settingsEs = {
         contentsWhere: (name: string) =>
           `el aspecto global y el contenido de los widgets en «${name}»`,
         contentsShared: 'el aspecto global y el contenido de los widgets en las opciones comunes',
+        /** Leaving «Completo»: what it added to the widgets stays, unless taken away. */
+        completeStays:
+          'Lo que «Completo» añadió a los widgets se queda; este estilo solo cambia el aspecto.',
+        takeBack:
+          'Quitar también lo que añadió Completo (cada widget vuelve a lo que mostraba antes)',
         apply: 'Aplicar',
         cancel: 'Cancelar'
       },
       /** Under the cards, when the look matches none of them. */
       custom: 'Personalizado: lo has ajustado a mano abajo',
-      fine: 'Ajuste fino',
+      fine: 'Ajuste fino del estilo',
+      /** Where the widgets shown are chosen: the layouts' examples. */
+      seeLayouts:
+        'Qué widgets se ven lo eligen las disposiciones: «Ligera» y «Los diez» en Ejemplos',
       /** The undo toast. */
       applied: (name: string) => `Estilo «${name}» aplicado`
     },
@@ -1948,7 +1960,10 @@ export const settingsEs = {
         name: 'Ligera',
         hint: 'Relativo (2 coches delante y 2 detrás), Radar, Delta, Combustible y Avisos'
       },
-      full: { name: 'Completa', hint: 'Los diez widgets' },
+      /** Not «Completa»: «Completo» is a style (Apariencia), a look, not which widgets show. */
+      full: { name: 'Los diez', hint: 'Los diez widgets' },
+      /** Where the look is chosen: Apariencia's styles. */
+      seeStyles: 'El aspecto (Limpio, Compacto, Completo) se elige en Estilo, en Apariencia',
       add: 'Añadir',
       addLabel: (name: string) => `Añadir la disposición de ejemplo «${name}»`,
       /** After adding one: how to switch, with the shortcut when there is one. */
@@ -2420,13 +2435,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
         'Where a widget has no room for the larger text, it drops a piece of data or a column sooner, as when you make it narrower.',
       noFlashing: 'No flashing',
       noFlashingHelp:
-        'The Inputs shift lights stay steady in blue instead of flashing at the limiter',
+        'The Inputs shift lights stay steady in blue instead of flashing on the rev limiter',
       noFlashingMore:
         'The “Edit position” ring and the “Waiting for iRacing” dot do not flash either.',
       settingsZoom: 'Size of this window',
       settingsZoomHelp: 'Also with Ctrl and + or - (Ctrl and 0: 100%), or Ctrl and the wheel',
-      settingsZoomMore: 'Only the Settings window changes; the widgets have “Text size”.'
+      settingsZoomMore: 'Only the Settings window changes; the widgets have “Text size”.',
+      readBetter: 'To read the widgets better, in Text:'
     },
+    general: 'General',
     text: {
       title: 'Text',
       fontScale: 'Text size',
@@ -2487,7 +2504,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         },
         compact: {
           label: 'Compact',
-          hint: 'Small and legible: compact rows, text at 85%, surnames, no logos or country flags'
+          hint: 'Small and legible: compact rows, text at 85%, surnames, number on a stripe, licence as a letter, no logos or country flags'
         },
         complete: {
           label: 'Complete',
@@ -2512,11 +2529,15 @@ export const settingsEn: Dict<typeof settingsEs> = {
         lookWhere: 'the global look',
         contentsWhere: (name) => `the global look and the widgets’ contents in “${name}”`,
         contentsShared: 'the global look and the widgets’ contents in the shared options',
+        completeStays:
+          'What “Complete” added to the widgets stays; this style only changes the look.',
+        takeBack: 'Also take away what Complete added (each widget back to what it showed before)',
         apply: 'Apply',
         cancel: 'Cancel'
       },
       custom: 'Custom: you tuned it by hand below',
-      fine: 'Fine tuning',
+      fine: 'Fine tuning of the style',
+      seeLayouts: 'Which widgets show is the layouts’ choice: “Light” and “All ten” in Examples',
       applied: (name) => `“${name}” style applied`
     },
     other: {
@@ -3191,7 +3212,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       water: 'The car’s own light',
       oilTemp: 'The car’s own light',
       pitLimiter: 'On, in blue',
-      revLimiter: 'On the limiter, in blue'
+      revLimiter: 'On the rev limiter, in blue'
     },
     legend: 'Legend',
     legendNote: 'What each light means and what to do',
@@ -3593,7 +3614,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
         name: 'Light',
         hint: 'Relative (2 cars ahead and 2 behind), Radar, Delta, Fuel and Alerts'
       },
-      full: { name: 'Full', hint: 'All ten widgets' },
+      full: { name: 'All ten', hint: 'All ten widgets' },
+      seeStyles: 'The look (Clean, Compact, Complete) is chosen in Style, on Appearance',
       add: 'Add',
       addLabel: (name) => `Add the example layout “${name}”`,
       added: (name, keys) =>

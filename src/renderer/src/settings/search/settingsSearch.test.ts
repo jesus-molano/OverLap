@@ -65,3 +65,26 @@ describe('searchSettings (R33)', () => {
     ).toHaveLength(1)
   })
 })
+
+describe('everyday words (R33)', () => {
+  const MORE: SearchEntry[] = [
+    e('appearance', 'label', 'Tamaño de esta ventana', 'Accesibilidad'),
+    e('appearance', 'label', 'Sin parpadeos', 'Accesibilidad'),
+    e('appearance', 'label', 'Paleta para daltónicos', 'Accesibilidad'),
+    e('relative', 'label', 'Bloqueado', 'Ventana y visibilidad'),
+    e('appearance', 'item', 'Compacto', 'Estilo', 'Pequeño y legible')
+  ]
+  const first = (q: string): string | undefined => searchSettings(MORE, q, title)[0]?.text
+
+  it('finds a setting by a word its label does not have', () => {
+    expect(first('zoom')).toBe('Tamaño de esta ventana')
+    expect(first('destello')).toBe('Sin parpadeos')
+    expect(first('daltonismo')).toBe('Paleta para daltónicos')
+    expect(first('fijar')).toBe('Bloqueado')
+  })
+
+  it('finds a participle by its infinitive, and a style by its name', () => {
+    expect(first('bloquear')).toBe('Bloqueado')
+    expect(first('compacto')).toBe('Compacto')
+  })
+})
