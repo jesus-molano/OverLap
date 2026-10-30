@@ -508,9 +508,14 @@ html.ov-settings .st-value {
   text-align: right;
 }
 
-html.ov-settings .st-disabled,
-html.ov-settings fieldset:disabled .st-label,
-html.ov-settings fieldset:disabled .st-help {
+/*
+ * A row that cannot be changed now: its name and its control dimmed, never its help, which says
+ * why (A11): the reason keeps --ov-fg-muted's full contrast (about 6:1).
+ */
+html.ov-settings .st-disabled:not(.st-row-text, .st-row-head),
+html.ov-settings .st-row-text.st-disabled > :not(.st-help),
+html.ov-settings .st-row-head.st-disabled > :not(.st-help),
+html.ov-settings fieldset:disabled .st-label {
   opacity: 0.45;
 }
 

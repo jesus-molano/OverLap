@@ -100,3 +100,18 @@ describe('settings visual system (R55)', () => {
     expect(SETTINGS_CSS).not.toMatch(/prefers-color-scheme:\s*light/)
   })
 })
+
+describe('a row that cannot be changed now (A11)', () => {
+  it('dims its name and its control, never the help that says why', () => {
+    const css = withoutComments(SETTINGS_CSS)
+    const dimmed = [...css.matchAll(/([^{}]+)\{[^}]*opacity:\s*0\.45/g)].map((m) => m[1] ?? '')
+    const selectors = dimmed.join(',')
+    expect(selectors).toContain('.st-disabled')
+    // Every selector that dims a disabled row's text leaves its .st-help out.
+    for (const sel of selectors.split(',').map((s) => s.trim())) {
+      if (!sel.includes('disabled')) continue
+      expect(sel, sel).not.toMatch(/\.st-help\s*$/)
+      if (/\.st-row-(text|head)\.st-disabled/.test(sel)) expect(sel).toContain(':not(.st-help)')
+    }
+  })
+})
