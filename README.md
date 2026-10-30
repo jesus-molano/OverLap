@@ -86,7 +86,7 @@ el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo r
 defecto en Posiciones, y aquí con un clic en su cabecera.
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
-Posiciones), neumático y vueltas del stint, banderas de penalización tras el nombre, títulos de
+Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), banderas de penalización tras el nombre, títulos de
 columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
 juego, SR proyectado, condiciones de pista…).
 
@@ -221,8 +221,10 @@ coches por grupo al cambiar las entradas de Tráfico. Una lista que va dentro de
 (los datos del coche en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de
 sus elementos se muestra también el bloque.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
-lleva a él (abre su sección y lo señala), también por palabras de uso diario («zoom», «bloquear»,
-«parpadeo», «daltonismo») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
+lleva a él (abre su sección y lo señala), también los botones («exportar», «editar posición»,
+«restablecer») y las opciones de cada selector («imperiales», «apellido», «English»), por palabras
+de uso diario («zoom», «bloquear», «parpadeo», «daltonismo», «galones», «rpm», «tecla», «botón del
+volante», «por coche», «letra grande») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
 ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
 coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero no se ve ahora: una regla lo oculta o has ocultado el overlay (el
@@ -297,22 +299,25 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 
 ## Modo edición
 
-Entra con `Ctrl+Shift+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
+Entra con `Ctrl+Mayús+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
 página de un widget, **Editar posición** (junto a «Visible») entra y señala ese widget sobre el
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
   ratón lo escala. La ayuda sobre cada widget y el aviso de los Ajustes usan las mismas palabras
   («Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir»). Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
-  línea marca dónde se ha pegado (con `Alt` o `Shift` pulsado, no).
+  línea marca dónde se ha pegado (con `Alt` o `Mayús` pulsado, no).
 - Para afinar, las **flechas** mueven 1 px el último widget que has tocado (`Mayús`: 10 px) y
   `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
   sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
   abajo), también sin cursor, con un aviso «Flechas: Relativo». Funcionan con el juego o el
-  escritorio delante; con los Ajustes delante, son de los Ajustes.
+  escritorio delante, y también con los Ajustes delante (justo después de **Editar posición**,
+  también `Tab`), salvo mientras un campo, un deslizador o una lista de los Ajustes tiene el foco:
+  entonces son suyas.
 - `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
   las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
-  también **Deshacer: mover …**. Al salir del modo edición se olvidan.
+  también **Deshacer: …** con lo que hiciste («mover Relativo», «cambiar el tamaño de Relativo»,
+  «ocultar Batalla»). Al salir del modo edición se olvidan.
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
@@ -367,14 +372,14 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 
 Son globales: funcionan con iRacing en primer plano. Cada acción puede tener **hasta tres atajos a
 la vez**, cada uno una combinación de teclas o un botón del volante, la button box, los pedales o
-el cambio (ver [Botones del volante](#botones-del-volante)): por ejemplo `Ctrl+Shift+H` y el
+el cambio (ver [Botones del volante](#botones-del-volante)): por ejemplo `Ctrl+Mayús+H` y el
 botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la acción.
 
 | Atajo (por defecto) | Acción                                                      |
 | ------------------- | ----------------------------------------------------------- |
-| `Ctrl+Shift+H`      | Mostrar u ocultar todo el overlay de golpe                  |
-| `Ctrl+Shift+E`      | Entrar o salir del modo edición                             |
-| `Ctrl+Shift+O`      | Abrir los Ajustes (o traerlos al frente)                    |
+| `Ctrl+Mayús+H`      | Mostrar u ocultar todo el overlay de golpe                  |
+| `Ctrl+Mayús+E`      | Entrar o salir del modo edición                             |
+| `Ctrl+Mayús+O`      | Abrir los Ajustes (o traerlos al frente)                    |
 | (sin asignar)       | Siguiente disposición                                       |
 | (sin asignar)       | Cambiar la referencia del delta                             |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |

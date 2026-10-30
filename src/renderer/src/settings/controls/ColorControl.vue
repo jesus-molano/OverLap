@@ -274,6 +274,22 @@ function revertTyped(): void {
   border-radius: 50%;
 }
 
+/*
+ * While a swatch is chosen, the picker is the way to another colour, not a second dot of the same
+ * one: a neutral hue wheel. It paints the colour once that colour is your own (.is-custom).
+ */
+.custom:not(.is-custom) .picker::-webkit-color-swatch {
+  background-image: conic-gradient(
+    hsl(0deg 80% 60%),
+    hsl(60deg 80% 60%),
+    hsl(120deg 80% 60%),
+    hsl(180deg 80% 60%),
+    hsl(240deg 80% 60%),
+    hsl(300deg 80% 60%),
+    hsl(360deg 80% 60%)
+  );
+}
+
 .picker:hover:not(:disabled)::-webkit-color-swatch {
   border-color: rgba(255, 255, 255, 0.45);
 }

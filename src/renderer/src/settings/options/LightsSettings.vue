@@ -11,12 +11,6 @@ import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection } from '../editor'
-import {
-  captionsChoice,
-  captionsPatch,
-  captionsValues,
-  type CaptionsChoice
-} from './lightsCaptions'
 import ElementEditor from '../elements/ElementEditor.vue'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
@@ -39,17 +33,11 @@ const labelSideChoices = computed(() =>
 )
 const column = computed(() => opts.value.layout === 'column')
 /**
- * "Rótulos: No / Derecha / Izquierda" (in a column; "No / Sí" in a row, where they go under the
- * icons): the captions switch and their side as one choice (lightsCaptions.ts).
+ * In a column, the side of the captions and of the values (temperatures, repair times): under
+ * «Rótulos», a switch as its neighbours, while there is a text to place.
  */
-const captions = computed(() => captionsChoice(opts.value))
-const captionsChoices = computed(() =>
-  choiceOptions(captionsValues(opts.value.layout), t.value.settings.lights.captionsChoices)
-)
-const setCaptions = (v: CaptionsChoice): Promise<void> => updateSection('lights', captionsPatch(v))
-/** Values (temperatures, repair times) without captions in a column: their side on its own. */
 const hasTexts = computed(() => hasLightTexts(lightsFilter(opts.value)))
-const sideOnItsOwn = computed(() => column.value && !opts.value.showCaptions && hasTexts.value)
+const sideShown = computed(() => column.value && (opts.value.showCaptions || hasTexts.value))
 const shown = (kind: LightKind): boolean => isElementVisible(opts.value.icons, kind)
 /** The trend lights the two temperature lights: nothing to light without them. */
 const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
@@ -109,15 +97,15 @@ function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void
       <!-- How the lights read (R12): their words, temperatures and repairs, next to them. -->
       <template #footer>
         <SiblingLink :text="t.settings.lights.sharedNote" page="alerts" />
-        <ChoiceControl
+        <ToggleControl
+          kind="switch"
           :label="t.settings.lights.captions"
           :help="t.settings.lights.captionsHelp"
-          :current="captions"
-          :options="captionsChoices"
-          :apply="setCaptions"
+          :current="opts.showCaptions"
+          :apply="set('showCaptions')"
         />
         <ChoiceControl
-          v-if="sideOnItsOwn"
+          v-if="sideShown"
           :label="t.settings.lights.labelSide"
           :current="opts.labelSide"
           :options="labelSideChoices"

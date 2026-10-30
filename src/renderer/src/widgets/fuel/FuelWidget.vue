@@ -175,6 +175,12 @@ const panel = useTemplateRef('panel')
  * its width (R50: a hidden copy measures it); otherwise the short words, as always.
  */
 const limitsLong = useLongFits(useTemplateRef('limitsProbe'), useTemplateRef('limitsLine'))
+/** The hero's laps in full words ('17.6 vueltas', 'QUEDAN 18.7 vueltas') while they fit (R50). */
+const heroLong = useLongFits(useTemplateRef('heroProbe'), useTemplateRef('heroLine'))
+const heroUnit = computed(() => {
+  const h = view.value.hero
+  return h === null ? '' : heroLong.value ? h.lapsUnitLong : h.lapsUnit
+})
 useContentSize(panel, { enabled: () => autoHeight.value && wanted.value })
 
 /** The window grows upwards: the panel hugs the bottom edge while the window waits to shrink. */
@@ -211,13 +217,14 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
       <!-- The laps the fuel lasts (big, in the tone of the plan), the litres, the laps to go. -->
       <div
         v-if="view.hero"
+        ref="heroLine"
         v-inline-style="orderStyle(place.hero ?? 0)"
         data-el="fuel.lines.hero"
         class="fu-hero"
       >
         <span class="fu-big" :class="`ov-tone-${view.hero.tone}`">
           <span class="ov-t-hero">{{ view.hero.laps }}</span>
-          <span class="fu-unit-hero ov-unit">&nbsp;{{ view.hero.lapsUnit }}</span>
+          <span class="fu-unit-hero ov-unit">&nbsp;{{ heroUnit }}</span>
         </span>
         <span class="fu-num fu-litres"
           >{{ view.hero.fuel
@@ -229,10 +236,36 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           <span class="fu-label fu-flag-label">{{ view.hero.left.label }}</span>
           <span class="fu-num"
             >{{ view.hero.left.value
-            }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.left.unit }}</span></span
+            }}<span class="fu-unit ov-unit">&nbsp;{{ heroUnit }}</span></span
           >
         </span>
         <PreviewTag v-if="tagLine === 'hero'" class="fu-tag" />
+        <!-- The same line with the laps in full words, unseen: measured to know they fit (R50). -->
+        <span
+          v-if="view.hero.lapsUnitLong !== view.hero.lapsUnit"
+          ref="heroProbe"
+          class="fu-probe fu-hero-probe"
+          aria-hidden="true"
+        >
+          <span class="fu-big">
+            <span class="ov-t-hero">{{ view.hero.laps }}</span>
+            <span class="fu-unit-hero ov-unit">&nbsp;{{ view.hero.lapsUnitLong }}</span>
+          </span>
+          <span class="fu-num fu-litres"
+            >{{ view.hero.fuel
+            }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.fuelUnit }}</span></span
+          >
+          <span v-if="view.hero.note" class="fu-note">{{ view.hero.note }}</span>
+          <span v-if="view.hero.left" class="fu-flagged">
+            <Icon name="chequered" class="fu-ico" />
+            <span class="fu-label fu-flag-label">{{ view.hero.left.label }}</span>
+            <span class="fu-num"
+              >{{ view.hero.left.value
+              }}<span class="fu-unit ov-unit">&nbsp;{{ view.hero.lapsUnitLong }}</span></span
+            >
+          </span>
+          <PreviewTag v-if="tagLine === 'hero'" class="fu-tag" />
+        </span>
       </div>
 
       <!--
@@ -574,6 +607,12 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
 
 .fu-hero__left {
   margin-left: auto;
+}
+
+/* The hero line's measuring copy: laid out as the line is (R50). */
+.fu-hero-probe {
+  align-items: baseline;
+  gap: 0.6em;
 }
 
 /* ---- Lines --------------------------------------------------------------------- */

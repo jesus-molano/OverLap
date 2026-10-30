@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, useId, useTemplateRef, watch } from 'vue'
-import { modifierCaps } from '@shared/accelerator'
+import { modifierLabels } from '@shared/i18n'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
 import {
@@ -55,7 +55,7 @@ const recording = computed(() => {
 })
 const cells = computed(() => rowCells(props.row, recording.value))
 const heldCaps = computed(() =>
-  recording.value !== null ? modifierCaps(props.capture.held.value) : []
+  recording.value !== null ? modifierLabels(t.value, props.capture.held.value) : []
 )
 const messages = computed(() =>
   rowMessages(t.value, props.row, props.capture.feedback.value, recording.value)

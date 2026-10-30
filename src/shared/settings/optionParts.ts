@@ -28,13 +28,17 @@ const CUSTOMIZE_EXTRAS: Readonly<Partial<Record<WidgetId, readonly string[]>>> =
   relative: ['columnHeads'],
   standings: ['columnHeads', 'iRatingDeltaAll', 'showPosition', 'gapMode'],
   traffic: ['captions'],
-  // The shift lights' row, the trace's options in its row and the pedals' colours (R12).
+  // The shift lights' row, the trace's and the wheel's options in their rows, the pedals'
+  // colours (R12): Pedales has no «Contenido».
   inputs: [
     'shiftLights',
     'traceSeconds',
     'traceWidth',
     'clutchInTrace',
     'colors',
+    'steeringStyle',
+    'wheelSize',
+    'wheelColor',
     'steeringDegrees'
   ],
   fuel: ['showBox'],

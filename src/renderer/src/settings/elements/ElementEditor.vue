@@ -1072,6 +1072,7 @@ function onCancel(e: PointerEvent): void {
         <button
           type="button"
           class="st-btn st-btn-sm st-btn-ghost"
+          data-nofind
           :aria-label="t.settings.elements.resetLabel(title)"
           :title="atDefault ? t.settings.elements.atDefault : undefined"
           :disabled="atDefault"
@@ -1214,6 +1215,15 @@ function onCancel(e: PointerEvent): void {
 /* A row with parts wraps them under itself, over its whole width (R21). */
 .ed-row:has(> .ed-sub) {
   flex-wrap: wrap;
+}
+
+/*
+ * Its name and help take what the row leaves (a long help wraps inside it), so the handle, the
+ * eye, «N de M partes» and the arrows stay on its one line, as on every other row (Delta's
+ * «Tiempos de vuelta»).
+ */
+.ed-row:has(> .ed-sub) > .ed-text {
+  flex: 1 1 0;
 }
 
 .ed-sub {

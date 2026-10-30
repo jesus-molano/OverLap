@@ -1,4 +1,4 @@
-import { REVEAL_SELECTOR, contextOf, type SearchEntry } from './settingsSearch'
+import { REVEAL_SELECTOR, placeOf, type SearchEntry } from './settingsSearch'
 
 /** How long a found setting stays pointed out. */
 export const FOUND_MS = 1800
@@ -21,7 +21,7 @@ export function findTarget(
   const all = [...root.querySelectorAll(REVEAL_SELECTOR)].filter(
     (el) => clean(el.textContent) === target.text
   )
-  return all.find((el) => contextOf(el) === target.context) ?? all[0] ?? null
+  return all.find((el) => placeOf(el) === target.context) ?? all[0] ?? null
 }
 
 /**

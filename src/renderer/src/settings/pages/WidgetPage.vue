@@ -11,7 +11,9 @@ import {
   resetBounds,
   resetWidget,
   resetWidgetAll,
-  setWidgetVisible
+  setWidgetVisible,
+  widgetPartAtDefault,
+  type PageResetPart
 } from '../undo/restore'
 import type { ResetItem } from '../layout/resetItems'
 import ResetMenu from '../layout/ResetMenu.vue'
@@ -27,6 +29,7 @@ import { useSampleWidth, useWidgetSizeText } from '../samples/useSampleWidth'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
 import { sendCommand } from '../editor'
+import { aimEditKeys } from '../useEditKeys'
 import { freeScalePercent } from '../freeScale'
 import { heldCaption } from '../statusSummary'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -70,6 +73,8 @@ const { settings, autoHiddenOf, overlayHidden, editMode } = useOverlayState()
 /** «Editar posición» (R25): edit mode, this widget pointed out over the game (again if on). */
 function editPosition(): void {
   sendCommand({ type: 'set-edit-mode', on: true, focus: props.widgetId })
+  // The arrows, Tab and Ctrl+Z of the banner go to edit mode from here on (useEditKeys).
+  aimEditKeys()
 }
 const lang = useLanguage()
 /** On, but not showing now (overlay hidden by you, or a rule): why, as the sidebar's eye says. */
@@ -106,12 +111,20 @@ const options = computed(() => WIDGET_OPTIONS[props.widgetId])
 const resetItems = computed<ResetItem[]>(() => {
   const r = t.value.settings.widgetPage.reset
   const id = props.widgetId
+  const s = settings.value
+  // The position and «everything» stay on: the factory place depends on the screen.
+  const atDefault = (p: PageResetPart): boolean => s !== null && widgetPartAtDefault(s, id, p)
   const parts: OptionPart[] = ['content', 'driver', 'customize']
   const items: ResetItem[] = parts
     .filter((p) => hasOptionPart(id, p))
-    .map((p) => ({ id: p, ...r[p], run: () => resetWidget(id, p) }))
+    .map((p) => ({ id: p, ...r[p], run: () => resetWidget(id, p), disabled: atDefault(p) }))
   items.push(
-    { id: 'window', ...r.window, run: () => resetWidget(id, 'window') },
+    {
+      id: 'window',
+      ...r.window,
+      run: () => resetWidget(id, 'window'),
+      disabled: atDefault('window')
+    },
     { id: 'bounds', ...r.bounds, run: () => resetBounds(id) },
     { id: 'all', ...r.all, run: () => resetWidgetAll(id) }
   )
