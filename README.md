@@ -210,7 +210,9 @@ por las opciones se pliega en una franja (o queda fija, o siempre en franja: **A
 pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
 derecha. Lo que cambias se ve en la vista previa; si no se ve, la opción dice por qué con una
 nota corta: **No cabe a 540 px** (el ancho del widget no deja sitio para esa columna o ese dato:
-ensánchalo u oculta otro).
+ensánchalo u oculta otro). Una lista que va dentro de un bloque oculto (los datos del coche
+en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de sus elementos se
+muestra también el bloque.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
 lleva a él (abre su sección y lo señala); lo que ahora oculta otro ajuste sale marcado «con otro
 ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del

@@ -1208,9 +1208,6 @@ export const settingsEs = {
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
-    /** Under the lap times list while their row is off in Líneas. */
-    lapTimesRowOff:
-      'La línea de tiempos está oculta en «Líneas»; al mostrar aquí un tiempo, se muestra la línea',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1512,6 +1509,12 @@ export const settingsEs = {
     partsLabel: (row: string) => `Partes de «${row}»`,
     /** A child whose parent is hidden: 'Necesita «iRating»'. */
     needsParent: (parent: string) => `Necesita «${parent}»`,
+    /**
+     * Under a list drawn inside an element of another list while that one is hidden (Pedales'
+     * «Coche», Delta's lap times): the same words on every page.
+     */
+    parentOff: (parent: string, zone: string) =>
+      `«${parent}» no se ve (su ojo en «${zone}» está cerrado): al mostrar aquí un elemento, vuelve a verse`,
     reset: 'Restablecer',
     resetLabel: (zone: string) => `Restablecer ${zone}`,
     /** Screen-reader announcements. */
@@ -2898,7 +2901,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     cycleNoKeys: 'Give it a shortcut in “Shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
-    lapTimesRowOff: 'The lap times line is hidden in “Lines”; showing a time here shows the line',
     references: {
       pb: {
         label: 'Personal best',
@@ -3154,6 +3156,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     partsCount: (shown, total) => `${shown} of ${total} parts`,
     partsLabel: (row) => `Parts of “${row}”`,
     needsParent: (parent) => `Needs “${parent}”`,
+    parentOff: (parent, zone) =>
+      `“${parent}” is hidden in “${zone}”: showing an element here shows it again`,
     reset: 'Reset',
     resetLabel: (zone) => `Reset ${zone}`,
     moved: (item, position, total) => `${item}: position ${position} of ${total}.`,
