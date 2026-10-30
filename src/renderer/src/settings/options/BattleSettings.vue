@@ -10,6 +10,7 @@ import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
+import { behaviourNote } from '../controls/previewNote'
 import { choiceOptions } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import { listSetter, optionSetter } from '../editor'
@@ -24,6 +25,9 @@ import { formatSeconds } from '../values'
 
 const opts = useOptions('battle')
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 const set = optionSetter('battle')
 
 const THRESHOLD_PRESETS_S = [0.5, 1, 1.5, 2, 3] as const
@@ -79,6 +83,7 @@ const noRoom = useNoRoom()
       :step="B.thresholdS.step"
       :format="seconds"
       :presets="THRESHOLD_PRESETS_S"
+      :note="behaviour"
       :apply="set('thresholdS')"
     />
     <SliderControl
@@ -90,6 +95,7 @@ const noRoom = useNoRoom()
       :step="B.holdS.step"
       :format="seconds"
       :presets="HOLD_PRESETS_S"
+      :note="behaviour"
       :apply="set('holdS')"
     />
     <ChoiceControl

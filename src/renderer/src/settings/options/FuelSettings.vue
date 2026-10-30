@@ -5,6 +5,7 @@ import { FUEL_STRATEGY } from '@shared/fuel/strategy'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
+import { behaviourNote } from '../controls/previewNote'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
@@ -19,6 +20,9 @@ import { formatNumber } from '../values'
 const opts = useOptions('fuel')
 const set = optionSetter('fuel')
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 const S = OPTION_SCHEMA.fuel
 
 const AVG: NumericSpec = S.avgLaps
@@ -59,6 +63,7 @@ const setLines = listSetter('fuel', 'lines')
       :current="opts.avgLaps"
       :min="AVG.min"
       :max="AVG.max"
+      :note="behaviour"
       :apply="set('avgLaps')"
     />
     <SliderControl
@@ -70,6 +75,7 @@ const setLines = listSetter('fuel', 'lines')
       :step="MARGIN_STEP"
       :format="marginText"
       :presets="MARGIN_PRESETS"
+      :note="behaviour"
       :apply="set('marginLaps')"
     />
   </PageSection>

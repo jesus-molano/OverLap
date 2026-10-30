@@ -9,6 +9,7 @@ import { useAppearance } from '../../composables/useAppearance'
 import { useOverlayState } from '../../composables/useOverlay'
 import { widgetOpacity } from '../../composables/useWidgetSurface'
 import CheckGroup from '../controls/CheckGroup.vue'
+import { behaviourNote } from '../controls/previewNote'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import {
   choiceOptions,
@@ -34,6 +35,9 @@ import { SIZE_PRESETS, formatPercent, fromPercent, toPercent } from '../values'
 const props = defineProps<{ widgetId: WidgetId }>()
 
 const t = useI18n()
+
+/** Acts during the session only: the same note as every such option (PreviewNote). */
+const behaviour = computed(() => behaviourNote(t.value))
 const prefs = useWidgetSettings(props.widgetId)
 const def = computed(() => WIDGET_DEFS[props.widgetId])
 const autoModel = computed(() => def.value.sizeModel === 'auto-height')
@@ -154,6 +158,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :help="t.settings.window.anchorHelp"
       :current="prefs.anchor"
       :options="anchorChoices"
+      :note="behaviour"
       :apply="set('anchor')"
     />
     <ChoiceControl
@@ -175,7 +180,12 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :apply="setOpacity"
     />
     <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">{{ dayNote }}</p>
-    <CheckGroup :legend="t.settings.window.showIn" :help="showInHelp" :warn="nowhere">
+    <CheckGroup
+      :legend="t.settings.window.showIn"
+      :help="showInHelp"
+      :warn="nowhere"
+      :note="behaviour"
+    >
       <ToggleControl
         v-for="s in showIn"
         :key="s.kind"
@@ -190,6 +200,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :label="t.settings.window.hideInPits"
       :help="t.settings.window.hideInPitsHelp"
       :current="prefs.hideInPits"
+      :note="behaviour"
       :apply="set('hideInPits')"
     />
     <ToggleControl
@@ -198,6 +209,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :help="sessionScreen.help"
       :current="sessionScreen.on"
       :disabled="sessionScreen.disabled"
+      :note="behaviour"
       :apply="set('showOnSessionScreen')"
     />
     <p class="st-row st-help replay-note">{{ replay }}</p>
@@ -206,6 +218,7 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :label="t.settings.window.locked"
       :help="t.settings.window.lockedHelp"
       :current="prefs.locked"
+      :note="behaviour"
       :apply="set('locked')"
     />
   </PageSection>
