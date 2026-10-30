@@ -298,11 +298,17 @@ página de un widget, **Editar posición** (junto a «Visible») entra y señala
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
-  ratón lo escala. Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
+  ratón lo escala. La ayuda sobre cada widget y el aviso de los Ajustes usan las mismas palabras
+  («Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir»). Se pega a los bordes de los demás widgets y de la pantalla, y a su centro, y una
   línea marca dónde se ha pegado (con `Alt` o `Shift` pulsado, no).
 - Para afinar, las **flechas** mueven 1 px el último widget que has tocado (`Mayús`: 10 px) y
-  `Ctrl` + flechas cambian su tamaño. Funcionan con el juego o el escritorio delante; con los
-  Ajustes delante, las flechas son de los Ajustes.
+  `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
+  sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
+  abajo), también sin cursor, con un aviso «Flechas: Relativo». Funcionan con el juego o el
+  escritorio delante; con los Ajustes delante, son de los Ajustes.
+- `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
+  las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
+  también **Deshacer: mover …**. Al salir del modo edición se olvidan.
 - Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
@@ -311,8 +317,9 @@ juego.
   **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
   poder recuperarlo.
 - Sal con `Esc`, con el mismo atajo o desde la bandeja. Salir en mitad de un arrastre lo cancela.
-- Con iRacing delante y tú en el coche, el simulador oculta el cursor: abre los Ajustes desde la
-  bandeja o pulsa `Alt+Tab` para recuperarlo. Lo más cómodo es colocar los widgets en el garaje o en
+- Con iRacing delante y tú en el coche, el simulador oculta el cursor: el aviso sobre el juego
+  nombra el atajo de **Abrir los Ajustes** (que liberan el cursor) y `Alt+Tab`, y recuerda que
+  `Tab` y las flechas mueven los widgets sin él. Lo más cómodo es colocar los widgets en el garaje o en
   los menús.
 - Para que la rueda funcione sobre un widget, Windows necesita _Configuración > Bluetooth y
   dispositivos > Mouse > Desplazar ventanas inactivas al mantener el puntero sobre ellas_.

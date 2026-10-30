@@ -16,18 +16,23 @@ import { freeScalePercent } from '../settings/freeScale'
  * its chip is (useEditSession).
  */
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
-import { acceleratorText, hiddenText, widgetTitle } from '@shared/i18n'
-import { firstCombination } from '@shared/shortcuts'
+import { hiddenText, widgetTitle } from '@shared/i18n'
 import { TOPMOST_WIDGET, WIDGET_DEFS } from '@shared/widgets'
 import { useAppearance } from '../composables/useAppearance'
 import { useI18n } from '../composables/useI18n'
-import { useShortcuts } from '../composables/useShortcuts'
 import { useWidgetSettings } from '../composables/useWidgetSettings'
 import { vInlineStyle } from '../directives/inlineStyle'
 import Icon from '../ui/Icon.vue'
 import { CHIP_LAYER, injectSlot } from './contract'
 import { handlesFor, type DragMode } from './dragMath'
-import { hintTier, radarClashes, relativeRect, toggleMessage, type ToggleField } from './editChip'
+import {
+  chipSize,
+  hintTier,
+  radarClashes,
+  relativeRect,
+  toggleMessage,
+  type ToggleField
+} from './editChip'
 import { createPanelEdit } from './panelEdit'
 import { slotStyle } from './slotGeometry'
 import { ANIMATION_FRAMES } from './timers'
@@ -40,7 +45,6 @@ const def = WIDGET_DEFS[slot.id]
 const prefs = useWidgetSettings(slot.id)
 const t = useI18n()
 const appearance = useAppearance()
-const shortcuts = useShortcuts()
 
 const edit = createPanelEdit({
   slot,
@@ -54,6 +58,8 @@ const { editable, crossing } = edit
 const editMode = session.editing
 const locked = slot.locked
 const ghost = slot.ghost
+/** The arrows apply to it (the last touched, or picked with Tab, R38): its chip is marked. */
+const touched = slot.touched
 const autoHeight = slot.autoHeight
 const autoHidden = slot.autoHidden
 
@@ -63,23 +69,21 @@ const hiddenNote = computed(() => hiddenText(t.value, autoHidden.value.reason))
 const handles = computed(() => handlesFor(autoHeight.value))
 
 /**
- * How to use and leave edit mode, by panel width, with the shortcut's first key combination; left
- * out when it has none, only controller buttons ('Botón 3' beside the mouse wheel's "Rueda" says
- * nothing clear, and the controller's name does not fit).
+ * How to use and leave edit mode, by panel width, in the words of the settings window's banner
+ * (R38): «Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir», then shorter.
  */
 const hint = computed(() => {
   const f = t.value.core.editFrame
-  const keys = acceleratorText(t.value, firstCombination(shortcuts.value.toggleEditMode))
   const tier = hintTier(slot.rect.value.width)
-  if (keys === '') return tier === 'long' ? f.hintLongNoKey : f.hintShortNoKey
-  return tier === 'long' ? f.hintLong(keys) : tier === 'short' ? f.hintShort(keys) : keys
+  return tier === 'long' ? f.hintLong : tier === 'short' ? f.hintShort : f.hintTiny
 })
 
 /** '460 × auto' (auto-height widgets) or '460 × 252' (free widgets), as drawn now. */
-const sizeText = computed(() => {
+const chipMeta = computed(() => {
   const { width, height } = slot.rect.value
-  return `${width} × ${autoHeight.value ? t.value.core.editFrame.autoHeight : height}`
+  return chipSize(width, autoHeight.value ? null : height, t.value.core.editFrame.autoHeight)
 })
+const sizeText = computed(() => chipMeta.value.text)
 
 /** 'Oculto' for a ghost, 'Bloqueado' when locked, else the size. */
 const metaText = computed(() => {
@@ -261,7 +265,12 @@ onBeforeUnmount(() => {
       <div
         ref="chip"
         class="chip chip-main"
-        :class="{ 'chip-locked': locked && !ghost, 'chip-ghost': ghost, 'chip-move': editable }"
+        :class="{
+          'chip-locked': locked && !ghost,
+          'chip-ghost': ghost,
+          'chip-move': editable,
+          'chip-touched': touched && !ghost && !locked
+        }"
         @pointerdown="onPointerDown($event, 'move')"
         @wheel="onWheel"
         @pointerenter="overChip = true"
@@ -269,9 +278,11 @@ onBeforeUnmount(() => {
       >
         <span class="chip-title">{{ title }}</span>
         <span class="chip-meta">{{ metaText }}</span>
-        <span v-if="!locked && !ghost && scaleText" class="chip-meta chip-scale">{{
-          scaleText
-        }}</span>
+        <span
+          v-if="!locked && !ghost && scaleText && chipMeta.scale"
+          class="chip-meta chip-scale"
+          >{{ scaleText }}</span
+        >
         <span class="chip-actions">
           <button
             type="button"
@@ -501,6 +512,11 @@ onBeforeUnmount(() => {
   flex: none;
   padding-left: 0.5em;
   box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
+}
+
+.chip-touched {
+  border-color: var(--ov-edit);
+  box-shadow: 0 0 0 1px var(--ov-edit);
 }
 
 .chip-locked {

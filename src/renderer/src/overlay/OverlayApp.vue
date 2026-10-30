@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { acceleratorText } from '@shared/i18n'
+import { firstCombination } from '@shared/shortcuts'
 import { useI18n } from '../composables/useI18n'
+import { useShortcuts } from '../composables/useShortcuts'
 import { useOverlayState } from '../composables/useOverlay'
 import Icon from '../ui/Icon.vue'
 import { createSlotRegistry, provideOverlayRegistry } from './slots'
@@ -18,6 +21,16 @@ import WidgetSlot from './WidgetSlot.vue'
  */
 const { editMode, cursorHidden } = useOverlayState()
 const t = useI18n()
+/**
+ * The notice while the game hides the cursor names the key that opens the settings (their window
+ * frees the cursor), as the hint names Esc; without one, the tray and Alt+Tab.
+ */
+const shortcuts = useShortcuts()
+const cursorBody = computed(() => {
+  const c = t.value.core.editFrame.cursorHidden
+  const keys = acceleratorText(t.value, firstCombination(shortcuts.value.openSettings))
+  return keys === '' ? c.body : c.bodyKeys(keys)
+})
 const registry = createSlotRegistry()
 provideOverlayRegistry(registry)
 const session = useEditSession(registry)
@@ -52,7 +65,7 @@ const guideLines = computed(() => {
       <Icon name="alert" class="ov-cursor-hint__icon" />
       <span class="ov-cursor-hint__text">
         <strong>{{ t.core.editFrame.cursorHidden.title }}</strong>
-        {{ t.core.editFrame.cursorHidden.body }}
+        {{ cursorBody }}
       </span>
     </div>
   </div>

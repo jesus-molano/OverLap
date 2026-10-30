@@ -37,6 +37,24 @@ export function hintTier(width: number): 'long' | 'short' | 'tiny' {
   return width >= HINT_SHORT_PX ? 'short' : 'tiny'
 }
 
+/** Below this panel width (px) the chip's size reads '220×220' and its scale goes first. */
+export const CHIP_COMPACT_PX = 300
+
+/**
+ * The size the chip says: '460 × 252', or '220×220' on a narrow panel, where the scale is left
+ * out so the size always reads whole (`auto`: the word for an auto height).
+ */
+export function chipSize(
+  width: number,
+  height: number | null,
+  auto: string
+): { readonly text: string; readonly scale: boolean } {
+  const h = height === null ? auto : String(height)
+  return width < CHIP_COMPACT_PX
+    ? { text: `${width}×${h}`, scale: false }
+    : { text: `${width} × ${h}`, scale: true }
+}
+
 /** The fields of a DOMRect read here. */
 export interface ClientRect {
   readonly left: number

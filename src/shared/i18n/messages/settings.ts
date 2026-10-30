@@ -19,10 +19,13 @@ export const settingsEs = {
       title: 'Modo edición',
       keys: [
         { key: 'Arrastra', text: 'mover' },
-        { key: 'Bordes', text: 'ancho' },
+        { key: 'Bordes', text: 'tamaño' },
         { key: 'Rueda', text: 'escala' },
-        // R38: the widget last touched, 1 px (Mayús: 10); with Ctrl, its size.
-        { key: 'Flechas', text: 'afinar' },
+        // R38: the widget last touched, 1 px (Mayús: 10); with Ctrl, its size. The same words
+        // as the hint over each widget (core.editFrame.hintLong).
+        { key: 'Flechas', text: 'mover (Ctrl: tamaño)' },
+        { key: 'Tab', text: 'otro widget' },
+        { key: 'Ctrl+Z', text: 'deshacer' },
         { key: 'Alt', text: 'sin imán' },
         { key: 'Esc', text: 'salir' }
       ],
@@ -2048,9 +2051,11 @@ export const settingsEn: Dict<typeof settingsEs> = {
       title: 'Edit mode',
       keys: [
         { key: 'Drag', text: 'move' },
-        { key: 'Edges', text: 'width' },
+        { key: 'Edges', text: 'size' },
         { key: 'Wheel', text: 'scale' },
-        { key: 'Arrows', text: 'nudge' },
+        { key: 'Arrows', text: 'move (Ctrl: size)' },
+        { key: 'Tab', text: 'next widget' },
+        { key: 'Ctrl+Z', text: 'undo' },
         { key: 'Alt', text: 'no snap' },
         { key: 'Esc', text: 'exit' }
       ],

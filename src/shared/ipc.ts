@@ -322,6 +322,11 @@ export interface OverlayPanel {
    * no data. Absent for an enabled widget.
    */
   ghost?: true
+  /**
+   * Edit mode: the widget the arrows apply to (the last touched, or picked with Tab, R38); its
+   * chip is marked. Absent for every other panel.
+   */
+  touched?: true
 }
 
 /** `IPC.layout`: everything an overlay window hosts. Sent whole, whenever any of it changes. */

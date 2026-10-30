@@ -9,6 +9,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **El modo edición sabe a qué widget van las flechas, y deshace**: la etiqueta del widget al que
+  se aplican las flechas lleva el borde en el color de edición; `Tab` y `Mayús+Tab` pasan al widget
+  siguiente o al anterior (de arriba abajo, sin los ocultos ni los bloqueados), también con el
+  cursor oculto por el juego, con un aviso breve «Flechas: Relativo». `Ctrl+Z` deshace el último
+  cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
+  el anterior, y la bandeja ofrece **Deshacer: mover Relativo**; mantener una flecha o girar la
+  rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
+  se toman mientras editas y con los Ajustes detrás, como las flechas.
 - **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
   reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
   eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
@@ -190,6 +198,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Las mismas palabras sobre el juego y en los Ajustes**: la ayuda sobre cada widget dice «Rueda:
+  escala · Flechas: mover · Alt: sin imán · Esc: salir» (más corta en los estrechos), y el aviso
+  de modo edición de los Ajustes usa los mismos pares («Bordes: tamaño», «Flechas: mover (Ctrl:
+  tamaño)», «Tab: otro widget», «Ctrl+Z: deshacer»), igual en inglés («Wheel: scale», «Arrows:
+  move»).
+- **«iRacing oculta el cursor» nombra la tecla**: el aviso dice «Pulsa Ctrl+Shift+O para abrir los
+  Ajustes, que liberan el cursor, o Alt+Tab» (con tu atajo de **Abrir los Ajustes**) y que, sin
+  cursor, `Tab` elige un widget y las flechas lo mueven.
+- **La etiqueta de un widget estrecho dice su tamaño entero**: por debajo de 300 px quita antes la
+  escala y escribe el tamaño junto («220×220»), en lugar de cortarlo («220 …»).
 - **El texto de segundo plano se lee sobre un cielo claro**: con el contorno del texto puesto (en
   «Auto», con el fondo por debajo del 65 %), el gris de las etiquetas y cifras secundarias (P11,
   iRating, «PISTA», «SoF», «LÍDER») sube hacia el blanco del texto principal. Con el fondo de serie

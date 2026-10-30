@@ -137,13 +137,21 @@ describe('core texts', () => {
 })
 
 describe('shortcut texts', () => {
-  it('word the edit-mode hints with the configured keys, or without any', () => {
-    expect(es.core.editFrame.hintShort('Ctrl+Shift+E')).toBe('Rueda: tamaño · Ctrl+Shift+E salir')
-    expect(en.core.editFrame.hintLong('F13')).toBe(
-      'Scroll: size · Arrows: move · Alt: no snap · F13 exit'
+  it('word the edit-mode hints as the settings banner does (one list of keys, R38)', () => {
+    expect(es.core.editFrame.hintLong).toBe(
+      'Rueda: escala · Flechas: mover · Alt: sin imán · Esc: salir'
     )
-    expect(es.core.editFrame.hintLongNoKey).toBe('Rueda: tamaño · Flechas: mover · Alt: sin imán')
-    expect(en.core.editFrame.hintShortNoKey).toBe('Scroll: size')
+    expect(en.core.editFrame.hintShort).toBe('Wheel: scale · Esc: exit')
+    // Every pair of the hint is one of the banner's, in the same words.
+    for (const m of [es, en]) {
+      const banner = m.settings.app.editBanner.keys.map((k) => `${k.key}: ${k.text}`)
+      for (const pair of m.core.editFrame.hintLong.split(' · ')) {
+        expect(
+          banner.some((b) => b.startsWith(pair)),
+          pair
+        ).toBe(true)
+      }
+    }
   })
 
   it('name the show item and the hidden tooltip in both languages', () => {
