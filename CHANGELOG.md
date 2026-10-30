@@ -118,7 +118,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   widget no deja sitio para algo que tienes visible, su fila lo dice con el mismo icono y las
   mismas palabras en todas las listas: columnas de Posiciones, datos de cabeceras, segundas
   líneas y pies de los seis widgets con barras, y el logo y la bandera del bloque «Piloto» de
-  Posiciones. Al pasar el ratón explica qué hacer (ensanchar el widget u ocultar otro dato). En
+  Posiciones (y **Hueco: Ambos**, cuando la columna del hueco al líder no cabe). Al pasar el ratón explica qué hacer (ensanchar el widget u ocultar otro dato). En
   Batalla, **Lado a lado** en una ventana estrecha dice que se dibuja apilada, y en Relativo la
   **Densidad** dice «No se nota a 460 × 252 px» cuando el ancho fija el tamaño del texto (así,
   con las dos densidades se ve igual). Antes el ojo o la opción parecían no hacer nada. No hay
