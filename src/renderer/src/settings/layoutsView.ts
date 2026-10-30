@@ -3,6 +3,7 @@
  * export / import result (pushed by main), the rows of the layouts page and the commands.
  */
 import { shallowRef, type ShallowRef } from 'vue'
+import type { LayoutExample } from '@shared/layoutExamples'
 import type { PersonalBestSummary } from '@shared/delta/references'
 import type { Messages } from '@shared/i18n'
 import type { LayoutFileNotice, LayoutNotice } from '@shared/ipc'
@@ -297,6 +298,8 @@ export function useLayoutState(): {
 }
 
 export const layoutCommands = {
+  example: (kind: LayoutExample, name: string) =>
+    sendCommand({ type: 'layout-example', kind, name }),
   save: (name: string, mode: LayoutMode, car?: CarRef) =>
     sendCommand({
       type: 'layout-save',

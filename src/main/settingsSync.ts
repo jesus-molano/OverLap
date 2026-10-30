@@ -6,6 +6,7 @@
 import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
+import { isLayoutExample } from '@shared/layoutExamples'
 import { LAYOUT_MODES, isLayoutId, normalizeCarRef } from '@shared/layouts'
 import { isWidgetResetPart, toTelemetryConfig } from '@shared/settings'
 import {
@@ -85,6 +86,8 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       )
     case 'layout-import':
       return isModeOrAbsent(cmd.mode)
+    case 'layout-example':
+      return isLayoutExample(cmd.kind) && isName(cmd.name)
     case 'layout-link-car':
       return (
         normalizeCarRef(cmd.car) !== null && (cmd.layoutId === null || isLayoutId(cmd.layoutId))

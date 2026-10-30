@@ -182,7 +182,9 @@ describe('isSettingsCommand', () => {
       { type: 'layout-set-mode', id: 'layout-2', mode: 'position' },
       { type: 'layout-options-to-all', widgetId: 'standings', layoutId: 'layout-1' },
       { type: 'layout-link-car', car, layoutId: 'layout-2' },
-      { type: 'layout-link-car', car, layoutId: null }
+      { type: 'layout-link-car', car, layoutId: null },
+      { type: 'layout-example', kind: 'light', name: 'Ligera' },
+      { type: 'layout-example', kind: 'full', name: 'Full' }
     ]) {
       expect(isSettingsCommand(raw), raw.type).toBe(true)
     }
@@ -198,6 +200,8 @@ describe('isSettingsCommand', () => {
       { type: 'layout-link-car', car, layoutId: 'bad id' },
       { type: 'layout-link-car', car },
       { type: 'layout-save', name: 'x', mode: 'both' },
+      { type: 'layout-example', kind: 'heavy', name: 'x' },
+      { type: 'layout-example', kind: 'light' },
       { type: 'layout-import', mode: 1 },
       { type: 'layout-set-mode', id: 'layout-2' },
       { type: 'layout-set-mode', id: '../x', mode: 'full' },

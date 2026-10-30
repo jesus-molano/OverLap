@@ -88,7 +88,7 @@ export function sharedOptions(s: OverlaySettings): LayoutOptionSet {
   return copyData(shared)
 }
 
-function addLayout(
+export function addLayout(
   s: OverlaySettings,
   name: unknown,
   widgets: Record<WidgetId, LayoutWidget>,

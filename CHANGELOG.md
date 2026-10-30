@@ -78,6 +78,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   (`gal/v`), lo que hay que echar, el menú de boxes y el ahorro; el plan y las vueltas no
   cambian. El alcance del radar (en sus marcas, en su página y en la bandeja) se lee en pies; el
   ajuste se sigue guardando en metros. El aviso «COMBUSTIBLE · 1.6 V» sigue en vueltas.
+- **Disposiciones de ejemplo «Ligera» y «Completa»**: en **Disposiciones › Ejemplos**, **Añadir**
+  pone al final de la lista una disposición con tus widgets donde están y sus opciones, sin
+  aplicarla: «Ligera» muestra Relativo (con 2 coches delante y 2 detrás, o menos si ya tenías
+  menos), Radar, Delta, Combustible y Avisos; «Completa», los diez widgets. Al añadirla, la página
+  recuerda que alternas con el atajo **Siguiente disposición** (con sus teclas) o desde la bandeja.
 
 ### Cambiado
 

@@ -1684,6 +1684,23 @@ export const settingsEs = {
      * MX-5 Cup, BMW M2'.
      */
     cars: (list: string) => `Coches: ${list}`,
+    /** The example layouts (R57). */
+    examples: {
+      title: 'Ejemplos',
+      note: 'Se añaden a la lista sin aplicarse, con tus widgets donde están',
+      light: {
+        name: 'Ligera',
+        hint: 'Relativo (2 coches delante y 2 detrás), Radar, Delta, Combustible y Avisos'
+      },
+      full: { name: 'Completa', hint: 'Los diez widgets' },
+      add: 'Añadir',
+      addLabel: (name: string) => `Añadir la disposición de ejemplo «${name}»`,
+      /** After adding one: how to switch, with the shortcut when there is one. */
+      added: (name: string, keys: string | null) =>
+        keys === null
+          ? `«${name}» añadida. Cámbiate a ella desde la lista o la bandeja`
+          : `«${name}» añadida. Alterna con «Siguiente disposición» (${keys}) o desde la bandeja`
+    },
     saveTitle: 'Guardar la actual',
     saveHelp: 'Una disposición nueva igual a lo que ves ahora; pasa a ser la que está en uso',
     savePlaceholder: 'Mazda MX-5, GT3, Resistencia…',
@@ -3122,6 +3139,21 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     deleteActive: 'Apply another one before deleting the one in use',
     cars: (list) => `Cars: ${list}`,
+    examples: {
+      title: 'Examples',
+      note: 'Added to the list without being applied, with your widgets where they are',
+      light: {
+        name: 'Light',
+        hint: 'Relative (2 cars ahead and 2 behind), Radar, Delta, Fuel and Alerts'
+      },
+      full: { name: 'Full', hint: 'All ten widgets' },
+      add: 'Add',
+      addLabel: (name) => `Add the example layout “${name}”`,
+      added: (name, keys) =>
+        keys === null
+          ? `“${name}” added. Switch to it from the list or the tray`
+          : `“${name}” added. Switch with “Next layout” (${keys}) or from the tray`
+    },
     saveTitle: 'Save the current one',
     saveHelp: 'A new layout equal to what you see now; it becomes the one in use',
     savePlaceholder: 'Mazda MX-5, GT3, Endurance…',

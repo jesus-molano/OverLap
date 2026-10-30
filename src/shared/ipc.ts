@@ -20,6 +20,7 @@ import type { ControllerInfo } from './controllers'
 import type { PersonalBestList } from './delta/references'
 import type { SessionKind } from './sessionInfo'
 import type { ShortcutAction, ShortcutStatusReport } from './shortcuts'
+import type { LayoutExample } from './layoutExamples'
 import type { LayoutFileError } from './layouts'
 import type {
   CarRef,
@@ -468,6 +469,8 @@ export type SettingsCommand =
   | { type: 'layout-set-mode'; id: string; mode: LayoutMode }
   | { type: 'layout-options-to-all'; widgetId: WidgetId; layoutId: string }
   | { type: 'layout-link-car'; car: CarRef; layoutId: string | null }
+  /** An example layout (R57, layoutExamples.ts), added at the end, not applied; `name` cleaned by main. */
+  | { type: 'layout-example'; kind: LayoutExample; name: string }
 
 export interface InitialState {
   view: RendererView

@@ -298,6 +298,9 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
   opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
+- **Ejemplos**: **Ligera** (Relativo con 2 coches delante y 2 detrás, Radar, Delta, Combustible y
+  Avisos) y **Completa** (los diez widgets) se añaden a la lista con tus widgets donde están, sin
+  aplicarse; con **Siguiente disposición** alternas entre menos y más información en carrera.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
   uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche
   lo activa (con **Deshacer**, en la página o en la bandeja, que también vuelve a la disposición
