@@ -14,8 +14,10 @@
  *
  * Limpio and Compacto are looks alone. None ever changes the accent (yours), Accesibilidad (a
  * need, not a look: the colour-blind palette, the 10 px text, no flashing, the window's size),
- * the SIM tag (a data-state cue), the language, the units, places or which widgets show; widgets with values of their own keep them. Choosing one that would
- * change what you set yourself asks first (planStyle). Nothing is stored about which one you
+ * the SIM tag (a data-state cue), the language, the units, places or which widgets show; what a
+ * widget draws its own way (its rows' density, its names) keeps it, though OverLap puts each
+ * widget's own logos and flags back to «Global». Choosing one that would change what you set
+ * yourself asks first (planStyle). Nothing is stored about which one you
  * chose: the page shows the one your settings match, so a file from before (with the old «Como
  * iRacing» look, now gone) reads as «Personalizado», drawn as it was. Pure.
  */
@@ -199,6 +201,8 @@ export interface StylePlan {
    * applies at once (with "Deshacer"); with nothing to change, there is nothing to do.
    */
   readonly confirm: boolean
+  /** It changes the widgets' contents (saved in the layout, not the global look: styleWhere). */
+  readonly contents: boolean
 }
 
 type Entry = { readonly id: string; readonly visible: boolean }
@@ -285,7 +289,7 @@ export function planStyle(s: Readonly<OverlaySettings>, id: AppearancePreset): S
     Object.assign(patch, more)
   }
   const confirm = contents || (changes.length > 0 && matchingPreset(s) === null)
-  return { patch: patch as SettingsPatch, changes, confirm }
+  return { patch: patch as SettingsPatch, changes, confirm, contents }
 }
 
 /** The patch that puts back what `patch` changes in `s` (the "Deshacer" after a style). */

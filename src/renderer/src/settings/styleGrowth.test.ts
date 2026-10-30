@@ -4,7 +4,15 @@ import { messagesFor } from '@shared/i18n'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
 import { styleChangeGroups } from './styleChanges'
 import { WIDGET_DEFS } from '@shared/widgets'
-import { defaultSizes, deltaFit, freeGrowth, grownBounds, relativeFit } from './styleGrowth'
+import type { OverlaySettings } from '@shared/types'
+import {
+  defaultSizes,
+  deltaFit,
+  freeGrowth,
+  grownBounds,
+  relativeFit,
+  styleWindows
+} from './styleGrowth'
 
 describe('«Completo» grows the free windows instead of shrinking their text', () => {
   it('measures what the relative and the delta need, as the widgets do', () => {
@@ -57,17 +65,48 @@ describe('«Completo» grows the free windows instead of shrinking their text', 
 })
 
 describe('«OverLap» puts the windows «Completo» grew back to their default size', () => {
-  it('the relative and the delta, from the same corner, when their contents go back', () => {
-    const s = createDefaultSettings()
+  type Free = 'relative' | 'delta'
+  const FREE = ['relative', 'delta'] as const
+  /** Completo applied, its windows grown and moved to (300, 40). */
+  function completed(s: OverlaySettings): OverlaySettings {
     const complete = applySettingsPatch(s, planStyle(s, 'complete').patch)
     for (const [id, b] of Object.entries(freeGrowth(s, complete))) {
-      complete.widgets[id as 'relative' | 'delta'].bounds = { ...b, x: 300, y: 40 }
+      complete.widgets[id as Free].bounds = { ...b, x: 300, y: 40 }
     }
-    const sizes = defaultSizes(complete, planStyle(complete, 'overlap').patch)
-    for (const id of ['relative', 'delta'] as const) {
+    return complete
+  }
+  function overlap(s: OverlaySettings): OverlaySettings {
+    return applySettingsPatch(s, planStyle(s, 'overlap').patch)
+  }
+  /** The text size a free window draws at (as grownBounds measures it). */
+  function font(s: OverlaySettings, id: Free, b = s.widgets[id].bounds): number {
+    const fit = id === 'relative' ? relativeFit(s) : deltaFit(s)
+    return Math.min(b.height / fit.h, b.width / fit.w)
+  }
+
+  it('the relative and the delta, from the same corner, when their contents go back', () => {
+    const complete = completed(createDefaultSettings())
+    const sizes = defaultSizes(complete, overlap(complete))
+    for (const id of FREE) {
       const { width, height } = WIDGET_DEFS[id].defaultBounds
       expect(sizes[id], id).toEqual({ x: 300, y: 40, width, height })
     }
+  })
+
+  it('never shrinks the text: more cars than the default keep a taller relative', () => {
+    const s = createDefaultSettings()
+    s.relative.carsAhead = 5
+    s.relative.carsBehind = 5
+    const complete = completed(s)
+    const after = overlap(complete)
+    expect(after.relative.carsAhead).toBe(5)
+    const b = defaultSizes(complete, after).relative
+    expect(b).toBeDefined()
+    expect(b!.height).toBeGreaterThan(WIDGET_DEFS.relative.defaultBounds.height)
+    expect(b!.width).toBeGreaterThanOrEqual(WIDGET_DEFS.relative.defaultBounds.width)
+    // The text is drawn at the default install's size, not smaller.
+    const def = createDefaultSettings()
+    expect(font(after, 'relative', b)).toBeGreaterThanOrEqual(font(def, 'relative') - 1e-9)
   })
 
   it('leaves a window whose contents it does not touch, and one already at its size', () => {
@@ -75,8 +114,29 @@ describe('«OverLap» puts the windows «Completo» grew back to their default s
     s.relative.columnHeads = !s.relative.columnHeads
     s.widgets.delta.bounds = { ...s.widgets.delta.bounds, width: 999 }
     // The relative's contents change, its size is already the default; the delta's do not.
-    expect(defaultSizes(s, planStyle(s, 'overlap').patch)).toEqual({})
+    expect(defaultSizes(s, overlap(s))).toEqual({})
     // A look alone resizes nothing.
-    expect(defaultSizes(s, planStyle(s, 'clean').patch)).toEqual({})
+    expect(styleWindows('clean', s, applySettingsPatch(s, planStyle(s, 'clean').patch))).toEqual({
+      resize: {},
+      restore: {}
+    })
+  })
+
+  it('"Deshacer" after OverLap puts back the sizes «Completo» had given them', () => {
+    const complete = completed(createDefaultSettings())
+    const { resize, restore } = styleWindows('overlap', complete, overlap(complete))
+    for (const id of FREE) {
+      expect(resize[id]?.height, id).toBe(WIDGET_DEFS[id].defaultBounds.height)
+      expect(restore[id], id).toEqual(complete.widgets[id].bounds)
+      expect(restore[id], id).not.toEqual(resize[id])
+    }
+  })
+
+  it('"Deshacer" after Completo puts back the sizes it had before', () => {
+    const s = createDefaultSettings()
+    const after = applySettingsPatch(s, planStyle(s, 'complete').patch)
+    const { resize, restore } = styleWindows('complete', s, after)
+    expect(Object.keys(resize).sort()).toEqual(['delta', 'relative'])
+    for (const id of FREE) expect(restore[id], id).toEqual(s.widgets[id].bounds)
   })
 })

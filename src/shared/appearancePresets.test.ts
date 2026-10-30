@@ -193,6 +193,21 @@ describe('planStyle: what a style changes and when it asks first', () => {
     })
   })
 
+  it('says it touches the contents only when it does (the dialog then names the layout)', () => {
+    const s = createDefaultSettings()
+    s.appearance.backgroundOpacity = 0.55
+    // A look tuned by hand, the contents as they come: OverLap asks, but only about the look.
+    const plan = planStyle(s, 'overlap')
+    expect(plan.confirm).toBe(true)
+    expect(plan.contents).toBe(false)
+    expect(planStyle(s, 'complete').contents).toBe(true)
+    // Once complete, «Completo» again over a hand-tuned look: the look alone.
+    const complete = applySettingsPatch(s, planStyle(s, 'complete').patch)
+    complete.appearance.backgroundOpacity = 0.55
+    expect(planStyle(complete, 'complete').contents).toBe(false)
+    expect(planStyle(complete, 'overlap').contents).toBe(true)
+  })
+
   it('asks before «Completo» changes the widgets, and counts what each one gains', () => {
     const plan = planStyle(createDefaultSettings(), 'complete')
     expect(plan.confirm).toBe(true)

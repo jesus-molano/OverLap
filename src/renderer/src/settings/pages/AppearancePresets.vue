@@ -4,13 +4,12 @@ import {
   APPEARANCE_PRESETS,
   matchingPreset,
   planStyle,
-  setsContents,
   undoPatch,
   type AppearancePreset,
   type StylePlan
 } from '@shared/appearancePresets'
 import { DEFAULT_SETTINGS, applySettingsPatch } from '@shared/settings'
-import type { OverlaySettings, Rect } from '@shared/types'
+import type { Rect } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -18,7 +17,7 @@ import Icon from '../../ui/Icon.vue'
 import ConfirmDialog from '../ConfirmDialog.vue'
 import { sendCommand, updateSettings } from '../editor'
 import { foldGroups, styleChangeGroups, styleWhere } from '../styleChanges'
-import { defaultSizes, freeGrowth } from '../styleGrowth'
+import { styleWindows } from '../styleGrowth'
 import { offerRestore } from '../undo/restore'
 
 /**
@@ -65,55 +64,39 @@ const folded = computed(() =>
 const where = computed(() =>
   asking.value === null
     ? ''
-    : styleWhere(t.value, now.value.savedLayouts, setsContents(asking.value.id))
+    : styleWhere(t.value, now.value.savedLayouts, asking.value.plan.contents)
 )
 
 /**
- * The free windows style `p` resizes going from `before` to `after` (styleGrowth): «Completo»
- * grows those its contents need, «OverLap» puts those whose contents it resets back to their
- * default size.
- */
-function resized(
-  p: AppearancePreset,
-  plan: StylePlan,
-  before: Readonly<OverlaySettings>,
-  after: Readonly<OverlaySettings>
-): Partial<Record<WidgetId, Rect>> {
-  if (p === 'complete') return freeGrowth(before, after)
-  if (p === 'overlap') return defaultSizes(before, plan.patch)
-  return {}
-}
-
-/**
- * Applies `plan`, then resizes the free windows it changes (resized), with one "Deshacer" for
- * all of it: the settings first (which also puts back a window the text size scaled), then each
- * resized window as it was.
+ * Applies `plan`, then resizes the free windows it changes (styleWindows), with one "Deshacer"
+ * for all of it: the settings first (which also puts back a window the text size scaled), then
+ * each resized window as it was.
  */
 async function apply(p: AppearancePreset, plan: StylePlan): Promise<void> {
   const before = now.value
   const back = undoPatch(before, plan.patch)
-  const sizes = new Map<WidgetId, Rect>()
+  let restore: Partial<Record<WidgetId, Rect>> = {}
   offerRestore(
     (m) => m.settings.appearance.presets.applied(m.settings.appearance.presets.choices[p].label),
     async () => {
       await updateSettings(back)
-      for (const [id, bounds] of sizes) {
-        sendCommand({ type: 'set-widget-bounds', widgetId: id, bounds })
+      for (const [id, bounds] of Object.entries(restore)) {
+        sendCommand({ type: 'set-widget-bounds', widgetId: id as WidgetId, bounds })
       }
     }
   )
   await updateSettings(plan.patch)
-  for (const [id, bounds] of Object.entries(resized(p, plan, before, now.value))) {
-    const widgetId = id as WidgetId
-    sizes.set(widgetId, { ...before.widgets[widgetId].bounds })
-    sendCommand({ type: 'set-widget-bounds', widgetId, bounds })
+  const windows = styleWindows(p, before, now.value)
+  restore = windows.restore
+  for (const [id, bounds] of Object.entries(windows.resize)) {
+    sendCommand({ type: 'set-widget-bounds', widgetId: id as WidgetId, bounds })
   }
 }
 
 /** The free windows style `p` would resize (said in the confirmation). */
 function resizing(p: AppearancePreset, plan: StylePlan): WidgetId[] {
   const after = applySettingsPatch(now.value, plan.patch)
-  return Object.keys(resized(p, plan, now.value, after)) as WidgetId[]
+  return Object.keys(styleWindows(p, now.value, after).resize) as WidgetId[]
 }
 
 /** The radios back to what the settings are (a cancelled choice left its own checked). */
