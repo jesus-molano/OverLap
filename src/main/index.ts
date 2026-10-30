@@ -12,7 +12,7 @@ import {
   type WebContents
 } from 'electron'
 import { readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { release as osRelease, type as osType } from 'node:os'
 
 import {
@@ -51,6 +51,10 @@ import { gatherBounds, moveWidgets } from './gather'
 import { InputHost } from './inputHost'
 import { LayoutControl, isLayoutCommand } from './layoutControl'
 import type { LayoutFileDeps } from './layoutFiles'
+import { exportBackup, readBackup, type BackupDeps } from './backupFiles'
+import { BACKUP_EXTENSION, factorySettings, importedSettings } from '@shared/backup'
+import { PERSONAL_BESTS_FILE } from '../telemetry/store/personalBests'
+
 import { SettingsStore } from './settingsStore'
 import { diffSettings, isSettingsCommand, viewOfSender } from './settingsSync'
 import {
@@ -71,6 +75,10 @@ import { OverlayWindows } from './overlayWindows'
 import { commonHiddenReason, createTray, destroyTray, updateTray, type TrayState } from './tray'
 import { OsdWindow } from './osdWindow'
 import { shortcutConfirmation } from './shortcutFeedback'
+
+/** «Acerca de y ayuda» (R40): the guide and the place to report a problem. */
+const HELP_GUIDE_URL = 'https://github.com/jesus-molano/OverLap#readme'
+const HELP_ISSUES_URL = 'https://github.com/jesus-molano/OverLap/issues'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
@@ -238,9 +246,30 @@ function start(): void {
 
   /** The system's file dialogs for a layout export or import, over the settings window. */
   function layoutFileDeps(): LayoutFileDeps {
-    const parent = openSettingsWindowHandle()
     const t = messagesFor(store.settings.appearance.language).core.layoutFiles
-    const filters = [{ name: t.filter, extensions: [LAYOUT_FILE_EXTENSION] }]
+    return fileDeps(t.filter, LAYOUT_FILE_EXTENSION)
+  }
+
+  /** The same dialogs for «Exportar todo» / «Importar todo» (R40), with the bests' file. */
+  function backupDeps(): BackupDeps {
+    const t = messagesFor(store.settings.appearance.language).core.layoutFiles
+    return {
+      ...fileDeps(t.backupFilter, BACKUP_EXTENSION),
+      readBests: () => {
+        try {
+          return readFileSync(join(userData, PERSONAL_BESTS_FILE), 'utf8')
+        } catch {
+          return null
+        }
+      },
+      baseName: (path) => basename(path)
+    }
+  }
+
+  /** Save and open dialogs for one kind of file (`name`, `ext`), over the settings window. */
+  function fileDeps(name: string, ext: string): LayoutFileDeps {
+    const parent = openSettingsWindowHandle()
+    const filters = [{ name, extensions: [ext] }]
     return {
       pickSavePath: async (name) => {
         const options = { defaultPath: join(app.getPath('documents'), name), filters }
@@ -612,6 +641,69 @@ function start(): void {
     }
   }
 
+  /**
+   * Every setting replaced by `next` at once (an import, «Restablecer todo», their «Deshacer»):
+   * what waits to be saved is written first, then every widget window takes its new place and
+   * the rest follows as after any change. Returns the settings it replaced.
+   */
+  function replaceSettings(next: OverlaySettings): OverlaySettings {
+    windows.flushPendingSaves()
+    const prev = store.settings
+    store.update((draft) => {
+      Object.assign(draft, structuredClone(next))
+    })
+    windows.reloadBoundsOf(WIDGET_IDS, true)
+    syncSettings(prev)
+    layouts.afterChange(prev)
+    return prev
+  }
+
+  /** «Exportar todo» (R40): every setting and the personal bests to the file the user picks. */
+  async function exportEverything(): Promise<void> {
+    const r = await exportBackup(store.settings, app.getVersion(), new Date(), backupDeps())
+    if (r === null) return
+    sendToSettingsWindow(
+      IPC.layoutNotice,
+      r.ok ? { kind: 'backup-exported', file: r.file } : { kind: 'backup-export-failed' }
+    )
+  }
+
+  /**
+   * «Importar todo» (R40): the file's settings in effect at once, with «Deshacer» (the settings
+   * as they were; the bests merged stay: none was lost), its personal bests merged.
+   */
+  async function importEverything(): Promise<void> {
+    const read = await readBackup(backupDeps())
+    if (read === null) return
+    if (!read.ok) {
+      sendToSettingsWindow(IPC.layoutNotice, { kind: 'backup-import-failed', error: read.error })
+      return
+    }
+    const before = replaceSettings(importedSettings(read))
+    if (read.bests !== null) telemetry.mergeBests(read.bests)
+    const undo = noticeUndo.keep(
+      (m) => m.settings.about.backup.undoImport,
+      () => void replaceSettings(before)
+    )
+    console.log('[main] settings imported from a backup')
+    sendToSettingsWindow(IPC.layoutNotice, {
+      kind: 'backup-imported',
+      bests: read.bests !== null,
+      undo
+    })
+  }
+
+  /** «Restablecer todo» (R40): a new install's settings, in the language in use; «Deshacer». */
+  function resetEverything(): void {
+    const before = replaceSettings(factorySettings(store.settings))
+    const undo = noticeUndo.keep(
+      (m) => m.settings.about.reset.undo,
+      () => void replaceSettings(before)
+    )
+    console.log('[main] every setting reset')
+    sendToSettingsWindow(IPC.layoutNotice, { kind: 'reset-all', undo })
+  }
+
   /** Widgets to `bounds` (one change, the windows moved); what they were, to put them back. */
   function placeWidgets(bounds: Partial<Record<WidgetId, Rect>>): Partial<Record<WidgetId, Rect>> {
     const prev = store.settings
@@ -745,7 +837,8 @@ function start(): void {
       shortcutStatus: shortcuts.report,
       cursorHidden: windows.cursorHidden,
       currentCar: layouts.car,
-      saveFailing: store.saveFailing
+      saveFailing: store.saveFailing,
+      appVersion: app.getVersion()
     }
   })
   ipcMain.handle(IPC.updateSettings, (event, patch: unknown, forLayout: unknown) => {
@@ -803,6 +896,19 @@ function start(): void {
         break
       case 'open-log':
         openLog()
+        break
+      case 'backup-export':
+        exportEverything().catch((err: unknown) => console.error('[main] export:', err))
+        break
+      case 'backup-import':
+        importEverything().catch((err: unknown) => console.error('[main] import:', err))
+        break
+      case 'reset-all':
+        resetEverything()
+        break
+      // Fixed addresses (the project's), never one the page sends.
+      case 'open-help':
+        void shell.openExternal(raw.page === 'guide' ? HELP_GUIDE_URL : HELP_ISSUES_URL)
         break
       case 'copy-diagnostics':
         copyDiagnostics()

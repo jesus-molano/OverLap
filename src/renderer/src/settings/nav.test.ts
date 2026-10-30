@@ -33,9 +33,12 @@ const throwing: PageStorage = {
 }
 
 describe('settings pages', () => {
-  it('lists the appearance, the visibility, the shortcuts, the layouts, then the widgets by group', () => {
+  it('lists the appearance, the visibility, the shortcuts, the layouts, the widgets by group, then «Acerca de»', () => {
     expect(SETTINGS_PAGES.slice(0, 4)).toEqual(['appearance', 'visibility', 'shortcuts', 'layouts'])
-    expect(SETTINGS_PAGES.slice(4)).toEqual(WIDGET_LIST_ORDER)
+    expect(SETTINGS_PAGES.slice(4, -1)).toEqual(WIDGET_LIST_ORDER)
+    // At the foot of the sidebar (R40).
+    expect(SETTINGS_PAGES.at(-1)).toBe('about')
+    expect(isSettingsPage('about')).toBe(true)
     expect(new Set(SETTINGS_PAGES).size).toBe(SETTINGS_PAGES.length)
   })
 

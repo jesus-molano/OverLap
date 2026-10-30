@@ -568,3 +568,41 @@ describe('openPersonalBestStore', () => {
     expect(readFile().bests[KEY]?.lapTime).toBe(90)
   })
 })
+
+describe('merging a backup of the bests (R40)', () => {
+  it('takes the new keys and the faster laps, keeps the rest, saves and tells the window', async () => {
+    const changes = vi.fn()
+    const store = createFileStore(dir, { log, onChange: changes })
+    store.offer(KEY, lap(98), SPA)
+    store.offer('80@1/', lap(70))
+    const backup = JSON.stringify({
+      version: 1,
+      bests: {
+        // Faster: taken, its names kept.
+        [KEY]: { ...lap(97, '2026-10-26T10:00:00.000Z'), ...SPA },
+        // Slower: the one here stays.
+        '80@1/': lap(71),
+        // New.
+        '1@1/x': lap(60)
+      }
+    })
+    changes.mockClear()
+    expect(store.merge(backup)).toBe(2)
+    expect(store.get(KEY)?.lapTime).toBe(97)
+    expect(store.get('80@1/')?.lapTime).toBe(70)
+    expect(store.get('1@1/x')?.lapTime).toBe(60)
+    expect(store.list().find((b) => b.key === KEY)).toMatchObject(SPA)
+    expect(changes).toHaveBeenCalledTimes(1)
+    await store.flush()
+    expect(Object.keys(readFile().bests).sort()).toEqual(['1@1/x', '80@1/', KEY].sort())
+  })
+
+  it('takes nothing from what is not a bests file, or has nothing better', () => {
+    const store = createFileStore(dir, { log })
+    store.offer(KEY, lap(98))
+    expect(store.merge('{')).toBe(0)
+    expect(store.merge(JSON.stringify({ version: 2, bests: {} }))).toBe(0)
+    expect(store.merge(JSON.stringify({ version: 1, bests: { [KEY]: lap(99) } }))).toBe(0)
+    expect(store.get(KEY)?.lapTime).toBe(98)
+  })
+})

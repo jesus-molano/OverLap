@@ -22,7 +22,10 @@ const fakes = vi.hoisted(() => ({
   /** What the fake store lists, and the calls that would change it. */
   entries: [] as PersonalBestSummary[],
   deleted: [] as string[][],
-  cleared: 0
+  cleared: 0,
+  merged: [] as string[],
+  /** What the fake store's merge takes. */
+  takes: 0
 }))
 const store = vi.hoisted(() => ({
   get: () => null,
@@ -39,6 +42,10 @@ const store = vi.hoisted(() => ({
   clear: () => {
     fakes.cleared++
     return fakes.entries.length
+  },
+  merge: (text: string) => {
+    fakes.merged.push(text)
+    return fakes.takes
   }
 }))
 vi.mock('./loop', () => ({
@@ -116,7 +123,9 @@ beforeEach(() => {
     flush: () => Promise.resolve(),
     entries: [],
     deleted: [],
-    cleared: 0
+    cleared: 0,
+    merged: [],
+    takes: 0
   })
 })
 
@@ -292,6 +301,23 @@ describe('telemetry entry', () => {
     fakes.entries = []
     send({ type: 'clear-bests' })
     expect(bestsMessages(entry)).toHaveLength(sent + 2)
+  })
+
+  it('merges a backup of the bests; with nothing taken it resends the list (R40)', async () => {
+    fakes.entries = [BEST]
+    const entry = await loadEntry()
+    const send = (data: unknown): void => entry.portHandlers.get('message')?.({ data })
+    const sent = bestsMessages(entry).length
+    fakes.takes = 2
+    send({ type: 'merge-bests', text: '{"version":1}' })
+    expect(fakes.merged).toEqual(['{"version":1}'])
+    expect(bestsMessages(entry)).toHaveLength(sent)
+    fakes.takes = 0
+    send({ type: 'merge-bests', text: '{}' })
+    expect(bestsMessages(entry)).toHaveLength(sent + 1)
+    // Not a text: ignored.
+    send({ type: 'merge-bests', text: 7 })
+    expect(fakes.merged).toHaveLength(2)
   })
 
   it('ignores malformed delete requests and requests while exiting', async () => {

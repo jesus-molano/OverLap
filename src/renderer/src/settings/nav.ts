@@ -10,11 +10,17 @@ export const GLOBAL_PAGES = ['appearance', 'visibility', 'shortcuts', 'layouts']
 
 export type GlobalPage = (typeof GLOBAL_PAGES)[number]
 
-export type SettingsPage = GlobalPage | WidgetId
+/** At the foot of the sidebar, after the widgets: «Acerca de y ayuda» (R40). */
+export const FOOT_PAGES = ['about'] as const
+
+export type FootPage = (typeof FOOT_PAGES)[number]
+
+export type SettingsPage = GlobalPage | WidgetId | FootPage
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = Object.freeze([
   ...GLOBAL_PAGES,
-  ...WIDGET_LIST_ORDER
+  ...WIDGET_LIST_ORDER,
+  ...FOOT_PAGES
 ])
 
 export const DEFAULT_PAGE: SettingsPage = 'appearance'
@@ -23,7 +29,11 @@ export const DEFAULT_PAGE: SettingsPage = 'appearance'
 export const PAGE_STORAGE_KEY = 'ov-settings:page'
 
 export function isSettingsPage(value: unknown): value is SettingsPage {
-  return (GLOBAL_PAGES as readonly unknown[]).includes(value) || isWidgetId(value)
+  return (
+    (GLOBAL_PAGES as readonly unknown[]).includes(value) ||
+    (FOOT_PAGES as readonly unknown[]).includes(value) ||
+    isWidgetId(value)
+  )
 }
 
 /** 'Apariencia', 'Atajos', 'Disposiciones' or the widget's name, in `m`'s language. */
@@ -32,6 +42,7 @@ export function pageTitle(m: Messages, page: SettingsPage): string {
   if (page === 'visibility') return m.settings.nav.visibility
   if (page === 'shortcuts') return m.settings.nav.shortcuts
   if (page === 'layouts') return m.settings.nav.layouts
+  if (page === 'about') return m.settings.nav.about
   return widgetTitle(m, page)
 }
 

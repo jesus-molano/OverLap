@@ -127,6 +127,13 @@ describe('isSettingsCommand', () => {
     ).toBe(false)
     expect(isSettingsCommand({ type: 'layout-restore', id: 'layout-2' })).toBe(true)
     expect(isSettingsCommand({ type: 'open-settings-folder' })).toBe(true)
+    // «Acerca de y ayuda» (R40): the help pages are named, never an address.
+    for (const type of ['backup-export', 'backup-import', 'reset-all']) {
+      expect(isSettingsCommand({ type }), type).toBe(true)
+    }
+    expect(isSettingsCommand({ type: 'open-help', page: 'guide' })).toBe(true)
+    expect(isSettingsCommand({ type: 'open-help', page: 'issues' })).toBe(true)
+    expect(isSettingsCommand({ type: 'open-help', page: 'https://example.com' })).toBe(false)
     expect(isSettingsCommand({ type: 'refresh-personal-bests' })).toBe(true)
     expect(isSettingsCommand({ type: 'clear-personal-bests' })).toBe(true)
     expect(

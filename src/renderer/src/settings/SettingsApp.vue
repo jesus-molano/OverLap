@@ -11,6 +11,7 @@ import SettingsFooter from './layout/SettingsFooter.vue'
 import SettingsSidebar from './layout/SettingsSidebar.vue'
 import { WIDGET_GROUPS } from '@shared/widgets'
 import {
+  FOOT_PAGES,
   GLOBAL_PAGES,
   browserStorage,
   initialPage,
@@ -20,6 +21,7 @@ import {
   searchWithoutPage,
   type SettingsPage
 } from './nav'
+import AboutPage from './pages/AboutPage.vue'
 import AppearancePage from './pages/AppearancePage.vue'
 import LayoutsPage from './pages/LayoutsPage.vue'
 import ShortcutsPage from './pages/ShortcutsPage.vue'
@@ -60,7 +62,12 @@ const pageGroups = computed(() => [
     id: g.id,
     title: t.value.core.widgetGroups[g.id],
     pages: g.widgets.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
-  }))
+  })),
+  {
+    id: 'foot',
+    title: null,
+    pages: FOOT_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
+  }
 ])
 
 /** A new page is a new scroller (it is keyed), so it starts at the top. */
@@ -210,6 +217,7 @@ function openLog(): void {
         <VisibilityPage v-else-if="page === 'visibility'"><SettingsFooter /></VisibilityPage>
         <ShortcutsPage v-else-if="page === 'shortcuts'"><SettingsFooter /></ShortcutsPage>
         <LayoutsPage v-else-if="page === 'layouts'"><SettingsFooter /></LayoutsPage>
+        <AboutPage v-else-if="page === 'about'"><SettingsFooter /></AboutPage>
         <WidgetPage v-else :key="page" :widget-id="page"><SettingsFooter /></WidgetPage>
       </main>
 

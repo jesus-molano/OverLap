@@ -168,7 +168,9 @@ export const coreEs = {
   /** Main's words about the saved layouts (file dialogs, an imported file without a name). */
   layoutFiles: {
     filter: 'Disposición de OverLap',
-    importedName: 'Importada'
+    importedName: 'Importada',
+    /** «Exportar todo» (R40): the dialog's file type. */
+    backupFilter: 'Copia de OverLap'
   },
   windowTitles: {
     /** The settings window's title bar. */
@@ -348,7 +350,8 @@ export const coreEn: Dict<typeof coreEs> = {
   },
   layoutFiles: {
     filter: 'OverLap layout',
-    importedName: 'Imported'
+    importedName: 'Imported',
+    backupFilter: 'OverLap backup'
   },
   windowTitles: {
     settings: 'OverLap — Settings',

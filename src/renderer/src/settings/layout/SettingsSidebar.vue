@@ -9,9 +9,8 @@ import Icon from '../../ui/Icon.vue'
 import StatusChip from '../StatusChip.vue'
 import { heldCaption } from '../statusSummary'
 import SettingsSearch from '../search/SettingsSearch.vue'
-import { sendCommand } from '../editor'
 import { setWidgetVisible } from '../undo/restore'
-import { GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
+import { FOOT_PAGES, GLOBAL_PAGES, pageTitle, type SettingsPage } from '../nav'
 import { sidebarKeys } from '../shortcutsView'
 import EditModeButton from './EditModeButton.vue'
 import NavIcon from './NavIcon.vue'
@@ -27,6 +26,9 @@ const shortcuts = useShortcuts()
 const deviceNames = useDeviceNames()
 const globalItems = computed(() =>
   GLOBAL_PAGES.map((page) => ({ page, title: pageTitle(t.value, page) }))
+)
+const footItems = computed(() =>
+  FOOT_PAGES.map((page) => ({ page, title: pageTitle(t.value, page) }))
 )
 /** The shortcuts at the foot, as configured (one turned off is left out). */
 const keys = computed(() => sidebarKeys(t.value, shortcuts.value, deviceNames.value))
@@ -53,10 +55,6 @@ const groups = computed(() =>
     }))
   }))
 )
-
-function openSettingsFolder(): void {
-  sendCommand({ type: 'open-settings-folder' })
-}
 </script>
 
 <template>
@@ -73,6 +71,7 @@ function openSettingsFolder(): void {
         :key="item.page"
         type="button"
         class="nav-item"
+        :data-page="item.page"
         :aria-current="page === item.page ? 'page' : undefined"
         @click="emit('select', item.page)"
       >
@@ -87,6 +86,7 @@ function openSettingsFolder(): void {
             <button
               type="button"
               class="nav-item"
+              :data-page="item.id"
               :class="{ 'is-hidden': !item.visible }"
               :aria-current="page === item.id ? 'page' : undefined"
               @click="emit('select', item.id)"
@@ -119,12 +119,18 @@ function openSettingsFolder(): void {
           <dd>{{ k.label }}</dd>
         </template>
       </dl>
+      <!-- «Acerca de y ayuda» (R40): the folder, the log, a backup... (the tray keeps the folder). -->
       <button
+        v-for="item in footItems"
+        :key="item.page"
         type="button"
-        class="st-btn st-btn-ghost st-btn-sm folder"
-        @click="openSettingsFolder"
+        class="nav-item foot-item"
+        :data-page="item.page"
+        :aria-current="page === item.page ? 'page' : undefined"
+        @click="emit('select', item.page)"
       >
-        {{ t.settings.app.openFolder }}
+        <NavIcon :page="item.page" />
+        <span class="nav-text">{{ item.title }}</span>
       </button>
     </div>
   </aside>
@@ -293,8 +299,7 @@ function openSettingsFolder(): void {
   white-space: nowrap;
 }
 
-.folder {
-  align-self: flex-start;
-  margin-left: -4px;
+.foot-item {
+  flex: none;
 }
 </style>

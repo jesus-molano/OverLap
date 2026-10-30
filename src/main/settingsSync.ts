@@ -49,6 +49,9 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'set-widget-bounds':
       return isWidgetId(cmd.widgetId) && isRect(cmd.bounds)
     case 'open-settings-folder':
+    case 'backup-export':
+    case 'backup-import':
+    case 'reset-all':
     case 'open-log':
     case 'copy-diagnostics':
     case 'gather-widgets':
@@ -57,6 +60,8 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
       return true
     case 'delete-personal-bests':
       return isPersonalBestKeys(cmd.keys)
+    case 'open-help':
+      return cmd.page === 'guide' || cmd.page === 'issues'
     case 'undo-notice':
       return typeof cmd.id === 'number' && Number.isSafeInteger(cmd.id) && cmd.id > 0
     // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.

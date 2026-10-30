@@ -75,6 +75,12 @@ export interface FlushableStore extends PersonalBestStore {
   delete(keys: readonly string[]): number
   /** Deletes every best; returns how many there were. */
   clear(): number
+  /**
+   * Takes the bests of a personal-bests file's text (a backup, R40): each key it has that this
+   * store lacks, or where its lap is faster; the others stay. Returns how many it took (0 for a
+   * text that is not such a file).
+   */
+  merge(text: string): number
 }
 
 /** A stored lap with the names of its car and layout. */
@@ -252,6 +258,27 @@ function createStore(file: string | null, opts: FileStoreOptions): FlushableStor
         changed()
       }
       return deleted
+    },
+    merge: (text) => {
+      const parsed = parse(text)
+      if (!parsed) return 0
+      let taken = 0
+      // Oldest first, as offer() keeps them; the cap drops the oldest.
+      const entries = parsed.entries.sort((a, b) => compareText(a[1].recordedAt, b[1].recordedAt))
+      for (const [key, best] of entries) {
+        adoptLegacy(key)
+        const cur = bests.get(key)
+        if (cur && cur.lapTime <= best.lapTime) continue
+        bests.delete(key)
+        bests.set(key, withNames(best, cur ?? NO_LABEL, best))
+        if (!cur) evictOldest(bests, maxEntries, key)
+        taken++
+      }
+      if (taken > 0) {
+        saveNow()
+        changed()
+      }
+      return taken
     }
   }
 }

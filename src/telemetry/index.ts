@@ -81,11 +81,19 @@ function isTelemetryConfig(v: unknown): v is TelemetryConfig {
   )
 }
 
+/** A backup's bests text at most (shared/backup.ts MAX_BACKUP_BYTES). */
+const MAX_MERGE_CHARS = 16 * 1024 * 1024
+
 /** Null for anything that is not a valid message; 'invalid-config' is reported, not applied. */
 function parseInMessage(data: unknown): TelemetryInMessage | 'invalid-config' | null {
   if (!isObject(data)) return null
   if (data.type === 'shutdown') return { type: 'shutdown' }
   if (data.type === 'clear-bests') return { type: 'clear-bests' }
+  if (data.type === 'merge-bests') {
+    return typeof data.text === 'string' && data.text.length <= MAX_MERGE_CHARS
+      ? { type: 'merge-bests', text: data.text }
+      : null
+  }
   if (data.type === 'cycle-delta-reference') return { type: 'cycle-delta-reference' }
   if (data.type === 'delete-bests') {
     return isPersonalBestKeys(data.keys) ? { type: 'delete-bests', keys: [...data.keys] } : null
@@ -240,6 +248,12 @@ function run(port: ParentPort): void {
     if (msg.type === 'cycle-delta-reference') {
       // Not connected yet: no session to cycle in.
       loop?.cycleDeltaReference()
+      return
+    }
+    if (msg.type === 'merge-bests') {
+      if (dying) return
+      // Nothing taken: the window still needs the list to settle.
+      if (bests.merge(msg.text) === 0) emitBests()
       return
     }
     if (msg.type === 'delete-bests' || msg.type === 'clear-bests') {
