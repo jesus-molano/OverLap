@@ -187,6 +187,7 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   otherClassLeaders: true,
   gapMode: 'interval',
   columns: DEFAULT_COLUMNS,
+  showPosition: true,
   headerBar: bar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
   headerBarSize: 'normal',
   subheaderBar: bar(['iRating', 'fastestLap', 'split', 'safetyRating']),

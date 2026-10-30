@@ -5,10 +5,11 @@
  * flag in the driver cell), their heads, and the lines the font fit counts besides the rows. Pure.
  */
 import type { BrandId } from '@shared/carBrands'
-import { visibleIds } from '@shared/elements'
+import { pinFirst, visibleIds } from '@shared/elements'
 import { formatClassPosition, formatGap } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { INFO_BAR_LINE_EM } from '@shared/infoBar'
+import { RELATIVE_PINNED_COLUMNS } from '@shared/settingsSchema'
 import type {
   CarPenalty,
   ElementEntry,
@@ -193,15 +194,16 @@ export interface ColumnExtras {
 
 /**
  * The row's cells in the list's order: hidden ones leave the grid, so the name takes their
- * width. Cells before the driver are left tracks, the ones after it right tracks. The tyre
- * column shows only while some row has a compound (today's rule).
+ * width. The position and the driver always start the row, as in the standings (R10: a file
+ * that moved them draws them there too); the tyre column shows only while some row has a
+ * compound (today's rule).
  */
 export function relativeColumns(
   list: readonly Readonly<ElementEntry<RelativeColumnId>>[],
   x: ColumnExtras
 ): RelativeColumns {
   const cells: RelativeColumnId[] = []
-  for (const id of visibleIds(list)) {
+  for (const id of visibleIds(pinFirst(list, RELATIVE_PINNED_COLUMNS))) {
     if (id === 'tyre' && !x.tyres) continue
     if (!cells.includes(id)) cells.push(id)
   }

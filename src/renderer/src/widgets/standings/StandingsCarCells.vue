@@ -35,7 +35,7 @@ const inlinePit = computed(() =>
 
 <template>
   <span v-if="line.kind === 'leader'" class="c-lead">
-    <span class="sd-tag">{{ line.classTag }}</span>
+    <span v-if="cols.pos" class="sd-tag">{{ line.classTag }}</span>
     <DriverCell
       class="c-driver"
       :number="number"
@@ -56,7 +56,7 @@ const inlinePit = computed(() =>
     </DriverCell>
   </span>
   <template v-else>
-    <span class="c-pos"
+    <span v-if="cols.pos" class="c-pos"
       ><PositionChip :pos="line.pos" :player="line.player" :warn="line.posWarn"
     /></span>
     <DriverCell

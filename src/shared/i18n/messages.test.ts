@@ -129,6 +129,8 @@ describe('dictionaries', () => {
  */
 const SAME_IN_ENGLISH = new Set([
   'core.appName',
+  // The battle's iRating, named as the tables' column (R10).
+  'settings.items.battle.parts.rating',
   // A widget's name and its reason, both already translated.
   'settings.status.hiddenOne',
   // Column names that read the same, and a widget's name with a column's.

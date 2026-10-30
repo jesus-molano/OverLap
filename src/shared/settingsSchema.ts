@@ -292,6 +292,12 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'gap'
 ])
 
+/**
+ * The relative row's fixed start, as the standings' position and driver (R10): listed apart in
+ * its page, never moved; the position can be hidden in both tables.
+ */
+export const RELATIVE_PINNED_COLUMNS: readonly RelativeColumnId[] = ['pos', 'driver']
+
 /** The warning lights in the strip's default order (the provider's LIGHT_ORDER). */
 export const LIGHT_IDS = idsOf<LightKind>()([
   'oilPressure',
@@ -528,6 +534,8 @@ export const OPTION_SCHEMA = {
     columns: elements(STANDINGS_COLUMN_IDS, {
       hidden: ['delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
     }),
+    // The row's fixed start, hidden as the relative's position can be (R10).
+    showPosition: { kind: 'bool', default: true, displayOnly: true },
     // Today's two header lines: the session (the widget's name while unknown), the class's SoF
     // and cars, your incidents and what is left; then your projections and the fastest lap.
     headerBar: infoBar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),

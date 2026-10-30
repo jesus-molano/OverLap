@@ -190,6 +190,28 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Las dos tablas, una sola regla para Posición y Piloto**: en **Relativo** y en **Posiciones**,
+  **Posición** y **Piloto** van en el mismo bloque fijo al principio de la lista de columnas, con
+  las mismas pistas («siempre al principio de la fila», «siempre tras la posición»): Piloto con su
+  candado y Posición con su ojo en las dos, así que ahora también se puede ocultar la posición en
+  Posiciones (el líder de otra clase pierde entonces su etiqueta de clase; su número sigue en el
+  color de la clase). El recuento «x de n visibles» cuenta lo mismo en las dos, solo las columnas
+  que se mueven, e **Igualar con** copia también si se ve la posición. **Si en Relativo habías
+  movido Posición o Piloto a otro sitio de la fila, ahora vuelven al principio, como en
+  Posiciones**; lo demás de tu orden se queda.
+- **«Medido» del Hueco, en su fila**: en Posiciones, el selector «Al de delante / Al líder /
+  Ambos» deja Contenido y va dentro de la fila **Hueco** de Columnas, como «iRating en juego de
+  todos» en la suya; «Hueco al líder» dice «Se muestra con «Ambos» en la fila Hueco». Lo restablece
+  el ↺ de Personalizar, junto con sus columnas.
+- **Ventana y visibilidad, las mismas filas en los diez widgets**: en **Avisos**, «Ocultar en
+  boxes» ya no desaparece: sale apagada y desactivada con su motivo («No aplica: ocultaría los
+  avisos del limitador y de la entrada a boxes»), como «Mostrar en la pantalla de sesión» donde no
+  aplica. **Crece hacia** también está siempre: desactivada con «No aplica: solo con «Alto:
+  Automático»» o «No aplica: este widget no cambia de alto por sí solo».
+- **Un nombre para cada cosa**: en Delta, «Escala de la barra» pasa a **Rango de la barra** («Bar
+  range»), porque «Escala» es el tamaño del widget en los diez; en Batalla, «iRating del rival» y
+  «Licencia del rival» pasan a **iRating** y **Licencia**, como las columnas de Relativo y
+  Posiciones, con «del rival» en su ayuda.
 - **Doblado o doblándote, también por la forma**: el número de un coche que te dobla lleva una
   muesca arriba a la derecha y el de un doblado, abajo, además del rojo o el azul que ya tenían (en
   Relativo y Tráfico, el mismo componente). Va dentro del número: no ocupa más sitio.

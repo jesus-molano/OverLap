@@ -10,6 +10,7 @@ import ts from 'typescript'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as vue from 'vue'
 import { compileScript, parse } from 'vue/compiler-sfc'
+import * as elements from '@shared/elements'
 import * as i18n from '@shared/i18n'
 import { messagesFor } from '@shared/i18n'
 import { DEFAULT_SETTINGS } from '@shared/settings'
@@ -165,6 +166,7 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
   '../undo/undo': undo,
   '../useOptimistic': useOptimistic,
   './listOps': listOps,
+  '@shared/elements': elements,
   // The sample's report, as the test sets it (noRoomEls).
   '../preview/useNoRoom': {
     useNoRoom: () =>

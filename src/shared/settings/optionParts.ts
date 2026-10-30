@@ -26,7 +26,7 @@ const BAR_EXTRAS = ['conditionsTrend', 'conditionsWindDirection'] as const
  */
 const CUSTOMIZE_EXTRAS: Readonly<Partial<Record<WidgetId, readonly string[]>>> = {
   relative: ['columnHeads'],
-  standings: ['columnHeads', 'iRatingDeltaAll'],
+  standings: ['columnHeads', 'iRatingDeltaAll', 'showPosition', 'gapMode'],
   traffic: ['captions'],
   fuel: ['showBox'],
   lights: [

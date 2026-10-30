@@ -29,7 +29,12 @@ export const COMPLETE_SWITCHES: {
 } = {
   relative: { columnHeads: true },
   radar: {},
-  standings: { columnHeads: true, otherClassLeaders: true, iRatingDeltaAll: true },
+  standings: {
+    columnHeads: true,
+    otherClassLeaders: true,
+    iRatingDeltaAll: true,
+    showPosition: true
+  },
   battle: {},
   inputs: { clutchInTrace: true, steeringDegrees: true, shiftLights: true },
   traffic: { captions: true },
