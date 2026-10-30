@@ -142,9 +142,10 @@ const FOOTER_BEFORE: readonly InfoBarEntryId[] = [
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
   carsBehind: 3,
-  // iRating then licence, and the PIT column hidden (its badge after the name), R10.
+  // iRating then licence, the gap before the hidden PIT (its badge after the name), stint and
+  // tyre, in the standings' order (R10).
   columns: list(
-    ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+    ['pos', 'driver', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
     ['pit', 'tyre', 'stint']
   ),
   // One rule for the bars (R13): session data on by default in the standings only.
@@ -1373,7 +1374,7 @@ describe('normalizeSettings: migration', () => {
       ...OLD_RELATIVE_BARS,
       // Its old toggles on today's list: iRating, licence (off), the PIT column hidden.
       columns: list(
-        ['pos', 'driver', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+        ['pos', 'driver', 'ir', 'lic', 'gap', 'pit', 'stint', 'tyre'],
         ['lic', 'pit', 'tyre', 'stint']
       )
     })

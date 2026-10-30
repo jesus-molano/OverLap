@@ -702,6 +702,33 @@ describe('migrateRelativeColumns (R10)', () => {
     expect(ids(s.relative.columns)).toEqual([...ids(custom), '-pit'])
   })
 
+  it('puts the gap before the pit, stint and tyre of an untouched list, as the standings', () => {
+    const s = normalizeSettings({
+      relative: { columns: L('pos driver ir lic -pit -tyre -stint gap') }
+    })
+    expect(s.relative.columns).toEqual(L('pos driver ir lic gap -pit -stint -tyre'))
+    // One with a column shown keeps its order (it is what it draws).
+    const own = L('pos driver ir lic -pit tyre -stint gap')
+    expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(own)
+    // An old file's switches too: its tyre stays before the gap.
+    const old = normalizeSettings({ version: 4, relative: { showTyre: true } }).relative.columns
+    expect(old.filter((e) => e.visible).map((e) => e.id)).toEqual([
+      'pos',
+      'driver',
+      'ir',
+      'lic',
+      'tyre',
+      'gap'
+    ])
+  })
+
+  it('orders the columns both tables have the same way by default (R10)', () => {
+    const relative = OPTION_SCHEMA.relative.columns.default.map((e) => e.id as string)
+    const standings = OPTION_SCHEMA.standings.columns.default.map((e) => e.id as string)
+    const shared = (a: string[], b: string[]): string[] => a.filter((id) => b.includes(id))
+    expect(shared(relative, standings)).toEqual(shared(standings, relative))
+  })
+
   it('writes the new default out, so no fallback can stand in for it', () => {
     const out = migrateRelativeColumns({
       carsAhead: 2,

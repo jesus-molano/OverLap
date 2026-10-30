@@ -186,7 +186,9 @@ export function formatClock(seconds: number | null): string {
 export function formatRemaining(
   lapsRemaining: number | null,
   timeRemainingS: number | null,
-  m: Messages
+  m: Messages,
+  /** In full words ('≈19 vueltas'), for where they fit (R50). */
+  long = false
 ): string {
   const clock = formatClock(timeRemainingS)
   const laps =
@@ -194,9 +196,9 @@ export function formatRemaining(
       ? Math.max(0, Math.round(lapsRemaining))
       : null
   const t = m.widgets.laps
-  if (clock !== '') return laps !== null ? t.timed(clock, laps) : clock
+  if (clock !== '') return laps !== null ? (long ? t.timedLong : t.timed)(clock, laps) : clock
   if (laps === null) return ''
-  return t.left(laps)
+  return long ? t.leftLong(laps) : t.left(laps)
 }
 
 /** Laps until something happens: '~6 v', '< 1 v'; '—' when unknown. */

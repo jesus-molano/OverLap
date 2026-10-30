@@ -146,7 +146,6 @@ const SAME_IN_ENGLISH = new Set([
   'settings.app.editBanner.keys[5].key',
   // 'No' reads the same in both.
   'settings.infoBar.sizeChoices.off.label',
-  'settings.lights.captionsChoices.off.label',
   'settings.choices.onOff.off.label',
   'core.widgetTitles.radar',
   // The app's own look, by its name.

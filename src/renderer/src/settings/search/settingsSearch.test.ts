@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
 import { pageTitle, type SettingsPage } from '../nav'
-import { SEARCH_LIMIT, searchSettings, type SearchEntry } from './settingsSearch'
+import { SEARCH_LIMIT, isPlainOption, searchSettings, type SearchEntry } from './settingsSearch'
 
 const es = messagesFor('es')
 const title = (p: SettingsPage): string => pageTitle(es, p)
@@ -86,5 +86,81 @@ describe('everyday words (R33)', () => {
   it('finds a participle by its infinitive, and a style by its name', () => {
     expect(first('bloquear')).toBe('Bloqueado')
     expect(first('compacto')).toBe('Compacto')
+  })
+})
+
+describe('buttons, options and everyday phrases (five-of-five)', () => {
+  const MORE: SearchEntry[] = [
+    e('about', 'action', 'Exportar todo…', 'Copia de seguridad', 'Guarda todos los ajustes'),
+    e('layouts', 'action', 'Exportar…', 'Disposiciones'),
+    e('relative', 'action', 'Editar posición'),
+    e('relative', 'action', 'Restablecer…'),
+    e('about', 'option', 'Imperiales', 'General › Unidades', 'mph, °F, galones, pies'),
+    e('about', 'option', 'English', 'General › Idioma'),
+    e('appearance', 'option', 'Apellido', 'Filas y pilotos › Formato de nombre'),
+    e('appearance', 'item', 'Compacto', 'Estilo', 'Nombre por apellido'),
+    e('lights', 'label', 'Luces de cambio', 'Contenido'),
+    e('layouts', 'label', 'Coche actual', 'Disposiciones'),
+    e('layouts', 'label', 'Según el coche', 'Cambiar sola'),
+    e(
+      'shortcuts',
+      'page',
+      'Atajos',
+      '',
+      'Teclas o botones del volante que funcionan en todo Windows'
+    ),
+    e('shortcuts', 'label', 'Mostrar u ocultar el overlay', 'Acciones'),
+    e('appearance', 'label', 'Tamaño del texto', 'Texto', 'Multiplica la escala'),
+    e('appearance', 'label', 'Texto mínimo de 10 px', 'Accesibilidad', 'Para leerlo más grande'),
+    e('relative', 'label', 'Banderas de penalización', 'Piloto'),
+    // A label whose help alone has both words: after one that has some in its name.
+    e('battle', 'label', 'Escala', 'Ventana', 'Texto y ventana más grandes o más pequeños')
+  ]
+  const texts = (q: string): string[] => searchSettings(MORE, q, title).map((x) => x.text)
+  const first = (q: string): string | undefined => texts(q)[0]
+
+  it('finds a button by its words', () => {
+    expect(texts('exportar')).toEqual(['Exportar…', 'Exportar todo…'])
+    expect(first('exportar todo')).toBe('Exportar todo…')
+    expect(first('editar posicion')).toBe('Editar posición')
+    expect(first('mover')).toBe('Editar posición')
+    expect(first('restablecer')).toBe('Restablecer…')
+    expect(first('copia')).toBe('Exportar todo…')
+  })
+
+  it("finds a segmented control's option, also by its hint", () => {
+    expect(first('imperial')).toBe('Imperiales')
+    expect(first('galones')).toBe('Imperiales')
+    expect(first('pies')).toBe('Imperiales')
+    expect(first('ingles')).toBe('English')
+    // The option before the style that only names it in its help.
+    expect(texts('apellido')).toEqual(['Apellido', 'Compacto'])
+  })
+
+  it('leaves out the words that tell nothing apart, and knows a few phrases', () => {
+    expect(first('por coche')).toBe('Según el coche')
+    expect(first('el coche')).toBe('Coche actual')
+    expect(first('rpm')).toBe('Luces de cambio')
+    expect(first('cambio de marcha')).toBe('Luces de cambio')
+    expect(first('sanciones')).toBe('Banderas de penalización')
+  })
+
+  it('takes a key or a wheel button to Atajos', () => {
+    expect(texts('tecla')).toContain('Mostrar u ocultar el overlay')
+    expect(first('tecla')).toBe('Atajos')
+    expect(texts('boton volante')).toContain('Mostrar u ocultar el overlay')
+    expect(texts('botón del volante')).toContain('Mostrar u ocultar el overlay')
+  })
+
+  it('«letra grande»: the text size first, then the 10 px minimum', () => {
+    expect(texts('letra grande').slice(0, 2)).toEqual(['Tamaño del texto', 'Texto mínimo de 10 px'])
+  })
+
+  it('never indexes the options every control has', () => {
+    expect(isPlainOption('Sí')).toBe(true)
+    expect(isPlainOption('No')).toBe(true)
+    expect(isPlainOption('Global (80 %)')).toBe(true)
+    expect(isPlainOption('Imperiales')).toBe(false)
+    expect(isPlainOption('Normal')).toBe(false)
   })
 })

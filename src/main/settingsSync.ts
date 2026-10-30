@@ -7,6 +7,7 @@ import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
 import { isLayoutExample } from '@shared/layoutExamples'
+import { EDIT_KEYS } from '@shared/nudge'
 import { LAYOUT_MODES, isLayoutId, normalizeCarRef } from '@shared/layouts'
 import { isWidgetResetPart, toTelemetryConfig } from '@shared/settings'
 import {
@@ -38,6 +39,8 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
   switch (cmd.type) {
     case 'set-edit-mode':
       return typeof cmd.on === 'boolean' && (cmd.focus === undefined || isWidgetId(cmd.focus))
+    case 'edit-key':
+      return typeof cmd.key === 'string' && EDIT_KEYS.includes(cmd.key)
     case 'capture-shortcuts':
       return typeof cmd.on === 'boolean'
     case 'set-overlay-hidden':

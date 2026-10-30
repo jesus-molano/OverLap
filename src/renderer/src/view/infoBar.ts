@@ -55,7 +55,13 @@ export type InfoItemView =
   | { readonly id: 'title'; readonly text: string }
   | { readonly id: 'session'; readonly text: string }
   /** `finished`: the chequered flag icon and 'Final' instead of the clock icon. */
-  | { readonly id: 'remaining'; readonly text: string; readonly finished: boolean }
+  | {
+      readonly id: 'remaining'
+      readonly text: string
+      readonly finished: boolean
+      /** The same in full words ('≈19 vueltas'), drawn where they fit (R50); '' when none. */
+      readonly textLong?: string
+    }
   | { readonly id: 'clock'; readonly text: string }
   | { readonly id: 'sof'; readonly text: string }
   | { readonly id: 'carCount'; readonly text: string }
@@ -234,7 +240,8 @@ function remainingView(d: InfoBarData, m: Messages): InfoItemView | null {
     return { id: 'remaining', text: m.widgets.standings.lastLap, finished: false }
   }
   const text = formatRemaining(d.lapsRemaining, d.timeRemainingS, m)
-  return text !== '' ? { id: 'remaining', text, finished: false } : null
+  const textLong = formatRemaining(d.lapsRemaining, d.timeRemainingS, m, true)
+  return text !== '' ? { id: 'remaining', text, finished: false, textLong } : null
 }
 
 /** One item's view, null when it has nothing to show. */

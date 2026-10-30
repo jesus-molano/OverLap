@@ -252,12 +252,26 @@ describe('moved renderer formatters', () => {
     expect(formatRemaining(null, null, ES)).toBe('')
   })
 
+  it('says what is left in full words too, for where they fit (R50)', () => {
+    expect(formatRemaining(18.6, 2299, ES, true)).toBe(`38:19\u2002≈19${NBSP}vueltas`)
+    expect(formatRemaining(1, 2299, ES, true)).toBe(`38:19\u2002≈1${NBSP}vuelta`)
+    expect(formatRemaining(12, null, ES, true)).toBe(`Quedan 12${NBSP}vueltas`)
+    expect(formatRemaining(12, null, ES)).toBe(`Quedan 12${NBSP}v`)
+    // English already writes them whole: the same words either way.
+    expect(formatRemaining(18.6, 2299, EN, true)).toBe(formatRemaining(18.6, 2299, EN))
+  })
+
+  it('never writes laps as L in English: L is litres', () => {
+    const laps = [EN.widgets.laps.about(4), EN.widgets.laps.underOne, EN.widgets.laps.unit]
+    for (const s of laps) expect(s, s).not.toMatch(/\bL\b/)
+  })
+
   it('says what is left in English', () => {
     expect(formatRemaining(18.6, 2299, EN)).toBe(`38:19\u2002≈19${NBSP}laps`)
     expect(formatRemaining(12, null, EN)).toBe(`12${NBSP}laps left`)
     expect(formatRemaining(1, null, EN)).toBe(`1${NBSP}lap left`)
-    expect(formatLaps(5.6, EN)).toBe(`~6${NBSP}L`)
-    expect(formatLaps(0.4, EN)).toBe(`<${NBSP}1${NBSP}L`)
+    expect(formatLaps(5.6, EN)).toBe(`~6${NBSP}laps`)
+    expect(formatLaps(0.4, EN)).toBe(`<${NBSP}1${NBSP}lap`)
   })
 
   it('formats gaps to a best lap with three decimals, m:ss.sss from a minute', () => {

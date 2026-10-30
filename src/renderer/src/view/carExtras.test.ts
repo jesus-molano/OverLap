@@ -8,7 +8,7 @@ const EN = messagesFor('en')
 describe('stintCell', () => {
   it('gives the whole laps and the lap unit of the language', () => {
     expect(stintCell(7, ES)).toEqual({ text: '7', unit: 'v' })
-    expect(stintCell(0, EN)).toEqual({ text: '0', unit: 'L' })
+    expect(stintCell(0, EN)).toEqual({ text: '0', unit: 'lp' })
     expect(stintCell(12.9, ES).text).toBe('12')
   })
 

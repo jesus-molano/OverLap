@@ -31,7 +31,7 @@ export const settingsEs = {
       ],
       /** The chip of each widget: what its buttons do. */
       chip: { before: 'En la etiqueta: ojo, candado y', gear: 'engranaje', after: '(sus ajustes)' },
-      exit: 'Salir'
+      exit: 'Salir del modo edición'
     },
     updateError: 'No se pudo aplicar el cambio. Vuelve a intentarlo.',
     /** Main could not write settings.json; it keeps retrying. */
@@ -254,7 +254,7 @@ export const settingsEs = {
     keys: {
       editMode: 'modo edición',
       overlay: 'mostrar u ocultar',
-      exit: 'salir de edición'
+      exit: 'salir del modo edición'
     },
     /** The user hid the overlay (tray, shortcut): a line above every page. */
     hidden: {
@@ -275,7 +275,7 @@ export const settingsEs = {
     tooltipKeys: (keys: string) =>
       `Mover y redimensionar los widgets (${keys}). En el coche iRacing oculta el cursor: entra desde aquí, esta ventana lo libera`,
     enter: 'Modo edición',
-    exit: 'Salir de edición'
+    exit: 'Salir del modo edición'
   },
   /**
    * The «Visibilidad» page (R34): the overlay's rules, then one table of where each widget shows,
@@ -932,7 +932,8 @@ export const settingsEs = {
       },
       driver: {
         label: 'Piloto',
-        description: 'Nombre, logo, bandera y sanciones vuelven a «Global» (Apariencia)'
+        description:
+          'Formato de nombre, logo, bandera del país y banderas de penalización vuelven a «Global» (Apariencia)'
       },
       customize: {
         label: 'Personalizar',
@@ -1068,7 +1069,7 @@ export const settingsEs = {
     carsBehind: 'Coches detrás',
     columns: 'Columnas',
     stint: 'Vueltas del stint',
-    stintHelp: 'Desde su última parada, o desde la salida',
+    stintHelp: 'Desde su última parada, o desde la salida (7 v)',
     tyre: 'Neumático',
     /** Column hints; the position's and the driver's are the standings' (columns.fixedHints). */
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
@@ -1191,8 +1192,6 @@ export const settingsEs = {
     clutchInTraceHelp: 'Desactívalo si cambias con levas',
     steering: 'Volante',
     steeringStyle: 'Estilo del volante',
-    /** Contenido with the wheel hidden: where its options went. */
-    steeringOff: 'El volante está oculto en Datos: muéstralo allí para elegir su estilo',
     steeringChoices: {
       bar: { label: 'Barra' },
       minimal: { label: 'Minimalista', hint: 'Un aro fino con la marca del centro' },
@@ -1434,10 +1433,7 @@ export const settingsEs = {
       row: { label: 'En fila', hint: 'Si no caben en el ancho, siguen debajo' },
       column: { label: 'En columna' }
     },
-    /**
-     * lights.labelSide: where the captions and values go in a column. Its own row only for the
-     * values with the captions off (with them on, "Rótulos" says the side).
-     */
+    /** lights.labelSide: where the captions and values go in a column (its row only then). */
     labelSide: 'Lado de los textos',
     labelSideChoices: {
       right: { label: 'A la derecha' },
@@ -1448,15 +1444,9 @@ export const settingsEs = {
     /** Under it while on: the sample still draws the unlit lights, translucent. */
     onlyWhenLitSample:
       'La vista previa dibuja los apagados translúcidos, para que veas su ojo y su sitio',
-    /** lights.showCaptions with, in a column, lights.labelSide: one choice. */
+    /** lights.showCaptions: a switch, as its neighbours (Temperaturas, Tiempo de reparación). */
     captions: 'Rótulos',
     captionsHelp: 'Una palabra tras cada icono: «AGUA», «REPARAR»',
-    captionsChoices: {
-      off: { label: 'No' },
-      on: { label: 'Sí' },
-      right: { label: 'Derecha' },
-      left: { label: 'Izquierda' }
-    },
     temps: 'Temperaturas',
     tempsHelp: 'La del agua y la del aceite junto a su testigo, y su subida: «98° +6°»',
     repairTime: 'Tiempo de reparación',
@@ -2013,10 +2003,11 @@ export const settingsEs = {
       noneCursor: 'Ya estaban todos en la pantalla del ratón.',
       undoCursor: 'Widgets traídos a la pantalla del ratón'
     },
+    /** Where a layout is exported: each row's own «Exportar…»; here, its import. */
     filesHelp:
-      'Exporta una disposición a un .json para guardarla o compartirla; importarla no la aplica',
+      'Cada disposición se exporta con «Exportar…» en su fila; importarla aquí no la aplica',
     filesMore:
-      'Lleva sus opciones si las tiene. Un archivo de una versión anterior, sin opciones, recibe las opciones comunes.',
+      'El archivo es un .json, para guardarla o compartirla. Lleva sus opciones si las tiene. Un archivo de una versión anterior, sin opciones, recibe las opciones comunes.',
     import: 'Importar…',
     notices: {
       exported: (name: string) => `Exportada: ${name}`,
@@ -2074,7 +2065,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         { key: 'Esc', text: 'exit' }
       ],
       chip: { before: 'On the label: eye, padlock and', gear: 'gear', after: '(its settings)' },
-      exit: 'Exit'
+      exit: 'Exit edit mode'
     },
     updateError: 'Couldn’t apply the change. Please try again.',
     saveError:
@@ -2261,7 +2252,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     keys: {
       editMode: 'edit mode',
       overlay: 'show or hide',
-      exit: 'leave editing'
+      exit: 'exit edit mode'
     },
     hidden: {
       title: 'Overlay hidden',
@@ -2678,7 +2669,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     widgetAction: (widget) => `Show or hide ${widget}`,
     escape: {
-      label: 'Leave edit mode',
+      label: 'Exit edit mode',
       help: 'Only while editing',
       tag: 'Fixed'
     },
@@ -2777,7 +2768,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       driver: {
         label: 'Driver',
-        description: 'Name, logo, flag and penalties go back to “Global” (Appearance)'
+        description:
+          'Name format, logo, country flag and penalty flags go back to “Global” (Appearance)'
       },
       customize: {
         label: 'Customize',
@@ -2887,7 +2879,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     carsBehind: 'Cars behind',
     columns: 'Columns',
     stint: 'Stint laps',
-    stintHelp: 'Since its last stop, or since the start',
+    stintHelp: 'Since its last stop, or since the start (7 lp)',
     tyre: 'Tyre',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
@@ -2966,7 +2958,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       best: 'Race only: outside races “Last lap” already shows it',
       pit: 'PIT, OUT or TOW and the stops; hidden, PIT goes after the name',
       pitLap: 'Race only: the lap of its last stop (L12)',
-      stint: 'Since its last stop, or since the start (7 L)',
+      stint: 'Since its last stop, or since the start (7 lp)',
       tyre: 'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
     }
   },
@@ -2983,7 +2975,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       laps: { label: 'Laps', hint: 'The last three laps' }
     },
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
-    predictionHelp: '“Catching in ~4 L of 19”',
+    predictionHelp: '“Catching in ~4 laps of 19”',
     atStakeHelp: 'How much iRating that position is worth',
     ratingHelp: 'The rival’s, as the tables’ iRating column',
     licenseHelp: 'The rival’s, as the tables’ Licence column'
@@ -2996,7 +2988,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     clutchInTraceHelp: 'Turn it off if you shift with paddles',
     steering: 'Steering',
     steeringStyle: 'Steering style',
-    steeringOff: 'Steering is hidden in Readouts: show it there to choose its style',
     steeringChoices: {
       bar: { label: 'Bar' },
       minimal: { label: 'Minimal', hint: 'A thin ring with the centre mark' },
@@ -3211,12 +3202,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'The preview draws the unlit ones translucent, so you see their eye and their place',
     captions: 'Captions',
     captionsHelp: 'A word after each icon: “WATER”, “REPAIR”',
-    captionsChoices: {
-      off: { label: 'No' },
-      on: { label: 'Yes' },
-      right: { label: 'Right' },
-      left: { label: 'Left' }
-    },
     temps: 'Temperatures',
     tempsHelp: 'The water and oil temperature next to their lights, and its rise: “98° +6°”',
     repairTime: 'Repair time',
@@ -3674,9 +3659,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
       undoCursor: 'Widgets brought to the mouse’s screen'
     },
     filesHelp:
-      'Export a layout to a .json file to keep or share it; importing one does not apply it',
+      'Each layout is exported with “Export…” on its row; importing one here does not apply it',
     filesMore:
-      'It carries its options if it has them. A file from an older version, without options, gets the shared options.',
+      'The file is a .json, to keep or share it. It carries its options if it has them. A file from an older version, without options, gets the shared options.',
     import: 'Import…',
     notices: {
       exported: (name) => `Exported: ${name}`,

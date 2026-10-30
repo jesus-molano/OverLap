@@ -230,3 +230,58 @@ describe('resets with "Deshacer"', () => {
     expect(patches.at(-1)?.shortcutBindings?.toggleOverlay).toEqual(['Ctrl+Shift+H', 'F13'])
   })
 })
+
+describe('nothing to reset (R47, five-of-five)', () => {
+  it('a widget part is at its defaults until one of its fields changes', async () => {
+    const { restore } = await load()
+    const s = createDefaultSettings()
+    for (const part of ['content', 'driver', 'customize', 'window'] as const) {
+      expect(restore.widgetPartAtDefault(s, 'relative', part)).toBe(true)
+    }
+    const changed = settingsWith(s, (x) => {
+      x.relative.carsAhead = 5
+      x.widgets.relative.scale = 125
+    })
+    expect(restore.widgetPartAtDefault(changed, 'relative', 'content')).toBe(false)
+    expect(restore.widgetPartAtDefault(changed, 'relative', 'driver')).toBe(true)
+    expect(restore.widgetPartAtDefault(changed, 'relative', 'customize')).toBe(true)
+    expect(restore.widgetPartAtDefault(changed, 'relative', 'window')).toBe(false)
+    // Moving a widget is not its window's options.
+    const moved = settingsWith(s, (x) => {
+      x.widgets.relative.bounds.x += 40
+    })
+    expect(restore.widgetPartAtDefault(moved, 'relative', 'window')).toBe(true)
+  })
+
+  it('a free-size widget at 125 % has something to reset in its window', async () => {
+    const { restore } = await load()
+    const s = createDefaultSettings()
+    expect(restore.widgetPartAtDefault(s, 'radar', 'window')).toBe(true)
+    const big = settingsWith(s, (x) => {
+      x.widgets.radar.bounds.width = Math.round(x.widgets.radar.bounds.width * 1.25)
+      x.widgets.radar.bounds.height = Math.round(x.widgets.radar.bounds.height * 1.25)
+    })
+    expect(restore.widgetPartAtDefault(big, 'radar', 'window')).toBe(false)
+  })
+
+  it('Apariencia, its sections and the shortcuts, the language never counting', async () => {
+    const { restore } = await load()
+    const s = createDefaultSettings()
+    expect(restore.appearanceAtDefault(s)).toBe(true)
+    expect(restore.appearancePartAtDefault(s, 'color')).toBe(true)
+    expect(restore.appearancePartAtDefault(s, 'screen')).toBe(true)
+    expect(restore.shortcutsAtDefault(s)).toBe(true)
+    const english = settingsWith(s, (x) => {
+      x.appearance.language = x.appearance.language === 'en' ? 'es' : 'en'
+    })
+    expect(restore.appearanceAtDefault(english)).toBe(true)
+    const big = settingsWith(s, (x) => {
+      x.appearance.fontScale = 125
+      x.shortcutsMore.toggleOverlay = ['F13']
+    })
+    expect(restore.appearanceAtDefault(big)).toBe(false)
+    expect(restore.appearancePartAtDefault(big, 'text')).toBe(false)
+    expect(restore.appearancePartAtDefault(big, 'color')).toBe(true)
+    expect(restore.shortcutsAtDefault(big)).toBe(false)
+  })
+})

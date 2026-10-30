@@ -14,9 +14,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   siguiente o al anterior (de arriba abajo, sin los ocultos ni los bloqueados), también con el
   cursor oculto por el juego, con un aviso breve «Flechas: Relativo». `Ctrl+Z` deshace el último
   cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
-  el anterior, y la bandeja ofrece **Deshacer: mover Relativo**; mantener una flecha o girar la
+  el anterior, y la bandeja ofrece **Deshacer: mover Relativo** (o «cambiar el tamaño de Relativo»,
+  «ocultar Batalla»: lo que hiciste); mantener una flecha o girar la
   rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
-  se toman mientras editas y con los Ajustes detrás, como las flechas.
+  se toman mientras editas; con los Ajustes delante, funcionan mientras no estés en un campo, un
+  deslizador o una lista (ver **Cambiado**).
 - **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
   reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
   eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
@@ -40,8 +42,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Modo edición más preciso**: las **flechas** mueven 1 px el último widget que has arrastrado,
   escalado, tocado en su etiqueta o señalado con **Editar posición** (con `Mayús`, 10 px), y con
   `Ctrl` cambian su ancho y su alto (el alto no, si se ajusta a su contenido); se guarda al soltar
-  la tecla. Solo mientras editas y con los Ajustes detrás: con la ventana de Ajustes delante, las
-  flechas siguen siendo suyas, y una combinación que ya uses en Atajos sigue siendo tuya. Si aún no
+  la tecla. Solo mientras editas: con la ventana de Ajustes delante, un campo, un deslizador o una
+  lista que tenga el foco se queda las flechas, y una combinación que ya uses en Atajos sigue
+  siendo tuya. Si aún no
   has tocado ninguno, un aviso sobre el juego lo dice. Al arrastrar, una **línea de ajuste** marca
   el borde de otro widget o de la pantalla al que se pega, y el widget también se pega al **centro
   de la pantalla**. El ojo y el candado de la etiqueta miden 24 × 24 px (antes 20 × 17) y los
@@ -209,6 +212,68 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Vueltas con todas sus letras donde caben, y nunca «L» en inglés**: el número grande de
+  **Combustible** y su «Quedan» dicen «17.6 vueltas» y «18.7 vueltas» mientras quepan en la línea, y
+  la cabecera de **Posiciones** (y cualquier cabecera con el tiempo restante) dice «≈19 vueltas» o
+  «Quedan 12 vueltas» cuando le sobra sitio; si no, «v» como siempre. Ningún widget se ensancha ni
+  pierde un dato por ello. En inglés, las vueltas ya no se escriben «L», que es la unidad de los
+  litros: «Catching in ~4 laps», «< 1 lap», y la columna de stint «7 lp».
+- **Salir del modo edición se llama igual en todas partes**: el botón de la barra lateral, el del
+  aviso de los Ajustes, la fila de Atajos y la leyenda de la barra lateral dicen «Salir del modo
+  edición» (antes también «Salir de edición», «salir de edición» y «Salir»); sobre cada widget
+  sigue «Esc: salir», que es la misma palabra. En inglés, «Exit edit mode» (antes también «Leave
+  edit mode» y «leave editing»). El deshacer del modo edición dice lo que hiciste: «cambiar el
+  tamaño de Relativo» si cambiaste su tamaño (antes «mover»), «ocultar Batalla» o «mostrar
+  Batalla» (antes «mostrar u ocultar»), «desbloquear» y «cambiar la escala de».
+- **El primer aviso de las flechas cabe entero**: «Primero elige un widget: arrástralo o pulsa
+  Tab» (antes una frase más larga que se cortaba por los lados), y lo mismo con «Nada que mover:
+  todos ocultos o bloqueados» y «Overlay oculto: muéstralo con su atajo o la bandeja». Si un nombre
+  largo no cabe, el aviso pasa a dos líneas en vez de cortarse. Una prueba mide que cada aviso
+  cabe en una línea en los dos idiomas.
+- **Las teclas del modo edición funcionan también con los Ajustes delante**: justo después de
+  **Editar posición**, las flechas mueven el widget, `Tab` y `Mayús+Tab` eligen otro y `Ctrl+Z`
+  deshace, como dice el aviso de los Ajustes, sin tener que ir antes al juego. Las flechas y
+  `Ctrl+Z` siguen funcionando mientras el foco no esté en un campo, un deslizador o una lista (que
+  se quedan sus teclas), y `Ctrl+Z` es del «Deshacer» de los Ajustes mientras se ve. `Tab` vuelve
+  a recorrer la página en cuanto haces clic o algo de la página toma el foco, o con `Esc`.
+- **«Mayús» en toda la app**: la tabla de Atajos, el pie de la barra lateral, la bienvenida, el
+  aviso de cursor oculto y la ayuda de **Modo edición** escriben `Ctrl+Mayús+E` y `Ctrl+Mayús+H`,
+  como ya decían los avisos del modo edición («Mayús+Tab») y como se escriben **Supr** o **Re
+  Pág**; mientras grabas una combinación, la tecla pulsada se llama igual. En inglés sigue siendo
+  «Shift». Lo guardado no cambia.
+- **Un ↺ sin nada que hacer se apaga, como los «Restablecer» de las listas**: el ↺ de cada sección
+  (Contenido, Piloto, Personalizar, Ventana y visibilidad, las de Apariencia y Visibilidad) y su
+  línea en **Restablecer…** salen atenuados cuando esa parte está como viene de serie, y dicen
+  «Nada que restablecer: está como viene de serie». «Posición y tamaño» y «Todo» siguen activos: la
+  posición de fábrica depende de la pantalla.
+- **La misma opción, el mismo control y el mismo nombre**: en **Apariencia › Filas y pilotos**,
+  «Bandera del país» y «Banderas de penalización» son un selector «Sí / No», como en cada widget
+  (antes eran interruptores). La línea Piloto de **Restablecer…** dice «Formato de nombre, logo,
+  bandera del país y banderas de penalización vuelven a «Global»» (antes «sanciones», una palabra
+  que no usaba ningún control). En **Testigos › Personalizar**, «Rótulos» es un interruptor, como
+  «Temperaturas» y «Tiempo de reparación» debajo; en columna, «Lado de los textos» sale debajo
+  mientras haya un texto que colocar (antes «Rótulos» era «No / Derecha / Izquierda»). Lo guardado
+  no cambia.
+- **Pedales sin «Contenido»**: el estilo del volante, su tamaño y el color de la marca central
+  pasan a la fila **Volante** de Personalizar › Datos, que se despliega como la de la Traza y dice
+  en su botón cómo es («Realista · Mediano», «Barra»), junto a **Grados del volante**. Así todo lo
+  del volante está en su fila, y su ↺ es el de Personalizar.
+- **Las columnas que comparten Relativo y Posiciones, en el mismo orden**: en Relativo, el hueco va
+  antes de Boxes, Vueltas del stint y Neumático, como en Posiciones (antes Neumático iba antes que
+  Vueltas del stint y el hueco al final). Las tres van ocultas de serie, así que nada visible
+  cambia; una lista que ya habías tocado se queda como estaba, y un ajuste antiguo con el neumático
+  a la vista lo sigue viendo en su sitio. La ayuda de Vueltas del stint es la misma en las dos.
+- **Buscar ajuste encuentra también los botones y las opciones**: «exportar» lleva a **Exportar
+  todo…** (Acerca de) y a **Exportar…** (Disposiciones), «editar posición» y «mover» al botón de
+  cada widget, «restablecer» a **Restablecer…**; y cada opción de un selector sale por su nombre
+  («Imperiales» de Unidades, «Apellido» de Formato de nombre, «English» de Idioma), con el selector
+  al que pertenece debajo, también por lo que dice su ayuda («galones», «pies»). Entiende más
+  palabras de uso diario: «rpm» y «cambio de marcha» llevan a **Luces de cambio**, «tecla»,
+  «teclado», «botón del volante» o «button box» a **Atajos**, «sanciones» a **Banderas de
+  penalización**, «copia» o «backup» a **Exportar todo…**, «letra grande» o «más grande» a
+  **Tamaño del texto** (y después al texto mínimo de 10 px), y «por coche» a **Según el coche**.
+  Las palabras que no distinguen nada («por», «de», «el», «the», «by») ya no hacen que falle una
+  búsqueda.
 - **Las mismas palabras sobre el juego y en los Ajustes**: la ayuda sobre cada widget dice «Rueda:
   escala · Flechas: mover · Alt: sin imán · Esc: salir» (más corta en los estrechos), y el aviso
   de modo edición de los Ajustes usa los mismos pares («Bordes: tamaño», «Flechas: mover (Ctrl:
@@ -543,6 +608,22 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Corregido
 
+- **El motivo de una fila desactivada se lee bien**: en una fila que no se puede cambiar ahora
+  («Ocultar en boxes» en Avisos, «Crece hacia» sin altura automática), solo se atenúan su nombre y
+  su control; la ayuda que dice por qué mantiene el gris de siempre, con su contraste completo
+  (antes se atenuaba también y quedaba en unos 2,8:1).
+- **Un solo punto del color elegido**: con un color predefinido elegido, el selector de color libre
+  se ve como una rueda de colores (para elegir otro) y no como un segundo punto del mismo color;
+  se pinta con el color en cuanto es uno tuyo. En los dos diálogos de **Estilo**, «Guardando en»
+  va apilado (el título y debajo dónde), como en las páginas de los widgets.
+- **Disposiciones, más ordenada**: al editar una disposición, **Guardar** y **Cancelar** van juntos
+  al final de la línea y es el campo del nombre el que se estrecha (antes «Cancelar» caía solo a
+  otra línea). Con una sola disposición ya no salen las flechas para ordenarla, que no hacían
+  nada; con varias miden 24 × 24 px, como el resto de botones de icono (antes 22 × 18). La ayuda de
+  **Archivos** dice dónde se exporta: con **Exportar…** en la fila de cada disposición.
+- **Delta › Líneas: la fila «Tiempos de vuelta» en una sola línea**: el asa, el ojo, el nombre con
+  su ayuda, «3 de 4 partes» y las flechas ya no se reparten en tres renglones (a cualquier ancho y
+  en los dos idiomas); la ayuda larga se parte dentro de su sitio, como en las demás filas.
 - **Texto legible sobre fondos claros**: con «Contorno del texto» en «Auto», el contorno se pone
   por debajo del 65 % de opacidad (antes, del 35 %), así que un panel al 50 % sobre un cielo
   blanco ya se lee. El gris tenue (unidades, títulos de columna) es un poco más claro. Con la vista

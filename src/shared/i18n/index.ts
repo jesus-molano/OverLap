@@ -8,7 +8,7 @@
  * with the current settings.appearance.language, so switching language
  * applies at once everywhere without the telemetry process knowing.
  */
-import { modifierCaps, parseAccelerator } from '../accelerator'
+import { modifierCaps, parseAccelerator, type HeldModifiers } from '../accelerator'
 import { parseButtonBinding } from '../controllers'
 import type { HiddenReason, OverlayStatus } from '../types'
 import type { WidgetId } from '../widgets'
@@ -103,6 +103,14 @@ export function keyLabel(m: Messages, key: string): string {
 }
 
 /**
+ * The modifiers held, as the keyboards of the interface language print them: 'Ctrl', 'Alt',
+ * 'Mayús' (the same word as the edit-mode hints, «Mayús+Tab»).
+ */
+export function modifierLabels(m: Messages, held: HeldModifiers): string[] {
+  return modifierCaps(held).map((c) => (c === 'Shift' ? m.core.keys.shift : c))
+}
+
+/**
  * The keycaps of a combination: ['Ctrl', 'Shift', 'Re Pág']; one for a controller's button
  * (['Botón 7']); [] when it has none ('').
  */
@@ -112,7 +120,7 @@ export function keycaps(m: Messages, accelerator: string): string[] {
   if (button) return [m.core.keys.button(button.button)]
   const parsed = parseAccelerator(accelerator)
   if (!parsed.ok) return [accelerator]
-  return [...modifierCaps(parsed.value), keyLabel(m, parsed.value.key)]
+  return [...modifierLabels(m, parsed.value), keyLabel(m, parsed.value.key)]
 }
 
 /** A binding as one text: 'Ctrl+Shift+E', 'Alt+Av Pág', 'Botón 7'; '' when it has none. */

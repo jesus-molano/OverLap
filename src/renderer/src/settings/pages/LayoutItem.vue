@@ -114,12 +114,19 @@ function remove(): void {
           autocomplete="off"
           spellcheck="false"
         />
-        <button type="submit" class="st-btn st-btn-sm">
-          {{ t.settings.layouts.saveName }}
-        </button>
-        <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="emit('rename', false)">
-          {{ t.settings.layouts.cancel }}
-        </button>
+        <!-- Together, at the end of the line: the name field gives way first. -->
+        <span class="rename-btns">
+          <button type="submit" class="st-btn st-btn-sm">
+            {{ t.settings.layouts.saveName }}
+          </button>
+          <button
+            type="button"
+            class="st-btn st-btn-sm st-btn-ghost"
+            @click="emit('rename', false)"
+          >
+            {{ t.settings.layouts.cancel }}
+          </button>
+        </span>
       </div>
       <div class="rename-line">
         <span :id="modeId" class="st-label">{{ t.settings.layouts.modeLabel }}</span>
@@ -237,13 +244,14 @@ function remove(): void {
   flex-direction: column;
 }
 
+/* The same 24 × 24 px as every other icon button of the settings (R38). */
 .order .st-btn-icon {
-  width: 22px;
-  min-height: 18px;
+  width: 24px;
+  min-height: 24px;
 }
 
 .order-space {
-  width: 22px;
+  width: 24px;
 }
 
 .chev {
@@ -325,8 +333,16 @@ function remove(): void {
   gap: 8px 12px;
 }
 
+.rename-btns {
+  display: inline-flex;
+  flex: none;
+  gap: 8px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .name-field {
-  flex: 1 1 12em;
+  flex: 1 1 8em;
   min-width: 0;
 }
 </style>
