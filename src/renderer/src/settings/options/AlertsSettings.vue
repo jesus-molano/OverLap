@@ -14,8 +14,13 @@ import {
   ALERT_GROUP_HEADS,
   allAlertItems,
   alertPatch,
+  lightOfAlert,
+  lightShown,
+  lightsPatch,
   type AlertKey
 } from '../alertsList'
+import ToggleControl from '../controls/ToggleControl.vue'
+import SiblingLink from '../layout/SiblingLink.vue'
 import type { ElementText } from '../elements/listOps'
 import AccordionSection from '../layout/AccordionSection.vue'
 import ElementEditor from '../elements/ElementEditor.vue'
@@ -25,6 +30,8 @@ import PageSection from '../layout/PageSection.vue'
 import { formatSeconds } from '../values'
 
 const opts = useOptions('alerts')
+/** Testigos' lamps of the events both widgets have (R39). */
+const lights = useOptions('lights')
 const set = optionSetter('alerts')
 const t = useI18n()
 
@@ -95,6 +102,18 @@ const alertsOpen = shallowRef(true)
 const setAlerts = (next: ElementEntry<AlertKey>[]): Promise<void> =>
   updateSection('alerts', alertPatch(next))
 const setParts = listSetter('alerts', 'parts')
+const NOOP = (): Promise<void> => Promise.resolve()
+/** Its setter, for the box (a row without a lamp never shows one). */
+const setLight = (id: AlertKey): ((on: boolean) => Promise<void>) => lightBox(id)?.set ?? NOOP
+/** The «Testigo» box of a shared event: its lamp in Testigos, shown or hidden there. */
+function lightBox(id: AlertKey): { on: boolean; set: (on: boolean) => Promise<void> } | null {
+  const kind = lightOfAlert(id)
+  if (kind === null) return null
+  return {
+    on: lightShown(lights.value, kind),
+    set: (on) => updateSection('lights', lightsPatch(lights.value, kind, on))
+  }
+}
 </script>
 
 <template>
@@ -136,10 +155,20 @@ const setParts = listSetter('alerts', 'parts')
           :labels="alertTexts"
           :apply="setAlerts"
           :groups="groupHeads"
-          :note="t.settings.alerts.engineNote"
           preview-zone="alerts.alerts"
           embedded
-        />
+        >
+          <template #extra="{ id }">
+            <ToggleControl
+              v-if="lightBox(id) !== null"
+              :label="t.settings.alerts.alsoLight"
+              :name="t.settings.alerts.alsoLightLabel(alertTexts[id].label)"
+              :current="lightBox(id)?.on ?? false"
+              :apply="setLight(id)"
+            />
+          </template>
+        </ElementEditor>
+        <SiblingLink :text="t.settings.alerts.sharedNote" page="lights" />
       </div>
     </AccordionSection>
     <ElementEditor

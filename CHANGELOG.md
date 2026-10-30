@@ -68,6 +68,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   tiene como primera opción **Acento (global)**, que sigue al color de acento de Apariencia (como
   «Global (…)» en el formato de nombre). Es la opción de serie en una instalación nueva; si ya
   tenías ajustes, la marca conserva su color (el amarillo de antes) hasta que la elijas.
+- **Avisos y Testigos, enlazados**: motor calado, presión de aceite y limitador de boxes están en
+  los dos widgets. En **Personalizar › Avisos**, la fila de cada uno tiene una casilla **Testigo**
+  que enciende o apaga su testigo en Testigos, y en la lista de Testigos la casilla **Aviso** hace
+  lo mismo con su aviso; bajo cada lista, una línea lo explica con un botón **Ir a Testigos** /
+  **Ir a Avisos**. La nota de Avisos sobre temperaturas y reparaciones va en esa misma línea.
 
 ### Cambiado
 

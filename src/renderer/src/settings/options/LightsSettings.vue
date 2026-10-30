@@ -24,6 +24,8 @@ import PageAppendix from '../layout/PageAppendix.vue'
 import PageSection from '../layout/PageSection.vue'
 import { hasLightTexts, lightsFilter } from '@renderer/widgets/lights/view'
 import LightsLegend from './LightsLegend.vue'
+import { alertOfLight } from '../alertsList'
+import SiblingLink from '../layout/SiblingLink.vue'
 
 const opts = useOptions('lights')
 const set = optionSetter('lights')
@@ -54,6 +56,16 @@ const noTemps = computed(() => !shown('water') && !shown('oilTemp'))
 const noRepairs = computed(() => !shown('repair') && !shown('repairOptional'))
 const iconTexts = computed(() => elementTexts(t.value, 'lights', 'icons'))
 const setIcons = listSetter('lights', 'icons')
+const NOOP = (): Promise<void> => Promise.resolve()
+/** Its setter, for the box (a row without an alert never shows one). */
+const setAlert = (id: string): ((on: boolean) => Promise<void>) => alertBox(id)?.set ?? NOOP
+/** Avisos' switches of the events both widgets have (R39): the «Aviso» box of their rows. */
+const alerts = useOptions('alerts')
+function alertBox(id: string): { on: boolean; set: (on: boolean) => Promise<void> } | null {
+  const key = alertOfLight(id)
+  if (key === null) return null
+  return { on: alerts.value[key], set: (on) => updateSection('alerts', { [key]: on }) }
+}
 </script>
 
 <template>
@@ -82,8 +94,18 @@ const setIcons = listSetter('lights', 'icons')
       :apply="setIcons"
       empty-hides
     >
+      <template #extra="{ id }">
+        <ToggleControl
+          v-if="alertBox(id) !== null"
+          :label="t.settings.lights.alsoAlert"
+          :name="t.settings.lights.alsoAlertLabel(iconTexts[id].label)"
+          :current="alertBox(id)?.on ?? false"
+          :apply="setAlert(id)"
+        />
+      </template>
       <!-- How the lights read (R12): their words, temperatures and repairs, next to them. -->
       <template #footer>
+        <SiblingLink :text="t.settings.lights.sharedNote" page="alerts" />
         <ChoiceControl
           :label="t.settings.lights.captions"
           :help="t.settings.lights.captionsHelp"
