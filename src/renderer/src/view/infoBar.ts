@@ -63,6 +63,8 @@ export type InfoItemView =
       readonly textLong?: string
     }
   | { readonly id: 'clock'; readonly text: string }
+  /** The sim's time of day ('14:32'), in the local clock's format, with its own icon. */
+  | { readonly id: 'simClock'; readonly text: string }
   | { readonly id: 'sof'; readonly text: string }
   | { readonly id: 'carCount'; readonly text: string }
   | { readonly id: 'incidents'; readonly count: IncidentCountView }
@@ -263,6 +265,8 @@ function itemView(
       return remainingView(d, m)
     case 'clock':
       return c.clock !== '' ? { id, text: c.clock } : null
+    case 'simClock':
+      return d.simMinutes !== null ? { id, text: simClockText(d.simMinutes) } : null
     case 'sof': {
       const sof = formatIRating(d.sof)
       return sof !== '' ? { id, text: m.widgets.standings.sof(sof) } : null
@@ -356,6 +360,12 @@ export function infoBarView(
   return start.length === 0 && end.length === 0 ? NO_BAR : { start, end }
 }
 
+/** 'HH:MM' of whole minutes since midnight, 24 h as the local clock (useClock's clockText). */
+export function simClockText(minutes: number): string {
+  const m = ((Math.floor(minutes) % 1440) + 1440) % 1440
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
 const NO_DATA: InfoBarData = Object.freeze({
   sessionType: null,
   lapsRemaining: null,
@@ -369,7 +379,8 @@ const NO_DATA: InfoBarData = Object.freeze({
   safetyRating: null,
   fastestLap: null,
   conditions: null,
-  fuelLaps: null
+  fuelLaps: null,
+  simMinutes: null
 })
 
 /**
@@ -425,5 +436,7 @@ export const PREVIEW_INFO: Readonly<InfoBarData> = Object.freeze({
     isPlayer: false
   }),
   conditions: PREVIEW_CONDITIONS,
-  fuelLaps: 6.4
+  fuelLaps: 6.4,
+  // 14:32 on track (the local clock is the computer's).
+  simMinutes: 14 * 60 + 32
 })

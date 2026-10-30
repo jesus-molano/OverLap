@@ -17,6 +17,8 @@ export const MOCK_SESSION_ID = 291234567
 export const RACE_ELAPSED_AT_START_S = 2100
 /** Seconds from the start of a mock session until the race clock reaches 0. */
 export const CLOCK_LEFT_AT_START_S = MOCK_RACE_LENGTH_S - RACE_ELAPSED_AT_START_S
+/** The sim's time of day when a mock session starts: 14:30 (SessionTimeOfDay, s). */
+export const START_TIME_OF_DAY_S = 14.5 * 3600
 /** Gridding and pace lap before the green flag. */
 const PRE_GREEN_S = 180
 /** SessionTime when a mock session starts. */

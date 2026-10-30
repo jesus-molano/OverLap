@@ -37,6 +37,8 @@ export type InfoSource =
   | 'conditions'
   /** The fuel tracker's laps of fuel. */
   | 'fuel'
+  /** The sim's time of day (SessionTimeOfDay). */
+  | 'simTime'
 
 export interface InfoItemSpec {
   readonly source: InfoSource
@@ -55,6 +57,7 @@ export const INFO_ITEM_IDS = [
   'session',
   'remaining',
   'clock',
+  'simClock',
   'sof',
   'carCount',
   'incidents',
@@ -74,6 +77,8 @@ export const INFO_ITEMS: { readonly [K in InfoItemId]: InfoItemSpec } = {
   session: { source: 'session', priority: 1, em: 5.5 },
   remaining: { source: 'session', priority: 1, em: 6.5 },
   clock: { source: 'renderer', priority: 4, em: 3.2 },
+  // As the local clock: '14:32', its own icon.
+  simClock: { source: 'simTime', priority: 4, em: 3.2 },
   sof: { source: 'field', priority: 5, em: 4.5 },
   carCount: { source: 'field', priority: 6, em: 4.5 },
   incidents: { source: 'incidents', priority: 2, em: 6.5 },

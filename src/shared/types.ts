@@ -1294,7 +1294,7 @@ export type FuelLineId =
  * infoBar.ts: its data source, its priority when the bar is short of room, its width):
  * - `title`: the widget's name (and the SIM tag); `session`: the session type ('CARRERA');
  * - `remaining`: time and/or laps left ('38:19  ≈19 v', 'Quedan 12 v', 'Final');
- * - `clock`: your computer's local time;
+ * - `clock`: your computer's local time; `simClock`: the time of day in the sim (SessionTimeOfDay);
  * - `sof`, `carCount`: your class's strength of field and its entries;
  * - `incidents`: yours and the session's next limit ('3x · pen. a 17x');
  * - `iRating`, `safetyRating`: your projected changes (iRating in rated races only);
@@ -1308,6 +1308,7 @@ export type InfoItemId =
   | 'session'
   | 'remaining'
   | 'clock'
+  | 'simClock'
   | 'sof'
   | 'carCount'
   | 'incidents'
@@ -1369,6 +1370,11 @@ export interface InfoBarData {
   conditions: ConditionsData | null
   /** Laps the fuel lasts at your average (FuelData.lapsOfFuel), null while measuring. */
   fuelLaps: number | null
+  /**
+   * The sim's time of day in whole minutes since midnight (0..1439, SessionTimeOfDay), so the
+   * payload changes once a minute; null when unknown.
+   */
+  simMinutes: number | null
 }
 
 /** How licences are drawn ('outline' is the default since v2.6; 'soft' was before). */

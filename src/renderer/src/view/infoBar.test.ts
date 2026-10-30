@@ -10,6 +10,7 @@ import {
   hasInfoBar,
   infoBarView,
   reuseInfoBar,
+  simClockText,
   srBudgetText,
   type InfoBarContext,
   type InfoItemView
@@ -84,6 +85,20 @@ describe('infoBarView', () => {
       neutral: 'neutro P6'
     })
     expect(by.safetyRating).toMatchObject({ from: '3.98', to: '4.02', budget: 'margen 4x' })
+  })
+
+  it('the sim time as the local clock, HH:MM in 24 h, and nothing while unknown', () => {
+    const v = infoBarView(['clock', 'simClock'], PREVIEW_INFO, ctx())
+    expect(v.start).toEqual([
+      { id: 'clock', text: '21:07' },
+      { id: 'simClock', text: '14:32' }
+    ])
+    expect(simClockText(0)).toBe('00:00')
+    expect(simClockText(9 * 60 + 5)).toBe('09:05')
+    expect(simClockText(1439)).toBe('23:59')
+    expect(simClockText(1440 + 61)).toBe('01:01')
+    const none = infoBarView(['simClock'], { ...PREVIEW_INFO, simMinutes: null }, ctx())
+    expect(none).toBe(NO_BAR)
   })
 
   it('leaves out an item with nothing to say, and is NO_BAR with nothing at all', () => {

@@ -52,6 +52,8 @@ export const TELEMETRY_VARS = {
   CarIdxTireCompound: 'number',
   /** Seconds left; -1 before Racing. */
   SessionTimeRemain: 'number',
+  /** The sim's time of day, s since midnight (the «Hora en pista» item; it runs with the race). */
+  SessionTimeOfDay: 'number',
   /** Laps left; LAPS_REMAIN_UNLIMITED (flags.ts) in timed sessions. */
   SessionLapsRemainEx: 'number',
   /** irsdk_Flags of the session (SessionFlag in flags.ts: Caution, CautionWaving, ...). */

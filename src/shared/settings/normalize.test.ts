@@ -71,6 +71,7 @@ const CATALOG: readonly InfoItemId[] = [
   'session',
   'remaining',
   'clock',
+  'simClock',
   'sof',
   'carCount',
   'incidents',

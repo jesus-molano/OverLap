@@ -1820,6 +1820,7 @@ export const settingsEs = {
       session: 'Sesión',
       remaining: 'Tiempo o vueltas restantes',
       clock: 'Hora local',
+      simClock: 'Hora en pista',
       sof: 'SoF',
       carCount: 'Número de coches',
       incidents: 'Incidentes',
@@ -1836,6 +1837,7 @@ export const settingsEs = {
     hints: {
       title: 'El nombre del widget en mayúsculas: «RELATIVO», «TRÁFICO»…',
       remaining: '«38:19  ≈19 v», «Quedan 12 v»; «Final» tras tu bandera',
+      simClock: 'La hora del día en el simulador, con un sol; la local es la de tu ordenador',
       sof: 'La de tu clase',
       carCount: 'Los inscritos en tu clase',
       incidents: 'Los tuyos y el próximo límite: «3x · DQ a 17x»',
@@ -3511,6 +3513,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       session: 'Session',
       remaining: 'Time or laps left',
       clock: 'Local time',
+      simClock: 'Sim time',
       sof: 'SoF',
       carCount: 'Car count',
       incidents: 'Incidents',
@@ -3527,6 +3530,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hints: {
       title: 'The widget’s name in capitals: “RELATIVE”, “TRAFFIC”…',
       remaining: '“38:19  ≈19 laps”, “12 laps to go”; “Finished” after your flag',
+      simClock: 'The time of day in the sim, with a sun; the local one is your computer’s',
       sof: 'Of your class',
       carCount: 'The entries of your class',
       incidents: 'Yours and the next limit: “3x · DQ at 17x”',
