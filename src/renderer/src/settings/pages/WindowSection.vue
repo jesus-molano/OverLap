@@ -126,6 +126,15 @@ const sessionScreen = computed(() =>
   sessionScreenSwitch(t.value, props.widgetId, visibility.value, prefs.value.showOnSessionScreen)
 )
 
+/** «Ocultar en boxes» means something here (not the alerts, whose job includes the pits). */
+const pitsHide = computed(() => canHideInPits(props.widgetId))
+/** «Crece hacia»: why it is off when the height does not follow the content. */
+const anchorHelp = computed(() => {
+  const w = t.value.settings.window
+  if (!autoModel.value) return w.anchorFree
+  return prefs.value.autoHeight ? w.anchorHelp : w.anchorFixed
+})
+
 const HEIGHT_VALUES: readonly BoolChoice[] = ['on', 'off']
 const heightChoices = computed(() =>
   choiceOptions(HEIGHT_VALUES, t.value.settings.window.heightChoices)
@@ -160,12 +169,13 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
       :disabled="!autoModel"
       :apply="setAutoHeight"
     />
+    <!-- Always the row, off with its reason where the height does not follow the content. -->
     <ChoiceControl
-      v-if="autoModel && prefs.autoHeight"
       :label="t.settings.window.anchor"
-      :help="t.settings.window.anchorHelp"
+      :help="anchorHelp"
       :current="prefs.anchor"
       :options="anchorChoices"
+      :disabled="!(autoModel && prefs.autoHeight)"
       :note="behaviour"
       :apply="set('anchor')"
     />
@@ -202,12 +212,13 @@ const percent = computed(() => (v: number) => formatPercent(t.value, v))
         :apply="s.apply"
       />
     </CheckGroup>
+    <!-- The same row on every page: off and disabled, saying why, where it has no meaning. -->
     <ToggleControl
-      v-if="canHideInPits(widgetId)"
       kind="switch"
       :label="t.settings.window.hideInPits"
-      :help="t.settings.window.hideInPitsHelp"
-      :current="prefs.hideInPits"
+      :help="pitsHide ? t.settings.window.hideInPitsHelp : t.settings.window.hideInPitsNo"
+      :current="pitsHide && prefs.hideInPits"
+      :disabled="!pitsHide"
       :note="behaviour"
       :apply="set('hideInPits')"
     />

@@ -99,14 +99,17 @@ describe('resets with "Deshacer"', () => {
       )
     })
     const { restore } = await load(both)
+    // The gap's choice is on the gap column's row now (R12): Contenido leaves both alone.
     restore.resetWidget('standings', 'content')
     const content = (patches.at(-1) as { standings: Record<string, unknown> }).standings
-    expect(content.gapMode).toBe('interval')
-    const cols = content.columns as { id: string; visible: boolean }[]
-    expect(cols.find((c) => c.id === 'gapLeader')?.visible).toBe(false)
+    expect(content.gapMode).toBeUndefined()
+    expect(content.columns).toBeUndefined()
     restore.resetWidget('standings', 'customize')
     const custom = (patches.at(-1) as { standings: Record<string, unknown> }).standings
     expect(custom.gapMode).toBe('interval')
+    const cols = custom.columns as { id: string; visible: boolean }[]
+    expect(cols.find((c) => c.id === 'gapLeader')?.visible).toBe(false)
+    expect(custom.showPosition).toBe(true)
   })
 
   it('brings a free-size widget «Escala» back with its window section', async () => {

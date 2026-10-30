@@ -973,6 +973,9 @@ export const settingsEs = {
     },
     anchor: 'Crece hacia',
     anchorHelp: 'Arriba si lo tienes pegado al borde inferior de la pantalla',
+    /** Off, with why: the height does not follow the content. */
+    anchorFixed: 'No aplica: solo con «Alto: Automático»',
+    anchorFree: 'No aplica: este widget no cambia de alto por sí solo',
     // The anchor is the edge that stays put: anchored at the top, it grows downwards.
     anchorChoices: {
       top: { label: 'Abajo', hint: 'El borde de arriba se queda fijo' },
@@ -996,6 +999,8 @@ export const settingsEs = {
       'Visibilidad solo muestra el overlay en carrera: en práctica y clasificación no se ve',
     hideInPits: 'Ocultar en boxes',
     hideInPitsHelp: 'Mientras estás en el pit lane o parado en tu box',
+    /** Avisos: off, with why (its job includes the pits). */
+    hideInPitsNo: 'No aplica: ocultaría los avisos del limitador y de la entrada a boxes',
     sessionScreen: 'Mostrar en la pantalla de sesión',
     sessionScreenHelp:
       'Fuera del coche, sobre los resultados y el chat de iRacing (aunque el overlay sea solo para el coche)',
@@ -1036,10 +1041,7 @@ export const settingsEs = {
     stint: 'Vueltas del stint',
     stintHelp: 'Desde su última parada, o desde la salida',
     tyre: 'Neumático',
-    /** Column hints (R10: the same words as the standings'). */
-    posHelp: 'En tu clase',
-    /** The number is the driver cell's, as in the standings (R10). */
-    driverHelp: 'Con el número del coche',
+    /** Column hints; the position's and the driver's are the standings' (columns.fixedHints). */
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
@@ -1067,7 +1069,8 @@ export const settingsEs = {
       `La vista previa te pone en P${position}: así se ven por separado los primeros puestos y los coches de alrededor`,
     previewSingle:
       'La vista previa muestra solo tu clase: así se ven el SoF y los coches en las barras',
-    gap: 'Hueco',
+    /** On the gap column's own row (R12): to whom it is measured. */
+    gap: 'Medido',
     gapHelp: 'Fuera de carrera, el hueco es a la mejor vuelta',
     gapChoices: {
       interval: { label: 'Al de delante' },
@@ -1122,8 +1125,8 @@ export const settingsEs = {
     hints: {
       gained: 'Solo en carrera: puestos ganados desde la salida',
       delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
-      gap: 'Según «Hueco»: al de delante o al líder',
-      gapLeader: 'Con «Hueco: Ambos»',
+      gap: 'Al de delante o al líder: elígelo en su fila',
+      gapLeader: 'Se muestra con «Ambos» en la fila Hueco',
       last: 'Fuera de carrera, la mejor vuelta',
       best: 'Solo en carrera: fuera de carrera ya la muestra «Última vuelta»',
       pit: 'PIT, OUT o GRÚA y las paradas; oculta, PIT va tras el nombre',
@@ -1146,7 +1149,10 @@ export const settingsEs = {
       laps: { label: 'Vueltas', hint: 'Las tres últimas vueltas' }
     },
     predictionHelp: '«Le alcanzas en ~4 v de 19»',
-    atStakeHelp: 'Cuánto iRating vale ese puesto'
+    atStakeHelp: 'Cuánto iRating vale ese puesto',
+    /** The parts' iRating and licence: named as the tables' columns, whose they are said here. */
+    ratingHelp: 'El del rival, como la columna iRating de las tablas',
+    licenseHelp: 'La del rival, como la columna Licencia de las tablas'
   },
   inputs: {
     traceSeconds: 'Segundos de traza',
@@ -1338,7 +1344,7 @@ export const settingsEs = {
     /** The class best under a session's selector: nothing after it. */
     fallbackNone: 'Sin otra si no existe',
     fallbackOff: 'Desactivado, el delta se oculta hasta que exista la referencia elegida',
-    range: 'Escala de la barra',
+    range: 'Rango de la barra',
     rangeHelp:
       'Diferencia con la que la barra llega al final, a cada lado; más allá se marca el extremo',
     predicted: 'Vuelta prevista',
@@ -1708,8 +1714,8 @@ export const settingsEs = {
       lanes: { ahead: 'Coche de delante', behind: 'Coche de detrás' },
       rows: { prediction: 'Predicción de alcance', sectors: 'Sectores', laps: 'Vueltas' },
       parts: {
-        rating: 'iRating del rival',
-        license: 'Licencia del rival',
+        rating: 'iRating',
+        license: 'Licencia',
         trendNote: 'Texto de la tendencia',
         stake: 'iRating en juego'
       }
@@ -2780,6 +2786,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     anchor: 'Grows',
     anchorHelp: 'Up if it sits against the bottom edge of the screen',
+    anchorFixed: 'Not available: only with “Height: Automatic”',
+    anchorFree: 'Not available: this widget never changes height by itself',
     anchorChoices: {
       top: { label: 'Down', hint: 'The top edge stays put' },
       bottom: { label: 'Up', hint: 'The bottom edge stays put' }
@@ -2798,6 +2806,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     showInRaceOnly: 'Visibility only shows the overlay in races: not in practice or qualifying',
     hideInPits: 'Hide in the pits',
     hideInPitsHelp: 'While you are on pit road or stopped in your pit box',
+    hideInPitsNo: 'Not available: it would hide the pit limiter and pit entry alerts',
     sessionScreen: 'Show on the session screen',
     sessionScreenHelp:
       'Out of the car, over iRacing’s results and chat (even with the overlay for the car only)',
@@ -2827,8 +2836,6 @@ export const settingsEn: Dict<typeof settingsEs> = {
     stint: 'Stint laps',
     stintHelp: 'Since its last stop, or since the start',
     tyre: 'Tyre',
-    posHelp: 'In your class',
-    driverHelp: 'With the car number',
     pitHelp: 'PIT or TOW in its own column; hidden, after the name',
     tyreHelp:
       'Compound letter (H hard, W wet) once not everyone runs the dry one; only for your car model'
@@ -2855,7 +2862,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `The preview puts you in P${position}: so the top rows and the cars around you show apart`,
     previewSingle:
       'The preview shows your class only: so the SoF and the car count show in the bars',
-    gap: 'Gap',
+    gap: 'Measured',
     gapHelp: 'Outside a race, the gap is to the best lap',
     gapChoices: {
       interval: { label: 'Interval' },
@@ -2900,8 +2907,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hints: {
       gained: 'Race only: positions gained since the start',
       delta: 'What you win or lose in your position (or everyone’s, with the option)',
-      gap: 'Set by “Gap”: to the car ahead or to the leader',
-      gapLeader: 'Only with “Gap: Both”',
+      gap: 'To the car ahead or to the leader: choose it on its row',
+      gapLeader: 'Shown with “Both” on the Gap row',
       last: 'Outside races, the best lap',
       best: 'Race only: outside races “Last lap” already shows it',
       pit: 'PIT, OUT or TOW and the stops; hidden, PIT goes after the name',
@@ -2924,7 +2931,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     // The battle widget's own wording: catchIn(laps.about(4)) and ofLaps(19).
     predictionHelp: '“Catching in ~4 L of 19”',
-    atStakeHelp: 'How much iRating that position is worth'
+    atStakeHelp: 'How much iRating that position is worth',
+    ratingHelp: 'The rival’s, as the tables’ iRating column',
+    licenseHelp: 'The rival’s, as the tables’ Licence column'
   },
   inputs: {
     traceSeconds: 'Trace length',
@@ -3085,7 +3094,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     fallbackThen: (chain) => `If missing: ${chain}`,
     fallbackNone: 'Nothing after it if missing',
     fallbackOff: 'Off: the delta stays hidden until the chosen reference exists',
-    range: 'Bar scale',
+    range: 'Bar range',
     rangeHelp:
       'The time difference that fills the bar on each side; anything beyond is shown at the end',
     predicted: 'Predicted lap',
@@ -3388,8 +3397,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       lanes: { ahead: 'Car ahead', behind: 'Car behind' },
       rows: { prediction: 'Catch prediction', sectors: 'Sectors', laps: 'Laps' },
       parts: {
-        rating: 'Rival iRating',
-        license: 'Rival licence',
+        rating: 'iRating',
+        license: 'Licence',
         trendNote: 'Trend text',
         stake: 'iRating at stake'
       }

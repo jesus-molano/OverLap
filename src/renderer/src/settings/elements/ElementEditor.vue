@@ -22,6 +22,7 @@ import type { PreviewNoteSpec } from '../controls/previewNote'
 import { offerSectionRestore } from '../undo/restore'
 import { undoSlot, type UndoKind } from '../undo/undo'
 import { useOptimistic } from '../useOptimistic'
+import { pinFirst } from '@shared/elements'
 import {
   barRows,
   barStop,
@@ -99,7 +100,15 @@ const props = withDefaults(
       readonly key: string
       readonly label: string
       readonly hint?: string
+      /** A fixed part that can be hidden (the standings' position): its eye, not a lock. */
+      readonly visible?: boolean
+      readonly toggle?: (visible: boolean) => void
     }[]
+    /**
+     * Ids of the list that are the row's fixed start (the tables' position and driver, R10): drawn
+     * in the fixed block above the list with their eye (or lock), never moved or counted.
+     */
+    pinned?: readonly Id[]
     fixedAfter?: readonly { readonly key: string; readonly label: string }[]
     /** A short note about the whole list, under it. */
     note?: string
@@ -147,6 +156,7 @@ const props = withDefaults(
     note: undefined,
     split: undefined,
     omit: () => [],
+    pinned: () => [],
     summary: undefined,
     off: false,
     restAtDefault: true,
@@ -178,7 +188,8 @@ const optimistic = useOptimistic<readonly Readonly<ElementEntry<Id>>[]>(() => pr
 const current = optimistic.value
 
 function send(next: ElementEntry<Id>[], change: ElementChange<Id>): Promise<void> {
-  return optimistic.run(next, () => props.apply(next, change))
+  const list = pinFirst(next, props.pinned)
+  return optimistic.run(list, () => props.apply(list, change))
 }
 
 /** Live order while a drag is in progress (sent on drop only). */
@@ -188,6 +199,10 @@ const shown = computed<readonly Readonly<ElementEntry<Id>>[]>(
   () => dragOrder.value ?? current.value
 )
 const sortable = computed(() => !props.spec.fixedOrder && shown.value.length > 1)
+/** The pinned entries, in their order, for the fixed block. */
+const pinnedRows = computed(() =>
+  props.pinned.flatMap((id) => shown.value.filter((e) => e.id === id).slice(0, 1))
+)
 
 /** One box of rows: the whole list, or one side of the marker. */
 interface Box {
@@ -208,7 +223,7 @@ const boxes = computed<readonly Box[]>(() => {
   }
   const rows = list
     .map((entry, index) => ({ entry, index }))
-    .filter((r) => !props.omit.includes(r.entry.id))
+    .filter((r) => !props.omit.includes(r.entry.id) && !props.pinned.includes(r.entry.id))
   return [{ side: null, rows }]
 })
 
@@ -232,12 +247,16 @@ const rowEntries = computed(() => [
  */
 function isStop(e: Readonly<ElementEntry<Id>>): boolean {
   if (props.split !== undefined) return barStop(props.split)(e)
-  return !props.omit.includes(e.id)
+  return !props.omit.includes(e.id) && !props.pinned.includes(e.id)
 }
 
 /** Whether ↑ (-1) or ↓ (1) can move `id` (an info bar: past the next row drawn). */
 function canStep(id: Id, index: number, delta: -1 | 1): boolean {
-  if (props.split === undefined) return delta < 0 ? index > 0 : index < shown.value.length - 1
+  if (props.split === undefined) {
+    // Never past the pinned start (a step there would be undone by pinFirst).
+    const list = shown.value
+    return delta < 0 ? list.slice(0, index).some(isStop) : list.slice(index + 1).some(isStop)
+  }
   return movedPast(props.spec, shown.value, id, delta, isStop) !== null
 }
 const countNote = computed(() =>
@@ -725,16 +744,73 @@ function onCancel(e: PointerEvent): void {
           <template v-else>{{ t.settings.elements.introFixed }}</template>
         </p>
 
-        <ul v-if="fixedBefore.length > 0" class="ed-list">
-          <!-- Always there, in its place: the same lock, where the eye goes, as an always-shown row. -->
-          <li v-for="f in fixedBefore" :key="f.key" class="ed-row is-fixed">
+        <ul v-if="fixedBefore.length > 0 || pinnedRows.length > 0" class="ed-list">
+          <!--
+            Always in its place: the same lock, where the eye goes, as an always-shown row; a part
+            that can be hidden has its eye instead (the tables' position, R10).
+          -->
+          <li
+            v-for="f in fixedBefore"
+            :key="f.key"
+            class="ed-row is-fixed"
+            :class="{ 'is-off': f.visible === false }"
+          >
             <span class="ed-fixed-gap" aria-hidden="true" />
-            <span class="ed-eye is-locked" :title="t.settings.elements.fixedTag">
+            <button
+              v-if="f.toggle"
+              type="button"
+              class="ed-eye"
+              :aria-pressed="f.visible !== false"
+              :aria-label="
+                f.visible !== false
+                  ? t.settings.elements.hide(f.label)
+                  : t.settings.elements.show(f.label)
+              "
+              @click="f.toggle(f.visible === false)"
+            >
+              <Icon :name="f.visible !== false ? 'eye' : 'eye-off'" />
+            </button>
+            <span v-else class="ed-eye is-locked" :title="t.settings.elements.fixedTag">
               <Icon name="lock" :label="t.settings.elements.fixedTag" />
             </span>
             <span class="ed-text">
               <span class="ed-name">{{ f.label }}</span>
               <span v-if="f.hint" class="ed-hint">{{ f.hint }}</span>
+            </span>
+          </li>
+          <li
+            v-for="e in pinnedRows"
+            :key="e.id"
+            class="ed-row is-fixed"
+            :class="{ 'is-off': !e.visible }"
+            :data-row="e.id"
+          >
+            <span class="ed-fixed-gap" aria-hidden="true" />
+            <span
+              v-if="isRequired(spec, e.id)"
+              class="ed-eye is-locked"
+              :title="t.settings.elements.fixedTag"
+            >
+              <Icon name="lock" :label="t.settings.elements.fixedTag" />
+            </span>
+            <button
+              v-else
+              type="button"
+              class="ed-eye"
+              data-focus="eye"
+              :aria-pressed="e.visible"
+              :aria-label="
+                e.visible
+                  ? t.settings.elements.hide(labelOf(e.id))
+                  : t.settings.elements.show(labelOf(e.id))
+              "
+              @click="onEye(e.id, !e.visible)"
+            >
+              <Icon :name="e.visible ? 'eye' : 'eye-off'" />
+            </button>
+            <span class="ed-text">
+              <span class="ed-name">{{ labelOf(e.id) }}</span>
+              <span v-if="labels[e.id]?.hint" class="ed-hint">{{ labels[e.id]?.hint }}</span>
             </span>
           </li>
         </ul>

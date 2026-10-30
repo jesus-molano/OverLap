@@ -39,7 +39,7 @@ describe('fixedColumns', () => {
     expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'name'])
     // The number is the driver's, as in the relative (R10); why they do not move, said.
     expect(fixedColumns(messagesFor('es'))[1]?.hint).toContain('número')
-    expect(messagesFor('es').settings.relative.driverHelp).toBe('Con el número del coche')
+    expect(fixedColumns(messagesFor('es'))[0]?.hint).toContain('al principio de la fila')
   })
 })
 
