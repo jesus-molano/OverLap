@@ -204,6 +204,7 @@ const carGate = useParentGate({
       kind="switch"
       :label="t.settings.inputs.shiftLights"
       :help="t.settings.inputs.shiftLightsHelp"
+      :more="t.settings.inputs.shiftLightsMore"
       :current="opts.shiftLights"
       :apply="set('shiftLights')"
     />

@@ -3,7 +3,7 @@ import { clamp01, isFiniteNumber } from '@shared/num'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { AppearanceSettings } from '@shared/types'
 import { WIDGET_DEFS, type WidgetId } from '@shared/widgets'
-import { widgetFontPx } from '../view/appearance'
+import { minTextPx, widgetFontPx } from '../view/appearance'
 import type { InlineStyle } from '../view/styles'
 import { useAppearance } from './useAppearance'
 import { ownOptionsApply, useWidgetSettings } from './useWidgetSettings'
@@ -70,7 +70,9 @@ export function useWidgetSurface(id: WidgetId = injectWidgetId()): WidgetSurface
   )
   const lowBg = computed(() => bgAlpha.value < LOW_BG_ALPHA)
   const halo = computed(() => haloOn(appearance.value.textHalo, bgAlpha.value))
-  const fontPx = computed(() => widgetFontPx(prefs.value.scale, appearance.value.fontScale))
+  const fontPx = computed(() =>
+    widgetFontPx(prefs.value.scale, appearance.value.fontScale, minTextPx(appearance.value))
+  )
   const autoHeight = def.sizeModel === 'auto-height'
   const surfaceStyle = computed<InlineStyle>(() => {
     const style: Record<string, string> = { '--ov-bg-alpha': String(bgAlpha.value) }

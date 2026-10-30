@@ -2,6 +2,7 @@ import { BrowserWindow, app, screen, type Rectangle, type WebContents } from 'el
 import { join } from 'node:path'
 import { DEFAULT_LANGUAGE, messagesFor, type Language } from '@shared/i18n'
 import { IPC, type SettingsWindowPage } from '@shared/ipc'
+import { zoomFactor } from '@shared/settingsZoom'
 import iconPath from '../../resources/icon.png?asset'
 
 // Unlike the widgets, this is a normal framed, focusable window: it only ever
@@ -9,6 +10,8 @@ import iconPath from '../../resources/icon.png?asset'
 let win: BrowserWindow | null = null
 /** settings.appearance.language, for the title bar (see setSettingsWindowLanguage). */
 let language: Language = DEFAULT_LANGUAGE
+/** settings.appearance.settingsZoom as a factor (R29; see setSettingsWindowZoom). */
+let zoom = 1
 let inactiveListener: (() => void) | null = null
 /** The page asked for in the URL of the load in progress (undefined: none, or not loading). */
 let loadingPage: SettingsWindowPage | undefined
@@ -40,6 +43,19 @@ export function setSettingsWindowLanguage(lang: Language): void {
   if (lang === language) return
   language = lang
   if (win && !win.isDestroyed()) win.setTitle(settingsWindowTitle(lang))
+}
+
+/**
+ * The window's zoom (appearance.settingsZoom, R29): the window open now follows it at once, one
+ * opened later from its first load. Only this window: the overlays pin theirs to 1 on every load
+ * (overlayWindow.ts), whatever Chromium remembers for the origin. Main calls it on start and on
+ * every settings change.
+ */
+export function setSettingsWindowZoom(pct: number): void {
+  const next = zoomFactor(pct)
+  if (next === zoom) return
+  zoom = next
+  if (win && !win.isDestroyed()) win.webContents.setZoomFactor(zoom)
 }
 
 /**
@@ -197,6 +213,8 @@ function createWindow(page: SettingsWindowPage | undefined): BrowserWindow {
   wc.on('did-stop-loading', () => {
     if (win === w) loadingPage = undefined
   })
+  // Its own zoom on every load (a reload, a crash): Chromium keeps one per origin otherwise.
+  wc.on('did-finish-load', () => wc.setZoomFactor(zoom))
   // Reopening from the tray creates a fresh one.
   wc.on('render-process-gone', (_event, details) => {
     console.error(`[settings-window] renderer gone (${details.reason})`)

@@ -375,6 +375,12 @@ onBeforeUnmount(() => {
   }
 }
 
+/* «Sin parpadeos» (R27): the same steady ring, whatever the system says. */
+:root[data-flash='off'] .focus-ring {
+  opacity: 1;
+  animation: none;
+}
+
 .frame.editing {
   cursor: move;
   touch-action: none;

@@ -187,6 +187,14 @@
 }
 
 /*
+ * Accesibilidad › «Texto mínimo de 10 px» (R15, off by default): every floor above follows. The
+ * widgets keep their size; what no longer fits gives way as in a narrower window.
+ */
+:root[data-min-text='10'] {
+  --ov-min-text: 10px;
+}
+
+/*
  * Colour-blind palette (deuteranopia-safe blue/orange), global: every widget, the radar ramp and
  * the alarms follow it through these tokens alone. Every shape stays.
  */

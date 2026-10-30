@@ -46,14 +46,19 @@ const round2 = (v: number): number => Math.round(v * 100) / 100
 
 /**
  * Label size (user units) for a radar drawn `widthPx` x `heightPx` CSS px: LABEL_FONT, raised
- * so it never renders under LABEL_MIN_PX; null when that would exceed LABEL_FONT_MAX. Before
- * the size is known, LABEL_FONT. Rounded to 0.1 so a resize changes it in visible steps only.
+ * so it never renders under `minPx` (LABEL_MIN_PX; 10 with «Texto mínimo de 10 px»); null when
+ * that would exceed LABEL_FONT_MAX. Before the size is known, LABEL_FONT. Rounded to 0.1 so a
+ * resize changes it in visible steps only.
  */
-export function labelFontUnits(widthPx: number, heightPx: number): number | null {
+export function labelFontUnits(
+  widthPx: number,
+  heightPx: number,
+  minPx = LABEL_MIN_PX
+): number | null {
   const pxPerUnit = Math.min(widthPx, heightPx) / VIEW_UNITS
   if (!(pxPerUnit > 0) || !Number.isFinite(pxPerUnit)) return LABEL_FONT
   // The epsilon keeps float noise (9 / 1.2 = 7.500000000000001) from rounding up a step.
-  const units = Math.ceil(Math.max(LABEL_FONT, LABEL_MIN_PX / pxPerUnit) * 10 - 1e-9) / 10
+  const units = Math.ceil(Math.max(LABEL_FONT, minPx / pxPerUnit) * 10 - 1e-9) / 10
   return units > LABEL_FONT_MAX ? null : units
 }
 

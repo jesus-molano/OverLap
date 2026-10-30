@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import { relativeLuminance } from '@shared/colors'
-import { ABS_COLOR, CLUTCH_TRACE_DIM, mixHex, pedalPalette } from './palette'
+import {
+  ABS_COLOR,
+  CLUTCH_TRACE_DIM,
+  CVD_ABS_COLOR,
+  CVD_PEDALS,
+  mixHex,
+  pedalPalette
+} from './palette'
 
 describe('mixHex', () => {
   it('mixes opaque colours per channel', () => {
@@ -42,6 +49,36 @@ describe('pedalPalette', () => {
       '--ov-clutch': d.clutch
     })
     expect(pedalPalette(undefined).trace.throttle).toBe(d.throttle)
+  })
+
+  it('turns the default colours blue and orange with the colour-blind palette (R36)', () => {
+    const d = OPTION_SCHEMA.inputs.colors.default
+    const p = pedalPalette(d, true)
+    expect(p.vars).toEqual({
+      '--ov-throttle': CVD_PEDALS.throttle,
+      '--ov-brake': CVD_PEDALS.brake,
+      '--ov-clutch': CVD_PEDALS.clutch,
+      '--ov-abs': CVD_ABS_COLOR
+    })
+    expect(p.trace.abs).toBe(CVD_ABS_COLOR)
+    // Brake and throttle apart by lightness too, not only by hue.
+    const lum = (c: string): number => relativeLuminance(c) ?? 0
+    expect(Math.abs(lum(CVD_PEDALS.throttle) - lum(CVD_PEDALS.brake))).toBeGreaterThan(0.05)
+    // ABS is apart from the orange brake.
+    expect(CVD_ABS_COLOR).not.toBe(CVD_PEDALS.brake)
+  })
+
+  it('keeps a colour you chose under the colour-blind palette, and changes nothing without it', () => {
+    const d = OPTION_SCHEMA.inputs.colors.default
+    const p = pedalPalette({ ...d, brake: '#f43f5e' }, true)
+    expect(p.vars['--ov-brake']).toBe('#f43f5e')
+    expect(p.vars['--ov-throttle']).toBe(CVD_PEDALS.throttle)
+    expect(pedalPalette(d).vars).toEqual({
+      '--ov-throttle': d.throttle,
+      '--ov-brake': d.brake,
+      '--ov-clutch': d.clutch,
+      '--ov-abs': ABS_COLOR
+    })
   })
 
   it('returns frozen objects', () => {

@@ -80,7 +80,8 @@ Los coches que tienes delante y detrás en pista (3 y 3 por defecto, hasta 10) c
 segundos: positivo delante, negativo detrás. Cada fila lleva posición en clase, número con el color
 de su clase, marca, bandera del país, nombre, iRating y licencia (en el mismo orden que Posiciones
 y Batalla). En rojo quien te va a doblar, en
-azul los doblados y atenuados los que están en boxes. En la cabecera, su nombre; tus incidentes y
+azul los doblados (con una muesca arriba o abajo en su número, para no depender del color) y
+atenuados los que están en boxes. En la cabecera, su nombre; tus incidentes y
 el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo restante salen por
 defecto en Posiciones, y aquí con un clic en su cabecera.
 
@@ -260,16 +261,20 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 - **Estilo** (arriba de Apariencia): **OverLap** (el de serie), **Como iRacing**, **Limpio** o
   **Compacto** ponen de una vez el aspecto entero (fondo, tamaño del texto, filas, licencia,
   número, nombre, logos y banderas), con **Deshacer**; el resto de Apariencia queda como **Ajuste
-  fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la paleta para
-  daltónicos, la etiqueta SIM, el idioma ni las unidades.
+  fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la
+  Accesibilidad, la etiqueta SIM, el idioma ni las unidades.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
-  por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
-  y naranja en lugar de verde y rojo), tamaño del texto (multiplica la escala de los diez widgets:
+  por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los diez widgets:
   en Relativo, Radar y Delta, que llenan su ventana con el texto, agranda su ventana en la misma
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país y banderas de penalización.
+- **Accesibilidad** (al final de Apariencia), todo apagado de serie: **paleta para daltónicos**
+  (azul y naranja en lugar de verde y rojo, también en los pedales, con la traza del freno más
+  gruesa), **texto mínimo de 10 px** (en vez de 9; ningún widget se ensancha, quitan antes un dato),
+  **sin parpadeos** (las luces de cambio fijas en azul) y el **tamaño de esta ventana** (80–150 %,
+  también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda).
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
   de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,
   banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio.

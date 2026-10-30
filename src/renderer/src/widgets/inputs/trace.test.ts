@@ -13,6 +13,7 @@ import {
   clampTraceWidth,
   drawTraceFull,
   drawTraceStep,
+  WIDE_BRAKE_RATIO,
   phaseOffsetCss,
   phaseStep,
   phaseTransforms,
@@ -422,6 +423,22 @@ describe('drawTraceFull', () => {
     expect(strokes[0]!.width).toBe(g2.outlineWidth)
     expect(strokes[3]!.width).toBe(g2.clutchLineWidth)
     expect(strokes[4]!.width).toBe(g2.lineWidth)
+  })
+
+  it('draws the brake wider than the throttle only when asked (colour-blind palette, R36)', () => {
+    const r = ringOf([
+      [0.5, 0.5, 0],
+      [0.6, 0.6, 0]
+    ])
+    const plain = recorder()
+    drawTraceFull(plain.ctx, g, r, PLAIN)
+    expect(plain.strokes.map((s) => s.width)).toEqual([g.lineWidth, g.lineWidth])
+    const wide = recorder()
+    drawTraceFull(wide.ctx, g, r, { ...PLAIN, wideBrake: true })
+    expect(wide.strokes.map((s) => s.width)).toEqual([g.lineWidth, g.lineWidth * WIDE_BRAKE_RATIO])
+    const step = recorder()
+    drawTraceStep(step.ctx, canvas, g, r, { ...PLAIN, wideBrake: true })
+    expect(step.strokes.map((s) => s.width)).toEqual([g.lineWidth, g.lineWidth * WIDE_BRAKE_RATIO])
   })
 
   it('does not walk samples that are far off the left edge', () => {

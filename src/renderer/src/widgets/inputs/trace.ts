@@ -133,6 +133,8 @@ export class SampleRing {
 export const TRACE_PAD_CSS = 3
 /** Clutch line width relative to the pedal lines (never under 1 CSS px): it stays behind. */
 const CLUTCH_RATIO = 0.6
+/** Brake line width relative to the throttle's with the colour-blind palette (R36: TraceStyle). */
+export const WIDE_BRAKE_RATIO = 1.75
 /** Extra width (CSS px, per side) of the dark underlay drawn over the bare game. */
 const OUTLINE_CSS = 1
 
@@ -302,6 +304,8 @@ export interface TraceColors {
 export interface TraceStyle {
   /** Clutch line (clutchInTrace). */
   clutch: boolean
+  /** The brake drawn WIDE_BRAKE_RATIO wider, so it differs from the throttle by shape (R36). */
+  wideBrake?: boolean
   /** Dark underlay under every line: for a see-through panel over the game. */
   outline: boolean
   colors: TraceColors
@@ -408,7 +412,13 @@ export function drawTraceFull(
   ctx.lineWidth = g.lineWidth
   ctx.strokeStyle = style.colors.throttle
   polyline(ctx, g, ring, CH_THROTTLE, from, 0)
+  ctx.lineWidth = brakeWidth(g, style)
   brakeRuns(ctx, g, ring, from, style.colors)
+}
+
+/** The brake's line width: the throttle's, or wider with the colour-blind palette. */
+function brakeWidth(g: TraceGeometry, style: TraceStyle): number {
+  return style.wideBrake === true ? g.lineWidth * WIDE_BRAKE_RATIO : g.lineWidth
 }
 
 /** Segment from age `age + 1` to `age`, when drawn. */
@@ -476,6 +486,7 @@ export function drawTraceStep(
   ctx.lineWidth = g.lineWidth
   ctx.strokeStyle = style.colors.throttle
   for (let age = oldest; age >= 0; age--) segment(ctx, g, ring, CH_THROTTLE, age)
+  ctx.lineWidth = brakeWidth(g, style)
   for (let age = oldest; age >= 0; age--) {
     ctx.strokeStyle = brakeColor(ring, age, style.colors)
     segment(ctx, g, ring, CH_BRAKE, age)

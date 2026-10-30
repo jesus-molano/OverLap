@@ -12,7 +12,10 @@ const props = withDefaults(
      * next to a class stripe.
      */
     variant?: 'filled' | 'outlined' | 'plain'
-    /** Lapping you / lapped: outlined, in the lap colour. */
+    /**
+     * Lapping you / lapped: outlined, in the lap colour, with a corner notch that points up (a lap
+     * ahead of you) or down (a lap behind): the same cue without the colour (R36).
+     */
     lap?: 'ahead' | 'behind' | null
     /** `--cls` / `--cls-fg`; inherited from the row when omitted. */
     clsStyle?: InlineStyle
@@ -37,6 +40,7 @@ const shape = computed(() =>
 <style>
 /* A plate: the widget's one plate height, digits centred (clipped evenly when too long). */
 .ov-num {
+  position: relative;
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -86,5 +90,32 @@ const shape = computed(() =>
 
 .ov-num--lap-behind {
   color: var(--ov-lap-behind);
+}
+
+/*
+ * The lap relation by shape as well as by colour (R36; red and blue are 1.1:1 apart in
+ * lightness): a small solid notch in the plate's right corner, at the top for a car a lap ahead,
+ * at the bottom for one a lap behind, like an arrow up or down. Drawn inside the plate (it adds
+ * no width or height) in the lap colour, so it follows the colour-blind palette too.
+ */
+.ov-num--lap-ahead::after,
+.ov-num--lap-behind::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 0.55em;
+  height: 0.55em;
+  background: currentcolor;
+  pointer-events: none;
+}
+
+.ov-num--lap-ahead::after {
+  top: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.ov-num--lap-behind::after {
+  bottom: 0;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 </style>

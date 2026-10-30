@@ -84,4 +84,17 @@ describe('plate geometry', () => {
       expect(shadow).not.toMatch(/--ov-chip-key|--ov-key-w|inset 0 -/)
     }
   })
+
+  it('tells a lap ahead from a lap behind by shape as well as colour, inside the plate (R36)', () => {
+    const ahead = declsOf('./NumberBadge.vue', '.ov-num--lap-ahead::after')
+    const behind = declsOf('./NumberBadge.vue', '.ov-num--lap-behind::after')
+    // A notch at the top for a lap ahead, at the bottom for a lap behind.
+    expect(ahead.get('top')).toBe('0')
+    expect(behind.get('bottom')).toBe('0')
+    expect(ahead.get('clip-path')).not.toBe(behind.get('clip-path'))
+    // In the lap colour, positioned in the plate: no width or height added.
+    expect(ahead.get('background')).toBe('currentcolor')
+    expect(ahead.get('position')).toBe('absolute')
+    expect(declsOf('./NumberBadge.vue', '.ov-num').get('position')).toBe('relative')
+  })
 })

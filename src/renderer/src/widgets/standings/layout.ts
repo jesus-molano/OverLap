@@ -54,6 +54,8 @@ export interface Chrome {
   readonly head: readonly BarSize[]
   readonly heads: boolean
   readonly foot: BarSize | null
+  /** The text floor the bars keep (px, theme.css --ov-min-text); MIN_TEXT_PX when absent. */
+  readonly minText?: number
 }
 
 /**
@@ -61,22 +63,23 @@ export interface Chrome {
  * (its size's scale, never below the minimum text size) plus its rule, as ui/InfoBar.vue draws
  * it; INFO_BAR_TOP_EM for the topmost head bar (`top`), the panel's own header.
  */
-export function barPx(size: BarSize, fontPx: number, top = false): number {
+export function barPx(size: BarSize, fontPx: number, top = false, minPx = MIN_TEXT_PX): number {
   if (!(fontPx > 0)) return 0
   const em = top ? INFO_BAR_TOP_EM : INFO_BAR_LINE_EM
-  return em * Math.max(MIN_TEXT_PX, INFO_BAR_SCALE[size] * fontPx) + BAR_RULE_PX
+  return em * Math.max(minPx, INFO_BAR_SCALE[size] * fontPx) + BAR_RULE_PX
 }
 
 /** Height (CSS px) of everything but the lines: bars, heads, paddings and the borders. */
 export function chromePx(c: Chrome, fontPx: number): number {
   if (!(fontPx > 0)) return 0
   let px = BORDER_PX
+  const minPx = c.minText ?? MIN_TEXT_PX
   c.head.forEach((size, i) => {
-    px += barPx(size, fontPx, i === 0)
+    px += barPx(size, fontPx, i === 0, minPx)
   })
   if (c.head.length === 0) px += TOP_PAD_EM * fontPx
   if (c.heads) px += HEADS_EM * fontPx
-  px += c.foot !== null ? barPx(c.foot, fontPx) : BOTTOM_PAD_EM * fontPx
+  px += c.foot !== null ? barPx(c.foot, fontPx, false, minPx) : BOTTOM_PAD_EM * fontPx
   return px
 }
 

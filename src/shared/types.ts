@@ -1201,6 +1201,12 @@ export interface AppearanceSettings {
   penaltyFlags: boolean
   /** Colour-blind-safe palette (blue/orange instead of green/red; shapes always present). */
   colorBlind: boolean
+  /** The widgets' smallest text at 10 px instead of 9 (R15). */
+  largeLabels: boolean
+  /** Nothing in the overlay blinks: steady shift lights, a still edit-mode ring (R27). */
+  noFlashing: boolean
+  /** The settings window's zoom in % (80..150, R29). */
+  settingsZoom: number
   units: 'metric' | 'imperial'
   /** Alternate row shading. */
   stripes: boolean

@@ -550,6 +550,14 @@ describe('labelFontUnits', () => {
     expect(labelFontUnits(120, 140)).toBe(7.5)
   })
 
+  it('follows the 10 px floor of Accesibilidad (R15)', () => {
+    const u = labelFontUnits(150, 190, 10)
+    expect(u).not.toBeNull()
+    expect((u! * 150) / 100).toBeGreaterThanOrEqual(10 - 1e-9)
+    expect(labelFontUnits(150, 190, 10)!).toBeGreaterThan(labelFontUnits(150, 190)!)
+    expect(labelFontUnits(220, 260, 9)).toBe(labelFontUnits(220, 260))
+  })
+
   it('leaves them out on a radar too small for them, and waits for a size', () => {
     expect(labelFontUnits(100, 300)).toBeNull()
     expect(labelFontUnits(0, 0)).toBe(LABEL_FONT)

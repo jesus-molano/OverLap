@@ -41,23 +41,47 @@ export function mixHex(a: string, b: string, t: number): string {
   return out
 }
 
-/** The user's colours, each falling back to its default when malformed. */
-export function pedalPalette(colors: Partial<InputsOptions['colors']> | undefined): PedalPalette {
+/**
+ * The pedals' default colours under the colour-blind palette (R36: theme.css data-cvd): the
+ * throttle in its blue "good", the brake in its orange "bad", the clutch a neutral grey (the blue
+ * is the throttle's now), and ABS white, apart from the orange brake by lightness.
+ */
+export const CVD_PEDALS = Object.freeze({
+  throttle: '#3fa7ff',
+  brake: '#ff9f1a',
+  clutch: '#aeb7c4'
+})
+export const CVD_ABS_COLOR = '#f3f5f8'
+
+/**
+ * The user's colours, each falling back to its default when malformed. With the colour-blind
+ * palette (`colorBlind`) a pedal still on its default colour takes CVD_PEDALS' (a colour you chose
+ * stays yours), and ABS turns white.
+ */
+export function pedalPalette(
+  colors: Partial<InputsOptions['colors']> | undefined,
+  colorBlind = false
+): PedalPalette {
   const d = OPTION_SCHEMA.inputs.colors.default
-  const throttle = hexOr(colors?.throttle, d.throttle)
-  const brake = hexOr(colors?.brake, d.brake)
-  const clutch = hexOr(colors?.clutch, d.clutch)
+  const pick = (id: keyof typeof d): string => {
+    const own = hexOr(colors?.[id], d[id])
+    return colorBlind && own === d[id] ? CVD_PEDALS[id] : own
+  }
+  const throttle = pick('throttle')
+  const brake = pick('brake')
+  const clutch = pick('clutch')
+  const abs = colorBlind ? CVD_ABS_COLOR : ABS_COLOR
   return {
     vars: Object.freeze({
       '--ov-throttle': throttle,
       '--ov-brake': brake,
       '--ov-clutch': clutch,
-      '--ov-abs': ABS_COLOR
+      '--ov-abs': abs
     }),
     trace: Object.freeze({
       throttle,
       brake,
-      abs: ABS_COLOR,
+      abs,
       clutch: mixHex(clutch, PANEL_RGB, CLUTCH_TRACE_DIM)
     })
   }

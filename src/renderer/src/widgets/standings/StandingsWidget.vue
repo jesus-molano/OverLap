@@ -26,6 +26,7 @@ import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
+import { minTextPx } from '@renderer/view/appearance'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { barInfo } from './bars'
@@ -130,6 +131,8 @@ const footed = computed(() => isTable.value && footBar.shown.value)
 const isPreview = computed(() => phase.value === 'preview')
 const headsShown = computed(() => opts.value.columnHeads && isTable.value)
 
+/** Accesibilidad's text floor (R15): the bars and the columns make room for it. */
+const minText = computed(() => minTextPx(appearance.value))
 /** What the height maths add around the lines; the same object while it is the same. */
 const chrome = computed<Chrome>((prev) => {
   const head: BarSize[] = []
@@ -138,11 +141,13 @@ const chrome = computed<Chrome>((prev) => {
   const next: Chrome = {
     head,
     heads: headsShown.value,
-    foot: footed.value ? footBar.size.value : null
+    foot: footed.value ? footBar.size.value : null,
+    minText: minText.value
   }
   return prev !== undefined &&
     prev.heads === next.heads &&
     prev.foot === next.foot &&
+    prev.minText === next.minText &&
     prev.head.length === head.length &&
     prev.head.every((h, i) => h === head[i])
     ? prev
@@ -190,7 +195,8 @@ const colPrefs = computed<ColumnPrefs>(() => ({
   licenseStyle: appearance.value.licenseStyle,
   numberStyle: appearance.value.numberStyle,
   brand: brandMarksOn(block.value.brandMarks, payload.value?.multiBrand ?? false),
-  flag: block.value.countryFlags
+  flag: block.value.countryFlags,
+  minText: minText.value
 }))
 const cols = computed<Columns>((prev) =>
   reuseColumns(prev, fitColumns(colPrefs.value, widthPx.value, fontPx.value))

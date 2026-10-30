@@ -18,6 +18,13 @@ export const ACCENT_FALLBACK = OPTION_SCHEMA.appearance.accent.default
 export const BASE_FONT_PX = 13
 export const FONT_MIN_PX = 9
 export const FONT_MAX_PX = 24
+/** Apariencia › Accesibilidad › «Texto mínimo de 10 px» (R15): the floor it raises FONT_MIN_PX to. */
+export const LARGE_MIN_PX = 10
+
+/** The overlay's text floor (theme.css --ov-min-text) for these appearance settings. */
+export function minTextPx(a: Pick<AppearanceSettings, 'largeLabels'>): number {
+  return a.largeLabels === true ? LARGE_MIN_PX : FONT_MIN_PX
+}
 
 /** Row and class-line heights (em of the widget font) per density. */
 export const DENSITY_EM = {
@@ -48,13 +55,17 @@ export function appearanceVars(a: AppearanceSettings): InlineStyle {
 
 /**
  * Attributes on the root: the data attributes theme.css matches, and `lang` (the interface
- * language, for CSS upper-casing and screen readers; index.html starts as 'es').
+ * language, for CSS upper-casing and screen readers; index.html starts as 'es'). The two of
+ * Accesibilidad (R15, R27) are off unless chosen: the minimum text (`data-min-text`) and the
+ * blinking (`data-flash`).
  */
 export function appearanceAttrs(a: AppearanceSettings): InlineStyle {
   return {
     'data-cvd': a.colorBlind ? 'on' : 'off',
     'data-density': a.density === 'comfortable' ? 'comfortable' : 'compact',
     'data-stripes': a.stripes === false ? 'off' : 'on',
+    'data-min-text': String(minTextPx(a)),
+    'data-flash': a.noFlashing === true ? 'off' : 'on',
     lang: isLanguage(a.language) ? a.language : DEFAULT_LANGUAGE
   }
 }
@@ -77,11 +88,12 @@ export function applyAppearance(
 
 /**
  * Font (px) of an auto-height widget: base x widget scale x global text scale, clamped to a
- * legible range. Depends on settings only, never on the window size (no resize feedback).
+ * legible range (its floor `minPx`: minTextPx). Depends on settings only, never on the window
+ * size (no resize feedback).
  */
-export function widgetFontPx(scalePct: number, fontScalePct: number): number {
+export function widgetFontPx(scalePct: number, fontScalePct: number, minPx = FONT_MIN_PX): number {
   const px = (BASE_FONT_PX * percent(scalePct) * percent(fontScalePct)) / 10_000
-  return clamp(roundTo(px, 2), FONT_MIN_PX, FONT_MAX_PX)
+  return clamp(roundTo(px, 2), minPx, FONT_MAX_PX)
 }
 
 /** A widget's own option, or the global one when it says 'inherit' (or is missing). */

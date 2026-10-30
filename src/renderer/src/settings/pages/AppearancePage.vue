@@ -87,6 +87,8 @@ const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
 )
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
+/** The settings window's size (R29): its default and the steps a hand reaches for. */
+const ZOOM_PRESETS = [100, 120, 150] as const
 /** The preview on «Día» shows the global background hard to read: said under it. */
 const windowOptions = useOptions('settingsWindow')
 const dayNote = computed(() =>
@@ -240,13 +242,6 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
         <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">
           {{ dayNote }}
         </p>
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.color.colorBlind"
-          :help="t.settings.appearance.color.colorBlindHelp"
-          :current="appearance.colorBlind"
-          :apply="set('colorBlind')"
-        />
       </PageSection>
 
       <PageSection
@@ -394,6 +389,50 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
           :help="t.settings.appearance.other.simPillHelp"
           :current="appearance.showSimPill"
           :apply="set('showSimPill')"
+        />
+      </PageSection>
+
+      <!-- Every need in one place (R15, R27, R29, R36), each off until chosen. -->
+      <PageSection
+        :title="t.settings.appearance.access.title"
+        :reset-label="resetLabel('access')"
+        @reset="resetAppearancePart('access')"
+      >
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.color.colorBlind"
+          :help="t.settings.appearance.color.colorBlindHelp"
+          :more="t.settings.appearance.color.colorBlindMore"
+          :current="appearance.colorBlind"
+          :apply="set('colorBlind')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.access.largeLabels"
+          :help="t.settings.appearance.access.largeLabelsHelp"
+          :more="t.settings.appearance.access.largeLabelsMore"
+          :current="appearance.largeLabels"
+          :apply="set('largeLabels')"
+        />
+        <ToggleControl
+          kind="switch"
+          :label="t.settings.appearance.access.noFlashing"
+          :help="t.settings.appearance.access.noFlashingHelp"
+          :more="t.settings.appearance.access.noFlashingMore"
+          :current="appearance.noFlashing"
+          :apply="set('noFlashing')"
+        />
+        <SliderControl
+          :label="t.settings.appearance.access.settingsZoom"
+          :help="t.settings.appearance.access.settingsZoomHelp"
+          :more="t.settings.appearance.access.settingsZoomMore"
+          :current="appearance.settingsZoom"
+          :min="A.settingsZoom.min"
+          :max="A.settingsZoom.max"
+          :step="A.settingsZoom.step"
+          :presets="ZOOM_PRESETS"
+          :format="percent"
+          :apply="set('settingsZoom')"
         />
       </PageSection>
     </div>

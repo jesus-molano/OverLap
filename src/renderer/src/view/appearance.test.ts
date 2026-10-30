@@ -8,6 +8,7 @@ import {
   appearanceVars,
   applyAppearance,
   inherit,
+  minTextPx,
   widgetFontPx,
   type AppearanceRoot
 } from './appearance'
@@ -54,8 +55,22 @@ describe('appearanceVars / appearanceAttrs', () => {
       'data-cvd': 'on',
       'data-density': 'compact',
       'data-stripes': 'off',
+      'data-min-text': '9',
+      'data-flash': 'on',
       lang: 'es'
     })
+  })
+
+  it('leaves the text floor and the blinking as they were until Accesibilidad asks (R15, R27)', () => {
+    expect(appearanceAttrs(BASE)).toMatchObject({ 'data-min-text': '9', 'data-flash': 'on' })
+    expect(minTextPx(BASE)).toBe(9)
+    const a = { ...BASE, largeLabels: true, noFlashing: true }
+    expect(appearanceAttrs(a)).toMatchObject({ 'data-min-text': '10', 'data-flash': 'off' })
+    expect(minTextPx(a)).toBe(10)
+    // The base font of an auto-height widget has the same floor.
+    expect(widgetFontPx(60, 100)).toBe(9)
+    expect(widgetFontPx(60, 100, minTextPx(a))).toBe(10)
+    expect(widgetFontPx(100, 100, minTextPx(a))).toBe(13)
   })
 
   it('tags the root with the interface language (Spanish when unknown)', () => {
