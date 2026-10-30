@@ -75,6 +75,16 @@ describe('settings visual system (R55)', () => {
     expect(bad).toEqual([])
   })
 
+  it('opens a fold with the same chevron icon, never the native marker', () => {
+    for (const [path, src] of Object.entries(SOURCES)) {
+      if (!path.endsWith('.vue')) continue
+      for (const m of templateOf(src).matchAll(/<summary>([\s\S]*?)<\/summary>/g)) {
+        expect(m[1], path).toMatch(/<Icon name="chevron"/)
+        expect(src, path).toMatch(/summary::-webkit-details-marker \{\s*display: none;/)
+      }
+    }
+  })
+
   it('stays dark: no light theme of its own', () => {
     expect(SETTINGS_CSS).toContain('color-scheme: dark;')
     expect(SETTINGS_CSS).not.toMatch(/prefers-color-scheme:\s*light/)

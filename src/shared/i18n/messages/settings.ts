@@ -734,7 +734,9 @@ export const settingsEs = {
     /** Under the table: how a cell is used (the keys between the parts are keycaps). */
     legend: {
       click: 'Haz clic en una casilla para asignar o cambiar',
-      clear: 'o × la vacían',
+      /** Around the cell's remove icon (R55: an icon, not a character). */
+      clear: 'o',
+      clearAfter: 'la vacían',
       esc: 'cancela',
       any: 'cualquiera de los tres ejecuta la acción'
     },
@@ -2468,7 +2470,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     legend: {
       click: 'Click a cell to assign or change it',
-      clear: 'or × empty it',
+      clear: 'or',
+      clearAfter: 'empty it',
       esc: 'cancels',
       any: 'any of the three runs the action'
     },

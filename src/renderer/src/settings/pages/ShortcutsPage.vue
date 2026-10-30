@@ -191,7 +191,8 @@ const resetItems = computed<ResetItem[]>(() => [
     <!-- How a cell is used, once for the whole table. -->
     <p class="sc-legend">
       {{ t.settings.shortcuts.legend.click }} · <Keycaps :keys="deleteCaps" />
-      {{ t.settings.shortcuts.legend.clear }} · <Keycaps :keys="escapeCaps" />
+      {{ t.settings.shortcuts.legend.clear }} <Icon name="close" class="sc-legend-icon" />
+      {{ t.settings.shortcuts.legend.clearAfter }} · <Keycaps :keys="escapeCaps" />
       {{ t.settings.shortcuts.legend.esc }} · {{ t.settings.shortcuts.legend.any }}
     </p>
     <p class="sc-legend">{{ t.settings.shortcuts.test }}</p>
@@ -209,6 +210,7 @@ const resetItems = computed<ResetItem[]>(() => [
 
     <details class="sc-notes">
       <summary>
+        <Icon name="chevron" class="sc-notes-chev" />
         <b>{{ t.settings.shortcuts.notes.title }}</b> ·
         {{ t.settings.shortcuts.notes.summary }}
       </summary>
@@ -428,8 +430,34 @@ const resetItems = computed<ResetItem[]>(() => [
   font-size: var(--st-t-ui);
 }
 
+/* The same chevron as every fold here, not the native marker (R55). */
 .sc-notes summary {
+  list-style: none;
   cursor: pointer;
+}
+
+.sc-notes summary::-webkit-details-marker {
+  display: none;
+}
+
+.sc-notes-chev {
+  margin-right: 4px;
+  transform: rotate(-90deg);
+  transition: transform 120ms ease;
+}
+
+.sc-notes[open] .sc-notes-chev {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-notes-chev {
+    transition: none;
+  }
+}
+
+.sc-legend-icon {
+  vertical-align: -0.15em;
 }
 
 .sc-notes summary b {
