@@ -9,7 +9,7 @@ import {
   undoPatch,
   type AppearancePreset
 } from './appearancePresets'
-import { isComplete } from './completeContents'
+import { isComplete, isDefaultContents } from './completeContents'
 import { applySettingsPatch, createDefaultSettings, normalizeSettings } from './settings'
 import { validateOption } from './settings/fields'
 import { OPTION_SCHEMA } from './settingsSchema'
@@ -113,6 +113,24 @@ describe('Apariencia styles (R56, redone)', () => {
     expect(matchingPreset(s)).toBeNull()
   })
 
+  it('reads «OverLap» only while the widgets show what they show on a new install too', () => {
+    // «Completo»'s widgets under OverLap's look: «Personalizado», not «OverLap».
+    const s = withStyle('complete')
+    Object.assign(s.appearance, presetValues('overlap'))
+    expect(matchingPreset(s)).toBeNull()
+    // One column of yours hidden: «Personalizado» too.
+    const mine = createDefaultSettings()
+    mine.relative.columns = mine.relative.columns.map((c, i) =>
+      i === 0 ? { ...c, visible: !c.visible } : c
+    )
+    expect(matchingPreset(mine)).toBeNull()
+    // Limpio and Compacto are looks alone: the widgets' contents never change which one it is.
+    Object.assign(mine.appearance, presetValues('clean'))
+    expect(matchingPreset(mine)).toBe('clean')
+    Object.assign(mine.appearance, presetValues('compact'))
+    expect(matchingPreset(mine)).toBe('compact')
+  })
+
   it('an old file with the «Como iRacing» look loads as it was, «Personalizado»', () => {
     const old = normalizeSettings({
       version: 6,
@@ -193,6 +211,95 @@ describe('planStyle: what a style changes and when it asks first', () => {
       count: 2
     })
     expect(plan.changes.some((c) => c.kind === 'widget' && c.what === 'bars')).toBe(true)
+  })
+
+  it('«OverLap» after «Completo»: everything back as it comes, asked first, counted', () => {
+    const complete = withStyle('complete')
+    const plan = planStyle(complete, 'overlap')
+    expect(plan.confirm).toBe(true)
+    expect(plan.changes).toContainEqual({
+      kind: 'look',
+      field: 'backgroundOpacity',
+      from: 0.9,
+      to: 0.8
+    })
+    // The five columns «Completo» showed go away again.
+    expect(plan.changes).toContainEqual({
+      kind: 'widget',
+      widget: 'standings',
+      what: 'columnsHidden',
+      count: 5
+    })
+    expect(plan.changes).toContainEqual({
+      kind: 'widget',
+      widget: 'fuel',
+      what: 'elementsHidden',
+      count: 2
+    })
+    expect(plan.changes.some((c) => c.kind === 'widget' && c.what === 'barsOff')).toBe(true)
+    expect(plan.changes.some((c) => c.kind === 'widget' && c.what === 'optionsDefault')).toBe(true)
+    // «Completo» never adds a «less» line, «OverLap» never a «more» one.
+    const more: readonly string[] = ['columns', 'elements', 'bars', 'barItems', 'options']
+    expect(plan.changes.some((c) => c.kind === 'widget' && more.includes(c.what))).toBe(false)
+    const gained = planStyle(createDefaultSettings(), 'complete').changes
+    expect(gained.some((c) => c.kind === 'widget' && !more.includes(c.what))).toBe(false)
+    const after = applySettingsPatch(complete, plan.patch)
+    const fresh = createDefaultSettings()
+    for (const key of [
+      'appearance',
+      'relative',
+      'standings',
+      'fuel',
+      'lights',
+      'widgets'
+    ] as const) {
+      expect(after[key], key).toEqual(fresh[key])
+    }
+    expect(isDefaultContents(after)).toBe(true)
+    expect(matchingPreset(after)).toBe('overlap')
+  })
+
+  it('«OverLap» puts a reordered list back in its order, and says so', () => {
+    const s = createDefaultSettings()
+    s.standings.columns = [...s.standings.columns].reverse()
+    const plan = planStyle(s, 'overlap')
+    expect(plan.confirm).toBe(true)
+    expect(plan.changes).toEqual([{ kind: 'widget', widget: 'standings', what: 'order', count: 1 }])
+    const after = applySettingsPatch(s, plan.patch)
+    expect(after.standings.columns).toEqual(createDefaultSettings().standings.columns)
+  })
+
+  it('«OverLap» keeps the accent, Accesibilidad, SIM tag, language, units and places', () => {
+    const s = withStyle('complete')
+    Object.assign(s.appearance, { accent: '#33ccff', colorBlind: true, largeLabels: true })
+    Object.assign(s.appearance, { showSimPill: false, language: 'en', units: 'imperial' })
+    s.widgets.radar.visible = false
+    s.widgets.standings.bounds = { x: 5, y: 6, width: 600, height: 500 }
+    const after = applySettingsPatch(s, planStyle(s, 'overlap').patch)
+    expect(after.appearance).toMatchObject({ accent: '#33ccff', colorBlind: true })
+    expect(after.appearance).toMatchObject({ largeLabels: true, showSimPill: false })
+    expect(after.appearance).toMatchObject({ language: 'en', units: 'imperial' })
+    expect(after.widgets.radar.visible).toBe(false)
+    expect(after.widgets.standings.bounds).toEqual(s.widgets.standings.bounds)
+  })
+
+  it('"Deshacer" after «OverLap» brings «Completo» back as it was', () => {
+    const complete = withStyle('complete')
+    complete.widgets.fuel.autoHeight = false
+    const plan = planStyle(complete, 'overlap')
+    const after = applySettingsPatch(complete, plan.patch)
+    const back = applySettingsPatch(after, undoPatch(complete, plan.patch))
+    for (const key of [
+      'appearance',
+      'relative',
+      'standings',
+      'battle',
+      'fuel',
+      'widgets'
+    ] as const) {
+      expect(back[key], key).toEqual(complete[key])
+    }
+    expect(back.widgets.fuel.autoHeight).toBe(false)
   })
 
   it('with nothing to change, there is nothing to do and nothing to ask', () => {

@@ -3,7 +3,8 @@ import { planStyle } from '@shared/appearancePresets'
 import { messagesFor } from '@shared/i18n'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
 import { styleChangeGroups } from './styleChanges'
-import { deltaFit, freeGrowth, grownBounds, relativeFit } from './styleGrowth'
+import { WIDGET_DEFS } from '@shared/widgets'
+import { defaultSizes, deltaFit, freeGrowth, grownBounds, relativeFit } from './styleGrowth'
 
 describe('«Completo» grows the free windows instead of shrinking their text', () => {
   it('measures what the relative and the delta need, as the widgets do', () => {
@@ -52,5 +53,30 @@ describe('«Completo» grows the free windows instead of shrinking their text', 
     ])
     const line = groups[1]?.lines.find((l) => l.text.startsWith('Relativo: '))
     expect(line?.text).toContain('ventana más grande para que el texto no encoja')
+  })
+})
+
+describe('«OverLap» puts the windows «Completo» grew back to their default size', () => {
+  it('the relative and the delta, from the same corner, when their contents go back', () => {
+    const s = createDefaultSettings()
+    const complete = applySettingsPatch(s, planStyle(s, 'complete').patch)
+    for (const [id, b] of Object.entries(freeGrowth(s, complete))) {
+      complete.widgets[id as 'relative' | 'delta'].bounds = { ...b, x: 300, y: 40 }
+    }
+    const sizes = defaultSizes(complete, planStyle(complete, 'overlap').patch)
+    for (const id of ['relative', 'delta'] as const) {
+      const { width, height } = WIDGET_DEFS[id].defaultBounds
+      expect(sizes[id], id).toEqual({ x: 300, y: 40, width, height })
+    }
+  })
+
+  it('leaves a window whose contents it does not touch, and one already at its size', () => {
+    const s = createDefaultSettings()
+    s.relative.columnHeads = !s.relative.columnHeads
+    s.widgets.delta.bounds = { ...s.widgets.delta.bounds, width: 999 }
+    // The relative's contents change, its size is already the default; the delta's do not.
+    expect(defaultSizes(s, planStyle(s, 'overlap').patch)).toEqual({})
+    // A look alone resizes nothing.
+    expect(defaultSizes(s, planStyle(s, 'clean').patch)).toEqual({})
   })
 })

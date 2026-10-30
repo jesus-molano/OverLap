@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { planStyle, presetValues } from '@shared/appearancePresets'
 import { messagesFor } from '@shared/i18n'
-import { createDefaultSettings } from '@shared/settings'
+import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
 import type { LayoutLibrary } from '@shared/types'
 import { trapStep } from './dialogFocus'
 import { STYLE_LINES_SHOWN, foldGroups, styleChangeGroups, styleWhere } from './styleChanges'
@@ -42,6 +42,40 @@ describe('the style confirmation’s list', () => {
     expect(enLines.find((l) => l.text.startsWith('Standings: '))?.text).toContain(
       '5 more columns shown'
     )
+  })
+
+  it('«OverLap» after «Completo» says what goes away and the window back to its size', () => {
+    const s = createDefaultSettings()
+    const complete = applySettingsPatch(s, planStyle(s, 'complete').patch)
+    const changes = planStyle(complete, 'overlap').changes
+    const groups = styleChangeGroups(es, changes, ['relative'], 'defaultSize')
+    expect(groups[0]?.lines).toContainEqual({
+      text: 'Fondo de los widgets',
+      from: '90 %',
+      to: '80 %'
+    })
+    const lines = groups.find((g) => g.title === 'Lo que muestra cada widget')?.lines ?? []
+    const line = (w: string): string => lines.find((l) => l.text.startsWith(`${w}: `))?.text ?? ''
+    expect(line('Posiciones')).toContain('se ocultan 5 columnas')
+    expect(line('Combustible')).toContain('2 elementos menos')
+    expect(line('Relativo')).toContain('barra de información menos')
+    expect(line('Relativo')).toContain('ventana al tamaño de serie')
+    expect(line('Posiciones')).toContain('a su valor de serie')
+    const enLines = styleChangeGroups(en, changes, ['delta'], 'defaultSize')[1]?.lines ?? []
+    const delta = enLines.find((l) => l.text.startsWith('Delta: '))?.text
+    expect(delta).toContain('the window back to its default size')
+    expect(enLines.find((l) => l.text.startsWith('Standings: '))?.text).toContain(
+      '5 columns hidden'
+    )
+  })
+
+  it('a list put back in its order is one line, without a count', () => {
+    const s = createDefaultSettings()
+    s.relative.columns = [...s.relative.columns].reverse()
+    const groups = styleChangeGroups(es, planStyle(s, 'overlap').changes)
+    expect(groups).toEqual([
+      { title: 'Lo que muestra cada widget', lines: [{ text: 'Relativo: el orden de serie' }] }
+    ])
   })
 
   it('folds each group after its first lines and says how many are left', () => {

@@ -11,7 +11,8 @@ import { driverBlock } from '@shared/driverBlock'
 import { isElementVisible, visibleIds } from '@shared/elements'
 import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
-import type { OverlaySettings, Rect } from '@shared/types'
+import type { OverlaySettings, Rect, SettingsPatch } from '@shared/types'
+import { WIDGET_DEFS } from '@shared/widgets'
 import { DELTA_FIT_TOP_EM, DELTA_ROW_FIT_EM } from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
 
@@ -103,6 +104,28 @@ export function freeGrowth(
     const base = { ...after, [id]: before[id] } as OverlaySettings
     const next = grownBounds(after.widgets[id].bounds, FITS[id](base), FITS[id](after))
     if (next !== null) out[id] = next
+  }
+  return out
+}
+
+/**
+ * «OverLap» after «Completo» (R56, «todo de serie»): the free widgets whose contents `patch`
+ * puts back go back to their default size too, from the same top-left corner (so a window
+ * «Completo» grew shrinks again); only those whose size is not already the default.
+ */
+export function defaultSizes(
+  s: Readonly<OverlaySettings>,
+  patch: SettingsPatch
+): Partial<Record<GrowingWidget, Rect>> {
+  const out: Partial<Record<GrowingWidget, Rect>> = {}
+  const touched = patch as Readonly<Record<string, object | undefined>>
+  for (const id of GROWING_WIDGETS) {
+    const fields = touched[id]
+    if (fields === undefined || Object.keys(fields).length === 0) continue
+    const bounds = s.widgets[id].bounds
+    const { width, height } = WIDGET_DEFS[id].defaultBounds
+    if (bounds.width === width && bounds.height === height) continue
+    out[id] = { ...bounds, width, height }
   }
   return out
 }
