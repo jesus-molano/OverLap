@@ -340,3 +340,18 @@ describe('withoutRoom', () => {
     expect(withoutRoom(p, fitColumns(p, 0, 13))).toEqual({ columns: [], brand: false, flag: false })
   })
 })
+
+describe('the position track (showPosition, R10)', () => {
+  it('drops the position track and gives its width to the name', () => {
+    // Wide enough for every column either way.
+    const on = fitColumns(prefs(), 1200, 13)
+    const off = fitColumns(prefs({ pos: false }), 1200, 13)
+    expect(on.pos).toBe(true)
+    expect(off.pos).toBe(false)
+    expect(off.template.startsWith('minmax(0, 1fr)')).toBe(true)
+    expect(on.template.startsWith('minmax(0, 1fr)')).toBe(false)
+    expect(off.template).toBe(on.template.slice(on.template.indexOf(' ') + 1))
+    expect(off.nameEm).toBeGreaterThan(on.nameEm)
+    expect(off.key).not.toBe(on.key)
+  })
+})

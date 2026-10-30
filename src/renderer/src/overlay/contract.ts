@@ -24,6 +24,8 @@ export interface SlotHandle {
    * chip at its saved place, never the widget; it does not move or fit.
    */
   readonly ghost: Readonly<Ref<boolean>>
+  /** Edit mode: the arrows apply to it (`OverlayPanel.touched`, R38); its chip is marked. */
+  readonly touched: Readonly<Ref<boolean>>
   /** The widget is rendered right now (edit mode previews rule-hidden widgets; never a ghost). */
   readonly shown: Readonly<Ref<boolean>>
   /** A visibility rule hides it outside edit mode (the edit chip says why). */

@@ -4,6 +4,7 @@ import {
   elementOrder,
   isElementVisible,
   moveElement,
+  pinFirst,
   sameElements,
   sameOrder,
   setElementVisible,
@@ -142,5 +143,30 @@ describe('normalizeElements', () => {
     const out = normalizeElements(raw, spec.default, spec)
     expect(out[0]).not.toBe(raw[0])
     expect(out.every((e) => !spec.default.includes(e))).toBe(true)
+  })
+})
+
+describe('pinFirst', () => {
+  const list = [
+    { id: 'gap', visible: true },
+    { id: 'driver', visible: true },
+    { id: 'ir', visible: false },
+    { id: 'pos', visible: false }
+  ]
+  it('puts the pinned ids first, in their order, the rest as they were', () => {
+    const out = pinFirst(list, ['pos', 'driver'])
+    expect(out.map((e) => e.id)).toEqual(['pos', 'driver', 'gap', 'ir'])
+    // Visibility kept, every entry a new object.
+    expect(out[0]).toEqual({ id: 'pos', visible: false })
+    expect(out.every((e) => !list.includes(e))).toBe(true)
+  })
+  it('skips a pinned id the list has not, and leaves a list without pins as it is', () => {
+    expect(pinFirst(list, ['lic', 'driver']).map((e) => e.id)).toEqual([
+      'driver',
+      'gap',
+      'ir',
+      'pos'
+    ])
+    expect(pinFirst(list, []).map((e) => e.id)).toEqual(['gap', 'driver', 'ir', 'pos'])
   })
 })

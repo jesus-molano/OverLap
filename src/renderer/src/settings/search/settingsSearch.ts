@@ -38,6 +38,51 @@ function wordsOf(query: string): string[] {
 }
 
 /**
+ * Everyday words for a setting named otherwise (folded): «zoom» finds «Tamaño de esta ventana»,
+ * «fijar» «Bloqueado», «daltonismo» the colour-blind palette. Each word also finds these.
+ */
+export const SEARCH_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
+  zoom: ['tamano de esta ventana', 'size of this window'],
+  ampliar: ['tamano de esta ventana', 'tamano del texto'],
+  lupa: ['tamano de esta ventana'],
+  magnify: ['size of this window', 'text size'],
+  fijar: ['bloquead'],
+  lock: ['locked'],
+  parpadeo: ['parpade'],
+  destello: ['parpade'],
+  blink: ['flash'],
+  blinking: ['flash'],
+  daltonismo: ['dalton'],
+  daltonico: ['dalton'],
+  colorblind: ['colour-blind'],
+  'color-blind': ['colour-blind'],
+  blindness: ['colour-blind'],
+  transparencia: ['opacidad'],
+  transparency: ['opacity'],
+  letra: ['texto'],
+  font: ['text'],
+  sombra: ['contorno'],
+  shadow: ['outline']
+}
+
+/** A Spanish infinitive ('bloquear', 'ocultar'): its stem and ending. */
+const INFINITIVE = /^(.{4,})(ar|er|ir)$/
+
+/**
+ * What a query word finds: itself, its synonyms and, for an infinitive, its participle stem
+ * ('bloquear' finds «Bloqueado»): the same setting however it is put.
+ */
+function formsOf(word: string): readonly string[] {
+  const out = [word, ...(SEARCH_SYNONYMS[word] ?? [])]
+  const verb = INFINITIVE.exec(word)
+  if (verb) out.push(`${verb[1]}${verb[2] === 'ar' ? 'ad' : 'id'}`)
+  return out
+}
+
+const hasForm = (hay: string, forms: readonly string[]): boolean =>
+  forms.some((f) => hay.includes(f))
+
+/**
  * The entries `query` finds, best first: every word must be in the entry, its section or its
  * page; the label itself matching ranks first, then its section, then only the help or the page.
  * One result per page, text and section. Pure.
@@ -51,18 +96,19 @@ export function searchSettings(
   const words = wordsOf(query)
   if (words.length === 0) return []
   const whole = words.join(' ')
+  const forms = words.map(formsOf)
   const out: SearchResult[] = []
   const seen = new Set<string>()
   for (const e of entries) {
     const text = foldText(e.text)
     const near = `${text} ${foldText(e.context)}`
     const far = `${near} ${foldText(e.help)} ${foldText(pageTitle(e.page))}`
-    if (!words.every((w) => far.includes(w))) continue
+    if (!forms.every((f) => hasForm(far, f))) continue
     let score: number
     if (text.startsWith(whole)) score = 0
     else if (text.includes(whole)) score = 1
-    else if (words.every((w) => text.includes(w))) score = 2
-    else if (words.every((w) => near.includes(w))) score = 3
+    else if (forms.every((f) => hasForm(text, f))) score = 2
+    else if (forms.every((f) => hasForm(near, f))) score = 3
     else score = 5
     // A page or a section a little before a label with the same score; one that another
     // setting hides now a little after.
@@ -105,7 +151,9 @@ const HARVEST: readonly { selector: string; kind: SearchKind }[] = [
   { selector: '.st-section-title', kind: 'section' },
   { selector: '.acc-title', kind: 'zone' },
   { selector: '.st-label', kind: 'label' },
-  { selector: '.ed-name', kind: 'item' }
+  { selector: '.ed-name', kind: 'item' },
+  // Apariencia's styles, by their names («Limpio», «Compacto»).
+  { selector: '.card-name', kind: 'item' }
 ]
 
 /** The selectors a result is looked for with on its page (reveal). */
@@ -131,8 +179,10 @@ export function harvest(root: ParentNode, page: SettingsPage, title: string): Se
     for (const el of root.querySelectorAll(h.selector)) {
       const text = clean(el.textContent)
       if (text === '' || text.length > 80) continue
-      const row = el.closest('.st-row, .ed-row')
-      const help = row ? clean(row.querySelector('.st-help, .ed-hint')?.textContent) : ''
+      const row = el.closest('.st-row, .ed-row, .card')
+      const help = row
+        ? clean(row.querySelector('.st-help, .ed-hint, .card-hint')?.textContent)
+        : ''
       out.push({
         page,
         kind: h.kind,

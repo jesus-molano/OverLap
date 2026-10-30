@@ -78,7 +78,6 @@ const I = OPTION_SCHEMA.inputs
 const steeringChoices = computed(() =>
   choiceOptions(I.steeringStyle.values, t.value.settings.inputs.steeringChoices)
 )
-const hasTrace = computed(() => isElementVisible(opts.value.sections, 'trace'))
 const infoShown = computed(() => isElementVisible(opts.value.sections, 'info'))
 const showSteering = computed(
   () => infoShown.value && isElementVisible(opts.value.info, 'steering')
@@ -101,14 +100,24 @@ const wheelInherit = computed(() => ({
   color: appearance.value.accent
 }))
 
-// The editors' words, with the hints of the parts that need one.
-const sectionTexts = computed(() => {
-  const base = elementTexts(t.value, 'inputs', 'sections')
-  return {
-    ...base,
-    trace: { label: base.trace.label, hint: t.value.settings.inputs.traceSecondsHelp }
+/** The widget's fixed top strip (R12): a row with its eye, above the blocks it sits over. */
+const setShiftLights = set('shiftLights')
+const shiftRow = computed(() => [
+  {
+    key: 'shiftLights',
+    label: t.value.settings.inputs.shiftLights,
+    hint: t.value.settings.inputs.shiftLightsRow,
+    visible: opts.value.shiftLights,
+    toggle: (v: boolean) => void setShiftLights(v)
   }
-})
+])
+/** The trace row's folded options, said on its button ('8 s · 2 px'). */
+const traceSummary = computed(() => ({
+  trace: `${seconds(opts.value.traceSeconds)} · ${formatPx(t.value, opts.value.traceWidth)}`
+}))
+
+// The editors' words (the trace's options say themselves on its row's button).
+const sectionTexts = computed(() => elementTexts(t.value, 'inputs', 'sections'))
 const barTexts = computed(() => elementTexts(t.value, 'inputs', 'bars'))
 const infoTexts = computed(() => elementTexts(t.value, 'inputs', 'info'))
 const carTexts = computed(() => elementTexts(t.value, 'inputs', 'car'))
@@ -142,33 +151,8 @@ const carGate = useParentGate({
 </script>
 
 <template>
+  <!-- Contenido: only the wheel's modes (R12); what shows or hides a part is in Personalizar. -->
   <PageSection :title="t.settings.common.content" resets="content">
-    <SliderControl
-      v-if="hasTrace"
-      :label="t.settings.inputs.traceSeconds"
-      :help="t.settings.inputs.traceSecondsHelp"
-      :current="opts.traceSeconds"
-      :min="INPUTS_TRACE_MIN_S"
-      :max="INPUTS_TRACE_MAX_S"
-      :format="seconds"
-      :presets="TRACE_PRESETS_S"
-      :apply="set('traceSeconds')"
-    />
-    <ChoiceControl
-      v-if="hasTrace"
-      :label="t.settings.inputs.traceWidth"
-      :current="traceWidth"
-      :options="widthChoices"
-      :apply="setTraceWidth"
-    />
-    <ToggleControl
-      v-if="hasTrace"
-      kind="switch"
-      :label="t.settings.inputs.clutchInTrace"
-      :help="t.settings.inputs.clutchInTraceHelp"
-      :current="opts.clutchInTrace"
-      :apply="set('clutchInTrace')"
-    />
     <ChoiceControl
       v-if="showSteering"
       :label="t.settings.inputs.steeringStyle"
@@ -176,6 +160,7 @@ const carGate = useParentGate({
       :options="steeringChoices"
       :apply="set('steeringStyle')"
     />
+    <p v-else class="st-row st-help in-colors-note">{{ t.settings.inputs.steeringOff }}</p>
     <ChoiceControl
       v-if="showWheel"
       :label="t.settings.inputs.wheelSize"
@@ -192,41 +177,62 @@ const carGate = useParentGate({
       :inherit="wheelInherit"
       :apply="set('wheelColor')"
     />
-    <ToggleControl
-      v-if="showSteering"
-      kind="switch"
-      :label="t.settings.inputs.steeringDegrees"
-      :help="t.settings.inputs.steeringDegreesHelp"
-      :current="opts.steeringDegrees"
-      :apply="set('steeringDegrees')"
-    />
-    <ToggleControl
-      kind="switch"
-      :label="t.settings.inputs.shiftLights"
-      :help="t.settings.inputs.shiftLightsHelp"
-      :more="t.settings.inputs.shiftLightsMore"
-      :current="opts.shiftLights"
-      :apply="set('shiftLights')"
-    />
-    <ColorControl
-      v-for="p in pedals"
-      :key="p.key"
-      :label="p.label"
-      :current="opts.colors[p.key]"
-      :presets="p.presets"
-      :apply="p.apply"
-    />
-    <p class="st-row st-help in-colors-note">{{ t.settings.inputs.colorsNote }}</p>
   </PageSection>
 
   <CustomizeSection>
+    <!--
+      The shift lights are the widget's fixed top strip, shown or hidden by their eye; the trace's
+      options unfold in its row; the pedals' colours (the bars' and the trace's) below the list.
+    -->
     <ElementEditor
       :title="zoneTitle(t, 'inputs', 'sections')"
       :items="opts.sections"
       :spec="I.sections"
       :labels="sectionTexts"
+      :fixed-before="shiftRow"
+      :parts-of="['trace']"
+      :parts-summary="traceSummary"
       :apply="setSections"
-    />
+    >
+      <template #parts="{ id }">
+        <div v-if="id === 'trace'" class="in-trace">
+          <SliderControl
+            :label="t.settings.inputs.traceSeconds"
+            :help="t.settings.inputs.traceSecondsHelp"
+            :current="opts.traceSeconds"
+            :min="INPUTS_TRACE_MIN_S"
+            :max="INPUTS_TRACE_MAX_S"
+            :format="seconds"
+            :presets="TRACE_PRESETS_S"
+            :apply="set('traceSeconds')"
+          />
+          <ChoiceControl
+            :label="t.settings.inputs.traceWidth"
+            :current="traceWidth"
+            :options="widthChoices"
+            :apply="setTraceWidth"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.inputs.clutchInTrace"
+            :help="t.settings.inputs.clutchInTraceHelp"
+            :current="opts.clutchInTrace"
+            :apply="set('clutchInTrace')"
+          />
+        </div>
+      </template>
+      <template #footer>
+        <ColorControl
+          v-for="p in pedals"
+          :key="p.key"
+          :label="p.label"
+          :current="opts.colors[p.key]"
+          :presets="p.presets"
+          :apply="p.apply"
+        />
+        <p class="st-row st-help in-colors-note">{{ t.settings.inputs.colorsNote }}</p>
+      </template>
+    </ElementEditor>
     <ElementEditor
       :title="zoneTitle(t, 'inputs', 'bars')"
       :items="opts.bars"
@@ -241,7 +247,18 @@ const carGate = useParentGate({
       :labels="infoTexts"
       :apply="infoGate.apply"
       :note="infoGate.note.value"
-    />
+    >
+      <!-- An element's option in its own row (R12): the degrees under the wheel. -->
+      <template #extra="{ id, visible }">
+        <ToggleControl
+          v-if="id === 'steering' && visible"
+          :label="t.settings.inputs.steeringDegrees"
+          :help="t.settings.inputs.steeringDegreesHelp"
+          :current="opts.steeringDegrees"
+          :apply="set('steeringDegrees')"
+        />
+      </template>
+    </ElementEditor>
     <ElementEditor
       :title="zoneTitle(t, 'inputs', 'car')"
       :items="opts.car"
@@ -256,5 +273,10 @@ const carGate = useParentGate({
 <style scoped>
 .in-colors-note {
   display: block;
+}
+
+.in-trace {
+  display: flex;
+  flex-direction: column;
 }
 </style>

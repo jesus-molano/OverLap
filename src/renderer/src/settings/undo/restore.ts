@@ -36,7 +36,7 @@ import {
   updateSection,
   updateSettings
 } from '../editor'
-import { columnsEditPatch, gapModePatch } from '../columns'
+import { columnsEditPatch } from '../columns'
 import { freeScaleBounds } from '../freeScale'
 import { optionsTarget, targetShown } from '../layoutsView'
 import { undoSlot } from './undo'
@@ -107,7 +107,8 @@ function partText(m: Messages, id: WidgetId, part: PageResetPart): string {
 
 /**
  * `part` of `id`'s options at their defaults, with what goes with them: the standings' gap
- * mode and its «Ambos» column stay in step (settings/columns.ts), whichever of the two is reset.
+ * mode and its «Ambos» column stay in step (settings/columns.ts); both are in «Personalizar»
+ * (the gap's choice is on its column's row, R12).
  */
 export function optionPartPatch(
   s: OverlaySettings,
@@ -117,10 +118,6 @@ export function optionPartPatch(
   const patch = optionPartDefaults(id, part) as Record<string, unknown>
   if (id !== 'standings') return patch
   const o = s.standings
-  if (part === 'content') {
-    const gapMode = patch.gapMode as StandingsOptions['gapMode']
-    return { ...patch, ...gapModePatch(o, gapMode) }
-  }
   if (part === 'customize') {
     const columns = patch.columns as StandingsOptions['columns']
     return { ...patch, ...columnsEditPatch(o, columns, { kind: 'reset' }) }

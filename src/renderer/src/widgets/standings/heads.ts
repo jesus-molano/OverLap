@@ -27,11 +27,12 @@ export interface HeadCell {
 export type HeadsView = readonly HeadCell[]
 
 export function toHeadsView(
-  cols: Pick<Columns, 'cells'>,
+  cols: Pick<Columns, 'cells'> & { readonly pos?: boolean },
   c: StandingsHeadContext,
   m: Messages
 ): HeadsView {
-  const fixed: HeadCell[] = (['pos', 'name'] as const).map((id) => ({
+  const ids = cols.pos === false ? (['name'] as const) : (['pos', 'name'] as const)
+  const fixed: HeadCell[] = ids.map((id) => ({
     id,
     ...standingsHead(id, c, m)
   }))

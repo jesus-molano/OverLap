@@ -949,7 +949,9 @@ describe('OverlayWindows commits', () => {
     expect(panel(w, 'radar')).toEqual({
       widget: 'radar',
       rect: { x: 300, y: 400, width: 250, height: 280 },
-      placement: 0
+      placement: 0,
+      // The one the arrows move now (R38).
+      touched: true
     })
   })
 
@@ -1155,7 +1157,9 @@ describe('OverlayWindows commits', () => {
     expect(panel(w2, 'relative')).toEqual({
       widget: 'relative',
       rect: { x: 570, y: 480, width: 460, height: 252 },
-      placement: 1
+      placement: 1,
+      // The one the arrows move now (R38).
+      touched: true
     })
     expect(w2.webContents.sentOn(IPC.data)).toEqual([payload])
     expect(w2.isVisible()).toBe(true)
@@ -1189,7 +1193,9 @@ describe('OverlayWindows commits', () => {
     expect(panel(w1, 'radar')).toEqual({
       widget: 'radar',
       rect: { x: 900, y: 500, width: 220, height: 260 },
-      placement: 1
+      placement: 1,
+      // The one the arrows move now (R38).
+      touched: true
     })
   })
 
@@ -1414,7 +1420,9 @@ describe('OverlayWindows recovery', () => {
     expect(panel(w, 'relative')).toEqual({
       widget: 'relative',
       rect: { x: 10, y: 20, width: 460, height: 252 },
-      placement: 1
+      placement: 1,
+      // The one the arrows move now (R38).
+      touched: true
     })
     // The reset wins over the pending wheel save.
     vi.advanceTimersByTime(COMMIT_DELAY_MS)
@@ -1903,5 +1911,46 @@ describe('OverlayWindows arrows (R38)', () => {
     changeSettings((s) => (s.widgets.relative.locked = false))
     windows.setEditMode(false)
     expect(windows.nudge(NUDGE_KEYS.Right!)).toBeNull()
+  })
+
+  it('Tab picks the next widget that can move, in reading order, and marks it', () => {
+    start()
+    windows.setEditMode(true)
+    const w = only()
+    const first = windows.pick(1)
+    expect(first).not.toBeNull()
+    expect(panel(w, first!)?.touched).toBe(true)
+    const second = windows.pick(1)
+    expect(second).not.toBe(first)
+    expect(panel(w, first!)?.touched).toBeUndefined()
+    // Shift+Tab goes back; a locked widget is skipped.
+    expect(windows.pick(-1)).toBe(first)
+    changeSettings((s) => (s.widgets[second!].locked = true))
+    expect(windows.pick(1)).not.toBe(second)
+    windows.setEditMode(false)
+    expect(windows.pick(1)).toBeNull()
+  })
+
+  it('Ctrl+Z puts the last drag and the arrows back, then forgets them with edit mode', () => {
+    start()
+    windows.setEditMode(true)
+    const w = only()
+    const at = panel(w, 'radar')!.rect
+    drag(w, 'radar', { x: 300, y: 400, width: 220, height: 260 })
+    windows.nudge(NUDGE_KEYS.Left!)
+    windows.nudge(NUDGE_KEYS.Left!)
+    // The held arrow is one change: back to where the drag left it.
+    expect(windows.undoEdit()).toMatchObject({ kind: 'rect', id: 'radar' })
+    expect(panel(w, 'radar')?.rect).toEqual({ x: 300, y: 400, width: 220, height: 260 })
+    committed = []
+    expect(windows.undoEdit()).toMatchObject({ kind: 'rect', id: 'radar' })
+    expect(panel(w, 'radar')?.rect).toEqual(at)
+    // Saved at once.
+    expect(committed).toEqual([['radar', at]])
+    expect(windows.undoEdit()).toBeNull()
+    drag(w, 'radar', { x: 310, y: 400, width: 220, height: 260 })
+    windows.setEditMode(false)
+    windows.setEditMode(true)
+    expect(windows.undoEdit()).toBeNull()
   })
 })

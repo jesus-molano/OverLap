@@ -98,3 +98,17 @@ export function sameElements(a: List<string>, b: List<string>): boolean {
 export function copyElements<Id extends string>(list: List<Id>): ElementEntry<Id>[] {
   return list.map((e) => ({ id: e.id, visible: e.visible }))
 }
+
+/**
+ * A copy with `pinned` first, in that order (those the list has), then the rest as they were:
+ * the tables' row starts with the position and the driver, whatever order a file has (R10).
+ */
+export function pinFirst<Id extends string>(
+  list: List<Id>,
+  pinned: readonly Id[]
+): ElementEntry<Id>[] {
+  if (pinned.length === 0) return copyElements(list)
+  const head = pinned.flatMap((id) => list.filter((e) => e.id === id).slice(0, 1))
+  const rest = list.filter((e) => !pinned.includes(e.id))
+  return copyElements([...head, ...rest])
+}

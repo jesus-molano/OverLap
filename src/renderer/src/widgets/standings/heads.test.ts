@@ -77,6 +77,11 @@ describe('toHeadsView', () => {
     expect(toHeadsView(narrow, RACE, ES)).toHaveLength(2 + narrow.cells.length)
     expect(narrow.cells.length).toBeLessThan(wide.cells.length)
   })
+
+  it('has no position head when the position is hidden (showPosition)', () => {
+    const v = toHeadsView({ cells: ['gap'], pos: false }, RACE, ES)
+    expect(v.map((h) => h.id)).toEqual(['name', 'gap'])
+  })
 })
 
 describe('reuseHeads', () => {

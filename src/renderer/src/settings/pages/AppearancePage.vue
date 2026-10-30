@@ -27,6 +27,7 @@ import ToggleControl from '../controls/ToggleControl.vue'
 import { followGlobalPatch, ownBackgrounds } from '../backgrounds'
 import { inheritDriverBlocks, ownDriverBlocks, type DriverBlockOptions } from '@shared/driverBlock'
 import { optionSetter } from '../editor'
+import { useNavigate } from '../navigate'
 import { followGlobal, resetAppearance, resetAppearancePart } from '../undo/restore'
 import ResetMenu from '../layout/ResetMenu.vue'
 import type { ResetItem } from '../layout/resetItems'
@@ -87,8 +88,6 @@ const unitChoices = computed(() =>
   choiceOptions(A.units.values, t.value.settings.appearance.other.unitChoices)
 )
 const OPACITY_PRESETS = [25, 50, 80, 100] as const
-/** The settings window's size (R29): its default and the steps a hand reaches for. */
-const ZOOM_PRESETS = [100, 120, 150] as const
 /** The preview on «Día» shows the global background hard to read: said under it. */
 const windowOptions = useOptions('settingsWindow')
 const dayNote = computed(() =>
@@ -168,6 +167,13 @@ const carNumber = SAMPLE_CHIPS.carNumber
 const licStyle = styles.lic(SAMPLE_CHIPS.licColor)
 const numStyle = styles.cls(SAMPLE_CHIPS.classColor)
 const example = computed(() => nameExample(t.value, appearance.value.nameFormat))
+
+/** Accesibilidad's links to «Texto»'s reading aids: the search result's way there. */
+const navigate = useNavigate()
+const readLinks = computed(() => {
+  const x = t.value.settings.appearance.text
+  return [x.fontScale, x.halo].map((text) => ({ text, context: x.title, kind: 'label' as const }))
+})
 </script>
 
 <template>
@@ -194,247 +200,273 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
     <!-- Named looks first (R56); the sections below are the fine tuning. -->
     <AppearancePresets />
 
-    <!-- Two columns in a wide window (settings.css .st-cols). -->
-    <div class="st-cols">
-      <PageSection :title="t.settings.appearance.language.title">
-        <ChoiceControl
-          :label="t.settings.appearance.language.label"
-          :help="t.settings.appearance.language.help"
-          :current="appearance.language"
-          :options="LANGUAGE_CHOICES"
-          :apply="set('language')"
+    <!--
+      Two groups, each in two fixed columns in a wide window (settings.css .st-grid2), so no column
+      runs empty: the style's fine tuning (Color and Texto, then Filas y pilotos), and what no style
+      touches (Idioma and Otros, then Accesibilidad).
+    -->
+    <div class="st-grid2">
+      <div class="st-col">
+        <PageSection
+          :title="t.settings.appearance.color.title"
+          :reset-label="resetLabel('color')"
+          @reset="resetAppearancePart('color')"
         >
-          <template #option="{ option }">
-            <span :lang="option.value">{{ option.label }}</span>
-          </template>
-        </ChoiceControl>
-      </PageSection>
-
-      <PageSection
-        :title="t.settings.appearance.color.title"
-        :reset-label="resetLabel('color')"
-        @reset="resetAppearancePart('color')"
-      >
-        <ColorControl
-          :label="t.settings.appearance.color.accent"
-          :help="t.settings.appearance.color.accentHelp"
-          :current="appearance.accent"
-          :presets="accentPresets"
-          :apply="set('accent')"
-        />
-        <SliderControl
-          :label="t.settings.appearance.color.background"
-          :help="t.settings.appearance.color.backgroundHelp"
-          :current="toPercent(appearance.backgroundOpacity)"
-          :min="0"
-          :max="100"
-          :presets="OPACITY_PRESETS"
-          :format="percent"
-          :apply="setBackground"
-        />
-        <div v-if="ownBg.length > 0" class="st-row own-bg">
-          <p class="st-help">{{ t.settings.appearance.color.ownBackgrounds(ownBg.length) }}</p>
-          <button type="button" class="st-btn st-btn-sm" @click="followGlobalBg">
-            {{ t.settings.appearance.color.followGlobal }}
-          </button>
-        </div>
-        <p class="st-sr-only" aria-live="polite">{{ followedMsg }}</p>
-        <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">
-          {{ dayNote }}
-        </p>
-      </PageSection>
-
-      <PageSection
-        :title="t.settings.appearance.text.title"
-        :reset-label="resetLabel('text')"
-        @reset="resetAppearancePart('text')"
-      >
-        <SliderControl
-          :label="t.settings.appearance.text.fontScale"
-          :help="fontScaleHelp.help"
-          :more="fontScaleHelp.more"
-          :current="appearance.fontScale"
-          :min="FONT_SCALE_MIN"
-          :max="FONT_SCALE_MAX"
-          :step="OPTION_SCHEMA.appearance.fontScale.step"
-          :presets="SIZE_PRESETS"
-          :format="percent"
-          :apply="set('fontScale')"
-        />
-        <ChoiceControl
-          :label="t.settings.appearance.text.halo"
-          :help="t.settings.appearance.text.haloHelp"
-          :current="appearance.textHalo"
-          :options="haloChoices"
-          :apply="set('textHalo')"
-        />
-      </PageSection>
-
-      <PageSection
-        :title="t.settings.appearance.rows.title"
-        :reset-label="resetLabel('rows')"
-        @reset="resetAppearancePart('rows')"
-      >
-        <ChoiceControl
-          :label="t.settings.common.density"
-          :help="t.settings.appearance.rows.densityHelp"
-          :current="appearance.density"
-          :options="densityOptions"
-          :apply="set('density')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.rows.stripes"
-          :current="appearance.stripes"
-          :apply="set('stripes')"
-        />
-        <ChoiceControl
-          :label="t.settings.common.license"
-          :current="appearance.licenseStyle"
-          :options="licenseChoices"
-          :apply="set('licenseStyle')"
+          <ColorControl
+            :label="t.settings.appearance.color.accent"
+            :help="t.settings.appearance.color.accentHelp"
+            :current="appearance.accent"
+            :presets="accentPresets"
+            :apply="set('accent')"
+          />
+          <SliderControl
+            :label="t.settings.appearance.color.background"
+            :help="t.settings.appearance.color.backgroundHelp"
+            :current="toPercent(appearance.backgroundOpacity)"
+            :min="0"
+            :max="100"
+            :presets="OPACITY_PRESETS"
+            :format="percent"
+            :apply="setBackground"
+          />
+          <div v-if="ownBg.length > 0" class="st-row own-bg">
+            <p class="st-help">{{ t.settings.appearance.color.ownBackgrounds(ownBg.length) }}</p>
+            <button type="button" class="st-btn st-btn-sm" @click="followGlobalBg">
+              {{ t.settings.appearance.color.followGlobal }}
+            </button>
+          </div>
+          <p class="st-sr-only" aria-live="polite">{{ followedMsg }}</p>
+          <p v-if="dayNote" class="st-row st-help st-help-warn day-note" role="status">
+            {{ dayNote }}
+          </p>
+        </PageSection>
+        <PageSection
+          :title="t.settings.appearance.text.title"
+          :reset-label="resetLabel('text')"
+          @reset="resetAppearancePart('text')"
         >
-          <template #option="{ option }">
-            <LicenseChip
-              class="opt-chip"
-              :text="licText"
-              :colors="licStyle"
-              :variant="option.value"
-            />
-            {{ option.label }}
-          </template>
-        </ChoiceControl>
-        <ChoiceControl
-          :label="t.settings.appearance.rows.number"
-          :current="appearance.numberStyle"
-          :options="numberChoices"
-          :apply="set('numberStyle')"
+          <SliderControl
+            :label="t.settings.appearance.text.fontScale"
+            :help="fontScaleHelp.help"
+            :more="fontScaleHelp.more"
+            :current="appearance.fontScale"
+            :min="FONT_SCALE_MIN"
+            :max="FONT_SCALE_MAX"
+            :step="OPTION_SCHEMA.appearance.fontScale.step"
+            :presets="SIZE_PRESETS"
+            :format="percent"
+            :apply="set('fontScale')"
+          />
+          <ChoiceControl
+            :label="t.settings.appearance.text.halo"
+            :help="t.settings.appearance.text.haloHelp"
+            :current="appearance.textHalo"
+            :options="haloChoices"
+            :apply="set('textHalo')"
+          />
+        </PageSection>
+      </div>
+      <div class="st-col">
+        <PageSection
+          :title="t.settings.appearance.rows.title"
+          :reset-label="resetLabel('rows')"
+          @reset="resetAppearancePart('rows')"
         >
-          <template #option="{ option }">
-            <span v-if="option.value === 'stripe'" class="opt-stripe" aria-hidden="true" />
-            <NumberBadge
-              class="opt-chip"
-              :number="carNumber"
-              :cls-style="numStyle"
-              :variant="option.value === 'chip' ? 'filled' : 'plain'"
-            />
-            {{ option.label }}
-          </template>
-        </ChoiceControl>
-        <!-- The «Piloto» block's globals (R08): what each driver widget on «Global» draws. -->
-        <ChoiceControl
-          :label="t.settings.common.nameFormat"
-          :help="example"
-          :current="appearance.nameFormat"
-          :options="nameChoices"
-          :apply="set('nameFormat')"
-        />
-        <ChoiceControl
-          :label="t.settings.driverCell.brandMarks"
-          :help="t.settings.appearance.rows.blockHelp"
-          :current="appearance.brandMarks"
-          :options="brandMarkChoices"
-          :apply="set('brandMarks')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.driverCell.countryFlags"
-          :help="t.settings.driverCell.countryFlagsHelp"
-          :current="appearance.countryFlags"
-          :apply="set('countryFlags')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.common.penaltyFlags"
-          :help="t.settings.common.penaltyFlagsHelp"
-          :current="appearance.penaltyFlags"
-          :apply="set('penaltyFlags')"
-        />
-        <div v-if="ownBlocks.length > 0" class="st-row own-bg">
-          <p class="st-help">{{ t.settings.appearance.rows.ownBlocks(ownBlocks.length) }}</p>
-          <button type="button" class="st-btn st-btn-sm" @click="followBlocks">
-            {{ t.settings.appearance.rows.followGlobal }}
-          </button>
-        </div>
-        <p class="st-sr-only" aria-live="polite">{{ followedBlocksMsg }}</p>
-        <ChoiceControl
-          :label="t.settings.appearance.rows.brandLogos"
-          :help="t.settings.appearance.rows.brandLogosHelp"
-          :current="appearance.brandLogos"
-          :options="brandLogoChoices"
-          :apply="set('brandLogos')"
+          <ChoiceControl
+            :label="t.settings.common.density"
+            :help="t.settings.appearance.rows.densityHelp"
+            :current="appearance.density"
+            :options="densityOptions"
+            :apply="set('density')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.appearance.rows.stripes"
+            :current="appearance.stripes"
+            :apply="set('stripes')"
+          />
+          <ChoiceControl
+            :label="t.settings.common.license"
+            :current="appearance.licenseStyle"
+            :options="licenseChoices"
+            :apply="set('licenseStyle')"
+          >
+            <template #option="{ option }">
+              <LicenseChip
+                class="opt-chip"
+                :text="licText"
+                :colors="licStyle"
+                :variant="option.value"
+              />
+              {{ option.label }}
+            </template>
+          </ChoiceControl>
+          <ChoiceControl
+            :label="t.settings.appearance.rows.number"
+            :current="appearance.numberStyle"
+            :options="numberChoices"
+            :apply="set('numberStyle')"
+          >
+            <template #option="{ option }">
+              <span v-if="option.value === 'stripe'" class="opt-stripe" aria-hidden="true" />
+              <NumberBadge
+                class="opt-chip"
+                :number="carNumber"
+                :cls-style="numStyle"
+                :variant="option.value === 'chip' ? 'filled' : 'plain'"
+              />
+              {{ option.label }}
+            </template>
+          </ChoiceControl>
+          <!-- The «Piloto» block's globals (R08): what each driver widget on «Global» draws. -->
+          <ChoiceControl
+            :label="t.settings.common.nameFormat"
+            :help="example"
+            :current="appearance.nameFormat"
+            :options="nameChoices"
+            :apply="set('nameFormat')"
+          />
+          <ChoiceControl
+            :label="t.settings.driverCell.brandMarks"
+            :help="t.settings.appearance.rows.blockHelp"
+            :current="appearance.brandMarks"
+            :options="brandMarkChoices"
+            :apply="set('brandMarks')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.driverCell.countryFlags"
+            :help="t.settings.driverCell.countryFlagsHelp"
+            :current="appearance.countryFlags"
+            :apply="set('countryFlags')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.common.penaltyFlags"
+            :help="t.settings.common.penaltyFlagsHelp"
+            :current="appearance.penaltyFlags"
+            :apply="set('penaltyFlags')"
+          />
+          <div v-if="ownBlocks.length > 0" class="st-row own-bg">
+            <p class="st-help">{{ t.settings.appearance.rows.ownBlocks(ownBlocks.length) }}</p>
+            <button type="button" class="st-btn st-btn-sm" @click="followBlocks">
+              {{ t.settings.appearance.rows.followGlobal }}
+            </button>
+          </div>
+          <p class="st-sr-only" aria-live="polite">{{ followedBlocksMsg }}</p>
+          <ChoiceControl
+            :label="t.settings.appearance.rows.brandLogos"
+            :help="t.settings.appearance.rows.brandLogosHelp"
+            :current="appearance.brandLogos"
+            :options="brandLogoChoices"
+            :apply="set('brandLogos')"
+          >
+            <template #option="{ option }">
+              <BrandMark class="opt-brand" brand="ferrari" :logos="option.value" />
+              {{ option.label }}
+            </template>
+          </ChoiceControl>
+        </PageSection>
+      </div>
+    </div>
+
+    <h2 class="st-section-title group-title">{{ t.settings.appearance.general }}</h2>
+    <div class="st-grid2">
+      <div class="st-col">
+        <PageSection :title="t.settings.appearance.language.title">
+          <ChoiceControl
+            :label="t.settings.appearance.language.label"
+            :help="t.settings.appearance.language.help"
+            :current="appearance.language"
+            :options="LANGUAGE_CHOICES"
+            :apply="set('language')"
+          >
+            <template #option="{ option }">
+              <span :lang="option.value">{{ option.label }}</span>
+            </template>
+          </ChoiceControl>
+        </PageSection>
+        <PageSection
+          :title="t.settings.appearance.other.title"
+          :reset-label="resetLabel('other')"
+          @reset="resetAppearancePart('other')"
         >
-          <template #option="{ option }">
-            <BrandMark class="opt-brand" brand="ferrari" :logos="option.value" />
-            {{ option.label }}
-          </template>
-        </ChoiceControl>
-      </PageSection>
-
-      <PageSection
-        :title="t.settings.appearance.other.title"
-        :reset-label="resetLabel('other')"
-        @reset="resetAppearancePart('other')"
-      >
-        <ChoiceControl
-          :label="t.settings.appearance.other.units"
-          :help="t.settings.appearance.other.unitsHelp"
-          :current="appearance.units"
-          :options="unitChoices"
-          :apply="set('units')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.other.simPill"
-          :help="t.settings.appearance.other.simPillHelp"
-          :current="appearance.showSimPill"
-          :apply="set('showSimPill')"
-        />
-      </PageSection>
-
-      <!-- Every need in one place (R15, R27, R29, R36), each off until chosen. -->
-      <PageSection
-        :title="t.settings.appearance.access.title"
-        :reset-label="resetLabel('access')"
-        @reset="resetAppearancePart('access')"
-      >
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.color.colorBlind"
-          :help="t.settings.appearance.color.colorBlindHelp"
-          :more="t.settings.appearance.color.colorBlindMore"
-          :current="appearance.colorBlind"
-          :apply="set('colorBlind')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.access.largeLabels"
-          :help="t.settings.appearance.access.largeLabelsHelp"
-          :more="t.settings.appearance.access.largeLabelsMore"
-          :current="appearance.largeLabels"
-          :apply="set('largeLabels')"
-        />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.appearance.access.noFlashing"
-          :help="t.settings.appearance.access.noFlashingHelp"
-          :more="t.settings.appearance.access.noFlashingMore"
-          :current="appearance.noFlashing"
-          :apply="set('noFlashing')"
-        />
-        <SliderControl
-          :label="t.settings.appearance.access.settingsZoom"
-          :help="t.settings.appearance.access.settingsZoomHelp"
-          :more="t.settings.appearance.access.settingsZoomMore"
-          :current="appearance.settingsZoom"
-          :min="A.settingsZoom.min"
-          :max="A.settingsZoom.max"
-          :step="A.settingsZoom.step"
-          :presets="ZOOM_PRESETS"
-          :format="percent"
-          :apply="set('settingsZoom')"
-        />
-      </PageSection>
+          <ChoiceControl
+            :label="t.settings.appearance.other.units"
+            :help="t.settings.appearance.other.unitsHelp"
+            :current="appearance.units"
+            :options="unitChoices"
+            :apply="set('units')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.appearance.other.simPill"
+            :help="t.settings.appearance.other.simPillHelp"
+            :current="appearance.showSimPill"
+            :apply="set('showSimPill')"
+          />
+        </PageSection>
+      </div>
+      <div class="st-col">
+        <!-- Every need in one place (R15, R27, R29, R36), each off until chosen. -->
+        <PageSection
+          :title="t.settings.appearance.access.title"
+          :reset-label="resetLabel('access')"
+          @reset="resetAppearancePart('access')"
+        >
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.appearance.color.colorBlind"
+            :help="t.settings.appearance.color.colorBlindHelp"
+            :more="t.settings.appearance.color.colorBlindMore"
+            :current="appearance.colorBlind"
+            :apply="set('colorBlind')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.appearance.access.largeLabels"
+            :help="t.settings.appearance.access.largeLabelsHelp"
+            :more="t.settings.appearance.access.largeLabelsMore"
+            :current="appearance.largeLabels"
+            :apply="set('largeLabels')"
+          />
+          <ToggleControl
+            kind="switch"
+            :label="t.settings.appearance.access.noFlashing"
+            :help="t.settings.appearance.access.noFlashingHelp"
+            :more="t.settings.appearance.access.noFlashingMore"
+            :current="appearance.noFlashing"
+            :apply="set('noFlashing')"
+          />
+          <SliderControl
+            :label="t.settings.appearance.access.settingsZoom"
+            :help="t.settings.appearance.access.settingsZoomHelp"
+            :more="t.settings.appearance.access.settingsZoomMore"
+            :current="appearance.settingsZoom"
+            :min="A.settingsZoom.min"
+            :max="A.settingsZoom.max"
+            :step="A.settingsZoom.step"
+            :presets="SIZE_PRESETS"
+            :format="percent"
+            :apply="set('settingsZoom')"
+          />
+          <!-- The two reading aids of «Texto», one click away (pointed out there, as a search result). -->
+          <p class="st-row access-links">
+            <span class="st-help">{{ t.settings.appearance.access.readBetter }}</span>
+            <span class="access-go">
+              <button
+                v-for="l in readLinks"
+                :key="l.text"
+                type="button"
+                class="st-btn st-btn-sm st-btn-ghost"
+                @click="navigate('appearance', l)"
+              >
+                {{ l.text }}
+              </button>
+            </span>
+          </p>
+        </PageSection>
+      </div>
     </div>
 
     <template #foot>
@@ -492,6 +524,29 @@ const example = computed(() => nameExample(t.value, appearance.value.nameFormat)
 
 .own-bg .st-help {
   margin: 0;
+}
+
+.group-title {
+  margin: 24px 0 12px;
+}
+
+.access-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.access-links .st-help {
+  flex: 1 1 16em;
+  margin: 0;
+}
+
+.access-go {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .opt-chip {

@@ -89,13 +89,30 @@ const matched = shallowRef('')
 function matchRelative(): void {
   const done = offerSectionRestore('standings', zoneTitle(t.value, 'standings', 'columns'))
   const next = matchSharedColumns(opts.value.columns, relative.value.columns)
-  void updateSection('standings', columnsEditPatch(opts.value, next, { kind: 'reset' }))
+  // The position too: shown or hidden as the relative's (R10).
+  const showPosition = relative.value.columns.some((c) => c.id === 'pos' && c.visible)
+  void updateSection('standings', {
+    ...columnsEditPatch(opts.value, next, { kind: 'reset' }),
+    showPosition
+  })
   done()
   matched.value = t.value.settings.columns.match.done(widgetTitle(t.value, 'relative'))
 }
 const compactOff = computed(() => opts.value.mode === 'full')
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
-const fixed = computed(() => fixedColumns(t.value))
+/** The row's fixed start (R10): the position with its eye, as the relative's; the driver locked. */
+const setShowPosition = set('showPosition')
+const fixed = computed(() =>
+  fixedColumns(t.value).map((f) =>
+    f.key === 'pos'
+      ? {
+          ...f,
+          visible: opts.value.showPosition,
+          toggle: (v: boolean) => void setShowPosition(v)
+        }
+      : f
+  )
+)
 /** «Ambos» draws the gap to the leader in its column: «No cabe» while the width drops it. */
 const noRoom = useNoRoom()
 const gapNote = computed(() =>
@@ -181,14 +198,6 @@ const sampleNotes = computed(() => {
       </div>
     </fieldset>
     <ChoiceControl
-      :label="t.settings.standings.gap"
-      :help="t.settings.standings.gapHelp"
-      :current="opts.gapMode"
-      :options="gapChoices"
-      :note="gapNote"
-      :apply="setGapMode"
-    />
-    <ChoiceControl
       :label="t.settings.common.density"
       :current="opts.density"
       :options="densityChoices"
@@ -209,8 +218,20 @@ const sampleNotes = computed(() => {
       :fixed-before="fixed"
       :apply="applyColumns"
     >
-      <!-- An element's option in its own row (R12): every row's stake, on the stake column. -->
+      <!--
+        An element's option in its own row (R12): which gap on the gap column, every row's stake
+        on the stake column.
+      -->
       <template #extra="{ id, visible }">
+        <ChoiceControl
+          v-if="id === 'gap' && visible"
+          :label="t.settings.standings.gap"
+          :help="t.settings.standings.gapHelp"
+          :current="opts.gapMode"
+          :options="gapChoices"
+          :note="gapNote"
+          :apply="setGapMode"
+        />
         <ToggleControl
           v-if="id === 'delta' && visible"
           :label="t.settings.standings.deltaAll"

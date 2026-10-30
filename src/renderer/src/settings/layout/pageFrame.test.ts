@@ -153,10 +153,14 @@ describe('settings window: wide and ultrawide', () => {
       const t = templateOf(page)
       // A widget page: one block, in the columns when it has no editors (R14). The shortcuts
       // are one table over the whole width (its own maximum, ShortcutsPage .sc-page).
-      expect(tagsWith(t, 'st-cols')).toHaveLength(page === SHORTCUTS_PAGE ? 0 : 1)
+      // Apariencia: two groups, each in two fixed columns (.st-grid2), so none runs empty.
+      const cols = page === APPEARANCE_PAGE ? 'st-grid2' : 'st-cols'
+      expect(tagsWith(t, cols)).toHaveLength(
+        page === SHORTCUTS_PAGE ? 0 : page === APPEARANCE_PAGE ? 2 : 1
+      )
       if (page === SHORTCUTS_PAGE) continue
-      expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('<template #top>'))
-      expect(t.indexOf('st-cols')).toBeGreaterThan(t.indexOf('</template>'))
+      expect(t.indexOf(cols)).toBeGreaterThan(t.indexOf('<template #top>'))
+      expect(t.indexOf(cols)).toBeGreaterThan(t.indexOf('</template>'))
     }
   })
 

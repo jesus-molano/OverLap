@@ -32,11 +32,14 @@ export function zoomStepOf(e: ZoomKeyEvent): ZoomStep | null {
   return null
 }
 
+/** What one Ctrl and + or − changes, as in a browser (the slider goes by 5). */
+export const ZOOM_KEY_STEP = 10
+
 /** The zoom (%) after `step` from `current`, on the 10 % grid, within 80..150. */
 export function nextZoom(current: number, step: ZoomStep): number {
   if (step === 'reset') return SPEC.default
   const now = clampOption(SPEC, current)
-  const unit = SPEC.step
+  const unit = ZOOM_KEY_STEP
   // Off the grid (a hand-edited file): the first step lands on it.
   const grid =
     step === 'in' ? Math.floor(now / unit) * unit + unit : Math.ceil(now / unit) * unit - unit

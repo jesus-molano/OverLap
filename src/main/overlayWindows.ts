@@ -29,6 +29,7 @@ import type {
 import { WIDGET_DEFS, WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { acceptScaleStep, decideCommit, type CommitContext } from './commitRules'
 import { CrashBudget } from './crashBudget'
+import { EditHistory, type EditHow, type EditStep } from './editHistory'
 import { KeyedTimer } from './keyedTimer'
 import { MOUSE_POLL_MS, mouseMode, type HitPanel, type MouseMode } from './mouseMode'
 import {
@@ -92,6 +93,10 @@ export interface OverlayWindowsOptions {
    * it while you drive, and the overlay then says how to free it. Absent: never hidden.
    */
   cursorShowing?(): boolean | null
+  /** Ctrl+Z on a wheel step of an auto-height widget: its «Escala» back to `scale`. */
+  onScaleSet?(id: WidgetId, scale: number): void
+  /** A change in edit mode that Ctrl+Z can put back (the tray offers «Deshacer: …» too). */
+  onEditChange?(step: EditStep): void
 }
 
 /** What the recovery timer will do when it fires (a GPU loss and a resume can combine). */
@@ -128,6 +133,8 @@ export class OverlayWindows implements OverlayWindowHost {
    * posición») in edit mode: the arrows move it (R38: nudge). Null until one is.
    */
   private touched: WidgetId | null = null
+  /** What edit mode's changes replaced, for Ctrl+Z (R38). */
+  private readonly history = new EditHistory()
   /** `OverlayPanel.placement`: bumped whenever main moves a panel on its own. */
   private readonly placements = new Map<WidgetId, number>()
   /** The window hosting each enabled widget. */
@@ -354,6 +361,7 @@ export class OverlayWindows implements OverlayWindowHost {
       this.chips.clear()
       this.hiddenReads = 0
       this.setCursorHidden(false)
+      this.history.clear()
     }
     this.updateModes()
     // The ghosts come and go with edit mode: windows may too. Refreshes every window.
@@ -676,6 +684,7 @@ export class OverlayWindows implements OverlayWindowHost {
       rects: this.rects,
       placements: this.placements,
       ghosts: new Set(w.hosted.filter((id) => this.isGhost(id))),
+      touched: this.editing ? this.touched : null,
       session: w.session,
       ackSeq: w.ackSeq,
       revision
@@ -850,7 +859,10 @@ export class OverlayWindows implements OverlayWindowHost {
     const id = msg.widget
     const out = decideCommit(msg, this.commitContext(w, id))
     if (out.accepted) {
-      if (msg.kind !== 'fit') this.touched = id
+      if (msg.kind !== 'fit') {
+        this.touched = id
+        this.remember(id, msg.kind === 'wheel' ? 'wheel' : 'drag')
+      }
       this.rects.set(id, out.rect)
       if (out.save === 'wheel') this.wheelSaves.restart(id)
       else if (out.save === 'fit') this.fitSaves.restart(id)
@@ -892,7 +904,9 @@ export class OverlayWindows implements OverlayWindowHost {
     const w = msg ? this.windowOf(event.sender) : undefined
     if (!msg || !w || msg.session !== w.session) return
     if (acceptScaleStep(this.commitContext(w, msg.widget))) {
-      this.touched = msg.widget
+      this.setTouched(msg.widget)
+      const scale = this.opts.getSettings().widgets[msg.widget].scale
+      this.record({ kind: 'scale', id: msg.widget, scale }, 'scale')
       this.opts.onScaleStep(msg.widget, msg.step)
     }
   }
@@ -915,7 +929,12 @@ export class OverlayWindows implements OverlayWindowHost {
     const w = msg ? this.windowOf(event.sender) : undefined
     if (!msg || !w || msg.session !== w.session || !this.editing) return
     if (this.owner.get(msg.widget) !== w) return
-    this.touched = msg.widget
+    this.setTouched(msg.widget)
+    const prefs = this.opts.getSettings().widgets[msg.widget]
+    this.record(
+      { kind: 'toggle', id: msg.widget, field: msg.field, value: prefs[msg.field] },
+      'toggle'
+    )
     this.opts.onWidgetToggle(msg.widget, msg.field, msg.value)
   }
 
@@ -934,7 +953,7 @@ export class OverlayWindows implements OverlayWindowHost {
    */
   focusWidget(id: WidgetId): void {
     if (!this.editing || !this.started || this.disposed) return
-    this.touched = id
+    this.setTouched(id)
     this.broadcast(IPC.editFocus, id)
   }
 
@@ -957,11 +976,87 @@ export class OverlayWindows implements OverlayWindowHost {
     if (display === undefined) return null
     const next = nudgeRect(rect, step, WIDGET_DEFS[id].minSize, display.bounds, prefs.autoHeight)
     if (rectsEqual(next, rect)) return id
+    this.remember(id, 'nudge')
     this.rects.set(id, next)
     this.fitSaves.cancel(id)
     this.wheelSaves.restart(id)
     this.pushLayouts()
     return id
+  }
+
+  /** The widget the arrows apply to now; its chip is marked (OverlayPanel.touched). */
+  private setTouched(id: WidgetId): void {
+    if (this.touched === id) return
+    this.touched = id
+    if (this.editing) this.pushLayouts()
+  }
+
+  /** The widget the arrows apply to (null: none yet). */
+  touchedWidget(): WidgetId | null {
+    return this.touched
+  }
+
+  /**
+   * Tab and Shift+Tab in edit mode (R38): the arrows go to the next (`dir` 1) or the previous
+   * widget that can move, in reading order on the screen (top to bottom, then left to right), so
+   * they work with the cursor hidden by the game too. The widget picked, or null (none can move).
+   */
+  pick(dir: 1 | -1): WidgetId | null {
+    if (!this.editing || !this.started || this.disposed) return null
+    const settings = this.opts.getSettings()
+    const movable = WIDGET_IDS.filter(
+      (id) => this.isShown(id) && !settings.widgets[id].locked && this.rects.has(id)
+    ).sort((a, b) => {
+      const ra = this.rects.get(a) as Rect
+      const rb = this.rects.get(b) as Rect
+      return ra.y - rb.y || ra.x - rb.x
+    })
+    if (movable.length === 0) return null
+    const at = this.touched === null ? -1 : movable.indexOf(this.touched)
+    const next =
+      at < 0 ? (dir === 1 ? 0 : movable.length - 1) : (at + dir + movable.length) % movable.length
+    const id = movable[next] as WidgetId
+    this.setTouched(id)
+    return id
+  }
+
+  /** Keeps `step` for Ctrl+Z, and says so when it is a change of its own (not a held key). */
+  private record(step: EditStep, how: EditHow): void {
+    if (this.history.record(step, how, performance.now())) this.opts.onEditChange?.(step)
+  }
+
+  /** The place and size of `id` before the change about to be made. */
+  private remember(id: WidgetId, how: EditHow): void {
+    const rect = this.rects.get(id)
+    if (rect !== undefined) this.record({ kind: 'rect', id, rect: { ...rect } }, how)
+  }
+
+  /** What Ctrl+Z would put back now (undefined: nothing). */
+  lastEdit(): EditStep | undefined {
+    return this.editing ? this.history.peek() : undefined
+  }
+
+  /**
+   * Ctrl+Z in edit mode (R38): the last change goes back (a place and size, an «Escala», an eye
+   * or a padlock), saved at once; then the one before. The change put back, or null.
+   */
+  undoEdit(): EditStep | null {
+    if (!this.editing || !this.started || this.disposed) return null
+    const step = this.history.pop()
+    if (step === undefined) return null
+    this.setTouched(step.id)
+    if (step.kind === 'scale') this.opts.onScaleSet?.(step.id, step.scale)
+    else if (step.kind === 'toggle') this.opts.onWidgetToggle(step.id, step.field, step.value)
+    else {
+      this.rects.set(step.id, { ...step.rect })
+      // Main moved it on its own: an interaction on it stops.
+      this.placements.set(step.id, (this.placements.get(step.id) ?? 0) + 1)
+      this.wheelSaves.cancel(step.id)
+      this.fitSaves.cancel(step.id)
+      this.syncWindows()
+      this.saveRect(step.id)
+    }
+    return step
   }
 
   /** Where a window's edit chips are (edit mode, its current document only). */

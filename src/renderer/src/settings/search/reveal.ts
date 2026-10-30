@@ -24,7 +24,10 @@ export function findTarget(
   return all.find((el) => contextOf(el) === target.context) ?? all[0] ?? null
 }
 
-/** Opens what hides `el`: closed accordions, a closed «Añadir dato» list, closed details. */
+/**
+ * Opens what hides `el`: closed accordions, a row's folded parts, a closed «Añadir dato» list,
+ * closed details.
+ */
 function openAround(el: Element): void {
   for (
     let a = el.closest('.acc:not(.is-open)');
@@ -32,6 +35,12 @@ function openAround(el: Element): void {
     a = a.parentElement?.closest('.acc:not(.is-open)') ?? null
   ) {
     a.querySelector<HTMLButtonElement>(':scope > .acc-h .acc-btn')?.click()
+  }
+  // A row's folded options (Pedales' «Traza»): its button unfolds them.
+  for (let s = el.closest('.ed-sub'); s; s = s.parentElement?.closest('.ed-sub') ?? null) {
+    s.closest('li')
+      ?.querySelector<HTMLButtonElement>(':scope > .ed-parts-btn[aria-expanded="false"]')
+      ?.click()
   }
   const hidden = el.closest('.ed-hidden:not(.is-open)')
   hidden?.querySelector<HTMLButtonElement>('.ed-hidden-btn')?.click()

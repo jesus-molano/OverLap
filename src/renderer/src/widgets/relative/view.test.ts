@@ -241,7 +241,7 @@ describe('relativeColumns', () => {
     expect(keys.size).toBe(32)
   })
 
-  it('follows the list’s order, cells before the driver on its left', () => {
+  it('follows the list’s order after the position and the driver, which always start the row', () => {
     // [pos driver ir lic pit tyre stint gap] → [gap ir pos driver lic pit tyre stint]
     let list = moveElement(DEF, 7, 0)
     list = moveElement(list, 3, 1)
@@ -255,9 +255,10 @@ describe('relativeColumns', () => {
       'tyre',
       'stint'
     ])
+    // A file that moved them (before R10) draws them at the start, as the standings do.
     const c = relativeColumns(list, plain)
-    expect(c.cells).toEqual(['gap', 'ir', 'pos', 'driver', 'lic'])
-    expect(c.template).toBe('3.1em 2.4em 1.9em minmax(0, 1fr) 2.8em')
+    expect(c.cells).toEqual(['pos', 'driver', 'gap', 'ir', 'lic'])
+    expect(c.template).toBe('1.9em minmax(0, 1fr) 3.1em 2.4em 2.8em')
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
   })
 

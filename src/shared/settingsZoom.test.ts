@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS, normalizeSettings } from './settings'
+import { OPTION_SCHEMA, clampOption } from './settingsSchema'
 import { nextZoom, zoomFactor, zoomStepOf, type ZoomKeyEvent } from './settingsZoom'
 
 const key = (k: string, code: string, mods: Partial<ZoomKeyEvent> = {}): ZoomKeyEvent => ({
@@ -58,5 +59,13 @@ describe('the settings window zoom (R29)', () => {
     expect(zoomFactor(120)).toBeCloseTo(1.2, 9)
     expect(zoomFactor('x')).toBe(1)
     expect(zoomFactor(10)).toBeCloseTo(0.8, 9)
+  })
+})
+
+describe('the quick buttons (R43)', () => {
+  it('takes 125 % as a value of its own, while the keys still go by 10', () => {
+    expect(OPTION_SCHEMA.appearance.settingsZoom.step).toBe(5)
+    expect(clampOption(OPTION_SCHEMA.appearance.settingsZoom, 125)).toBe(125)
+    expect(nextZoom(120, 'in')).toBe(130)
   })
 })

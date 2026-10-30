@@ -292,6 +292,12 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'gap'
 ])
 
+/**
+ * The relative row's fixed start, as the standings' position and driver (R10): listed apart in
+ * its page, never moved; the position can be hidden in both tables.
+ */
+export const RELATIVE_PINNED_COLUMNS: readonly RelativeColumnId[] = ['pos', 'driver']
+
 /** The warning lights in the strip's default order (the provider's LIGHT_ORDER). */
 export const LIGHT_IDS = idsOf<LightKind>()([
   'oilPressure',
@@ -449,7 +455,9 @@ export const OPTION_SCHEMA = {
     noFlashing: { kind: 'bool', default: false, displayOnly: true },
     // The settings window's own zoom (R29), in %: Ctrl + / Ctrl − / Ctrl 0 and Ctrl + wheel too.
     // Here, with the rest of Accesibilidad (its reset), though only that window reads it.
-    settingsZoom: { kind: 'int', min: 80, max: 150, default: 100, step: 10, displayOnly: true },
+    // Step 5, so 125 (the quick buttons' ladder, R43) is a value of the slider too; the keys go
+    // by 10 (settingsZoom.ts).
+    settingsZoom: { kind: 'int', min: 80, max: 150, default: 100, step: 5, displayOnly: true },
     units: { kind: 'enum', values: ['metric', 'imperial'], default: 'metric', displayOnly: true },
     stripes: { kind: 'bool', default: true, displayOnly: true },
     textHalo: { kind: 'enum', values: ['auto', 'on', 'off'], default: 'auto', displayOnly: true },
@@ -528,6 +536,8 @@ export const OPTION_SCHEMA = {
     columns: elements(STANDINGS_COLUMN_IDS, {
       hidden: ['delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
     }),
+    // The row's fixed start, hidden as the relative's position can be (R10).
+    showPosition: { kind: 'bool', default: true, displayOnly: true },
     // Today's two header lines: the session (the widget's name while unknown), the class's SoF
     // and cars, your incidents and what is left; then your projections and the fastest lap.
     headerBar: infoBar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),

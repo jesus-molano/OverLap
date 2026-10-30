@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   APPEARANCE_PRESETS,
   PRESET_FIELDS,
+  contentsBack,
+  leavesComplete,
   matchingPreset,
+  mergePatches,
   planStyle,
   presetFieldsOf,
   presetValues,
@@ -369,5 +372,85 @@ describe('the styles’ hints name what they set as the controls do', () => {
       expect(c.compact.hint).toContain(String(presetValues('compact').fontScale))
       expect(c.complete.hint).toContain(String(presetValues('complete').backgroundOpacity * 100))
     }
+  })
+})
+
+describe('leaving «Completo»', () => {
+  /** Settings with contents of one's own (Posiciones reordered), then «Completo» over them. */
+  function ownThenComplete(): {
+    own: OverlaySettings
+    full: OverlaySettings
+    back: ReturnType<typeof contentsBack>
+  } {
+    const own = createDefaultSettings()
+    own.standings.columns = [...own.standings.columns].reverse()
+    const plan = planStyle(own, 'complete')
+    const back = contentsBack(undoPatch(own, plan.patch))
+    return { own, full: applySettingsPatch(own, plan.patch), back }
+  }
+
+  it('offers the take-back only for a look alone, never for «OverLap»', () => {
+    expect(leavesComplete('complete', 'clean')).toBe(true)
+    expect(leavesComplete('complete', 'compact')).toBe(true)
+    expect(leavesComplete('complete', 'overlap')).toBe(false)
+    expect(leavesComplete('complete', 'complete')).toBe(false)
+    for (const from of ['overlap', 'clean', 'compact', null] as const) {
+      for (const to of APPEARANCE_PRESETS) expect(leavesComplete(from, to), `${from}`).toBe(false)
+    }
+  })
+
+  it('«OverLap» after «Completo» puts everything back as it comes, not as it was before', () => {
+    const { full } = ownThenComplete()
+    expect(isComplete(full)).toBe(true)
+    const after = applySettingsPatch(full, planStyle(full, 'overlap').patch)
+    const fresh = createDefaultSettings()
+    expect(after.standings).toEqual(fresh.standings)
+    expect(after.appearance).toEqual(fresh.appearance)
+    expect(isDefaultContents(after)).toBe(true)
+    expect(matchingPreset(after)).toBe('overlap')
+  })
+
+  it('«Limpio» after «Completo» keeps what Completo added unless taken back', () => {
+    const { full } = ownThenComplete()
+    expect(matchingPreset(full)).toBe('complete')
+    const plan = planStyle(full, 'clean')
+    expect(leavesComplete(matchingPreset(full), 'clean')).toBe(true)
+    expect(plan.contents).toBe(false)
+    expect(plan.changes.every((c) => c.kind === 'look')).toBe(true)
+    const kept = applySettingsPatch(full, plan.patch)
+    expect(kept.standings).toEqual(full.standings)
+    expect(isComplete(kept)).toBe(true)
+    expect(matchingPreset(kept)).toBe('clean')
+  })
+
+  it('«Compacto» with the take-back ticked: each widget back to what it showed before Completo', () => {
+    const { own, full, back } = ownThenComplete()
+    expect('appearance' in back).toBe(false)
+    const compact = planStyle(full, 'compact')
+    const after = applySettingsPatch(full, mergePatches(back, compact.patch))
+    for (const key of ['relative', 'standings', 'battle', 'fuel', 'alerts'] as const) {
+      expect(after[key], key).toEqual(own[key])
+    }
+    // The windows' own fields too; their bounds follow Compacto's text size (85 %), as always.
+    for (const [id, w] of Object.entries(after.widgets)) {
+      const was = own.widgets[id as keyof typeof own.widgets]
+      expect({ ...w, bounds: null }, id).toEqual({ ...was, bounds: null })
+    }
+    expect(after.standings.columns).toEqual(
+      [...createDefaultSettings().standings.columns].reverse()
+    )
+    expect(presetFieldsOf(after.appearance)).toEqual(presetValues('compact'))
+    expect(matchingPreset(after)).toBe('compact')
+  })
+
+  it('merges two patches section by section, the second winning', () => {
+    const merged = mergePatches(
+      { appearance: { density: 'compact' }, widgets: { radar: { scale: 80 } } },
+      { appearance: { stripes: false }, widgets: { radar: { locked: true } } }
+    ) as Record<string, unknown>
+    expect(merged).toEqual({
+      appearance: { density: 'compact', stripes: false },
+      widgets: { radar: { scale: 80, locked: true } }
+    })
   })
 })
