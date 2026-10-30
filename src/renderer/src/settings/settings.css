@@ -27,6 +27,13 @@ html.ov-settings {
   --st-border: rgba(255, 255, 255, 0.07);
   --st-border-hi: rgba(255, 255, 255, 0.12);
   --st-border-strong: rgba(255, 255, 255, 0.22);
+  /*
+   * A control's own edge (fields, steppers, segments, switches, checkboxes, buttons, shortcut
+   * cells): 3.3:1 against the card, so the control's shape is seen (WCAG 1.4.11, R28). The
+   * fainter borders above are for dividers, cards and panels only.
+   */
+  --st-edge: rgba(255, 255, 255, 0.36);
+  --st-edge-hover: rgba(255, 255, 255, 0.5);
   --st-ok: var(--ov-good);
   --st-focus: var(--ov-edit);
   /* Selection: neutral ink (key, knob, check, filled track) on a lifted fill. */
@@ -221,7 +228,7 @@ html.ov-settings .st-btn {
   gap: 8px;
   min-height: 32px;
   padding: 4px 12px;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface-hi);
   box-shadow: var(--st-lit);
@@ -232,7 +239,7 @@ html.ov-settings .st-btn {
 }
 
 html.ov-settings .st-btn:hover:not(:disabled, [aria-disabled='true']) {
-  border-color: var(--st-border-strong);
+  border-color: var(--st-edge-hover);
   background: var(--st-hover);
 }
 
@@ -543,7 +550,7 @@ html.ov-settings .st-seg {
   gap: 2px;
   max-width: 100%;
   padding: 2px;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: var(--st-radius);
   background: var(--st-field);
 }
@@ -616,7 +623,7 @@ html.ov-settings .st-switch {
   width: 38px;
   height: 22px;
   margin: 0;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: 11px;
   background: var(--st-track);
   cursor: pointer;
@@ -636,7 +643,7 @@ html.ov-settings .st-switch::before {
 }
 
 html.ov-settings .st-switch:hover:not(:disabled, :checked) {
-  border-color: var(--st-border-strong);
+  border-color: var(--st-edge-hover);
 }
 
 html.ov-settings .st-switch:checked {
@@ -670,14 +677,14 @@ html.ov-settings .st-check input {
   height: 16px;
   margin: 2px 0 0;
   /* 3.3:1 against the card: the box edge is the control (WCAG 1.4.11), unlike a divider. */
-  border: 1px solid rgba(255, 255, 255, 0.36);
+  border: 1px solid var(--st-edge);
   border-radius: 4px;
   background: var(--st-field);
   cursor: pointer;
 }
 
 html.ov-settings .st-check input:hover:not(:disabled, :checked) {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--st-edge-hover);
 }
 
 html.ov-settings .st-check input:checked {
@@ -745,7 +752,7 @@ html.ov-settings .st-number,
 html.ov-settings .st-field {
   height: 32px;
   padding: 0 8px;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: var(--st-radius-sm);
   background: var(--st-field);
 }
@@ -761,7 +768,7 @@ html.ov-settings .st-number {
 
 html.ov-settings .st-field:hover:not(:disabled),
 html.ov-settings .st-number:hover:not(:disabled) {
-  border-color: var(--st-border-strong);
+  border-color: var(--st-edge-hover);
 }
 
 html.ov-settings .st-field[aria-invalid='true'] {

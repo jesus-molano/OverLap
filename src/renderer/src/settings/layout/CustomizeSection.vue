@@ -20,7 +20,8 @@ import { isZoneOpen, pageIntro, provideZoneRegistry, setZonesOpen } from './zone
  *
  * On a widget page they move to the page's own place for them (WidgetPage: below the options,
  * or a column of their own in a wide window); anywhere else they stay where they are. The
- * editors join its registry, so "Expandir todo / Contraer todo" opens or closes them all.
+ * editors join its registry, so one button opens them all («Expandir todo») while one is closed,
+ * and closes them all («Contraer todo») once every one is open (R47: never a dimmed button).
  * The heading says once how the lists are edited (dragging, ↑ ↓, the sides of the info bars, the
  * eye), for the zones the page has (pageIntro); the lists themselves no longer repeat it. On a
  * widget page its ↺ resets every list and what goes with them (R24), as its "Restablecer…" item.
@@ -41,14 +42,9 @@ function onReset(): void {
 
 const intro = computed(() => pageIntro(registry.zones.value))
 const anyClosed = computed(() => registry.zones.value.some((z) => !isZoneOpen(z)))
-const anyOpen = computed(() => registry.zones.value.some((z) => isZoneOpen(z)))
-// With nothing to do a button says so (aria-disabled) but keeps the focus it has: a disabled
-// one would drop it to the top of the page right after the click.
-const expandAll = (): void => {
-  if (anyClosed.value) void setZonesOpen(registry.zones.value, true)
-}
-const collapseAll = (): void => {
-  if (anyOpen.value) void setZonesOpen(registry.zones.value, false)
+// One button that always does something: it keeps the focus as its label turns over.
+const toggleAll = (): void => {
+  void setZonesOpen(registry.zones.value, anyClosed.value)
 }
 
 onMounted(() => {
@@ -86,21 +82,8 @@ onBeforeUnmount(() => {
           <template v-else>{{ t.settings.elements.introFixed }}</template>
         </p>
         <span v-if="registry.zones.value.length > 1" class="cz-all">
-          <button
-            type="button"
-            class="st-btn st-btn-sm st-btn-ghost"
-            :aria-disabled="!anyClosed"
-            @click="expandAll"
-          >
-            {{ t.settings.common.expandAll }}
-          </button>
-          <button
-            type="button"
-            class="st-btn st-btn-sm st-btn-ghost"
-            :aria-disabled="!anyOpen"
-            @click="collapseAll"
-          >
-            {{ t.settings.common.collapseAll }}
+          <button type="button" class="st-btn st-btn-sm st-btn-ghost" @click="toggleAll">
+            {{ anyClosed ? t.settings.common.expandAll : t.settings.common.collapseAll }}
           </button>
         </span>
         <ResetIcon v-if="resetLabel" class="cz-reset" :label="resetLabel" @reset="onReset" />

@@ -375,6 +375,23 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   ordenar, el asa de arrastre, el ⓘ de las ayudas, los − y + de los contadores, la × del aviso de
   deshacer y la marca de los avisos de Atajos, con el mismo grosor y color que los demás iconos.
   Los Ajustes siguen solo en tema oscuro.
+- **Controles que se distinguen del fondo**: campos de texto, contadores, selectores, interruptores,
+  botones y las casillas de Atajos llevan el mismo borde claro que las casillas de verificación
+  (3,3:1 sobre la tarjeta, antes 1,4:1); el borde tenue queda solo para separadores y tarjetas.
+- **Un solo botón para abrir o cerrar todas las listas** de Personalizar: dice «Expandir todo»
+  mientras alguna está cerrada y «Contraer todo» cuando están todas abiertas, en vez de dos
+  botones de los que uno siempre se veía apagado. Un botón apagado dice por qué al pasar el ratón:
+  «Restablecer» de una lista que está como viene de serie («Nada que restablecer…») y **Guardar**,
+  **Duplicar**, **Añadir** e **Importar** de Disposiciones cuando ya no caben más.
+- **Nombres para lectores de pantalla**: el interruptor «Visible» de cada página se anuncia como
+  «Mostrar Relativo», «Mostrar Radar»…; el consejo de la vista previa añade «Con el teclado, desde
+  las listas de Personalizar», y la vista previa se describe (qué widget es y que se edita con el
+  teclado en esas listas).
+- **Vista previa legible en una ventana estrecha**: donde la vista previa tendría que dibujarse a
+  menos del 75 % (Posiciones en una ventana de 760 px, o un widget alto en una ventana baja), se
+  dibuja a su tamaño real y se recorta: las primeras filas, con un degradado abajo, y si no cabe
+  de ancho, el resto con la barra o la rueda con Mayús. Antes encogía tanto que el texto más
+  pequeño quedaba en 6–7 px y era difícil hacer clic en él. Plegada en franja sigue entera.
 
 ### Corregido
 

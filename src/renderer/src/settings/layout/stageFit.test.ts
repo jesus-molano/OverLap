@@ -29,7 +29,8 @@ describe('stageFit', () => {
     expect(stageFit({ w: 600, h: 180 }, { w: 600, h: 250 })).toEqual({
       scale: 1,
       width: 600,
-      height: 180
+      height: 180,
+      cropped: false
     })
   })
 
@@ -55,7 +56,28 @@ describe('stageFit', () => {
   })
 
   it('reports 0 for an unknown side and does not scale', () => {
-    expect(stageFit({ w: 0, h: 0 }, { w: 600, h: 250 })).toEqual({ scale: 1, width: 0, height: 0 })
+    expect(stageFit({ w: 0, h: 0 }, { w: 600, h: 250 })).toEqual({
+      scale: 1,
+      width: 0,
+      height: 0,
+      cropped: false
+    })
+  })
+
+  it('below the crop size shows the first rows at the real size (R53)', () => {
+    const crop = { below: 0.75, scale: 1 }
+    // A 640 px sample in a 250 px stage would be drawn at 39 %.
+    const fit = stageFit({ w: 600, h: 640 }, { w: 600, h: 250 }, crop)
+    expect(fit.scale).toBe(1)
+    expect(fit.height).toBe(250)
+    expect(fit.width).toBe(600)
+    expect(fit.cropped).toBe(true)
+    // At 75 % and above nothing changes.
+    expect(stageFit({ w: 600, h: 300 }, { w: 600, h: 250 }, crop)).toMatchObject({
+      scale: 250 / 300,
+      height: 250,
+      cropped: false
+    })
   })
 })
 

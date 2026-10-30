@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
-import { MAX_LAYOUT_NAME, layoutName } from '@shared/layouts'
+import { MAX_LAYOUTS, MAX_LAYOUT_NAME, layoutName } from '@shared/layouts'
 import type { LayoutMode } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { layoutCommands as cmd, type LayoutRow } from '../layoutsView'
@@ -171,6 +171,7 @@ function remove(): void {
         type="button"
         class="st-btn st-btn-sm st-btn-ghost"
         :disabled="!roomLeft"
+        :title="roomLeft ? undefined : t.settings.layouts.full(MAX_LAYOUTS)"
         :aria-label="t.settings.layouts.duplicateLabel(row.name)"
         @click="cmd.duplicate(row.id, t.settings.layouts.copyName(row.name))"
       >

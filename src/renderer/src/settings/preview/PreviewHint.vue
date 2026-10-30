@@ -52,7 +52,7 @@ const shown = computed(() => hint.value.value && texts.value !== null && !fold.f
     <Icon :name="kind?.sortable ? 'grip' : 'eye'" class="pe-hint-icon" />
     <p class="pe-hint-text">
       <span class="pe-hint-main">{{ texts?.main }}</span>
-      <span class="pe-hint-more">{{ texts?.more }}</span>
+      <span class="pe-hint-more">{{ texts?.more }} {{ t.settings.preview.hintKeyboard }}</span>
     </p>
     <button
       type="button"

@@ -636,7 +636,7 @@ const resetItems = computed<ResetItem[]>(() => [
   display: flex;
   min-width: 0;
   height: 42px;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: var(--st-radius-sm);
   background: var(--st-field);
 }

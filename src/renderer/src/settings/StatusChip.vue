@@ -198,7 +198,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
   gap: 8px;
   max-width: 100%;
   padding: 3px 12px;
-  border: 1px solid var(--st-border-hi);
+  border: 1px solid var(--st-edge);
   border-radius: var(--st-radius-sm);
   background: var(--st-surface);
   color: var(--ov-fg);

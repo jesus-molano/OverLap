@@ -993,6 +993,7 @@ function onCancel(e: PointerEvent): void {
           type="button"
           class="st-btn st-btn-sm st-btn-ghost"
           :aria-label="t.settings.elements.resetLabel(title)"
+          :title="atDefault ? t.settings.elements.atDefault : undefined"
           :disabled="atDefault"
           @click="reset"
         >

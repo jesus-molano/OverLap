@@ -356,6 +356,14 @@ export const settingsEs = {
     hintMoreSome:
       'Lo oculto se ve translúcido donde cabe (un clic lo muestra); si no, desde su lista.',
     hintMoreNone: 'Lo oculto vuelve desde su lista, debajo.',
+    /** The keyboard's way to the same edits (R48): the lists under the preview. */
+    hintKeyboard: 'Con el teclado, desde las listas de Personalizar.',
+    /**
+     * What a screen reader hears for the preview (R48): the preview itself is drawn for the eye,
+     * the lists below do the same with the keyboard.
+     */
+    description: (widget: string) =>
+      `Vista previa de ${widget} con datos de ejemplo. Lo que muestra y su orden se cambian con el teclado en las listas de Personalizar.`,
     hintDismiss: 'Entendido',
     hintDismissLabel: 'Ocultar este consejo',
     /** Under an element's name on hover: what the pointer does to it. */
@@ -808,6 +816,8 @@ export const settingsEs = {
     sizeAuto: (width: number, scale: string) => `Alto automático · ${width} px de ancho · ${scale}`,
     sizeFixed: (size: string, scale: string) => `Alto fijo · ${size} px · ${scale}`,
     visible: 'Visible',
+    /** The switch's name for screen readers (R48): which widget it shows. */
+    visibleName: (widget: string) => `Mostrar ${widget}`,
     /** Beside «Visible» (R25): edit mode, with this widget pointed out over the game. */
     editPosition: 'Editar posición',
     editPositionHelp: (widget: string) =>
@@ -1529,6 +1539,8 @@ export const settingsEs = {
       `«${parent}» no se ve (su ojo en «${zone}» está cerrado): al mostrar aquí un elemento, vuelve a verse`,
     reset: 'Restablecer',
     resetLabel: (zone: string) => `Restablecer ${zone}`,
+    /** Why «Restablecer» is dimmed (R47): on hover and for screen readers. */
+    atDefault: 'Nada que restablecer: está como viene de serie',
     /** Screen-reader announcements. */
     moved: (item: string, position: number, total: number) =>
       `${item}: posición ${position} de ${total}.`,
@@ -2218,6 +2230,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hintMoreSome:
       'What is hidden shows translucent where it fits (a click shows it); if not, from its list.',
     hintMoreNone: 'What is hidden comes back from its list, below.',
+    hintKeyboard: 'With the keyboard, from the Customise lists.',
+    description: (widget) =>
+      `Preview of ${widget} with sample data. What it shows and in which order is changed with the keyboard in the Customise lists.`,
     hintDismiss: 'Got it',
     hintDismissLabel: 'Hide this tip',
     actions: {
@@ -2578,6 +2593,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     sizeAuto: (width, scale) => `Auto height · ${width} px wide · ${scale}`,
     sizeFixed: (size, scale) => `Fixed height · ${size} px · ${scale}`,
     visible: 'Visible',
+    visibleName: (widget) => `Show ${widget}`,
     editPosition: 'Edit position',
     editPositionHelp: (widget) =>
       `Enters edit mode and points out ${widget} over the game, to move or resize it`,
@@ -3182,6 +3198,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       `“${parent}” is hidden in “${zone}”: showing an element here shows it again`,
     reset: 'Reset',
     resetLabel: (zone) => `Reset ${zone}`,
+    atDefault: 'Nothing to reset: it is as it comes',
     moved: (item, position, total) => `${item}: position ${position} of ${total}.`,
     shown: (item) => `${item} shown.`,
     hidden: (item) => `${item} hidden.`,
