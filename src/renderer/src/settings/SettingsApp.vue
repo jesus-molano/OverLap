@@ -6,6 +6,7 @@ import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
 import { sendCommand, updateFailed } from './editor'
+import Icon from '../ui/Icon.vue'
 import EditModeButton from './layout/EditModeButton.vue'
 import OverlayHiddenNote from './layout/OverlayHiddenNote.vue'
 import SettingsFooter from './layout/SettingsFooter.vue'
@@ -143,7 +144,15 @@ function openLog(): void {
             <span v-for="k in t.settings.app.editBanner.keys" :key="k.key" class="edit-key">
               <kbd>{{ k.key }}</kbd> {{ k.text }}
             </span>
-            <span class="edit-chip">{{ t.settings.app.editBanner.chip }}</span>
+            <span class="edit-chip">
+              {{ t.settings.app.editBanner.chip.before }}
+              <Icon
+                name="gear"
+                :label="t.settings.app.editBanner.chip.gear"
+                class="edit-chip-gear"
+              />
+              {{ t.settings.app.editBanner.chip.after }}
+            </span>
           </p>
           <button type="button" class="st-btn st-btn-sm" @click="exitEdit">
             {{ t.settings.app.editBanner.exit }}
@@ -257,6 +266,10 @@ function openLog(): void {
 
 .edit-chip {
   color: var(--ov-fg-muted);
+}
+
+.edit-chip-gear {
+  vertical-align: -0.15em;
 }
 
 .banner-error {

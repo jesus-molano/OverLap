@@ -93,7 +93,7 @@ const accentPresets = computed(() => {
   return ACCENT_PRESETS.map((p) => ({ value: p.value, label: names[p.name] }))
 })
 
-/** «Acento (global)» first (R46): the wheel's mark follows Apariencia's accent. */
+/** «Global (acento)» first (R46), as «Global (…)» everywhere: the mark follows Apariencia's accent. */
 const appearance = useAppearance()
 const wheelInherit = computed(() => ({
   label: t.value.settings.inputs.wheelColorAccent,

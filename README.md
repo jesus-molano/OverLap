@@ -60,8 +60,9 @@ se ocultan; OverLap se conecta solo en cuanto arranca el simulador.
 Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Acerca de y ayuda › Abrir carpeta**,
 o la bandeja). En esa página, **Exportar todo…** guarda en un archivo todos los ajustes (Apariencia,
 atajos, visibilidad y todas las disposiciones con sus opciones) y tus récords, e **Importar todo…**
-los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**) y
-los récords del archivo se suman a los tuyos (gana la vuelta más rápida). Ahí están también la
+los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**,
+mientras no cambies nada más) y los récords del archivo se suman a los tuyos (gana la vuelta más
+rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
 versión, una ayuda rápida, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y
 **Restablecer todo** (como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
 
@@ -152,9 +153,9 @@ presión de aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», c
 incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
 con su ojo en **Personalizar › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
 Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
-daltónicos). Motor calado, presión de aceite y limitador de boxes son también testigos: su fila
-tiene una casilla **Testigo** que enciende o apaga el suyo en Testigos, y al revés (**Aviso** en
-la página de Testigos).
+daltónicos). Motor calado, presión de aceite, limitador de boxes y daños (la reparación
+obligatoria) son también testigos: su fila tiene una casilla **Testigo** que enciende o apaga el
+suyo en Testigos, y al revés (**Aviso** en la página de Testigos).
 
 ### Testigos
 
@@ -252,7 +253,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **Compacto** ponen de una vez el aspecto entero (fondo, tamaño del texto, filas, licencia,
   número, nombre, logos y banderas), con **Deshacer**; el resto de Apariencia queda como **Ajuste
   fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la paleta para
-  daltónicos, el idioma ni las unidades.
+  daltónicos, la etiqueta SIM, el idioma ni las unidades.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), paleta para daltónicos (azul
   y naranja en lugar de verde y rojo), tamaño y contorno del texto, densidad y filas alternas,
@@ -342,7 +343,8 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - **Más acciones**, plegado bajo la tabla, tiene una fila por widget («Mostrar u ocultar
   Relativo»…): lo mismo que su ojo en la barra lateral o su casilla en la bandeja (que muestra el
   atajo junto al widget). Ninguna tiene atajo de serie; se despliega solo si alguna lo tiene. Para
-  quitar o poner un widget en carrera sin cambiar de disposición.
+  quitar o poner un widget en carrera sin cambiar de disposición; el aviso sobre el juego dice
+  «Oculto: Posiciones» o «Visible: Posiciones».
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
 - Se cambian en **Ajustes > Atajos**, una tabla con una fila por acción y una columna por atajo

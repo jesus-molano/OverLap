@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  shallowRef,
+  useId,
+  useTemplateRef,
+  watch
+} from 'vue'
+import Icon from '../../ui/Icon.vue'
+import { FOCUS_SEARCH_EVENT } from './focusSearch'
 import { useI18n } from '../../composables/useI18n'
 import { pageTitle } from '../nav'
 import { useNavigate } from '../navigate'
@@ -108,14 +119,17 @@ function onKey(e: KeyboardEvent): void {
 }
 
 const optionId = (i: number): string => `${listId}-${i}`
+
+// «Ayuda rápida» (R40) sends the user here: the one field mounted (sidebar or narrow bar).
+const focusField = (): void => input.value?.focus()
+onMounted(() => window.addEventListener(FOCUS_SEARCH_EVENT, focusField))
+onUnmounted(() => window.removeEventListener(FOCUS_SEARCH_EVENT, focusField))
 </script>
 
 <template>
   <div class="search" role="search">
     <span class="search-icon" aria-hidden="true">
-      <svg viewBox="0 0 16 16" width="14" height="14">
-        <path d="M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.4 10.4l3.1 3.1" />
-      </svg>
+      <Icon name="search" />
     </span>
     <input
       ref="input"
@@ -175,11 +189,9 @@ const optionId = (i: number): string => `${listId}-${i}`
   pointer-events: none;
 }
 
-.search-icon path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
+.search-icon .ov-icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* Above html.ov-settings .st-field's padding: room for the magnifier. */

@@ -99,7 +99,7 @@ export interface EnumSpec<T extends string = string> extends SpecBase {
 export interface ColorSpec extends SpecBase {
   readonly kind: 'color'
   readonly default: string
-  /** «Acento (global)» is offered first: the value 'accent' follows Apariencia's accent. */
+  /** «Global (acento)» is offered first: the value 'accent' follows Apariencia's accent. */
   readonly followsAccent?: true
 }
 /** Fixed set of named colours. */

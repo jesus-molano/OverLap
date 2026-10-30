@@ -20,6 +20,8 @@ const BACKOFF_MAX_MS = 10_000
 /** A process that lived this long counts as healthy: the next crash restarts fast again. */
 const STABLE_AFTER_MS = 10_000
 const SHUTDOWN_GRACE_MS = 1_000
+/** «Exportar todo» waits this long for the process's bests, then reads the file. */
+const BESTS_TEXT_TIMEOUT_MS = 2_000
 
 export interface TelemetryHostOptions {
   source: SourceKind
@@ -40,6 +42,8 @@ export interface TelemetryHostOptions {
   onAutoHidden(widget: WidgetId, state: AutoHiddenState): void
   /** The process's personal bests: once after each start, then on every change. */
   onBests(list: PersonalBestList): void
+  /** How a `mergeBests` went (R40): laps taken, and new ones left out for lack of room. */
+  onBestsMerged?(taken: number, skipped: number): void
   /**
    * The kind of session being driven, on change (null when unknown, and when the process
    * exits: its successor reports it again).
@@ -64,6 +68,9 @@ export class TelemetryHost {
   private invalidMessages = 0
   /** Widgets the running process currently hides. */
   private readonly hidden = new Set<WidgetId>()
+  /** `bestsText` calls waiting for their answer, by id. */
+  private readonly textWaits = new Map<number, (text: string | null) => void>()
+  private nextTextId = 1
 
   constructor(private readonly opts: TelemetryHostOptions) {}
 
@@ -98,6 +105,31 @@ export class TelemetryHost {
   /** «Importar todo» (R40): merges a personal-bests file's text; false when none is running. */
   mergeBests(text: string): boolean {
     return this.alive && this.post({ type: 'merge-bests', text })
+  }
+
+  /**
+   * «Exportar todo» (R40): the bests as their file holds them, from the process's memory (a lap
+   * not yet written, or kept while writes fail, included). Null when none is running, it does
+   * not answer in time, or it has no file of its own (the mock's): the caller reads the file.
+   */
+  bestsText(timeoutMs = BESTS_TEXT_TIMEOUT_MS): Promise<string | null> {
+    const id = this.nextTextId++
+    if (!this.alive) return Promise.resolve(null)
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => this.answerText(id, null), timeoutMs)
+      this.textWaits.set(id, (text) => {
+        clearTimeout(timer)
+        resolve(text)
+      })
+      if (!this.post({ type: 'bests-text', id })) this.answerText(id, null)
+    })
+  }
+
+  private answerText(id: number, text: string | null): void {
+    const wait = this.textWaits.get(id)
+    if (!wait) return
+    this.textWaits.delete(id)
+    wait(text)
   }
 
   /** Asks the process to shut down, kills it after 1 s. Never restarts it afterwards. */
@@ -245,6 +277,12 @@ export class TelemetryHost {
       case 'bests':
         this.opts.onBests(msg.list)
         break
+      case 'bests-merged':
+        this.opts.onBestsMerged?.(msg.taken, msg.skipped)
+        break
+      case 'bests-text':
+        this.answerText(msg.id, msg.text)
+        break
       case 'session-kind':
         this.opts.onSessionKind?.(msg.kind)
         break
@@ -255,6 +293,8 @@ export class TelemetryHost {
   }
 
   private releaseHidden(): void {
+    // Gone before answering: the file, then.
+    for (const id of [...this.textWaits.keys()]) this.answerText(id, null)
     this.opts.onSessionKind?.(null)
     this.opts.onPlayerCar?.(null)
     const ids = [...this.hidden]

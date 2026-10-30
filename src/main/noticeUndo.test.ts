@@ -37,6 +37,40 @@ describe('NoticeUndo (R26, R51)', () => {
     expect(slot.run(b)).toBe(true)
   })
 
+  it('goes with the first change after it when it says it no longer may (an import, R40)', () => {
+    const changed = vi.fn()
+    const slot = new NoticeUndo(changed)
+    let untouched = true
+    const undo = vi.fn()
+    const id = slot.keep(
+      () => 'Ajustes importados',
+      undo,
+      () => untouched
+    )
+    // Nothing since: it stays.
+    slot.prune()
+    expect(slot.label(es)).toBe('Ajustes importados')
+    // A layout saved, a widget moved: undoing would lose it, so it goes (the tray too).
+    untouched = false
+    slot.prune()
+    expect(slot.label(es)).toBeNull()
+    expect(slot.run(id)).toBe(false)
+    expect(undo).not.toHaveBeenCalled()
+    expect(changed).toHaveBeenCalledTimes(2)
+    // And if asked before any prune: nothing undone either.
+    const again = vi.fn()
+    let ok = true
+    const b = slot.keep(
+      () => 'x',
+      again,
+      () => ok
+    )
+    ok = false
+    expect(slot.run(b)).toBe(false)
+    expect(again).not.toHaveBeenCalled()
+    expect(slot.label(es)).toBeNull()
+  })
+
   it('goes after a minute, and says so', () => {
     const changed = vi.fn()
     const slot = new NoticeUndo(changed)

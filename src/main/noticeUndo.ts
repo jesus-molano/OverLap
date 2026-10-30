@@ -8,6 +8,8 @@ interface Offer {
   /** What «Deshacer» undoes, in the interface language ('Widgets traídos a esta pantalla'). */
   what: (m: Messages) => string
   undo: () => void
+  /** False once undoing would lose a change made since: the offer goes (prune, run). */
+  valid: () => boolean
 }
 
 /**
@@ -24,10 +26,13 @@ export class NoticeUndo {
 
   constructor(private readonly onChange: () => void = () => {}) {}
 
-  /** Keeps `undo` as the one to undo; returns the id its notice carries. */
-  keep(what: (m: Messages) => string, undo: () => void): number {
+  /**
+   * Keeps `undo` as the one to undo; returns the id its notice carries. `valid` (always, when
+   * absent) says whether it still may: an import's whole settings only while nothing changed.
+   */
+  keep(what: (m: Messages) => string, undo: () => void, valid: () => boolean = () => true): number {
     const id = this.nextId++
-    this.offer = { id, what, undo }
+    this.offer = { id, what, undo, valid }
     clearTimeout(this.timer)
     this.timer = setTimeout(() => this.drop(id), NOTICE_UNDO_MS)
     this.onChange()
@@ -44,8 +49,14 @@ export class NoticeUndo {
     const o = this.offer
     if (o === null || (id !== undefined && o.id !== id)) return false
     this.drop(o.id)
+    if (!o.valid()) return false
     o.undo()
     return true
+  }
+
+  /** Forgets the offer once undoing it would lose a later change (after every settings change). */
+  prune(): void {
+    if (this.offer !== null && !this.offer.valid()) this.drop(this.offer.id)
   }
 
   /** Forgets it (something else changed the same thing since). */

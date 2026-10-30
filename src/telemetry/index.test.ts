@@ -24,8 +24,11 @@ const fakes = vi.hoisted(() => ({
   deleted: [] as string[][],
   cleared: 0,
   merged: [] as string[],
-  /** What the fake store's merge takes. */
-  takes: 0
+  /** What the fake store's merge takes, and leaves out. */
+  takes: 0,
+  skips: 0,
+  /** What the fake store gives for an export. */
+  text: null as string | null
 }))
 const store = vi.hoisted(() => ({
   get: () => null,
@@ -45,8 +48,9 @@ const store = vi.hoisted(() => ({
   },
   merge: (text: string) => {
     fakes.merged.push(text)
-    return fakes.takes
-  }
+    return { taken: fakes.takes, skipped: fakes.skips }
+  },
+  text: () => fakes.text
 }))
 vi.mock('./loop', () => ({
   TelemetryLoop: class {
@@ -125,7 +129,9 @@ beforeEach(() => {
     deleted: [],
     cleared: 0,
     merged: [],
-    takes: 0
+    takes: 0,
+    skips: 0,
+    text: null
   })
 })
 
@@ -318,6 +324,35 @@ describe('telemetry entry', () => {
     // Not a text: ignored.
     send({ type: 'merge-bests', text: 7 })
     expect(fakes.merged).toHaveLength(2)
+  })
+
+  it('says how a merge went, and gives its bests for an export (R40)', async () => {
+    fakes.kind = 'iracing'
+    const entry = await loadEntry()
+    const send = (data: unknown): void => entry.portHandlers.get('message')?.({ data })
+    const posted = (type: string): unknown[] =>
+      entry.posted.filter((m) => (m as { type: string }).type === type)
+    fakes.takes = 3
+    fakes.skips = 1
+    send({ type: 'merge-bests', text: '{"version":1}' })
+    expect(posted('bests-merged')).toEqual([{ type: 'bests-merged', taken: 3, skipped: 1 }])
+    fakes.text = '{"version":1,"bests":{}}'
+    send({ type: 'bests-text', id: 7 })
+    expect(posted('bests-text')).toEqual([
+      { type: 'bests-text', id: 7, text: '{"version":1,"bests":{}}' }
+    ])
+    send({ type: 'bests-text', id: 'x' })
+    expect(posted('bests-text')).toHaveLength(1)
+  })
+
+  it('never gives the simulated bests for an export: main reads the real file (R40)', async () => {
+    fakes.kind = 'mock'
+    fakes.text = '{"version":1,"bests":{}}'
+    const entry = await loadEntry()
+    entry.portHandlers.get('message')?.({ data: { type: 'bests-text', id: 1 } })
+    expect(entry.posted.filter((m) => (m as { type: string }).type === 'bests-text')).toEqual([
+      { type: 'bests-text', id: 1, text: null }
+    ])
   })
 
   it('ignores malformed delete requests and requests while exiting', async () => {

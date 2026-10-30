@@ -150,6 +150,8 @@ export const ICONS = {
     { d: 'M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4z' },
     { d: 'M2.5 13.5l11-11', kind: 'stroke' }
   ],
+  /** Search: a magnifier («Buscar ajuste», R33). */
+  search: [{ d: 'M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.4 10.4l3.1 3.1', kind: 'stroke' }],
   /** Settings: a gear (an edit chip's way to the widget's page, R25). */
   gear: [
     { d: 'M8 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z', kind: 'stroke' },

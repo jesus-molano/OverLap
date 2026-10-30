@@ -587,7 +587,7 @@ describe('merging a backup of the bests (R40)', () => {
       }
     })
     changes.mockClear()
-    expect(store.merge(backup)).toBe(2)
+    expect(store.merge(backup)).toEqual({ taken: 2, skipped: 0 })
     expect(store.get(KEY)?.lapTime).toBe(97)
     expect(store.get('80@1/')?.lapTime).toBe(70)
     expect(store.get('1@1/x')?.lapTime).toBe(60)
@@ -600,9 +600,47 @@ describe('merging a backup of the bests (R40)', () => {
   it('takes nothing from what is not a bests file, or has nothing better', () => {
     const store = createFileStore(dir, { log })
     store.offer(KEY, lap(98))
-    expect(store.merge('{')).toBe(0)
-    expect(store.merge(JSON.stringify({ version: 2, bests: {} }))).toBe(0)
-    expect(store.merge(JSON.stringify({ version: 1, bests: { [KEY]: lap(99) } }))).toBe(0)
+    const none = { taken: 0, skipped: 0 }
+    expect(store.merge('{')).toEqual(none)
+    expect(store.merge(JSON.stringify({ version: 2, bests: {} }))).toEqual(none)
+    expect(store.merge(JSON.stringify({ version: 1, bests: { [KEY]: lap(99) } }))).toEqual(none)
     expect(store.get(KEY)?.lapTime).toBe(98)
+  })
+
+  it('never drops one of yours at the cap: new ones only while there is room, newest first', () => {
+    const store = createFileStore(dir, { log, maxEntries: 3 })
+    // Yours: two, one of them recent.
+    store.offer('1@1/a', lap(80, '2026-10-01T10:00:00.000Z'))
+    store.offer('1@1/b', lap(81, '2026-10-29T10:00:00.000Z'))
+    const backup = JSON.stringify({
+      version: 1,
+      bests: {
+        // Older than everything here: still never in place of one of yours.
+        '1@1/old': lap(70, '2020-01-01T10:00:00.000Z'),
+        '1@1/new': lap(71, '2026-10-30T10:00:00.000Z'),
+        '1@1/mid': lap(72, '2025-01-01T10:00:00.000Z'),
+        // Faster on a key you have: always taken (no room needed).
+        '1@1/a': lap(79, '2019-01-01T10:00:00.000Z')
+      }
+    })
+    expect(store.merge(backup)).toEqual({ taken: 2, skipped: 2 })
+    expect(
+      store
+        .list()
+        .map((b) => b.key)
+        .sort()
+    ).toEqual(['1@1/a', '1@1/b', '1@1/new'])
+    expect(store.get('1@1/a')?.lapTime).toBe(79)
+    expect(store.get('1@1/b')?.lapTime).toBe(81)
+  })
+
+  it('gives its bests as the file holds them, before the delayed save (R40 export)', () => {
+    const store = createFileStore(dir, { log, saveDelayMs: 60_000 })
+    store.offer(KEY, lap(98), SPA)
+    const text = store.text()
+    expect(text).not.toBeNull()
+    expect(Object.keys(JSON.parse(text ?? '{}').bests)).toEqual([KEY])
+    // Only in memory: no file of its own to stand for.
+    expect(openPersonalBestStore(undefined).text()).toBeNull()
   })
 })

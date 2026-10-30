@@ -95,6 +95,9 @@ function parseInMessage(data: unknown): TelemetryInMessage | 'invalid-config' | 
       : null
   }
   if (data.type === 'cycle-delta-reference') return { type: 'cycle-delta-reference' }
+  if (data.type === 'bests-text') {
+    return Number.isSafeInteger(data.id) ? { type: 'bests-text', id: data.id as number } : null
+  }
   if (data.type === 'delete-bests') {
     return isPersonalBestKeys(data.keys) ? { type: 'delete-bests', keys: [...data.keys] } : null
   }
@@ -252,8 +255,17 @@ function run(port: ParentPort): void {
     }
     if (msg.type === 'merge-bests') {
       if (dying) return
+      const r = bests.merge(msg.text)
       // Nothing taken: the window still needs the list to settle.
-      if (bests.merge(msg.text) === 0) emitBests()
+      if (r.taken === 0) emitBests()
+      // Main says how it went (taken, and left out for lack of room).
+      emit({ type: 'bests-merged', taken: r.taken, skipped: r.skipped })
+      return
+    }
+    if (msg.type === 'bests-text') {
+      // «Exportar todo»: what is in memory (a lap not yet written included). The mock keeps its
+      // own simulated bests: main reads the real file instead.
+      emit({ type: 'bests-text', id: msg.id, text: kind === 'mock' ? null : bests.text() })
       return
     }
     if (msg.type === 'delete-bests' || msg.type === 'clear-bests') {

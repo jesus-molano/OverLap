@@ -37,7 +37,7 @@ describe('name format choices', () => {
   })
 
   it('shows what a format does to a sample name', () => {
-    expect(nameExample(es, 'abbr')).toBe('Ejemplo: Pierre-Étienne Duvalier → P. Duvalier')
+    expect(nameExample(es, 'abbr')).toBe('Ejemplo: Pierre-Étienne Duvalier se ve «P. Duvalier»')
   })
 
   it('speaks English with the English dictionary', () => {
@@ -50,7 +50,7 @@ describe('name format choices', () => {
     expect(nameFormatChoicesInherit(en, 'surname')[0]!.label).toBe('Global (Surname)')
     expect(densityChoices(en).map((c) => c.label)).toEqual(['Comfortable', 'Compact'])
     expect(densityChoicesInherit(en, 'compact')[0]!.label).toBe('Global (Compact)')
-    expect(nameExample(en, 'tv')).toBe('Example: Pierre-Étienne Duvalier → DUV')
+    expect(nameExample(en, 'tv')).toBe('Example: Pierre-Étienne Duvalier shows as “DUV”')
   })
 })
 

@@ -154,7 +154,7 @@ function badgeOf(m: Messages, status: ShortcutStatus, off: readonly BindingView[
 
 /**
  * An action's name and help: a main one's from the dictionary; a «Más acciones» one (R52) said
- * with its widget's name ('Mostrar u ocultar Relativo').
+ * with its widget's name ('Mostrar u ocultar Relativo') and no help: the fold's says it once.
  */
 export function actionText(
   m: Messages,
@@ -163,7 +163,7 @@ export function actionText(
   const id = widgetOfAction(action)
   const t = m.settings.shortcuts
   if (id === null) return t.actions[action as MainShortcutAction]
-  return { label: t.widgetAction(widgetTitle(m, id)), help: t.widgetActionHelp }
+  return { label: t.widgetAction(widgetTitle(m, id)), help: '' }
 }
 
 /** One row per action, SHORTCUT_ACTIONS order. */

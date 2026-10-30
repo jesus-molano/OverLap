@@ -9,6 +9,7 @@ import {
 import { createDefaultSettings } from './settings'
 import { validateOption } from './settings/fields'
 import { OPTION_SCHEMA } from './settingsSchema'
+import { messagesFor } from './i18n'
 
 describe('Apariencia presets (R56)', () => {
   it('sets valid values only, each one a look of its own', () => {
@@ -25,8 +26,8 @@ describe('Apariencia presets (R56)', () => {
     expect(seen.size).toBe(APPEARANCE_PRESETS.length)
   })
 
-  it('never touches what is yours or a need: accent, colour-blind palette, language, units', () => {
-    for (const f of ['accent', 'colorBlind', 'language', 'units']) {
+  it('never touches what is yours or a need: accent, colour-blind palette, SIM tag, language, units', () => {
+    for (const f of ['accent', 'colorBlind', 'showSimPill', 'language', 'units']) {
       expect(PRESET_FIELDS as readonly string[]).not.toContain(f)
     }
   })
@@ -45,5 +46,19 @@ describe('Apariencia presets (R56)', () => {
     const before = presetFieldsOf(a)
     expect(before.density).toBe('compact')
     expect('accent' in before).toBe(false)
+  })
+})
+
+describe('the presets’ hints name what they set as the controls do', () => {
+  it('«Limpio» says alternating rows and the number stripe, in each language', () => {
+    expect(presetValues('clean')).toMatchObject({ stripes: false, numberStyle: 'stripe' })
+    for (const lang of ['es', 'en'] as const) {
+      const a = messagesFor(lang).settings.appearance
+      const hint = a.presets.choices.clean.hint.toLowerCase()
+      expect(hint).toContain(a.rows.stripes.toLowerCase())
+      expect(hint).toContain(a.rows.numberChoices.stripe.label.toLowerCase())
+      expect(hint).toContain(a.rows.licenseChoices.letter.label.toLowerCase())
+      expect(a.presets.help.toLowerCase()).toContain(a.color.colorBlind.toLowerCase())
+    }
   })
 })

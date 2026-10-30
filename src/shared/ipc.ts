@@ -60,6 +60,10 @@ export type TelemetryOutMessage =
    * session). Main keeps the latest for the settings window.
    */
   | { type: 'bests'; list: PersonalBestList }
+  /** How a `merge-bests` went (R40): laps taken, and new ones left out for lack of room. */
+  | { type: 'bests-merged'; taken: number; skipped: number }
+  /** The answer to `bests-text` (R40): the bests as their file holds them; null: read the file. */
+  | { type: 'bests-text'; id: number; text: string | null }
   /**
    * The kind of session being driven or watched (sessionKind), on change: main sends the
    * delta's cycle shortcut only while there is one. Null when unknown (no session).
@@ -81,6 +85,8 @@ export type TelemetryInMessage =
   | { type: 'clear-bests' }
   /** «Importar todo» (R40): a personal-bests file's text, merged (a faster lap wins). */
   | { type: 'merge-bests'; text: string }
+  /** «Exportar todo» (R40): the bests in memory, a lap not yet written included. */
+  | { type: 'bests-text'; id: number }
   /**
    * The delta's cycle shortcut: the next reference for the current session only. The settings
    * are never changed by it (the DeltaProvider keeps it).
@@ -237,6 +243,12 @@ export type LayoutNotice =
   | { kind: 'gathered'; count: number; to: 'window' | 'cursor'; undo: number | null }
   /** Linking `carName` turned «Según el coche» on (R26); `undo` as above. */
   | { kind: 'auto-switch-on'; carName: string; undo: number | null }
+  /**
+   * An example layout (R57) added as `name` (made unique: «Ligera (2)»), or not added (no room
+   * left by the time main got it).
+   */
+  | { kind: 'example-added'; name: string }
+  | { kind: 'example-failed' }
   | BackupNotice
 
 /**
@@ -246,7 +258,13 @@ export type LayoutNotice =
 export type BackupNotice =
   | { kind: 'backup-exported'; file: string }
   | { kind: 'backup-export-failed' }
-  | { kind: 'backup-imported'; bests: boolean; undo: number | null }
+  /**
+   * `bests`: the file had none, they went to the telemetry process (a 'backup-bests-merged'
+   * follows), or none was running to take them.
+   */
+  | { kind: 'backup-imported'; bests: 'none' | 'merging' | 'not-merged'; undo: number | null }
+  /** The bests of an import (R40): taken (new or faster), and new ones left out for lack of room. */
+  | { kind: 'backup-bests-merged'; taken: number; skipped: number }
   | { kind: 'backup-import-failed'; error: BackupError }
   | { kind: 'reset-all'; undo: number | null }
 

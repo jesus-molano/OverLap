@@ -4,6 +4,7 @@ import {
   LAYOUT_FILE_FORMAT,
   MAX_LAYOUTS,
   applyLayout,
+  canAddLayout,
   layoutFileText,
   setLayoutMode,
   linkCar,
@@ -184,6 +185,7 @@ describe('LayoutControl: applying', () => {
     const list = h.settings().savedLayouts.list
     expect(list.at(-1)?.name).toBe('Ligera')
     expect(list.at(-1)?.widgets.standings.visible).toBe(false)
+    expect(h.notices.at(-1)).toEqual({ kind: 'example-added', name: 'Ligera' })
     expect(h.settings().savedLayouts.activeId).toBe(before)
     // «Siguiente disposición» reaches it.
     const id = list.at(-1)?.id
@@ -192,6 +194,20 @@ describe('LayoutControl: applying', () => {
     }
     expect(h.settings().savedLayouts.activeId).toBe(id)
     expect(h.settings().widgets.standings.visible).toBe(false)
+  })
+
+  it('says an example by the name it got, or that there was no room (R57)', async () => {
+    await h.control.command({ type: 'layout-example', kind: 'light', name: 'Ligera' })
+    await h.control.command({ type: 'layout-example', kind: 'light', name: 'Ligera' })
+    expect(h.settings().savedLayouts.list.at(-1)?.name).toBe('Ligera (2)')
+    expect(h.notices.at(-1)).toEqual({ kind: 'example-added', name: 'Ligera (2)' })
+    while (canAddLayout(h.settings().savedLayouts)) {
+      await h.control.command({ type: 'layout-example', kind: 'full', name: 'Completa' })
+    }
+    const count = h.settings().savedLayouts.list.length
+    await h.control.command({ type: 'layout-example', kind: 'full', name: 'Completa' })
+    expect(h.settings().savedLayouts.list).toHaveLength(count)
+    expect(h.notices.at(-1)).toEqual({ kind: 'example-failed' })
   })
 
   it('moves past the pinned one in use when the page asks', async () => {

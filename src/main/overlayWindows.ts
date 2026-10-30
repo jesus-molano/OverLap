@@ -72,8 +72,11 @@ export const CURSOR_HIDDEN_READS = 2
 
 export interface OverlayWindowsOptions {
   getSettings(): OverlaySettings
-  /** Bounds to save after a drag, a drop, a wheel resize or an auto-height change. */
-  onBoundsCommitted(id: WidgetId, bounds: Rect): void
+  /**
+   * Bounds to save after a drag, a drop, a wheel resize or an auto-height change; `fit`: only
+   * the auto height following the content (nobody did anything: an import's «Deshacer» stays).
+   */
+  onBoundsCommitted(id: WidgetId, bounds: Rect, fit?: boolean): void
   /** Mouse wheel over an auto-height widget in edit mode: change its content scale. */
   onScaleStep(id: WidgetId, step: 1 | -1): void
   /**
@@ -953,7 +956,7 @@ export class OverlayWindows implements OverlayWindowHost {
     const rect = this.rects.get(id)
     if (!rect) return
     const w = this.opts.getSettings().widgets[id]
-    this.opts.onBoundsCommitted(id, fittedBounds(w.bounds, rect.height, w.anchor))
+    this.opts.onBoundsCommitted(id, fittedBounds(w.bounds, rect.height, w.anchor), true)
   }
 
   private flushSaves(): void {

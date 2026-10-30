@@ -134,7 +134,7 @@ onBeforeUnmount(() => clearTimeout(flashTimer))
   <div ref="rowEl" class="sc-item" role="row">
     <div class="sc-act" role="rowheader">
       <span class="st-label">{{ row.label }}</span>
-      <span class="st-help">{{ row.help }}</span>
+      <span v-if="row.help !== ''" class="st-help">{{ row.help }}</span>
       <span v-if="used !== null" :key="pressedAt ?? 0" class="sc-used">{{
         t.settings.shortcuts.used(used)
       }}</span>
