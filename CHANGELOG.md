@@ -9,6 +9,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Más coches de las otras clases en Posiciones**: en modo compacto, **Coches de otras clases**
+  (de 0 a 10, con el mismo selector que «Primeros puestos» y «Alrededor de ti») sustituye al
+  interruptor «Líderes de otras clases». Con 1 (lo de siempre) cada otra clase es la línea de su
+  líder; con más, sus primeros coches bajo el nombre de su clase; con 0, ninguna. Al actualizar,
+  el interruptor encendido pasa a 1 y el apagado a 0, también en los diseños guardados.
+- **La SoF de cada clase junto a su nombre**: la línea de un líder de otra clase en modo compacto
+  lleva ahora la SoF de su clase al final (las líneas de clase ya la llevaban en todas las clases).
+  Sigue el ojo de «SoF» de la línea de clase: ocúltala ahí y desaparece de las dos.
 - **Las banderas de penalización, en su propia columna**: Relativo y Posiciones tienen una columna
   **Banderas** (y Tráfico una parte **Banderas**) que se muestra, se oculta y se ordena como las
   demás. Una regla en los cuatro widgets del bloque «Piloto»: su fila «Banderas de penalización»

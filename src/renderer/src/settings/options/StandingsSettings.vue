@@ -136,7 +136,7 @@ function withField<V>(next: Partial<PreviewField>, apply: Setter<V>): Setter<V> 
 }
 const setTopRows = withField({ deep: true }, set('topRows'))
 const setAroundRows = withField({ deep: true }, set('aroundRows'))
-const setLeaders = withField({ singleClass: false }, set('otherClassLeaders'))
+const setOtherRows = withField({ singleClass: false }, set('otherClassRows'))
 const setClassLine = withField({ singleClass: false }, listSetter('standings', 'classLine'))
 /** Where the bars have the SoF and the car count: a change there draws your class alone. */
 const barsClassItems = computed(() =>
@@ -188,12 +188,13 @@ const sampleNotes = computed(() => {
           :max="STANDINGS_ROWS_MAX"
           :apply="setAroundRows"
         />
-        <ToggleControl
-          kind="switch"
-          :label="t.settings.standings.leaders"
-          :help="t.settings.standings.leadersHelp"
-          :current="opts.otherClassLeaders"
-          :apply="setLeaders"
+        <StepperControl
+          :label="t.settings.standings.otherClassRows"
+          :help="t.settings.standings.otherClassRowsHelp"
+          :current="opts.otherClassRows"
+          :min="S.otherClassRows.min"
+          :max="S.otherClassRows.max"
+          :apply="setOtherRows"
         />
       </div>
     </fieldset>

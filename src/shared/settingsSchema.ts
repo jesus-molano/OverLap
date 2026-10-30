@@ -531,7 +531,9 @@ export const OPTION_SCHEMA = {
     mode: { kind: 'enum', values: ['compact', 'full'], default: 'compact' },
     topRows: { kind: 'int', min: 0, max: 10, default: 3 },
     aroundRows: { kind: 'int', min: 0, max: 10, default: 3 },
-    otherClassLeaders: { kind: 'bool', default: true },
+    // Compact: the first cars of each other class (2.4; the old «Líderes de otras clases» switch:
+    // 1, its leader on one line, 0 none). Same range as the rows of your class.
+    otherClassRows: { kind: 'int', min: 0, max: 10, default: 1 },
     gapMode: {
       kind: 'enum',
       values: ['interval', 'leader', 'both'],

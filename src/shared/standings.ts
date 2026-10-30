@@ -311,11 +311,14 @@ function makeRow(
   }
 }
 
-/** Rows of one class block: everything (full), the leader only, or top rows + around you. */
+/**
+ * Rows of one class block: everything (full), its first topRows cars (top: another class in
+ * compact mode), or top rows + around you (window).
+ */
 function blockRows(
   ctx: RowContext,
   g: ClassGroup,
-  mode: 'full' | 'leader' | 'window',
+  mode: 'full' | 'top' | 'window',
   topRows: number,
   aroundRows: number
 ): StandingsDisplayRow[] {
@@ -325,8 +328,8 @@ function blockRows(
     for (let i = 0; i < n; i++) rows.push(makeRow(ctx, g, i, false))
     return rows
   }
-  if (mode === 'leader') {
-    if (n > 0) rows.push(makeRow(ctx, g, 0, false))
+  if (mode === 'top') {
+    for (let i = 0; i < Math.min(n, topRows); i++) rows.push(makeRow(ctx, g, i, false))
     return rows
   }
   const topEnd = Math.min(n, topRows)
@@ -411,15 +414,16 @@ export class StandingsProvider {
     const primary = playerGroup ?? groups[0]
     const topRows = clampOption(OPTION_SCHEMA.standings.topRows, opts.topRows)
     const aroundRows = clampOption(OPTION_SCHEMA.standings.aroundRows, opts.aroundRows)
+    const otherRows = clampOption(OPTION_SCHEMA.standings.otherClassRows, opts.otherClassRows)
     const classes: StandingsClassBlock[] = []
     let iRating: PlayerRatingProjection | null = null
 
     this.ratings.begin()
     for (const g of groups) {
       const isPrimary = g === primary
-      // Compact: other classes only as their (classified) leader.
+      // Compact: other classes only as their first (classified) cars.
       const leaderPos = g.cars[0]?.car.classPosition ?? 0
-      if (compact && !isPrimary && (!opts.otherClassLeaders || leaderPos <= 0)) continue
+      if (compact && !isPrimary && (otherRows === 0 || leaderPos <= 0)) continue
       const classDeltas = withDeltas && (g === playerGroup || needs.allDeltas)
       // Before the green, the grid is the field: everyone on it a starter.
       const field = classRatingField(session, race, g.classId, preGreen)
@@ -437,7 +441,7 @@ export class StandingsProvider {
         tyreModel,
         tyres
       }
-      const mode = !compact ? 'full' : isPrimary ? 'window' : 'leader'
+      const mode = !compact ? 'full' : isPrimary ? 'window' : 'top'
       classes.push({
         classId: g.classId,
         className: g.name,
@@ -446,7 +450,7 @@ export class StandingsProvider {
         // The registered entries ('11 coches'), not only the cars loaded so far.
         carCount: g.entries,
         isPlayerClass: g === playerGroup,
-        rows: blockRows(ctx, g, mode, topRows, aroundRows)
+        rows: blockRows(ctx, g, mode, isPrimary ? topRows : otherRows, aroundRows)
       })
     }
     this.ratings.sweep()

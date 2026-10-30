@@ -103,7 +103,9 @@ solo cuando no hay nadie cerca.
 
 <img src="docs/screenshots/clasificacion.png" alt="Posiciones" width="540">
 
-Modo compacto (los primeros, tu entorno y los líderes de las otras clases) o completo. Columnas que
+Modo compacto (los primeros, tu entorno y los primeros de cada otra clase: de serie su líder, en
+una línea; con **Coches de otras clases** de 0 a 10, los que quieras bajo el nombre de su clase) o
+completo. Cada clase lleva su SoF junto a su nombre, también la de un líder en una línea. Columnas que
 se ordenan arrastrando y se esconden solas si la ventana se estrecha: banderas de penalización
 (oculta de serie: las banderas van tras el nombre), puestos ganados (solo en carrera), iRating,
 licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la

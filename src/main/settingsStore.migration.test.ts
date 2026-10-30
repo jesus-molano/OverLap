@@ -201,7 +201,8 @@ describe('SettingsStore with a v3 file', () => {
       mode: 'full',
       topRows: 2,
       aroundRows: 4,
-      otherClassLeaders: false,
+      // The old switch off: no other class (2.4).
+      otherClassRows: 0,
       gapMode: 'leader'
     })
     const sub = Object.fromEntries(s.standings.subheaderBar.map((e) => [e.id, e.visible]))

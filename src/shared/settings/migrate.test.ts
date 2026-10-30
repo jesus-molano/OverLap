@@ -802,6 +802,38 @@ describe('the penalty flags’ column (2.4)', () => {
   })
 })
 
+describe('«Líderes de otras clases» becomes «Coches de otras clases» (2.4)', () => {
+  it('turns the switch into a count: on its leader (1), off none (0)', () => {
+    const on = normalizeSettings({ version: 5, standings: { otherClassLeaders: true } })
+    const off = normalizeSettings({ version: 5, standings: { otherClassLeaders: false } })
+    expect(on.standings.otherClassRows).toBe(1)
+    expect(off.standings.otherClassRows).toBe(0)
+    expect(on.standings).not.toHaveProperty('otherClassLeaders')
+    // A file with the count keeps it; one with neither gets the default (the leader).
+    const both = { otherClassRows: 4, otherClassLeaders: false }
+    expect(normalizeSettings({ standings: both }).standings.otherClassRows).toBe(4)
+    expect(normalizeSettings({ standings: {} }).standings.otherClassRows).toBe(1)
+  })
+
+  it('in a saved layout too', () => {
+    const base = JSON.parse(JSON.stringify(createDefaultSettings())) as OverlaySettings
+    const a = base.savedLayouts.list[0]
+    if (a?.options === undefined) throw new Error('a full layout')
+    // A layout not in use (the active one takes the options in effect).
+    const b = JSON.parse(JSON.stringify(a)) as typeof a
+    b.id = 'bbbbbbbb-0000-4000-8000-000000000000'
+    b.name = 'B'
+    const old = b.options?.sections.standings as unknown as Record<string, unknown>
+    delete old.otherClassRows
+    old.otherClassLeaders = false
+    base.savedLayouts.list.push(b)
+    const s = normalizeSettings(JSON.parse(JSON.stringify(base)))
+    const lb = s.savedLayouts.list.find((l) => l.name === 'B')
+    expect(lb?.options?.sections.standings.otherClassRows).toBe(0)
+    expect(s.standings.otherClassRows).toBe(1)
+  })
+})
+
 describe('migrateOldBars (R13: new defaults for new installs only)', () => {
   const shown = (l: unknown): string[] =>
     (l as { id: string; visible: boolean }[]).filter((e) => e.visible).map((e) => e.id)

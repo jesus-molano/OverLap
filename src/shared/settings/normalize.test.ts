@@ -187,7 +187,7 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   mode: 'compact',
   topRows: 3,
   aroundRows: 3,
-  otherClassLeaders: true,
+  otherClassRows: 1,
   gapMode: 'interval',
   columns: DEFAULT_COLUMNS,
   showPosition: true,
@@ -1443,7 +1443,7 @@ describe('normalizeSettings: migration', () => {
       mode: 'full',
       topRows: 5,
       aroundRows: 2,
-      otherClassLeaders: false,
+      otherClassRows: 0,
       gapMode: 'leader',
       columns: s.standings.columns,
       // The ratings header toggle: both projections off, on the header's second line.
