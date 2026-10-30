@@ -537,17 +537,19 @@ onBeforeUnmount(() => {
   display: flex;
   flex: none;
   gap: 2px;
-  margin: -1px -5px -1px 0;
+  /* The 24 px buttons reach into the chip's padding: the chip keeps its height. */
+  margin: -5px -7px -5px 0;
   padding-left: 0.4em;
   box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
 }
 
+/* 24 x 24 px targets (R38, WCAG 2.5.8). */
 .chip-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 17px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
   border-radius: 3px;
@@ -615,7 +617,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-/* ---- Resize handles: ~8 px edges, ~14 px corners (the crop marks show them) ---- */
+/* ---- Resize handles: 11 px edges, 16 px corners (the crop marks show them; R38) ---- */
 
 .handle {
   position: absolute;
@@ -625,17 +627,17 @@ onBeforeUnmount(() => {
 
 .handle-n,
 .handle-s {
-  left: 14px;
-  right: 14px;
-  height: 8px;
+  left: 16px;
+  right: 16px;
+  height: 11px;
   cursor: ns-resize;
 }
 
 .handle-e,
 .handle-w {
-  top: 14px;
-  bottom: 14px;
-  width: 8px;
+  top: 16px;
+  bottom: 16px;
+  width: 11px;
   cursor: ew-resize;
 }
 
@@ -669,7 +671,7 @@ onBeforeUnmount(() => {
 .grip {
   position: absolute;
   top: 50%;
-  left: 2px;
+  left: 3.5px;
   width: 4px;
   height: 16px;
   margin-top: -8px;
@@ -686,8 +688,8 @@ onBeforeUnmount(() => {
 .handle-nw,
 .handle-se,
 .handle-sw {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .handle-nw {

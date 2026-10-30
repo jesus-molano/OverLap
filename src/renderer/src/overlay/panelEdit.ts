@@ -98,6 +98,7 @@ export function createPanelEdit(deps: PanelEditDeps): PanelEdit {
       slot,
       frames: deps.frames,
       onCrossing: (on) => (crossing.value = on),
+      onGuides: (g) => session.setGuides(g),
       onDone: () => {
         if (drag !== d) return
         drag = null

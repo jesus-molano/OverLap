@@ -139,8 +139,10 @@ describe('core texts', () => {
 describe('shortcut texts', () => {
   it('word the edit-mode hints with the configured keys, or without any', () => {
     expect(es.core.editFrame.hintShort('Ctrl+Shift+E')).toBe('Rueda: tamaño · Ctrl+Shift+E salir')
-    expect(en.core.editFrame.hintLong('F13')).toBe('Scroll: size · Alt: no snap · F13 exit')
-    expect(es.core.editFrame.hintLongNoKey).toBe('Rueda: tamaño · Alt: sin imán')
+    expect(en.core.editFrame.hintLong('F13')).toBe(
+      'Scroll: size · Arrows: move · Alt: no snap · F13 exit'
+    )
+    expect(es.core.editFrame.hintLongNoKey).toBe('Rueda: tamaño · Flechas: mover · Alt: sin imán')
     expect(en.core.editFrame.hintShortNoKey).toBe('Scroll: size')
   })
 

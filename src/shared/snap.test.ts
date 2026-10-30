@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SNAP_THRESHOLD, snapRect } from './snap'
+import { NO_GUIDES, SNAP_THRESHOLD, centresOf, snapRect, snapRectGuided } from './snap'
 import type { Rect } from './types'
 
 const WORK: Rect = { x: 0, y: 0, width: 1920, height: 1040 }
@@ -65,5 +65,43 @@ describe('snapRect: resize', () => {
     expect(snapRect(rect(500, 0, 96), 'e', [OTHER], [], 8, { width: 100, height: 60 })).toEqual(
       rect(500, 0, 100)
     )
+  })
+})
+
+describe('snap guides and the display centre (R38)', () => {
+  const DISPLAY: Rect = { x: 0, y: 0, width: 1920, height: 1080 }
+
+  it('says which line each axis snapped to', () => {
+    const other: Rect = { x: 500, y: 100, width: 300, height: 200 }
+    const r = snapRectGuided(
+      { x: 803, y: 304, width: 200, height: 100 },
+      'move',
+      [other],
+      [DISPLAY]
+    )
+    expect(r.rect).toEqual({ x: 800, y: 300, width: 200, height: 100 })
+    expect(r.guides).toEqual({ xs: [800], ys: [300] })
+  })
+
+  it('centres a moved rect on the display, and draws that line', () => {
+    const r = snapRectGuided(
+      { x: 863, y: 20, width: 200, height: 100 },
+      'move',
+      [],
+      [DISPLAY],
+      SNAP_THRESHOLD,
+      { width: 0, height: 0 },
+      centresOf([DISPLAY])
+    )
+    expect(r.rect.x).toBe(860)
+    expect(r.guides.xs).toEqual([960])
+    // Without centres (snapRect, a resize) nothing changes.
+    expect(snapRect({ x: 863, y: 20, width: 200, height: 100 }, 'move', [], [DISPLAY]).x).toBe(863)
+  })
+
+  it('has no guides when nothing snapped', () => {
+    expect(
+      snapRectGuided({ x: 400, y: 400, width: 10, height: 10 }, 'move', [], [DISPLAY]).guides
+    ).toBe(NO_GUIDES)
   })
 })

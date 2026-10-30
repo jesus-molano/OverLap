@@ -1,7 +1,8 @@
 /**
  * The global shortcuts: the key combinations (Windows RegisterHotKey through Electron's
  * globalShortcut), every binding of every configured action (settings.shortcuts and
- * settings.shortcutsMore: up to three each) plus Escape while editing, and the controllers'
+ * settings.shortcutsMore: up to three each) plus Escape and the arrows (nudge.ts) while editing,
+ * and the controllers'
  * buttons, whose presses the input process reports (inputHost.ts).
  * Electron is injected, so tests pass a double and never touch the operating system's shortcuts.
  *
@@ -12,6 +13,7 @@
 import type { GlobalShortcut } from 'electron'
 import { buttonBinding, isButtonBinding, parseButtonBinding } from '@shared/controllers'
 import { SHORTCUT_CAPTURE_LEASE_MS } from '@shared/ipc'
+import { NUDGE_KEYS } from '@shared/nudge'
 import {
   EXIT_EDIT_ACCELERATOR,
   SHORTCUT_ACTIONS,
@@ -45,6 +47,11 @@ export interface ShortcutManagerOptions {
   /** Escape was pressed while editing. */
   onExitEdit(): void
   /**
+   * An arrow combination was pressed while editing (R38: NUDGE_KEYS, its canonical spelling).
+   * Without it, the arrows are never taken. Held down, it repeats: no burst guard.
+   */
+  onNudge?(key: string): void
+  /**
    * Some binding's status changed (registered, removed, refused by Windows, unplugged): per
    * action, and which bindings do not work.
    */
@@ -61,7 +68,7 @@ export interface ShortcutManagerOptions {
   onCaptureStart?(): void
 }
 
-type Binding = ShortcutAction | 'exitEdit'
+type Binding = ShortcutAction | 'exitEdit' | `nudge:${string}`
 
 /**
  * Registers what the settings ask for and changes only what differs on every change. While
@@ -72,6 +79,8 @@ export class ShortcutManager {
   /** Every binding of each action, as configured (unique across all of them). */
   private config: ShortcutBindings | null = null
   private editing = false
+  /** The settings window is in front: the arrows stay its own (they move its controls). */
+  private nudgeBlocked = false
   private capturingNow = false
   private leaseTimer: ReturnType<typeof setTimeout> | null = null
   /** What is registered now, by combination. */
@@ -181,6 +190,16 @@ export class ShortcutManager {
   }
 
   /**
+   * While the settings window is in front (`blocked`), the arrows are not taken in edit mode:
+   * its sliders, lists and fields keep them.
+   */
+  setNudgeBlocked(blocked: boolean): void {
+    if (this.disposed || this.nudgeBlocked === blocked) return
+    this.nudgeBlocked = blocked
+    this.apply()
+  }
+
+  /**
    * The settings page starts (or renews) recording a combination: every shortcut is
    * suspended until stopCapture, or SHORTCUT_CAPTURE_LEASE_MS after the last call.
    */
@@ -236,6 +255,10 @@ export class ShortcutManager {
       }
     }
     if (this.editing) out.set(EXIT_EDIT_ACCELERATOR, 'exitEdit')
+    // After every configured shortcut: a combination of yours stays yours.
+    if (this.editing && !this.nudgeBlocked && this.opts.onNudge !== undefined) {
+      for (const key of Object.keys(NUDGE_KEYS)) if (!out.has(key)) out.set(key, `nudge:${key}`)
+    }
     return out
   }
 
@@ -293,12 +316,17 @@ export class ShortcutManager {
 
   private fire(binding: Binding): void {
     if (this.disposed) return
+    // A held arrow repeats on purpose: each repeat moves the widget one more step.
+    if (binding.startsWith('nudge:')) {
+      this.opts.onNudge?.(binding.slice('nudge:'.length))
+      return
+    }
     const now = performance.now()
     const last = this.lastPress.get(binding)
     this.lastPress.set(binding, now)
     if (last !== undefined && now - last < REPEAT_GUARD_MS) return
     if (binding === 'exitEdit') this.opts.onExitEdit()
-    else this.opts.onAction(binding)
+    else this.opts.onAction(binding as ShortcutAction)
   }
 
   private publishStatus(): void {

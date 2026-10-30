@@ -27,6 +27,7 @@ import { messagesFor, type Messages } from '@shared/i18n'
 import { IPC, type InitialState, type RendererView, type UsedShortcut } from '@shared/ipc'
 import { deepEqual } from '@shared/equal'
 import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
+import { NUDGE_KEYS } from '@shared/nudge'
 import { stepScale } from '@shared/panelGeometry'
 import {
   defaultLayoutOffsetX,
@@ -442,6 +443,14 @@ function start(): void {
       setEditMode(false)
       afterShortcut('exitEdit')
     },
+    // The arrows in edit mode (R38): the widget last touched, 1 px (Shift: 10), Ctrl: its size.
+    onNudge: (key) => {
+      const step = NUDGE_KEYS[key]
+      if (step === undefined) return
+      if (windows.nudge(step) !== null || !store.settings.settingsWindow.shortcutToasts) return
+      const t = messagesFor(store.settings.appearance.language).core.osd
+      osd.show({ text: t.nudgeNone, detail: t.nudgeNoneDetail }, gameArea())
+    },
     onStatus: (next) => {
       sendToSettingsWindow(IPC.shortcutStatus, next)
       // The tray says how many do not work (R37).
@@ -455,6 +464,10 @@ function start(): void {
   const osd = new OsdWindow()
   // Whatever takes the keys away from the settings page ends a capture there.
   onSettingsWindowInactive(() => shortcuts.stopCapture())
+  // The arrows are the settings window's own while it is in front (its sliders, lists and
+  // fields); edit mode takes them only from the other programs (R38).
+  app.on('browser-window-focus', () => shortcuts.setNudgeBlocked(isSettingsWindowFocused()))
+  app.on('browser-window-blur', () => shortcuts.setNudgeBlocked(isSettingsWindowFocused()))
 
   /**
    * After a shortcut ran: its row on the shortcuts page says so, and a short confirmation over
