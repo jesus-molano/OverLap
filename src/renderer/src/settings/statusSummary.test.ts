@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import { messagesFor } from '@shared/i18n'
 import { createDefaultSettings } from '@shared/settings'
 import type { ShortcutStatusReport } from '@shared/shortcuts'
@@ -15,7 +16,8 @@ const OK_SHORTCUTS: ShortcutStatusReport = {
     toggleEditMode: 'ok',
     cycleDeltaReference: 'disabled',
     nextLayout: 'disabled',
-    openSettings: 'ok'
+    openSettings: 'ok',
+    ...NO_WIDGET_STATUS
   },
   unavailable: []
 }

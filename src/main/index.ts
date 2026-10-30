@@ -39,7 +39,7 @@ import {
   toTelemetryConfig
 } from '@shared/settings'
 import type { SessionKind } from '@shared/sessionInfo'
-import { everyBinding, shortcutBindings } from '@shared/shortcuts'
+import { everyBinding, shortcutBindings, widgetOfAction } from '@shared/shortcuts'
 import type { OverlaySettings, OverlayStatus, Rect, ShowWhen, SourceKind } from '@shared/types'
 import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import { createCursorProbe } from './cursorProbe'
@@ -377,6 +377,11 @@ function start(): void {
         case 'openSettings':
           openSettingsWindow()
           break
+        default: {
+          // «Más acciones» (R52): the widget's «Visible», as its eye in the sidebar or the tray.
+          const id = widgetOfAction(action)
+          if (id !== null) setWidgetVisible(id, !store.settings.widgets[id].visible)
+        }
       }
       afterShortcut(action)
     },
@@ -412,7 +417,8 @@ function start(): void {
       editMode: windows.editMode,
       allHiddenBy: commonHiddenReason({ settings: s, autoHidden: hidden }),
       deltaHeld: hidden.delta !== undefined,
-      inSession: sessionKindNow !== null
+      inSession: sessionKindNow !== null,
+      autoHidden: hidden
     })
     if (msg) osd.show(msg, gameArea())
   }

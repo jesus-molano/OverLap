@@ -329,7 +329,12 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 | (sin asignar)       | Siguiente disposición                                       |
 | (sin asignar)       | Cambiar la referencia del delta                             |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |
+| (sin asignar)       | **Más acciones**: mostrar u ocultar cada widget, uno a uno  |
 
+- **Más acciones**, plegado bajo la tabla, tiene una fila por widget («Mostrar u ocultar
+  Relativo»…): lo mismo que su ojo en la barra lateral o su casilla en la bandeja (que muestra el
+  atajo junto al widget). Ninguna tiene atajo de serie; se despliega solo si alguna lo tiene. Para
+  quitar o poner un widget en carrera sin cambiar de disposición.
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
 - Se cambian en **Ajustes > Atajos**, una tabla con una fila por acción y una columna por atajo

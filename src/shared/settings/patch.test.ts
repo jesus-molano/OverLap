@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { NO_WIDGET_SHORTCUTS } from '../testing/shortcuts'
 import { setElementVisible } from '../elements'
 import type { OverlaySettings } from '../types'
 import { WIDGET_DEFS, type WidgetId } from '../widgets'
@@ -577,7 +578,8 @@ describe('applySettingsPatch: shortcuts', () => {
       toggleEditMode,
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     }
     return s
   }
@@ -588,7 +590,8 @@ describe('applySettingsPatch: shortcuts', () => {
     toggleEditMode,
     cycleDeltaReference: '',
     nextLayout: '',
-    openSettings: 'Ctrl+Shift+O'
+    openSettings: 'Ctrl+Shift+O',
+    ...NO_WIDGET_SHORTCUTS
   })
 
   it('assigns a valid combination in its canonical spelling', () => {

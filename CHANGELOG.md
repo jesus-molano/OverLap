@@ -90,6 +90,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   tienes; si ajustas algo a mano dice «Personalizado». Debajo, los controles de siempre como
   **Ajuste fino**. Elegir uno se deshace con **Deshacer**; no tocan el acento, la paleta para
   daltónicos, el idioma ni las unidades, ni los widgets con valores propios.
+- **Atajos para mostrar u ocultar cada widget**: en **Atajos**, bajo las acciones de siempre, un
+  grupo plegado **Más acciones** tiene una fila por widget («Mostrar u ocultar Relativo»…), con las
+  mismas tres casillas, botones del volante incluidos. Hacen lo mismo que el ojo de la barra
+  lateral o la casilla de la bandeja (que muestra el atajo al lado del widget), y el aviso sobre el
+  juego dice «Relativo oculto» o «Relativo visible» y, si aun así no se ve, por qué. Ninguna tiene
+  atajo de serie; el grupo dice cuántas tienen y se abre solo si alguna lo tiene.
 
 ### Cambiado
 

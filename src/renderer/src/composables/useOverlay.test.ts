@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import { effectScope, nextTick } from 'vue'
 import type { InitialState, OverlayLayout, OverlayPanel } from '@shared/ipc'
 import type { BattleData, StandingsData } from '@shared/types'
@@ -100,7 +101,8 @@ describe('useOverlayState', () => {
         toggleEditMode: 'ok',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'disabled'
+        openSettings: 'disabled',
+        ...NO_WIDGET_STATUS
       },
       unavailable: ['Ctrl+Shift+H']
     })
@@ -114,7 +116,8 @@ describe('useOverlayState', () => {
         toggleEditMode: 'ok',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'disabled'
+        openSettings: 'disabled',
+        ...NO_WIDGET_STATUS
       },
       unavailable: ['Ctrl+Shift+H']
     })
@@ -129,7 +132,8 @@ describe('useOverlayState', () => {
           toggleEditMode: 'disabled',
           cycleDeltaReference: 'disabled',
           nextLayout: 'disabled',
-          openSettings: 'disabled'
+          openSettings: 'disabled',
+          ...NO_WIDGET_STATUS
         },
         unavailable: []
       }
@@ -145,7 +149,8 @@ describe('useOverlayState', () => {
         toggleEditMode: 'disabled',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'disabled'
+        openSettings: 'disabled',
+        ...NO_WIDGET_STATUS
       },
       unavailable: []
     })

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { WIDGET_IDS, WIDGET_LIST_ORDER } from './widgets'
+import { NO_WIDGET_MORE, NO_WIDGET_SHORTCUTS } from './testing/shortcuts'
 import { acceleratorText, keyLabel, keycaps, messagesFor } from './i18n'
 import { OPTION_SCHEMA } from './settingsSchema'
 import { DEFAULT_SETTINGS } from './settings'
@@ -14,7 +16,10 @@ import {
   shortcutBindings,
   splitBindings,
   withBinding,
-  type ShortcutSettings
+  type ShortcutSettings,
+  WIDGET_SHORTCUT_ACTIONS,
+  actionOfWidget,
+  widgetOfAction
 } from './shortcuts'
 
 const defaults = DEFAULT_SETTINGS.shortcuts
@@ -31,8 +36,27 @@ describe('shortcut actions', () => {
       'toggleEditMode',
       'cycleDeltaReference',
       'nextLayout',
-      'openSettings'
+      'openSettings',
+      // «Más acciones» (R52): after the main ones, one per widget in the sidebar's order.
+      ...WIDGET_LIST_ORDER.map((id) => actionOfWidget(id))
     ])
+  })
+
+  it('gives every widget one «Más acciones» shortcut, unbound, and knows its widget (R52)', () => {
+    expect(WIDGET_SHORTCUT_ACTIONS).toHaveLength(WIDGET_IDS.length)
+    for (const id of WIDGET_IDS) {
+      const action = actionOfWidget(id)
+      expect(widgetOfAction(action)).toBe(id)
+      expect(OPTION_SCHEMA.shortcuts[action].default).toBe('')
+    }
+    expect(widgetOfAction('toggleOverlay')).toBeNull()
+    // A file that gives one the combination of a main action loses it: the main one keeps it.
+    const settled = settleBindings({
+      toggleOverlay: ['Ctrl+Shift+H'],
+      toggleRelative: ['Ctrl+Shift+H', 'F14']
+    })
+    expect(settled.toggleOverlay).toEqual(['Ctrl+Shift+H'])
+    expect(settled.toggleRelative).toEqual(['F14'])
   })
 
   it('default to Ctrl+Shift+H (show / hide), Ctrl+Shift+E (edit mode) and Ctrl+Shift+O (settings)', () => {
@@ -41,7 +65,8 @@ describe('shortcut actions', () => {
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: 'Ctrl+Shift+O'
+      openSettings: 'Ctrl+Shift+O',
+      ...NO_WIDGET_SHORTCUTS
     })
   })
 
@@ -125,7 +150,8 @@ describe('checkShortcut', () => {
       toggleEditMode: 'Ctrl+Shift+E',
       cycleDeltaReference: '',
       nextLayout: '',
-      openSettings: ''
+      openSettings: '',
+      ...NO_WIDGET_SHORTCUTS
     }
     expect(checkShortcut('toggleOverlay', 'Ctrl+Shift+H', only(off)).ok).toBe(true)
   })
@@ -162,7 +188,8 @@ describe('several bindings per action', () => {
       toggleEditMode: ['Ctrl+Shift+E'],
       cycleDeltaReference: [],
       nextLayout: [],
-      openSettings: []
+      openSettings: [],
+      ...NO_WIDGET_MORE()
     })
   })
 

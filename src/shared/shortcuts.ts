@@ -9,6 +9,7 @@
  */
 import { canonicalAccelerator, checkAccelerator, type AcceleratorCheck } from './accelerator'
 import { isButtonBinding } from './controllers'
+import type { WidgetId } from './widgets'
 
 /**
  * Actions a shortcut can run, in priority order: when the file on disk gives two of them the
@@ -17,7 +18,7 @@ import { isButtonBinding } from './controllers'
  * applies the saved layout after the one in use (layouts.ts), and that choice is saved;
  * openSettings opens the settings window, or brings it to the front.
  */
-export const SHORTCUT_ACTIONS = [
+export const MAIN_SHORTCUT_ACTIONS = [
   'toggleOverlay',
   'toggleEditMode',
   'cycleDeltaReference',
@@ -25,7 +26,56 @@ export const SHORTCUT_ACTIONS = [
   'openSettings'
 ] as const
 
+/**
+ * «Más acciones» (R52): one optional action per widget that shows or hides it (its «Visible»,
+ * the same as the sidebar's eye and the tray's checkbox), none bound by default; in the sidebar's
+ * order. After the main ones: a file that gives one of them a main action's combination loses it.
+ */
+export const WIDGET_SHORTCUT_ACTIONS = [
+  'toggleRelative',
+  'toggleStandings',
+  'toggleBattle',
+  'toggleTraffic',
+  'toggleRadar',
+  'toggleDelta',
+  'toggleFuel',
+  'toggleInputs',
+  'toggleAlerts',
+  'toggleLights'
+] as const
+
+export const SHORTCUT_ACTIONS = [...MAIN_SHORTCUT_ACTIONS, ...WIDGET_SHORTCUT_ACTIONS] as const
+
 export type ShortcutAction = (typeof SHORTCUT_ACTIONS)[number]
+
+export type WidgetShortcutAction = (typeof WIDGET_SHORTCUT_ACTIONS)[number]
+
+export type MainShortcutAction = (typeof MAIN_SHORTCUT_ACTIONS)[number]
+
+const WIDGET_OF_ACTION: Readonly<Record<WidgetShortcutAction, WidgetId>> = {
+  toggleRelative: 'relative',
+  toggleStandings: 'standings',
+  toggleBattle: 'battle',
+  toggleTraffic: 'traffic',
+  toggleRadar: 'radar',
+  toggleDelta: 'delta',
+  toggleFuel: 'fuel',
+  toggleInputs: 'inputs',
+  toggleAlerts: 'alerts',
+  toggleLights: 'lights'
+}
+
+/** The widget a «Más acciones» shortcut shows or hides; null for a main action. */
+export function widgetOfAction(action: string): WidgetId | null {
+  return (WIDGET_OF_ACTION as Readonly<Record<string, WidgetId>>)[action] ?? null
+}
+
+/** The «Más acciones» shortcut of a widget. */
+export function actionOfWidget(id: WidgetId): WidgetShortcutAction {
+  const hit = WIDGET_SHORTCUT_ACTIONS.find((a) => WIDGET_OF_ACTION[a] === id)
+  if (hit === undefined) throw new Error(`no shortcut action for ${id}`)
+  return hit
+}
 
 export function isShortcutAction(value: unknown): value is ShortcutAction {
   return (SHORTCUT_ACTIONS as readonly unknown[]).includes(value)

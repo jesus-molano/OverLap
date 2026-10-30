@@ -564,6 +564,15 @@ export const settingsEs = {
         help: 'Abre esta ventana o la trae al frente'
       }
     },
+    /** «Más acciones» (R52): one row per widget, folded under the main ones. */
+    more: {
+      title: 'Más acciones: mostrar u ocultar cada widget',
+      summary: (n: number) =>
+        n === 0 ? 'Ninguna asignada' : n === 1 ? '1 asignada' : `${n} asignadas`,
+      help: 'Lo mismo que su ojo en la barra lateral o la bandeja; sin atajo de serie'
+    },
+    widgetAction: (widget: string) => `Mostrar u ocultar ${widget}`,
+    widgetActionHelp: 'Su «Visible», como el ojo de la barra lateral',
     /** The fixed Esc row. */
     escape: {
       label: 'Salir del modo edición',
@@ -2246,6 +2255,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
         help: 'Opens this window or brings it to the front'
       }
     },
+    more: {
+      title: 'More actions: show or hide each widget',
+      summary: (n) => (n === 0 ? 'None assigned' : n === 1 ? '1 assigned' : `${n} assigned`),
+      help: 'The same as its eye in the sidebar or the tray; none by default'
+    },
+    widgetAction: (widget) => `Show or hide ${widget}`,
+    widgetActionHelp: 'Its “Visible”, as the eye in the sidebar',
     escape: {
       label: 'Leave edit mode',
       help: 'Only while editing',

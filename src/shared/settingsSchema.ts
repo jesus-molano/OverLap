@@ -773,7 +773,18 @@ export const OPTION_SCHEMA = {
     toggleEditMode: { kind: 'accelerator', default: 'Ctrl+Shift+E', displayOnly: true },
     cycleDeltaReference: { kind: 'accelerator', default: '', displayOnly: true },
     nextLayout: { kind: 'accelerator', default: '', displayOnly: true },
-    openSettings: { kind: 'accelerator', default: 'Ctrl+Shift+O', displayOnly: true }
+    openSettings: { kind: 'accelerator', default: 'Ctrl+Shift+O', displayOnly: true },
+    // «Más acciones» (R52): show or hide one widget; none bound by default.
+    toggleRelative: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleStandings: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleBattle: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleTraffic: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleRadar: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleDelta: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleFuel: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleInputs: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleAlerts: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleLights: { kind: 'accelerator', default: '', displayOnly: true }
   },
   // The settings window's own; main also reads shortcutToasts (the confirmation over the game
   // when a shortcut runs, R37: on for everyone, it is new).

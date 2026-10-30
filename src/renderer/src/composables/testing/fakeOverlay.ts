@@ -2,6 +2,7 @@
  * Test double of `window.overlay` (the preload API) for composable tests in the node
  * environment: records what the renderer sends and lets a test push what main would.
  */
+import { NO_WIDGET_STATUS } from '@shared/testing/shortcuts'
 import type {
   AutoHiddenMessage,
   BoundsCommit,
@@ -116,7 +117,8 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
         toggleEditMode: 'ok',
         cycleDeltaReference: 'disabled',
         nextLayout: 'disabled',
-        openSettings: 'disabled'
+        openSettings: 'disabled',
+        ...NO_WIDGET_STATUS
       },
       unavailable: []
     },
