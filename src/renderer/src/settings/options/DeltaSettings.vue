@@ -11,7 +11,7 @@ import {
   SHOW_IN_KINDS,
   type NumericSpec
 } from '@shared/settingsSchema'
-import type { DeltaLapId, DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
+import type { DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -21,6 +21,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import { useParentGate } from '../elements/parentGate'
 import { bindingsText } from '../shortcutsView'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
@@ -131,22 +132,19 @@ const setTop = listSetter('delta', 'top')
 const setLaps = listSetter('delta', 'laps')
 
 /**
- * The lap times are a row of their own ('laps' in Filas), off by default: with it off, turning a
- * time on would change nothing you can see. So the list says so, and showing a time shows the row.
+ * The lap times are drawn in a line of their own ('laps' in Líneas), off by default: with it off,
+ * showing a time would change nothing you can see. So the list says so, and showing a time shows
+ * the line (useParentGate, as Pedales' blocks). The top line is always shown: no such note.
  */
-const lapsRowShown = computed(() => isElementVisible(opts.value.rows, 'laps'))
-const lapsNote = computed(() =>
-  lapsRowShown.value ? undefined : t.value.settings.delta.lapTimesRowOff
-)
-async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
-  const done = setLaps(next)
-  if (!lapsRowShown.value && visibleIds(next).length > 0) {
-    await setRows(
-      opts.value.rows.map((e) => (e.id === 'laps' ? { ...e, visible: true } : { ...e }))
-    )
-  }
-  return done
-}
+const lapsGate = useParentGate({
+  parents: () => opts.value.rows,
+  parent: 'laps',
+  setParents: setRows,
+  items: () => opts.value.laps,
+  set: setLaps,
+  parentLabel: () => rowTexts.value.laps.label,
+  zoneLabel: () => zoneTitle(t.value, 'delta', 'rows')
+})
 </script>
 
 <template>
@@ -217,8 +215,8 @@ async function applyLaps(next: ElementEntry<DeltaLapId>[]): Promise<unknown> {
           :items="opts.laps"
           :spec="S.laps"
           :labels="lapTexts"
-          :apply="applyLaps"
-          :note="lapsNote"
+          :apply="lapsGate.apply"
+          :note="lapsGate.note.value"
         />
       </template>
     </ElementEditor>

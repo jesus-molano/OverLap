@@ -20,6 +20,7 @@ import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { listSetter, optionSetter, updateSection, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
+import { useParentGate } from '../elements/parentGate'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
 import PageSection from '../layout/PageSection.vue'
@@ -115,6 +116,29 @@ const setSections = listSetter('inputs', 'sections')
 const setBars = listSetter('inputs', 'bars')
 const setInfo = listSetter('inputs', 'info')
 const setCar = listSetter('inputs', 'car')
+/**
+ * The «Datos» and «Coche» items are drawn in their block of «Bloques»: while it is hidden the
+ * list says so, and showing an item shows the block (useParentGate, as Delta's lines).
+ */
+const sectionsTitle = (): string => zoneTitle(t.value, 'inputs', 'sections')
+const infoGate = useParentGate({
+  parents: () => opts.value.sections,
+  parent: 'info',
+  setParents: setSections,
+  items: () => opts.value.info,
+  set: setInfo,
+  parentLabel: () => sectionTexts.value.info.label,
+  zoneLabel: sectionsTitle
+})
+const carGate = useParentGate({
+  parents: () => opts.value.sections,
+  parent: 'car',
+  setParents: setSections,
+  items: () => opts.value.car,
+  set: setCar,
+  parentLabel: () => sectionTexts.value.car.label,
+  zoneLabel: sectionsTitle
+})
 </script>
 
 <template>
@@ -214,14 +238,16 @@ const setCar = listSetter('inputs', 'car')
       :items="opts.info"
       :spec="I.info"
       :labels="infoTexts"
-      :apply="setInfo"
+      :apply="infoGate.apply"
+      :note="infoGate.note.value"
     />
     <ElementEditor
       :title="zoneTitle(t, 'inputs', 'car')"
       :items="opts.car"
       :spec="I.car"
       :labels="carTexts"
-      :apply="setCar"
+      :apply="carGate.apply"
+      :note="carGate.note.value"
     />
   </CustomizeSection>
 </template>

@@ -123,6 +123,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   **Densidad** dice «No se nota a 460 × 252 px» cuando el ancho fija el tamaño del texto (así,
   con las dos densidades se ve igual). Antes el ojo o la opción parecían no hacer nada. No hay
   ajustes nuevos.
+- **Una lista dentro de un bloque oculto lo dice, y mostrar algo muestra el bloque**: en Pedales,
+  con el bloque «Revoluciones, reparto, TC y FFB» (o el de los datos) oculto en **Bloques**, la
+  lista **Coche** (o **Datos**) dice debajo que no se ve y por qué, y al mostrar uno de sus
+  elementos se muestra también el bloque, como ya hacían los tiempos de vuelta de Delta, que
+  ahora lo dicen con las mismas palabras. Ocultar u ordenar nunca toca el bloque.
 
 ### Cambiado
 
