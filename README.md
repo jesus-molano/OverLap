@@ -213,7 +213,9 @@ lleva a él (abre su sección y lo señala); lo que ahora oculta otro ajuste sal
 ajuste». La barra lateral agrupa los widgets en **Pista y rivales**, **Tu vuelta** y **Estado del
 coche**, igual que la bandeja. El ojo de cada uno lo muestra u oculta; tenue y con un círculo
 discontinuo, está activado pero no se ve ahora: una regla lo oculta o has ocultado el overlay (el
-ratón encima dice por qué). El **chip de
+ratón encima dice por qué). En una ventana estrecha (menos de 640 px) la barra lateral se queda
+en una columna de iconos, con el ojo de cada widget al lado y su nombre al pasar el ratón, y el
+buscador, el chip de estado y **Modo edición** van arriba. El **chip de
 estado** de arriba dice qué está oculto y por qué; con un clic abre un panel con qué hacer,
 **Copiar diagnóstico** (para un informe de error, sin nombres) y **Abrir registro**.
 

@@ -16,7 +16,8 @@ import EditModeButton from './EditModeButton.vue'
 import NavIcon from './NavIcon.vue'
 import VisibilityDot from './VisibilityDot.vue'
 
-defineProps<{ page: SettingsPage }>()
+/** `rail`: a narrow window (R49): icons only, each widget's eye beside its icon, names as tooltips. */
+withDefaults(defineProps<{ page: SettingsPage; rail?: boolean }>(), { rail: false })
 const emit = defineEmits<{ select: [page: SettingsPage] }>()
 
 const { settings, autoHiddenOf, overlayHidden } = useOverlayState()
@@ -58,12 +59,12 @@ const groups = computed(() =>
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="brand">
+  <aside class="sidebar" :class="{ 'is-rail': rail }">
+    <div v-if="!rail" class="brand">
       <h1 class="title">{{ t.settings.nav.title }}</h1>
       <StatusChip />
     </div>
-    <SettingsSearch class="side-search" />
+    <SettingsSearch v-if="!rail" class="side-search" />
 
     <nav class="nav" :aria-label="t.settings.nav.sections">
       <button
@@ -72,6 +73,7 @@ const groups = computed(() =>
         type="button"
         class="nav-item"
         :data-page="item.page"
+        :title="rail ? item.title : undefined"
         :aria-current="page === item.page ? 'page' : undefined"
         @click="emit('select', item.page)"
       >
@@ -87,6 +89,7 @@ const groups = computed(() =>
               type="button"
               class="nav-item"
               :data-page="item.id"
+              :title="rail ? item.title : undefined"
               :class="{ 'is-hidden': !item.visible }"
               :aria-current="page === item.id ? 'page' : undefined"
               @click="emit('select', item.id)"
@@ -106,8 +109,8 @@ const groups = computed(() =>
     </nav>
 
     <div class="foot">
-      <EditModeButton />
-      <dl class="keys">
+      <EditModeButton v-if="!rail" />
+      <dl v-if="!rail" class="keys">
         <template v-for="k in keys" :key="k.id">
           <dt>
             <span v-if="k.button" class="key-button" :title="k.title">
@@ -126,6 +129,7 @@ const groups = computed(() =>
         type="button"
         class="nav-item foot-item"
         :data-page="item.page"
+        :title="rail ? item.title : undefined"
         :aria-current="page === item.page ? 'page' : undefined"
         @click="emit('select', item.page)"
       >
@@ -301,5 +305,50 @@ const groups = computed(() =>
 
 .foot-item {
   flex: none;
+}
+
+/*
+ * The rail (R49): icons only, centred; each widget's eye stays beside its icon; a group's name
+ * becomes a thin rule (still a heading for screen readers); the names stay for them too.
+ */
+.sidebar.is-rail {
+  gap: 8px;
+  overflow-x: hidden;
+  padding: 12px 6px;
+  scrollbar-width: thin;
+}
+
+.is-rail .nav-item {
+  flex: 0 0 auto;
+  justify-content: center;
+  width: 32px;
+  padding: 5px 0;
+}
+
+.is-rail .nav-li {
+  gap: 0;
+}
+
+.is-rail .nav-text,
+.is-rail .nav-group {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.is-rail .nav-list::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--st-border);
+}
+
+.is-rail .foot {
+  align-items: flex-start;
+  padding: 8px 0 0;
 }
 </style>

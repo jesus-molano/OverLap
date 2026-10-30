@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './settings.css'
-import { computed, onUnmounted, shallowRef, useId, watch } from 'vue'
+import { computed, onUnmounted, shallowRef, watch } from 'vue'
+import { useMediaQuery } from '../composables/useMediaQuery'
 import { useI18n, useLanguage } from '../composables/useI18n'
 import { useOverlayState } from '../composables/useOverlay'
 import StatusChip from './StatusChip.vue'
@@ -9,14 +10,11 @@ import EditModeButton from './layout/EditModeButton.vue'
 import OverlayHiddenNote from './layout/OverlayHiddenNote.vue'
 import SettingsFooter from './layout/SettingsFooter.vue'
 import SettingsSidebar from './layout/SettingsSidebar.vue'
-import { WIDGET_GROUPS } from '@shared/widgets'
 import {
-  FOOT_PAGES,
-  GLOBAL_PAGES,
+  RAIL_QUERY,
   browserStorage,
   initialPage,
   isSettingsPage,
-  pageTitle,
   savePage,
   searchWithoutPage,
   type SettingsPage
@@ -50,36 +48,17 @@ const unasked = searchWithoutPage(location.search)
 if (unasked !== location.search) {
   history.replaceState(history.state, '', location.pathname + unasked + location.hash)
 }
-const selectId = useId()
-/** The narrow window's select: the general pages, then the widgets in their groups (R42). */
-const pageGroups = computed(() => [
-  {
-    id: 'general',
-    title: null,
-    pages: GLOBAL_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
-  },
-  ...WIDGET_GROUPS.map((g) => ({
-    id: g.id,
-    title: t.value.core.widgetGroups[g.id],
-    pages: g.widgets.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
-  })),
-  {
-    id: 'foot',
-    title: null,
-    pages: FOOT_PAGES.map((p) => ({ page: p, title: pageTitle(t.value, p) }))
-  }
-])
+/**
+ * A narrow window (R49): the sidebar becomes a rail of icons, each widget's eye still beside its
+ * icon, the names in a tooltip; the search, the status and the edit button go to a bar on top.
+ */
+const rail = useMediaQuery(RAIL_QUERY)
 
 /** A new page is a new scroller (it is keyed), so it starts at the top. */
 function select(next: SettingsPage): void {
   if (next === page.value) return
   page.value = next
   savePage(storage, next)
-}
-
-function onSelectChange(e: Event): void {
-  const v = e.target instanceof HTMLSelectElement ? e.target.value : null
-  if (isSettingsPage(v)) select(v)
 }
 
 // Main asks for a page when it brings the open window to the front (the tray's "Más…").
@@ -146,29 +125,13 @@ function openLog(): void {
 
 <template>
   <div class="app" :lang="lang">
-    <SettingsSidebar class="side" :page="page" @select="select" />
+    <SettingsSidebar class="side" :page="page" :rail="rail" @select="select" />
 
     <!-- The window never scrolls: bands (settings.css), of which only the page's options scroll. -->
     <div class="main-col">
       <div class="st-band">
-        <!-- Narrow windows: the sidebar becomes this bar. -->
-        <div class="topbar">
-          <label :for="selectId" class="st-sr-only">{{ t.settings.app.pageSelect }}</label>
-          <select
-            :id="selectId"
-            class="st-field page-select"
-            :value="page"
-            @change="onSelectChange"
-          >
-            <template v-for="g in pageGroups" :key="g.id">
-              <template v-if="g.title === null">
-                <option v-for="o in g.pages" :key="o.page" :value="o.page">{{ o.title }}</option>
-              </template>
-              <optgroup v-else :label="g.title">
-                <option v-for="o in g.pages" :key="o.page" :value="o.page">{{ o.title }}</option>
-              </optgroup>
-            </template>
-          </select>
+        <!-- Narrow windows (R49): the pages in the rail; the search, status and edit up here. -->
+        <div v-if="rail" class="topbar">
           <SettingsSearch class="topbar-search" />
           <StatusChip />
           <EditModeButton compact />
@@ -234,6 +197,7 @@ function openLog(): void {
 .app {
   /* Sidebar, page padding, the widest page and the scrollbar's gutter. */
   --st-app-max: calc(212px + 2 * var(--st-page-pad) + var(--st-page-max) + 14px);
+  --st-rail-w: 72px;
 
   display: grid;
   grid-template-rows: minmax(0, 1fr);
@@ -333,13 +297,10 @@ function openLog(): void {
   }
 }
 
+/* The rail (R49): nav.ts RAIL_QUERY, its width the sidebar's .is-rail. */
 @media (max-width: 639px) {
   .app {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .side {
-    display: none;
+    grid-template-columns: var(--st-rail-w) minmax(0, 1fr);
   }
 
   .main-col {
@@ -351,21 +312,15 @@ function openLog(): void {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    margin-bottom: 14px;
-    padding: 10px 0;
+    margin-bottom: 12px;
+    padding: 8px 0;
     border-bottom: 1px solid var(--st-border);
     background: var(--st-bg);
   }
 
   .topbar-search {
-    flex: 1 1 100%;
-    order: 9;
-  }
-
-  .page-select {
-    flex: 1 1 10em;
+    flex: 1 1 12em;
     min-width: 0;
-    font-weight: 600;
   }
 }
 </style>

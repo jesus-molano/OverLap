@@ -11,7 +11,6 @@ const NB = '\u00a0'
 export const settingsEs = {
   /** Window frame: top bar, banners, footer. */
   app: {
-    pageSelect: 'Sección',
     /**
      * The edit-mode banner (R25): one line of keys and what each does, instead of two lines of
      * text. `key` is drawn as a keycap.
@@ -1889,7 +1888,6 @@ export const settingsEs = {
 
 export const settingsEn: Dict<typeof settingsEs> = {
   app: {
-    pageSelect: 'Section',
     editBanner: {
       title: 'Edit mode',
       keys: [
