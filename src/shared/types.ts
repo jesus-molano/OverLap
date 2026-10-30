@@ -956,12 +956,20 @@ export interface FuelFinish {
   saveL: number | null
 }
 
+/**
+ * Tread left across one tyre, whole %, as iRacing names its bands: the tyre's left, middle and
+ * right as seen from above (LFwearL/M/R), so on a left tyre the left band is the outer shoulder.
+ */
+export type TyreBands = readonly [number, number, number]
+
 /** The last tyre reading (iRacing only measures the tread in the pit stall). */
 export interface TyreReading {
   /** Laps completed when it was taken (the stop's lap, 'V13'). */
   lap: number
   /** Tread left per tyre, whole %: front left, front right, rear left, rear right. */
   wearPct: readonly [number, number, number, number]
+  /** Each tyre's three bands, in the same order; wearPct is the most worn of each. */
+  bands: readonly [TyreBands, TyreBands, TyreBands, TyreBands]
 }
 
 export interface FuelData {
@@ -981,6 +989,8 @@ export interface FuelData {
   maxL: number | null
   /** Clean laps behind avgL (0: measuring). */
   samples: number
+  /** Those laps' litres, oldest first, to 0.01 (the consumption line's sparkline). */
+  recentL: readonly number[]
   /** avgL comes from an earlier session with the same car and track (none of this one's yet). */
   carried: boolean
   /** Null when the laps left are unknown (unlimited session) or while measuring. */
