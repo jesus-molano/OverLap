@@ -29,6 +29,7 @@ import { useSampleWidth, useWidgetSizeText } from '../samples/useSampleWidth'
 import ToggleControl from '../controls/ToggleControl.vue'
 import { formatPercent } from '../values'
 import { sendCommand } from '../editor'
+import { aimEditKeys } from '../useEditKeys'
 import { freeScalePercent } from '../freeScale'
 import { heldCaption } from '../statusSummary'
 import { useOverlayState } from '../../composables/useOverlay'
@@ -72,6 +73,8 @@ const { settings, autoHiddenOf, overlayHidden, editMode } = useOverlayState()
 /** «Editar posición» (R25): edit mode, this widget pointed out over the game (again if on). */
 function editPosition(): void {
   sendCommand({ type: 'set-edit-mode', on: true, focus: props.widgetId })
+  // The arrows, Tab and Ctrl+Z of the banner go to edit mode from here on (useEditKeys).
+  aimEditKeys()
 }
 const lang = useLanguage()
 /** On, but not showing now (overlay hidden by you, or a rule): why, as the sidebar's eye says. */

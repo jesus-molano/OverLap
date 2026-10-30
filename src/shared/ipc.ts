@@ -452,6 +452,11 @@ export type RendererView = { kind: 'overlay' } | { kind: 'settings' }
 export type SettingsCommand =
   /** `focus`: entered from that widget's page («Editar posición»): its panel is pointed out. */
   | { type: 'set-edit-mode'; on: boolean; focus?: WidgetId }
+  /**
+   * An edit-mode key (nudge.ts EDIT_KEYS: an arrow, Tab, Ctrl+Z) pressed in the settings window
+   * where its focus is free (settings/editKeys.ts): main does what it does over the game (R38).
+   */
+  | { type: 'edit-key'; key: string }
   | { type: 'reset-widget-bounds'; widgetId: WidgetId }
   | { type: 'open-settings-folder' }
   /** overlap.log in the system's viewer (R35). */

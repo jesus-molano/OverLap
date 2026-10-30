@@ -16,7 +16,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
   el anterior, y la bandeja ofrece **Deshacer: mover Relativo**; mantener una flecha o girar la
   rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
-  se toman mientras editas y con los Ajustes detrás, como las flechas.
+  se toman mientras editas; con los Ajustes delante, funcionan mientras no estés en un campo, un
+  deslizador o una lista (ver **Cambiado**).
 - **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
   reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
   eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
@@ -40,8 +41,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **Modo edición más preciso**: las **flechas** mueven 1 px el último widget que has arrastrado,
   escalado, tocado en su etiqueta o señalado con **Editar posición** (con `Mayús`, 10 px), y con
   `Ctrl` cambian su ancho y su alto (el alto no, si se ajusta a su contenido); se guarda al soltar
-  la tecla. Solo mientras editas y con los Ajustes detrás: con la ventana de Ajustes delante, las
-  flechas siguen siendo suyas, y una combinación que ya uses en Atajos sigue siendo tuya. Si aún no
+  la tecla. Solo mientras editas: con la ventana de Ajustes delante, un campo, un deslizador o una
+  lista que tenga el foco se queda las flechas, y una combinación que ya uses en Atajos sigue
+  siendo tuya. Si aún no
   has tocado ninguno, un aviso sobre el juego lo dice. Al arrastrar, una **línea de ajuste** marca
   el borde de otro widget o de la pantalla al que se pega, y el widget también se pega al **centro
   de la pantalla**. El ojo y el candado de la etiqueta miden 24 × 24 px (antes 20 × 17) y los
@@ -198,6 +200,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Cambiado
 
+- **Las teclas del modo edición funcionan también con los Ajustes delante**: justo después de
+  **Editar posición**, las flechas mueven el widget, `Tab` y `Mayús+Tab` eligen otro y `Ctrl+Z`
+  deshace, como dice el aviso de los Ajustes, sin tener que ir antes al juego. Las flechas y
+  `Ctrl+Z` siguen funcionando mientras el foco no esté en un campo, un deslizador o una lista (que
+  se quedan sus teclas), y `Ctrl+Z` es del «Deshacer» de los Ajustes mientras se ve. `Tab` vuelve
+  a recorrer la página en cuanto haces clic o algo de la página toma el foco, o con `Esc`.
 - **«Mayús» en toda la app**: la tabla de Atajos, el pie de la barra lateral, la bienvenida, el
   aviso de cursor oculto y la ayuda de **Modo edición** escriben `Ctrl+Mayús+E` y `Ctrl+Mayús+H`,
   como ya decían los avisos del modo edición («Mayús+Tab») y como se escriben **Supr** o **Re

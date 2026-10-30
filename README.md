@@ -307,7 +307,9 @@ juego.
   `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
   sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
   abajo), también sin cursor, con un aviso «Flechas: Relativo». Funcionan con el juego o el
-  escritorio delante; con los Ajustes delante, son de los Ajustes.
+  escritorio delante, y también con los Ajustes delante (justo después de **Editar posición**,
+  también `Tab`), salvo mientras un campo, un deslizador o una lista de los Ajustes tiene el foco:
+  entonces son suyas.
 - `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
   las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
   también **Deshacer: mover …**. Al salir del modo edición se olvidan.

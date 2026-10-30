@@ -3,7 +3,8 @@
  * 10 px), and with Ctrl they change its size the same way. Main registers these combinations
  * only while editing and while the settings window is not in front (shortcutManager.ts), so they
  * are taken from the other programs only then; a combination one of your shortcuts already uses
- * stays yours. Pure.
+ * stays yours. The settings window passes them on where its focus is free (settings/editKeys.ts).
+ * Pure.
  */
 import type { Rect, Size } from './types'
 
