@@ -260,10 +260,14 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
-- **Estilo** (arriba de Apariencia): **OverLap** (el de serie), **Como iRacing**, **Limpio** o
-  **Compacto** ponen de una vez el aspecto entero (fondo, tamaño del texto, filas, licencia,
-  número, nombre, logos y banderas), con **Deshacer**; el resto de Apariencia queda como **Ajuste
-  fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la
+- **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (el de serie),
+  **Limpio** (sin fondo: solo el texto sobre el juego, con su contorno; sin filas alternas, logos
+  ni banderas), **Compacto** (pequeño pero legible: filas compactas, texto al 85 %, apellidos) y
+  **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna,
+  elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
+  cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
+  esperas a **Aplicar**; todo se deshace con **Deshacer**. El resto de Apariencia queda como
+  **Ajuste fino**, y si lo tocas el estilo pasa a «Personalizado». No cambian el acento, la
   Accesibilidad, la etiqueta SIM, el idioma ni las unidades.
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los diez widgets:
