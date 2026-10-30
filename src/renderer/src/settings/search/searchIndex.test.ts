@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { DEFAULT_SETTINGS } from '@shared/settings'
+import { DEFAULT_SETTINGS, createDefaultSettings } from '@shared/settings'
 import {
   dropIndex,
   indexDone,
   indexing,
-  markIndexStale,
   resetIndexForTests,
   searchIndex,
+  settingsKey,
   wantIndex
 } from './searchIndex'
 import { mergeGated, type SearchEntry } from './settingsSearch'
@@ -24,42 +24,49 @@ describe('the search index (R33)', () => {
   beforeEach(() => resetIndexForTests())
 
   it('is harvested on the first focus, and not again while nothing changed', () => {
-    wantIndex()
+    wantIndex('a')
     expect(indexing.value).toBe(true)
     indexDone([entry('Primeros puestos')])
     expect(indexing.value).toBe(false)
-    wantIndex()
+    wantIndex('a')
     expect(indexing.value).toBe(false)
   })
 
   it('is harvested again after a setting changed, the old one answering meanwhile', () => {
-    wantIndex()
+    wantIndex('a')
     indexDone([entry('a')])
-    markIndexStale()
-    wantIndex()
+    wantIndex('b')
     expect(indexing.value).toBe(true)
     expect(searchIndex.value).toEqual([entry('a')])
   })
 
   it('stays stale when a setting changes during a harvest', () => {
-    wantIndex()
-    markIndexStale()
+    wantIndex('a')
     indexDone([entry('a')])
-    wantIndex()
+    wantIndex('b')
     expect(indexing.value).toBe(true)
   })
 
   it('a new language drops it, and a harvest under way counts from then', () => {
-    wantIndex()
+    wantIndex('a')
     indexDone([entry('a')])
-    dropIndex()
+    dropIndex('a')
     expect(searchIndex.value).toBeNull()
-    wantIndex()
+    wantIndex('a')
     // The language changes again mid-harvest: SettingsApp remounts the indexer (keyed).
-    dropIndex()
+    dropIndex('a')
     indexDone([entry('b')])
-    wantIndex()
+    wantIndex('a')
     expect(indexing.value).toBe(false)
+  })
+
+  it('reads a moved or fitted widget as no change, a mode as one', () => {
+    const s = createDefaultSettings()
+    const before = settingsKey(s)
+    s.widgets.fuel.bounds = { ...s.widgets.fuel.bounds, x: s.widgets.fuel.bounds.x + 40 }
+    expect(settingsKey(s)).toBe(before)
+    s.standings.mode = 'full'
+    expect(settingsKey(s)).not.toBe(before)
   })
 })
 

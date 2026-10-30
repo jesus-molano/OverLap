@@ -29,7 +29,7 @@ import UndoToast from './undo/UndoToast.vue'
 import WelcomeDialog from './WelcomeDialog.vue'
 import { provideNavigate } from './navigate'
 import SearchIndexer from './search/SearchIndexer.vue'
-import { dropIndex, indexDone, indexing, markIndexStale } from './search/searchIndex'
+import { dropIndex, indexDone, indexing, settingsKey } from './search/searchIndex'
 import { MISS_MS, revealTarget, type RevealTarget } from './search/reveal'
 import SettingsSearch from './search/SettingsSearch.vue'
 import type { SearchEntry } from './search/settingsSearch'
@@ -122,9 +122,7 @@ function onIndexed(entries: SearchEntry[]): void {
   indexDone(entries)
 }
 // Another language: the pages say other words, harvested again (now, if a harvest is under way).
-watch(lang, () => dropIndex())
-// A setting can change what a page shows (a mode, a list item): the next search harvests again.
-watch(settings, () => markIndexStale())
+watch(lang, () => dropIndex(settingsKey(settings.value)))
 
 function exitEdit(): void {
   sendCommand({ type: 'set-edit-mode', on: false })
