@@ -342,9 +342,15 @@ function sessionReferences(o: FitOptions): readonly (DeltaReference | null)[] {
   return refs.length > 0 ? refs : [null]
 }
 
-/** The head line is drawn when any part of the top line is shown. */
+/**
+ * The head line is drawn for the reference's name or the predicted lap (both always have
+ * something to say). «Estado» alone puts its chevrons on each row: the line then comes only
+ * while a lap won't count or after another reference takes over (DeltaWidget), and takes no room
+ * the rest of the time.
+ */
 function headOf(o: Pick<FitOptions, 'top'>): boolean {
-  return visibleIds(o.top).length > 0
+  const top = visibleIds(o.top)
+  return top.includes('reference') || top.includes('predicted')
 }
 
 /**
@@ -359,6 +365,45 @@ export function deltaShapeOf(o: FitOptions, reference?: DeltaReference | null): 
 }
 
 /**
+ * The shape drawn live with the reference in use `reference`: deltaShapeOf's, but never more
+ * rows than the window was made for (deltaShapeOf of the three sessions' references). The cycle
+ * shortcut or a fallback can bring in a reference outside the list: its row takes the last
+ * one's place (lanesInRoom) instead of adding one, so the text never shrinks mid-session; with
+ * a window made for one, the delta of always for it, the rest as its small bars (2.4).
+ */
+export function deltaLiveShape(o: FitOptions, reference: DeltaReference | null): DeltaShape {
+  const live = deltaShapeOf(o, reference)
+  const planned = deltaShapeOf(o)
+  if (live.lanes <= planned.lanes) return live
+  if (planned.lanes >= 2) return { lanes: planned.lanes, head: live.head, bars: 0 }
+  return { lanes: 1, head: false, bars: shownReferences(o).length }
+}
+
+/** The delta's option lists as the preview's `data-el`s name them ('delta.refBars.pb'). */
+const GHOST_FIELDS = ['rows', 'top', 'laps', 'refBars'] as const
+
+/**
+ * `o` without the Settings preview's ghosts (`ghosts`: the `data-el`s it draws translucent while
+ * you edit, 'delta.refBars.pb'): those elements hidden again, as they really are. The mode and
+ * the room are decided on this; the ghosts are only drawn into room left over (extraInRoom).
+ * The object itself when none is the delta's.
+ */
+export function withoutGhosts<T extends FitOptions>(o: T, ghosts: readonly string[]): T {
+  if (ghosts.length === 0) return o
+  let out: T = o
+  for (const field of GHOST_FIELDS) {
+    const prefix = `delta.${field}.`
+    if (!ghosts.some((g) => g.startsWith(prefix))) continue
+    const list = o[field] as List<string>
+    const next = list.map((e) =>
+      e.visible && ghosts.includes(prefix + e.id) ? { id: e.id, visible: false } : e
+    )
+    out = { ...out, [field]: next }
+  }
+  return out
+}
+
+/**
  * Em heights of the rows (DeltaWidget's .dl-multi): the panel's padding and slack, the head
  * line with its gap (1.3 + 0.15), each row (1.9: a 1.6 em figure and its rule). The sectors and
  * the lap times add as they do in the 2.4 delta.
@@ -369,23 +414,32 @@ export const DELTA_MULTI_ROW_EM = 1.9
 /** Em width of the rows: a name, a figure, the trend and a readable bar; 13 without the bar. */
 export const DELTA_MULTI_W = 21
 export const DELTA_MULTI_NOBAR_W = 13
+/** Windows this narrow (px) draw the rows without arrow or trend, DELTA_MULTI_NARROW_W wide. */
+export const DELTA_NARROW_PX = 300
+export const DELTA_MULTI_NARROW_W = 15
 
-/** The fit of `lanes` rows (with the head line when `head`), the sectors and lap times shown. */
-export function deltaMultiFit(o: FitOptions, lanes: number, head: boolean): DeltaFit {
+/**
+ * The fit of `lanes` rows (with the head line when `head`), the sectors and lap times shown, in
+ * a window `w` px wide when given (the stylesheet's narrow width up to DELTA_NARROW_PX).
+ */
+export function deltaMultiFit(o: FitOptions, lanes: number, head: boolean, w?: number): DeltaFit {
   const shown = new Set(visibleIds(o.rows))
   let h = DELTA_MULTI_PAD_EM + (head ? DELTA_MULTI_HEAD_EM : 0) + lanes * DELTA_MULTI_ROW_EM
   if (shown.has('sectors')) h += DELTA_ROW_FIT_EM.sectors
   if (shown.has('laps')) h += DELTA_ROW_FIT_EM.laps
-  const rows = shown.has('bar') ? DELTA_MULTI_W : DELTA_MULTI_NOBAR_W
+  const narrow = w !== undefined && w > 0 && w <= DELTA_NARROW_PX
+  const bar = narrow ? DELTA_MULTI_NARROW_W : DELTA_MULTI_W
+  const rows = shown.has('bar') ? bar : DELTA_MULTI_NOBAR_W
   const laps = shown.has('laps') ? (DELTA_LAPS_W[Math.min(4, visibleIds(o.laps).length)] ?? 0) : 0
   return { h: Math.round(h * 100) / 100, w: Math.max(rows, laps) }
 }
 
 /**
  * What a `w` x `h` px window draws of `shape` (two references or more). The text is fitted to
- * the window, so everything fits until it reaches the floor `minText`: then the head line goes
- * first, then rows from the end of your order (never the reference in use's, see lanesInRoom);
- * one row left is the 2.4 delta of the reference in use. A window too short for any row
+ * the window, so everything fits until it reaches the floor `minText`: then rows go from the end
+ * of your order (never the reference in use's, see lanesInRoom) while the head line stays, for
+ * it names the reference in use and says when a lap won't count; then the head line too; one
+ * row left is the 2.4 delta of the reference in use. A window too short for any row
  * (DELTA_SHORT_PX) draws that too. A single shape is drawn as it is.
  */
 export function shapeInRoom(
@@ -397,14 +451,68 @@ export function shapeInRoom(
 ): DeltaShape {
   if (shape.lanes < 2 || !(w > 0) || !(h > 0)) return shape
   if (h <= DELTA_SHORT_PX) return SINGLE
-  const font = textAt(deltaMultiFit(o, shape.lanes, shape.head), w, h, minText)
+  const font = textAt(deltaMultiFit(o, shape.lanes, shape.head, w), w, h, minText)
   const fits = (lanes: number, head: boolean): boolean =>
-    deltaMultiFit(o, lanes, head).h * font <= h + 1e-6
+    deltaMultiFit(o, lanes, head, w).h * font <= h + 1e-6
   if (fits(shape.lanes, shape.head)) return shape
+  if (shape.head) {
+    for (let k = shape.lanes - 1; k >= 2; k--) {
+      if (fits(k, true)) return { lanes: k, head: true, bars: 0 }
+    }
+  }
   for (let k = shape.lanes; k >= 2; k--) {
     if (fits(k, false)) return { lanes: k, head: false, bars: 0 }
   }
   return SINGLE
+}
+
+/** What is drawn beyond the shape (extraInRoom). */
+export interface DeltaExtra {
+  /** The head line, when the shape has none (one that comes and goes). */
+  readonly head: boolean
+  /** Rows (the preview's ghosts). */
+  readonly lanes: number
+}
+
+/** What could be drawn beyond the shape, for extraInRoom. */
+export interface DeltaExtraWish {
+  /**
+   * The head line has news (a lap that won't count, the brief label after another reference
+   * takes over): drawn while the rows still fit at the smallest text, the text giving way.
+   */
+  readonly news: boolean
+  /** The preview's ghost parts of the head line: only into room left over. */
+  readonly ghostHead: boolean
+  /** The preview's ghost rows: only into room left over. */
+  readonly ghosts: number
+}
+
+const NO_EXTRA: DeltaExtra = Object.freeze({ head: false, lanes: 0 })
+
+/**
+ * What of `wish` a `w` x `h` px window draws beyond `drawn` (shapeInRoom's): the head line with
+ * news while every row of `drawn` still fits at the floor `minText`, never at a row's cost; the
+ * preview's ghosts (their head line, then rows) only in the room left over, at the text size the
+ * rest gets: a ghost never shrinks what is shown. Nothing for a single shape.
+ */
+export function extraInRoom(
+  o: FitOptions,
+  drawn: DeltaShape,
+  wish: DeltaExtraWish,
+  w: number,
+  h: number,
+  minText: number
+): DeltaExtra {
+  if (drawn.lanes < 2 || !(w > 0) || !(h > 0)) return NO_EXTRA
+  const fitsAt = (lanes: number, head: boolean, font: number): boolean =>
+    deltaMultiFit(o, lanes, head, w).h * font <= h + 1e-6
+  let head = drawn.head || (wish.news && fitsAt(drawn.lanes, true, minText))
+  const font = textAt(deltaMultiFit(o, drawn.lanes, head, w), w, h, minText)
+  if (!head && wish.ghostHead) head = fitsAt(drawn.lanes, true, font)
+  let lanes = 0
+  while (lanes < wish.ghosts && fitsAt(drawn.lanes + lanes + 1, head, font)) lanes++
+  const more = head && !drawn.head
+  return !more && lanes === 0 ? NO_EXTRA : { head: more, lanes }
 }
 
 /** The 2.4 delta, without small bars (a window too small for the rows). */
@@ -432,3 +540,45 @@ export function laneViews(
  * reference in use always among them).
  */
 export const lanesInRoom = barsInRoom
+
+/**
+ * The rows drawn, in the list's order (`all`: the real ones and the preview's ghosts): those of
+ * `own` (the real ones) that `fit` holds (lanesInRoom: the reference in use's always), then the
+ * first `ghosts` of the rest.
+ */
+export function lanesDrawn(
+  all: readonly RefBarView[],
+  own: readonly DeltaReference[],
+  fit: number,
+  ghosts: number
+): readonly RefBarView[] {
+  const kept = new Set(
+    lanesInRoom(
+      all.filter((b) => own.includes(b.id)),
+      fit
+    ).map((b) => b.id)
+  )
+  let room = ghosts
+  return all.filter((b) => kept.has(b.id) || (!own.includes(b.id) && room-- > 0))
+}
+
+/**
+ * What the rows leave out for lack of room, as `data-el`s for the page's «No cabe»: the references
+ * the list shows (`listed`, never the preview's ghosts) without a row in `drawn`, the reference
+ * in use aside (always drawn, as a row or as the delta of always); the head line when it gave
+ * way (`headLost`); with no rows left (`multi` false), the line itself first.
+ */
+export function lanesNoRoom(
+  listed: readonly DeltaReference[],
+  drawn: readonly RefBarView[],
+  reference: DeltaReference | null,
+  multi: boolean,
+  headLost: boolean
+): readonly string[] {
+  const ids = new Set(drawn.map((b) => b.id))
+  const out = listed
+    .filter((id) => id !== reference && !ids.has(id))
+    .map((id) => `delta.refBars.${id}`)
+  if (!multi) return out.length === 0 ? out : ['delta.rows.refs', ...out]
+  return headLost ? ['delta.rows.top', ...out] : out
+}

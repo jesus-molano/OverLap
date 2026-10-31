@@ -16,6 +16,7 @@ import {
   fillTransform,
   formatDelta,
   laneLabel,
+  laneTrendsOf,
   lapCounts,
   liveSectorDelta,
   predictedText,
@@ -382,5 +383,35 @@ describe('the rows of several references', () => {
     // Two rows on the same trend, one coming from a gain: only that one stays a gain.
     expect(trendKind(-0.015, 'gain')).toBe('gain')
     expect(trendKind(-0.015, 'steady')).toBe('steady')
+  })
+})
+
+describe('laneTrendsOf: each row its own trend', () => {
+  const rows = [
+    { id: 'pb', isRef: false },
+    { id: 'optimal', isRef: true }
+  ] as const
+
+  it("the reference in use's row takes the main trend, the others their bar's", () => {
+    // The bar's own value for the one in use is ignored: the main trend is the authority.
+    const t = laneTrendsOf(rows, 'loss', { pb: -0.03, optimal: -0.05 }, undefined)
+    expect(t).toEqual({ pb: 'gain', optimal: 'loss' })
+    // No trend for a bar (an older payload): steady.
+    expect(laneTrendsOf(rows, 'steady', undefined, undefined)).toEqual({
+      pb: 'steady',
+      optimal: 'steady'
+    })
+  })
+
+  it('keeps each row in its own hysteresis, and the same object while nothing changes', () => {
+    const first = laneTrendsOf(rows, 'steady', { pb: -0.02 }, undefined)
+    expect(first.pb).toBe('gain')
+    // -0.015: under the start (0.02) but over the stop (0.01): still gaining...
+    const held = laneTrendsOf(rows, 'steady', { pb: -0.015 }, first)
+    expect(held).toBe(first)
+    // ...which a row without that past would not be.
+    expect(laneTrendsOf(rows, 'steady', { pb: -0.015 }, undefined).pb).toBe('steady')
+    // Under the stop: steady again.
+    expect(laneTrendsOf(rows, 'steady', { pb: -0.005 }, held).pb).toBe('steady')
   })
 })
