@@ -34,7 +34,8 @@ llegue:
 - consultará solo las versiones publicadas de OverLap en GitHub Releases, para saber si hay una nueva
   y descargarla (GitHub verá tu dirección IP, como en cualquier descarga);
 - vendrá **activado de serie y se podrá desactivar** en los ajustes;
-- este documento, el README y el instalador lo explicarán **antes** de que se publique esa versión.
+- este documento, el README y las notas de la release lo explicarán **antes** de que se publique esa
+  versión.
 
 Hasta entonces, OverLap no hace ninguna conexión de red.
 
@@ -65,7 +66,7 @@ GitHub only when you click them; GitHub's privacy policy applies from there.
 **In the future: the updater.** A coming version will add an automatic updater. When it does, it
 will only check OverLap's published releases on GitHub (GitHub sees your IP address, as with any
 download), it will be **on by default and can be turned off** in the settings, and this document,
-the README and the installer will describe it **before** that version is released. Until then,
+the README and the release notes will describe it **before** that version is released. Until then,
 OverLap makes no network connections at all.
 
 **Contact.** Open an issue at <https://github.com/jesus-molano/OverLap/issues>, or a private report

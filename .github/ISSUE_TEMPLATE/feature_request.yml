@@ -1,6 +1,6 @@
 name: Proponer una idea / Suggest an idea
 description: Algo que OverLap podría hacer. / Something OverLap could do.
-labels: [idea]
+labels: [enhancement]
 body:
   - type: markdown
     attributes:
