@@ -320,7 +320,8 @@ describe('SKIP_EMIT', () => {
       pending: null,
       temporary: false,
       laps: NO_LAPS,
-      bars: NO_BARS
+      bars: NO_BARS,
+      barTrends: {}
     }
     const live: DeltaData = {
       visible: true,
@@ -337,7 +338,8 @@ describe('SKIP_EMIT', () => {
       pending: null,
       temporary: false,
       laps: NO_LAPS,
-      bars: NO_BARS
+      bars: NO_BARS,
+      barTrends: {}
     }
     expect(skip(hidden, null)).toBe(false)
     expect(skip({ ...hidden }, hidden)).toBe(true)

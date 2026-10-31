@@ -23,7 +23,8 @@
  * The bars per reference (DeltaData.bars, the 'refs' row) are the same delta against each
  * reference in delta.refBars, followed only while the row and the reference are shown. Each has
  * its own copy of its lap and keeps it for the whole lap like the main one, with no fallback: a
- * reference with no lap yet is null. One interpolation each per compute.
+ * reference with no lap yet is null. One interpolation each per compute. Each bar has its own
+ * trend too (DeltaData.barTrends), smoothed as the main one and started over with it.
  *
  * Only clean laps are references (LapRecord.clean: no off-track, no pit road, no tow or jump, no
  * stop, no caution, not a race's first lap, no incident of yours on it): your session best, your
@@ -61,6 +62,7 @@ import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type {
   DeltaBars,
+  DeltaBarTrends,
   DeltaData,
   DeltaLaps,
   DeltaLapState,
@@ -151,6 +153,33 @@ interface LapSummary {
   cleanAtLine: boolean
 }
 
+/** EMA (DELTA.trendTauS) of d(delta)/dt over SessionTime, from 0; quantised 0.01. */
+class Trend {
+  private ema = 0
+  private t = Number.NaN
+  private raw = Number.NaN
+
+  update(raw: number, now: number): number {
+    const dt = now - this.t
+    if (dt === 0) return quantise(this.ema, 100)
+    if (dt > 0 && dt <= DELTA.maxGapS) {
+      const rate = (raw - this.raw) / dt
+      this.ema += (rate - this.ema) * (1 - Math.exp(-dt / DELTA.trendTauS))
+    } else {
+      this.ema = 0
+    }
+    this.t = now
+    this.raw = raw
+    return quantise(this.ema, 100)
+  }
+
+  reset(): void {
+    this.ema = 0
+    this.t = Number.NaN
+    this.raw = Number.NaN
+  }
+}
+
 /** One bar of the 'refs' row: its reference's lap (a copy), kept for the whole lap. */
 class BarRef {
   /** As Candidate's; NaN time = no lap. */
@@ -160,10 +189,14 @@ class BarRef {
   readonly profile = new Float64Array(LINES + 1)
   /** The value last shown (held at the line and through a glitch, as the main delta). */
   shown: number | null = null
+  /** Its own trend (DeltaData.barTrends), smoothed as the main one. */
+  readonly trend = new Trend()
 
   copy(cand: Candidate): void {
     this.time = cand.lapTime
     for (let i = 0; i <= LINES; i++) this.profile[i] = cand.profile[i] ?? 0
+    // Another lap: nothing to smooth from (as the main delta's adopt).
+    this.trend.reset()
   }
 
   drop(): void {
@@ -171,6 +204,7 @@ class BarRef {
     this.lap = -1
     this.time = Number.NaN
     this.shown = null
+    this.trend.reset()
   }
 }
 
@@ -184,6 +218,9 @@ export const NO_BARS: DeltaBars = Object.freeze({
 })
 
 const NO_KINDS: readonly DeltaReference[] = Object.freeze([])
+
+/** No bar trends (no bar computed, a lap summary, an older payload). */
+export const NO_BAR_TRENDS: DeltaBarTrends = Object.freeze({})
 
 function isReference(v: unknown): v is DeltaReference {
   return (DELTA_REFERENCE_VALUES as readonly unknown[]).includes(v)
@@ -222,7 +259,8 @@ function hiddenPayload(reference: DeltaReference): DeltaData {
     predictedLap: null,
     sectors: [],
     lapState: 'none',
-    bars: NO_BARS
+    bars: NO_BARS,
+    barTrends: NO_BAR_TRENDS
   }
 }
 
@@ -313,9 +351,7 @@ export class DeltaProvider {
 
   // Output.
   private shownDelta: number | null = null
-  private trendEma = 0
-  private trendT = Number.NaN
-  private trendRaw = Number.NaN
+  private readonly trend = new Trend()
 
   reset(): void {
     this.sessionKey = null
@@ -414,7 +450,12 @@ export class DeltaProvider {
     if (opts.rows !== this.barRows || opts.refBars !== this.barList) {
       this.barRows = opts.rows
       this.barList = opts.refBars
-      this.barKinds = barReferences(opts)
+      const kinds = barReferences(opts)
+      // Another set of bars: each trend starts over (the values follow their laps as before).
+      if (!arrayEqual(kinds, this.barKinds)) {
+        for (const kind of DELTA_REFERENCE_VALUES) this.barRefs[kind].trend.reset()
+      }
+      this.barKinds = kinds
     }
     this.followSessionEnd(frame, session, now, continuous)
 
@@ -642,7 +683,9 @@ export class DeltaProvider {
         predictedLap: quantise(lapTime, 1000),
         sectors,
         lapState: this.finishedState(),
-        bars
+        bars,
+        // A finished lap has no trend, as the main one's 0.
+        barTrends: NO_BAR_TRENDS
       }
     }
   }
@@ -943,7 +986,7 @@ export class DeltaProvider {
       const end = k + 1 < n ? (this.cross[k + 1] ?? Number.NaN) : Number.NaN
       sectors[k] = this.sectorDelta(k, this.cross[k] ?? Number.NaN, end)
     }
-    const bars = this.barValues(cur, pct)
+    const { bars, barTrends } = this.barValues(cur, pct, now)
     let delta: number | null = null
     let trend = 0
     if (cur !== null) {
@@ -972,31 +1015,44 @@ export class DeltaProvider {
       predictedLap: delta === null ? null : quantise(this.refTime + delta, 1000),
       sectors,
       lapState: this.lapState(frame, race, player, cur),
-      bars
+      bars,
+      barTrends
     }
   }
 
   /**
    * Each bar's delta at `pct` against its own lap: held where the main one holds (the first
    * DELTA.guardPct of the lap, an impossible gain), null with no lap in progress or no lap of it.
+   * And its trend, as the main one's: 0 (and smoothed from scratch) while the value holds.
    */
-  private barValues(cur: CurrentLap | null, pct: number): DeltaBars {
+  private barValues(
+    cur: CurrentLap | null,
+    pct: number,
+    now: number
+  ): { bars: DeltaBars; barTrends: DeltaBarTrends } {
     const kinds = this.barKinds
-    if (kinds.length === 0) return NO_BARS
+    if (kinds.length === 0) return { bars: NO_BARS, barTrends: NO_BAR_TRENDS }
     const out: Record<DeltaReference, number | null> = { ...NO_BARS }
+    const trends: Partial<Record<DeltaReference, number>> = {}
     for (const kind of kinds) {
       const bar = this.barRefs[kind]
+      let trend = 0
       if (cur === null || Number.isNaN(bar.time)) {
         bar.shown = null
+        bar.trend.reset()
       } else {
         const raw = cur.elapsedS - profileAt(bar.profile, pct)
         if (!(pct < DELTA.guardPct) && raw > -DELTA.maxGainFraction * bar.time) {
           bar.shown = quantise(raw, 100)
+          trend = bar.trend.update(raw, now)
+        } else {
+          bar.trend.reset()
         }
       }
       out[kind] = bar.shown
+      trends[kind] = trend
     }
-    return out
+    return { bars: out, barTrends: trends }
   }
 
   /**
@@ -1016,23 +1072,13 @@ export class DeltaProvider {
 
   /** EMA (DELTA.trendTauS) of d(delta)/dt over SessionTime, from 0; quantised 0.01. */
   private updateTrend(raw: number, now: number): number {
-    const dt = now - this.trendT
-    if (dt === 0) return quantise(this.trendEma, 100)
-    if (dt > 0 && dt <= DELTA.maxGapS) {
-      const rate = (raw - this.trendRaw) / dt
-      this.trendEma += (rate - this.trendEma) * (1 - Math.exp(-dt / DELTA.trendTauS))
-    } else {
-      this.trendEma = 0
-    }
-    this.trendT = now
-    this.trendRaw = raw
-    return quantise(this.trendEma, 100)
+    return this.trend.update(raw, now)
   }
 
+  /** The main trend starts over, and each bar's with it (a lap starts or ends, another lap). */
   private resetTrend(): void {
-    this.trendEma = 0
-    this.trendT = Number.NaN
-    this.trendRaw = Number.NaN
+    this.trend.reset()
+    for (const kind of DELTA_REFERENCE_VALUES) this.barRefs[kind].trend.reset()
   }
 }
 
@@ -1079,8 +1125,17 @@ export function deltaEqual(a: DeltaData, b: DeltaData): boolean {
     a.laps.optimal === b.laps.optimal &&
     a.laps.pb === b.laps.pb &&
     barsEqual(a.bars, b.bars) &&
+    trendsEqual(a.barTrends, b.barTrends) &&
     arrayEqual(a.sectors, b.sectors)
   )
+}
+
+/** Shallow: the same trend for each reference (absent and absent alike). */
+function trendsEqual(a: DeltaBarTrends | undefined, b: DeltaBarTrends | undefined): boolean {
+  if (a === b) return true
+  if (a === undefined || b === undefined) return false
+  for (const kind of DELTA_REFERENCE_VALUES) if (a[kind] !== b[kind]) return false
+  return true
 }
 
 function barsEqual(a: DeltaBars, b: DeltaBars): boolean {

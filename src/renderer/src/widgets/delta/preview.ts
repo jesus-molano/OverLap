@@ -6,7 +6,7 @@
  */
 import { shallowRef } from 'vue'
 import type { SessionKind } from '@shared/sessionInfo'
-import type { DeltaBars, DeltaData, DeltaReference } from '@shared/types'
+import type { DeltaBarTrends, DeltaBars, DeltaData, DeltaReference } from '@shared/types'
 
 /**
  * Whose reference the sample draws: the race's (the one most drivers set the widget up for), or
@@ -45,6 +45,18 @@ function sampleBars(reference: DeltaReference): DeltaBars {
   })
 }
 
+/**
+ * Each bar's trend: gaining on your own laps, steady on the class best, losing on the class
+ * optimal, so the rows' chevrons read both ways (the reference in use draws the main trend).
+ */
+const SAMPLE_TRENDS: DeltaBarTrends = Object.freeze({
+  pb: -0.04,
+  session: -0.03,
+  optimal: -0.04,
+  class: 0,
+  classOptimal: 0.03
+})
+
 function sample(reference: DeltaReference): DeltaData {
   const ref = REFS[reference]
   return Object.freeze({
@@ -63,7 +75,8 @@ function sample(reference: DeltaReference): DeltaData {
     temporary: false,
     // Last a little slower than the best, the optimal under it, the record the fastest of yours.
     laps: Object.freeze({ last: 136.731, best: 136.412, optimal: 135.958, pb: 136.089 }),
-    bars: sampleBars(reference)
+    bars: sampleBars(reference),
+    barTrends: SAMPLE_TRENDS
   })
 }
 

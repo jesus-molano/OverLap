@@ -23,6 +23,7 @@ import {
   DELTA_FALLBACK,
   DeltaProvider,
   NO_BARS,
+  NO_BAR_TRENDS,
   NO_LAPS,
   deltaEqual,
   profileAt,
@@ -349,7 +350,8 @@ describe('DeltaProvider: the live delta', () => {
       pending: null,
       temporary: false,
       laps: NO_LAPS,
-      bars: NO_BARS
+      bars: NO_BARS,
+      barTrends: NO_BAR_TRENDS
     })
     // A reference appears while there is none: taken at once (nothing to keep consistent).
     rig.race.best.set(PLAYER, lapOf(100))
@@ -970,7 +972,8 @@ describe('DeltaProvider: the S/F line', () => {
         pending: null,
         temporary: false,
         laps: s.data.laps,
-        bars: NO_BARS
+        bars: NO_BARS,
+        barTrends: NO_BAR_TRENDS
       })
     }
     // Your times as they were at the line: the best is the model's, the optimal your laps'.
@@ -1378,7 +1381,8 @@ describe('deltaEqual', () => {
     pending: null,
     temporary: false,
     laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: 92.5 },
-    bars: NO_BARS
+    bars: NO_BARS,
+    barTrends: { pb: 0.01 }
   }
 
   it('compares every field, sectors element by element', () => {
@@ -1405,7 +1409,10 @@ describe('deltaEqual', () => {
       { laps: { last: 93.1, best: 92.5, optimal: null, pb: 92.5 } },
       { laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: null } },
       { bars: { ...NO_BARS, pb: -0.1 } },
-      { bars: { ...NO_BARS, classOptimal: 0 } }
+      { bars: { ...NO_BARS, classOptimal: 0 } },
+      { barTrends: { pb: 0.02 } },
+      { barTrends: { pb: 0.01, session: 0 } },
+      { barTrends: {} }
     ]
     for (const c of changes)
       expect(deltaEqual({ ...base, ...c }, base), JSON.stringify(c)).toBe(false)
@@ -1486,6 +1493,36 @@ describe('DeltaProvider: the bars per reference (request 4)', () => {
     // An impossible gain (a glitch): the last value holds, as the hero's.
     expect(rig.at(T0 + 0.5, 3, 0.505, 0.2).bars.session).toBe(0.5)
     expect(rig.at(T0 + 1, null, 0.51).bars.session).toBeNull()
+  })
+
+  it('gives each bar its own trend, smoothed as the main one', () => {
+    const rig = withBars(new Rig({ reference: 'session' }), ['pb', 'session', 'class'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    // A class best 2 s quicker, a record (an older car setup) 2 s slower: driven at the session
+    // best's pace you lose 0.02 s per second on the class best and gain as much on the record.
+    rig.bests.offer(personalBestKey(rig.session, PLAYER) ?? '', pbLap(102))
+    rig.race.best.set(1, lapOf(98, 4))
+    const late = rig.drive([even(100)], { endPct: 0.5 }).filter((s) => s.t - T0 > 3)
+    expect(late.length).toBeGreaterThan(50)
+    for (const s of late) {
+      expect(s.data.barTrends).toEqual({ pb: -0.02, session: 0, class: 0.02 })
+      // The bar of the reference in use follows the main trend.
+      expect(s.data.barTrends.session).toBe(s.data.trend)
+    }
+  })
+
+  it("starts each bar's trend over where its value holds, and computes none without bars", () => {
+    const rig = withBars(new Rig(), ['session'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.at(T0, 3, 0.5, 50.5)
+    expect(rig.at(T0 + 0.5, 3, 0.505, 51.5).barTrends.session).toBeGreaterThan(0)
+    // An impossible gain (a glitch): the value holds, the trend reads 0 and starts over.
+    expect(rig.at(T0 + 1, 3, 0.51, 0.2).barTrends).toEqual({ session: 0 })
+    // No lap in progress: 0.
+    expect(rig.at(T0 + 1.5, null, 0.515).barTrends).toEqual({ session: 0 })
+    // The row hidden: no trend at all.
+    rig.opts = { ...rig.opts, rows: setElementVisible(rig.opts.rows, 'refs', false) }
+    expect(rig.at(T0 + 2, 3, 0.52, 52).barTrends).toBe(NO_BAR_TRENDS)
   })
 })
 
