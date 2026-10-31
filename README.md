@@ -227,8 +227,8 @@ cuentan:
   que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
   iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
 
-Las dos marcas (el «2» y el tope) tienen su ojo en **Personalizar › Marcas** («Dos coches en un
-lado» y «Coche a punto de ponerse al lado», este solo con «Dónde te cubre»); de serie, las dos.
+Las dos marcas (el tope y el «2») tienen su ojo en **Personalizar › Marcas** («Coche a punto de
+ponerse al lado», este solo con «Dónde te cubre», y «Dos coches en un lado»); de serie, las dos.
 
 Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
 acerca por detrás sin haber estado a tu lado no tiene lado todavía. Cuánto, la distancia a lo largo
@@ -236,8 +236,9 @@ de la pista. iRacing no da la distancia lateral: llena es «a tu lado», no «go
 
 El ancho de la ventana es la separación entre las barras (para ponerlas a los lados del coche o
 de la pantalla) y su alto, su largo; el grosor, **Grosor de las barras** (14 px de serie), se elige
-en Contenido. De serie solo se ve con un coche al lado o a punto de estarlo, y está oculto: se
-activa en Visibilidad, la barra lateral o la bandeja.
+en Contenido. De serie solo se ve con un coche al lado o a punto de estarlo (**Solo con un coche
+al lado**, en Contenido, activado), y está oculto: se activa en Visibilidad, la barra lateral o la
+bandeja.
 
 ### Delta
 
@@ -323,7 +324,7 @@ la línea de qué hacer y los chips de los demás avisos.
 
 Los testigos del motor como en un salpicadero, en fila o en columna (**Orientación**): presión de
 aceite y de gasolina, motor calado, reparación obligatoria y opcional (con el tiempo del equipo,
-«42 s (equipo)»; con **Cuenta atrás real**, los segundos reales estimados parado en tu box),
+«42 s (equipo)», o «42 s eq.» si la ventana es estrecha; con **Cuenta atrás real**, los segundos reales estimados parado en tu box),
 temperatura del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones.
 Cada gravedad tiene su color y su forma; en amarillo avisa cuando el agua o el aceite suben muy por
 encima de tu media, antes de que se encienda el testigo del coche. Su página de Ajustes explica qué
