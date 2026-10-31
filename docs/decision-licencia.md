@@ -1,5 +1,11 @@
 # Decisión: si OverLap se vende, cómo (R32, 30-10-2026)
 
+> **Descartada el 31-10-2026.** OverLap es software libre bajo la GPL-3.0-or-later (ver
+> [LICENSE](../LICENSE)) y no habrá edición de pago, claves de licencia ni funciones reservadas:
+> todo el código está disponible para todos con la misma licencia. El proyecto se mantiene con
+> donativos voluntarios, que no desbloquean nada. Esta nota se conserva solo como historial; nada
+> de lo que propone sigue vigente.
+
 Nota de decisión del estudio de UX (R32). **No cambia nada en la app**: OverLap sigue sin cuenta,
 sin conexión y sin funciones bloqueadas. Esta nota fija qué hacer _si_ algún día se vende, para que
 esa decisión no estropee lo que hoy es una ventaja frente a los demás overlays.
