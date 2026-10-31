@@ -1,5 +1,22 @@
 # OverLap: qué podemos añadir con datos reales de iRacing
 
+> **Estado a 31-10-2026 (OverLap 2.4.1).** Este informe se conserva como historial: frases como
+> «hoy OverLap no muestra nada de daños» describen la app de entonces.
+>
+> - **Hecho:** del top 10, el 1 (incidentes y aviso «+Nx»), el 2 (los avisos que faltaban), el 3
+>   (mejor vuelta, stint, última parada, neumático y banderas en Posiciones y Relativo), el 4 (salud
+>   del motor: el widget Testigos), el 5 (ocultar con la interfaz del sim, en el garaje y en las
+>   repeticiones: Visibilidad) y el 6 (condiciones de pista, como datos de las barras de
+>   información); el 8, en parte (tiempos de reparación en Testigos, «DAÑO» en Avisos, reparaciones
+>   rápidas en Combustible). De los candidatos: luces de cambio, juegos de neumáticos restantes,
+>   combustible preciso y un spotter visual (el widget Spotter).
+> - **Pendiente, sin construir:** el 7 (tira de pista), el 9 (ayuda para reincorporarte), el 10
+>   (mapa 2D), el ayudante de boxes, «Si paro ahora», el delta oficial de iRacing, el uso de pianos,
+>   detectar tirones, la ayuda de salida lanzada, «¿Reparo o sigo?», «Dónde le gano» (solo está la
+>   fila de sectores de Batalla), los incidentes por curva, «Quién cae, quién viene» y el contador
+>   de banderas.
+> - **Descartado:** lo de la sección 4, que sigue igual.
+
 Fecha: 25-10-2026. En qué se basa este informe:
 
 - He contrastado cada idea con el SDK que usa OverLap (irsdk-node 4.4.0 y las cabeceras oficiales de iRacing).

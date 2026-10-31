@@ -1,5 +1,19 @@
 # Propuesta v2 del overlay de iRacing (24-10-2026)
 
+> **Estado a 31-10-2026 (OverLap 2.4.1).** Este plan se conserva como historial; lo que sigue no
+> se ha reescrito.
+>
+> - **Hecho:** el RaceModel (en memoria; reanuda tras una reconexión corta), Standings+ (el widget
+>   Posiciones), Batalla, iRating y SR proyectados (con la posición neutra), Clase rápida y Peligro
+>   delante (el widget Tráfico), Delta+ (récord personal guardado y referencias de clase),
+>   Combustible, Banderas y avisos (los widgets Avisos y Testigos), Inputs (Pedales) y el
+>   auto-ocultado (Visibilidad y las reglas de cada widget).
+> - **Pendiente, sin construir:** «Si paro ahora», la memoria local (etiquetas y notas de pilotos,
+>   diario de carrera), guardar el RaceModel en disco por `SubSessionID` y una columna de
+>   tendencia en Posiciones (solo Batalla la tiene).
+> - **Descartado o fuera de alcance:** el mapa con posiciones reales, la temperatura de neumáticos
+>   en directo y la VR (ver «Fuera de alcance» en las [notas de desarrollo](README.dev.md)).
+
 ## 1. Punto de partida
 
 **Qué tenemos (v1)**
