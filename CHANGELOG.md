@@ -10,17 +10,24 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 ### Cambiado
 
 - **Delta: con dos referencias o más, una fila igual para cada una**: al ver más de una referencia
-  (las **Barras por referencia** y la que usa el delta), el delta ya no muestra un número grande con
-  barras pequeñas debajo. Cada referencia tiene la misma fila: su nombre, su delta con ▼/▲, su
-  tendencia (ahora una por referencia) y su barra, todas a la misma escala (verde a la
-  izquierda: más rápido) y en el orden de tu lista, use el delta la que use. La línea de arriba
-  nombra la referencia que usa el delta, con su tiempo y la vuelta prevista; los sectores van con
-  ella. Con una sola referencia (lo de serie) el delta es el de siempre, igual que en 2.4. Al
-  encender filas desde la página de Delta la ventana crece lo justo para no achicar el texto
-  (también si una sesión usa una referencia que no está en la lista); en una ventana más baja se
-  va primero la línea de arriba, luego las filas del final (nunca la de la referencia en uso, y la
-  página dice «No cabe»), y con una sola fila vuelve el delta de siempre. Tus ajustes se cargan
-  igual; si ya tenías las barras encendidas, verás filas en lugar de barras finas.
+  (las **Filas por referencia**, antes «Barras por referencia», y la que usa el delta), el delta ya
+  no muestra un número grande con barras pequeñas debajo. Cada referencia tiene la misma fila: su
+  nombre, su delta con ▼/▲, su tendencia (ahora una por referencia) y su barra, todas a la misma
+  escala (verde a la izquierda: más rápido) y en el orden de tu lista, use el delta la que use. La
+  línea de arriba nombra la referencia que usa el delta, con su tiempo y la vuelta prevista; los
+  sectores van con ella. Si la línea de arriba no se ve, los sectores empiezan con el nombre corto
+  de esa referencia, y en una ventana estrecha la línea la nombra igual que su fila («ÓPT.»). Una
+  vuelta inválida, la de salida o la grúa se dicen siempre en esa línea, aunque hayas ocultado sus
+  partes. Con una sola referencia (lo de serie) el delta es el de siempre, igual que en 2.4,
+  también al pasar el ratón por la vista previa de Ajustes. Al encender filas desde la página de
+  Delta la ventana crece lo justo para no achicar el texto (también si una sesión usa una
+  referencia que no está en la lista, o si vuelves a mostrar una parte de la línea de arriba); en
+  una ventana más baja se van primero las filas del final (nunca la de la referencia en uso, y la
+  página dice «No cabe»), luego la línea de arriba, y con una sola fila vuelve el delta de siempre.
+  Si en plena sesión el atajo o la referencia de reserva traen una que no está en la lista, su fila
+  ocupa el sitio de la última en vez de añadir otra, así que el texto no cambia de tamaño. Tus
+  ajustes se cargan igual; si ya tenías las barras encendidas, verás filas en lugar de barras
+  finas.
 
 ## [2.4.0] - 2026-10-31
 
