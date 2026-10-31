@@ -59,7 +59,15 @@ export class LapCapture {
     const rec = this.rec
     if (!rec) return null
     const cached = this.view
-    if (cached && this.viewRec === rec && cached.lapTime === rec.time) return cached
+    // A lap can turn unclean after the line (an incident): a new snapshot says so.
+    if (
+      cached &&
+      this.viewRec === rec &&
+      cached.lapTime === rec.time &&
+      cached.clean === rec.clean
+    ) {
+      return cached
+    }
     const t = this.times
     const lapTime = rec.time
     const scale = lapTime / (t[LINES] ?? lapTime)
@@ -107,6 +115,8 @@ export function promoteBest(track: CarTrack): void {
   if (!rec?.clean) return
   const best = track.bestLap
   if (best.rec === rec || (best.rec !== null && best.rec.time <= rec.time)) return
+  // Kept until the next promotion: an incident just after the line puts it back (incidentOnLap).
+  track.prevBest.copyFrom(best)
   best.copyFrom(track.lastLap)
 }
 

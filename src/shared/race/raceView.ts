@@ -25,6 +25,10 @@ export interface LapRecord {
    * caution, left the track (an off-track excursion, which iRacing may have
    * invalidated), stopped on track (RaceCarState.stoppedForS), was the first
    * racing lap, the car was towed/teleported, or the model started mid-lap.
+   * Your own lap is not clean either when your incident count rose during it
+   * or just after its line (INCIDENT_LINE_GRACE_S): an off-track iRacing
+   * scored that no telemetry tick showed. That can turn a lap unclean a moment
+   * after the line, never the other way.
    */
   readonly clean: boolean
 }
@@ -47,6 +51,12 @@ export interface RaceCarState {
   /** On pit road or in the pit stall. */
   readonly inPits: boolean
   readonly offTrack: boolean
+  /**
+   * The lap in progress has already broken the clean rule (LapRecord.clean) the model follows
+   * per tick: off track, stopped, an incident of yours, a jump or a lap joined midway. Pit road
+   * and caution are marked per timing line and are not in it.
+   */
+  readonly lapInvalid: boolean
   /**
    * Not in world for > 10 s after having been in it during a race
    * (disconnected/retired). Never true for a car that already finished.

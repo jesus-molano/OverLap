@@ -9,6 +9,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Delta: una barra por referencia**: una línea nueva, **Barras por referencia** (apagada de
+  serie), dibuja una barra por cada referencia que elijas, con su nombre corto y su diferencia:
+  tu récord, tu mejor vuelta de la sesión, tu óptima, la vuelta rápida de tu clase y la óptima de
+  tu clase. Se despliega en su lista, con un ojo para cada una y en el orden que quieras (de serie,
+  las tres tuyas). Todas usan la escala de la barra principal y sus colores (verde a la izquierda,
+  más rápido; rojo a la derecha, más lento), la que usa el delta lleva «Δ», y cada una compara con
+  su propia vuelta toda la vuelta, sin «siguiente si no existe»: la que aún no tiene vuelta marca
+  «—» con la barra vacía, sin mover nada. Solo se calculan las que se ven.
 - **Batalla: el hueco como en Relativo, y cada frase de la predicción a tu gusto**: en Contenido,
   **Hueco** elige entre **Sin signo** (el hueco medido, «0.6 s», como siempre y de serie) y **Como
   Relativo** (el mismo tiempo que Relativo, con su signo y su formato: positivo delante, negativo
@@ -35,6 +43,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   vuelven tras el nombre. Batalla, sin columnas, las sigue llevando tras el nombre. «Completo» no
   la enciende: no añade nada que no se vea ya. **Puestos ganados** ya era una columna
   independiente que se ordena como las demás (solo sale en carrera, donde existe el dato).
+
+### Cambiado
+
+- **Tus referencias, solo con vueltas legales**: además de salirte de pista, pisar el pit lane, la
+  grúa, pararte o una amarilla, ahora también invalida tu vuelta cualquier incidente tuyo que
+  iRacing anote en ella (o medio segundo después de cruzar la línea, cuando la salida de pista
+  llega tarde). Esa vuelta nunca es tu mejor vuelta de la sesión ni entra en tu óptima ni en la de
+  tu clase, ni se guarda como récord; si ya lo era por un instante, vuelve la anterior antes de que
+  el delta la use. El aviso «vuelta inválida» del delta sigue esta misma regla, también la vuelta
+  recién terminada que se muestra al cruzar la línea.
 
 ## [2.3.1] - 2026-10-30
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
 import { defaultOptions } from '@shared/settings'
 import { DELTA_REFERENCE_VALUES } from '@shared/settingsSchema'
-import type { DeltaLapId, DeltaRowId, ElementEntry } from '@shared/types'
+import type { DeltaLapId, DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
 import { previewDelta } from './preview'
 import {
   DELTA_FIT_TOP_EM,
@@ -10,6 +10,8 @@ import {
   deltaRows,
   deltaTopParts,
   lapTimesView,
+  refBarsFitEm,
+  refBarsView,
   refLapOf,
   referenceNames,
   referenceNote
@@ -160,5 +162,39 @@ describe('referenceNote', () => {
     for (const m of [ES, EN]) {
       for (const r of DELTA_REFERENCE_VALUES) expect(referenceNames(m)[r]).not.toBe('')
     }
+  })
+})
+
+describe('refBarsView', () => {
+  const list = (
+    ids: DeltaReference[],
+    hidden: DeltaReference[] = []
+  ): ElementEntry<DeltaReference>[] => ids.map((id) => ({ id, visible: !hidden.includes(id) }))
+
+  it('the shown references in your order, the one in use marked, short captions', () => {
+    const v = refBarsView(
+      list(['class', 'optimal', 'pb', 'session', 'classOptimal'], ['pb']),
+      'optimal',
+      ES
+    )
+    expect(v.map((b) => b.id)).toEqual(['class', 'optimal', 'session', 'classOptimal'])
+    expect(v.map((b) => b.caption)).toEqual(['Clase', 'Ópt.', 'Mejor', 'Ópt. clase'])
+    expect(v.map((b) => b.isRef)).toEqual([false, true, false, false])
+    expect(v[1]?.name).toBe('Vuelta óptima')
+    // The captions of your own laps are the lap times line's.
+    for (const [bar, lap] of [
+      ['pb', 'pb'],
+      ['session', 'best'],
+      ['optimal', 'optimal']
+    ] as const) {
+      expect(ES.widgets.delta.bars[bar]).toBe(ES.widgets.delta.laps[lap])
+      expect(EN.widgets.delta.bars[bar]).toBe(EN.widgets.delta.laps[lap])
+    }
+  })
+
+  it('none shown: no bars (the row draws and sizes nothing)', () => {
+    expect(refBarsView(list(['pb'], ['pb']), 'pb', ES)).toHaveLength(0)
+    expect(refBarsFitEm(0)).toBe(0)
+    expect(refBarsFitEm(3)).toBeCloseTo(4.2, 9)
   })
 })

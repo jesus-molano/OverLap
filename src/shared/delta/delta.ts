@@ -20,6 +20,16 @@
  * optimal and your record), whatever the reference: the widget's lap times line. They are looked
  * up with the references while a lap starts (when they change), not per compute.
  *
+ * The bars per reference (DeltaData.bars, the 'refs' row) are the same delta against each
+ * reference in delta.refBars, followed only while the row and the reference are shown. Each has
+ * its own copy of its lap and keeps it for the whole lap like the main one, with no fallback: a
+ * reference with no lap yet is null. One interpolation each per compute.
+ *
+ * Only clean laps are references (LapRecord.clean: no off-track, no pit road, no tow or jump, no
+ * stop, no caution, not a race's first lap, no incident of yours on it): your session best, your
+ * optimal's sectors, the class's laps and the record the loop stores. A lap that turns unclean
+ * just after its line (an incident iRacing scored late) is dropped while the next lap starts.
+ *
  * Delta = seconds into the lap (RaceView.currentLap) - the reference's time at the same lap
  * fraction (linear between timing lines). In the first DELTA.guardPct of a lap, where the lap
  * counter and CarIdxLapDistPct may disagree, the lap just finished shows instead: its actual
@@ -36,6 +46,7 @@
  * every DELTA.refreshS (every DELTA.searchS while there is none or the lap is starting), and
  * only then are the laps completed since taken into the optimal laps.
  */
+import { isElementVisible, visibleIds } from '../elements'
 import { arrayEqual } from '../equal'
 import { CAUTION_FLAGS, SessionFlag } from '../flags'
 import { formatDriverName, isKnownName } from '../format'
@@ -43,11 +54,13 @@ import { isValidPct } from '../lapDist'
 import { finiteOr, quantise } from '../num'
 import { RACE_TIMING_LINES } from '../race/raceView'
 import type { RaceView } from '../race/raceView'
+import { DELTA_REFERENCE_VALUES } from '../settingsSchema'
 import { currentSessionType, isRaceSession, resolvePlayerCarIdx, sessionKind } from '../sessionInfo'
 import type { SessionKind } from '../sessionInfo'
 import { SessionState } from '../telemetry'
 import type { TelemetryFrame } from '../telemetry'
 import type {
+  DeltaBars,
   DeltaData,
   DeltaLaps,
   DeltaLapState,
@@ -134,6 +147,55 @@ interface Candidate {
 interface LapSummary {
   lap: number
   data: DeltaData
+  /** The model had the lap clean at the line: an incident just after may still spoil it. */
+  cleanAtLine: boolean
+}
+
+/** One bar of the 'refs' row: its reference's lap (a copy), kept for the whole lap. */
+class BarRef {
+  /** As Candidate's; NaN time = no lap. */
+  carIdx = -1
+  lap = -1
+  time = Number.NaN
+  readonly profile = new Float64Array(LINES + 1)
+  /** The value last shown (held at the line and through a glitch, as the main delta). */
+  shown: number | null = null
+
+  copy(cand: Candidate): void {
+    this.time = cand.lapTime
+    for (let i = 0; i <= LINES; i++) this.profile[i] = cand.profile[i] ?? 0
+  }
+
+  drop(): void {
+    this.carIdx = -1
+    this.lap = -1
+    this.time = Number.NaN
+    this.shown = null
+  }
+}
+
+/** No bar values (the row hidden, or no lap). */
+export const NO_BARS: DeltaBars = Object.freeze({
+  pb: null,
+  session: null,
+  optimal: null,
+  class: null,
+  classOptimal: null
+})
+
+const NO_KINDS: readonly DeltaReference[] = Object.freeze([])
+
+function isReference(v: unknown): v is DeltaReference {
+  return (DELTA_REFERENCE_VALUES as readonly unknown[]).includes(v)
+}
+
+/** The references with a bar: those shown in delta.refBars while the 'refs' row is. */
+export function barReferences(
+  opts: Pick<DeltaOptions, 'rows' | 'refBars'>
+): readonly DeltaReference[] {
+  if (!isElementVisible(opts.rows, 'refs')) return NO_KINDS
+  const ids = visibleIds(opts.refBars).filter(isReference)
+  return ids.length > 0 ? ids : NO_KINDS
 }
 
 /** No lap times yet (the lap times line, DeltaData.laps). */
@@ -159,7 +221,8 @@ function hiddenPayload(reference: DeltaReference): DeltaData {
     trend: 0,
     predictedLap: null,
     sectors: [],
-    lapState: 'none'
+    lapState: 'none',
+    bars: NO_BARS
   }
 }
 
@@ -213,6 +276,17 @@ export class DeltaProvider {
   private refSelf = false
   private readonly refProfile = new Float64Array(LINES + 1)
   private refreshT = Number.NaN
+  /** The bars per reference: which ones (barReferences, kept while the options stay) and theirs. */
+  private barKinds: readonly DeltaReference[] = NO_KINDS
+  private barRows: unknown = null
+  private barList: unknown = null
+  private readonly barRefs: Readonly<Record<DeltaReference, BarRef>> = {
+    pb: new BarRef(),
+    session: new BarRef(),
+    optimal: new BarRef(),
+    class: new BarRef(),
+    classOptimal: new BarRef()
+  }
   /** Every car's best sectors this session (the optimal references). */
   private readonly optimal = new OptimalLaps()
   /** Last scan of the laps while you are not driving (no reference lookups then). */
@@ -337,6 +411,11 @@ export class DeltaProvider {
     }
     const continuous = now - this.lastT <= DELTA.maxGapS
     this.lastT = now
+    if (opts.rows !== this.barRows || opts.refBars !== this.barList) {
+      this.barRows = opts.rows
+      this.barList = opts.refBars
+      this.barKinds = barReferences(opts)
+    }
     this.followSessionEnd(frame, session, now, continuous)
 
     const player = resolvePlayerCarIdx(frame, session)
@@ -442,7 +521,8 @@ export class DeltaProvider {
     if (me?.outLap === true) this.lapOut = true
     const state = frame.SessionState[0] ?? SessionState.Invalid
     if (
-      (me !== undefined && (me.inPits || me.offTrack || me.stoppedForS > 0 || me.outLap)) ||
+      (me !== undefined &&
+        (me.inPits || me.offTrack || me.lapInvalid || me.stoppedForS > 0 || me.outLap)) ||
       ((frame.SessionFlags[0] ?? 0) & CAUTION_FLAGS) !== 0 ||
       // Warm-up and parade laps before the green are never timed.
       (state > SessionState.Invalid && state < SessionState.Racing)
@@ -525,6 +605,7 @@ export class DeltaProvider {
     if (!(pct < DELTA.guardPct)) return
     const last = race.lapProfile(player, 'last')
     let lapTime = Number.NaN
+    const cleanAtLine = last !== null && last.lap === this.lap && last.clean
     if (last !== null && last.lap === this.lap) lapTime = last.lapTime
     else if (cur !== null && cur.lap === this.lap + 1) lapTime = now - cur.elapsedS - this.lapStartT
     if (!(lapTime > 0) || !Number.isFinite(lapTime)) return
@@ -534,8 +615,18 @@ export class DeltaProvider {
       const end = k + 1 < n ? (this.cross[k + 1] ?? Number.NaN) : lapTime
       sectors[k] = this.sectorDelta(k, this.cross[k] ?? Number.NaN, end)
     }
+    let bars = NO_BARS
+    if (this.barKinds.length > 0) {
+      const b: Record<DeltaReference, number | null> = { ...NO_BARS }
+      for (const kind of this.barKinds) {
+        const ref = this.barRefs[kind]
+        b[kind] = Number.isFinite(ref.time) ? quantise(lapTime - ref.time, 100) : null
+      }
+      bars = Object.freeze(b)
+    }
     this.summary = {
       lap: this.lap,
+      cleanAtLine,
       data: {
         visible: true,
         reference: this.ref,
@@ -550,7 +641,8 @@ export class DeltaProvider {
         trend: 0,
         predictedLap: quantise(lapTime, 1000),
         sectors,
-        lapState: this.finishedState()
+        lapState: this.finishedState(),
+        bars
       }
     }
   }
@@ -614,6 +706,7 @@ export class DeltaProvider {
     this.optimal.scan(race, session)
     // Your times change at the line (your record a few seconds after it): looked up meanwhile.
     if (canSwitch) this.updateLaps(session, race, bests, player)
+    this.updateBars(session, race, bests, player, canSwitch)
 
     const chain = DELTA_FALLBACK[reference]
     const end = fallback ? chain.length : 1
@@ -649,7 +742,9 @@ export class DeltaProvider {
     const me = race.car(player)
     // The best lap is read again only once you have closed another one.
     const newest = me?.laps[0]
-    const closed = newest === undefined ? '' : `${player}:${newest.lap}:${newest.time}`
+    // Clean too: an incident just after the line takes the lap back from your best.
+    const closed =
+      newest === undefined ? '' : `${player}:${newest.lap}:${newest.time}:${newest.clean}`
     if (closed !== this.bestOf) {
       this.bestOf = closed
       const best = race.lapProfile(player, 'best')
@@ -672,6 +767,48 @@ export class DeltaProvider {
     ) {
       this.laps = Object.freeze(next)
     }
+  }
+
+  /**
+   * The bars' references: each its own lap, no fallback. Like the main one, a bar takes another
+   * lap only when a lap starts (or while it has none); a bar no longer shown forgets its lap.
+   */
+  private updateBars(
+    session: SessionMeta,
+    race: RaceView,
+    bests: PersonalBestStore,
+    player: number,
+    canSwitch: boolean
+  ): void {
+    for (const kind of DELTA_REFERENCE_VALUES) {
+      const bar = this.barRefs[kind]
+      if (!this.barKinds.includes(kind)) {
+        if (!Number.isNaN(bar.time)) bar.drop()
+        continue
+      }
+      const free = canSwitch || Number.isNaN(bar.time)
+      const cand = this.candidate(kind, session, race, bests, player)
+      if (cand === null) {
+        if (free) bar.drop()
+        continue
+      }
+      const same =
+        cand.carIdx === bar.carIdx &&
+        cand.lap === bar.lap &&
+        (kind !== 'pb' || cand.lapTime === bar.time)
+      if (same) {
+        if (cand.lapTime !== bar.time) bar.copy(cand)
+      } else if (free) {
+        bar.carIdx = cand.carIdx
+        bar.lap = cand.lap
+        bar.copy(cand)
+        bar.shown = null
+      }
+    }
+  }
+
+  private dropBars(): void {
+    for (const kind of DELTA_REFERENCE_VALUES) this.barRefs[kind].drop()
   }
 
   private candidate(
@@ -757,6 +894,7 @@ export class DeltaProvider {
     this.refSelf = false
     this.shownDelta = null
     this.resetTrend()
+    this.dropBars()
   }
 
   // ---------------------------------------------------------------------------
@@ -779,6 +917,15 @@ export class DeltaProvider {
       const next = cur === null || cur.lap === s.lap + 1
       if ((next && pct < DELTA.guardPct) || over) {
         this.shownDelta = s.data.delta
+        for (const kind of this.barKinds) this.barRefs[kind].shown = s.data.bars[kind]
+        // Clean at the line, then an incident scored just after it: the lap won't count.
+        if (s.cleanAtLine && s.data.lapState === 'valid') {
+          const last = race.lapProfile(player, 'last')
+          if (last !== null && last.lap === s.lap && !last.clean) {
+            s.cleanAtLine = false
+            s.data.lapState = 'invalid'
+          }
+        }
         return {
           ...s.data,
           preferred: this.optRef ?? s.data.preferred,
@@ -796,6 +943,7 @@ export class DeltaProvider {
       const end = k + 1 < n ? (this.cross[k + 1] ?? Number.NaN) : Number.NaN
       sectors[k] = this.sectorDelta(k, this.cross[k] ?? Number.NaN, end)
     }
+    const bars = this.barValues(cur, pct)
     let delta: number | null = null
     let trend = 0
     if (cur !== null) {
@@ -823,8 +971,32 @@ export class DeltaProvider {
       trend,
       predictedLap: delta === null ? null : quantise(this.refTime + delta, 1000),
       sectors,
-      lapState: this.lapState(frame, race, player, cur)
+      lapState: this.lapState(frame, race, player, cur),
+      bars
     }
+  }
+
+  /**
+   * Each bar's delta at `pct` against its own lap: held where the main one holds (the first
+   * DELTA.guardPct of the lap, an impossible gain), null with no lap in progress or no lap of it.
+   */
+  private barValues(cur: CurrentLap | null, pct: number): DeltaBars {
+    const kinds = this.barKinds
+    if (kinds.length === 0) return NO_BARS
+    const out: Record<DeltaReference, number | null> = { ...NO_BARS }
+    for (const kind of kinds) {
+      const bar = this.barRefs[kind]
+      if (cur === null || Number.isNaN(bar.time)) {
+        bar.shown = null
+      } else {
+        const raw = cur.elapsedS - profileAt(bar.profile, pct)
+        if (!(pct < DELTA.guardPct) && raw > -DELTA.maxGainFraction * bar.time) {
+          bar.shown = quantise(raw, 100)
+        }
+      }
+      out[kind] = bar.shown
+    }
+    return out
   }
 
   /**
@@ -906,6 +1078,13 @@ export function deltaEqual(a: DeltaData, b: DeltaData): boolean {
     a.laps.best === b.laps.best &&
     a.laps.optimal === b.laps.optimal &&
     a.laps.pb === b.laps.pb &&
+    barsEqual(a.bars, b.bars) &&
     arrayEqual(a.sectors, b.sectors)
   )
+}
+
+function barsEqual(a: DeltaBars, b: DeltaBars): boolean {
+  if (a === b) return true
+  for (const kind of DELTA_REFERENCE_VALUES) if (a[kind] !== b[kind]) return false
+  return true
 }

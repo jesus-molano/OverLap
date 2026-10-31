@@ -109,7 +109,8 @@ const rowTexts = computed(() => {
   return {
     ...base,
     sectors: { label: base.sectors.label, hint: d.sectorsHelp },
-    laps: { label: base.laps.label, hint: d.lapTimesHelp }
+    laps: { label: base.laps.label, hint: d.lapTimesHelp },
+    refs: { label: base.refs.label, hint: d.refBarsHelp }
   }
 })
 const topTexts = computed(() => {
@@ -122,18 +123,24 @@ const topTexts = computed(() => {
   }
 })
 const lapTexts = computed(() => elementTexts(t.value, 'delta', 'laps'))
+const refBarTexts = computed(() => elementTexts(t.value, 'delta', 'refBars'))
 
 /** The lines that unfold to their parts, and what is shown of them ('2 de 3 partes'). */
-const PARTS_OF: readonly DeltaRowId[] = ['top', 'laps']
+const PARTS_OF: readonly DeltaRowId[] = ['top', 'refs', 'laps']
 const partsSummary = computed(() => {
   const e = t.value.settings.elements
   const count = (l: readonly ElementEntry<string>[]): string =>
     e.partsCount(visibleIds(l).length, l.length)
-  return { top: count(opts.value.top), laps: count(opts.value.laps) }
+  return {
+    top: count(opts.value.top),
+    refs: count(opts.value.refBars),
+    laps: count(opts.value.laps)
+  }
 })
 const setRows = listSetter('delta', 'rows')
 const setTop = listSetter('delta', 'top')
 const setLaps = listSetter('delta', 'laps')
+const setRefBars = listSetter('delta', 'refBars')
 
 /**
  * The lap times are drawn in a line of their own ('laps' in Líneas), off by default: with it off,
@@ -147,6 +154,16 @@ const lapsGate = useParentGate({
   items: () => opts.value.laps,
   set: setLaps,
   parentLabel: () => rowTexts.value.laps.label,
+  zoneLabel: () => zoneTitle(t.value, 'delta', 'rows')
+})
+/** The bars per reference likewise: a line of their own, off by default. */
+const refBarsGate = useParentGate({
+  parents: () => opts.value.rows,
+  parent: 'refs',
+  setParents: setRows,
+  items: () => opts.value.refBars,
+  set: setRefBars,
+  parentLabel: () => rowTexts.value.refs.label,
   zoneLabel: () => zoneTitle(t.value, 'delta', 'rows')
 })
 </script>
@@ -179,7 +196,7 @@ const lapsGate = useParentGate({
     />
     <p class="st-row st-help dl-cycle">{{ cycleText }}</p>
     <SliderControl
-      v-if="isElementVisible(opts.rows, 'bar')"
+      v-if="isElementVisible(opts.rows, 'bar') || isElementVisible(opts.rows, 'refs')"
       :label="t.settings.delta.range"
       :help="t.settings.delta.rangeHelp"
       :current="opts.rangeS"
@@ -212,6 +229,16 @@ const lapsGate = useParentGate({
           :spec="S.top"
           :labels="topTexts"
           :apply="setTop"
+        />
+        <ElementEditor
+          v-else-if="id === 'refs'"
+          embedded
+          :title="zoneTitle(t, 'delta', 'refBars')"
+          :items="opts.refBars"
+          :spec="S.refBars"
+          :labels="refBarTexts"
+          :apply="refBarsGate.apply"
+          :note="refBarsGate.note.value"
         />
         <ElementEditor
           v-else

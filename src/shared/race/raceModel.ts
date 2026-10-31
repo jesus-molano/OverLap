@@ -37,7 +37,7 @@ import {
 } from './advance'
 import { CarTrack, FLAG_CAUTION, FLAG_PIT, NO_LINE } from './carTrack'
 import { entryKey } from './entry'
-import { closeLap, updateLapTimes } from './laps'
+import { closeLap, incidentOnLap, updateLapTimes } from './laps'
 import { crossingsUntil, lapLimitedLapsLeft, timedRaceEndS } from './lapsRemaining'
 import { STOP_FRACTION, updateMotion } from './motion'
 import { RaceOrder } from './order'
@@ -137,6 +137,8 @@ export class RaceModel {
   private distanceDriven = 0
   private distanceSeeded = false
   private incidents = 0
+  /** PlayerCarMyIncidentCount last seen; NaN before the first (no rise to take from it). */
+  private incidentsSeen = Number.NaN
   private timeRemain = NaN
   private lapsRemainEx = NaN
   /**
@@ -355,6 +357,7 @@ export class RaceModel {
     this.distanceDriven = 0
     this.distanceSeeded = false
     this.incidents = 0
+    this.incidentsSeen = NaN
     this.timeRemain = NaN
     this.lapsRemainEx = NaN
     this.playerLapsLeft = NaN
@@ -502,6 +505,8 @@ export class RaceModel {
     )
     st.pace = pace(track)
     updateMotion(track, d, this.time, inPits)
+    // After this tick's crossings (a new lap starts clean) and stop detection.
+    st.lapInvalid = track.dirty || track.lapOffTrack || track.lapStopped || track.lapIncident
   }
 
   private outOfWorld(track: CarTrack, frame: TelemetryFrame, i: number): void {
@@ -516,6 +521,7 @@ export class RaceModel {
     st.inWorld = false
     st.inPits = false
     st.offTrack = false
+    st.lapInvalid = track.dirty
     // The class estimate may change while it is away (a new SessionMeta).
     st.pace = pace(track)
     // A finisher leaving the car after the flag has not retired.
@@ -586,7 +592,19 @@ export class RaceModel {
         this.distanceDriven += pt.lastDelta
       }
     }
-    this.incidents = finiteOr(frame.PlayerCarMyIncidentCount[0], 0)
+    const count = finiteOr(frame.PlayerCarMyIncidentCount[0], Number.NaN)
+    // A rise while you drive your car spoils your lap (and the one just closed, at the line).
+    // The first count seen is no rise: it may hold a whole session's incidents.
+    if (
+      count > this.incidentsSeen &&
+      pt?.active === true &&
+      pt.state.inWorld &&
+      frame.IsOnTrack[0] === true
+    ) {
+      incidentOnLap(pt, this.time)
+    }
+    if (Number.isFinite(count)) this.incidentsSeen = count
+    this.incidents = Number.isFinite(count) ? count : 0
   }
 
   /** The race start at the tick SessionState reads Racing (`t`): the green light, when just before. */

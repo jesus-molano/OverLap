@@ -60,6 +60,7 @@ const BASE: Omit<RaceCarState, 'carIdx' | 'laps'> = {
   pace: 100,
   speed: 0.01,
   stoppedForS: 0,
+  lapInvalid: false,
   sessionFlags: 0
 }
 
@@ -133,6 +134,29 @@ describe('OptimalLaps: your optimal lap', () => {
     for (const [k, best] of [30, 33, 34].entries()) {
       expect(sector(o?.profile ?? [], k)).toBeCloseTo(best, 9)
     }
+  })
+
+  it('drops a lap that turns unclean after the scan took it (an incident just after the line)', () => {
+    const { field, laps, scan } = setup()
+    field.complete(0, lapOf(2, [30, 35, 35]))
+    scan()
+    // Lap 3 best in every sector, clean at the line: the optimal is it for a moment.
+    const spoilt = lapOf(3, [29, 33, 33])
+    field.complete(0, spoilt)
+    scan()
+    expect(laps.ofCar(0)?.lapTime).toBeCloseTo(95, 9)
+    // The model takes it back: not clean any more, and lap 2 is the best again.
+    const [, ...older] = field.records.get(0) ?? []
+    field.records.set(0, [{ lap: 3, time: spoilt.lapTime, clean: false }, ...older])
+    field.last.set(0, { ...spoilt, clean: false })
+    field.best.set(0, lapOf(2, [30, 35, 35]))
+    scan()
+    expect(laps.ofCar(0)?.lapTime).toBeCloseTo(100, 9)
+    // Nor does it settle when the next lap comes: none of its sectors is ever used.
+    field.complete(0, lapOf(4, [31, 36, 36]))
+    scan()
+    expect(laps.ofCar(0)?.lapTime).toBeCloseTo(100, 9)
+    expect(laps.ofClass(1)?.lapTime).toBeCloseTo(100, 9)
   })
 
   it('is continuous: each sector is the segment of its lap, shifted to where the last one ends', () => {

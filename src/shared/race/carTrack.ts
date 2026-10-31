@@ -36,6 +36,7 @@ function resetState(s: MutableCarState): void {
   s.inWorld = false
   s.inPits = false
   s.offTrack = false
+  s.lapInvalid = false
   s.disconnected = false
   s.finished = false
   s.pitStops = 0
@@ -119,6 +120,8 @@ export class CarTrack {
   lapOffTrack = false
   /** The lap in progress had the car crawling on track (a stop is not its pace). */
   lapStopped = false
+  /** Your incident count rose on the lap in progress (the player's car only). */
+  lapIncident = false
   /** Lap number of the last recorded S/F crossing. */
   lastSfLap = NO_LINE
   /** SessionTime of that crossing, NaN when none. */
@@ -145,6 +148,9 @@ export class CarTrack {
   // Lap times.
   records: MutableLapRecord[] = []
   bestClean = Infinity
+  /** The record that last lowered bestClean, and bestClean before it (an incident undoes it). */
+  bestCleanRec: MutableLapRecord | null = null
+  prevBestClean = Infinity
   /** Last CarIdxBestLapTime > 0 seen (kept when it drops to -1 on a disconnect). */
   officialBest = Infinity
   /** Latest record waiting for CarIdxLastLapTime to confirm it (official precision). */
@@ -158,6 +164,8 @@ export class CarTrack {
   readonly lastLap = new LapCapture()
   /** The best clean lap of the session (outlives the history). */
   readonly bestLap = new LapCapture()
+  /** The best lap before the last promotion: back in place if an incident spoils the new one. */
+  readonly prevBest = new LapCapture()
   /** Last value currentLap() handed out (reused while unchanged). */
   currentView: CurrentLapView | null = null
 
@@ -182,6 +190,7 @@ export class CarTrack {
       inWorld: false,
       inPits: false,
       offTrack: false,
+      lapInvalid: false,
       disconnected: false,
       finished: false,
       pitStops: 0,
@@ -227,18 +236,22 @@ export class CarTrack {
     this.dirty = true
     this.lapOffTrack = false
     this.lapStopped = false
+    this.lapIncident = false
     this.lastSfLap = NO_LINE
     this.lastSfT = NaN
     this.startSfLine = NO_LINE
     this.resetMotion()
     this.records = []
     this.bestClean = Infinity
+    this.bestCleanRec = null
+    this.prevBestClean = Infinity
     this.officialBest = Infinity
     this.pending = null
     this.officialBefore = -1
     this.prevOfficial = -1
     this.lastLap.clear()
     this.bestLap.clear()
+    this.prevBest.clear()
     this.currentView = null
     this.pitKnown = false
     this.gridStart = false

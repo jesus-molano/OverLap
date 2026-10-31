@@ -31,6 +31,7 @@ function carState(carIdx: number, o: Partial<RaceCarState> = {}): RaceCarState {
     pace: 30,
     speed: 1 / 30,
     stoppedForS: 0,
+    lapInvalid: false,
     sessionFlags: 0,
     ...o
   }

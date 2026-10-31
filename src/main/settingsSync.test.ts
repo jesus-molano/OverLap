@@ -377,7 +377,8 @@ describe('diffSettings and the widget options', () => {
   })
 
   it('delta: the references go to the telemetry process, the drawing options do not', () => {
-    expect(DISPLAY_ONLY.delta).toEqual(['rangeS', 'rows', 'top', 'laps'])
+    // The rows are computed since the bars per reference (2.4): only the 'refs' row's eye.
+    expect(DISPLAY_ONLY.delta).toEqual(['rangeS', 'top', 'laps'])
     expect(configChanged((s) => (s.delta.referencePractice = 'class'))).toBe(true)
     expect(configChanged((s) => (s.delta.referenceQualify = 'session'))).toBe(true)
     expect(configChanged((s) => (s.delta.referenceRace = 'pb'))).toBe(true)
@@ -389,8 +390,12 @@ describe('diffSettings and the widget options', () => {
         s.delta.rows = flip(s.delta.rows, 'sectors')
         s.delta.rows = flip(s.delta.rows, 'laps')
         s.delta.laps.reverse()
+        s.delta.refBars.reverse()
       })
     ).toBe(false)
+    // The bars per reference: what the provider follows (their line's eye and each bar's).
+    expect(configChanged((s) => (s.delta.rows = flip(s.delta.rows, 'refs')))).toBe(true)
+    expect(configChanged((s) => (s.delta.refBars = flip(s.delta.refBars, 'class')))).toBe(true)
   })
 
   it('the traffic, alerts and delta windows only need a broadcast', () => {

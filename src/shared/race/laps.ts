@@ -13,6 +13,11 @@ export const MAX_LAP_RECORDS = 10
 const OFFICIAL_MATCH_S = 0.05
 /** How long after the line CarIdxLastLapTime may still confirm the model lap. */
 export const OFFICIAL_WAIT_S = 5
+/**
+ * An incident of yours this soon (s) after your line spoils the lap that line closed too: iRacing
+ * scores an off-track a moment after the wheels left, and the line may come between.
+ */
+export const INCIDENT_LINE_GRACE_S = 0.5
 
 /**
  * Lap `g / LINES` completed at SessionTime `tc`: adds its record when its start
@@ -35,7 +40,8 @@ export function closeLap(
   if ((!newest || lapNo >= newest.lap) && track.has(g0)) {
     const t0 = track.time(g0)
     const startLap = isRace && (!(t0 >= raceStartT) || g0 <= track.startSfLine)
-    let clean = !track.dirty && !track.lapOffTrack && !track.lapStopped && !startLap
+    let clean =
+      !track.dirty && !track.lapOffTrack && !track.lapStopped && !track.lapIncident && !startLap
     for (let k = g0; clean && k <= g; k++) {
       if (!track.has(k) || track.flagsAt(k) !== 0) clean = false
     }
@@ -48,7 +54,11 @@ export function closeLap(
     keep.unshift(rec)
     track.records = keep
     track.state.laps = keep
-    if (clean && rec.time < track.bestClean) track.bestClean = rec.time
+    if (clean && rec.time < track.bestClean) {
+      track.prevBestClean = track.bestClean
+      track.bestCleanRec = rec
+      track.bestClean = rec.time
+    }
     track.pending = rec
     track.officialBefore = track.prevOfficial
     track.confirmUntil = tc + OFFICIAL_WAIT_S
@@ -62,6 +72,27 @@ export function closeLap(
   track.dirty = false
   track.lapOffTrack = false
   track.lapStopped = false
+  track.lapIncident = false
+}
+
+/**
+ * Your incident count rose at SessionTime `now` (the player's car only): the lap in progress is
+ * not clean, nor the lap the last line closed when that was under INCIDENT_LINE_GRACE_S ago. A
+ * lap that stops being clean stops being the best: the one before it is back (its time and its
+ * profile), so no reference, record or optimal sector ever keeps it.
+ */
+export function incidentOnLap(track: CarTrack, now: number): void {
+  track.lapIncident = true
+  track.state.lapInvalid = true
+  if (!(now - track.lastSfT <= INCIDENT_LINE_GRACE_S)) return
+  const rec = track.records[0]
+  if (!rec?.clean || rec.lap !== track.lastSfLap) return
+  rec.clean = false
+  if (track.bestCleanRec === rec) {
+    track.bestClean = track.prevBestClean
+    track.bestCleanRec = null
+  }
+  if (track.bestLap.rec === rec) track.bestLap.copyFrom(track.prevBest)
 }
 
 /**

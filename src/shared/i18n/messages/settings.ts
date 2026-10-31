@@ -1340,6 +1340,9 @@ export const settingsEs = {
     /** The lap times line (delta.rows 'laps', its items delta.laps). */
     lapTimes: 'Tiempos de vuelta',
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
+    /** The bars per reference (delta.rows 'refs', its items delta.refBars). */
+    refBarsHelp:
+      'Una barra por cada referencia que elijas, con la misma escala; la que usa el delta lleva «Δ»',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1716,7 +1719,12 @@ export const settingsEs = {
     inputs: { sections: 'Bloques', bars: 'Barras', info: 'Datos', car: 'Coche' },
     traffic: { groups: 'Grupos', parts: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
     alerts: { parts: 'Extras' },
-    delta: { rows: 'Líneas', top: 'Línea superior', laps: 'Tiempos de vuelta' },
+    delta: {
+      rows: 'Líneas',
+      top: 'Línea superior',
+      laps: 'Tiempos de vuelta',
+      refBars: 'Barras por referencia'
+    },
     fuel: { headerBar: 'Cabecera', lines: 'Líneas', footerBar: 'Pie' },
     lights: { icons: 'Testigos' },
     /** The accordions' open state (no editor of its own): named for completeness. */
@@ -1799,6 +1807,7 @@ export const settingsEs = {
       rows: {
         top: 'Línea superior',
         bar: 'Barra',
+        refs: 'Barras por referencia',
         sectors: 'Sectores',
         laps: 'Tiempos de vuelta'
       },
@@ -1809,6 +1818,14 @@ export const settingsEs = {
         best: 'Mejor vuelta de la sesión',
         optimal: 'Vuelta óptima',
         pb: 'Récord personal'
+      },
+      // The same names as the selectors above.
+      refBars: {
+        pb: 'Récord personal',
+        session: 'Mejor vuelta de la sesión',
+        optimal: 'Vuelta óptima',
+        class: 'Vuelta rápida de clase',
+        classOptimal: 'Óptima de tu clase'
       }
     },
     fuel: {
@@ -3142,6 +3159,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
     cycleNoKeys: 'Give it a shortcut in “Shortcuts” to change it from the car',
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
+    refBarsHelp:
+      'One bar for each reference you pick, on the same scale; the delta’s is marked “Δ”',
     references: {
       pb: {
         label: 'Personal best',
@@ -3448,7 +3467,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
     traffic: { groups: 'Groups', parts: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     alerts: { parts: 'Extras' },
-    delta: { rows: 'Lines', top: 'Top line', laps: 'Lap times' },
+    delta: { rows: 'Lines', top: 'Top line', laps: 'Lap times', refBars: 'Bars per reference' },
     fuel: { headerBar: 'Header', lines: 'Lines', footerBar: 'Footer' },
     lights: { icons: 'Lights' },
     settingsWindow: { customizeOpen: 'Open sections of Customise' }
@@ -3521,9 +3540,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     alerts: { parts: { notes: 'What to do, after each alert', chips: 'Other alerts as chips' } },
     delta: {
-      rows: { top: 'Top line', bar: 'Bar', sectors: 'Sectors', laps: 'Lap times' },
+      rows: {
+        top: 'Top line',
+        bar: 'Bar',
+        refs: 'Bars per reference',
+        sectors: 'Sectors',
+        laps: 'Lap times'
+      },
       top: { state: 'Lap state', predicted: 'Predicted lap', reference: 'Reference' },
-      laps: { last: 'Last lap', best: 'Session best', optimal: 'Optimal lap', pb: 'Personal best' }
+      laps: { last: 'Last lap', best: 'Session best', optimal: 'Optimal lap', pb: 'Personal best' },
+      refBars: {
+        pb: 'Personal best',
+        session: 'Session best',
+        optimal: 'Optimal lap',
+        class: 'Class fastest lap',
+        classOptimal: 'Class optimal'
+      }
     },
     fuel: {
       lines: {

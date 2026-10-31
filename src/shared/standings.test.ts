@@ -99,6 +99,7 @@ function makeRace(list: readonly FakeCar[], o: FakeRaceOpts = {}): RaceView {
       pace: null,
       speed: 0,
       stoppedForS: 0,
+      lapInvalid: false,
       sessionFlags: 0,
       ...c
     }

@@ -862,7 +862,16 @@ export interface DeltaData {
   temporary: boolean
   /** The lap times line (DeltaLapId), whatever the reference. */
   laps: DeltaLaps
+  /**
+   * The bars per reference (the 'refs' row, delta.refBars): the delta against each reference
+   * shown, each against its own lap for the whole lap; null for one with no lap yet and for
+   * the ones not shown (only those are computed). Quantised 0.01, like `delta`.
+   */
+  bars: DeltaBars
 }
+
+/** DeltaData.bars: seconds versus each reference at this point of the lap, negative = faster. */
+export type DeltaBars = Readonly<Record<DeltaReference, number | null>>
 
 /** Your lap times for the delta's lap times line, seconds; null when there is none yet. */
 export interface DeltaLaps {
@@ -1282,10 +1291,11 @@ export type InputsCarId = 'rpm' | 'bias' | 'tc' | 'ffb'
 export type SteeringStyle = 'bar' | 'minimal' | 'realistic' | 'formula'
 export type WheelSize = 'small' | 'medium' | 'large'
 /**
- * The delta's rows: the top line (its hero number always stays), the bar, the sectors, and the
- * lap times line (DeltaLapId, off by default).
+ * The delta's rows: the top line (its hero number always stays), the bar, the bars per reference
+ * (delta.refBars, off by default), the sectors, and the lap times line (DeltaLapId, off by
+ * default).
  */
-export type DeltaRowId = 'top' | 'bar' | 'sectors' | 'laps'
+export type DeltaRowId = 'top' | 'bar' | 'refs' | 'sectors' | 'laps'
 /** The top line's parts after the hero number. */
 export type DeltaTopId = 'state' | 'predicted' | 'reference'
 /**
@@ -1667,6 +1677,11 @@ export interface DeltaOptions {
   top: ElementList<DeltaTopId>
   /** The lap times line's items, in order. */
   laps: ElementList<DeltaLapId>
+  /**
+   * The bars per reference (the 'refs' row): which references get a bar, in order. Computed:
+   * the provider follows only the ones shown, and only while the row is.
+   */
+  refBars: ElementList<DeltaReference>
 }
 
 /**
@@ -1760,6 +1775,7 @@ export type CustomizeZoneId =
   | 'delta.rows'
   | 'delta.top'
   | 'delta.laps'
+  | 'delta.refBars'
   | 'fuel.headerBar'
   | 'fuel.lines'
   | 'fuel.footerBar'
