@@ -35,3 +35,28 @@ export function segmentTransform(s: SpotterSegment): string {
   }
   return t
 }
+
+/** The «Cercanía» ramp's steps (CLOSE_RAMP_N + 1 colours, amber to red: .cl-0 .. .cl-N). */
+export const CLOSE_RAMP_N = 5
+
+/** The «Cercanía» colour step of a side `close` (0..1): amber far, the alert red alongside. */
+export function closeBucket(close: number): number {
+  const c = Number.isFinite(close) ? Math.min(1, Math.max(0, close)) : 0
+  return Math.round(c * CLOSE_RAMP_N)
+}
+
+const closeTransforms = new Map<number, string>()
+
+/**
+ * The «Cercanía» fill's transform: a full-height block (origin at its bottom) scaled to `close`,
+ * growing from the bottom on both bars. Cached per quantised value.
+ */
+export function closeTransform(close: number): string {
+  const k = Math.round((Number.isFinite(close) ? Math.min(1, Math.max(0, close)) : 0) * STEPS)
+  let t = closeTransforms.get(k)
+  if (t === undefined) {
+    t = `scaleY(${k / STEPS})`
+    closeTransforms.set(k, t)
+  }
+  return t
+}

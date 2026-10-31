@@ -7,6 +7,7 @@ import { WIDGET_DEFS } from '@shared/widgets'
 import type { OverlaySettings } from '@shared/types'
 import {
   defaultSizes,
+  deltaBarsGrowth,
   deltaFit,
   freeGrowth,
   grownBounds,
@@ -138,5 +139,42 @@ describe('«OverLap» puts the windows «Completo» grew back to their default s
     const { resize, restore } = styleWindows('complete', s, after)
     expect(Object.keys(resize).sort()).toEqual(['delta', 'relative'])
     for (const id of FREE) expect(restore[id], id).toEqual(s.widgets[id].bounds)
+  })
+})
+
+describe('Delta: showing the bars per reference from its page grows the window', () => {
+  const withBars = (s: OverlaySettings, line: boolean, bars: number): OverlaySettings['delta'] => ({
+    ...s.delta,
+    rows: s.delta.rows.map((e) => (e.id === 'refs' ? { ...e, visible: line } : e)),
+    refBars: s.delta.refBars.map((e, i) => ({ ...e, visible: i < bars }))
+  })
+
+  it('grows as «Completo» does, from the same corner, so every bar fits at the same text', () => {
+    const s = createDefaultSettings()
+    const delta = withBars(s, true, 3)
+    const grown = deltaBarsGrowth(s, delta)
+    const b = s.widgets.delta.bounds
+    expect(grown).toEqual(grownBounds(b, deltaFit(s), deltaFit({ ...s, delta } as OverlaySettings)))
+    expect(grown?.x).toBe(b.x)
+    expect(grown?.y).toBe(b.y)
+    expect(grown?.height ?? 0).toBeGreaterThan(b.height)
+  })
+
+  it('never for fewer bars, the same bars, or a window that already fits', () => {
+    const s = createDefaultSettings()
+    const on = { ...s, delta: withBars(s, true, 3) } as OverlaySettings
+    expect(deltaBarsGrowth(on, withBars(s, true, 2))).toBeNull()
+    expect(deltaBarsGrowth(on, withBars(s, false, 3))).toBeNull()
+    expect(deltaBarsGrowth(on, on.delta)).toBeNull()
+    // The bars on but the line hidden: nothing drawn, nothing to grow.
+    expect(deltaBarsGrowth(s, withBars(s, false, 5))).toBeNull()
+    const tall = {
+      ...s,
+      widgets: {
+        ...s.widgets,
+        delta: { ...s.widgets.delta, bounds: { x: 0, y: 0, width: 800, height: 600 } }
+      }
+    } as OverlaySettings
+    expect(deltaBarsGrowth(tall, withBars(s, true, 1))).toBeNull()
   })
 })

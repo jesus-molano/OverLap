@@ -396,6 +396,10 @@ export const settingsEs = {
     noRoom: (px: number) => `No cabe a ${px}${NB}px`,
     noRoomHelp: (px: number) =>
       `A ${px}${NB}px de ancho no hay sitio para esto: ensancha el widget u oculta otro dato`,
+    /** Delta's bars per reference in a window too short for all of them (w, h: its size). */
+    noRoomTall: (w: number, h: number) => `No cabe en ${w} por ${h}${NB}px`,
+    noRoomTallHelp: (w: number, h: number) =>
+      `En ${w} por ${h}${NB}px no caben todas las barras: agranda la ventana; la de la referencia en uso (Δ) se ve siempre`,
     /** Batalla's «Lado a lado» in a window too narrow for it. */
     noRoomSide: (px: number) =>
       `A ${px}${NB}px de ancho no caben lado a lado: se dibujan apiladas; ensancha el widget`,
@@ -1083,8 +1087,21 @@ export const settingsEs = {
     labelsHelp: 'Etiquetas con la distancia en las guías del radar'
   },
   spotter: {
-    /** What a pillar is and what a full one means (there is no lateral distance in iRacing). */
-    note: 'Cada barra es tu coche, de morro (arriba) a cola (abajo): se llena con lo que te cubre el coche de ese lado. Llena es que va del todo a tu lado, no un golpe: iRacing no da la distancia lateral',
+    /** What a full bar means (there is no lateral distance in iRacing). */
+    note: 'Llena es que el coche va a tu lado, no un golpe: iRacing no da la distancia lateral, y solo dice el lado de un coche cuando ya está a tu altura',
+    /** What a bar shows (2.4, 5c): how close (the radar as two bars) or where it covers you. */
+    barStyle: 'Estilo de barra',
+    barStyleHelp: 'Qué cuenta cada barra',
+    barStyleChoices: {
+      closeness: {
+        label: 'Cercanía',
+        hint: 'Se llena desde abajo cuanto más cerca está el coche de ese lado, como el radar: llena a tu lado, de ámbar a rojo'
+      },
+      cover: {
+        label: 'Dónde te cubre',
+        hint: 'La barra es tu coche, de morro (arriba) a cola (abajo): se llena la parte que te cubre el coche de al lado'
+      }
+    },
     onlyAlongside: 'Solo con un coche al lado',
     onlyAlongsideHelp:
       'Las barras aparecen con un coche a tu lado o a punto de estarlo; sin esto, siempre que conduces',
@@ -1093,7 +1110,7 @@ export const settingsEs = {
     barWidthHelp: 'La separación entre las dos es el ancho de la ventana',
     /** The marks' hints in the editor (settings.items.spotter.parts names them). */
     nearCapHelp:
-      'Un tope tenue arriba o abajo: el coche que iba a tu lado, ahora justo delante o detrás',
+      'Con «Dónde te cubre», un tope tenue arriba o abajo: el coche que iba a tu lado, ahora justo delante o detrás',
     twoMarkHelp: 'Un «2» en la barra cuando iRacing cuenta dos coches en ese lado'
   },
   standings: {
@@ -1356,7 +1373,7 @@ export const settingsEs = {
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
     /** The bars per reference (delta.rows 'refs', its items delta.refBars). */
     refBarsHelp:
-      'Una barra por cada referencia que elijas, con la misma escala; la que usa el delta lleva «Δ»',
+      'Una barra por cada referencia que elijas, con la escala y los colores de la barra principal (verde a la izquierda: más rápido); la que usa el delta lleva «Δ»',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1791,7 +1808,7 @@ export const settingsEs = {
       prediction: {
         catchIn: 'Le alcanzas en…',
         caughtIn: 'Te alcanza en…',
-        need: 'Necesitas… (el ritmo)',
+        need: 'Necesitas… s/v',
         noCatch: 'No le alcanzas · No te alcanza'
       }
     },
@@ -2418,6 +2435,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     noRoom: (px) => `No room at ${px}${NB}px`,
     noRoomHelp: (px) =>
       `At ${px}${NB}px wide there is no room for this: widen the widget or hide another item`,
+    noRoomTall: (w, h) => `No room in ${w} by ${h}${NB}px`,
+    noRoomTallHelp: (w, h) =>
+      `In ${w} by ${h}${NB}px not every bar fits: make the window taller; the one of the reference in use (Δ) always shows`,
     noRoomSide: (px) =>
       `At ${px}${NB}px wide they do not fit side by side: drawn stacked; widen the widget`,
     noEffect: (size) => `No visible change at ${size}${NB}px`,
@@ -2956,14 +2976,26 @@ export const settingsEn: Dict<typeof settingsEs> = {
     labelsHelp: 'Distance labels on the radar’s guide lines'
   },
   spotter: {
-    note: 'Each bar is your car, nose (top) to tail (bottom): it fills with what the car on that side covers. Full means right beside you, not contact: iRacing gives no sideways distance',
+    note: 'Full means the car is right beside you, not contact: iRacing gives no sideways distance, and only tells a car’s side once it is level with you',
+    barStyle: 'Bar style',
+    barStyleHelp: 'What each bar tells',
+    barStyleChoices: {
+      closeness: {
+        label: 'Closeness',
+        hint: 'Fills from the bottom the closer the car on that side is, like the radar: full beside you, amber to red'
+      },
+      cover: {
+        label: 'Where it covers you',
+        hint: 'The bar is your car, nose (top) to tail (bottom): the part the car alongside covers fills'
+      }
+    },
     onlyAlongside: 'Only with a car alongside',
     onlyAlongsideHelp:
       'The bars show with a car beside you or about to be; without it, whenever you drive',
     barWidth: 'Bar thickness',
     barWidthHelp: 'The gap between the two is the window’s width',
     nearCapHelp:
-      'A faint cap at the top or bottom: the car that was beside you, now just ahead or behind',
+      'With “Where it covers you”, a faint cap at the top or bottom: the car that was beside you, now just ahead or behind',
     twoMarkHelp: 'A “2” on the bar when iRacing counts two cars on that side'
   },
   standings: {
@@ -3192,7 +3224,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
     refBarsHelp:
-      'One bar for each reference you pick, on the same scale; the delta’s is marked “Δ”',
+      'One bar for each reference you pick, with the main bar’s scale and colours (green to the left: faster); the delta’s is marked “Δ”',
     references: {
       pb: {
         label: 'Personal best',
@@ -3545,7 +3577,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       prediction: {
         catchIn: 'Catching in…',
         caughtIn: 'Catches you in…',
-        need: 'Need… (the pace)',
+        need: 'Need… s/lap',
         noCatch: 'Out of reach · Safe to the flag'
       }
     },

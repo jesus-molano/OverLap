@@ -16,6 +16,7 @@ const STALE_MS = 300
 
 const onlyAlongside = useOption('spotter', 'onlyAlongside')
 const barWidth = useOption('spotter', 'barWidth')
+const barStyle = useOption('spotter', 'barStyle')
 const parts = useOption('spotter', 'parts')
 const showNear = computed(() => isElementVisible(parts.value, 'nearCap'))
 const showTwo = computed(() => isElementVisible(parts.value, 'twoMark'))
@@ -33,7 +34,7 @@ const shown = computed(() => phase.value === 'live' || phase.value === 'preview'
 const content = useShownContent(
   () => phase.value,
   () => data.value,
-  previewSpotter
+  () => previewSpotter(barStyle.value)
 )
 
 const EMPTY: SpotterSide = {
@@ -42,7 +43,8 @@ const EMPTY: SpotterSide = {
   cover: 0,
   unknown: false,
   nearFront: 0,
-  nearRear: 0
+  nearRear: 0,
+  close: 0
 }
 // Each pillar keeps its previous side while what it draws is the same: a pass on one side
 // re-renders only that pillar.
@@ -68,15 +70,17 @@ const style = computed(() => ({
     :class="{ 'is-shown': shown, 'ov-halo': halo }"
   >
     <SpotterPillar
-      v-memo="[left, showNear, showTwo]"
+      v-memo="[left, barStyle, showNear, showTwo]"
       :side="left"
+      :bar-style="barStyle"
       at="left"
       :show-near="showNear"
       :show-two="showTwo"
     />
     <SpotterPillar
-      v-memo="[right, showNear, showTwo]"
+      v-memo="[right, barStyle, showNear, showTwo]"
       :side="right"
+      :bar-style="barStyle"
       at="right"
       :show-near="showNear"
       :show-two="showTwo"

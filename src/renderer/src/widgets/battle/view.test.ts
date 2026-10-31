@@ -141,10 +141,10 @@ describe('gapView / trendView', () => {
     expect(gapView(NaN)).toEqual({ value: '—', unit: '' })
   })
 
-  it('as Relativo: its signed time, in its format (formatGap: + ahead, minus behind)', () => {
-    expect(gapView(0.64, true)).toEqual({ value: '0.6', unit: 's' })
-    expect(gapView(-1.2, true)).toEqual({ value: `${M}1.2`, unit: 's' })
-    expect(gapView(-0.04, true)).toEqual({ value: '0.0', unit: 's' })
+  it('as Relativo: its signed time, exactly as its gap column (formatGap, no unit)', () => {
+    expect(gapView(0.64, true)).toEqual({ value: '0.6', unit: '' })
+    expect(gapView(-1.2, true)).toEqual({ value: `${M}1.2`, unit: '' })
+    expect(gapView(-0.04, true)).toEqual({ value: '0.0', unit: '' })
     expect(gapView(-65, true)).toEqual({ value: `${M}1:05`, unit: '' })
     expect(gapView(null, true)).toEqual({ value: '—', unit: '' })
     // The very string of Relativo's gap column.
@@ -364,12 +364,19 @@ describe('toLaneView', () => {
     const d = { lapsRemaining: 19, playerLastLaps: [] }
     expect(toLaneView(op, 'behind', d, OPTS, styles, ES).gap).toEqual({ value: '0.8', unit: 's' })
     const rel = toLaneView(op, 'behind', d, { ...OPTS, gapStyle: 'relative' }, styles, ES)
-    expect(rel.gap).toEqual({ value: `${M}0.9`, unit: 's' })
-    // Not computed (yet): a dash, never the other gap with a made-up sign.
-    const none = opponent({ relativeGapS: null })
-    expect(
-      toLaneView(none, 'ahead', d, { ...OPTS, gapStyle: 'relative' }, styles, ES).gap.value
-    ).toBe('—')
+    expect(rel.gap).toEqual({ value: `${M}0.9`, unit: '' })
+    // Relativo has no time for it (no estimate for one of the cars): the measured gap with the
+    // lane's sign, in the same format, rather than a dash.
+    const none = opponent({ gapS: 1.24, relativeGapS: null })
+    const rel2 = { ...OPTS, gapStyle: 'relative' as const }
+    expect(toLaneView(none, 'ahead', d, rel2, styles, ES).gap).toEqual({ value: '1.2', unit: '' })
+    expect(toLaneView(none, 'behind', d, rel2, styles, ES).gap).toEqual({
+      value: `${M}1.2`,
+      unit: ''
+    })
+    // Neither known: the dash.
+    const neither = opponent({ gapS: Number.NaN, relativeGapS: null })
+    expect(toLaneView(neither, 'ahead', d, rel2, styles, ES).gap.value).toBe('—')
   })
 
   it('builds every row of a lane', () => {

@@ -1,13 +1,13 @@
 /**
  * The clean-lap rule and your incidents (request 4: the session best must be a legal lap). The
- * model already drops laps that left the track on a tick it saw; a rise of your incident count
- * (an off-track iRacing scored, maybe between two ticks or a moment after the line) spoils your
- * lap too, and the lap the line just closed when it comes within INCIDENT_LINE_GRACE_S of it.
+ * model already drops laps that left the track on a tick it saw; an off-track iRacing scored (a
+ * 1x rise of your incident count, maybe between two ticks) spoils your lap too, or the lap the
+ * line just closed when it comes within INCIDENT_LINE_GRACE_S of it. Contact and spins do not.
  */
 import { describe, expect, it } from 'vitest'
 import { TrackLocation } from '../telemetry'
 import { INCIDENT_LINE_GRACE_S } from './laps'
-import { PRACTICE, Sim, makeSession } from './testing/raceSim'
+import { PRACTICE, RACE, Sim, makeSession } from './testing/raceSim'
 import type { Cars } from './testing/raceSim'
 
 /** Distance at SessionTime t of a car starting at 0 whose lap j (j..j+1) takes lapTimes[j]. */
@@ -33,8 +33,12 @@ interface Rig {
 }
 
 /** Your car (CarIdx 0) driving laps of these times; `offAt` its laps off track (a short cut). */
-function rig(lapTimes: readonly number[], offAt: readonly number[] = []): Rig {
-  const sim = new Sim(makeSession(1), { sessionNum: PRACTICE })
+function rig(
+  lapTimes: readonly number[],
+  offAt: readonly number[] = [],
+  sessionNum = PRACTICE
+): Rig {
+  const sim = new Sim(makeSession(1), { sessionNum })
   const d = byLapTimes(lapTimes)
   const cars = (t: number): Cars => {
     const x = d(t)
@@ -98,21 +102,24 @@ describe('RaceModel: your incidents and the clean-lap rule', () => {
 
     r.incident()
     r.wait(INCIDENT_LINE_GRACE_S / 3)
+
     // The lap is not clean any more: a new snapshot says so (the personal best is offered from
     // it, the optimal laps read it again).
     expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 3, clean: false })
     expect(r.sim.view.lapProfile(0, 'last')).toMatchObject({ lap: 3, clean: false })
     expect(r.sim.view.lapProfile(0, 'best')).toEqual(before)
     expect(r.sim.view.car(0)?.bestLapTime).toBeCloseTo(30, 3)
-    // The lap in progress is spoilt too (the incident may be of either).
-    expect(r.sim.view.car(0)?.lapInvalid).toBe(true)
+    // The off was the closed lap's: the lap in progress stays clean.
+    expect(r.sim.view.car(0)?.lapInvalid).toBe(false)
+    r.lap(4)
+    expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 4, clean: true })
   })
 
   it('an incident later in the next lap leaves the lap before it clean', () => {
     const r = rig([30, 30, 25, 30, 30])
     r.lap(3)
     r.wait(INCIDENT_LINE_GRACE_S + 0.5)
-    r.incident(2)
+    r.incident()
     r.wait(0.1)
     expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 3, clean: true })
     expect(r.sim.view.lapProfile(0, 'best')).toMatchObject({ lap: 3, clean: true })
@@ -133,6 +140,51 @@ describe('RaceModel: your incidents and the clean-lap rule', () => {
     r.sim.frame.IsOnTrack[0] = true
     r.lap(3)
     expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 3, clean: true })
+  })
+
+  it('contact (4x, 0x) and a loss of control (2x) leave the lap clean, as iRacing counts it', () => {
+    for (const sessionNum of [PRACTICE, RACE]) {
+      const r = rig([30, 30, 25, 30, 30], [], sessionNum)
+      r.lap(2)
+      r.to(2.3)
+      r.incident(4)
+      r.wait(0.1)
+      expect(r.sim.view.car(0)?.lapInvalid).toBe(false)
+      r.to(2.6)
+      r.incident(2)
+      r.wait(0.1)
+      expect(r.sim.view.car(0)?.lapInvalid).toBe(false)
+      r.lap(3)
+      expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 3, clean: true })
+      // A 2x just after the line does not take back the lap it closed either.
+      r.incident(2)
+      r.wait(INCIDENT_LINE_GRACE_S / 3)
+      expect(r.sim.view.car(0)?.laps[0]).toMatchObject({ lap: 3, clean: true })
+    }
+  })
+
+  it('Posiciones’ best is your best legal lap, not iRacing’s when that is an illegal one', () => {
+    const r = rig([30, 30, 25, 30, 30], [2.4])
+    r.lap(3)
+    // iRacing counts the 25 s lap that left the track as your best.
+    r.sim.frame.CarIdxBestLapTime[0] = 25
+    r.wait(0.1)
+    expect(r.sim.view.car(0)?.bestLapTime).toBeCloseTo(30, 3)
+    expect(r.sim.view.lapProfile(0, 'best')).toMatchObject({ lap: 2, clean: true })
+    // A legal lap iRacing reports as the best is its value, to the thousandth.
+    r.sim.frame.CarIdxBestLapTime[0] = 29.987
+    r.wait(0.1)
+    expect(r.sim.view.car(0)?.bestLapTime).toBe(29.987)
+  })
+
+  it('an incident just after the line makes iRacing’s best of that lap not yours either', () => {
+    const r = rig([30, 30, 25, 30, 30])
+    r.lap(3)
+    r.incident()
+    r.wait(INCIDENT_LINE_GRACE_S / 3)
+    r.sim.frame.CarIdxBestLapTime[0] = r.sim.view.car(0)?.laps[0]?.time ?? 25
+    r.wait(0.1)
+    expect(r.sim.view.car(0)?.bestLapTime).toBeCloseTo(30, 3)
   })
 
   it('an off-track tick still spoils the lap without any incident (the rule as before)', () => {

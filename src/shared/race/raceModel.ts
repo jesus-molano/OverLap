@@ -139,6 +139,8 @@ export class RaceModel {
   private incidents = 0
   /** PlayerCarMyIncidentCount last seen; NaN before the first (no rise to take from it). */
   private incidentsSeen = Number.NaN
+  /** Your car's track (CarTrack.ownCar), to move the mark when your car changes. */
+  private ownTrack: CarTrack | undefined = undefined
   private timeRemain = NaN
   private lapsRemainEx = NaN
   /**
@@ -358,6 +360,8 @@ export class RaceModel {
     this.distanceSeeded = false
     this.incidents = 0
     this.incidentsSeen = NaN
+    if (this.ownTrack !== undefined) this.ownTrack.ownCar = false
+    this.ownTrack = undefined
     this.timeRemain = NaN
     this.lapsRemainEx = NaN
     this.playerLapsLeft = NaN
@@ -577,6 +581,11 @@ export class RaceModel {
     this.playerIdx = resolveFocusCarIdx(frame, session)
     const own = resolvePlayerCarIdx(frame, session)
     const pt = own >= 0 ? this.tracks[own] : undefined
+    if (pt !== this.ownTrack) {
+      if (this.ownTrack !== undefined) this.ownTrack.ownCar = false
+      if (pt !== undefined) pt.ownCar = true
+      this.ownTrack = pt
+    }
     if (pt?.active && pt.state.inWorld) {
       if (!this.distanceSeeded) {
         this.distanceSeeded = true
@@ -593,10 +602,12 @@ export class RaceModel {
       }
     }
     const count = finiteOr(frame.PlayerCarMyIncidentCount[0], Number.NaN)
-    // A rise while you drive your car spoils your lap (and the one just closed, at the line).
-    // The first count seen is no rise: it may hold a whole session's incidents.
+    // An off-track iRacing scored (a rise of exactly 1x) while you drive your car spoils your lap
+    // (or the one just closed, at the line). Contact (0x/4x) and a loss of control (2x) do not:
+    // iRacing still counts those laps, and an off-track the ticks saw spoils the lap anyway. The
+    // first count seen is no rise: it may hold a whole session's incidents.
     if (
-      count > this.incidentsSeen &&
+      count - this.incidentsSeen === 1 &&
       pt?.active === true &&
       pt.state.inWorld &&
       frame.IsOnTrack[0] === true

@@ -306,7 +306,13 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - `src/shared/spotter.ts`: su propia pasada de `computeRadar` (alcance 12 m, el de la memoria de
   lado), con su propia memoria, así que funciona con el radar oculto o con otro alcance. Un `prev`
   nulo del bucle (sesión nueva, reconexión, una regla que lo ocultó) la reinicia.
-- Cada barra es tu coche (4,6 m), de morro (0) a cola (1). Un coche al lado a `d` m (positivo,
+- Cada lado lleva lo de los dos estilos (`spotter.barStyle`, de dibujo). **Cercanía** (de serie,
+  `close`): la proximidad del radar sobre su alcance, 1 con alguien al lado (`CarLeftRight`), y
+  para un coche que el radar mantiene en su lado `1 - (|d| - L) / (12 - L)`, cuantizado a 1/50. Se
+  dibuja como un bloque a toda altura escalado desde abajo (`closeTransform`), con la rampa
+  ámbar→rojo (`color-mix` de `--ov-warn` y `--ov-alert`, así sigue la paleta para daltónicos). Un
+  coche que se acerca sin haber estado al lado no tiene lado: no llena nada.
+- **Dónde te cubre**: cada barra es tu coche (4,6 m), de morro (0) a cola (1). Un coche al lado a `d` m (positivo,
   delante) cubre `[max(0, -d/L), min(1, 1 - d/L)]`, pegado al extremo en el que va; como mínimo
   `SPOTTER.minCover` (8 %) si iRacing lo cuenta un poco más allá de un coche. Dos coches en un lado:
   sus dos tramos, unidos si se tocan, y la cuenta (2). Un lado que `CarLeftRight` da pero sin coche
@@ -315,8 +321,9 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   3 s) y está a menos de 12 m: `nearFront` / `nearRear`, de 0 a 1 (a un coche de distancia).
 - Cuantizado a 1/50 de coche (topes a 1/10) y `SKIP_EMIT` con `spotterEqual`: solo se envía cuando cambia una barra,
   muchos menos mensajes que sus ticks a 60 Hz (la prueba del mock lo comprueba).
-- Opciones (`spotter.*`, todas de dibujo): `onlyAlongside`, `barWidth` (px) y `parts`
-  (`nearCap`, `twoMark`). Oculto de serie (`defaultVisible: false`) y en `HIDDEN_WHEN_ADDED`.
+- Opciones (`spotter.*`, todas de dibujo): `barStyle` (`closeness` | `cover`), `onlyAlongside`, `barWidth` (px) y `parts`
+  (`nearCap`, solo con «Dónde te cubre», y `twoMark`). Oculto de serie (`defaultVisible: false`) y en `HIDDEN_WHEN_ADDED`.
+- Un lado sin nadie es un objeto compartido y congelado, como el payload fuera del coche: una pasada tranquila no reserva memoria.
 - Dibujo: dos pilares HTML en los extremos de la ventana (`display: flex; justify-content:
 space-between`); cada tramo es un bloque a toda altura escalado desde arriba (`transform`, una
   cadena por tramo cuantizado), los topes cambian solo `opacity`. Color con la rampa

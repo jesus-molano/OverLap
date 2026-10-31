@@ -64,7 +64,7 @@ export type InfoItemView =
     }
   | { readonly id: 'clock'; readonly text: string }
   /** The sim's time of day ('14:32'), in the local clock's format, with its own icon. */
-  | { readonly id: 'simClock'; readonly text: string }
+  | { readonly id: 'simClock'; readonly text: string; readonly night: boolean }
   | { readonly id: 'sof'; readonly text: string }
   | { readonly id: 'carCount'; readonly text: string }
   | { readonly id: 'incidents'; readonly count: IncidentCountView }
@@ -266,7 +266,9 @@ function itemView(
     case 'clock':
       return c.clock !== '' ? { id, text: c.clock } : null
     case 'simClock':
-      return d.simMinutes !== null ? { id, text: simClockText(d.simMinutes) } : null
+      return d.simMinutes !== null
+        ? { id, text: simClockText(d.simMinutes), night: simNight(d.simMinutes) }
+        : null
     case 'sof': {
       const sof = formatIRating(d.sof)
       return sof !== '' ? { id, text: m.widgets.standings.sof(sof) } : null
@@ -364,6 +366,12 @@ export function infoBarView(
 export function simClockText(minutes: number): string {
   const m = ((Math.floor(minutes) % 1440) + 1440) % 1440
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
+/** The sim's night (before 06:00 or from 20:00): the item's moon instead of its sun. */
+export function simNight(minutes: number): boolean {
+  const m = ((Math.floor(minutes) % 1440) + 1440) % 1440
+  return m < 6 * 60 || m >= 20 * 60
 }
 
 const NO_DATA: InfoBarData = Object.freeze({

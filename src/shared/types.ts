@@ -391,6 +391,12 @@ export interface SpotterSide {
    */
   nearFront: number
   nearRear: number
+  /**
+   * How close the nearest car on this side is, by the radar's own rule (2.4, the «Cercanía» bar):
+   * 1 alongside (CarLeftRight counts one here), then down to 0 as a car the radar's memory holds
+   * on this side gets SPOTTER.nearM away. Quantised (SPOTTER.steps).
+   */
+  close: number
 }
 
 export interface SpotterData {
@@ -1357,6 +1363,11 @@ export type RadarPartId = 'guides' | 'sideAlerts' | 'rangeLabels'
  * cars on one side.
  */
 export type SpotterPartId = 'nearCap' | 'twoMark'
+/**
+ * What a spotter bar shows (2.4): 'closeness' how close the nearest car on that side is, the
+ * radar as two bars (default); 'cover' the bar is your car and the part a car alongside covers.
+ */
+export type SpotterBarStyle = 'closeness' | 'cover'
 /** The alerts band's extras: what to do after each label, the other alerts as chips. */
 export type AlertsPartId = 'notes' | 'chips'
 /** The fuel widget's lines; `hero` (the fuel and the laps it lasts) always stays. */
@@ -1501,6 +1512,8 @@ export interface SpotterOptions {
   onlyAlongside: boolean
   /** The pillars' width, px at 100 %. */
   barWidth: number
+  /** What a bar shows: how close the nearest car is (default), or where it covers your car. */
+  barStyle: SpotterBarStyle
   /** The marks on the pillars (fixed order). */
   parts: ElementList<SpotterPartId>
 }

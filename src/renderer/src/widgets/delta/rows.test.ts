@@ -7,6 +7,8 @@ import { previewDelta } from './preview'
 import {
   DELTA_FIT_TOP_EM,
   DELTA_ROW_FIT_EM,
+  barsInRoom,
+  deltaFitOf,
   deltaRows,
   deltaTopParts,
   lapTimesView,
@@ -14,7 +16,8 @@ import {
   refBarsView,
   refLapOf,
   referenceNames,
-  referenceNote
+  referenceNote,
+  refBarsThatFit
 } from './rows'
 
 const ES = messagesFor('es')
@@ -196,5 +199,50 @@ describe('refBarsView', () => {
     expect(refBarsView(list(['pb'], ['pb']), 'pb', ES)).toHaveLength(0)
     expect(refBarsFitEm(0)).toBe(0)
     expect(refBarsFitEm(3)).toBeCloseTo(4.2, 9)
+  })
+})
+
+describe('the bars per reference in a short window', () => {
+  const ids: DeltaReference[] = ['pb', 'session', 'optimal', 'class', 'classOptimal']
+  /** The defaults with the line shown and `shown` bars on. */
+  const opts = (shown: DeltaReference[]): ReturnType<typeof defaultOptions<'delta'>> => {
+    const o = defaultOptions('delta')
+    return {
+      ...o,
+      rows: o.rows.map((e) => (e.id === 'refs' ? { ...e, visible: true } : e)),
+      refBars: ids.map((id) => ({ id, visible: shown.includes(id) }))
+    }
+  }
+  const three = opts(['pb', 'session', 'optimal'])
+
+  it('counts every bar while the text fits the window, and none in a very short one', () => {
+    expect(refBarsThatFit(three, 3, 420, 170, 9)).toBe(3)
+    expect(refBarsThatFit(three, 3, 400, 60, 9)).toBe(0)
+    // No size yet (the first frame): all, as the page shows them.
+    expect(refBarsThatFit(three, 3, 0, 0, 9)).toBe(3)
+  })
+
+  it('at the text floor, only the bars the height holds: two at the default 400 x 80', () => {
+    // 6.15 em without bars, 1.35 em each, 9 px text: 80 px hold 8.9 em.
+    expect(deltaFitOf(three, 0).h).toBeCloseTo(DELTA_FIT_TOP_EM + 0.95 + 1.7, 9)
+    expect(refBarsThatFit(three, 3, 400, 80, 9)).toBe(2)
+    // A larger text floor holds fewer.
+    expect(refBarsThatFit(three, 3, 400, 80, 10)).toBe(1)
+  })
+
+  it('never leaves out the reference the delta is using', () => {
+    const bars = refBarsView(three.refBars, 'optimal', ES)
+    expect(barsInRoom(bars, 3)).toBe(bars)
+    expect(barsInRoom(bars, 2).map((b) => b.id)).toEqual(['pb', 'optimal'])
+    expect(barsInRoom(bars, 1).map((b) => b.id)).toEqual(['optimal'])
+    expect(barsInRoom(bars, 0)).toHaveLength(0)
+    // In use among the first ones already: your order as it is.
+    const first = refBarsView(three.refBars, 'pb', ES)
+    expect(barsInRoom(first, 2).map((b) => b.id)).toEqual(['pb', 'session'])
+    // No reference in use (none chosen yet): the first ones.
+    expect(barsInRoom(refBarsView(three.refBars, null, ES), 2).map((b) => b.id)).toEqual([
+      'pb',
+      'session'
+    ])
   })
 })

@@ -219,12 +219,25 @@ export function arrangement(
 
 /**
  * The big gap: measured and unsigned ('0.6' + 's'), or with `relative` the signed time of the
- * Relativo widget, in its format ('0.6' ahead, '−0.6' behind: formatGap, as its gap column).
+ * Relativo widget exactly as its gap column draws it ('0.6' ahead, '−0.6' behind: formatGap, no
+ * unit).
  */
 export function gapView(gapS: number | null, relative = false): GapView {
   if (!finite(gapS)) return { value: DASH, unit: '' }
-  const g = formatGap(relative ? gapS : Math.abs(gapS))
+  if (relative) return { value: formatGap(gapS), unit: '' }
+  const g = formatGap(Math.abs(gapS))
   return g.includes(':') ? { value: g, unit: '' } : { value: g, unit: 's' }
+}
+
+/**
+ * «Como Relativo»: Relativo's time for that car; while it has none (no estimate for one of the
+ * two cars), the measured gap with the lane's sign, rather than «—».
+ */
+export function relativeGapView(op: BattleOpponent, side: BattleSide): GapView {
+  if (finite(op.relativeGapS)) return gapView(op.relativeGapS, true)
+  if (!finite(op.gapS)) return gapView(null, true)
+  const g = Math.abs(op.gapS)
+  return gapView(side === 'ahead' ? g : -g, true)
 }
 
 export function trendView(trend: number | null, side: BattleSide, m: Messages): TrendView {
@@ -420,7 +433,7 @@ export function toLaneView(
     tagIcon: TAG_ICONS[side],
     driver: laneDriver(op, o, styles, m),
     inPits: op.inPits,
-    gap: o.gapStyle === 'relative' ? gapView(op.relativeGapS, true) : gapView(op.gapS),
+    gap: o.gapStyle === 'relative' ? relativeGapView(op, side) : gapView(op.gapS),
     // Without its words the trend keeps the chevron and the number (never colour alone).
     trend: o.parts.trendNote ? trend : { ...trend, note: '' },
     tone: op.inPits ? 'dim' : trend.tone,

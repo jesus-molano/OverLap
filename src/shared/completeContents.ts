@@ -123,6 +123,8 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'nameFormat',
   // Batalla's big gap: unsigned or as Relativo, the same information either way.
   'gapStyle',
+  // The spotter's bars: closeness or where it covers you, a look, not more to see.
+  'barStyle',
   'density',
   'layout',
   'labelSide',

@@ -832,6 +832,14 @@ export const OPTION_SCHEMA = {
   spotter: {
     onlyAlongside: { kind: 'bool', default: true, displayOnly: true },
     barWidth: { kind: 'int', min: 6, max: 40, default: 14, step: 2, displayOnly: true },
+    // How close the nearest car on each side is, the radar as two bars (5c: the default for new
+    // and old files alike), or the first build's view: where along your car it covers you.
+    barStyle: {
+      kind: 'enum',
+      values: ['closeness', 'cover'],
+      default: 'closeness',
+      displayOnly: true
+    },
     parts: elements(idsOf<SpotterPartId>()(['nearCap', 'twoMark']), {
       fixedOrder: true,
       displayOnly: true

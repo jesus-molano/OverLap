@@ -142,7 +142,9 @@ export const ICONS = {
     { d: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5z', kind: 'stroke' },
     { d: 'M8 4.75V8l2.25 1.5', kind: 'stroke' }
   ],
-  /** The sim's time of day (the «Hora en pista» item): a sun. */
+  /** The sim's night (the «Hora en pista» item from 20:00 to 06:00): a crescent moon. */
+  moon: [{ d: 'M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z', kind: 'stroke' }],
+  /** The sim's time of day (the «Hora en pista» item, 06:00 to 20:00): a sun. */
   sun: [
     { d: 'M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6z', kind: 'stroke' },
     {

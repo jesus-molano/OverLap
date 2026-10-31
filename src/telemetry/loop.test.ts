@@ -303,7 +303,8 @@ const SPOTTER_SIDE: SpotterSide = {
   cover: 0,
   unknown: false,
   nearFront: 0,
-  nearRear: 0
+  nearRear: 0,
+  close: 0
 }
 const SPOTTER: SpotterData = {
   active: false,
