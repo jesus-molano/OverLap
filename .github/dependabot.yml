@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Node is the one Electron ships (24): its types follow it, never a newer major.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
     groups:
       # The tooling moves together; one PR a week for it.
       dev-dependencies:
