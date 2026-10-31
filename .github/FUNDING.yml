@@ -1,0 +1,5 @@
+# The «Sponsor» button of the repository.
+# TODO: once the Ko-fi account exists, uncomment the line below with its user name, and put the
+# same page in SUPPORT_URL (src/shared/projectLinks.ts) and in the README's «Apoyar OverLap».
+# ko_fi: <ko-fi-username>
+# github: jesus-molano   # only if GitHub Sponsors is approved

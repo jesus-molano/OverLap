@@ -52,6 +52,10 @@ El primer `build:win` descarga una vez las herramientas de NSIS que usa electron
 es `dist/OverLap-<versión>-portable.exe` (sin firmar). El portable se descomprime en una
 carpeta temporal en cada arranque; `dist/win-unpacked/OverLap.exe` arranca más rápido.
 
+Al publicar una release en GitHub, adjunta `LICENSE` y `THIRD_PARTY_NOTICES.md` junto al `.exe` (o
+enlázalos en las notas): van dentro del portable, pero quien solo baja el `.exe` no los ve hasta
+abrirlo, y la GPL pide que el texto de la licencia acompañe al binario.
+
 ## Fuente de datos
 
 | Forma                                | Valores                                       |
@@ -762,6 +766,11 @@ Consejos:
 
 ## Licencia
 
-OverLap no es software libre: © 2026 Jesús Molano, todos los derechos reservados (ver
-[LICENSE](../LICENSE)). Las dependencias y el material de terceros conservan sus licencias, que se
-recogen en [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+OverLap es software libre bajo la GNU GPL versión 3 o posterior (`GPL-3.0-or-later`), © 2026 Jesús
+Molano: ver [LICENSE](../LICENSE) y «Licencia y créditos» en el
+[README](../README.md#licencia-y-créditos). Las dependencias y el material de terceros conservan sus
+licencias, que se recogen en [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
+No hacen falta cabeceras de licencia en cada archivo. Los comentarios de atribución que ya hay
+(`irating.ts`, `safetyRating.ts`, `brandLogos.ts`, `flags.ts`) se quedan: las licencias MIT de
+origen los piden.

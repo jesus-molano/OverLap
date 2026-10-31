@@ -1,5 +1,16 @@
 # OverLap
 
+> **In English:** OverLap is a free and open-source overlay for iRacing on Windows. It reads the
+> sim's official telemetry (the iRacing SDK shared memory, read-only; nothing is injected into the
+> game) and draws eleven widgets on top of it: relative, radar, spotter, standings, battle, inputs,
+> traffic, alerts, warning lights, delta and fuel. Every widget can be moved, scaled and customised,
+> with a different layout per car. The app speaks Spanish and English; it needs no account and makes
+> no network connections. Download the portable `.exe` from
+> [Releases](https://github.com/jesus-molano/OverLap/releases). Licensed under the
+> [GPL-3.0-or-later](#licencia-y-créditos); see also [building from source](#compilar-desde-el-código),
+> [privacy](PRIVACY.md), the [code signing policy](#code-signing-policy) and
+> [contributing](CONTRIBUTING.md). The rest of this guide is in Spanish.
+
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja once
 widgets encima del juego: relativo, radar, spotter, posiciones, batalla, pedales, tráfico, avisos,
 testigos, delta y combustible. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
@@ -28,7 +39,10 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 - [Cuándo se ve el overlay](#cuándo-se-ve-el-overlay)
 - [Privacidad y anti-cheat](#privacidad-y-anti-cheat)
 - [Problemas conocidos](#problemas-conocidos)
+- [Compilar desde el código](#compilar-desde-el-código)
 - [Licencia y créditos](#licencia-y-créditos)
+- [Code signing policy](#code-signing-policy)
+- [Apoyar OverLap](#apoyar-overlap)
 
 ## Instalación
 
@@ -65,6 +79,8 @@ mientras no cambies nada más) y los récords del archivo se suman a los tuyos (
 rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
 versión, una ayuda rápida, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y
 **Restablecer todo** (como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
+Al final, **Licencia** dice que OverLap es software libre (GPL-3.0 o posterior, sin garantía) y
+abre en el navegador el código fuente, la licencia y los avisos de terceros.
 
 ## Widgets
 
@@ -535,10 +551,12 @@ o la captura de pantalla.
   se leen con Raw Input de Windows, como SimHub o Crew Chief: compartidos con iRacing, sin
   bloquear ni abrir el dispositivo, sin ganchos y sin enviarle nada.
 - **Sin red**: no se conecta a internet, no tiene cuentas ni envía datos a ningún sitio. Tus ajustes
-  y récords se quedan en tu equipo.
+  y récords se quedan en tu equipo. Los botones de **Acerca de y ayuda** (guía, problemas, código,
+  licencia) solo abren el navegador cuando los pulsas.
 - No activa la grabación de telemetría `.ibt` de iRacing.
 
-Los detalles técnicos están en las [notas de desarrollo](docs/README.dev.md#anti-cheat).
+La política de privacidad completa está en [PRIVACY.md](PRIVACY.md). Los detalles técnicos, en las
+[notas de desarrollo](docs/README.dev.md#anti-cheat).
 
 ## Problemas conocidos
 
@@ -551,10 +569,50 @@ Los detalles técnicos están en las [notas de desarrollo](docs/README.dev.md#an
   `?`: se muestran con el nombre del equipo o como «Piloto #7».
 - Lo pendiente de confirmar en una sesión real está en el [registro de cambios](CHANGELOG.md).
 
+## Compilar desde el código
+
+Necesitas Windows 10 u 11 de 64 bits, [Git](https://git-scm.com) y [Node.js](https://nodejs.org)
+22.12 o posterior (se desarrolla con Node 24). No hace falta Visual Studio ni Python: los addons
+nativos vienen precompilados.
+
+```bash
+git clone https://github.com/jesus-molano/OverLap.git
+cd OverLap
+npm ci
+npm run dev:mock    # pruébalo sin iRacing, con una carrera simulada
+npm run build:win   # el portable, en dist/OverLap-<versión>-portable.exe
+```
+
+`npm run build:win` comprueba los tipos, compila y empaqueta con electron-builder; la primera vez
+descarga las herramientas de NSIS. El `.exe` que sale no está firmado. Los demás scripts, cómo está
+montado por dentro y cómo se añade un widget están en las [notas de desarrollo](docs/README.dev.md);
+para enviar cambios, lee [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Licencia y créditos
 
-© 2026 Jesús Molano. Todos los derechos reservados. OverLap no es software libre: consulta las
-condiciones en [LICENSE](LICENSE).
+OverLap es software libre. Copyright © 2026 Jesús Molano.
+
+Puedes redistribuirlo y modificarlo según los términos de la Licencia Pública General de GNU (GNU
+GPL) publicada por la Free Software Foundation, ya sea la versión 3 de la licencia o, a tu elección,
+cualquier versión posterior (`GPL-3.0-or-later`). OverLap se distribuye con la esperanza de que sea
+útil, pero **sin ninguna garantía**, ni siquiera la garantía implícita de comerciabilidad o de
+idoneidad para un fin concreto. El texto completo está en [LICENSE](LICENSE), en inglés, que es la
+versión que vale legalmente.
+
+El nombre OverLap y el icono «OL» no se licencian como marca (GPL §7(e)): la GPL te da el código,
+no el derecho a usar ese nombre ni ese icono. Por eso, si distribuyes una versión modificada, tendrá
+que llevar otro nombre y otro icono, y así nadie la confundirá con OverLap. iRacing es una
+marca de iRacing.com Motorsport Simulations, LLC; OverLap no está afiliado a iRacing ni cuenta con su
+respaldo.
+
+**Los logos en color de las marcas de coches no están bajo la GPL.** Son marcas y dibujos de
+terceros (de Wikimedia, de worldvectorlogo.com y de las webs de Dallara y Tatuus), que se muestran
+solo para saber de qué marca es cada coche; sus dueños conservan todos sus derechos y OverLap no
+concede ninguno. El juego monocromo sale de [Simple Icons](https://simpleicons.org) (CC0, de dominio
+público) y se elige en **Apariencia › Filas y pilotos › Color del logo › Monocromo**: tiene 18 de
+las marcas, y las demás se siguen dibujando en grises a partir del juego en color. OverLap no está
+afiliado a ninguna marca de coches. El detalle, fuente por fuente, está en
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md#brand-logos).
 
 OverLap usa componentes de terceros (como [irsdk-node](https://github.com/bengsfort/irsdk-node)
 para leer el SDK de iRacing y las banderas de
@@ -565,3 +623,37 @@ del relativo.
 
 Los cambios de cada versión están en el [registro de cambios](CHANGELOG.md). Para compilar OverLap o
 ver cómo funciona por dentro, lee las [notas de desarrollo](docs/README.dev.md).
+
+## Code signing policy
+
+_En español: los `.exe` de OverLap todavía **no están firmados**. Cuando lo estén, esta sección dirá
+quién los firma y cómo se aprueba cada versión._
+
+**Status: OverLap's executables are not code-signed yet.** Windows SmartScreen warns when you open
+them (see [Instalación](#instalación)). Free code signing from the SignPath Foundation will be
+requested; until it is granted and in use, no OverLap release is signed by anyone.
+
+<!--
+TODO (SignPath): once the SignPath Foundation accepts OverLap and releases are signed through it,
+replace the status paragraph above with the line SignPath asks for:
+  Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+Also say "Code signing policy" on the Releases page (one line in each release's notes).
+-->
+
+- **Team roles:**
+  - Committers and reviewers: [jesus-molano](https://github.com/jesus-molano)
+  - Approvers: [jesus-molano](https://github.com/jesus-molano)
+- **What would be signed:** only the binaries built from this repository's source, by GitHub
+  Actions on GitHub-hosted runners, after the maintainer approves each release by hand.
+- **Privacy:** see [PRIVACY.md](PRIVACY.md). Today OverLap transfers no information to any networked
+  system.
+
+## Apoyar OverLap
+
+OverLap es gratis y lo seguirá siendo, sin cuentas, sin anuncios y sin funciones de pago. Si te sirve
+y quieres ayudar a mantenerlo, un donativo es voluntario y no desbloquea nada. Pronto habrá aquí
+un enlace (también en **Acerca de y ayuda**); mientras tanto, informar de errores, proponer ideas o
+enviar cambios ([CONTRIBUTING.md](CONTRIBUTING.md)) ayuda igual.
+
+<!-- TODO (Ko-fi): when the account exists, replace "Pronto habrá aquí un enlace…" with the link,
+and fill SUPPORT_URL in src/shared/projectLinks.ts and ko_fi in .github/FUNDING.yml. -->

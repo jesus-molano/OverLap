@@ -1,0 +1,6 @@
+# LF everywhere, on every checkout (.editorconfig, Prettier and the LICENSE checksum test expect it),
+# whatever core.autocrlf says: Git for Windows defaults to CRLF otherwise.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary

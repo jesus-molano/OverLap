@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
+import { COPYRIGHT } from '@shared/projectLinks'
 import APP from './SettingsApp.vue?raw'
 import FOOTER from './layout/SettingsFooter.vue?raw'
 import SIDEBAR from './layout/SettingsSidebar.vue?raw'
@@ -44,6 +45,51 @@ describe('«Acerca de y ayuda» (R40)', () => {
   it('is named in both languages', () => {
     expect(pageTitle(messagesFor('es'), 'about')).toBe('Acerca de y ayuda')
     expect(pageTitle(messagesFor('en'), 'about')).toBe('About and help')
+  })
+})
+
+describe('«Licencia» (GPL-3.0-or-later, 31-oct-2026)', () => {
+  it('gives the legal notices of the GPL in both languages', () => {
+    for (const lang of ['es', 'en'] as const) {
+      const l = messagesFor(lang).settings.about.licence
+      // GPLv3 §5(d): the copyright, the licence and that there is no warranty.
+      expect(l.help, lang).not.toContain('©')
+      expect(l.label, lang).toMatch(/GPL-3\.0/)
+      expect(l.help, lang).toMatch(/GNU GPL, vers(ión|ion) 3/)
+      expect(l.help, lang).toMatch(lang === 'es' ? /sin ninguna garantía/ : /no warranty/)
+      // The colour logos are not under it; the free set is a setting away.
+      expect(l.logosHelp, lang).toMatch(/GPL/)
+      // Monocromo is not all CC0: the makes Simple Icons lacks are the colour artwork in greys.
+      expect(l.logosHelp, lang).toMatch(/Simple Icons \(CC0\)/)
+      expect(l.logosHelp, lang).toMatch(/\b18\b/)
+      expect(l.logosHelp, lang).toMatch(lang === 'es' ? /grises/ : /greys/)
+      expect(l.logosHelp, lang).toContain(
+        lang === 'es' ? 'Filas y pilotos › Color del logo' : 'Rows and drivers › Logo colour'
+      )
+    }
+    expect(messagesFor('es').settings.about.licence.title).toBe('Licencia')
+    expect(messagesFor('en').settings.about.licence.title).toBe('Licence')
+  })
+
+  it('opens the source, the licence and the notices through main, by name', () => {
+    expect(ABOUT).toMatch(/<PageSection :title="t\.settings\.about\.licence\.title">/)
+    for (const page of ['source', 'licence', 'notices']) {
+      expect(ABOUT, page).toMatch(new RegExp(`@click="help\\('${page}'\\)"`))
+    }
+    expect(ABOUT).toContain('{{ t.settings.about.licence.label }}')
+    // The copyright, in every language the same, before the licence's words.
+    expect(COPYRIGHT).toBe('© 2026 Jesús Molano')
+    expect(ABOUT).toContain('{{ COPYRIGHT }}. {{ t.settings.about.licence.help }}')
+    expect(ABOUT).toContain('{{ t.settings.about.licence.logosHelp }}')
+    // No address in the page: main has them (projectLinks.ts).
+    expect(ABOUT).not.toMatch(/https?:\/\//)
+  })
+
+  it('shows «Apoyar OverLap» only once the donations page is filled in', () => {
+    expect(ABOUT).toContain('const support = hasSupportLink()')
+    expect(ABOUT).toMatch(/v-if="support"[\s\S]*?@click="help\('support'\)"/)
+    expect(messagesFor('es').settings.about.app.support).toBe('Apoyar OverLap')
+    expect(messagesFor('en').settings.about.app.support).toBe('Support OverLap')
   })
 })
 
