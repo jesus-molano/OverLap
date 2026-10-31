@@ -5,6 +5,8 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
 ## [2.4.1] - 2026-10-31
 
 ### Añadido
@@ -1186,6 +1188,7 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[Sin publicar]: https://github.com/jesus-molano/OverLap/compare/v2.4.1...HEAD
 [2.4.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.1
 [2.4.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.0
 [2.3.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.1

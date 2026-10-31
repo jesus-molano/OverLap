@@ -17,8 +17,10 @@ bienvenidos, en español o en inglés.
 
 ## Preparar el entorno
 
-Necesitas Windows 10 u 11 de 64 bits y Node.js 22.12 o posterior (se desarrolla con Node 24). No hace
-falta Visual Studio ni Python: los addons nativos vienen precompilados.
+Necesitas Node.js 22 (22.13 o posterior) o 24 (el de la CI). Para probar con iRacing y para compilar
+el `.exe` hace falta Windows 10 u 11 de 64 bits; `npm run dev:mock` (una carrera simulada) también
+funciona en Linux y macOS. No hace falta Visual Studio ni Python: los addons nativos vienen
+precompilados.
 
 ```bash
 npm ci
