@@ -94,6 +94,17 @@ export function tipTransform(step: number): string {
   return `translateX(${(step * 50) / BAR_STEPS || 0}%)`
 }
 
+/**
+ * A bar's classes (DeltaWidget's .dl-bar): the tone of its sign ('dl-bar--good', 'dl-bar--bad',
+ * 'dl-bar--idle' at 0.00 or unknown) and, beyond the scale, the hatched end on that side.
+ */
+export function barClassOf(delta: number | null | undefined, rangeS: number): string {
+  const s = deltaSign(delta)
+  const over = barOverflow(delta, rangeS)
+  const tone = s === -1 ? 'dl-bar--good' : s === 1 ? 'dl-bar--bad' : 'dl-bar--idle'
+  return over === 0 ? tone : `${tone} dl-bar--over-${over < 0 ? 'left' : 'right'}`
+}
+
 export interface BarStyles {
   readonly fill: InlineStyle
   readonly tip: InlineStyle
@@ -162,6 +173,22 @@ export const stateViews = perDictionary((m): Readonly<Record<StateView['kind'], 
     none: Object.freeze({ kind: 'none', text: '', tone: 'dim', icon: null })
   })
 })
+
+/**
+ * A reference's row as read aloud: 'Récord personal: −0.34, ganando' (with its trend when it
+ * has one; '—' while it has no lap).
+ */
+export function laneLabel(
+  name: string,
+  delta: number | null,
+  trend: TrendKind,
+  m: Messages
+): string {
+  const t = m.widgets.delta
+  const state = trend === 'gain' ? t.gaining : trend === 'loss' ? t.losing : ''
+  const text = `${name}: ${formatDelta(delta)}`
+  return state === '' ? text : `${text}, ${state}`
+}
 
 /** The lap states that count (or may yet): the others step the numbers back. */
 export function lapCounts(state: DeltaLapState | undefined): boolean {
