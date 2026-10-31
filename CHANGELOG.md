@@ -1167,7 +1167,7 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
-[Sin publicar]: https://github.com/jesus-molano/OverLap/compare/v2.3.1...HEAD
+[Sin publicar]: https://github.com/jesus-molano/OverLap/compare/v2.4.0...HEAD
 [2.4.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.0
 [2.3.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.1
 [2.3.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.0
