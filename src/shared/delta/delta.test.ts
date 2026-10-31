@@ -1512,17 +1512,32 @@ describe('DeltaProvider: the bars per reference (request 4)', () => {
   })
 
   it("starts each bar's trend over where its value holds, and computes none without bars", () => {
-    const rig = withBars(new Rig(), ['session'])
+    const rig = withBars(new Rig(), ['session', 'class'])
     rig.race.best.set(PLAYER, lapOf(100))
     rig.at(T0, 3, 0.5, 50.5)
     expect(rig.at(T0 + 0.5, 3, 0.505, 51.5).barTrends.session).toBeGreaterThan(0)
     // An impossible gain (a glitch): the value holds, the trend reads 0 and starts over.
-    expect(rig.at(T0 + 1, 3, 0.51, 0.2).barTrends).toEqual({ session: 0 })
+    expect(rig.at(T0 + 1, 3, 0.51, 0.2).barTrends).toEqual({ session: 0, class: 0 })
     // No lap in progress: 0.
-    expect(rig.at(T0 + 1.5, null, 0.515).barTrends).toEqual({ session: 0 })
+    expect(rig.at(T0 + 1.5, null, 0.515).barTrends).toEqual({ session: 0, class: 0 })
     // The row hidden: no trend at all.
     rig.opts = { ...rig.opts, rows: setElementVisible(rig.opts.rows, 'refs', false) }
     expect(rig.at(T0 + 2, 3, 0.52, 52).barTrends).toBe(NO_BAR_TRENDS)
+  })
+
+  it('computes no trend no row draws: the one in use alone (the usual delta), «Estado» off', () => {
+    const rig = withBars(new Rig({ reference: 'session' }), ['session'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.at(T0, 3, 0.5, 50.5)
+    const one = rig.at(T0 + 0.5, 3, 0.505, 51.5)
+    expect(one.bars.session).not.toBeNull()
+    expect(one.barTrends).toBe(NO_BAR_TRENDS)
+    // Another reference's row too: each its trend.
+    withBars(rig, ['session', 'pb'])
+    expect(rig.at(T0 + 1, 3, 0.51, 52).barTrends).toEqual({ session: expect.any(Number), pb: 0 })
+    // «Estado» off: no chevrons, no trends.
+    rig.opts = { ...rig.opts, top: setElementVisible(rig.opts.top, 'state', false) }
+    expect(rig.at(T0 + 1.5, 3, 0.515, 52.5).barTrends).toBe(NO_BAR_TRENDS)
   })
 })
 

@@ -318,6 +318,9 @@ export class DeltaProvider {
   private barKinds: readonly DeltaReference[] = NO_KINDS
   private barRows: unknown = null
   private barList: unknown = null
+  private barTop: unknown = null
+  /** The rows draw each bar's trend (DeltaData.barTrends): their «Estado» is shown. */
+  private barTrendsOn = false
   private readonly barRefs: Readonly<Record<DeltaReference, BarRef>> = {
     pb: new BarRef(),
     session: new BarRef(),
@@ -447,9 +450,11 @@ export class DeltaProvider {
     }
     const continuous = now - this.lastT <= DELTA.maxGapS
     this.lastT = now
-    if (opts.rows !== this.barRows || opts.refBars !== this.barList) {
+    if (opts.rows !== this.barRows || opts.refBars !== this.barList || opts.top !== this.barTop) {
       this.barRows = opts.rows
       this.barList = opts.refBars
+      this.barTop = opts.top
+      this.barTrendsOn = isElementVisible(opts.top, 'state')
       const kinds = barReferences(opts)
       // Another set of bars: each trend starts over (the values follow their laps as before).
       if (!arrayEqual(kinds, this.barKinds)) {
@@ -1023,7 +1028,8 @@ export class DeltaProvider {
   /**
    * Each bar's delta at `pct` against its own lap: held where the main one holds (the first
    * DELTA.guardPct of the lap, an impossible gain), null with no lap in progress or no lap of it.
-   * And its trend, as the main one's: 0 (and smoothed from scratch) while the value holds.
+   * And its trend, as the main one's: 0 (and smoothed from scratch) while the value holds; none
+   * while no row draws it (the delta of always: no bar but the reference in use's; «Estado» off).
    */
   private barValues(
     cur: CurrentLap | null,
@@ -1033,6 +1039,7 @@ export class DeltaProvider {
     const kinds = this.barKinds
     if (kinds.length === 0) return { bars: NO_BARS, barTrends: NO_BAR_TRENDS }
     const out: Record<DeltaReference, number | null> = { ...NO_BARS }
+    const rows = this.barTrendsOn && (kinds.length >= 2 || kinds[0] !== this.ref)
     const trends: Partial<Record<DeltaReference, number>> = {}
     for (const kind of kinds) {
       const bar = this.barRefs[kind]
@@ -1044,15 +1051,16 @@ export class DeltaProvider {
         const raw = cur.elapsedS - profileAt(bar.profile, pct)
         if (!(pct < DELTA.guardPct) && raw > -DELTA.maxGainFraction * bar.time) {
           bar.shown = quantise(raw, 100)
-          trend = bar.trend.update(raw, now)
+          if (rows) trend = bar.trend.update(raw, now)
+          else bar.trend.reset()
         } else {
           bar.trend.reset()
         }
       }
       out[kind] = bar.shown
-      trends[kind] = trend
+      if (rows) trends[kind] = trend
     }
-    return { bars: out, barTrends: trends }
+    return { bars: out, barTrends: rows ? trends : NO_BAR_TRENDS }
   }
 
   /**
