@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { messagesFor } from '@shared/i18n'
-import { formatCarNumber, splitLicense, toDriverCell, type DriverCellInput } from './driverCell'
+import {
+  IR_COMPACT_EM,
+  IR_FULL_EM,
+  IR_PLATE_EM,
+  formatCarNumber,
+  iRatingColumnEm,
+  splitLicense,
+  toDriverCell,
+  type DriverCellInput
+} from './driverCell'
 import { createDriverStyles } from './styles'
 
 const ES = messagesFor('es')
@@ -79,5 +88,25 @@ describe('splitLicense', () => {
     expect(splitLicense('A 4.9')).toEqual(['A', '4.9'])
     expect(splitLicense('R')).toEqual(['R', ''])
     expect(splitLicense('')).toEqual(['', ''])
+  })
+})
+
+describe('the iRating’s format and column (request 10)', () => {
+  it('writes the whole number in the language’s thousands when asked', () => {
+    const st = createDriverStyles()
+    expect(toDriverCell(DRIVER, st, 'abbr', ES).iRating).toBe('2.4k')
+    expect(toDriverCell(DRIVER, st, 'abbr', ES, 'full').iRating).toBe('2.412')
+    expect(toDriverCell(DRIVER, st, 'abbr', EN, 'full').iRating).toBe('2,412')
+  })
+
+  it('widens the column for the whole number and for a boxed licence plate only', () => {
+    expect(iRatingColumnEm('compact', false, 'outline')).toBe(IR_COMPACT_EM)
+    expect(IR_COMPACT_EM).toBe(2.4)
+    expect(iRatingColumnEm('full', false, 'outline')).toBe(IR_FULL_EM)
+    expect(iRatingColumnEm('compact', true, 'outline')).toBe(IR_COMPACT_EM + IR_PLATE_EM)
+    expect(iRatingColumnEm('full', true, 'solid')).toBe(IR_FULL_EM + IR_PLATE_EM)
+    // Suave and Solo letra colour the text: no box, no padding.
+    expect(iRatingColumnEm('compact', true, 'soft')).toBe(IR_COMPACT_EM)
+    expect(iRatingColumnEm('full', true, 'letter')).toBe(IR_FULL_EM)
   })
 })

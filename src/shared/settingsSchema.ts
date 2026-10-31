@@ -23,6 +23,7 @@ import type {
   ElementEntry,
   FuelLineId,
   InfoBarEntryId,
+  IRatingFormat,
   InfoBarSize,
   InputsBarId,
   InputsCarId,
@@ -196,6 +197,9 @@ export type OptionSchema = {
 
 const NAME_FORMATS = ['full', 'abbr', 'surname', 'tv'] as const satisfies readonly NameFormat[]
 const NAME_FORMATS_INHERIT = ['inherit', ...NAME_FORMATS] as const
+
+/** The iRating's formats (request 10), in UI order: today's '2.5k' first. */
+export const IRATING_FORMATS = ['compact', 'full'] as const satisfies readonly IRatingFormat[]
 
 /** When the overlay is shown (VisibilityOptions.showWhen), in UI order: the default first. */
 export const SHOW_WHEN = ['car', 'race', 'always'] as const satisfies readonly ShowWhen[]
@@ -372,7 +376,15 @@ const DRIVER_BLOCK = {
     displayOnly: true
   },
   countryFlags: { kind: 'flag', default: 'inherit', displayOnly: true },
-  showFlags: { kind: 'flag', default: 'inherit', displayOnly: true }
+  showFlags: { kind: 'flag', default: 'inherit', displayOnly: true },
+  // Request 10: how the iRating reads, and in its licence's colours. Older files have neither: Global.
+  iRatingFormat: {
+    kind: 'enum',
+    values: ['inherit', ...IRATING_FORMATS],
+    default: 'inherit',
+    displayOnly: true
+  },
+  iRatingColor: { kind: 'flag', default: 'inherit', displayOnly: true }
 } as const
 
 /** The track temperature's trend arrow and the wind's dial, options of their info items. */
@@ -478,6 +490,9 @@ export const OPTION_SCHEMA = {
     brandMarks: { kind: 'enum', values: BRAND_MARK_CHOICES, default: 'auto', displayOnly: true },
     countryFlags: { kind: 'bool', default: true, displayOnly: true },
     penaltyFlags: { kind: 'bool', default: true, displayOnly: true },
+    // Request 10: today's '2.5k' in today's grey until chosen (older files have neither).
+    iRatingFormat: { kind: 'enum', values: IRATING_FORMATS, default: 'compact', displayOnly: true },
+    iRatingColor: { kind: 'bool', default: false, displayOnly: true },
     colorBlind: { kind: 'bool', default: false, displayOnly: true },
     // Accesibilidad (R15, R27): off by default, so a widget looks and moves as it always did
     // until you choose it. The minimum text from 9 to 10 px; no blinking anywhere in the overlay.

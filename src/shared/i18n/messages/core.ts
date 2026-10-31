@@ -16,6 +16,8 @@ export const coreEs = {
    * The widgets keep the sim's dot, like lap times ('1:01.234', '+1.2').
    */
   decimal: ',',
+  /** The thousands separator of a whole iRating ('2.520' in Spanish, '2,520' in English, request 10). */
+  thousands: '.',
   widgetTitles: {
     relative: 'Relativo',
     radar: 'Radar',
@@ -271,6 +273,7 @@ export const coreEn: Dict<typeof coreEs> = {
   appName: 'OverLap',
   percent: (n) => `${n}%`,
   decimal: '.',
+  thousands: ',',
   widgetTitles: {
     relative: 'Relative',
     radar: 'Radar',

@@ -2,8 +2,8 @@
 import type { Messages } from '@shared/i18n'
 import { formatDriverName } from '@shared/format'
 import type { BrandMarkMode } from '@shared/carBrands'
-import { BRAND_MARK_CHOICES, OPTION_SCHEMA } from '@shared/settingsSchema'
-import type { AppearanceSettings, NameFormat } from '@shared/types'
+import { BRAND_MARK_CHOICES, IRATING_FORMATS, OPTION_SCHEMA } from '@shared/settingsSchema'
+import type { AppearanceSettings, IRatingFormat, NameFormat } from '@shared/types'
 import { SAMPLE_NAME } from '../samples/sampleData'
 import { choiceOptions, toChoice, fromChoice, type BoolChoice, type ChoiceOption } from './choice'
 
@@ -98,5 +98,23 @@ export function brandChoicesInherit(
   return [
     { value: 'inherit', label: c.inherit(texts[global].label), hint: c.flagInheritHint },
     ...choiceOptions(BRAND_MARK_CHOICES, texts)
+  ]
+}
+
+/** «2.5k» / «2.520» (request 10): each written as it reads in the current language. */
+export function iRatingFormatChoices(m: Messages): readonly ChoiceOption<IRatingFormat>[] {
+  return choiceOptions(IRATING_FORMATS, m.settings.driverCell.iRatingFormatChoices)
+}
+
+/** The iRating format's «Global (2.5k)», then 2.5k / 2.520. */
+export function iRatingFormatChoicesInherit(
+  m: Messages,
+  global: IRatingFormat
+): readonly ChoiceOption<IRatingFormat | 'inherit'>[] {
+  const c = m.settings.choices
+  const texts = m.settings.driverCell.iRatingFormatChoices
+  return [
+    { value: 'inherit', label: c.inherit(texts[global].label), hint: c.flagInheritHint },
+    ...iRatingFormatChoices(m)
   ]
 }

@@ -1252,6 +1252,9 @@ export interface VisibilityOptions {
 /** How driver names are written: 'Alejandro Ruiz' / 'A. Ruiz' / 'Ruiz' / 'RUI'. */
 export type NameFormat = 'full' | 'abbr' | 'surname' | 'tv'
 
+/** The iRating figure: '2.5k' (compact, one decimal) or the whole number, '2.520' (request 10). */
+export type IRatingFormat = 'compact' | 'full'
+
 /** Global look, applied once per window (CSS variables on the document root). */
 export interface AppearanceSettings {
   /** Accent colour (#rrggbb): means "you" and nothing else. */
@@ -1270,6 +1273,10 @@ export interface AppearanceSettings {
   brandMarks: BrandMarkMode
   countryFlags: boolean
   penaltyFlags: boolean
+  /** The iRating figure: '2.5k' or the whole number with the language's thousands separator. */
+  iRatingFormat: IRatingFormat
+  /** The iRating drawn in its driver's licence colours, in the licence's style (request 10). */
+  iRatingColor: boolean
   /** Colour-blind-safe palette (blue/orange instead of green/red; shapes always present). */
   colorBlind: boolean
   /** The widgets' smallest text at 10 px instead of 9 (R15). */
@@ -1495,6 +1502,9 @@ export interface RelativeOptions {
   brandMarks: BrandMarkMode | 'inherit'
   countryFlags: boolean | 'inherit'
   showFlags: boolean | 'inherit'
+  /** The iRating's format and licence colours (request 10); 'inherit' = Apariencia's. */
+  iRatingFormat: IRatingFormat | 'inherit'
+  iRatingColor: boolean | 'inherit'
   /** 'inherit' (default) = appearance.nameFormat, like every other widget. */
   nameFormat: NameFormat | 'inherit'
   /**
@@ -1605,6 +1615,9 @@ export interface StandingsOptions {
   brandMarks: BrandMarkMode | 'inherit'
   countryFlags: boolean | 'inherit'
   showFlags: boolean | 'inherit'
+  /** The iRating's format and licence colours (request 10); 'inherit' = Apariencia's. */
+  iRatingFormat: IRatingFormat | 'inherit'
+  iRatingColor: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
   /** Projected iRating change on every row (otherwise only on yours and in the header). */
@@ -1643,6 +1656,9 @@ export interface BattleOptions {
   brandMarks: BrandMarkMode | 'inherit'
   countryFlags: boolean | 'inherit'
   showFlags: boolean | 'inherit'
+  /** The iRating's format and licence colours (request 10); 'inherit' = Apariencia's. */
+  iRatingFormat: IRatingFormat | 'inherit'
+  iRatingColor: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
 }
@@ -1709,6 +1725,9 @@ export interface TrafficOptions {
   brandMarks: BrandMarkMode | 'inherit'
   countryFlags: boolean | 'inherit'
   showFlags: boolean | 'inherit'
+  /** The iRating's format and licence colours (request 10); 'inherit' = Apariencia's. */
+  iRatingFormat: IRatingFormat | 'inherit'
+  iRatingColor: boolean | 'inherit'
   /** 'inherit' = appearance.nameFormat. */
   nameFormat: NameFormat | 'inherit'
 }

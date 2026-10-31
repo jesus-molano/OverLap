@@ -9,6 +9,7 @@ import type { BrandId } from '@shared/carBrands'
 import BrandMark from './BrandMark.vue'
 import ClassStripe from './ClassStripe.vue'
 import CountryFlag from './CountryFlag.vue'
+import IRating from './IRating.vue'
 import LicenseChip from './LicenseChip.vue'
 import NumberBadge from './NumberBadge.vue'
 
@@ -43,6 +44,8 @@ const props = withDefaults(
     brand?: BrandId
     /** The driver's flag code (CountryFlag); undefined: no slot. */
     country?: string
+    /** The iR in its licence's colours (IRating, request 10); absent, today's grey figure. */
+    ratingColors?: InlineStyle | null
     /** The iR's and the licence's `data-el' (the battle's parts), for the settings preview. */
     ratingEl?: string
     licenseEl?: string
@@ -79,9 +82,9 @@ const shownName = computed(() =>
     <CountryFlag v-if="country !== undefined" :code="country" />
     <span class="ov-driver__name">{{ shownName }}</span>
     <slot />
-    <span v-if="withRating && iRating" class="ov-driver__ir" :data-el="ratingEl">{{
-      iRating
-    }}</span>
+    <span v-if="withRating && iRating" class="ov-driver__ir" :data-el="ratingEl"
+      ><IRating :text="iRating" :colors="ratingColors" :variant="licenseStyle"
+    /></span>
     <LicenseChip
       v-if="withLicense && lic && licStyle"
       :text="lic"

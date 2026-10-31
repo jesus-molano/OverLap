@@ -12,6 +12,7 @@ import TRAFFIC from './TrafficSettings.vue?raw'
 import {
   brandChoicesInherit,
   flagChoicesInherit,
+  iRatingFormatChoicesInherit,
   fromFlagChoice,
   toFlagChoice
 } from '../controls/choices'
@@ -29,20 +30,29 @@ describe('DriverSection', () => {
       expect(content, id).toBeGreaterThan(-1)
       expect(block, id).toBeGreaterThan(content)
       expect(block, id).toBeLessThan(t.indexOf('<CustomizeSection>'))
-      for (const field of ['nameFormat', 'brandMarks', 'countryFlags', 'showFlags']) {
+      for (const field of [
+        'nameFormat',
+        'brandMarks',
+        'countryFlags',
+        'showFlags',
+        'iRatingFormat',
+        'iRatingColor'
+      ]) {
         expect(t, `${id}.${field}`).not.toContain(`set('${field}')`)
       }
     }
   })
 
-  it('has the four rows in one order, each with its Global', () => {
+  it('has its rows in one order, each with its Global', () => {
     const t = templateOf(BLOCK)
     const at = (s: string): number => t.indexOf(s)
     const order = [
       at('t.settings.common.nameFormat'),
       at('t.settings.driverCell.brandMarks'),
       at('t.settings.driverCell.countryFlags'),
-      at('t.settings.common.penaltyFlags')
+      at('t.settings.common.penaltyFlags'),
+      at('t.settings.driverCell.iRatingFormat'),
+      at('t.settings.driverCell.iRatingColor')
     ]
     expect(order.every((i) => i > -1)).toBe(true)
     expect([...order].sort((a, b) => a - b)).toEqual(order)
@@ -53,6 +63,17 @@ describe('DriverSection', () => {
       'Auto',
       'Siempre',
       'Nunca'
+    ])
+    // The iRating's format (request 10): each choice written as it reads, in each language.
+    expect(iRatingFormatChoicesInherit(es, 'compact').map((c) => c.label)).toEqual([
+      'Global (2.5k)',
+      '2.5k',
+      '2.520'
+    ])
+    expect(iRatingFormatChoicesInherit(messagesFor('en'), 'full').map((c) => c.label)).toEqual([
+      'Global (2,520)',
+      '2.5k',
+      '2,520'
     ])
     expect([toFlagChoice('inherit'), toFlagChoice(true), toFlagChoice(false)]).toEqual([
       'inherit',

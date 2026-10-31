@@ -21,12 +21,13 @@ import type {
   BattlePartId,
   BattlePredictionId,
   BattleRowId,
+  IRatingFormat,
   NameFormat
 } from '@shared/types'
 import type { IconName } from '@renderer/ui/icons'
 import type { Tone } from '@renderer/ui/tones'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
-import type { DriverStyles } from '@renderer/view/styles'
+import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
 
 export type BattleSide = BattleLaneId
 
@@ -41,6 +42,8 @@ export interface LaneDriverView extends DriverCellView {
   readonly withRating: boolean
   /** The rival's licence after the name (battle.parts 'license'). */
   readonly withLicense: boolean
+  /** The iRating's licence colours (IRating, request 10), null for today's plain figure. */
+  readonly ratingColors: InlineStyle | null
   /** Its flag badge after the name, while the «Piloto» block shows them (null: none). */
   readonly penalty: CarPenalty | null
 }
@@ -118,6 +121,9 @@ export interface LaneOptions {
   /** The black flag, meatball and furled flag badges (the «Piloto» block's showFlags). */
   readonly penalties: boolean
   readonly nameFormat: NameFormat
+  /** The «Piloto» block's iRating format and licence colours (request 10); today's if absent. */
+  readonly irFormat?: IRatingFormat
+  readonly irColor?: boolean
   /** What the prediction row may say (battle.prediction); every saying when absent. */
   readonly prediction?: Readonly<Record<BattlePredictionId, boolean>>
   /** The big gap: measured and unsigned (absent too), or Relativo's signed time. */
@@ -405,12 +411,14 @@ export function laneDriver(
   styles: DriverStyles,
   m: Messages
 ): LaneDriverView {
+  const cell = toDriverCell(op, styles, o.nameFormat, m, o.irFormat)
   return {
-    ...toDriverCell(op, styles, o.nameFormat, m),
+    ...cell,
     ...(o.brand && op.brand !== 'unknown' ? { brand: op.brand } : {}),
     ...(o.flag && op.country !== '' ? { country: op.country } : {}),
     withRating: o.parts.rating,
     withLicense: o.parts.license,
+    ratingColors: o.irColor === true ? cell.licStyle : null,
     penalty: o.penalties ? op.penalty : null
   }
 }

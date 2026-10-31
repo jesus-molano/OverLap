@@ -379,3 +379,14 @@ describe('the position track (showPosition, R10)', () => {
     expect(off.key).not.toBe(on.key)
   })
 })
+
+describe('the iRating column’s width (request 10)', () => {
+  it('is today’s without one, and the one given otherwise', () => {
+    const today = fitColumns(prefs(), 0, 13)
+    expect(fitColumns(prefs({ irEm: 2.4 }), 0, 13).template).toBe(today.template)
+    const wide = fitColumns(prefs({ irEm: 3.4 }), 0, 13)
+    expect(wide.template).not.toBe(today.template)
+    expect(wide.template).toContain('3.4em')
+    expect(wide.key).not.toBe(today.key)
+  })
+})

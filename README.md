@@ -327,7 +327,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
-  Nunca), bandera del país y banderas de penalización.
+  Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k» o el número
+  entero, «2.520», con los miles del idioma; también el SoF) e **iRating con el color de la
+  licencia** (apagado de serie: el de cada piloto con los colores y el estilo de su licencia).
 - **Accesibilidad** (en el grupo **General** de Apariencia, con Idioma y Otros), todo apagado de serie: **paleta para daltónicos**
   (azul y naranja en lugar de verde y rojo, también en los pedales, con la traza del freno más
   gruesa), **texto mínimo de 10 px** (en vez de 9; ningún widget se ensancha, quitan antes un dato),
@@ -335,8 +337,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda; botones 80/100/125/150 %, como los demás
   tamaños). Al pie, dos botones llevan a **Tamaño del texto** y **Contorno del texto**.
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
-  de Contenido, las mismas cuatro filas (formato de nombre, logo de la marca, bandera del país,
-  banderas de penalización), cada una con «Global (…)», lo de Apariencia, o un valor propio. Las
+  de Contenido, las mismas filas (formato de nombre, logo de la marca, bandera del país,
+  banderas de penalización, formato del iRating e iRating con el color de la licencia; en Tráfico,
+  que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. Las
   banderas de penalización salen o no según su fila; dónde, lo decide la columna «Banderas» de
   Relativo y Posiciones (y la parte «Banderas» de Tráfico): oculta, tras el nombre; visible, en su
   sitio de la lista, que se ordena como las demás. Batalla, sin columnas, las lleva tras el nombre.

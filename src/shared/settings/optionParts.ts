@@ -132,6 +132,8 @@ export const APPEARANCE_PART_FIELDS: Readonly<
       'brandMarks',
       'countryFlags',
       'penaltyFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'brandLogos'
     ]
   },

@@ -1990,6 +1990,17 @@ export const settingsEs = {
     },
     countryFlags: 'Bandera del país',
     countryFlagsHelp: 'La que cada piloto eligió en iRacing; nada si no eligió ninguna',
+    iRatingFormat: 'Formato del iRating',
+    iRatingFormatHelp: 'El de cada piloto y el SoF: abreviado o el número entero',
+    iRatingFormatChoices: {
+      compact: { label: '2.5k', hint: 'Abreviado, con un decimal' },
+      full: { label: '2.520', hint: 'El número entero' }
+    },
+    iRatingColor: 'iRating con el color de la licencia',
+    iRatingColorHelp:
+      'El de cada piloto con los colores y el estilo de su licencia: oculta la columna Licencia y sigue viendo su clase',
+    /** Tráfico's «Piloto» block: the row is there, as on the other three pages, but off. */
+    iRatingColorNone: 'Tráfico no muestra el iRating de los pilotos',
     columnHeads: 'Títulos de columna',
     columnHeadsHelp: 'Una fila con el nombre de cada columna: «POS», «PILOTO», «iR»…'
   },
@@ -3754,6 +3765,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
     },
     countryFlags: 'Country flag',
     countryFlagsHelp: 'The one each driver chose in iRacing; nothing when they chose none',
+    iRatingFormat: 'iRating format',
+    iRatingFormatHelp: 'Each driver’s and the SoF: short or the whole number',
+    iRatingFormatChoices: {
+      compact: { label: '2.5k', hint: 'Short, one decimal' },
+      full: { label: '2,520', hint: 'The whole number' }
+    },
+    iRatingColor: 'iRating in the licence colour',
+    iRatingColorHelp:
+      'Each driver’s in their licence’s colours and style: hide the Licence column and still see their class',
+    iRatingColorNone: 'Traffic does not show the drivers’ iRating',
     columnHeads: 'Column titles',
     columnHeadsHelp: 'A row naming each column: “POS”, “DRIVER”, “iR”…'
   },

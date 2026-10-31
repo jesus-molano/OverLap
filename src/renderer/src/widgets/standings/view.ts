@@ -20,6 +20,7 @@ import type {
   CarPenalty,
   ElementEntry,
   GapValue,
+  IRatingFormat,
   NameFormat,
   StandingsClassBlock,
   StandingsClassLineId,
@@ -51,6 +52,8 @@ export type GainedIcon = Extract<IconName, 'arrow-up' | 'arrow-down'>
 export interface CarLineView extends DriverCellView {
   /** 'leader': another class's leader on one line, its class tag in front. */
   kind: 'car' | 'leader'
+  /** The iRating's licence colours (IRating, request 10), null for today's plain figure. */
+  irColors: InlineStyle | null
   /** Class attribute of the line element, state classes included. */
   css: string
   /** Class short name of a one-line leader ('LMP2'), else ''. */
@@ -136,6 +139,10 @@ export interface LineContext {
   /** iRating change on every row (otherwise only on yours). */
   deltaAll: boolean
   nameFormat: NameFormat
+  /** The «Piloto» block's «Formato del iRating» (request 10): the drivers' and the SoF; '2.5k' if absent. */
+  irFormat?: IRatingFormat
+  /** The iRating in its driver's licence colours (request 10); off if absent. */
+  irColor?: boolean
   /** What the class lines say, in order (standings.classLine). */
   classLine: readonly Readonly<ElementEntry<StandingsClassLineId>>[]
   /** The flag badge after the name (black, meatball, furled). */
@@ -256,9 +263,11 @@ function toCarView(
   const gained = ctx.race ? gainedCell(row.positionsGained) : NO_GAIN
   const showDelta = ctx.race && (ctx.deltaAll || row.isPlayer)
   const leader = o.classTag !== ''
+  const cell = toDriverCell(row, ctx.styles, ctx.nameFormat, ctx.m, ctx.irFormat)
   return {
-    ...toDriverCell(row, ctx.styles, ctx.nameFormat, ctx.m),
+    ...cell,
     kind: leader ? 'leader' : 'car',
+    irColors: ctx.irColor === true ? cell.licStyle : null,
     css: carCss(row, o.alt, o.sep, leader),
     classTag: o.classTag,
     classSof: o.classSof ?? '',
@@ -303,14 +312,15 @@ export interface ClassMetaPart {
 export function classMetaParts(
   block: Pick<StandingsClassBlock, 'sof' | 'carCount'>,
   parts: readonly Readonly<ElementEntry<StandingsClassLineId>>[],
-  m: Messages
+  m: Messages,
+  irFormat: IRatingFormat = 'compact'
 ): ClassMetaPart[] {
   const t = m.widgets.standings
   const out: ClassMetaPart[] = []
   for (const p of parts) {
     if (!p.visible) continue
     if (p.id === 'sof') {
-      const sof = formatIRating(block.sof)
+      const sof = formatIRating(block.sof, irFormat, m)
       if (sof !== '') out.push({ id: 'sof', text: t.sof(sof) })
     } else if (block.carCount > 0) {
       out.push({ id: 'carCount', text: t.cars(block.carCount) })
@@ -329,9 +339,10 @@ export const CLASS_META_SEP = META_SEP
 export function classMeta(
   block: Pick<StandingsClassBlock, 'sof' | 'carCount'>,
   parts: readonly Readonly<ElementEntry<StandingsClassLineId>>[],
-  m: Messages
+  m: Messages,
+  irFormat: IRatingFormat = 'compact'
 ): string {
-  return classMetaParts(block, parts, m)
+  return classMetaParts(block, parts, m, irFormat)
     .map((p) => p.text)
     .join(META_SEP)
 }
@@ -345,7 +356,7 @@ export function className(
 }
 
 function toClassView(block: StandingsClassBlock, ctx: LineContext): ClassLineView {
-  const metaParts = classMetaParts(block, ctx.classLine, ctx.m)
+  const metaParts = classMetaParts(block, ctx.classLine, ctx.m, ctx.irFormat)
   return {
     kind: 'class',
     css: block.isPlayerClass ? 'sd-line sd-class is-own' : 'sd-line sd-class',
@@ -365,7 +376,9 @@ export function toLineViews(lines: readonly PlannedLine[], ctx: LineContext): Li
     if (l.kind === 'leader') {
       const tag = className(l.block, ctx.m)
       // Its class line folded into it: the SoF of every class, also on one line (2.4).
-      const sof = classMetaParts(l.block, ctx.classLine, ctx.m).find((p) => p.id === 'sof')
+      const sof = classMetaParts(l.block, ctx.classLine, ctx.m, ctx.irFormat).find(
+        (p) => p.id === 'sof'
+      )
       return toCarView(l.row, ctx, {
         alt: false,
         sep: false,

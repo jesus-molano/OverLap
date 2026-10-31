@@ -84,6 +84,8 @@ describe('resets with "Deshacer"', () => {
     expect(Object.keys((patches.at(-1) as Record<string, object>).battle ?? {}).sort()).toEqual([
       'brandMarks',
       'countryFlags',
+      'iRatingColor',
+      'iRatingFormat',
       'nameFormat',
       'showFlags'
     ])

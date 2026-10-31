@@ -19,7 +19,13 @@ import NumberBadge from '../../ui/NumberBadge.vue'
 import { createDriverStyles } from '../../view/styles'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions, type ChoiceOption } from '../controls/choice'
-import { densityChoices, flagChoices, nameExample, nameFormatChoices } from '../controls/choices'
+import {
+  densityChoices,
+  flagChoices,
+  iRatingFormatChoices,
+  nameExample,
+  nameFormatChoices
+} from '../controls/choices'
 import { fromChoice, toChoice, type BoolChoice } from '../controls/choice'
 import ColorControl from '../controls/ColorControl.vue'
 import HelpText from '../controls/HelpText.vue'
@@ -60,8 +66,10 @@ const titleId = useId()
 const set = optionSetter('appearance')
 /** The «Piloto» block's flags as «Sí / No», the same control as on each widget (R08). */
 const yesNo = computed(() => flagChoices(t.value))
+/** The iRating's «2.5k» / «2.520» (request 10), the second in the language's thousands. */
+const irFormatChoices = computed(() => iRatingFormatChoices(t.value))
 const setFlag =
-  (key: 'countryFlags' | 'penaltyFlags') =>
+  (key: 'countryFlags' | 'penaltyFlags' | 'iRatingColor') =>
   (v: BoolChoice): Promise<unknown> =>
     set(key)(fromChoice(v))
 
@@ -141,8 +149,15 @@ async function followBlocks(): Promise<void> {
   if (ids.length === 0 || s === null) return
   const before: Record<string, DriverBlockOptions> = {}
   for (const id of ids) {
-    const { nameFormat, brandMarks, countryFlags, showFlags } = s[id]
-    before[id] = { nameFormat, brandMarks, countryFlags, showFlags }
+    const { nameFormat, brandMarks, countryFlags, showFlags, iRatingFormat, iRatingColor } = s[id]
+    before[id] = {
+      nameFormat,
+      brandMarks,
+      countryFlags,
+      showFlags,
+      iRatingFormat,
+      iRatingColor
+    }
   }
   await followGlobal(
     ids,
@@ -372,6 +387,20 @@ const readLinks = computed(() => {
             :current="toChoice(appearance.penaltyFlags)"
             :options="yesNo"
             :apply="setFlag('penaltyFlags')"
+          />
+          <ChoiceControl
+            :label="t.settings.driverCell.iRatingFormat"
+            :help="t.settings.driverCell.iRatingFormatHelp"
+            :current="appearance.iRatingFormat"
+            :options="irFormatChoices"
+            :apply="set('iRatingFormat')"
+          />
+          <ChoiceControl
+            :label="t.settings.driverCell.iRatingColor"
+            :help="t.settings.driverCell.iRatingColorHelp"
+            :current="toChoice(appearance.iRatingColor)"
+            :options="yesNo"
+            :apply="setFlag('iRatingColor')"
           />
           <div v-if="ownBlocks.length > 0" class="st-row own-bg">
             <p class="st-help">{{ t.settings.appearance.rows.ownBlocks(ownBlocks.length) }}</p>

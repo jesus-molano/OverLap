@@ -29,6 +29,7 @@ import type {
   InfoBarData,
   InfoBarEntryId,
   InfoItemId,
+  IRatingFormat,
   PlayerRatingProjection,
   SafetyRatingProjection
 } from '@shared/types'
@@ -146,6 +147,11 @@ export interface InfoBarContext {
   /** The `trackTemp` item's trend arrow and the `wind` item's dial (the section's options). */
   readonly trend: boolean
   readonly windDirection: boolean
+  /**
+   * The `sof` item's figure (request 10): a driver widget's «Formato del iRating», Apariencia's
+   * elsewhere; '2.5k' if absent.
+   */
+  readonly irFormat?: IRatingFormat
   readonly m: Messages
 }
 
@@ -270,7 +276,7 @@ function itemView(
         ? { id, text: simClockText(d.simMinutes), night: simNight(d.simMinutes) }
         : null
     case 'sof': {
-      const sof = formatIRating(d.sof)
+      const sof = formatIRating(d.sof, c.irFormat, m)
       return sof !== '' ? { id, text: m.widgets.standings.sof(sof) } : null
     }
     case 'carCount':

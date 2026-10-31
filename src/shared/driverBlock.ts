@@ -3,7 +3,7 @@
  * Posiciones, Batalla and Tráfico, each one its own value or 'inherit' (Apariencia's). Pure.
  */
 import type { BrandMarkMode } from './carBrands'
-import type { AppearanceSettings, NameFormat } from './types'
+import type { AppearanceSettings, IRatingFormat, NameFormat } from './types'
 
 /** As a driver widget stores them. */
 export interface DriverBlockOptions {
@@ -11,6 +11,8 @@ export interface DriverBlockOptions {
   readonly countryFlags: boolean | 'inherit'
   readonly showFlags: boolean | 'inherit'
   readonly nameFormat: NameFormat | 'inherit'
+  readonly iRatingFormat: IRatingFormat | 'inherit'
+  readonly iRatingColor: boolean | 'inherit'
 }
 
 /** As the widget draws them. */
@@ -19,11 +21,15 @@ export interface DriverBlock {
   readonly countryFlags: boolean
   readonly showFlags: boolean
   readonly nameFormat: NameFormat
+  /** Every iRating the widget writes, its drivers' and the SoF (request 10). */
+  readonly iRatingFormat: IRatingFormat
+  /** A driver's iRating in its licence's colours and style (request 10); the SoF has no licence. */
+  readonly iRatingColor: boolean
 }
 
 export type DriverBlockGlobals = Pick<
   AppearanceSettings,
-  'brandMarks' | 'countryFlags' | 'penaltyFlags' | 'nameFormat'
+  'brandMarks' | 'countryFlags' | 'penaltyFlags' | 'nameFormat' | 'iRatingFormat' | 'iRatingColor'
 >
 
 /** The driver widgets, in the sidebar's order: the four with a «Piloto» block. */
@@ -35,7 +41,9 @@ export const DRIVER_BLOCK_FIELDS = [
   'nameFormat',
   'brandMarks',
   'countryFlags',
-  'showFlags'
+  'showFlags',
+  'iRatingFormat',
+  'iRatingColor'
 ] as const
 
 /** Each of `own`'s values, or Apariencia's where it says 'inherit' (or has none). */
@@ -49,7 +57,9 @@ export function driverBlock(
     brandMarks: pick(own.brandMarks, global.brandMarks),
     countryFlags: pick(own.countryFlags, global.countryFlags),
     showFlags: pick(own.showFlags, global.penaltyFlags),
-    nameFormat: pick(own.nameFormat, global.nameFormat)
+    nameFormat: pick(own.nameFormat, global.nameFormat),
+    iRatingFormat: pick(own.iRatingFormat, global.iRatingFormat),
+    iRatingColor: pick(own.iRatingColor, global.iRatingColor)
   }
 }
 
@@ -73,7 +83,9 @@ export function inheritDriverBlocks(
     brandMarks: 'inherit',
     countryFlags: 'inherit',
     showFlags: 'inherit',
-    nameFormat: 'inherit'
+    nameFormat: 'inherit',
+    iRatingFormat: 'inherit',
+    iRatingColor: 'inherit'
   }
   const out: Partial<Record<DriverBlockSection, DriverBlockOptions>> = {}
   for (const id of ids) out[id] = { ...all }

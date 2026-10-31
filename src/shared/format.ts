@@ -3,7 +3,8 @@
  *
  * Conventions, the same in every widget:
  * - Decimal separator: a dot, as on every timing screen and in iRacing itself
- *   (gaps, lap times, SR, distances). Thousands are never grouped; iRating uses 'k'.
+ *   (gaps, lap times, SR, distances). Thousands are never grouped, except in a whole iRating
+ *   ('2.520', request 10: the language's separator, core.thousands); the compact one uses 'k'.
  * - A unit is joined to its number with a no-break space ('0.8 s', '12 m', '3 v'),
  *   so it never wraps onto its own line.
  * - Negative values take the typographic minus (MINUS, U+2212), as wide as '+' in the UI
@@ -14,7 +15,7 @@
  *   are the Spanish ones. Pure numeric formatters take none.
  */
 import type { Messages } from './i18n'
-import type { AppearanceSettings, GapValue, NameFormat } from './types'
+import type { AppearanceSettings, GapValue, IRatingFormat, NameFormat } from './types'
 
 const DASH = '—'
 /** No-break space between a number and its unit. */
@@ -53,12 +54,21 @@ export function formatGap(gapS: number | null): string {
   return sign + mss(Math.round(abs))
 }
 
-/** '980', '2.3k', '10.4k'; '' when unknown (null or <= 0). */
-export function formatIRating(ir: number | null): string {
+/**
+ * '980', '2.3k', '10.4k'; '' when unknown (null or <= 0). `full` (request 10): the whole number,
+ * grouped with the language's thousands separator (`m`'s core.thousands, a dot without it):
+ * '2.520' and '10.412' in Spanish, '2,520' in English; '980' either way.
+ */
+export function formatIRating(
+  ir: number | null,
+  format: IRatingFormat = 'compact',
+  m?: Pick<Messages, 'core'>
+): string {
   if (ir === null || !Number.isFinite(ir)) return ''
   const r = Math.round(ir)
   if (r <= 0) return ''
   if (r < 1000) return String(r)
+  if (format === 'full') return String(r).replace(/\B(?=(\d{3})+$)/g, m?.core.thousands ?? '.')
   return `${(Math.round(r / 100) / 10).toFixed(1)}k`
 }
 

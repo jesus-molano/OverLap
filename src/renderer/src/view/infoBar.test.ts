@@ -184,3 +184,18 @@ describe('srBudgetText', () => {
     expect(srBudgetText({ ...sr, incidentBudget: 2 }, ES).tone).toBe('warn')
   })
 })
+
+describe('the SoF item’s figure (request 10)', () => {
+  it('follows the widget’s «Formato del iRating», today’s «2.5k» by default', () => {
+    const sof = (c: InfoBarContext): unknown =>
+      infoBarView(['sof'], PREVIEW_INFO, c).start.find((x) => x.id === 'sof')
+    expect(sof(ctx())).toEqual({ id: 'sof', text: 'SoF 2.1k' })
+    expect(sof(ctx({ irFormat: 'compact' }))).toEqual({ id: 'sof', text: 'SoF 2.1k' })
+    expect(sof(ctx({ irFormat: 'full' }))).toMatchObject({
+      text: expect.stringMatching(/^SoF \d\.\d{3}$/)
+    })
+    expect(sof(ctx({ irFormat: 'full', m: messagesFor('en') }))).toMatchObject({
+      text: expect.stringMatching(/^SoF \d,\d{3}$/)
+    })
+  })
+})

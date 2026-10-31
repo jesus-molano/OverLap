@@ -531,3 +531,32 @@ describe('densityShows', () => {
     expect(relativeFontPx(5000, 5000, 1, 1, 0, 1)).toBe(30)
   })
 })
+
+describe('the iRating’s format and width (request 10)', () => {
+  const plain = { tyres: true, flags: true, brand: false, country: false }
+  const DEF = DEFAULT_SETTINGS.relative.columns
+
+  it('is today’s row without an iRating width, and widens only the iR track and the fit', () => {
+    const today = relativeColumns(DEF, plain)
+    expect(relativeColumns(DEF, { ...plain, irEm: 2.4 })).toMatchObject({
+      template: today.template,
+      fitEm: today.fitEm
+    })
+    const wide = relativeColumns(DEF, { ...plain, irEm: 3.4 })
+    expect(wide.template).toBe('1.9em minmax(0, 1fr) 3.4em 2.8em 3.1em')
+    expect(wide.fitEm).toBe(RELATIVE_FIT_EM + 1)
+    expect(wide.key).not.toBe(today.key)
+    // A hidden iRating column takes nothing.
+    const noIr = DEF.map((e) => (e.id === 'ir' ? { ...e, visible: false } : e))
+    expect(relativeColumns(noIr, { ...plain, irEm: 3.4 }).fitEm).toBe(RELATIVE_FIT_EM)
+  })
+
+  it('writes each slot’s iRating in the chosen format', () => {
+    const st = createDriverStyles()
+    const r = row(1, { iRating: 2520 })
+    expect(toSlotView(r, 0, st, 'abbr', ES).iRating).toBe('2.5k')
+    expect(toSlotView(r, 0, st, 'abbr', ES, true, 'full').iRating).toBe('2.520')
+    expect(toSlotView(r, 0, st, 'abbr', EN, true, 'full').iRating).toBe('2,520')
+    expect(toSlotViews([r], st, 'abbr', ES, true, 'full')[0]).toMatchObject({ iRating: '2.520' })
+  })
+})

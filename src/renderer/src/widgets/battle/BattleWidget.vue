@@ -79,6 +79,8 @@ const laneOptions = computed<LaneOptions>((prev) => {
       flag: block.value.countryFlags,
       penalties: block.value.showFlags,
       nameFormat: nameFormat.value,
+      irFormat: block.value.iRatingFormat,
+      irColor: block.value.iRatingColor,
       prediction: predictionParts((id) => isElementVisible(o.prediction, id)),
       gapStyle: o.gapStyle
     },

@@ -13,6 +13,7 @@ import { RELATIVE_PINNED_COLUMNS } from '@shared/settingsSchema'
 import type {
   CarPenalty,
   ElementEntry,
+  IRatingFormat,
   LicenseStyle,
   NameFormat,
   RelativeColumnId,
@@ -98,20 +99,24 @@ function rowCss(row: RelativeRow, alt: boolean, lap: RelativeSlotView['lap']): s
   return css
 }
 
-/** `race`: a race session (the «Última vuelta» cell shows the best lap elsewhere). */
+/**
+ * `race`: a race session (the «Última vuelta» cell shows the best lap elsewhere); `irFormat`: the
+ * «Piloto» block's «Formato del iRating».
+ */
 export function toSlotView(
   row: RelativeRow,
   index: number,
   styles: DriverStyles,
   nameFormat: NameFormat,
   m: Messages,
-  race = true
+  race = true,
+  irFormat: IRatingFormat = 'compact'
 ): RelativeSlotView {
   const lap = row.isPlayer || row.lapRelation === 'same' ? null : row.lapRelation
   const stint = stintCell(row.stintLaps, m)
   const last = lapCell(row, race)
   return {
-    ...toDriverCell(row, styles, nameFormat, m),
+    ...toDriverCell(row, styles, nameFormat, m, irFormat),
     kind: 'car',
     css: rowCss(row, index % 2 === 1, lap),
     isPlayer: row.isPlayer,
@@ -137,10 +142,11 @@ export function toSlotViews(
   styles: DriverStyles,
   nameFormat: NameFormat,
   m: Messages,
-  race = true
+  race = true,
+  irFormat: IRatingFormat = 'compact'
 ): SlotView[] {
   return rows.map((row, i) => {
-    if (row !== null) return toSlotView(row, i, styles, nameFormat, m, race)
+    if (row !== null) return toSlotView(row, i, styles, nameFormat, m, race, irFormat)
     return i % 2 === 1 ? EMPTY_ODD : EMPTY_EVEN
   })
 }
@@ -203,6 +209,8 @@ export interface ColumnExtras {
   brand: boolean
   /** relative.countryFlags. */
   country: boolean
+  /** The iRating column's width (iRatingColumnEm: request 10's format and plate); today's if absent. */
+  irEm?: number
 }
 
 /**
@@ -227,10 +235,13 @@ export function relativeColumns(
   // normalised) still draws it at the end.
   if (!cells.includes('driver')) cells.splice(cells.includes('pos') ? 1 : 0, 0, 'driver')
   if (!cells.includes('gap') && !list.some((e) => e.id === 'gap')) cells.push('gap')
+  const irEm = x.irEm ?? RELATIVE_COL_EM.ir
   const tracks = cells.map((id) =>
-    id === 'driver' ? 'minmax(0, 1fr)' : `${RELATIVE_COL_EM[id]}em`
+    id === 'driver' ? 'minmax(0, 1fr)' : `${id === 'ir' ? irEm : RELATIVE_COL_EM[id]}em`
   )
   let fitEm = RELATIVE_FIT_EM
+  // A wider iRating (request 10) widens the fit by what it adds, as the extras below.
+  if (cells.includes('ir')) fitEm += irEm - RELATIVE_COL_EM.ir
   if (cells.includes('tyre')) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
@@ -246,7 +257,7 @@ export function relativeColumns(
     country: x.country,
     template: tracks.join(' '),
     fitEm: Math.round(fitEm * 100) / 100,
-    key: `${cells.join(',')}|${[x.flags, x.brand, x.country].map(Number).join('')}`
+    key: `${cells.join(',')}|${[x.flags, x.brand, x.country].map(Number).join('')}|${irEm}`
   }
 }
 

@@ -124,6 +124,9 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'onlyAlongside',
   // Drawing.
   'nameFormat',
+  // The iRating's figure and colours (request 10): the same iRating, written another way.
+  'iRatingFormat',
+  'iRatingColor',
   // Batalla's big gap: unsigned or as Relativo, the same information either way.
   'gapStyle',
   // The spotter's bars: closeness or where it covers you, a look, not more to see.
