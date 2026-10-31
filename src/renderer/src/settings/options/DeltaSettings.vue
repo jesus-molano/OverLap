@@ -4,6 +4,7 @@ import { isElementVisible, setElementVisible, visibleIds } from '@shared/element
 import { DELTA_REFERENCE_FIELD, type DeltaReferenceField } from '@shared/delta/choice'
 import type { SessionKind } from '@shared/sessionInfo'
 import { previewSession } from '../../widgets/delta/preview'
+import { deltaShapeOf } from '../../widgets/delta/rows'
 import { referenceRowHelp } from './deltaHelp'
 import {
   DELTA_REFERENCE_VALUES,
@@ -57,9 +58,18 @@ const referenceChoices = computed<readonly ChoiceOption<DeltaReference>[]>(() =>
 function setReference(kind: SessionKind, field: DeltaReferenceField): Setter<DeltaReference> {
   return (v) => {
     previewSession.value = kind
+    // A reference outside the bars shown adds a row: the window grows for it as for a bar.
+    growForBars({ ...opts.value, [field]: v })
     return set(field)(v)
   }
 }
+/**
+ * With a row per reference (two or more), what the line above them is: the one in use, which the
+ * predicted lap and the sectors follow. Under the three references.
+ */
+const rowsHelp = computed(() =>
+  deltaShapeOf(opts.value).lanes >= 2 ? t.value.settings.delta.referenceRowsHelp : ''
+)
 /** 'La vista previa usa la de Carrera: Vuelta óptima'. */
 const previewNote = computed(() => {
   const d = t.value.settings.delta
@@ -214,6 +224,7 @@ const tallWords = computed(() => ({
       :options="referenceChoices"
       :apply="setReference(k.kind, k.field)"
     />
+    <p v-if="rowsHelp !== ''" class="st-row st-help dl-cycle">{{ rowsHelp }}</p>
     <p class="st-row st-help dl-cycle">{{ previewNote }}</p>
     <ToggleControl
       v-if="!kinds.every((k) => k.current === 'class')"

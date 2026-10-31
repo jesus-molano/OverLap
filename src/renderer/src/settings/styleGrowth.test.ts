@@ -160,6 +160,28 @@ describe('Delta: showing the bars per reference from its page grows the window',
     expect(grown?.height ?? 0).toBeGreaterThan(b.height)
   })
 
+  it('one row per reference: 400 x 80 grows to 106, 131, 156 and 182 px for 2 to 5', () => {
+    const s = createDefaultSettings()
+    // Two: your record next to the optimal the race uses; then the list's first ones.
+    const pb = { ...withBars(s, true, 1) }
+    expect(deltaBarsGrowth(s, pb)?.height).toBe(106)
+    expect(deltaBarsGrowth(s, withBars(s, true, 3))?.height).toBe(131)
+    expect(deltaBarsGrowth(s, withBars(s, true, 4))?.height).toBe(156)
+    expect(deltaBarsGrowth(s, withBars(s, true, 5))?.height).toBe(182)
+    expect(deltaBarsGrowth(s, withBars(s, true, 5))?.width).toBe(400)
+  })
+
+  it('grows when a session takes a reference that adds a row', () => {
+    const s = createDefaultSettings()
+    // Only the optimal shown: one row in qualifying and races, two in practice (your record).
+    const optimal = withBars(s, true, 0)
+    optimal.refBars = optimal.refBars.map((e) => ({ ...e, visible: e.id === 'optimal' }))
+    const before = { ...s, delta: { ...optimal, referencePractice: 'optimal' } } as OverlaySettings
+    // The text keeps the size it had with the optimal's small bar (7.5 em in 80 px): 7.9 em.
+    expect(deltaBarsGrowth(before, { ...before.delta, referencePractice: 'pb' })?.height).toBe(85)
+    expect(deltaBarsGrowth(before, { ...before.delta, referenceRace: 'optimal' })).toBeNull()
+  })
+
   it('never for fewer bars, the same bars, or a window that already fits', () => {
     const s = createDefaultSettings()
     const on = { ...s, delta: withBars(s, true, 3) } as OverlaySettings

@@ -48,6 +48,22 @@ describe('DeltaSettings', () => {
     )
   })
 
+  it('with a row per reference, says under the references what the line above them is', () => {
+    const t = templateOf(SOURCE)
+    expect(t).toContain(
+      `<p v-if="rowsHelp !== ''" class="st-row st-help dl-cycle">{{ rowsHelp }}</p>`
+    )
+    expect(SOURCE).toContain('deltaShapeOf(opts.value).lanes >= 2')
+    // A session's reference that adds a row grows the window as a bar does.
+    expect(SOURCE).toContain('growForBars({ ...opts.value, [field]: v })')
+    for (const lang of ['es', 'en'] as const) {
+      const d = messagesFor(lang).settings.delta
+      // The rows carry no mark: the line above names the reference in use.
+      expect(d.refBarsHelp).not.toContain('Δ')
+      expect(d.referenceRowsHelp).toContain(messagesFor(lang).widgets.delta.predicted)
+    }
+  })
+
   it('draws the reference of the session changed last in the preview', () => {
     expect(previewSession.value).toBe('race')
     expect(previewDelta('class').reference).toBe('class')

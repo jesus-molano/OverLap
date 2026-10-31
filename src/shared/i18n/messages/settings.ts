@@ -1402,7 +1402,10 @@ export const settingsEs = {
     lapTimesHelp: 'Tu última, tu mejor y tu óptima a la vez; la que usa el delta lleva «Δ»',
     /** The bars per reference (delta.rows 'refs', its items delta.refBars). */
     refBarsHelp:
-      'Una barra por cada referencia que elijas, con la escala y los colores de la barra principal (verde a la izquierda: más rápido); la que usa el delta lleva «Δ»',
+      'Una fila por cada referencia que elijas, con su nombre, su delta y su barra (verde a la izquierda: más rápido). Con solo la que usa el delta, el delta de siempre',
+    /** Under the references while the delta draws a row per reference (two or more). */
+    referenceRowsHelp:
+      'Con una fila por referencia, la línea de arriba nombra la que usa el delta: «Prev.» y los sectores van con ella',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -3292,7 +3295,9 @@ export const settingsEn: Dict<typeof settingsEs> = {
     lapTimes: 'Lap times',
     lapTimesHelp: 'Your last, best and optimal laps at once; the one the delta uses is marked “Δ”',
     refBarsHelp:
-      'One bar for each reference you pick, with the main bar’s scale and colours (green to the left: faster); the delta’s is marked “Δ”',
+      'One row for each reference you pick, with its name, its delta and its bar (green to the left: faster). With only the one the delta uses, the usual delta',
+    referenceRowsHelp:
+      'With a row per reference, the line above them names the one the delta uses: “Pred.” and the sectors follow it',
     references: {
       pb: {
         label: 'Personal best',
