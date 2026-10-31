@@ -1,8 +1,17 @@
 /**
  * Colour brand logos for BrandMark.vue: each make's own emblem in its own colours, so a Ferrari
  * reads as a Ferrari at a glance. The logos are trademarks of their owners, drawn here only to
- * tell which make a car is; OverLap is not affiliated with or endorsed by any of them. No licence
- * is claimed for them: each comes from the public file listed below.
+ * tell which make a car is; OverLap is not affiliated with or endorsed by any of them.
+ *
+ * NOT COVERED BY THE GPL. The logo drawings in this file are third-party trademarks and artwork,
+ * not OverLap's: the GPL-3.0-or-later that covers the rest of OverLap does not apply to them, and
+ * OverLap claims no rights in them and grants none. Each comes from the public file listed below;
+ * some are public-domain text logos, others are copyrighted artwork (THIRD_PARTY_NOTICES.md, «Brand
+ * logos», says which). The monochrome set (brandLogos.ts: Simple Icons, CC0) is the choice
+ * «Monocromo» of Apariencia › «Filas y pilotos» › «Color del logo»; it has 18 of these makes, and
+ * in it the others are still drawn from this file in greys. A redistributor who cannot take this
+ * artwork on can empty COLOR_LOGOS: brandDrawing.ts then falls back to Simple Icons, or to the
+ * make's text badge.
  *
  * The drawings are the sources' own shapes, flattened for the overlay: transforms applied, the
  * parts named below left out, every gradient replaced by one colour (chrome and gold read as
