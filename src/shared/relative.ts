@@ -6,6 +6,7 @@
 import { driverIdentity, fieldHasMultipleBrands } from './driver'
 import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
+import { lastLapKind, lastLapOf, quantLap } from './lapTimes'
 import { penaltyOf } from './penalty'
 import type { RaceView } from './race/raceView'
 import { ownTowTime, showsTow } from './race/towBadge'
@@ -145,6 +146,24 @@ export function lapRelation(
 const relBuf = new Float64Array(MAX_CARS)
 const aheadBuf: number[] = []
 const behindBuf: number[] = []
+/** Fastest best lap of each class (classId), from the race model: as Posiciones' classBest. */
+const classBestBuf = new Map<number, number>()
+
+/**
+ * classBestBuf for this tick: every entry of the session (not only the rows shown; the pace car
+ * and spectators left out, as the standings' isEntry).
+ */
+function fillClassBests(session: SessionMeta, race: RaceView | null): void {
+  classBestBuf.clear()
+  if (race === null) return
+  for (const d of session.drivers.values()) {
+    if (d.isPaceCar || d.isSpectator || d.carIdx === session.paceCarIdx) continue
+    const best = quantLap(race.car(d.carIdx)?.bestLapTime)
+    if (best === null) continue
+    const prev = classBestBuf.get(d.classId)
+    if (prev === undefined || best < prev) classBestBuf.set(d.classId, best)
+  }
+}
 
 /** relPct descending, ties by carIdx: the order rows are shown top to bottom. */
 function byRelDesc(a: number, b: number): number {
@@ -152,8 +171,8 @@ function byRelDesc(a: number, b: number): number {
 }
 
 /**
- * `race` gives each row its position and stint (null without it). The stint, tyre and flag
- * options are display-only: every row carries them.
+ * `race` gives each row its position, stint and laps (null without it). The stint, tyre, flag and
+ * lap columns are display-only: every row carries them.
  */
 export function computeRelative(
   frame: TelemetryFrame,
@@ -217,6 +236,7 @@ export function computeRelative(
   const tyres = tyresVary(frame, session, tyreModel)
   const isRace = isRaceSession(sessionType)
   const preGreen = isRace && sessionState < SessionState.Racing
+  fillClassBests(session, race)
 
   /**
    * The position Standings shows (the race model's, live by distance), not CarIdxClassPosition:
@@ -240,6 +260,9 @@ export function computeRelative(
     const pct = pcts[idx] ?? 0
     const inPits = isCarInPits(frame, idx)
     const car = race?.car(idx)
+    // Posiciones' «Última vuelta» (shared/lapTimes.ts); without a model, the sim's last lap only.
+    const lastLap = car ? lastLapOf(frame, car) : quantLap(frame.CarIdxLastLapTime[idx])
+    const bestLap = car ? quantLap(car.bestLapTime) : null
     return {
       ...driverIdentity(d),
       isPlayer,
@@ -261,7 +284,10 @@ export function computeRelative(
       // The live model's (IsReplayPlaying is also the live session screen: loop.ts, Q1).
       stintLaps: car?.stintLaps ?? null,
       tyre: tyres ? tyreCompoundOf(frame, session, tyreModel, idx) : null,
-      penalty: penaltyOf(frame.CarIdxSessionFlags[idx], car?.finished === true)
+      penalty: penaltyOf(frame.CarIdxSessionFlags[idx], car?.finished === true),
+      lastLap,
+      lastLapKind: lastLapKind(lastLap, bestLap, classBestBuf.get(d.classId) ?? null),
+      bestLap
     }
   }
 

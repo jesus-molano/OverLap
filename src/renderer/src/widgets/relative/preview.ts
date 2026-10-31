@@ -4,7 +4,8 @@
  * columns are judged on realistic rows. Tyres are named for your car model (the GT3s) only. As
  * many cars as the options ask for, your incident count and the conditions footer's readings
  * (drawn only with the footer on). A field of several makes (the LMP2s are all Dallaras), so the
- * brand marks show in 'auto' mode. Pure.
+ * brand marks show in 'auto' mode. Lap times for «Última vuelta», one of them the GT3s' fastest and
+ * two personal bests. Pure.
  */
 import type { BrandId } from '@shared/carBrands'
 import type { CarPenalty, LapRelation, RelativeData, RelativeRow } from '@shared/types'
@@ -16,6 +17,10 @@ const LMP2 = '#ff5888'
 const LIC = { A: '#0153db', B: '#00c702', C: '#feec04', D: '#fc8a27', R: '#fc0706' } as const
 /** Laps of a stint without a stop. */
 const STINT = 16
+/** Each class's pace (s): a car's best lap is this plus a bit per place, its last a bit more. */
+const PACE = { GT3: 107.214, LMP2: 99.587 } as const
+/** What a stop adds to the lap it was made on (s). */
+const STOP_S = 22.4
 /** The GT3s' makes by car number (the LMP2s are Dallaras); a Porsche when not listed. */
 const GT3_MAKES: Readonly<Record<string, BrandId>> = {
   '7': 'mercedes-amg',
@@ -71,6 +76,31 @@ interface Seed {
   /** Defaults to 'Hard' for a GT3 (your model), no name for the others. */
   tyre?: string | null
   penalty?: CarPenalty
+  /** Its last lap was the class's fastest ('class') or its own best ('pb'). */
+  fast?: 'class' | 'pb'
+}
+
+const ms = (s: number): number => Math.round(s * 1000) / 1000
+
+/** The seed's last and best laps and what the last one was (shared/lapTimes.ts's kinds). */
+function laps(s: Seed): Pick<RelativeRow, 'lastLap' | 'lastLapKind' | 'bestLap'> {
+  const pace = s.cls === LMP2 ? PACE.LMP2 : PACE.GT3
+  // The class's fastest is below every other's (they add a bit per place).
+  const best = ms(s.fast === 'class' ? pace : pace + s.pos * 0.183)
+  if (s.fast !== undefined) {
+    return {
+      lastLap: best,
+      lastLapKind: s.fast === 'class' ? 'class-best' : 'personal-best',
+      bestLap: best
+    }
+  }
+  // Just out of the pits: the lap of the stop.
+  const stop = s.stint === 0 ? STOP_S : 0
+  return {
+    lastLap: ms(best + 0.247 + (s.pos % 3) * 0.211 + stop),
+    lastLapKind: 'normal',
+    bestLap: best
+  }
 }
 
 function row(s: Seed, i: number, isPlayer = false): RelativeRow {
@@ -93,7 +123,8 @@ function row(s: Seed, i: number, isPlayer = false): RelativeRow {
     towed: false,
     stintLaps: s.stint ?? STINT,
     tyre: s.tyre !== undefined ? s.tyre : s.cls === LMP2 ? null : 'Hard',
-    penalty: s.penalty ?? null
+    penalty: s.penalty ?? null,
+    ...laps(s)
   }
 }
 
@@ -132,7 +163,8 @@ const AHEAD: readonly Seed[] = [
     lic: 'A',
     sr: '3.40',
     gap: 4.6,
-    penalty: 'meatball'
+    penalty: 'meatball',
+    fast: 'pb'
   },
   { num: '3', name: 'Lukas Brandt', pos: 2, ir: 2034, lic: 'B', sr: '2.12', gap: 7.8 },
   {
@@ -203,7 +235,8 @@ const BEHIND: readonly Seed[] = [
     sr: '1.84',
     gap: -1.1,
     // Warned for leaving the track.
-    penalty: 'furled'
+    penalty: 'furled',
+    fast: 'class'
   },
   {
     num: '8',
@@ -237,7 +270,8 @@ const BEHIND: readonly Seed[] = [
     sr: '3.55',
     gap: -9.4,
     lap: 'behind',
-    stint: 6
+    stint: 6,
+    fast: 'pb'
   },
   {
     num: '88',

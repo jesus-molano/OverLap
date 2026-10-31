@@ -86,7 +86,9 @@ el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo r
 defecto en Posiciones, y aquí con un clic en su cabecera.
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
-Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), banderas de penalización (tras el nombre o en su columna «Banderas»), títulos de
+Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), última vuelta
+(como la de Posiciones: morada la rápida de su clase, verde su récord; fuera de carrera, su mejor
+vuelta), banderas de penalización (tras el nombre o en su columna «Banderas»), títulos de
 columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
 juego, SR proyectado, condiciones de pista…).
 

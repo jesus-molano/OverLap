@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MINUS } from '@shared/format'
 import { messagesFor } from '@shared/i18n'
+import { lapCell } from '@renderer/view/carExtras'
 import { createDriverStyles } from '@renderer/view/styles'
 import { reuseViews } from '@renderer/view/reuse'
 import { lineMetrics, planLines } from './layout'
@@ -12,7 +13,6 @@ import {
   gainedCell,
   gapCell,
   gapLeaderCell,
-  lapCell,
   pitKind,
   pitLapCell,
   toLineViews,

@@ -296,6 +296,8 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   // both tables have come in the same order. Hidden, the PIT badge goes after the name (as the
   // standings do without their "Boxes").
   'gap',
+  // Posiciones' «Última vuelta» (request 8), in the standings' place: after the gaps.
+  'last',
   'pit',
   'stint',
   'tyre'
@@ -494,7 +496,7 @@ export const OPTION_SCHEMA = {
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
-      hidden: ['flags', 'pit', 'tyre', 'stint'],
+      hidden: ['flags', 'last', 'pit', 'tyre', 'stint'],
       // The driver only, as in the standings (R10): «Hueco» can be hidden in both tables.
       required: ['driver'],
       displayOnly: true

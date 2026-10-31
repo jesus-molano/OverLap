@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue'
 import { brandMarksOn } from '@shared/carBrands'
 import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
+import { isRaceSession } from '@shared/sessionInfo'
 import type { RelativeData } from '@shared/types'
 import StatusMessage from '@renderer/components/StatusMessage.vue'
 import { useAppearance } from '@renderer/composables/useAppearance'
@@ -22,6 +23,7 @@ import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
+import LapTime from '@renderer/ui/LapTime.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import TyreChip from '@renderer/ui/TyreChip.vue'
@@ -84,6 +86,8 @@ const footed = computed(() => phase.value !== 'offline' && foot.shown.value)
 const heads = computed(() => opts.value.columnHeads && phase.value !== 'offline')
 
 const styles = createDriverStyles()
+/** A race session: outside races «Última vuelta» shows the best lap, as in the standings. */
+const race = computed(() => isRaceSession(source.value?.sessionType ?? null))
 // Slots are keyed by index and an unchanged slot keeps its object, so a 10 Hz payload only
 // rewrites the slots whose car or values changed: no row element is ever reordered.
 const slots = computed<readonly SlotView[]>((prev) =>
@@ -93,7 +97,8 @@ const slots = computed<readonly SlotView[]>((prev) =>
       layoutSlots(source.value, ahead.value, behind.value),
       styles,
       nameFormat.value,
-      t.value
+      t.value,
+      race.value
     )
   )
 )
@@ -113,7 +118,10 @@ const cols = computed<RelativeColumns>((prev) => {
   return prev !== undefined && prev.key === next.key ? prev : next
 })
 const headViews = computed<readonly RelativeHeadView[]>((prev) =>
-  reuseViews(prev, relativeHeads(cols.value.cells, appearance.value.licenseStyle, t.value))
+  reuseViews(
+    prev,
+    relativeHeads(cols.value.cells, appearance.value.licenseStyle, t.value, race.value)
+  )
 )
 
 /** What the bars and heads take of the height (em of the row font), with the rows. */
@@ -238,6 +246,9 @@ if (injectSampleHost() !== null) {
                   >{{ slot.stint
                   }}<span v-if="slot.stintUnit" class="rl-unit">{{ slot.stintUnit }}</span></span
                 >
+                <span v-else-if="cell === 'last'" class="c-lap" data-el="relative.columns.last"
+                  ><LapTime :text="slot.lastLap" :kind="slot.lastLapKind"
+                /></span>
                 <span v-else class="c-gap" data-el="relative.columns.gap">{{ slot.gap }}</span>
               </template>
             </template>
@@ -439,6 +450,15 @@ if (injectSampleHost() !== null) {
   font-size: max(var(--ov-min-text), 0.8em);
   font-weight: var(--ov-w-text);
   color: var(--ov-fg-dim);
+}
+
+/* «Última vuelta»: the standings' lap plate, right-aligned (the class's best fills the cell). */
+.c-lap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* The value read at a glance: Text face, 600, full ink. */

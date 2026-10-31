@@ -1,8 +1,10 @@
 /**
- * Cells the standings and the relative share for a car's stint and tyres, so both widgets
+ * Cells the standings and the relative share for a car's stint, tyres and laps, so both widgets
  * write them alike. Pure; words from the dictionary `m`.
  */
+import { formatLapTime } from '@shared/format'
 import type { Messages } from '@shared/i18n'
+import type { StandingsRow } from '@shared/types'
 import { tyreLetter } from '@shared/tyres'
 
 /** Drawn for a tyre compound nobody can name (another car model, or not reported). */
@@ -25,4 +27,33 @@ export function stintCell(
 /** The compound's letter ('H', 'W'), TYRE_UNKNOWN when there is no name. */
 export function tyreCell(name: string | null): string {
   return tyreLetter(name) || TYRE_UNKNOWN
+}
+
+/** 'best' = fastest of the class (purple plate), 'pb' = the driver's own best (green key). */
+export type LapKind = 'normal' | 'pb' | 'best' | 'none'
+
+/** What the «Última vuelta» cell reads of a row (a standings row, or a relative one). */
+export type LapFields = Pick<StandingsRow, 'lastLap' | 'lastLapKind' | 'bestLap'> & {
+  readonly classPosition: number | null
+}
+
+/**
+ * The «Última vuelta» column. Race: the last lap and its kind. Elsewhere: the best lap, filled
+ * for the class's best (its first place: outside races the order is by best lap).
+ */
+export function lapCell(row: LapFields, race: boolean): { text: string; kind: LapKind } {
+  if (!race) {
+    const text = formatLapTime(row.bestLap)
+    if (text === '—') return { text, kind: 'none' }
+    return { text, kind: row.classPosition === 1 ? 'best' : 'normal' }
+  }
+  const text = formatLapTime(row.lastLap)
+  if (text === '—') return { text, kind: 'none' }
+  const kind: LapKind =
+    row.lastLapKind === 'class-best'
+      ? 'best'
+      : row.lastLapKind === 'personal-best'
+        ? 'pb'
+        : 'normal'
+  return { text, kind }
 }

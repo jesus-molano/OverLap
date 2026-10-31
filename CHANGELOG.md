@@ -65,6 +65,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   vuelven tras el nombre. Batalla, sin columnas, las sigue llevando tras el nombre. «Completo» no
   la enciende: no añade nada que no se vea ya. **Puestos ganados** ya era una columna
   independiente que se ordena como las demás (solo sale en carrera, donde existe el dato).
+- **Relativo: la última vuelta de cada piloto**: una columna nueva, **Última vuelta**, la misma
+  que la de Posiciones: el mismo nombre, el mismo formato («1:47.312»), la misma ayuda y los mismos
+  colores (la vuelta rápida de su clase en la placa morada, su propio récord de la sesión en verde)
+  y, fuera de carrera, su mejor vuelta. Oculta de serie (también al actualizar, tras el hueco) y se
+  ordena como las demás; «Igualar con Posiciones» (y «Igualar con Relativo») la lleva con las otras
+  columnas que comparten.
 
 ### Cambiado
 

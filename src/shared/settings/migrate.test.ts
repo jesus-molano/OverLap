@@ -720,7 +720,8 @@ describe('migrateRelativeColumns (R10)', () => {
     const s = normalizeSettings({ relative: { columns: own } })
     // The flags' column (2.4) hidden after the name.
     expect(s.relative.columns).toEqual([
-      ...L('pos driver -flags lic ir tyre -stint gap'),
+      // «Última vuelta» (request 8) hidden after the gap.
+      ...L('pos driver -flags lic ir tyre -stint gap -last'),
       { id: 'pit', visible: false }
     ])
   })
@@ -748,6 +749,7 @@ describe('migrateRelativeColumns (R10)', () => {
     )
     expect(ids(s.relative.columns)).toEqual([
       'gap',
+      '-last',
       'driver',
       '-flags',
       ...ids(custom).slice(2),
@@ -759,11 +761,11 @@ describe('migrateRelativeColumns (R10)', () => {
     const s = normalizeSettings({
       relative: { columns: L('pos driver ir lic -pit -tyre -stint gap') }
     })
-    expect(s.relative.columns).toEqual(L('pos driver -flags ir lic gap -pit -stint -tyre'))
+    expect(s.relative.columns).toEqual(L('pos driver -flags ir lic gap -last -pit -stint -tyre'))
     // One with a column shown keeps its order (it is what it draws), the flags' added hidden.
     const own = L('pos driver ir lic -pit tyre -stint gap')
     expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(
-      L('pos driver -flags ir lic -pit tyre -stint gap')
+      L('pos driver -flags ir lic -pit tyre -stint gap -last')
     )
     // An old file's switches too: its tyre stays before the gap.
     const old = normalizeSettings({ version: 4, relative: { showTyre: true } }).relative.columns
