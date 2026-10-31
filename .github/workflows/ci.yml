@@ -1,0 +1,50 @@
+# The five checks of every change (CONTRIBUTING.md), on Windows like the app. No secrets.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      # The repo is LF everywhere (.editorconfig); Windows runners would check it out as CRLF,
+      # which Prettier and the licence test (the GPL text's checksum) would reject.
+      - name: Keep LF line endings
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npx vitest run
+
+      - name: Lint
+        run: npx eslint . --max-warnings 0
+
+      - name: Format
+        run: npx prettier --check .
+
+      - name: Build
+        run: npx electron-vite build
