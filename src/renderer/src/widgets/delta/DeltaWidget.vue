@@ -318,14 +318,17 @@ const rootClass = computed(() => ({
           :class="{ 'dl-rb--ref': b.isRef }"
           :data-el="`delta.refBars.${b.id}`"
         >
-          <span class="dl-rb__cap" :title="b.name">{{ b.caption }}</span>
-          <span
-            v-if="b.isRef"
-            class="dl-lap__mark dl-rb__mark"
-            role="img"
-            :aria-label="t.widgets.delta.refMarkName"
-            >{{ t.widgets.delta.refMark }}</span
-          >
+          <!-- The tag inside the caption's cell: every bar starts at the same x. -->
+          <span class="dl-rb__cap" :title="b.name">
+            <span class="dl-rb__name">{{ b.caption }}</span>
+            <span
+              v-if="b.isRef"
+              class="dl-lap__mark"
+              role="img"
+              :aria-label="t.widgets.delta.refMarkName"
+              >{{ t.widgets.delta.refMark }}</span
+            >
+          </span>
           <span class="dl-bar dl-rb__bar" :class="refBarClass(barValue(b.id))" aria-hidden="true">
             <span v-inline-style="refBarStyles(barValue(b.id)).fill" class="dl-bar__fill" />
             <span class="dl-bar__zero" />
@@ -877,26 +880,41 @@ const rootClass = computed(() => ({
 /* ---- Bars per reference ----------------------------------------------------------------- */
 
 /* One line per reference: its caption, a slimmer copy of the bar (same well, ticks, tones and
-   hatched ends; no needle) and its value in a fixed box, so a new value re-lays out itself only. */
+   hatched ends; no needle) and its value in a fixed box, so a new value re-lays out itself only.
+   The only row that gives way: in a window too short for every line the bars that don't fit
+   wrap into a column out of view (whole bars, never half of one), the hero keeps its place. */
 .dl-refs {
   display: flex;
-  flex: none;
-  flex-direction: column;
+  flex: 0 1 auto;
+  flex-flow: column wrap;
+  align-content: flex-start;
   gap: 0.2em;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .dl-rb {
   display: grid;
-  grid-template-columns: 4.6em auto minmax(0, 1fr) 3em;
+  flex: none;
+  grid-template-columns: 5.6em minmax(0, 1fr) 3em;
   align-items: center;
   column-gap: 0.4em;
+  width: 100%;
   height: 1.15em;
   min-width: 0;
 }
 
 .dl-rb__cap {
-  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dl-rb__name {
   min-width: 0;
   overflow: hidden;
   font-family: var(--ov-font-small);
@@ -905,25 +923,18 @@ const rootClass = computed(() => ({
   letter-spacing: var(--ov-track-caps);
   text-overflow: ellipsis;
   text-transform: uppercase;
-  white-space: nowrap;
   color: var(--ov-fg-dim);
 }
 
-.dl-rb--ref .dl-rb__cap {
+.dl-rb--ref .dl-rb__name {
   color: var(--ov-fg);
 }
 
-.dl-rb__mark {
-  grid-column: 2;
-}
-
 .dl-rb__bar {
-  grid-column: 3;
   height: 0.45em;
 }
 
 .dl-rb__val {
-  grid-column: 4;
   height: 1.15em;
   contain: strict;
   font-family: var(--ov-font-num);
@@ -1024,7 +1035,7 @@ const rootClass = computed(() => ({
 
   /* The bars keep a short caption column. */
   .dl-rb {
-    grid-template-columns: 3em auto minmax(0, 1fr) 3em;
+    grid-template-columns: 3.4em minmax(0, 1fr) 3em;
   }
 
   .dl-top {
