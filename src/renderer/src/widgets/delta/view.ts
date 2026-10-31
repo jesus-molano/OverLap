@@ -377,3 +377,30 @@ export function sectorChips(
 export function sectorDensity(count: number): 'normal' | 'compact' | 'tight' {
   return count <= 4 ? 'normal' : count <= 7 ? 'compact' : 'tight'
 }
+
+/** Each row's trend direction (DeltaWidget's rows), by reference. */
+export type LaneTrends = Readonly<Partial<Record<DeltaReference, TrendKind>>>
+
+/**
+ * The trend of each row of `lanes`: the reference in use's is the main one (`main`, already with
+ * its hysteresis), the others their bar's (`barTrends`, none: steady), each with its own
+ * hysteresis against `prev`. `prev` itself while every row's stays.
+ */
+export function laneTrendsOf(
+  lanes: readonly { readonly id: DeltaReference; readonly isRef: boolean }[],
+  main: TrendKind,
+  barTrends: DeltaData['barTrends'] | undefined,
+  prev: LaneTrends | undefined
+): LaneTrends {
+  const next: Partial<Record<DeltaReference, TrendKind>> = {}
+  for (const b of lanes) {
+    next[b.id] = b.isRef ? main : trendKind(barTrends?.[b.id] ?? 0, prev?.[b.id] ?? 'steady')
+  }
+  if (prev !== undefined) {
+    const keys = Object.keys(next) as DeltaReference[]
+    if (keys.length === Object.keys(prev).length && keys.every((k) => prev[k] === next[k])) {
+      return prev
+    }
+  }
+  return next
+}

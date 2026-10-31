@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
+import { isElementVisible, visibleIds } from '@shared/elements'
 import { arrayEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption, type NumericSpec } from '@shared/settingsSchema'
 import type { DeltaReference, DeltaRowId } from '@shared/types'
@@ -9,7 +10,7 @@ import { useI18n } from '@renderer/composables/useI18n'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useOptions } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
-import { useNoRoomReport } from '@renderer/composables/widgetContext'
+import { injectSampleHost, useNoRoomReport } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import { minTextPx } from '@renderer/view/appearance'
 import Chip from '@renderer/ui/Chip.vue'
@@ -17,7 +18,7 @@ import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import type { Tone } from '@renderer/ui/tones'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { reuseView, reuseViews, shallowEqual } from '@renderer/view/reuse'
+import { reuseView, reuseViews } from '@renderer/view/reuse'
 import { orderStyle, placesOf } from '../orderStyle'
 import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
 import { previewDelta, previewSession } from './preview'
@@ -25,16 +26,20 @@ import {
   REFERENCE_NOTE_MS,
   barsInRoom,
   deltaLanes,
+  deltaLiveShape,
   deltaRows,
-  deltaShapeOf,
   deltaTopParts,
-  lanesInRoom,
+  extraInRoom,
+  lanesDrawn,
+  lanesNoRoom,
   laneViews,
   lapTimesView,
   refBarsView,
   referenceNote,
   refBarsThatFit,
   shapeInRoom,
+  withoutGhosts,
+  type DeltaExtra,
   type DeltaShape,
   type DeltaTopParts,
   type LapTimeView,
@@ -50,6 +55,7 @@ import {
   deltaTone,
   formatDelta,
   laneLabel,
+  laneTrendsOf,
   lapCounts,
   liveSectorDelta,
   predictedText,
@@ -58,6 +64,7 @@ import {
   sectorDensity,
   stateView,
   trendKind,
+  type LaneTrends,
   type RefView,
   type SectorChipView,
   type TrendKind
@@ -68,7 +75,9 @@ const RANGE: NumericSpec = OPTION_SCHEMA.delta.rangeS
 const NO_SECTORS: readonly (number | null)[] = Object.freeze([])
 const NO_REF: RefView = Object.freeze({ kind: 'pb', label: '', time: '' })
 const NO_LANES: readonly RefBarView[] = Object.freeze([])
-const NO_TRENDS: Readonly<Partial<Record<DeltaReference, TrendKind>>> = Object.freeze({})
+const NO_TRENDS: LaneTrends = Object.freeze({})
+const NO_GHOSTS: readonly string[] = Object.freeze([])
+const NO_REFS: readonly DeltaReference[] = Object.freeze([])
 
 const options = useOptions(ID)
 const t = useI18n()
@@ -181,115 +190,6 @@ const root = useTemplateRef<HTMLElement>('root')
 const rootSize = useElementSize(root)
 const appearance = useAppearance()
 
-// ---- Two references or more: one equal row each (rows.ts deltaLanes) ----------------------
-// Each its name, its delta, its trend and its bar, in the list's order; the line above names
-// the reference in use (the predicted lap and the sectors follow it). One is the delta of always.
-
-/** The references with a row, the one in use among them (only on a change of list or choice). */
-const lanes = computed<readonly DeltaReference[]>((prev) => {
-  const next = deltaLanes(options.value, refKind.value)
-  return prev !== undefined && arrayEqual(prev, next) ? prev : next
-})
-/** What the options draw, and what the window holds of it (only a resize or a list recounts). */
-const shape = computed<DeltaShape>((prev) =>
-  reuseView(prev, deltaShapeOf(options.value, refKind.value))
-)
-const drawn = computed<DeltaShape>((prev) =>
-  reuseView(
-    prev,
-    shapeInRoom(
-      options.value,
-      shape.value,
-      rootSize.value.w,
-      rootSize.value.h,
-      minTextPx(appearance.value)
-    )
-  )
-)
-/** The rows are drawn (a window too small for two draws the delta of always instead). */
-const multi = computed(() => drawn.value.lanes >= 2)
-const head = computed(() => multi.value && drawn.value.head)
-const laneList = computed<readonly RefBarView[]>((prev) =>
-  reuseViews(prev, [...laneViews(lanes.value, refKind.value, t.value)])
-)
-const lanesShown = computed<readonly RefBarView[]>((prev) => {
-  const next = multi.value ? lanesInRoom(laneList.value, drawn.value.lanes) : NO_LANES
-  return prev !== undefined && arrayEqual(prev, next) ? prev : next
-})
-/** A row's delta: the reference in use's is the main one (its trend too), the rest their bar's. */
-const laneValue = (b: RefBarView): number | null => (b.isRef ? delta.value : barValue(b.id))
-/** Each row's trend, with its own hysteresis; kept while every row's stays. */
-const laneTrends = computed<Readonly<Partial<Record<DeltaReference, TrendKind>>>>((prev) => {
-  if (!multi.value || !showTrend.value) return NO_TRENDS
-  const next: Partial<Record<DeltaReference, TrendKind>> = {}
-  for (const b of lanesShown.value) {
-    next[b.id] = b.isRef
-      ? trend.value
-      : trendKind(content.value?.barTrends?.[b.id] ?? 0, prev?.[b.id] ?? 'steady')
-  }
-  return prev !== undefined && shallowEqual(prev, next) ? prev : next
-})
-const laneTrend = (b: RefBarView): TrendKind => laneTrends.value[b.id] ?? 'steady'
-/** Where the rows go: the place of the first of the lines they stand for (top, bar, refs). */
-const lanesPlace = computed(() =>
-  Math.min(place.value.top ?? 0, place.value.bar ?? Infinity, place.value.refs ?? Infinity)
-)
-/** A lap that won't count says why in the head line (the rows step back). */
-const lapStateShown = computed(() => !counts.value && state.value.kind !== 'none')
-
-// ---- The bars per reference: the list on a change of choice, each bar on a change of its value
-/** The bars in the user's order, the reference in use marked. */
-const refBars = computed<readonly RefBarView[]>((prev) =>
-  reuseViews(prev, [...refBarsView(options.value.refBars, refKind.value, t.value)])
-)
-/**
- * The 2.4 small bars: only with one reference (the one in use's own bar); the row with no
- * reference shown draws nothing, and sizes nothing.
- */
-const showRefs = computed(
-  () => shape.value.lanes < 2 && rows.value.includes('refs') && refBars.value.length > 0
-)
-// A window too short for every bar at the smallest text draws the first ones in your order, the
-// reference in use always among them; the rest are said «No cabe» on the page. Only a resize, a
-// text floor or a list change recounts (never a telemetry pass).
-const barsFit = computed(() =>
-  showRefs.value
-    ? refBarsThatFit(
-        options.value,
-        refBars.value.length,
-        rootSize.value.w,
-        rootSize.value.h,
-        minTextPx(appearance.value)
-      )
-    : refBars.value.length
-)
-const barsShown = computed<readonly RefBarView[]>((prev) => {
-  const next = barsInRoom(refBars.value, barsFit.value)
-  return prev !== undefined && arrayEqual(prev, next) ? prev : next
-})
-useNoRoomReport(() => {
-  if (shape.value.lanes >= 2) {
-    // The rows that don't fit; with none left but the delta of always, the line itself too.
-    const drawnIds = new Set(lanesShown.value.map((b) => b.id))
-    const out = refBars.value
-      .filter((b) => !b.isRef && !drawnIds.has(b.id))
-      .map((b) => `delta.refBars.${b.id}`)
-    return multi.value || out.length === 0 ? out : ['delta.rows.refs', ...out]
-  }
-  if (!showRefs.value || barsShown.value.length === refBars.value.length) return []
-  const shownIds = new Set(barsShown.value.map((b) => b.id))
-  const out = refBars.value.filter((b) => !shownIds.has(b.id)).map((b) => `delta.refBars.${b.id}`)
-  return barsShown.value.length === 0 ? ['delta.rows.refs', ...out] : out
-})
-/** A bar's delta ('—' and an empty bar while its reference has no lap yet). */
-function barValue(id: DeltaReference): number | null {
-  return content.value?.bars?.[id] ?? null
-}
-const refBarStyles = (v: number | null): ReturnType<typeof barStyles> =>
-  barStyles(barStep(v, rangeS.value))
-/** As the main bar's: the tone of the sign, the end hatched beyond the scale. */
-const refBarClass = (v: number | null): string => barClassOf(v, rangeS.value)
-
 /** Brief label after another reference is chosen (or takes over), live only. */
 const note = shallowRef('')
 let noteTimer: ReturnType<typeof setTimeout> | undefined
@@ -315,13 +215,177 @@ watch(phase, (p) => {
 })
 onBeforeUnmount(() => clearTimeout(noteTimer))
 
+// ---- Two references or more: one equal row each (rows.ts deltaLanes) ----------------------
+// Each its name, its delta, its trend and its bar, in the list's order; the line above names
+// the reference in use (the predicted lap and the sectors follow it). One is the delta of always.
+
+/**
+ * The settings preview's ghosts (hidden elements drawn translucent while you edit there); none
+ * over the game. The options without them decide the mode and the room: a ghost never turns the
+ * delta of always into rows, nor takes the place of anything shown (rows.ts extraInRoom).
+ */
+const sample = injectSampleHost()
+const ghosts = computed<readonly string[]>((prev) => {
+  const next = sample?.ghosts?.value ?? NO_GHOSTS
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+const real = computed(() => withoutGhosts(options.value, ghosts.value))
+/** The references the list really shows (their line on): each row's own entry. */
+const listed = computed<readonly DeltaReference[]>((prev) => {
+  const r = real.value
+  const next = isElementVisible(r.rows, 'refs') ? visibleIds(r.refBars) : NO_REFS
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/** The references with a row, the one in use among them (only on a change of list or choice). */
+const lanes = computed<readonly DeltaReference[]>((prev) => {
+  const next = deltaLanes(real.value, refKind.value)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/** Those and the preview's ghost rows, in the list's order. */
+const ghostLanes = computed<readonly DeltaReference[]>((prev) => {
+  const next = ghosts.value.length === 0 ? lanes.value : deltaLanes(options.value, refKind.value)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/**
+ * What the options draw (never more rows than the window was made for, rows.ts deltaLiveShape),
+ * and what the window holds of it (only a resize, a list or a choice recounts).
+ */
+const shape = computed<DeltaShape>((prev) =>
+  reuseView(prev, deltaLiveShape(real.value, refKind.value))
+)
+const minText = computed(() => minTextPx(appearance.value))
+const drawn = computed<DeltaShape>((prev) =>
+  reuseView(
+    prev,
+    shapeInRoom(real.value, shape.value, rootSize.value.w, rootSize.value.h, minText.value)
+  )
+)
+/** The rows are drawn (a window too small for two draws the delta of always instead). */
+const multi = computed(() => drawn.value.lanes >= 2)
+/** A lap that won't count says why in the head line (the rows step back). */
+const lapStateShown = computed(() => !counts.value && state.value.kind !== 'none')
+/**
+ * What is drawn beyond the shape (rows.ts extraInRoom): the head line while it has news (the lap
+ * state, the brief label), the text giving way but never a row; the preview's ghosts (head parts,
+ * rows) only into room left over.
+ */
+const extra = computed<DeltaExtra>((prev) =>
+  reuseView(
+    prev,
+    extraInRoom(
+      real.value,
+      drawn.value,
+      {
+        news: lapStateShown.value || note.value !== '',
+        ghostHead: showReference.value || showPredicted.value,
+        ghosts: ghostLanes.value.length - lanes.value.length
+      },
+      rootSize.value.w,
+      rootSize.value.h,
+      minText.value
+    )
+  )
+)
+const head = computed(() => multi.value && (drawn.value.head || extra.value.head))
+/** The rows drawn, ghosts included (the stylesheet's dl--multi-N). */
+const laneCount = computed(() => drawn.value.lanes + extra.value.lanes)
+const laneList = computed<readonly RefBarView[]>((prev) =>
+  reuseViews(prev, [...laneViews(ghostLanes.value, refKind.value, t.value)])
+)
+/**
+ * The rows drawn: the real ones the room holds (lanesInRoom: the reference in use's always),
+ * then as many ghosts as fit, in the list's order.
+ */
+const lanesShown = computed<readonly RefBarView[]>((prev) => {
+  const next = multi.value
+    ? lanesDrawn(laneList.value, lanes.value, drawn.value.lanes, extra.value.lanes)
+    : NO_LANES
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/**
+ * A row's element in the preview: its entry in the list; the row of the reference in use when
+ * the list doesn't show it is the delta itself (always drawn, as the top line it stands for).
+ */
+const laneEl = (b: RefBarView): string =>
+  b.isRef && !listed.value.includes(b.id) ? 'delta.rows.top' : `delta.refBars.${b.id}`
+/** The short name of the reference in use ('Ópt.'): the head line's in a narrow window. */
+const refCaption = computed(() =>
+  refKind.value === null ? '' : t.value.widgets.delta.bars[refKind.value]
+)
+/** No head line: the sectors (the reference in use's) start with its short name. */
+const sectorsNamed = computed(() => multi.value && !head.value && refCaption.value !== '')
+/** A row's delta: the reference in use's is the main one (its trend too), the rest their bar's. */
+const laneValue = (b: RefBarView): number | null => (b.isRef ? delta.value : barValue(b.id))
+/** Each row's trend, with its own hysteresis; kept while every row's stays. */
+const laneTrends = computed<LaneTrends>((prev) =>
+  multi.value && showTrend.value
+    ? laneTrendsOf(lanesShown.value, trend.value, content.value?.barTrends, prev)
+    : NO_TRENDS
+)
+const laneTrend = (b: RefBarView): TrendKind => laneTrends.value[b.id] ?? 'steady'
+/** Where the rows go: the place of the first of the lines they stand for (top, bar, refs). */
+const lanesPlace = computed(() =>
+  Math.min(place.value.top ?? 0, place.value.bar ?? Infinity, place.value.refs ?? Infinity)
+)
+
+// ---- The bars per reference: the list on a change of choice, each bar on a change of its value
+/** The bars in the user's order, the reference in use marked. */
+const refBars = computed<readonly RefBarView[]>((prev) =>
+  reuseViews(prev, [...refBarsView(options.value.refBars, refKind.value, t.value)])
+)
+/**
+ * The 2.4 small bars: only with one reference (the one in use's own bar, and the preview's
+ * ghosts); the row with no reference shown draws nothing, and sizes nothing.
+ */
+const showRefs = computed(
+  () => shape.value.lanes < 2 && rows.value.includes('refs') && refBars.value.length > 0
+)
+// A window too short for every bar at the smallest text draws the first ones in your order, the
+// reference in use always among them; the rest are said «No cabe» on the page. Only a resize, a
+// text floor or a list change recounts (never a telemetry pass).
+const barsFit = computed(() =>
+  showRefs.value
+    ? refBarsThatFit(
+        options.value,
+        refBars.value.length,
+        rootSize.value.w,
+        rootSize.value.h,
+        minText.value
+      )
+    : refBars.value.length
+)
+const barsShown = computed<readonly RefBarView[]>((prev) => {
+  const next = barsInRoom(refBars.value, barsFit.value)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+useNoRoomReport(() => {
+  if (shape.value.lanes >= 2) {
+    // The rows shown in the list that don't fit (never the ghosts: hidden anyway), the head line
+    // that gives way; with none left but the delta of always, the line itself too.
+    const headLost = shape.value.head && !head.value
+    return lanesNoRoom(listed.value, lanesShown.value, refKind.value, multi.value, headLost)
+  }
+  if (!showRefs.value || barsShown.value.length === refBars.value.length) return []
+  const shownIds = new Set(barsShown.value.map((b) => b.id))
+  const out = refBars.value.filter((b) => !shownIds.has(b.id)).map((b) => `delta.refBars.${b.id}`)
+  return barsShown.value.length === 0 ? ['delta.rows.refs', ...out] : out
+})
+/** A bar's delta ('—' and an empty bar while its reference has no lap yet). */
+function barValue(id: DeltaReference): number | null {
+  return content.value?.bars?.[id] ?? null
+}
+const refBarStyles = (v: number | null): ReturnType<typeof barStyles> =>
+  barStyles(barStep(v, rangeS.value))
+/** As the main bar's: the tone of the sign, the end hatched beyond the scale. */
+const refBarClass = (v: number | null): string => barClassOf(v, rangeS.value)
+
 // The panel's tint follows the sign of the delta: these classes change on a sign flip only (the
 // rows have none: each its own tone). The rows and parts shown size the font (--dl-fit-h /
 // --dl-fit-w, see the styles).
 const rootClass = computed(() => ({
   'is-shown': shown.value,
   'dl--multi': multi.value,
-  [`dl--multi-${drawn.value.lanes}`]: multi.value,
+  [`dl--multi-${laneCount.value}`]: multi.value,
   'dl--multi-nohead': multi.value && !head.value,
   'dl--bar': showBar.value,
   'dl--sectors': showSectors.value,
@@ -471,8 +535,15 @@ const rootClass = computed(() => ({
           <div v-else-if="showReference" class="dl-ref" data-el="delta.top.reference">
             <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
             <span class="dl-ref__label">{{ reference.label }}</span>
+            <!-- Its short name instead in a narrow window (the rows' own). -->
+            <span class="dl-ref__short">{{ refCaption }}</span>
             <span v-if="temporary" class="dl-ref__temp">{{ t.widgets.delta.temporary }}</span>
             <span class="dl-ref__time">{{ reference.time }}</span>
+          </div>
+          <!-- «Referencia» off: still its short name, for «Prev.» and the sectors follow it. -->
+          <div v-else-if="refCaption !== ''" class="dl-ref dl-ref--short">
+            <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
+            <span class="dl-ref__name">{{ refCaption }}</span>
           </div>
           <div class="dl-head__end">
             <span
@@ -497,12 +568,13 @@ const rootClass = computed(() => ({
           <div
             v-for="b in lanesShown"
             :key="b.id"
-            v-memo="[b, laneValue(b), laneTrend(b), rangeS, showBar, showTrend]"
+            v-memo="[b, laneValue(b), laneTrend(b), rangeS, showBar, showTrend, laneEl(b)]"
             class="dl-lane"
             role="group"
             :aria-label="laneLabel(b.name, laneValue(b), laneTrend(b), t)"
-            :data-el="`delta.refBars.${b.id}`"
+            :data-el="laneEl(b)"
           >
+            <!-- The whole row is its reference in the preview: no part of it is another's. -->
             <span class="dl-lane__name" :title="b.name">{{ b.caption }}</span>
             <span class="dl-lane__val" :class="`ov-tone-${deltaTone(laneValue(b))}`">
               <span class="dl-lane__sym">
@@ -511,7 +583,7 @@ const rootClass = computed(() => ({
               </span>
               <span class="dl-lane__num">{{ formatDelta(laneValue(b)) }}</span>
             </span>
-            <span v-if="showTrend" class="dl-lane__trend" data-el="delta.top.state">
+            <span v-if="showTrend" class="dl-lane__trend">
               <!-- As the hero's: the chevrons point where the bar is heading. -->
               <svg
                 v-if="laneTrend(b) !== 'steady'"
@@ -530,7 +602,6 @@ const rootClass = computed(() => ({
               v-if="showBar"
               class="dl-bar dl-lane__bar"
               :class="refBarClass(laneValue(b))"
-              data-el="delta.rows.bar"
               aria-hidden="true"
             >
               <span v-inline-style="refBarStyles(laneValue(b)).fill" class="dl-bar__fill" />
@@ -573,9 +644,11 @@ const rootClass = computed(() => ({
         v-if="showSectors"
         v-inline-style="orderStyle(place.sectors ?? 0)"
         class="dl-sectors"
-        :class="`dl-sectors--${density}`"
+        :class="[`dl-sectors--${density}`, { 'dl-sectors--named': sectorsNamed }]"
         data-el="delta.rows.sectors"
       >
+        <!-- Rows with no line above them: the sectors say whose they are (a name, as a row's). -->
+        <span v-if="sectorsNamed" class="dl-sectors__ref">{{ refCaption }}</span>
         <span
           v-for="c in chips"
           :key="c.label"
@@ -1219,6 +1292,34 @@ const rootClass = computed(() => ({
   white-space: nowrap;
 }
 
+/* The reference in use by its short name, as its row says it: the head line's in a narrow
+   window and with «Referencia» off, the sectors' with no head line. */
+.dl-ref__short {
+  display: none;
+}
+
+.dl-ref__short,
+.dl-ref__name,
+.dl-sectors__ref {
+  flex: none;
+  font-family: var(--ov-font-small);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ov-fg);
+}
+
+.dl-sectors--named {
+  grid-template-columns: auto;
+}
+
+.dl-sectors__ref {
+  align-self: center;
+  padding-right: 0.15em;
+  font-size: max(var(--ov-min-text), 0.8em);
+}
+
 /* No head line in edit mode: the sample tag over the first row's end. */
 .dl-multi__tag {
   position: absolute;
@@ -1235,8 +1336,13 @@ const rootClass = computed(() => ({
 /* Name, figure, trend, bar: the same columns on every row, so the figures and the bars line up
    and compare straight down. Hairlines between rows; no band, no edge, no tint. */
 .dl-lane {
+  /* The name's column (em of the panel's text), and as wide as its text at the floor: the name
+     is never smaller than the smallest text (.dl-lane__name), so neither is its column. */
+  --dl-name-n: 5.6;
+  --dl-name: max(calc(var(--dl-name-n) * 1em), calc(var(--dl-name-n) * 1.25 * var(--ov-min-text)));
+
   display: grid;
-  grid-template-columns: 5.6em 5.1em minmax(0, 1fr);
+  grid-template-columns: var(--dl-name) 5.1em minmax(0, 1fr);
   align-items: center;
   column-gap: 0.45em;
   height: 1.9em;
@@ -1248,7 +1354,7 @@ const rootClass = computed(() => ({
 }
 
 .dl-multi--trend .dl-lane {
-  grid-template-columns: 5.6em 5.1em 1.1em minmax(0, 1fr);
+  grid-template-columns: var(--dl-name) 5.1em 1.1em minmax(0, 1fr);
 }
 
 .dl-lane__name {
@@ -1419,16 +1525,23 @@ const rootClass = computed(() => ({
   }
 }
 
-/* The rows in a narrow window: the head keeps the times (its name goes), the rows their name,
-   figure and bar (the sign and the tone still say which way; no arrow, no trend). */
+/* The rows in a narrow window (rows.ts DELTA_NARROW_PX): the head names the reference in use by
+   its short name, as its row does; the rows keep their name, figure and bar (the sign and the
+   tone still say which way; no arrow, no trend). DELTA_MULTI_NARROW_W wide. */
 @container delta (max-width: 300px) {
   .dl-head .dl-ref__label {
     display: none;
   }
 
+  .dl-head .dl-ref__short {
+    display: inline;
+  }
+
   .dl-lane,
   .dl-multi--trend .dl-lane {
-    grid-template-columns: 3.9em 4.4em minmax(0, 1fr);
+    --dl-name-n: 3.9;
+
+    grid-template-columns: var(--dl-name) 4.4em minmax(0, 1fr);
   }
 
   .dl-lane__sym,
@@ -1445,19 +1558,22 @@ const rootClass = computed(() => ({
   }
 }
 
-/* Narrower still: the rows alone, short names. */
+/* Narrower still: the head keeps the short name and the lap state (the times go, as the 2.4
+   top line's), the rows a shorter name. The head keeps its height: rows.ts counts it. */
 @container delta (max-width: 220px) {
-  .dl-head {
+  .dl-head .dl-ref__time,
+  .dl-head .dl-ref__temp,
+  .dl-head .dl-pred {
     display: none;
   }
 
-  .dl--multi .dl-panel {
-    --dl-h-head: 0;
+  .dl-head .dl-note {
+    display: flex;
   }
 
   .dl-lane,
   .dl-multi--trend .dl-lane {
-    grid-template-columns: 3.6em 4.4em minmax(0, 1fr);
+    --dl-name-n: 3.6;
   }
 }
 </style>
