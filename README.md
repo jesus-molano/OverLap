@@ -232,10 +232,12 @@ pierde al cambiar de sesión), tu mejor vuelta de la sesión, tu vuelta óptima 
 de tu clase o la óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera. Solo
 cuentan las vueltas legales (sin salirte de pista, sin incidentes, sin pit lane, grúa ni amarilla),
 y la referencia solo cambia al empezar una vuelta. Opcional: una fila con tu última, tu mejor, tu
-óptima y tu récord, y una barra por cada referencia que elijas, todas a la misma escala y con los
-colores de la barra principal (verde a la izquierda, más rápido). Al encender las barras desde su
-página la ventana crece lo justo para que quepan todas; si luego la achicas, se ven las que caben
-(siempre la de la referencia en uso) y la página dice «No cabe» en las demás.
+óptima y tu récord, y varias referencias a la vez: cada una con una fila igual (su nombre, su delta,
+su tendencia y su barra, todas a la misma escala, verde a la izquierda: más rápido), bajo una línea
+que nombra la que usa el delta (la vuelta prevista y los sectores van con ella). Con una sola, el
+delta de siempre. Al encender filas desde su página la ventana crece lo justo para que quepan
+todas; si luego la achicas, se ven las que caben (siempre la de la referencia en uso) y la página
+dice «No cabe» en las demás.
 
 ### Combustible
 

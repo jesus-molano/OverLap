@@ -5,6 +5,23 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Cambiado
+
+- **Delta: con dos referencias o más, una fila igual para cada una**: al ver más de una referencia
+  (las **Barras por referencia** y la que usa el delta), el delta ya no muestra un número grande con
+  barras pequeñas debajo. Cada referencia tiene la misma fila: su nombre, su delta con ▼/▲, su
+  tendencia (ahora una por referencia) y su barra, todas a la misma escala (verde a la
+  izquierda: más rápido) y en el orden de tu lista, use el delta la que use. La línea de arriba
+  nombra la referencia que usa el delta, con su tiempo y la vuelta prevista; los sectores van con
+  ella. Con una sola referencia (lo de serie) el delta es el de siempre, igual que en 2.4. Al
+  encender filas desde la página de Delta la ventana crece lo justo para no achicar el texto
+  (también si una sesión usa una referencia que no está en la lista); en una ventana más baja se
+  va primero la línea de arriba, luego las filas del final (nunca la de la referencia en uso, y la
+  página dice «No cabe»), y con una sola fila vuelve el delta de siempre. Tus ajustes se cargan
+  igual; si ya tenías las barras encendidas, verás filas en lugar de barras finas.
+
 ## [2.4.0] - 2026-10-31
 
 ### Añadido
