@@ -1,0 +1,24 @@
+name: Proponer una idea / Suggest an idea
+description: Algo que OverLap podría hacer. / Something OverLap could do.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Puedes escribir en español o en inglés. / Spanish or English are both fine.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Para qué / What for
+      description: Qué quieres conseguir en pista, o qué te falta. / What you want to achieve on track, or what is missing.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Cómo lo imaginas / How you picture it
+      description: En qué widget o página, y cómo se vería. Una captura o un boceto ayudan. / Which widget or page, and how it would look. A screenshot or sketch helps.
+  - type: textarea
+    id: others
+    attributes:
+      label: Otros overlays / Other overlays
+      description: Si otro overlay ya lo hace, cuál y cómo. / If another overlay already does it, which one and how.

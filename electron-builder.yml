@@ -1,6 +1,6 @@
 appId: io.github.jesus-molano.overlap
 productName: OverLap
-copyright: Copyright (c) 2026 Jesús Molano. All rights reserved.
+copyright: Copyright (C) 2026 Jesús Molano. Licensed under GPL-3.0-or-later.
 directories:
   buildResources: build
   output: dist

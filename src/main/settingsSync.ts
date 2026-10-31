@@ -7,6 +7,7 @@ import { isPersonalBestKeys } from '@shared/delta/references'
 import { deepEqual } from '@shared/equal'
 import type { RendererView, SettingsCommand } from '@shared/ipc'
 import { isLayoutExample } from '@shared/layoutExamples'
+import { isProjectPage } from '@shared/projectLinks'
 import { EDIT_KEYS } from '@shared/nudge'
 import { LAYOUT_MODES, isLayoutId, normalizeCarRef } from '@shared/layouts'
 import { isWidgetResetPart, toTelemetryConfig } from '@shared/settings'
@@ -64,7 +65,7 @@ export function isSettingsCommand(raw: unknown): raw is SettingsCommand {
     case 'delete-personal-bests':
       return isPersonalBestKeys(cmd.keys)
     case 'open-help':
-      return cmd.page === 'guide' || cmd.page === 'issues'
+      return isProjectPage(cmd.page)
     case 'undo-notice':
       return typeof cmd.id === 'number' && Number.isSafeInteger(cmd.id) && cmd.id > 0
     // Names are cleaned by the layout commands themselves (layoutName); a string is enough here.

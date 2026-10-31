@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { applySettingsPatch, createDefaultSettings } from '@shared/settings'
 import { setElementVisible } from '@shared/elements'
+import { hasSupportLink } from '@shared/projectLinks'
 import { OPTION_SCHEMA, type OptionSpec } from '@shared/settingsSchema'
 import type { ElementEntry, OverlaySettings, StandingsColumn } from '@shared/types'
 import { WIDGET_DEFS, WIDGET_IDS } from '@shared/widgets'
@@ -141,6 +142,11 @@ describe('isSettingsCommand', () => {
     }
     expect(isSettingsCommand({ type: 'open-help', page: 'guide' })).toBe(true)
     expect(isSettingsCommand({ type: 'open-help', page: 'issues' })).toBe(true)
+    // «Licencia»: the source, the licence and the notices; «Apoyar» only once it has a page.
+    for (const page of ['source', 'licence', 'notices']) {
+      expect(isSettingsCommand({ type: 'open-help', page }), page).toBe(true)
+    }
+    expect(isSettingsCommand({ type: 'open-help', page: 'support' })).toBe(hasSupportLink())
     expect(isSettingsCommand({ type: 'open-help', page: 'https://example.com' })).toBe(false)
     expect(isSettingsCommand({ type: 'refresh-personal-bests' })).toBe(true)
     expect(isSettingsCommand({ type: 'clear-personal-bests' })).toBe(true)

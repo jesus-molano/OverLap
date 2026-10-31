@@ -141,14 +141,31 @@ export const settingsEs = {
   },
   /** «Acerca de y ayuda» (R40): the version, help, a backup of everything, files, a new start. */
   about: {
-    sub: 'La versión, ayuda rápida, una copia de todo y empezar de nuevo',
+    sub: 'La versión, ayuda rápida, una copia de todo, empezar de nuevo y la licencia',
     app: {
       title: 'OverLap',
       version: (v: string) => `Versión ${v}`,
       versionHelp: 'Overlay de iRacing gratuito, sin cuenta ni conexión',
       guide: 'Guía de uso',
       issues: 'Informar de un problema',
+      /** Only when projectLinks.ts has the donations page. */
+      support: 'Apoyar OverLap',
       external: 'Se abre en el navegador'
+    },
+    /**
+     * The GPL's «Appropriate Legal Notices» (GPLv3 §0, §5(d)): the copyright, that there is no
+     * warranty, the licence and where to read it; and that the colour logos are not under it.
+     */
+    licence: {
+      title: 'Licencia',
+      label: 'Software libre, GPL-3.0 o posterior',
+      help: 'Puedes usarlo, copiarlo, modificarlo y compartirlo según la GNU GPL, versión 3 o cualquier versión posterior. Se ofrece sin ninguna garantía',
+      logosLabel: 'Logos de las marcas',
+      logosHelp:
+        'Los logos en color son marcas y dibujos de sus dueños y no están bajo la GPL. El monocromo usa Simple Icons (CC0) en 18 marcas y dibuja las demás en grises a partir de los de color; se elige en Apariencia › Filas y pilotos › Color del logo',
+      source: 'Código fuente',
+      licence: 'Licencia',
+      notices: 'Avisos de terceros'
     },
     help: {
       title: 'Ayuda rápida',
@@ -2284,14 +2301,26 @@ export const settingsEn: Dict<typeof settingsEs> = {
     openLogHelp: 'overlap.log, what happened in this session and the one before.'
   },
   about: {
-    sub: 'The version, quick help, a copy of everything and a fresh start',
+    sub: 'The version, quick help, a copy of everything, a fresh start and the licence',
     app: {
       title: 'OverLap',
       version: (v) => `Version ${v}`,
       versionHelp: 'A free iRacing overlay, no account or connection needed',
       guide: 'User guide',
       issues: 'Report a problem',
+      support: 'Support OverLap',
       external: 'Opens in the browser'
+    },
+    licence: {
+      title: 'Licence',
+      label: 'Free software, GPL-3.0 or later',
+      help: 'You may use, copy, modify and share it under the GNU GPL, version 3 or any later version. It comes with no warranty at all',
+      logosLabel: 'Car make logos',
+      logosHelp:
+        'The colour logos are their owners’ marks and artwork and are not under the GPL. Monochrome uses Simple Icons (CC0) for 18 makes and draws the others in greys from the colour ones; it is chosen in Appearance › Rows and drivers › Logo colour',
+      source: 'Source code',
+      licence: 'Licence',
+      notices: 'Third-party notices'
     },
     help: {
       title: 'Quick help',
