@@ -55,4 +55,11 @@ describe('previewDelta: the bars per reference', () => {
     expect(values.some((v) => v < 0)).toBe(true)
     expect(values.some((v) => v > 0)).toBe(true)
   })
+
+  it('gives each bar a trend: gaining, steady and losing rows all show', () => {
+    for (const r of REFS) {
+      const kinds = new Set(REFS.map((id) => trendKind(previewDelta(r).barTrends[id] ?? 0)))
+      expect(kinds).toEqual(new Set(['gain', 'steady', 'loss']))
+    }
+  })
 })

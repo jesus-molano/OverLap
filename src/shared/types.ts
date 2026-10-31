@@ -926,10 +926,19 @@ export interface DeltaData {
    * the ones not shown (only those are computed). Quantised 0.01, like `delta`.
    */
   bars: DeltaBars
+  /**
+   * Each bar's trend (s per s, as `trend`, with the same smoothing): one per reference of `bars`
+   * that is computed, 0 while its value holds. Absent for the others (and in an older payload):
+   * the widget draws no chevrons for them.
+   */
+  barTrends: DeltaBarTrends
 }
 
 /** DeltaData.bars: seconds versus each reference at this point of the lap, negative = faster. */
 export type DeltaBars = Readonly<Record<DeltaReference, number | null>>
+
+/** DeltaData.barTrends: each computed bar's trend, quantised 0.01. */
+export type DeltaBarTrends = Readonly<Partial<Record<DeltaReference, number>>>
 
 /** Your lap times for the delta's lap times line, seconds; null when there is none yet. */
 export interface DeltaLaps {

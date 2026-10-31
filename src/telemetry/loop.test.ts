@@ -275,7 +275,8 @@ const DELTA: DeltaData = {
   pending: null,
   temporary: false,
   laps: { last: null, best: null, optimal: null, pb: null },
-  bars: { pb: null, session: null, optimal: null, class: null, classOptimal: null }
+  bars: { pb: null, session: null, optimal: null, class: null, classOptimal: null },
+  barTrends: {}
 }
 const FUEL: FuelData = {
   visible: false,
