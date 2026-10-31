@@ -17,7 +17,7 @@ import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { DeltaOptions, OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
 import { iRatingColumnEm } from '../view/driverCell'
-import { deltaFitOf } from '../widgets/delta/rows'
+import { deltaFitOf, deltaShapeOf } from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
 
 /** A free widget's text fit: the em height and width its contents need. */
@@ -61,15 +61,20 @@ export function deltaFit(s: Readonly<OverlaySettings>): Fit {
   return deltaFitOf(s.delta)
 }
 
-/** The bars per reference the delta draws (its line shown), for deltaBarsGrowth. */
+/**
+ * What the delta draws of its references, for deltaBarsGrowth: its rows (two or more, the most
+ * any session draws) above its small bars (the one reference's own, 2.4).
+ */
 function refBarsShown(o: Readonly<DeltaOptions>): number {
+  const shape = deltaShapeOf(o)
+  if (shape.lanes >= 2) return 1 + shape.lanes
   return isElementVisible(o.rows, 'refs') ? visibleIds(o.refBars).length : 0
 }
 
 /**
- * The delta's window when its page shows more bars per reference (the line, or a bar of it):
- * grown as «Completo» grows it (grownBounds), so the text keeps its size and every bar fits;
- * null when no bar is added or it already fits.
+ * The delta's window when its page shows more bars per reference (the line, a bar of it, or a
+ * session's reference that adds a row): grown as «Completo» grows it (grownBounds), so the text
+ * keeps its size and every row fits; null when nothing is added or it already fits.
  */
 export function deltaBarsGrowth(
   before: Readonly<OverlaySettings>,
