@@ -52,6 +52,10 @@ El primer `build:win` descarga una vez las herramientas de NSIS que usa electron
 es `dist/OverLap-<versión>-portable.exe` (sin firmar). El portable se descomprime en una
 carpeta temporal en cada arranque; `dist/win-unpacked/OverLap.exe` arranca más rápido.
 
+Al publicar una release en GitHub, adjunta `LICENSE` y `THIRD_PARTY_NOTICES.md` junto al `.exe` (o
+enlázalos en las notas): van dentro del portable, pero quien solo baja el `.exe` no los ve hasta
+abrirlo, y la GPL pide que el texto de la licencia acompañe al binario.
+
 ## Fuente de datos
 
 | Forma                                | Valores                                       |

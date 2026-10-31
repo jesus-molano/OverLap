@@ -6,8 +6,12 @@ option) any later version (`GPL-3.0-or-later`, see `LICENSE`). It comes WITHOUT 
 
 It includes, ports or draws the third-party material listed below, each under its own licence. The
 full texts of the MIT and BSD licences follow the list. npm packages also keep their own licence
-files inside the packaged app (`resources/app.asar`), and Electron's and Chromium's notices ship
-next to `OverLap.exe` as `LICENSE.electron.txt` and `LICENSES.chromium.html`.
+files inside the packaged app (`resources/app.asar`), including the transitive MIT, ISC,
+BSD-2-Clause, Apache-2.0, BlueOak-1.0.0 and Python-2.0 packages that come with them (most of them
+node-gyp's). `LICENSE.txt` (the GPL), this file, and Electron's and Chromium's notices
+(`LICENSE.electron.txt`, `LICENSES.chromium.html`) are packed inside the portable `OverLap.exe`,
+which unpacks them next to the app in its temp folder while it runs; each GitHub release also
+attaches or links `LICENSE` and this file.
 
 **The colour car logos are not covered by the GPL.** They are third-party trademarks and artwork;
 see [Brand logos](#brand-logos).
@@ -16,14 +20,14 @@ see [Brand logos](#brand-logos).
 
 | Component                                                                                                            | Use in OverLap                                                                | Licence      | Copyright                                                                                                                          |
 | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| [irsdk-node](https://github.com/bengsfort/irsdk-node) (`irsdk-node`, `@irsdk-node/native`, `@irsdk-node/types`)      | Reads the iRacing SDK shared memory                                           | MIT          | Copyright (c) 2026 Matthew Bengston                                                                                                |
+| [irsdk-node](https://github.com/bengsfort/irsdk-node) (`irsdk-node`, `@irsdk-node/native`, `@irsdk-node/types`)      | Reads the iRacing SDK shared memory                                           | MIT          | Copyright (c) 2026 Matthew Bengston (`@irsdk-node/types`: Copyright (c) 2021 Matthew Bengston)                                     |
 | iRacing SDK headers (inside `@irsdk-node/native`)                                                                    | Telemetry layout used by irsdk-node                                           | BSD-3-Clause | Copyright (c) 2013, iRacing.com Motorsport Simulations, LLC                                                                        |
 | [koffi](https://koffi.dev) (`koffi`, `@koromix/koffi-win32-x64`)                                                     | Reads the session info block                                                  | MIT          | Copyright (C) 2026 Niels Martignène                                                                                                |
 | [js-yaml](https://github.com/nodeca/js-yaml)                                                                         | Parses the session info YAML                                                  | MIT          | Copyright (C) 2011-2015 by Vitaly Puzrin                                                                                           |
 | [country-flag-icons](https://gitlab.com/catamphetamine/country-flag-icons) 1.6.20                                    | Driver flags in Relative, Standings and Battle (3x2 SVG, unchanged)           | MIT          | Copyright (c) 2020 @catamphetamine                                                                                                 |
 | [Vue](https://vuejs.org) 3.5 (`@vue/runtime-dom`, `@vue/runtime-core`, `@vue/reactivity`, `@vue/shared`)             | Draws the settings window and the widgets (bundled into the renderer)         | MIT          | Copyright (c) 2018-present, Yuxi (Evan) You                                                                                        |
 | [Vite](https://vite.dev) and [@vitejs/plugin-vue](https://github.com/vitejs/vite-plugin-vue) (small runtime helpers) | Module preload helper and component export helper (bundled into the renderer) | MIT          | Copyright (c) 2019-present, VoidZero Inc. and Vite contributors; Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors |
-| [Electron](https://www.electronjs.org) 44                                                                            | The app runtime (its own and Chromium's notices ship next to the exe)         | MIT          | Copyright (c) Electron contributors; Copyright (c) 2013-2020 GitHub Inc.                                                           |
+| [Electron](https://www.electronjs.org) 44                                                                            | The app runtime (its own and Chromium's notices are packed inside the exe)    | MIT          | Copyright (c) Electron contributors; Copyright (c) 2013-2020 GitHub Inc.                                                           |
 
 ## Ported algorithms
 
@@ -48,10 +52,13 @@ logo** (Appearance › Rows and drivers › Logo colour):
   covered by OverLap's licence**. They are third-party trademarks and artwork, drawn from the files
   listed at the top of that file and simplified for the overlay. Their owners keep all their rights:
   OverLap claims none and grants none, and the GPL-3.0-or-later does not apply to them. By source:
-  - Wikimedia Commons, 19 makes, marked there as public domain (text logos below the threshold of
-    originality) with a trademark warning: Acura, Audi, Chevrolet, Dodge, Ford, Honda, Hyundai, Kia,
-    Ligier, McLaren, Mercedes-Benz, Nissan, Pontiac, Renault, Ruf, Skip Barber, Subaru, Toyota and
-    Volkswagen.
+  - Wikimedia Commons, 19 makes, each file page tagged public domain with a trademark warning
+    (checked on 2026-10-31): 17 as `PD-textlogo` (Acura, Audi, Chevrolet, Ford, Honda, Hyundai, Kia,
+    Ligier, McLaren, Mercedes-Benz, Nissan, Pontiac, Renault, Skip Barber, Subaru, Toyota and
+    Volkswagen), Dodge as `PD-shape` and Ruf as `PD-self` (released by its uploader). Those tags are
+    the Commons uploaders' and editors' assessment, not a legal opinion, and several of these are
+    emblems rather than plain text (the Mercedes star, the McLaren Speedmark, the Pontiac dart, the
+    Chevrolet bowtie), so they are listed here as third-party marks all the same.
   - English Wikipedia, 2 makes: Lotus (public domain in the United States only) and Mazda (non-free,
     used on Wikipedia under fair use).
   - worldvectorlogo.com, 10 makes, third-party redraws whose terms could not be checked: Aston
@@ -69,8 +76,9 @@ Simulations, LLC.
 ## OverLap's own name and icon
 
 The OverLap name and the «OL» icon are not licensed as trademarks: as GPL section 7(e) allows, no
-rights under trademark law are granted for them. If you distribute a modified version, give it a
-different name and icon so that nobody takes it for OverLap.
+rights under trademark law are granted for them. The GPL gives you the code, not the right to use
+that name or icon, so a modified version you distribute needs a different name and icon, and then
+nobody takes it for OverLap.
 
 ## MIT License
 
