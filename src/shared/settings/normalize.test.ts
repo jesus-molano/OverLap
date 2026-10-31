@@ -190,6 +190,8 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   topRows: 3,
   aroundRows: 3,
   otherClassRows: 1,
+  classOrder: 'player',
+  classList: [],
   gapMode: 'interval',
   columns: DEFAULT_COLUMNS,
   showPosition: true,

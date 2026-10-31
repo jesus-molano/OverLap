@@ -54,6 +54,7 @@ const api: OverlayApi = {
   onShortcutStatus: (cb) => subscribe<ShortcutStatusReport>(IPC.shortcutStatus, cb),
   onCursorHidden: (cb) => subscribe<boolean>(IPC.cursorHidden, cb),
   onCurrentCar: (cb) => subscribe<CarRef | null>(IPC.currentCar, cb),
+  onSessionClasses: (cb) => subscribe<string[]>(IPC.sessionClasses, cb),
   onLayoutNotice: (cb) => subscribe<LayoutNotice>(IPC.layoutNotice, cb),
   onSettingsPage: (cb) => subscribe<SettingsWindowPage>(IPC.settingsPage, cb),
   onSaveFailing: (cb) => subscribe<boolean>(IPC.saveFailing, cb),

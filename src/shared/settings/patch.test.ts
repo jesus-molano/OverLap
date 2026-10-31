@@ -447,6 +447,47 @@ describe('applySettingsPatch', () => {
   })
 })
 
+describe('the standings’ class order (9)', () => {
+  it('patches the order and keeps a clean list of names', () => {
+    const out = applySettingsPatch(createDefaultSettings(), {
+      standings: {
+        classOrder: 'manual',
+        classList: [' LMP2 ', 'gt3', 'GT3', '', 7, 'x'.repeat(33), 'GTP'] as unknown as string[]
+      }
+    })
+    expect(out.standings.classOrder).toBe('manual')
+    expect(out.standings.classList).toEqual(['LMP2', 'gt3', 'GTP'])
+    // Not a list: kept; a bad order: kept.
+    const kept = applySettingsPatch(out, {
+      standings: { classList: 'GT4' as unknown as string[], classOrder: 'random' as 'manual' }
+    })
+    expect(kept.standings.classList).toEqual(['LMP2', 'gt3', 'GTP'])
+    expect(kept.standings.classOrder).toBe('manual')
+    expect(kept.standings.classList).not.toBe(out.standings.classList)
+    // At most 32 names.
+    const many = Array.from({ length: 40 }, (_, i) => `C${i}`)
+    const capped = applySettingsPatch(out, { standings: { classList: many } })
+    expect(capped.standings.classList).toEqual(many.slice(0, 32))
+  })
+
+  it('reads a file from before it as today: your class first, no list', () => {
+    const raw = structuredClone(createDefaultSettings()) as unknown as {
+      standings: Record<string, unknown>
+    }
+    delete raw.standings.classOrder
+    delete raw.standings.classList
+    const s = normalizeSettings(raw)
+    expect(s.standings.classOrder).toBe('player')
+    expect(s.standings.classList).toEqual([])
+    // A saved list loads as it was.
+    raw.standings.classOrder = 'manual'
+    raw.standings.classList = ['LMP2', 'GT3']
+    const back = normalizeSettings(raw)
+    expect(back.standings.classOrder).toBe('manual')
+    expect(back.standings.classList).toEqual(['LMP2', 'GT3'])
+  })
+})
+
 describe('resetWidgetBounds', () => {
   it('resets only that widget bounds', () => {
     const current = customSettings()

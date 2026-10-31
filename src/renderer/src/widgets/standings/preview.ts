@@ -10,6 +10,7 @@
  */
 import { shallowRef } from 'vue'
 import type { BrandId } from '@shared/carBrands'
+import { orderClasses } from '@shared/classOrder'
 import { clampOption, OPTION_SCHEMA } from '@shared/settingsSchema'
 import { PREVIEW_INFO } from '@renderer/view/infoBar'
 import { PREVIEW_INCIDENTS } from '@renderer/view/incidents'
@@ -25,7 +26,7 @@ import type {
 
 export type PreviewOptions = Pick<
   StandingsOptions,
-  'mode' | 'topRows' | 'aroundRows' | 'otherClassRows'
+  'mode' | 'topRows' | 'aroundRows' | 'otherClassRows' | 'classOrder' | 'classList'
 >
 
 /**
@@ -33,16 +34,25 @@ export type PreviewOptions = Pick<
  * Delta's previewSession): `deep`, you further down your class (DEEP_POSITION), so the top rows
  * and the rows around you are two blocks and each count shows (the default P5 makes them one);
  * `singleClass`, your class alone, so the SoF and the car count go in the info bars (with
- * several classes they are the class lines'). Per window: the overlay's edit mode keeps the
- * default.
+ * several classes they are the class lines'); `threeClasses`, a third class (GTP, the fastest)
+ * after the other two, so «Orden de las clases» has an order to show (9: the settings page's
+ * sample always has it). Per window: the overlay's edit mode keeps the default.
  */
 export interface PreviewField {
   readonly deep: boolean
   readonly singleClass: boolean
+  readonly threeClasses: boolean
+  /**
+   * «A mano»: the list as the settings page shows it (the saved names, then this session's and
+   * the sample's), so the sample draws its classes in the list's order before anything is saved.
+   * Absent: the saved list.
+   */
+  readonly classList?: readonly string[]
 }
 export const PREVIEW_FIELD_DEFAULT: PreviewField = Object.freeze({
   deep: false,
-  singleClass: false
+  singleClass: false,
+  threeClasses: false
 })
 export const previewField = shallowRef<PreviewField>(PREVIEW_FIELD_DEFAULT)
 
@@ -375,9 +385,53 @@ const LMP2_ROWS = makeRows(
   20
 )
 
+/** The prototypes, all fast: a third class only the settings page's sample draws (9). */
+const GTP = '#ffc400'
+
+const GTP_ROWS = makeRows(
+  GTP,
+  null,
+  [
+    {
+      carNumber: '01',
+      driverName: 'Rafael Domínguez',
+      iRating: 4120,
+      licString: 'A 4.51',
+      brand: 'cadillac',
+      lastLap: 121.904,
+      bestLap: 121.377
+    },
+    {
+      carNumber: '6',
+      driverName: 'Nora Halvorsen',
+      iRating: 3860,
+      licString: 'A 3.92',
+      brand: 'porsche',
+      interval: s(2.4),
+      gapToLeader: s(2.4),
+      lastLap: 121.62,
+      bestLap: 121.211
+    },
+    {
+      carNumber: '10',
+      driverName: 'Theo Marchetti',
+      iRating: 3455,
+      licString: 'A 2.60',
+      brand: 'acura',
+      interval: s(6.9),
+      gapToLeader: s(9.3),
+      lastLap: 122.48,
+      bestLap: 121.95
+    }
+  ],
+  40
+)
+
 interface PreviewClass {
   block: Omit<StandingsClassBlock, 'rows'>
   rows: readonly StandingsRow[]
+  /** iRacing's relative speed of the class (the sample's order by speed: GTP, LMP2, GT3). */
+  relSpeed: number
 }
 
 const CLASSES: readonly PreviewClass[] = [
@@ -390,7 +444,8 @@ const CLASSES: readonly PreviewClass[] = [
       carCount: GT3_ROWS.length,
       isPlayerClass: true
     },
-    rows: GT3_ROWS
+    rows: GT3_ROWS,
+    relSpeed: 70
   },
   {
     block: {
@@ -401,9 +456,44 @@ const CLASSES: readonly PreviewClass[] = [
       carCount: LMP2_ROWS.length,
       isPlayerClass: false
     },
-    rows: LMP2_ROWS
+    rows: LMP2_ROWS,
+    relSpeed: 85
+  },
+  {
+    block: {
+      classId: 3,
+      className: 'GTP',
+      classColor: GTP,
+      sof: 3810,
+      carCount: GTP_ROWS.length,
+      isPlayerClass: false
+    },
+    rows: GTP_ROWS,
+    relSpeed: 100
   }
 ]
+
+/** The third class: only in the `threeClasses` field. */
+const THIRD_CLASS = 3
+
+/** The sample's classes as the table draws them («Orden de las clases»), in `field`. */
+export function previewClassOrder(
+  o: Pick<PreviewOptions, 'classOrder' | 'classList'>,
+  field: PreviewField = PREVIEW_FIELD_DEFAULT
+): readonly PreviewClass[] {
+  const shown = CLASSES.filter(
+    (c) =>
+      (field.threeClasses || c.block.classId !== THIRD_CLASS) &&
+      !(field.singleClass && !c.block.isPlayerClass)
+  ).map((c) => ({ c, classId: c.block.classId, name: c.block.className, relSpeed: c.relSpeed }))
+  const player = shown.find((x) => x.c.block.isPlayerClass)
+  return orderClasses(shown, player, o.classOrder, field.classList ?? o.classList).map((x) => x.c)
+}
+
+/** The short names of the sample's classes, the fastest first (the class order's list has them). */
+export const PREVIEW_CLASS_NAMES: readonly string[] = [...CLASSES]
+  .sort((a, b) => b.relSpeed - a.relSpeed)
+  .map((c) => c.block.className)
 
 const HEADER: Readonly<StandingsHeader> = {
   sessionType: 'Race',
@@ -510,8 +600,7 @@ export function previewStandings(
   const around = clampOption(OPTION_SCHEMA.standings.aroundRows, o.aroundRows)
   const others = clampOption(OPTION_SCHEMA.standings.otherClassRows, o.otherClassRows)
   const classes: StandingsClassBlock[] = []
-  for (const c of CLASSES) {
-    if (field.singleClass && !c.block.isPlayerClass) continue
+  for (const c of previewClassOrder(o, field)) {
     const all = field.deep && c.block.isPlayerClass ? GT3_DEEP : c.rows
     let rows: DisplayRow[]
     if (full) rows = all.map((r) => ({ ...r, gapBefore: false }))

@@ -119,10 +119,20 @@ export function parseTelemetryMessage(raw: unknown): TelemetryOutMessage | null 
       const car = normalizeCarRef(raw.car)
       return car ? { type: 'player-car', car } : null
     }
+    case 'session-classes': {
+      const { names } = raw
+      if (!Array.isArray(names) || names.length > MAX_SESSION_CLASSES) return null
+      if (!names.every((n) => typeof n === 'string' && n.length <= MAX_CLASS_NAME)) return null
+      return { type: 'session-classes', names: [...(names as string[])] }
+    }
     default:
       return null
   }
 }
+
+/** More classes, or longer names, than any session has: a message is refused. */
+const MAX_SESSION_CLASSES = 64
+const MAX_CLASS_NAME = 64
 
 function isCount(v: unknown): v is number {
   return Number.isSafeInteger(v) && (v as number) >= 0

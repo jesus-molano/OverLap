@@ -75,6 +75,11 @@ export type TelemetryOutMessage =
    * Null without a session or a known car.
    */
   | { type: 'player-car'; car: CarRef | null }
+  /**
+   * The classes of a multiclass session (their short names, the fastest first), on change: the
+   * standings' «Orden de las clases» lists them (9). Empty with one class or no session.
+   */
+  | { type: 'session-classes'; names: string[] }
 
 export type TelemetryInMessage =
   | { type: 'config'; config: TelemetryConfig }
@@ -161,6 +166,8 @@ export const IPC = {
   cursorHidden: 'overlay:cursor-hidden',
   /** main -> settings window, `CarRef | null`: the car you are in now (layout links). */
   currentCar: 'overlay:current-car',
+  /** main -> settings window, `string[]`: the classes of this multiclass session (9). */
+  sessionClasses: 'overlay:session-classes',
   /** main -> settings window, `LayoutNotice`: how an export or an import went. */
   layoutNotice: 'overlay:layout-notice',
   /** main -> settings window, `SettingsWindowPage`: show this page (the tray's "Más…"). */
@@ -541,6 +548,8 @@ export interface InitialState {
   cursorHidden: boolean
   /** The car you are in now (see `IPC.currentCar`). */
   currentCar: CarRef | null
+  /** The classes of this multiclass session, the fastest first (see `IPC.sessionClasses`). */
+  sessionClasses?: string[]
   /** Settings window: changes are not reaching the disk (see `IPC.saveFailing`). */
   saveFailing?: boolean
   /** The app's version ('2.2.0'), for «Acerca de y ayuda» (R40). */
@@ -570,6 +579,8 @@ export interface OverlayApi {
   onCursorHidden(cb: (hidden: boolean) => void): Unsubscribe
   /** Settings window only: the car you are in now changed. */
   onCurrentCar(cb: (car: CarRef | null) => void): Unsubscribe
+  /** Settings window only: the classes of this multiclass session changed. */
+  onSessionClasses(cb: (names: string[]) => void): Unsubscribe
   /** Settings window only: how a layout export or import went. */
   onLayoutNotice(cb: (notice: LayoutNotice) => void): Unsubscribe
   /** Settings window only: main asks for a page (opened from the tray). */

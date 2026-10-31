@@ -51,6 +51,8 @@ export interface TelemetryHostOptions {
   onSessionKind?(kind: SessionKind | null): void
   /** The player's car model, on change (null too when the process exits, like the kind). */
   onPlayerCar?(car: CarRef | null): void
+  /** The classes of a multiclass session, the fastest first ([] with one or none). */
+  onSessionClasses?(names: string[]): void
 }
 
 /**
@@ -289,6 +291,9 @@ export class TelemetryHost {
       case 'player-car':
         this.opts.onPlayerCar?.(msg.car)
         break
+      case 'session-classes':
+        this.opts.onSessionClasses?.(msg.names)
+        break
     }
   }
 
@@ -297,6 +302,7 @@ export class TelemetryHost {
     for (const id of [...this.textWaits.keys()]) this.answerText(id, null)
     this.opts.onSessionKind?.(null)
     this.opts.onPlayerCar?.(null)
+    this.opts.onSessionClasses?.([])
     const ids = [...this.hidden]
     this.hidden.clear()
     for (const id of ids) this.opts.onAutoHidden(id, { hidden: false, reason: null })

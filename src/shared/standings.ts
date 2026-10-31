@@ -4,6 +4,7 @@
  * iRating, licences). Runs at 4 Hz. Its only state, owned by one
  * StandingsProvider per telemetry loop, is a cache of the rating projections (and your SR's).
  */
+import { orderClasses } from './classOrder'
 import { driverIdentity, fieldHasMultipleBrands } from './driver'
 import { isElementVisible } from './elements'
 import { infoItemShown } from './infoBar'
@@ -366,12 +367,10 @@ export class StandingsProvider {
       playerDriver && (race.car(playerIdx) || (preGreen && session.grid.has(playerIdx)))
         ? groups.find((g) => g.classId === playerDriver.classId)
         : undefined
-    groups.sort(
-      (a, b) =>
-        Number(b === playerGroup) - Number(a === playerGroup) ||
-        b.relSpeed - a.relSpeed ||
-        a.classId - b.classId
-    )
+    // Without a player class (spectating) the fastest class gets the top rows, wherever its
+    // block goes.
+    const fastest = orderClasses(groups, undefined, 'speed', [])[0]
+    const ordered = orderClasses(groups, playerGroup, opts.classOrder, opts.classList)
 
     const deltaColumn = columnShown(opts, 'delta')
     const needs: RowNeeds = {
@@ -388,8 +387,7 @@ export class StandingsProvider {
     const headerIRating = infoItemShown('standings', opts, 'iRating')
     const withDeltas = rated && isRace && (headerIRating || deltaColumn)
     const compact = opts.mode !== 'full'
-    // Without a player class (spectating) the fastest class gets the top rows.
-    const primary = playerGroup ?? groups[0]
+    const primary = playerGroup ?? fastest
     const topRows = clampOption(OPTION_SCHEMA.standings.topRows, opts.topRows)
     const aroundRows = clampOption(OPTION_SCHEMA.standings.aroundRows, opts.aroundRows)
     const otherRows = clampOption(OPTION_SCHEMA.standings.otherClassRows, opts.otherClassRows)
@@ -397,7 +395,7 @@ export class StandingsProvider {
     let iRating: PlayerRatingProjection | null = null
 
     this.ratings.begin()
-    for (const g of groups) {
+    for (const g of ordered) {
       const isPrimary = g === primary
       // Compact: other classes only as their first (classified) cars.
       const leaderPos = g.cars[0]?.car.classPosition ?? 0

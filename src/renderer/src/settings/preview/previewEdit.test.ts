@@ -115,6 +115,19 @@ describe('drops in a line of elements', () => {
     expect(axisOf(cols)).toBe('x')
     const lines: Slot[] = ['a', 'b'].map((id, i) => ({ id, box: box(0, i * 30, 200, 24) }))
     expect(axisOf(lines)).toBe('y')
+    // The standings' classes (9b): a wide class line over two narrow leader tags, which spread
+    // more across than down; stacked, so down.
+    const classes: Slot[] = [
+      { id: 'gt', box: box(0, 20, 520, 18) },
+      { id: 'gtp', box: box(4, 200, 30, 18) },
+      { id: 'lmp', box: box(4, 222, 34, 18) }
+    ]
+    expect(axisOf(classes)).toBe('y')
+    const drop = dropInLine(classes, 'lmp', 10, 15)
+    expect(drop?.place).toEqual({ kind: 'before', id: 'gt' })
+    // The drop line across the whole table.
+    expect(drop?.line.left).toBe(0)
+    expect(drop?.line.right).toBe(520)
     expect(axisOf([])).toBe('x')
     expect(union([])).toBeNull()
   })

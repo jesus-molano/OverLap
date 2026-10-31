@@ -28,6 +28,7 @@ export function sectionSpecs(section: OptionSection): Readonly<Record<string, Op
 export function specDefault(spec: OptionSpec): unknown {
   if (spec.kind === 'elements') return spec.default.map((e) => ({ ...e }))
   if (spec.kind === 'colors') return { ...spec.default }
+  if (spec.kind === 'names') return [...spec.default]
   return spec.default
 }
 

@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { formatDriverName } from '@shared/format'
 import { lineMetrics, linesEm, panelHeightPx, planLines } from './layout'
-import { DEEP_POSITION, previewStandings, type PreviewOptions } from './preview'
+import {
+  DEEP_POSITION,
+  PREVIEW_CLASS_NAMES,
+  previewStandings,
+  type PreviewField,
+  type PreviewOptions
+} from './preview'
 
 const DEFAULTS: PreviewOptions = DEFAULT_SETTINGS.standings
 
@@ -121,7 +127,7 @@ describe('previewStandings', () => {
 })
 
 describe('previewStandings in the field the settings page asks for', () => {
-  const deep = { deep: true, singleClass: false }
+  const deep = { deep: true, singleClass: false, threeClasses: false }
   const positionsIn = (field: typeof deep, o: Partial<PreviewOptions> = {}): number[][] =>
     previewStandings({ ...DEFAULTS, ...o }, field).classes.map((c) =>
       c.rows.map((r) => r.classPosition)
@@ -148,7 +154,45 @@ describe('previewStandings in the field the settings page asks for', () => {
   })
 
   it('draws your class alone for the info bars, and every class by default', () => {
-    expect(previewStandings(DEFAULTS, { deep: false, singleClass: true }).classes).toHaveLength(1)
+    const single = { deep: false, singleClass: true, threeClasses: true }
+    expect(previewStandings(DEFAULTS, single).classes).toHaveLength(1)
     expect(previewStandings(DEFAULTS).classes).toHaveLength(2)
+  })
+})
+
+describe('the sample’s class order (9)', () => {
+  const three: PreviewField = { deep: false, singleClass: false, threeClasses: true }
+  const names = (o: Partial<PreviewOptions>, field: PreviewField = three): string[] =>
+    previewStandings({ ...DEFAULTS, ...o }, field).classes.map((c) => c.className)
+
+  it('has a third class, the fastest, only where the settings page asks for it', () => {
+    expect(names({}, { ...three, threeClasses: false })).toEqual(['GT3', 'LMP2'])
+    expect(names({})).toEqual(['GT3', 'GTP', 'LMP2'])
+    expect(PREVIEW_CLASS_NAMES).toEqual(['GTP', 'LMP2', 'GT3'])
+    // Its own fastest lap, and its leader under the other leaders.
+    const gtp = previewStandings({ ...DEFAULTS, mode: 'full' }, three).classes.find(
+      (c) => c.className === 'GTP'
+    )
+    expect(gtp?.rows.filter((r) => r.bestLapKind === 'class-best')).toHaveLength(1)
+    expect(gtp?.isPlayerClass).toBe(false)
+  })
+
+  it('puts the blocks in the order chosen, as the provider does', () => {
+    expect(names({ classOrder: 'player' })).toEqual(['GT3', 'GTP', 'LMP2'])
+    expect(names({ classOrder: 'speed' })).toEqual(['GTP', 'LMP2', 'GT3'])
+    expect(names({ classOrder: 'manual', classList: ['lmp2', 'GT3'] })).toEqual([
+      'LMP2',
+      'GT3',
+      'GTP'
+    ])
+    // The settings page's list, before anything is saved, in place of the saved one.
+    expect(
+      names({ classOrder: 'manual' }, { ...three, classList: ['GT3', 'LMP2', 'GTP'] })
+    ).toEqual(['GT3', 'LMP2', 'GTP'])
+    // A list kept while another order is chosen does nothing then.
+    expect(names({ classOrder: 'speed', classList: ['GT3'] })).toEqual(['GTP', 'LMP2', 'GT3'])
+    // Your class keeps the rows around you wherever its block goes.
+    const you = previewStandings({ ...DEFAULTS, classOrder: 'speed' }, three).classes[2]
+    expect(you?.rows.some((r) => r.isPlayer)).toBe(true)
   })
 })

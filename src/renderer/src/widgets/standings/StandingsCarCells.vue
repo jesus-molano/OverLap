@@ -40,7 +40,12 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
 
 <template>
   <span v-if="line.kind === 'leader'" class="c-lead">
-    <span v-if="cols.pos" class="sd-tag">{{ line.classTag }}</span>
+    <span
+      v-if="cols.pos"
+      class="sd-tag"
+      :data-el="line.classKey !== '' ? `standings.classOrder.${line.classKey}` : undefined"
+      >{{ line.classTag }}</span
+    >
     <DriverCell
       class="c-driver"
       :number="number"

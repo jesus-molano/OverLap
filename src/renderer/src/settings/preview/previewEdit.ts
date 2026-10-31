@@ -24,9 +24,10 @@ import {
 /**
  * The zones of the preview: Personalizar's (CUSTOMIZE_ZONE_IDS), and the lists that are kept as
  * switches rather than as one list (the alerts, R12), clicked in the sample to hide one but never
- * ghosted (they have no list to draw them from).
+ * ghosted (they have no list to draw them from), and the standings' classes (9b: a class block
+ * dragged by its name reorders them, «Orden de las clases»).
  */
-export type PreviewZoneId = CustomizeZoneId | 'alerts.alerts'
+export type PreviewZoneId = CustomizeZoneId | 'alerts.alerts' | 'standings.classOrder'
 
 export interface ElRef {
   readonly zone: PreviewZoneId
@@ -134,12 +135,26 @@ const centre = (b: Box, axis: Axis): number =>
 
 export type Axis = 'x' | 'y'
 
+/** Whether the boxes follow each other along `axis` without overlapping (1 px of slack). */
+function apartOn(slots: readonly Slot[], axis: Axis): boolean {
+  const lo = (b: Box): number => (axis === 'x' ? b.left : b.top)
+  const hi = (b: Box): number => (axis === 'x' ? b.right : b.bottom)
+  const sorted = [...slots].sort((a, b) => lo(a.box) - lo(b.box))
+  return sorted.every((s, i) => i === 0 || lo(s.box) >= hi((sorted[i - 1] as Slot).box) - 1)
+}
+
 /**
  * The way a zone's elements follow each other: across (columns, bar items) or down (lines,
- * rows), whichever their centres spread over more. One element: across.
+ * rows). Boxes apart one way only follow each other that way (the standings' classes, 9b: a
+ * full-width class line over the narrow class tags of the leader lines); otherwise whichever
+ * way their centres spread over more. One element: across.
  */
 export function axisOf(slots: readonly Slot[]): Axis {
   if (slots.length < 2) return 'x'
+  const apartX = apartOn(slots, 'x')
+  const apartY = apartOn(slots, 'y')
+  if (apartY && !apartX) return 'y'
+  if (apartX && !apartY) return 'x'
   const xs = slots.map((s) => centre(s.box, 'x'))
   const ys = slots.map((s) => centre(s.box, 'y'))
   const spread = (v: number[]): number => Math.max(...v) - Math.min(...v)

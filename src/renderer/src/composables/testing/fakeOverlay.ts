@@ -63,6 +63,7 @@ export interface FakeOverlay extends OverlayApi {
   readonly shortcutStatus: Channel<ShortcutStatusReport>
   readonly cursorHidden: Channel<boolean>
   readonly currentCar: Channel<CarRef | null>
+  readonly sessionClasses: Channel<string[]>
   readonly layoutNotice: Channel<LayoutNotice>
   readonly settingsPage: Channel<SettingsWindowPage>
   readonly saveFailing: Channel<boolean>
@@ -91,6 +92,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
   const shortcutStatus = new Channel<ShortcutStatusReport>()
   const cursorHidden = new Channel<boolean>()
   const currentCar = new Channel<CarRef | null>()
+  const sessionClasses = new Channel<string[]>()
   const layoutNotice = new Channel<LayoutNotice>()
   const settingsPage = new Channel<SettingsWindowPage>()
   const saveFailing = new Channel<boolean>()
@@ -138,6 +140,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     shortcutStatus,
     cursorHidden,
     currentCar,
+    sessionClasses,
     layoutNotice,
     settingsPage,
     saveFailing,
@@ -155,6 +158,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
       shortcutStatus.listeners.size +
       cursorHidden.listeners.size +
       currentCar.listeners.size +
+      sessionClasses.listeners.size +
       layoutNotice.listeners.size +
       settingsPage.listeners.size +
       saveFailing.listeners.size +
@@ -171,6 +175,7 @@ export function createFakeOverlay(init: Partial<InitialState> = {}): FakeOverlay
     onShortcutStatus: (cb) => shortcutStatus.on(cb),
     onCursorHidden: (cb) => cursorHidden.on(cb),
     onCurrentCar: (cb) => currentCar.on(cb),
+    onSessionClasses: (cb) => sessionClasses.on(cb),
     onLayoutNotice: (cb) => layoutNotice.on(cb),
     onSettingsPage: (cb) => settingsPage.on(cb),
     onSaveFailing: (cb) => saveFailing.on(cb),

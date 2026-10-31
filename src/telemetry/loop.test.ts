@@ -434,8 +434,21 @@ function setup(
     skipEmit,
     parseSession: (raw) => {
       parsed.push(raw)
-      const r = raw as { name: string; type?: string }
-      return session(r.name, r.type)
+      const r = raw as { name: string; type?: string; classes?: string[] }
+      const s = session(r.name, r.type)
+      // One car per class named (the slowest last), for the session's classes (9).
+      const drivers = (r.classes ?? []).map(
+        (name, i) =>
+          ({
+            carIdx: i,
+            classId: i + 1,
+            classShortName: name,
+            classRelSpeed: 100 - i,
+            isPaceCar: false,
+            isSpectator: false
+          }) as DriverEntry
+      )
+      return { ...s, drivers: new Map(drivers.map((d) => [d.carIdx, d])) }
     },
     retryMs: 2000,
     tickTimeoutMs: 16,
@@ -1064,6 +1077,24 @@ describe('TelemetryLoop', () => {
     expect(kinds).toEqual([
       { type: 'session-kind', kind: 'practice' },
       { type: 'session-kind', kind: 'race' }
+    ])
+  })
+
+  it('tells main the classes of a multiclass session when they change (9)', async () => {
+    const h = setup()
+    h.source.sessionRaw = { name: 'S1', type: 'Race', classes: ['GTP', 'LMP2', 'GT3'] }
+    h.source.frame = playerFrame()
+    await h.run(1 + 5)
+    // A new YAML version with the same classes says nothing; one class says none.
+    h.source.version = 2
+    h.source.sessionRaw = { name: 'S1', type: 'Race', classes: ['GTP', 'LMP2', 'GT3'] }
+    await h.run(5)
+    h.source.version = 3
+    h.source.sessionRaw = { name: 'S2', type: 'Race', classes: ['MX5'] }
+    await h.run(5)
+    expect(h.out.filter((m) => m.type === 'session-classes')).toEqual([
+      { type: 'session-classes', names: ['GTP', 'LMP2', 'GT3'] },
+      { type: 'session-classes', names: [] }
     ])
   })
 

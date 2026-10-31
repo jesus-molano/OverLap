@@ -22,6 +22,7 @@ import {
   matchSharedColumns
 } from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
+import ClassOrderControl from './ClassOrderControl.vue'
 import { choiceOptions } from '../controls/choice'
 import { densityChoicesInherit } from '../controls/choices'
 import StepperControl from '../controls/StepperControl.vue'
@@ -123,11 +124,14 @@ const gapNote = computed(() =>
  * The sample draws the field the option changed last needs (previewField, as Delta's session):
  * the top rows and the rows around you, with you further down (two blocks, each count seen);
  * the SoF or the car count of an info bar, your class alone (with several classes they are the
- * class lines'); the class line or the other leaders, every class again. Said under Contenido.
+ * class lines'); the class line, the other leaders or the class order, every class again. Said
+ * under Contenido. Always a third class here (threeClasses), for the class order.
  */
 function sampleField(next: Partial<PreviewField>): void {
   previewField.value = { ...previewField.value, ...next }
 }
+// The page's sample has a third class (GTP), so «Orden de las clases» has an order to show (9).
+sampleField({ threeClasses: true })
 function withField<V>(next: Partial<PreviewField>, apply: Setter<V>): Setter<V> {
   return (v) => {
     sampleField(next)
@@ -198,6 +202,7 @@ const sampleNotes = computed(() => {
         />
       </div>
     </fieldset>
+    <ClassOrderControl @changed="sampleField({ singleClass: false })" />
     <ChoiceControl
       :label="t.settings.common.density"
       :current="opts.density"

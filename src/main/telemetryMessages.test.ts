@@ -120,6 +120,20 @@ describe('parseTelemetryMessage', () => {
     }
   })
 
+  it('parses the session’s classes, and nothing malformed (9)', () => {
+    expect(parseTelemetryMessage({ type: 'session-classes', names: ['GTP', 'LMP2'] })).toEqual({
+      type: 'session-classes',
+      names: ['GTP', 'LMP2']
+    })
+    expect(parseTelemetryMessage({ type: 'session-classes', names: [] })).toEqual({
+      type: 'session-classes',
+      names: []
+    })
+    for (const names of [undefined, null, 'GT3', [1], ['x'.repeat(65)], Array(65).fill('a')]) {
+      expect(parseTelemetryMessage({ type: 'session-classes', names })).toBeNull()
+    }
+  })
+
   it('drops extra fields from status', () => {
     expect(
       parseStatus({ state: 'mock', source: 'mock', note: 'none', detail: '', message: 'x' })

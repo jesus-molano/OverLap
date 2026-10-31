@@ -7,7 +7,7 @@ import { isRecord } from './fields'
 
 /**
  * A section's options with every object field copied (element lists entry by entry, colour
- * sets), from the schema: a new list or set needs nothing here.
+ * sets, names lists), from the schema: a new list or set needs nothing here.
  */
 function copySection<S extends ConfigSection>(
   section: S,
@@ -18,6 +18,8 @@ function copySection<S extends ConfigSection>(
     const v = out[field]
     if (spec.kind === 'elements' && Array.isArray(v)) {
       out[field] = v.map((e: unknown) => (isRecord(e) ? { ...e } : e))
+    } else if (spec.kind === 'names' && Array.isArray(v)) {
+      out[field] = [...(v as unknown[])]
     } else if (spec.kind === 'colors' && isRecord(v)) {
       out[field] = { ...v }
     }

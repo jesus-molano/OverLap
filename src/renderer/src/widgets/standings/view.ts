@@ -14,6 +14,7 @@ import {
   signAt
 } from '@shared/format'
 import type { BrandId } from '@shared/carBrands'
+import { classOrderKey } from '@shared/classOrder'
 import type { Messages } from '@shared/i18n'
 import type {
   CarPenalty,
@@ -54,6 +55,8 @@ export interface CarLineView extends DriverCellView {
   css: string
   /** Class short name of a one-line leader ('LMP2'), else ''. */
   classTag: string
+  /** A one-line leader's class in «Orden de las clases» (ClassLineView.orderKey), else ''. */
+  classKey: string
   /**
    * A one-line leader's class SoF ('SoF 2.7k'), as its class line would say it (the class line's
    * SoF shown and known), else ''.
@@ -117,6 +120,11 @@ export interface ClassLineView {
   metaSof: string
   metaCars: string
   metaCarsFirst: boolean
+  /**
+   * The class in «Orden de las clases» (classOrderKey of its short name; '' without one): its
+   * name is the handle the settings page's sample drags the block by (9b).
+   */
+  orderKey: string
 }
 
 export type LineView = CarLineView | ClassLineView
@@ -238,7 +246,7 @@ function carCss(row: StandingsRow, alt: boolean, sep: boolean, leader: boolean):
 function toCarView(
   row: DisplayRow,
   ctx: LineContext,
-  o: { alt: boolean; sep: boolean; classTag: string; classSof?: string }
+  o: { alt: boolean; sep: boolean; classTag: string; classSof?: string; classKey?: string }
 ): CarLineView {
   const gap = gapCell(row, ctx.gapMode, ctx.race, ctx.m, ctx.gapLeaderShown)
   const gapLeader = gapLeaderCell(row, ctx.race)
@@ -254,6 +262,7 @@ function toCarView(
     css: carCss(row, o.alt, o.sep, leader),
     classTag: o.classTag,
     classSof: o.classSof ?? '',
+    classKey: o.classKey ?? '',
     player: row.isPlayer,
     brand: row.brand,
     country: row.country,
@@ -345,7 +354,8 @@ function toClassView(block: StandingsClassBlock, ctx: LineContext): ClassLineVie
     meta: metaParts.map((p) => p.text).join(META_SEP),
     metaSof: metaParts.find((p) => p.id === 'sof')?.text ?? '',
     metaCars: metaParts.find((p) => p.id === 'carCount')?.text ?? '',
-    metaCarsFirst: metaParts[0]?.id === 'carCount'
+    metaCarsFirst: metaParts[0]?.id === 'carCount',
+    orderKey: classOrderKey(block.className)
   }
 }
 
@@ -356,7 +366,13 @@ export function toLineViews(lines: readonly PlannedLine[], ctx: LineContext): Li
       const tag = className(l.block, ctx.m)
       // Its class line folded into it: the SoF of every class, also on one line (2.4).
       const sof = classMetaParts(l.block, ctx.classLine, ctx.m).find((p) => p.id === 'sof')
-      return toCarView(l.row, ctx, { alt: false, sep: false, classTag: tag, classSof: sof?.text })
+      return toCarView(l.row, ctx, {
+        alt: false,
+        sep: false,
+        classTag: tag,
+        classSof: sof?.text,
+        classKey: classOrderKey(l.block.className)
+      })
     }
     return toCarView(l.row, ctx, { alt: l.alt, sep: l.gapBefore, classTag: '' })
   })
