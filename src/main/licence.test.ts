@@ -41,6 +41,7 @@ describe('the licence', () => {
     expect(notices).toMatch(/\*\*NOT\s+covered by OverLap's licence\*\*/)
     expect(notices).toContain('CC0 1.0 Universal')
     expect(notices).toMatch(/section 7\(e\)/)
-    expect(read('README.md')).toMatch(/no están bajo la GPL/)
+    expect(read('README.md')).toMatch(/The colour logos of the car makes are not under the GPL/)
+    expect(read('README.es.md')).toMatch(/no están bajo la GPL/)
   })
 })

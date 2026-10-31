@@ -12,6 +12,8 @@ describe('the project pages (Acerca de y ayuda)', () => {
   it('are all on the repository, apart from the donations page', () => {
     expect(PROJECT_URL).toBe('https://github.com/jesus-molano/OverLap')
     expect(projectUrl('guide')).toBe(`${PROJECT_URL}#readme`)
+    expect(projectUrl('guide', undefined, 'en')).toBe(`${PROJECT_URL}#readme`)
+    expect(projectUrl('guide', undefined, 'es')).toBe(`${PROJECT_URL}/blob/main/README.es.md`)
     expect(projectUrl('issues')).toBe(`${PROJECT_URL}/issues`)
     expect(projectUrl('source')).toBe(PROJECT_URL)
     expect(projectUrl('licence')).toBe(`${PROJECT_URL}/blob/main/LICENSE`)
