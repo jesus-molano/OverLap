@@ -64,7 +64,7 @@ carpeta temporal en cada arranque; `dist/win-unpacked/OverLap.exe` arranca más 
 Fuera de Windows se puede desarrollar con `npm run dev:mock` (Linux/macOS).
 
 ```bash
-./dist/OverLap-2.3.1-portable.exe --mock
+./dist/OverLap-2.4.0-portable.exe --mock
 ```
 
 Si iRacing no está abierto, Relativo y Posiciones muestran **"Esperando a iRacing…"** unos 8 s y
