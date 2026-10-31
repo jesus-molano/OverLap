@@ -62,25 +62,33 @@ export function deltaFit(s: Readonly<OverlaySettings>): Fit {
 }
 
 /**
- * What the delta draws of its references, for deltaBarsGrowth: its rows (two or more, the most
- * any session draws) above its small bars (the one reference's own, 2.4).
+ * `after` draws more of the delta's references than `before`, for deltaBarsGrowth: more rows (two
+ * or more, the most any session draws), the line above them where there was none, or more of
+ * the one reference's small bars (2.4).
  */
-function refBarsShown(o: Readonly<DeltaOptions>): number {
-  const shape = deltaShapeOf(o)
-  if (shape.lanes >= 2) return 1 + shape.lanes
+function addsReferences(before: Readonly<DeltaOptions>, after: Readonly<DeltaOptions>): boolean {
+  const b = deltaShapeOf(before)
+  const a = deltaShapeOf(after)
+  if (a.lanes >= 2 || b.lanes >= 2) return a.lanes > b.lanes || (a.head && !b.head)
+  return smallBars(after) > smallBars(before)
+}
+
+/** The one reference's small bars (its line shown). */
+function smallBars(o: Readonly<DeltaOptions>): number {
   return isElementVisible(o.rows, 'refs') ? visibleIds(o.refBars).length : 0
 }
 
 /**
- * The delta's window when its page shows more bars per reference (the line, a bar of it, or a
- * session's reference that adds a row): grown as «Completo» grows it (grownBounds), so the text
- * keeps its size and every row fits; null when nothing is added or it already fits.
+ * The delta's window when its page shows more of its references (addsReferences: the line, a
+ * reference of it, a session's reference that adds a row, a part of the top line that brings
+ * back the line above the rows): grown as «Completo» grows it (grownBounds), so the text keeps
+ * its size and everything fits; null when nothing is added or it already fits.
  */
 export function deltaBarsGrowth(
   before: Readonly<OverlaySettings>,
   delta: Readonly<DeltaOptions>
 ): Rect | null {
-  if (refBarsShown(delta) <= refBarsShown(before.delta)) return null
+  if (!addsReferences(before.delta, delta)) return null
   const after = { ...before, delta } as OverlaySettings
   return grownBounds(before.widgets.delta.bounds, deltaFit(before), deltaFit(after))
 }
