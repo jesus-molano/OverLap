@@ -23,6 +23,7 @@ import type { ShortcutAction, ShortcutStatusReport } from './shortcuts'
 import type { BackupError } from './backup'
 import type { LayoutExample } from './layoutExamples'
 import type { LayoutFileError } from './layouts'
+import type { ProjectPage } from './projectLinks'
 import type {
   CarRef,
   HiddenReason,
@@ -522,12 +523,12 @@ export type SettingsCommand =
   /**
    * «Acerca de y ayuda» (R40): every setting and the personal bests to a file or back (a file
    * dialog; main answers on IPC.layoutNotice), every setting to its default (with «Deshacer»),
-   * and the guide or the issues page in the browser.
+   * and one of the project's pages in the browser (projectLinks.ts: main has the address).
    */
   | { type: 'backup-export' }
   | { type: 'backup-import' }
   | { type: 'reset-all' }
-  | { type: 'open-help'; page: 'guide' | 'issues' }
+  | { type: 'open-help'; page: ProjectPage }
   /** An example layout (R57, layoutExamples.ts), added at the end, not applied; `name` cleaned by main. */
   | { type: 'layout-example'; kind: LayoutExample; name: string }
 
