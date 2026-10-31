@@ -1027,7 +1027,7 @@ function start(): void {
         break
       // Fixed addresses (the project's, projectLinks.ts), never one the page sends.
       case 'open-help': {
-        const url = projectUrl(raw.page)
+        const url = projectUrl(raw.page, undefined, store.settings.appearance.language)
         if (url !== null) void shell.openExternal(url)
         break
       }

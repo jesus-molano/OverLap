@@ -1,42 +1,43 @@
-# Decisión: si OverLap se vende, cómo (R32, 30-10-2026)
+# Decision: if OverLap is ever sold, how (R32, 30-10-2026)
 
-> **Descartada el 31-10-2026.** OverLap es software libre bajo la GPL-3.0-or-later (ver
-> [LICENSE](../LICENSE)) y no habrá edición de pago, claves de licencia ni funciones reservadas:
-> todo el código está disponible para todos con la misma licencia. El proyecto se mantiene con
-> donativos voluntarios, que no desbloquean nada. Esta nota se conserva solo como historial; nada
-> de lo que propone sigue vigente.
+> **Dropped on 31-10-2026.** OverLap is free software under the GPL-3.0-or-later (see
+> [LICENSE](../LICENSE)) and there will be no paid edition, no licence keys and no reserved
+> features: all the code is available to everyone under the same licence. The project will be
+> sustained by voluntary donations, which unlock nothing (the donation link will come later). This
+> note is kept only as history; nothing it proposes still applies.
 
-Nota de decisión del estudio de UX (R32). **No cambia nada en la app**: OverLap sigue sin cuenta,
-sin conexión y sin funciones bloqueadas. Esta nota fija qué hacer _si_ algún día se vende, para que
-esa decisión no estropee lo que hoy es una ventaja frente a los demás overlays.
+Decision note from the UX study (R32). **It changes nothing in the app**: OverLap still has no
+account, no network connection and no locked features. This note sets what to do _if_ it is ever
+sold, so that decision does not spoil what is today an advantage over the other overlays.
 
-## Por qué
+## Why
 
-- iOverlay pasó a una suscripción mensual y recibió muchas quejas en r/iRacing (2024–2025, vistas
-  solo en extractos de búsqueda); su licencia PRO se pierde al reinstalar Windows.
-- RaceLab obliga a iniciar sesión, también para lo gratuito.
-- OverLap hoy no pide cuenta, no se conecta a nada (solo lee la memoria del SDK de iRacing en el
-  propio equipo) y no tiene niveles: es una diferencia que los usuarios notan.
+- iOverlay moved to a monthly subscription and drew many complaints on r/iRacing (2024–2025, seen
+  only in search snippets); its PRO licence is lost when you reinstall Windows.
+- RaceLab makes you sign in, even for the free part.
+- OverLap today asks for no account, connects to nothing (it only reads the iRacing SDK memory on
+  your own computer) and has no tiers: users notice the difference.
 
-## Decisión
+## Decision
 
-Si se vende:
+If it is sold:
 
-1. **Pago único**, no suscripción. Las actualizaciones de la versión mayor comprada van incluidas.
-2. **Licencia que funciona sin conexión**: una clave firmada que la app comprueba en local, sin
-   llamar a ningún servidor al arrancar ni durante la carrera.
-3. **Que no dependa del equipo**: la misma clave sirve tras reinstalar Windows o en otro PC del mismo
-   piloto; nada de huellas de hardware.
-4. **Sin cuenta**: la clave llega por correo al comprar; la app nunca pide iniciar sesión.
-5. **No se bloquea nada que ya exista**: lo que hoy hace la app sigue funcionando igual para todos.
-   Si hubiera una edición de pago, sería por funciones nuevas, nunca quitando las actuales.
-6. **Las disposiciones se siguen exportando e importando libremente** (y «Exportar todo» de
-   _Acerca de y ayuda_), para compartirlas entre pilotos sean de la edición que sean.
-7. **Sin telemetría de uso ni anuncios**; el diagnóstico sigue siendo algo que el usuario copia a
-   mano.
+1. **One-off payment**, not a subscription. Updates within the major version you bought are
+   included.
+2. **A licence that works offline**: a signed key the app checks locally, without calling any
+   server at startup or during the race.
+3. **Not tied to the computer**: the same key works after reinstalling Windows or on another PC of
+   the same driver; no hardware fingerprints.
+4. **No account**: the key arrives by email when you buy; the app never asks you to sign in.
+5. **Nothing that already exists gets locked**: what the app does today keeps working the same for
+   everyone. If there were a paid edition, it would be for new features, never by taking away the
+   current ones.
+6. **Layouts can still be exported and imported freely** (and "Export everything" in _About and
+   help_), so drivers can share them whatever edition they have.
+7. **No usage telemetry and no ads**; diagnostics remain something the user copies by hand.
 
-## Qué no se hace ahora
+## What is not done now
 
-Nada de esto se implementa en esta fase: ni pantallas de licencia, ni comprobaciones, ni límites.
-Si se decide vender, esta nota es el punto de partida, y cualquier cambio que limite la app tendría
-que contradecirla de forma explícita.
+None of this is built in this phase: no licence screens, no checks, no limits. If selling is ever
+decided, this note is the starting point, and any change that limits the app would have to
+contradict it explicitly.

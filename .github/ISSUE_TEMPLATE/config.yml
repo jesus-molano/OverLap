@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Fallo de seguridad / Security vulnerability
+  - name: Security vulnerability
     url: https://github.com/jesus-molano/OverLap/security/advisories/new
-    about: Avísalo en privado, no en un issue. / Report it privately, not in an issue.
-  - name: Guía de uso / User guide
+    about: Report it privately, not in an issue.
+  - name: User guide
     url: https://github.com/jesus-molano/OverLap#readme
-    about: Cómo se usa cada widget y cada ajuste. / How each widget and setting works.
+    about: How each widget and setting works.

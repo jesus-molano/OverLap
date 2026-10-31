@@ -1,37 +1,35 @@
-# Cómo contribuir
+# Contributing
 
-_In English: issues and pull requests are welcome in Spanish or English. Every commit needs a
-`Signed-off-by` line (DCO, `git commit -s`); there is no CLA. Run the five checks below before you
-open a pull request._
+_En español: los issues y los pull requests también son bienvenidos en español._
 
-Gracias por querer mejorar OverLap. Los informes de errores, las ideas y los pull requests son
-bienvenidos, en español o en inglés.
+Thanks for wanting to improve OverLap. Bug reports, ideas and pull requests are welcome, in English
+or Spanish.
 
-## Antes de empezar
+## Before you start
 
-- **Un error**: abre un issue con la plantilla «Informar de un problema». Si adjuntas el registro
-  (`overlap.log`), léelo antes: ver [la plantilla](.github/ISSUE_TEMPLATE/bug_report.yml).
-- **Una idea o un cambio grande**: abre antes un issue para hablarlo, así nadie trabaja en algo que
-  luego no encaja.
-- **Un fallo de seguridad**: no abras un issue público; sigue [SECURITY.md](SECURITY.md).
+- **A bug**: open an issue with the "Report a problem" template. If you attach the log
+  (`overlap.log`), read it first: see [the template](.github/ISSUE_TEMPLATE/bug_report.yml).
+- **An idea or a big change**: open an issue first to talk it over, so nobody works on something
+  that does not fit later.
+- **A security issue**: do not open a public issue; follow [SECURITY.md](SECURITY.md).
 
-## Preparar el entorno
+## Setting up
 
-Necesitas Windows 10 u 11 de 64 bits y Node.js 22.12 o posterior (se desarrolla con Node 24). No hace
-falta Visual Studio ni Python: los addons nativos vienen precompilados.
+You need Node.js 22 (22.13 or later) or 24 (the one CI uses). Testing with iRacing and building the
+`.exe` need 64-bit Windows 10 or 11; `npm run dev:mock` (a simulated race) also works on Linux and
+macOS. You do not need Visual Studio or Python: the native addons come prebuilt.
 
 ```bash
 npm ci
-npm run dev:mock   # sin iRacing: una carrera simulada
-npm run dev        # con iRacing abierto
+npm run dev:mock   # without iRacing: a simulated race
+npm run dev        # with iRacing running
 ```
 
-Las [notas de desarrollo](docs/README.dev.md) explican cómo está montado por dentro y cómo se añade
-un widget.
+The [development notes](docs/README.dev.md) explain how it is built inside and how to add a widget.
 
-## Las cinco comprobaciones
+## The five checks
 
-Un pull request tiene que pasar las cinco, igual que la CI:
+A pull request has to pass all five, just like CI:
 
 ```bash
 npm run typecheck
@@ -41,41 +39,41 @@ npx prettier --check .
 npx electron-vite build
 ```
 
-- Si cambias algo que se ve, añade o ajusta sus tests y los textos en **los dos idiomas**
+- If you change something visible, add or adjust its tests and its texts in **both languages**
   (`src/shared/i18n/messages/`).
-- Si el cambio lo nota quien usa OverLap, apúntalo en [CHANGELOG.md](CHANGELOG.md), en
-  «[Sin publicar]».
-- Un pull request, un cambio: más fácil de revisar.
+- If people using OverLap will notice the change, note it in [CHANGELOG.md](CHANGELOG.md), under
+  "[Unreleased]".
+- One pull request, one change: easier to review.
 
-## Firma de los commits (DCO)
+## Signing off commits (DCO)
 
-OverLap usa el [Developer Certificate of Origin](https://developercertificate.org/) (DCO), no un CLA.
-Con él declaras que tienes derecho a enviar tu código bajo la licencia del proyecto. Basta con firmar
-cada commit:
+OverLap uses the [Developer Certificate of Origin](https://developercertificate.org/) (DCO), not a
+CLA. With it you state that you have the right to submit your code under the project's licence. Just
+sign off each commit:
 
 ```bash
-git commit -s -m "Lo que cambia"
+git commit -s -m "What changes"
 ```
 
-Eso añade al final del mensaje una línea como esta, con tu nombre y tu correo:
+That adds a line like this at the end of the message, with your name and email:
 
 ```
-Signed-off-by: Tu Nombre <tu@correo.com>
+Signed-off-by: Your Name <you@example.com>
 ```
 
-Si se te olvida, `git commit --amend -s` firma el último, y `git rebase --signoff main` todos los
-de tu rama.
+If you forget, `git commit --amend -s` signs off the last one, and `git rebase --signoff main` all
+the ones on your branch.
 
-## Licencia de tus contribuciones
+## Licence of your contributions
 
-OverLap es software libre bajo la [GPL-3.0-or-later](LICENSE). Lo que aportes se publica con esa misma
-licencia: no hay que ceder derechos ni firmar nada más que el DCO.
+OverLap is free software under the [GPL-3.0-or-later](LICENSE). What you contribute is released
+under that same licence: you do not have to assign any rights or sign anything beyond the DCO.
 
-No añadas código, imágenes ni logos que no puedas publicar bajo la GPL (o bajo una licencia
-compatible, citada en [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). En particular, no se aceptan
-logos de marcas nuevos en color: los que hay no están bajo la GPL y se explican en ese archivo.
+Do not add code, images or logos you cannot release under the GPL (or under a compatible licence,
+listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). In particular, new colour brand logos
+are not accepted: the existing ones are not under the GPL, as that file explains.
 
-## Revisión
+## Review
 
-El mantenedor revisa cada pull request antes de unirlo. Puede pedirte cambios o, si algo no encaja
-con el proyecto, explicarte por qué no se une.
+The maintainer reviews every pull request before merging it, and may ask you for changes or, if
+something does not fit the project, explain why it is not merged.

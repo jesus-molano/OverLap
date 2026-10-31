@@ -24,7 +24,7 @@ see [Brand logos](#brand-logos).
 | iRacing SDK headers (inside `@irsdk-node/native`)                                                                    | Telemetry layout used by irsdk-node                                           | BSD-3-Clause | Copyright (c) 2013, iRacing.com Motorsport Simulations, LLC                                                                        |
 | [koffi](https://koffi.dev) (`koffi`, `@koromix/koffi-win32-x64`)                                                     | Reads the session info block                                                  | MIT          | Copyright (C) 2026 Niels Martignène                                                                                                |
 | [js-yaml](https://github.com/nodeca/js-yaml)                                                                         | Parses the session info YAML                                                  | MIT          | Copyright (C) 2011-2015 by Vitaly Puzrin                                                                                           |
-| [country-flag-icons](https://gitlab.com/catamphetamine/country-flag-icons) 1.6.20                                    | Driver flags in Relative, Standings and Battle (3x2 SVG, unchanged)           | MIT          | Copyright (c) 2020 @catamphetamine                                                                                                 |
+| [country-flag-icons](https://gitlab.com/catamphetamine/country-flag-icons) 1.6.20                                    | Driver flags in Relative, Standings, Battle and Traffic (3x2 SVG, unchanged)  | MIT          | Copyright (c) 2020 @catamphetamine                                                                                                 |
 | [Vue](https://vuejs.org) 3.5 (`@vue/runtime-dom`, `@vue/runtime-core`, `@vue/reactivity`, `@vue/shared`)             | Draws the settings window and the widgets (bundled into the renderer)         | MIT          | Copyright (c) 2018-present, Yuxi (Evan) You                                                                                        |
 | [Vite](https://vite.dev) and [@vitejs/plugin-vue](https://github.com/vitejs/vite-plugin-vue) (small runtime helpers) | Module preload helper and component export helper (bundled into the renderer) | MIT          | Copyright (c) 2019-present, VoidZero Inc. and Vite contributors; Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors |
 | [Electron](https://www.electronjs.org) 44                                                                            | The app runtime (its own and Chromium's notices are packed inside the exe)    | MIT          | Copyright (c) Electron contributors; Copyright (c) 2013-2020 GitHub Inc.                                                           |
@@ -39,16 +39,16 @@ see [Brand logos](#brand-logos).
 
 ## Brand logos
 
-OverLap draws car make logos in two sets, chosen in **Apariencia › Filas y pilotos › Color del
-logo** (Appearance › Rows and drivers › Logo colour):
+OverLap draws car make logos in two sets, chosen in **Appearance › Rows and drivers › Logo
+colour**:
 
-- **Monochrome logos** (`src/renderer/src/ui/brandLogos.ts`, «Monocromo») are paths from
+- **Monochrome logos** (`src/renderer/src/ui/brandLogos.ts`, «Monochrome») are paths from
   [Simple Icons](https://simpleicons.org) 16.36.0, released under
   [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). Simple Icons has 18 of
   the makes: Acura, Aston Martin, Audi, BMW, Cadillac, Chevrolet, Ferrari, Ford, Honda, Hyundai,
-  Lamborghini, Mazda, Nissan, Porsche, Renault, Subaru, Toyota and Volkswagen. In «Monocromo» the
+  Lamborghini, Mazda, Nissan, Porsche, Renault, Subaru, Toyota and Volkswagen. In «Monochrome» the
   other makes are still drawn from the colour set below, in greys.
-- **Colour logos** (`src/renderer/src/ui/brandLogosColor.ts`, «Color», the default) are **NOT
+- **Colour logos** (`src/renderer/src/ui/brandLogosColor.ts`, «Colour», the default) are **NOT
   covered by OverLap's licence**. They are third-party trademarks and artwork, drawn from the files
   listed at the top of that file and simplified for the overlay. Their owners keep all their rights:
   OverLap claims none and grants none, and the GPL-3.0-or-later does not apply to them. By source:

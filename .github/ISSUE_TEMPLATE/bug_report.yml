@@ -1,19 +1,19 @@
-name: Informar de un problema / Report a problem
-description: Algo no funciona como debería. / Something does not work as it should.
+name: Report a problem
+description: Something does not work as it should.
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Gracias por avisar. Puedes escribir en español o en inglés. / Thanks for reporting; Spanish or English are both fine.
+        Thanks for reporting. Issues in Spanish are welcome too.
 
-        **¿Un fallo de seguridad?** No lo publiques aquí: sigue [SECURITY.md](https://github.com/jesus-molano/OverLap/blob/main/SECURITY.md). / **A security issue?** Do not post it here; see SECURITY.md.
+        **A security issue?** Do not post it here: follow [SECURITY.md](https://github.com/jesus-molano/OverLap/blob/main/SECURITY.md).
   - type: input
     id: version
     attributes:
-      label: Versión de OverLap / OverLap version
-      description: En Ajustes › Acerca de y ayuda. / In Settings › About and help.
-      placeholder: '2.4.0'
+      label: OverLap version
+      description: In Settings › About and help.
+      placeholder: '2.4.1'
     validations:
       required: true
   - type: input
@@ -26,47 +26,45 @@ body:
   - type: dropdown
     id: session
     attributes:
-      label: Sesión de iRacing / iRacing session
+      label: iRacing session
       options:
-        - Práctica / Practice
-        - Clasificación / Qualifying
-        - Carrera / Race
-        - Prueba / Test drive
-        - Repetición / Replay
-        - Sin iRacing (datos de ejemplo) / Without iRacing (mock data)
-        - Otra / Other
+        - Practice
+        - Qualifying
+        - Race
+        - Test drive
+        - Replay
+        - Without iRacing (mock data)
+        - Other
   - type: textarea
     id: what
     attributes:
-      label: Qué pasa / What happens
-      description: Qué esperabas y qué ves. Una captura ayuda mucho. / What you expected and what you see. A screenshot helps.
+      label: What happens
+      description: What you expected and what you see. A screenshot helps a lot.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: Cómo reproducirlo / Steps to reproduce
+      label: Steps to reproduce
       placeholder: |
         1. …
         2. …
   - type: textarea
     id: diagnostics
     attributes:
-      label: Diagnóstico / Diagnostics
-      description: Ajustes › Acerca de y ayuda › **Copiar diagnóstico**, y pégalo aquí (no lleva nombres). / Settings › About and help › **Copy diagnostics**, then paste it here (it has no names).
+      label: Diagnostics
+      description: Settings › About and help › **Copy diagnostics**, then paste it here (it has no names).
       render: text
   - type: markdown
     attributes:
       value: |
-        ### El registro (`overlap.log`) / The log
+        ### The log (`overlap.log`)
 
-        Si te lo pedimos, el registro se abre en Ajustes › Acerca de y ayuda › **Abrir registro** (está en `%APPDATA%\iracing-overlay\`). **Léelo antes de adjuntarlo**: puede llevar datos personales, como rutas con tu usuario de Windows o nombres de pilotos de tus sesiones. Bórralos o cámbialos por `…` antes de subirlo.
-
-        If asked for it, open the log from Settings › About and help › **Open log**. **Read it before attaching it**: it can contain personal data, such as paths with your Windows user name or driver names from your sessions. Remove or mask them first.
+        If we ask for it, open the log from Settings › About and help › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as paths with your Windows user name or driver names from your sessions. Delete them or replace them with `…` before uploading it.
   - type: checkboxes
     id: log-checked
     attributes:
-      label: Antes de enviar / Before sending
+      label: Before sending
       options:
-        - label: Si adjunto `overlap.log`, lo he revisado y no lleva datos personales. / If I attach `overlap.log`, I have checked it for personal data.
+        - label: If I attach `overlap.log`, I have checked it and it has no personal data.
           required: true

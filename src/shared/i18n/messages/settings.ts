@@ -958,7 +958,7 @@ export const settingsEs = {
       driver: {
         label: 'Piloto',
         description:
-          'Formato de nombre, logo, bandera del país y banderas de penalización vuelven a «Global» (Apariencia)'
+          'Formato de nombre, logo, bandera del país, banderas de penalización y el iRating vuelven a «Global» (Apariencia)'
       },
       customize: {
         label: 'Personalizar',
@@ -1351,7 +1351,7 @@ export const settingsEs = {
       fuel: 'Combustible'
     },
     flags: 'Banderas de carrera',
-    flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto al lado',
+    flagsHelp: 'Las que te afectan a ti: la más importante en grande, el resto debajo',
     blue: 'Bandera azul',
     blueHelp: '«Déjale pasar»: un coche más rápido te va a doblar',
     furled: 'Negra enrollada',
@@ -2935,7 +2935,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       driver: {
         label: 'Driver',
         description:
-          'Name format, logo, country flag and penalty flags go back to “Global” (Appearance)'
+          'Name format, logo, country flag, penalty flags and the iRating go back to “Global” (Appearance)'
       },
       customize: {
         label: 'Customize',
@@ -3273,7 +3273,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       fuel: 'Fuel'
     },
     flags: 'Race flags',
-    flagsHelp: 'The ones that affect you: the most important one large, the rest beside it',
+    flagsHelp: 'The ones that affect you: the most important one large, the rest below it',
     blue: 'Blue flag',
     // The blue flag's note in the alerts widget.
     blueHelp: '“Let them pass”: a faster car is about to lap you',
