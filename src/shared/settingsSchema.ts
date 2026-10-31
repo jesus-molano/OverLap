@@ -34,6 +34,7 @@ import type {
   NameFormat,
   OverlaySettings,
   RadarPartId,
+  SpotterPartId,
   RelativeColumnId,
   ShowInSessions,
   ShowWhen,
@@ -389,6 +390,7 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'relative.headerBar',
   'relative.footerBar',
   'radar.parts',
+  'spotter.parts',
   'standings.columns',
   'standings.classLine',
   'standings.headerBar',
@@ -825,6 +827,16 @@ export const OPTION_SCHEMA = {
     icons: elements(LIGHT_IDS, { hidden: ['pitLimiter', 'revLimiter'] }),
     showTrend: { kind: 'bool', default: true }
   },
+  // The spotter (2.4): all drawing, the provider sends the same payload whatever they say. Shown
+  // only around a car alongside, like iRacing's own spotter; both marks on.
+  spotter: {
+    onlyAlongside: { kind: 'bool', default: true, displayOnly: true },
+    barWidth: { kind: 'int', min: 6, max: 40, default: 14, step: 2, displayOnly: true },
+    parts: elements(idsOf<SpotterPartId>()(['nearCap', 'twoMark']), {
+      fixedOrder: true,
+      displayOnly: true
+    })
+  },
   // Registered by main (SHORTCUT_ACTIONS order); the telemetry process never sees them. The
   // delta's cycle and the next layout have none until you give them one; the settings window
   // opens with Ctrl+Shift+O (O for opciones / options).
@@ -840,6 +852,7 @@ export const OPTION_SCHEMA = {
     toggleBattle: { kind: 'accelerator', default: '', displayOnly: true },
     toggleTraffic: { kind: 'accelerator', default: '', displayOnly: true },
     toggleRadar: { kind: 'accelerator', default: '', displayOnly: true },
+    toggleSpotter: { kind: 'accelerator', default: '', displayOnly: true },
     toggleDelta: { kind: 'accelerator', default: '', displayOnly: true },
     toggleFuel: { kind: 'accelerator', default: '', displayOnly: true },
     toggleInputs: { kind: 'accelerator', default: '', displayOnly: true },
@@ -920,7 +933,8 @@ export const LAYOUT_SECTIONS = [
   'alerts',
   'delta',
   'fuel',
-  'lights'
+  'lights',
+  'spotter'
 ] as const satisfies readonly OptionSection[]
 
 /** See LAYOUT_SECTIONS. */

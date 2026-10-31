@@ -16,5 +16,6 @@ export const WIDGET_COMPONENTS: { [K in WidgetId]: Component } = {
   alerts: defineAsyncComponent(() => import('./alerts/AlertsWidget.vue')),
   lights: defineAsyncComponent(() => import('./lights/LightsWidget.vue')),
   delta: defineAsyncComponent(() => import('./delta/DeltaWidget.vue')),
-  fuel: defineAsyncComponent(() => import('./fuel/FuelWidget.vue'))
+  fuel: defineAsyncComponent(() => import('./fuel/FuelWidget.vue')),
+  spotter: defineAsyncComponent(() => import('./spotter/SpotterWidget.vue'))
 }

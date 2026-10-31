@@ -16,7 +16,7 @@ import { WIDGET_DEFS } from './widgets'
 const RULED = new Set(['conditionsTrend', 'conditionsWindDirection', 'countryFlags', 'showFlags'])
 RULED.add('brandMarks').add('gapMode').add('otherClassRows')
 
-describe('«Completo»: everything on in the ten widgets', () => {
+describe('«Completo»: everything on in the eleven widgets', () => {
   it('classifies every field of every widget section: set by a rule, or left on purpose', () => {
     for (const section of LAYOUT_SECTIONS) {
       const specs = OPTION_SCHEMA[section] as Readonly<Record<string, OptionSpec>>

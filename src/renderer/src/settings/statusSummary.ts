@@ -38,7 +38,7 @@ export interface StatusSummary {
   /** The whole status line ('Error en la telemetría: …') and what it means for you. */
   connection: string
   advice: string
-  /** 'N de 10 widgets activados'. */
+  /** 'N de 11 widgets activados'. */
   enabled: string
   /** The rule-hidden enabled widgets ('Batalla · Oculto en práctica'), or the one line for all. */
   hiddenLines: string[]

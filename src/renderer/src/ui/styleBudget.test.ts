@@ -24,7 +24,7 @@ const SOURCES: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(RAW).map(([k, v]) => [k.replace(/^\.\.\//, '').replace(/^\.\//, 'ui/'), v])
 )
 
-const WILL_CHANGE_DIRS = ['widgets/inputs/', 'widgets/radar/']
+const WILL_CHANGE_DIRS = ['widgets/inputs/', 'widgets/radar/', 'widgets/spotter/']
 const TRANSITION_OK = new Set(['opacity', 'transform', 'visibility', 'none'])
 const MAX_BLUR_PX = 2
 const MIN_TEXT_PX = 9

@@ -157,7 +157,8 @@ const CONFIG_SECTIONS = [
   'alerts',
   'delta',
   'fuel',
-  'lights'
+  'lights',
+  'spotter'
 ] as const satisfies readonly ConfigSection[]
 
 /**
@@ -179,7 +180,8 @@ export const DISPLAY_ONLY: { readonly [K in ConfigSection]: readonly string[] } 
   alerts: displayOnlyFields('alerts').map(String),
   delta: displayOnlyFields('delta').map(String),
   fuel: displayOnlyFields('fuel').map(String),
-  lights: displayOnlyFields('lights').map(String)
+  lights: displayOnlyFields('lights').map(String),
+  spotter: displayOnlyFields('spotter').map(String)
 }
 
 /**

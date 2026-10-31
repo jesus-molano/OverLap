@@ -58,6 +58,7 @@ export function injectCustomizeHost(): CustomizeHost | null {
 export const MAIN_ZONES = {
   relative: 'columns',
   radar: 'parts',
+  spotter: 'parts',
   standings: 'columns',
   battle: 'lanes',
   inputs: 'sections',

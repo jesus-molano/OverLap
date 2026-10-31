@@ -4,7 +4,7 @@
  * the fields it changes), so a second application changes nothing and the style can tell whether
  * it is still what you have.
  *
- * What it turns on, the same rule in the ten widgets:
+ * What it turns on, the same rule in the eleven widgets:
  * - every column and element of every list (rows, parts, lines, lights, groups...), in your order,
  *   but a column that only moves what is already drawn (the penalty flags');
  * - the info bars that were off, at «Normal», each with the items its widget shows by default
@@ -68,7 +68,9 @@ export const COMPLETE_SWITCHES: {
     showRepairTime: true,
     repairCrewTag: true,
     showTrend: true
-  }
+  },
+  // Its marks are its list; when it shows (onlyAlongside) is how it behaves, left alone.
+  spotter: {}
 }
 
 /** The track temperature's arrow and the wind's dial: on wherever a widget has them. */
@@ -115,6 +117,8 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'referenceRace',
   'fallback',
   'repairRealTime',
+  // The spotter's pillars: around a car alongside, or whenever you drive.
+  'onlyAlongside',
   // Drawing.
   'nameFormat',
   // Batalla's big gap: unsigned or as Relativo, the same information either way.
@@ -125,7 +129,8 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'colors',
   'steeringStyle',
   'wheelSize',
-  'wheelColor'
+  'wheelColor',
+  'barWidth'
 ]
 
 type Fields = Readonly<Record<string, unknown>>

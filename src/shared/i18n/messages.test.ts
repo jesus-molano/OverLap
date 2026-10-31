@@ -148,6 +148,8 @@ const SAME_IN_ENGLISH = new Set([
   'settings.infoBar.sizeChoices.off.label',
   'settings.choices.onOff.off.label',
   'core.widgetTitles.radar',
+  // iRacing's own word, used in both (iOverlay's widget too).
+  'core.widgetTitles.spotter',
   // The app's own look, by its name.
   'settings.appearance.presets.choices.overlap.label',
   // A widget's name and what changes in it, both already translated.

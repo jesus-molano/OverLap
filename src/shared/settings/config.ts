@@ -53,6 +53,7 @@ export function toTelemetryConfig(settings: OverlaySettings): TelemetryConfig {
     alerts: copySection('alerts', s.alerts),
     delta: copySection('delta', s.delta),
     fuel: copySection('fuel', s.fuel),
-    lights: copySection('lights', s.lights)
+    lights: copySection('lights', s.lights),
+    spotter: copySection('spotter', s.spotter)
   }
 }

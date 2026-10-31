@@ -17,6 +17,7 @@ import type {
   OverlaySettings,
   RadarOptions,
   RelativeOptions,
+  SpotterOptions,
   StandingsColumn,
   StandingsOptions,
   TrafficOptions,
@@ -380,12 +381,18 @@ const DEFAULT_LIGHTS: LightsOptions = {
   ),
   showTrend: true
 }
+const DEFAULT_SPOTTER: SpotterOptions = {
+  onlyAlongside: true,
+  barWidth: 14,
+  parts: list(['nearCap', 'twoMark'])
+}
 /** Every page's "Personalizar" zones, in order: the first of each page open. */
 const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
   'relative.columns',
   'relative.headerBar',
   'relative.footerBar',
   'radar.parts',
+  'spotter.parts',
   'standings.columns',
   'standings.classLine',
   'standings.headerBar',
@@ -418,6 +425,7 @@ const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
 const FIRST_ZONES: readonly CustomizeZoneId[] = [
   'relative.columns',
   'radar.parts',
+  'spotter.parts',
   'standings.columns',
   'battle.lanes',
   'inputs.sections',
@@ -484,7 +492,8 @@ function defaultOptionSet(): LayoutOptionSet {
       alerts: DEFAULT_ALERTS,
       delta: DEFAULT_DELTA,
       fuel: DEFAULT_FUEL,
-      lights: DEFAULT_LIGHTS
+      lights: DEFAULT_LIGHTS,
+      spotter: DEFAULT_SPOTTER
     },
     widgets
   }
@@ -513,6 +522,7 @@ describe('DEFAULT_SETTINGS', () => {
       delta: DEFAULT_DELTA,
       fuel: DEFAULT_FUEL,
       lights: DEFAULT_LIGHTS,
+      spotter: DEFAULT_SPOTTER,
       shortcuts: DEFAULT_SHORTCUTS,
       settingsWindow: DEFAULT_SETTINGS_WINDOW,
       layouts: { autoSwitch: false, sort: 'custom' },

@@ -14,6 +14,7 @@ import { EngineMonitor } from './notices/engine'
 import type { RaceView } from './race/raceView'
 import { computeRadar } from './radar'
 import { computeRelative } from './relative'
+import { SpotterProvider, spotterEqual } from './spotter'
 import { StandingsProvider } from './standings'
 import { standingsEqual } from './standingsEqual'
 import { TrafficProvider, trafficEqual } from './traffic'
@@ -75,6 +76,8 @@ export function createProviders(): ProviderSet {
   const alerts = new AlertsProvider(engine)
   const lights = new LightsProvider(engine)
   const delta = new DeltaProvider()
+  // Its own radar pass: it runs with the radar hidden, or set to another range.
+  const spotter = new SpotterProvider()
   // Fed on every tick: the fuel widget and the alerts band plan with the same laps.
   const fuel = new FuelTracker()
   // The weather for every info bar that shows it: one reading a second for all of them, only
@@ -137,7 +140,8 @@ export function createProviders(): ProviderSet {
           computeFuel(ctx.frame, ctx.session, ctx.race, fuel, ctx.config.fuel),
           info(ctx, sectionInfoItems('fuel', ctx.config.fuel))
         ),
-      lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights)
+      lights: (ctx) => lights.compute(ctx.frame, ctx.session, ctx.race, ctx.config.lights),
+      spotter: (ctx, prev) => spotter.compute(ctx.frame, ctx.session, prev)
     },
     cycleDeltaReference: () => delta.cycleReference(),
     observe: (frame, session, race) => {
@@ -152,6 +156,7 @@ export function createProviders(): ProviderSet {
       engine.reset()
       alerts.reset()
       lights.reset()
+      spotter.reset()
       delta.reset()
       conditions.reset()
       infoFeed.reset()
@@ -197,5 +202,7 @@ export const SKIP_EMIT: {
   fuel: (payload, prev) =>
     prev !== null && ((!payload.visible && !prev.visible) || fuelEqual(payload, prev)),
   // A light or a shown reading changes now and then: most ticks change nothing.
-  lights: (payload, prev) => prev !== null && lightsEqual(payload, prev)
+  lights: (payload, prev) => prev !== null && lightsEqual(payload, prev),
+  // Quantised: a pass re-sends only when a pillar changes (a car length in SPOTTER.steps).
+  spotter: (payload, prev) => prev !== null && spotterEqual(payload, prev)
 }

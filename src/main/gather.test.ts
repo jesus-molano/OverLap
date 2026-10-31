@@ -74,8 +74,8 @@ describe('gatherBounds (R51)', () => {
     bounds.fuel = { x: 3000, y: 500, width: 320, height: 190 }
     const out = gatherBounds(bounds, [LEFT, RIGHT], LEFT)
     expect(Object.keys(out)).toEqual(['fuel'])
-    // Everything to the right display instead: the nine others move.
-    expect(Object.keys(gatherBounds(bounds, [LEFT, RIGHT], RIGHT))).toHaveLength(9)
+    // Everything to the right display instead: the ten others move (hidden or not).
+    expect(Object.keys(gatherBounds(bounds, [LEFT, RIGHT], RIGHT))).toHaveLength(10)
   })
 })
 

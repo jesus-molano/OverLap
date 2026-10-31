@@ -26,7 +26,8 @@ export const coreEs = {
     alerts: 'Avisos',
     lights: 'Testigos',
     delta: 'Delta',
-    fuel: 'Combustible'
+    fuel: 'Combustible',
+    spotter: 'Spotter'
   },
   /** The groups of widgets in the lists (WIDGET_GROUPS): sidebar, page select, tray. */
   widgetGroups: {
@@ -280,7 +281,8 @@ export const coreEn: Dict<typeof coreEs> = {
     alerts: 'Alerts',
     lights: 'Warning lights',
     delta: 'Delta',
-    fuel: 'Fuel'
+    fuel: 'Fuel',
+    spotter: 'Spotter'
   },
   widgetGroups: {
     track: 'Track and rivals',

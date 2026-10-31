@@ -147,7 +147,7 @@ describe('the widget pages', () => {
   })
 
   it('put every editor of theirs in "Personalizar", in the order of customizeZones', () => {
-    expect(Object.keys(PAGES).length).toBe(10)
+    expect(Object.keys(PAGES).length).toBe(11)
     for (const [path, source] of Object.entries(PAGES)) {
       const template = source.slice(source.indexOf('<template>'))
       const open = template.search(/<CustomizeSection[\s>]/)
@@ -211,6 +211,7 @@ describe('the widget pages', () => {
       delta: 'Delta',
       inputs: 'Inputs',
       radar: 'Radar',
+      spotter: 'Spotter',
       lights: 'Lights',
       alerts: 'Alerts'
     }

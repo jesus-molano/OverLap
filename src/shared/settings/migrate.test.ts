@@ -62,7 +62,7 @@ function fileBeforeFuel(): Record<string, unknown> {
 
 describe('a widget newer than the settings file (Q5)', () => {
   it('starts the fuel widget hidden, in a free spot near its default, covering nothing', () => {
-    expect(HIDDEN_WHEN_ADDED).toEqual(['fuel'])
+    expect(HIDDEN_WHEN_ADDED).toEqual(['fuel', 'spotter'])
     const def = WIDGET_DEFS.fuel.defaultBounds
     expect(overlaps(def, RACE_LAYOUT.relative as Rect)).toBe(true)
 
@@ -79,6 +79,39 @@ describe('a widget newer than the settings file (Q5)', () => {
     // The others keep what the file says.
     expect(s.widgets.relative.bounds).toEqual(RACE_LAYOUT.relative)
     expect(s.widgets.relative.visible).toBe(true)
+  })
+
+  it('starts the spotter hidden, in a free spot near its default, on old files and new installs', () => {
+    // A file of 2.3 (every widget of before it, the fuel at its default): no spotter entry.
+    const raw = fileBeforeFuel()
+    const widgets = raw.widgets as Record<string, unknown>
+    widgets.fuel = { visible: true, bounds: { ...WIDGET_DEFS.fuel.defaultBounds } }
+    widgets.lights = { visible: true, bounds: { ...WIDGET_DEFS.lights.defaultBounds } }
+    // Something where the spotter would go: it moves aside rather than cover it.
+    widgets.battle = { visible: true, bounds: { ...WIDGET_DEFS.spotter.defaultBounds } }
+    const s = normalizeSettings(raw)
+    const sp = s.widgets.spotter
+    const def = WIDGET_DEFS.spotter.defaultBounds
+    expect(sp.visible).toBe(false)
+    expect(sp.bounds).toMatchObject({ width: def.width, height: def.height })
+    for (const id of WIDGET_IDS) {
+      if (id === 'spotter') continue
+      const b = s.widgets[id].bounds
+      const room = id === 'alerts' ? { ...b, height: Math.max(b.height, ALERTS_DEFAULT_ROOM) } : b
+      expect(overlaps(sp.bounds, room), id).toBe(false)
+    }
+    // What the file had stays as it was.
+    expect(s.widgets.fuel.visible).toBe(true)
+    expect(s.widgets.battle.bounds).toEqual(def)
+    // A new install has it too, hidden, at its default place.
+    const fresh = createDefaultSettings().widgets.spotter
+    expect(fresh.visible).toBe(false)
+    expect(fresh.bounds).toEqual(def)
+    // A file that has it keeps what it says.
+    widgets.spotter = { visible: true, bounds: { x: 700, y: 500, width: 520, height: 200 } }
+    const kept = normalizeSettings(raw).widgets.spotter
+    expect(kept.visible).toBe(true)
+    expect(kept.bounds).toEqual({ x: 700, y: 500, width: 520, height: 200 })
   })
 
   it('keeps what a file that has it says, and leaves a fresh start alone', () => {

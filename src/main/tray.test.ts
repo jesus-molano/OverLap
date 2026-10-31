@@ -244,7 +244,7 @@ describe('tray menu', () => {
     createTray(state(createDefaultSettings()), ACTIONS)
     const menu = fake.menus.at(-1) ?? []
     const first = menu.findIndex((i) => i.label === 'Pista y rivales')
-    const block = menu.slice(first, first + 15).map((i) => i.label ?? i.type)
+    const block = menu.slice(first, first + 16).map((i) => i.label ?? i.type)
     // Each group's name is a label you cannot click, as the status line.
     for (const name of ['Pista y rivales', 'Tu vuelta', 'Estado del coche']) {
       expect(menu.find((i) => i.label === name)?.enabled).toBe(false)
@@ -256,6 +256,7 @@ describe('tray menu', () => {
       'Batalla',
       'Tráfico',
       'Radar',
+      'Spotter',
       'separator',
       'Tu vuelta',
       'Delta',
@@ -266,7 +267,7 @@ describe('tray menu', () => {
       'Avisos',
       'Testigos'
     ])
-    expect(menu[first + 15]).toEqual({ type: 'separator' })
+    expect(menu[first + 16]).toEqual({ type: 'separator' })
   })
 
   it('says under the status how many shortcuts do not work, to their page (R37)', () => {

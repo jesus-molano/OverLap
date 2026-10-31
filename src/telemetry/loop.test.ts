@@ -29,7 +29,9 @@ import type {
   AlertsData,
   FuelData,
   HiddenReason,
-  LightsData
+  LightsData,
+  SpotterData,
+  SpotterSide
 } from '@shared/types'
 import { WIDGET_IDS, followsCamera, keepsLiveInReplay, type WidgetId } from '@shared/widgets'
 import { messagesFor, statusText } from '@shared/i18n'
@@ -295,6 +297,20 @@ const FUEL: FuelData = {
   info: null
 }
 const LIGHTS: LightsData = { visible: false, lights: [] }
+const SPOTTER_SIDE: SpotterSide = {
+  count: 0,
+  segs: [],
+  cover: 0,
+  unknown: false,
+  nearFront: 0,
+  nearRear: 0
+}
+const SPOTTER: SpotterData = {
+  active: false,
+  visible: false,
+  left: { ...SPOTTER_SIDE },
+  right: { ...SPOTTER_SIDE }
+}
 
 interface Call<P> {
   ctx: ProviderContext
@@ -393,7 +409,8 @@ function setup(
       return DELTA
     },
     fuel: () => FUEL,
-    lights: () => LIGHTS
+    lights: () => LIGHTS,
+    spotter: () => SPOTTER
   }
 
   const loop = new TelemetryLoop(source, (msg) => out.push(msg), {
