@@ -7,8 +7,17 @@ import { previewDelta } from './preview'
 import {
   DELTA_FIT_TOP_EM,
   DELTA_ROW_FIT_EM,
+  DELTA_MULTI_HEAD_EM,
+  DELTA_MULTI_PAD_EM,
+  DELTA_MULTI_ROW_EM,
   barsInRoom,
   deltaFitOf,
+  deltaLanes,
+  deltaMultiFit,
+  deltaShapeOf,
+  laneViews,
+  lanesInRoom,
+  shapeInRoom,
   deltaRows,
   deltaTopParts,
   lapTimesView,
@@ -224,7 +233,10 @@ describe('the bars per reference in a short window', () => {
 
   it('at the text floor, only the bars the height holds: two at the default 400 x 80', () => {
     // 6.15 em without bars, 1.35 em each, 9 px text: 80 px hold 8.9 em.
-    expect(deltaFitOf(three, 0).h).toBeCloseTo(DELTA_FIT_TOP_EM + 0.95 + 1.7, 9)
+    expect(deltaFitOf(three, { lanes: 1, head: false, bars: 0 }).h).toBeCloseTo(
+      DELTA_FIT_TOP_EM + 0.95 + 1.7,
+      9
+    )
     expect(refBarsThatFit(three, 3, 400, 80, 9)).toBe(2)
     // A larger text floor holds fewer.
     expect(refBarsThatFit(three, 3, 400, 80, 10)).toBe(1)
@@ -244,5 +256,111 @@ describe('the bars per reference in a short window', () => {
       'pb',
       'session'
     ])
+  })
+})
+
+describe('several references: one equal row each', () => {
+  const ids: DeltaReference[] = ['pb', 'session', 'optimal', 'class', 'classOptimal']
+  /** The defaults with the line shown (or not) and `shown` references on. */
+  const opts = (
+    shown: DeltaReference[],
+    line = true,
+    order: DeltaReference[] = ids
+  ): ReturnType<typeof defaultOptions<'delta'>> => {
+    const o = defaultOptions('delta')
+    return {
+      ...o,
+      rows: o.rows.map((e) => (e.id === 'refs' ? { ...e, visible: line } : e)),
+      refBars: order.map((id) => ({ id, visible: shown.includes(id) }))
+    }
+  }
+
+  it('one reference is the delta of always: the default, or only the one in use shown', () => {
+    expect(deltaLanes(D, 'optimal')).toEqual(['optimal'])
+    expect(deltaLanes(opts(['optimal']), 'optimal')).toEqual(['optimal'])
+    // References shown with their line hidden: nothing more.
+    expect(deltaLanes(opts(['pb', 'session'], false), 'optimal')).toEqual(['optimal'])
+    expect(deltaShapeOf(D, 'optimal')).toEqual({ lanes: 1, head: false, bars: 0 })
+    // The one in use's small bar of 2.4 stays.
+    expect(deltaShapeOf(opts(['optimal']), 'optimal')).toEqual({ lanes: 1, head: false, bars: 1 })
+    // ...and so does its fit.
+    expect(deltaFitOf(D, deltaShapeOf(D, 'optimal'))).toEqual({ h: 6, w: 26 })
+  })
+
+  it('two or more: a row each, in the list order, the one in use in its own place', () => {
+    expect(deltaLanes(opts(['pb']), 'optimal')).toEqual(['pb', 'optimal'])
+    const order: DeltaReference[] = ['class', 'optimal', 'pb', 'session', 'classOptimal']
+    // In use but hidden in the list: its row goes where the list has it.
+    expect(deltaLanes(opts(['pb', 'classOptimal'], true, order), 'optimal')).toEqual([
+      'optimal',
+      'pb',
+      'classOptimal'
+    ])
+    expect(deltaLanes(opts(['pb', 'session'], true, order), 'session')).toEqual(['pb', 'session'])
+    // The rows stay put when the reference in use changes among them.
+    const three = opts(['pb', 'session', 'optimal'])
+    expect(deltaLanes(three, 'pb')).toEqual(deltaLanes(three, 'optimal'))
+    // Missing from the list (never in a valid file): first.
+    expect(deltaLanes({ ...three, refBars: three.refBars.slice(0, 2) }, 'optimal')).toEqual([
+      'optimal',
+      'pb',
+      'session'
+    ])
+    expect(deltaShapeOf(three, 'pb')).toEqual({ lanes: 3, head: true, bars: 0 })
+    // No part of the top line shown: no head line.
+    const bare = { ...three, top: three.top.map((e) => ({ ...e, visible: false })) }
+    expect(deltaShapeOf(bare, 'pb').head).toBe(false)
+  })
+
+  it('in Settings, the most rows any session draws', () => {
+    // Practice pb, qualifying and race optimal (the defaults).
+    expect(deltaShapeOf(opts(['pb', 'session', 'optimal'])).lanes).toBe(3)
+    expect(deltaShapeOf(opts(['optimal'])).lanes).toBe(2)
+    expect(deltaShapeOf(opts([])).lanes).toBe(1)
+    expect(deltaShapeOf(D)).toEqual({ lanes: 1, head: false, bars: 0 })
+    const allPb = { ...opts(['pb']), referenceQualify: 'pb', referenceRace: 'pb' } as const
+    expect(deltaShapeOf(allPb)).toEqual({ lanes: 1, head: false, bars: 1 })
+  })
+
+  it('fits the rows: 1.9 em each, the head line 1.45, the sectors as always', () => {
+    const three = opts(['pb', 'session', 'optimal'])
+    expect(DELTA_MULTI_PAD_EM + DELTA_MULTI_HEAD_EM + 2 * DELTA_MULTI_ROW_EM + 1.7).toBeCloseTo(7.9)
+    expect(deltaMultiFit(three, 2, true)).toEqual({ h: 7.9, w: 21 })
+    expect(deltaMultiFit(three, 3, true)).toEqual({ h: 9.8, w: 21 })
+    expect(deltaMultiFit(three, 3, false)).toEqual({ h: 8.35, w: 21 })
+    expect(deltaFitOf(three)).toEqual({ h: 9.8, w: 21 })
+    // No bar: name, figure and trend only.
+    const nobar = {
+      ...three,
+      rows: three.rows.map((e) => (e.id === 'bar' ? { ...e, visible: false } : e))
+    }
+    expect(deltaMultiFit(nobar, 3, true).w).toBe(13)
+  })
+
+  it('in a small window the head line goes first, then rows, then the delta of always', () => {
+    const three = opts(['pb', 'session', 'optimal'])
+    const shape = deltaShapeOf(three, 'optimal')
+    // Room for everything: as it is (no size yet too).
+    expect(shapeInRoom(three, shape, 400, 131, 9)).toBe(shape)
+    expect(shapeInRoom(three, shape, 0, 0, 9)).toBe(shape)
+    // The default 400 x 80 at a 9 px floor: three rows without the head line.
+    expect(shapeInRoom(three, shape, 400, 80, 9)).toEqual({ lanes: 3, head: false, bars: 0 })
+    // At 10 px: two rows.
+    expect(shapeInRoom(three, shape, 400, 80, 10)).toEqual({ lanes: 2, head: false, bars: 0 })
+    // Too short for rows: the delta of always.
+    expect(shapeInRoom(three, shape, 400, 60, 9)).toEqual({ lanes: 1, head: false, bars: 0 })
+    expect(shapeInRoom(three, shape, 400, 70, 14).lanes).toBe(1)
+    // A single shape is drawn as it is.
+    const one = deltaShapeOf(D, 'optimal')
+    expect(shapeInRoom(D, one, 400, 30, 9)).toBe(one)
+  })
+
+  it('never leaves out the reference in use, and names every row', () => {
+    const lanes = laneViews(['pb', 'session', 'optimal'], 'optimal', ES)
+    expect(lanes.map((b) => b.caption)).toEqual(['Récord', 'Mejor', 'Ópt.'])
+    expect(lanes.map((b) => b.isRef)).toEqual([false, false, true])
+    expect(lanes[2]?.name).toBe('Vuelta óptima')
+    expect(lanesInRoom(lanes, 2).map((b) => b.id)).toEqual(['pb', 'optimal'])
+    expect(laneViews([], 'pb', ES)).toHaveLength(0)
   })
 })

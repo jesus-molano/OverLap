@@ -17,32 +17,39 @@ import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
 import type { Tone } from '@renderer/ui/tones'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
-import { reuseView, reuseViews } from '@renderer/view/reuse'
+import { reuseView, reuseViews, shallowEqual } from '@renderer/view/reuse'
 import { orderStyle, placesOf } from '../orderStyle'
 import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
 import { previewDelta, previewSession } from './preview'
 import {
   REFERENCE_NOTE_MS,
   barsInRoom,
+  deltaLanes,
   deltaRows,
+  deltaShapeOf,
   deltaTopParts,
+  lanesInRoom,
+  laneViews,
   lapTimesView,
   refBarsView,
   referenceNote,
   refBarsThatFit,
+  shapeInRoom,
+  type DeltaShape,
   type DeltaTopParts,
   type LapTimeView,
   type RefBarView,
   type ReferenceChoice
 } from './rows'
 import {
-  barOverflow,
+  barClassOf,
   barStep,
   createBarStyles,
   currentSector,
   deltaSign,
   deltaTone,
   formatDelta,
+  laneLabel,
   lapCounts,
   liveSectorDelta,
   predictedText,
@@ -60,6 +67,8 @@ const ID = 'delta'
 const RANGE: NumericSpec = OPTION_SCHEMA.delta.rangeS
 const NO_SECTORS: readonly (number | null)[] = Object.freeze([])
 const NO_REF: RefView = Object.freeze({ kind: 'pb', label: '', time: '' })
+const NO_LANES: readonly RefBarView[] = Object.freeze([])
+const NO_TRENDS: Readonly<Partial<Record<DeltaReference, TrendKind>>> = Object.freeze({})
 
 const options = useOptions(ID)
 const t = useI18n()
@@ -150,12 +159,7 @@ const reference = computed<RefView>((prev) => {
 
 const barStyles = createBarStyles()
 const bar = computed(() => barStyles(barStep(delta.value, rangeS.value)))
-const barClass = computed(() => {
-  const s = sign.value
-  const over = barOverflow(delta.value, rangeS.value)
-  const tone = s === -1 ? 'dl-bar--good' : s === 1 ? 'dl-bar--bad' : 'dl-bar--idle'
-  return over === 0 ? tone : `${tone} dl-bar--over-${over < 0 ? 'left' : 'right'}`
-})
+const barClass = computed(() => barClassOf(delta.value, rangeS.value))
 
 const chips = computed<readonly SectorChipView[]>((prev) =>
   sectorChips(sectors.value, deltaKnown.value, t.value, prev)
@@ -173,19 +177,81 @@ const lapTimes = computed<readonly LapTimeView[]>((prev) =>
   reuseViews(prev, [...lapTimesView(laps.value, options.value.laps, refKind.value, t.value)])
 )
 
+const root = useTemplateRef<HTMLElement>('root')
+const rootSize = useElementSize(root)
+const appearance = useAppearance()
+
+// ---- Two references or more: one equal row each (rows.ts deltaLanes) ----------------------
+// Each its name, its delta, its trend and its bar, in the list's order; the line above names
+// the reference in use (the predicted lap and the sectors follow it). One is the delta of always.
+
+/** The references with a row, the one in use among them (only on a change of list or choice). */
+const lanes = computed<readonly DeltaReference[]>((prev) => {
+  const next = deltaLanes(options.value, refKind.value)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/** What the options draw, and what the window holds of it (only a resize or a list recounts). */
+const shape = computed<DeltaShape>((prev) =>
+  reuseView(prev, deltaShapeOf(options.value, refKind.value))
+)
+const drawn = computed<DeltaShape>((prev) =>
+  reuseView(
+    prev,
+    shapeInRoom(
+      options.value,
+      shape.value,
+      rootSize.value.w,
+      rootSize.value.h,
+      minTextPx(appearance.value)
+    )
+  )
+)
+/** The rows are drawn (a window too small for two draws the delta of always instead). */
+const multi = computed(() => drawn.value.lanes >= 2)
+const head = computed(() => multi.value && drawn.value.head)
+const laneList = computed<readonly RefBarView[]>((prev) =>
+  reuseViews(prev, [...laneViews(lanes.value, refKind.value, t.value)])
+)
+const lanesShown = computed<readonly RefBarView[]>((prev) => {
+  const next = multi.value ? lanesInRoom(laneList.value, drawn.value.lanes) : NO_LANES
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+/** A row's delta: the reference in use's is the main one (its trend too), the rest their bar's. */
+const laneValue = (b: RefBarView): number | null => (b.isRef ? delta.value : barValue(b.id))
+/** Each row's trend, with its own hysteresis; kept while every row's stays. */
+const laneTrends = computed<Readonly<Partial<Record<DeltaReference, TrendKind>>>>((prev) => {
+  if (!multi.value || !showTrend.value) return NO_TRENDS
+  const next: Partial<Record<DeltaReference, TrendKind>> = {}
+  for (const b of lanesShown.value) {
+    next[b.id] = b.isRef
+      ? trend.value
+      : trendKind(content.value?.barTrends?.[b.id] ?? 0, prev?.[b.id] ?? 'steady')
+  }
+  return prev !== undefined && shallowEqual(prev, next) ? prev : next
+})
+const laneTrend = (b: RefBarView): TrendKind => laneTrends.value[b.id] ?? 'steady'
+/** Where the rows go: the place of the first of the lines they stand for (top, bar, refs). */
+const lanesPlace = computed(() =>
+  Math.min(place.value.top ?? 0, place.value.bar ?? Infinity, place.value.refs ?? Infinity)
+)
+/** A lap that won't count says why in the head line (the rows step back). */
+const lapStateShown = computed(() => !counts.value && state.value.kind !== 'none')
+
 // ---- The bars per reference: the list on a change of choice, each bar on a change of its value
 /** The bars in the user's order, the reference in use marked. */
 const refBars = computed<readonly RefBarView[]>((prev) =>
   reuseViews(prev, [...refBarsView(options.value.refBars, refKind.value, t.value)])
 )
-/** The row with no reference shown draws nothing, and sizes nothing. */
-const showRefs = computed(() => rows.value.includes('refs') && refBars.value.length > 0)
+/**
+ * The 2.4 small bars: only with one reference (the one in use's own bar); the row with no
+ * reference shown draws nothing, and sizes nothing.
+ */
+const showRefs = computed(
+  () => shape.value.lanes < 2 && rows.value.includes('refs') && refBars.value.length > 0
+)
 // A window too short for every bar at the smallest text draws the first ones in your order, the
 // reference in use always among them; the rest are said «No cabe» on the page. Only a resize, a
 // text floor or a list change recounts (never a telemetry pass).
-const root = useTemplateRef<HTMLElement>('root')
-const rootSize = useElementSize(root)
-const appearance = useAppearance()
 const barsFit = computed(() =>
   showRefs.value
     ? refBarsThatFit(
@@ -202,22 +268,27 @@ const barsShown = computed<readonly RefBarView[]>((prev) => {
   return prev !== undefined && arrayEqual(prev, next) ? prev : next
 })
 useNoRoomReport(() => {
+  if (shape.value.lanes >= 2) {
+    // The rows that don't fit; with none left but the delta of always, the line itself too.
+    const drawnIds = new Set(lanesShown.value.map((b) => b.id))
+    const out = refBars.value
+      .filter((b) => !b.isRef && !drawnIds.has(b.id))
+      .map((b) => `delta.refBars.${b.id}`)
+    return multi.value || out.length === 0 ? out : ['delta.rows.refs', ...out]
+  }
   if (!showRefs.value || barsShown.value.length === refBars.value.length) return []
   const shownIds = new Set(barsShown.value.map((b) => b.id))
   const out = refBars.value.filter((b) => !shownIds.has(b.id)).map((b) => `delta.refBars.${b.id}`)
   return barsShown.value.length === 0 ? ['delta.rows.refs', ...out] : out
 })
 /** A bar's delta ('—' and an empty bar while its reference has no lap yet). */
-const barValue = (id: DeltaReference): number | null => content.value?.bars?.[id] ?? null
+function barValue(id: DeltaReference): number | null {
+  return content.value?.bars?.[id] ?? null
+}
 const refBarStyles = (v: number | null): ReturnType<typeof barStyles> =>
   barStyles(barStep(v, rangeS.value))
 /** As the main bar's: the tone of the sign, the end hatched beyond the scale. */
-function refBarClass(v: number | null): string {
-  const s = deltaSign(v)
-  const over = barOverflow(v, rangeS.value)
-  const tone = s === -1 ? 'dl-bar--good' : s === 1 ? 'dl-bar--bad' : 'dl-bar--idle'
-  return over === 0 ? tone : `${tone} dl-bar--over-${over < 0 ? 'left' : 'right'}`
-}
+const refBarClass = (v: number | null): string => barClassOf(v, rangeS.value)
 
 /** Brief label after another reference is chosen (or takes over), live only. */
 const note = shallowRef('')
@@ -244,10 +315,14 @@ watch(phase, (p) => {
 })
 onBeforeUnmount(() => clearTimeout(noteTimer))
 
-// The panel's tint follows the sign of the delta: these classes change on a sign flip only. The
-// rows and parts shown size the font (--dl-fit-h / --dl-fit-w, see the styles).
+// The panel's tint follows the sign of the delta: these classes change on a sign flip only (the
+// rows have none: each its own tone). The rows and parts shown size the font (--dl-fit-h /
+// --dl-fit-w, see the styles).
 const rootClass = computed(() => ({
   'is-shown': shown.value,
+  'dl--multi': multi.value,
+  [`dl--multi-${drawn.value.lanes}`]: multi.value,
+  'dl--multi-nohead': multi.value && !head.value,
   'dl--bar': showBar.value,
   'dl--sectors': showSectors.value,
   'dl--laps': showLaps.value,
@@ -257,15 +332,20 @@ const rootClass = computed(() => ({
   'dl--trend': showTrend.value,
   'dl--noinfo': !showPredicted.value && !showReference.value,
   'dl--invalid': !counts.value,
-  'dl--good': heroTone.value === 'good',
-  'dl--bad': heroTone.value === 'bad'
+  'dl--good': !multi.value && heroTone.value === 'good',
+  'dl--bad': !multi.value && heroTone.value === 'bad'
 }))
 </script>
 
 <template>
   <div ref="root" class="delta ov-root ov-fade" :class="rootClass">
     <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
-      <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top" data-el="delta.rows.top">
+      <div
+        v-if="!multi"
+        v-inline-style="orderStyle(place.top ?? 0)"
+        class="dl-top"
+        data-el="delta.rows.top"
+      >
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
           <!-- The sign as a shape too: ▼ faster, ▲ slower (colour-blind safe). -->
           <span class="dl-hero__sym">
@@ -321,7 +401,7 @@ const rootClass = computed(() => ({
 
       <!-- Static track; a frame moves only the fill (scaleX) and the needle (translateX). -->
       <div
-        v-if="showBar"
+        v-if="showBar && !multi"
         v-inline-style="orderStyle(place.bar ?? 0)"
         class="dl-bar"
         :class="barClass"
@@ -371,6 +451,95 @@ const rootClass = computed(() => ({
           <span class="dl-rb__val" :class="`ov-tone-${deltaTone(barValue(b.id))}`">{{
             formatDelta(barValue(b.id))
           }}</span>
+        </div>
+      </div>
+
+      <!-- Two references or more: one equal row each, under the line naming the one in use.
+           Name, delta (▼/▲ and the figure), trend and bar on every row alike; a row re-renders
+           only when its value, its trend or the scale changes. -->
+      <div
+        v-if="multi"
+        v-inline-style="orderStyle(lanesPlace)"
+        class="dl-multi"
+        :class="{ 'dl-multi--trend': showTrend }"
+      >
+        <div v-if="head" class="dl-head" data-el="delta.rows.top">
+          <p v-if="note !== ''" class="dl-note" role="status">
+            <span class="dl-note__mark" aria-hidden="true">{{ t.widgets.delta.refMark }}</span>
+            <span class="dl-note__text">{{ note }}</span>
+          </p>
+          <div v-else-if="showReference" class="dl-ref" data-el="delta.top.reference">
+            <span class="dl-ref__dot" :class="`dl-ref__dot--${reference.kind}`" />
+            <span class="dl-ref__label">{{ reference.label }}</span>
+            <span v-if="temporary" class="dl-ref__temp">{{ t.widgets.delta.temporary }}</span>
+            <span class="dl-ref__time">{{ reference.time }}</span>
+          </div>
+          <div class="dl-head__end">
+            <span
+              v-if="lapStateShown"
+              class="dl-state__line"
+              :class="`ov-tone-${state.tone}`"
+              data-el="delta.top.state"
+            >
+              <Icon v-if="state.icon !== null" :name="state.icon" />
+              <span class="dl-state__text">{{ state.text }}</span>
+            </span>
+            <div v-else-if="showPredicted" class="dl-pred" data-el="delta.top.predicted">
+              <span class="dl-pred__label">{{ t.widgets.delta.predicted }}</span>
+              <span class="dl-pred__time">{{ predicted }}</span>
+            </div>
+            <PreviewTag v-if="preview" class="dl-head__tag" />
+          </div>
+        </div>
+        <PreviewTag v-else-if="preview" class="dl-multi__tag" />
+
+        <div class="dl-lanes" data-el="delta.rows.refs">
+          <div
+            v-for="b in lanesShown"
+            :key="b.id"
+            v-memo="[b, laneValue(b), laneTrend(b), rangeS, showBar, showTrend]"
+            class="dl-lane"
+            role="group"
+            :aria-label="laneLabel(b.name, laneValue(b), laneTrend(b), t)"
+            :data-el="`delta.refBars.${b.id}`"
+          >
+            <span class="dl-lane__name" :title="b.name">{{ b.caption }}</span>
+            <span class="dl-lane__val" :class="`ov-tone-${deltaTone(laneValue(b))}`">
+              <span class="dl-lane__sym">
+                <Icon v-if="deltaSign(laneValue(b)) === -1" name="arrow-down" />
+                <Icon v-else-if="deltaSign(laneValue(b)) === 1" name="arrow-up" />
+              </span>
+              <span class="dl-lane__num">{{ formatDelta(laneValue(b)) }}</span>
+            </span>
+            <span v-if="showTrend" class="dl-lane__trend" data-el="delta.top.state">
+              <!-- As the hero's: the chevrons point where the bar is heading. -->
+              <svg
+                v-if="laneTrend(b) !== 'steady'"
+                class="ov-icon dl-chev"
+                :class="[
+                  laneTrend(b) === 'gain' ? 'ov-tone-good' : 'ov-tone-bad',
+                  { 'dl-chev--right': laneTrend(b) === 'loss' }
+                ]"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+              >
+                <path class="ov-icon__stroke" d="M8.5 3.5 4 8l4.5 4.5M13 3.5 8.5 8l4.5 4.5" />
+              </svg>
+            </span>
+            <span
+              v-if="showBar"
+              class="dl-bar dl-lane__bar"
+              :class="refBarClass(laneValue(b))"
+              data-el="delta.rows.bar"
+              aria-hidden="true"
+            >
+              <span v-inline-style="refBarStyles(laneValue(b)).fill" class="dl-bar__fill" />
+              <span class="dl-bar__zero" />
+              <span v-inline-style="refBarStyles(laneValue(b)).tip" class="dl-bar__tip" />
+              <span class="dl-bar__cap dl-bar__cap--left" />
+              <span class="dl-bar__cap dl-bar__cap--right" />
+            </span>
+          </div>
         </div>
       </div>
 
@@ -979,6 +1148,169 @@ const rootClass = computed(() => ({
   white-space: nowrap;
 }
 
+/* ---- Two references or more: one equal row each --------------------------------------- */
+
+/* rows.ts deltaMultiFit: 0.95 + the head line 1.45 + 1.9 per row, the sectors and the lap times
+   as above; DELTA_MULTI_W wide (DELTA_MULTI_NOBAR_W without the bar). */
+.dl--multi .dl-panel {
+  --dl-h-head: 1.45;
+  --dl-h-lanes: 3.8;
+  --dl-w-lanes: 13;
+  --dl-fit-h: calc(
+    0.95 + var(--dl-h-head) + var(--dl-h-lanes) + var(--dl-h-sectors) + var(--dl-h-laps)
+  );
+  --dl-fit-w: max(var(--dl-w-lanes), var(--dl-w-laps));
+}
+
+.dl--multi.dl--bar .dl-panel {
+  --dl-w-lanes: 21;
+}
+
+.dl--multi-nohead .dl-panel {
+  --dl-h-head: 0;
+}
+
+.dl--multi-3 .dl-panel {
+  --dl-h-lanes: 5.7;
+}
+
+.dl--multi-4 .dl-panel {
+  --dl-h-lanes: 7.6;
+}
+
+.dl--multi-5 .dl-panel {
+  --dl-h-lanes: 9.5;
+}
+
+.dl-multi {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+
+/* The reference in use (what the predicted lap and the sectors follow) and its predicted lap,
+   on one line over the rows, under a rule. */
+.dl-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  height: 1.3em;
+  min-width: 0;
+  box-shadow: inset 0 -1px 0 var(--ov-rule);
+}
+
+.dl-head .dl-note__text {
+  -webkit-line-clamp: 1;
+}
+
+.dl-head__end {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.45em;
+  margin-left: auto;
+}
+
+.dl-head .dl-state__line {
+  max-width: none;
+  white-space: nowrap;
+}
+
+/* No head line in edit mode: the sample tag over the first row's end. */
+.dl-multi__tag {
+  position: absolute;
+  top: 0.3em;
+  right: 0;
+}
+
+.dl-lanes {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Name, figure, trend, bar: the same columns on every row, so the figures and the bars line up
+   and compare straight down. Hairlines between rows; no band, no edge, no tint. */
+.dl-lane {
+  display: grid;
+  grid-template-columns: 5.6em 5.1em minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.45em;
+  height: 1.9em;
+  min-width: 0;
+}
+
+.dl-lane + .dl-lane {
+  box-shadow: inset 0 1px 0 var(--ov-sep);
+}
+
+.dl-multi--trend .dl-lane {
+  grid-template-columns: 5.6em 5.1em 1.1em minmax(0, 1fr);
+}
+
+.dl-lane__name {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ov-font-small);
+  font-size: max(var(--ov-min-text), 0.8em);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ov-fg);
+}
+
+/* Fixed box (five characters at most, see formatDelta): a new value re-lays out only itself. */
+.dl-lane__val {
+  display: flex;
+  align-items: center;
+  gap: 0.1em;
+  height: 1.6em;
+  contain: strict;
+  overflow: hidden;
+}
+
+.dl-lane__sym {
+  position: relative;
+  top: 0.08em;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 0.9em;
+  height: 0.9em;
+  font-size: 0.9em;
+}
+
+.dl-lane__num {
+  font-family: var(--ov-font-hero);
+  font-size: 1.6em;
+  font-weight: var(--ov-w-strong);
+  line-height: 1;
+  letter-spacing: var(--ov-track-hero);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dl-lane__trend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+}
+
+.dl-lane__bar {
+  height: 0.7em;
+}
+
+.dl--invalid .dl-lane__val {
+  opacity: var(--ov-o-dim);
+}
+
 /* ---- Sectors -------------------------------------------------------------------------- */
 
 /*
@@ -1084,6 +1416,48 @@ const rootClass = computed(() => ({
     --dl-w-trend: 0;
     --dl-w-laps: 0;
     --dl-w-refs: 0;
+  }
+}
+
+/* The rows in a narrow window: the head keeps the times (its name goes), the rows their name,
+   figure and bar (the sign and the tone still say which way; no arrow, no trend). */
+@container delta (max-width: 300px) {
+  .dl-head .dl-ref__label {
+    display: none;
+  }
+
+  .dl-lane,
+  .dl-multi--trend .dl-lane {
+    grid-template-columns: 3.9em 4.4em minmax(0, 1fr);
+  }
+
+  .dl-lane__sym,
+  .dl-lane__trend {
+    display: none;
+  }
+
+  .dl-lane__name {
+    letter-spacing: 0.04em;
+  }
+
+  .dl--multi.dl--bar .dl-panel {
+    --dl-w-lanes: 15;
+  }
+}
+
+/* Narrower still: the rows alone, short names. */
+@container delta (max-width: 220px) {
+  .dl-head {
+    display: none;
+  }
+
+  .dl--multi .dl-panel {
+    --dl-h-head: 0;
+  }
+
+  .dl-lane,
+  .dl-multi--trend .dl-lane {
+    grid-template-columns: 3.6em 4.4em minmax(0, 1fr);
   }
 }
 </style>

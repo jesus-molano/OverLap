@@ -3,8 +3,13 @@
  * widget draws: the rows in the user's order, the lap times line and the bars per reference
  * with the reference the delta compares against marked, the font fit of the rows shown, and the
  * brief label after another reference is chosen. Pure; words come from the dictionary `m`.
+ *
+ * With two references or more (the bars per reference, plus the one in use) the delta draws one
+ * equal row per reference instead of the hero and its small bars (deltaLanes): each its name,
+ * its delta, its trend and its bar, under a line naming the reference in use (the one the
+ * predicted lap and the sectors follow). With one, the delta of always.
  */
-import { visibleIds } from '@shared/elements'
+import { isElementVisible, visibleIds } from '@shared/elements'
 import { formatLapTime } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type {
@@ -201,25 +206,35 @@ export interface DeltaFit {
 /** The em width of the lap times line, by how many times it shows. */
 const DELTA_LAPS_W = [0, 8, 15, 22, 29] as const
 
-/** What deltaFit reads of the options. */
+/** What deltaFit reads of the options (the references per session, when given: Settings). */
 type FitOptions = {
   readonly rows: List<DeltaRowId>
   readonly top: List<DeltaTopId>
   readonly laps: List<DeltaLapId>
   readonly refBars: List<DeltaReference>
+  readonly referencePractice?: DeltaReference
+  readonly referenceQualify?: DeltaReference
+  readonly referenceRace?: DeltaReference
 }
 
 /**
- * The delta's fit (DeltaWidget's --dl-fit-h and --dl-fit-w) for its options, with `bars` bars per
- * reference (by default all those shown).
+ * The delta's fit (DeltaWidget's --dl-fit-h and --dl-fit-w) for its options. One reference
+ * (deltaShapeOf: the most any session draws, by default) is the 2.4 fit, with `shape.bars`
+ * small bars; two or more, the rows' (deltaMultiFit).
  */
-export function deltaFitOf(o: FitOptions, bars?: number): DeltaFit {
+export function deltaFitOf(o: FitOptions, shape: DeltaShape = deltaShapeOf(o)): DeltaFit {
+  if (shape.lanes >= 2) return deltaMultiFit(o, shape.lanes, shape.head)
+  return singleFit(o, shape.bars)
+}
+
+/** The 2.4 fit: the top line, the bar, the sectors, the lap times and `bars` small bars. */
+function singleFit(o: FitOptions, bars: number): DeltaFit {
   let h = DELTA_FIT_TOP_EM
   const shown = new Set(visibleIds(o.rows))
   for (const row of ['bar', 'sectors', 'laps'] as const) {
     if (shown.has(row)) h += DELTA_ROW_FIT_EM[row]
   }
-  const n = bars ?? (shown.has('refs') ? visibleIds(o.refBars).length : 0)
+  const n = bars
   h += refBarsFitEm(n)
   const top = new Set(visibleIds(o.top))
   const info = top.has('predicted') || top.has('reference') ? 20 : 11.5
@@ -248,12 +263,17 @@ export function refBarsThatFit(
 ): number {
   if (count <= 0 || !(w > 0) || !(h > 0)) return count
   if (h <= DELTA_SHORT_PX) return 0
-  const all = deltaFitOf(o, count)
-  const font = Math.min(DELTA_MAX_TEXT_PX, Math.max(minText, Math.min(h / all.h, w / all.w)))
+  const all = singleFit(o, count)
+  const font = textAt(all, w, h, minText)
   for (let k = count; k > 0; k--) {
-    if (deltaFitOf(o, k).h * font <= h + 1e-6) return k
+    if (singleFit(o, k).h * font <= h + 1e-6) return k
   }
   return 0
+}
+
+/** The text size (px) a `w` x `h` window gives `fit`: DeltaWidget's clamp. */
+function textAt(fit: DeltaFit, w: number, h: number, minText: number): number {
+  return Math.min(DELTA_MAX_TEXT_PX, Math.max(minText, Math.min(h / fit.h, w / fit.w)))
 }
 
 /**
@@ -268,3 +288,147 @@ export function barsInRoom(bars: readonly RefBarView[], fit: number): readonly R
   const ref = bars.find((b) => b.isRef)
   return ref === undefined ? head : [...head.slice(0, fit - 1), ref]
 }
+
+// ---------------------------------------------------------------------------
+// Several references: one equal row each
+// ---------------------------------------------------------------------------
+
+/**
+ * What the delta draws, for its fit: `lanes` references (two or more: a row each, under a head
+ * line when `head`), or one (the 2.4 delta) with `bars` small bars per reference.
+ */
+export interface DeltaShape {
+  readonly lanes: number
+  /** Multi only: the line naming the reference in use, its predicted lap and the lap state. */
+  readonly head: boolean
+  /** Single only: the small bars per reference (0, or 1: the reference in use's own). */
+  readonly bars: number
+}
+
+/** The references with a row: those shown in delta.refBars while the 'refs' row is. */
+function shownReferences(o: Pick<FitOptions, 'rows' | 'refBars'>): readonly DeltaReference[] {
+  if (!isElementVisible(o.rows, 'refs')) return NO_REFERENCES
+  return visibleIds(o.refBars).filter(isReferenceId)
+}
+
+const NO_REFERENCES: readonly DeltaReference[] = Object.freeze([])
+const isReferenceId = (id: string): id is DeltaReference => REFERENCE_IDS.includes(id)
+
+/**
+ * The references drawn as rows: those shown (delta.refBars, its line on) and the one in use
+ * (`reference`), in the list's order hidden ones included, so each keeps its place whichever
+ * the delta uses (one missing from the list, which a valid file never has, goes first). One
+ * (or none) is the 2.4 delta.
+ */
+export function deltaLanes(
+  o: Pick<FitOptions, 'rows' | 'refBars'>,
+  reference: DeltaReference | null | undefined
+): readonly DeltaReference[] {
+  const shown = shownReferences(o)
+  const inUse = reference !== null && reference !== undefined && isReferenceId(reference)
+  if (shown.length === 0 || (shown.length === 1 && shown[0] === reference)) {
+    return inUse ? [reference] : shown
+  }
+  const order = o.refBars.map((e) => e.id).filter(isReferenceId)
+  const lanes = order.filter((id) => id === reference || shown.includes(id))
+  return inUse && !lanes.includes(reference) ? [reference, ...lanes] : lanes
+}
+
+/** The references of the three kinds of session (Settings): each one may be the one in use. */
+function sessionReferences(o: FitOptions): readonly (DeltaReference | null)[] {
+  const refs = [o.referencePractice, o.referenceQualify, o.referenceRace].filter(
+    (r): r is DeltaReference => r !== undefined
+  )
+  return refs.length > 0 ? refs : [null]
+}
+
+/** The head line is drawn when any part of the top line is shown. */
+function headOf(o: Pick<FitOptions, 'top'>): boolean {
+  return visibleIds(o.top).length > 0
+}
+
+/**
+ * The shape the options draw with the reference in use `reference`; with none given (Settings),
+ * the largest of the three sessions', so the window fits whichever is driven.
+ */
+export function deltaShapeOf(o: FitOptions, reference?: DeltaReference | null): DeltaShape {
+  const refs = reference === undefined ? sessionReferences(o) : [reference]
+  const lanes = Math.max(...refs.map((r) => deltaLanes(o, r).length))
+  const bars = lanes >= 2 ? 0 : shownReferences(o).length
+  return { lanes, head: lanes >= 2 && headOf(o), bars }
+}
+
+/**
+ * Em heights of the rows (DeltaWidget's .dl-multi): the panel's padding and slack, the head
+ * line with its gap (1.3 + 0.15), each row (1.9: a 1.6 em figure and its rule). The sectors and
+ * the lap times add as they do in the 2.4 delta.
+ */
+export const DELTA_MULTI_PAD_EM = 0.95
+export const DELTA_MULTI_HEAD_EM = 1.45
+export const DELTA_MULTI_ROW_EM = 1.9
+/** Em width of the rows: a name, a figure, the trend and a readable bar; 13 without the bar. */
+export const DELTA_MULTI_W = 21
+export const DELTA_MULTI_NOBAR_W = 13
+
+/** The fit of `lanes` rows (with the head line when `head`), the sectors and lap times shown. */
+export function deltaMultiFit(o: FitOptions, lanes: number, head: boolean): DeltaFit {
+  const shown = new Set(visibleIds(o.rows))
+  let h = DELTA_MULTI_PAD_EM + (head ? DELTA_MULTI_HEAD_EM : 0) + lanes * DELTA_MULTI_ROW_EM
+  if (shown.has('sectors')) h += DELTA_ROW_FIT_EM.sectors
+  if (shown.has('laps')) h += DELTA_ROW_FIT_EM.laps
+  const rows = shown.has('bar') ? DELTA_MULTI_W : DELTA_MULTI_NOBAR_W
+  const laps = shown.has('laps') ? (DELTA_LAPS_W[Math.min(4, visibleIds(o.laps).length)] ?? 0) : 0
+  return { h: Math.round(h * 100) / 100, w: Math.max(rows, laps) }
+}
+
+/**
+ * What a `w` x `h` px window draws of `shape` (two references or more). The text is fitted to
+ * the window, so everything fits until it reaches the floor `minText`: then the head line goes
+ * first, then rows from the end of your order (never the reference in use's, see lanesInRoom);
+ * one row left is the 2.4 delta of the reference in use. A window too short for any row
+ * (DELTA_SHORT_PX) draws that too. A single shape is drawn as it is.
+ */
+export function shapeInRoom(
+  o: FitOptions,
+  shape: DeltaShape,
+  w: number,
+  h: number,
+  minText: number
+): DeltaShape {
+  if (shape.lanes < 2 || !(w > 0) || !(h > 0)) return shape
+  if (h <= DELTA_SHORT_PX) return SINGLE
+  const font = textAt(deltaMultiFit(o, shape.lanes, shape.head), w, h, minText)
+  const fits = (lanes: number, head: boolean): boolean =>
+    deltaMultiFit(o, lanes, head).h * font <= h + 1e-6
+  if (fits(shape.lanes, shape.head)) return shape
+  for (let k = shape.lanes; k >= 2; k--) {
+    if (fits(k, false)) return { lanes: k, head: false, bars: 0 }
+  }
+  return SINGLE
+}
+
+/** The 2.4 delta, without small bars (a window too small for the rows). */
+const SINGLE: DeltaShape = Object.freeze({ lanes: 1, head: false, bars: 0 })
+
+/** One row per reference, in order, the one in use marked (the hero's value and trend). */
+export function laneViews(
+  lanes: readonly DeltaReference[],
+  reference: DeltaReference | null | undefined,
+  m: Messages
+): readonly RefBarView[] {
+  if (lanes.length === 0) return NO_REF_BARS
+  const captions = m.widgets.delta.bars
+  const names = referenceNames(m)
+  return lanes.map((id) => ({
+    id,
+    caption: captions[id],
+    name: names[id],
+    isRef: id === reference
+  }))
+}
+
+/**
+ * The rows drawn when only `fit` of `lanes` fit: barsInRoom's rule (the first in your order, the
+ * reference in use always among them).
+ */
+export const lanesInRoom = barsInRoom

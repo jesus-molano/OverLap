@@ -6,6 +6,7 @@ import {
   BAR_STEPS,
   TREND_OFF,
   TREND_ON,
+  barClassOf,
   barOverflow,
   barStep,
   createBarStyles,
@@ -14,6 +15,7 @@ import {
   deltaTone,
   fillTransform,
   formatDelta,
+  laneLabel,
   lapCounts,
   liveSectorDelta,
   predictedText,
@@ -354,5 +356,31 @@ describe('sectors', () => {
     expect(sectorDensity(5)).toBe('compact')
     expect(sectorDensity(7)).toBe('compact')
     expect(sectorDensity(12)).toBe('tight')
+  })
+})
+
+describe('the rows of several references', () => {
+  it('classes a bar by its sign, hatched beyond the scale', () => {
+    expect(barClassOf(-0.34, 1)).toBe('dl-bar--good')
+    expect(barClassOf(0.28, 1)).toBe('dl-bar--bad')
+    expect(barClassOf(0, 1)).toBe('dl-bar--idle')
+    expect(barClassOf(null, 1)).toBe('dl-bar--idle')
+    expect(barClassOf(-1.5, 1)).toBe('dl-bar--good dl-bar--over-left')
+    expect(barClassOf(2, 1)).toBe('dl-bar--bad dl-bar--over-right')
+  })
+
+  it('reads each row aloud: its name, its delta and its trend', () => {
+    expect(laneLabel('Récord personal', -0.34, 'gain', ES)).toBe(
+      `Récord personal: ${M}0.34, ganando`
+    )
+    expect(laneLabel('Óptima de clase', 0.28, 'loss', ES)).toBe('Óptima de clase: +0.28, perdiendo')
+    expect(laneLabel('Session best', 0, 'steady', EN)).toBe('Session best: 0.00')
+    expect(laneLabel('Vuelta óptima', null, 'steady', ES)).toBe('Vuelta óptima: —')
+  })
+
+  it('keeps each row its own hysteresis', () => {
+    // Two rows on the same trend, one coming from a gain: only that one stays a gain.
+    expect(trendKind(-0.015, 'gain')).toBe('gain')
+    expect(trendKind(-0.015, 'steady')).toBe('steady')
   })
 })
