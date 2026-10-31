@@ -30,7 +30,7 @@ fuera del asar, y solo se distribuye ese.
 ## Instalación y scripts
 
 ```bash
-npm install
+npm ci
 npm run dev:mock   # sin iRacing: carrera simulada
 npm run dev        # con iRacing abierto
 ```
@@ -186,7 +186,8 @@ en una sesión real.
 
 - 3 coches delante y 3 detrás por defecto (`relative.carsAhead` / `carsBehind`); si faltan coches se
   rellena con filas vacías para que tu fila quede centrada.
-- Cada fila incluye posición en clase, número, nombre, licencia, iRating y gap.
+- Cada fila incluye posición en clase, número, logo, bandera del país, nombre, iRating, licencia y
+  hueco.
 - **Personalizar** (Ajustes › Relativo, cada zona con su editor: arrastrar o ↑ ↓ para ordenar, el
   ojo para mostrar u ocultar, «Restablecer»):
   - **Columnas** (`relative.columns`, `RELATIVE_COLUMN_IDS`): posición, número, logo de la marca,
@@ -259,8 +260,8 @@ oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia a
   **bandera del país** (`countryFlags`), del bloque «Piloto»: de serie «Global» (`inherit`, lo de
   Apariencia: Auto y activada).
 - **Cabecera, segunda línea y pie** son barras de datos (`headerBar`, `subheaderBar`, `footerBar`,
-  cada una con su tamaño o «No»): sesión, lo que queda, hora local, SoF, coches, incidentes,
-  iRating en juego, SR proyectado, vuelta rápida de clase, combustible y las condiciones. Por
+  cada una con su tamaño o «No»): título, sesión, lo que queda, hora local, hora en pista, SoF,
+  coches, incidentes, iRating en juego, SR proyectado, vuelta rápida de clase, combustible y las condiciones. Por
   defecto, la cabecera con el título, la sesión y el SoF a la izquierda y tus incidentes y lo que
   queda a la derecha; la segunda línea (tu iRating en juego, la vuelta rápida de clase y tu SR)
   apagada en una instalación nueva (`subheaderBarSize: 'off'`); el pie de condiciones (pista, agua y
@@ -659,8 +660,9 @@ En Ajustes › Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
    (un panel por widget)                                         atajo
 ```
 
-Una sola ventana por pantalla: Chromium presenta más o menos una ventana por refresco, así que ocho
-ventanas que se actualizan a la vez se reparten los ~60 fps (unos 7 fps cada una); en un solo
+Una sola ventana por pantalla: Chromium presenta más o menos una ventana por refresco, así que once
+ventanas que se actualizan a la vez (una por widget) se reparten los ~60 fps (unos 5 fps cada
+una); en un solo
 documento todos los paneles van a la tasa de refresco.
 
 - **Telemetría** (`src/telemetry`, un `utilityProcess`): bucle a ~60 Hz que cede el event loop con
