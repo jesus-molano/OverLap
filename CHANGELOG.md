@@ -5,7 +5,7 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.5.3] - 2026-10-31
 
 ### Changed
 
@@ -19,6 +19,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - **About and help › Licence** says it in both languages (“Free to use, not open source”), and the
   **Source code** button is gone; **Licence** and **Third-party notices** stay. The version line
   reads “Free iRacing overlay, no account needed”.
+- **The app's code is obfuscated.** Now that OverLap is closed source, the shipped bundles are
+  obfuscated so the code cannot be read straight out of the installed files. Behaviour and
+  performance are unchanged.
 - Versions 2.4.2 to 2.5.2 were published under the GPL-3.0-or-later, and copies of those versions
   keep that licence and its rights.
 
@@ -1358,6 +1361,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.5.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.3
 [2.5.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.2
 [2.5.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.1
 [2.5.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.0
