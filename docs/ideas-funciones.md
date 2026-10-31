@@ -10,12 +10,16 @@
 >   información); el 8, en parte (tiempos de reparación en Testigos, «DAÑO» en Avisos, reparaciones
 >   rápidas en Combustible). De los candidatos: luces de cambio, juegos de neumáticos restantes,
 >   combustible preciso y un spotter visual (el widget Spotter).
-> - **Pendiente, sin construir:** el 7 (tira de pista), el 9 (ayuda para reincorporarte), el 10
->   (mapa 2D), el ayudante de boxes, «Si paro ahora», el delta oficial de iRacing, el uso de pianos,
->   detectar tirones, la ayuda de salida lanzada, «¿Reparo o sigo?», «Dónde le gano» (solo está la
->   fila de sectores de Batalla), los incidentes por curva, «Quién cae, quién viene» y el contador
->   de banderas.
-> - **Descartado:** lo de la sección 4, que sigue igual.
+> - **Pendiente, sin construir:** el 7 (tira de pista), el 9 (ayuda para reincorporarte), el
+>   ayudante de boxes, «Si paro ahora», el delta oficial de iRacing, la media de vueltas limpias de
+>   iRacing, el uso de pianos, detectar tirones por paginación de memoria (el «Tirón» de los dos
+>   extras), la ayuda de salida lanzada, «¿Reparo o sigo?», «Dónde le gano» (solo está la fila de
+>   sectores de Batalla), los incidentes por curva, «Quién cae, quién viene», el ocultado
+>   inteligente según el momento de la carrera (hoy solo hay reglas por tipo de sesión y en boxes)
+>   y el contador de banderas.
+> - **Descartado o fuera de alcance:** lo de la sección 4, que sigue igual; y el mapa, tanto el 10
+>   (mapa 2D aprendido) como el mapa exacto desde tu `.ibt` de la sección 1, fuera de alcance por
+>   ahora (ver «Notas y limitaciones» en las [notas de desarrollo](README.dev.md)).
 
 Fecha: 25-10-2026. En qué se basa este informe:
 
