@@ -22,6 +22,7 @@ import { injectSampleHost, useNoRoomReport } from '@renderer/composables/widgetC
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
+import DriverPart from '@renderer/ui/DriverPart.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import IRating from '@renderer/ui/IRating.vue'
 import LapTime from '@renderer/ui/LapTime.vue'
@@ -119,6 +120,7 @@ const cols = computed<RelativeColumns>((prev) => {
     flags: block.value.showFlags,
     brand: brands.value,
     country: block.value.countryFlags,
+    numberStyle: appearance.value.numberStyle,
     irEm: iRatingColumnEm(
       block.value.iRatingFormat,
       block.value.iRatingColor,
@@ -130,7 +132,7 @@ const cols = computed<RelativeColumns>((prev) => {
 const headViews = computed<readonly RelativeHeadView[]>((prev) =>
   reuseViews(
     prev,
-    relativeHeads(cols.value.cells, appearance.value.licenseStyle, t.value, race.value)
+    relativeHeads(cols.value.tracks, appearance.value.licenseStyle, t.value, race.value)
   )
 )
 
@@ -210,7 +212,7 @@ if (injectSampleHost() !== null) {
             :class="slot.css"
           >
             <template v-if="slot.kind === 'car'">
-              <template v-for="cell in cols.cells" :key="cell">
+              <template v-for="cell in cols.tracks" :key="cell">
                 <span v-if="cell === 'pos'" class="c-pos" data-el="relative.columns.pos">{{
                   slot.pos
                 }}</span>
@@ -225,10 +227,25 @@ if (injectSampleHost() !== null) {
                   :lap="slot.lap"
                   :brand="cols.brand ? slot.brand : undefined"
                   :country="cols.country ? slot.country : undefined"
+                  :before="cols.before"
+                  part-el="relative.columns"
+                  :penalty="slot.penalty"
                 >
-                  <span v-if="cols.flags && slot.penalty" class="rl-flag"
-                    ><PenaltyIcon :penalty="slot.penalty"
-                  /></span>
+                  <!-- The parts placed after the name (request 11), the penalty flag as always. -->
+                  <template v-for="part in cols.after" :key="part">
+                    <span v-if="part === 'flags' && slot.penalty" class="rl-flag"
+                      ><PenaltyIcon :penalty="slot.penalty"
+                    /></span>
+                    <DriverPart
+                      v-else-if="part !== 'flags'"
+                      :part="part"
+                      :number="slot.number"
+                      :lap="slot.lap"
+                      :brand="slot.brand"
+                      :country="slot.country"
+                      :data-el="`relative.columns.${part}`"
+                    />
+                  </template>
                   <template v-if="cols.pitInline">
                     <Badge v-if="slot.towed" class="rl-pit" tone="warn">{{
                       t.widgets.common.tow
@@ -236,6 +253,18 @@ if (injectSampleHost() !== null) {
                     <Badge v-else-if="slot.inPits" class="rl-pit">{{ t.widgets.common.pit }}</Badge>
                   </template>
                 </DriverCell>
+                <span v-else-if="cell === 'number'" class="c-num" data-el="relative.columns.number"
+                  ><DriverPart part="number" :number="slot.number" :lap="slot.lap"
+                /></span>
+                <span v-else-if="cell === 'brand'" class="c-brand" data-el="relative.columns.brand"
+                  ><DriverPart part="brand" :brand="slot.brand"
+                /></span>
+                <span
+                  v-else-if="cell === 'country'"
+                  class="c-country"
+                  data-el="relative.columns.country"
+                  ><DriverPart part="country" :country="slot.country"
+                /></span>
                 <span v-else-if="cell === 'pit'" class="c-pit" data-el="relative.columns.pit"
                   ><Badge v-if="slot.towed" tone="warn">{{ t.widgets.common.tow }}</Badge
                   ><Badge v-else-if="slot.inPits">{{ t.widgets.common.pit }}</Badge></span
@@ -388,9 +417,12 @@ if (injectSampleHost() !== null) {
   box-shadow: none;
 }
 
-/* Dim the content, not the row, so the striping stays even; the PIT badge and flag stay bright. */
+/*
+ * Dim the content, not the row, so the striping stays even; the PIT badge and the flags stay
+ * bright (in the name's cell too: their slot before the name).
+ */
 .rl-row.is-pits > :not(.c-driver):not(.c-flags),
-.rl-row.is-pits > .c-driver > :deep(:not(.rl-pit):not(.rl-flag)) {
+.rl-row.is-pits > .c-driver > :deep(:not(.rl-pit):not(.rl-flag):not(.ov-dpart--flags)) {
   opacity: var(--ov-o-dim);
 }
 
@@ -419,6 +451,16 @@ if (injectSampleHost() !== null) {
 }
 
 .c-driver {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The driver's parts in columns of their own (request 11): at the start, as in the name's cell. */
+.c-num,
+.c-brand,
+.c-country {
+  display: flex;
+  align-items: center;
   min-width: 0;
   overflow: hidden;
 }

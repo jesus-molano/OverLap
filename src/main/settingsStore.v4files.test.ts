@@ -183,10 +183,14 @@ describe('a customised v4 file', () => {
 
   it('turns the relative’s switches into its columns and bars', () => {
     const r = load(CUSTOM_V4).settings.relative
+    // The row's start (request 11) and the penalty flags after the name, as they were drawn.
     expect(ids(r.columns)).toEqual([
       '-pos',
+      'number',
+      'brand',
+      'country',
       'driver',
-      '-flags',
+      'flags',
       'ir',
       '-lic',
       '-pit',
@@ -216,7 +220,19 @@ describe('a customised v4 file', () => {
 
   it('keeps the standings’ columns in their order and turns the header switches into bars', () => {
     const s = load(CUSTOM_V4).settings.standings
-    expect(ids(s.columns).slice(0, 5)).toEqual(['-flags', 'gap', '-gained', 'ir', 'lic'])
+    // The row's start in front (request 11), then the file's own order.
+    expect(ids(s.columns).slice(0, 10)).toEqual([
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'gap',
+      '-gained',
+      'ir',
+      'lic'
+    ])
     expect(s.columns.find((c) => c.id === 'delta')?.visible).toBe(true)
     expect(s.columns.find((c) => c.id === 'tyre')?.visible).toBe(true)
     const shown = (list: readonly ElementEntry[], id: string): boolean | undefined =>
@@ -308,8 +324,11 @@ describe('a hand-edited v4 file', () => {
     // A non-boolean switch reads as unset: the column keeps its default.
     expect(ids(s.relative.columns)).toEqual([
       'pos',
+      'number',
+      'brand',
+      'country',
       'driver',
-      '-flags',
+      'flags',
       'ir',
       'lic',
       '-pit',

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { formatDriverName } from '@shared/format'
-import type { AppearanceSettings, NameFormat } from '@shared/types'
+import type { DriverPartId } from '@shared/rowHead'
+import type { AppearanceSettings, CarPenalty, NameFormat } from '@shared/types'
 import { useAppearance } from '../composables/useAppearance'
 import { vInlineStyle } from '../directives/inlineStyle'
 import type { InlineStyle } from '../view/styles'
@@ -9,6 +10,7 @@ import type { BrandId } from '@shared/carBrands'
 import BrandMark from './BrandMark.vue'
 import ClassStripe from './ClassStripe.vue'
 import CountryFlag from './CountryFlag.vue'
+import DriverPart from './DriverPart.vue'
 import IRating from './IRating.vue'
 import LicenseChip from './LicenseChip.vue'
 import NumberBadge from './NumberBadge.vue'
@@ -49,6 +51,15 @@ const props = withDefaults(
     /** The iR's and the licence's `data-el' (the battle's parts), for the settings preview. */
     ratingEl?: string
     licenseEl?: string
+    /**
+     * A table's parts before the name, in its columns' order (request 11, shared/rowHead.ts);
+     * absent, the number, the make and the flag as always. Each part's `data-el` is
+     * `${partEl}.${part}` ('relative.columns.number').
+     */
+    before?: readonly DriverPartId[]
+    partEl?: string
+    /** The penalty flag, for a 'flags' part before the name. */
+    penalty?: CarPenalty | null
   }>(),
   { nameUnknown: false, lap: null, player: false, withRating: false, withLicense: false }
 )
@@ -71,15 +82,31 @@ const shownName = computed(() =>
       'ov-driver--lap-behind': lap === 'behind'
     }"
   >
-    <ClassStripe v-if="numStyle === 'stripe'" />
-    <NumberBadge
-      v-if="number"
-      :number="number"
-      :variant="numStyle === 'stripe' ? 'plain' : 'filled'"
-      :lap="lap"
-    />
-    <BrandMark v-if="brand !== undefined" :brand="brand" />
-    <CountryFlag v-if="country !== undefined" :code="country" />
+    <template v-if="before">
+      <DriverPart
+        v-for="part in before"
+        :key="part"
+        :part="part"
+        :number="number"
+        :number-style="numStyle"
+        :lap="lap"
+        :brand="brand"
+        :country="country"
+        :penalty="penalty ?? null"
+        :data-el="partEl ? `${partEl}.${part}` : undefined"
+      />
+    </template>
+    <template v-else>
+      <ClassStripe v-if="numStyle === 'stripe'" />
+      <NumberBadge
+        v-if="number"
+        :number="number"
+        :variant="numStyle === 'stripe' ? 'plain' : 'filled'"
+        :lap="lap"
+      />
+      <BrandMark v-if="brand !== undefined" :brand="brand" />
+      <CountryFlag v-if="country !== undefined" :code="country" />
+    </template>
     <span class="ov-driver__name">{{ shownName }}</span>
     <slot />
     <span v-if="withRating && iRating" class="ov-driver__ir" :data-el="ratingEl"

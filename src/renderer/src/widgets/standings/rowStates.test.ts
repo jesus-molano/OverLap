@@ -52,7 +52,9 @@ describe('standings row states', () => {
       cells.filter((c) => !['c-pit', 'c-driver', 'c-flags'].includes(c)).sort()
     )
     // The driver's plate and name step back too, its state icons stay.
-    expect(selectors).toContain('.is-pits > .c-driver > :deep(:not(.sd-icons))')
+    expect(selectors).toContain(
+      '.is-pits > .c-driver > :deep(:not(.sd-icons):not(.ov-dpart--flags))'
+    )
   })
 
   it('dims every cell of a disconnected car', () => {

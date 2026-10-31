@@ -26,7 +26,7 @@ const BAR_EXTRAS = ['conditionsTrend', 'conditionsWindDirection'] as const
  */
 const CUSTOMIZE_EXTRAS: Readonly<Partial<Record<WidgetId, readonly string[]>>> = {
   relative: ['columnHeads'],
-  standings: ['columnHeads', 'iRatingDeltaAll', 'showPosition', 'gapMode'],
+  standings: ['columnHeads', 'iRatingDeltaAll', 'gapMode'],
   traffic: ['captions'],
   // The shift lights' row, the trace's and the wheel's options in their rows, the pedals'
   // colours (R12): Pedales has no «Contenido».

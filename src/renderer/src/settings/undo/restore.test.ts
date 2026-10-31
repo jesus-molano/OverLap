@@ -111,7 +111,8 @@ describe('resets with "Deshacer"', () => {
     expect(custom.gapMode).toBe('interval')
     const cols = custom.columns as { id: string; visible: boolean }[]
     expect(cols.find((c) => c.id === 'gapLeader')?.visible).toBe(false)
-    expect(custom.showPosition).toBe(true)
+    // The position is a column since request 11: back with the list.
+    expect(cols.find((c) => c.id === 'pos')?.visible).toBe(true)
   })
 
   it('brings a free-size widget «Escala» back with its window section', async () => {

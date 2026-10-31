@@ -177,6 +177,7 @@ const SAME_IN_ENGLISH = new Set([
   'widgets.incidents.added',
   // Column headers: codes and the international shorthand.
   'widgets.heads.pos',
+  'widgets.heads.number',
   'widgets.heads.gained',
   'widgets.heads.ir',
   'widgets.heads.sr',

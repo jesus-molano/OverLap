@@ -445,6 +445,8 @@ export const widgetsEs = {
    */
   heads: {
     pos: 'POS',
+    /** The car's number in a column of its own (request 11). */
+    number: '#',
     driver: 'PILOTO',
     gained: '±',
     ir: 'iR',
@@ -768,6 +770,7 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
   },
   heads: {
     pos: 'POS',
+    number: '#',
     driver: 'DRIVER',
     gained: '±',
     ir: 'iR',

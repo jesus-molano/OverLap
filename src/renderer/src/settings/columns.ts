@@ -9,30 +9,71 @@
  * - turning on "iRating en juego de todos" also shows the 'delta' column, which would otherwise
  *   leave the option without any visible effect; hiding the column turns it off.
  */
+import { driverBlock, type DriverBlockGlobals, type DriverBlockOptions } from '@shared/driverBlock'
 import { setElementVisible } from '@shared/elements'
 import type { Messages } from '@shared/i18n'
+import { BLOCK_PARTS, type BlockPartId } from '@shared/rowHead'
 import type {
   ElementEntry,
   StandingsColumn,
   StandingsColumnId,
   StandingsOptions
 } from '@shared/types'
+import {
+  brandChoicesInherit,
+  flagChoicesInherit,
+  toFlagChoice,
+  type FlagChoice
+} from './controls/choices'
 import type { ElementChange } from './elements/listOps'
 
+/** A list row whose part the «Piloto» block shows or hides (ElementEditor's `linked`). */
+export interface LinkedRow {
+  /** The block draws it (its own value or Apariencia's). */
+  readonly on: boolean
+  /** Where it is switched, for the row's mark. */
+  readonly title: string
+  /** Where it is switched and how it is now: «Se muestra u oculta en «Piloto»: Global (Sí)». */
+  readonly hint: string
+}
+
 /**
- * Keys of the fixed left block, listed (locked) above the editable columns: the position and the
- * driver (its number with it, as in the relative's «Piloto», R10).
+ * The tables' rows of the parts the «Piloto» block shows or hides (request 11): the logo, the
+ * driver's flag and the penalty flags (shared/rowHead.ts BLOCK_PARTS). Each says the block's
+ * value as its row there reads it, and whether that draws it. Their eye is the block's row: the
+ * list only places them.
  */
-export const FIXED_COLUMN_KEYS = ['pos', 'name'] as const
-
-export type FixedColumnKey = (typeof FIXED_COLUMN_KEYS)[number]
-
-/** The fixed left block, worded by `m`, each with why it does not move. */
-export function fixedColumns(
-  m: Messages
-): readonly { readonly key: FixedColumnKey; readonly label: string; readonly hint: string }[] {
-  const { fixed, fixedHints } = m.settings.columns
-  return FIXED_COLUMN_KEYS.map((key) => ({ key, label: fixed[key], hint: fixedHints[key] }))
+export function linkedParts(
+  m: Messages,
+  own: Partial<DriverBlockOptions>,
+  globals: DriverBlockGlobals,
+  parts: readonly BlockPartId[] = BLOCK_PARTS
+): Partial<Record<BlockPartId, LinkedRow>> {
+  const drawn = driverBlock(own, globals)
+  const c = m.settings.columns
+  const label = <V>(choices: readonly { value: V; label: string }[], value: V): string =>
+    choices.find((o) => o.value === value)?.label ?? ''
+  const flag = (v: boolean | 'inherit' | undefined): FlagChoice => toFlagChoice(v ?? 'inherit')
+  const values: Record<BlockPartId, readonly [string, boolean]> = {
+    brand: [
+      label(brandChoicesInherit(m, globals.brandMarks), own.brandMarks ?? 'inherit'),
+      drawn.brandMarks !== 'off'
+    ],
+    country: [
+      label(flagChoicesInherit(m, globals.countryFlags), flag(own.countryFlags)),
+      drawn.countryFlags
+    ],
+    flags: [
+      label(flagChoicesInherit(m, globals.penaltyFlags), flag(own.showFlags)),
+      drawn.showFlags
+    ]
+  }
+  const out: Partial<Record<BlockPartId, LinkedRow>> = {}
+  for (const id of parts) {
+    const [value, on] = values[id]
+    out[id] = { on, title: c.inBlockTitle, hint: c.inBlock(value) }
+  }
+  return out
 }
 
 export function setColumnVisible(

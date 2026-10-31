@@ -12,7 +12,8 @@ import {
   flagEm,
   rowWidthEm,
   withoutRoom,
-  type ColumnPrefs
+  type ColumnPrefs,
+  type Columns
 } from './columns'
 import { allColumns, defaultColumns } from './testing/rows'
 
@@ -46,10 +47,23 @@ describe('the 10 px text floor (R15)', () => {
   })
 })
 
+/** The row's start (request 11): never dropped, only the decorations among it go. */
+const HEAD: readonly string[] = ['pos', 'number', 'brand', 'country', 'driver']
+
+/** The columns after the row's start, in tracks of their own: what `cells` was before request 11. */
+function right(c: Columns): StandingsColumnId[] {
+  return c.tracks.filter((id) => !HEAD.includes(id))
+}
+
+/** The columns placed anywhere but after the name: what the width can take away (or move). */
+function placed(c: Columns): StandingsColumnId[] {
+  return [...c.before, ...c.tracks].filter((id) => !HEAD.includes(id)) as StandingsColumnId[]
+}
+
 /** Wanted columns missing at `widthPx`, listed in DROP_ORDER (anything else sorts first). */
 function dropped(p: ColumnPrefs, widthPx: number, fontPx = 13): string[] {
-  const all = fitColumns(p, 0, fontPx).cells
-  const kept = fitColumns(p, widthPx, fontPx).cells
+  const all = placed(fitColumns(p, 0, fontPx))
+  const kept = placed(fitColumns(p, widthPx, fontPx))
   const order: readonly string[] = DROP_ORDER
   return all.filter((id) => !kept.includes(id)).sort((a, b) => order.indexOf(a) - order.indexOf(b))
 }
@@ -57,7 +71,7 @@ function dropped(p: ColumnPrefs, widthPx: number, fontPx = 13): string[] {
 describe('fitColumns', () => {
   it('gives the name at least 10 em at 460 px and 13 px, the best lap going first', () => {
     const c = fitColumns(prefs(), 460, 13)
-    expect(c.cells).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'pit'])
+    expect(right(c)).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'pit'])
     expect(c.nameEm).toBeGreaterThanOrEqual(10)
     expect(c.numberStyle).toBe('chip')
     expect(c.pitInline).toBe(false)
@@ -65,7 +79,7 @@ describe('fitColumns', () => {
 
   it('fits every default column, the best lap included, at the default 540 px', () => {
     const c = fitColumns(prefs(), 540, 13)
-    expect(c.cells).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'best', 'pit'])
+    expect(right(c)).toEqual(['gained', 'ir', 'lic', 'gap', 'last', 'best', 'pit'])
     expect(c.nameEm).toBeGreaterThanOrEqual(NAME_MIN_EM)
   })
 
@@ -80,7 +94,7 @@ describe('fitColumns', () => {
     const order: StandingsColumnId[] = ['gap', 'last', 'best', 'pit', 'lic', 'ir', 'gained']
     const columns = defaultColumns().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
     const c = fitColumns(prefs({ columns }), 600, 13)
-    expect(c.cells).toEqual(order)
+    expect(right(c)).toEqual(order)
     // Position, name (1fr), then one fixed track per cell.
     expect(c.template.startsWith('1.7em minmax(0, 1fr) ')).toBe(true)
     expect(c.template.split(' ').filter((t) => t.endsWith('em'))).toHaveLength(1 + order.length)
@@ -109,38 +123,42 @@ describe('fitColumns', () => {
     ]
     for (const order of orders) {
       const p = prefs({ columns: allColumns(order), iRatingDeltaAll: true, penalties: true })
+      // The penalty flags after the name are where they go anyway: only placed ones move there.
+      const drops = DROP_ORDER.filter((id) => placed(fitColumns(p, 0, 13)).includes(id))
       let prev: string[] = []
       for (let w = 900; w >= 200; w -= 5) {
         const d = dropped(p, w)
         // Always a prefix of DROP_ORDER, growing as the width shrinks.
-        expect(d).toEqual(DROP_ORDER.slice(0, d.length))
+        expect(d).toEqual(drops.slice(0, d.length))
         expect(d.slice(0, prev.length)).toEqual(prev)
         prev = d
       }
-      expect(prev).toEqual([...DROP_ORDER])
-      expect(fitColumns(p, 200, 13).cells).toEqual(['gap'])
+      expect(prev).toEqual(drops)
+      expect(right(fitColumns(p, 200, 13))).toEqual(['gap'])
     }
   })
 
-  it('draws the penalty flags in their column when shown, else after the name', () => {
-    const shown = defaultColumns().map((c) => (c.id === 'flags' ? { ...c, visible: true } : c))
-    const on = fitColumns(prefs({ columns: shown, penalties: true }), 900, 13)
-    expect(on.cells[0]).toBe('flags')
-    expect(on.flagsInline).toBe(false)
-    // Hidden (the default): after the name, as before the column existed.
+  it('draws the penalty flags where the list puts them: after the name by default', () => {
+    // Right after the name (the default): after its text, as before request 11.
     const off = fitColumns(prefs({ penalties: true }), 900, 13)
-    expect(off.cells).not.toContain('flags')
+    expect(off.after).toEqual(['flags'])
+    expect(off.tracks).not.toContain('flags')
     expect(off.flagsInline).toBe(true)
+    // Set apart from the name (after the gap here): a column of their own.
+    const apart = order(['gap', 'flags'])
+    const on = fitColumns(prefs({ columns: apart, penalties: true }), 900, 13)
+    expect(right(on).indexOf('flags')).toBe(right(on).indexOf('gap') + 1)
+    expect(on.flagsInline).toBe(false)
     expect(off.key).not.toBe(on.key)
-    // The «Piloto» block's switch off: neither.
-    const none = fitColumns(prefs({ columns: shown, penalties: false }), 900, 13)
+    // The «Piloto» block's switch off: nowhere.
+    const none = fitColumns(prefs({ columns: apart, penalties: false }), 900, 13)
     expect(none.cells).not.toContain('flags')
     expect(none.flagsInline).toBe(false)
-    // Too narrow for the column: the flags go back after the name, never lost.
-    const narrow = fitColumns(prefs({ columns: shown, penalties: true }), 300, 13)
-    expect(narrow.cells).not.toContain('flags')
+    // Too narrow for their column: they go after the name, never lost.
+    const narrow = fitColumns(prefs({ columns: apart, penalties: true }), 300, 13)
+    expect(narrow.tracks).not.toContain('flags')
     expect(narrow.flagsInline).toBe(true)
-    expect(withoutRoom(prefs({ columns: shown, penalties: true }), narrow).columns).not.toContain(
+    expect(withoutRoom(prefs({ columns: apart, penalties: true }), narrow).columns).not.toContain(
       'flags'
     )
   })
@@ -186,7 +204,7 @@ describe('fitColumns', () => {
 
   it('keeps every wanted column before the window is measured', () => {
     const c = fitColumns(prefs({ columns: allColumns(), iRatingDeltaAll: true }), 0, 13)
-    expect(c.cells).toHaveLength(12)
+    expect(right(c)).toHaveLength(12)
     expect(c.numberStyle).toBe('chip')
   })
 
@@ -264,9 +282,10 @@ describe('fitColumns: the make and the flag', () => {
 
   it('keeps today’s default columns at the default width with both on', () => {
     // 540 px at 13 px: the default standings window; every default column stays.
-    const plain = fitColumns(prefs(), 540, 13).cells
+    const plain = right(fitColumns(prefs(), 540, 13))
     const c = fitColumns(prefs({ brand: true, flag: true }), 540, 13)
-    expect(c.cells).toEqual(plain)
+    expect(right(c)).toEqual(plain)
+    expect(c.before[0]).toBe('number')
   })
 
   it('never draws them on a bare stripe, nor before the window is measured if not wanted', () => {
@@ -365,11 +384,12 @@ describe('withoutRoom', () => {
   })
 })
 
-describe('the position track (showPosition, R10)', () => {
+describe('the position track (R10: its eye in the list since request 11)', () => {
   it('drops the position track and gives its width to the name', () => {
     // Wide enough for every column either way.
     const on = fitColumns(prefs(), 1200, 13)
-    const off = fitColumns(prefs({ pos: false }), 1200, 13)
+    const hidden = defaultColumns().map((c) => (c.id === 'pos' ? { ...c, visible: false } : c))
+    const off = fitColumns(prefs({ columns: hidden }), 1200, 13)
     expect(on.pos).toBe(true)
     expect(off.pos).toBe(false)
     expect(off.template.startsWith('minmax(0, 1fr)')).toBe(true)
@@ -388,5 +408,75 @@ describe('the iRating column’s width (request 10)', () => {
     expect(wide.template).not.toBe(today.template)
     expect(wide.template).toContain('3.4em')
     expect(wide.key).not.toBe(today.key)
+  })
+})
+
+/** The default list with `ids` moved to the end, in that order. */
+function order(ids: readonly StandingsColumnId[]): ReturnType<typeof defaultColumns> {
+  const rest = defaultColumns().filter((c) => !ids.includes(c.id))
+  const moved = ids.map((id) => ({ id, visible: true }))
+  return [...rest, ...moved]
+}
+
+describe('the row’s start as columns (request 11)', () => {
+  const at = (ids: readonly StandingsColumnId[]): ReturnType<typeof defaultColumns> =>
+    ids.map((id) => ({ id, visible: true }))
+
+  it('draws today’s row from the default list: the number, the make and the flag with the name', () => {
+    const c = fitColumns(prefs({ brand: true, flag: true, penalties: true }), 900, 13)
+    expect(c.tracks.slice(0, 3)).toEqual(['pos', 'driver', 'gained'])
+    expect(c.before).toEqual(['number', 'brand', 'country'])
+    expect(c.after).toEqual(['flags'])
+    expect(c.template.startsWith('1.7em minmax(0, 1fr) ')).toBe(true)
+  })
+
+  it('puts a column between the position and the number: the number starts the name’s cell', () => {
+    const cols = at(['pos', 'gained', 'number', 'flags', 'brand', 'country', 'driver', 'gap'])
+    const c = fitColumns(
+      prefs({ columns: cols, brand: true, flag: true, penalties: true }),
+      900,
+      13
+    )
+    expect(c.tracks).toEqual(['pos', 'gained', 'driver', 'gap'])
+    // The penalty flags between the number and the make: their slot in the name's cell.
+    expect(c.before).toEqual(['number', 'flags', 'brand', 'country'])
+    expect(c.flagsInline).toBe(false)
+  })
+
+  it('gives a part set apart from the name a track of its own, as wide as its slot', () => {
+    const cols = at(['number', 'pos', 'gained', 'driver', 'country', 'gap'])
+    const c = fitColumns(prefs({ columns: cols, flag: true }), 900, 13)
+    expect(c.tracks).toEqual(['number', 'pos', 'gained', 'driver', 'gap'])
+    // The flag right after the name follows it, in its cell.
+    expect(c.after).toEqual(['country'])
+    expect(c.template.split(' ')[0]).toBe('1.85em')
+    // The same parts, the name keeps the same room within a column's gap.
+    const today = fitColumns(
+      prefs({ columns: at(['pos', 'number', 'driver', 'gained', 'country', 'gap']), flag: true }),
+      900,
+      13
+    )
+    expect(Math.abs(today.nameEm - c.nameEm)).toBeLessThan(0.2)
+  })
+
+  it('hides the number and the position by their eye; the make and the flag by the block', () => {
+    const cols = at(['pos', 'number', 'brand', 'country', 'driver', 'gap']).map((e) =>
+      e.id === 'number' || e.id === 'pos' ? { ...e, visible: false } : e
+    )
+    const c = fitColumns(prefs({ columns: cols, brand: false, flag: true }), 900, 13)
+    expect(c.cells).toEqual(['country', 'driver', 'gap'])
+    expect(c.pos).toBe(false)
+    // The name is always drawn, even from a list without it.
+    expect(fitColumns(prefs({ columns: at(['gap']) }), 900, 13).cells).toEqual(['driver', 'gap'])
+  })
+
+  it('drops the make and the flag wherever they are, the number staying', () => {
+    const cols = at(['pos', 'brand', 'gained', 'number', 'driver', 'country', 'gap', 'last'])
+    const p = prefs({ columns: cols, brand: true, flag: true })
+    const narrow = fitColumns(p, 220, 13)
+    expect(narrow.cells).not.toContain('brand')
+    expect(narrow.cells).not.toContain('country')
+    expect(narrow.cells).toContain('number')
+    expect(withoutRoom(p, narrow).columns).toEqual(expect.arrayContaining(['brand', 'country']))
   })
 })

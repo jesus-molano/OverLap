@@ -8,8 +8,8 @@ import {
   columnsEditPatch,
   deltaAllDroppedAfter,
   deltaAllPatch,
-  fixedColumns,
   gapModePatch,
+  linkedParts,
   isColumnVisible,
   matchSharedColumns,
   setColumnVisible
@@ -32,14 +32,33 @@ describe('visibility', () => {
   })
 })
 
-describe('fixedColumns', () => {
-  it('lists the fixed left block in both languages', () => {
-    expect(fixedColumns(messagesFor('es')).map((c) => c.label)).toEqual(['Posición', 'Piloto'])
-    expect(fixedColumns(messagesFor('en')).map((c) => c.label)).toEqual(['Position', 'Driver'])
-    expect(fixedColumns(messagesFor('es')).map((c) => c.key)).toEqual(['pos', 'name'])
-    // The number is the driver's, as in the relative (R10); why they do not move, said.
-    expect(fixedColumns(messagesFor('es'))[1]?.hint).toContain('número')
-    expect(fixedColumns(messagesFor('es'))[0]?.hint).toContain('al principio de la fila')
+describe('linkedParts (request 11)', () => {
+  const globals = createDefaultSettings().appearance
+
+  it('says where the logo and the flags are shown or hidden, and how they are now', () => {
+    const es = linkedParts(messagesFor('es'), { brandMarks: 'inherit' }, globals)
+    expect(Object.keys(es)).toEqual(['brand', 'country', 'flags'])
+    expect(es.brand?.hint).toBe(`Se muestra u oculta en «Piloto»: Global (Auto)`)
+    expect(es.brand?.on).toBe(true)
+    expect(es.flags?.title).toBe('Se muestra u oculta en «Piloto»')
+    const en = linkedParts(messagesFor('en'), {}, globals)
+    expect(en.country?.hint.startsWith('Shown or hidden in “Driver”: ')).toBe(true)
+  })
+
+  it('follows the block: its own value, else Apariencia’s', () => {
+    const off = linkedParts(
+      messagesFor('es'),
+      { brandMarks: 'off', countryFlags: false, showFlags: 'inherit' },
+      { ...globals, penaltyFlags: false }
+    )
+    expect(off.brand).toMatchObject({ on: false, hint: 'Se muestra u oculta en «Piloto»: Nunca' })
+    expect(off.country).toMatchObject({ on: false, hint: 'Se muestra u oculta en «Piloto»: No' })
+    expect(off.flags).toMatchObject({
+      on: false,
+      hint: 'Se muestra u oculta en «Piloto»: Global (No)'
+    })
+    // Only the parts a list has (Tráfico: the penalty flags).
+    expect(Object.keys(linkedParts(messagesFor('es'), {}, globals, ['flags']))).toEqual(['flags'])
   })
 })
 
@@ -198,5 +217,24 @@ describe('matchSharedColumns (R10: «Igualar con…»)', () => {
   it('changes nothing when both already agree', () => {
     const a = L('pos driver ir lic -pit -tyre -stint gap')
     expect(matchSharedColumns(a, a)).toEqual(a)
+  })
+})
+
+describe('«Igualar con…» carries the row’s start (request 11)', () => {
+  const L = <T extends string>(spec: string): { id: T; visible: boolean }[] =>
+    spec.split(' ').map((s) => ({ id: s.replace('-', '') as T, visible: !s.startsWith('-') }))
+
+  it('places the position, the number, the make, the flags and the name as the other table', () => {
+    // Posiciones: «Puestos ganados» between the position and the number, the flags after it.
+    const standings = L('pos gained number flags brand country driver ir lic gap last best pit')
+    const relative = L('pos number brand country driver flags ir lic gap -last -pit -stint -tyre')
+    expect(matchSharedColumns(relative, standings)).toEqual(
+      L('pos number flags brand country driver ir lic gap last pit -stint -tyre')
+    )
+    // And back: the relative's hidden position goes to the standings with its eye.
+    const hidden = L('-pos country number brand driver flags ir lic gap -last -pit -stint -tyre')
+    expect(matchSharedColumns(standings, hidden).slice(0, 7)).toEqual(
+      L('-pos gained country number brand driver flags')
+    )
   })
 })

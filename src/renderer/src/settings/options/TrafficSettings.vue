@@ -2,12 +2,14 @@
 import { computed } from 'vue'
 import { isElementVisible } from '@shared/elements'
 import { OPTION_SCHEMA, type NumericSpec } from '@shared/settingsSchema'
+import { useAppearance } from '../../composables/useAppearance'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
 import { behaviourNote } from '../controls/previewNote'
 import SliderControl from '../controls/SliderControl.vue'
 import StepperControl from '../controls/StepperControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
+import { linkedParts } from '../columns'
 import { listSetter, optionSetter, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
 import InfoBarEditor from '../elements/InfoBarEditor.vue'
@@ -19,6 +21,7 @@ import { formatSeconds } from '../values'
 import { previewTrafficField, type TrafficPreviewField } from '../../widgets/traffic/preview'
 
 const opts = useOptions('traffic')
+const appearance = useAppearance()
 const t = useI18n()
 
 /** Acts during the session only: the same note as every such option (PreviewNote). */
@@ -76,8 +79,9 @@ const parts = computed(() => {
   const l = elementTexts(t.value, 'traffic', 'parts')
   return {
     title: zoneTitle(t.value, 'traffic', 'parts'),
-    // The flags worded as the tables' «Banderas» column.
-    labels: { ...l, flags: { label: l.flags.label, hint: t.value.settings.columns.hints.flags } }
+    labels: l,
+    // The penalty flags as the tables' (request 11): shown or hidden in «Piloto», placed here.
+    linked: linkedParts(t.value, opts.value, appearance.value, ['flags'])
   }
 })
 /**
@@ -188,6 +192,7 @@ const setParts = listSetter('traffic', 'parts')
       :items="opts.parts"
       :spec="S.parts"
       :labels="parts.labels"
+      :linked="parts.linked"
       :apply="setParts"
     />
     <InfoBarEditor section="traffic" field="headerBar" />

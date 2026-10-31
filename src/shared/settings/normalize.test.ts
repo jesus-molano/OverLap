@@ -146,11 +146,26 @@ const FOOTER_BEFORE: readonly InfoBarEntryId[] = [
 const DEFAULT_RELATIVE: RelativeOptions = {
   carsAhead: 3,
   carsBehind: 3,
-  // iRating then licence, the gap before the hidden PIT (its badge after the name), stint and
-  // tyre, in the standings' order (R10).
+  // The row's start as columns (request 11), the penalty flags after the name; iRating then
+  // licence, the gap before the hidden PIT (its badge after the name), stint and tyre, in the
+  // standings' order (R10).
   columns: list(
-    ['pos', 'driver', 'flags', 'ir', 'lic', 'gap', 'last', 'pit', 'stint', 'tyre'],
-    ['flags', 'last', 'pit', 'tyre', 'stint']
+    [
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'ir',
+      'lic',
+      'gap',
+      'last',
+      'pit',
+      'stint',
+      'tyre'
+    ],
+    ['last', 'pit', 'tyre', 'stint']
   ),
   // One rule for the bars (R13): session data on by default in the standings only.
   headerBar: bar(['title', 'split']),
@@ -174,8 +189,13 @@ const DEFAULT_RADAR: RadarOptions = {
   parts: list(['guides', 'sideAlerts', 'rangeLabels'])
 }
 const DEFAULT_COLUMNS: StandingsColumn[] = [
-  // The penalty flags' column: hidden, they go after the name.
-  { id: 'flags', visible: false },
+  // The row's start (request 11), then the penalty flags after the name.
+  { id: 'pos', visible: true },
+  { id: 'number', visible: true },
+  { id: 'brand', visible: true },
+  { id: 'country', visible: true },
+  { id: 'driver', visible: true },
+  { id: 'flags', visible: true },
   { id: 'gained', visible: true },
   { id: 'ir', visible: true },
   { id: 'lic', visible: true },
@@ -198,7 +218,6 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   classList: [],
   gapMode: 'interval',
   columns: DEFAULT_COLUMNS,
-  showPosition: true,
   headerBar: bar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
   headerBarSize: 'normal',
   subheaderBar: bar(['iRating', 'fastestLap', 'split', 'safetyRating']),
@@ -264,7 +283,7 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   hazardS: 8,
   maxEntries: 3,
   groups: list(['hazard', 'slower', 'faster']),
-  parts: list(['icon', 'cls', 'driver', 'flags', 'lead', 'value', 'sector'], ['flags']),
+  parts: list(['icon', 'cls', 'driver', 'flags', 'lead', 'value', 'sector']),
   headerBar: bar(['title', 'split']),
   headerBarSize: 'normal',
   footerBar: bar(['split', 'carCount']),
@@ -755,9 +774,24 @@ describe('normalizeSettings: basics', () => {
     }
     s.relative = {
       ...DEFAULT_RELATIVE,
+      // Any order, the row's start too (request 11): the number hidden, the flag after the name.
       columns: list(
-        ['gap', 'last', 'driver', 'flags', 'pos', 'lic', 'ir', 'tyre', 'stint', 'pit'],
-        ['last', 'ir', 'pit']
+        [
+          'gap',
+          'last',
+          'number',
+          'driver',
+          'country',
+          'flags',
+          'pos',
+          'brand',
+          'lic',
+          'ir',
+          'tyre',
+          'stint',
+          'pit'
+        ],
+        ['last', 'ir', 'pit', 'number']
       ),
       headerBar: bar(['clock', 'split', 'remaining', 'incidents']),
       headerBarSize: 'large',
@@ -1239,7 +1273,13 @@ describe('normalizeColumns', () => {
     expect(out.map((c) => [c.id, c.visible])).toEqual([
       ['last', true],
       ['gap', false],
-      ['flags', false],
+      ['pos', false],
+      ['number', false],
+      // The name and the «Piloto» block's parts are always in the list (request 11).
+      ['brand', true],
+      ['country', true],
+      ['driver', true],
+      ['flags', true],
       ['gained', false],
       ['ir', false],
       ['lic', false],
@@ -1271,7 +1311,7 @@ describe('normalizeColumns', () => {
     const out = normalizeColumns(
       [
         { id: 'ir', visible: false },
-        { id: 'pos', visible: true },
+        { id: 'name', visible: true },
         { id: 'ir', visible: true },
         'gap',
         null,
@@ -1410,10 +1450,25 @@ describe('normalizeSettings: migration', () => {
     expect(s.relative).toEqual({
       ...DEFAULT_RELATIVE,
       ...OLD_RELATIVE_BARS,
-      // Its old toggles on today's list: iRating, licence (off), the PIT column hidden.
+      // Its old toggles on today's list: iRating, licence (off), the PIT column hidden; the row's
+      // start in front (request 11), the penalty flags after the name.
       columns: list(
-        ['pos', 'driver', 'flags', 'ir', 'lic', 'gap', 'last', 'pit', 'stint', 'tyre'],
-        ['flags', 'last', 'lic', 'pit', 'tyre', 'stint']
+        [
+          'pos',
+          'number',
+          'brand',
+          'country',
+          'driver',
+          'flags',
+          'ir',
+          'lic',
+          'gap',
+          'last',
+          'pit',
+          'stint',
+          'tyre'
+        ],
+        ['last', 'lic', 'pit', 'tyre', 'stint']
       )
     })
     expect(s.radar).toEqual({
@@ -1455,7 +1510,13 @@ describe('normalizeSettings: migration', () => {
     }
     const s = normalizeSettings(v3)
     expect(cols(s)).toEqual([
-      '-flags',
+      // The row's start in front (request 11), the penalty flags after the name.
+      '+pos',
+      '+number',
+      '+brand',
+      '+country',
+      '+driver',
+      '+flags',
       '-gained',
       '+ir',
       '+lic',

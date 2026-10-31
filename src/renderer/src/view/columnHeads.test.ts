@@ -38,15 +38,16 @@ describe('standingsHead', () => {
   })
 
   it('aligns names left, figures right, chips centred; every column has a head', () => {
-    expect(standingsHead('name', RACE, ES)).toEqual({ label: 'PILOTO', align: 'start' })
+    expect(standingsHead('driver', RACE, ES)).toEqual({ label: 'PILOTO', align: 'start' })
+    expect(standingsHead('number', RACE, ES)).toEqual({ label: '#', align: 'start' })
     expect(standingsHead('pos', RACE, EN)).toEqual({ label: 'POS', align: 'start' })
     expect(standingsHead('pit', RACE, ES).align).toBe('center')
     expect(standingsHead('ir', RACE, ES).align).toBe('end')
     for (const m of [ES, EN]) {
       for (const id of STANDINGS_COLUMN_IDS) {
         const h = standingsHead(id, RACE, m)
-        // The tyre and the penalty flags are glyphs; the rest a short caption.
-        if (id === 'tyre' || id === 'flags') expect(h.label).toBe('')
+        // The tyre, the make, the flags are glyphs; the rest a short caption.
+        if (['tyre', 'flags', 'brand', 'country'].includes(id)) expect(h.label).toBe('')
         else expect(h.label.length, id).toBeGreaterThan(0)
         expect(h.label.length, id).toBeLessThanOrEqual(7)
       }

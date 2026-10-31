@@ -440,7 +440,7 @@ export const settingsEs = {
     /** The per-car flag badges of the four driver widgets (the «Piloto» block). */
     penaltyFlags: 'Banderas de penalización',
     penaltyFlagsHelp:
-      'Negra, reparación y aviso (negra enrollada), tras el nombre o en la columna «Banderas»'
+      'Negra, reparación y aviso (negra enrollada); en las tablas, donde los pongas en Columnas'
   },
   /** Option lists shared by several pages. */
   choices: {
@@ -1076,7 +1076,7 @@ export const settingsEs = {
     stint: 'Vueltas del stint',
     stintHelp: 'Desde su última parada, o desde la salida (7 v)',
     tyre: 'Neumático',
-    /** Column hints; the position's and the driver's are the standings' (columns.fixedHints). */
+    /** Column hints; the row's start ones are the standings' (columns.hints). */
     pitHelp: 'PIT o GRÚA en su columna; oculta, tras el nombre',
     tyreHelp:
       'Letra del compuesto (H duro, W lluvia) cuando no todos llevan el de seco; solo para tu modelo de coche'
@@ -1178,19 +1178,21 @@ export const settingsEs = {
       done: (other: string) => `Columnas igualadas con ${other}`
     },
     /**
-     * The same words and hints as the relative's columns (R10): the number is the driver cell's,
-     * in both tables; here the two stay at the start of the row (the class and leader lines span
-     * them).
+     * The row's start as columns (request 11), under the tables' lists: how the driver's parts
+     * are drawn where you put them (shared/rowHead.ts).
      */
-    fixed: {
-      pos: 'Posición',
-      name: 'Piloto'
-    },
-    fixedHints: {
-      pos: 'En tu clase · siempre al principio de la fila',
-      name: 'Con el número del coche · siempre tras la posición'
-    },
+    rowNote:
+      'Número, logo, bandera del país y banderas van con el nombre mientras estén pegados a él: delante, alineados; detrás, tras el nombre. Separados por otra columna, en una columna propia.',
+    /** A part the «Piloto» block shows or hides: its row has no eye, it says where and what. */
+    inBlock: (value: string) => `Se muestra u oculta en «Piloto»: ${value}`,
+    inBlockTitle: 'Se muestra u oculta en «Piloto»',
+    /** The same words in both tables (R10, request 11). */
     labels: {
+      pos: 'Posición',
+      number: 'Número',
+      brand: 'Logo de la marca',
+      country: 'Bandera del país',
+      driver: 'Nombre',
       flags: 'Banderas',
       gained: 'Puestos ganados',
       ir: 'iRating',
@@ -1207,7 +1209,8 @@ export const settingsEs = {
     },
     /** Short help under a column label (only some columns have one). */
     hints: {
-      flags: 'En su propia columna; oculta, tras el nombre (con «Banderas de penalización» activa)',
+      pos: 'En tu clase',
+      number: 'El del coche, con el color de su clase',
       gained: 'Solo en carrera: puestos ganados desde la salida',
       delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
       gap: 'Al de delante o al líder: elígelo en su fila',
@@ -1791,7 +1794,10 @@ export const settingsEs = {
     relative: {
       columns: {
         pos: 'Posición',
-        driver: 'Piloto',
+        number: 'Número',
+        brand: 'Logo de la marca',
+        country: 'Bandera del país',
+        driver: 'Nombre',
         flags: 'Banderas',
         ir: 'iRating',
         lic: 'Licencia',
@@ -1982,7 +1988,8 @@ export const settingsEs = {
   },
   driverCell: {
     brandMarks: 'Logo de la marca',
-    brandMarksHelp: 'Delante del nombre; en Auto, solo si hay más de una marca en pista',
+    brandMarksHelp:
+      'En Auto, solo si hay más de una marca en pista; en las tablas, donde lo pongas en Columnas',
     brandChoices: {
       auto: { label: 'Auto', hint: 'Solo con varias marcas en la sesión' },
       on: { label: 'Siempre' },
@@ -2501,7 +2508,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     iRating: 'iRating',
     penaltyFlags: 'Penalty flags',
     penaltyFlagsHelp:
-      'Black flag, meatball and warning (furled black flag), after the name or in the Flags column'
+      'Black flag, meatball and warning (furled black flag); in the tables, where you place them in Columns'
   },
   choices: {
     nameFormat: {
@@ -3087,15 +3094,16 @@ export const settingsEn: Dict<typeof settingsEs> = {
       help: 'The columns both have, in the same order and with the same eye',
       done: (other) => `Columns matched to ${other}`
     },
-    fixed: {
-      pos: 'Position',
-      name: 'Driver'
-    },
-    fixedHints: {
-      pos: 'In your class · always at the start of the row',
-      name: 'With the car number · always after the position'
-    },
+    rowNote:
+      'Number, logo, country flag and flags go with the name while they touch it: before it, aligned; after it, after the name. Set apart by another column, in a column of their own.',
+    inBlock: (value) => `Shown or hidden in “Driver”: ${value}`,
+    inBlockTitle: 'Shown or hidden in “Driver”',
     labels: {
+      pos: 'Position',
+      number: 'Number',
+      brand: 'Make logo',
+      country: 'Country flag',
+      driver: 'Name',
       flags: 'Flags',
       gained: 'Positions gained',
       ir: 'iRating',
@@ -3111,7 +3119,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
       tyre: 'Tyre'
     },
     hints: {
-      flags: 'In a column of their own; hidden, after the name (with Penalty flags on)',
+      pos: 'In your class',
+      number: 'The car’s, in its class colour',
       gained: 'Race only: positions gained since the start',
       delta: 'What you win or lose in your position (or everyone’s, with the option)',
       gap: 'To the car ahead or to the leader: choose it on its row',
@@ -3589,7 +3598,10 @@ export const settingsEn: Dict<typeof settingsEs> = {
     relative: {
       columns: {
         pos: 'Position',
-        driver: 'Driver',
+        number: 'Number',
+        brand: 'Make logo',
+        country: 'Country flag',
+        driver: 'Name',
         flags: 'Flags',
         ir: 'iRating',
         lic: 'Licence',
@@ -3757,7 +3769,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
   },
   driverCell: {
     brandMarks: 'Make logo',
-    brandMarksHelp: 'Before the name; on Auto, only when there is more than one make on track',
+    brandMarksHelp:
+      'On Auto, only when there is more than one make on track; in the tables, where you place it in Columns',
     brandChoices: {
       auto: { label: 'Auto', hint: 'Only with several makes in the session' },
       on: { label: 'Always' },

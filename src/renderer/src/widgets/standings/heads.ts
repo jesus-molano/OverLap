@@ -10,36 +10,34 @@ import type { StandingsColumnId } from '@shared/types'
 import {
   standingsHead,
   type HeadAlign,
-  type StandingsFixedHead,
   type StandingsHeadContext
 } from '@renderer/view/columnHeads'
 import type { Columns } from './columns'
 
 export interface HeadCell {
-  readonly id: StandingsColumnId | StandingsFixedHead
+  readonly id: StandingsColumnId
   readonly label: string
   readonly align: HeadAlign
-  /** A column's `data-el` ('standings.columns.ir'); none for the fixed position and name. */
-  readonly el?: string
+  /** The column's `data-el` ('standings.columns.ir'). */
+  readonly el: string
 }
 
-/** One head per track: position, name, then the drawn cells in their order. */
+/**
+ * One head per track, in their order (the name's over its cell, the driver's parts drawn in it
+ * included: 'PILOTO' starts where the number does, as always).
+ */
 export type HeadsView = readonly HeadCell[]
 
 export function toHeadsView(
-  cols: Pick<Columns, 'cells'> & { readonly pos?: boolean },
+  cols: Pick<Columns, 'tracks'>,
   c: StandingsHeadContext,
   m: Messages
 ): HeadsView {
-  const ids = cols.pos === false ? (['name'] as const) : (['pos', 'name'] as const)
-  const fixed: HeadCell[] = ids.map((id) => ({
+  return cols.tracks.map((id) => ({
     id,
-    ...standingsHead(id, c, m)
+    ...standingsHead(id, c, m),
+    el: `standings.columns.${id}`
   }))
-  return [
-    ...fixed,
-    ...cols.cells.map((id) => ({ id, ...standingsHead(id, c, m), el: `standings.columns.${id}` }))
-  ]
 }
 
 /** `next`, or `prev` while every head reads the same (a payload re-renders nothing there). */

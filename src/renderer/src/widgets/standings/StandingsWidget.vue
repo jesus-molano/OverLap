@@ -199,7 +199,6 @@ const colPrefs = computed<ColumnPrefs>(() => ({
   flag: block.value.countryFlags,
   penalties: block.value.showFlags,
   minText: minText.value,
-  pos: opts.value.showPosition,
   irEm: iRatingColumnEm(
     block.value.iRatingFormat,
     block.value.iRatingColor,

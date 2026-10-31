@@ -159,6 +159,14 @@ const props = withDefaults(
      * and no lock on the rows, only their order.
      */
     orderOnly?: boolean
+    /**
+     * Rows another control shows or hides (the tables' logo and flags, request 11: the «Piloto»
+     * block): no eye of their own, but that control's state and where it is, the row only placed.
+     * Required in the spec, so the list never hides them.
+     */
+    linked?: Readonly<
+      Partial<Record<Id, { readonly on: boolean; readonly title: string; readonly hint: string }>>
+    >
   }>(),
   {
     emptyHides: false,
@@ -177,7 +185,8 @@ const props = withDefaults(
     quietEmpty: false,
     groups: undefined,
     previewZone: undefined,
-    orderOnly: false
+    orderOnly: false,
+    linked: undefined
   }
 )
 
@@ -866,7 +875,7 @@ function onCancel(e: PointerEvent): void {
                   class="ed-row"
                   :class="{
                     'is-dragged': dragId === r.entry.id,
-                    'is-off': !r.entry.visible,
+                    'is-off': !r.entry.visible || linked?.[r.entry.id]?.on === false,
                     'is-blocked': blockedBy(spec, shown, r.entry.id) !== null,
                     'is-lit': litId === r.entry.id && dragId === null
                   }"
@@ -890,6 +899,17 @@ function onCancel(e: PointerEvent): void {
                   </button>
                   <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
                   <template v-if="orderOnly" />
+                  <!-- Shown or hidden elsewhere: that control's state, never a button here. -->
+                  <span
+                    v-else-if="linked?.[r.entry.id]"
+                    class="ed-eye is-locked is-linked"
+                    :title="linked?.[r.entry.id]?.title"
+                  >
+                    <Icon
+                      :name="linked?.[r.entry.id]?.on ? 'eye' : 'eye-off'"
+                      :label="linked?.[r.entry.id]?.title"
+                    />
+                  </span>
                   <span
                     v-else-if="isRequired(spec, r.entry.id)"
                     class="ed-eye is-locked"
@@ -918,6 +938,9 @@ function onCancel(e: PointerEvent): void {
                       t.settings.elements.needsParent(
                         labelOf(blockedBy(spec, shown, r.entry.id) as Id)
                       )
+                    }}</span>
+                    <span v-else-if="linked?.[r.entry.id]" class="ed-hint">{{
+                      linked?.[r.entry.id]?.hint
                     }}</span>
                     <HelpText
                       v-else-if="labels[r.entry.id]?.hint"

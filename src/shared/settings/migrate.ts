@@ -24,6 +24,7 @@
  * licence, the pedals' auto height) once.
  */
 import { INFO_ITEM_IDS } from '../infoBar'
+import { ROW_HEAD_IDS } from '../rowHead'
 import {
   CONDITIONS_FOOTER_BEFORE,
   OPTION_SCHEMA,
@@ -402,8 +403,21 @@ export const LIST_MIGRATIONS: { readonly [S in OptionSection]?: readonly ListMig
           ['showStint', ['stint']]
         ]),
         // The order those files were drawn in (the gap last), so a shown tyre stays where it was.
-        // The flags' column (2.4, hidden) where it goes today: right after the name.
-        ['pos', 'driver', 'flags', 'ir', 'lic', 'pit', 'tyre', 'stint', 'gap'],
+        // The row's start (request 11) and the penalty flags after the name, as they were drawn.
+        [
+          'pos',
+          'number',
+          'brand',
+          'country',
+          'driver',
+          'flags',
+          'ir',
+          'lic',
+          'pit',
+          'tyre',
+          'stint',
+          'gap'
+        ],
         ['tyre', 'stint']
       )
     },
@@ -675,8 +689,8 @@ export function migrateWidgetsV5(
 /**
  * Ids added to a list after files saved it, hidden, that such a list gets at their default place
  * (after the nearest id before them in the spec) instead of at the end: turned on, they land
- * where a new install has them. The penalty flags' column (2.4) goes right after the name, the
- * relative's «Última vuelta» (request 8) after the gap.
+ * where a new install has them. The penalty flags (2.4) go right after the name (and are shown
+ * there: placeFlagsAfterName), the relative's «Última vuelta» (request 8) after the gap.
  */
 const NEW_ELEMENTS: Readonly<
   Partial<Record<OptionSection, Readonly<Record<string, readonly string[]>>>>
@@ -746,8 +760,65 @@ export function migrateSection(
   else if (section === 'appearance' && isBeforeV5(file)) out = migrateAppearanceV5(out)
   else if (section === 'settingsWindow') out = migrateCustomizeOpen(out)
   else if (section === 'battle' || section === 'traffic') out = migrateDriverBlock(section, out)
-  // After the lists the old switches give, so those get the new ids at their place too.
-  return placeNewElements(section, migrateLists(section, migrateOldBars(section, out, file)))
+  // After the lists the old switches give, so those get the new ids at their place too; the
+  // row's start before the penalty flags, which go right after the name.
+  const lists = migrateLists(section, migrateOldBars(section, out, file))
+  return placeFlagsAfterName(section, placeNewElements(section, migrateRowHead(section, lists)))
+}
+
+/**
+ * The row's start of the tables as columns (request 11). A list saved before (without 'number')
+ * gets the position, the number, the make's logo, the driver's flag and the name in front, in
+ * today's order: the relative's position and name were pinned there (whatever order the list had
+ * them in), the standings' were fixed there, its position shown or hidden by `showPosition` (then
+ * dropped as any unknown key). Nothing visible changes. `raw` itself when there is nothing to do.
+ */
+export function migrateRowHead(
+  section: string,
+  raw: Record<string, unknown>
+): Record<string, unknown> {
+  if (section !== 'relative' && section !== 'standings') return raw
+  const list = raw.columns
+  if (!Array.isArray(list)) return raw
+  const idOf = (e: unknown): string => (isRecord(e) ? String(e.id) : '')
+  if (list.some((e) => idOf(e) === 'number')) return raw
+  // As normalisation read them: a missing position was added hidden, one with no boolean shown.
+  const pos = list.find((e) => idOf(e) === 'pos')
+  const posShown =
+    section === 'standings' ? raw.showPosition !== false : isRecord(pos) && pos.visible !== false
+  const head = ROW_HEAD_IDS.map((id) => ({ id, visible: id === 'pos' ? posShown : true }))
+  const rest = list.filter((e) => idOf(e) !== 'pos' && idOf(e) !== 'driver')
+  return { ...raw, columns: [...head, ...rest] }
+}
+
+/** The lists whose penalty flags were placed by their eye before request 11 (hidden: after the name). */
+const FLAGS_AFTER_NAME: Readonly<Partial<Record<OptionSection, string>>> = {
+  relative: 'columns',
+  standings: 'columns',
+  traffic: 'parts'
+}
+
+/**
+ * The penalty flags' entry hidden in a list saved before request 11 meant "after the name": now
+ * that the list only places them (the «Piloto» block shows them), it goes right after the name,
+ * shown, which draws them after the name's text as before. A shown one stays where it was. `raw`
+ * itself when there is nothing to do.
+ */
+export function placeFlagsAfterName(
+  section: string,
+  raw: Record<string, unknown>
+): Record<string, unknown> {
+  const field = FLAGS_AFTER_NAME[section as OptionSection]
+  const list = field === undefined ? undefined : raw[field]
+  if (field === undefined || !Array.isArray(list)) return raw
+  const idOf = (e: unknown): string => (isRecord(e) ? String(e.id) : '')
+  const flags = list.find((e) => idOf(e) === 'flags')
+  if (!isRecord(flags) || flags.visible !== false) return raw
+  const rest = list.filter((e) => idOf(e) !== 'flags')
+  const at = rest.findIndex((e) => idOf(e) === 'driver')
+  const entry = { id: 'flags', visible: true }
+  const next = at < 0 ? [...rest, entry] : [...rest.slice(0, at + 1), entry, ...rest.slice(at + 1)]
+  return { ...raw, [field]: next }
 }
 
 /**

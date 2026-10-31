@@ -217,7 +217,10 @@ describe('relativeColumns', () => {
 
   it('draws today’s row from the default list', () => {
     const c = relativeColumns(DEF, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap'])
+    expect(c.tracks).toEqual(['pos', 'driver', 'ir', 'lic', 'gap'])
+    // The number in the name's cell, before the name; the penalty flags after it (request 11).
+    expect(c.before).toEqual(['number'])
+    expect(c.after).toEqual(['flags'])
     expect(c.template).toBe('1.9em minmax(0, 1fr) 2.4em 2.8em 3.1em')
     // Without its column the PIT badge goes after the name.
     expect(c.pitInline).toBe(true)
@@ -244,68 +247,85 @@ describe('relativeColumns', () => {
     expect(keys.size).toBe(32)
   })
 
-  it('follows the list’s order after the position and the driver, which always start the row', () => {
-    // [pos driver flags ir lic gap last pit stint tyre] → [gap ir pos driver flags lic last pit …]
-    let list = moveElement(DEF, 5, 0)
-    list = moveElement(list, 4, 1)
-    expect(list.map((e) => e.id)).toEqual([
+  it('follows the list’s order, the row’s start too (request 11)', () => {
+    // [pos number brand country driver flags ir lic gap …] → [gap ir pos number … driver flags lic …]
+    let list = moveElement(DEF, 8, 0)
+    list = moveElement(list, 7, 1)
+    expect(list.map((e) => e.id).slice(0, 9)).toEqual([
       'gap',
       'ir',
       'pos',
+      'number',
+      'brand',
+      'country',
       'driver',
       'flags',
-      'lic',
-      'last',
-      'pit',
-      'stint',
-      'tyre'
+      'lic'
     ])
-    // A file that moved them (before R10) draws them at the start, as the standings do.
     const c = relativeColumns(list, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'gap', 'ir', 'lic'])
-    expect(c.template).toBe('1.9em minmax(0, 1fr) 3.1em 2.4em 2.8em')
+    expect(c.tracks).toEqual(['gap', 'ir', 'pos', 'driver', 'lic'])
+    expect(c.template).toBe('3.1em 2.4em 1.9em minmax(0, 1fr) 2.8em')
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
+    // A column between the position and the number: the number starts the name's cell.
+    const at = (ids: readonly string[]): typeof DEF =>
+      ids.map((id) => ({ id, visible: true })) as typeof DEF
+    const gained = relativeColumns(at(['pos', 'ir', 'number', 'flags', 'driver', 'gap']), plain)
+    expect(gained.tracks).toEqual(['pos', 'ir', 'driver', 'gap'])
+    expect(gained.before).toEqual(['number', 'flags'])
+    // Set apart from the name, the number has a column of its own (wider with the stripe).
+    const apart = relativeColumns(at(['number', 'pos', 'driver', 'gap']), plain)
+    expect(apart.tracks).toEqual(['number', 'pos', 'driver', 'gap'])
+    expect(apart.template).toBe('1.85em 1.9em minmax(0, 1fr) 3.1em')
+    const stripe = relativeColumns(at(['number', 'pos', 'driver', 'gap']), {
+      ...plain,
+      numberStyle: 'stripe'
+    })
+    expect(stripe.template).toBe('2.15em 1.9em minmax(0, 1fr) 3.1em')
+    expect(stripe.key).not.toBe(apart.key)
   })
 
-  it('draws the penalty flags in their own column when shown, else after the name', () => {
-    // Hidden by default: after the name, as before the column existed.
+  it('draws the penalty flags where the list puts them: after the name by default', () => {
+    // Right after the name (the default): after its text, as before request 11.
     const off = relativeColumns(DEF, plain)
-    expect(off.cells).not.toContain('flags')
+    expect(off.tracks).not.toContain('flags')
     expect(off.flags).toBe(true)
-    const shown = setElementVisible(DEF, 'flags', true)
-    const on = relativeColumns(shown, plain)
-    expect(on.cells).toEqual(['pos', 'driver', 'flags', 'ir', 'lic', 'gap'])
+    // Set apart from the name (after the iRating here): a column of their own.
+    const at = DEF.findIndex((e) => e.id === 'flags')
+    const apart = moveElement(DEF, at, at + 1)
+    const on = relativeColumns(apart, plain)
+    expect(on.tracks).toEqual(['pos', 'driver', 'ir', 'flags', 'lic', 'gap'])
     expect(on.flags).toBe(false)
-    expect(on.template).toBe('1.9em minmax(0, 1fr) 1.3em 2.4em 2.8em 3.1em')
+    expect(on.template).toBe('1.9em minmax(0, 1fr) 2.4em 1.3em 2.8em 3.1em')
     expect(on.fitEm).toBeGreaterThan(off.fitEm)
     expect(on.key).not.toBe(off.key)
     // The «Piloto» block's switch off: no flags anywhere, nor their column.
-    const none = relativeColumns(shown, { ...plain, flags: false })
+    const none = relativeColumns(apart, { ...plain, flags: false })
     expect(none.cells).not.toContain('flags')
     expect(none.flags).toBe(false)
-    // Moved like any column.
-    const moved = relativeColumns(moveElement(shown, 2, 8), plain)
-    expect(moved.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'flags'])
+    // Before the name: their slot in the name's cell, counted in the fit.
+    const before = relativeColumns(moveElement(DEF, at, at - 1), plain)
+    expect(before.before).toEqual(['number', 'flags'])
+    expect(before.fitEm).toBeCloseTo(off.fitEm + 1.3 + 0.35, 5)
   })
 
   it('draws «Última vuelta» (hidden by default) after the gap, as wide as the standings’', () => {
     expect(DEF.find((e) => e.id === 'last')).toEqual({ id: 'last', visible: false })
     const shown = setElementVisible(DEF, 'last', true)
     const c = relativeColumns(shown, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'last'])
+    expect(c.tracks).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'last'])
     expect(c.template).toBe('1.9em minmax(0, 1fr) 2.4em 2.8em 3.1em 4.2em')
     expect(c.fitEm).toBeCloseTo(27 + 4.2 + 0.4, 5)
     expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
     // Moved like any column: before the gap.
     const at = shown.findIndex((e) => e.id === 'last')
     const moved = relativeColumns(moveElement(shown, at, at - 1), plain)
-    expect(moved.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'last', 'gap'])
+    expect(moved.tracks).toEqual(['pos', 'driver', 'ir', 'lic', 'last', 'gap'])
   })
 
   it('hides the gap like any column, as the standings do (R10)', () => {
     const list = DEF.map((e) => (e.id === 'gap' ? { ...e, visible: false } : e))
     const c = relativeColumns(list, plain)
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic'])
+    expect(c.tracks).toEqual(['pos', 'driver', 'ir', 'lic'])
     // A list that never had it (not normalised) still draws it at the end.
     const none = relativeColumns(
       DEF.filter((e) => e.id !== 'gap'),
@@ -318,7 +338,7 @@ describe('relativeColumns', () => {
     const list = DEF.map((e) => (e.id === 'pit' ? { ...e, visible: true } : e))
     const c = relativeColumns(list, plain)
     // After the gap, as the standings' «Boxes» (R10).
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'pit'])
+    expect(c.tracks).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'pit'])
     expect(c.pitInline).toBe(false)
     expect(c.fitEm).toBeGreaterThan(RELATIVE_FIT_EM)
   })
@@ -331,7 +351,8 @@ describe('relativeColumns', () => {
       ],
       plain
     )
-    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'gap'])
+    expect(c.tracks).toEqual(['pos', 'driver', 'ir', 'gap'])
+    expect(c.cells).toContain('driver')
   })
 
   it('shows the tyre column only while some row names a compound', () => {
@@ -342,7 +363,7 @@ describe('relativeColumns', () => {
     expect(none.fitEm).toBe(27)
   })
 
-  it('widens the fit for the make and the flag in the driver cell, not the tracks', () => {
+  it('widens the fit for the make and the flag in the name’s cell, not the tracks', () => {
     const base = relativeColumns(DEF, plain)
     const brand = relativeColumns(DEF, { ...plain, brand: true })
     const both = relativeColumns(DEF, { ...plain, brand: true, country: true })
