@@ -22,7 +22,7 @@ defineProps<{
     :class="[
       `sp-pillar--${at}`,
       `sp-n${side.count}`,
-      { 'is-full': side.cover >= 1, 'is-unknown': side.unknown }
+      { 'is-full': side.cover >= 1 && !side.unknown, 'is-unknown': side.unknown }
     ]"
   >
     <div class="sp-track">
@@ -125,7 +125,8 @@ defineProps<{
   background: var(--ov-prox-11);
 }
 
-/* Completely beside you: the outline turns alert red too, a cue that is not only the colour. */
+/* Completely beside you (a car placed, not "somewhere here"): the outline turns alert red too, a
+   cue that is not only the colour. */
 .sp-pillar.is-full .sp-track {
   border-color: var(--ov-alert);
   box-shadow:
