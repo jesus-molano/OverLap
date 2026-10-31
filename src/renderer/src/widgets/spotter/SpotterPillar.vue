@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { SpotterSide } from '@shared/types'
-import { coverBucket, segmentTransform } from './view'
+import type { SpotterBarStyle, SpotterSide } from '@shared/types'
+import { closeBucket, closeTransform, coverBucket, segmentTransform } from './view'
 
 /**
- * One pillar of the spotter: your car from its nose (top) to its tail (bottom), filled with what
- * the cars alongside on that side cover. The fill moves by transform only (scaled from the top),
- * the caps by opacity: a 60 Hz pass changes no layout.
+ * One pillar of the spotter. «Cercanía» (the default): filled from the bottom as the nearest car
+ * on that side gets closer, full alongside, amber to red. «Dónde te cubre»: your car from its nose
+ * (top) to its tail (bottom), filled with what the cars alongside on that side cover. The fill
+ * moves by transform only, the caps by opacity: a 60 Hz pass changes no layout.
  */
 defineProps<{
   side: SpotterSide
+  barStyle: SpotterBarStyle
   /** 'left' or 'right': its place, and the end of the window it sits at. */
   at: 'left' | 'right'
   showNear: boolean
@@ -22,10 +24,19 @@ defineProps<{
     :class="[
       `sp-pillar--${at}`,
       `sp-n${side.count}`,
-      { 'is-full': side.cover >= 1 && !side.unknown, 'is-unknown': side.unknown }
+      barStyle === 'closeness'
+        ? { 'is-full': side.close >= 1 }
+        : { 'is-full': side.cover >= 1 && !side.unknown, 'is-unknown': side.unknown }
     ]"
   >
-    <div class="sp-track">
+    <div v-if="barStyle === 'closeness'" class="sp-track">
+      <div
+        class="sp-close"
+        :class="`cl-${closeBucket(side.close)}`"
+        :style="{ transform: closeTransform(side.close) }"
+      />
+    </div>
+    <div v-else class="sp-track">
       <div class="sp-mid" />
       <template v-if="showNear">
         <div
@@ -88,6 +99,35 @@ defineProps<{
   opacity: calc(0.18 * max(var(--ov-bg-alpha), 0.6));
 }
 
+/*
+ * «Cercanía»: a full-height block scaled from the bottom (closeTransform), the same rule on both
+ * bars. Its colour by how close (view.ts closeBucket): amber far, the alert red alongside, mixed
+ * from the theme's own two (their colour-blind variants included).
+ */
+.sp-close {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+}
+.cl-0 {
+  background: var(--ov-warn);
+}
+.cl-1 {
+  background: color-mix(in oklab, var(--ov-alert) 20%, var(--ov-warn));
+}
+.cl-2 {
+  background: color-mix(in oklab, var(--ov-alert) 40%, var(--ov-warn));
+}
+.cl-3 {
+  background: color-mix(in oklab, var(--ov-alert) 60%, var(--ov-warn));
+}
+.cl-4 {
+  background: color-mix(in oklab, var(--ov-alert) 80%, var(--ov-warn));
+}
+.cl-5 {
+  background: var(--ov-alert);
+}
+
 /* What a car alongside covers: a full-height block scaled from the top (segmentTransform). */
 .sp-fill {
   position: absolute;
@@ -125,8 +165,8 @@ defineProps<{
   background: var(--ov-prox-11);
 }
 
-/* Completely beside you (a car placed, not "somewhere here"): the outline turns alert red too, a
-   cue that is not only the colour. */
+/* Completely beside you (a car placed, not "somewhere here"; for «Cercanía», alongside): the
+   outline turns alert red too, a cue that is not only the colour. */
 .sp-pillar.is-full .sp-track {
   border-color: var(--ov-alert);
   box-shadow:

@@ -19,6 +19,16 @@ export const OFFICIAL_WAIT_S = 5
  */
 export const INCIDENT_LINE_GRACE_S = 0.5
 
+/** Illegal lap times of your own kept (CarTrack.illegalTimes): a session's worth of offs. */
+export const MAX_ILLEGAL_TIMES = 32
+
+/** Notes one of your laps as not legal (its time): iRacing's best may be it. */
+function noteIllegal(track: CarTrack, time: number): void {
+  if (!track.ownCar || !Number.isFinite(time)) return
+  track.illegalTimes.push(time)
+  if (track.illegalTimes.length > MAX_ILLEGAL_TIMES) track.illegalTimes.shift()
+}
+
 /**
  * Lap `g / LINES` completed at SessionTime `tc`: adds its record when its start
  * line is in the history, then starts a new lap. In a race (`raceStartT`: the
@@ -59,6 +69,8 @@ export function closeLap(
       track.bestCleanRec = rec
       track.bestClean = rec.time
     }
+    // Off track, or an incident of yours on it: not legal (a pit or caution lap still is).
+    if (track.lapOffTrack || track.lapIncident) noteIllegal(track, rec.time)
     track.pending = rec
     track.officialBefore = track.prevOfficial
     track.confirmUntil = tc + OFFICIAL_WAIT_S
@@ -76,23 +88,28 @@ export function closeLap(
 }
 
 /**
- * Your incident count rose at SessionTime `now` (the player's car only): the lap in progress is
- * not clean, nor the lap the last line closed when that was under INCIDENT_LINE_GRACE_S ago. A
- * lap that stops being clean stops being the best: the one before it is back (its time and its
- * profile), so no reference, record or optimal sector ever keeps it.
+ * Your incident count rose at SessionTime `now` (the player's car only, an off-track: see
+ * RaceModel.updatePlayer). Under INCIDENT_LINE_GRACE_S after your line it is the lap that line
+ * closed (iRacing scores an off a moment after the wheels left): that lap stops being clean, the
+ * new one stays clean. Otherwise the lap in progress is not clean. A lap that stops being clean
+ * stops being the best: the one before it is back (its time and its profile), so no reference,
+ * record or optimal sector ever keeps it.
  */
 export function incidentOnLap(track: CarTrack, now: number): void {
+  const rec = track.records[0]
+  if (now - track.lastSfT <= INCIDENT_LINE_GRACE_S && rec?.lap === track.lastSfLap) {
+    if (!rec.clean) return
+    rec.clean = false
+    noteIllegal(track, rec.time)
+    if (track.bestCleanRec === rec) {
+      track.bestClean = track.prevBestClean
+      track.bestCleanRec = null
+    }
+    if (track.bestLap.rec === rec) track.bestLap.copyFrom(track.prevBest)
+    return
+  }
   track.lapIncident = true
   track.state.lapInvalid = true
-  if (!(now - track.lastSfT <= INCIDENT_LINE_GRACE_S)) return
-  const rec = track.records[0]
-  if (!rec?.clean || rec.lap !== track.lastSfLap) return
-  rec.clean = false
-  if (track.bestCleanRec === rec) {
-    track.bestClean = track.prevBestClean
-    track.bestCleanRec = null
-  }
-  if (track.bestLap.rec === rec) track.bestLap.copyFrom(track.prevBest)
 }
 
 /**
@@ -131,6 +148,13 @@ export function updateLapTimes(
     st.lastLapTime =
       rec && rec.lap === completed ? rec.time : official > 0 ? official : (rec?.time ?? null)
   }
-  const best = Number.isFinite(track.officialBest) ? track.officialBest : track.bestClean
+  // iRacing's best, but for your own car not when it is one of your illegal laps: then your
+  // best legal lap, as the delta's session best (both say the same).
+  const iBest = track.officialBest
+  const illegal =
+    track.ownCar &&
+    Number.isFinite(iBest) &&
+    track.illegalTimes.some((t) => Math.abs(t - iBest) < OFFICIAL_MATCH_S)
+  const best = Number.isFinite(iBest) && !illegal ? iBest : track.bestClean
   st.bestLapTime = Number.isFinite(best) ? best : null
 }

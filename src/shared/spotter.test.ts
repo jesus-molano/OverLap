@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RADAR } from './radar'
 import { EMPTY_SESSION } from './session'
-import { SPOTTER, SpotterProvider, overlapSegment, spotterEqual } from './spotter'
+import { SPOTTER, SpotterProvider, closeness, overlapSegment, spotterEqual } from './spotter'
 import { CarLeftRight, MAX_CARS, TELEMETRY_VAR_NAMES, TrackLocation } from './telemetry'
 import type { TelemetryFrame } from './telemetry'
 import type { DriverEntry, SessionMeta, SpotterData } from './types'
@@ -153,7 +153,8 @@ describe('SpotterProvider', () => {
       cover: 0,
       unknown: false,
       nearFront: 0,
-      nearRear: 0
+      nearRear: 0,
+      close: 0
     })
   })
 
@@ -331,6 +332,73 @@ describe('SpotterProvider', () => {
     const a = spot({ clr: CarLeftRight.CarLeft, cars: [{ idx: 3, distM: 1 }] })
     const b = spot({ clr: CarLeftRight.CarLeft, cars: [{ idx: 3, distM: 1 }] })
     expect(spotterEqual(a, b)).toBe(true)
+  })
+})
+
+describe('closeness: the «Cercanía» bar, the radar as two bars (5c)', () => {
+  it('follows the radar’s proximity: 1 within a car length, 0 at the side memory’s reach', () => {
+    expect(closeness(0)).toBe(1)
+    expect(closeness(L)).toBe(1)
+    expect(closeness(SPOTTER.nearM)).toBe(0)
+    expect(closeness(SPOTTER.nearM + 5)).toBe(0)
+    const mid = (L + SPOTTER.nearM) / 2
+    expect(closeness(mid)).toBe(0.5)
+    expect(closeness(6)).toBeGreaterThan(closeness(8))
+    // Quantised to SPOTTER.steps: a pass changes it a bounded number of times.
+    for (const m of [5, 5.3, 7.77, 9.1, 11.4]) {
+      expect(closeness(m) * SPOTTER.steps).toBeCloseTo(Math.round(closeness(m) * SPOTTER.steps), 9)
+    }
+  })
+
+  it('is full on the side a car is alongside, wherever along you it is, placed or not', () => {
+    for (const distM of [0, 2, -4.2]) {
+      const p = spot({ clr: CarLeftRight.CarRight, cars: [{ idx: 4, distM }] })
+      expect(p.right.close).toBe(1)
+      expect(p.left.close).toBe(0)
+    }
+    expect(spot({ clr: CarLeftRight.CarLeft }).left.close).toBe(1)
+    expect(spot({ clr: CarLeftRight.Cars2Left, cars: [{ idx: 3, distM: 1 }] }).left).toMatchObject({
+      count: 2,
+      close: 1
+    })
+  })
+
+  it('empties as a car held on its side gets away, ahead or behind, and stays empty unsided', () => {
+    const sp = new SpotterProvider()
+    const s = makeSession()
+    let prev = sp.compute(
+      makeFrame({ time: 100, clr: CarLeftRight.CarLeft, cars: [{ idx: 3, distM: -2 }] }),
+      s,
+      null
+    )
+    expect(prev.left.close).toBe(1)
+    const seen: number[] = []
+    for (const [i, distM] of [-6, -8, -10].entries()) {
+      prev = sp.compute(
+        makeFrame({ time: 100.2 + i * 0.2, clr: CarLeftRight.Clear, cars: [{ idx: 3, distM }] }),
+        s,
+        prev
+      )
+      expect(prev.left.close).toBe(closeness(-distM))
+      seen.push(prev.left.close)
+    }
+    expect(seen[0]).toBeGreaterThan(seen[1] ?? 1)
+    expect(seen[1]).toBeGreaterThan(seen[2] ?? 1)
+    expect(prev.visible).toBe(true)
+    // A car right behind you that was never alongside: iRacing gives it no side, so no bar fills.
+    const unsided = spot({ clr: CarLeftRight.Clear, cars: [{ idx: 5, distM: -5 }] })
+    expect(unsided.left.close + unsided.right.close).toBe(0)
+    expect(unsided.visible).toBe(false)
+  })
+
+  it('shares one empty side and one inactive payload: a quiet pass allocates none', () => {
+    const a = spot({ clr: CarLeftRight.Clear })
+    const b = spot({ clr: CarLeftRight.Clear })
+    expect(a.left).toBe(b.left)
+    expect(a.left).toBe(a.right)
+    expect(Object.isFrozen(a.left)).toBe(true)
+    const out1 = spot({ onTrack: false })
+    expect(spot({ onTrack: false })).toBe(out1)
   })
 })
 

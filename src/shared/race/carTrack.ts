@@ -153,6 +153,14 @@ export class CarTrack {
   prevBestClean = Infinity
   /** Last CarIdxBestLapTime > 0 seen (kept when it drops to -1 on a disconnect). */
   officialBest = Infinity
+  /** Your own car (the model's player track): its best follows the clean-lap rule. */
+  ownCar = false
+  /**
+   * Your laps that were not legal (off track, or an incident of yours on them or just after their
+   * line), their times: iRacing's best that is one of them is not your best (laps.ts
+   * updateLapTimes). The newest MAX_ILLEGAL_TIMES.
+   */
+  illegalTimes: number[] = []
   /** Latest record waiting for CarIdxLastLapTime to confirm it (official precision). */
   pending: MutableLapRecord | null = null
   officialBefore = -1
@@ -246,6 +254,7 @@ export class CarTrack {
     this.bestCleanRec = null
     this.prevBestClean = Infinity
     this.officialBest = Infinity
+    this.illegalTimes = []
     this.pending = null
     this.officialBefore = -1
     this.prevOfficial = -1

@@ -14,14 +14,9 @@ import { deepEqual } from '@shared/equal'
 import { INFO_BAR_SCALE } from '@shared/infoBar'
 import { clampRelativeSlots } from '@shared/relative'
 import { DEFAULT_SETTINGS } from '@shared/settings'
-import type { OverlaySettings, Rect } from '@shared/types'
+import type { DeltaOptions, OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
-import {
-  DELTA_FIT_TOP_EM,
-  DELTA_REF_BARS_FIT_W,
-  DELTA_ROW_FIT_EM,
-  refBarsFitEm
-} from '../widgets/delta/rows'
+import { deltaFitOf } from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
 
 /** A free widget's text fit: the em height and width its contents need. */
@@ -59,26 +54,28 @@ export function relativeFit(s: Readonly<OverlaySettings>): Fit {
   return { h: slots * relativeRowEm(density) + chrome, w: cols.fitEm }
 }
 
-/** The delta's em width of the lap times line, by how many times it shows. */
-const DELTA_LAPS_W = [0, 8, 15, 22, 29] as const
-
 /** The delta's fit (DeltaWidget's --dl-fit-h and --dl-fit-w). */
 export function deltaFit(s: Readonly<OverlaySettings>): Fit {
-  const o = s.delta
-  let h = DELTA_FIT_TOP_EM
-  for (const row of ['bar', 'sectors', 'laps'] as const) {
-    if (isElementVisible(o.rows, row)) h += DELTA_ROW_FIT_EM[row]
-  }
-  const bars = isElementVisible(o.rows, 'refs') ? visibleIds(o.refBars).length : 0
-  h += refBarsFitEm(bars)
-  const info =
-    isElementVisible(o.top, 'predicted') || isElementVisible(o.top, 'reference') ? 20 : 11.5
-  const trend = isElementVisible(o.top, 'state') ? 6 : 0
-  const laps = isElementVisible(o.rows, 'laps')
-    ? (DELTA_LAPS_W[Math.min(4, visibleIds(o.laps).length)] ?? 0)
-    : 0
-  const refs = bars > 0 ? DELTA_REF_BARS_FIT_W : 0
-  return { h: Math.round(h * 100) / 100, w: Math.max(info + trend, laps, refs) }
+  return deltaFitOf(s.delta)
+}
+
+/** The bars per reference the delta draws (its line shown), for deltaBarsGrowth. */
+function refBarsShown(o: Readonly<DeltaOptions>): number {
+  return isElementVisible(o.rows, 'refs') ? visibleIds(o.refBars).length : 0
+}
+
+/**
+ * The delta's window when its page shows more bars per reference (the line, or a bar of it):
+ * grown as «Completo» grows it (grownBounds), so the text keeps its size and every bar fits;
+ * null when no bar is added or it already fits.
+ */
+export function deltaBarsGrowth(
+  before: Readonly<OverlaySettings>,
+  delta: Readonly<DeltaOptions>
+): Rect | null {
+  if (refBarsShown(delta) <= refBarsShown(before.delta)) return null
+  const after = { ...before, delta } as OverlaySettings
+  return grownBounds(before.widgets.delta.bounds, deltaFit(before), deltaFit(after))
 }
 
 const FITS: Readonly<Record<GrowingWidget, (s: Readonly<OverlaySettings>) => Fit>> = {

@@ -11,6 +11,7 @@ import {
   infoBarView,
   reuseInfoBar,
   simClockText,
+  simNight,
   srBudgetText,
   type InfoBarContext,
   type InfoItemView
@@ -91,11 +92,23 @@ describe('infoBarView', () => {
     const v = infoBarView(['clock', 'simClock'], PREVIEW_INFO, ctx())
     expect(v.start).toEqual([
       { id: 'clock', text: '21:07' },
-      { id: 'simClock', text: '14:32' }
+      { id: 'simClock', text: '14:32', night: false }
     ])
     expect(simClockText(0)).toBe('00:00')
     expect(simClockText(9 * 60 + 5)).toBe('09:05')
     expect(simClockText(1439)).toBe('23:59')
+    // A moon at night (20:00 to 06:00), a sun by day, so the sim's hour reads at a glance.
+    for (const [m, night] of [
+      [0, true],
+      [5 * 60 + 59, true],
+      [6 * 60, false],
+      [19 * 60 + 59, false],
+      [20 * 60, true],
+      [23 * 60 + 50, true],
+      [1440 + 7 * 60, false]
+    ] as const) {
+      expect(simNight(m)).toBe(night)
+    }
     expect(simClockText(1440 + 61)).toBe('01:01')
     const none = infoBarView(['simClock'], { ...PREVIEW_INFO, simMinutes: null }, ctx())
     expect(none).toBe(NO_BAR)

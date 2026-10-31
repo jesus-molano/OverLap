@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { isElementVisible, visibleIds } from '@shared/elements'
+import { isElementVisible, setElementVisible, visibleIds } from '@shared/elements'
 import { DELTA_REFERENCE_FIELD, type DeltaReferenceField } from '@shared/delta/choice'
 import type { SessionKind } from '@shared/sessionInfo'
 import { previewSession } from '../../widgets/delta/preview'
@@ -11,8 +11,9 @@ import {
   SHOW_IN_KINDS,
   type NumericSpec
 } from '@shared/settingsSchema'
-import type { DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
+import type { DeltaOptions, DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
+import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
 import { useOptions } from '../../composables/useWidgetSettings'
 import ChoiceControl from '../controls/ChoiceControl.vue'
@@ -20,9 +21,10 @@ import { behaviourNote } from '../controls/previewNote'
 import type { ChoiceOption } from '../controls/choice'
 import SliderControl from '../controls/SliderControl.vue'
 import ToggleControl from '../controls/ToggleControl.vue'
-import { listSetter, optionSetter, type Setter } from '../editor'
+import { listSetter, optionSetter, sendCommand, type Setter } from '../editor'
 import ElementEditor from '../elements/ElementEditor.vue'
-import { useParentGate } from '../elements/parentGate'
+import { showsMore, useParentGate } from '../elements/parentGate'
+import { deltaBarsGrowth } from '../styleGrowth'
 import { bindingsText } from '../shortcutsView'
 import { elementTexts, zoneTitle } from '../elements/labels'
 import CustomizeSection from '../layout/CustomizeSection.vue'
@@ -166,6 +168,34 @@ const refBarsGate = useParentGate({
   parentLabel: () => rowTexts.value.refs.label,
   zoneLabel: () => zoneTitle(t.value, 'delta', 'rows')
 })
+
+/**
+ * Showing more bars per reference (the line, or a bar of it) grows the window as «Completo» does
+ * (deltaBarsGrowth): the text keeps its size and every bar fits. Hiding them never shrinks it.
+ */
+const { settings } = useOverlayState()
+function growForBars(delta: DeltaOptions): void {
+  const s = settings.value
+  if (s === null || s === undefined) return
+  const bounds = deltaBarsGrowth(s, delta)
+  if (bounds !== null) sendCommand({ type: 'set-widget-bounds', widgetId: 'delta', bounds })
+}
+function applyRows(next: ElementEntry<DeltaRowId>[]): Promise<unknown> {
+  growForBars({ ...opts.value, rows: next })
+  return setRows(next)
+}
+function applyRefBars(next: ElementEntry<DeltaReference>[]): Promise<unknown> {
+  // Showing a bar with the line hidden shows the line too (refBarsGate).
+  const opening = !isElementVisible(opts.value.rows, 'refs') && showsMore(opts.value.refBars, next)
+  const rows = opening ? setElementVisible(opts.value.rows, 'refs', true) : opts.value.rows
+  growForBars({ ...opts.value, refBars: next, rows })
+  return refBarsGate.apply(next)
+}
+/** The bars a short window cannot hold: «No cabe en 400 por 80 px» (the width's words otherwise). */
+const tallWords = computed(() => ({
+  text: t.value.settings.preview.noRoomTall,
+  detail: t.value.settings.preview.noRoomTallHelp
+}))
 </script>
 
 <template>
@@ -216,7 +246,8 @@ const refBarsGate = useParentGate({
       :items="opts.rows"
       :spec="S.rows"
       :labels="rowTexts"
-      :apply="setRows"
+      :apply="applyRows"
+      :room-words="tallWords"
       :parts-of="PARTS_OF"
       :parts-summary="partsSummary"
     >
@@ -237,7 +268,8 @@ const refBarsGate = useParentGate({
           :items="opts.refBars"
           :spec="S.refBars"
           :labels="refBarTexts"
-          :apply="refBarsGate.apply"
+          :apply="applyRefBars"
+          :room-words="tallWords"
           :note="refBarsGate.note.value"
         />
         <ElementEditor

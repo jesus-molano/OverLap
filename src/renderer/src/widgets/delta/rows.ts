@@ -191,3 +191,80 @@ export function referenceNote(
   if (next.pending === null && prev.pending !== null) return ''
   return null
 }
+
+/** A free widget's text fit: the em height and width its contents need. */
+export interface DeltaFit {
+  readonly h: number
+  readonly w: number
+}
+
+/** The em width of the lap times line, by how many times it shows. */
+const DELTA_LAPS_W = [0, 8, 15, 22, 29] as const
+
+/** What deltaFit reads of the options. */
+type FitOptions = {
+  readonly rows: List<DeltaRowId>
+  readonly top: List<DeltaTopId>
+  readonly laps: List<DeltaLapId>
+  readonly refBars: List<DeltaReference>
+}
+
+/**
+ * The delta's fit (DeltaWidget's --dl-fit-h and --dl-fit-w) for its options, with `bars` bars per
+ * reference (by default all those shown).
+ */
+export function deltaFitOf(o: FitOptions, bars?: number): DeltaFit {
+  let h = DELTA_FIT_TOP_EM
+  const shown = new Set(visibleIds(o.rows))
+  for (const row of ['bar', 'sectors', 'laps'] as const) {
+    if (shown.has(row)) h += DELTA_ROW_FIT_EM[row]
+  }
+  const n = bars ?? (shown.has('refs') ? visibleIds(o.refBars).length : 0)
+  h += refBarsFitEm(n)
+  const top = new Set(visibleIds(o.top))
+  const info = top.has('predicted') || top.has('reference') ? 20 : 11.5
+  const trend = top.has('state') ? 6 : 0
+  const laps = shown.has('laps') ? (DELTA_LAPS_W[Math.min(4, visibleIds(o.laps).length)] ?? 0) : 0
+  const refs = n > 0 ? DELTA_REF_BARS_FIT_W : 0
+  return { h: Math.round(h * 100) / 100, w: Math.max(info + trend, laps, refs) }
+}
+
+/** The delta's own text ceiling (px, DeltaWidget's font-size clamp). */
+export const DELTA_MAX_TEXT_PX = 40
+/** Windows this short (px) draw no sectors, lap times or bars (DeltaWidget's container query). */
+export const DELTA_SHORT_PX = 62
+
+/**
+ * How many of the `count` bars per reference a `w` x `h` px window draws whole. The text is
+ * fitted to the window (deltaFitOf), so all fit until it reaches the floor `minText`: then only
+ * those the height still holds (the rest would wrap out of view).
+ */
+export function refBarsThatFit(
+  o: FitOptions,
+  count: number,
+  w: number,
+  h: number,
+  minText: number
+): number {
+  if (count <= 0 || !(w > 0) || !(h > 0)) return count
+  if (h <= DELTA_SHORT_PX) return 0
+  const all = deltaFitOf(o, count)
+  const font = Math.min(DELTA_MAX_TEXT_PX, Math.max(minText, Math.min(h / all.h, w / all.w)))
+  for (let k = count; k > 0; k--) {
+    if (deltaFitOf(o, k).h * font <= h + 1e-6) return k
+  }
+  return 0
+}
+
+/**
+ * The bars drawn when only `fit` of `bars` fit: the first ones in your order, but never without
+ * the reference the delta is using (its bar takes the last place left). All of them when they fit.
+ */
+export function barsInRoom(bars: readonly RefBarView[], fit: number): readonly RefBarView[] {
+  if (fit >= bars.length) return bars
+  if (fit <= 0) return NO_REF_BARS
+  const head = bars.slice(0, fit)
+  if (head.some((b) => b.isRef)) return head
+  const ref = bars.find((b) => b.isRef)
+  return ref === undefined ? head : [...head.slice(0, fit - 1), ref]
+}

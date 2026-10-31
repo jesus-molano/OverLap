@@ -16,7 +16,7 @@ import PageSection from '../layout/PageSection.vue'
 import { injectZoneRegistry, isZoneOpen, setZonesOpen, zoneOfSpec } from '../layout/zonesOpen'
 import type { ElRef, PreviewZoneId } from '../preview/previewEdit'
 import { injectPreviewEdit, type ZoneHandle } from '../preview/usePreviewEdit'
-import { useNoRoom } from '../preview/useNoRoom'
+import { useNoRoom, type NoRoomWords } from '../preview/useNoRoom'
 import HelpText from '../controls/HelpText.vue'
 import PreviewNote from '../controls/PreviewNote.vue'
 import type { PreviewNoteSpec } from '../controls/previewNote'
@@ -113,6 +113,11 @@ const props = withDefaults(
     fixedAfter?: readonly { readonly key: string; readonly label: string }[]
     /** A short note about the whole list, under it. */
     note?: string
+    /**
+     * The «No cabe» note's words on a row the sample has no room for, when the window's height
+     * rather than its width is short (Delta's bars per reference); the width's by default.
+     */
+    roomWords?: { readonly text: NoRoomWords; readonly detail: NoRoomWords }
     /** The marker that splits the list into two sides (an info bar's 'split'). */
     split?: Id
     /** Ids that are no row (the zone's switch in the `head` slot shows them). */
@@ -632,7 +637,9 @@ const roomNotes = computed<ReadonlyMap<Id, PreviewNoteSpec>>(() => {
   const out = new Map<Id, PreviewNoteSpec>()
   if (z === null) return out
   for (const e of rowEntries.value) {
-    const note = e.visible ? noRoom.value(`${z}.${e.id}`) : undefined
+    const note = e.visible
+      ? noRoom.value(`${z}.${e.id}`, props.roomWords?.detail, props.roomWords?.text)
+      : undefined
     if (note !== undefined) out.set(e.id, note)
   }
   return out

@@ -102,14 +102,22 @@ solo cuando no hay nadie cerca.
 ### Spotter
 
 Dos barras, una a cada lado, para quien prefiere los laterales al radar central (o los quiere
-con él: son independientes, cada uno con su página y su visibilidad). Cada barra es tu coche, de
-morro (arriba) a cola (abajo), y se llena con lo que te cubre el coche de ese lado: desde arriba si
-va por delante, desde abajo si va por detrás, y entera cuando va justo a tu lado. El color pasa del
-gris al rojo según te cubre más, y llena se marca también con el borde rojo. Con dos coches en un
-lado, un «2»; con un coche que acaba de estar a tu lado y ahora va justo delante o detrás, un tope
-tenue en ese extremo. Qué lado lo dice el spotter de iRacing; cuánto, la distancia a lo largo de la
-pista. iRacing no da la distancia lateral: llena es «del todo a tu lado», no «golpe». Si iRacing
-dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
+con él: son independientes, cada uno con su página y su visibilidad). **Estilo de barra** elige qué
+cuentan:
+
+- **Cercanía** (de serie): el radar en dos barras. Cada barra se llena desde abajo cuanto más cerca
+  está el coche de ese lado, con la misma regla que el radar: llena cuando va a tu lado, y se vacía
+  según se aleja delante o detrás (hasta unos 12 m), del ámbar al rojo; llena se marca también con
+  el borde rojo. Con dos coches en un lado, un «2».
+- **Dónde te cubre**: cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo
+  que te cubre el coche de ese lado: desde arriba si va por delante, desde abajo si va por detrás,
+  y entera cuando va justo a tu lado, del gris al rojo. Con dos coches en un lado, un «2»; con uno
+  que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
+  iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
+
+Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
+acerca por detrás sin haber estado a tu lado no tiene lado todavía. Cuánto, la distancia a lo largo
+de la pista. iRacing no da la distancia lateral: llena es «a tu lado», no «golpe».
 
 El ancho de la ventana es la separación entre las barras (para ponerlas a los lados del coche o
 de la pantalla) y su alto, su largo; el grosor se elige en Contenido. De serie solo se ve con un
@@ -204,7 +212,10 @@ pierde al cambiar de sesión), tu mejor vuelta de la sesión, tu vuelta óptima 
 de tu clase o la óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera. Solo
 cuentan las vueltas legales (sin salirte de pista, sin incidentes, sin pit lane, grúa ni amarilla),
 y la referencia solo cambia al empezar una vuelta. Opcional: una fila con tu última, tu mejor, tu
-óptima y tu récord, y una barra por cada referencia que elijas, todas a la misma escala.
+óptima y tu récord, y una barra por cada referencia que elijas, todas a la misma escala y con los
+colores de la barra principal (verde a la izquierda, más rápido). Al encender las barras desde su
+página la ventana crece lo justo para que quepan todas; si luego la achicas, se ven las que caben
+(siempre la de la referencia en uso) y la página dice «No cabe» en las demás.
 
 ### Combustible
 

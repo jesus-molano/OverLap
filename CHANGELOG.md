@@ -11,15 +11,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 - **Spotter, un widget nuevo (el undécimo)**: dos barras, una a cada lado, como las de iOverlay,
   aparte del radar (cada uno con su página y su visibilidad: puedes tener uno, otro o los dos).
-  Cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo que te cubre el coche
-  de ese lado, desde el extremo en el que va; el color pasa del gris al rojo según te cubre más, y
-  llena (del todo a tu lado) también se marca con el borde rojo. Con dos coches en un lado, un «2»
-  y sus dos tramos; con uno que acaba de estar a tu lado y va justo delante o detrás, un tope
-  tenue en ese extremo. El lado lo da el spotter de iRacing y el cuánto la distancia a lo largo de
-  la pista (también al cruzar la línea de meta), con el mismo cálculo que el radar, que sigue
-  funcionando con el radar oculto. iRacing no da la distancia lateral: llena no quiere decir
-  golpe. El ancho de la ventana es la separación entre las barras; en Contenido, **Solo con un
-  coche al lado** (de serie) y **Grosor de las barras**; en Personalizar, sus dos marcas. Oculto
+  **Estilo de barra** elige qué cuentan. **Cercanía** (de serie): el radar en dos barras; cada una
+  se llena desde abajo cuanto más cerca está el coche de ese lado (llena a tu lado, vacía a unos
+  12 m delante o detrás), del ámbar al rojo, y llena también se marca con el borde rojo. **Dónde
+  te cubre**: cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo que te
+  cubre el coche de ese lado, desde el extremo en el que va, del gris al rojo, con un tope tenue
+  para el que acaba de estar a tu lado y va justo delante o detrás. En los dos, un «2» con dos
+  coches en un lado. El lado lo da el spotter de iRacing (solo cuando el coche ya está a tu
+  altura) y el cuánto la distancia a lo largo de la pista (también al cruzar la línea de meta),
+  con el mismo cálculo que el radar, que sigue funcionando con el radar oculto. iRacing no da la
+  distancia lateral: llena no quiere decir golpe. El ancho de la ventana es la separación entre
+  las barras; en Contenido, **Estilo de barra**, **Solo con un coche al lado** (de serie) y
+  **Grosor de las barras**; en Personalizar, sus dos marcas. Oculto
   de serie, también al actualizar (en un hueco libre cerca de su sitio); tiene su atajo en «Más
   acciones», su casilla en la bandeja y su sitio en Visibilidad y en el buscador.
 - **Delta: una barra por referencia**: una línea nueva, **Barras por referencia** (apagada de
@@ -29,17 +32,23 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   las tres tuyas). Todas usan la escala de la barra principal y sus colores (verde a la izquierda,
   más rápido; rojo a la derecha, más lento), la que usa el delta lleva «Δ», y cada una compara con
   su propia vuelta toda la vuelta, sin «siguiente si no existe»: la que aún no tiene vuelta marca
-  «—» con la barra vacía, sin mover nada. Solo se calculan las que se ven.
+  «—» con la barra vacía, sin mover nada. Solo se calculan las que se ven. Al encender la línea o
+  una barra desde la página de Delta, la ventana crece lo justo (como con «Completo») para que
+  quepan todas sin achicar el texto; en una ventana más baja se dibujan las que caben, siempre con
+  la de la referencia en uso, y la página dice «No cabe en 400 por 80 px» en las demás.
 - **Batalla: el hueco como en Relativo, y cada frase de la predicción a tu gusto**: en Contenido,
   **Hueco** elige entre **Sin signo** (el hueco medido, «0.6 s», como siempre y de serie) y **Como
-  Relativo** (el mismo tiempo que Relativo, con su signo y su formato: positivo delante, negativo
-  detrás). La línea **Predicción de alcance** se despliega en sus partes, cada una con su ojo: «Le
-  alcanzas en…», «Te alcanza en…», «Necesitas…» (el ritmo) y «No le alcanzas · No te alcanza»;
+  Relativo** (el mismo tiempo que Relativo, tal cual lo dibuja su columna: con su signo, positivo
+  delante y negativo detrás, y sin unidad; mientras Relativo no tiene tiempo para ese coche, el
+  hueco medido con el signo de su carril). La línea **Predicción de alcance** se despliega en sus
+  partes, cada una con su ojo: «Le alcanzas en…», «Te alcanza en…», «Necesitas… s/v» y «No le
+  alcanzas · No te alcanza»;
   una frase oculta deja la línea en blanco, sin mover nada. Todo visible de serie.
 - **Hora en pista en la cabecera y el pie**: un dato nuevo, **Hora en pista**, en el catálogo de
   las barras de Relativo, Posiciones, Combustible, Tráfico y Batalla: la hora del día en el
   simulador (que corre con la sesión), con el mismo formato que la hora local (24 h, «14:32») y un
-  sol delante para distinguirlas. Apagado de serie: se añade con **+ Añadir dato**.
+  sol delante para distinguirlas (una luna de las 20:00 a las 06:00). Apagado de serie: se añade
+  con **+ Añadir dato**.
 - **Más coches de las otras clases en Posiciones**: en modo compacto, **Coches de otras clases**
   (de 0 a 10, con el mismo selector que «Primeros puestos» y «Alrededor de ti») sustituye al
   interruptor «Líderes de otras clases». Con 1 (lo de siempre) cada otra clase es la línea de su
@@ -60,12 +69,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 ### Cambiado
 
 - **Tus referencias, solo con vueltas legales**: además de salirte de pista, pisar el pit lane, la
-  grúa, pararte o una amarilla, ahora también invalida tu vuelta cualquier incidente tuyo que
-  iRacing anote en ella (o medio segundo después de cruzar la línea, cuando la salida de pista
-  llega tarde). Esa vuelta nunca es tu mejor vuelta de la sesión ni entra en tu óptima ni en la de
-  tu clase, ni se guarda como récord; si ya lo era por un instante, vuelve la anterior antes de que
-  el delta la use. El aviso «vuelta inválida» del delta sigue esta misma regla, también la vuelta
-  recién terminada que se muestra al cruzar la línea.
+  grúa, pararte o una amarilla, ahora también invalida tu vuelta una salida de pista que iRacing te
+  anote (su 1x) aunque ningún instante de la telemetría la viera. Si llega en el medio segundo
+  después de cruzar la línea, es de la vuelta que acabas de cerrar, no de la nueva. Un toque (0x,
+  4x) o un trompo (2x) no la invalidan: iRacing también la cuenta. Esa vuelta nunca es tu mejor
+  vuelta de la sesión ni entra en tu óptima ni en la de tu clase, ni se guarda como récord; si ya
+  lo era por un instante, vuelve la anterior antes de que el delta la use. El aviso «vuelta
+  inválida» del delta sigue esta misma regla, también la vuelta recién terminada que se muestra al
+  cruzar la línea, y la columna «Mejor» de Posiciones muestra para ti tu mejor vuelta legal aunque
+  iRacing cuente como mejor una de esas.
 
 ## [2.3.1] - 2026-10-30
 

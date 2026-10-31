@@ -1,6 +1,8 @@
 /**
- * Spotter (2.4): the cars alongside you as two pillars, one each side, each pillar your car from
- * its front (top) to its rear (bottom). iRacing's own spotter (CarLeftRight) decides the sides and
+ * Spotter (2.4): the cars at your sides as two pillars. Each side carries what both bar styles
+ * draw: how close the nearest car on that side is (`close`, the radar's own rule: «Cercanía», the
+ * default) and, for «Dónde te cubre», the pillar as your car from its front (top) to its rear
+ * (bottom). iRacing's own spotter (CarLeftRight) decides the sides and
  * how many cars: the radar's matching (radar.ts computeRadar) puts real cars on them, and their
  * distance along the track (CarIdxLapDistPct x the track length, the start/finish line wrapped)
  * says how much of your car each one covers, pinned to the end it is at. There is no lateral
@@ -83,36 +85,73 @@ function mergeSegments(segs: SpotterSegment[]): SpotterSegment[] {
   return out
 }
 
-/** 0 (a near-cap reach away) .. 1 (a car length or closer). */
-function nearness(absM: number): number {
+/** 0 (SPOTTER.nearM away) .. 1 (a car length or closer), unquantised: the radar's proximity. */
+function proximity(absM: number): number {
   const span = SPOTTER.nearM - SPOTTER.carLengthM
-  return quantise(1 - (absM - SPOTTER.carLengthM) / span, SPOTTER.nearSteps)
+  return clamp01(1 - (absM - SPOTTER.carLengthM) / span)
 }
 
-function emptySide(): SpotterSide {
-  return { count: 0, segs: [], cover: 0, unknown: false, nearFront: 0, nearRear: 0 }
+/** The near caps' step (tenths). */
+function nearness(absM: number): number {
+  return quantise(proximity(absM), SPOTTER.nearSteps)
 }
 
-/** One side (`left`: lanes < 0) of a radar pass. */
+/**
+ * How close a car held on its side is (`close`): the radar's proximity over the spotter's reach,
+ * quantised to SPOTTER.steps.
+ */
+export function closeness(absM: number): number {
+  return quantise(proximity(absM), SPOTTER.steps)
+}
+
+/** A side with nothing on it: one shared object, so a quiet pass allocates none. */
+const EMPTY_SIDE: SpotterSide = Object.freeze({
+  count: 0,
+  segs: Object.freeze([]) as unknown as SpotterSegment[],
+  cover: 0,
+  unknown: false,
+  nearFront: 0,
+  nearRear: 0,
+  close: 0
+}) as SpotterSide
+
+/** The payload out of the car or with iRacing's spotter off: shared, never changed. */
+const INACTIVE: SpotterData = Object.freeze({
+  active: false,
+  visible: false,
+  left: EMPTY_SIDE,
+  right: EMPTY_SIDE
+}) as SpotterData
+
+/** One side (`left`: lanes < 0) of a radar pass; EMPTY_SIDE with nobody there. */
 function sideOf(radar: RadarData, left: boolean): SpotterSide {
-  const side = emptySide()
-  side.count = left ? radar.leftCount : radar.rightCount
-  const segs: SpotterSegment[] = []
+  const count = left ? radar.leftCount : radar.rightCount
+  let side: SpotterSide | null = null
+  let segs: SpotterSegment[] | null = null
   for (const car of radar.cars) {
     if (car.lane === 0 || car.lane < 0 !== left) continue
     if (car.overlapping) {
-      if (side.count === 0) continue
+      if (count === 0) continue
+      side ??= { ...EMPTY_SIDE, count, segs: [] }
       if (car.carIdx < 0 || !radar.trackLengthKnown) side.unknown = true
-      else segs.push(overlapSegment(car.distM))
+      else (segs ??= []).push(overlapSegment(car.distM))
     } else {
       // A car that was alongside, held on its side: about to come alongside again (or leaving).
-      const n = nearness(Math.abs(car.distM))
-      if (n <= 0) continue
+      const abs = Math.abs(car.distM)
+      const c = closeness(abs)
+      if (c <= 0) continue
+      side ??= { ...EMPTY_SIDE, count, segs: [] }
+      side.close = Math.max(side.close, c)
+      const n = nearness(abs)
       if (car.distM >= 0) side.nearFront = Math.max(side.nearFront, n)
       else side.nearRear = Math.max(side.nearRear, n)
     }
   }
-  side.segs = mergeSegments(segs)
+  if (count > 0) side ??= { ...EMPTY_SIDE, count, segs: [] }
+  if (side === null) return EMPTY_SIDE
+  // Alongside is as close as it gets, whether or not a car could be placed: the radar's 1.
+  if (count > 0) side.close = 1
+  if (segs !== null) side.segs = mergeSegments(segs)
   let cover = 0
   for (const s of side.segs) cover += s.to - s.from
   side.cover = side.unknown ? 1 : quantise(cover, SPOTTER.steps)
@@ -122,10 +161,10 @@ function sideOf(radar: RadarData, left: boolean): SpotterSide {
 /** The spotter's payload from a radar pass; `onTrack`: IsOnTrack (you are driving). */
 export function spotterFromRadar(radar: RadarData, onTrack: boolean): SpotterData {
   const active = onTrack && radar.carLeftRight !== CarLeftRight.Off
-  if (!active) return { active: false, visible: false, left: emptySide(), right: emptySide() }
+  if (!active) return INACTIVE
   const left = sideOf(radar, true)
   const right = sideOf(radar, false)
-  const busy = (s: SpotterSide): boolean => s.count > 0 || s.nearFront > 0 || s.nearRear > 0
+  const busy = (s: SpotterSide): boolean => s.count > 0 || s.close > 0
   return { active, visible: busy(left) || busy(right), left, right }
 }
 
@@ -156,6 +195,7 @@ export function spotterSideEqual(a: SpotterSide, b: SpotterSide): boolean {
     a.unknown !== b.unknown ||
     a.nearFront !== b.nearFront ||
     a.nearRear !== b.nearRear ||
+    a.close !== b.close ||
     a.segs.length !== b.segs.length
   ) {
     return false

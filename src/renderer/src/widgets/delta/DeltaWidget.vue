@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { arrayEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption, type NumericSpec } from '@shared/settingsSchema'
 import type { DeltaReference, DeltaRowId } from '@shared/types'
+import { useAppearance } from '@renderer/composables/useAppearance'
+import { useElementSize } from '@renderer/composables/useElementSize'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useOptions } from '@renderer/composables/useWidgetSettings'
 import { useWidgetSurface } from '@renderer/composables/useWidgetSurface'
+import { useNoRoomReport } from '@renderer/composables/widgetContext'
 import { vInlineStyle } from '@renderer/directives/inlineStyle'
+import { minTextPx } from '@renderer/view/appearance'
 import Chip from '@renderer/ui/Chip.vue'
 import Icon from '@renderer/ui/Icon.vue'
 import PreviewTag from '@renderer/ui/PreviewTag.vue'
@@ -19,11 +23,13 @@ import { DELTA_REFERENCE_FIELD } from '@shared/delta/choice'
 import { previewDelta, previewSession } from './preview'
 import {
   REFERENCE_NOTE_MS,
+  barsInRoom,
   deltaRows,
   deltaTopParts,
   lapTimesView,
   refBarsView,
   referenceNote,
+  refBarsThatFit,
   type DeltaTopParts,
   type LapTimeView,
   type RefBarView,
@@ -174,6 +180,33 @@ const refBars = computed<readonly RefBarView[]>((prev) =>
 )
 /** The row with no reference shown draws nothing, and sizes nothing. */
 const showRefs = computed(() => rows.value.includes('refs') && refBars.value.length > 0)
+// A window too short for every bar at the smallest text draws the first ones in your order, the
+// reference in use always among them; the rest are said «No cabe» on the page. Only a resize, a
+// text floor or a list change recounts (never a telemetry pass).
+const root = useTemplateRef<HTMLElement>('root')
+const rootSize = useElementSize(root)
+const appearance = useAppearance()
+const barsFit = computed(() =>
+  showRefs.value
+    ? refBarsThatFit(
+        options.value,
+        refBars.value.length,
+        rootSize.value.w,
+        rootSize.value.h,
+        minTextPx(appearance.value)
+      )
+    : refBars.value.length
+)
+const barsShown = computed<readonly RefBarView[]>((prev) => {
+  const next = barsInRoom(refBars.value, barsFit.value)
+  return prev !== undefined && arrayEqual(prev, next) ? prev : next
+})
+useNoRoomReport(() => {
+  if (!showRefs.value || barsShown.value.length === refBars.value.length) return []
+  const shownIds = new Set(barsShown.value.map((b) => b.id))
+  const out = refBars.value.filter((b) => !shownIds.has(b.id)).map((b) => `delta.refBars.${b.id}`)
+  return barsShown.value.length === 0 ? ['delta.rows.refs', ...out] : out
+})
 /** A bar's delta ('—' and an empty bar while its reference has no lap yet). */
 const barValue = (id: DeltaReference): number | null => content.value?.bars?.[id] ?? null
 const refBarStyles = (v: number | null): ReturnType<typeof barStyles> =>
@@ -230,7 +263,7 @@ const rootClass = computed(() => ({
 </script>
 
 <template>
-  <div class="delta ov-root ov-fade" :class="rootClass">
+  <div ref="root" class="delta ov-root ov-fade" :class="rootClass">
     <WidgetPanel class="dl-panel" :surface="surfaceStyle" :halo="halo" fill>
       <div v-inline-style="orderStyle(place.top ?? 0)" class="dl-top" data-el="delta.rows.top">
         <div class="dl-hero" :class="`ov-tone-${heroTone}`">
@@ -311,7 +344,7 @@ const rootClass = computed(() => ({
         data-el="delta.rows.refs"
       >
         <div
-          v-for="b in refBars"
+          v-for="b in barsShown"
           :key="b.id"
           v-memo="[b, barValue(b.id), rangeS]"
           class="dl-rb"

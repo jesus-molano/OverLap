@@ -48,7 +48,7 @@ const arrowStyle = computed<InlineStyle | undefined>(() =>
       <span class="ib-num">{{ item.text }}</span>
     </template>
     <template v-else-if="item.id === 'simClock'">
-      <Icon name="sun" class="ib-rem-icon" />
+      <Icon :name="item.night ? 'moon' : 'sun'" class="ib-rem-icon" />
       <span class="ib-num">{{ item.text }}</span>
     </template>
     <template v-else-if="item.id === 'incidents'">

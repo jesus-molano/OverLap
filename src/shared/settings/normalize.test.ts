@@ -384,6 +384,8 @@ const DEFAULT_LIGHTS: LightsOptions = {
 const DEFAULT_SPOTTER: SpotterOptions = {
   onlyAlongside: true,
   barWidth: 14,
+  // 5c: how close the nearest car on each side is, for new and old files alike.
+  barStyle: 'closeness',
   parts: list(['nearCap', 'twoMark'])
 }
 /** Every page's "Personalizar" zones, in order: the first of each page open. */

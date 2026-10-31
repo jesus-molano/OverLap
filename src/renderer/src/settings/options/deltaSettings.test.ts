@@ -23,8 +23,13 @@ describe('DeltaSettings', () => {
     expect(custom).toMatch(/<template #parts="\{ id \}">/)
     expect(SOURCE).toContain(`const PARTS_OF: readonly DeltaRowId[] = ['top', 'refs', 'laps']`)
     // Showing a reference's bar shows its line, as a lap time does (the parent gate).
-    expect(custom).toMatch(/:apply="refBarsGate\.apply"/)
+    // (applyRefBars: the gate's apply, after growing the window for the bars it adds.)
+    expect(custom).toMatch(/:apply="applyRefBars"/)
+    expect(SOURCE).toMatch(/return refBarsGate\.apply\(next\)/)
     expect(SOURCE).toMatch(/parent: 'refs',/)
+    // Showing more bars grows the window as «Completo» does; the lists say «No cabe» by height.
+    expect(SOURCE).toMatch(/deltaBarsGrowth\(s, delta\)/)
+    expect(custom.match(/:room-words="tallWords"/g)).toHaveLength(2)
     // Folded parts stay mounted (their zones are the preview's): v-show, not v-if.
     expect(EDITOR).toMatch(/v-if="partsOf\.includes\(r\.entry\.id\)"\s+v-show="unfolded\.has/)
   })
