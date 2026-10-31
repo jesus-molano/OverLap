@@ -13,15 +13,18 @@ import SOURCE from './DeltaSettings.vue?raw'
 const templateOf = (sfc: string): string => /<template>([\s\S]*)<\/template>/.exec(sfc)?.[1] ?? ''
 
 describe('DeltaSettings', () => {
-  it('has one list: the lines, with the parts of two of them inside', () => {
+  it('has one list: the lines, with the parts of three of them inside', () => {
     const t = templateOf(SOURCE)
     const custom = /<CustomizeSection>([\s\S]*)<\/CustomizeSection>/.exec(t)?.[1] ?? ''
-    // One accordion: the other two lists are embedded in its parts slot.
-    expect(custom.match(/<ElementEditor\b/g)).toHaveLength(3)
-    expect(custom.match(/\bembedded\b/g)).toHaveLength(2)
+    // One accordion: the other three lists (the bars per reference too) are in its parts slot.
+    expect(custom.match(/<ElementEditor\b/g)).toHaveLength(4)
+    expect(custom.match(/\bembedded\b/g)).toHaveLength(3)
     expect(custom).toMatch(/:parts-of="PARTS_OF"/)
     expect(custom).toMatch(/<template #parts="\{ id \}">/)
-    expect(SOURCE).toContain(`const PARTS_OF: readonly DeltaRowId[] = ['top', 'laps']`)
+    expect(SOURCE).toContain(`const PARTS_OF: readonly DeltaRowId[] = ['top', 'refs', 'laps']`)
+    // Showing a reference's bar shows its line, as a lap time does (the parent gate).
+    expect(custom).toMatch(/:apply="refBarsGate\.apply"/)
+    expect(SOURCE).toMatch(/parent: 'refs',/)
     // Folded parts stay mounted (their zones are the preview's): v-show, not v-if.
     expect(EDITOR).toMatch(/v-if="partsOf\.includes\(r\.entry\.id\)"\s+v-show="unfolded\.has/)
   })

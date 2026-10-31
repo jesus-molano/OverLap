@@ -1,6 +1,7 @@
 import { setFlagsFromString } from 'node:v8'
 import { runInNewContext } from 'node:vm'
 import { describe, expect, it } from 'vitest'
+import { setElementVisible } from '../elements'
 import { SessionFlag } from '../flags'
 import { SessionState } from '../telemetry'
 import { EMPTY_RACE_VIEW } from '../race/emptyRaceView'
@@ -21,6 +22,7 @@ import {
   DELTA,
   DELTA_FALLBACK,
   DeltaProvider,
+  NO_BARS,
   NO_LAPS,
   deltaEqual,
   profileAt,
@@ -83,6 +85,7 @@ function carState(carIdx: number, o: Partial<RaceCarState> = {}): RaceCarState {
     pace: 100,
     speed: 0.01,
     stoppedForS: 0,
+    lapInvalid: false,
     sessionFlags: 0,
     ...o
   }
@@ -345,7 +348,8 @@ describe('DeltaProvider: the live delta', () => {
       preferred: 'session',
       pending: null,
       temporary: false,
-      laps: NO_LAPS
+      laps: NO_LAPS,
+      bars: NO_BARS
     })
     // A reference appears while there is none: taken at once (nothing to keep consistent).
     rig.race.best.set(PLAYER, lapOf(100))
@@ -965,7 +969,8 @@ describe('DeltaProvider: the S/F line', () => {
         preferred: 'session',
         pending: null,
         temporary: false,
-        laps: s.data.laps
+        laps: s.data.laps,
+        bars: NO_BARS
       })
     }
     // Your times as they were at the line: the best is the model's, the optimal your laps'.
@@ -1154,6 +1159,8 @@ describe('DeltaProvider: sectors and lap validity', () => {
     const cases: [string, (rig: Rig, on: boolean) => void][] = [
       ['pits', (rig, on) => rig.player({ inPits: on })],
       ['off track', (rig, on) => rig.player({ offTrack: on })],
+      // The model's own rule (60 Hz, your incidents): an off-track between two computes too.
+      ['lap rule', (rig, on) => rig.player({ lapInvalid: on })],
       ['stopped', (rig, on) => rig.player({ stoppedForS: on ? 0.5 : 0 })],
       ['out lap', (rig, on) => rig.player({ outLap: on })],
       [
@@ -1370,7 +1377,8 @@ describe('deltaEqual', () => {
     preferred: 'pb',
     pending: null,
     temporary: false,
-    laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: 92.5 }
+    laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: 92.5 },
+    bars: NO_BARS
   }
 
   it('compares every field, sectors element by element', () => {
@@ -1395,9 +1403,127 @@ describe('deltaEqual', () => {
       { laps: { last: 93.2, best: 92.5, optimal: 92.2, pb: 92.5 } },
       { laps: { last: 93.1, best: 92.4, optimal: 92.2, pb: 92.5 } },
       { laps: { last: 93.1, best: 92.5, optimal: null, pb: 92.5 } },
-      { laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: null } }
+      { laps: { last: 93.1, best: 92.5, optimal: 92.2, pb: null } },
+      { bars: { ...NO_BARS, pb: -0.1 } },
+      { bars: { ...NO_BARS, classOptimal: 0 } }
     ]
     for (const c of changes)
       expect(deltaEqual({ ...base, ...c }, base), JSON.stringify(c)).toBe(false)
+  })
+})
+
+/** The rig with the bars per reference shown, for `refs` (the 'refs' row's eye on). */
+function withBars(rig: Rig, refs: readonly DeltaReference[]): Rig {
+  rig.opts = {
+    ...rig.opts,
+    rows: setElementVisible(rig.opts.rows, 'refs', true),
+    refBars: DELTA_REFERENCES.map((id) => ({ id, visible: refs.includes(id) }))
+  }
+  return rig
+}
+
+describe('DeltaProvider: the bars per reference (request 4)', () => {
+  it('computes nothing while the row is hidden (the default)', () => {
+    const rig = new Rig()
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.5, 50.5).bars).toBe(NO_BARS)
+    // Shown references with the row hidden: still nothing.
+    rig.opts = { ...rig.opts, refBars: DELTA_REFERENCES.map((id) => ({ id, visible: true })) }
+    expect(rig.at(T0 + 0.5, 3, 0.505, 51).bars).toBe(NO_BARS)
+  })
+
+  it('gives each shown reference its own delta, the others null', () => {
+    const rig = withBars(new Rig(), ['pb', 'session', 'class'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.race.best.set(1, lapOf(98, 4))
+    rig.bests.offer(personalBestKey(rig.session, PLAYER) ?? '', pbLap(99))
+    const d = rig.at(T0, 3, 0.5, 50.5)
+    expect(d.delta).toBe(0.5)
+    expect(d.bars).toEqual({ pb: 1, session: 0.5, optimal: null, class: 1.5, classOptimal: null })
+    // Hiding a reference's bar forgets it at once; the order of the list changes nothing.
+    rig.opts = { ...rig.opts, refBars: [...rig.opts.refBars].reverse() }
+    expect(rig.at(T0 + 0.5, 3, 0.5, 50.5).bars).toEqual({
+      pb: 1,
+      session: 0.5,
+      optimal: null,
+      class: 1.5,
+      classOptimal: null
+    })
+    withBars(rig, ['class'])
+    expect(rig.at(T0 + 1, 3, 0.5, 50.5).bars).toEqual({ ...NO_BARS, class: 1.5 })
+  })
+
+  it('has no fallback: a reference without a lap is null, and taken as soon as it has one', () => {
+    const rig = withBars(new Rig({ reference: 'session' }), ['pb', 'optimal'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.5, 50.5).bars).toEqual(NO_BARS)
+    rig.bests.offer(personalBestKey(rig.session, PLAYER) ?? '', pbLap(99))
+    // Looked up with the references (DELTA.refreshS): a bar with none takes it mid-lap.
+    expect(rig.at(T0 + DELTA.refreshS, 3, 0.51, 51.49).bars).toEqual({ ...NO_BARS, pb: 1 })
+  })
+
+  it('keeps its lap for the whole lap, and takes a newer one at the next lap start', () => {
+    const rig = withBars(new Rig(), ['pb'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    const key = personalBestKey(rig.session, PLAYER) ?? ''
+    rig.bests.offer(key, pbLap(99))
+    expect(rig.at(T0, 3, 0.5, 50.5).bars.pb).toBe(1)
+    // A faster record mid-lap: the bar still compares with the lap it started with.
+    rig.bests.offer(key, pbLap(97))
+    expect(rig.at(T0 + 2, 3, 0.52, 52.48).bars.pb).toBe(1)
+    // At the line the lap just finished shows against that same lap (as the main delta)...
+    rig.at(T0 + 2.5, 3, 0.995, 99.5)
+    rig.race.close(PLAYER, lapOf(100.5, 3))
+    expect(rig.at(T0 + 3, 4, 0.005, 0.5).bars.pb).toBe(1.5)
+    // ...then the new lap compares with the new record.
+    expect(rig.at(T0 + 12, 4, 0.1, 10).bars.pb).toBe(0.3)
+  })
+
+  it('holds where the main delta holds, and is null with no lap in progress', () => {
+    const rig = withBars(new Rig(), ['session'])
+    rig.race.best.set(PLAYER, lapOf(100))
+    expect(rig.at(T0, 3, 0.5, 50.5).bars.session).toBe(0.5)
+    // An impossible gain (a glitch): the last value holds, as the hero's.
+    expect(rig.at(T0 + 0.5, 3, 0.505, 0.2).bars.session).toBe(0.5)
+    expect(rig.at(T0 + 1, null, 0.51).bars.session).toBeNull()
+  })
+})
+
+describe('DeltaProvider: legal laps only (request 4)', () => {
+  it('a lap that turns unclean just after its line is never the reference, nor your best', () => {
+    const rig = new Rig({ reference: 'session' })
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.race.close(PLAYER, lapOf(100))
+    rig.at(T0, 3, 0.98, 98)
+    rig.at(T0 + 0.5, 3, 0.995, 99.5)
+    // Lap 3 in 99.0, clean at the line: the new session best, the reference of lap 4.
+    const lap3 = lapOf(99, 3)
+    rig.race.complete(PLAYER, lap3)
+    const line = rig.at(T0 + 1, 4, 0.004, 0.4)
+    expect(line).toMatchObject({ delta: -1, lapState: 'valid', refLapTime: 100 })
+    expect(rig.at(T0 + 1.1, 4, 0.005, 0.5).laps.best).toBe(99)
+    // An incident scored 0.2 s after the line: the model takes lap 3 back.
+    rig.race.close(PLAYER, { ...lap3, clean: false })
+    rig.race.best.set(PLAYER, lapOf(100))
+    rig.player({ ...rig.race.view.car(PLAYER), lapInvalid: true })
+    const after = rig.at(T0 + 1.4, 4, 0.008, 0.8)
+    // The summary of lap 3 now says it won't count.
+    expect(after).toMatchObject({ delta: -1, lapState: 'invalid' })
+    expect(after.laps.best).toBe(100)
+    // Lap 4 runs against lap 2, the legal best.
+    const live = rig.at(T0 + 5, 4, 0.05, 5)
+    expect(live.refLapTime).toBe(100)
+    expect(live.delta).toBe(0)
+  })
+
+  it('a bar never compares with an unclean lap, however fast', () => {
+    const rig = withBars(new Rig({ reference: 'class' }), ['session', 'class'])
+    // Your only lap went off track: no session best; someone else's clean lap is the class's.
+    rig.race.close(PLAYER, { ...lapOf(95, 2), clean: false })
+    rig.race.complete(1, lapOf(101, 2))
+    rig.race.complete(3, { ...lapOf(94, 2), clean: false })
+    const d = rig.at(T0, 3, 0.5, 50)
+    expect(d.refLapTime).toBe(101)
+    expect(d.bars).toEqual({ ...NO_BARS, class: -0.5 })
   })
 })

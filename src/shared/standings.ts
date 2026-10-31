@@ -118,6 +118,7 @@ function absentCar(carIdx: number, classPosition: number, position: number): Rac
     pace: null,
     speed: 0,
     stoppedForS: 0,
+    lapInvalid: false,
     sessionFlags: 0
   }
 }

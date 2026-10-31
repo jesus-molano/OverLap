@@ -185,8 +185,9 @@ Barra delta frente a la referencia que elijas, con tendencia, vuelta prevista y 
 referencia puede ser tu récord personal con ese coche en ese trazado (se guarda en tu equipo y no se
 pierde al cambiar de sesión), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor
 de tu clase o la óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera. Solo
-cuentan las vueltas limpias, y la referencia solo cambia al empezar una vuelta. Opcional: una fila
-con tu última, tu mejor, tu óptima y tu récord.
+cuentan las vueltas legales (sin salirte de pista, sin incidentes, sin pit lane, grúa ni amarilla),
+y la referencia solo cambia al empezar una vuelta. Opcional: una fila con tu última, tu mejor, tu
+óptima y tu récord, y una barra por cada referencia que elijas, todas a la misma escala.
 
 ### Combustible
 

@@ -412,6 +412,8 @@ export const CUSTOMIZE_ZONE_IDS = idsOf<CustomizeZoneId>()([
   'alerts.parts',
   'delta.rows',
   'delta.top',
+  // The bars per reference, unfolded under their line (2.4), before the lap times' as on the page.
+  'delta.refBars',
   'delta.laps',
   'fuel.lines',
   'fuel.headerBar',
@@ -751,16 +753,25 @@ export const OPTION_SCHEMA = {
       step: 0.25,
       displayOnly: true
     },
-    // The lap times line is off: today's look.
-    rows: elements(idsOf<DeltaRowId>()(['top', 'bar', 'sectors', 'laps']), {
-      hidden: ['laps'],
+    // The lap times line and the bars per reference are off: today's look. Only the bars are
+    // computed (the provider follows their references while they show).
+    rows: elements(idsOf<DeltaRowId>()(['top', 'bar', 'refs', 'sectors', 'laps']), {
+      hidden: ['refs', 'laps'],
       required: ['top'],
-      displayOnly: true
+      computed: ['refs']
     }),
     top: elements(idsOf<DeltaTopId>()(['state', 'predicted', 'reference']), {
       fixedOrder: true,
       displayOnly: true
     }),
+    // A bar per reference (2.4): yours shown, your class's hidden; in your order. Before the lap
+    // times, as on the page.
+    refBars: elements(
+      idsOf<DeltaReference>()(['pb', 'session', 'optimal', 'class', 'classOptimal']),
+      {
+        hidden: ['class', 'classOptimal']
+      }
+    ),
     // Every payload carries the four times (cheap): which ones are drawn is display only.
     laps: elements(idsOf<DeltaLapId>()(['last', 'best', 'optimal', 'pb']), {
       hidden: ['pb'],

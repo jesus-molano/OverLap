@@ -16,7 +16,12 @@ import { clampRelativeSlots } from '@shared/relative'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
-import { DELTA_FIT_TOP_EM, DELTA_ROW_FIT_EM } from '../widgets/delta/rows'
+import {
+  DELTA_FIT_TOP_EM,
+  DELTA_REF_BARS_FIT_W,
+  DELTA_ROW_FIT_EM,
+  refBarsFitEm
+} from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
 
 /** A free widget's text fit: the em height and width its contents need. */
@@ -64,13 +69,16 @@ export function deltaFit(s: Readonly<OverlaySettings>): Fit {
   for (const row of ['bar', 'sectors', 'laps'] as const) {
     if (isElementVisible(o.rows, row)) h += DELTA_ROW_FIT_EM[row]
   }
+  const bars = isElementVisible(o.rows, 'refs') ? visibleIds(o.refBars).length : 0
+  h += refBarsFitEm(bars)
   const info =
     isElementVisible(o.top, 'predicted') || isElementVisible(o.top, 'reference') ? 20 : 11.5
   const trend = isElementVisible(o.top, 'state') ? 6 : 0
   const laps = isElementVisible(o.rows, 'laps')
     ? (DELTA_LAPS_W[Math.min(4, visibleIds(o.laps).length)] ?? 0)
     : 0
-  return { h: Math.round(h * 100) / 100, w: Math.max(info + trend, laps) }
+  const refs = bars > 0 ? DELTA_REF_BARS_FIT_W : 0
+  return { h: Math.round(h * 100) / 100, w: Math.max(info + trend, laps, refs) }
 }
 
 const FITS: Readonly<Record<GrowingWidget, (s: Readonly<OverlaySettings>) => Fit>> = {

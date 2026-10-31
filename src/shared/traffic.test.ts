@@ -77,6 +77,7 @@ function carState(carIdx: number, s: CarSpec): RaceCarState {
     inWorld: s.inWorld ?? true,
     inPits: s.inPits ?? false,
     offTrack: s.offTrack ?? false,
+    lapInvalid: false,
     disconnected: false,
     finished: s.finished ?? false,
     pitStops: 0,

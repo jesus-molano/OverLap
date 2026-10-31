@@ -334,9 +334,10 @@ const DEFAULT_DELTA: DeltaOptions = {
   referenceRace: 'optimal',
   fallback: true,
   rangeS: 1,
-  rows: list(['top', 'bar', 'sectors', 'laps'], ['laps']),
+  rows: list(['top', 'bar', 'refs', 'sectors', 'laps'], ['refs', 'laps']),
   top: list(['state', 'predicted', 'reference']),
-  laps: list(['last', 'best', 'optimal', 'pb'], ['pb'])
+  laps: list(['last', 'best', 'optimal', 'pb'], ['pb']),
+  refBars: list(['pb', 'session', 'optimal', 'class', 'classOptimal'], ['class', 'classOptimal'])
 }
 const DEFAULT_FUEL: FuelOptions = {
   headerBar: bar(['title', 'split'], ['fuelLaps']),
@@ -407,6 +408,7 @@ const CUSTOMIZE_ZONES: readonly CustomizeZoneId[] = [
   'alerts.parts',
   'delta.rows',
   'delta.top',
+  'delta.refBars',
   'delta.laps',
   'fuel.lines',
   'fuel.headerBar',
@@ -770,9 +772,10 @@ describe('normalizeSettings: basics', () => {
       referenceRace: 'classOptimal',
       fallback: false,
       rangeS: 2.25,
-      rows: list(['laps', 'top', 'bar', 'sectors'], ['sectors']),
+      rows: list(['laps', 'refs', 'top', 'bar', 'sectors'], ['sectors']),
       top: list(['state', 'predicted', 'reference'], ['predicted', 'state']),
-      laps: list(['optimal', 'pb', 'last', 'best'])
+      laps: list(['optimal', 'pb', 'last', 'best']),
+      refBars: list(['class', 'optimal', 'pb', 'session', 'classOptimal'], ['pb'])
     }
     // The layout in use is the widgets (layouts.ts).
     syncActiveLayout(s)

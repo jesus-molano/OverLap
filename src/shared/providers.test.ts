@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { ConditionsFeed } from './conditions'
-import { DELTA, NO_LAPS } from './delta/delta'
+import { DELTA, NO_BARS, NO_LAPS } from './delta/delta'
 import { createMemoryStore, personalBestKey } from './delta/references'
 import type { PersonalBestStore } from './delta/references'
 import { NO_INFO } from './infoFeed'
@@ -319,7 +319,8 @@ describe('SKIP_EMIT', () => {
       preferred: 'pb',
       pending: null,
       temporary: false,
-      laps: NO_LAPS
+      laps: NO_LAPS,
+      bars: NO_BARS
     }
     const live: DeltaData = {
       visible: true,
@@ -335,7 +336,8 @@ describe('SKIP_EMIT', () => {
       preferred: 'pb',
       pending: null,
       temporary: false,
-      laps: NO_LAPS
+      laps: NO_LAPS,
+      bars: NO_BARS
     }
     expect(skip(hidden, null)).toBe(false)
     expect(skip({ ...hidden }, hidden)).toBe(true)

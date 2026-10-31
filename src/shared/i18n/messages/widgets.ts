@@ -323,6 +323,14 @@ export const widgetsEs = {
     classOptimal: 'Óptima de clase',
     /** The lap times line (delta.laps): short captions before each time. */
     laps: { last: 'Últ.', best: 'Mejor', optimal: 'Ópt.', pb: 'Récord' },
+    /** The bars per reference (delta.refBars): short captions, yours as in the lap times line. */
+    bars: {
+      pb: 'Récord',
+      session: 'Mejor',
+      optimal: 'Ópt.',
+      class: 'Clase',
+      classOptimal: 'Ópt. clase'
+    },
     /** The tag on the time the delta compares against (with an accent underline). */
     refMark: 'Δ',
     /** Its accessible name. */
@@ -680,6 +688,13 @@ export const widgetsEn: Dict<typeof widgetsEs> = {
     classBest: 'Class fastest lap',
     classOptimal: 'Class optimal',
     laps: { last: 'Last', best: 'Best', optimal: 'Opt.', pb: 'PB' },
+    bars: {
+      pb: 'PB',
+      session: 'Best',
+      optimal: 'Opt.',
+      class: 'Class',
+      classOptimal: 'Class opt.'
+    },
     refMark: 'Δ',
     refMarkName: 'delta reference',
     nextLap: (reference) => `${reference} from the next lap`,

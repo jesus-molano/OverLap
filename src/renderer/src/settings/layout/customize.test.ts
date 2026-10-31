@@ -58,7 +58,7 @@ describe('customizeZones', () => {
   })
 
   it("keeps the schema's order for every other list", () => {
-    expect(customizeZones('delta')).toEqual(['rows', 'top', 'laps'])
+    expect(customizeZones('delta')).toEqual(['rows', 'top', 'refBars', 'laps'])
     expect(customizeZones('inputs')).toEqual(['sections', 'bars', 'info', 'car'])
   })
 

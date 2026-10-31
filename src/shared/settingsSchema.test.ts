@@ -194,7 +194,8 @@ describe('displayOnlyFields', () => {
     ])
     expect(displayOnlyFields('alerts')).toEqual(['parts'])
     // The references (and the fallback) are what the provider computes against.
-    expect(displayOnlyFields('delta')).toEqual(['rangeS', 'rows', 'top', 'laps'])
+    // The bars per reference make the rows computed (their 'refs' row only).
+    expect(displayOnlyFields('delta')).toEqual(['rangeS', 'top', 'laps'])
     // The fuel provider sends every line; the average, the margin and the header bar's data
     // are what it plans with.
     expect(displayOnlyFields('fuel')).toEqual([
@@ -251,7 +252,8 @@ describe('element lists (v2.6)', () => {
     // The PIT column (R10) hidden: its badge goes after the name, as before.
     expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['flags', 'pit', 'stint', 'tyre'])
     expect(hidden(OPTION_SCHEMA.battle.rows)).toEqual(['laps'])
-    expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['laps'])
+    expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['refs', 'laps'])
+    expect(hidden(OPTION_SCHEMA.delta.refBars)).toEqual(['class', 'classOptimal'])
     expect(hidden(OPTION_SCHEMA.delta.laps)).toEqual(['pb'])
     expect(hidden(OPTION_SCHEMA.lights.icons)).toEqual(['pitLimiter', 'revLimiter'])
     // R30: fewer figures for a new install (a file's list stays: migrate.ts).

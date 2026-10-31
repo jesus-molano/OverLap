@@ -779,6 +779,7 @@ function carState(o: Partial<RaceCarState> = {}): RaceCarState {
     pace: 100,
     speed: 0.01,
     stoppedForS: 0,
+    lapInvalid: false,
     sessionFlags: 0,
     ...o
   }

@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { arrayEqual } from '@shared/equal'
 import { OPTION_SCHEMA, clampOption, type NumericSpec } from '@shared/settingsSchema'
-import type { DeltaRowId } from '@shared/types'
+import type { DeltaReference, DeltaRowId } from '@shared/types'
 import { useI18n } from '@renderer/composables/useI18n'
 import { useShownContent, useWidgetPhase } from '@renderer/composables/useWidgetPhase'
 import { useOptions } from '@renderer/composables/useWidgetSettings'
@@ -22,9 +22,11 @@ import {
   deltaRows,
   deltaTopParts,
   lapTimesView,
+  refBarsView,
   referenceNote,
   type DeltaTopParts,
   type LapTimeView,
+  type RefBarView,
   type ReferenceChoice
 } from './rows'
 import {
@@ -165,6 +167,25 @@ const lapTimes = computed<readonly LapTimeView[]>((prev) =>
   reuseViews(prev, [...lapTimesView(laps.value, options.value.laps, refKind.value, t.value)])
 )
 
+// ---- The bars per reference: the list on a change of choice, each bar on a change of its value
+/** The bars in the user's order, the reference in use marked. */
+const refBars = computed<readonly RefBarView[]>((prev) =>
+  reuseViews(prev, [...refBarsView(options.value.refBars, refKind.value, t.value)])
+)
+/** The row with no reference shown draws nothing, and sizes nothing. */
+const showRefs = computed(() => rows.value.includes('refs') && refBars.value.length > 0)
+/** A bar's delta ('—' and an empty bar while its reference has no lap yet). */
+const barValue = (id: DeltaReference): number | null => content.value?.bars?.[id] ?? null
+const refBarStyles = (v: number | null): ReturnType<typeof barStyles> =>
+  barStyles(barStep(v, rangeS.value))
+/** As the main bar's: the tone of the sign, the end hatched beyond the scale. */
+function refBarClass(v: number | null): string {
+  const s = deltaSign(v)
+  const over = barOverflow(v, rangeS.value)
+  const tone = s === -1 ? 'dl-bar--good' : s === 1 ? 'dl-bar--bad' : 'dl-bar--idle'
+  return over === 0 ? tone : `${tone} dl-bar--over-${over < 0 ? 'left' : 'right'}`
+}
+
 /** Brief label after another reference is chosen (or takes over), live only. */
 const note = shallowRef('')
 let noteTimer: ReturnType<typeof setTimeout> | undefined
@@ -198,6 +219,8 @@ const rootClass = computed(() => ({
   'dl--sectors': showSectors.value,
   'dl--laps': showLaps.value,
   [`dl--laps-${lapTimes.value.length}`]: showLaps.value,
+  'dl--refs': showRefs.value,
+  [`dl--refs-${refBars.value.length}`]: showRefs.value,
   'dl--trend': showTrend.value,
   'dl--noinfo': !showPredicted.value && !showReference.value,
   'dl--invalid': !counts.value,
@@ -279,6 +302,42 @@ const rootClass = computed(() => ({
         <span class="dl-bar__cap dl-bar__cap--right" />
       </div>
 
+      <!-- One bar per reference, on the main bar's scale; the delta's own is tagged. A bar
+           re-renders only when its value (or the scale) changes. -->
+      <div
+        v-if="showRefs"
+        v-inline-style="orderStyle(place.refs ?? 0)"
+        class="dl-refs"
+        data-el="delta.rows.refs"
+      >
+        <div
+          v-for="b in refBars"
+          :key="b.id"
+          v-memo="[b, barValue(b.id), rangeS]"
+          class="dl-rb"
+          :class="{ 'dl-rb--ref': b.isRef }"
+          :data-el="`delta.refBars.${b.id}`"
+        >
+          <span class="dl-rb__cap" :title="b.name">{{ b.caption }}</span>
+          <span
+            v-if="b.isRef"
+            class="dl-lap__mark dl-rb__mark"
+            role="img"
+            :aria-label="t.widgets.delta.refMarkName"
+            >{{ t.widgets.delta.refMark }}</span
+          >
+          <span class="dl-bar dl-rb__bar" :class="refBarClass(barValue(b.id))" aria-hidden="true">
+            <span v-inline-style="refBarStyles(barValue(b.id)).fill" class="dl-bar__fill" />
+            <span class="dl-bar__zero" />
+            <span class="dl-bar__cap dl-bar__cap--left" />
+            <span class="dl-bar__cap dl-bar__cap--right" />
+          </span>
+          <span class="dl-rb__val" :class="`ov-tone-${deltaTone(barValue(b.id))}`">{{
+            formatDelta(barValue(b.id))
+          }}</span>
+        </div>
+      </div>
+
       <!-- Your times side by side; the one the delta compares with is underlined and tagged. -->
       <div
         v-if="showLaps"
@@ -346,14 +405,18 @@ const rootClass = computed(() => ({
 .dl-panel {
   /* Em each row shown adds (rows.ts DELTA_ROW_FIT_EM, DELTA_FIT_TOP_EM for the top line). */
   --dl-h-bar: 0;
+  --dl-h-refs: 0;
   --dl-h-sectors: 0;
   --dl-h-laps: 0;
   /* Em width of the top line (hero and info, plus the trend caption) and of the lap times. */
   --dl-w-info: 20;
   --dl-w-trend: 0;
   --dl-w-laps: 0;
-  --dl-fit-h: calc(3.35 + var(--dl-h-bar) + var(--dl-h-sectors) + var(--dl-h-laps));
-  --dl-fit-w: max(var(--dl-w-info) + var(--dl-w-trend), var(--dl-w-laps));
+  --dl-w-refs: 0;
+  --dl-fit-h: calc(
+    3.35 + var(--dl-h-bar) + var(--dl-h-refs) + var(--dl-h-sectors) + var(--dl-h-laps)
+  );
+  --dl-fit-w: max(var(--dl-w-info) + var(--dl-w-trend), var(--dl-w-laps), var(--dl-w-refs));
   justify-content: center;
   gap: 0.35em;
   padding: 0.4em 0.6em;
@@ -371,6 +434,31 @@ const rootClass = computed(() => ({
 
 .dl--sectors .dl-panel {
   --dl-h-sectors: 1.7;
+}
+
+/* rows.ts refBarsFitEm: 0.15 + 1.35 per bar; DELTA_REF_BARS_FIT_W wide at least. */
+.dl--refs .dl-panel {
+  --dl-w-refs: 14;
+}
+
+.dl--refs-1 .dl-panel {
+  --dl-h-refs: 1.5;
+}
+
+.dl--refs-2 .dl-panel {
+  --dl-h-refs: 2.85;
+}
+
+.dl--refs-3 .dl-panel {
+  --dl-h-refs: 4.2;
+}
+
+.dl--refs-4 .dl-panel {
+  --dl-h-refs: 5.55;
+}
+
+.dl--refs-5 .dl-panel {
+  --dl-h-refs: 6.9;
 }
 
 .dl--laps .dl-panel {
@@ -786,6 +874,67 @@ const rootClass = computed(() => ({
   opacity: 1;
 }
 
+/* ---- Bars per reference ----------------------------------------------------------------- */
+
+/* One line per reference: its caption, a slimmer copy of the bar (same well, ticks, tones and
+   hatched ends; no needle) and its value in a fixed box, so a new value re-lays out itself only. */
+.dl-refs {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.2em;
+  min-width: 0;
+}
+
+.dl-rb {
+  display: grid;
+  grid-template-columns: 4.6em auto minmax(0, 1fr) 3em;
+  align-items: center;
+  column-gap: 0.4em;
+  height: 1.15em;
+  min-width: 0;
+}
+
+.dl-rb__cap {
+  grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ov-font-small);
+  font-size: var(--ov-t-caption);
+  font-weight: var(--ov-w-strong);
+  letter-spacing: var(--ov-track-caps);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ov-fg-dim);
+}
+
+.dl-rb--ref .dl-rb__cap {
+  color: var(--ov-fg);
+}
+
+.dl-rb__mark {
+  grid-column: 2;
+}
+
+.dl-rb__bar {
+  grid-column: 3;
+  height: 0.45em;
+}
+
+.dl-rb__val {
+  grid-column: 4;
+  height: 1.15em;
+  contain: strict;
+  font-family: var(--ov-font-num);
+  font-size: var(--ov-t-secondary);
+  font-weight: var(--ov-w-strong);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15em;
+  text-align: right;
+  white-space: nowrap;
+}
+
 /* ---- Sectors -------------------------------------------------------------------------- */
 
 /*
@@ -840,14 +989,17 @@ const rootClass = computed(() => ({
 
 @container delta (max-height: 62px) {
   .dl-sectors,
-  .dl-laps {
+  .dl-laps,
+  .dl-refs {
     display: none;
   }
 
   .dl--sectors .dl-panel,
-  .dl--laps .dl-panel {
+  .dl--laps .dl-panel,
+  .dl--refs .dl-panel {
     --dl-h-sectors: 0;
     --dl-h-laps: 0;
+    --dl-h-refs: 0;
   }
 }
 
@@ -870,6 +1022,11 @@ const rootClass = computed(() => ({
     display: none;
   }
 
+  /* The bars keep a short caption column. */
+  .dl-rb {
+    grid-template-columns: 3em auto minmax(0, 1fr) 3em;
+  }
+
   .dl-top {
     justify-content: center;
   }
@@ -877,10 +1034,12 @@ const rootClass = computed(() => ({
   .dl-panel,
   .dl--trend .dl-panel,
   .dl--noinfo .dl-panel,
-  [class*='dl--laps-'] .dl-panel {
+  [class*='dl--laps-'] .dl-panel,
+  .dl--refs .dl-panel {
     --dl-w-info: 11.5;
     --dl-w-trend: 0;
     --dl-w-laps: 0;
+    --dl-w-refs: 0;
   }
 }
 </style>

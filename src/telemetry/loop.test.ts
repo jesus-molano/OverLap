@@ -272,7 +272,8 @@ const DELTA: DeltaData = {
   preferred: 'pb',
   pending: null,
   temporary: false,
-  laps: { last: null, best: null, optimal: null, pb: null }
+  laps: { last: null, best: null, optimal: null, pb: null },
+  bars: { pb: null, session: null, optimal: null, class: null, classOptimal: null }
 }
 const FUEL: FuelData = {
   visible: false,
@@ -1305,6 +1306,20 @@ describe('TelemetryLoop personal bests', () => {
     h.model.last = lastLap(16, 137.9)
     await seconds(h, 10)
     expect(h.offers.map(([, l]) => l.lapTime)).toEqual([138.2093, 137.9])
+  })
+
+  it('never offers a lap that turned unclean before it settled (an incident after the line)', async () => {
+    const h = setupBests()
+    await h.run(1 + 2)
+    h.model.last = lastLap(15, 136.5)
+    await seconds(h, 1)
+    // The model takes the lap back: the same lap, a new snapshot that is not clean.
+    h.model.last = lastLap(15, 136.5, false)
+    await seconds(h, 10)
+    expect(h.offers).toEqual([])
+    h.model.last = lastLap(16, 137.9)
+    await seconds(h, 10)
+    expect(h.offers.map(([, l]) => l.lapTime)).toEqual([137.9])
   })
 
   it('offers the names of the car and the layout with the lap', async () => {

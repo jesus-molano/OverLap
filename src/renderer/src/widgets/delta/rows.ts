@@ -1,8 +1,8 @@
 /**
- * The delta's customisable parts (delta.rows, delta.top, delta.laps) to what the widget draws:
- * the rows in the user's order, the lap times line with the time the delta compares against
- * marked, the font fit of the rows shown, and the brief label after another reference is
- * chosen. Pure; words come from the dictionary `m`.
+ * The delta's customisable parts (delta.rows, delta.top, delta.laps, delta.refBars) to what the
+ * widget draws: the rows in the user's order, the lap times line and the bars per reference
+ * with the reference the delta compares against marked, the font fit of the rows shown, and the
+ * brief label after another reference is chosen. Pure; words come from the dictionary `m`.
  */
 import { visibleIds } from '@shared/elements'
 import { formatLapTime } from '@shared/format'
@@ -44,13 +44,24 @@ export function deltaTopParts(top: List<DeltaTopId>): DeltaTopParts {
 
 /**
  * Em height each row adds to the font fit (the panel's --dl-fit-h), its gap included: the top
- * line alone is DELTA_FIT_TOP_EM, with the bar today's 4.3, with the sectors too today's 6.
+ * line alone is DELTA_FIT_TOP_EM, with the bar today's 4.3, with the sectors too today's 6. The
+ * bars per reference add DELTA_REF_BAR_FIT_EM per bar on top of their row's.
  */
 export const DELTA_FIT_TOP_EM = 3.35
 export const DELTA_ROW_FIT_EM: Readonly<Record<Exclude<DeltaRowId, 'top'>, number>> = {
   bar: 0.95,
+  refs: 0.15,
   sectors: 1.7,
   laps: 1.7
+}
+/** Em height of one bar per reference, the gap to the next included (1.15 + 0.2). */
+export const DELTA_REF_BAR_FIT_EM = 1.35
+/** Em width the bars per reference need at least (caption, a readable bar, the value). */
+export const DELTA_REF_BARS_FIT_W = 14
+
+/** The row's em height for `count` bars (0 when none shows: the row draws nothing). */
+export function refBarsFitEm(count: number): number {
+  return count > 0 ? DELTA_ROW_FIT_EM.refs + count * DELTA_REF_BAR_FIT_EM : 0
 }
 
 /** Em width each lap time takes in the lap times line ('Últ. 2:16.731 Δ'), its gap included. */
@@ -99,6 +110,39 @@ export function lapTimesView(
     time: formatLapTime(laps?.[id] ?? null),
     isRef: id === ref
   }))
+}
+
+// ---------------------------------------------------------------------------
+// Bars per reference
+// ---------------------------------------------------------------------------
+
+export interface RefBarView {
+  readonly id: DeltaReference
+  /** 'Récord', 'Mejor', 'Ópt.', 'Clase', 'Ópt. clase'. */
+  readonly caption: string
+  /** Its full name, for the bar's accessible name ('Vuelta óptima'). */
+  readonly name: string
+  /** The reference the delta compares against ('Δ' tag, accent underline, as the lap times). */
+  readonly isRef: boolean
+}
+
+const NO_REF_BARS: readonly RefBarView[] = Object.freeze([])
+const REFERENCE_IDS: readonly string[] = ['pb', 'session', 'optimal', 'class', 'classOptimal']
+
+/**
+ * The bars drawn, in the user's order (delta.refBars), the reference in use marked. Depends on
+ * the list, the reference and the language only: the 30 Hz values are drawn apart.
+ */
+export function refBarsView(
+  items: List<DeltaReference>,
+  reference: DeltaReference | null | undefined,
+  m: Messages
+): readonly RefBarView[] {
+  const ids = visibleIds(items).filter((id) => REFERENCE_IDS.includes(id))
+  if (ids.length === 0) return NO_REF_BARS
+  const captions = m.widgets.delta.bars
+  const names = referenceNames(m)
+  return ids.map((id) => ({ id, caption: captions[id], name: names[id], isRef: id === reference }))
 }
 
 /** A reference's own name ('Vuelta óptima', 'Vuelta rápida de clase'): nobody's lap, no driver. */

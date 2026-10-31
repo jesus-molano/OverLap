@@ -181,6 +181,10 @@ const ZONES: ZoneWords = {
     laps: {
       title: (m) => m.settings.zones.delta.laps,
       items: (m) => plain(m.settings.items.delta.laps)
+    },
+    refBars: {
+      title: (m) => m.settings.zones.delta.refBars,
+      items: (m) => plain(m.settings.items.delta.refBars)
     }
   },
   fuel: {

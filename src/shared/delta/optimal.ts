@@ -18,7 +18,9 @@
  * and 'best' lap profiles read. The best lap stands in for laps that ended while the widget was
  * not computed (hidden, or switched on mid-session): those count with the car's best only. The
  * newest lap of a car is kept apart until the next one, because CarIdxLastLapTime refines its
- * time a few seconds after the line: the refined lap replaces it instead of adding to it.
+ * time a few seconds after the line: the refined lap replaces it instead of adding to it. So is
+ * a lap that turns unclean just after its line (your incident, LapRecord.clean): it is dropped,
+ * its sectors with it, before it ever settles.
  *
  * Memory: per car, a time and a lap profile (the model's frozen snapshot, shared) per sector.
  * A joined lap is built only when one of its best sectors changed, and is the same frozen
@@ -53,6 +55,8 @@ class CarSectors {
   /** The newest lap record seen: its number and its time (refined in place after the line). */
   seenLap = Number.NaN
   seenTime = Number.NaN
+  /** And whether it was clean: an incident just after the line can take that back. */
+  seenClean = false
   /** Best time of each sector over the settled laps (Infinity: none), and the lap that set it. */
   readonly settledTime: Float64Array
   readonly settledFrom: (Profile | null)[]
@@ -130,9 +134,10 @@ export class OptimalLaps {
         c.classId = classId
         this.rev++
       }
-      if (c.seenLap === rec.lap && c.seenTime === rec.time) continue
+      if (c.seenLap === rec.lap && c.seenTime === rec.time && c.seenClean === rec.clean) continue
       c.seenLap = rec.lap
       c.seenTime = rec.time
+      c.seenClean = rec.clean
       this.take(c, race.lapProfile(idx, 'last'), race.lapProfile(idx, 'best'))
     }
   }

@@ -113,6 +113,7 @@ function makeCar(carIdx: number, o: Partial<RaceCarState> = {}): RaceCarState {
     pace: null,
     speed: 0,
     stoppedForS: 0,
+    lapInvalid: false,
     sessionFlags: 0,
     ...o
   }
