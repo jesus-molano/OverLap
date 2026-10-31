@@ -1,1194 +1,1188 @@
-# Registro de cambios
+# Changelog
 
-Aquí se apuntan todos los cambios importantes de OverLap.
+All notable changes to OverLap are recorded here.
 
-El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
-[versionado semántico](https://semver.org/lang/es/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
+[semantic versioning](https://semver.org/).
 
-## [Sin publicar]
+## [Unreleased]
+
+### Changed
+
+- **Documentation in English**: README, changelog, development notes and project files are now in
+  English; the Spanish guide is in [README.es.md](README.es.md).
 
 ## [2.4.1] - 2026-10-31
 
-### Añadido
+### Added
 
-- **Acerca de y ayuda › Licencia**: un bloque nuevo al final de la página con el copyright, que
-  OverLap es software libre bajo la GNU GPL versión 3 o posterior y que se ofrece sin ninguna
-  garantía. Sus botones abren en el navegador el código fuente, la licencia y los avisos de
-  terceros. También dice que los logos en color de las marcas son de sus dueños y no están bajo la
-  GPL, y que el monocromo usa Simple Icons (CC0) en 18 marcas y dibuja las demás en grises a partir
-  de los de color; se elige en Apariencia › Filas y pilotos › Color del logo.
-- **Documentación del proyecto abierto**: el README empieza con un resumen en inglés y suma
-  «Compilar desde el código», «Code signing policy» (los `.exe` aún no se firman) y «Apoyar
-  OverLap». Nuevos [PRIVACY.md](PRIVACY.md) (OverLap no usa la red; el futuro actualizador se podrá
-  desactivar), [CONTRIBUTING.md](CONTRIBUTING.md) (con DCO, sin CLA) y [SECURITY.md](SECURITY.md),
-  plantillas de issues y de pull requests, y una CI con las cinco comprobaciones en Windows.
+- **About and help › Licence**: a new block at the end of the page with the copyright, the fact
+  that OverLap is free software under the GNU GPL version 3 or later, and that it comes with no
+  warranty at all. Its buttons open the source code, the licence and the third-party notices in
+  the browser. It also says that the colour make logos belong to their owners and are not under
+  the GPL, and that the monochrome style uses Simple Icons (CC0) for 18 makes and draws the rest in
+  greys from the colour ones; you pick it in Appearance › Rows and drivers › Logo colour.
+- **Open project documentation**: the README starts with a summary in English and adds
+  “Compilar desde el código”, “Code signing policy” (the `.exe` files are not signed yet) and
+  “Apoyar OverLap”. New [PRIVACY.md](PRIVACY.md) (OverLap does not use the network; the future
+  updater can be turned off), [CONTRIBUTING.md](CONTRIBUTING.md) (with DCO, no CLA) and
+  [SECURITY.md](SECURITY.md), issue and pull request templates, and a CI with the five checks on
+  Windows.
 
-### Cambiado
+### Changed
 
-- **Delta: con dos referencias o más, una fila igual para cada una**: al ver más de una referencia
-  (las **Filas por referencia**, antes «Barras por referencia», y la que usa el delta), el delta ya
-  no muestra un número grande con barras pequeñas debajo. Cada referencia tiene la misma fila: su
-  nombre, su delta con ▼/▲, su tendencia (ahora una por referencia) y su barra, todas a la misma
-  escala (verde a la izquierda: más rápido) y en el orden de tu lista, use el delta la que use. La
-  línea de arriba nombra la referencia que usa el delta, con su tiempo y la vuelta prevista; los
-  sectores van con ella. Si la línea de arriba no se ve, los sectores empiezan con el nombre corto
-  de esa referencia, y en una ventana estrecha la línea la nombra igual que su fila («ÓPT.»). Una
-  vuelta inválida, la de salida o la grúa se dicen siempre en esa línea, aunque hayas ocultado sus
-  partes. Con una sola referencia (lo de serie) el delta es el de siempre, igual que en 2.4,
-  también al pasar el ratón por la vista previa de Ajustes. Al encender filas desde la página de
-  Delta la ventana crece lo justo para no achicar el texto (también si una sesión usa una
-  referencia que no está en la lista, o si vuelves a mostrar una parte de la línea de arriba); en
-  una ventana más baja se van primero las filas del final (nunca la de la referencia en uso, y la
-  página dice «No cabe»), luego la línea de arriba, y con una sola fila vuelve el delta de siempre.
-  Si en plena sesión el atajo o la referencia de reserva traen una que no está en la lista, su fila
-  ocupa el sitio de la última en vez de añadir otra, así que el texto no cambia de tamaño. Tus
-  ajustes se cargan igual; si ya tenías las barras encendidas, verás filas en lugar de barras
-  finas.
-- **OverLap pasa a ser software libre** bajo la GPL-3.0-or-later: `LICENSE` es ahora el texto de la
-  GPL, y `package.json`, las propiedades del `.exe`, el README y las notas de desarrollo lo dicen.
-- **Avisos de terceros**: se añade Vue (iba dentro de la app y no salía), irating-rs tiene ya su
-  licencia (MIT o Apache-2.0) y la sección de logos explica de dónde sale cada uno y que los de color
-  no están bajo la GPL. Se añade la nota de marca del nombre OverLap y del icono «OL» (GPL §7(e)).
+- **Delta: with two references or more, an equal row for each one**: when you show more than one
+  reference (the **Rows per reference**, formerly “Bars per reference”, plus the one the delta
+  uses), the delta no longer shows one big number with small bars under it. Each reference has
+  the same row: its name, its delta with ▼/▲, its trend (now one per reference) and its bar, all
+  on the same scale (green on the left: faster) and in the order of your list, whichever one the
+  delta uses. The line at the top names the reference the delta uses, with its time and the
+  predicted lap; the sectors go with it. If the top line is not showing, the sectors start with
+  that reference's short name, and in a narrow window the line names it just like its row
+  (“Opt.”). An invalid lap, the out lap or the tow are always said on that line, even if you have
+  hidden its parts. With a single reference (the default) the delta is the usual one, same as in
+  2.4, also when you hover over the preview in Settings. When you turn rows on from the Delta page
+  the window grows just enough not to shrink the text (also if a session uses a reference that is
+  not in the list, or if you show a part of the top line again); in a shorter window the last
+  rows go first (never the one for the reference in use, and the page says “No room”), then the
+  top line, and with a single row the usual delta comes back. If, mid-session, the shortcut or the
+  fallback reference brings one that is not in the list, its row takes the place of the last one
+  instead of adding another, so the text does not change size. Your settings load as before; if
+  you already had the bars on, you will see rows instead of thin bars.
+- **OverLap becomes free software** under the GPL-3.0-or-later: `LICENSE` is now the text of the
+  GPL, and `package.json`, the `.exe` properties, the README and the development notes say so.
+- **Third-party notices**: Vue is added (it shipped inside the app and was missing), irating-rs
+  now has its licence (MIT or Apache-2.0) and the logos section explains where each one comes from
+  and that the colour ones are not under the GPL. The trademark note for the OverLap name and the
+  “OL” icon is added (GPL §7(e)).
 
 ## [2.4.0] - 2026-10-31
 
-### Añadido
+### Added
 
-- **Spotter, un widget nuevo (el undécimo)**: dos barras, una a cada lado, como las de iOverlay,
-  aparte del radar (cada uno con su página y su visibilidad: puedes tener uno, otro o los dos).
-  **Estilo de barra** elige qué cuentan. **Cercanía** (de serie): el radar en dos barras; cada una
-  se llena desde abajo cuanto más cerca está el coche de ese lado (llena a tu lado, vacía a unos
-  12 m delante o detrás), del ámbar al rojo, y llena también se marca con el borde rojo. **Dónde
-  te cubre**: cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo que te
-  cubre el coche de ese lado, desde el extremo en el que va, del gris al rojo, con un tope tenue
-  para el que acaba de estar a tu lado y va justo delante o detrás. En los dos, un «2» con dos
-  coches en un lado. El lado lo da el spotter de iRacing (solo cuando el coche ya está a tu
-  altura) y el cuánto la distancia a lo largo de la pista (también al cruzar la línea de meta),
-  con el mismo cálculo que el radar, que sigue funcionando con el radar oculto. iRacing no da la
-  distancia lateral: llena no quiere decir golpe. El ancho de la ventana es la separación entre
-  las barras; en Contenido, **Estilo de barra**, **Solo con un coche al lado** (de serie) y
-  **Grosor de las barras**; en Personalizar, sus dos marcas. Oculto
-  de serie, también al actualizar (en un hueco libre cerca de su sitio); tiene su atajo en «Más
-  acciones», su casilla en la bandeja y su sitio en Visibilidad y en el buscador.
-- **Delta: una barra por referencia**: una línea nueva, **Barras por referencia** (apagada de
-  serie), dibuja una barra por cada referencia que elijas, con su nombre corto y su diferencia:
-  tu récord, tu mejor vuelta de la sesión, tu óptima, la vuelta rápida de tu clase y la óptima de
-  tu clase. Se despliega en su lista, con un ojo para cada una y en el orden que quieras (de serie,
-  las tres tuyas). Todas usan la escala de la barra principal y sus colores (verde a la izquierda,
-  más rápido; rojo a la derecha, más lento), la que usa el delta lleva «Δ», y cada una compara con
-  su propia vuelta toda la vuelta, sin «siguiente si no existe»: la que aún no tiene vuelta marca
-  «—» con la barra vacía, sin mover nada. Solo se calculan las que se ven. Al encender la línea o
-  una barra desde la página de Delta, la ventana crece lo justo (como con «Completo») para que
-  quepan todas sin achicar el texto; en una ventana más baja se dibujan las que caben, siempre con
-  la de la referencia en uso, y la página dice «No cabe en 400 por 80 px» en las demás.
-- **Batalla: el hueco como en Relativo, y cada frase de la predicción a tu gusto**: en Contenido,
-  **Hueco** elige entre **Sin signo** (el hueco medido, «0.6 s», como siempre y de serie) y **Como
-  Relativo** (el mismo tiempo que Relativo, tal cual lo dibuja su columna: con su signo, positivo
-  delante y negativo detrás, y sin unidad; mientras Relativo no tiene tiempo para ese coche, el
-  hueco medido con el signo de su carril). La línea **Predicción de alcance** se despliega en sus
-  partes, cada una con su ojo: «Le alcanzas en…», «Te alcanza en…», «Necesitas… s/v» y «No le
-  alcanzas · No te alcanza»;
-  una frase oculta deja la línea en blanco, sin mover nada. Todo visible de serie.
-- **Hora en pista en la cabecera y el pie**: un dato nuevo, **Hora en pista**, en el catálogo de
-  las barras de Relativo, Posiciones, Combustible, Tráfico y Batalla: la hora del día en el
-  simulador (que corre con la sesión), con el mismo formato que la hora local (24 h, «14:32») y un
-  sol delante para distinguirlas (una luna de las 20:00 a las 06:00). Apagado de serie: se añade
-  con **+ Añadir dato**.
-- **Más coches de las otras clases en Posiciones**: en modo compacto, **Coches de otras clases**
-  (de 0 a 10, con el mismo selector que «Primeros puestos» y «Alrededor de ti») sustituye al
-  interruptor «Líderes de otras clases». Con 1 (lo de siempre) cada otra clase es la línea de su
-  líder; con más, sus primeros coches bajo el nombre de su clase; con 0, ninguna. Al actualizar,
-  el interruptor encendido pasa a 1 y el apagado a 0, también en los diseños guardados.
-- **La SoF de cada clase junto a su nombre**: la línea de un líder de otra clase en modo compacto
-  lleva ahora la SoF de su clase al final (las líneas de clase ya la llevaban en todas las clases).
-  Sigue el ojo de «SoF» de la línea de clase: ocúltala ahí y desaparece de las dos.
-- **El principio de la fila, en columnas: cada cosa donde quieras**: en Relativo y Posiciones,
-  la posición, el número, el logo de la marca, la bandera del país y el nombre dejan de ser un
-  bloque fijo y pasan a ser columnas de la misma lista que las demás, junto con **Banderas** (las de
-  penalización, que antes iban siempre tras el nombre). Así **Puestos ganados**, **Banderas** o
-  cualquier otra columna puede ir entre la posición y el número, entre el número y el logo o
-  después del nombre. Relativo tiene ahora también **Puestos ganados**, la misma columna que la de
-  Posiciones (el mismo nombre, título «±», ancho, triángulo y colores; solo en carrera, contados
-  igual: su puesto de salida en la clase contra el de ahora), oculta de serie tras las banderas.
-  Lo que queda pegado al nombre va con él, en su celda: delante, alineado de fila a fila; detrás,
-  al final de su celda, también alineado. Separado por otra columna, va en una columna propia (el
-  título del número es «#»). **Nombre** se ve siempre (su ayuda dice que su título de columna es
-  «PILOTO»). Una regla, la misma en los cuatro widgets del bloque «Piloto»: **la lista dice
-  dónde; el bloque «Piloto», si salen y cómo**. El logo, la bandera del país y las banderas no
-  tienen ojo en la lista sino un enlace que lleva a su fila de «Piloto» y la señala (su fila dice
-  cómo están: «Se muestra u oculta en «Piloto»: Global (Sí)»); en la vista previa se arrastran y,
-  al pulsarlos, el aviso dice lo mismo y lleva a esa fila. La posición y el número, que no están
-  en el bloque, tienen su ojo (en Posiciones, el de la posición sustituye a su antiguo
-  interruptor). En Tráfico, las banderas siguen la misma regla en su lista de partes; Batalla, sin
-  columnas, las lleva tras el nombre. Si la ventana se estrecha, el logo y la bandera del país se
-  van antes que las columnas de siempre, y las banderas colocadas en otro sitio vuelven tras el
-  nombre. «Igualar con Posiciones» e «Igualar con Relativo» lo llevan todo, también «Puestos
-  ganados», y en la vista previa se arrastran como las demás columnas,
-  las banderas tras el nombre incluidas. Al actualizar, todo se ve como antes: el principio de la
-  fila delante en el orden de siempre (la posición, visible u oculta como estaba), las banderas
-  tras el nombre (al final de su celda, alineadas, también si tenías encendida su columna). Una lista de columnas guardada vacía o ilegible vuelve a la de serie, como antes.
-- **Relativo: la última vuelta de cada piloto**: una columna nueva, **Última vuelta**, la misma
-  que la de Posiciones: el mismo nombre, el mismo formato («1:47.312»), la misma ayuda y los mismos
-  colores (la vuelta rápida de su clase en la placa morada, su propio récord de la sesión en verde)
-  y, fuera de carrera, su mejor vuelta. Oculta de serie (también al actualizar, tras el hueco) y se
-  ordena como las demás; «Igualar con Posiciones» (y «Igualar con Relativo») la lleva con las otras
-  columnas que comparten.
-- **Posiciones: el orden de las clases**: en Contenido, **Orden de las clases** elige qué bloque va
-  arriba con varias clases: **Tu clase primero** (como siempre y de serie: después, las más
-  rápidas), **La más rápida primero** (como iRacing, la tuya en su sitio) o **A mano**, con una lista
-  de las clases por su nombre corto que se ordena arrastrando o con ↑ ↓, como las columnas. La lista
-  se recuerda entre sesiones (una LMP2 es la LMP2 en cualquier carrera); trae siempre las clases de
-  la sesión en curso, y las que no están en ella van detrás, la más rápida primero. Tu clase guarda
-  sus filas alrededor de ti vaya donde vaya su bloque. En la vista previa, que en esta página tiene
-  una tercera clase (GTP), una clase también se mueve arrastrando su línea (o la etiqueta de su
-  líder en una línea) encima o debajo de otra, con la misma línea de colocar que las columnas: si
-  el orden no era «A mano», pasa a serlo, el aviso lo dice y «Deshacer» devuelve los dos. La lista
-  solo guarda lo que ordenas: las clases de la vista previa que quedan al final no se guardan, y
-  con más de 32 clases recordadas se olvidan antes las de abajo que no están en la sesión en curso
-  (nunca las de la sesión ni la que acabas de mover). Una clase es la misma escrita en mayúsculas o
-  en minúsculas, también al arrastrarla.
-- **El iRating, con el color de la licencia y entero si quieres**: dos filas nuevas en Apariencia ›
-  Filas y pilotos, con su «Global (…)» en el bloque «Piloto» de Relativo, Posiciones, Batalla y
-  Tráfico, y en el buscador. **Formato del iRating**: **2.5k** (como siempre y de serie) o el número
-  entero, **2.520** (con el separador de miles del idioma: «2,520» en inglés; su ayuda aclara
-  que 2.520 es 2520, no un decimal). Vale para el iRating
-  de cada piloto (las columnas iR de Relativo y Posiciones y el de Batalla) y para el SoF (el de
-  cada clase en Posiciones y el elemento SoF de las barras de información, en todos los widgets que
-  lo tienen: los cuatro del bloque usan el suyo, Combustible el de Apariencia). **iRating con el
-  color de la licencia** (apagado de serie): el iRating de cada piloto con los colores y el estilo
-  de su licencia (Contorno, Suave, Sólida o Solo letra, los mismos que la píldora), así puedes
-  ocultar la columna Licencia y seguir viendo su clase. El SoF no tiene licencia y sigue como
-  estaba; en Tráfico, que no muestra el iRating de los pilotos, la fila está pero apagada y lo
-  dice. La columna iR se ensancha lo justo para el número entero o la placa (y en Relativo la
-  ventana lo cuenta como cualquier otra columna). Los estilos y «Completo» no las tocan; al
-  actualizar, todo se ve como antes.
+- **Spotter, a new widget (the eleventh)**: two bars, one on each side, like iOverlay's, separate
+  from the radar (each with its own page and visibility: you can have one, the other or both).
+  **Bar style** picks what they tell. **Closeness** (the default): the radar in two bars; each
+  one fills from the bottom the closer the car on that side is (full when alongside you, empty at
+  about 12 m ahead or behind), from amber to red, and when full it is also marked with the red
+  border. **Where it covers you**: each bar is your car, from nose (top) to tail (bottom), and it
+  fills with how much of you the car on that side covers, from the end it is on, from grey to
+  red, with a faint cap for the car that was just alongside you and is right ahead or behind. In
+  both, a “2” with two cars on one side. The side comes from the iRacing spotter (only once the
+  car is level with you) and the how much from the distance along the track (also across the
+  finish line), with the same calculation as the radar, which keeps working with the radar
+  hidden. iRacing does not give the lateral distance: full does not mean contact. The window
+  width is the gap between the bars; in Content, **Bar style**, **Only with a car alongside**
+  (the default) and **Bar thickness**; in Customise, its two marks. Hidden
+  by default, also when updating (in a free spot near its place); it has its shortcut in “More
+  actions”, its check box in the tray and its place in Visibility and in the search.
+- **Delta: one bar per reference**: a new line, **Bars per reference** (off by default), draws a
+  bar for each reference you pick, with its short name and its difference: your personal best,
+  your session best, your optimal lap, your class fastest lap and your class optimal. It unfolds
+  into its list, with an eye for each one and in the order you like (by default, your three).
+  They all use the scale of the main bar and its colours (green on the left, faster; red on the
+  right, slower), the one the delta uses is marked “Δ”, and each one compares with its own lap
+  for the whole lap, with no “fall back to the next one”: one that has no lap yet shows “—” with
+  the bar empty, without moving anything. Only the ones on show are computed. When you turn the
+  line or a bar on from the Delta page, the window grows just enough (as with “Complete”) for all
+  of them to fit without shrinking the text; in a shorter window the ones that fit are drawn,
+  always including the reference in use, and the page says “No room in 400 by 80 px” on the rest.
+- **Battle: the gap as in Relative, and each sentence of the prediction your way**: in Content,
+  **Gap** picks between **Unsigned** (the measured gap, “0.6 s”, as always and the default) and
+  **As Relative** (the same time as Relative, just as its column draws it: with its sign,
+  positive ahead and negative behind, and no unit; while Relative has no time for that car, the
+  measured gap with the sign of its lane). The **Catch prediction** line unfolds into its
+  parts, each with its eye: “Catching in…”, “Catches you in…”, “Need… s/lap” and “Out of reach ·
+  Safe to the flag”;
+  a hidden sentence leaves the line blank, without moving anything. All visible by default.
+- **Sim time in the header and footer**: a new item, **Sim time**, in the catalogue of the
+  Relative, Standings, Fuel, Traffic and Battle bars: the time of day in the sim (which runs with
+  the session), in the same format as the local time (24 h, “14:32”) and with a sun in front to
+  tell them apart (a moon from 20:00 to 06:00). Off by default: add it with **+ Add a data
+  item**.
+- **More cars from the other classes in Standings**: in compact mode, **Cars of other classes**
+  (from 0 to 10, with the same picker as “Top positions” and “Around you”) replaces the “Leaders
+  of other classes” switch. With 1 (the usual) each other class is its leader's line; with more,
+  its first cars under its class name; with 0, none. When updating, the switch turned on becomes
+  1 and turned off 0, also in saved layouts.
+- **Each class's SoF next to its name**: the line of another class's leader in compact mode now
+  carries its class's SoF at the end (the class lines already carried it in every class). It
+  follows the “SoF” eye of the class line: hide it there and it goes from both.
+- **The start of the row, as columns: each thing where you want it**: in Relative and Standings,
+  the position, the number, the make logo, the country flag and the name stop being a fixed block
+  and become columns in the same list as the rest, together with **Flags** (the penalty ones,
+  which used to go always after the name). So **Positions gained**, **Flags** or any other column
+  can go between the position and the number, between the number and the logo or after the name.
+  Relative now also has **Positions gained**, the same column as the Standings one (same name,
+  title “±”, width, triangle and colours; race only, counted the same way: its starting position
+  in the class against the current one), hidden by default after the flags.
+  Whatever stays next to the name goes with it, in its cell: in front, aligned from row to row;
+  behind, at the end of its cell, also aligned. Separated by another column, it goes in a column
+  of its own (the number's title is “#”). **Name** always shows (its help says its column title
+  is “DRIVER”). One rule, the same in the four widgets with the “Driver” block: **the list says
+  where; the “Driver” block, whether they show and how**. The logo, the country flag and the
+  flags have no eye in the list but a link that takes you to their row in “Driver” and points it
+  out (their row says how they are: “Shown or hidden in “Driver”: Global (Yes)”); in the preview
+  they can be dragged and, when you click them, the note says the same and takes you to that row.
+  The position and the number, which are not in the block, have their eye (in Standings, the
+  position's replaces its old switch). In Traffic, the flags follow the same rule in its list of
+  parts; Battle, with no columns, carries them after the name. If the window narrows, the logo
+  and the country flag go before the usual columns, and flags placed elsewhere go back after the
+  name. “Match Standings” and “Match Relative” carry everything, “Positions gained” too, and in
+  the preview they are dragged like the other columns,
+  flags after the name included. When updating, everything looks as before: the start of the row
+  in front in the usual order (the position, shown or hidden as it was), the flags after the name
+  (at the end of its cell, aligned, also if you had their column on). A saved column list that is
+  empty or unreadable goes back to the default one, as before.
+- **Relative: each driver's last lap**: a new column, **Last lap**, the same as the Standings one:
+  the same name, the same format (“1:47.312”), the same help and the same colours (its class's
+  fastest lap on the purple plate, its own session best in green) and, outside races, its best
+  lap. Hidden by default (also when updating, after the gap) and sorted like the rest; “Match
+  Standings” (and “Match Relative”) carries it with the other columns they share.
+- **Standings: the class order**: in Content, **Class order** picks which block goes on top with
+  several classes: **Your class first** (as always and the default: then the fastest ones),
+  **Fastest first** (like iRacing, yours in its place) or **By hand**, with a list of the classes
+  by their short name that you sort by dragging or with ↑ ↓, like the columns. The list is
+  remembered between sessions (an LMP2 is the LMP2 in any race); it always brings the classes of
+  the current session, and the ones not in it go after, fastest first. Your class keeps its rows
+  around you wherever its block goes. In the preview, which on this page has a third class (GTP),
+  a class can also be moved by dragging its line (or its leader's tag on a line) above or below
+  another, with the same drop line as the columns: if the order was not “By hand”, it becomes so,
+  the note says it and “Undo” brings both back. The list only keeps what you sort: the preview
+  classes left at the end are not saved, and with more than 32 classes remembered the ones at the
+  bottom that are not in the current session are forgotten first (never the ones in the session
+  or the one you just moved). A class is the same written in upper or lower case, also when
+  dragging it.
+- **The iRating, in the licence colour and in full if you like**: two new rows in Appearance ›
+  Rows and drivers, with their “Global (…)” in the “Driver” block of Relative, Standings, Battle
+  and Traffic, and in the search. **iRating format**: **2.5k** (as always and the default) or the
+  whole number, **2,520** (with the language's thousands separator: “2.520” in Spanish; its help
+  makes clear that 2.520 is 2520, not a decimal). It applies to the iRating
+  of each driver (the iR columns of Relative and Standings and Battle's) and to the SoF (each
+  class's in Standings and the SoF item of the info bars, in every widget that has it: the four
+  in the block use their own, Fuel the Appearance one). **iRating in the licence colour** (off by
+  default): each driver's iRating in the colours and style of their licence (Outline, Soft, Solid
+  or Letter only, the same as the pill), so you can hide the Licence column and still see their
+  class. The SoF has no licence and stays as it was; in Traffic, which does not show the drivers'
+  iRating, the row is there but disabled and says so. The iR column widens just enough for the
+  whole number or the plate (and in Relative the window counts it like any other column). The
+  styles and “Complete” do not touch them; when updating, everything looks as before.
 
-### Cambiado
+### Changed
 
-- **Tus referencias, solo con vueltas legales**: además de salirte de pista, pisar el pit lane, la
-  grúa, pararte o una amarilla, ahora también invalida tu vuelta una salida de pista que iRacing te
-  anote (su 1x) aunque ningún instante de la telemetría la viera. Si llega en el medio segundo
-  después de cruzar la línea, es de la vuelta que acabas de cerrar, no de la nueva. Un toque (0x,
-  4x) o un trompo (2x) no la invalidan: iRacing también la cuenta. Esa vuelta nunca es tu mejor
-  vuelta de la sesión ni entra en tu óptima ni en la de tu clase, ni se guarda como récord; si ya
-  lo era por un instante, vuelve la anterior antes de que el delta la use. El aviso «vuelta
-  inválida» del delta sigue esta misma regla, también la vuelta recién terminada que se muestra al
-  cruzar la línea, y la columna «Mejor» de Posiciones muestra para ti tu mejor vuelta legal aunque
-  iRacing cuente como mejor una de esas.
+- **Your references, legal laps only**: besides going off track, touching the pit lane, the tow,
+  stopping or a yellow, your lap is now also invalidated by an off-track that iRacing gives you
+  (its 1x) even if no moment of the telemetry saw it. If it arrives within half a second after
+  crossing the line, it belongs to the lap you just closed, not the new one. A contact (0x, 4x)
+  or a spin (2x) do not invalidate it: iRacing counts it too. That lap is never your session best
+  nor part of your optimal lap or your class's, nor is it saved as a personal best; if it already
+  was for an instant, the previous one comes back before the delta uses it. The delta's “invalid
+  lap” note follows this same rule, also the just-finished lap shown when crossing the line, and
+  the “Best lap” column in Standings shows your best legal lap for you even if iRacing counts one
+  of those as your best.
 
 ## [2.3.1] - 2026-10-30
 
-### Corregido
+### Fixed
 
-- **La opción de una fila de Personalizar va debajo de su nombre**: «iRating en juego de todos» en
-  Posiciones ocupaba la fila y dejaba el nombre en una columna de palabras sueltas. Ahora la opción
-  de una fila (también «Medido» en Hueco) va en su propia línea, a cualquier ancho.
-- **Los atajos de la barra lateral no se parten**: con «Mayús» la tecla es más larga, y la
-  explicación pasa entera a la línea de abajo en vez de partirse en palabras sueltas.
+- **A one-row option in Customise goes under its name**: “iRating at stake for all” in
+  Standings took up the row and left the name in a column of loose words. Now a one-row option
+  (also “Measured” in Gap) goes on its own line, at any width.
+- **The sidebar shortcuts do not break**: with “Shift” the key is longer, and the explanation
+  moves whole to the line below instead of breaking into loose words.
 
 ## [2.3.0] - 2026-10-30
 
-### Añadido
+### Added
 
-- **El modo edición sabe a qué widget van las flechas, y deshace**: la etiqueta del widget al que
-  se aplican las flechas lleva el borde en el color de edición; `Tab` y `Mayús+Tab` pasan al widget
-  siguiente o al anterior (de arriba abajo, sin los ocultos ni los bloqueados), también con el
-  cursor oculto por el juego, con un aviso breve «Flechas: Relativo». `Ctrl+Z` deshace el último
-  cambio del modo edición (arrastre, tamaño, rueda, flechas, ojo o candado de la etiqueta) y luego
-  el anterior, y la bandeja ofrece **Deshacer: mover Relativo** (o «cambiar el tamaño de Relativo»,
-  «ocultar Batalla»: lo que hiciste); mantener una flecha o girar la
-  rueda cuenta como un solo cambio, y todo se olvida al salir del modo edición. Estas teclas solo
-  se toman mientras editas; con los Ajustes delante, funcionan mientras no estés en un campo, un
-  deslizador o una lista (ver **Cambiado**).
-- **Accesibilidad, en un solo sitio**: al final de **Apariencia**, una sección **Accesibilidad**
-  reúne lo que antes estaba suelto o no existía, cada opción apagada de serie (nada cambia si no la
-  eliges, y **Buscar ajuste** encuentra cada una por sus palabras):
-  - **Paleta para daltónicos** (pasa aquí desde «Color»): ahora también llega a **Pedales**: los
-    pedales con sus colores de serie pasan a azul (acelerador) y naranja (freno), el embrague a
-    gris, el ABS a blanco, y la traza del freno es más gruesa que la del acelerador, para
-    distinguirlas por la forma; un color que hayas elegido se queda.
-  - **Texto mínimo de 10 px**: las etiquetas más pequeñas de los diez widgets (títulos de
-    columna, pies, cabeceras, chips) pasan de 9 a 10 px. Ningún widget se ensancha: donde no cabe, se
-    quita antes un dato o una columna, como al estrecharlos.
-  - **Sin parpadeos**: las luces de cambio de Pedales se quedan fijas en azul en vez de parpadear
-    unas cinco veces por segundo al pasarte de vueltas, y tampoco parpadean el borde de **Editar
-    posición** ni el punto de «Esperando a iRacing». La ayuda de **Luces de cambio** en Pedales
-    dice dónde está.
-  - **Tamaño de esta ventana**: amplía o reduce la ventana de Ajustes entre el 80 y el 150 %
-    (también con `Ctrl` y `+` o `-`, `Ctrl+0` para volver al 100 %, o `Ctrl` y la rueda), y
-    se recuerda. Solo cambia esta ventana: los widgets siguen con **Tamaño del texto**.
+- **Edit mode knows which widget the arrows go to, and undoes**: the label of the widget the
+  arrows apply to has its border in the edit colour; `Tab` and `Shift+Tab` move to the next or
+  previous widget (top to bottom, skipping hidden and locked ones), also with the cursor hidden by
+  the game, with a short note “Arrows: Relative”. `Ctrl+Z` undoes the last edit mode change (drag,
+  size, wheel, arrows, eye or padlock on the label) and then the one before, and the tray offers
+  **Undo: move Relative** (or “resize Relative”, “hide Battle”: whatever you did); holding an
+  arrow or turning the
+  wheel counts as a single change, and everything is forgotten when you leave edit mode. These
+  keys are only taken while you edit; with Settings in front, they work as long as you are not in
+  a field, a slider or a list (see **Changed**).
+- **Accessibility, in one place**: at the end of **Appearance**, an **Accessibility** section
+  gathers what used to be scattered or did not exist, each option off by default (nothing changes
+  unless you pick it, and **Search settings** finds each one by its words):
+  - **Colour-blind palette** (moved here from “Colour”): it now also reaches **Inputs**: the
+    pedals with their default colours become blue (throttle) and orange (brake), the clutch grey,
+    the ABS white, and the brake trace is thicker than the throttle one, to tell them apart by
+    shape; a colour you picked stays.
+  - **10 px minimum text**: the smallest labels of the ten widgets (column titles, footers,
+    headers, chips) go from 9 to 10 px. No widget gets wider: where it does not fit, an item or a
+    column goes first, as when narrowing them.
+  - **No flashing**: the Inputs shift lights stay steady in blue instead of flashing about five
+    times a second when you hit the rev limiter, and neither the **Edit position** border nor the
+    “Waiting for iRacing” dot flash. The help of **Shift lights** in Inputs says where it is.
+  - **Size of this window**: makes the Settings window larger or smaller between 80 and 150%
+    (also with `Ctrl` and `+` or `-`, `Ctrl+0` to go back to 100%, or `Ctrl` and the wheel), and
+    it is remembered. It only changes this window: the widgets keep **Text size**.
 
-  Su ↺ y su línea en **Restablecer…** las vuelven a apagar; **Estilo** no las toca.
+  Its ↺ and its line in **Reset…** turn them off again; **Style** does not touch them.
 
-- **Modo edición más preciso**: las **flechas** mueven 1 px el último widget que has arrastrado,
-  escalado, tocado en su etiqueta o señalado con **Editar posición** (con `Mayús`, 10 px), y con
-  `Ctrl` cambian su ancho y su alto (el alto no, si se ajusta a su contenido); se guarda al soltar
-  la tecla. Solo mientras editas: con la ventana de Ajustes delante, un campo, un deslizador o una
-  lista que tenga el foco se queda las flechas, y una combinación que ya uses en Atajos sigue
-  siendo tuya. Si aún no
-  has tocado ninguno, un aviso sobre el juego lo dice. Al arrastrar, una **línea de ajuste** marca
-  el borde de otro widget o de la pantalla al que se pega, y el widget también se pega al **centro
-  de la pantalla**. El ojo y el candado de la etiqueta miden 24 × 24 px (antes 20 × 17) y los
-  bordes para cambiar el tamaño, 11 px (antes 8); los widgets no cambian de tamaño. La línea de
-  teclas del modo edición en los Ajustes y la ayuda sobre cada widget nombran las flechas.
+- **More precise edit mode**: the **arrows** move by 1 px the last widget you dragged, scaled,
+  touched on its label or pointed out with **Edit position** (with `Shift`, 10 px), and with
+  `Ctrl` they change its width and height (not the height, if it fits its content); it is saved
+  when you release the key. Only while you edit: with the Settings window in front, a field, a
+  slider or a list that has the focus keeps the arrows, and a combination you already use in
+  Shortcuts is still yours. If you have not
+  touched any yet, a note over the game says so. When dragging, a **snap line** marks the edge of
+  another widget or of the screen it snaps to, and the widget also snaps to the **centre of the
+  screen**. The label's eye and padlock measure 24 × 24 px (before 20 × 17) and the edges for
+  resizing, 11 px (before 8); the widgets do not change size. The edit mode key line in Settings
+  and the help over each widget name the arrows.
 
-- **Bienvenida en el primer arranque**: una instalación nueva abre los Ajustes con una bienvenida
-  de tres pasos (idioma y unidades; qué widgets usar; dónde está todo: la bandeja, los tres atajos
-  y **Probar con datos de ejemplo**, que enseña los widgets en tu pantalla en el modo edición), y
-  Windows avisa una vez de que OverLap está en la bandeja. **En una instalación nueva**, todo sale
-  en el idioma de Windows (español si es el tuyo; si no, inglés) y la bienvenida empieza con seis
-  widgets marcados (Relativo, Posiciones, Delta, Combustible, Avisos y Pedales) en vez de los diez;
-  «Siguiente» espera a que haya al menos uno y «Saltar» deja los diez. Si ya tenías ajustes, no la
-  ves.
-- **Buscar ajuste**: un buscador arriba de la barra lateral (y de la barra de una ventana estrecha)
-  encuentra cualquier ajuste de cualquier página por sus palabras, sin importar mayúsculas ni
-  tildes: controles, secciones, acordeones y cada dato de las listas («vueltas combustible» da
-  «Vueltas de combustible» en el pie de Posiciones, en la cabecera de Relativo…), con su página y
-  su sección debajo. Con las flechas y `Intro` o un clic, lleva a la página, abre el acordeón o la
-  lista donde está, lo centra y lo señala un momento. Lee las páginas tal como se ven, en el idioma
-  de la ventana, y vuelve a leerlas si cambias un ajuste; también encuentra lo que ahora oculta otro
-  ajuste («Primeros puestos» con Posiciones en «Completo»), marcado «con otro ajuste»: al elegirlo,
-  lleva a su sección y dice por qué no se ve.
-- **Página «Visibilidad»**: junto a Apariencia, con **Cuándo se ve el overlay** (que estaba en
-  Apariencia; su «Restablecer» va con ella y el de Apariencia ya no lo toca) y una tabla **Dónde se
-  ve cada widget**: una fila por widget, agrupados, y columnas Visible (el mismo ojo que la barra
-  lateral), Práctica, Clasificación, Carrera, Ocultar en boxes, Pantalla de sesión y Bloqueado,
-  marcadas con el mismo sentido que en la página del widget. Cada casilla cambia el mismo ajuste
-  que su página y el nombre del widget lleva a ella; una casilla que no se puede cambiar dice por
-  qué. Con «Solo en carrera», la tabla avisa de que práctica y clasificación no se ven.
-- **Traer todos los widgets a esta pantalla**: en la bandeja (a la pantalla donde está el ratón) y
-  en **Disposiciones › Pantallas** (a la de la ventana de Ajustes). Los widgets de otra pantalla,
-  o de una que ya no está conectada, vienen al mismo sitio relativo y con su tamaño, sin salirse;
-  los que ya estaban no se mueven. La página dice cuántos ha traído y a qué pantalla (la del ratón,
-  si fue desde la bandeja), y desde la bandeja también lo dice un aviso sobre esa pantalla. Durante
-  un minuto se deshace desde la página o con **Deshacer: …** en la bandeja.
-- **«Editar posición» en cada widget, y ⚙ en su etiqueta**: junto a «Visible», un botón entra en
-  el modo edición y señala ese widget sobre el juego con un borde que parpadea tres veces (con
-  movimiento reducido, fijo durante ese rato) y se va; si ya editas, lo vuelve a señalar. En el modo edición, la etiqueta de cada widget tiene, tras el ojo y el
-  candado, un **⚙** que abre su página de ajustes. El aviso del modo edición en los Ajustes es una
-  línea de teclas (`Arrastra` mover · `Bordes` ancho · `Rueda` escala · `Alt` sin imán · `Esc`
-  salir) con un botón **Salir**, en vez de dos líneas de texto.
-- **Saber si un atajo funciona**: al usar un atajo, un aviso breve arriba de la pantalla, sobre el
-  juego, dice qué ha hecho («Overlay oculto», «Modo edición», «Disposición: GT3») o por qué no se
-  ve nada («Overlay visible · Oculto: fuera del coche», «Solo hay una disposición», «Delta: no hay
-  sesión», «Delta oculto»), en la pantalla donde están tus widgets; también al salir del modo
-  edición con `Esc`. No toma el foco ni los clics, y se apaga en **Ajustes › Atajos ›
-  Confirmar sobre el juego** (encendido de serie, también si ya tenías ajustes: es nuevo). En esa
-  página, la fila de cada acción (y la de `Esc`) dice «Pulsado hace 3 s» al usarla y destella con
-  cada pulsación, para probar un atajo desde el juego. Si un atajo no se puede registrar, la bandeja lo dice bajo el estado («1 atajo no
-  funciona…», que abre Atajos) y en su texto emergente.
-- **El estado, fuera de la bandeja**: el chip de estado de los Ajustes dice debajo qué está oculto
-  ahora y por qué («Oculto: fuera del coche», «2 widgets ocultos ahora», «Overlay oculto») o qué
-  falla («1 atajo no funciona»). Con un clic abre un panel con la línea de estado entera y qué
-  hacer, qué widgets oculta una regla y por qué, los atajos que no funcionan (con «Ver Atajos») y
-  los botones **Copiar diagnóstico** (versiones, estado, pantallas y atajos, sin nombres ni tu
-  usuario, tampoco dentro del texto de un error) y **Abrir registro** (`overlap.log`). Si has
-  ocultado tú el overlay, el panel dice «Todos: has ocultado el overlay», y los ojos de la barra
-  lateral y la nota de cada página de widget dicen «overlay oculto». Si no se puede cargar el
-  módulo nativo del SDK de iRacing, lo dice un aviso en todas las páginas, con los mismos botones;
-  el aviso de que no se guarda también abre el registro en vez de explicar dónde está.
-- **Marca central del volante con «Global (acento)»**: en Pedales, el color de la marca central
-  tiene como primera opción **Global (acento)**, que sigue al color de acento de Apariencia (como
-  «Global (…)» en el formato de nombre). Es la opción de serie en una instalación nueva; si ya
-  tenías ajustes, la marca conserva su color (el amarillo de antes) hasta que la elijas.
-- **Avisos y Testigos, enlazados**: motor calado, presión de aceite, limitador de boxes y daños
-  (la reparación obligatoria: «Daños» en Avisos, «Reparación obligatoria» en Testigos) están en
-  los dos widgets. En **Personalizar › Avisos**, la fila de cada uno tiene una casilla **Testigo**
-  que enciende o apaga su testigo en Testigos, y en la lista de Testigos la casilla **Aviso** hace
-  lo mismo con su aviso; bajo cada lista, una línea lo explica con un botón **Ir a Testigos** /
-  **Ir a Avisos**. La nota de Avisos sobre temperaturas y reparaciones va en esa misma línea.
-- **Unidades imperiales también en Combustible y en el radar**: con **Apariencia › Unidades ›
-  Imperiales**, Combustible muestra galones (EE. UU.): lo que queda, el consumo por vuelta
-  (`gal/v`), lo que hay que echar, el menú de boxes y el ahorro; el plan y las vueltas no
-  cambian. El alcance del radar (en sus marcas, en su página y en la bandeja) se lee en pies; el
-  ajuste se sigue guardando en metros. El aviso «COMBUSTIBLE · 1.6 V» sigue en vueltas. Cambio
-  visible si ya usabas unidades imperiales: Combustible pasa de litros a galones y el radar, de
-  metros a pies.
-- **Disposiciones de ejemplo «Ligera» y «Completa»**: en **Disposiciones › Ejemplos**, **Añadir**
-  pone al final de la lista una disposición con tus widgets donde están y sus opciones, sin
-  aplicarla: «Ligera» muestra Relativo (con 2 coches delante y 2 detrás, o menos si ya tenías
-  menos), Radar, Delta, Combustible y Avisos; «Completa», los diez widgets. Al añadirla, la página
-  la nombra como ha quedado («Ligera (2)» si ya había una) y recuerda que alternas con el atajo
-  **Siguiente disposición** (con sus teclas) o desde la bandeja; si ya no cabe, lo dice.
-- **Estilos en Apariencia**: arriba, cuatro estilos con nombre, cada uno distinto a simple vista:
-  **OverLap** (todo de serie: el aspecto, fondo al 80 %, filas cómodas, logos y banderas, y también
-  lo que muestra cada widget de la disposición en uso: cada columna, elemento, barra y opción que
-  **Completo** enciende vuelve a su valor y su orden de serie, la altura automática a la suya, y
-  Relativo y Delta a su tamaño de serie, desde la misma esquina, o lo justo más si muestras más
-  coches o filas más holgadas, para que el texto no encoja), **Limpio** (sin fondo: solo el texto
-  sobre el juego, con su contorno siempre; sin filas alternas, logos ni banderas, número en franja y
-  licencia solo letra), **Compacto** (pequeño pero legible: filas compactas, texto al 85 % sin bajar
-  del texto mínimo, apellidos, número en franja y licencia solo letra, sin logos ni banderas de
-  país) y **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna y
-  elemento, las barras de información con sus datos, los títulos de columna, las condiciones
-  completas, cada aviso y testigo, logos siempre y fondo al 90 %; los widgets que pueden crecen en
-  alto, y Relativo y Delta agrandan su ventana lo justo para que el texto no encoja). Limpio y
-  Compacto solo cambian el aspecto: al dejar **Completo** por uno de ellos, la ventana de
-  confirmación dice que lo que Completo añadió a los widgets se queda y ofrece, sin marcar,
-  **Quitar también lo que añadió Completo** (cada widget vuelve a lo que mostraba antes; se recuerda
-  en esta ventana al aplicar Completo); con OverLap se va siempre, porque vuelve todo de serie, y su
-  ventana lo enumera. Se marca el que coincide con lo que tienes (OverLap, solo si el aspecto y lo
-  que muestra cada widget están de serie); si ajustas algo a mano, aquí o en la página de un widget,
-  dice «Personalizado». Debajo, los controles de siempre como **Ajuste fino del estilo**. Si un
-  estilo va a cambiar algo que pusiste tú (un aspecto ajustado a mano, o lo que muestra cada widget
-  con **Completo** y **OverLap**), o deja Completo, antes pregunta: una ventana «¿Aplicar el estilo
-  …?» dice qué cambia, de antes a después («Fondo de los widgets: 80 % → 90 %», «Posiciones: se
-  muestran 5 columnas más»; con OverLap, «Posiciones: se ocultan 5 columnas», «Relativo: ventana al
-  tamaño de serie»), plegado si es largo, y dónde se guarda; **Aplicar** o **Cancelar** (o `Esc`).
-  Si no, se aplica al momento. Todo se deshace con **Deshacer**, ventanas incluidas (y, tras
-  deshacer OverLap o la casilla, vuelve la oferta de quitar lo de Completo); no tocan el acento, la
-  Accesibilidad, la etiqueta SIM, el idioma, las unidades, los sitios ni qué widgets se ven. Quien
-  tuviera el aspecto «Como iRacing» (ya no está) lo conserva tal cual, como «Personalizado».
-- **Atajos para mostrar u ocultar cada widget**: en **Atajos**, bajo las acciones de siempre, un
-  grupo plegado **Más acciones** tiene una fila por widget («Mostrar u ocultar Relativo»…), con las
-  mismas tres casillas, botones del volante incluidos. Hacen lo mismo que el ojo de la barra
-  lateral o la casilla de la bandeja (que muestra el atajo al lado del widget), y el aviso sobre el
-  juego dice «Oculto: Relativo» o «Visible: Relativo» y, si aun así no se ve, por qué. Ninguna tiene
-  atajo de serie; el grupo dice cuántas tienen y se abre solo si alguna lo tiene.
-- **Página «Acerca de y ayuda»**, al pie de la barra lateral: la versión, **Guía de uso** e
-  **Informar de un problema** (en el navegador), una ayuda rápida con un botón en cada pregunta
-  (la página que responde, **Modo edición** o **Buscar ajuste**), **Exportar todo…** (todos los
-  ajustes, con todas las disposiciones y sus opciones, y tus récords, incluso el de hace un
-  segundo, en un archivo) e **Importar todo…** (pone esos ajustes al momento, con **Deshacer** aquí
-  y en la bandeja mientras no cambies nada más, y suma los récords del archivo a los tuyos: gana
-  la vuelta más rápida, ninguno de los tuyos se borra y, si la lista está llena, dice cuántos no
-  caben; un archivo de una versión más nueva o que no es una copia se rechaza diciendo por qué), **Abrir
-  carpeta**, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y **Restablecer
-  todo** (como recién instalado, en tu idioma, con los widgets centrados en una pantalla
-  ultrapanorámica como en el primer arranque; tus récords se quedan; pide confirmación y se
-  deshace). El botón de la carpeta de ajustes deja el pie de la barra lateral y el de la ventana
-  estrecha; sigue en la bandeja.
-- **«No cabe a 540 px»: la vista previa dice lo que el ancho deja fuera**: cuando el ancho del
-  widget no deja sitio para algo que tienes visible, su fila lo dice con el mismo icono y las
-  mismas palabras en todas las listas: columnas de Posiciones, datos de cabeceras, segundas
-  líneas y pies de los seis widgets con barras, y el logo y la bandera del bloque «Piloto» de
-  Posiciones (y **Hueco: Ambos**, cuando la columna del hueco al líder no cabe). Al pasar el ratón explica qué hacer (ensanchar el widget u ocultar otro dato). En
-  Batalla, **Lado a lado** en una ventana estrecha dice que se dibuja apilada, y en Relativo la
-  **Densidad** dice «No se nota a 460 × 252 px» cuando el ancho fija el tamaño del texto (así,
-  con las dos densidades se ve igual). Antes el ojo o la opción parecían no hacer nada. No hay
-  ajustes nuevos.
-- **Una lista dentro de un bloque oculto lo dice, y mostrar algo muestra el bloque**: en Pedales,
-  con el bloque «Revoluciones, reparto, TC y FFB» (o el de los datos) oculto en **Bloques**, la
-  lista **Coche** (o **Datos**) dice debajo que no se ve y por qué, y al mostrar uno de sus
-  elementos se muestra también el bloque, como ya hacían los tiempos de vuelta de Delta, que
-  ahora lo dicen con las mismas palabras. Ocultar u ordenar nunca toca el bloque.
-- **«No cambia la vista previa» en las opciones que actúan durante la sesión**: cuándo se ve un
-  widget (**Mostrar en**, **Ocultar en boxes**, **Mostrar en la pantalla de sesión**),
-  **Bloqueado**, **Crece hacia**, el umbral y **Mantener visible** de Batalla y Avisos, **Solo en
-  multiclase** de Tráfico, **Usar la siguiente si no existe** de Delta y **Margen** y **Vueltas
-  para la media** de Combustible llevan la misma nota, con el mismo icono, en vez de parecer que
-  no hacen nada.
-- **La vista previa enseña lo que acabas de cambiar**, como ya hacía Delta con la referencia de
-  cada sesión (y lo dice debajo de la opción): en **Posiciones**, al cambiar **Primeros puestos**
-  o **Alrededor de ti** te pone en P10, así los dos bloques se ven por separado y cada número
-  cambia algo; al mostrar u ocultar el SoF o los coches en una cabecera, segunda línea o pie, la
-  vista previa enseña solo tu clase (con varias clases van en la línea de clase), y al tocar la
-  línea de clase o los líderes de otras clases vuelven todas. En **Tráfico**, la vista previa
-  aplica **Mirar atrás**, **Mirar delante** y **Peligros hasta** como en carrera, con coches más
-  lejos que se ven al alargarlos, y al cambiar **Entradas por grupo** pone cinco coches cerca en
-  cada grupo. En **Testigos**, con **Solo encendidos** la vista previa dibuja los apagados
-  translúcidos, así su ojo y su orden se ven. En **Pedales**, la traza de ejemplo va en tiempo
-  real: con más segundos se ve la curva anterior, con menos solo el final de esta (antes era la
-  misma curva estirada). Sobre el juego, el modo edición sigue enseñando la muestra de siempre.
+- **Welcome on first start**: a new install opens Settings with a three-step welcome (language
+  and units; which widgets to use; where everything is: the tray, the three shortcuts and **Try
+  with sample data**, which shows the widgets on your screen in edit mode), and Windows notes once
+  that OverLap is in the tray. **On a new install**, everything comes up in the Windows language
+  (Spanish if it is yours; otherwise, English) and the welcome starts with six widgets ticked
+  (Relative, Standings, Delta, Fuel, Alerts and Inputs) instead of the ten; “Next” waits until
+  there is at least one and “Skip” leaves the ten. If you already had settings, you do not see
+  it.
+- **Search settings**: a search box at the top of the sidebar (and of the bar of a narrow window)
+  finds any setting on any page by its words, ignoring case and accents: controls, sections,
+  accordions and each item in the lists (“laps fuel” gives “Laps of fuel” in the Standings
+  footer, in the Relative header…), with its page and section under it. With the arrows and
+  `Enter` or a click, it takes you to the page, opens the accordion or the list where it is,
+  centres it and highlights it for a moment. It reads the pages as they look, in the window's
+  language, and reads them again if you change a setting; it also finds what another setting now
+  hides (“Top positions” with Standings in “Full”), marked “with another setting”: when you pick
+  it, it takes you to its section and says why it is not showing.
+- **“Visibility” page**: next to Appearance, with **When the overlay shows** (which was in
+  Appearance; its “Reset” goes with it and Appearance's no longer touches it) and a **Where each
+  widget shows** table: one row per widget, grouped, and the columns Visible (the same eye as
+  the sidebar), Practice, Qualifying, Race, Hide in the pits, Session screen and Locked, ticked
+  with the same meaning as on the widget's page. Each check box changes the same setting as its
+  page and the widget's name takes you there; a check box that cannot be changed says why. With
+  “Races only”, the table warns that practice and qualifying do not show.
+- **Bring every widget to this screen**: in the tray (to the screen the mouse is on) and in
+  **Layouts › Screens** (to the one with the Settings window). Widgets on another screen, or on
+  one that is no longer connected, come to the same relative spot and with their size, without
+  going off it; the ones already there do not move. The page says how many it brought and to which
+  screen (the mouse's, if it was from the tray), and from the tray a note on that screen says it
+  too. For one minute it can be undone from the page or with **Undo: …** in the tray.
+- **“Edit position” on each widget, and ⚙ on its label**: next to “Visible”, a button enters
+  edit mode and points that widget out over the game with a border that flashes three times (with
+  reduced motion, steady for that time) and goes away; if you are already editing, it points it
+  out again. In edit mode, each widget's label has, after the eye and the
+  padlock, a **⚙** that opens its settings page. The edit mode note in Settings is a key line
+  (`Drag` move · `Edges` width · `Wheel` scale · `Alt` no snap · `Esc` exit) with an **Exit**
+  button, instead of two lines of text.
+- **Knowing whether a shortcut works**: when you use a shortcut, a short note at the top of the
+  screen, over the game, says what it did (“Overlay hidden”, “Edit mode”, “Layout: GT3”) or why
+  nothing shows (“Overlay visible · Hidden: out of the car”, “There is only one layout”, “Delta:
+  no session”, “Delta hidden”), on the screen your widgets are on; also when leaving edit mode
+  with `Esc`. It takes neither the focus nor the clicks, and it is turned off in **Settings ›
+  Shortcuts › Confirm over the game** (on by default, also if you already had settings: it is
+  new). On that page, the row of each action (and the `Esc` one) says “Pressed 3 s ago” when you
+  use it and flashes with each press, to test a shortcut from the game. If a shortcut cannot be
+  registered, the tray says so under the status (“1 shortcut is not
+  working…”, which opens Shortcuts) and in its tooltip.
+- **The status, outside the tray**: the Settings status chip says underneath what is hidden now
+  and why (“Hidden: out of the car”, “2 widgets hidden now”, “Overlay hidden”) or what is failing
+  (“1 shortcut not working”). One click opens a panel with the full status line and what to do,
+  which widgets a rule hides and why, the shortcuts that are not working (with “Open Shortcuts”)
+  and the **Copy diagnostics** buttons (versions, status, screens and shortcuts, without names or
+  your user, not even inside the text of an error) and **Open log** (`overlap.log`). If you hid
+  the overlay yourself, the panel says “All of them: you hid the overlay.”, and the sidebar eyes
+  and the note on each widget page say “overlay hidden”. If the native iRacing SDK module cannot
+  be loaded, a note on every page says so, with the same buttons; the note that settings are not
+  saving also opens the log instead of explaining where it is.
+- **Steering wheel centre mark with “Global (accent)”**: in Inputs, the colour of the centre mark
+  has **Global (accent)** as its first option, which follows the accent colour of Appearance
+  (like “Global (…)” in the name format). It is the default on a new install; if you already had
+  settings, the mark keeps its colour (the former yellow) until you pick it.
+- **Alerts and Warning lights, linked**: engine stalled, oil pressure, pit limiter and damage
+  (the mandatory repair: “Damage” in Alerts, “Mandatory repairs” in Warning lights) are in both
+  widgets. In **Customise › Alerts**, each one's row has a **Warning light** check box that turns
+  its light in Warning lights on or off, and in the Warning lights list the **Alert** check box
+  does the same with its alert; under each list, a line explains it with a **Go to Warning
+  lights** / **Go to Alerts** button. The Alerts note about temperatures and repairs goes on that
+  same line.
+- **Imperial units in Fuel and the radar too**: with **Appearance › Units › Imperial**, Fuel
+  shows (US) gallons: what is left, the use per lap (`gal/lap`), what to add, the pit menu and
+  the saving; the plan and the laps do not change. The radar range (on its marks, on its page and
+  in the tray) reads in feet; the setting is still saved in metres. The “FUEL · 1.6 LAPS” alert
+  stays in laps. A visible change if you already used imperial units: Fuel goes from litres to
+  gallons and the radar, from metres to feet.
+- **“Light” and “Complete” example layouts**: in **Layouts › Examples**, **Add** puts at the end
+  of the list a layout with your widgets where they are and their options, without applying it:
+  “Light” shows Relative (with 2 cars ahead and 2 behind, or fewer if you already had fewer),
+  Radar, Delta, Fuel and Alerts; “Complete”, the ten widgets. When it is added, the page names it
+  as it ended up (“Light (2)” if there was one already) and reminds you that you switch with the
+  **Next layout** shortcut (with its keys) or from the tray; if there is no room left, it says so.
+- **Styles in Appearance**: at the top, four named styles, each one different at a glance:
+  **OverLap** (everything by default: the look, background at 80%, comfortable rows, logos and
+  flags, and also what each widget of the layout in use shows: each column, element, bar and
+  option that **Complete** turns on goes back to its default value and order, the automatic
+  height to its own, and Relative and Delta to their default size, from the same corner, or just
+  a bit more if you show more cars or roomier rows, so the text does not shrink), **Clean** (no
+  background: just the text over the game, always with its outline; no alternating rows, logos or
+  flags, number as a stripe and licence letter only), **Compact** (small but readable: compact
+  rows, text at 85% without going below the minimum text, surnames, number as a stripe and licence
+  letter only, no logos or country flags) and **Complete** (everything on show in the ten widgets
+  of the layout in use: each column and element, the info bars with their items, the column
+  titles, the full conditions, each alert and warning light, logos always and background at 90%;
+  the widgets that can grow do so in height, and Relative and Delta enlarge their window just
+  enough so the text does not shrink). Clean and
+  Compact only change the look: when you leave **Complete** for one of them, the confirmation
+  window says that what Complete added to the widgets stays and offers, unticked, **Also take
+  away what Complete added** (each widget back to what it showed before; it is remembered in this
+  window when applying Complete); with OverLap it always goes, because everything goes back to
+  default, and its window lists it. The one matching what you have is ticked (OverLap, only if the
+  look and what each widget shows are at their defaults); if you tune something by hand, here or
+  on a widget's page, it says “Custom”. Below, the usual controls as **Fine tuning of the
+  style**. If a style is going to change something you set (a look tuned by hand, or what each
+  widget shows with **Complete** and **OverLap**), or leaves Complete, it asks first: an “Apply
+  the … style?” window says what changes, from before to after (“Widget background: 80% → 90%”,
+  “Standings: 5 more columns shown”; with OverLap, “Standings: 5 columns hidden”, “Relative: the
+  window back to its default size”), folded if it is long, and where it is saved; **Apply** or
+  **Cancel** (or `Esc`).
+  If not, it applies at once. Everything is undone with **Undo**, windows included (and, after
+  undoing OverLap or the check box, the offer to take away what Complete added comes back); they
+  do not touch the accent, Accessibility, the SIM tag, the language, the units, the positions or
+  which widgets show. Anyone who had the “Like iRacing” look (no longer there) keeps it as it is,
+  as “Custom”.
+- **Shortcuts to show or hide each widget**: in **Shortcuts**, under the usual actions, a folded
+  **More actions** group has one row per widget (“Show or hide Relative”…), with the same three
+  boxes, wheel buttons included. They do the same as the sidebar eye or the tray check box (which
+  shows the shortcut next to the widget), and the note over the game says “Relative hidden” or
+  “Relative shown” and, if it still does not show, why. None has a shortcut by default; the group
+  says how many have one and opens by itself if any does.
+- **“About and help” page**, at the foot of the sidebar: the version, **User guide** and
+  **Report a problem** (in the browser), a quick help with a button on each question (the page
+  that answers it, **Edit mode** or **Search settings**), **Export everything…** (all the
+  settings, with every layout and its options, and your personal bests, even the one from a
+  second ago, in one file) and **Import everything…** (puts those settings in at once, with
+  **Undo** here and in the tray as long as you change nothing else, and adds the file's personal
+  bests to yours: the fastest lap wins, none of yours is deleted and, if the list is full, it says
+  how many do not fit; a file from a newer version or that is not a backup is rejected, saying
+  why), **Open
+  folder**, **Open log**, **Copy diagnostics**, **Show the welcome** and **Reset
+  everything** (as newly installed, in your language, with the widgets centred on an ultrawide
+  screen as on first start; your personal bests stay; it asks for confirmation and can be
+  undone). The settings folder button leaves the foot of the sidebar and the narrow window's; it
+  is still in the tray.
+- **“No room at 540 px”: the preview says what the width leaves out**: when the widget's width
+  leaves no room for something you have visible, its row says so with the same icon and the same
+  words in every list: Standings columns, header items, second lines and footers of the six
+  widgets with bars, and the logo and flag of the Standings “Driver” block (and **Gap: Both**,
+  when the gap-to-leader column does not fit). On hover it explains what to do (widen the widget
+  or hide another item). In
+  Battle, **Side by side** in a narrow window says it is drawn stacked, and in Relative the
+  **Density** says “No visible change at 460 × 252 px” when the width sets the text size (so,
+  with both densities it looks the same). Before, the eye or the option seemed to do nothing.
+  There are no new settings.
+- **A list inside a hidden block says so, and showing something shows the block**: in Inputs,
+  with the “Revs, bias, TC and FFB” block (or the readouts one) hidden in **Blocks**, the **Car**
+  (or **Readouts**) list says underneath that it is not showing and why, and showing one of its
+  elements also shows the block, as the Delta lap times already did, which now say it in the same
+  words. Hiding or sorting never touches the block.
+- **“Does not change the preview” on the options that act during the session**: when a widget
+  shows (**Show in**, **Hide in the pits**, **Show on the session screen**), **Locked**,
+  **Grows**, the threshold and **Keep visible** of Battle and Alerts, **Multiclass only** of
+  Traffic, **Fall back to the next one** of Delta and **Margin** and **Laps to average** of Fuel
+  carry the same note, with the same icon, instead of seeming to do nothing.
+- **The preview shows what you just changed**, as Delta already did with each session's
+  reference (and says so under the option): in **Standings**, changing **Top positions** or
+  **Around you** puts you in P10, so the two blocks show apart and every number changes
+  something; when you show or hide the SoF or the cars in a header, second line or footer, the
+  preview shows only your class (with several classes they go on the class line), and when you
+  touch the class line or the leaders of other classes they all come back. In **Traffic**, the
+  preview applies **Look behind**, **Look ahead** and **Hazards up to** as in a race, with cars
+  further away that show when you lengthen them, and changing **Entries per group** puts five
+  cars close in each group. In **Warning lights**, with **Lit only** the preview draws the unlit
+  ones translucent, so their eye and their order show. In **Inputs**, the sample trace runs in
+  real time: with more seconds you see the previous curve, with fewer only the end of this one
+  (before it was the same curve stretched). Over the game, edit mode still shows the usual sample.
 
-### Cambiado
+### Changed
 
-- **Vueltas con todas sus letras donde caben, y nunca «L» en inglés**: el número grande de
-  **Combustible** y su «Quedan» dicen «17.6 vueltas» y «18.7 vueltas» mientras quepan en la línea, y
-  la cabecera de **Posiciones** (y cualquier cabecera con el tiempo restante) dice «≈19 vueltas» o
-  «Quedan 12 vueltas» cuando le sobra sitio; si no, «v» como siempre. Ningún widget se ensancha ni
-  pierde un dato por ello. En inglés, las vueltas ya no se escriben «L», que es la unidad de los
-  litros: «Catching in ~4 laps», «< 1 lap», y la columna de stint «7 lp».
-- **Salir del modo edición se llama igual en todas partes**: el botón de la barra lateral, el del
-  aviso de los Ajustes, la fila de Atajos y la leyenda de la barra lateral dicen «Salir del modo
-  edición» (antes también «Salir de edición», «salir de edición» y «Salir»); sobre cada widget
-  sigue «Esc: salir», que es la misma palabra. En inglés, «Exit edit mode» (antes también «Leave
-  edit mode» y «leave editing»). El deshacer del modo edición dice lo que hiciste: «cambiar el
-  tamaño de Relativo» si cambiaste su tamaño (antes «mover»), «ocultar Batalla» o «mostrar
-  Batalla» (antes «mostrar u ocultar»), «desbloquear» y «cambiar la escala de».
-- **El primer aviso de las flechas cabe entero**: «Primero elige un widget: arrástralo o pulsa
-  Tab» (antes una frase más larga que se cortaba por los lados), y lo mismo con «Nada que mover:
-  todos ocultos o bloqueados» y «Overlay oculto: muéstralo con su atajo o la bandeja». Si un nombre
-  largo no cabe, el aviso pasa a dos líneas en vez de cortarse. Una prueba mide que cada aviso
-  cabe en una línea en los dos idiomas.
-- **Las teclas del modo edición funcionan también con los Ajustes delante**: justo después de
-  **Editar posición**, las flechas mueven el widget, `Tab` y `Mayús+Tab` eligen otro y `Ctrl+Z`
-  deshace, como dice el aviso de los Ajustes, sin tener que ir antes al juego. Las flechas y
-  `Ctrl+Z` siguen funcionando mientras el foco no esté en un campo, un deslizador o una lista (que
-  se quedan sus teclas), y `Ctrl+Z` es del «Deshacer» de los Ajustes mientras se ve. `Tab` vuelve
-  a recorrer la página en cuanto haces clic o algo de la página toma el foco, o con `Esc`.
-- **«Mayús» en toda la app**: la tabla de Atajos, el pie de la barra lateral, la bienvenida, el
-  aviso de cursor oculto y la ayuda de **Modo edición** escriben `Ctrl+Mayús+E` y `Ctrl+Mayús+H`,
-  como ya decían los avisos del modo edición («Mayús+Tab») y como se escriben **Supr** o **Re
-  Pág**; mientras grabas una combinación, la tecla pulsada se llama igual. En inglés sigue siendo
-  «Shift». Lo guardado no cambia.
-- **Un ↺ sin nada que hacer se apaga, como los «Restablecer» de las listas**: el ↺ de cada sección
-  (Contenido, Piloto, Personalizar, Ventana y visibilidad, las de Apariencia y Visibilidad) y su
-  línea en **Restablecer…** salen atenuados cuando esa parte está como viene de serie, y dicen
-  «Nada que restablecer: está como viene de serie». «Posición y tamaño» y «Todo» siguen activos: la
-  posición de fábrica depende de la pantalla.
-- **La misma opción, el mismo control y el mismo nombre**: en **Apariencia › Filas y pilotos**,
-  «Bandera del país» y «Banderas de penalización» son un selector «Sí / No», como en cada widget
-  (antes eran interruptores). La línea Piloto de **Restablecer…** dice «Formato de nombre, logo,
-  bandera del país y banderas de penalización vuelven a «Global»» (antes «sanciones», una palabra
-  que no usaba ningún control). En **Testigos › Personalizar**, «Rótulos» es un interruptor, como
-  «Temperaturas» y «Tiempo de reparación» debajo; en columna, «Lado de los textos» sale debajo
-  mientras haya un texto que colocar (antes «Rótulos» era «No / Derecha / Izquierda»). Lo guardado
-  no cambia.
-- **Pedales sin «Contenido»**: el estilo del volante, su tamaño y el color de la marca central
-  pasan a la fila **Volante** de Personalizar › Datos, que se despliega como la de la Traza y dice
-  en su botón cómo es («Realista · Mediano», «Barra»), junto a **Grados del volante**. Así todo lo
-  del volante está en su fila, y su ↺ es el de Personalizar.
-- **Las columnas que comparten Relativo y Posiciones, en el mismo orden**: en Relativo, el hueco va
-  antes de Boxes, Vueltas del stint y Neumático, como en Posiciones (antes Neumático iba antes que
-  Vueltas del stint y el hueco al final). Las tres van ocultas de serie, así que nada visible
-  cambia; una lista que ya habías tocado se queda como estaba, y un ajuste antiguo con el neumático
-  a la vista lo sigue viendo en su sitio. La ayuda de Vueltas del stint es la misma en las dos.
-- **Buscar ajuste encuentra también los botones y las opciones**: «exportar» lleva a **Exportar
-  todo…** (Acerca de) y a **Exportar…** (Disposiciones), «editar posición» y «mover» al botón de
-  cada widget, «restablecer» a **Restablecer…**; y cada opción de un selector sale por su nombre
-  («Imperiales» de Unidades, «Apellido» de Formato de nombre, «English» de Idioma), con el selector
-  al que pertenece debajo, también por lo que dice su ayuda («galones», «pies»). Entiende más
-  palabras de uso diario: «rpm» y «cambio de marcha» llevan a **Luces de cambio**, «tecla»,
-  «teclado», «botón del volante» o «button box» a **Atajos**, «sanciones» a **Banderas de
-  penalización**, «copia» o «backup» a **Exportar todo…**, «letra grande» o «más grande» a
-  **Tamaño del texto** (y después al texto mínimo de 10 px), y «por coche» a **Según el coche**.
-  Las palabras que no distinguen nada («por», «de», «el», «the», «by») ya no hacen que falle una
-  búsqueda.
-- **Las mismas palabras sobre el juego y en los Ajustes**: la ayuda sobre cada widget dice «Rueda:
-  escala · Flechas: mover · Alt: sin imán · Esc: salir» (más corta en los estrechos), y el aviso
-  de modo edición de los Ajustes usa los mismos pares («Bordes: tamaño», «Flechas: mover (Ctrl:
-  tamaño)», «Tab: otro widget», «Ctrl+Z: deshacer»), igual en inglés («Wheel: scale», «Arrows:
-  move»).
-- **«iRacing oculta el cursor» nombra la tecla**: el aviso dice «Pulsa Ctrl+Shift+O para abrir los
-  Ajustes, que liberan el cursor, o Alt+Tab» (con tu atajo de **Abrir los Ajustes**) y que, sin
-  cursor, `Tab` elige un widget y las flechas lo mueven.
-- **La etiqueta de un widget estrecho dice su tamaño entero**: por debajo de 300 px quita antes la
-  escala y escribe el tamaño junto («220×220»), en lugar de cortarlo («220 …»).
-- **El texto de segundo plano se lee sobre un cielo claro**: con el contorno del texto puesto (en
-  «Auto», con el fondo por debajo del 65 %), el gris de las etiquetas y cifras secundarias (P11,
-  iRating, «PISTA», «SoF», «LÍDER») sube hacia el blanco del texto principal. Con el fondo de serie
-  (80 %) no hay contorno y nada cambia; ningún widget crece.
-- **La cabecera de incidentes, con palabras completas si caben**: en Relativo y Posiciones,
-  «equipo 7x» y «penalización a 17x» en lugar de «eq. 7x» y «pen. a 17x» cuando la cabecera tiene
-  sitio para ellas (se mide, como en los chips de Avisos); si no, las abreviaturas de siempre.
-  Ningún widget se ensancha.
-- **Apariencia, en dos grupos sin columnas vacías**: bajo los estilos, **Ajuste fino del estilo**
-  (Color y Texto a la izquierda, Filas y pilotos a la derecha) y debajo **General** (Idioma y Otros
-  a la izquierda, Accesibilidad a la derecha), cada sección siempre en su columna. Disposiciones
-  hace lo mismo: a la izquierda la lista y «Guardar la actual», a la derecha Cambio automático,
-  Ejemplos, Pantallas y Archivos, tengas las disposiciones que tengas.
-- **Personalizar con la cabecera de las demás secciones**: el título en versalitas con su ↺ en la
-  misma línea; la explicación y «Expandir todo» van debajo.
-- **Tamaño de esta ventana con los botones de siempre**: 80/100/125/150 %, como Tamaño del texto y
-  Escala; el deslizador va de 5 en 5 y `Ctrl` y `+` o `-` siguen de 10 en 10.
-- **Accesibilidad lleva al Texto**: al pie, «Para leer mejor los widgets, en Texto:» con dos
-  botones, **Tamaño del texto** y **Contorno del texto**, que llevan a cada uno y lo señalan.
-- **Buscar ajuste entiende palabras de uso diario**: «zoom», «ampliar» o «lupa» encuentran
-  **Tamaño de esta ventana**; «bloquear» o «fijar», **Bloqueado**; «parpadeo» o «destello», **Sin
-  parpadeos**; «daltonismo», la paleta para daltónicos (y lo mismo en inglés); y cada estilo se
-  encuentra por su nombre («Limpio», «Compacto»).
-- **Estilos y disposiciones, cada uno a lo suyo**: la disposición de ejemplo «Completa» pasa a
-  llamarse **Los diez** («All ten»), para no confundirse con el estilo **Completo**; Estilo dice
-  que qué widgets se ven lo eligen las disposiciones (con «Ir a Disposiciones») y Ejemplos dice que
-  el aspecto se elige en Estilo (con «Ir a Apariencia»).
-- **Las mismas palabras para el corte**: en inglés, «No flashing» dice «on the rev limiter» (no
-  «at the limiter», que en la app es el limitador de boxes), como Testigos; en español, «en el
-  corte», como Testigos.
-- **Pedales, con la misma regla que los demás widgets**: lo que enciende o apaga una parte del
-  widget va en **Personalizar**, y en Contenido quedan solo los modos del volante (estilo, tamaño y
-  color). **Luces de cambio** es una fila con su ojo arriba de **Bloques** (la tira de arriba del
-  widget); las opciones de la **Traza** (segundos, grosor, embrague) se despliegan en su propia fila,
-  con su resumen en el botón («5 s · 2 px»); **Grados del volante** va en la fila **Volante** de
-  Datos, y los colores de los pedales, bajo la lista de Bloques. **Buscar ajuste** abre la fila
-  plegada donde está lo que buscas. Los valores no cambian.
-- **Una línea de ayuda por fila**: en Combustible (Consumo, Repostar y para meta, Ventana de boxes,
-  Ahorro, Neumáticos, Reparaciones rápidas, Menú de boxes) y en Testigos (Marcar tiempo del equipo,
-  Cuenta atrás real), la ayuda de cada fila cabe en una línea y el resto va tras su ⓘ, como en el
-  resto de los Ajustes.
-- **Las dos tablas, una sola regla para Posición y Piloto**: en **Relativo** y en **Posiciones**,
-  **Posición** y **Piloto** van en el mismo bloque fijo al principio de la lista de columnas, con
-  las mismas pistas («siempre al principio de la fila», «siempre tras la posición»): Piloto con su
-  candado y Posición con su ojo en las dos, así que ahora también se puede ocultar la posición en
-  Posiciones (el líder de otra clase pierde entonces su etiqueta de clase; su número sigue en el
-  color de la clase). El recuento «x de n visibles» cuenta lo mismo en las dos, solo las columnas
-  que se mueven, e **Igualar con** copia también si se ve la posición. **Si en Relativo habías
-  movido Posición o Piloto a otro sitio de la fila, ahora vuelven al principio, como en
-  Posiciones**; lo demás de tu orden se queda.
-- **«Medido» del Hueco, en su fila**: en Posiciones, el selector «Al de delante / Al líder /
-  Ambos» deja Contenido y va dentro de la fila **Hueco** de Columnas, como «iRating en juego de
-  todos» en la suya; «Hueco al líder» dice «Se muestra con «Ambos» en la fila Hueco». Lo restablece
-  el ↺ de Personalizar, junto con sus columnas.
-- **Ventana y visibilidad, las mismas filas en los diez widgets**: en **Avisos**, «Ocultar en
-  boxes» ya no desaparece: sale apagada y desactivada con su motivo («No aplica: ocultaría los
-  avisos del limitador y de la entrada a boxes»), como «Mostrar en la pantalla de sesión» donde no
-  aplica. **Crece hacia** también está siempre: desactivada con «No aplica: solo con «Alto:
-  Automático»» o «No aplica: este widget no cambia de alto por sí solo».
-- **Un nombre para cada cosa**: en Delta, «Escala de la barra» pasa a **Rango de la barra** («Bar
-  range»), porque «Escala» es el tamaño del widget en los diez; en Batalla, «iRating del rival» y
-  «Licencia del rival» pasan a **iRating** y **Licencia**, como las columnas de Relativo y
-  Posiciones, con «del rival» en su ayuda.
-- **Doblado o doblándote, también por la forma**: el número de un coche que te dobla lleva una
-  muesca arriba a la derecha y el de un doblado, abajo, además del rojo o el azul que ya tenían (en
-  Relativo y Tráfico, el mismo componente). Va dentro del número: no ocupa más sitio.
-- **Menos cifras de serie, solo en una instalación nueva**: Posiciones empieza sin su segunda
-  línea de cabecera (iRating y SR en juego, margen y vuelta rápida de clase) y sin aire ni goma en
-  el pie (que sigue con pista, agua, viento y coches); Combustible, sin las líneas de neumáticos y
-  de límites (reparaciones rápidas y juegos); el pie de Relativo, cuando lo enciendes, tampoco
-  trae aire ni goma. Todo sigue en sus listas de Personalizar, a un clic. **Si ya tenías ajustes,
-  nada cambia**: tus widgets dibujan lo mismo (también un archivo antiguo sin esas listas, que
-  recibe lo que dibujaba su versión); solo **Restablecer** lleva a lo nuevo.
-- **Palabras completas donde caben**: los chips de Avisos dicen «PRESIÓN ACEITE», «ENTRA ESTA
-  VUELTA» o «COMBUSTIBLE · 1.6 V» cuando todos caben en su fila, y la línea de límites de
-  Combustible, «Reparaciones rápidas» y «Juegos de neumáticos» cuando caben en su ancho. Si no
-  caben, siguen las abreviaturas de siempre («P. ACEITE», «BOX ESTA V.», «REP. RÁPIDAS»): ningún
-  widget se ensancha ni gana una fila por ellas.
-- **Combustible, más gráfico y con menos texto**: cada línea es una cifra y su dibujo. Arriba, las
-  **vueltas de combustible en grande** (en el color del plan), los litros y, tras una bandera a
-  cuadros, «QUEDAN» y las vueltas que quedan. El **depósito** va marcado en vueltas de combustible
-  (una raya por vuelta, más fuerte cada cinco), con una raya donde llega lo que necesitas hasta meta
-  y, si no llegas, ese tramo rayado en rojo. El **consumo** lleva una línea con tus vueltas limpias:
-  la media en discontinua, la que más gastó en naranja y la última en blanco (separada y unida a
-  trazos si no fue limpia, aunque gastara lo mismo). **Repostar** muestra el **menú de boxes como
-  una barra** marcada en lo que hay que echar (verde si llega, naranja si no) y, al final,
-  «PARA META» y los litros hasta meta. La **ventana** es la carrera como una línea hasta la
-  bandera: lo corrido, tu posición y las vueltas en que puedes parar (verde si está abierta, roja si
-  cierra en esta vuelta), y las paradas dichas con palabras («1 parada», «sin parar»). El
-  **ahorro** es una barra que acaba en tu media, con el recorte rayado y su porcentaje («−9 %»).
-  Los **neumáticos** son el coche visto desde arriba: cada neumático en tres franjas de un borde al
-  otro (izquierda, centro y derecha vistas desde arriba, como las da iRacing), coloreadas de verde
-  (nuevo) a amarillo, naranja y rojo (gastado), o de azul a gris y naranja con la paleta para
-  daltónicos, con el % de su franja más gastada al lado y «última parada · V13». En la lista,
-  «Para meta y repostar» pasa a llamarse **«Repostar y para meta»** y «Reparaciones y juegos»,
-  **«Reparaciones rápidas»**: los juegos de neumáticos que quedan van ahora con el coche, y esa
-  línea los dice solo mientras no se dibuja la de neumáticos. Las líneas, su orden, lo que tenías
-  oculto, la edición en la vista previa y los fantasmas siguen igual; no hay ajustes nuevos.
-- **La línea de neumáticos de Combustible sale antes de la primera parada** (cambio visible si ya
-  usabas el widget): antes no aparecía hasta que una parada medía los neumáticos; ahora, con el
-  **alto automático** (el de serie), el coche sale atenuado desde el principio («sin lectura · se
-  miden en boxes», o «sin lectura» si el widget es estrecho), así el widget no cambia de alto
-  cuando llega la lectura, aunque en carreras sin parada es como tres líneas más alto. Si la
-  ocultas en Personalizar › Líneas, desaparece como antes. Con el **alto fijo** sigue como antes:
-  la línea espera a la lectura, para no sacar las otras de una ventana hecha a su medida.
-- **«+ Añadir dato» en las barras**: en cabeceras, segundas líneas y pies, la lista «Ocultos (n)»
-  pasa a ser **+ Añadir dato (n)**: cada dato oculto tiene **← Izquierda** y **Derecha →**, para
-  ponerlo al final del lado que elijas (el lado donde estaba, resaltado).
-- **Más sitio para los ajustes**: al bajar por las opciones, la vista previa se pliega en una
-  franja de unos 120 px (con «Ver entera») y vuelve al subir; al pie de la vista previa, **Al
-  bajar: Se pliega / Fija / Franja** lo cambia y se recuerda. La ventana de Ajustes se abre más
-  alta (880 × 900 en una pantalla 1080p; en 1440p, 1152 × 1200) y las opciones pasan a dos
-  columnas desde 1100 px de ancho (antes 1380). En las páginas de widget a dos columnas,
-  «Personalizar» va a la derecha y la izquierda apila «Contenido», las secciones de referencia y
-  «Ventana y visibilidad», cada columna con su propio alto: ya no queda un hueco vacío bajo
-  Contenido. A una columna, el orden es el mismo: Contenido › Personalizar › referencias › Ventana y
-  visibilidad.
-- **Vincular un coche enciende «Según el coche»**: al vincular un coche a una disposición (en
-  Disposiciones o desde la bandeja), el cambio automático se activa si estaba apagado; la página
-  lo dice con «Deshacer» (también en la bandeja, y desde ella un aviso sobre el juego), que lo apaga
-  y vuelve a la disposición que tenías si ha aplicado otra; quitar un vínculo no lo toca. Si estás
-  en un coche sin disposición y tienes dos o más, la página y el submenú **Disposición** de la
-  bandeja ofrecen **Vincular a «…»** (la que está en uso), y **Guardar la actual** ofrece «Vincular
-  a <tu coche>», marcada solo si «Según el coche» ya está activado: guardar nunca lo activa sin
-  que lo marques. Los coches
-  vinculados salen como etiquetas en cada disposición, y la lista de coches que se pueden vincular
-  incluye los de tus récords personales, sin tener que subirte a ellos otra vez.
-- **El ojo es el símbolo de la visibilidad**: en la barra lateral, cada widget tiene un ojo (como
-  en la etiqueta del modo edición) en vez de un punto: abierto si está activado, tachado si no, y
-  tenue con un círculo discontinuo si está activado pero una regla lo oculta ahora; al pasar el
-  ratón dice por qué («activado, pero ahora no se ve (oculto en práctica)»). La página del widget
-  lo dice también bajo su título.
+- **Laps spelt out where they fit, and never “L” in English**: the big **Fuel** number and its
+  “To go” say “17.6 laps” and “18.7 laps” as long as they fit on the line, and the **Standings**
+  header (and any header with the time left) says “≈19 laps” or “12 laps to go” when it has room
+  to spare; if not, “v” as always. No widget gets wider or loses an item because of it. In
+  English, laps are no longer written “L”, which is the litres unit: “Catching in ~4 laps”,
+  “< 1 lap”, and the stint column “7 lp”.
+- **Exiting edit mode has the same name everywhere**: the sidebar button, the one on the
+  Settings note, the Shortcuts row and the sidebar legend say “Salir del modo edición” in Spanish
+  (before also “Salir de edición”, “salir de edición” and “Salir”); over each widget it still says
+  “Esc: salir”, which is the same word. In English, “Exit edit mode” (before also “Leave edit
+  mode” and “leave editing”). The edit mode undo says what you did: “resize Relative” if you
+  changed its size (before “move”), “hide Battle” or “show Battle” (before “show or hide”),
+  “unlock” and “change the scale of”.
+- **The first arrows note fits whole**: “Drag or touch a widget first, or press Tab to pick it”
+  (before a longer sentence that was cut at the sides), and the same with “No widget can move:
+  they are hidden or locked” and “Overlay hidden: show it with its shortcut or the tray”. If a
+  long name does not fit, the note goes onto two lines instead of being cut. A test measures that
+  each note fits on one line in both languages.
+- **The edit mode keys also work with Settings in front**: right after **Edit position**, the
+  arrows move the widget, `Tab` and `Shift+Tab` pick another one and `Ctrl+Z` undoes, as the
+  Settings note says, without having to go to the game first. The arrows and `Ctrl+Z` keep
+  working as long as the focus is not in a field, a slider or a list (which keep their keys), and
+  `Ctrl+Z` belongs to the Settings “Undo” while it shows. `Tab` goes back to moving through the
+  page as soon as you click or something on the page takes the focus, or with `Esc`.
+- **“Mayús” across the app** (Spanish): the Shortcuts table, the sidebar footer, the welcome, the
+  hidden cursor note and the **Edit mode** help write `Ctrl+Mayús+E` and `Ctrl+Mayús+H`, as the
+  edit mode notes already did (“Mayús+Tab”) and as **Supr** or **Re Pág** are written; while you
+  record a combination, the key pressed has the same name. In English it is still “Shift”. What
+  is saved does not change.
+- **A ↺ with nothing to do turns off, like the lists' “Reset”**: the ↺ of each section (Content,
+  Driver, Customise, Window and visibility, the Appearance and Visibility ones) and its line in
+  **Reset…** come out dimmed when that part is as it comes by default, and say “Nothing to reset:
+  it is as it comes”. “Position and size” and “All” stay active: the factory position depends on
+  the screen.
+- **The same option, the same control and the same name**: in **Appearance › Rows and drivers**,
+  “Country flag” and “Penalty flags” are a “Yes / No” picker, as on each widget (before they were
+  switches). The Driver line of **Reset…** says “Name format, logo, country flag and penalty flags
+  go back to “Global”” (before “sanctions”, a word no control used). In **Warning lights ›
+  Customise**, “Captions” is a switch, like “Temperatures” and “Repair time” below; as a column,
+  “Text side” comes out below as long as there is a text to place (before “Captions” was “No /
+  Right / Left”). What is saved does not change.
+- **Inputs without “Content”**: the steering wheel style, its size and the centre mark colour
+  move to the **Steering** row in Customise › Readouts, which unfolds like the Trace one and says
+  on its button what it is like (“Realistic · Medium”, “Bar”), next to **Steering angle**. So
+  everything about the wheel is in its row, and its ↺ is the Customise one.
+- **The columns Relative and Standings share, in the same order**: in Relative, the gap goes
+  before Pit, Stint laps and Tyre, as in Standings (before Tyre went before Stint laps and the gap
+  last). All three are hidden by default, so nothing visible changes; a list you had already
+  touched stays as it was, and an old setting with the tyre on show still sees it in its place.
+  The Stint laps help is the same in both.
+- **Search settings also finds buttons and options**: “export” takes you to **Export
+  everything…** (About) and to **Export…** (Layouts), “edit position” and “move” to each widget's
+  button, “reset” to **Reset…**; and each option of a picker comes up by its name (“Imperial”
+  from Units, “Surname” from Name format, “English” from Language), with the picker it belongs to
+  underneath, also by what its help says (“gallons”, “feet”). It understands more everyday words:
+  “rpm” and “gear change” take you to **Shift lights**, “key”, “keyboard”, “wheel button” or
+  “button box” to **Shortcuts**, “sanctions” to **Penalty flags**, “copy” or “backup” to **Export
+  everything…**, “big letters” or “bigger” to **Text size** (and then to the 10 px minimum text),
+  and “per car” to **By car**.
+  Words that tell nothing apart (“por”, “de”, “el”, “the”, “by”) no longer make a search
+  fail.
+- **The same words over the game and in Settings**: the help over each widget says “Wheel: scale
+  · Arrows: move · Alt: no snap · Esc: exit” (shorter on narrow ones), and the Settings edit mode
+  note uses the same pairs (“Edges: size”, “Arrows: move (Ctrl: size)”, “Tab: next widget”,
+  “Ctrl+Z: undo”), the same in English (“Wheel: scale”, “Arrows: move”).
+- **“iRacing hides the cursor” names the key**: the note says “Press Ctrl+Shift+O to open the
+  settings, which free the cursor, or Alt+Tab” (with your **Open settings** shortcut) and that,
+  without a cursor, `Tab` picks a widget and the arrows move it.
+- **A narrow widget's label shows its whole size**: below 300 px it drops the scale first and
+  writes the size together (“220×220”), instead of cutting it (“220 …”).
+- **Secondary text reads over a bright sky**: with the text outline on (in “Auto”, with the
+  background below 65%), the grey of the secondary labels and figures (P11, iRating, “TRACK”,
+  “SoF”, “LEADER”) moves towards the white of the main text. With the default background (80%)
+  there is no outline and nothing changes; no widget grows.
+- **The incidents header, with full words if they fit**: in Relative and Standings, “team 7x”
+  and “penalty at 17x” instead of “tm. 7x” and “pen. at 17x” when the header has room for them
+  (it is measured, as in the Alerts chips); if not, the usual abbreviations. No widget gets wider.
+- **Appearance, in two groups with no empty columns**: under the styles, **Fine tuning of the
+  style** (Colour and Text on the left, Rows and drivers on the right) and below it **General**
+  (Language and Other on the left, Accessibility on the right), each section always in its
+  column. Layouts does the same: on the left the list and “Save the current one”, on the right
+  Automatic switch, Examples, Screens and Files, whatever layouts you have.
+- **Customise with the header of the other sections**: the small-caps title with its ↺ on the
+  same line; the explanation and “Expand all” go below.
+- **Size of this window with the usual buttons**: 80/100/125/150%, like Text size and Scale; the
+  slider goes in steps of 5 and `Ctrl` and `+` or `-` still go in steps of 10.
+- **Accessibility leads to Text**: at the foot, “To read the widgets better, in Text:” with two
+  buttons, **Text size** and **Text outline**, which take you to each one and highlight it.
+- **Search settings understands everyday words**: “zoom”, “enlarge” or “magnifier” find **Size of
+  this window**; “lock” or “pin”, **Locked**; “flicker” or “flash”, **No flashing**;
+  “colour blindness”, the colour-blind palette (and the same in Spanish); and each style can be
+  found by its name (“Clean”, “Compact”).
+- **Styles and layouts, each to its own**: the “Complete” example layout is renamed **All ten**
+  (“Los diez”), so it is not confused with the **Complete** style; Style says that which widgets
+  show is the layouts' choice (with “Go to Layouts”) and Examples says that the look is picked in
+  Style (with “Go to Appearance”).
+- **The same words for the rev limiter**: in English, “No flashing” says “on the rev limiter”
+  (not “at the limiter”, which in the app is the pit limiter), like Warning lights; in Spanish,
+  “en el corte”, like Warning lights.
+- **Inputs, with the same rule as the other widgets**: what turns a part of the widget on or off
+  goes in **Customise**, and only the wheel modes (style, size and colour) remain in Content.
+  **Shift lights** is a row with its eye above **Blocks** (the strip at the top of the widget);
+  the **Trace** options (seconds, thickness, clutch) unfold in their own row, with their summary
+  on the button (“5 s · 2 px”); **Steering angle** goes in the **Steering** row of Readouts, and
+  the pedal colours, under the Blocks list. **Search settings** opens the folded row where what
+  you are looking for is. The values do not change.
+- **One help line per row**: in Fuel (Use, Add and to finish, Pit window, Saving, Tyres, Fast
+  repairs, Pit menu) and in Warning lights (Mark as crew time, Real countdown), each row's help
+  fits on one line and the rest goes behind its ⓘ, as in the rest of Settings.
+- **The two tables, one rule for Position and Driver**: in **Relative** and in **Standings**,
+  **Position** and **Driver** go in the same fixed block at the start of the column list, with
+  the same hints (“always at the start of the row”, “always after the position”): Driver with its
+  padlock and Position with its eye in both, so now the position can also be hidden in Standings
+  (another class's leader then loses its class tag; its number stays in the class colour). The
+  “x of n visible” count counts the same in both, only the columns that move, and **Match**
+  also copies whether the position shows. **If in Relative you had moved Position or Driver to
+  another place in the row, they now go back to the start, as in Standings**; the rest of your
+  order stays.
+- **Gap “Measured”, in its row**: in Standings, the “Interval / Leader / Both” picker leaves
+  Content and goes inside the **Gap** row of Columns, like “iRating at stake for all” in its
+  own; “Gap to leader” says “Shown with “Both” on the Gap row”. It is reset by the Customise ↺,
+  together with its columns.
+- **Window and visibility, the same rows on the ten widgets**: in **Alerts**, “Hide in the pits”
+  no longer disappears: it comes out off and disabled with its reason (“Not available: it would
+  hide the pit limiter and pit entry alerts”), like “Show on the session screen” where it does not
+  apply. **Grows** is also always there: disabled with “Not available: only with “Height:
+  Automatic”” or “Not available: this widget never changes height by itself”.
+- **One name for each thing**: in Delta, “Bar scale” becomes **Bar range**, because “Scale” is
+  the widget's size on all ten; in Battle, “Rival iRating” and “Rival licence” become **iRating**
+  and **Licence**, like the Relative and Standings columns, with “the rival's” in their help.
+- **Lapped or lapping you, also by shape**: the number of a car lapping you carries a notch at
+  the top right and a lapped car's, at the bottom, besides the red or blue they already had (in
+  Relative and Traffic, the same component). It goes inside the number: it takes no extra room.
+- **Fewer figures by default, only on a new install**: Standings starts without its second header
+  line (iRating and SR at stake, margin and class fastest lap) and without air or rubber in the
+  footer (which keeps track, water, wind and cars); Fuel, without the tyre and limit lines (fast
+  repairs and sets); the Relative footer, when you turn it on, does not bring air or rubber
+  either. Everything is still in their Customise lists, one click away. **If you already had
+  settings, nothing changes**: your widgets draw the same (also an old file without those lists,
+  which gets what its version drew); only **Reset** leads to the new ones.
+- **Full words where they fit**: the Alerts chips say “OIL PRESSURE”, “BOX THIS LAP” or “FUEL ·
+  1.6 LAPS” when they all fit in their row, and the Fuel limits line, “Fast repairs” and “Tyre
+  sets” when they fit in its width. If they do not fit, the usual abbreviations stay (“OIL
+  PRESS.”, “BOX THIS L.”, “F. REPAIRS”): no widget gets wider or gains a row because of them.
+- **Fuel, more graphic and with less text**: each line is a figure and its drawing. At the top,
+  the **laps of fuel in large** (in the plan's colour), the litres and, after a chequered flag,
+  “TO GO” and the laps left. The **tank** is marked in laps of fuel (a tick per lap, stronger
+  every five), with a tick where what you need to the finish reaches and, if you do not make it,
+  that stretch hatched in red. The **use** carries a line with your clean laps: the average
+  dashed, the one that used most in orange and the last one in white (separate and joined with
+  dashes if it was not clean, even if it used the same). **Add** shows the **pit menu as a bar**
+  marked at what to add (green if it is enough, orange if not) and, at the end, “TO FINISH” and
+  the litres to the finish. The **window** is the race as a line to the flag: what has been run,
+  your position and the laps you can stop on (green if it is open, red if it closes on this lap),
+  and the stops said in words (“1 stop”, “no stop”). The **saving** is a bar ending at your
+  average, with the cut hatched and its percentage (“−9%”). The **tyres** are the car seen from
+  above: each tyre in three bands from one edge to the other (left, centre and right seen from
+  above, as iRacing gives them), coloured from green (new) to yellow, orange and red (worn), or
+  from blue to grey and orange with the colour-blind palette, with the % of its most worn band
+  next to it and “last stop · L13”. In the list, “To finish and add” is renamed **“Add and to
+  finish”** and “Repairs and sets”, **“Fast repairs”**: the tyre sets left now go with the car,
+  and that line only says them while the tyres line is not drawn. The lines, their order, what you
+  had hidden, editing in the preview and the ghosts stay the same; there are no new settings.
+- **The Fuel tyres line shows before the first stop** (a visible change if you already used the
+  widget): before, it did not appear until a stop measured the tyres; now, with the **automatic
+  height** (the default), the car shows dimmed from the start (“no reading · measured in the
+  pits”, or “no reading” if the widget is narrow), so the widget does not change height when the
+  reading comes, although in races without a stop it is about three lines taller. If you hide it
+  in Customise › Lines, it disappears as before. With a **fixed height** it stays as before: the
+  line waits for the reading, so as not to push the others out of a window made to their size.
+- **“+ Add a data item” in the bars**: in headers, second lines and footers, the “Hidden (n)” list
+  becomes **+ Add a data item (n)**: each hidden item has **← Left** and **Right →**, to put it at
+  the end of the side you pick (the side where it was, highlighted).
+- **More room for the settings**: when you scroll down through the options, the preview folds
+  into a strip of about 120 px (with “Show whole”) and comes back when you scroll up; at the foot
+  of the preview, **Scrolling: Folds / Fixed / Strip** changes it and is remembered. The Settings
+  window opens taller (880 × 900 on a 1080p screen; on 1440p, 1152 × 1200) and the options go to
+  two columns from 1100 px wide (before 1380). On widget pages with two columns, “Customise” goes
+  on the right and the left stacks “Content”, the reference sections and “Window and visibility”,
+  each column with its own height: there is no longer an empty gap under Content. With one
+  column, the order is the same: Content › Customise › references › Window and visibility.
+- **Linking a car turns on “By car”**: when you link a car to a layout (in Layouts or from the
+  tray), the automatic switch turns on if it was off; the page says so with “Undo” (also in the
+  tray, and from it a note over the game), which turns it off and goes back to the layout you had
+  if it applied another; removing a link does not touch it. If you are in a car with no layout
+  and you have two or more, the page and the tray's **Layout** submenu offer **Link to “…”** (the
+  one in use), and **Save the current one** offers “Link to <your car>”, ticked only if “By car”
+  is already on: saving never turns it on unless you tick it. The linked
+  cars show as tags on each layout, and the list of cars that can be linked includes the ones in
+  your personal bests, without having to get in them again.
+- **The eye is the visibility symbol**: in the sidebar, each widget has an eye (as on the edit
+  mode label) instead of a dot: open if it is on, crossed out if not, and faint with a dashed
+  circle if it is on but a rule hides it now; on hover it says why (“on, but not showing now
+  (hidden in practice)”). The widget's page says it too under its title.
 
-- **Widgets agrupados**: la barra lateral de los Ajustes, su selector en una ventana estrecha y la
-  bandeja ordenan los diez widgets en tres grupos: **Pista y rivales** (Relativo, Posiciones,
-  Batalla, Tráfico, Radar), **Tu vuelta** (Delta, Combustible, Pedales) y **Estado del coche**
-  (Avisos, Testigos). En la bandeja, cada grupo lleva su nombre y una línea lo separa del
-  siguiente.
+- **Grouped widgets**: the Settings sidebar, its picker in a narrow window and the tray sort the
+  ten widgets into three groups: **Track and rivals** (Relative, Standings, Battle, Traffic,
+  Radar), **Your lap** (Delta, Fuel, Inputs) and **Car status** (Alerts, Warning lights). In the
+  tray, each group carries its name and a line separates it from the next.
 
-- **Atajos en tabla, una columna por atajo**: cada acción es una fila y cada atajo tiene su
-  columna (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como en la pantalla de controles de
-  un juego, así que los atajos quedan alineados entre filas. La casilla es el control: clic para
-  cambiar, **×** o `Supr` para quitar, **+ Asignar** en la primera libre. Los avisos están en su
-  casilla («Desconectado», «En uso por otra app»; en una ventana estrecha, solo su icono) y la
-  frase que lo explica sale debajo de esa columna; «Guardado» y «Quitado» ya no empujan la página (los lectores de pantalla los siguen
-  oyendo). Restablecer es un icono ↺ en su propia columna (con «Deshacer»), `Esc` es una fila
-  más, con el mismo candado que lo fijo en las listas, la nota de que
-  las teclas son exclusivas va encima de la tabla y «Cómo funcionan» queda plegado debajo. Ayudas
-  más cortas para cada acción.
-- **Contenido para el comportamiento, Personalizar para lo que se ve**: Avisos elige sus avisos
-  con una sola lista con ojo, con subtítulos por grupo (Banderas, Boxes, Durante la carrera, Motor,
-  Combustible), un solo «Restablecer» y una sola ayuda, como Testigos y Radar, en vez de 15
-  casillas en Contenido; un clic en un aviso de la vista previa lo oculta, como su ojo; las banderas azul y enrollada dependen de
-  las banderas, y el exceso del limitador. En Testigos, rótulos, temperaturas y tiempos de
-  reparación pasan junto a la lista de testigos, con «Temperatura al alza». En Posiciones, «iRating
-  en juego de todos» está en la fila de su columna. Lo guardado no cambia.
-- **Cabecera y pie con una sola regla**: en una instalación nueva, la cabecera lleva a la izquierda
-  el título (y la sesión) y a la derecha los incidentes y el reloj; el pie, a la izquierda las
-  condiciones y a la derecha los coches y el combustible. Los datos de la sesión (sesión, tiempo
-  restante, SoF, incidentes) salen por defecto solo en Posiciones, que ahora también tiene título y
-  lleva el número de coches al pie; Relativo deja de repetir los incidentes. Cada cabecera y pie
-  tiene **«Copiar a»** para pasarlo, con su tamaño, a otro widget (con «Deshacer»), y Combustible ya
-  no ofrece «Vueltas de combustible» en sus barras, porque las dice en grande (si la tenías, se
-  quita). Si ya tenías ajustes, tus barras no cambian (un archivo sin versión cuenta como
-  anterior). En Posiciones, el SoF y los coches de la cabecera y el pie dicen que, con varias
-  clases, van en la línea de clase.
-- **Delta en una sola lista**: Personalizar tiene solo «Líneas»; la línea superior y los tiempos
-  de vuelta se despliegan en su propia fila para mostrar sus partes («3 de 3 partes»), en vez de
-  tres acordeones que dependían entre sí. Las referencias se llaman por su nombre completo
-  («Récord personal», «Mejor vuelta de la sesión», «Vuelta óptima»…), con lo que es cada una, y
-  la vista previa dibuja la de la sesión que acabas de cambiar y lo dice debajo («La vista previa
-  usa la de Carrera: Vuelta óptima»). La cadena «Si no existe: …» y las partes de los tiempos de
-  vuelta usan esos mismos nombres.
-- **Lo oculto se ve igual en todas las vistas previas**: con el ratón sobre la vista previa, lo
-  que tengas oculto en cualquier lista (columnas, capas, testigos, avisos, líneas…) se dibuja
-  translúcido donde iría, y un clic lo vuelve a mostrar; antes solo pasaba con las barras de datos
-  y algunas listas, y en el resto había que buscarlo debajo. La ayuda de encima de la vista previa
-  solo promete lo que la página permite: «Arrastra… para ordenar» donde una lista se puede
-  ordenar, y en Avisos dice que un aviso oculto vuelve desde su lista.
-- **Las columnas de Relativo y Posiciones se llaman y editan igual**: «Posición» (en tu clase) y
-  «Piloto», con el número del coche, en las dos (Posiciones decía «Nombre» y tenía una fila
-  «Número» aparte; Relativo decía «Posición en clase»), el mismo candado, en el sitio del ojo, para
-  lo que siempre se ve (Posiciones ponía «Fijo»), «Hueco» se puede ocultar en las dos, iRating
-  antes que la licencia en las dos y una columna «Boxes» también en Relativo (oculta, la etiqueta
-  PIT sigue tras el nombre, como en Posiciones sin la suya). Cada tabla tiene **«Igualar con
-  Posiciones / Relativo»**, que copia el orden y el ojo de las columnas que comparten, con
-  «Deshacer». **En una instalación nueva**, y si nunca habías tocado las columnas de Relativo,
-  iRating va antes que la licencia; una lista cambiada por ti no se toca.
-- **Un bloque «Piloto» igual en Relativo, Posiciones, Batalla y Tráfico**: justo después de
-  Contenido, las mismas cuatro filas en el mismo orden (formato de nombre, logo de la marca,
-  bandera del país, banderas de penalización), cada una con «Global (…)», que es lo que diga
-  Apariencia › Filas y pilotos, donde están ahora sus valores globales (el formato de nombre pasa
-  allí desde Texto). Quitar las banderas de todos es un cambio en Apariencia. Batalla gana las
-  banderas de penalización del rival y Tráfico el logo, la bandera y la penalización de cada coche.
-  «Logotipo de la marca» se llama ya «Logo de la marca» y, en Apariencia, «Logos de marca» pasa a
-  «Color del logo». **En una instalación nueva** los cuatro siguen el global (Batalla enseña ahora
-  la bandera del país, antes apagada, y Tráfico los logos y las banderas); **si ya tenías
-  ajustes**, cada widget dibuja lo mismo que antes (lo que nunca dibujaba queda apagado) y
-  Apariencia ofrece «Usar «Global» en todos» (con «Deshacer»). Si vuelves a una versión anterior, lo que esté en
-  «Global» toma el valor por defecto de esa versión.
-- **El mismo bloque «Ventana y visibilidad» en los diez widgets**: Relativo, Radar y Delta tienen
-  ya «Escala», con los mismos botones 80/100/125/150 %: es el tamaño de su ventana respecto al de
-  fábrica (lo mismo que hace la rueda en modo edición, que ahora significa «escala» en todos), y
-  el chip del modo edición muestra ese mismo porcentaje; restablecer «Ventana y visibilidad» la
-  vuelve al 100 %. La fila «Alto» sale en todos, apagada con
-  su motivo donde no se aplica, así que las filas están en el mismo sitio en cada página.
-- **Deshacer también los cambios grandes**: restablecer (una lista, una sección de un widget, su
-  posición, una sección de Apariencia o toda, todos los atajos o los de una acción), «Usar «Global»
-  en todos», ocultar un widget y eliminar una disposición
-  se hacen con un clic y muestran el mismo aviso que ocultar un elemento, con **Deshacer** (o
-  `Ctrl+Z`). Ya no piden «Pulsa otra vez»; solo borrar récords personales lo sigue pidiendo,
-  porque no se puede deshacer.
-- **Restablecer dice qué y dónde**: en cada página, un menú **Restablecer…** arriba con lo que
-  devuelve cada opción, y un icono ↺ en la cabecera de cada sección que restablece solo esa
-  sección: en un widget, Contenido, Piloto, Personalizar y Ventana y visibilidad (más Posición y
-  tamaño, o todo el widget, en el menú); en Apariencia, Color, Texto, Filas y pilotos, Visibilidad
-  y Otros (o toda la página, que ahora incluye Visibilidad; el idioma no cambia); en Atajos, todos
-  (cada fila tiene su ↺). Antes eran botones al final de la página, y «Restablecer opciones»
-  tocaba también la escala, el fondo y las reglas. Con dos disposiciones o más, el aviso nombra
-  la disposición («Restablecido: Ventana y visibilidad de Relativo · en «Principal»»), y los
-  avisos se leen bien con cualquier widget («Ocultado: Posiciones», «Posiciones (todo)»).
-- **Un solo formato de números en Ajustes**: sin «,0» de sobra («1 s», no «1.0 s» en Batalla y
-  Avisos) y con coma decimal en español («1,5 s», «0,5 v», «1,5 px»); los widgets mantienen el
-  punto del simulador, como los tiempos de vuelta. **Una sola escalera de botones rápidos** para
-  los tamaños: «Tamaño del texto» (Apariencia) usa 80/100/125/150 %, como «Escala». Los segundos
-  de la traza de Pedales tienen botones rápidos, como los demás deslizadores de tiempo.
+- **Shortcuts as a table, one column per shortcut**: each action is a row and each shortcut has
+  its column (**Shortcut 1 · main**, **Shortcut 2**, **Shortcut 3**), as on a game's controls
+  screen, so the shortcuts line up between rows. The box is the control: click to change, **×**
+  or `Delete` to remove, **+ Assign** in the first free one. The notes are in their box
+  (“Disconnected”, “Used by another app”; in a narrow window, just its icon) and the sentence
+  explaining it comes out under that column; “Saved” and “Removed” no longer push the page (screen
+  readers still hear them). Reset is a ↺ icon in its own column (with “Undo”), `Esc` is one more
+  row, with the same padlock as the fixed items in the lists, the note that
+  keys are exclusive goes above the table and “How they work” stays folded below. Shorter help
+  for each action.
+- **Content for behaviour, Customise for what shows**: Alerts picks its alerts with a single list
+  with eyes, with subtitles per group (Flags, Pit, During the race, Engine, Fuel), a single
+  “Reset” and a single help, like Warning lights and Radar, instead of 15 check boxes in Content;
+  a click on an alert in the preview hides it, like its eye; the blue and meatball flags depend
+  on the flags, and the speeding on the limiter. In Warning lights, captions, temperatures and
+  repair times move next to the list of lights, with “Rising temperature”. In Standings, “iRating
+  at stake for all” is in its column's row. What is saved does not change.
+- **Header and footer with a single rule**: on a new install, the header carries the title (and
+  the session) on the left and the incidents and the clock on the right; the footer, the
+  conditions on the left and the cars and the fuel on the right. The session items (session, time
+  left, SoF, incidents) show by default only in Standings, which now also has a title and carries
+  the car count in the footer; Relative stops repeating the incidents. Each header and footer has
+  **“Copy to”** to pass it, with its size, to another widget (with “Undo”), and Fuel no longer
+  offers “Laps of fuel” in its bars, because it shows them in large (if you had it, it is
+  removed). If you already had settings, your bars do not change (a file without a version counts
+  as earlier). In Standings, the SoF and the cars of the header and footer say that, with several
+  classes, they go on the class line.
+- **Delta in a single list**: Customise has only “Lines”; the top line and the lap times unfold
+  in their own row to show their parts (“3 of 3 parts”), instead of three accordions that
+  depended on each other. The references are called by their full name (“Personal best”,
+  “Session best”, “Optimal lap”…), with what each one is, and the preview draws the one for the
+  session you just changed and says so underneath (“The preview uses the Race one: Optimal lap”).
+  The “If missing: …” chain and the parts of the lap times use those same names.
+- **What is hidden looks the same in every preview**: with the mouse over the preview, whatever
+  you have hidden in any list (columns, layers, warning lights, alerts, lines…) is drawn
+  translucent where it would go, and a click shows it again; before this only happened with the
+  data bars and a few lists, and in the rest you had to look for it below. The help above the
+  preview only promises what the page allows: “Drag… to reorder” where a list can be sorted, and
+  in Alerts it says that a hidden alert comes back from its list.
+- **The Relative and Standings columns are named and edited the same way**: “Position” (in your
+  class) and “Driver”, with the car number, in both (Standings said “Name” and had a separate
+  “Number” row; Relative said “Class position”), the same padlock, in the place of the eye, for
+  what always shows (Standings showed “Fixed”), “Gap” can be hidden in both, iRating before the
+  licence in both and a “Pit” column in Relative too (hidden, the PIT tag stays after the name,
+  as in Standings without its own). Each table has **“Match Standings / Relative”**, which copies
+  the order and the eye of the columns they share, with “Undo”. **On a new install**, and if you
+  had never touched the Relative columns, iRating goes before the licence; a list you changed is
+  not touched.
+- **A “Driver” block that is the same in Relative, Standings, Battle and Traffic**: right after
+  Content, the same four rows in the same order (name format, make logo, country flag, penalty
+  flags), each with “Global (…)”, which is whatever Appearance › Rows and drivers says, where
+  their global values now are (the name format moves there from Text). Removing everyone's flags
+  is a change in Appearance. Battle gains the rival's penalty flags and Traffic each car's logo,
+  flag and penalty.
+  “Logotipo de la marca” is now called “Logo de la marca” in Spanish (Make logo) and, in
+  Appearance, “Brand logos” becomes “Logo colour”. **On a new install** the four follow the
+  global (Battle now shows the country flag, off before, and Traffic the logos and the flags);
+  **if you already had settings**, each widget draws the same as before (what it never drew stays
+  off) and Appearance offers “Use Global on all” (with “Undo”). If you go back to an earlier
+  version, whatever is on “Global” takes that version's default value.
+- **The same “Window and visibility” block on the ten widgets**: Relative, Radar and Delta now
+  have “Scale”, with the same 80/100/125/150% buttons: it is the size of their window relative to
+  the factory one (the same as the wheel does in edit mode, which now means “scale” on all of
+  them), and the edit mode chip shows that same percentage; resetting “Window and visibility”
+  takes it back to 100%. The “Height” row shows on all, disabled with
+  its reason where it does not apply, so the rows are in the same place on every page.
+- **Undo big changes too**: resetting (a list, a section of a widget, its position, a section of
+  Appearance or all of it, all the shortcuts or an action's), “Use Global on all”, hiding a widget
+  and deleting a layout
+  are done with one click and show the same note as hiding an element, with **Undo** (or
+  `Ctrl+Z`). They no longer ask “Press again”; only deleting personal bests still asks for it,
+  because it cannot be undone.
+- **Reset says what and where**: on each page, a **Reset…** menu at the top with what each option
+  brings back, and a ↺ icon in each section header that resets only that section: on a widget,
+  Content, Driver, Customise and Window and visibility (plus Position and size, or the whole
+  widget, in the menu); in Appearance, Colour, Text, Rows and drivers, Visibility and Other (or
+  the whole page, which now includes Visibility; the language does not change); in Shortcuts, all
+  of them (each row has its ↺). Before they were buttons at the end of the page, and “Reset
+  options” also touched the scale, the background and the rules. With two layouts or more, the
+  note names the layout (“Reset: Window and visibility of Relative · in “Main””), and the notes
+  read well with any widget (“Hidden: Standings”, “Standings (all)”).
+- **A single number format in Settings**: no extra “.0” (“1 s”, not “1.0 s” in Battle and
+  Alerts) and with a decimal comma in Spanish (“1,5 s”, “0,5 v”, “1,5 px”); the widgets keep the
+  sim's dot, like the lap times. **A single ladder of quick buttons** for sizes: “Text size”
+  (Appearance) uses 80/100/125/150%, like “Scale”. The Inputs trace seconds have quick buttons,
+  like the other time sliders.
 
-- **«Clasificación» pasa a llamarse «Posiciones»** en español (barra lateral, bandeja, título del
-  widget y ajustes), para no confundirla con la sesión de clasificación, que conserva su nombre. En
-  inglés sigue siendo «Standings». Los ajustes guardados no cambian.
-- **Relativo sigue la densidad**, como ya decía Apariencia, y tiene en su página el mismo selector
-  «Global / Cómoda / Compacta» que Posiciones. «Cómoda» (la de siempre) lo dibuja igual que antes;
-  «Compacta» junta las filas y agranda el texto en la misma ventana. Si ya tenías la densidad global
-  en «Compacta», Relativo queda en «Cómoda» para verse como antes.
-- **Personalizar en el mismo orden en todos los widgets**: primero la lista principal (Columnas,
-  Rivales, Grupos, Líneas…), que es la que se abre en una instalación nueva, luego las demás listas
-  del contenido y al final Cabecera, Segunda línea y Pie. Batalla, Tráfico y Combustible ya no se
-  abren en una cabecera apagada. Las «Filas» de Batalla y Delta se llaman «Líneas», como en
-  Combustible. Las secciones que tenías abiertas siguen abiertas.
-- **Lo del widget primero** en cada página: Contenido, Personalizar y, al final, «Ventana y
-  visibilidad» (tamaño, fondo, cuándo se muestra y bloqueo, en ese orden) antes de los botones de
-  restablecer. Antes la ventana ocupaba hasta diez filas por encima de lo que hace el widget. La
-  referencia por sesión de Delta, el cálculo de Combustible y los colores de Pedales están ahora en
-  su Contenido.
-- **Un fondo para todos los widgets**: en Apariencia, «Fondo de los widgets» (80 % por defecto)
-  con botones rápidos de 25, 50, 80 y 100 %. En la página de cada widget, «Fondo» sigue el global
-  («Global (80 %)») o usa una opacidad propia, con los mismos botones. En una instalación nueva
-  todos usan el global; si ya tenías ajustes, cada widget conserva su opacidad (antes había 75, 78,
-  80 y 85 % sin motivo), y Apariencia lo dice con un botón, «Usar el global en todos», que los
-  pasa a «Global» de una vez. La vista previa de Apariencia usa el fondo global. La ayuda ya no
-  habla de «coches» en widgets sin coches. Si vuelves a una versión anterior, los widgets en
-  «Global» toman la opacidad que tenían por defecto en ella.
-- **Pantalla de sesión, en un solo sitio**: cada página de widget tiene el mismo interruptor
-  «Mostrar en la pantalla de sesión»; en Radar, Pedales, Testigos, Delta y Combustible sale
-  desactivado con el motivo. Apariencia ya no repite el de Posiciones y solo ofrece «Ocultar en la
-  pantalla de sesión» cuando cambia algo (con «Siempre» o siguiendo las repeticiones).
-- **Un nombre para cada cosa**: «Vuelta rápida de clase» (antes también «Mejor de clase» en Delta),
-  «iRating en juego» (antes también «Δ iRating» e «iRating proyectado»), «Orientación» en Batalla y
-  Testigos (no confunde con las disposiciones), «Óptima de clase» en Delta, «Títulos de columna»
-  (no confunde con la cabecera), «Banderas de carrera» en Avisos y su grupo «Durante la carrera».
-  En inglés, el lado de los textos de Testigos es «Text side» (antes, dos controles se llamaban
-  «Captions»).
-- **Menos notas repetidas**: «Guardando en» solo aparece con dos disposiciones o más (o con una de
-  «Solo posición» en uso); la nota «Sin cabecera ni pie» ya no sale; cómo arrastrar y el ojo se
-  explica una vez por página, en Personalizar, y no en cada lista; y se quitan las ayudas que
-  repetían lo que ya dice la opción (el ejemplo del formato de nombre en cada widget, la del modo de
-  Posiciones y la de «Filas alternas»).
-- **Un control donde había dos**: cada cabecera, segunda línea y pie tiene un solo selector «No /
-  Pequeña / Normal / Grande» en vez de un interruptor y un tamaño (con «No» se sigue ocultando, y
-  sus datos no se muestran en gris: vuelven como estaban al elegir un tamaño).
-  En Testigos, «Rótulos: No / Derecha / Izquierda» (en fila, «No / Sí»). Y lo que no se aplica se
-  oculta en vez de quedarse en gris: el modo compacto de Posiciones en modo completo, el tamaño y
-  el color del volante con el estilo Barra, «Crece hacia» con alto fijo, las opciones de un grupo
-  oculto en Tráfico, etc. Lo guardado no cambia.
-- **Avisos ya no se oculta en boxes**: su página no ofrece «Ocultar en boxes», porque ocultaba
-  también los avisos del limitador, del exceso de velocidad y de la entrada a boxes. Si lo tenías
-  activado, se ignora (el valor se conserva).
-- **Bandeja más clara**: la casilla «Ocultar overlay» pasa a ser «Mostrar el overlay», marcada
-  cuando se ve, como las de los widgets; el submenú de cuándo se ve se llama «Cuándo mostrar» y el
-  del radar «Alcance del radar». En Apariencia, el control con esas opciones se llama «Cuándo
-  mostrar el overlay».
-- **Ayudas de una línea** en Apariencia, Atajos y Disposiciones: cada ayuda cabe en una línea (unos
-  90 caracteres) y el resto está tras su ⓘ, que la despliega debajo. Los subtítulos de Atajos y
-  Disposiciones y las notas de «Cómo funcionan» pasan de párrafos a una línea.
-- **Combustible también en práctica** en una instalación nueva: sale en práctica (donde se mide el
-  consumo por vuelta) y en carrera; en clasificación sigue oculto. Si ya tenías ajustes, Combustible
-  sigue donde lo tenías.
-- **Una sola forma de explicar las repeticiones**: la nota de «Ventana» de cada widget se forma
-  con los mismos datos (de quién son los datos, dónde se oculta, si al rebobinar mantiene la
-  carrera en directo y si lo decide Visibilidad), así que dos widgets que se comportan igual dicen
-  lo mismo y solo cambia el texto cuando cambia el comportamiento: «Sigue al coche que miras: se
-  oculta al rebobinar una repetición», «Solo tiene datos de tu coche: se oculta en repeticiones, en
-  la pantalla de sesión y si miras otro coche»…
-- **Ventana estrecha con barra de iconos**: por debajo de 640 px, la barra lateral se queda en una
-  columna de iconos en vez de un desplegable: cada página a un clic, el ojo de cada widget al lado
-  de su icono (se sigue viendo y cambiando qué está oculto), una raya entre grupos y el nombre al
-  pasar el ratón (y para lectores de pantalla). El buscador, el chip de estado y **Modo edición**
-  van en la barra de arriba.
-- **Ajustes más ordenados a la vista**: seis tamaños de letra en vez de catorce (pies y etiquetas,
-  ayudas, controles, texto, títulos de sección y de página), los espacios en una escala de 4 px
-  (4, 8, 12, 16, 24 y 32) y todos los símbolos como iconos del mismo juego: las flechas para
-  ordenar, el asa de arrastre, el ⓘ de las ayudas, los − y + de los contadores, la × del aviso de
-  deshacer y la marca de los avisos de Atajos, con el mismo grosor y color que los demás iconos.
-  Los Ajustes siguen solo en tema oscuro.
-- **Controles que se distinguen del fondo**: campos de texto, contadores, selectores, interruptores,
-  botones y las casillas de Atajos llevan el mismo borde claro que las casillas de verificación
-  (3,3:1 sobre la tarjeta, antes 1,4:1); el borde tenue queda solo para separadores y tarjetas.
-- **Un solo botón para abrir o cerrar todas las listas** de Personalizar: dice «Expandir todo»
-  mientras alguna está cerrada y «Contraer todo» cuando están todas abiertas, en vez de dos
-  botones de los que uno siempre se veía apagado. Un botón apagado dice por qué al pasar el ratón:
-  «Restablecer» de una lista que está como viene de serie («Nada que restablecer…») y **Guardar**,
-  **Duplicar**, **Añadir** e **Importar** de Disposiciones cuando ya no caben más.
-- **Nombres para lectores de pantalla**: el interruptor «Visible» de cada página se anuncia como
-  «Mostrar Relativo», «Mostrar Radar»…; el consejo de la vista previa añade «Con el teclado, desde
-  las listas de Personalizar», y la vista previa se describe (qué widget es y que se edita con el
-  teclado en esas listas).
-- **Vista previa legible en una ventana estrecha**: donde la vista previa tendría que dibujarse a
-  menos del 75 % (Posiciones en una ventana de 760 px, o un widget alto en una ventana baja), se
-  dibuja a su tamaño real y se recorta: las primeras filas, con un degradado abajo, y si no cabe
-  de ancho, el resto con la barra o la rueda con Mayús. Antes encogía tanto que el texto más
-  pequeño quedaba en 6–7 px y era difícil hacer clic en él. Plegada en franja sigue entera.
+- **“Clasificación” is renamed “Posiciones”** in Spanish (sidebar, tray, widget title and
+  settings), so it is not confused with the qualifying session, which keeps its name. In English
+  it is still “Standings”. Saved settings do not change.
+- **Relative follows the density**, as Appearance already said, and has on its page the same
+  “Global / Comfortable / Compact” picker as Standings. “Comfortable” (the usual one) draws it the
+  same as before; “Compact” brings the rows closer and enlarges the text in the same window. If
+  you already had the global density on “Compact”, Relative stays on “Comfortable” to look as
+  before.
+- **Customise in the same order on every widget**: first the main list (Columns, Rivals, Groups,
+  Lines…), which is the one that opens on a new install, then the other content lists and at the
+  end Header, Second line and Footer. Battle, Traffic and Fuel no longer open on a header that is
+  off. The Battle and Delta “Rows” are called “Lines”, as in Fuel. The sections you had open stay
+  open.
+- **The widget's own things first** on each page: Content, Customise and, at the end, “Window and
+  visibility” (size, background, when it shows and locking, in that order) before the reset
+  buttons. Before, the window took up to ten rows above what the widget does. The Delta reference
+  per session, the Fuel calculation and the Inputs colours are now in their Content.
+- **One background for all widgets**: in Appearance, “Widget background” (80% by default) with
+  quick buttons for 25, 50, 80 and 100%. On each widget's page, “Background” follows the global
+  one (“Global (80%)”) or uses its own opacity, with the same buttons. On a new install all of
+  them use the global one; if you already had settings, each widget keeps its opacity (there were
+  75, 78, 80 and 85% for no reason), and Appearance says so with a button, “Use Global on all”,
+  which moves them to “Global” at once. The Appearance preview uses the global background. The
+  help no longer talks about “cars” on widgets without cars. If you go back to an earlier version,
+  the widgets on “Global” take the opacity they had by default in it.
+- **Session screen, in one place**: each widget page has the same “Show on the session screen”
+  switch; in Radar, Inputs, Warning lights, Delta and Fuel it comes out disabled with the reason.
+  Appearance no longer repeats the Standings one and only offers “Hide on the session screen” when
+  it changes something (with “Always” or following the replays).
+- **One name for each thing**: “Class fastest lap” (before also “Class best” in Delta), “iRating
+  at stake” (before also “Δ iRating” and “Projected iRating”), “Orientation” in Battle and
+  Warning lights (no confusion with the layouts), “Class optimal” in Delta, “Column titles” (no
+  confusion with the header), “Race flags” in Alerts and its group “During the race”. In English,
+  the Warning lights text side is “Text side” (before, two controls were called “Captions”).
+- **Fewer repeated notes**: “Saving to” only appears with two layouts or more (or with a
+  “Position only” one in use); the “No header or footer” note no longer shows; how to drag and the
+  eye are explained once per page, in Customise, and not in each list; and the help lines that
+  repeated what the option already says are removed (the name format example on each widget, the
+  one for the Standings mode and the one for “Alternating rows”).
+- **One control where there were two**: each header, second line and footer has a single “No /
+  Small / Normal / Large” picker instead of a switch and a size (with “No” it is still hidden, and
+  its items do not show greyed out: they come back as they were when you pick a size).
+  In Warning lights, “Captions: No / Right / Left” (as a row, “No / Yes”). And what does not
+  apply is hidden instead of staying grey: the Standings compact mode in full mode, the wheel
+  size and colour with the Bar style, “Grows” with a fixed height, the options of a hidden group
+  in Traffic, etc. What is saved does not change.
+- **Alerts no longer hides in the pits**: its page does not offer “Hide in the pits”, because it
+  also hid the limiter, speeding and pit entry alerts. If you had it on, it is ignored (the value
+  is kept).
+- **A clearer tray**: the “Hide overlay” check box becomes “Show the overlay”, ticked when it
+  shows, like the widget ones; the submenu for when it shows is called “When to show” and the
+  radar one “Radar range”. In Appearance, the control with those options is called “When to show
+  the overlay”.
+- **One-line help** in Appearance, Shortcuts and Layouts: each help fits on one line (about
+  90 characters) and the rest is behind its ⓘ, which unfolds it below. The Shortcuts and Layouts
+  subtitles and the “How they work” notes go from paragraphs to one line.
+- **Fuel in practice too** on a new install: it shows in practice (where the use per lap is
+  measured) and in races; in qualifying it stays hidden. If you already had settings, Fuel stays
+  where you had it.
+- **A single way to explain replays**: each widget's “Window” note is built from the same facts
+  (whose data it is, where it hides, whether it keeps the live race when rewinding and whether
+  Visibility decides it), so two widgets that behave the same say the same and the text only
+  changes when the behaviour does: “Follows the car you are watching: hides when rewinding a
+  replay”, “Only your car's data: hides in replays, on the session screen and if you watch another
+  car”…
+- **Narrow window with an icon bar**: below 640 px, the sidebar becomes a column of icons instead
+  of a drop-down: each page one click away, each widget's eye next to its icon (you can still see
+  and change what is hidden), a line between groups and the name on hover (and for screen
+  readers). The search box, the status chip and **Edit mode** go in the top bar.
+- **Tidier-looking settings**: six font sizes instead of fourteen (footers and labels, help,
+  controls, text, section and page titles), the spacing on a 4 px scale (4, 8, 12, 16, 24 and 32)
+  and all the symbols as icons from the same set: the sorting arrows, the drag handle, the help
+  ⓘ, the − and + of the counters, the × of the undo note and the mark of the Shortcuts notes,
+  with the same weight and colour as the other icons. Settings is still dark theme only.
+- **Controls that stand out from the background**: text fields, counters, pickers, switches,
+  buttons and the Shortcuts boxes carry the same light border as the check boxes (3.3:1 on the
+  card, before 1.4:1); the faint border is left only for separators and cards.
+- **A single button to open or close all the lists** in Customise: it says “Expand all” while
+  any is closed and “Collapse all” when they are all open, instead of two buttons of which one
+  always looked disabled. A disabled button says why on hover: “Reset” on a list that is as it
+  comes by default (“Nothing to reset…”) and **Save**, **Duplicate**, **Add** and **Import…** in
+  Layouts when no more fit.
+- **Names for screen readers**: the “Visible” switch on each page is announced as “Show
+  Relative”, “Show Radar”…; the preview tip adds “With the keyboard, from the Customise lists.”,
+  and the preview is described (which widget it is and that it is edited with the keyboard in
+  those lists).
+- **A readable preview in a narrow window**: where the preview would have to be drawn at less
+  than 75% (Standings in a 760 px window, or a tall widget in a short window), it is drawn at its
+  real size and cropped: the first rows, with a fade at the bottom, and if it does not fit in
+  width, the rest with the scrollbar or the wheel with Shift. Before, it shrank so much that the
+  smallest text was at 6–7 px and hard to click. Folded into a strip it stays whole.
 
-### Corregido
+### Fixed
 
-- **El motivo de una fila desactivada se lee bien**: en una fila que no se puede cambiar ahora
-  («Ocultar en boxes» en Avisos, «Crece hacia» sin altura automática), solo se atenúan su nombre y
-  su control; la ayuda que dice por qué mantiene el gris de siempre, con su contraste completo
-  (antes se atenuaba también y quedaba en unos 2,8:1).
-- **Un solo punto del color elegido**: con un color predefinido elegido, el selector de color libre
-  se ve como una rueda de colores (para elegir otro) y no como un segundo punto del mismo color;
-  se pinta con el color en cuanto es uno tuyo. En los dos diálogos de **Estilo**, «Guardando en»
-  va apilado (el título y debajo dónde), como en las páginas de los widgets.
-- **Disposiciones, más ordenada**: al editar una disposición, **Guardar** y **Cancelar** van juntos
-  al final de la línea y es el campo del nombre el que se estrecha (antes «Cancelar» caía solo a
-  otra línea). Con una sola disposición ya no salen las flechas para ordenarla, que no hacían
-  nada; con varias miden 24 × 24 px, como el resto de botones de icono (antes 22 × 18). La ayuda de
-  **Archivos** dice dónde se exporta: con **Exportar…** en la fila de cada disposición.
-- **Delta › Líneas: la fila «Tiempos de vuelta» en una sola línea**: el asa, el ojo, el nombre con
-  su ayuda, «3 de 4 partes» y las flechas ya no se reparten en tres renglones (a cualquier ancho y
-  en los dos idiomas); la ayuda larga se parte dentro de su sitio, como en las demás filas.
-- **Texto legible sobre fondos claros**: con «Contorno del texto» en «Auto», el contorno se pone
-  por debajo del 65 % de opacidad (antes, del 35 %), así que un panel al 50 % sobre un cielo
-  blanco ya se lee. El gris tenue (unidades, títulos de columna) es un poco más claro. Con la vista
-  previa en «Día» y el fondo por debajo del 60 %, el control del fondo avisa de que se leerá mal.
-- **«Tamaño del texto» cambia los diez widgets** (Apariencia): multiplica la «Escala» de cada uno.
-  Relativo, Radar y Delta, que llenan su ventana con el texto y no cambiaban, ahora agrandan o
-  encogen su ventana en la misma proporción (desde su centro), en la disposición en uso y en las
-  demás; su «Escala» sigue diciendo lo mismo (100 % es su tamaño de fábrica por el tamaño del
-  texto), y «Posición y tamaño» los devuelve a ese tamaño. Para leer mejor en 4K basta con subir el
-  tamaño del texto, sin tocar después la escala de tres páginas. Antes la ayuda decía que esos tres
-  no cambiaban; ahora dice «Cambia los diez widgets» y, tras su ⓘ, cómo crece su ventana.
-- **Opciones que vuelves a activar ya no dejan una línea congelada**, ni en la vista previa ni
-  sobre el juego. Al ocultar y volver a mostrar una parte de Delta (tiempos de vuelta, referencia,
-  estado), de Avisos (la banda de bandera, los otros avisos en chips), de Combustible (cualquier
-  línea) o los títulos de columna de Relativo, esa parte podía quedarse con los datos de antes, no
-  dejar volver a otros avisos (Daños, Presión de aceite) o romper la vista previa hasta cerrar la
-  ventana de ajustes.
-- **Cabecera y pie del tamaño elegido**: al pasar de «Grande» a «Pequeña» (o cambiar la escala),
-  la barra seguía calculando el sitio con la letra anterior y quitaba datos que sí cabían (por
-  ejemplo la vuelta rápida de clase o «SIM»).
-- **Ocultar con el ojo se ve al momento**: en las listas de Cabecera, Pie, Líneas de Combustible y
-  Líneas de Batalla, el elemento que ocultas desaparece de la vista previa aunque sigas con el
-  puntero en la lista. Antes se quedaba dibujado en gris hasta salir de la fila y parecía que no
-  había pasado nada; vuelve a verse en gris (dónde iría) si pasas otra vez por su fila.
+- **The reason for a disabled row reads well**: on a row that cannot be changed right now
+  (“Hide in the pits” in Alerts, “Grows” without automatic height), only its name and its control
+  are dimmed; the help that says why keeps the usual grey, with its full contrast (before it was
+  dimmed too and ended up at about 2.8:1).
+- **A single dot of the picked colour**: with a preset colour picked, the free colour picker
+  looks like a colour wheel (to pick another) and not like a second dot of the same colour; it is
+  painted with the colour as soon as it is one of your own. In the two **Style** dialogs, “Saving
+  to” is stacked (the title and where below it), as on the widget pages.
+- **Layouts, tidier**: when editing a layout, **Save** and **Cancel** go together at the end of
+  the line and it is the name field that narrows (before “Cancel” dropped alone onto another
+  line). With a single layout the arrows to sort it, which did nothing, no longer show; with
+  several they measure 24 × 24 px, like the rest of the icon buttons (before 22 × 18). The
+  **Files** help says where you export: with **Export…** on each layout's row.
+- **Delta › Lines: the “Lap times” row on a single line**: the handle, the eye, the name with
+  its help, “3 of 4 parts” and the arrows no longer spread over three lines (at any width and in
+  both languages); the long help wraps within its place, as in the other rows.
+- **Readable text on bright backgrounds**: with “Text outline” on “Auto”, the outline comes on
+  below 65% opacity (before, 35%), so a panel at 50% over a white sky is now readable. The faint
+  grey (units, column titles) is a little lighter. With the preview on “Day” and the background
+  below 60%, the background control warns that it will be hard to read.
+- **“Text size” changes the ten widgets** (Appearance): it multiplies each one's “Scale”.
+  Relative, Radar and Delta, which fill their window with the text and did not change, now grow or
+  shrink their window in the same proportion (from its centre), in the layout in use and in the
+  others; their “Scale” still says the same (100% is their factory size times the text size), and
+  “Position and size” takes them back to that size. To read better on 4K it is enough to raise
+  the text size, without then touching the scale on three pages. Before, the help said those
+  three did not change; now it says “Changes the ten widgets” and, behind its ⓘ, how their window
+  grows.
+- **Options you turn back on no longer leave a frozen line**, neither in the preview nor over the
+  game. When hiding and showing again a part of Delta (lap times, reference, state), of Alerts
+  (the flag band, the other alerts as chips), of Fuel (any line) or the Relative column titles,
+  that part could keep the old data, not let other alerts come back (Damage, Oil pressure) or
+  break the preview until the settings window was closed.
+- **Header and footer at the chosen size**: when going from “Large” to “Small” (or changing the
+  scale), the bar kept working out the room with the previous font and dropped items that did fit
+  (for example the class fastest lap or “SIM”).
+- **Hiding with the eye shows at once**: in the Header, Footer, Fuel Lines and Battle Lines
+  lists, the item you hide disappears from the preview even if you keep the pointer on the list.
+  Before, it stayed drawn in grey until you left the row and it looked as if nothing had
+  happened; it shows in grey again (where it would go) if you go over its row again.
 
 ## [2.2.0] - 2026-10-29
 
-### Añadido
+### Added
 
-- **Atajos en los botones del volante**: cualquier atajo puede ir en un botón del volante o su aro,
-  una button box, los pedales, el cambio o el freno de mano, en vez de en una combinación de
-  teclas. En **Ajustes > Atajos** (antes «Atajos de teclado»), **+ Añadir** espera una combinación
-  o un botón; se ve como «Botón 12 · G29 Driving Force Racing Wheel», con más de 32 botones
-  también.
-- Los botones solo se leen (Raw Input de Windows, como SimHub o Crew Chief): se comparten con
-  iRacing, que también recibe la pulsación, y no se bloquea nada. Mantener pulsado cuenta una vez.
-- Un dispositivo desenchufado conserva su atajo y la página dice «Desconectado»; al enchufarlo
-  vuelve a funcionar solo. Sin ningún atajo en un botón, OverLap no lee los mandos.
-- Las crucetas (D-pad) y los hats no se pueden asignar. Volver a la 2.1.1 devuelve a su
-  combinación de fábrica los atajos que estaban en un botón.
-- **Editar en la vista previa**: en la página de cada widget, pasa el ratón por un elemento de la
-  vista previa para ver su nombre, arrástralo para cambiarlo de sitio (en las cabeceras y pies,
-  también de un lado al otro) y haz clic para mostrarlo u ocultarlo. Mientras editas, los ocultos
-  se dibujan translúcidos donde caben, para poder recuperarlos: un clic los muestra en su sitio y
-  arrastrarlos los muestra donde los sueltes. La lista y la vista previa se señalan una a otra, y
-  al tocar algo en la vista previa se abre su sección.
-- **Deshacer al ocultar o mover**: al ocultar un elemento (con un clic en la vista previa o con su
-  ojo en la lista) o al arrastrarlo a otro sitio en la vista previa, aparece abajo durante unos
-  segundos un aviso «SoF» oculto con **Deshacer**, por si fue sin querer. Con el ratón encima o el
-  foco dentro no se va; **Ctrl+Z** también deshace mientras se ve. Solo deshace el último cambio,
-  y nunca lo que hayas tocado después.
-- **Cabecera y pie en todos los paneles**: Combustible, Tráfico y Batalla tienen ahora la misma
-  cabecera y el mismo pie que Relativo y Clasificación, con el mismo catálogo de datos (tiempo
-  restante, SoF, vueltas de combustible, temperatura de pista…), interruptor, tamaño y cajas
-  Izquierda/Derecha, y se editan también en la vista previa. Los nuevos vienen apagados, así que
-  nada cambia hasta que los enciendas. Delta, Pedales, Radar, Testigos y Avisos siguen sin ellos,
-  y su página lo explica.
-- **Varios atajos por acción**: hasta tres a la vez, mezclando combinaciones de teclas y botones
-  (por ejemplo `Ctrl+Shift+H` y «Botón 24 · G29», o un botón en cada volante); cualquiera la
-  ejecuta. En **Ajustes > Atajos** cada acción los muestra uno al lado del otro, cada uno con su
-  **×** para quitarlo, y **+ Añadir** graba otro; pulsar uno lo cambia. Quitar el primero sube el
-  siguiente. Un atajo que ya tiene otra acción (o la misma) se rechaza y la página dice quién lo
-  tiene; uno que no funciona (desconectado, o en uso por otra aplicación) se marca él solo.
-  Donde una frase nombra los atajos de una acción (el aviso de overlay oculto, el delta, el modo
-  edición) aparecen como «Ctrl+Shift+H o Botón 24».
-- Los ajustes de antes se cargan igual. La 2.1.1 sigue funcionando con el primer atajo de cada
-  acción; los demás se pierden si guarda los ajustes.
+- **Shortcuts on wheel buttons**: any shortcut can go on a button of the wheel or its rim, a
+  button box, the pedals, the shifter or the handbrake, instead of a key combination. In
+  **Settings > Shortcuts** (formerly “Keyboard shortcuts”), **+ Add** waits for a combination or
+  a button; it shows as “Button 12 · G29 Driving Force Racing Wheel”, with more than 32 buttons
+  too.
+- The buttons are only read (Windows Raw Input, like SimHub or Crew Chief): they are shared with
+  iRacing, which also gets the press, and nothing is blocked. Holding one down counts once.
+- An unplugged device keeps its shortcut and the page says “Disconnected”; when you plug it back
+  in it works again by itself. With no shortcut on a button, OverLap does not read the
+  controllers.
+- D-pads and hats cannot be assigned. Going back to 2.1.1 returns the shortcuts that were on a
+  button to their factory combination.
+- **Editing in the preview**: on each widget's page, hover over an element of the preview to see
+  its name, drag it to move it (in headers and footers, also from one side to the other) and
+  click to show or hide it. While you edit, the hidden ones are drawn translucent where they fit,
+  so you can get them back: a click shows them in their place and dragging them shows them where
+  you drop them. The list and the preview point each other out, and touching something in the
+  preview opens its section.
+- **Undo when hiding or moving**: when you hide an element (with a click in the preview or with
+  its eye in the list) or drag it to another place in the preview, a “SoF” hidden note with
+  **Undo** appears at the bottom for a few seconds, in case it was a mistake. With the mouse over
+  it or the focus inside it does not go away; **Ctrl+Z** also undoes while it shows. It only
+  undoes the last change, and never what you touched afterwards.
+- **Header and footer on every panel**: Fuel, Traffic and Battle now have the same header and the
+  same footer as Relative and Standings, with the same catalogue of items (time left, SoF, laps
+  of fuel, track temperature…), switch, size and Left/Right boxes, and they are also edited in the
+  preview. The new ones come off, so nothing changes until you turn them on. Delta, Inputs, Radar,
+  Warning lights and Alerts still have none, and their page explains it.
+- **Several shortcuts per action**: up to three at once, mixing key combinations and buttons (for
+  example `Ctrl+Shift+H` and “Button 24 · G29”, or one button on each wheel); any of them runs
+  it. In **Settings > Shortcuts** each action shows them side by side, each with its **×** to
+  remove it, and **+ Add** records another; pressing one changes it. Removing the first one moves
+  the next one up. A shortcut that another action (or the same one) already has is rejected and
+  the page says who has it; one that does not work (disconnected, or in use by another
+  application) is marked on its own.
+  Where a sentence names an action's shortcuts (the hidden overlay note, the delta, edit mode)
+  they appear as “Ctrl+Shift+H or Button 24”.
+- Earlier settings load as before. 2.1.1 keeps working with the first shortcut of each action;
+  the others are lost if it saves the settings.
 
-### Cambiado
+### Changed
 
-- **Tráfico**: su título es ahora la cabecera compartida (se ve igual y admite más datos); los
-  rótulos de los grupos pasan a ser un interruptor en «Grupos». Un archivo de ajustes anterior
-  conserva cómo los tenías, y la sección «Cabecera» abierta o cerrada como estaba.
-- En las listas de cabecera, segunda línea y pie, los elementos ocultos ya no llenan la caja
-  «Derecha»: van en un grupo «Ocultos» plegado debajo; al mostrar uno, va al final de su lado.
-- **Logos de marca del mismo tamaño**: en Relativo, Clasificación y Batalla los logos anchos
-  (McLaren, Hyundai, Subaru, Ford...) ya no se ven mucho más grandes que los redondos (BMW) o los
-  escudos (Ferrari, Porsche): cada uno se dibuja a una escala medida de su propio trazo, en color
-  y en monocromo, centrado en el mismo hueco para que la columna siga alineada.
+- **Traffic**: its title is now the shared header (it looks the same and takes more items); the
+  group captions become a switch in “Groups”. An earlier settings file keeps how you had them, and
+  the “Header” section open or closed as it was.
+- In the header, second line and footer lists, hidden items no longer fill the “Right” box: they
+  go in a folded “Hidden” group below; when you show one, it goes to the end of its side.
+- **Make logos of the same size**: in Relative, Standings and Battle the wide logos (McLaren,
+  Hyundai, Subaru, Ford...) no longer look much bigger than the round ones (BMW) or the shields
+  (Ferrari, Porsche): each one is drawn at a scale measured from its own outline, in colour and in
+  monochrome, centred in the same slot so the column stays aligned.
 
-- **Ajustes > Personalizar en acordeones**: cada sección (columnas, cabecera, pie…) se abre y se
-  cierra por separado, con un resumen al estar cerrada y «Expandir todo / Contraer todo»; recuerda
-  cuáles dejaste abiertas. Cada cabecera, segunda línea y pie tiene un interruptor «Mostrar» con
-  su tamaño al lado, y sus elementos se reparten en las cajas «Izquierda» y «Derecha».
-- Las banderas de los pilotos son un poco más pequeñas (82 % del alto de la fila).
+- **Settings > Customise in accordions**: each section (columns, header, footer…) opens and
+  closes separately, with a summary when closed and “Expand all / Collapse all”; it remembers
+  which ones you left open. Each header, second line and footer has a “Show” switch with its size
+  next to it, and its elements are split between the “Left” and “Right” boxes.
+- The drivers' flags are a little smaller (82% of the row height).
 
-### Corregido
+### Fixed
 
-- **Clasificación con coches en boxes**: un coche en el pit lane o en su box (también remolcado
-  por la grúa) ya no salta por delante de ti al cruzar la meta para volver a caer detrás al pasar
-  por su box; conserva su puesto como en iRacing y baja si le pasan. También un coche que cruzaba
-  la meta en el pit lane tras la bandera de cuadros podía salir primero. Afecta igual a Relativo y
-  Batalla.
-- En la vista previa, el contorno de los elementos ocultos ya no sale cortado dentro de las
-  cabeceras y pies.
+- **Standings with cars in the pits**: a car in the pit lane or in its pit box (also towed) no
+  longer jumps ahead of you when crossing the line only to drop back behind when passing its box;
+  it keeps its position as in iRacing and drops if passed. Also, a car crossing the line in the
+  pit lane after the chequered flag could come out first. It affects Relative and Battle the
+  same way.
+- In the preview, the outline of hidden elements no longer comes out cut inside the headers and
+  footers.
 
 ## [2.1.1] - 2026-10-29
 
-### Corregido
+### Fixed
 
-- **Ajustes que no se guardaban**: en algunas sesiones los cambios se veían en Ajustes pero no
-  llegaban al archivo, y se perdían al cerrar. Ahora un guardado fallido se reintenta solo cada
-  pocos segundos, Ajustes avisa mientras los cambios estén solo en memoria, y los errores quedan en
-  `overlap.log`, junto a los ajustes («Abrir carpeta de ajustes»).
-- **Delta**: encender un tiempo en «Tiempos de vuelta» no se veía si la línea estaba oculta en
-  «Filas»; ahora la lista lo avisa y, al encender un tiempo, se muestra la línea.
-- «Nombre del widget» pasa a llamarse «Título del widget», con una explicación de qué es.
+- **Settings that were not saved**: in some sessions the changes showed in Settings but did not
+  reach the file, and were lost on closing. Now a failed save retries by itself every few seconds,
+  Settings warns while the changes are only in memory, and the errors go to `overlap.log`, next to
+  the settings (“Open settings folder”).
+- **Delta**: turning on a time in “Lap times” did not show if the line was hidden in “Rows”; now
+  the list warns about it and, when you turn on a time, the line shows.
+- “Widget name” is renamed “Widget title”, with an explanation of what it is.
 
-### Añadido
+### Added
 
-- Atajo para abrir los Ajustes (`Ctrl+Shift+O` por defecto, la O de opciones): los abre o los trae
-  al frente, también con iRacing delante. Se cambia o se desactiva en **Ajustes > Atajos de teclado**.
+- Shortcut to open Settings (`Ctrl+Shift+O` by default, the O for options): it opens them or
+  brings them to the front, also with iRacing in front. It is changed or turned off in **Settings >
+  Keyboard shortcuts**.
 
 ## [2.1.0] - 2026-10-29
 
-### Disposiciones
+### Layouts
 
-- Con muchas disposiciones (hasta 30): buscador por nombre o coche (sin distinguir mayúsculas ni
-  acentos) a partir de 9, la lista con su propio scroll y la que está en uso fija arriba, y orden
-  personalizado, por nombre o por uso reciente. Los coches del cambio automático salen por nombre.
-- La bandeja muestra la que está en uso, la del coche actual y las más recientes (5 como mucho) y
-  «Más…», que abre Ajustes directamente en Disposiciones (también «Gestionar disposiciones…").
-- Las disposiciones guardan también las opciones de cada widget (columnas y su orden, elementos,
-  barras de información, referencias del delta, estilo del volante, opacidad, sesiones en que se
-  ve…), y al aplicar una vuelven junto con las posiciones, de una vez. La apariencia, la
-  visibilidad y los atajos siguen siendo los mismos para todas.
-- Cada una es «Posición y opciones» o «Solo posición» (usa las opciones comunes); se elige al
-  guardarla o importarla y se cambia con «Editar».
-- Cada página de widget dice dónde se guardan sus cambios («Guardando en: …» u «Opciones
-  comunes») y ofrece «Copiar estas opciones a todas».
-- Los archivos exportados (versión 2) llevan las opciones; los de la versión 1 se siguen
-  importando. Tus disposiciones pasan a «Posición y opciones» con las opciones de ahora: nada
-  cambia.
-- Los ajustes pasan a la versión 6. La 2.0.0 los abre, pero sin las opciones de cada
-  disposición; por eso, la primera vez que esta versión guarda los ajustes de una anterior, deja
-  una copia en `settings.json.v5.bak` para poder volver atrás.
+- With many layouts (up to 30): a search by name or car (ignoring case and accents) from 9
+  onwards, the list with its own scroll and the one in use pinned at the top, and a custom sort
+  order, by name or by recent use. The automatic switch cars show by name.
+- The tray shows the one in use, the one for the current car and the most recent ones (5 at
+  most) and “More…”, which opens Settings straight in Layouts (also “Manage layouts…”).
+- Layouts also save each widget's options (columns and their order, elements, info bars, delta
+  references, wheel style, opacity, sessions it shows in…), and when you apply one they come back
+  together with the positions, all at once. The appearance, the visibility and the shortcuts stay
+  the same for all of them.
+- Each one is “Position and options” or “Position only” (it uses the shared options); you pick it
+  when saving or importing it and change it with “Edit”.
+- Each widget page says where its changes are saved (“Saving to: …” or “Shared options”) and
+  offers “Copy these options to all layouts”.
+- Exported files (version 2) carry the options; version 1 files can still be imported. Your
+  layouts become “Position and options” with the current options: nothing changes.
+- The settings move to version 6. 2.0.0 opens them, but without each layout's options; that is
+  why, the first time this version saves the settings of an earlier one, it leaves a copy in
+  `settings.json.v5.bak` so you can go back.
 
 ### Widgets
 
-- Delta y Batalla sin el borde de color del estado: el número, las flechas y el texto lo dicen.
-  La disposición en uso tampoco lleva franja lateral, solo la etiqueta «EN USO».
-- Número, logotipo, bandera y nombre alineados en todas las filas del Relativo, la Clasificación y
-  la Batalla, también en la fila del líder de otra clase («LMP2» se lee entero).
-- Un globo en el hueco de la bandera para quien no corre por ningún país («-none-» o una bandera
-  que no es de un país); el coche de seguridad, los espectadores y la IA siguen sin bandera.
+- Delta and Battle without the status colour border: the number, the arrows and the text say it.
+  The layout in use no longer carries a side stripe either, only the “IN USE” tag.
+- Number, logo, flag and name aligned on every row of Relative, Standings and Battle, also on the
+  row of another class's leader (“LMP2” reads in full).
+- A globe in the flag slot for anyone who does not race for any country (“-none-” or a flag that
+  is not a country's); the safety car, spectators and the AI still have no flag.
 
-### Calidad
+### Quality
 
-- Prueba de memoria de más de 20 minutos con cambios de coche cada 3 s, Ajustes abriéndose y
-  cerrándose, modo edición y cambios de disposición: sin fugas en el código de OverLap, CPU por
-  debajo del 0,3 %. El cambio automático por coche, probado con miles de ciclos: una sola vez por
-  cambio real, nunca en modo edición y sin bucles.
+- Memory test of more than 20 minutes with car changes every 3 s, Settings opening and closing,
+  edit mode and layout changes: no leaks in OverLap's code, CPU below 0.3%. The automatic switch
+  per car, tested over thousands of cycles: only once per real change, never in edit mode and
+  without loops.
 
 ## [2.0.0] - 2026-10-29
 
-Primera versión publicada. OverLap es un overlay para iRacing en Windows: lee la telemetría oficial
-del SDK, solo lectura y sin inyectar nada en el juego, y dibuja diez widgets encima del simulador.
-La 1.x, con relativo y radar, fue de uso personal y no se publicó; sus ajustes se migran solos.
+First published version. OverLap is an overlay for iRacing on Windows: it reads the official SDK
+telemetry, read-only and without injecting anything into the game, and draws ten widgets on top of
+the sim. 1.x, with relative and radar, was for personal use and was never published; its settings
+migrate by themselves.
 
 ### Widgets
 
-- **Relativo**: los coches que tienes delante y detrás en pista (3 y 3 por defecto, hasta 10), con
-  posición en clase, número, nombre, licencia, iRating y hueco. Color de clase en cada fila, en rojo
-  quien te va a doblar, en azul los doblados y atenuados los que están en boxes. Opcionales:
-  columnas de neumático y de vueltas del stint, banderas de penalización tras el nombre y tus
-  incidentes en la cabecera («3x · DQ a 17x»).
-- **Radar**: vista cenital con los coches a escala alrededor del tuyo, que pasan de neutros a rojo
-  según se acercan. Alcance de 5 a 100 m (20 m por defecto). Un coche que se pone a tu lado se
-  desliza a su carril en vez de saltar y conserva su lado hasta 3 s después de que iRacing deje de
-  darlo.
-- **Clasificación**: modo compacto (primeros, tu entorno y líderes de otras clases) o completo.
-  Columnas que se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos
-  ganados, iRating, licencia, Δ iRating, hueco al de delante y al líder, última y mejor vuelta,
-  boxes, última parada, stint y neumático. Cabecera con tu iRating y SR proyectados, SoF, número de
-  coches e incidentes.
-- **Batalla** (por defecto solo en carrera): tu rival de clase de delante y el de detrás mientras
-  estén a menos del hueco que elijas, con la tendencia del hueco, la predicción de alcance («Le
-  alcanzas en ~4 v de 19»), la diferencia por sector o por vuelta y el iRating en juego.
-- **Pedales**: traza de acelerador, freno y embrague, barras, volante,
-  marcha, velocidad y ABS, en tres disposiciones (la más pequeña, solo barras). La traza avanza su
-  distancia exacta en cada muestra, sin saltos de un píxel.
-- **Tráfico**: la clase más rápida que te alcanza por detrás (en cuánto y dónde), el tráfico lento
-  al que alcanzas y los peligros de delante (coches parados, muy lentos o fuera de pista). Quien te
-  dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca.
-- **Avisos**: una banda con lo que te afecta, lo más importante en grande. Banderas (también la
-  negra enrollada), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de entrar,
-  10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario, presión de
-  aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», combustible bajo y cada incidente
-  al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso tiene su opción.
-- **Delta**: barra a 30 Hz frente a la referencia que elijas: tu récord personal con ese coche en
-  ese trazado, la mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor de tu clase o
-  la óptima de tu clase. Con tendencia, vuelta prevista y sectores. La referencia solo cambia al
-  empezar una vuelta y, mientras no existe, se usa la siguiente. Los récords se guardan en tu equipo
-  y no se pierden al cambiar de sesión.
-- **Combustible** (por defecto solo en carrera): litros y vueltas que te dan, vueltas que quedan,
-  depósito con la marca de lo que necesitas, consumo (media, última y máximo), lo que falta para
-  meta y lo que hay que echar junto a lo del menú de boxes, ventana de parada («V24–V28»), paradas,
-  el ahorro por vuelta que te quita una parada, la última lectura de neumáticos y las reparaciones
-  rápidas y juegos de neumáticos que quedan si la sesión los limita. Solo mide vueltas limpias, y el
-  plan no baila dentro de la vuelta.
-- **Testigos**: los testigos del motor como en un salpicadero, en fila o en columna: presión de
-  aceite y de gasolina, motor calado, reparación obligatoria y opcional (con el tiempo que falta),
-  temperatura del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones.
-  Cada gravedad tiene su color y su forma, así que se lee sin el color. Avisa en amarillo cuando el
-  agua o el aceite suben muy por encima de tu media, antes de que se encienda el testigo del coche.
-- **Pie de condiciones** bajo Relativo y Clasificación (activado en Clasificación): temperatura de
-  la pista con su tendencia, agua y lluvia cuando las hay («DECLARADA MOJADA»), viento medio con un
-  dial que apunta a tu coche desde donde sopla, aire y goma.
+- **Relative**: the cars ahead of and behind you on track (3 and 3 by default, up to 10), with
+  class position, number, name, licence, iRating and gap. Class colour on each row, in red anyone
+  about to lap you, in blue lapped cars and dimmed the ones in the pits. Optional: tyre and stint
+  laps columns, penalty flags after the name and your incidents in the header (“3x · DQ at 17x”).
+- **Radar**: top-down view with the cars to scale around yours, going from neutral to red as they
+  get closer. Range from 5 to 100 m (20 m by default). A car pulling alongside slides into its
+  lane instead of jumping and keeps its side for up to 3 s after iRacing stops giving it.
+- **Standings**: compact mode (the front, the cars around you and the leaders of other classes)
+  or full. Columns that are sorted by dragging and hide by themselves if the window narrows:
+  positions gained, iRating, licence, Δ iRating, gap to the car ahead and to the leader, last and
+  best lap, pit, last stop, stint and tyre. Header with your projected iRating and SR, SoF, car
+  count and incidents.
+- **Battle** (by default races only): your class rival ahead and the one behind while they are
+  within the gap you pick, with the gap trend, the catch prediction (“Catching in ~4 laps of
+  19”), the difference per sector or per lap and the iRating at stake.
+- **Inputs**: throttle, brake and clutch trace, bars, steering wheel,
+  gear, speed and ABS, in three layouts (the smallest, bars only). The trace moves its exact
+  distance on each sample, without one-pixel jumps.
+- **Traffic**: the faster class catching you from behind (how soon and where), the slow traffic
+  you are catching and the hazards ahead (stopped, very slow or off-track cars). Anyone lapping
+  you, or passing you under blue flag, always shows, in amber or red as they get closer.
+- **Alerts**: a band with what affects you, the most important in large. Flags (the meatball
+  too), limiter and speeding in the pit lane, “LIMITER OFF” before going in, 10 and 5 laps to go,
+  tow with countdown, engine stalled, wrong way, oil pressure, damage with mandatory repair, “BOX
+  THIS LAP”, low fuel and each incident as it is added (“+2x Loss of control · L5 · S3 ·
+  gravel”). Each case has its option.
+- **Delta**: a 30 Hz bar against the reference you pick: your personal best with that car on that
+  layout, the session best, your optimal lap by sectors, your class best or your class optimal.
+  With trend, predicted lap and sectors. The reference only changes when a lap starts and, while
+  it does not exist, the next one is used. Personal bests are stored on your computer and are not
+  lost when the session changes.
+- **Fuel** (by default races only): litres and the laps they give you, laps left, tank with the
+  mark of what you need, use (average, last and maximum), what is missing to the finish and what
+  to add next to what is in the pit menu, pit window (“L24–L28”), stops, the saving per lap that
+  takes away a stop, the last tyre reading and the fast repairs and tyre sets left if the session
+  limits them. It only measures clean laps, and the plan does not jump around within the lap.
+- **Warning lights**: the engine warning lights as on a dashboard, as a row or a column: oil and
+  fuel pressure, engine stalled, mandatory and optional repair (with the time left), water and oil
+  temperature and, if you turn them on, pit limiter and rev limiter. Each severity has its colour
+  and its shape, so it reads without the colour. It warns in yellow when the water or the oil rise
+  well above your average, before the car's warning light comes on.
+- **Conditions footer** under Relative and Standings (on in Standings): track temperature with
+  its trend, water and rain when there is some (“DECLARED WET”), average wind with a dial pointing
+  at your car from where it blows, air and rubber.
 
-### Overlay y rendimiento
+### Overlay and performance
 
-- Una sola ventana transparente por pantalla con todos sus widgets, en lugar de una por widget.
-  Windows reparte el refresco entre las ventanas que se actualizan, y la traza de pedales y el radar
-  se quedaban en 22–39 fps; ahora todos los paneles van a ~58 fps. La memoria del overlay baja de
-  ~705 MB a ~203 MB.
-- Las ventanas nunca cogen el foco y dejan pasar los clics al juego; solo cogen el ratón en modo
-  edición, sobre un widget sin bloquear.
-- Si la ventana falla o se cuelga, se pierde la GPU, el equipo se suspende o cambia la escala de una
-  pantalla, el overlay se oculta y vuelve solo al recuperarse.
-- Un widget oculto no se dibuja ni se calcula, y cada widget se calcula a su propia frecuencia.
-- Para OBS, la captura de ventana es «Pantalla N · OverLap», con todos los widgets de esa pantalla.
-- Diseño «Night Cluster»: paneles con el borde de arriba iluminado, tu fila marcada con un corchete
-  de luz del color de acento y licencias como texto de color con su SR.
-- Icono propio (monograma OL) para la app y la bandeja, que sigue el tema claro u oscuro de la barra
-  de tareas.
+- A single transparent window per screen with all its widgets, instead of one per widget.
+  Windows shares the refresh between the windows that update, and the pedal trace and the radar
+  stuck at 22–39 fps; now all the panels run at ~58 fps. The overlay memory drops from ~705 MB to
+  ~203 MB.
+- The windows never take the focus and let clicks through to the game; they only take the mouse
+  in edit mode, over an unlocked widget.
+- If the window fails or hangs, the GPU is lost, the computer sleeps or a screen's scaling
+  changes, the overlay hides and comes back by itself when it recovers.
+- A hidden widget is neither drawn nor computed, and each widget is computed at its own rate.
+- For OBS, the window capture is “Display N · OverLap”, with all the widgets on that screen.
+- “Night Cluster” design: panels with the top edge lit, your row marked with a bracket of light
+  in the accent colour and licences as coloured text with their SR.
+- Its own icon (OL monogram) for the app and the tray, which follows the light or dark theme of
+  the taskbar.
 
-### Modo edición
+### Edit mode
 
-- Arrastra un widget para moverlo, usa sus bordes y esquinas para cambiar su tamaño o la rueda del
-  ratón para escalarlo. Se pega a los bordes de los demás widgets y de la pantalla (con `Alt` o
-  `Shift` pulsado, no).
-- Arrastrado fuera de su pantalla, el widget pasa a la otra.
-- Cada etiqueta tiene un ojo (mostrar u ocultar) y un candado (bloquear). Las etiquetas se dibujan
-  encima de todo, y un widget oculto se ve como un hueco discontinuo para poder recuperarlo.
-- El radar se dibuja encima de todos los widgets, y el modo edición marca en naranja lo que lo tapa.
-- Con iRacing delante, el simulador oculta el cursor: el overlay lo avisa y dice cómo recuperarlo
-  (los Ajustes desde la bandeja o `Alt+Tab`).
-- Salir del modo edición en mitad de un arrastre lo cancela.
+- Drag a widget to move it, use its edges and corners to resize it or the mouse wheel to scale
+  it. It snaps to the edges of the other widgets and of the screen (not with `Alt` or `Shift`
+  held down).
+- Dragged off its screen, the widget moves to the other one.
+- Each label has an eye (show or hide) and a padlock (lock). The labels are drawn on top of
+  everything, and a hidden widget shows as a dashed gap so you can get it back.
+- The radar is drawn on top of all the widgets, and edit mode marks in orange whatever covers it.
+- With iRacing in front, the sim hides the cursor: the overlay warns about it and says how to get
+  it back (Settings from the tray or `Alt+Tab`).
+- Leaving edit mode in the middle of a drag cancels it.
 
-### Atajos de teclado
+### Keyboard shortcuts
 
-- Globales, funcionan con iRacing en primer plano: `Ctrl+Shift+H` muestra u oculta todo el overlay
-  de golpe (la telemetría sigue, así que vuelve con los datos al día) y `Ctrl+Shift+E` entra o sale
-  del modo edición. `Esc` sale del modo edición.
-- Se cambian en **Ajustes > Atajos de teclado**: pulsa la combinación nueva, o desactiva o
-  restablece cada atajo. Avisa si otra aplicación ya la usa o si `Ctrl+Alt` (el `AltGr` de un
-  teclado español) puede impedir escribir `@`, `#` o `€`, y rechaza las de Windows, las de editar y
-  las que no llevan `Ctrl` ni `Alt` (salvo `F13`–`F24`, que envían muchas button box).
-- Usan `RegisterHotKey` de Windows: no hay ganchos de teclado ni nada que llegue al juego.
+- Global, they work with iRacing in the foreground: `Ctrl+Shift+H` shows or hides the whole
+  overlay at once (the telemetry keeps going, so it comes back with up-to-date data) and
+  `Ctrl+Shift+E` enters or leaves edit mode. `Esc` leaves edit mode.
+- They are changed in **Settings > Keyboard shortcuts**: press the new combination, or turn off
+  or reset each shortcut. It warns if another application already uses it or if `Ctrl+Alt` (the
+  `AltGr` of a Spanish keyboard) may stop you typing `@`, `#` or `€`, and it rejects the Windows
+  ones, the editing ones and those with neither `Ctrl` nor `Alt` (except `F13`–`F24`, which many
+  button boxes send).
+- They use Windows `RegisterHotKey`: there are no keyboard hooks and nothing reaches the game.
 
-### Ajustes
+### Settings
 
-- Ventana de Ajustes desde la bandeja, volviendo a abrir la app o con `--settings`. Todo se aplica
-  en vivo y se guarda solo; arriba queda fija una muestra del widget y solo se desplazan las
-  opciones.
-- Por widget: visible, bloqueado, opacidad del fondo (el texto sigue nítido y lleva contorno con
-  poca opacidad), escala, alto automático o fijo y hacia dónde crece, en qué sesiones se muestra
-  (práctica, clasificación, carrera), ocultar en boxes y restablecer opciones o posición.
-- Apariencia: color de acento (seis), paleta para daltónicos (azul y naranja en vez de verde y
-  rojo), tamaño y contorno del texto, densidad y filas alternas, estilo de la licencia y del número,
-  formato del nombre y unidades métricas o imperiales.
-- Récords personales: la lista por coche y trazado, con borrar uno, el actual o todos.
-- Bandeja: Ajustes, mostrar u ocultar cada widget, alcance del radar, cuándo se ve el overlay,
-  ocultarlo, modo edición y la carpeta de ajustes.
-- Un archivo de ajustes dañado se guarda como `.bak` y se usan los valores por defecto. Los widgets
-  nuevos llegan a un hueco libre, sin tapar lo que ya tenías colocado.
+- Settings window from the tray, by opening the app again or with `--settings`. Everything
+  applies live and saves by itself; a sample of the widget stays fixed at the top and only the
+  options scroll.
+- Per widget: visible, locked, background opacity (the text stays sharp and carries an outline
+  with low opacity), scale, automatic or fixed height and which way it grows, which sessions it
+  shows in (practice, qualifying, race), hide in the pits and reset options or position.
+- Appearance: accent colour (six), colour-blind palette (blue and orange instead of green and
+  red), text size and outline, density and alternating rows, licence and number style, name
+  format and metric or imperial units.
+- Personal bests: the list by car and layout, with deleting one, the current one or all of them.
+- Tray: Settings, show or hide each widget, radar range, when the overlay shows, hiding it, edit
+  mode and the settings folder.
+- A damaged settings file is saved as `.bak` and the default values are used. New widgets arrive
+  in a free spot, without covering what you had already placed.
 
-### Personalización
+### Customisation
 
-- **Elementos de cada widget**: un editor común en Ajustes para mostrar, ocultar y ordenar lo que
-  dibuja cada widget (columnas del Relativo y de la Clasificación, partes de Batalla, Tráfico,
-  Delta, Pedales, Radar, Avisos, Combustible y Testigos), con una muestra en vivo. El aspecto de
-  siempre es el valor por defecto y los ajustes anteriores se migran sin perder nada.
-- **Barras de información** en cabeceras y pies: eliges, ordenas y dimensionas los datos (tiempo o
-  vueltas que quedan, sesión, SoF, coches, incidentes, iRating y SR proyectados, vuelta rápida,
-  temperaturas con tendencia, viento, goma, lluvia, vueltas de combustible, hora local). Siempre
-  legibles: si no caben, saltan de línea o se recortan por prioridad, nunca se encogen.
-- **Cabeceras de columna** opcionales (SR, iR, Líder, Intervalo…), en los dos idiomas.
-- **Logotipos de marca** en color (o monocromos) en Relativo, Clasificación y Batalla, y
-  **banderas** del país de cada piloto.
-- **Vuelta rápida** más visible en la Clasificación, con marca en la fila y dato para la barra de
-  información.
-- **Licencias** con estilo contorno, el nuevo por defecto.
-- **Delta**: referencia por tipo de sesión (récord personal en práctica, vuelta óptima en
-  clasificación y en carrera), línea opcional con la última, la mejor y la óptima a la vez con la
-  referencia en uso marcada, y un atajo para cambiar la referencia solo durante la sesión actual.
-- **Pedales**: luces de cambio con los puntos del coche, bloque del coche (RPM, reparto de frenada,
-  nivel de TC y force feedback con aviso de saturación) y cuatro estilos de volante (barra,
-  minimalista, realista y fórmula) en tres tamaños, con color de la marca central y grados. El
-  panel se ajusta a su contenido.
-- **Testigos** en columna con los textos a la izquierda o a la derecha. El tiempo de reparación se
-  marca «(equipo)», el que tarda el equipo según iRacing, con una estimación opcional en tiempo
-  real.
-- **Ventana de Ajustes**: fondo de la muestra claro u oscuro, más columnas y una muestra mayor al
-  maximizar, y mejor encaje en pantallas ultrapanorámicas.
-- Paneles sin franja lateral: el estado ilumina el borde de arriba.
+- **Elements of each widget**: a common editor in Settings to show, hide and sort what each
+  widget draws (Relative and Standings columns, parts of Battle, Traffic, Delta, Inputs, Radar,
+  Alerts, Fuel and Warning lights), with a live sample. The usual look is the default value and
+  earlier settings migrate without losing anything.
+- **Info bars** in headers and footers: you pick, sort and size the items (time or laps left,
+  session, SoF, cars, incidents, projected iRating and SR, fastest lap, temperatures with trend,
+  wind, rubber, rain, laps of fuel, local time). Always readable: if they do not fit, they wrap
+  or are trimmed by priority, never shrunk.
+- Optional **column titles** (SR, iR, Leader, Interval…), in both languages.
+- **Make logos** in colour (or monochrome) in Relative, Standings and Battle, and each driver's
+  country **flags**.
+- **Fastest lap** more visible in Standings, with a mark on the row and an item for the info bar.
+- **Licences** in outline style, the new default.
+- **Delta**: reference per session type (personal best in practice, optimal lap in qualifying
+  and in races), an optional line with the last, the best and the optimal at once with the
+  reference in use marked, and a shortcut to change the reference for the current session only.
+- **Inputs**: shift lights with the car's points, car block (RPM, brake bias, TC level and force
+  feedback with a clipping warning) and four steering wheel styles (bar, minimalist, realistic
+  and formula) in three sizes, with centre mark colour and degrees. The panel fits its content.
+- **Warning lights** as a column with the texts on the left or the right. The repair time is
+  marked “(crew)”, the time the crew takes according to iRacing, with an optional real-time
+  estimate.
+- **Settings window**: light or dark sample background, more columns and a larger sample when
+  maximised, and a better fit on ultrawide screens.
+- Panels without a side stripe: the status lights the top edge.
 
-### Disposiciones
+### Layouts
 
-- Guarda con nombre dónde está cada widget, su tamaño, escala, si se ve y si está bloqueado (una
-  para el MX-5, otra para el GT3). Duplicar, renombrar, borrar, exportar e importar a .json.
-- Se cambian desde Ajustes, la bandeja o un atajo, y opcionalmente solas al subirte a un coche
-  vinculado. La disposición en uso se actualiza al mover los widgets. Los ajustes anteriores pasan a
-  una disposición «Principal».
+- Saves by name where each widget is, its size, scale, whether it shows and whether it is locked
+  (one for the MX-5, another for the GT3). Duplicate, rename, delete, export and import as .json.
+- They are switched from Settings, the tray or a shortcut, and optionally by themselves when you
+  get in a linked car. The layout in use updates when you move the widgets. Earlier settings go
+  into a “Main” layout.
 
-### Correcciones
+### Fixes
 
-- El modo edición dejaba de responder (ni mover ni ocultar) tras horas con la app abierta.
+- Edit mode stopped responding (neither moving nor hiding) after hours with the app open.
 
-### Idiomas
+### Languages
 
-- Español (por defecto) e inglés, en **Ajustes > Apariencia**. Cambia al momento los widgets, la
-  ventana de Ajustes, los títulos de las ventanas y el menú de la bandeja.
+- Spanish (by default) and English, in **Settings > Appearance**. It changes the widgets, the
+  Settings window, the window titles and the tray menu at once.
 
 ### iRacing
 
-- Solo lectura: lee la memoria compartida del SDK oficial y dibuja ventanas propias. No inyecta nada
-  en el proceso del juego (iRacing usa EasyAntiCheat) ni enciende la grabación de telemetría `.ibt`.
-- **Nombres con acentos**: iRacing escribe los datos de sesión en Windows-1252 y cada acento llegaba
-  roto (`�`); ahora se leen bien. Los nombres que iRacing ya manda como `?` (cirílico, chino…) se
-  muestran con el nombre del equipo o como «Piloto #7». Los récords guardados con un trazado de
-  nombre roto se recuperan solos.
-- **Solo en el coche**: por defecto el overlay se ve mientras conduces; también hay «Solo en
-  carrera» y «Siempre». Fuera del coche solo se queda la Clasificación en la pantalla de sesión, con
-  los resultados. Un instante fuera (un reset, el principio de una grúa) no lo hace parpadear.
-  También se oculta con la interfaz de iRacing oculta y en el garaje.
-- **Repeticiones**: ocultas por defecto. Con «Seguir al coche en cámara», los widgets siguen al
-  coche que miras y, al rebobinar, la Clasificación se queda con la carrera en directo. La pantalla
-  de sesión en directo («Playback: Live») no cuenta como repetición, y la cinta nunca suma vueltas,
-  récords ni incidentes.
-- En directo con la cámara en otro coche, Relativo, Clasificación, Batalla y Tráfico se centran en
-  él; los widgets que solo tienen datos de tu coche se ocultan.
-- Sin iRacing, «Esperando a iRacing…» se oculta a los 8 s. La conexión se reintenta cada ~2 s, y el
-  proceso de telemetría se reinicia solo si falla.
-- Modo simulado (`--mock`): una carrera de ~20 coches de dos clases para probarlo sin iRacing.
+- Read-only: it reads the shared memory of the official SDK and draws its own windows. It injects
+  nothing into the game process (iRacing uses EasyAntiCheat) and does not turn on `.ibt`
+  telemetry recording.
+- **Names with accents**: iRacing writes the session data in Windows-1252 and every accent arrived
+  broken (`�`); now they read correctly. The names iRacing already sends as `?` (Cyrillic,
+  Chinese…) are shown with the team name or as “Driver #7”. Personal bests saved with a track
+  whose name was broken are recovered by themselves.
+- **Only in the car**: by default the overlay shows while you drive; there are also “Races only”
+  and “Always”. Out of the car only Standings stays, on the session screen, with the results. A
+  moment out (a reset, the start of a tow) does not make it flicker. It also hides with the
+  iRacing UI hidden and in the garage.
+- **Replays**: hidden by default. With “Follow the car on camera”, the widgets follow the car you
+  are watching and, when rewinding, Standings stays with the live race. The live session screen
+  (“Playback: Live”) does not count as a replay, and the tape never adds laps, personal bests or
+  incidents.
+- Live with the camera on another car, Relative, Standings, Battle and Traffic centre on it; the
+  widgets that only have data from your car hide.
+- Without iRacing, “Waiting for iRacing…” hides after 8 s. The connection retries every ~2 s, and
+  the telemetry process restarts by itself if it fails.
+- Simulated mode (`--mock`): a race of ~20 cars in two classes to try it without iRacing.
 
-### Correcciones tras la carrera real
+### Fixes after the real race
 
-Lo que salió al usar OverLap en una carrera online real, al reproducir la grabación de esa carrera y
-en una carrera offline contra la IA:
+What came up when using OverLap in a real online race, when replaying the recording of that race
+and in an offline race against the AI:
 
-- **Cronometraje**: la vuelta 1 de una salida parada cuenta desde que el semáforo se pone verde, con
-  el mismo tiempo que iRacing (salía un segundo más corta). Un coche remolcado o reiniciado se
-  cronometra desde donde aparece, sin «+0.0» falsos, y la vuelta de enfriamiento no se cronometra.
-- **Antes de la verde**: reloj, vueltas y margen de SR con la duración programada, no con la cuenta
-  atrás de la parrilla. La Clasificación lista la parrilla entera y el Relativo, el puesto de
-  salida.
-- **Posiciones y huecos**: el Relativo usa las mismas posiciones que la Clasificación; el intervalo
-  ya no repite el hueco al líder; un retirado queda a las vueltas que le faltan; fuera de carrera,
-  sin tiempo no hay puesto ni «LÍDER». En práctica y clasificación las vueltas que quedan no suben
-  al salir del coche, y con límite de vueltas y de tiempo también sale el reloj.
-- **Final de la carrera**: la cabecera dice «Última vuelta» y luego «Final» cuando cruzas la meta
-  (o al acabar la sesión, si te quedas en el box).
-- **Grúa y boxes**: «GRÚA» solo mientras dura la grúa y después «PIT». La grúa no cuenta como
-  parada, y la vuelta que iRacing te acredita en el box no suma al stint.
-- **Avisos y testigos**: sin «LIMITADOR OFF» falso al aparecer en tu box tras la grúa ni «CALADO»
-  mientras la grúa levanta el coche; las presiones y temperaturas del motor callan durante la grúa,
-  en tu box y al subir al coche. La de cuadros cuenta desde que sale, no hay banderas fuera del
-  coche y la negra enrollada no sale a quien ya terminó. Cada incidente se nombra por lo más grave
-  que pasó, no por el byte de penalización.
-- **Delta**: ya no dice «vuelta inválida» sin una vuelta en curso; la vuelta de salida y la grúa lo
-  dicen.
-- **Radar y tráfico**: un coche a tu lado del que iRacing no da el lado se dibuja atenuado a su
-  distancia real, nunca encima de tu coche ni pegado a tu parachoques. En las sesiones en solitario
-  el radar solo usa los avisos laterales de iRacing y Tráfico no lista a nadie.
-- **Pilotos de IA y sesiones offline**: sin iRatings ni licencias de relleno («R 0.0», «SoF 1»).
-- **Neumático**: sin columna de compuesto cuando todos llevan el de seco.
+- **Timing**: lap 1 of a standing start counts from when the lights go green, with the same time
+  as iRacing (it came out a second shorter). A towed or reset car is timed from where it appears,
+  without false “+0.0”, and the cool-down lap is not timed.
+- **Before the green**: clock, laps and SR margin with the scheduled duration, not with the grid
+  countdown. Standings lists the whole grid and Relative, the starting position.
+- **Positions and gaps**: Relative uses the same positions as Standings; the interval no longer
+  repeats the gap to the leader; a retired car stays at the laps it is down; outside races, with
+  no time there is no position or “LEADER”. In practice and qualifying the laps left do not go up
+  when you get out of the car, and with both a lap and a time limit the clock shows too.
+- **End of the race**: the header says “Last lap” and then “Finished” when you cross the line
+  (or when the session ends, if you stay in the pit box).
+- **Tow and pits**: “TOW” only while the tow lasts and then “PIT”. The tow does not count as a
+  stop, and the lap iRacing credits you in the pit box does not add to the stint.
+- **Alerts and warning lights**: no false “LIMITER OFF” when appearing in your pit box after the
+  tow nor “STALLED” while the tow lifts the car; the engine pressures and temperatures stay quiet
+  during the tow, in your pit box and when getting in the car. The chequered flag counts from when
+  it comes out, there are no flags out of the car and the meatball does not show to anyone who has
+  already finished. Each incident is named after the most serious thing that happened, not after
+  the penalty byte.
+- **Delta**: it no longer says “invalid lap” without a lap in progress; the out lap and the tow
+  say so.
+- **Radar and traffic**: a car alongside you whose side iRacing does not give is drawn dimmed at
+  its real distance, never on top of your car or stuck to your bumper. In solo sessions the radar
+  only uses the iRacing side warnings and Traffic lists nobody.
+- **AI drivers and offline sessions**: no filler iRatings or licences (“R 0.0”, “SoF 1”).
+- **Tyre**: no compound column when everyone is on the dry one.
 
-### Pendiente / conocido
+### Pending / known
 
-- Falta una prueba de fps con iRacing en marcha que confirme los ~58 fps del overlay.
-- Falta probar el overlay en pantallas con la escala de Windows al 125 % y al 150 %.
-- Pie de condiciones: falta confirmar qué significa el estado de la goma (el que da iRacing al
-  empezar la sesión) y el viento, cuya dirección solo se ha comprobado en una carrera; la escala de
-  la lluvia tampoco está confirmada.
-- Desgaste de neumáticos: iRacing solo lo mide con el coche parado en tu box, así que Combustible
-  muestra la lectura de la última parada, no el desgaste en directo.
-- Los límites de incidentes (penalización y DQ) se leen de los datos de sesión; falta confirmarlos
-  en una carrera oficial.
-- En pantalla completa exclusiva el overlay no se ve (usa ventana sin bordes), ni en VR sin una
-  herramienta como OpenKneeboard.
-- El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
+- An fps test with iRacing running is still needed to confirm the overlay's ~58 fps.
+- The overlay still has to be tested on screens with Windows scaling at 125% and 150%.
+- Conditions footer: it is still to be confirmed what the rubber state means (the one iRacing
+  gives at the start of the session) and the wind, whose direction has only been checked in one
+  race; the rain scale is not confirmed either.
+- Tyre wear: iRacing only measures it with the car stopped in your pit box, so Fuel shows the
+  reading from the last stop, not live wear.
+- The incident limits (penalty and DQ) are read from the session data; they still have to be
+  confirmed in an official race.
+- In exclusive full screen the overlay does not show (use borderless window), nor in VR without a
+  tool like OpenKneeboard.
+- The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
-[Sin publicar]: https://github.com/jesus-molano/OverLap/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/jesus-molano/OverLap/compare/v2.4.1...HEAD
 [2.4.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.1
 [2.4.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.0
 [2.3.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.1
