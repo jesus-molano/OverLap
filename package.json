@@ -37,7 +37,7 @@
     "@irsdk-node/types": "^4.0.5",
     "country-flag-icons": "1.6.20",
     "irsdk-node": "^4.4.0",
-    "js-yaml": "^4.3.2",
+    "js-yaml": "^5.5.0",
     "koffi": "^3.3.3"
   },
   "devDependencies": {
