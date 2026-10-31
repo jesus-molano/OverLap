@@ -308,6 +308,19 @@ describe('mock race end to end: the first ten minutes at 60 Hz', () => {
         if (side.cover >= 1 && !side.unknown) full++
       }
     }
+    // «Cercanía» (5c): full on a side iRacing counts, between empty and full for a car held on its
+    // side as it gets away, and never more.
+    let closing = 0
+    for (const { s: t, payload: p } of run.spotter) {
+      if (!p.active) continue
+      for (const side of [p.left, p.right]) {
+        if (side.count > 0) expect(side.close, `t=${t.toFixed(2)}`).toBe(1)
+        expect(side.close).toBeGreaterThanOrEqual(0)
+        expect(side.close).toBeLessThanOrEqual(1)
+        if (side.count === 0 && side.close > 0 && side.close < 1) closing++
+      }
+    }
+    expect(closing).toBeGreaterThan(0)
     // CarLeft, CarRight, both, two left, two right (scripts.ts), and clear.
     for (const k of ['1/0', '0/1', '1/1', '2/0', '0/2', '0/0']) expect(sides.has(k), k).toBe(true)
     expect(full).toBeGreaterThan(0)
