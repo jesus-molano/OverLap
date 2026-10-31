@@ -564,6 +564,15 @@ modificada, ponle otro nombre y otro icono para que nadie la confunda con OverLa
 marca de iRacing.com Motorsport Simulations, LLC; OverLap no está afiliado a iRacing ni cuenta con su
 respaldo.
 
+**Los logos en color de las marcas de coches no están bajo la GPL.** Son marcas y dibujos de
+terceros (de Wikimedia, de worldvectorlogo.com y de las webs de Dallara y Tatuus), que se muestran
+solo para saber de qué marca es cada coche; sus dueños conservan todos sus derechos y OverLap no
+concede ninguno. El juego monocromo sale de [Simple Icons](https://simpleicons.org) (CC0, de dominio
+público) y se elige en **Apariencia › Filas y pilotos › Color del logo › Monocromo**: tiene 18 de
+las marcas, y las demás se siguen dibujando en grises a partir del juego en color. OverLap no está
+afiliado a ninguna marca de coches. El detalle, fuente por fuente, está en
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md#brand-logos).
+
 OverLap usa componentes de terceros (como [irsdk-node](https://github.com/bengsfort/irsdk-node)
 para leer el SDK de iRacing y las banderas de
 [country-flag-icons](https://gitlab.com/catamphetamine/country-flag-icons)), cada uno con su propia
