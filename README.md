@@ -550,8 +550,19 @@ Los detalles técnicos están en las [notas de desarrollo](docs/README.dev.md#an
 
 ## Licencia y créditos
 
-© 2026 Jesús Molano. Todos los derechos reservados. OverLap no es software libre: consulta las
-condiciones en [LICENSE](LICENSE).
+OverLap es software libre. Copyright © 2026 Jesús Molano.
+
+Puedes redistribuirlo y modificarlo según los términos de la Licencia Pública General de GNU (GNU
+GPL) publicada por la Free Software Foundation, ya sea la versión 3 de la licencia o, a tu elección,
+cualquier versión posterior (`GPL-3.0-or-later`). OverLap se distribuye con la esperanza de que sea
+útil, pero **sin ninguna garantía**, ni siquiera la garantía implícita de comerciabilidad o de
+idoneidad para un fin concreto. El texto completo está en [LICENSE](LICENSE), en inglés, que es la
+versión que vale legalmente.
+
+El nombre OverLap y el icono «OL» no se licencian como marca (GPL §7(e)): si distribuyes una versión
+modificada, ponle otro nombre y otro icono para que nadie la confunda con OverLap. iRacing es una
+marca de iRacing.com Motorsport Simulations, LLC; OverLap no está afiliado a iRacing ni cuenta con su
+respaldo.
 
 OverLap usa componentes de terceros (como [irsdk-node](https://github.com/bengsfort/irsdk-node)
 para leer el SDK de iRacing y las banderas de
