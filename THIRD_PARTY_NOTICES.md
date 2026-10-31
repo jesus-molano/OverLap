@@ -39,16 +39,16 @@ see [Brand logos](#brand-logos).
 
 ## Brand logos
 
-OverLap draws car make logos in two sets, chosen in **Apariencia › Filas y pilotos › Color del
-logo** (Appearance › Rows and drivers › Logo colour):
+OverLap draws car make logos in two sets, chosen in **Appearance › Rows and drivers › Logo
+colour**:
 
-- **Monochrome logos** (`src/renderer/src/ui/brandLogos.ts`, «Monocromo») are paths from
+- **Monochrome logos** (`src/renderer/src/ui/brandLogos.ts`, «Monochrome») are paths from
   [Simple Icons](https://simpleicons.org) 16.36.0, released under
   [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). Simple Icons has 18 of
   the makes: Acura, Aston Martin, Audi, BMW, Cadillac, Chevrolet, Ferrari, Ford, Honda, Hyundai,
-  Lamborghini, Mazda, Nissan, Porsche, Renault, Subaru, Toyota and Volkswagen. In «Monocromo» the
+  Lamborghini, Mazda, Nissan, Porsche, Renault, Subaru, Toyota and Volkswagen. In «Monochrome» the
   other makes are still drawn from the colour set below, in greys.
-- **Colour logos** (`src/renderer/src/ui/brandLogosColor.ts`, «Color», the default) are **NOT
+- **Colour logos** (`src/renderer/src/ui/brandLogosColor.ts`, «Colour», the default) are **NOT
   covered by OverLap's licence**. They are third-party trademarks and artwork, drawn from the files
   listed at the top of that file and simplified for the overlay. Their owners keep all their rights:
   OverLap claims none and grants none, and the GPL-3.0-or-later does not apply to them. By source:
