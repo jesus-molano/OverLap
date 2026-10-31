@@ -22,10 +22,19 @@ import type {
   RelativeRow
 } from '@shared/types'
 import type { Density } from '@renderer/view/appearance'
-import { lapCell, stintCell, tyreCell, type LapKind } from '@renderer/view/carExtras'
+import {
+  gainedCell,
+  lapCell,
+  NO_GAIN,
+  stintCell,
+  tyreCell,
+  type GainedIcon,
+  type LapKind
+} from '@renderer/view/carExtras'
 import { relativeHead, type ColumnHead } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
+import { signTone, type Tone } from '@renderer/ui/tones'
 
 export interface RelativeSlotView extends DriverCellView {
   kind: 'car'
@@ -39,6 +48,10 @@ export interface RelativeSlotView extends DriverCellView {
   lap: 'ahead' | 'behind' | null
   /** 'P5', '' when unknown. */
   pos: string
+  /** «Puestos ganados» as the standings' (gainedCell): '4' after its triangle, '' for none. */
+  gained: string
+  gainedIcon: GainedIcon | null
+  gainedTone: Tone
   /** '1.2', '-0.8'; blank on your own row. */
   gap: string
   /** Flag badge after the name (when the flags option is on). */
@@ -116,6 +129,7 @@ export function toSlotView(
   const lap = row.isPlayer || row.lapRelation === 'same' ? null : row.lapRelation
   const stint = stintCell(row.stintLaps, m)
   const last = lapCell(row, race)
+  const gained = race ? gainedCell(row.positionsGained) : NO_GAIN
   return {
     ...toDriverCell(row, styles, nameFormat, m, irFormat),
     kind: 'car',
@@ -125,6 +139,9 @@ export function toSlotView(
     towed: row.inPits && row.towed,
     lap,
     pos: formatClassPosition(row.classPosition),
+    gained: gained.text,
+    gainedIcon: gained.icon,
+    gainedTone: signTone(row.positionsGained),
     // Your own gap is always 0.0: noise.
     gap: row.isPlayer ? '' : formatGap(row.gapS),
     penalty: row.penalty,
@@ -164,6 +181,8 @@ export const RELATIVE_COL_EM = {
   country: 1.73,
   // One flag badge, centred (as the tyre's ring).
   flags: 1.3,
+  // As the standings' «Puestos ganados» (widgets/standings/columns.ts).
+  gained: 1.9,
   lic: 2.8,
   ir: 2.4,
   pit: 2.6,
@@ -230,6 +249,11 @@ export interface ColumnExtras {
   irEm?: number
   /** appearance.numberStyle: the number's own column is wider with the stripe. */
   numberStyle?: 'chip' | 'stripe'
+  /**
+   * A race session (the default): «Puestos ganados» only exists in races, as in the standings
+   * (outside them the column leaves the grid).
+   */
+  race?: boolean
 }
 
 /**
@@ -246,6 +270,7 @@ export function relativeColumns(
   const cells: RelativeColumnId[] = []
   for (const id of visibleIds(list)) {
     if (id === 'tyre' && !x.tyres) continue
+    if (id === 'gained' && x.race === false) continue
     // The «Piloto» block's parts while it draws them.
     if (id === 'flags' && !x.flags) continue
     if (id === 'brand' && !x.brand) continue
@@ -270,6 +295,7 @@ export function relativeColumns(
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
   if (cells.includes('last')) fitEm += RELATIVE_COL_EM.last + COL_GAP_EM
+  if (cells.includes('gained')) fitEm += RELATIVE_COL_EM.gained + COL_GAP_EM
   // The penalty flags take room anywhere but after the name (after its text, as always).
   if (g.tracks.includes('flags')) fitEm += RELATIVE_COL_EM.flags + COL_GAP_EM
   if (g.before.includes('flags')) fitEm += FLAGS_SLOT_EM

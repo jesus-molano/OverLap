@@ -43,6 +43,10 @@ describe('linkedParts (request 11)', () => {
     expect(es.flags?.title).toBe('Se muestra u oculta en «Piloto»')
     const en = linkedParts(messagesFor('en'), {}, globals)
     expect(en.country?.hint.startsWith('Shown or hidden in “Driver”: ')).toBe(true)
+    // The block's row each one links to: its label in its section, as the page draws them.
+    expect(es.brand).toMatchObject({ control: 'Logo de la marca', section: 'Piloto' })
+    expect(es.flags?.control).toBe(messagesFor('es').settings.common.penaltyFlags)
+    expect(en.country).toMatchObject({ control: 'Country flag', section: 'Driver' })
   })
 
   it('follows the block: its own value, else Apariencia’s', () => {

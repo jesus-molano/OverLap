@@ -122,6 +122,12 @@ export const ICONS = {
     { d: 'M8 7.25v4', kind: 'stroke' },
     { d: 'M8 4.1a.95.95 0 1 1 0 1.9.95.95 0 0 1 0-1.9z' }
   ],
+  /** Set elsewhere, go there (a list row another control shows or hides): two chain links. */
+  link: [
+    { d: 'M7.1 4.6l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7l-1.2 1.2', kind: 'stroke' },
+    { d: 'M8.9 11.4l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7l1.2-1.2', kind: 'stroke' },
+    { d: 'M6.2 9.8l3.6-3.6', kind: 'stroke' }
+  ],
   /** A drag handle: two columns of three dots. */
   grip: [
     {

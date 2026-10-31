@@ -275,7 +275,8 @@ function hitAt(target: EventTarget | null): Hit | null {
   return handle === undefined ? null : { el, node, handle }
 }
 
-const actionOf = (h: Hit): ElAction => elAction(h.handle.spec, h.handle.list(), h.el.id)
+const actionOf = (h: Hit): ElAction =>
+  elAction(h.handle.spec, h.handle.list(), h.el.id, h.handle.linked?.(h.el.id) ?? false)
 
 // ---- Positions (client px to the stage's) --------------------------------------------------
 
@@ -494,6 +495,13 @@ function click(h: Hit, action: ElAction): void {
   else if (action === 'move-hide' || action === 'hide') {
     handle.setVisible(el.id, false)
     if (!(GHOST_ZONES as ReadonlySet<string>).has(el.zone)) say(p.hiddenNote(label))
+  } else if (action === 'move-linked') {
+    // Shown or hidden in the «Piloto» block: said, and its row pointed out there.
+    say(p.refused.linked(label))
+    if (handle.revealLinked !== undefined) {
+      handle.revealLinked(el.id)
+      return
+    }
   } else say(p.refused.required(label))
   handle.reveal(el.id)
 }

@@ -44,6 +44,8 @@ const columnTexts = computed<Readonly<Record<RelativeColumnId, ElementText>>>(()
     ...base,
     pos: { label: base.pos.label, hint: hints.pos },
     number: { label: base.number.label, hint: hints.number },
+    driver: { label: base.driver.label, hint: hints.driver },
+    gained: { label: base.gained.label, hint: hints.gained },
     pit: { label: base.pit.label, hint: r.pitHelp },
     tyre: { label: base.tyre.label, hint: r.tyreHelp },
     stint: { label: base.stint.label, hint: r.stintHelp },

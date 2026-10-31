@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { STANDINGS_CLASS_ORDERS } from '@shared/settings'
+import { OPTION_SCHEMA } from '@shared/settingsSchema'
 import type { ElementEntry, StandingsClassOrder } from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useOptions } from '../../composables/useWidgetSettings'
@@ -15,7 +16,8 @@ import {
   classSpec,
   classTexts,
   drawnFirst,
-  namesOf
+  namesOf,
+  namesToSave
 } from '../classOrderList'
 import ChoiceControl from '../controls/ChoiceControl.vue'
 import { choiceOptions } from '../controls/choice'
@@ -36,6 +38,8 @@ import { offerRestore } from '../undo/restore'
 const emit = defineEmits<{ changed: [] }>()
 
 const opts = useOptions('standings')
+/** The most class names «A mano» keeps (settingsSchema's classList). */
+const CLASS_LIST_MAX = OPTION_SCHEMA.standings.classList.max
 const t = useI18n()
 const live = useSessionClasses()
 const s = computed(() => t.value.settings.standings)
@@ -64,10 +68,32 @@ const setOrder: Setter<StandingsClassOrder> = (classOrder) => {
   return updateSection('standings', { classOrder })
 }
 
-/** An edit of the list saves it whole (a reset forgets it: the classes by speed again). */
+/**
+ * What an edit saves: the list in its new order, but the names at its end nobody saved (the
+ * sample's) and, over the cap, the lowest of no class running now (namesToSave).
+ */
+function toSave(
+  next: ElementEntry<string>[],
+  movedId: string | undefined,
+  known: readonly string[]
+): string[] {
+  const all = namesOf(next, known)
+  const moved =
+    movedId === undefined ? undefined : namesOf([{ id: movedId, visible: true }], known)[0]
+  return namesToSave(all, {
+    saved: opts.value.classList,
+    live: live.value,
+    moved,
+    max: CLASS_LIST_MAX
+  })
+}
+
+/** An edit of the list saves it (a reset forgets it: the classes by speed again). */
 function applyList(next: ElementEntry<string>[], change: ElementChange<string>): Promise<void> {
   emit('changed')
-  return updateSection('standings', { classList: change.kind === 'reset' ? [] : namesOf(next) })
+  if (change.kind === 'reset') return updateSection('standings', { classList: [] })
+  const moved = change.kind === 'move' ? change.id : undefined
+  return updateSection('standings', { classList: toSave(next, moved, names.value) })
 }
 
 // ---- The sample, while another order is chosen ---------------------------------------------
@@ -89,7 +115,10 @@ function commitFromSample(next: ElementEntry<string>[], id: string): void {
   const before = { classOrder: opts.value.classOrder, classList: [...opts.value.classList] }
   const label = labels.value[id]?.label ?? id
   emit('changed')
-  void updateSection('standings', { classOrder: 'manual', classList: namesOf(next) })
+  void updateSection('standings', {
+    classOrder: 'manual',
+    classList: toSave(next, id, drawnNames.value)
+  })
   offerRestore(
     (m) => m.settings.standings.classMovedManual(label),
     () => void updateSection('standings', before)

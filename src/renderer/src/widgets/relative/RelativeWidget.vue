@@ -23,6 +23,7 @@ import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import DriverPart from '@renderer/ui/DriverPart.vue'
+import Icon from '@renderer/ui/Icon.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import IRating from '@renderer/ui/IRating.vue'
 import LapTime from '@renderer/ui/LapTime.vue'
@@ -121,6 +122,7 @@ const cols = computed<RelativeColumns>((prev) => {
     brand: brands.value,
     country: block.value.countryFlags,
     numberStyle: appearance.value.numberStyle,
+    race: race.value,
     irEm: iRatingColumnEm(
       block.value.iRatingFormat,
       block.value.iRatingColor,
@@ -233,7 +235,10 @@ if (injectSampleHost() !== null) {
                 >
                   <!-- The parts placed after the name (request 11), the penalty flag as always. -->
                   <template v-for="part in cols.after" :key="part">
-                    <span v-if="part === 'flags' && slot.penalty" class="rl-flag"
+                    <span
+                      v-if="part === 'flags' && slot.penalty"
+                      class="rl-flag"
+                      data-el="relative.columns.flags"
                       ><PenaltyIcon :penalty="slot.penalty"
                     /></span>
                     <DriverPart
@@ -272,6 +277,15 @@ if (injectSampleHost() !== null) {
                 <span v-else-if="cell === 'flags'" class="c-flags" data-el="relative.columns.flags"
                   ><PenaltyIcon v-if="slot.penalty" :penalty="slot.penalty"
                 /></span>
+                <span
+                  v-else-if="cell === 'gained'"
+                  class="c-gained"
+                  :class="`ov-tone-${slot.gainedTone}`"
+                  data-el="relative.columns.gained"
+                  ><Icon v-if="slot.gainedIcon" :name="slot.gainedIcon" class="rl-gain-icon" />{{
+                    slot.gained
+                  }}</span
+                >
                 <span v-else-if="cell === 'lic'" class="c-lic" data-el="relative.columns.lic"
                   ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
                 /></span>
@@ -496,6 +510,20 @@ if (injectSampleHost() !== null) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+/* «Puestos ganados» as the standings' (StandingsCarCells.vue): a triangle and the count in the
+   tone, nothing at all for none. */
+.c-gained {
+  min-width: 0;
+  overflow: hidden;
+  font-size: max(var(--ov-min-text), 0.75em);
+  font-weight: var(--ov-w-strong);
+  text-align: right;
+}
+
+.rl-gain-icon {
+  font-size: 1.15em;
 }
 
 /* Stint laps: a secondary figure like the iR, its lap unit smaller and dim. */

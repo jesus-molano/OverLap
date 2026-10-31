@@ -61,6 +61,13 @@ export interface ZoneHandle {
   showAt(next: ElementEntry<string>[], id: string): void
   /** Opens the zone's accordion and brings `id`'s row into view. */
   reveal(id: string): void
+  /**
+   * `id` is shown or hidden by another control (the «Piloto» block: ElementEditor's `linked`
+   * rows, request 11): the sample only moves it. Absent: none is.
+   */
+  linked?(id: string): boolean
+  /** Brings that control into view, pointed out (a click on such an element in the sample). */
+  revealLinked?(id: string): void
 }
 
 export interface PreviewEdit {

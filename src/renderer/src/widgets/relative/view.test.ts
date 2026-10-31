@@ -36,6 +36,7 @@ function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
     carIdx,
     isPlayer: false,
     classPosition: carIdx + 1,
+    positionsGained: null,
     carNumber: String(carIdx),
     driverName: `Driver Number${carIdx}`,
     classShortName: 'GT3',
@@ -147,6 +148,20 @@ describe('toSlotViews', () => {
   })
 
   it('leaves your own gap blank and marks your row', () => {
+    // «Puestos ganados»: the standings' cell (a triangle, the count, its tone), none outside races.
+    expect(toSlotView(row(1, { positionsGained: 3 }), 0, styles, 'full', ES)).toMatchObject({
+      gained: '3',
+      gainedIcon: 'arrow-up',
+      gainedTone: 'good'
+    })
+    expect(toSlotView(row(1, { positionsGained: -2 }), 0, styles, 'full', ES)).toMatchObject({
+      gained: '2',
+      gainedIcon: 'arrow-down'
+    })
+    expect(toSlotView(row(1, { positionsGained: 3 }), 0, styles, 'full', ES, false)).toMatchObject({
+      gained: '',
+      gainedIcon: null
+    })
     const v = toSlotView(row(0, { isPlayer: true, gapS: 0 }), 0, styles, 'full', ES)
     expect(v.gap).toBe('')
     expect(v.css).toBe('rl-row ov-player')
@@ -248,10 +263,10 @@ describe('relativeColumns', () => {
   })
 
   it('follows the list’s order, the row’s start too (request 11)', () => {
-    // [pos number brand country driver flags ir lic gap …] → [gap ir pos number … driver flags lic …]
-    let list = moveElement(DEF, 8, 0)
-    list = moveElement(list, 7, 1)
-    expect(list.map((e) => e.id).slice(0, 9)).toEqual([
+    // [pos number brand country driver flags -gained ir lic gap …] → [gap ir pos … flags -gained lic …]
+    let list = moveElement(DEF, 9, 0)
+    list = moveElement(list, 8, 1)
+    expect(list.map((e) => e.id).slice(0, 10)).toEqual([
       'gap',
       'ir',
       'pos',
@@ -260,6 +275,7 @@ describe('relativeColumns', () => {
       'country',
       'driver',
       'flags',
+      'gained',
       'lic'
     ])
     const c = relativeColumns(list, plain)
@@ -289,9 +305,10 @@ describe('relativeColumns', () => {
     const off = relativeColumns(DEF, plain)
     expect(off.tracks).not.toContain('flags')
     expect(off.flags).toBe(true)
-    // Set apart from the name (after the iRating here): a column of their own.
+    // Set apart from the name (after the iRating here, past the hidden «Puestos ganados»): a
+    // column of their own.
     const at = DEF.findIndex((e) => e.id === 'flags')
-    const apart = moveElement(DEF, at, at + 1)
+    const apart = moveElement(DEF, at, at + 2)
     const on = relativeColumns(apart, plain)
     expect(on.tracks).toEqual(['pos', 'driver', 'ir', 'flags', 'lic', 'gap'])
     expect(on.flags).toBe(false)
@@ -306,6 +323,28 @@ describe('relativeColumns', () => {
     const before = relativeColumns(moveElement(DEF, at, at - 1), plain)
     expect(before.before).toEqual(['number', 'flags'])
     expect(before.fitEm).toBeCloseTo(off.fitEm + 1.3 + 0.35, 5)
+  })
+
+  it('draws «Puestos ganados» as the standings do, in races only (request 11)', () => {
+    const at = (ids: readonly string[]): typeof DEF =>
+      ids.map((id) => ({ id, visible: true })) as typeof DEF
+    // Between the position and the number, as the user asked: a column of its own.
+    const c = relativeColumns(at(['pos', 'gained', 'number', 'driver', 'gap']), plain)
+    expect(c.tracks).toEqual(['pos', 'gained', 'driver', 'gap'])
+    expect(c.before).toEqual(['number'])
+    expect(c.template).toBe('1.9em 1.9em minmax(0, 1fr) 3.1em')
+    const without = relativeColumns(at(['pos', 'number', 'driver', 'gap']), plain)
+    expect(c.fitEm).toBeCloseTo(without.fitEm + 1.9 + 0.4, 5)
+    // Outside races there is nothing gained: the column leaves the grid.
+    const practice = relativeColumns(at(['pos', 'gained', 'number', 'driver', 'gap']), {
+      ...plain,
+      race: false
+    })
+    expect(practice.tracks).toEqual(['pos', 'driver', 'gap'])
+    // Hidden by default, after the penalty flags (the standings' place).
+    const def = DEF.find((e) => e.id === 'gained')
+    expect(def?.visible).toBe(false)
+    expect(DEF.map((e) => e.id).indexOf('gained')).toBe(DEF.map((e) => e.id).indexOf('flags') + 1)
   })
 
   it('draws «Última vuelta» (hidden by default) after the gap, as wide as the standings’', () => {

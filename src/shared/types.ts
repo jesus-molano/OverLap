@@ -259,6 +259,8 @@ export interface RelativeRow {
    * lap time outside races, not classified yet.
    */
   classPosition: number | null
+  /** As StandingsRow's (shared/gained.ts): + gained since the start; null outside a race. */
+  positionsGained: number | null
   carNumber: string
   /** '' when unknown; teamName stands in then (see DriverIdentity). */
   driverName: string
@@ -1328,6 +1330,7 @@ export type RelativeColumnId =
   | 'country'
   | 'driver'
   | 'flags'
+  | 'gained'
   | 'ir'
   | 'lic'
   | 'pit'

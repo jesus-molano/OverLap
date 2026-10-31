@@ -92,7 +92,11 @@ const icons = computed(
       >
       <span v-if="icons" class="sd-icons">
         <template v-for="part in cols.after" :key="part">
-          <PenaltyIcon v-if="part === 'flags' && inlinePenalty" :penalty="inlinePenalty" />
+          <PenaltyIcon
+            v-if="part === 'flags' && inlinePenalty"
+            :penalty="inlinePenalty"
+            data-el="standings.columns.flags"
+          />
           <DriverPart
             v-else-if="part !== 'flags'"
             :part="part"

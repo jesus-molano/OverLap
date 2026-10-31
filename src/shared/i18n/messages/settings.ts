@@ -376,12 +376,15 @@ export const settingsEs = {
       'move-hide': 'Arrastra para mover · clic para ocultar',
       hide: 'Clic para ocultar · su orden es fijo',
       'move-required': 'Arrastra para mover · siempre visible',
+      'move-linked': 'Arrastra para mover · se muestra u oculta en «Piloto»',
       required: 'Siempre visible y en orden fijo',
       show: 'Oculto · clic o arrastra para mostrarlo'
     },
     /** A click or a drag that the rules refuse. */
     refused: {
       required: (item: string) => `${item} está siempre visible: no se puede ocultar`,
+      /** One the «Piloto» block shows or hides (request 11). */
+      linked: (item: string) => `${item} se muestra u oculta en «Piloto»`,
       fixed: (zone: string) => `${zone} tiene un orden fijo: no se reordena`
     },
     /** While dragging, under the element's name: what the drop does (and on which side). */
@@ -467,7 +470,7 @@ export const settingsEs = {
     /** One line under the title; the rest behind its ⓘ (`…More`, as every long help here). */
     sub: 'El aspecto común de todos los widgets',
     subMore:
-      'En su página, cada uno puede usar su propio fondo, densidad o bloque «Piloto» (nombre, logo y banderas).',
+      'En su página, cada uno puede usar su propio fondo, densidad o bloque «Piloto» (nombre, logo, banderas e iRating).',
     language: {
       title: 'Idioma',
       label: 'Idioma',
@@ -1186,6 +1189,8 @@ export const settingsEs = {
     /** A part the «Piloto» block shows or hides: its row has no eye, it says where and what. */
     inBlock: (value: string) => `Se muestra u oculta en «Piloto»: ${value}`,
     inBlockTitle: 'Se muestra u oculta en «Piloto»',
+    /** The «Piloto» row of a part, from its mark in the list. */
+    inBlockGo: (item: string) => `Ir a «${item}» en «Piloto»`,
     /** The same words in both tables (R10, request 11). */
     labels: {
       pos: 'Posición',
@@ -1211,6 +1216,7 @@ export const settingsEs = {
     hints: {
       pos: 'En tu clase',
       number: 'El del coche, con el color de su clase',
+      driver: 'Título de columna: «PILOTO»',
       gained: 'Solo en carrera: puestos ganados desde la salida',
       delta: 'Lo que ganas o pierdes en tu puesto (o el de todos, con la opción)',
       gap: 'Al de delante o al líder: elígelo en su fila',
@@ -1799,6 +1805,7 @@ export const settingsEs = {
         country: 'Bandera del país',
         driver: 'Nombre',
         flags: 'Banderas',
+        gained: 'Puestos ganados',
         ir: 'iRating',
         lic: 'Licencia',
         pit: 'Boxes',
@@ -2001,7 +2008,7 @@ export const settingsEs = {
     iRatingFormatHelp: 'El de cada piloto y el SoF: abreviado o el número entero',
     iRatingFormatChoices: {
       compact: { label: '2.5k', hint: 'Abreviado, con un decimal' },
-      full: { label: '2.520', hint: 'El número entero' }
+      full: { label: '2.520', hint: 'El número entero: 2.520 = 2520' }
     },
     iRatingColor: 'iRating con el color de la licencia',
     iRatingColorHelp:
@@ -2461,11 +2468,13 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'move-hide': 'Drag to move · click to hide',
       hide: 'Click to hide · its order is fixed',
       'move-required': 'Drag to move · always shown',
+      'move-linked': 'Drag to move · shown or hidden in “Driver”',
       required: 'Always shown, in a fixed order',
       show: 'Hidden · click or drag to show it'
     },
     refused: {
       required: (item) => `${item} is always shown: it cannot be hidden`,
+      linked: (item) => `${item} is shown or hidden in “Driver”`,
       fixed: (zone) => `${zone} has a fixed order: it cannot be reordered`
     },
     moving: 'Drop to place it here',
@@ -2531,7 +2540,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   appearance: {
     sub: 'The look shared by every widget',
     subMore:
-      'On its page, each one can use its own background, density or “Driver” block (name, logo and flags).',
+      'On its page, each one can use its own background, density or “Driver” block (name, logo, flags and iRating).',
     language: {
       title: 'Language',
       label: 'Language',
@@ -3098,6 +3107,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       'Number, logo, country flag and flags go with the name while they touch it: before it, aligned; after it, after the name. Set apart by another column, in a column of their own.',
     inBlock: (value) => `Shown or hidden in “Driver”: ${value}`,
     inBlockTitle: 'Shown or hidden in “Driver”',
+    inBlockGo: (item) => `Go to “${item}” in “Driver”`,
     labels: {
       pos: 'Position',
       number: 'Number',
@@ -3121,6 +3131,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     hints: {
       pos: 'In your class',
       number: 'The car’s, in its class colour',
+      driver: 'Column title: “DRIVER”',
       gained: 'Race only: positions gained since the start',
       delta: 'What you win or lose in your position (or everyone’s, with the option)',
       gap: 'To the car ahead or to the leader: choose it on its row',
@@ -3603,6 +3614,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         country: 'Country flag',
         driver: 'Name',
         flags: 'Flags',
+        gained: 'Positions gained',
         ir: 'iRating',
         lic: 'Licence',
         pit: 'Pits',
@@ -3782,7 +3794,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     iRatingFormatHelp: 'Each driver’s and the SoF: short or the whole number',
     iRatingFormatChoices: {
       compact: { label: '2.5k', hint: 'Short, one decimal' },
-      full: { label: '2,520', hint: 'The whole number' }
+      full: { label: '2,520', hint: 'The whole number: 2,520 = 2520' }
     },
     iRatingColor: 'iRating in the licence colour',
     iRatingColorHelp:

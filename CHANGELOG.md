@@ -62,19 +62,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   bloque fijo y pasan a ser columnas de la misma lista que las demás, junto con **Banderas** (las de
   penalización, que antes iban siempre tras el nombre). Así **Puestos ganados**, **Banderas** o
   cualquier otra columna puede ir entre la posición y el número, entre el número y el logo o
-  después del nombre. Lo que queda pegado al nombre va con él, en su celda: delante, alineado de
-  fila a fila; detrás, tras el nombre. Separado por otra columna, va en una columna propia (el
-  título del número es «#»). **Nombre** se ve siempre. Una regla, la misma en los cuatro widgets
-  del bloque «Piloto»: **la lista dice dónde; el bloque «Piloto», si salen y cómo**. El logo, la
-  bandera del país y las banderas no tienen ojo en la lista (su fila dice cómo están en «Piloto»:
-  «Se muestra u oculta en «Piloto»: Global (Sí)»); la posición y el número, que no están en el
-  bloque, sí (en Posiciones, el ojo de la posición sustituye a su antiguo interruptor). En Tráfico,
-  las banderas siguen la misma regla en su lista de partes; Batalla, sin columnas, las lleva tras
-  el nombre. Si la ventana se estrecha, el logo y la bandera del país se van antes que las columnas
-  de siempre, y las banderas colocadas en otro sitio vuelven tras el nombre. «Igualar con
-  Posiciones» e «Igualar con Relativo» lo llevan todo, y en la vista previa se arrastran como las
-  demás columnas. Al actualizar, todo se ve como antes: el principio de la fila delante en el orden
-  de siempre (la posición, visible u oculta como estaba) y las banderas tras el nombre.
+  después del nombre. Relativo tiene ahora también **Puestos ganados**, la misma columna que la de
+  Posiciones (el mismo nombre, título «±», ancho, triángulo y colores; solo en carrera, contados
+  igual: su puesto de salida en la clase contra el de ahora), oculta de serie tras las banderas.
+  Lo que queda pegado al nombre va con él, en su celda: delante, alineado de fila a fila; detrás,
+  al final de su celda, también alineado. Separado por otra columna, va en una columna propia (el
+  título del número es «#»). **Nombre** se ve siempre (su ayuda dice que su título de columna es
+  «PILOTO»). Una regla, la misma en los cuatro widgets del bloque «Piloto»: **la lista dice
+  dónde; el bloque «Piloto», si salen y cómo**. El logo, la bandera del país y las banderas no
+  tienen ojo en la lista sino un enlace que lleva a su fila de «Piloto» y la señala (su fila dice
+  cómo están: «Se muestra u oculta en «Piloto»: Global (Sí)»); en la vista previa se arrastran y,
+  al pulsarlos, el aviso dice lo mismo y lleva a esa fila. La posición y el número, que no están
+  en el bloque, tienen su ojo (en Posiciones, el de la posición sustituye a su antiguo
+  interruptor). En Tráfico, las banderas siguen la misma regla en su lista de partes; Batalla, sin
+  columnas, las lleva tras el nombre. Si la ventana se estrecha, el logo y la bandera del país se
+  van antes que las columnas de siempre, y las banderas colocadas en otro sitio vuelven tras el
+  nombre. «Igualar con Posiciones» e «Igualar con Relativo» lo llevan todo, también «Puestos
+  ganados», y en la vista previa se arrastran como las demás columnas,
+  las banderas tras el nombre incluidas. Al actualizar, todo se ve como antes: el principio de la
+  fila delante en el orden de siempre (la posición, visible u oculta como estaba), las banderas
+  tras el nombre (al final de su celda, alineadas, también si tenías encendida su columna). Una lista de columnas guardada vacía o ilegible vuelve a la de serie, como antes.
 - **Relativo: la última vuelta de cada piloto**: una columna nueva, **Última vuelta**, la misma
   que la de Posiciones: el mismo nombre, el mismo formato («1:47.312»), la misma ayuda y los mismos
   colores (la vuelta rápida de su clase en la placa morada, su propio récord de la sesión en verde)
@@ -90,11 +97,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   sus filas alrededor de ti vaya donde vaya su bloque. En la vista previa, que en esta página tiene
   una tercera clase (GTP), una clase también se mueve arrastrando su línea (o la etiqueta de su
   líder en una línea) encima o debajo de otra, con la misma línea de colocar que las columnas: si
-  el orden no era «A mano», pasa a serlo, el aviso lo dice y «Deshacer» devuelve los dos.
+  el orden no era «A mano», pasa a serlo, el aviso lo dice y «Deshacer» devuelve los dos. La lista
+  solo guarda lo que ordenas: las clases de la vista previa que quedan al final no se guardan, y
+  con más de 32 clases recordadas se olvidan antes las de abajo que no están en la sesión en curso
+  (nunca las de la sesión ni la que acabas de mover). Una clase es la misma escrita en mayúsculas o
+  en minúsculas, también al arrastrarla.
 - **El iRating, con el color de la licencia y entero si quieres**: dos filas nuevas en Apariencia ›
   Filas y pilotos, con su «Global (…)» en el bloque «Piloto» de Relativo, Posiciones, Batalla y
   Tráfico, y en el buscador. **Formato del iRating**: **2.5k** (como siempre y de serie) o el número
-  entero, **2.520** (con el separador de miles del idioma: «2,520» en inglés). Vale para el iRating
+  entero, **2.520** (con el separador de miles del idioma: «2,520» en inglés; su ayuda aclara
+  que 2.520 es 2520, no un decimal). Vale para el iRating
   de cada piloto (las columnas iR de Relativo y Posiciones y el de Batalla) y para el SoF (el de
   cada clase en Posiciones y el elemento SoF de las barras de información, en todos los widgets que
   lo tienen: los cuatro del bloque usan el suyo, Combustible el de Apariencia). **iRating con el

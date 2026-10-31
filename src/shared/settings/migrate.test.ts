@@ -578,13 +578,15 @@ describe('the element lists from the options they replaced (v2.6)', () => {
     const s = normalizeSettings({ relative: { columns, showClassPosition: true } })
     // The row's start (request 11) goes in front, the position hidden as the list had it (absent),
     // the penalty flags after the name.
-    expect(s.relative.columns.slice(0, 7)).toEqual([
+    expect(s.relative.columns.slice(0, 8)).toEqual([
       { id: 'pos', visible: false },
       { id: 'number', visible: true },
       { id: 'brand', visible: true },
       { id: 'country', visible: true },
       { id: 'driver', visible: true },
       { id: 'flags', visible: true },
+      // «Puestos ganados» (request 11) hidden after the flags.
+      { id: 'gained', visible: false },
       { id: 'gap', visible: true }
     ])
   })
@@ -722,13 +724,14 @@ describe('migrateRelativeColumns (R10)', () => {
 
   it('gives an untouched list today’s default (iRating before the licence)', () => {
     const s = normalizeSettings({ relative: { columns: L('pos driver lic ir -tyre -stint gap') } })
-    expect(s.relative.columns.map((e) => e.id).slice(0, 8)).toEqual([
+    expect(s.relative.columns.map((e) => e.id).slice(0, 9)).toEqual([
       'pos',
       'number',
       'brand',
       'country',
       'driver',
       'flags',
+      'gained',
       'ir',
       'lic'
     ])
@@ -740,7 +743,7 @@ describe('migrateRelativeColumns (R10)', () => {
     // The row's start (request 11) and the penalty flags after the name, as they were drawn.
     expect(s.relative.columns).toEqual([
       // «Última vuelta» (request 8) hidden after the gap.
-      ...L('pos number brand country driver flags lic ir tyre -stint gap -last'),
+      ...L('pos number brand country driver flags -gained lic ir tyre -stint gap -last'),
       { id: 'pit', visible: false }
     ])
   })
@@ -774,6 +777,7 @@ describe('migrateRelativeColumns (R10)', () => {
       'country',
       'driver',
       'flags',
+      '-gained',
       'gap',
       '-last',
       ...ids(custom).slice(3),
@@ -786,12 +790,12 @@ describe('migrateRelativeColumns (R10)', () => {
       relative: { columns: L('pos driver ir lic -pit -tyre -stint gap') }
     })
     expect(s.relative.columns).toEqual(
-      L('pos number brand country driver flags ir lic gap -last -pit -stint -tyre')
+      L('pos number brand country driver flags -gained ir lic gap -last -pit -stint -tyre')
     )
     // One with a column shown keeps its order (it is what it draws).
     const own = L('pos driver ir lic -pit tyre -stint gap')
     expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(
-      L('pos number brand country driver flags ir lic -pit tyre -stint gap -last')
+      L('pos number brand country driver flags -gained ir lic -pit tyre -stint gap -last')
     )
     // An old file's switches too: its tyre stays before the gap.
     const old = normalizeSettings({ version: 4, relative: { showTyre: true } }).relative.columns
@@ -863,13 +867,14 @@ describe('the penalty flags’ column (2.4)', () => {
       'gap',
       'gained'
     ])
-    expect(ids(s.relative.columns).slice(0, 7)).toEqual([
+    expect(ids(s.relative.columns).slice(0, 8)).toEqual([
       '-pos',
       'number',
       'brand',
       'country',
       'driver',
       'flags',
+      '-gained',
       'gap'
     ])
     expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', 'flags', 'value'])
@@ -909,19 +914,38 @@ describe('the row’s start as columns (request 11)', () => {
     expect(ids(shown.standings.columns)[0]).toBe('pos')
   })
 
+  it('leaves a list without a known column to normalisation: the defaults, as before', () => {
+    for (const columns of [[], [{ id: 'nope', visible: true }, 7, null]]) {
+      const s = normalizeSettings({ version: 5, relative: { columns }, standings: { columns } })
+      expect(migrateRowHead('relative', { columns })).toEqual({ columns })
+      expect(ids(s.relative.columns)).toEqual(ids(OPTION_SCHEMA.relative.columns.default))
+      expect(ids(s.standings.columns)).toEqual(ids(OPTION_SCHEMA.standings.columns.default))
+      // A saved layout the same.
+      const base = JSON.parse(JSON.stringify(createDefaultSettings())) as OverlaySettings
+      const layout = base.savedLayouts.list[0]
+      if (layout?.options === undefined) throw new Error('a full layout')
+      ;(layout.options.sections.relative as unknown as Record<string, unknown>).columns = columns
+      const l = normalizeSettings(JSON.parse(JSON.stringify({ ...base, version: 5 })))
+      expect(ids(l.savedLayouts.list[0]?.options?.sections.relative.columns ?? [])).toEqual(
+        ids(OPTION_SCHEMA.relative.columns.default)
+      )
+    }
+  })
+
   it('moves a hidden penalty flags’ entry (after the name, then) right after the name, shown', () => {
     const s = normalizeSettings({
       version: 5,
       relative: { columns: L2('pos driver ir -flags gap') },
       traffic: { parts: L2('icon -flags driver value') }
     })
-    expect(ids(s.relative.columns).slice(0, 7)).toEqual([
+    expect(ids(s.relative.columns).slice(0, 8)).toEqual([
       'pos',
       'number',
       'brand',
       'country',
       'driver',
       'flags',
+      '-gained',
       'ir'
     ])
     expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', 'flags', 'value'])
@@ -932,8 +956,8 @@ describe('the row’s start as columns (request 11)', () => {
     expect(migrateRowHead('relative', { columns }).columns).toBe(columns)
     // The parts the «Piloto» block shows are always in the list: normalisation shows them.
     const s = normalizeSettings({ version: 6, relative: { columns } })
-    expect(ids(s.relative.columns).slice(0, 9)).toEqual(
-      ids(L2('gap -last number driver pos brand country flags ir'))
+    expect(ids(s.relative.columns).slice(0, 10)).toEqual(
+      ids(L2('gap -last number driver pos brand country flags -gained ir'))
     )
   })
 

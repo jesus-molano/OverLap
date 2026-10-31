@@ -35,6 +35,9 @@ export interface LinkedRow {
   readonly title: string
   /** Where it is switched and how it is now: «Se muestra u oculta en «Piloto»: Global (Sí)». */
   readonly hint: string
+  /** That control's row: its label («Logo de la marca») in its section («Piloto»), to go to. */
+  readonly control: string
+  readonly section: string
 }
 
 /**
@@ -54,6 +57,11 @@ export function linkedParts(
   const label = <V>(choices: readonly { value: V; label: string }[], value: V): string =>
     choices.find((o) => o.value === value)?.label ?? ''
   const flag = (v: boolean | 'inherit' | undefined): FlagChoice => toFlagChoice(v ?? 'inherit')
+  const controls: Record<BlockPartId, string> = {
+    brand: m.settings.driverCell.brandMarks,
+    country: m.settings.driverCell.countryFlags,
+    flags: m.settings.common.penaltyFlags
+  }
   const values: Record<BlockPartId, readonly [string, boolean]> = {
     brand: [
       label(brandChoicesInherit(m, globals.brandMarks), own.brandMarks ?? 'inherit'),
@@ -71,7 +79,13 @@ export function linkedParts(
   const out: Partial<Record<BlockPartId, LinkedRow>> = {}
   for (const id of parts) {
     const [value, on] = values[id]
-    out[id] = { on, title: c.inBlockTitle, hint: c.inBlock(value) }
+    out[id] = {
+      on,
+      title: c.inBlockTitle,
+      hint: c.inBlock(value),
+      control: controls[id],
+      section: m.settings.driverBlock.title
+    }
   }
   return out
 }

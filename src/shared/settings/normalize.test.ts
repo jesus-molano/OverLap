@@ -157,6 +157,7 @@ const DEFAULT_RELATIVE: RelativeOptions = {
       'country',
       'driver',
       'flags',
+      'gained',
       'ir',
       'lic',
       'gap',
@@ -165,7 +166,7 @@ const DEFAULT_RELATIVE: RelativeOptions = {
       'stint',
       'tyre'
     ],
-    ['last', 'pit', 'tyre', 'stint']
+    ['gained', 'last', 'pit', 'tyre', 'stint']
   ),
   // One rule for the bars (R13): session data on by default in the standings only.
   headerBar: bar(['title', 'split']),
@@ -783,6 +784,7 @@ describe('normalizeSettings: basics', () => {
           'driver',
           'country',
           'flags',
+          'gained',
           'pos',
           'brand',
           'lic',
@@ -791,7 +793,7 @@ describe('normalizeSettings: basics', () => {
           'stint',
           'pit'
         ],
-        ['last', 'ir', 'pit', 'number']
+        ['gained', 'last', 'ir', 'pit', 'number']
       ),
       headerBar: bar(['clock', 'split', 'remaining', 'incidents']),
       headerBarSize: 'large',
@@ -1460,6 +1462,7 @@ describe('normalizeSettings: migration', () => {
           'country',
           'driver',
           'flags',
+          'gained',
           'ir',
           'lic',
           'gap',
@@ -1468,7 +1471,7 @@ describe('normalizeSettings: migration', () => {
           'stint',
           'tyre'
         ],
-        ['last', 'lic', 'pit', 'tyre', 'stint']
+        ['gained', 'last', 'lic', 'pit', 'tyre', 'stint']
       )
     })
     expect(s.radar).toEqual({

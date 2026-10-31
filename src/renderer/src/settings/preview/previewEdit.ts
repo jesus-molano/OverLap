@@ -74,21 +74,30 @@ export type ElAction =
   | 'hide'
   /** Drag to reorder; never hidden (required). */
   | 'move-required'
+  /** Drag to reorder; shown or hidden by another control (the «Piloto» block, request 11). */
+  | 'move-linked'
   /** Neither: required in a fixed order. */
   | 'required'
   /** A ghost: click to show (and drag to place it). */
   | 'show'
 
-export function elAction<Id extends string>(spec: SpecRules<Id>, list: List<Id>, id: Id): ElAction {
+/** `linked`: `id` is shown or hidden by another control (ElementEditor's `linked` rows). */
+export function elAction<Id extends string>(
+  spec: SpecRules<Id>,
+  list: List<Id>,
+  id: Id,
+  linked = false
+): ElAction {
   const visible = list.some((e) => e.id === id && e.visible)
   const sortable = !spec.fixedOrder && list.length > 1
   if (!visible) return 'show'
+  if (linked && sortable) return 'move-linked'
   if (isRequired(spec, id)) return sortable ? 'move-required' : 'required'
   return sortable ? 'move-hide' : 'hide'
 }
 
 export const canDrag = (a: ElAction): boolean =>
-  a === 'move-hide' || a === 'move-required' || a === 'show'
+  a === 'move-hide' || a === 'move-required' || a === 'move-linked' || a === 'show'
 
 /** A press that travelled this far (px) is a drag, not a click. */
 export const DRAG_SLOP_PX = 4

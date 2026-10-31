@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { messagesFor } from '@shared/i18n'
 import { CUSTOMIZE_ZONE_IDS } from '@shared/settingsSchema'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { elements } from '@shared/settingsSchema'
@@ -94,6 +95,22 @@ describe('what a click and a drag may do', () => {
     expect(['move-hide', 'move-required', 'show'].every((a) => canDrag(a as never))).toBe(true)
     expect(canDrag('hide')).toBe(false)
     expect(canDrag('required')).toBe(false)
+  })
+
+  it('moves one another control shows or hides, never says it is always shown (request 11)', () => {
+    const l = defaults(SPEC)
+    // The tables' logo and flags: required in the list, shown or hidden in «Piloto».
+    expect(elAction(SPEC, l, 'b', true)).toBe('move-linked')
+    expect(canDrag('move-linked')).toBe(true)
+    // In a fixed order there is nothing to move: as a required one.
+    expect(elAction(FIXED, defaults(FIXED), 'b', true)).toBe('required')
+    // The words on hover and on a click, in both languages.
+    expect(messagesFor('es').settings.preview.actions['move-linked']).toBe(
+      'Arrastra para mover · se muestra u oculta en «Piloto»'
+    )
+    expect(messagesFor('en').settings.preview.refused.linked('Make logo')).toBe(
+      'Make logo is shown or hidden in “Driver”'
+    )
   })
 
   it('is a drag past a few pixels only', () => {

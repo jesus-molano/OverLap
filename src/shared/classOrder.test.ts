@@ -65,13 +65,15 @@ describe('the list’s names', () => {
     expect(sameNames(['a', 'b'], ['b', 'a'])).toBe(false)
   })
 
-  it('gives each name a plain id and reads it back', () => {
+  it('gives each name a plain id and reads it back (in lower case)', () => {
     for (const name of ['GT3', 'LMP2', 'Porsche 911 Cup', 'Fórmula Vee', 'GT3 Class']) {
       const key = classOrderKey(name)
       expect(key).toMatch(/^[a-p]+$/)
-      expect(classOfKey(key)).toBe(name)
+      expect(classOfKey(key)).toBe(name.toLowerCase())
     }
-    expect(classOrderKey('GT3')).toBe('aaehaafeaadd')
+    expect(classOrderKey('GT3')).toBe('aaghaaheaadd')
+    // One id for the spellings the list takes as one class: a drag on either finds its row.
+    expect(classOrderKey(' gt3 ')).toBe(classOrderKey('GT3'))
     expect(classOrderKey('  ')).toBe('')
     for (const bad of ['', 'abc', 'aaeq', 'AAEH', 'standings']) expect(classOfKey(bad)).toBeNull()
   })
