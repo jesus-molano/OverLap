@@ -762,6 +762,11 @@ Consejos:
 
 ## Licencia
 
-OverLap no es software libre: © 2026 Jesús Molano, todos los derechos reservados (ver
-[LICENSE](../LICENSE)). Las dependencias y el material de terceros conservan sus licencias, que se
-recogen en [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+OverLap es software libre bajo la GNU GPL versión 3 o posterior (`GPL-3.0-or-later`), © 2026 Jesús
+Molano: ver [LICENSE](../LICENSE) y «Licencia y créditos» en el
+[README](../README.md#licencia-y-créditos). Las dependencias y el material de terceros conservan sus
+licencias, que se recogen en [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
+No hacen falta cabeceras de licencia en cada archivo. Los comentarios de atribución que ya hay
+(`irating.ts`, `safetyRating.ts`, `brandLogos.ts`, `flags.ts`) se quedan: las licencias MIT de
+origen los piden.
