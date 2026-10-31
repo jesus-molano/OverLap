@@ -117,6 +117,9 @@ export const COMPLETE_LEAVES: readonly string[] = [
   'referenceRace',
   'fallback',
   'repairRealTime',
+  // The standings' class blocks: in your order, whatever is shown (9).
+  'classOrder',
+  'classList',
   // The spotter's pillars: around a car alongside, or whenever you drive.
   'onlyAlongside',
   // Drawing.

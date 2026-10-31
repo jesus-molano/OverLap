@@ -146,6 +146,17 @@ export interface AcceleratorSpec extends SpecBase {
   readonly kind: 'accelerator'
   readonly default: string
 }
+/**
+ * Names the user put in an order (the standings' classes by hand, 9): trimmed, none empty or
+ * longer than `maxLength`, each once (regardless of case: the first one wins), at most `max`.
+ * Normalised by fields.ts normalizeNames; a patch replaces the whole list.
+ */
+export interface NamesSpec extends SpecBase {
+  readonly kind: 'names'
+  readonly max: number
+  readonly maxLength: number
+  readonly default: readonly string[]
+}
 export type NumericSpec = IntSpec | NumberSpec
 export type OptionSpec =
   | NumericSpec
@@ -156,6 +167,7 @@ export type OptionSpec =
   | ColorsSpec
   | ElementsSpec
   | AcceleratorSpec
+  | NamesSpec
 
 /** The spec kinds allowed for a field of type T (non-distributive on purpose). */
 export type SpecFor<T> = [T] extends [boolean]
@@ -166,13 +178,15 @@ export type SpecFor<T> = [T] extends [boolean]
       ? NumericSpec
       : [T] extends [readonly ElementEntry<infer Id extends string>[]]
         ? ElementsSpec<Id>
-        : [T] extends [string]
-          ? string extends T
-            ? ColorSpec | AcceleratorSpec
-            : EnumSpec<T>
-          : [T] extends [Readonly<Record<string, string>>]
-            ? ColorsSpec<Extract<keyof T, string>>
-            : never
+        : [T] extends [readonly string[]]
+          ? NamesSpec
+          : [T] extends [string]
+            ? string extends T
+              ? ColorSpec | AcceleratorSpec
+              : EnumSpec<T>
+            : [T] extends [Readonly<Record<string, string>>]
+              ? ColorsSpec<Extract<keyof T, string>>
+              : never
 
 export type OptionSchema = {
   readonly [S in OptionSection]: {
@@ -543,6 +557,10 @@ export const OPTION_SCHEMA = {
     // Compact: the first cars of each other class (2.4; the old «Líderes de otras clases» switch:
     // 1, its leader on one line, 0 none). Same range as the rows of your class.
     otherClassRows: { kind: 'int', min: 0, max: 10, default: 1 },
+    // Your class first, as it always was (9); «A mano» orders by the class names of classList.
+    // Not display-only: the provider puts the blocks in this order.
+    classOrder: { kind: 'enum', values: ['player', 'speed', 'manual'], default: 'player' },
+    classList: { kind: 'names', max: 32, maxLength: 32, default: [] },
     gapMode: {
       kind: 'enum',
       values: ['interval', 'leader', 'both'],

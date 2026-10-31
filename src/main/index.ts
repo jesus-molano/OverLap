@@ -195,6 +195,7 @@ function start(): void {
   let personalBests: PersonalBestList | null = null
   /** The kind of session the telemetry process reports (the delta cycle shortcut acts on it). */
   let sessionKindNow: SessionKind | null = null
+  let sessionClasses: string[] = []
   /** The overlays' copy of the settings last broadcast (syncSettings). */
   let overlaySettingsSent: OverlaySettings | null = null
   console.log(`[main] source: ${source}, settings: ${store.file}`)
@@ -354,6 +355,11 @@ function start(): void {
       sessionKindNow = kind
     },
     onPlayerCar: (car) => layouts.onCar(car),
+    // The standings' «Orden de las clases» lists this session's classes (9).
+    onSessionClasses: (names) => {
+      sessionClasses = names
+      sendToSettingsWindow(IPC.sessionClasses, names)
+    },
     // An import's bests (R40): how it went, under «Importar todo».
     onBestsMerged: (taken, skipped) =>
       sendToSettingsWindow(IPC.layoutNotice, { kind: 'backup-bests-merged', taken, skipped })
@@ -943,6 +949,7 @@ function start(): void {
       shortcutStatus: shortcuts.report,
       cursorHidden: windows.cursorHidden,
       currentCar: layouts.car,
+      sessionClasses,
       saveFailing: store.saveFailing,
       appVersion: app.getVersion()
     }

@@ -61,6 +61,8 @@ function otherValue(spec: OptionSpec, value: unknown): unknown {
     }
     case 'accelerator':
       return value === 'Ctrl+Alt+F9' ? 'Ctrl+Alt+F10' : 'Ctrl+Alt+F9'
+    case 'names':
+      return [...(value as string[]), 'GTP']
   }
   return value
 }

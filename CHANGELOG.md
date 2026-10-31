@@ -71,6 +71,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   y, fuera de carrera, su mejor vuelta. Oculta de serie (también al actualizar, tras el hueco) y se
   ordena como las demás; «Igualar con Posiciones» (y «Igualar con Relativo») la lleva con las otras
   columnas que comparten.
+- **Posiciones: el orden de las clases**: en Contenido, **Orden de las clases** elige qué bloque va
+  arriba con varias clases: **Tu clase primero** (como siempre y de serie: después, las más
+  rápidas), **La más rápida primero** (como iRacing, la tuya en su sitio) o **A mano**, con una lista
+  de las clases por su nombre corto que se ordena arrastrando o con ↑ ↓, como las columnas. La lista
+  se recuerda entre sesiones (una LMP2 es la LMP2 en cualquier carrera); trae siempre las clases de
+  la sesión en curso, y las que no están en ella van detrás, la más rápida primero. Tu clase guarda
+  sus filas alrededor de ti vaya donde vaya su bloque. En la vista previa, que en esta página tiene
+  una tercera clase (GTP), una clase también se mueve arrastrando su línea (o la etiqueta de su
+  líder en una línea) encima o debajo de otra, con la misma línea de colocar que las columnas: si
+  el orden no era «A mano», pasa a serlo, el aviso lo dice y «Deshacer» devuelve los dos.
 
 ### Cambiado
 

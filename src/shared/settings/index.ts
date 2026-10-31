@@ -73,6 +73,8 @@ export const STANDINGS_ROWS_MIN = O.standings.topRows.min
 export const STANDINGS_ROWS_MAX = O.standings.topRows.max
 export const STANDINGS_MODES = O.standings.mode.values
 export const STANDINGS_GAP_MODES = O.standings.gapMode.values
+/** «Orden de las clases» (9), the default first. */
+export const STANDINGS_CLASS_ORDERS = O.standings.classOrder.values
 /** Battle thresholdS (seconds, one decimal). */
 export const BATTLE_THRESHOLD_MIN_S = O.battle.thresholdS.min
 export const BATTLE_THRESHOLD_MAX_S = O.battle.thresholdS.max

@@ -113,10 +113,11 @@ describe('data-el on the widgets', () => {
       // The alerts, a preview zone of their own (R12): stored as their switches, not as a list.
       ...ALERT_TOGGLES.map((k) => `alerts.alerts.${k}`)
     ])
+    // The standings' classes (9b): their names, dragged in the settings page's sample.
+    const loopZones: readonly string[] = [...CUSTOMIZE_ZONE_IDS, 'standings.classOrder']
     for (const { path, names } of FILES) {
       for (const v of names.literal) expect(known.has(v), `${path}: ${v}`).toBe(true)
-      for (const z of names.looped)
-        expect((CUSTOMIZE_ZONE_IDS as readonly string[]).includes(z), `${path}: ${z}`).toBe(true)
+      for (const z of names.looped) expect(loopZones.includes(z), `${path}: ${z}`).toBe(true)
     }
   })
 

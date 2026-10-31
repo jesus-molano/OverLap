@@ -154,6 +154,11 @@ const props = withDefaults(
      * their switches): a click on one of its elements in the sample hides it, as its eye does.
      */
     previewZone?: PreviewZoneId
+    /**
+     * Names in an order, nothing to show or hide (the standings' classes «A mano», 9): no eye
+     * and no lock on the rows, only their order.
+     */
+    orderOnly?: boolean
   }>(),
   {
     emptyHides: false,
@@ -171,7 +176,8 @@ const props = withDefaults(
     embedded: false,
     quietEmpty: false,
     groups: undefined,
-    previewZone: undefined
+    previewZone: undefined,
+    orderOnly: false
   }
 )
 
@@ -883,8 +889,9 @@ function onCancel(e: PointerEvent): void {
                     <Icon name="grip" />
                   </button>
                   <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
+                  <template v-if="orderOnly" />
                   <span
-                    v-if="isRequired(spec, r.entry.id)"
+                    v-else-if="isRequired(spec, r.entry.id)"
                     class="ed-eye is-locked"
                     :title="t.settings.elements.required"
                   >

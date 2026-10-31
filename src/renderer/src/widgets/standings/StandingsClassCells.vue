@@ -7,7 +7,8 @@ import { CLASS_META_SEP, type ClassLineView } from './view'
  * Class header line: class name (in the class ink) and SoF / car count (multi-root, see the
  * parent). The class colour is the line's 2 px bottom key, drawn by the parent: horizontal means
  * identity, so the class never goes on a rail. Each part of the meta is its own span (data-el
- * for the settings preview), the text the same as one string.
+ * for the settings preview), the text the same as one string. The line itself (the parent's) is
+ * the class's handle in the settings page's sample: dragged, it reorders the classes (9b).
  */
 const props = defineProps<{ line: ClassLineView }>()
 

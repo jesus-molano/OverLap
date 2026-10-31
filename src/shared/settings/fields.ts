@@ -9,6 +9,7 @@ import {
   OPTION_SCHEMA,
   WIDGET_FIELD_SCHEMA,
   type ElementsSpec,
+  type NamesSpec,
   type OptionSpec
 } from '../settingsSchema'
 import { canonicalShortcut } from '../shortcuts'
@@ -141,7 +142,34 @@ export function validateOption(spec: OptionSpec, raw: unknown, current: unknown)
       return normalizeElements(raw, current as readonly ElementEntry[], spec)
     case 'accelerator':
       return pickAccelerator(raw, current as string)
+    case 'names':
+      return normalizeNames(raw, current as readonly string[], spec)
   }
+}
+
+/**
+ * A names list (NamesSpec) from `raw`: its strings trimmed, the empty and the too long ones
+ * dropped, each name once regardless of case (the first one wins), at most `spec.max`. A
+ * non-array keeps a copy of `fallback`.
+ */
+export function normalizeNames(
+  raw: unknown,
+  fallback: readonly string[],
+  spec: Pick<NamesSpec, 'max' | 'maxLength'>
+): string[] {
+  if (!Array.isArray(raw)) return [...fallback]
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const v of raw) {
+    if (out.length >= spec.max) break
+    if (typeof v !== 'string') continue
+    const name = v.trim()
+    const key = name.toLowerCase()
+    if (name === '' || name.length > spec.maxLength || seen.has(key)) continue
+    seen.add(key)
+    out.push(name)
+  }
+  return out
 }
 
 /** The accelerator fields of a section, in schema order. */

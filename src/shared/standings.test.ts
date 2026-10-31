@@ -432,6 +432,44 @@ describe('classes', () => {
     expect(data.classes.map((b) => b.carCount)).toEqual([3, 4, 2, 2])
   })
 
+  it('«La más rápida primero» (9): the fastest on top, your class in its place', () => {
+    const data = compute(RACE, session, race, { ...OPTS, classOrder: 'speed' })
+    expect(data.classes.map((b) => b.classId)).toEqual([10, 20, 30, 5])
+    // Your class keeps the rows around you; the others their first cars.
+    expect(data.classes[3]?.isPlayerClass).toBe(true)
+    expect(carIdxs(block(data, 3))).toEqual([0, 1, 2])
+    expect(data.classes.slice(0, 3).map(carIdxs)).toEqual([[30], [20], [10]])
+  })
+
+  it('«A mano» (9): the listed classes in its order (any case), then the rest fastest first', () => {
+    const manual = (classList: string[]): number[] =>
+      compute(RACE, session, race, { ...OPTS, classOrder: 'manual', classList }).classes.map(
+        (b) => b.classId
+      )
+    expect(manual(['gt4', 'MX5'])).toEqual([20, 5, 10, 30])
+    // Names of other sessions do nothing; a class without a name is never listed.
+    expect(manual(['LMP2', 'MX5', ''])).toEqual([5, 10, 20, 30])
+    // Nothing listed: by speed.
+    expect(manual([])).toEqual([10, 20, 30, 5])
+    // The list does nothing under another order.
+    expect(
+      compute(RACE, session, race, { ...OPTS, classList: ['GT4'] }).classes.map((b) => b.classId)
+    ).toEqual([5, 10, 20, 30])
+  })
+
+  it('«A mano» while spectating: the fastest class still gets the top rows', () => {
+    const r = makeRace([...field(3, 0), ...field(4, 30)], { playerCarIdx: 99 })
+    const data = compute(RACE, session, r, {
+      ...OPTS,
+      topRows: 2,
+      classOrder: 'manual',
+      classList: ['MX5']
+    })
+    expect(data.classes.map((b) => b.classId)).toEqual([5, 10])
+    expect(carIdxs(block(data, 0))).toEqual([0])
+    expect(carIdxs(block(data, 1))).toEqual([30, 31])
+  })
+
   it('compact: one row with the leader of each other class', () => {
     const data = compute(RACE, session, race, OPTS)
     expect(data.classes.slice(1).map(carIdxs)).toEqual([[30], [20], [10]])

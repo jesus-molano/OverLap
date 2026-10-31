@@ -1549,6 +1549,9 @@ export type StandingsColumnId =
 /** One standings column (the generic element entry; stored as `{ id, visible }`). */
 export type StandingsColumn = ElementEntry<StandingsColumnId>
 
+/** «Orden de las clases» of the standings (StandingsOptions.classOrder). */
+export type StandingsClassOrder = 'player' | 'speed' | 'manual'
+
 export interface StandingsOptions {
   /** compact: top rows + window around you + other classes' first cars; full: every car of every class. */
   mode: 'compact' | 'full'
@@ -1561,6 +1564,17 @@ export interface StandingsOptions {
    * under its class line. Replaces the old otherClassLeaders switch (true: 1, false: 0).
    */
   otherClassRows: number
+  /**
+   * The order of the class blocks (multiclass, 9): your class first, then the faster ones
+   * ('player', always so before); the fastest first, yours in its place ('speed'); or by hand
+   * ('manual'): `classList` first, the classes it does not name after them, the fastest first.
+   */
+  classOrder: StandingsClassOrder
+  /**
+   * «A mano»: class short names ('LMP2'), top to bottom, remembered across sessions (matched
+   * without regard to case). Kept while another order is chosen.
+   */
+  classList: string[]
   /** Which gap the 'gap' column shows ('both' = interval, plus gapLeader as its own column). */
   gapMode: 'interval' | 'leader' | 'both'
   /** Every column id exactly once, in order (normalisation fixes missing/duplicated ids). */

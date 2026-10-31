@@ -295,6 +295,11 @@ const bottomAnchored = computed(() => autoHeight.value && prefs.value.anchor ===
           v-memo="[line, cols.key]"
           v-inline-style="line.clsStyle"
           :class="line.css"
+          :data-el="
+            line.kind === 'class' && line.orderKey !== ''
+              ? `standings.classOrder.${line.orderKey}`
+              : undefined
+          "
         >
           <StandingsClassCells v-if="line.kind === 'class'" :line="line" />
           <StandingsCarCells v-else :line="line" :cols="cols" />

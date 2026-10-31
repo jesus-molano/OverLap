@@ -1127,6 +1127,26 @@ export const settingsEs = {
     otherClassRows: 'Coches de otras clases',
     otherClassRowsHelp:
       'Los primeros de cada otra clase, bajo su nombre; 1: solo el líder, en una línea; 0: ninguno',
+    /** «Orden de las clases» (9): which class block goes on top with several classes. */
+    classOrder: 'Orden de las clases',
+    classOrderHelp: 'Con varias clases, en qué orden van sus bloques',
+    classOrderChoices: {
+      player: { label: 'Tu clase primero', hint: 'Después, las más rápidas' },
+      speed: { label: 'La más rápida primero', hint: 'Como iRacing: la tuya, en su sitio' },
+      manual: {
+        label: 'A mano',
+        hint: 'En el orden de la lista, o arrastrando el nombre de una clase en la vista previa'
+      }
+    },
+    /** «A mano»: the list of class names, top to bottom (9). */
+    classList: 'Clases, de arriba abajo',
+    classListHelp:
+      'Por su nombre corto, en cualquier sesión. Las que no estén en la lista van detrás, la más rápida primero',
+    /** A row of the list: a class of the session running now, or one the preview draws. */
+    classInSession: 'En esta sesión',
+    classInPreview: 'En la vista previa',
+    /** The undo toast after a class dragged in the preview switched the order to «A mano» (9b). */
+    classMovedManual: (item: string) => `Movido: «${item}» · Orden de las clases: A mano`,
     /** Under Contenido while the sample draws another field (previewField), as Delta says its. */
     previewDeep: (position: number) =>
       `La vista previa te pone en P${position}: así se ven por separado los primeros puestos y los coches de alrededor`,
@@ -3016,6 +3036,22 @@ export const settingsEn: Dict<typeof settingsEs> = {
     otherClassRows: 'Cars of other classes',
     otherClassRowsHelp:
       'The front of each other class, under its name; 1: the leader alone, on one line; 0: none',
+    classOrder: 'Class order',
+    classOrderHelp: 'With several classes, the order of their blocks',
+    classOrderChoices: {
+      player: { label: 'Your class first', hint: 'Then the faster ones' },
+      speed: { label: 'Fastest first', hint: 'As iRacing: yours in its place' },
+      manual: {
+        label: 'By hand',
+        hint: 'In the order of the list, or by dragging a class’s name in the preview'
+      }
+    },
+    classList: 'Classes, top to bottom',
+    classListHelp:
+      'By their short name, in any session. Classes not in the list go after it, the fastest first',
+    classInSession: 'In this session',
+    classInPreview: 'In the preview',
+    classMovedManual: (item) => `Moved: “${item}” · Class order: By hand`,
     previewDeep: (position) =>
       `The preview puts you in P${position}: so the top rows and the cars around you show apart`,
     previewSingle:

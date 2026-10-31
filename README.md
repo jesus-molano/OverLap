@@ -142,6 +142,11 @@ lluvia, viento con un dial que apunta a tu coche) y los coches. A un clic en Per
 segunda línea con tu iRating en juego, tu SR proyectado y la vuelta rápida de clase, y el aire y la
 goma en el pie (de serie no salen en una instalación nueva, para leerla de un vistazo).
 
+Con varias clases, **Orden de las clases** pone tu clase primero (de serie), la más rápida primero
+(como iRacing) o el orden que quieras (**A mano**): una lista de clases por su nombre corto que se
+recuerda entre sesiones y se ordena arrastrando, con ↑ ↓ o arrastrando la línea de una clase en la
+vista previa.
+
 Antes de la verde muestra la parrilla entera, y al acabar la sesión se queda con los resultados en
 la pantalla de sesión.
 

@@ -5,6 +5,7 @@ import {
   type PersonalBestStore,
   type PersonalBestTarget
 } from '@shared/delta/references'
+import { sameNames, sessionClassNames } from '@shared/classOrder'
 import type { TelemetryOutMessage } from '@shared/ipc'
 import {
   SKIP_EMIT,
@@ -248,6 +249,8 @@ export class TelemetryLoop {
   private targetPlayer = -1
   /** The player's car model last told to main (undefined: nothing told yet). */
   private lastCar: CarRef | null | undefined = undefined
+  /** The classes of the session last told to main (9; [] before any). */
+  private lastClasses: readonly string[] = []
 
   constructor(
     private readonly source: TelemetrySource,
@@ -565,6 +568,14 @@ export class TelemetryLoop {
     this.targetPlayer = player
     this.setTarget(personalBestTarget(session, player), now)
     this.followCar(playerCar(session, player))
+    this.followClasses(sessionClassNames(session))
+  }
+
+  /** Tells main the session's classes when they change (the standings' class order lists them). */
+  private followClasses(names: string[]): void {
+    if (sameNames(names, this.lastClasses)) return
+    this.lastClasses = names
+    this.emit({ type: 'session-classes', names })
   }
 
   /** Tells main the player's car model when it changes (the automatic layout follows it). */
@@ -716,6 +727,7 @@ export class TelemetryLoop {
     this.targetSession = null
     this.setTarget(null, now)
     if (this.lastCar !== undefined) this.followCar(null)
+    this.followClasses([])
   }
 
   /** Tells main the kind of session when it changes (the delta's cycle shortcut needs one). */
