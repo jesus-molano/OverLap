@@ -596,8 +596,9 @@ cualquier versión posterior (`GPL-3.0-or-later`). OverLap se distribuye con la 
 idoneidad para un fin concreto. El texto completo está en [LICENSE](LICENSE), en inglés, que es la
 versión que vale legalmente.
 
-El nombre OverLap y el icono «OL» no se licencian como marca (GPL §7(e)): si distribuyes una versión
-modificada, ponle otro nombre y otro icono para que nadie la confunda con OverLap. iRacing es una
+El nombre OverLap y el icono «OL» no se licencian como marca (GPL §7(e)): la GPL te da el código,
+no el derecho a usar ese nombre ni ese icono. Por eso, si distribuyes una versión modificada, tendrá
+que llevar otro nombre y otro icono, y así nadie la confundirá con OverLap. iRacing es una
 marca de iRacing.com Motorsport Simulations, LLC; OverLap no está afiliado a iRacing ni cuenta con su
 respaldo.
 
