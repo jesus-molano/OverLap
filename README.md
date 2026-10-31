@@ -2,8 +2,8 @@
 
 > **In English:** OverLap is a free and open-source overlay for iRacing on Windows. It reads the
 > sim's official telemetry (the iRacing SDK shared memory, read-only; nothing is injected into the
-> game) and draws eleven widgets on top of it: relative, radar, spotter, standings, battle, inputs,
-> traffic, alerts, warning lights, delta and fuel. Every widget can be moved, scaled and customised,
+> game) and draws eleven widgets on top of it: relative, standings, battle, traffic, radar, spotter,
+> delta, fuel, inputs, alerts and warning lights. Every widget can be moved, scaled and customised,
 > with a different layout per car. The app speaks Spanish and English; it needs no account and makes
 > no network connections. Download the portable `.exe` from
 > [Releases](https://github.com/jesus-molano/OverLap/releases). Licensed under the
@@ -12,8 +12,8 @@
 > [contributing](CONTRIBUTING.md). The rest of this guide is in Spanish.
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja once
-widgets encima del juego: relativo, radar, spotter, posiciones, batalla, pedales, tráfico, avisos,
-testigos, delta y combustible. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
+widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, delta,
+combustible, pedales, avisos y testigos. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar una disposición distinta para cada coche.
 
 - Solo **lee** los datos del SDK de iRacing: no inyecta nada en el juego ni usa la red (ver
@@ -23,7 +23,7 @@ guardar una disposición distinta para cada coche.
 - En español o en inglés: la primera vez, en el idioma de Windows (si no es ninguno de los dos, en
   inglés).
 
-![Relativo, delta, radar, testigos y posiciones de OverLap](docs/screenshots/overlap.png)
+![Relativo, delta, radar, spotter, testigos y posiciones de OverLap](docs/screenshots/overlap.png)
 
 _Todas las capturas usan los datos de ejemplo de la propia app (pilotos inventados) sobre fondo
 transparente; en pista, el panel deja ver el juego a través según la opacidad que elijas._
@@ -63,22 +63,27 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 3. El `.exe` no está firmado, así que **Windows SmartScreen** avisará la primera vez. Pulsa **Más
    información → Ejecutar de todas formas**.
 
-OverLap se queda en la **bandeja del sistema** (junto al reloj). Desde su icono abres los
-**Ajustes…**, muestras u ocultas cada widget, cambias el alcance del radar, cuándo se ve el overlay y
-la disposición en uso, entras en modo edición, abres la carpeta de ajustes o sales. Volver a abrir
+OverLap se queda en la **bandeja del sistema** (junto al reloj). Desde su icono ves su estado (y si
+algún atajo no funciona), abres los **Ajustes…**, muestras u ocultas cada widget (agrupados como en
+los Ajustes), cambias el alcance del radar, cuándo se ve el overlay y la disposición en uso,
+muestras u ocultas todo el overlay (**Mostrar el overlay**), entras en modo edición, traes los
+widgets a la pantalla del ratón (**Traer todos los widgets a esta pantalla**), deshaces lo último
+(**Deshacer: …**, cuando hay algo que deshacer), abres la carpeta de ajustes o sales. Volver a abrir
 el `.exe` con OverLap ya en marcha abre los Ajustes.
 
 Si iRacing no está abierto, Relativo y Posiciones muestran «Esperando a iRacing…» unos segundos y
-se ocultan; OverLap se conecta solo en cuanto arranca el simulador.
+se ocultan (salvo con **Mantener «Esperando a iRacing»** en Visibilidad); OverLap se conecta solo en cuanto arranca el simulador.
 
-Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Acerca de y ayuda › Abrir carpeta**,
+Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Acerca de y ayuda › Archivos y diagnóstico › Abrir carpeta**,
 o la bandeja). En esa página, **Exportar todo…** guarda en un archivo todos los ajustes (Apariencia,
 atajos, visibilidad y todas las disposiciones con sus opciones) y tus récords, e **Importar todo…**
 los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**,
 mientras no cambies nada más) y los récords del archivo se suman a los tuyos (gana la vuelta más
 rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
-versión, una ayuda rápida, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y
-**Restablecer todo** (como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
+versión, una ayuda rápida, **Guía de uso** e **Informar de un problema** (abren el navegador),
+**Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y **Restablecer todo** (pulsa
+otra vez para confirmar; como recién instalado, en tu idioma; tus récords se quedan; con
+**Deshacer**).
 Al final, **Licencia** dice que OverLap es software libre (GPL-3.0 o posterior, sin garantía) y
 abre en el navegador el código fuente, la licencia y los avisos de terceros.
 
@@ -86,7 +91,9 @@ abre en el navegador el código fuente, la licencia y los avisos de terceros.
 
 Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus opciones. Todos se
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
-carrera).
+carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
+bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar y Spotter), **Tu
+vuelta** (Delta, Combustible y Pedales) y **Estado del coche** (Avisos y Testigos).
 
 ### Relativo
 
@@ -99,7 +106,8 @@ y Batalla). En rojo quien te va a doblar, en
 azul los doblados (con una muesca arriba o abajo en su número, para no depender del color) y
 atenuados los que están en boxes. En la cabecera, su nombre; tus incidentes y
 el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo restante salen por
-defecto en Posiciones, y aquí con un clic en su cabecera.
+defecto en Posiciones, y aquí con un clic en su cabecera. En Contenido, **Densidad** (la global
+de Apariencia o una propia).
 
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
 Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), última vuelta
@@ -108,52 +116,26 @@ vuelta), puestos ganados (solo en carrera, como en Posiciones), títulos de colu
 datos arriba y abajo (sesión, tiempo restante, SoF,
 iRating en juego, SR proyectado, condiciones de pista…). El principio de la fila también son
 columnas, como en Posiciones (ver más abajo): posición, número, logo, bandera del país, nombre y
-banderas de penalización van donde los pongas.
-
-### Radar
-
-<img src="docs/screenshots/radar.png" alt="Radar" width="213">
-
-Vista cenital con los coches a escala alrededor del tuyo, que pasan a rojo según se acercan, y un
-aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m por defecto). Un
-coche que te acaba de pasar conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta
-solo cuando no hay nadie cerca.
-
-### Spotter
-
-Dos barras, una a cada lado, para quien prefiere los laterales al radar central (o los quiere
-con él: son independientes, cada uno con su página y su visibilidad). **Estilo de barra** elige qué
-cuentan:
-
-- **Cercanía** (de serie): el radar en dos barras. Cada barra se llena desde abajo cuanto más cerca
-  está el coche de ese lado, con la misma regla que el radar: llena cuando va a tu lado, y se vacía
-  según se aleja delante o detrás (hasta unos 12 m), del ámbar al rojo; llena se marca también con
-  el borde rojo. Con dos coches en un lado, un «2».
-- **Dónde te cubre**: cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo
-  que te cubre el coche de ese lado: desde arriba si va por delante, desde abajo si va por detrás,
-  y entera cuando va justo a tu lado, del gris al rojo. Con dos coches en un lado, un «2»; con uno
-  que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
-  iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
-
-Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
-acerca por detrás sin haber estado a tu lado no tiene lado todavía. Cuánto, la distancia a lo largo
-de la pista. iRacing no da la distancia lateral: llena es «a tu lado», no «golpe».
-
-El ancho de la ventana es la separación entre las barras (para ponerlas a los lados del coche o
-de la pantalla) y su alto, su largo; el grosor se elige en Contenido. De serie solo se ve con un
-coche al lado o a punto de estarlo, y está oculto: se activa en Visibilidad, la barra lateral o la
-bandeja.
+banderas de penalización van donde los pongas. Cada columna tiene su ojo, también la posición, el
+número y el hueco: solo el nombre sale siempre. Al pie de la lista, **Títulos de columna** e
+**Igualar con Posiciones**.
 
 ### Posiciones
 
 <img src="docs/screenshots/clasificacion.png" alt="Posiciones" width="540">
 
-Modo compacto (los primeros, tu entorno y los primeros de cada otra clase: de serie su líder, en
-una línea; con **Coches de otras clases** de 0 a 10, los que quieras bajo el nombre de su clase) o
-completo. Cada clase lleva su SoF junto a su nombre, también la de un líder en una línea. Columnas que
-se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados (solo en
-carrera), iRating, licencia, iRating en juego, hueco al de delante y al líder, última y mejor
-vuelta (en morado la más rápida de la clase), boxes, última parada, stint y neumático.
+Modo compacto (los primeros, tu entorno y los primeros de cada otra clase: **Primeros puestos** y
+**Alrededor de ti**, 3 y 3 de serie; de cada otra clase, de serie su líder, en una línea; con
+**Coches de otras clases** de 0 a 10, los que quieras bajo el nombre de su clase) o completo. La
+línea de cada clase lleva su SoF y su número de coches, cada uno con su ojo en **Personalizar ›
+Línea de clase**; el SoF va también al final de un líder en una línea. Columnas que se ordenan
+arrastrando y se esconden solas si la ventana se estrecha: puestos ganados (solo en carrera),
+iRating, licencia, iRating en juego, hueco (**Medido** al de delante, al líder o ambos; de serie,
+al de delante), última y mejor vuelta (en morado la más rápida de la clase), boxes, última parada,
+stint y neumático. De serie ocultas: iRating en juego, hueco al líder, última parada, stint y
+neumático. La fila del iRating en juego tiene **iRating en juego de todos** (apagado: solo el
+tuyo), y al pie de la lista, **Títulos de columna**. En Contenido, **Densidad** (la global o una
+propia).
 
 El principio de la fila también son columnas de la misma lista, en Posiciones y en Relativo:
 **Posición**, **Número**, **Logo de la marca**, **Bandera del país**, **Nombre** (siempre visible)
@@ -165,8 +147,8 @@ otra columna, va en una columna propia. Una regla:
 **la lista dice dónde; el bloque «Piloto», si salen y cómo** el logo, la bandera del país y las
 banderas (su fila de la lista no tiene ojo sino un enlace a su fila de «Piloto», y dice cómo están
 ahí). La posición y el número, que no están en el bloque, tienen su ojo. «Igualar con…» lo lleva
-todo, y en la vista previa se arrastran como las demás. Cabecera con lo que queda de
-sesión y tus incidentes; pie con las condiciones de pista (temperatura y su tendencia, agua y
+todo, y en la vista previa se arrastran como las demás. Cabecera con la sesión, su SoF, tus
+incidentes y lo que queda; pie con las condiciones de pista (temperatura y su tendencia, agua y
 lluvia, viento con un dial que apunta a tu coche) y los coches. A un clic en Personalizar: una
 segunda línea con tu iRating en juego, tu SR proyectado y la vuelta rápida de clase, y el aire y la
 goma en el pie (de serie no salen en una instalación nueva, para leerla de un vistazo).
@@ -184,21 +166,16 @@ la pantalla de sesión.
 <img src="docs/screenshots/batalla.png" alt="Batalla" width="380">
 
 Tu rival de clase de delante y el de detrás mientras estén a menos del hueco que elijas (1,5 s por
-defecto): el hueco y su tendencia, la predicción («Le alcanzas en ~4 v de 19»), la diferencia por
-sector y por vuelta y el iRating en juego. Uno encima del otro o lado a lado. Por defecto, solo en
-carrera. El hueco, sin signo (el medido, de serie) o **como Relativo** (el mismo tiempo, positivo
-delante y negativo detrás); y cada frase de la predicción («Le alcanzas en…», «Te alcanza en…»,
-«Necesitas…», «No le alcanzas») con su ojo, en las partes de su línea. Opcionales: cabecera y pie
-con datos de la sesión (ver más abajo).
-
-### Pedales
-
-<img src="docs/screenshots/pedales.png" alt="Pedales" width="360">
-
-Traza de acelerador, freno y embrague, barras, marcha, velocidad y volante, en el orden que quieras.
-Luces de cambio con los regímenes del propio coche y un bloque «Coche» con RPM, reparto de frenada,
-nivel de TC y FFB (en rojo cuando llega al 100 %). El volante puede ser una barra o un volante
-minimalista, realista (GT) o de fórmula que gira los grados reales.
+defecto): el hueco y su tendencia, la predicción («Le alcanzas en ~4 v de 19»), los sectores (S1 S2
+S3 y la última vuelta) y el iRating en juego; las tres últimas vueltas, a un clic en Personalizar
+(**Líneas › Vueltas**). Uno encima del otro o lado a lado. Por defecto, solo en carrera.
+**Mantener visible** (3 s de serie) deja la batalla en pantalla un momento después de que el rival
+salga del hueco. El hueco, sin signo (el medido, de serie) o **como Relativo** (el mismo tiempo,
+positivo delante y negativo detrás); y cada frase de la predicción («Le alcanzas en…», «Te alcanza
+en…», «Necesitas… s/v», «No le alcanzas · No te alcanza») con su ojo, en **Predicción de
+alcance**. En Personalizar, cada rival (**Rivales**: el de delante y el de detrás; sin ninguno, el
+widget no se muestra) y cada detalle (**Detalles**: iRating, licencia, texto de la tendencia e
+iRating en juego) tienen su ojo. Opcionales: cabecera y pie con datos de la sesión (ver más abajo).
 
 ### Tráfico
 
@@ -206,37 +183,61 @@ minimalista, realista (GT) o de fórmula que gira los grados reales.
 
 Los coches más rápidos que te alcanzan por detrás (en cuánto tiempo y en qué sector), el tráfico
 lento al que alcanzas y los peligros de delante (coches parados, muy lentos o fuera de pista). Quien
-te dobla, o te adelanta con bandera azul, sale siempre, en ámbar o rojo según se acerca. Cada
+te dobla, o te adelanta con bandera azul, sale siempre que esté dentro de **Mirar atrás** (con el
+grupo **Clase más rápida** visible), en ámbar o rojo según se acerca. Cada
 coche lleva, como en el relativo, el logo de su marca, la bandera de su piloto y su bandera de
 penalización (el bloque «Piloto» de su página). Se
 desvanece cuando no hay nadie cerca. La cabecera (el título) admite más datos, y hay un pie
 opcional.
 
-### Avisos
+En Contenido, hasta dónde mira: **Mirar atrás** (12 s de serie), **Mirar delante** (8 s) y
+**Peligros hasta** (8 s); **Entradas por grupo** (3 de serie, de 1 a 5) y **Solo en multiclase**
+(activado: en una carrera de una sola clase solo avisa de quien te dobla o te adelanta con bandera
+azul, y de los peligros). En Personalizar, los **Grupos** (Peligros, Tráfico lento y Clase más
+rápida) y las **Columnas** de cada línea (icono, clase, piloto, banderas, texto antes del tiempo,
+tiempo y sector) se ordenan y se ocultan, y **Rótulos de los grupos** (activado) pone el nombre
+encima de cada grupo.
 
-<img src="docs/screenshots/avisos.png" alt="Avisos" width="400">
+### Radar
 
-Una banda con lo que te afecta, lo más importante en grande y el resto al lado. Banderas (también
-la negra enrollada), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de
-entrar, 10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario,
-presión de aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», combustible bajo y cada
-incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
-con su ojo en **Personalizar › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
-Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
-daltónicos). Motor calado, presión de aceite, limitador de boxes y daños (la reparación
-obligatoria) son también testigos: su fila tiene una casilla **Testigo** que enciende o apaga el
-suyo en Testigos, y al revés (**Aviso** en la página de Testigos).
+<img src="docs/screenshots/radar.png" alt="Radar" width="213">
 
-### Testigos
+Vista cenital con los coches a escala alrededor del tuyo, que pasan a rojo según se acercan, y un
+aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m por defecto, con
+botones de 10, 20, 30 y 50 m; en pies con unidades imperiales). Un coche que te acaba de pasar
+conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta solo cuando no hay nadie
+cerca. En **Personalizar › Capas** se quitan las guías de distancia, sus distancias y los avisos
+laterales. Siempre se dibuja encima de los demás widgets (ver [Modo edición](#modo-edición)).
 
-<img src="docs/screenshots/testigos.png" alt="Testigos" width="300">
+### Spotter
 
-Los testigos del motor como en un salpicadero, en fila o en columna: presión de aceite y de
-gasolina, motor calado, reparación obligatoria y opcional (con el tiempo que falta), temperatura
-del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones. Cada gravedad
-tiene su color y su forma; en amarillo avisa cuando el agua o el aceite suben muy por encima de tu
-media, antes de que se encienda el testigo del coche. Su página de Ajustes explica qué es cada uno y
-qué hacer.
+<img src="docs/screenshots/spotter.png" alt="Spotter" width="300">
+
+Dos barras, una a cada lado, para quien prefiere los laterales al radar central (o los quiere
+con él: son independientes, cada uno con su página y su visibilidad). **Estilo de barra** elige qué
+cuentan:
+
+- **Cercanía** (de serie): el radar en dos barras. Cada barra se llena desde abajo cuanto más cerca
+  está el coche de ese lado, con la misma regla que el radar: llena cuando va a tu lado, y se vacía
+  según se aleja delante o detrás (hasta unos 12 m), del ámbar al rojo; llena se marca también con
+  el borde rojo. Con dos coches en un lado, un «2».
+- **Dónde te cubre**: cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo
+  que te cubre el coche de ese lado: desde arriba si va por delante, desde abajo si va por detrás,
+  y entera cuando va justo a tu lado, del gris al rojo. Con dos coches en un lado, un «2»; con uno
+  que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
+  iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
+
+Las dos marcas (el «2» y el tope) tienen su ojo en **Personalizar › Marcas** («Dos coches en un
+lado» y «Coche a punto de ponerse al lado», este solo con «Dónde te cubre»); de serie, las dos.
+
+Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
+acerca por detrás sin haber estado a tu lado no tiene lado todavía. Cuánto, la distancia a lo largo
+de la pista. iRacing no da la distancia lateral: llena es «a tu lado», no «golpe».
+
+El ancho de la ventana es la separación entre las barras (para ponerlas a los lados del coche o
+de la pantalla) y su alto, su largo; el grosor, **Grosor de las barras** (14 px de serie), se elige
+en Contenido. De serie solo se ve con un coche al lado o a punto de estarlo, y está oculto: se
+activa en Visibilidad, la barra lateral o la bandeja.
 
 ### Delta
 
@@ -244,11 +245,20 @@ qué hacer.
 
 Barra delta frente a la referencia que elijas, con tendencia, vuelta prevista y cada sector. La
 referencia puede ser tu récord personal con ese coche en ese trazado (se guarda en tu equipo y no se
-pierde al cambiar de sesión), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor
-de tu clase o la óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera. Solo
-cuentan las vueltas legales (sin salirte de pista, sin incidentes, sin pit lane, grúa ni amarilla),
-y la referencia solo cambia al empezar una vuelta. Opcional: una fila con tu última, tu mejor, tu
-óptima y tu récord, y varias referencias a la vez (**Filas por referencia**): cada una con una fila
+pierde al cambiar de sesión; la lista, **Récords personales**, está al final de la página de
+Delta), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor de tu clase o la
+óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
+personal en práctica y tu vuelta óptima en clasificación y en carrera. Con **Usar la siguiente si
+no existe** (activado), mientras no haya esa referencia el delta usa la siguiente (por ejemplo, tu
+récord hasta tener una vuelta limpia); apagado, no muestra delta hasta que exista. **Rango de la
+barra** (1 s de serie, de 0,5 a 3 s) es lo que la llena. Solo cuentan las vueltas legales: sin
+salirte de pista (tampoco con un 1x de iRacing), sin pararte, sin pit lane, grúa ni amarilla; un
+toque o un trompo no la invalidan. La referencia solo cambia al empezar una vuelta.
+
+En **Personalizar › Líneas**, la **Línea superior** (estado de la vuelta, vuelta prevista y
+referencia, cada uno con su ojo). Opcional: una fila de **Tiempos de vuelta** con tu última, tu
+mejor y tu óptima (y tu récord, a un clic), y varias referencias a la vez (**Filas por
+referencia**, de serie las tres tuyas; las dos de clase, a un clic): cada una con una fila
 igual (su nombre, su delta, su tendencia y su barra, todas a la misma escala, verde a la izquierda:
 más rápido), bajo una línea que nombra la que usa el delta (la vuelta prevista y los sectores van
 con ella; sin esa línea, los sectores llevan su nombre). Con una sola, el delta de siempre. Al
@@ -271,6 +281,61 @@ medido en tu última parada) y los juegos que quedan; y las reparaciones rápida
 limita (estas dos líneas, a un clic en Personalizar: no salen de serie en una instalación nueva). Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
 (donde se mide el consumo) y en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
+En Contenido, **Vueltas para la media** (cuántas vueltas limpias se promedian: 5 de serie) y
+**Margen** (0,5 v de sobra en meta; los avisos de combustible usan la misma media, sin el margen).
+En **Personalizar › Líneas**, cada línea salvo «Combustible y vueltas» tiene su ojo, y la de
+«Repostar y para meta» lleva la barra del **Menú de boxes** (activada).
+
+### Pedales
+
+<img src="docs/screenshots/pedales.png" alt="Pedales" width="360">
+
+Traza de acelerador, freno y embrague, barras, marcha, velocidad y volante, en el orden que quieras.
+Luces de cambio con los regímenes del propio coche y un bloque «Coche» con RPM, reparto de frenada,
+nivel de TC y FFB (en rojo cuando llega al 100 %). El volante puede ser una barra o un volante
+minimalista, realista (GT) o de fórmula que gira los grados reales.
+
+Todo está en Personalizar: **Segundos de traza** (5 de serie, de 2 a 10), **Grosor de la traza**,
+**Embrague en la traza** (activado; apágalo si cambias con levas), el color de cada pedal y, en
+Volante, su **Estilo del volante** (Barra de serie), **Tamaño del volante**, **Color de la marca
+central** (de serie, el acento global) y **Grados del volante** (apagado).
+
+### Avisos
+
+<img src="docs/screenshots/avisos.png" alt="Avisos" width="400">
+
+Una banda con lo que te afecta, lo más importante en grande y el resto debajo, en pequeño. Banderas (también
+la negra enrollada y la azul, cada una con su fila), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de
+entrar, 10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario,
+presión de aceite, daños con reparación obligatoria, «ENTRA ESTA VUELTA», combustible bajo y cada
+incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
+con su ojo en **Personalizar › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
+Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
+daltónicos). Motor calado, presión de aceite, limitador de boxes y daños (la reparación
+obligatoria) son también testigos: su fila tiene una casilla **Testigo** que enciende o apaga el
+suyo en Testigos, y al revés (**Aviso** en la página de Testigos). **Mantener visible** (3 s de
+serie) deja un aviso breve en pantalla el tiempo de leerlo; en **Personalizar › Extras** se quitan
+la línea de qué hacer y los chips de los demás avisos.
+
+### Testigos
+
+<img src="docs/screenshots/testigos.png" alt="Testigos" width="300">
+
+Los testigos del motor como en un salpicadero, en fila o en columna (**Orientación**): presión de
+aceite y de gasolina, motor calado, reparación obligatoria y opcional (con el tiempo del equipo,
+«42 s (equipo)»; con **Cuenta atrás real**, los segundos reales estimados parado en tu box),
+temperatura del agua y del aceite y, si los activas, limitador de boxes y corte de revoluciones.
+Cada gravedad tiene su color y su forma; en amarillo avisa cuando el agua o el aceite suben muy por
+encima de tu media, antes de que se encienda el testigo del coche. Su página de Ajustes explica qué
+es cada uno y qué hacer, en su **Leyenda**.
+
+En Contenido, **Solo encendidos** (apagado: con él, el widget se oculta mientras no hay ninguno
+encendido). En **Personalizar › Testigos**, cada uno con su ojo (y **Aviso** en los que comparte
+con Avisos) y, debajo, **Rótulos** (apagado), **Lado de los textos** (en columna),
+**Temperaturas** (apagado: «98° +6°»), **Tiempo de reparación** (activado, con **Marcar tiempo del
+equipo**, activado, y **Cuenta atrás real (estimada)**, apagado) y **Temperatura al alza**
+(activado).
+
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
@@ -280,8 +345,8 @@ pantalla y colocarlos. Windows avisa de que OverLap queda en la bandeja.
 
 ![Ajustes: página del Relativo](docs/screenshots/ajustes-relativo.png)
 
-Se abren desde la bandeja (**Ajustes…**), volviendo a abrir el `.exe` o arrancándolo con
-`--settings` (útil para un acceso directo). Todo se aplica **en vivo** y se guarda solo; arriba de
+Se abren desde la bandeja (**Ajustes…**), con `Ctrl+Mayús+O`, volviendo a abrir el `.exe` o
+arrancándolo con `--settings` (útil para un acceso directo). Todo se aplica **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día; al bajar
 por las opciones se pliega en una franja (o queda fija, o siempre en franja: **Al bajar**, en su
 pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
@@ -311,16 +376,19 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
   panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala (la misma fila y los
   mismos botones 80/100/125/150 % en los once; en Relativo, Radar, Spotter y Delta cambia el tamaño de su
-  ventana, como la rueda en modo edición), alto automático o fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
-  entrada a boxes).
-- **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia y Atajos),
+  ventana, como la rueda en modo edición), alto automático o fijo, hacia dónde crece (abajo o arriba, con alto automático), en qué sesiones
+  se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la entrada a boxes) y
+  mostrar en la pantalla de sesión (salvo los que solo tienen datos en el coche; de serie, solo
+  Posiciones).
+- **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia, Visibilidad y Atajos),
   **Restablecer…** dice qué devuelve a fábrica, sección por sección (en un widget: Contenido,
   Piloto, Personalizar, Ventana y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
   icono ↺ en la cabecera, que restablece solo esa sección. Es un solo clic: un aviso abajo dice qué
   se ha restablecido (y en qué disposición, si tienes varias) con **Deshacer** (o `Ctrl+Z`)
   durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Global» en todos
-  los widgets, al ocultar un widget y al eliminar una disposición. Solo borrar récords personales
-  pide un segundo clic: eso no se puede deshacer.
+  los widgets, al ocultar un widget y al eliminar una disposición. Piden un segundo clic
+  **Restablecer todo** (en Acerca de y ayuda) y **Copiar estas opciones a todas**, que también se
+  deshacen, y borrar récords personales, lo único que no se puede deshacer.
 - **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
   Una regla para todas las páginas: **Contenido** es el comportamiento (cuántos, cuánto tiempo,
@@ -332,7 +400,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
   viento, aire, goma; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus
-  incidentes y el reloj; a la izquierda del pie las condiciones, a la derecha los coches y el
+  incidentes y el tiempo restante; a la izquierda del pie las condiciones, a la derecha los coches y el
   combustible; y los datos de la sesión, solo en Posiciones. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Spotter, Testigos y Avisos no tienen: son lecturas compactas, y una barra
@@ -340,9 +408,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 - **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (todo de serie: el
   aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie, o lo justo más si
   muestras más coches, para que el texto no encoja), **Limpio** (sin fondo: solo el texto sobre el
-  juego, con su contorno; sin filas alternas, logos ni banderas), **Compacto** (pequeño pero
-  legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo letra) y
-  **Completo** (todo a la vista en los once widgets de la disposición en uso: cada columna,
+  juego, con su contorno; sin filas alternas, logos ni banderas, número en franja, licencia solo letra), **Compacto**
+  (pequeño pero legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo
+  letra, sin logos ni banderas de país) y **Completo** (fondo al 90 %, logos siempre y todo a la vista en los once widgets de la disposición en uso: cada columna,
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
@@ -358,7 +426,8 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
-  imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
+  imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
+  (marca los widgets con datos simulados; activada de serie) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k» o el número
   entero, «2.520», con los miles del idioma; también el SoF) e **iRating con el color de la
   licencia** (apagado de serie: el de cada piloto con los colores y el estilo de su licencia).
@@ -373,10 +442,10 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   banderas de penalización, formato del iRating e iRating con el color de la licencia; en Tráfico,
   que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. El
   logo, la bandera del país y las banderas de penalización salen o no según su fila; dónde, lo
-  decide la lista de columnas de Relativo y Posiciones (y la de partes de Tráfico, para las
+  decide la lista de columnas de Relativo y Posiciones (y la de columnas de Tráfico, para las
   banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
   sin columnas, las lleva tras el nombre.
-- **Récords personales**: la lista por coche y trazado, con borrar uno, el actual o todos.
+- **Récords personales** (al final de la página de Delta): la lista por coche y trazado, con borrar uno, el actual o todos.
 
 ## Modo edición
 
@@ -399,10 +468,13 @@ juego.
   las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
   también **Deshacer: …** con lo que hiciste («mover Relativo», «cambiar el tamaño de Relativo»,
   «ocultar Batalla»). Al salir del modo edición se olvidan.
-- Arrástralo fuera de su pantalla para llevarlo a otra. Si desconectas un monitor, **Traer todos
+- Arrástralo fuera de su pantalla para llevarlo a otra («Suelta para moverlo a la otra pantalla»). Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
   cualquiera de los dos sitios (**Deshacer: …** en la bandeja).
+- El radar siempre queda por encima de los demás widgets (para no perder nunca el coche que va a tu
+  lado). En modo edición, su etiqueta dice qué paneles tapa («Tapa: Avisos, Delta») y un panel
+  tapado dice «El radar lo tapa».
 - La etiqueta de cada widget tiene un **ojo** (mostrar u ocultar), un **candado** (bloquear) y un
   **⚙** que abre su página en los Ajustes. Un widget oculto se ve como un hueco discontinuo para
   poder recuperarlo.
@@ -430,11 +502,15 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 - Cada disposición es **Posición y opciones** (de serie) o **Solo posición**: esta solo mueve los
   widgets y usa las **opciones comunes**, compartidas por todas las de solo posición. Lo eliges al
   guardarla o importarla, y lo cambias luego con **Editar**.
-- En **Ajustes > Disposiciones** guardas la actual con un nombre y aplicas, editas, duplicas,
-  ordenas, exportas a un `.json` (con sus opciones), importas o eliminas.
+- En **Ajustes › Disposiciones** guardas la actual con un nombre y aplicas, editas, duplicas,
+  ordenas, exportas a un `.json` (con sus opciones), importas o eliminas (la que está en uso no se
+  puede eliminar). Hasta 30 disposiciones; **Buscar disposiciones** las encuentra por nombre o por
+  coche, y **Orden** las lista en tu orden (**Personalizado**, de serie, el mismo de la bandeja y
+  del atajo), por **Nombre** o por **Uso reciente**. La bandeja muestra las cinco primeras y
+  **Más…**.
 - **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget y
-  al cambiar sus opciones. En la página de cada widget, bajo la vista previa, pone dónde se guarda
-  lo que cambias (**Guardando en:** la disposición, u **Opciones comunes**), con **Copiar estas
+  al cambiar sus opciones. En la página de cada widget, bajo la vista previa (con dos disposiciones o
+  más, o una de solo posición), pone dónde se guarda lo que cambias (**Guardando en:** la disposición, u **Opciones comunes**), con **Copiar estas
   opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
@@ -473,12 +549,12 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
   «Oculto: Posiciones» o «Visible: Posiciones».
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
-- Se cambian en **Ajustes > Atajos**, una tabla con una fila por acción y una columna por atajo
+- Se cambian en **Ajustes › Atajos**, una tabla con una fila por acción y una columna por atajo
   (**Atajo 1 · principal**, **Atajo 2**, **Atajo 3**), como la pantalla de controles de un juego.
   Cada casilla es el control: un clic en una casilla con atajo lo cambia por otro, y su **×** (al
   pasar el ratón) o `Supr` lo quitan; la primera casilla libre dice **+ Asignar** y espera una
   combinación o un botón del volante. Al quitar uno, los de la derecha se corren a la izquierda (el
-  primero es el que lee la versión 2.1). Sin ninguno, la acción queda desactivada. El icono ↺ de la
+  primero es el que lee la versión 2.1.1). Sin ninguno, la acción queda desactivada. El icono ↺ de la
   derecha la deja solo con el de fábrica. Mientras grabas, `Esc` cancela y `Retroceso` o `Supr`
   quitan el atajo que estás cambiando.
 - Los avisos van en la casilla a la que se refieren (**Desconectado**, **En uso por otra app**), y
@@ -497,11 +573,12 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
   página lo dice.
 - Necesitan `Ctrl` o `Alt`, salvo `F13`–`F24`, que envían muchas button box y teclados de macros.
   `Ctrl+Alt` equivale a `AltGr` en un teclado español: se permite, pero avisa de que puede impedir
-  escribir `@`, `#` o `€`.
+  escribir `@`, `#` o `€`. La tecla Windows no se puede usar; valen letras, números, `F1`–`F24`, el
+  teclado numérico, `Espacio` y las teclas de navegación.
 
 ### Botones del volante
 
-- En **Ajustes > Atajos**, pulsa **+ Asignar** (o el atajo que quieras cambiar) y luego el botón:
+- En **Ajustes › Atajos**, pulsa **+ Asignar** (o el atajo que quieras cambiar) y luego el botón:
   vale cualquier botón de un volante o su aro, una button box, unos pedales, un cambio o un freno
   de mano que Windows vea como mando de juego, también los de más de 32 botones. Se ve como «Botón
   12 · G29 Driving Force Racing Wheel».
@@ -523,14 +600,18 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 
 ## Cuándo se ve el overlay
 
-En **Ajustes > Visibilidad**:
+En **Ajustes › Visibilidad**:
 
 - **Cuándo mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o
   siempre. Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
-- **Repeticiones**: ocultas por defecto; con «Seguir al coche en cámara», los widgets siguen al coche
-  que miras.
-- Se ocultan también con la interfaz de iRacing oculta, en el garaje y en la pantalla de sesión
-  (cada widget puede tener su excepción).
+- **En repeticiones**: **Ocultar** (por defecto) o **Seguir al coche en cámara**: los widgets siguen
+  al coche que miras; al rebobinar solo queda Posiciones (con la carrera en directo), y los que solo
+  tienen datos de tu coche (Radar, Pedales, Delta…) se ocultan mientras miras otro.
+- **Ocultar con la interfaz de iRacing**, **Ocultar en el garaje** y **Ocultar en la pantalla de
+  sesión**, activados de serie (el último solo se ofrece cuando cambia algo). Solo la pantalla de
+  sesión tiene excepción por widget: **Mostrar en la pantalla de sesión**, en su página.
+- **Mantener «Esperando a iRacing»** (apagado): sin iRacing, Posiciones y Relativo siguen con el
+  aviso en vez de ocultarse.
 - Cada widget tiene además sus propias reglas: en qué sesiones se muestra y si se oculta en boxes.
   Debajo, la tabla **Dónde se ve cada widget** las reúne todas (visible, práctica, clasificación,
   carrera, ocultar en boxes, pantalla de sesión y bloqueado), una fila por widget: cada casilla es
@@ -552,7 +633,7 @@ o la captura de pantalla.
   bloquear ni abrir el dispositivo, sin ganchos y sin enviarle nada.
 - **Sin red**: no se conecta a internet, no tiene cuentas ni envía datos a ningún sitio. Tus ajustes
   y récords se quedan en tu equipo. Los botones de **Acerca de y ayuda** (guía, problemas, código,
-  licencia) solo abren el navegador cuando los pulsas.
+  licencia y avisos de terceros) solo abren el navegador cuando los pulsas.
 - No activa la grabación de telemetría `.ibt` de iRacing.
 
 La política de privacidad completa está en [PRIVACY.md](PRIVACY.md). Los detalles técnicos, en las
@@ -572,7 +653,7 @@ La política de privacidad completa está en [PRIVACY.md](PRIVACY.md). Los detal
 ## Compilar desde el código
 
 Necesitas Windows 10 u 11 de 64 bits, [Git](https://git-scm.com) y [Node.js](https://nodejs.org)
-22.12 o posterior (se desarrolla con Node 24). No hace falta Visual Studio ni Python: los addons
+22 (22.13 o posterior) o 24 (se desarrolla y se prueba en CI con Node 24). No hace falta Visual Studio ni Python: los addons
 nativos vienen precompilados.
 
 ```bash
