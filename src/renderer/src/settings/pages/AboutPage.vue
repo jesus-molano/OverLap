@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef, useId, watch } from 'vue'
+import { COPYRIGHT, hasSupportLink, type ProjectPage } from '@shared/projectLinks'
 import { useI18n } from '../../composables/useI18n'
 import Icon from '../../ui/Icon.vue'
 import HelpText from '../controls/HelpText.vue'
@@ -20,7 +21,9 @@ import { offerRestore } from '../undo/restore'
  * answers each question, a backup of everything (every setting and the personal bests to one
  * file and back), the settings folder, the log and the diagnostics, the welcome again and
  * «Restablecer todo». Main runs the commands; an import and a reset come with «Deshacer», as
- * main keeps it (the tray has it too).
+ * main keeps it (the tray has it too). At the end, «Licencia»: the GPL's legal notices (the
+ * copyright, no warranty, the source, the licence and the notices) and that the colour logos are
+ * not under it. «Apoyar OverLap» shows only once projectLinks.ts has the donations page.
  */
 const t = useI18n()
 const titleId = useId()
@@ -88,7 +91,9 @@ watch(layoutNotice, (n) => {
   )
 })
 
-const help = (page: 'guide' | 'issues'): void => sendCommand({ type: 'open-help', page })
+/** A project page in the browser: main has the address (projectLinks.ts). */
+const help = (page: ProjectPage): void => sendCommand({ type: 'open-help', page })
+const support = hasSupportLink()
 const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welcome: true } })
 </script>
 
@@ -119,6 +124,14 @@ const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welc
             </button>
             <button type="button" class="st-btn st-btn-ghost" @click="help('issues')">
               {{ t.settings.about.app.issues }}
+            </button>
+            <button
+              v-if="support"
+              type="button"
+              class="st-btn st-btn-ghost"
+              @click="help('support')"
+            >
+              {{ t.settings.about.app.support }}
             </button>
           </div>
         </div>
@@ -243,6 +256,35 @@ const showWelcome = (): Promise<void> => updateSettings({ settingsWindow: { welc
           />
         </div>
         <p v-if="resetText" class="st-row st-help" role="status">{{ resetText }}</p>
+      </PageSection>
+
+      <PageSection :title="t.settings.about.licence.title">
+        <div class="st-row st-row-wrap">
+          <div class="st-row-text">
+            <span class="st-label">{{ t.settings.about.licence.label }}</span>
+            <span class="st-help">{{ COPYRIGHT }}. {{ t.settings.about.licence.help }}</span>
+          </div>
+        </div>
+        <div class="st-row st-row-wrap">
+          <div class="st-row-text">
+            <span class="st-label">{{ t.settings.about.licence.logosLabel }}</span>
+            <span class="st-help">{{ t.settings.about.licence.logosHelp }}</span>
+          </div>
+        </div>
+        <div class="st-row st-row-wrap">
+          <span class="st-help">{{ t.settings.about.app.external }}</span>
+          <div class="ab-buttons">
+            <button type="button" class="st-btn st-btn-ghost" @click="help('source')">
+              {{ t.settings.about.licence.source }}
+            </button>
+            <button type="button" class="st-btn st-btn-ghost" @click="help('licence')">
+              {{ t.settings.about.licence.licence }}
+            </button>
+            <button type="button" class="st-btn st-btn-ghost" @click="help('notices')">
+              {{ t.settings.about.licence.notices }}
+            </button>
+          </div>
+        </div>
       </PageSection>
     </div>
 

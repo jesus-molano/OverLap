@@ -65,6 +65,8 @@ mientras no cambies nada más) y los récords del archivo se suman a los tuyos (
 rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
 versión, una ayuda rápida, **Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y
 **Restablecer todo** (como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
+Al final, **Licencia** dice que OverLap es software libre (GPL-3.0 o posterior, sin garantía) y
+abre en el navegador el código fuente, la licencia y los avisos de terceros.
 
 ## Widgets
 

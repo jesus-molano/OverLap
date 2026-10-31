@@ -29,6 +29,7 @@ import { deepEqual } from '@shared/equal'
 import { LAYOUT_FILE_EXTENSION, applySettingsPatchFor, rendererSettings } from '@shared/layouts'
 import { EDIT_UNDO_KEY, NUDGE_KEYS, PICK_KEYS } from '@shared/nudge'
 import { stepScale } from '@shared/panelGeometry'
+import { projectUrl } from '@shared/projectLinks'
 import {
   defaultLayoutOffsetX,
   placeDefaultLayout,
@@ -78,10 +79,6 @@ import { OverlayWindows } from './overlayWindows'
 import { commonHiddenReason, createTray, destroyTray, updateTray, type TrayState } from './tray'
 import { OsdWindow } from './osdWindow'
 import { shortcutConfirmation } from './shortcutFeedback'
-
-/** «Acerca de y ayuda» (R40): the guide and the place to report a problem. */
-const HELP_GUIDE_URL = 'https://github.com/jesus-molano/OverLap#readme'
-const HELP_ISSUES_URL = 'https://github.com/jesus-molano/OverLap/issues'
 
 /*
  * Anti-cheat note: this app never touches the game process. It only reads the
@@ -1028,10 +1025,12 @@ function start(): void {
       case 'reset-all':
         resetEverything()
         break
-      // Fixed addresses (the project's), never one the page sends.
-      case 'open-help':
-        void shell.openExternal(raw.page === 'guide' ? HELP_GUIDE_URL : HELP_ISSUES_URL)
+      // Fixed addresses (the project's, projectLinks.ts), never one the page sends.
+      case 'open-help': {
+        const url = projectUrl(raw.page)
+        if (url !== null) void shell.openExternal(url)
         break
+      }
       case 'copy-diagnostics':
         copyDiagnostics()
         break

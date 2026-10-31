@@ -5,6 +5,24 @@ Aquí se apuntan todos los cambios importantes de OverLap.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- **Acerca de y ayuda › Licencia**: un bloque nuevo al final de la página con el copyright, que
+  OverLap es software libre bajo la GNU GPL versión 3 o posterior y que se ofrece sin ninguna
+  garantía. Sus botones abren en el navegador el código fuente, la licencia y los avisos de
+  terceros. También dice que los logos en color de las marcas son de sus dueños y no están bajo la
+  GPL, y que el juego monocromo (Simple Icons, CC0) se elige en Apariencia.
+
+### Cambiado
+
+- **OverLap pasa a ser software libre** bajo la GPL-3.0-or-later: `LICENSE` es ahora el texto de la
+  GPL, y `package.json`, las propiedades del `.exe`, el README y las notas de desarrollo lo dicen.
+- **Avisos de terceros**: se añade Vue (iba dentro de la app y no salía), irating-rs tiene ya su
+  licencia (MIT o Apache-2.0) y la sección de logos explica de dónde sale cada uno y que los de color
+  no están bajo la GPL. Se añade la nota de marca del nombre OverLap y del icono «OL» (GPL §7(e)).
+
 ## [2.4.0] - 2026-10-31
 
 ### Añadido
@@ -1143,6 +1161,7 @@ en una carrera offline contra la IA:
   herramienta como OpenKneeboard.
 - El `.exe` portable no está firmado: Windows SmartScreen puede avisar al abrirlo.
 
+[Sin publicar]: https://github.com/jesus-molano/OverLap/compare/v2.3.1...HEAD
 [2.4.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.4.0
 [2.3.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.1
 [2.3.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.3.0
