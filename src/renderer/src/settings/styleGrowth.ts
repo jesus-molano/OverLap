@@ -16,6 +16,7 @@ import { clampRelativeSlots } from '@shared/relative'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import type { DeltaOptions, OverlaySettings, Rect } from '@shared/types'
 import { WIDGET_DEFS } from '@shared/widgets'
+import { iRatingColumnEm } from '../view/driverCell'
 import { deltaFitOf } from '../widgets/delta/rows'
 import { chromeEm, relativeColumns, relativeRowEm } from '../widgets/relative/view'
 
@@ -49,7 +50,8 @@ export function relativeFit(s: Readonly<OverlaySettings>): Fit {
     tyres: true,
     flags: block.showFlags,
     brand: brandMarksOn(block.brandMarks, true),
-    country: block.countryFlags
+    country: block.countryFlags,
+    irEm: iRatingColumnEm(block.iRatingFormat, block.iRatingColor, s.appearance.licenseStyle)
   })
   return { h: slots * relativeRowEm(density) + chrome, w: cols.fitEm }
 }

@@ -9,6 +9,7 @@ import {
   brandChoicesInherit,
   flagChoicesInherit,
   fromFlagChoice,
+  iRatingFormatChoicesInherit,
   nameFormatChoicesInherit,
   toFlagChoice,
   type FlagChoice
@@ -18,10 +19,12 @@ import PageSection from '../layout/PageSection.vue'
 import { useNoRoom } from '../preview/useNoRoom'
 
 /**
- * The «Piloto» block (R08): the same four rows, in the same place (after Contenido) and order, on
+ * The «Piloto» block (R08): the same rows, in the same place (after Contenido) and order, on
  * the pages of the four widgets that draw drivers (Relativo, Posiciones, Batalla, Tráfico): name
- * format, make logo, country flag, penalty flags. Each one «Global (…)» by default, Apariencia's
- * value, or its own.
+ * format, make logo, country flag, penalty flags, then the iRating's format and licence colours
+ * (request 10). Each one «Global (…)» by default, Apariencia's value, or its own. Tráfico draws
+ * no driver's iRating: its colour row is there, as on the other three pages, but off, saying so
+ * (its format still writes the SoF of its bars).
  */
 const props = defineProps<{ section: DriverBlockSection }>()
 
@@ -36,11 +39,20 @@ const setCountry = set<boolean | 'inherit'>('countryFlags')
 const setPenalty = set<boolean | 'inherit'>('showFlags')
 const setCountryChoice: Setter<FlagChoice> = (v) => setCountry(fromFlagChoice(v))
 const setPenaltyChoice: Setter<FlagChoice> = (v) => setPenalty(fromFlagChoice(v))
+const setIrFormat = set<string>('iRatingFormat')
+const setIrColor = set<boolean | 'inherit'>('iRatingColor')
+const setIrColorChoice: Setter<FlagChoice> = (v) => setIrColor(fromFlagChoice(v))
 
 const nameChoices = computed(() => nameFormatChoicesInherit(t.value, appearance.value.nameFormat))
 const brandChoices = computed(() => brandChoicesInherit(t.value, appearance.value.brandMarks))
 const countryChoices = computed(() => flagChoicesInherit(t.value, appearance.value.countryFlags))
 const penaltyChoices = computed(() => flagChoicesInherit(t.value, appearance.value.penaltyFlags))
+const irFormatChoices = computed(() =>
+  iRatingFormatChoicesInherit(t.value, appearance.value.iRatingFormat)
+)
+const irColorChoices = computed(() => flagChoicesInherit(t.value, appearance.value.iRatingColor))
+/** Tráfico writes no driver's iRating (only the SoF of its bars). */
+const noRating = computed(() => props.section === 'traffic')
 /** The mark and the flag the preview has no room for at the widget's width (Posiciones). */
 const noRoom = useNoRoom()
 </script>
@@ -76,6 +88,23 @@ const noRoom = useNoRoom()
       :current="toFlagChoice(opts.showFlags)"
       :options="penaltyChoices"
       :apply="setPenaltyChoice"
+    />
+    <ChoiceControl
+      :label="t.settings.driverCell.iRatingFormat"
+      :help="t.settings.driverCell.iRatingFormatHelp"
+      :current="opts.iRatingFormat"
+      :options="irFormatChoices"
+      :apply="setIrFormat"
+    />
+    <ChoiceControl
+      :label="t.settings.driverCell.iRatingColor"
+      :help="
+        noRating ? t.settings.driverCell.iRatingColorNone : t.settings.driverCell.iRatingColorHelp
+      "
+      :current="toFlagChoice(opts.iRatingColor)"
+      :options="irColorChoices"
+      :disabled="noRating"
+      :apply="setIrColorChoice"
     />
   </PageSection>
 </template>

@@ -112,6 +112,8 @@ const DEFAULT_APPEARANCE: AppearanceSettings = {
   brandMarks: 'auto',
   countryFlags: true,
   penaltyFlags: true,
+  iRatingFormat: 'compact',
+  iRatingColor: false,
   colorBlind: false,
   largeLabels: false,
   noFlashing: false,
@@ -162,6 +164,8 @@ const DEFAULT_RELATIVE: RelativeOptions = {
   brandMarks: 'inherit',
   countryFlags: 'inherit',
   showFlags: 'inherit',
+  iRatingFormat: 'inherit',
+  iRatingColor: 'inherit',
   nameFormat: 'inherit',
   density: 'inherit'
 }
@@ -210,6 +214,8 @@ const DEFAULT_STANDINGS: StandingsOptions = {
   brandMarks: 'inherit',
   countryFlags: 'inherit',
   showFlags: 'inherit',
+  iRatingFormat: 'inherit',
+  iRatingColor: 'inherit',
   nameFormat: 'inherit',
   iRatingDeltaAll: false,
   density: 'inherit'
@@ -233,6 +239,8 @@ const DEFAULT_BATTLE: BattleOptions = {
   brandMarks: 'inherit',
   countryFlags: 'inherit',
   showFlags: 'inherit',
+  iRatingFormat: 'inherit',
+  iRatingColor: 'inherit',
   nameFormat: 'inherit'
 }
 const DEFAULT_INPUTS: InputsOptions = {
@@ -268,6 +276,8 @@ const DEFAULT_TRAFFIC: TrafficOptions = {
   brandMarks: 'inherit',
   countryFlags: 'inherit',
   showFlags: 'inherit',
+  iRatingFormat: 'inherit',
+  iRatingColor: 'inherit',
   nameFormat: 'inherit'
 }
 /**
@@ -1912,5 +1922,36 @@ describe('the «Piloto» block (R08)', () => {
     })
     expect(now.battle.showFlags).toBe('inherit')
     expect(now.traffic).toMatchObject({ showFlags: true, brandMarks: 'off', countryFlags: false })
+  })
+})
+
+describe('the iRating’s format and licence colours (request 10)', () => {
+  it('load a file from before them as today: «2.5k» in grey, every widget on Global', () => {
+    const s = normalizeSettings({
+      appearance: { licenseStyle: 'solid' },
+      relative: { countryFlags: false },
+      standings: {},
+      battle: {},
+      traffic: {}
+    })
+    expect(s.appearance).toMatchObject({
+      licenseStyle: 'solid',
+      iRatingFormat: 'compact',
+      iRatingColor: false
+    })
+    for (const id of ['relative', 'standings', 'battle', 'traffic'] as const) {
+      expect(s[id], id).toMatchObject({ iRatingFormat: 'inherit', iRatingColor: 'inherit' })
+    }
+  })
+
+  it('keep a file’s values, and drop what is not one', () => {
+    const s = normalizeSettings({
+      appearance: { iRatingFormat: 'full', iRatingColor: true },
+      relative: { iRatingFormat: 'compact', iRatingColor: false },
+      standings: { iRatingFormat: '2520', iRatingColor: 'yes' }
+    })
+    expect(s.appearance).toMatchObject({ iRatingFormat: 'full', iRatingColor: true })
+    expect(s.relative).toMatchObject({ iRatingFormat: 'compact', iRatingColor: false })
+    expect(s.standings).toMatchObject({ iRatingFormat: 'inherit', iRatingColor: 'inherit' })
   })
 })

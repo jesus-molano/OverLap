@@ -120,6 +120,8 @@ export interface ColumnPrefs {
   minText?: number
   /** The position track (showPosition); on if absent. */
   pos?: boolean
+  /** The iRating column's width (iRatingColumnEm: request 10's format and plate); today's if absent. */
+  irEm?: number
 }
 
 export interface Columns {
@@ -184,6 +186,7 @@ function columnWidth(id: StandingsColumnId, p: ColumnPrefs): ColumnWidth {
   if (id === 'gap' && !p.race) return NON_RACE_GAP
   if (id === 'gapLeader' && !p.race) return NON_RACE_GAP_LEADER
   if (id === 'lic' && p.licenseStyle === 'letter') return LIC_LETTER
+  if (id === 'ir' && p.irEm !== undefined) return { w: p.irEm, text: COLUMN_WIDTH.ir.text }
   return COLUMN_WIDTH[id]
 }
 

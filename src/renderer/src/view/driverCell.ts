@@ -5,7 +5,7 @@
 import type { DriverIdentity } from '@shared/driver'
 import { formatIRating, formatLicenseShort, shownDriverName } from '@shared/format'
 import type { Messages } from '@shared/i18n'
-import type { NameFormat } from '@shared/types'
+import type { IRatingFormat, LicenseStyle, NameFormat } from '@shared/types'
 import type { DriverStyles, InlineStyle } from './styles'
 
 /** The payload fields the cell reads (RelativeRow, StandingsRow and BattleOpponent have them). */
@@ -24,7 +24,7 @@ export interface DriverCellView {
   name: string
   /** `name` is the 'Piloto #7' placeholder: drawn dim. */
   nameUnknown: boolean
-  /** '2.3k', '' when unknown. */
+  /** '2.3k' (or '2.520', the widget's «Formato del iRating»), '' when unknown. */
   iRating: string
   /** 'A 4.9', '' when unknown. */
   lic: string
@@ -44,14 +44,15 @@ export function toDriverCell(
   d: DriverCellInput,
   styles: DriverStyles,
   nameFormat: NameFormat,
-  m: Messages
+  m: Messages,
+  irFormat: IRatingFormat = 'compact'
 ): DriverCellView {
   const name = shownDriverName(styles.name(d.driverName, nameFormat), d.teamName, d.carNumber, m)
   return {
     number: d.carNumber.trim(),
     name: name.text,
     nameUnknown: name.unknown,
-    iRating: formatIRating(d.iRating),
+    iRating: formatIRating(d.iRating, irFormat, m),
     lic: formatLicenseShort(d.licString),
     licStyle: styles.lic(d.licColor),
     clsStyle: styles.cls(d.classColor)
@@ -64,3 +65,26 @@ export function splitLicense(lic: string): readonly [string, string] {
   const i = t.search(/\s/)
   return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i).trim()]
 }
+
+/**
+ * Width of an iRating column (em of the row font, the figure at its 0.82em) for request 10's format,
+ * and the licence plate's padding when it is drawn in its licence colours with a boxed style
+ * (Contorno, Sólida; Suave and Solo letra are coloured text). Relativo's and Posiciones' 'ir'.
+ */
+export function iRatingColumnEm(
+  format: IRatingFormat,
+  color: boolean,
+  licenseStyle: LicenseStyle
+): number {
+  const text = format === 'full' ? IR_FULL_EM : IR_COMPACT_EM
+  return color && (licenseStyle === 'outline' || licenseStyle === 'solid')
+    ? text + IR_PLATE_EM
+    : text
+}
+
+/** '10.5k' at 0.82em: today's column. */
+export const IR_COMPACT_EM = 2.4
+/** '10.412' at 0.82em. */
+export const IR_FULL_EM = 2.9
+/** LicenseChip's padding either side (0.3em of the 0.82em text), rounded up. */
+export const IR_PLATE_EM = 0.5

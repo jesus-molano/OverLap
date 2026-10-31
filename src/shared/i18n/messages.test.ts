@@ -131,6 +131,8 @@ const SAME_IN_ENGLISH = new Set([
   'core.appName',
   // The battle's iRating, named as the tables' column (R10).
   'settings.items.battle.parts.rating',
+  // The compact iRating, written the same in both languages (request 10).
+  'settings.driverCell.iRatingFormatChoices.compact.label',
   // Apariencia's group of what no style touches.
   'settings.appearance.general',
   // A widget's name and its reason, both already translated.

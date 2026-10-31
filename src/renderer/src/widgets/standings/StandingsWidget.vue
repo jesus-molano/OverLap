@@ -27,6 +27,7 @@ import EmptyPreview from '@renderer/ui/EmptyPreview.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
 import { minTextPx } from '@renderer/view/appearance'
+import { iRatingColumnEm } from '@renderer/view/driverCell'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { barInfo } from './bars'
@@ -198,7 +199,12 @@ const colPrefs = computed<ColumnPrefs>(() => ({
   flag: block.value.countryFlags,
   penalties: block.value.showFlags,
   minText: minText.value,
-  pos: opts.value.showPosition
+  pos: opts.value.showPosition,
+  irEm: iRatingColumnEm(
+    block.value.iRatingFormat,
+    block.value.iRatingColor,
+    appearance.value.licenseStyle
+  )
 }))
 const cols = computed<Columns>((prev) =>
   reuseColumns(prev, fitColumns(colPrefs.value, widthPx.value, fontPx.value))
@@ -234,6 +240,8 @@ const lineCtx = computed<LineContext>(() => ({
   race: race.value,
   deltaAll: opts.value.iRatingDeltaAll,
   nameFormat: nameFormat.value,
+  irFormat: block.value.iRatingFormat,
+  irColor: block.value.iRatingColor,
   classLine: opts.value.classLine,
   showFlags: block.value.showFlags,
   gapLeaderShown: cols.value.cells.includes('gapLeader'),

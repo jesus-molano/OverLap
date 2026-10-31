@@ -152,6 +152,8 @@ describe('displayOnlyFields', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat',
       'density'
     ])
@@ -167,6 +169,8 @@ describe('displayOnlyFields', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat',
       'density'
     ])
@@ -178,6 +182,8 @@ describe('displayOnlyFields', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat'
     ])
     expect(displayOnlyFields('inputs')).toEqual(Object.keys(OPTION_SCHEMA.inputs))
@@ -190,6 +196,8 @@ describe('displayOnlyFields', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat'
     ])
     expect(displayOnlyFields('alerts')).toEqual(['parts'])

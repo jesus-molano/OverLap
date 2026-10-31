@@ -96,6 +96,22 @@ describe('formatIRating', () => {
     expect(formatIRating(10449)).toBe('10.4k')
     expect(formatIRating(9960)).toBe('10.0k')
   })
+
+  it('writes the whole number grouped by the language’s thousands separator (request 10)', () => {
+    const es = messagesFor('es')
+    const en = messagesFor('en')
+    expect(formatIRating(2520, 'full', es)).toBe('2.520')
+    expect(formatIRating(2520, 'full', en)).toBe('2,520')
+    expect(formatIRating(10412.4, 'full', es)).toBe('10.412')
+    expect(formatIRating(999.6, 'full', en)).toBe('1,000')
+    expect(formatIRating(980, 'full', es)).toBe('980')
+    expect(formatIRating(1000000, 'full', es)).toBe('1.000.000')
+    // A dot without a dictionary; nothing for an unknown rating either way.
+    expect(formatIRating(2520, 'full')).toBe('2.520')
+    expect(formatIRating(null, 'full', es)).toBe('')
+    // The compact one stays as it was.
+    expect(formatIRating(2520, 'compact', en)).toBe('2.5k')
+  })
 })
 
 describe('license', () => {

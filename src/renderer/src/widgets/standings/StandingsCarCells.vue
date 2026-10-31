@@ -4,6 +4,7 @@ import { useI18n } from '@renderer/composables/useI18n'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import Icon from '@renderer/ui/Icon.vue'
+import IRating from '@renderer/ui/IRating.vue'
 import LapTime from '@renderer/ui/LapTime.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
@@ -116,9 +117,13 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
         line.gained
       }}</span
     >
-    <span v-else-if="id === 'ir'" class="c-ir" data-el="standings.columns.ir">{{
-      line.iRating
-    }}</span>
+    <span
+      v-else-if="id === 'ir'"
+      class="c-ir"
+      :class="{ 'is-lic': line.irColors }"
+      data-el="standings.columns.ir"
+      ><IRating :text="line.iRating" :colors="line.irColors"
+    /></span>
     <span v-else-if="id === 'lic'" class="c-lic" data-el="standings.columns.lic"
       ><LicenseChip v-if="line.lic" :text="line.lic" :colors="line.licStyle"
     /></span>
@@ -277,6 +282,13 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
   font-size: var(--ov-t-secondary);
   font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
+}
+
+/* In its licence's colours (IRating): the plate centred on the row, at the cell's end. */
+.c-ir.is-lic {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .c-delta {

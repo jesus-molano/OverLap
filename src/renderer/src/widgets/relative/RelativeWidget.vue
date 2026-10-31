@@ -23,11 +23,13 @@ import { vInlineStyle } from '@renderer/directives/inlineStyle'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import InfoBar from '@renderer/ui/InfoBar.vue'
+import IRating from '@renderer/ui/IRating.vue'
 import LapTime from '@renderer/ui/LapTime.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import TyreChip from '@renderer/ui/TyreChip.vue'
 import WidgetPanel from '@renderer/ui/WidgetPanel.vue'
+import { iRatingColumnEm } from '@renderer/view/driverCell'
 import { reuseViews } from '@renderer/view/reuse'
 import { createDriverStyles, type InlineStyle } from '@renderer/view/styles'
 import { previewRelative } from './preview'
@@ -55,6 +57,8 @@ const opts = useOptions(ID)
 const nameFormat = useNameFormat(ID)
 /** Makes, flags and penalty badges: the «Piloto» block (own or Apariencia's). */
 const block = useDriverBlock(ID)
+/** The iRating in its driver's licence colours (request 10). */
+const irColor = computed(() => block.value.iRatingColor)
 const density = useDensity(ID)
 const { halo, surfaceStyle } = useWidgetSurface(ID)
 const appearance = useAppearance()
@@ -98,7 +102,8 @@ const slots = computed<readonly SlotView[]>((prev) =>
       styles,
       nameFormat.value,
       t.value,
-      race.value
+      race.value,
+      block.value.iRatingFormat
     )
   )
 )
@@ -113,7 +118,12 @@ const cols = computed<RelativeColumns>((prev) => {
     tyres: tyres.value,
     flags: block.value.showFlags,
     brand: brands.value,
-    country: block.value.countryFlags
+    country: block.value.countryFlags,
+    irEm: iRatingColumnEm(
+      block.value.iRatingFormat,
+      block.value.iRatingColor,
+      appearance.value.licenseStyle
+    )
   })
   return prev !== undefined && prev.key === next.key ? prev : next
 })
@@ -195,7 +205,7 @@ if (injectSampleHost() !== null) {
           <div
             v-for="(slot, i) in slots"
             :key="i"
-            v-memo="[slot, cols.key, t]"
+            v-memo="[slot, cols.key, t, irColor]"
             v-inline-style="slot.kind === 'car' ? slot.clsStyle : undefined"
             :class="slot.css"
           >
@@ -236,9 +246,13 @@ if (injectSampleHost() !== null) {
                 <span v-else-if="cell === 'lic'" class="c-lic" data-el="relative.columns.lic"
                   ><LicenseChip v-if="slot.lic" :text="slot.lic" :colors="slot.licStyle"
                 /></span>
-                <span v-else-if="cell === 'ir'" class="c-ir" data-el="relative.columns.ir">{{
-                  slot.iRating
-                }}</span>
+                <span
+                  v-else-if="cell === 'ir'"
+                  class="c-ir"
+                  :class="{ 'is-lic': irColor }"
+                  data-el="relative.columns.ir"
+                  ><IRating :text="slot.iRating" :colors="irColor ? slot.licStyle : null"
+                /></span>
                 <span v-else-if="cell === 'tyre'" class="c-tyre" data-el="relative.columns.tyre"
                   ><TyreChip :letter="slot.tyre"
                 /></span>
@@ -433,6 +447,13 @@ if (injectSampleHost() !== null) {
   font-weight: var(--ov-w-text);
   color: var(--ov-fg-muted);
   text-align: right;
+}
+
+/* In its licence's colours (IRating): the plate centred on the row, at the cell's end. */
+.c-ir.is-lic {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Stint laps: a secondary figure like the iR, its lap unit smaller and dim. */

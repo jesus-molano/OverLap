@@ -41,6 +41,8 @@ const OPTS: TrafficOptions = {
   brandMarks: 'inherit',
   countryFlags: 'inherit',
   showFlags: 'inherit',
+  iRatingFormat: 'inherit',
+  iRatingColor: 'inherit',
   nameFormat: 'inherit'
 }
 

@@ -77,6 +77,8 @@ describe('the parts of a widget page (R24)', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat'
     ])
     // The alerts' penalty-free «showFlags» is an alert of its list, not a driver option.

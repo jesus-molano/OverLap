@@ -8,7 +8,14 @@
  */
 import { computed, type ComputedRef } from 'vue'
 import type { InfoBarField, InfoBarSection } from '@shared/infoBar'
-import type { ElementEntry, InfoBarData, InfoBarEntryId, InfoBarSize } from '@shared/types'
+import type {
+  ElementEntry,
+  InfoBarData,
+  InfoBarEntryId,
+  InfoBarSize,
+  IRatingFormat
+} from '@shared/types'
+import { inherit } from '../view/appearance'
 import {
   barEntries,
   hasInfoBar,
@@ -20,7 +27,7 @@ import {
 import { useAppearance } from './useAppearance'
 import { useClock } from './useClock'
 import { useI18n } from './useI18n'
-import { useOptions } from './useWidgetSettings'
+import { ownOptionsApply, useOptions } from './useWidgetSettings'
 import { useWidgetTitle } from './useWidgetTitle'
 
 export interface InfoBarHandle {
@@ -63,6 +70,8 @@ export function useInfoBar<S extends InfoBarSection>(
     return prev !== undefined && sameEntries(prev, next) ? prev : next
   })
   const clock = useClock(() => entries.value.includes('clock'))
+  // Apariencia's own sample draws the globals, whatever the widget's.
+  const own = ownOptionsApply()
   const ctx = computed<InfoBarContext>(() => {
     const o = options.value as unknown as Readonly<Record<string, unknown>>
     return {
@@ -72,6 +81,11 @@ export function useInfoBar<S extends InfoBarSection>(
       units: appearance.value.units,
       trend: o.conditionsTrend !== false,
       windDirection: o.conditionsWindDirection !== false,
+      // A driver widget's own «Formato del iRating» (its «Piloto» block), else Apariencia's.
+      irFormat: inherit(
+        own ? (o.iRatingFormat as IRatingFormat | 'inherit' | undefined) : undefined,
+        appearance.value.iRatingFormat
+      ),
       m: t.value
     }
   })

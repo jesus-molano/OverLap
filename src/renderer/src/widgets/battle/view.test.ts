@@ -675,3 +675,18 @@ describe('preview', () => {
     expect(Object.isFrozen(PREVIEW_BATTLE)).toBe(true)
   })
 })
+
+describe('the rival’s iRating (request 10)', () => {
+  const styles = createDriverStyles()
+  const d = { lapsRemaining: 19, playerLastLaps: [] }
+
+  it('in the chosen format, and in its licence colours only when asked', () => {
+    const op = opponent({ iRating: 2520 })
+    const today = toLaneView(op, 'ahead', d, OPTS, styles, ES).driver
+    expect(today).toMatchObject({ iRating: '2.5k', ratingColors: null })
+    const full = toLaneView(op, 'ahead', d, { ...OPTS, irFormat: 'full' }, styles, ES).driver
+    expect(full.iRating).toBe('2.520')
+    const lit = toLaneView(op, 'ahead', d, { ...OPTS, irColor: true }, styles, ES).driver
+    expect(lit.ratingColors).toBe(lit.licStyle)
+  })
+})

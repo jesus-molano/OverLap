@@ -358,9 +358,12 @@ describe('diffSettings and the widget options', () => {
       'brandMarks',
       'countryFlags',
       'showFlags',
+      'iRatingFormat',
+      'iRatingColor',
       'nameFormat'
     ])
     expect(configChanged((s) => (s.traffic.nameFormat = 'tv'))).toBe(false)
+    expect(configChanged((s) => (s.traffic.iRatingFormat = 'full'))).toBe(false)
     expect(configChanged((s) => (s.traffic.showFlags = false))).toBe(false)
     expect(configChanged((s) => (s.traffic.behindS = 20))).toBe(true)
     expect(configChanged((s) => (s.traffic.aheadS = 4))).toBe(true)

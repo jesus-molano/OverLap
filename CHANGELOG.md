@@ -81,6 +81,20 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   una tercera clase (GTP), una clase también se mueve arrastrando su línea (o la etiqueta de su
   líder en una línea) encima o debajo de otra, con la misma línea de colocar que las columnas: si
   el orden no era «A mano», pasa a serlo, el aviso lo dice y «Deshacer» devuelve los dos.
+- **El iRating, con el color de la licencia y entero si quieres**: dos filas nuevas en Apariencia ›
+  Filas y pilotos, con su «Global (…)» en el bloque «Piloto» de Relativo, Posiciones, Batalla y
+  Tráfico, y en el buscador. **Formato del iRating**: **2.5k** (como siempre y de serie) o el número
+  entero, **2.520** (con el separador de miles del idioma: «2,520» en inglés). Vale para el iRating
+  de cada piloto (las columnas iR de Relativo y Posiciones y el de Batalla) y para el SoF (el de
+  cada clase en Posiciones y el elemento SoF de las barras de información, en todos los widgets que
+  lo tienen: los cuatro del bloque usan el suyo, Combustible el de Apariencia). **iRating con el
+  color de la licencia** (apagado de serie): el iRating de cada piloto con los colores y el estilo
+  de su licencia (Contorno, Suave, Sólida o Solo letra, los mismos que la píldora), así puedes
+  ocultar la columna Licencia y seguir viendo su clase. El SoF no tiene licencia y sigue como
+  estaba; en Tráfico, que no muestra el iRating de los pilotos, la fila está pero apagada y lo
+  dice. La columna iR se ensancha lo justo para el número entero o la placa (y en Relativo la
+  ventana lo cuenta como cualquier otra columna). Los estilos y «Completo» no las tocan; al
+  actualizar, todo se ve como antes.
 
 ### Cambiado
 

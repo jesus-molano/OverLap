@@ -492,3 +492,29 @@ describe('best lap, last stop, stint and tyre cells', () => {
     expect(carView(makeRow())).toMatchObject({ stint: '', stintUnit: '', tyre: '—', pitLap: '' })
   })
 })
+
+describe('the iRating’s format and licence colours (request 10)', () => {
+  it('writes the rows’ iRating and the class SoF in the chosen format', () => {
+    const r = makeRow({ iRating: 2520 })
+    expect(carView(r).iRating).toBe('2.5k')
+    expect(carView(r, ctx({ irFormat: 'full' })).iRating).toBe('2.520')
+    expect(carView(r, ctx({ irFormat: 'full', m: EN })).iRating).toBe('2,520')
+    const b = { sof: 2140, carCount: 12 }
+    expect(classMeta(b, BOTH, ES, 'full')).toBe('SoF 2.140 12 coches')
+    const classes = [
+      block([1, 2], {}, 1),
+      block([1], { classId: 2, className: 'LMP2', sof: 2690, carCount: 9 })
+    ]
+    const plan = planLines(classes, { oneLineLeaders: true }, lineMetrics('compact'))
+    expect((toLineViews(plan, ctx({ irFormat: 'full' }))[3] as CarLineView).classSof).toBe(
+      'SoF 2.690'
+    )
+  })
+
+  it('gives the iRating its licence colours only when asked', () => {
+    const r = makeRow()
+    expect(carView(r).irColors).toBeNull()
+    const on = carView(r, ctx({ irColor: true }))
+    expect(on.irColors).toBe(on.licStyle)
+  })
+})
