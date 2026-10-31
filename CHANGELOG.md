@@ -13,7 +13,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OverLap es software libre bajo la GNU GPL versión 3 o posterior y que se ofrece sin ninguna
   garantía. Sus botones abren en el navegador el código fuente, la licencia y los avisos de
   terceros. También dice que los logos en color de las marcas son de sus dueños y no están bajo la
-  GPL, y que el juego monocromo (Simple Icons, CC0) se elige en Apariencia.
+  GPL, y que el monocromo usa Simple Icons (CC0) en 18 marcas y dibuja las demás en grises a partir
+  de los de color; se elige en Apariencia › Filas y pilotos › Color del logo.
 - **Documentación del proyecto abierto**: el README empieza con un resumen en inglés y suma
   «Compilar desde el código», «Code signing policy» (los `.exe` aún no se firman) y «Apoyar
   OverLap». Nuevos [PRIVACY.md](PRIVACY.md) (OverLap no usa la red; el futuro actualizador se podrá

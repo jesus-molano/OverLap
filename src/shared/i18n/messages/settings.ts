@@ -162,7 +162,7 @@ export const settingsEs = {
       help: 'Puedes usarlo, copiarlo, modificarlo y compartirlo según la GNU GPL, versión 3 o cualquier versión posterior. Se ofrece sin ninguna garantía',
       logosLabel: 'Logos de las marcas',
       logosHelp:
-        'Los logos en color son marcas y dibujos de sus dueños y no están bajo la GPL; el juego monocromo (Simple Icons, CC0) se elige en Apariencia',
+        'Los logos en color son marcas y dibujos de sus dueños y no están bajo la GPL. El monocromo usa Simple Icons (CC0) en 18 marcas y dibuja las demás en grises a partir de los de color; se elige en Apariencia › Filas y pilotos › Color del logo',
       source: 'Código fuente',
       licence: 'Licencia',
       notices: 'Avisos de terceros'
@@ -2313,7 +2313,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       help: 'You may use, copy, modify and share it under the GNU GPL, version 3 or any later version. It comes with no warranty at all',
       logosLabel: 'Car make logos',
       logosHelp:
-        'The colour logos are their owners’ marks and artwork and are not under the GPL; the monochrome set (Simple Icons, CC0) is chosen in Appearance',
+        'The colour logos are their owners’ marks and artwork and are not under the GPL. Monochrome uses Simple Icons (CC0) for 18 makes and draws the others in greys from the colour ones; it is chosen in Appearance › Rows and drivers › Logo colour',
       source: 'Source code',
       licence: 'Licence',
       notices: 'Third-party notices'

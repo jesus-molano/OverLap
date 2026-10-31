@@ -59,7 +59,13 @@ describe('«Licencia» (GPL-3.0-or-later, 31-oct-2026)', () => {
       expect(l.help, lang).toMatch(lang === 'es' ? /sin ninguna garantía/ : /no warranty/)
       // The colour logos are not under it; the free set is a setting away.
       expect(l.logosHelp, lang).toMatch(/GPL/)
-      expect(l.logosHelp, lang).toMatch(/Simple Icons, CC0/)
+      // Monocromo is not all CC0: the makes Simple Icons lacks are the colour artwork in greys.
+      expect(l.logosHelp, lang).toMatch(/Simple Icons \(CC0\)/)
+      expect(l.logosHelp, lang).toMatch(/\b18\b/)
+      expect(l.logosHelp, lang).toMatch(lang === 'es' ? /grises/ : /greys/)
+      expect(l.logosHelp, lang).toContain(
+        lang === 'es' ? 'Filas y pilotos › Color del logo' : 'Rows and drivers › Logo colour'
+      )
     }
     expect(messagesFor('es').settings.about.licence.title).toBe('Licencia')
     expect(messagesFor('en').settings.about.licence.title).toBe('Licence')
