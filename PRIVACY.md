@@ -15,10 +15,13 @@ etc. También lee los botones del volante (con Raw Input de Windows) si les asig
 **Qué guarda, y dónde.** Todo se queda en tu equipo, en `%APPDATA%\iracing-overlay\`:
 
 - `settings.json`: tus ajustes y disposiciones;
-- tus récords de vuelta (para el delta);
+- `personal-bests.json`: tus récords de vuelta (para el delta);
+- copias de seguridad de esos dos archivos (`settings.json.bak`, `settings.json.v5.bak`,
+  `personal-bests.json.bak`) y, si usas el modo de datos simulados, su propia subcarpeta `mock/`;
 - `overlap.log` (y `overlap.old.log`): el registro de la app, para diagnosticar fallos. Puede llevar
   rutas de tu equipo (con tu usuario de Windows) y nombres de pilotos de tus sesiones. Nunca sale de
-  tu equipo salvo que tú lo copies.
+  tu equipo salvo que tú lo copies;
+- las cachés y el almacenamiento propios de Electron/Chromium (sin datos personales).
 
 Puedes borrarlo todo borrando esa carpeta. **Exportar todo…** solo escribe el archivo que tú eliges.
 
@@ -54,7 +57,9 @@ to draw the widgets (lap times, positions, the names of the drivers in the sessi
 also reads your wheel's buttons (through Windows Raw Input) if you bind a shortcut to them.
 
 **What it stores, and where.** Everything stays on your computer, in `%APPDATA%\iracing-overlay\`:
-your settings and layouts (`settings.json`), your lap records (for the delta), and the app's log
+your settings and layouts (`settings.json`), your lap records (`personal-bests.json`, for the
+delta), backup copies of both (`.bak`), the simulated mode's own `mock/` subfolder if you use it,
+Electron/Chromium's own caches and storage (no personal data), and the app's log
 (`overlap.log`, `overlap.old.log`), which can contain paths with your Windows user name and driver
 names from your sessions. Nothing leaves your computer unless you copy it. Deleting that folder
 removes it all.
