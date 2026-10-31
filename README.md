@@ -58,7 +58,7 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 
 ### Descargar y abrir
 
-1. Descarga `OverLap-2.2.0-portable.exe` de la última release en GitHub.
+1. Descarga `OverLap-<versión>-portable.exe` de la última release en GitHub.
 2. Ábrelo. No se instala nada: es un ejecutable portable que puedes dejar donde quieras.
 3. El `.exe` no está firmado, así que **Windows SmartScreen** avisará la primera vez. Pulsa **Más
    información → Ejecutar de todas formas**.
