@@ -1,0 +1,102 @@
+OverLap Freeware Licence
+
+Copyright (C) 2026 Jesús Molano. All rights reserved, except as granted below.
+
+OverLap is free to use, but it is not open source. This licence covers OverLap's
+installer, its portable executable, the files they install or unpack and its
+updates, as published by the author at:
+
+    https://github.com/jesus-molano/OverLap/releases
+
+In this licence, "OverLap" means that software, and "you" means the person who
+uses it.
+
+1. What you may do
+
+   a. Install and use OverLap on as many of your computers as you like, free of
+      charge, for personal or commercial purposes. That includes using it while
+      you race, stream, record or publish videos, and in leagues, events and
+      broadcasts.
+   b. Share the official, unmodified installer or portable executable with
+      others, free of charge, as long as you keep this licence with it. Linking
+      to the releases page above is the preferred way to share it.
+
+2. What you may not do
+
+   a. Sell OverLap, charge for it, or include it in a paid product or bundle.
+   b. Modify OverLap, or distribute copies that have been modified, repackaged
+      or bundled with other software.
+   c. Decompile, disassemble or reverse engineer OverLap, or extract its
+      source code, except to the extent that the law applicable to you allows
+      it in spite of this restriction.
+   d. Remove or change the copyright notices, this licence or the third-party
+      notices that come with OverLap.
+   e. Use the OverLap name or its "OL" icon for anything other than referring
+      to OverLap itself. This licence grants no rights to them.
+
+3. Third-party components
+
+   OverLap includes components by other authors (such as Electron, Vue and
+   irsdk-node). They keep their own licences, which are listed in
+   THIRD_PARTY_NOTICES.md, shipped with OverLap and published with every
+   release. Nothing in this licence limits the rights those licences give you
+   over those components.
+
+4. Brand logos and trademarks
+
+   The car make logos and names shown in OverLap are trademarks and artwork of
+   their respective owners. They are not covered by this licence and are shown
+   only to tell which make a car is. OverLap is not affiliated with, sponsored
+   or endorsed by any car maker, nor by iRacing.com Motorsport Simulations,
+   LLC. iRacing is a trademark of iRacing.com Motorsport Simulations, LLC.
+
+5. No warranty
+
+   OverLap is provided "as is", without warranty of any kind, express or
+   implied, including the warranties of merchantability, fitness for a
+   particular purpose and non-infringement. You use it at your own risk.
+
+6. Limitation of liability
+
+   To the maximum extent permitted by applicable law, the author is not liable
+   for any damages or losses of any kind arising from the use of OverLap or
+   the inability to use it, even if advised of their possibility. Some
+   jurisdictions do not allow these exclusions; there they apply only as far
+   as the law allows.
+
+7. End of this licence
+
+   If you do not follow this licence, your right to use and share OverLap ends.
+   You may stop using OverLap at any time by uninstalling it.
+
+8. Earlier versions
+
+   OverLap versions 2.4.2 to 2.5.2 were published under the GNU General Public
+   License, version 3 or (at your option) any later version
+   (GPL-3.0-or-later). Copies of those versions keep that licence and the
+   rights it gives. This licence applies to the versions published after them.
+
+-------------------------------------------------------------------------------
+
+Resumen en español
+
+Este resumen no sustituye al texto en inglés de arriba, que es el que vale.
+
+OverLap es gratuito, pero no es de código abierto. © 2026 Jesús Molano.
+
+- Puedes instalarlo y usarlo gratis en todos tus equipos, para uso personal o
+  comercial: correr, retransmitir, grabar vídeos, ligas y eventos.
+- Puedes compartir el instalador o el portable oficiales, sin modificar y
+  gratis, con esta licencia. Mejor aún: comparte el enlace a
+  https://github.com/jesus-molano/OverLap/releases
+- No puedes venderlo, modificarlo, descompilarlo ni hacer ingeniería inversa
+  (salvo donde la ley lo permita), distribuir copias modificadas ni quitar los
+  avisos de copyright, de licencia o de terceros.
+- Los componentes de terceros conservan sus propias licencias
+  (THIRD_PARTY_NOTICES.md).
+- Los logos de las marcas de coches son de sus dueños y no entran en esta
+  licencia. OverLap no está afiliado a iRacing ni a ninguna marca de coches.
+- Se ofrece tal cual, sin ninguna garantía; la responsabilidad del autor se
+  limita al máximo que permita la ley.
+- Las versiones 2.4.2 a 2.5.2 se publicaron bajo la GPL-3.0 o posterior, y las
+  copias de esas versiones conservan esa licencia.

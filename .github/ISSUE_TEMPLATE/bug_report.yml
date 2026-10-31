@@ -1,0 +1,69 @@
+name: Report a problem
+description: Something does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Issues in Spanish are welcome too.
+
+        **A security issue?** Do not post it here: follow [SECURITY.md](https://github.com/jesus-molano/OverLap/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: OverLap version
+      description: In Settings › About and help.
+      placeholder: '2.5.2'
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+  - type: dropdown
+    id: session
+    attributes:
+      label: iRacing session
+      options:
+        - Practice
+        - Qualifying
+        - Race
+        - Test drive
+        - Replay
+        - Other
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What you expected and what you see. A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Settings › About and help › **Copy diagnostics**, then paste it here (it has no names).
+      render: text
+  - type: markdown
+    attributes:
+      value: |
+        ### The log (`overlap.log`)
+
+        If we ask for it, open the log from Settings › About and help › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as paths with your Windows user name or driver names from your sessions. Delete them or replace them with `…` before uploading it.
+  - type: checkboxes
+    id: log-checked
+    attributes:
+      label: Before sending
+      options:
+        - label: If I attach `overlap.log`, I have checked it and it has no personal data.
+          required: true

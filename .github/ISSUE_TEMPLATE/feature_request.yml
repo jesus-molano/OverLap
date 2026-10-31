@@ -1,0 +1,24 @@
+name: Suggest an idea
+description: Something OverLap could do.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Ideas in Spanish are welcome too.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What for
+      description: What you want to achieve on track, or what is missing.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you picture it
+      description: Which widget or page, and how it would look. A screenshot or a sketch helps.
+  - type: textarea
+    id: others
+    attributes:
+      label: Other overlays
+      description: If another overlay already does it, which one and how.
