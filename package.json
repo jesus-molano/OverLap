@@ -38,7 +38,7 @@
     "country-flag-icons": "1.6.20",
     "irsdk-node": "^4.4.0",
     "js-yaml": "^4.3.2",
-    "koffi": "^3.3.3"
+    "koffi": "^3.3.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "3.0.1",
