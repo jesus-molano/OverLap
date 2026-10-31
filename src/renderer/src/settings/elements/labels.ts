@@ -18,6 +18,7 @@ import type {
   ElementEntry,
   InfoBarEntryId,
   LightKind,
+  SpotterPartId,
   StandingsColumnId
 } from '@shared/types'
 import type { WidgetId } from '@shared/widgets'
@@ -75,6 +76,16 @@ function lights(m: Messages): Texts<LightKind> {
   return out
 }
 
+/** The spotter's marks, each with what it looks like. */
+function spotterParts(m: Messages): Texts<SpotterPartId> {
+  const names = m.settings.items.spotter.parts
+  const s = m.settings.spotter
+  return {
+    nearCap: { label: names.nearCap, hint: s.nearCapHelp },
+    twoMark: { label: names.twoMark, hint: s.twoMarkHelp }
+  }
+}
+
 /** The accordions' zones by page and name: 'Relativo · Columnas'. */
 function customizeZoneTexts(m: Messages): Texts<CustomizeZoneId> {
   const out = {} as Record<CustomizeZoneId, ElementText>
@@ -102,6 +113,9 @@ const ZONES: ZoneWords = {
       title: (m) => m.settings.zones.radar.parts,
       items: (m) => plain(m.settings.items.radar.parts)
     }
+  },
+  spotter: {
+    parts: { title: (m) => m.settings.zones.spotter.parts, items: spotterParts }
   },
   standings: {
     columns: { title: (m) => m.settings.zones.standings.columns, items: standingsColumns },

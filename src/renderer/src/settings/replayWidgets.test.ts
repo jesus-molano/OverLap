@@ -32,17 +32,17 @@ const HIDE_ALWAYS: Choices = { replays: 'hide', showWhen: 'always' }
 describe('replay rule wording', () => {
   it('lists the widgets with your car’s data only, joined like each language lists things', () => {
     expect(liveOnlyWidgets(es, LOCALES.es)).toBe(
-      'Radar, Pedales, Avisos, Testigos, Delta y Combustible'
+      'Radar, Pedales, Avisos, Testigos, Delta, Combustible y Spotter'
     )
     expect(liveOnlyWidgets(en, LOCALES.en)).toBe(
-      'Radar, Inputs, Alerts, Warning lights, Delta and Fuel'
+      'Radar, Inputs, Alerts, Warning lights, Delta, Fuel and Spotter'
     )
   })
 
   it('words the replays help for the current choices', () => {
     expect(replaysHelp(es, LOCALES.es, FOLLOW)).toEqual({
       help: 'Siguen al coche que miras; al rebobinar solo queda Posiciones, en directo',
-      more: 'Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se ocultan si miras otro.'
+      more: 'Radar, Pedales, Avisos, Testigos, Delta, Combustible y Spotter solo tienen datos de tu coche y se ocultan si miras otro.'
     })
     expect(replaysHelp(es, LOCALES.es, HIDE)).toEqual({
       help: 'Ningún widget en las repeticiones ni al mirar otros coches desde fuera del coche'
@@ -115,8 +115,8 @@ describe('replay rule wording', () => {
     expect(replayFacts('fuel', FOLLOW).hides).toContain('sessionScreen')
   })
 
-  it('has nothing to show out of the car only for the radar, the pedals, the lights and the delta', () => {
-    expect(WIDGET_IDS.filter(inCarOnly)).toEqual(['radar', 'inputs', 'lights', 'delta'])
+  it('has nothing to show out of the car only for the radar, the pedals, the lights, the delta and the spotter', () => {
+    expect(WIDGET_IDS.filter(inCarOnly)).toEqual(['radar', 'inputs', 'lights', 'delta', 'spotter'])
     // Every one of them hides with another car on camera too.
     for (const id of WIDGET_IDS.filter(inCarOnly)) expect(followsCamera(id)).toBe(false)
   })

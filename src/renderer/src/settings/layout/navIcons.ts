@@ -35,6 +35,11 @@ export const NAV_ICONS: Readonly<Record<SettingsPage, readonly NavIconShape[]>> 
   relative: [{ d: 'M3 3.5h10M3 12.5h10' }, { d: 'M2.5 6.25h11v3.5h-11z', fill: true }],
   // Car between two side alerts.
   radar: [{ d: 'M6.25 4.5h3.5v7h-3.5z' }, { d: 'M2.75 3.5v9M13.25 3.5v9' }],
+  // Two pillars apart, each partly filled from one end: cars alongside.
+  spotter: [
+    { d: 'M2.75 2.25h2.5v11.5h-2.5zM10.75 2.25h2.5v11.5h-2.5z' },
+    { d: 'M2.75 2.25h2.5v4.5h-2.5zM10.75 7.5h2.5v6.25h-2.5z', fill: true }
+  ],
   // Podium.
   standings: [{ d: 'M2 13.5h12M3 13.5v-4h3v4M6.5 13.5V5.5h3v8M10 13.5v-6h3v6' }],
   // Chasing chevrons.

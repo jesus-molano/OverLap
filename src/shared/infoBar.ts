@@ -166,10 +166,10 @@ export const INFO_BARS = {
 } as const
 
 /**
- * The widgets without info bars: the delta, the pedals, the radar, the warning lights and the
+ * The widgets without info bars: the delta, the pedals, the radar, the spotter, the warning lights and the
  * alerts band are each a single reading, where a bar would only add height (their pages say so).
  */
-export const NO_BAR_SECTIONS = ['delta', 'inputs', 'radar', 'lights', 'alerts'] as const
+export const NO_BAR_SECTIONS = ['delta', 'inputs', 'radar', 'spotter', 'lights', 'alerts'] as const
 
 export type InfoBarSection = keyof typeof INFO_BARS
 export type InfoBarField<S extends InfoBarSection> = (typeof INFO_BARS)[S][number][0]

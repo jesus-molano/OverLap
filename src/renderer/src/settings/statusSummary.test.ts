@@ -40,7 +40,8 @@ describe('statusSummary (R35)', () => {
     expect(s.label).toBe('Simulación')
     expect(s.sub).toBeNull()
     expect(s.tone).toBe('sim')
-    expect(s.enabled).toBe('10 de 10 widgets activados')
+    // A new install: every widget but the spotter, off until you turn it on.
+    expect(s.enabled).toBe('10 de 11 widgets activados')
     expect(s.hiddenLines).toEqual([])
   })
 
@@ -64,7 +65,7 @@ describe('statusSummary (R35)', () => {
     settings.widgets.battle.visible = false
     const off = statusSummary(es, input({ settings, hidden: { battle: 'practice' } }))
     expect(off.sub).toBeNull()
-    expect(off.enabled).toBe('9 de 10 widgets activados')
+    expect(off.enabled).toBe('9 de 11 widgets activados')
   })
 
   it('puts the user hiding the overlay and a failing save first', () => {

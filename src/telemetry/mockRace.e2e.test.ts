@@ -41,6 +41,8 @@ const DEFAULTS = defaultTelemetryConfig()
 function withRecord(config: TelemetryConfig): TelemetryConfig {
   return {
     ...config,
+    // The spotter too, hidden for a new install: every widget runs.
+    enabledWidgets: [...new Set([...config.enabledWidgets, 'spotter' as const])],
     delta: { ...config.delta, ...everySession('pb') },
     // The standings' second header line (iRating, SR), off for a new install since R30.
     standings: { ...config.standings, subheaderBarSize: 'normal' }
@@ -117,6 +119,7 @@ interface Run {
   traffic: Sent<'traffic'>[]
   alerts: Sent<'alerts'>[]
   delta: Sent<'delta'>[]
+  spotter: Sent<'spotter'>[]
   hidden: Hidden[]
   logs: string[]
   ticks: number
@@ -138,6 +141,7 @@ async function runLoop(
     traffic: [],
     alerts: [],
     delta: [],
+    spotter: [],
     hidden: [],
     logs: [],
     ticks: 0
@@ -156,6 +160,7 @@ async function runLoop(
     else if (msg.widget === 'traffic') run.traffic.push({ ...at(), payload: msg.payload })
     else if (msg.widget === 'alerts') run.alerts.push({ ...at(), payload: msg.payload })
     else if (msg.widget === 'delta') run.delta.push({ ...at(), payload: msg.payload })
+    else if (msg.widget === 'spotter') run.spotter.push({ ...at(), payload: msg.payload })
   }
   const clock = { ms: 0 }
   const end = { stop: (): void => {} }
@@ -274,6 +279,43 @@ describe('mock race end to end: the first ten minutes at 60 Hz', () => {
     expect(run.standings.length).toBeLessThan(RUN_S * 4)
     expect(run.battle.length).toBeGreaterThan(10)
     expect(run.battle.length).toBeLessThan(RUN_S * 4)
+  })
+
+  it('spotter: every side the mock drives, two cars on one, a full pillar, few payloads', () => {
+    const sides = new Set<string>()
+    let full = 0
+    let filled = 0
+    let unknown = 0
+    for (const { s, payload: p } of run.spotter) {
+      const at = `t=${s.toFixed(2)}`
+      if (!p.active) continue
+      sides.add(`${p.left.count}/${p.right.count}`)
+      for (const side of [p.left, p.right]) {
+        // Each stretch inside your car, front first, apart from the next one; the cover is their sum.
+        let end = -1
+        let sum = 0
+        for (const g of side.segs) {
+          expect(g.from, at).toBeGreaterThan(end)
+          expect(g.to, at).toBeGreaterThan(g.from)
+          expect(g.to, at).toBeLessThanOrEqual(1)
+          end = g.to
+          sum += g.to - g.from
+        }
+        if (!side.unknown) expect(side.cover, at).toBeCloseTo(sum, 6)
+        if (side.count === 0) expect(side.segs, at).toEqual([])
+        if (side.count > 0 && side.segs.length > 0) filled++
+        if (side.unknown) unknown++
+        if (side.cover >= 1 && !side.unknown) full++
+      }
+    }
+    // CarLeft, CarRight, both, two left, two right (scripts.ts), and clear.
+    for (const k of ['1/0', '0/1', '1/1', '2/0', '0/2', '0/0']) expect(sides.has(k), k).toBe(true)
+    expect(full).toBeGreaterThan(0)
+    // The mock's cars are matched: a side iRacing counts is placed, almost never "somewhere".
+    expect(unknown).toBeLessThan(filled / 20)
+    // Quantised and sent on change only: far fewer messages than its 60 Hz ticks.
+    expect(run.spotter.length).toBeGreaterThan(50)
+    expect(run.spotter.length).toBeLessThan(RUN_S * 60 * 0.25)
   })
 
   it('standings: the player class first, sane positions and gaps growing down the order', () => {

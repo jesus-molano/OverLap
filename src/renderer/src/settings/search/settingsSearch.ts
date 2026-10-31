@@ -125,7 +125,12 @@ export const SEARCH_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   keys: ['shortcut'],
   button: ['shortcut'],
   buttons: ['shortcut'],
-  automatico: ['segun el coche']
+  automatico: ['segun el coche'],
+  // The spotter by what it shows: the cars at your sides.
+  lateral: ['spotter'],
+  laterales: ['spotter'],
+  costado: ['spotter'],
+  alongside: ['spotter']
 }
 
 /**
@@ -144,7 +149,12 @@ export const SEARCH_PHRASES: Readonly<Record<string, readonly string[]>> = {
   'botones del volante': ['atajo', 'shortcut'],
   'boton volante': ['atajo', 'shortcut'],
   'button box': ['shortcut', 'atajo'],
-  'wheel button': ['shortcut', 'atajo']
+  'wheel button': ['shortcut', 'atajo'],
+  'angulo muerto': ['spotter'],
+  'coche al lado': ['spotter'],
+  'blind spot': ['spotter'],
+  'side by side': ['spotter'],
+  'car left right': ['spotter']
 }
 
 /** The longest phrase SEARCH_PHRASES knows, in words. */

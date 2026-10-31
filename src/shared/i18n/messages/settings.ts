@@ -523,7 +523,7 @@ export const settingsEs = {
       title: 'Texto',
       fontScale: 'Tamaño del texto',
       /** Every widget: it multiplies each one's «Escala» (R09). */
-      fontScaleHelp: 'Cambia los diez widgets: multiplica la «Escala» de cada uno',
+      fontScaleHelp: 'Cambia los once widgets: multiplica la «Escala» de cada uno',
       /** `free`: the widgets whose text fills their window ('Relativo, Radar y Delta'). */
       fontScaleMore: (free: string) =>
         `${free} llenan su ventana con el texto: su ventana crece o encoge en la misma proporción, en todas tus disposiciones.`,
@@ -590,7 +590,7 @@ export const settingsEs = {
         },
         complete: {
           label: 'Completo',
-          hint: 'Todo a la vista: cada columna, dato y barra de los diez widgets, logos siempre, fondo al 90 %'
+          hint: 'Todo a la vista: cada columna, dato y barra de los once widgets, logos siempre, fondo al 90 %'
         }
       },
       /**
@@ -651,7 +651,7 @@ export const settingsEs = {
       fine: 'Ajuste fino del estilo',
       /** Where the widgets shown are chosen: the layouts' examples. */
       seeLayouts:
-        'Qué widgets se ven lo eligen las disposiciones: «Ligera» y «Los diez» en Ejemplos',
+        'Qué widgets se ven lo eligen las disposiciones: «Ligera» y «Los once» en Ejemplos',
       /** The undo toast. */
       applied: (name: string) => `Estilo «${name}» aplicado`
     },
@@ -1081,6 +1081,20 @@ export const settingsEs = {
     range: 'Alcance',
     rangeHelp: 'Distancia por delante y por detrás que cubre el radar',
     labelsHelp: 'Etiquetas con la distancia en las guías del radar'
+  },
+  spotter: {
+    /** What a pillar is and what a full one means (there is no lateral distance in iRacing). */
+    note: 'Cada barra es tu coche, de morro (arriba) a cola (abajo): se llena con lo que te cubre el coche de ese lado. Llena es que va del todo a tu lado, no un golpe: iRacing no da la distancia lateral',
+    onlyAlongside: 'Solo con un coche al lado',
+    onlyAlongsideHelp:
+      'Las barras aparecen con un coche a tu lado o a punto de estarlo; sin esto, siempre que conduces',
+    barWidth: 'Grosor de las barras',
+    /** The window's width is the gap between the pillars (no option of its own). */
+    barWidthHelp: 'La separación entre las dos es el ancho de la ventana',
+    /** The marks' hints in the editor (settings.items.spotter.parts names them). */
+    nearCapHelp:
+      'Un tope tenue arriba o abajo: el coche que iba a tu lado, ahora justo delante o detrás',
+    twoMarkHelp: 'Un «2» en la barra cuando iRacing cuenta dos coches en ese lado'
   },
   standings: {
     mode: 'Modo',
@@ -1701,6 +1715,7 @@ export const settingsEs = {
   zones: {
     relative: { columns: 'Columnas', headerBar: 'Cabecera', footerBar: 'Pie' },
     radar: { parts: 'Capas' },
+    spotter: { parts: 'Marcas' },
     standings: {
       columns: 'Columnas',
       headerBar: 'Cabecera',
@@ -1754,6 +1769,12 @@ export const settingsEs = {
         guides: 'Guías de distancia',
         sideAlerts: 'Avisos laterales',
         rangeLabels: 'Distancias en las guías'
+      }
+    },
+    spotter: {
+      parts: {
+        nearCap: 'Coche a punto de ponerse al lado',
+        twoMark: 'Dos coches en un lado'
       }
     },
     standings: { classLine: { sof: 'SoF', carCount: 'Número de coches' } },
@@ -2011,7 +2032,7 @@ export const settingsEs = {
         hint: 'Relativo (2 coches delante y 2 detrás), Radar, Delta, Combustible y Avisos'
       },
       /** Not «Completa»: «Completo» is a style (Apariencia), a look, not which widgets show. */
-      full: { name: 'Los diez', hint: 'Los diez widgets' },
+      full: { name: 'Los once', hint: 'Los once widgets' },
       /** Where the look is chosen: Apariencia's styles. */
       seeStyles: 'El aspecto (Limpio, Compacto, Completo) se elige en Estilo, en Apariencia',
       add: 'Añadir',
@@ -2501,7 +2522,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     text: {
       title: 'Text',
       fontScale: 'Text size',
-      fontScaleHelp: 'Changes all ten widgets: it multiplies each one’s “Scale”',
+      fontScaleHelp: 'Changes all eleven widgets: it multiplies each one’s “Scale”',
       fontScaleMore: (free) =>
         `${free} fill their window with their text: their window grows or shrinks by the same amount, in all your layouts.`,
       halo: 'Text outline',
@@ -2562,7 +2583,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         },
         complete: {
           label: 'Complete',
-          hint: 'Everything in view: every column, datum and bar of the ten widgets, logos always, background at 90%'
+          hint: 'Everything in view: every column, datum and bar of the eleven widgets, logos always, background at 90%'
         }
       },
       confirm: {
@@ -2600,7 +2621,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       },
       custom: 'Custom: you tuned it by hand, below or on a widget’s page',
       fine: 'Fine tuning of the style',
-      seeLayouts: 'Which widgets show is the layouts’ choice: “Light” and “All ten” in Examples',
+      seeLayouts: 'Which widgets show is the layouts’ choice: “Light” and “All eleven” in Examples',
       applied: (name) => `“${name}” style applied`
     },
     other: {
@@ -2933,6 +2954,17 @@ export const settingsEn: Dict<typeof settingsEs> = {
     range: 'Range',
     rangeHelp: 'How far ahead and behind the radar looks',
     labelsHelp: 'Distance labels on the radar’s guide lines'
+  },
+  spotter: {
+    note: 'Each bar is your car, nose (top) to tail (bottom): it fills with what the car on that side covers. Full means right beside you, not contact: iRacing gives no sideways distance',
+    onlyAlongside: 'Only with a car alongside',
+    onlyAlongsideHelp:
+      'The bars show with a car beside you or about to be; without it, whenever you drive',
+    barWidth: 'Bar thickness',
+    barWidthHelp: 'The gap between the two is the window’s width',
+    nearCapHelp:
+      'A faint cap at the top or bottom: the car that was beside you, now just ahead or behind',
+    twoMarkHelp: 'A “2” on the bar when iRacing counts two cars on that side'
   },
   standings: {
     mode: 'Mode',
@@ -3449,6 +3481,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
   zones: {
     relative: { columns: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     radar: { parts: 'Layers' },
+    spotter: { parts: 'Marks' },
     standings: {
       columns: 'Columns',
       headerBar: 'Header',
@@ -3491,6 +3524,12 @@ export const settingsEn: Dict<typeof settingsEs> = {
         guides: 'Distance guides',
         sideAlerts: 'Side alerts',
         rangeLabels: 'Distances on the guides'
+      }
+    },
+    spotter: {
+      parts: {
+        nearCap: 'Car about to come alongside',
+        twoMark: 'Two cars on one side'
       }
     },
     standings: { classLine: { sof: 'SoF', carCount: 'Car count' } },
@@ -3712,7 +3751,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
         name: 'Light',
         hint: 'Relative (2 cars ahead and 2 behind), Radar, Delta, Fuel and Alerts'
       },
-      full: { name: 'All ten', hint: 'All ten widgets' },
+      full: { name: 'All eleven', hint: 'All eleven widgets' },
       seeStyles: 'The look (Clean, Compact, Complete) is chosen in Style, on Appearance',
       add: 'Add',
       addLabel: (name) => `Add the example layout “${name}”`,

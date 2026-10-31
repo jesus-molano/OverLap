@@ -188,6 +188,19 @@ export const WIDGET_DEFS = {
     sizeModel: 'auto-height',
     defaultShowIn: { practice: true, qualify: false, race: true },
     noSessionScreen: true
+  },
+  // The cars alongside as two pillars, one each side of you (2.4): the radar's matching at its
+  // rate, apart from the radar (it runs with the radar hidden). The window's width is the gap
+  // between the pillars, its height their length. Hidden by default, new installs included.
+  spotter: {
+    id: 'spotter',
+    hz: 60,
+    defaultBounds: { x: 760, y: 600, width: 400, height: 180 },
+    minSize: { width: 60, height: 60 },
+    defaultVisible: false,
+    sizeModel: 'free',
+    defaultShowIn: { practice: true, qualify: true, race: true },
+    inCarOnly: true
   }
 } as const satisfies Record<string, WidgetDef>
 
@@ -202,7 +215,7 @@ export const WIDGET_IDS = Object.keys(WIDGET_DEFS) as WidgetId[]
  * the order to read them in. Names in `core.widgetGroups`.
  */
 export const WIDGET_GROUPS = [
-  { id: 'track', widgets: ['relative', 'standings', 'battle', 'traffic', 'radar'] },
+  { id: 'track', widgets: ['relative', 'standings', 'battle', 'traffic', 'radar', 'spotter'] },
   { id: 'lap', widgets: ['delta', 'fuel', 'inputs'] },
   { id: 'car', widgets: ['alerts', 'lights'] }
 ] as const satisfies readonly { id: string; widgets: readonly WidgetId[] }[]

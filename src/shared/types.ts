@@ -357,6 +357,52 @@ export interface RadarData {
 }
 
 // ---------------------------------------------------------------------------
+// Spotter widget payload (2.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * A stretch of your car a car alongside covers, as fractions of your car's length from its front
+ * (0) to its rear (1), from <= to. Quantised (spotter.ts SPOTTER.step).
+ */
+export interface SpotterSegment {
+  from: number
+  to: number
+}
+
+/** One side of you: the pillar of that side. */
+export interface SpotterSide {
+  /** Cars alongside on this side, per CarLeftRight (iRacing's own spotter): 0, 1 or 2. */
+  count: 0 | 1 | 2
+  /**
+   * What the cars alongside cover of your car, each car's stretch (two cars that overlap each
+   * other merged): at most two, front first. Empty with nobody alongside or `unknown`.
+   */
+  segs: SpotterSegment[]
+  /** The share of your car covered (0..1, the segments' total): the colour of the fill. */
+  cover: number
+  /**
+   * Alongside, but where along your car is not known (no car matched it, no track length): the
+   * whole pillar in the "somewhere here" look.
+   */
+  unknown: boolean
+  /**
+   * A car that was just alongside on this side and is now off your front or your rear (the
+   * radar's side memory): 0 none, up to 1 at a car length's gap. Quantised to tenths.
+   */
+  nearFront: number
+  nearRear: number
+}
+
+export interface SpotterData {
+  /** You are in the car with data to read: the pillars can be drawn (empty or not). */
+  active: boolean
+  /** Something on either side: a car alongside or one about to be. */
+  visible: boolean
+  left: SpotterSide
+  right: SpotterSide
+}
+
+// ---------------------------------------------------------------------------
 // Payload map: one entry per widget in WIDGET_DEFS.
 // ---------------------------------------------------------------------------
 
@@ -1037,6 +1083,7 @@ export interface WidgetPayloads {
   delta: DeltaData
   fuel: FuelData
   lights: LightsData
+  spotter: SpotterData
 }
 
 /** Distributive union `{ widget: 'relative', payload: RelativeData } | ...`. */
@@ -1305,6 +1352,11 @@ export type DeltaTopId = 'state' | 'predicted' | 'reference'
 export type DeltaLapId = 'last' | 'best' | 'optimal' | 'pb'
 /** The radar's layers over the cars: guides, side alerts, distance labels. */
 export type RadarPartId = 'guides' | 'sideAlerts' | 'rangeLabels'
+/**
+ * The spotter's marks on its pillars: the cap of a car about to come alongside, the «2» of two
+ * cars on one side.
+ */
+export type SpotterPartId = 'nearCap' | 'twoMark'
 /** The alerts band's extras: what to do after each label, the other alerts as chips. */
 export type AlertsPartId = 'notes' | 'chips'
 /** The fuel widget's lines; `hero` (the fuel and the laps it lasts) always stays. */
@@ -1441,6 +1493,16 @@ export interface RadarOptions {
   rangeM: number
   /** The layers over the cars (fixed order; the distance labels sit on the guides). */
   parts: ElementList<RadarPartId>
+}
+
+/** The spotter (2.4): every field is drawing; the provider computes the same payload. */
+export interface SpotterOptions {
+  /** The pillars show only while a car is alongside or about to be; off, whenever you drive. */
+  onlyAlongside: boolean
+  /** The pillars' width, px at 100 %. */
+  barWidth: number
+  /** The marks on the pillars (fixed order). */
+  parts: ElementList<SpotterPartId>
 }
 
 /**
@@ -1752,6 +1814,7 @@ export type CustomizeZoneId =
   | 'relative.headerBar'
   | 'relative.footerBar'
   | 'radar.parts'
+  | 'spotter.parts'
   | 'standings.columns'
   | 'standings.headerBar'
   | 'standings.subheaderBar'
@@ -1909,6 +1972,7 @@ export interface OverlaySettings {
   delta: DeltaOptions
   fuel: FuelOptions
   lights: LightsOptions
+  spotter: SpotterOptions
   /**
    * Global shortcuts: the first binding of each action, a key combination or a controller's
    * button (main registers the combinations and listens to the buttons; nothing else acts on
@@ -1968,6 +2032,7 @@ export interface SettingsPatch {
   delta?: Partial<DeltaOptions>
   fuel?: Partial<FuelOptions>
   lights?: Partial<LightsOptions>
+  spotter?: Partial<SpotterOptions>
   /**
    * The first binding of an action ('' removes it: the next one moves up). A combination
    * another action has is refused (the current one is kept).
@@ -2009,4 +2074,5 @@ export interface TelemetryConfig {
   delta: DeltaOptions
   fuel: FuelOptions
   lights: LightsOptions
+  spotter: SpotterOptions
 }

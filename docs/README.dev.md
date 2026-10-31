@@ -108,6 +108,7 @@ portable; `app.setPath('userData', ...)` en `src/main/index.ts` la fija). Junto 
 | Testigos    | `lights`    | 10 Hz      | 40 x 24       |
 | Delta       | `delta`     | 30 Hz      | 200 x 48      |
 | Combustible | `fuel`      | 2 Hz       | 180 x 40      |
+| Spotter     | `spotter`   | 60 Hz      | 60 x 60       |
 
 Las definiciones están en `WIDGET_DEFS` (`src/shared/widgets.ts`).
 
@@ -142,7 +143,7 @@ mostrar el overlay** también está en la bandeja, en el submenú **Cuándo most
 - **Pantalla de sesión** (`CamCameraState` 0x1): para no tapar los resultados, el chat ni los
   botones de iRacing. Cada widget tiene su excepción en la sección **Ventana y visibilidad** de
   su página (`showOnSessionScreen`); por defecto solo se queda Posiciones, con los resultados.
-  Radar, Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen
+  Radar, Spotter, Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen
   datos; Combustible también: no muestra nada con el sistema de repeticiones activo, y lo está en
   la pantalla de sesión. Con «Solo cuando estás en el coche» (o «Solo en carrera») y las
   repeticiones ocultas, la pantalla de sesión ya se oculta por estar fuera del coche: Apariencia no
@@ -154,8 +155,8 @@ mostrar el overlay** también está en la bandeja, en el submenú **Cuándo most
   está en el punto en directo (`ReplayFrameNumEnd` > 0; sin esa variable, si `SessionTime` retrocede
   o salta).
 - En directo con la cámara en otro coche, Relativo, Posiciones, Batalla y Tráfico se centran en
-  él; Radar, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche y se
-  ocultan.
+  él; Radar, Spotter, Pedales, Avisos, Testigos, Delta y Combustible solo tienen datos de tu coche
+  y se ocultan.
 - Al rebobinar no se reconstruye la carrera con la cinta: los widgets con datos en directo se ocultan
   y Posiciones (con `follow`) se queda con la carrera en directo tal como estaba. El cronometraje
   no cuenta vueltas, récords ni incidentes de la cinta, y al volver al directo todo sigue (la vuelta
@@ -299,6 +300,27 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   contigo: el radar solo usa `CarLeftRight` y Tráfico no lista a nadie.
 - Capas (`radar.parts`): guías de distancia, avisos laterales y las distancias sobre las guías (estas,
   solo con las guías). Los coches y el tuyo siempre se dibujan.
+
+### Spotter
+
+- `src/shared/spotter.ts`: su propia pasada de `computeRadar` (alcance 12 m, el de la memoria de
+  lado), con su propia memoria, así que funciona con el radar oculto o con otro alcance. Un `prev`
+  nulo del bucle (sesión nueva, reconexión, una regla que lo ocultó) la reinicia.
+- Cada barra es tu coche (4,6 m), de morro (0) a cola (1). Un coche al lado a `d` m (positivo,
+  delante) cubre `[max(0, -d/L), min(1, 1 - d/L)]`, pegado al extremo en el que va; como mínimo
+  `SPOTTER.minCover` (8 %) si iRacing lo cuenta un poco más allá de un coche. Dos coches en un lado:
+  sus dos tramos, unidos si se tocan, y la cuenta (2). Un lado que `CarLeftRight` da pero sin coche
+  que lo case (fantasma del radar, o sin longitud de pista) es `unknown`: barra entera discontinua.
+- Tope de aproximación: un coche que el radar mantiene en su lado (estuvo al lado hace menos de
+  3 s) y está a menos de 12 m: `nearFront` / `nearRear`, de 0 a 1 (a un coche de distancia).
+- Cuantizado a 1/50 de coche (topes a 1/10) y `SKIP_EMIT` con `spotterEqual`: solo se envía cuando cambia una barra,
+  muchos menos mensajes que sus ticks a 60 Hz (la prueba del mock lo comprueba).
+- Opciones (`spotter.*`, todas de dibujo): `onlyAlongside`, `barWidth` (px) y `parts`
+  (`nearCap`, `twoMark`). Oculto de serie (`defaultVisible: false`) y en `HIDDEN_WHEN_ADDED`.
+- Dibujo: dos pilares HTML en los extremos de la ventana (`display: flex; justify-content:
+space-between`); cada tramo es un bloque a toda altura escalado desde arriba (`transform`, una
+  cadena por tramo cuantizado), los topes cambian solo `opacity`. Color con la rampa
+  `--ov-prox-N` del radar (paleta para daltónicos incluida).
 
 ### Tráfico
 

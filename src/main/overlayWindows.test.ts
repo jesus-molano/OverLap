@@ -166,6 +166,9 @@ beforeEach(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
   vi.spyOn(console, 'error').mockImplementation(() => {})
   settings = createDefaultSettings()
+  // Every widget shown (the spotter is hidden by default): edit mode, which adds the hidden ones'
+  // ghosts, changes nothing hosted unless a test hides one.
+  for (const id of WIDGET_IDS) settings.widgets[id].visible = true
   committed = []
   fitted = []
   scaleSteps = []

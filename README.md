@@ -1,7 +1,7 @@
 # OverLap
 
-Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja diez
-widgets encima del juego: relativo, radar, posiciones, batalla, pedales, tráfico, avisos,
+Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja once
+widgets encima del juego: relativo, radar, spotter, posiciones, batalla, pedales, tráfico, avisos,
 testigos, delta y combustible. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar una disposición distinta para cada coche.
 
@@ -98,6 +98,23 @@ Vista cenital con los coches a escala alrededor del tuyo, que pasan a rojo segú
 aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m por defecto). Un
 coche que te acaba de pasar conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta
 solo cuando no hay nadie cerca.
+
+### Spotter
+
+Dos barras, una a cada lado, para quien prefiere los laterales al radar central (o los quiere
+con él: son independientes, cada uno con su página y su visibilidad). Cada barra es tu coche, de
+morro (arriba) a cola (abajo), y se llena con lo que te cubre el coche de ese lado: desde arriba si
+va por delante, desde abajo si va por detrás, y entera cuando va justo a tu lado. El color pasa del
+gris al rojo según te cubre más, y llena se marca también con el borde rojo. Con dos coches en un
+lado, un «2»; con un coche que acaba de estar a tu lado y ahora va justo delante o detrás, un tope
+tenue en ese extremo. Qué lado lo dice el spotter de iRacing; cuánto, la distancia a lo largo de la
+pista. iRacing no da la distancia lateral: llena es «del todo a tu lado», no «golpe». Si iRacing
+dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
+
+El ancho de la ventana es la separación entre las barras (para ponerlas a los lados del coche o
+de la pantalla) y su alto, su largo; el grosor se elige en Contenido. De serie solo se ve con un
+coche al lado o a punto de estarlo, y está oculto: se activa en Visibilidad, la barra lateral o la
+bandeja.
 
 ### Posiciones
 
@@ -243,7 +260,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
   panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala (la misma fila y los
-  mismos botones 80/100/125/150 % en los diez; en Relativo, Radar y Delta cambia el tamaño de su
+  mismos botones 80/100/125/150 % en los once; en Relativo, Radar, Spotter y Delta cambia el tamaño de su
   ventana, como la rueda en modo edición), alto automático o fijo, en qué sesiones se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la
   entrada a boxes).
 - **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia y Atajos),
@@ -268,14 +285,14 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   incidentes y el reloj; a la izquierda del pie las condiciones, a la derecha los coches y el
   combustible; y los datos de la sesión, solo en Posiciones. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
-  encoge. Delta, Pedales, Radar, Testigos y Avisos no tienen: son lecturas compactas, y una barra
+  encoge. Delta, Pedales, Radar, Spotter, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
 - **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (todo de serie: el
   aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie, o lo justo más si
   muestras más coches, para que el texto no encoja), **Limpio** (sin fondo: solo el texto sobre el
   juego, con su contorno; sin filas alternas, logos ni banderas), **Compacto** (pequeño pero
   legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo letra) y
-  **Completo** (todo a la vista en los diez widgets de la disposición en uso: cada columna,
+  **Completo** (todo a la vista en los once widgets de la disposición en uso: cada columna,
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
@@ -287,8 +304,8 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   vuelve todo de serie. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
   unidades, los sitios ni qué widgets se ven (eso lo eligen las disposiciones).
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
-  por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los diez widgets:
-  en Relativo, Radar y Delta, que llenan su ventana con el texto, agranda su ventana en la misma
+  por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los once widgets:
+  en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar) y el bloque **Piloto** global: formato del nombre, logo de la marca (Auto, Siempre o
@@ -368,7 +385,7 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
 - **Ejemplos**: **Ligera** (Relativo con 2 coches delante y 2 detrás, Radar, Delta, Combustible y
-  Avisos) y **Los diez** (los diez widgets) se añaden a la lista con tus widgets donde están, sin
+  Avisos) y **Los once** (los once widgets) se añaden a la lista con tus widgets donde están, sin
   aplicarse; con **Siguiente disposición** alternas entre menos y más información en carrera.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
   uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche

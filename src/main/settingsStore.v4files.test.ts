@@ -14,7 +14,7 @@ import { optionSetOf } from '@shared/layouts'
 import { DEFAULT_SETTINGS, SETTINGS_VERSION, normalizeSettings } from '@shared/settings'
 import { syncActiveLayout } from '@shared/settings/layouts'
 import type { ElementEntry } from '@shared/types'
-import { WIDGET_IDS } from '@shared/widgets'
+import { WIDGET_IDS, type WidgetId } from '@shared/widgets'
 import DEFAULT_V4 from './fixtures/settings-v4-default.json'
 import CUSTOM_V4 from './fixtures/settings-v4-customised.json'
 import { SettingsStore } from './settingsStore'
@@ -91,11 +91,20 @@ describe('the untouched v4 file', () => {
     })
     // Its own background opacities stay (the old per-widget defaults, saved): only a fresh
     // install follows the global one.
+    const v4Widgets: Partial<Record<WidgetId, (typeof DEFAULT_V4.widgets)['relative']>> =
+      DEFAULT_V4.widgets
     for (const id of WIDGET_IDS) {
+      const v4 = v4Widgets[id]
+      // A widget from after 2.5 (the spotter) has no entry: it comes hidden (below).
+      if (v4 === undefined) continue
       // Its sessions too: the fuel stays race-only (R44 is for new installs).
-      expected.widgets[id].showIn = { ...DEFAULT_V4.widgets[id].showIn }
-      expected.widgets[id].backgroundOpacity = DEFAULT_V4.widgets[id].backgroundOpacity
+      expected.widgets[id].showIn = { ...v4.showIn }
+      expected.widgets[id].backgroundOpacity = v4.backgroundOpacity
     }
+    // The spotter (2.4): hidden, its default size, in the free spot nearest its default place.
+    expect(s.widgets.spotter.visible).toBe(false)
+    expect(s.widgets.spotter.bounds).toMatchObject({ width: 400, height: 180 })
+    expected.widgets.spotter.bounds = s.widgets.spotter.bounds
     // Its one layout, and the shared options, have the options as loaded.
     syncActiveLayout(expected)
     expected.savedLayouts.shared = optionSetOf(expected)
@@ -159,7 +168,9 @@ describe('a customised v4 file', () => {
     const s = store.settings
     const saved = CUSTOM_V4.widgets as Record<string, { backgroundOpacity: number }>
     for (const id of WIDGET_IDS) {
-      expect(s.widgets[id].backgroundOpacity, id).toBe(saved[id]?.backgroundOpacity)
+      // A widget from after 2.5 (the spotter) follows the global one, as on a new install.
+      const own = saved[id]?.backgroundOpacity ?? 'inherit'
+      expect(s.widgets[id].backgroundOpacity, id).toBe(own)
     }
     // Before 2.3 the relative ignored the global density; with this file's 'compact' it would
     // follow it ('inherit') and tighten: it keeps the rows it had.

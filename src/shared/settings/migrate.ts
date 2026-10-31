@@ -50,7 +50,7 @@ import { isRecord, normalizeElements } from './fields'
  * default a relative moved to the bottom right). The user turns it on from the tray or the
  * settings, or with its ghost's eye in edit mode.
  */
-export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['fuel'])
+export const HIDDEN_WHEN_ADDED: readonly WidgetId[] = Object.freeze(['fuel', 'spotter'])
 
 /**
  * Widgets that existed and are gone: their `widgets` entry and option section in an old file

@@ -68,7 +68,8 @@ describe('WIDGET_GROUPS', () => {
       'standings',
       'battle',
       'traffic',
-      'radar'
+      'radar',
+      'spotter'
     ])
     expect(WIDGET_GROUPS[1].widgets).toEqual(['delta', 'fuel', 'inputs'])
     expect(WIDGET_GROUPS[2].widgets).toEqual(['alerts', 'lights'])

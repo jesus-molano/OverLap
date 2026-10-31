@@ -6,14 +6,14 @@ describe('fontScaleHelp', () => {
   it('says it changes every widget, and how the free-size ones grow (R09)', () => {
     const { scaled, free } = fontScaleWidgets()
     expect(scaled).toEqual(['standings', 'battle', 'inputs', 'traffic', 'alerts', 'lights', 'fuel'])
-    expect(free).toEqual(['relative', 'radar', 'delta'])
+    expect(free).toEqual(['relative', 'radar', 'delta', 'spotter'])
     expect(fontScaleHelp(messagesFor('es'), 'es')).toEqual({
-      help: 'Cambia los diez widgets: multiplica la «Escala» de cada uno',
-      more: 'Relativo, Radar y Delta llenan su ventana con el texto: su ventana crece o encoge en la misma proporción, en todas tus disposiciones.'
+      help: 'Cambia los once widgets: multiplica la «Escala» de cada uno',
+      more: 'Relativo, Radar, Delta y Spotter llenan su ventana con el texto: su ventana crece o encoge en la misma proporción, en todas tus disposiciones.'
     })
     expect(fontScaleHelp(messagesFor('en'), 'en')).toEqual({
-      help: 'Changes all ten widgets: it multiplies each one’s “Scale”',
-      more: 'Relative, Radar, and Delta fill their window with their text: their window grows or shrinks by the same amount, in all your layouts.'
+      help: 'Changes all eleven widgets: it multiplies each one’s “Scale”',
+      more: 'Relative, Radar, Delta, and Spotter fill their window with their text: their window grows or shrinks by the same amount, in all your layouts.'
     })
   })
 })

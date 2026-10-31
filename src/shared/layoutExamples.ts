@@ -20,7 +20,7 @@ export function isLayoutExample(v: unknown): v is LayoutExample {
 
 /**
  * The light one's widgets: the relative and the radar around you, your delta and fuel, and the
- * alerts; the others (standings, battle, traffic, pedals, lights) hidden.
+ * alerts; the others (standings, battle, traffic, pedals, lights, spotter) hidden.
  */
 export const LIGHT_WIDGETS: readonly WidgetId[] = ['relative', 'radar', 'delta', 'fuel', 'alerts']
 

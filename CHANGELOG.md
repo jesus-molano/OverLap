@@ -9,6 +9,19 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
+- **Spotter, un widget nuevo (el undécimo)**: dos barras, una a cada lado, como las de iOverlay,
+  aparte del radar (cada uno con su página y su visibilidad: puedes tener uno, otro o los dos).
+  Cada barra es tu coche, de morro (arriba) a cola (abajo), y se llena con lo que te cubre el coche
+  de ese lado, desde el extremo en el que va; el color pasa del gris al rojo según te cubre más, y
+  llena (del todo a tu lado) también se marca con el borde rojo. Con dos coches en un lado, un «2»
+  y sus dos tramos; con uno que acaba de estar a tu lado y va justo delante o detrás, un tope
+  tenue en ese extremo. El lado lo da el spotter de iRacing y el cuánto la distancia a lo largo de
+  la pista (también al cruzar la línea de meta), con el mismo cálculo que el radar, que sigue
+  funcionando con el radar oculto. iRacing no da la distancia lateral: llena no quiere decir
+  golpe. El ancho de la ventana es la separación entre las barras; en Contenido, **Solo con un
+  coche al lado** (de serie) y **Grosor de las barras**; en Personalizar, sus dos marcas. Oculto
+  de serie, también al actualizar (en un hueco libre cerca de su sitio); tiene su atajo en «Más
+  acciones», su casilla en la bandeja y su sitio en Visibilidad y en el buscador.
 - **Delta: una barra por referencia**: una línea nueva, **Barras por referencia** (apagada de
   serie), dibuja una barra por cada referencia que elijas, con su nombre corto y su diferencia:
   tu récord, tu mejor vuelta de la sesión, tu óptima, la vuelta rápida de tu clase y la óptima de
