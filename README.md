@@ -122,7 +122,7 @@ número y el hueco: solo el nombre sale siempre. Al pie de la lista, **Títulos 
 
 ### Posiciones
 
-<img src="docs/screenshots/clasificacion.png" alt="Posiciones" width="540">
+<img src="docs/screenshots/posiciones.png" alt="Posiciones" width="540">
 
 Modo compacto (los primeros, tu entorno y los primeros de cada otra clase: **Primeros puestos** y
 **Alrededor de ti**, 3 y 3 de serie; de cada otra clase, de serie su líder, en una línea; con
@@ -200,7 +200,7 @@ encima de cada grupo.
 
 ### Radar
 
-<img src="docs/screenshots/radar.png" alt="Radar" width="213">
+<img src="docs/screenshots/radar.png" alt="Radar" width="220">
 
 Vista cenital con los coches a escala alrededor del tuyo, que pasan a rojo según se acercan, y un
 aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m por defecto, con
@@ -211,7 +211,7 @@ laterales. Siempre se dibuja encima de los demás widgets (ver [Modo edición](#
 
 ### Spotter
 
-<img src="docs/screenshots/spotter.png" alt="Spotter" width="300">
+<img src="docs/screenshots/spotter.png" alt="Spotter" width="400">
 
 Dos barras, una a cada lado, para quien prefiere los laterales al radar central (o los quiere
 con él: son independientes, cada uno con su página y su visibilidad). **Estilo de barra** elige qué
