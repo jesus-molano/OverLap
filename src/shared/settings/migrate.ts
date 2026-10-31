@@ -411,6 +411,8 @@ export const LIST_MIGRATIONS: { readonly [S in OptionSection]?: readonly ListMig
           'country',
           'driver',
           'flags',
+          // «Puestos ganados» (request 11), hidden, where a new install has it.
+          'gained',
           'ir',
           'lic',
           'pit',
@@ -692,6 +694,16 @@ export function migrateWidgetsV5(
  * where a new install has them. The penalty flags (2.4) go right after the name (and are shown
  * there: placeFlagsAfterName), the relative's «Última vuelta» (request 8) after the gap.
  */
+/**
+ * NEW_ELEMENTS placed once the penalty flags are where they go (placeFlagsAfterName): the
+ * relative's «Puestos ganados» (request 11) right after them, as in the standings.
+ */
+const NEW_AFTER_FLAGS: Readonly<
+  Partial<Record<OptionSection, Readonly<Record<string, readonly string[]>>>>
+> = {
+  relative: { columns: ['gained'] }
+}
+
 const NEW_ELEMENTS: Readonly<
   Partial<Record<OptionSection, Readonly<Record<string, readonly string[]>>>>
 > = {
@@ -706,9 +718,10 @@ const NEW_ELEMENTS: Readonly<
  */
 export function placeNewElements(
   section: string,
-  raw: Record<string, unknown>
+  raw: Record<string, unknown>,
+  table: typeof NEW_ELEMENTS = NEW_ELEMENTS
 ): Record<string, unknown> {
-  const fields = NEW_ELEMENTS[section as OptionSection]
+  const fields = table[section as OptionSection]
   if (fields === undefined) return raw
   const specs = OPTION_SCHEMA[section as OptionSection] as Readonly<Record<string, unknown>>
   let out: Record<string, unknown> | null = null
@@ -716,6 +729,10 @@ export function placeNewElements(
     const list = raw[field]
     const spec = specs[field] as ElementsSpec | undefined
     if (!Array.isArray(list) || spec?.kind !== 'elements') continue
+    // Without a single known id it is left to normalisation (the defaults), not made one.
+    const known = (e: unknown): boolean =>
+      isRecord(e) && (spec.ids as readonly unknown[]).includes(e.id)
+    if (!list.some(known)) continue
     let next: unknown[] = list
     const ids = (): string[] => next.map((e: unknown) => (isRecord(e) ? String(e.id) : ''))
     for (const id of added) {
@@ -763,7 +780,11 @@ export function migrateSection(
   // After the lists the old switches give, so those get the new ids at their place too; the
   // row's start before the penalty flags, which go right after the name.
   const lists = migrateLists(section, migrateOldBars(section, out, file))
-  return placeFlagsAfterName(section, placeNewElements(section, migrateRowHead(section, lists)))
+  const placed = placeFlagsAfterName(
+    section,
+    placeNewElements(section, migrateRowHead(section, lists))
+  )
+  return placeNewElements(section, placed, NEW_AFTER_FLAGS)
 }
 
 /**
@@ -771,7 +792,8 @@ export function migrateSection(
  * gets the position, the number, the make's logo, the driver's flag and the name in front, in
  * today's order: the relative's position and name were pinned there (whatever order the list had
  * them in), the standings' were fixed there, its position shown or hidden by `showPosition` (then
- * dropped as any unknown key). Nothing visible changes. `raw` itself when there is nothing to do.
+ * dropped as any unknown key). A list without a single known column (`[]`, garbage) is left to normalisation, which gives
+ * the defaults. Nothing visible changes. `raw` itself when there is nothing to do.
  */
 export function migrateRowHead(
   section: string,
@@ -782,6 +804,8 @@ export function migrateRowHead(
   if (!Array.isArray(list)) return raw
   const idOf = (e: unknown): string => (isRecord(e) ? String(e.id) : '')
   if (list.some((e) => idOf(e) === 'number')) return raw
+  const spec = OPTION_SCHEMA[section].columns
+  if (!list.some((e) => (spec.ids as readonly string[]).includes(idOf(e)))) return raw
   // As normalisation read them: a missing position was added hidden, one with no boolean shown.
   const pos = list.find((e) => idOf(e) === 'pos')
   const posShown =

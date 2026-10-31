@@ -174,6 +174,7 @@ const Editor = compile(EDITOR, 'ElementEditor.vue', {
   '../preview/usePreviewEdit': { injectPreviewEdit: () => null },
   // A reset offers its "Deshacer" (none to show here: the editor announces it).
   '../undo/restore': { offerSectionRestore: () => () => false },
+  '../search/reveal': { revealTarget: () => Promise.resolve(true) },
   '../undo/undo': undo,
   '../useOptimistic': useOptimistic,
   './listOps': listOps,

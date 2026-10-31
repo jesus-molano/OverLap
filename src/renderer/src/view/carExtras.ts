@@ -2,10 +2,11 @@
  * Cells the standings and the relative share for a car's stint, tyres and laps, so both widgets
  * write them alike. Pure; words from the dictionary `m`.
  */
-import { formatLapTime } from '@shared/format'
+import { formatGained, formatLapTime, signAt } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import type { StandingsRow } from '@shared/types'
 import { tyreLetter } from '@shared/tyres'
+import type { IconName } from '@renderer/ui/icons'
 
 /** Drawn for a tyre compound nobody can name (another car model, or not reported). */
 export const TYRE_UNKNOWN = '—'
@@ -56,4 +57,22 @@ export function lapCell(row: LapFields, race: boolean): { text: string; kind: La
         ? 'pb'
         : 'normal'
   return { text, kind }
+}
+
+/** Triangle in front of the positions gained (up: gained, down: lost). */
+export type GainedIcon = Extract<IconName, 'arrow-up' | 'arrow-down'>
+
+export const NO_GAIN = Object.freeze({ text: '', icon: null })
+
+/**
+ * Positions gained since the start: the count without sign ('4', formatGained) and a triangle
+ * for its direction. None (rounds to 0) or unknown: an empty cell, no placeholder glyph.
+ */
+export function gainedCell(n: number | null): {
+  readonly text: string
+  readonly icon: GainedIcon | null
+} {
+  const sign = signAt(n, 0)
+  if (sign === null || sign === 0) return NO_GAIN
+  return { text: formatGained(n), icon: sign > 0 ? 'arrow-up' : 'arrow-down' }
 }

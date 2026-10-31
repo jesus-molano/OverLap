@@ -20,6 +20,8 @@ import { useNoRoom, type NoRoomWords } from '../preview/useNoRoom'
 import HelpText from '../controls/HelpText.vue'
 import PreviewNote from '../controls/PreviewNote.vue'
 import type { PreviewNoteSpec } from '../controls/previewNote'
+import type { LinkedRow } from '../columns'
+import { revealTarget } from '../search/reveal'
 import { offerSectionRestore } from '../undo/restore'
 import { undoSlot, type UndoKind } from '../undo/undo'
 import { useOptimistic } from '../useOptimistic'
@@ -161,12 +163,11 @@ const props = withDefaults(
     orderOnly?: boolean
     /**
      * Rows another control shows or hides (the tables' logo and flags, request 11: the «Piloto»
-     * block): no eye of their own, but that control's state and where it is, the row only placed.
-     * Required in the spec, so the list never hides them.
+     * block): no eye of their own but a link to that control (`control`, the label of its row in
+     * `section`, on this page) and its state in the hint; the list only places them. Required in
+     * the spec, so the list never hides them.
      */
-    linked?: Readonly<
-      Partial<Record<Id, { readonly on: boolean; readonly title: string; readonly hint: string }>>
-    >
+    linked?: Readonly<Partial<Record<Id, LinkedRow>>>
   }>(),
   {
     emptyHides: false,
@@ -666,6 +667,13 @@ function lightRow(id: Id | null): void {
   preview.lightFromList(id === null ? null : ({ zone: z, id } satisfies ElRef))
 }
 
+/** The control that shows or hides linked row `id` (the «Piloto» block's): scrolled to, pointed out. */
+function goLinked(id: Id): void {
+  const row = props.linked?.[id]
+  if (row === undefined) return
+  void revealTarget(() => document, { text: row.control, context: row.section, kind: 'label' })
+}
+
 /** Opens the accordion and brings `id`'s row into view (the sample acted on it). */
 function reveal(id: Id): void {
   if (zone.value !== null) {
@@ -710,7 +718,9 @@ if (preview !== null) {
           void send(next as ElementEntry<Id>[], { kind: 'visible', id: id as Id, visible: true })
           say(visibilityMessage(t.value, labelOf(id as Id), true))
         },
-        reveal: (id) => reveal(id as Id)
+        reveal: (id) => reveal(id as Id),
+        linked: (id) => props.linked?.[id as Id] !== undefined,
+        revealLinked: (id) => goLinked(id as Id)
       }
       onCleanup(preview.register(handle))
     },
@@ -899,17 +909,18 @@ function onCancel(e: PointerEvent): void {
                   </button>
                   <span v-if="sortable" class="ed-pos" aria-hidden="true">{{ n + 1 }}</span>
                   <template v-if="orderOnly" />
-                  <!-- Shown or hidden elsewhere: that control's state, never a button here. -->
-                  <span
+                  <!-- Shown or hidden elsewhere: no eye, a link to that control. -->
+                  <button
                     v-else-if="linked?.[r.entry.id]"
-                    class="ed-eye is-locked is-linked"
-                    :title="linked?.[r.entry.id]?.title"
+                    type="button"
+                    class="ed-eye is-linked"
+                    data-focus="eye"
+                    :title="t.settings.columns.inBlockGo(linked?.[r.entry.id]?.control ?? '')"
+                    :aria-label="t.settings.columns.inBlockGo(linked?.[r.entry.id]?.control ?? '')"
+                    @click="goLinked(r.entry.id)"
                   >
-                    <Icon
-                      :name="linked?.[r.entry.id]?.on ? 'eye' : 'eye-off'"
-                      :label="linked?.[r.entry.id]?.title"
-                    />
-                  </span>
+                    <Icon name="link" />
+                  </button>
                   <span
                     v-else-if="isRequired(spec, r.entry.id)"
                     class="ed-eye is-locked"
@@ -1452,6 +1463,11 @@ function onCancel(e: PointerEvent): void {
 
 .ed-eye[aria-pressed='true'] {
   color: var(--ov-fg);
+}
+
+/* A link to the control that shows or hides the row (request 11): quieter than an eye. */
+.ed-eye.is-linked {
+  color: var(--ov-fg-muted);
 }
 
 .ed-eye.is-locked {

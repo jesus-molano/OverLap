@@ -71,6 +71,8 @@ export function relativeHead(
     case 'tyre':
     case 'flags':
       return { label: '', align: 'center' }
+    case 'gained':
+      return { label: h.gained, align: 'end' }
     case 'stint':
       return { label: h.stint, align: 'end' }
     case 'gap':

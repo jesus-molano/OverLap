@@ -4,6 +4,7 @@
  * telemetry tick (plus the RaceModel's positions and stint counts, when given).
  */
 import { driverIdentity, fieldHasMultipleBrands } from './driver'
+import { positionsGainedOf } from './gained'
 import { incidentCount } from './incidents/count'
 import { isValidPct, wrapPctDelta } from './lapDist'
 import { lastLapKind, lastLapOf, quantLap } from './lapTimes'
@@ -237,6 +238,8 @@ export function computeRelative(
   const isRace = isRaceSession(sessionType)
   const preGreen = isRace && sessionState < SessionState.Racing
   fillClassBests(session, race)
+  /** Racing, as the standings count positions gained: after the green, with the race model. */
+  const racing = isRace && !preGreen && race !== null && race.racing
 
   /**
    * The position Standings shows (the race model's, live by distance), not CarIdxClassPosition:
@@ -263,10 +266,13 @@ export function computeRelative(
     // Posiciones' «Última vuelta» (shared/lapTimes.ts); without a model, the sim's last lap only.
     const lastLap = car ? lastLapOf(frame, car) : quantLap(frame.CarIdxLastLapTime[idx])
     const bestLap = car ? quantLap(car.bestLapTime) : null
+    const classPosition = positionOf(idx)
     return {
       ...driverIdentity(d),
       isPlayer,
-      classPosition: positionOf(idx),
+      classPosition,
+      // Posiciones' «Puestos ganados» (request 11): the race model's position against the grid.
+      positionsGained: positionsGainedOf(session, idx, classPosition, racing),
       classShortName: d.classShortName,
       gapS: isPlayer
         ? 0

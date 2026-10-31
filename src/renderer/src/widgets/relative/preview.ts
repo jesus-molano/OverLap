@@ -60,6 +60,22 @@ const FLAGS: Readonly<Record<string, string>> = {
   '5': 'BE'
 }
 
+/**
+ * «Puestos ganados» (request 11) by car number, as the standings' sample has them: some
+ * gained, some lost, the rest none (an empty cell).
+ */
+const GAINED: Readonly<Record<string, number>> = {
+  '19': -2,
+  '29': 1,
+  '12': 1,
+  '3': 3,
+  '31': -1,
+  '61': -3,
+  '51': 2,
+  '8': -1,
+  '23': 4
+}
+
 interface Seed {
   num: string
   name: string
@@ -108,6 +124,7 @@ function row(s: Seed, i: number, isPlayer = false): RelativeRow {
     carIdx: i,
     isPlayer,
     classPosition: s.pos,
+    positionsGained: GAINED[s.num] ?? 0,
     carNumber: s.num,
     driverName: s.name,
     classShortName: s.cls === LMP2 ? 'LMP2' : 'GT3',

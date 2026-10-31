@@ -610,6 +610,23 @@ describe('positions from the race model (B04)', () => {
     expect(practice.rows.every((r) => r.classPosition === null)).toBe(true)
     expect(rowOf(computeRelative(makeFrame(cars), session, OPTS), 1).classPosition).toBe(2)
   })
+
+  it('counts the positions gained as Posiciones does: the grid slot against the race model', () => {
+    const racing = { ...raceAt({ 0: 7, 1: 4, 2: 0 }), racing: true } as RaceView
+    const data = computeRelative(makeFrame(cars), session, OPTS, racing)
+    // 11 → 7 gained 4; 2 → 4 lost 2; no position: none.
+    expect([0, 1, 2].map((i) => rowOf(data, i).positionsGained)).toEqual([4, -2, null])
+    // Before the green, outside races or without the model: nothing gained.
+    const grid = makeFrame(cars, { sessionState: SessionState.GetInCar })
+    expect(computeRelative(grid, session, OPTS, racing).rows.map((r) => r.positionsGained)).toEqual(
+      [null, null, null]
+    )
+    const practice = computeRelative(makeFrame(cars, { sessionNum: 1 }), session, OPTS, racing)
+    expect(practice.rows.every((r) => r.positionsGained === null)).toBe(true)
+    expect(
+      computeRelative(makeFrame(cars), session, OPTS).rows.every((r) => r.positionsGained === null)
+    ).toBe(true)
+  })
 })
 
 describe('gap sign agreement', () => {
@@ -664,6 +681,7 @@ describe('row fields', () => {
         carIdx: 0,
         isPlayer: true,
         classPosition: 4,
+        positionsGained: null,
         carNumber: '7',
         driverName: 'Yo',
         classShortName: 'GT3',
@@ -688,6 +706,7 @@ describe('row fields', () => {
         carIdx: 1,
         isPlayer: false,
         classPosition: null,
+        positionsGained: null,
         carNumber: '23',
         driverName: 'Rookie',
         classShortName: 'GT3',

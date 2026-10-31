@@ -465,7 +465,7 @@ describe('the standings’ class order (9)', () => {
     const out = applySettingsPatch(createDefaultSettings(), {
       standings: {
         classOrder: 'manual',
-        classList: [' LMP2 ', 'gt3', 'GT3', '', 7, 'x'.repeat(33), 'GTP'] as unknown as string[]
+        classList: [' LMP2 ', 'gt3', 'GT3', '', 7, 'x'.repeat(65), 'GTP'] as unknown as string[]
       }
     })
     expect(out.standings.classOrder).toBe('manual')

@@ -9,7 +9,8 @@ import {
   classSpec,
   classTexts,
   drawnFirst,
-  namesOf
+  namesOf,
+  namesToSave
 } from './classOrderList'
 
 const key = classOrderKey
@@ -35,9 +36,15 @@ describe('the class order’s list (9)', () => {
     const names = classOrderNames(['LMP2'], [], PREVIEW_CLASS_NAMES)
     const entries = classEntries(names)
     expect(entries.every((e) => e.visible && /^[a-p]+$/.test(e.id))).toBe(true)
-    expect(namesOf([...entries, { id: 'gap', visible: true }])).toEqual(['LMP2', 'GTP', 'GT3'])
+    expect(namesOf([...entries, { id: 'gap', visible: true }], names)).toEqual([
+      'LMP2',
+      'GTP',
+      'GT3'
+    ])
+    // Without the names it was made from, as the key holds them.
+    expect(namesOf(entries)).toEqual(['lmp2', 'gtp', 'gt3'])
     const spec = classSpec(names, classOrderNames([], [], PREVIEW_CLASS_NAMES))
-    expect(namesOf(spec.default)).toEqual(['GTP', 'LMP2', 'GT3'])
+    expect(namesOf(spec.default, names)).toEqual(['GTP', 'LMP2', 'GT3'])
     expect(spec.required).toEqual(spec.ids)
     expect(spec.fixedOrder).toBe(false)
   })
@@ -55,6 +62,37 @@ describe('the class order’s list (9)', () => {
     })
     // LMP2 dropped above GT3, as the sample draws them: the order saved.
     const next = droppedList(spec, list, key('LMP2'), { kind: 'before', id: key('GT3') })
-    expect(namesOf(next ?? [])).toEqual(['LMP2', 'GT3', 'GTP', 'GT4'])
+    expect(namesOf(next ?? [], names)).toEqual(['LMP2', 'GT3', 'GTP', 'GT4'])
+  })
+
+  it('saves neither the sample’s names at the end nor more than the cap, never this session’s', () => {
+    // Nothing saved; LMP2 moved to the top: GT3 (this session) kept, GTP (the sample's) not.
+    expect(
+      namesToSave(['LMP2', 'GT3', 'GTP'], { saved: [], live: ['GT3'], moved: 'LMP2', max: 32 })
+    ).toEqual(['LMP2', 'GT3'])
+    // A sample name before a kept one stays: the order shown is the order saved.
+    expect(
+      namesToSave(['GT3', 'GTP', 'LMP2'], { saved: [], live: [], moved: 'LMP2', max: 32 })
+    ).toEqual(['GT3', 'GTP', 'LMP2'])
+    // Saved names stay, whatever their case.
+    expect(namesToSave(['M2', 'GTP'], { saved: ['gtp'], live: [], max: 32 })).toEqual(['M2', 'GTP'])
+    // 32 remembered and this session's two at the end: the lowest remembered ones go instead.
+    const old = Array.from({ length: 32 }, (_, i) => `C${i}`)
+    const out = namesToSave([...old, 'GT4', 'GTE'], {
+      saved: old,
+      live: ['GTE', 'GT4'],
+      max: 32
+    })
+    expect(out).toHaveLength(32)
+    expect(out.slice(-2)).toEqual(['GT4', 'GTE'])
+    expect(out).not.toContain('C31')
+    expect(out).not.toContain('C30')
+  })
+
+  it('knows a class by one id whatever its case, so a drag on either spelling finds its row', () => {
+    const names = classOrderNames([], ['gt3'], PREVIEW_CLASS_NAMES)
+    // The session's «gt3» and the sample's «GT3» are one row, keyed as the sample draws it.
+    expect(names).toEqual(['gt3', 'GTP', 'LMP2'])
+    expect(classEntries(names).map((e) => e.id)).toContain(key('GT3'))
   })
 })

@@ -316,6 +316,8 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'country',
   'driver',
   'flags',
+  // Posiciones' «Puestos ganados» (request 11), in the standings' place.
+  'gained',
   // iRating then licence, as in the standings and the battle (R10).
   'ir',
   'lic',
@@ -534,7 +536,7 @@ export const OPTION_SCHEMA = {
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
-      hidden: ['last', 'pit', 'tyre', 'stint'],
+      hidden: ['gained', 'last', 'pit', 'tyre', 'stint'],
       // As in the standings (R10): «Hueco» can be hidden in both tables, the position too.
       required: TABLE_REQUIRED,
       displayOnly: true
@@ -584,7 +586,7 @@ export const OPTION_SCHEMA = {
     // Your class first, as it always was (9); «A mano» orders by the class names of classList.
     // Not display-only: the provider puts the blocks in this order.
     classOrder: { kind: 'enum', values: ['player', 'speed', 'manual'], default: 'player' },
-    classList: { kind: 'names', max: 32, maxLength: 32, default: [] },
+    classList: { kind: 'names', max: 32, maxLength: 64, default: [] },
     gapMode: {
       kind: 'enum',
       values: ['interval', 'leader', 'both'],

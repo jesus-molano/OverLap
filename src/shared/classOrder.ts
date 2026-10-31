@@ -7,7 +7,8 @@
  * holds across sessions. Pure.
  *
  * The settings page's sample knows a class by `classOrderKey` (letters only, as the preview's
- * `data-el` ids are), and reads the name back with `classOfKey`.
+ * `data-el` ids are; one key for the spellings the list takes as one, «GT3» and «gt3»), and
+ * reads the name back with `classOfKey` (as the key has it: in lower case).
  */
 import type { DriverEntry, SessionMeta, StandingsClassOrder } from './types'
 
@@ -105,12 +106,13 @@ export function sameNames(a: readonly string[], b: readonly string[]): boolean {
 const A = 'a'.charCodeAt(0)
 
 /**
- * A class's id in the settings page's sample (its `data-el`, its row in the list): the name's
- * UTF-16 units as four letters each, a..p for a hex digit ('GT3' → 'aaehaafeaadd'), so any name
- * is a plain id. '' for an empty name.
+ * A class's id in the settings page's sample (its `data-el`, its row in the list): the name as
+ * the list matches it (classNameKey: «GT3» and «gt3» are one class) in UTF-16 units of four
+ * letters each, a..p for a hex digit ('GT3' → 'aaghaaheaadd'), so any name is a plain id. '' for
+ * an empty name.
  */
 export function classOrderKey(name: string): string {
-  const n = name.trim()
+  const n = classNameKey(name)
   let out = ''
   for (let i = 0; i < n.length; i++) {
     const code = n.charCodeAt(i)
@@ -121,7 +123,7 @@ export function classOrderKey(name: string): string {
   return out
 }
 
-/** The name of a `classOrderKey` id; null when it is not one. */
+/** The name of a `classOrderKey` id (in lower case, as the key holds it); null when it is not one. */
 export function classOfKey(key: string): string | null {
   if (key === '' || key.length % 4 !== 0 || !/^[a-p]+$/.test(key)) return null
   let out = ''

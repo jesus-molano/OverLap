@@ -10,6 +10,7 @@ import { isElementVisible } from './elements'
 import { infoItemShown } from './infoBar'
 import { incidentCount } from './incidents/count'
 import { isClassBest, lastLapKind, lastLapOf, quantLap } from './lapTimes'
+import { positionsGainedOf } from './gained'
 import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { ownTowTime, showsTow } from './race/towBadge'
@@ -255,12 +256,13 @@ function makeRow(
       if (needs.gapToLeader) gapToLeader = raceGap(ctx.race, car.carIdx, leader.car.carIdx)
     }
   }
-  let positionsGained: number | null = null
   // Before the green everyone is on their grid slot: nothing gained yet.
-  if (ctx.isRace && ctx.race.racing && cp > 0) {
-    const grid = ctx.session.grid.get(car.carIdx)
-    if (grid && grid.classPosition > 0) positionsGained = grid.classPosition - cp
-  }
+  const positionsGained = positionsGainedOf(
+    ctx.session,
+    car.carIdx,
+    cp,
+    ctx.isRace && ctx.race.racing
+  )
   const delta = isPlayer || needs.allDeltas ? (ctx.deltas?.get(car.carIdx) ?? null) : null
   return {
     ...driverIdentity(driver),

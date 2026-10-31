@@ -191,6 +191,8 @@ describe('a customised v4 file', () => {
       'country',
       'driver',
       'flags',
+      // «Puestos ganados» (request 11), hidden after the flags.
+      '-gained',
       'ir',
       '-lic',
       '-pit',
@@ -329,6 +331,8 @@ describe('a hand-edited v4 file', () => {
       'country',
       'driver',
       'flags',
+      // «Puestos ganados» (request 11), hidden after the flags.
+      '-gained',
       'ir',
       'lic',
       '-pit',

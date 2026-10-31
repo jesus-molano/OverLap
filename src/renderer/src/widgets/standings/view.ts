@@ -6,12 +6,10 @@
  */
 import {
   formatBestLapGap,
-  formatGained,
   formatGapValue,
   formatIRating,
   formatIRatingDelta,
-  formatLapTime,
-  signAt
+  formatLapTime
 } from '@shared/format'
 import type { BrandId } from '@shared/carBrands'
 import { classOrderKey } from '@shared/classOrder'
@@ -27,11 +25,18 @@ import type {
   StandingsOptions,
   StandingsRow
 } from '@shared/types'
-import { lapCell, stintCell, tyreCell, type LapKind } from '@renderer/view/carExtras'
+import {
+  gainedCell,
+  NO_GAIN,
+  lapCell,
+  stintCell,
+  tyreCell,
+  type GainedIcon,
+  type LapKind
+} from '@renderer/view/carExtras'
 import { gapShowsLeader } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
-import type { IconName } from '@renderer/ui/icons'
 import { signTone, type Tone } from '@renderer/ui/tones'
 import type { DisplayRow, PlannedLine } from './layout'
 
@@ -46,8 +51,6 @@ export type GapKind = 'time' | 'laps' | 'leader' | 'none'
  * the flag.
  */
 export type PitKind = 'pit' | 'tow' | 'out' | 'stops' | 'finished' | 'none'
-/** Triangle in front of the positions gained (up: gained, down: lost). */
-export type GainedIcon = Extract<IconName, 'arrow-up' | 'arrow-down'>
 
 export interface CarLineView extends DriverCellView {
   /** 'leader': another class's leader on one line, its class tag in front. */
@@ -219,21 +222,6 @@ export function pitLapCell(row: StandingsRow, m: Messages): string {
   const lap = row.lastPitLap
   if ((row.pitStops ?? 0) <= 0 || lap === null || !Number.isFinite(lap) || lap < 0) return ''
   return m.widgets.laps.number(lap)
-}
-
-const NO_GAIN = Object.freeze({ text: '', icon: null })
-
-/**
- * Positions gained since the start: the count without sign ('4', formatGained) and a triangle
- * for its direction. None (rounds to 0) or unknown: an empty cell, no placeholder glyph.
- */
-export function gainedCell(n: number | null): {
-  readonly text: string
-  readonly icon: GainedIcon | null
-} {
-  const sign = signAt(n, 0)
-  if (sign === null || sign === 0) return NO_GAIN
-  return { text: formatGained(n), icon: sign > 0 ? 'arrow-up' : 'arrow-down' }
 }
 
 function deltaTone(delta: number | null): Tone {
