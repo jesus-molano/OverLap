@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from '@renderer/composables/useI18n'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
+import DriverPart from '@renderer/ui/DriverPart.vue'
 import Icon from '@renderer/ui/Icon.vue'
 import IRating from '@renderer/ui/IRating.vue'
 import LapTime from '@renderer/ui/LapTime.vue'
@@ -14,10 +15,12 @@ import type { Columns } from './columns'
 import type { CarLineView } from './view'
 
 /**
- * The cells of one car line, as direct grid items of the line (multi-root): position (or the
- * class tag of another class's leader), driver (number, make, flag, name, the 'VR' tag of the
- * class's fastest lap, icons), then the right-hand columns in the user's order. The parent
- * memoises each line, so this only renders when its line or columns change.
+ * The cells of one car line, as direct grid items of the line (multi-root), one per track in the
+ * user's order (request 11): the position (or the class tag of another class's leader), the
+ * name's cell (the driver's parts that touch the name, the name, the 'VR' tag of the class's
+ * fastest lap, the parts after it and the icons), the driver's parts set apart in tracks of their
+ * own, and every other column. The parent memoises each line, so this only renders when its line
+ * or columns change.
  */
 const props = defineProps<{ line: CarLineView; cols: Columns }>()
 const t = useI18n()
@@ -35,26 +38,49 @@ const inlinePit = computed(() =>
 )
 /** A one-line leader's SoF is its class line's (the preview's highlight follows that eye). */
 const LEAD_SOF_EL = 'standings.classLine.sof'
-/** The penalty flag after the name while the flags have no column of their own. */
-const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalty : null))
+/** The penalty flag after the name: the flags' place (or no room for theirs). */
+const inlinePenalty = computed(() =>
+  props.cols.flagsInline && props.line.kind === 'car' ? props.line.penalty : null
+)
+/** The parts after the name but the flags (drawn with the icons). */
+const afterParts = computed(() => props.cols.after.filter((p) => p !== 'flags'))
+const isCar = computed(() => props.line.kind === 'car')
+/** Something after the name, in the icons' group: the parts placed there, then the icons. */
+const icons = computed(
+  () =>
+    afterParts.value.length > 0 ||
+    (isCar.value &&
+      (inlinePenalty.value !== null || props.line.disconnected || inlinePit.value !== null))
+)
 </script>
 
 <template>
-  <span v-if="line.kind === 'leader'" class="c-lead">
-    <span
-      v-if="cols.pos"
-      class="sd-tag"
-      :data-el="line.classKey !== '' ? `standings.classOrder.${line.classKey}` : undefined"
-      >{{ line.classTag }}</span
-    >
+  <template v-for="id in cols.tracks" :key="id">
+    <template v-if="id === 'pos'">
+      <span
+        v-if="line.kind === 'leader'"
+        class="sd-tag"
+        :data-el="line.classKey !== '' ? `standings.classOrder.${line.classKey}` : undefined"
+        >{{ line.classTag }}</span
+      >
+      <span v-else class="c-pos" data-el="standings.columns.pos"
+        ><PositionChip :pos="line.pos" :player="line.player" :warn="line.posWarn"
+      /></span>
+    </template>
     <DriverCell
+      v-else-if="id === 'driver'"
       class="c-driver"
+      data-el="standings.columns.driver"
       :number="number"
       :name="line.name"
       :name-unknown="line.nameUnknown"
       :number-style="numberStyle"
+      :player="isCar && line.player"
       :brand="brand"
       :country="country"
+      :before="cols.before"
+      part-el="standings.columns"
+      :penalty="line.penalty"
     >
       <span
         v-if="line.fastest"
@@ -64,48 +90,44 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
         :title="t.widgets.standings.fastestName"
         >{{ t.widgets.standings.fastestTag }}</span
       >
+      <span v-if="icons" class="sd-icons">
+        <template v-for="part in cols.after" :key="part">
+          <PenaltyIcon v-if="part === 'flags' && inlinePenalty" :penalty="inlinePenalty" />
+          <DriverPart
+            v-else-if="part !== 'flags'"
+            :part="part"
+            :number="number"
+            :number-style="numberStyle"
+            :brand="brand"
+            :country="country"
+            :data-el="`standings.columns.${part}`"
+          />
+        </template>
+        <template v-if="isCar">
+          <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
+          <Icon v-if="inlinePit === 'finished'" name="chequered" />
+          <Icon
+            v-else-if="inlinePit === 'pit' || inlinePit === 'tow'"
+            name="pit"
+            class="sd-inline-pit"
+          />
+          <Icon v-else-if="inlinePit === 'out'" name="out" class="sd-inline-out" />
+        </template>
+      </span>
       <span v-if="line.classSof" class="sd-lead-sof" :data-el="LEAD_SOF_EL">{{
         line.classSof
       }}</span>
     </DriverCell>
-  </span>
-  <template v-else>
-    <span v-if="cols.pos" class="c-pos"
-      ><PositionChip :pos="line.pos" :player="line.player" :warn="line.posWarn"
+    <span v-else-if="id === 'number'" class="c-num" data-el="standings.columns.number"
+      ><DriverPart part="number" :number="number" :number-style="numberStyle"
     /></span>
-    <DriverCell
-      class="c-driver"
-      :number="number"
-      :name="line.name"
-      :name-unknown="line.nameUnknown"
-      :number-style="numberStyle"
-      :player="line.player"
-      :brand="brand"
-      :country="country"
-    >
-      <span
-        v-if="line.fastest"
-        class="sd-vr"
-        role="img"
-        :aria-label="t.widgets.standings.fastestName"
-        :title="t.widgets.standings.fastestName"
-        >{{ t.widgets.standings.fastestTag }}</span
-      >
-      <span v-if="inlinePenalty || line.disconnected || inlinePit" class="sd-icons">
-        <PenaltyIcon v-if="inlinePenalty" :penalty="inlinePenalty" />
-        <Icon v-if="line.disconnected" name="plug" class="sd-plug" />
-        <Icon v-if="inlinePit === 'finished'" name="chequered" />
-        <Icon
-          v-else-if="inlinePit === 'pit' || inlinePit === 'tow'"
-          name="pit"
-          class="sd-inline-pit"
-        />
-        <Icon v-else-if="inlinePit === 'out'" name="out" class="sd-inline-out" />
-      </span>
-    </DriverCell>
-  </template>
-  <template v-for="id in cols.cells" :key="id">
-    <span v-if="id === 'flags'" class="c-flags" data-el="standings.columns.flags"
+    <span v-else-if="id === 'brand'" class="c-brand" data-el="standings.columns.brand"
+      ><DriverPart part="brand" :brand="brand"
+    /></span>
+    <span v-else-if="id === 'country'" class="c-country" data-el="standings.columns.country"
+      ><DriverPart part="country" :country="country"
+    /></span>
+    <span v-else-if="id === 'flags'" class="c-flags" data-el="standings.columns.flags"
       ><PenaltyIcon v-if="line.penalty" :penalty="line.penalty"
     /></span>
     <span
@@ -192,12 +214,14 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
   overflow: hidden;
 }
 
-/*
- * Another class's leader: its class name in the position column, its driver cell in the name
- * column, so the number, make, flag and name line up with every other row.
- */
-.c-lead {
-  display: contents;
+/* The driver's parts in columns of their own (request 11): at the start, as in the name's cell. */
+.c-num,
+.c-brand,
+.c-country {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* The class's SoF on its leader's line, as the class line sets it: at the cell's end, secondary. */
@@ -230,11 +254,18 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
   color: var(--cls-ink, var(--ov-fg-muted));
 }
 
+/*
+ * After the name: the parts placed there (request 11), then the icons at 0.85em, 0.25em of theirs
+ * apart, as they always were.
+ */
 .sd-icons {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 0.25em;
+  gap: 0.2125em;
+}
+
+.sd-icons > .ov-icon {
   font-size: 0.85em;
 }
 
@@ -403,7 +434,10 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
  * Pits dim everything but the pit state (and the driver's icons, the penalty flags' column too).
  */
 .is-pits > .c-pos,
-.is-pits > .c-lead > *,
+.is-pits > .sd-tag,
+.is-pits > .c-num,
+.is-pits > .c-brand,
+.is-pits > .c-country,
 .is-pits > .c-gained,
 .is-pits > .c-ir,
 .is-pits > .c-lic,
@@ -414,12 +448,15 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
 .is-pits > .c-pitlap,
 .is-pits > .c-stint,
 .is-pits > .c-tyre,
-.is-pits > .c-driver > :deep(:not(.sd-icons)) {
+.is-pits > .c-driver > :deep(:not(.sd-icons):not(.ov-dpart--flags)) {
   opacity: var(--ov-o-dim);
 }
 
 .is-disconnected > .c-pos,
-.is-disconnected > .c-lead > *,
+.is-disconnected > .sd-tag,
+.is-disconnected > .c-num,
+.is-disconnected > .c-brand,
+.is-disconnected > .c-country,
 .is-disconnected > .c-driver,
 .is-disconnected > .c-flags,
 .is-disconnected > .c-gained,

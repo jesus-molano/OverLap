@@ -57,14 +57,24 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - **La SoF de cada clase junto a su nombre**: la línea de un líder de otra clase en modo compacto
   lleva ahora la SoF de su clase al final (las líneas de clase ya la llevaban en todas las clases).
   Sigue el ojo de «SoF» de la línea de clase: ocúltala ahí y desaparece de las dos.
-- **Las banderas de penalización, en su propia columna**: Relativo y Posiciones tienen una columna
-  **Banderas** (y Tráfico una parte **Banderas**) que se muestra, se oculta y se ordena como las
-  demás. Una regla en los cuatro widgets del bloque «Piloto»: su fila «Banderas de penalización»
-  decide si salen; la columna, dónde. Oculta (de serie, también al actualizar), van tras el nombre
-  como hasta ahora; si la ventana se estrecha, la columna es la primera en irse y las banderas
-  vuelven tras el nombre. Batalla, sin columnas, las sigue llevando tras el nombre. «Completo» no
-  la enciende: no añade nada que no se vea ya. **Puestos ganados** ya era una columna
-  independiente que se ordena como las demás (solo sale en carrera, donde existe el dato).
+- **El principio de la fila, en columnas: cada cosa donde quieras**: en Relativo y Posiciones,
+  la posición, el número, el logo de la marca, la bandera del país y el nombre dejan de ser un
+  bloque fijo y pasan a ser columnas de la misma lista que las demás, junto con **Banderas** (las de
+  penalización, que antes iban siempre tras el nombre). Así **Puestos ganados**, **Banderas** o
+  cualquier otra columna puede ir entre la posición y el número, entre el número y el logo o
+  después del nombre. Lo que queda pegado al nombre va con él, en su celda: delante, alineado de
+  fila a fila; detrás, tras el nombre. Separado por otra columna, va en una columna propia (el
+  título del número es «#»). **Nombre** se ve siempre. Una regla, la misma en los cuatro widgets
+  del bloque «Piloto»: **la lista dice dónde; el bloque «Piloto», si salen y cómo**. El logo, la
+  bandera del país y las banderas no tienen ojo en la lista (su fila dice cómo están en «Piloto»:
+  «Se muestra u oculta en «Piloto»: Global (Sí)»); la posición y el número, que no están en el
+  bloque, sí (en Posiciones, el ojo de la posición sustituye a su antiguo interruptor). En Tráfico,
+  las banderas siguen la misma regla en su lista de partes; Batalla, sin columnas, las lleva tras
+  el nombre. Si la ventana se estrecha, el logo y la bandera del país se van antes que las columnas
+  de siempre, y las banderas colocadas en otro sitio vuelven tras el nombre. «Igualar con
+  Posiciones» e «Igualar con Relativo» lo llevan todo, y en la vista previa se arrastran como las
+  demás columnas. Al actualizar, todo se ve como antes: el principio de la fila delante en el orden
+  de siempre (la posición, visible u oculta como estaba) y las banderas tras el nombre.
 - **Relativo: la última vuelta de cada piloto**: una columna nueva, **Última vuelta**, la misma
   que la de Posiciones: el mismo nombre, el mismo formato («1:47.312»), la misma ayuda y los mismos
   colores (la vuelta rápida de su clase en la placa morada, su propio récord de la sesión en verde)

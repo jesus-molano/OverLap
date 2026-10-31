@@ -10,8 +10,13 @@ const ES = messagesFor('es')
 const EN = messagesFor('en')
 const RACE: StandingsHeadContext = { gapMode: 'interval', race: true, licenseStyle: 'outline' }
 
+/** Today's row: the position and the name's cell (the number in it), then `cells`. */
+const T = (cells: readonly StandingsColumnId[]): { tracks: StandingsColumnId[] } => ({
+  tracks: ['pos', 'driver', ...cells]
+})
+
 const labels = (cells: readonly StandingsColumnId[], c = RACE, m = ES): string[] =>
-  toHeadsView({ cells }, c, m).map((h) => h.label)
+  toHeadsView(T(cells), c, m).map((h) => h.label)
 
 function prefs(over: Partial<ColumnPrefs> = {}): ColumnPrefs {
   return {
@@ -45,7 +50,7 @@ describe('toHeadsView', () => {
   })
 
   it('aligns names left, figures right and chips centred', () => {
-    const v = toHeadsView({ cells: ['ir', 'lic', 'gap', 'tyre'] }, RACE, ES)
+    const v = toHeadsView(T(['ir', 'lic', 'gap', 'tyre']), RACE, ES)
     expect(v.map((h) => h.align)).toEqual(['start', 'start', 'end', 'center', 'end', 'center'])
     // The tyre ring is a glyph: no caption.
     expect(v.at(-1)?.label).toBe('')
@@ -73,34 +78,43 @@ describe('toHeadsView', () => {
     const p = prefs({ columns: allColumns() })
     const wide = fitColumns(p, 1200, 13)
     const narrow = fitColumns(p, 300, 13)
-    expect(toHeadsView(wide, RACE, ES)).toHaveLength(2 + wide.cells.length)
-    expect(toHeadsView(narrow, RACE, ES)).toHaveLength(2 + narrow.cells.length)
-    expect(narrow.cells.length).toBeLessThan(wide.cells.length)
+    expect(toHeadsView(wide, RACE, ES)).toHaveLength(wide.tracks.length)
+    expect(toHeadsView(narrow, RACE, ES)).toHaveLength(narrow.tracks.length)
+    expect(narrow.tracks.length).toBeLessThan(wide.tracks.length)
   })
 
-  it('has no position head when the position is hidden (showPosition)', () => {
-    const v = toHeadsView({ cells: ['gap'], pos: false }, RACE, ES)
-    expect(v.map((h) => h.id)).toEqual(['name', 'gap'])
+  it('has no position head when the position is hidden (its eye)', () => {
+    const v = toHeadsView({ tracks: ['driver', 'gap'] }, RACE, ES)
+    expect(v.map((h) => h.id)).toEqual(['driver', 'gap'])
+  })
+
+  it('heads the row’s start where the list puts it (request 11)', () => {
+    // The number set apart from the name: '#' over its track; the make and the flags: glyphs.
+    const v = toHeadsView({ tracks: ['pos', 'gained', 'number', 'driver', 'brand'] }, RACE, ES)
+    expect(v.map((h) => h.label)).toEqual(['POS', '±', '#', 'PILOTO', ''])
+    // From the fitted columns: one head per track, the parts in the name's cell under 'PILOTO'.
+    const cols = fitColumns(prefs({ brand: true, flag: true }), 900, 13)
+    expect(toHeadsView(cols, RACE, ES).map((h) => h.id)).toEqual(cols.tracks)
   })
 })
 
 describe('reuseHeads', () => {
   it('keeps the previous heads while they read the same', () => {
-    const a = toHeadsView({ cells: ['gap'] }, RACE, ES)
-    expect(reuseHeads(a, toHeadsView({ cells: ['gap'] }, RACE, ES))).toBe(a)
-    const b = toHeadsView({ cells: ['gap'] }, { ...RACE, gapMode: 'leader' }, ES)
+    const a = toHeadsView(T(['gap']), RACE, ES)
+    expect(reuseHeads(a, toHeadsView(T(['gap']), RACE, ES))).toBe(a)
+    const b = toHeadsView(T(['gap']), { ...RACE, gapMode: 'leader' }, ES)
     expect(reuseHeads(a, b)).toBe(b)
-    expect(reuseHeads(a, toHeadsView({ cells: ['gap', 'pit'] }, RACE, ES))).not.toBe(a)
+    expect(reuseHeads(a, toHeadsView(T(['gap', 'pit']), RACE, ES))).not.toBe(a)
     expect(reuseHeads(undefined, a)).toBe(a)
   })
 })
 
 describe('the heads of the columns', () => {
-  it('carry their data-el, the fixed ones none', () => {
-    const v = toHeadsView({ cells: ['ir', 'gap'] }, RACE, ES)
+  it('carry their data-el, the row’s start too (request 11)', () => {
+    const v = toHeadsView(T(['ir', 'gap']), RACE, ES)
     expect(v.map((h) => h.el)).toEqual([
-      undefined,
-      undefined,
+      'standings.columns.pos',
+      'standings.columns.driver',
       'standings.columns.ir',
       'standings.columns.gap'
     ])

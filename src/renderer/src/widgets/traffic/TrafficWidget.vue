@@ -72,9 +72,10 @@ const viewOptions = computed<TrafficViewOptions>((prev) =>
 )
 /**
  * The cells of a car line, left to right (traffic.parts; the driver and the value always). The
- * flags' cell only while the «Piloto» block draws them.
+ * penalty flags as the tables' (request 11, shared/rowHead.ts): while the «Piloto» block draws
+ * them, right after the driver they go after the name, anywhere else in a cell of their own.
  */
-const parts = computed<readonly TrafficPartId[]>((prev) =>
+const shownParts = computed<readonly TrafficPartId[]>((prev) =>
   reuseView(
     prev,
     visibleIds(options.value.parts, OPTION_SCHEMA.traffic.parts.ids).filter(
@@ -83,8 +84,15 @@ const parts = computed<readonly TrafficPartId[]>((prev) =>
     deepEqual
   )
 )
-/** The penalty flag after the name: the flags have no cell of their own. */
-const flagsInline = computed(() => !parts.value.includes('flags'))
+/** The penalty flag after the name: placed right after the driver. */
+const flagsInline = computed(() => {
+  const p = shownParts.value
+  const at = p.indexOf('driver')
+  return at >= 0 && p[at + 1] === 'flags'
+})
+const parts = computed<readonly TrafficPartId[]>(() =>
+  flagsInline.value ? shownParts.value.filter((id) => id !== 'flags') : shownParts.value
+)
 const leadShown = computed(() => parts.value.includes('lead'))
 
 // Look-ahead windows and 'Solo en multiclase' are the provider's: it simply sends no entries.

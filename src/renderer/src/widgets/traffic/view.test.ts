@@ -443,6 +443,8 @@ describe('groups and slots', () => {
       'icon',
       'cls',
       'driver',
+      // Right after the driver: the penalty flag after the name, as always (request 11).
+      'flags',
       'lead',
       'value',
       'sector'

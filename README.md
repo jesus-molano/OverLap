@@ -88,9 +88,10 @@ defecto en Posiciones, y aquí con un clic en su cabecera.
 Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
 Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), última vuelta
 (como la de Posiciones: morada la rápida de su clase, verde su récord; fuera de carrera, su mejor
-vuelta), banderas de penalización (tras el nombre o en su columna «Banderas»), títulos de
-columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF, iRating en
-juego, SR proyectado, condiciones de pista…).
+vuelta), títulos de columna y una barra de datos arriba y abajo (sesión, tiempo restante, SoF,
+iRating en juego, SR proyectado, condiciones de pista…). El principio de la fila también son
+columnas, como en Posiciones (ver más abajo): posición, número, logo, bandera del país, nombre y
+banderas de penalización van donde los pongas.
 
 ### Radar
 
@@ -133,10 +134,20 @@ bandeja.
 Modo compacto (los primeros, tu entorno y los primeros de cada otra clase: de serie su líder, en
 una línea; con **Coches de otras clases** de 0 a 10, los que quieras bajo el nombre de su clase) o
 completo. Cada clase lleva su SoF junto a su nombre, también la de un líder en una línea. Columnas que
-se ordenan arrastrando y se esconden solas si la ventana se estrecha: banderas de penalización
-(oculta de serie: las banderas van tras el nombre), puestos ganados (solo en carrera), iRating,
-licencia, iRating en juego, hueco al de delante y al líder, última y mejor vuelta (en morado la
-más rápida de la clase), boxes, última parada, stint y neumático. Cabecera con lo que queda de
+se ordenan arrastrando y se esconden solas si la ventana se estrecha: puestos ganados (solo en
+carrera), iRating, licencia, iRating en juego, hueco al de delante y al líder, última y mejor
+vuelta (en morado la más rápida de la clase), boxes, última parada, stint y neumático.
+
+El principio de la fila también son columnas de la misma lista, en Posiciones y en Relativo:
+**Posición**, **Número**, **Logo de la marca**, **Bandera del país**, **Nombre** (siempre visible)
+y **Banderas** (las de penalización). De serie, en el orden de siempre, con las banderas tras el
+nombre. Cualquier columna puede ir entre ellas: «Puestos ganados» entre la posición y el número,
+las banderas entre el número y el logo… Lo que queda pegado al nombre va con él, en su celda:
+delante, alineado de fila a fila; detrás, tras el nombre. Separado por otra columna, va en una
+columna propia. Una regla: **la lista dice dónde; el bloque «Piloto», si salen y cómo** el logo,
+la bandera del país y las banderas (su fila de la lista no tiene ojo: dice cómo están en
+«Piloto»). La posición y el número, que no están en el bloque, tienen su ojo. «Igualar con…» lo
+lleva todo, y en la vista previa se arrastran como las demás. Cabecera con lo que queda de
 sesión y tus incidentes; pie con las condiciones de pista (temperatura y su tendencia, agua y
 lluvia, viento con un dial que apunta a tu coche) y los coches. A un clic en Personalizar: una
 segunda línea con tu iRating en juego, tu SR proyectado y la vuelta rápida de clase, y el aire y la
@@ -339,10 +350,11 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 - **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
   de Contenido, las mismas filas (formato de nombre, logo de la marca, bandera del país,
   banderas de penalización, formato del iRating e iRating con el color de la licencia; en Tráfico,
-  que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. Las
-  banderas de penalización salen o no según su fila; dónde, lo decide la columna «Banderas» de
-  Relativo y Posiciones (y la parte «Banderas» de Tráfico): oculta, tras el nombre; visible, en su
-  sitio de la lista, que se ordena como las demás. Batalla, sin columnas, las lleva tras el nombre.
+  que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. El
+  logo, la bandera del país y las banderas de penalización salen o no según su fila; dónde, lo
+  decide la lista de columnas de Relativo y Posiciones (y la de partes de Tráfico, para las
+  banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
+  sin columnas, las lleva tras el nombre.
 - **Récords personales**: la lista por coche y trazado, con borrar uno, el actual o todos.
 
 ## Modo edición

@@ -35,11 +35,15 @@ describe('«Completo»: everything on in the eleven widgets', () => {
   it('shows every column and element, turns the bars on, keeps your order', () => {
     const s = createDefaultSettings()
     s.relative.columns = [...s.relative.columns].reverse()
+    // The row's start too (request 11): a hidden position or number comes back.
+    s.standings.columns = s.standings.columns.map((c) =>
+      c.id === 'pos' || c.id === 'number' ? { id: c.id, visible: false } : c
+    )
     const after = applySettingsPatch(s, completePatch(s))
     expect(after.relative.columns.map((c) => c.id)).toEqual(s.relative.columns.map((c) => c.id))
-    // All but the penalty flags' column, which only moves what is drawn after the name.
+    // Every one (the penalty flags are always in the list: the «Piloto» block shows them).
     const shown = (l: readonly { id: string; visible: boolean }[]): boolean =>
-      l.every((c) => c.visible === (c.id !== 'flags'))
+      l.every((c) => c.visible)
     expect(shown(after.relative.columns)).toBe(true)
     expect(shown(after.standings.columns)).toBe(true)
     expect(shown(after.traffic.parts)).toBe(true)

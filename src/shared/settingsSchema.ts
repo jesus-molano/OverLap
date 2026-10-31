@@ -279,9 +279,17 @@ function barSize(def: InfoBarSize): EnumSpec<InfoBarSize> {
   return { kind: 'enum', values: INFO_BAR_SIZES, default: def }
 }
 
-/** Right-hand standings columns in their default order. */
+/**
+ * The standings' columns in their default order: the row's start (request 11: the position, the
+ * number, the make's logo, the driver's flag and the name, today's order), the penalty flags
+ * right after the name (after its text, where they always were: shared/rowHead.ts), then the rest.
+ */
 export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
-  // The penalty flags first: turned on, they land right after the name, where they were.
+  'pos',
+  'number',
+  'brand',
+  'country',
+  'driver',
   'flags',
   'gained',
   'ir',
@@ -298,14 +306,15 @@ export const STANDINGS_COLUMN_IDS = idsOf<StandingsColumnId>()([
 ])
 
 /**
- * The cells of a relative row, left to right (`driver` is the plate, the brand mark, the flag,
- * the name and its badges).
+ * The cells of a relative row, left to right: the row's start as the standings' (request 11), the
+ * penalty flags right after the name (after its text, as always), then the rest.
  */
 export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
   'pos',
+  'number',
+  'brand',
+  'country',
   'driver',
-  // The penalty flags in a column of their own, right after the name as the standings' (hidden:
-  // they stay after the name, as the PIT badge without its column).
   'flags',
   // iRating then licence, as in the standings and the battle (R10).
   'ir',
@@ -322,10 +331,10 @@ export const RELATIVE_COLUMN_IDS = idsOf<RelativeColumnId>()([
 ])
 
 /**
- * The relative row's fixed start, as the standings' position and driver (R10): listed apart in
- * its page, never moved; the position can be hidden in both tables.
+ * Always in a table's columns (request 11): the name, and the parts the «Piloto» block shows or
+ * hides (shared/rowHead.ts BLOCK_PARTS), so the list never hides them: it only places them.
  */
-export const RELATIVE_PINNED_COLUMNS: readonly RelativeColumnId[] = ['pos', 'driver']
+const TABLE_REQUIRED = ['driver', 'brand', 'country', 'flags'] as const
 
 /** The warning lights in the strip's default order (the provider's LIGHT_ORDER). */
 export const LIGHT_IDS = idsOf<LightKind>()([
@@ -525,9 +534,9 @@ export const OPTION_SCHEMA = {
     carsBehind: { kind: 'int', min: 0, max: 10, default: 3 },
     // Every row carries every cell: the provider computes the same payload either way.
     columns: elements(RELATIVE_COLUMN_IDS, {
-      hidden: ['flags', 'last', 'pit', 'tyre', 'stint'],
-      // The driver only, as in the standings (R10): «Hueco» can be hidden in both tables.
-      required: ['driver'],
+      hidden: ['last', 'pit', 'tyre', 'stint'],
+      // As in the standings (R10): «Hueco» can be hidden in both tables, the position too.
+      required: TABLE_REQUIRED,
       displayOnly: true
     }),
     // The name (R13: session data is on by default in the standings only).
@@ -585,10 +594,9 @@ export const OPTION_SCHEMA = {
     // Not display-only: the provider may skip what no visible column shows. The best lap is the
     // extra most asked for; stint, last stop and tyre are for longer races.
     columns: elements(STANDINGS_COLUMN_IDS, {
-      hidden: ['flags', 'delta', 'gapLeader', 'pitLap', 'stint', 'tyre']
+      hidden: ['delta', 'gapLeader', 'pitLap', 'stint', 'tyre'],
+      required: TABLE_REQUIRED
     }),
-    // The row's fixed start, hidden as the relative's position can be (R10).
-    showPosition: { kind: 'bool', default: true, displayOnly: true },
     // Today's two header lines: the session (the widget's name while unknown), the class's SoF
     // and cars, your incidents and what is left; then your projections and the fastest lap.
     headerBar: infoBar(['title', 'session', 'sof', 'split', 'incidents', 'remaining']),
@@ -723,8 +731,9 @@ export const OPTION_SCHEMA = {
     parts: elements(
       idsOf<TrafficPartId>()(['icon', 'cls', 'driver', 'flags', 'lead', 'value', 'sector']),
       {
-        hidden: ['flags'],
-        required: ['driver', 'value'],
+        // The penalty flags as the tables' (request 11): the «Piloto» block says whether, the list
+        // where; right after the driver, after the name's text.
+        required: ['driver', 'value', 'flags'],
         displayOnly: true
       }
     ),

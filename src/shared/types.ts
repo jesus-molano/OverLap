@@ -1314,13 +1314,27 @@ export interface ElementEntry<Id extends string = string> {
 export type ElementList<Id extends string = string> = ElementEntry<Id>[]
 
 /**
- * Cells of a relative row, left to right. `driver` (number plate, brand mark, flag, name and its
- * badges) and `gap` always stay. `flags`: the penalty flags in a column of their own (hidden,
- * they go after the name, as the PIT badge without its column). `last`: Posiciones' «Última vuelta»
- * (outside races, the best lap).
+ * Cells of a relative row, left to right, as the standings' (request 11: the row's start is
+ * columns too): `driver` is the name (always shown, with its badges); `number` the plate, `brand`
+ * the make's logo, `country` the driver's flag and `flags` the penalty flags, each drawn in the
+ * name's cell while it touches the name (view/rowHead.ts) and in a column of its own elsewhere.
+ * Whether the logo and both flags show is the «Piloto» block's; where, this list's. `last`:
+ * Posiciones' «Última vuelta» (outside races, the best lap).
  */
 export type RelativeColumnId =
-  'pos' | 'driver' | 'flags' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap' | 'last'
+  | 'pos'
+  | 'number'
+  | 'brand'
+  | 'country'
+  | 'driver'
+  | 'flags'
+  | 'ir'
+  | 'lic'
+  | 'pit'
+  | 'tyre'
+  | 'stint'
+  | 'gap'
+  | 'last'
 /** What a class line (and a single-class header) says about the class, in that order. */
 export type StandingsClassLineId = 'sof' | 'carCount'
 export type BattleLaneId = 'ahead' | 'behind'
@@ -1534,14 +1548,19 @@ export interface SpotterOptions {
 }
 
 /**
- * Right-hand columns of the standings, in display order; the left block
- * (position, number, name) is fixed. 'gap' follows gapMode, 'gapLeader' is the
- * gap to the class leader shown as its own column. 'best' is the best lap in
- * races ('last' shows it elsewhere), 'pitLap' the lap of the last stop, 'stint'
- * the laps since then and 'tyre' the compound. 'flags' the penalty flags in a column of their
- * own (hidden, they go after the name).
+ * The standings' columns in display order, the row's start too (request 11), as the relative's:
+ * 'pos' the position; 'number', 'brand', 'country' and 'flags' the driver's parts (in the name's
+ * cell while they touch the name); 'driver' the name (always shown). 'gap' follows gapMode,
+ * 'gapLeader' is the gap to the class leader shown as its own column. 'best' is the best lap in
+ * races ('last' shows it elsewhere), 'pitLap' the lap of the last stop, 'stint' the laps since
+ * then and 'tyre' the compound.
  */
 export type StandingsColumnId =
+  | 'pos'
+  | 'number'
+  | 'brand'
+  | 'country'
+  | 'driver'
   | 'flags'
   | 'gained'
   | 'ir'
@@ -1589,11 +1608,6 @@ export interface StandingsOptions {
   gapMode: 'interval' | 'leader' | 'both'
   /** Every column id exactly once, in order (normalisation fixes missing/duplicated ids). */
   columns: StandingsColumn[]
-  /**
-   * The position at the start of each row (R10: hidden as the relative's can be); off, another
-   * class's leader line loses its class tag too (its number plate keeps the class colour).
-   */
-  showPosition: boolean
   /** The header's first line: session, your class, incidents, what is left. */
   headerBar: ElementList<InfoBarEntryId>
   headerBarSize: InfoBarSize

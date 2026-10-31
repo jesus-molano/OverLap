@@ -95,9 +95,19 @@ describe('OPTION_SCHEMA', () => {
     const hidden = OPTION_SCHEMA.standings.columns.default
       .filter((c) => !c.visible)
       .map((c) => c.id)
-    expect(hidden).toEqual(['flags', 'delta', 'gapLeader', 'pitLap', 'stint', 'tyre'])
+    expect(hidden).toEqual(['delta', 'gapLeader', 'pitLap', 'stint', 'tyre'])
+    // The row's start (request 11) in today's order, the penalty flags right after the name.
+    expect(STANDINGS_COLUMN_IDS.slice(0, 7)).toEqual([
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'gained'
+    ])
     // The best lap goes right after the last one, the stint extras after the pit column.
-    expect(STANDINGS_COLUMN_IDS.slice(7)).toEqual([
+    expect(STANDINGS_COLUMN_IDS.slice(12)).toEqual([
       'last',
       'best',
       'pit',
@@ -161,7 +171,6 @@ describe('displayOnlyFields', () => {
     // The columns and the info bars decide what the provider computes.
     expect(displayOnlyFields('standings')).toEqual([
       'gapMode',
-      'showPosition',
       'conditionsTrend',
       'conditionsWindDirection',
       'classLine',
@@ -227,8 +236,9 @@ describe('element lists (v2.6)', () => {
     const spec = OPTION_SCHEMA.standings.columns
     expect(spec.kind).toBe('elements')
     expect(spec.ids).toEqual([...STANDINGS_COLUMN_IDS])
-    expect(spec.default[0]).toEqual({ id: 'flags', visible: false })
-    expect(spec.default[1]).toEqual({ id: 'gained', visible: true })
+    expect(spec.default[0]).toEqual({ id: 'pos', visible: true })
+    expect(spec.default[5]).toEqual({ id: 'flags', visible: true })
+    expect(spec.default[6]).toEqual({ id: 'gained', visible: true })
     expect(spec.fixedOrder).toBe(false)
   })
 
@@ -258,13 +268,7 @@ describe('element lists (v2.6)', () => {
     const hidden = (spec: ElementsSpec): string[] =>
       spec.default.filter((e) => !e.visible).map((e) => e.id)
     // The PIT column (R10) hidden: its badge goes after the name, as before.
-    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual([
-      'flags',
-      'last',
-      'pit',
-      'stint',
-      'tyre'
-    ])
+    expect(hidden(OPTION_SCHEMA.relative.columns)).toEqual(['last', 'pit', 'stint', 'tyre'])
     expect(hidden(OPTION_SCHEMA.battle.rows)).toEqual(['laps'])
     expect(hidden(OPTION_SCHEMA.delta.rows)).toEqual(['refs', 'laps'])
     expect(hidden(OPTION_SCHEMA.delta.refBars)).toEqual(['class', 'classOptimal'])
@@ -272,8 +276,8 @@ describe('element lists (v2.6)', () => {
     expect(hidden(OPTION_SCHEMA.lights.icons)).toEqual(['pitLimiter', 'revLimiter'])
     // R30: fewer figures for a new install (a file's list stays: migrate.ts).
     expect(hidden(OPTION_SCHEMA.fuel.lines)).toEqual(['tyres', 'limits'])
-    // The penalty flags' cell, as the tables' column: hidden, the flags after the name.
-    expect(hidden(OPTION_SCHEMA.traffic.parts)).toEqual(['flags'])
+    // The penalty flags' cell, as the tables' column: shown, right after the driver (request 11).
+    expect(hidden(OPTION_SCHEMA.traffic.parts)).toEqual([])
     for (const spec of [
       OPTION_SCHEMA.radar.parts,
       OPTION_SCHEMA.standings.classLine,
@@ -291,10 +295,12 @@ describe('element lists (v2.6)', () => {
   })
 
   it('makes the cores required and the small fixed groups fixed in order', () => {
-    // The gap can be hidden in the relative as in the standings (R10).
-    expect(OPTION_SCHEMA.relative.columns.required).toEqual(['driver'])
-    expect(OPTION_SCHEMA.standings.columns.required).toEqual([])
-    expect(OPTION_SCHEMA.traffic.parts.required).toEqual(['driver', 'value'])
+    // The gap can be hidden in the relative as in the standings (R10); the name and the parts the
+    // «Piloto» block shows or hides are always in a table's row (request 11).
+    const table = ['driver', 'brand', 'country', 'flags']
+    expect(OPTION_SCHEMA.relative.columns.required).toEqual(table)
+    expect(OPTION_SCHEMA.standings.columns.required).toEqual(table)
+    expect(OPTION_SCHEMA.traffic.parts.required).toEqual(['driver', 'value', 'flags'])
     expect(OPTION_SCHEMA.delta.rows.required).toEqual(['top'])
     expect(OPTION_SCHEMA.fuel.lines.required).toEqual(['hero'])
     expect(OPTION_SCHEMA.inputs.sections.required).toEqual(['bars'])

@@ -17,8 +17,8 @@ import {
   columnsEditPatch,
   deltaAllDroppedAfter,
   deltaAllPatch,
-  fixedColumns,
   gapModePatch,
+  linkedParts,
   matchSharedColumns
 } from '../columns'
 import ChoiceControl from '../controls/ChoiceControl.vue'
@@ -83,37 +83,22 @@ const applyColumns = (
 
 /**
  * «Igualar con Relativo» (R10): the columns both tables have take the relative's order and eyes
- * (with the options that go with the columns, as a reset brings them); then "Deshacer".
+ * (the row's start too, request 11; with the options that go with the columns, as a reset brings
+ * them); then "Deshacer".
  */
 const relative = useOptions('relative')
 const matched = shallowRef('')
 function matchRelative(): void {
   const done = offerSectionRestore('standings', zoneTitle(t.value, 'standings', 'columns'))
   const next = matchSharedColumns(opts.value.columns, relative.value.columns)
-  // The position too: shown or hidden as the relative's (R10).
-  const showPosition = relative.value.columns.some((c) => c.id === 'pos' && c.visible)
-  void updateSection('standings', {
-    ...columnsEditPatch(opts.value, next, { kind: 'reset' }),
-    showPosition
-  })
+  void updateSection('standings', columnsEditPatch(opts.value, next, { kind: 'reset' }))
   done()
   matched.value = t.value.settings.columns.match.done(widgetTitle(t.value, 'relative'))
 }
 const compactOff = computed(() => opts.value.mode === 'full')
 const densityChoices = computed(() => densityChoicesInherit(t.value, appearance.value.density))
-/** The row's fixed start (R10): the position with its eye, as the relative's; the driver locked. */
-const setShowPosition = set('showPosition')
-const fixed = computed(() =>
-  fixedColumns(t.value).map((f) =>
-    f.key === 'pos'
-      ? {
-          ...f,
-          visible: opts.value.showPosition,
-          toggle: (v: boolean) => void setShowPosition(v)
-        }
-      : f
-  )
-)
+/** The logo and the flags: shown or hidden in the «Piloto» block, placed here (request 11). */
+const linked = computed(() => linkedParts(t.value, opts.value, appearance.value))
 /** «Ambos» draws the gap to the leader in its column: «No cabe» while the width drops it. */
 const noRoom = useNoRoom()
 const gapNote = computed(() =>
@@ -221,7 +206,8 @@ const sampleNotes = computed(() => {
       :items="opts.columns"
       :spec="S.columns"
       :labels="elementTexts(t, 'standings', 'columns')"
-      :fixed-before="fixed"
+      :linked="linked"
+      :note="t.settings.columns.rowNote"
       :apply="applyColumns"
     >
       <!--

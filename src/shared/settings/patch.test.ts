@@ -370,6 +370,11 @@ describe('applySettingsPatch', () => {
     expect(out.standings.columns.map((c) => c.id)).toEqual([
       'gap',
       'last',
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
       'flags',
       'gained',
       'ir',
@@ -382,7 +387,15 @@ describe('applySettingsPatch', () => {
       'stint',
       'tyre'
     ])
-    expect(out.standings.columns.filter((c) => c.visible).map((c) => c.id)).toEqual(['gap', 'last'])
+    // The name and the «Piloto» block's parts are always in the list (request 11).
+    expect(out.standings.columns.filter((c) => c.visible).map((c) => c.id)).toEqual([
+      'gap',
+      'last',
+      'brand',
+      'country',
+      'driver',
+      'flags'
+    ])
   })
 
   it('merges pedal colours one by one', () => {

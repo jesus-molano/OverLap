@@ -22,9 +22,6 @@ export interface ColumnHead {
   readonly align: HeadAlign
 }
 
-/** The standings' fixed left block, before its right-hand columns. */
-export type StandingsFixedHead = 'pos' | 'name'
-
 export interface StandingsHeadContext {
   gapMode: StandingsOptions['gapMode']
   /** A race session: outside races the gap is to the fastest lap and 'last' shows the best. */
@@ -57,8 +54,14 @@ export function relativeHead(
   switch (id) {
     case 'pos':
       return { label: h.pos, align: 'start' }
+    case 'number':
+      return { label: h.number, align: 'start' }
     case 'driver':
       return { label: h.driver, align: 'start' }
+    // Glyphs: no caption.
+    case 'brand':
+    case 'country':
+      return { label: '', align: 'center' }
     case 'lic':
       return { label: licHead(licenseStyle, m), align: 'center' }
     case 'ir':
@@ -77,9 +80,9 @@ export function relativeHead(
   }
 }
 
-/** Header of a standings column (a right-hand one, or the fixed block's position and name). */
+/** Header of a standings column (the row's start's as the relative's). */
 export function standingsHead(
-  id: StandingsColumnId | StandingsFixedHead,
+  id: StandingsColumnId,
   c: StandingsHeadContext,
   m: Messages
 ): ColumnHead {
@@ -87,8 +90,12 @@ export function standingsHead(
   switch (id) {
     case 'pos':
       return { label: h.pos, align: 'start' }
-    case 'name':
+    case 'number':
+      return { label: h.number, align: 'start' }
+    case 'driver':
       return { label: h.driver, align: 'start' }
+    case 'brand':
+    case 'country':
     case 'flags':
       return { label: '', align: 'center' }
     case 'gained':

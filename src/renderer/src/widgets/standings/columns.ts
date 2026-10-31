@@ -2,19 +2,22 @@
  * Which standings columns a car row has and how wide they are (ux §4.2-4.3). The text size comes
  * from the scale setting, so a narrower window drops columns instead of shrinking the text: the
  * name keeps NAME_MIN_EM and the columns go in DROP_ORDER, whatever order the user gave them.
- * Pure; widths are in em of the row font.
+ * The row's start is columns too (request 11): the driver's parts that touch the name are drawn
+ * in its cell, the others in tracks of their own (shared/rowHead.ts). Pure; widths are in em of
+ * the row font.
  */
+import { moveAfterName, nameGroup, type DriverPartId } from '@shared/rowHead'
 import type { AppearanceSettings, StandingsColumnId, StandingsOptions } from '@shared/types'
 
 /**
- * First to go when the window narrows. 'gap' never goes (nor the position and the name). The
- * stint extras go before the best lap, which goes before anything that was there first. The flag
- * and the make's mark (DECORATIONS_BEFORE) go before the best lap too: a decoration never costs a
- * column the table had before it. The penalty flags' column goes first of all: its flags then go
- * after the name, as they do with the column hidden.
+ * First to go when the window narrows. 'gap' never goes (nor the position, the number and the
+ * name). The stint extras go before the best lap, which goes before anything that was there
+ * first. The flag and the make's mark (DECORATIONS_BEFORE) go before the best lap too: a
+ * decoration never costs a column the table had before it. The penalty flags placed anywhere but
+ * after the name go first of all: they then go after the name, where they always were.
  */
 export const DROP_ORDER = [
-  // Never lost: without their column the flags go back after the name.
+  // Never lost: they go back after the name.
   'flags',
   'delta',
   'gapLeader',
@@ -54,7 +57,13 @@ interface ColumnWidth {
   readonly text: number
 }
 
-const COLUMN_WIDTH: Readonly<Record<StandingsColumnId, ColumnWidth>> = {
+/** The row's start: the position, the driver's parts in tracks of their own, the name. */
+type HeadId = 'pos' | 'number' | 'brand' | 'country' | 'driver'
+const isHead = (id: StandingsColumnId): id is HeadId =>
+  id === 'pos' || id === 'number' || id === 'brand' || id === 'country' || id === 'driver'
+
+/** The other columns' widths (the row's start: headWidth). */
+const COLUMN_WIDTH: Readonly<Record<Exclude<StandingsColumnId, HeadId>, ColumnWidth>> = {
   // One flag badge, centred (as the tyre's ring), at the icons' 0.85em.
   flags: { w: 1.3, text: 0.85 },
   gained: { w: 1.9, text: 0.75 },
@@ -89,8 +98,12 @@ const NUMBER_WIDTH: Readonly<Record<NumberStyle, ColumnWidth>> = {
   bare: { w: 0.6, text: 1 }
 }
 
+/** The driver cell's gap between its parts (DriverCell.vue .ov-driver). */
+export const CELL_GAP_EM = 0.35
 /** The make's mark in the name track (BrandMark: 1.75em wide), with the driver cell's gap. */
-export const BRAND_EM = 1.75 + 0.35
+export const BRAND_EM = 1.75 + CELL_GAP_EM
+/** The penalty flag's slot before the name (DriverPart.vue: one badge, as the flags' column). */
+export const FLAGS_SLOT_EM = 1.3 + CELL_GAP_EM
 /** The plate height (theme.css --ov-plate-h): 1.15em, never below the minimum text + 4 px. */
 function plateEm(fontPx: number, minPx = MIN_TEXT_PX): number {
   return fontPx > 0 ? Math.max(1.15, (minPx + 4) / fontPx) : 1.15
@@ -118,26 +131,29 @@ export interface ColumnPrefs {
   penalties?: boolean
   /** The text floor (px, theme.css --ov-min-text: 10 with «Texto mínimo de 10 px»); 9 if absent. */
   minText?: number
-  /** The position track (showPosition); on if absent. */
-  pos?: boolean
   /** The iRating column's width (iRatingColumnEm: request 10's format and plate); today's if absent. */
   irEm?: number
 }
 
 export interface Columns {
-  /** Right-hand cells of a car row, in the user's order. */
+  /** What a car row draws, in the user's order: the row's start too (the name always). */
   readonly cells: readonly StandingsColumnId[]
-  /** grid-template-columns of a car row: position (when `pos`), name (1fr), then `cells`. */
+  /** The row's grid tracks: `cells` but the driver's parts drawn in the name's cell. */
+  readonly tracks: readonly StandingsColumnId[]
+  /** The driver's parts drawn in the name's cell, before and after the name (rowHead.ts). */
+  readonly before: readonly DriverPartId[]
+  readonly after: readonly DriverPartId[]
+  /** grid-template-columns of a car row: one per track, the name's 1fr. */
   readonly template: string
-  /** The position track is drawn (showPosition). */
+  /** The position is drawn (its eye). */
   readonly pos: boolean
   readonly numberStyle: NumberStyle
-  /** The make's mark and the flag are drawn in the name track (they fit). */
+  /** The make's mark and the flag are drawn (the block's, and they fit), wherever they are. */
   readonly brand: boolean
   readonly flag: boolean
   /** The pit column is not shown: pit state goes as an icon after the name. */
   readonly pitInline: boolean
-  /** The penalty flags are drawn and their column is not: they go after the name. */
+  /** The penalty flags are drawn after the name (their place, or no room for it elsewhere). */
   readonly flagsInline: boolean
   /** Width the name gets (em); below NAME_MIN_EM only when nothing else could go. */
   readonly nameEm: number
@@ -155,10 +171,16 @@ export interface Columns {
  * - 'gapLeader' when the gap mode is 'both' (or the column is on), never in 'leader' mode,
  *   where 'gap' already shows the gap to the leader.
  * - 'tyre' only while some row has a compound: the same 'H' on every row says nothing.
- * - 'flags' only while the penalty flags are drawn (the «Piloto» block).
+ * - 'brand', 'country' and 'flags' while the «Piloto» block draws them; the name always.
  */
 export function columnWanted(id: StandingsColumnId, visible: boolean, p: ColumnPrefs): boolean {
   switch (id) {
+    case 'driver':
+      return true
+    case 'brand':
+      return visible && p.brand
+    case 'country':
+      return visible && p.flag
     case 'gained':
     case 'best':
     case 'pitLap':
@@ -182,7 +204,58 @@ function widthAt(c: ColumnWidth, fontPx: number, minPx = MIN_TEXT_PX): number {
   return c.w * Math.max(1, floor / c.text)
 }
 
-function columnWidth(id: StandingsColumnId, p: ColumnPrefs): ColumnWidth {
+/** A part of the row's start in a track of its own (the name's track is the rest: 1fr). */
+function headWidth(
+  id: HeadId,
+  numberStyle: NumberStyle,
+  fontPx: number,
+  minPx: number
+): ColumnWidth {
+  switch (id) {
+    case 'pos':
+      return POS_WIDTH
+    case 'number': {
+      const n = NUMBER_WIDTH[numberStyle]
+      return { w: n.w - CELL_GAP_EM, text: n.text }
+    }
+    case 'brand':
+      return { w: BRAND_EM - CELL_GAP_EM, text: 1 }
+    case 'country':
+      return { w: flagEm(fontPx, minPx) - CELL_GAP_EM, text: 1 }
+    case 'driver':
+      return { w: 0, text: 1 }
+  }
+}
+
+/** The width (em) a driver's part takes in the name's cell, its gap included. */
+function inNameEm(
+  part: DriverPartId,
+  side: 'before' | 'after',
+  numberStyle: NumberStyle,
+  fontPx: number,
+  minPx: number
+): number {
+  switch (part) {
+    case 'number':
+      return widthAt(NUMBER_WIDTH[numberStyle], fontPx, minPx)
+    case 'brand':
+      return BRAND_EM
+    case 'country':
+      return flagEm(fontPx, minPx)
+    // After the name the flags take the name's room, as they always did.
+    case 'flags':
+      return side === 'before' ? FLAGS_SLOT_EM : 0
+  }
+}
+
+function columnWidth(
+  id: StandingsColumnId,
+  p: ColumnPrefs,
+  numberStyle: NumberStyle = 'chip',
+  fontPx = 0,
+  minPx = MIN_TEXT_PX
+): ColumnWidth {
+  if (isHead(id)) return headWidth(id, numberStyle, fontPx, minPx)
   if (id === 'gap' && !p.race) return NON_RACE_GAP
   if (id === 'gapLeader' && !p.race) return NON_RACE_GAP_LEADER
   if (id === 'lic' && p.licenseStyle === 'letter') return LIC_LETTER
@@ -214,62 +287,70 @@ export function fitColumns(p: ColumnPrefs, widthPx: number, fontPx: number): Col
     seen.add(c.id)
     if (columnWanted(c.id, c.visible, p)) shown.push(c.id)
   }
+  // The name is required: a list main normalised always has it; a missing one goes where it is by
+  // default, after the position.
+  if (!seen.has('driver')) shown.splice(shown[0] === 'pos' ? 1 : 0, 0, 'driver')
   const widthEm = rowWidthEm(widthPx, fontPx)
   const measured = widthEm > 0
   let numberStyle: NumberStyle = p.numberStyle === 'stripe' ? 'stripe' : 'chip'
-  let brand = p.brand
-  let flag = p.flag
   const minPx = p.minText ?? MIN_TEXT_PX
-  const pos = p.pos !== false
-  const posEm = pos ? widthAt(POS_WIDTH, fontPx, minPx) : 0
+  const trackEm = (id: StandingsColumnId): number =>
+    widthAt(columnWidth(id, p, numberStyle, fontPx, minPx), fontPx, minPx)
 
   const fixedEm = (cells: readonly StandingsColumnId[]): number => {
-    let sum = posEm + widthAt(NUMBER_WIDTH[numberStyle], fontPx, minPx)
-    if (brand) sum += BRAND_EM
-    if (flag) sum += flagEm(fontPx, minPx)
-    for (const id of cells) sum += widthAt(columnWidth(id, p), fontPx, minPx)
-    // Tracks: position, name, then the cells.
-    return sum + COL_GAP_EM * (cells.length + (pos ? 1 : 0))
+    const g = nameGroup(cells, 'driver')
+    let sum = 0
+    for (const id of g.tracks) if (id !== 'driver') sum += trackEm(id)
+    for (const part of g.before) sum += inNameEm(part, 'before', numberStyle, fontPx, minPx)
+    for (const part of g.after) sum += inNameEm(part, 'after', numberStyle, fontPx, minPx)
+    return sum + COL_GAP_EM * (g.tracks.length - 1)
   }
 
-  let cells = shown
+  let cells: readonly StandingsColumnId[] = shown
+  const drop = (id: StandingsColumnId): void => {
+    cells = cells.filter((c) => c !== id)
+  }
   if (measured) {
     const short = (): boolean => widthEm - fixedEm(cells) < NAME_MIN_EM
     for (const id of DROP_ORDER) {
       if (!short()) break
       if (id === DECORATIONS_BEFORE) {
-        if (flag) flag = false
-        if (brand && short()) brand = false
+        drop('country')
+        if (short()) drop('brand')
         if (!short()) break
       }
-      if (cells.includes(id)) cells = cells.filter((c) => c !== id)
+      // The penalty flags are never lost: they go after the name.
+      if (id === 'flags') cells = moveAfterName(cells, 'flags', 'driver')
+      else drop(id)
     }
-    if (flag && short()) flag = false
-    if (brand && short()) brand = false
+    if (short()) drop('country')
+    if (short()) drop('brand')
     if (short() || widthEm < NARROW_EM) {
       numberStyle = 'bare'
-      brand = false
-      flag = false
+      drop('brand')
+      drop('country')
     }
   }
 
-  const tracks = pos ? [em(posEm), 'minmax(0, 1fr)'] : ['minmax(0, 1fr)']
-  for (const id of cells) tracks.push(em(widthAt(columnWidth(id, p), fontPx, minPx)))
-  const template = tracks.join(' ')
-  const pitInline = !cells.includes('pit')
-  const flagsInline = p.penalties === true && !cells.includes('flags')
+  const g = nameGroup(cells, 'driver')
+  const template = g.tracks
+    .map((id) => (id === 'driver' ? 'minmax(0, 1fr)' : em(trackEm(id))))
+    .join(' ')
   return {
     cells,
+    tracks: g.tracks,
+    before: g.before,
+    after: g.after,
     template,
     numberStyle,
-    brand,
-    flag,
-    pitInline,
-    flagsInline,
-    pos,
+    brand: cells.includes('brand'),
+    flag: cells.includes('country'),
+    pitInline: !cells.includes('pit'),
+    flagsInline: g.after.includes('flags'),
+    pos: cells.includes('pos'),
     nameEm: measured ? round2(widthEm - fixedEm(cells)) : 0,
     widthEm: round2(widthEm),
-    key: `${cells.join(',')}|${numberStyle}|${brand ? 'b' : ''}${flag ? 'f' : ''}${flagsInline ? 'p' : ''}|${template}`
+    key: `${cells.join(',')}|${numberStyle}|${template}`
   }
 }
 
@@ -290,7 +371,7 @@ export function withoutRoom(
   if (!(cols.widthEm > 0)) return { columns: [], brand: false, flag: false }
   const wanted = fitColumns(p, 0, 0).cells
   return {
-    // The flags' column is never lost: its flags go after the name.
+    // The penalty flags are never lost: they go after the name.
     columns: wanted.filter((id) => id !== 'flags' && !cols.cells.includes(id)),
     brand: p.brand && !cols.brand,
     flag: p.flag && !cols.flag

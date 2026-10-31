@@ -1,15 +1,16 @@
 /**
  * View models of the relative widget (quality P1-10): which car goes in each slot (the player
  * always in the centre one), each slot formatted and flat so an unchanged slot keeps its object
- * (`reuseViews`) for v-memo, the grid columns in relative.columns' order (with the make and
- * flag in the driver cell), their heads, and the lines the font fit counts besides the rows. Pure.
+ * (`reuseViews`) for v-memo, the grid columns in relative.columns' order (the driver's parts
+ * that touch the name in its cell, shared/rowHead.ts), their heads, and the lines the font fit
+ * counts besides the rows. Pure.
  */
 import type { BrandId } from '@shared/carBrands'
-import { pinFirst, visibleIds } from '@shared/elements'
+import { visibleIds } from '@shared/elements'
 import { formatClassPosition, formatGap } from '@shared/format'
 import type { Messages } from '@shared/i18n'
 import { INFO_BAR_LINE_EM } from '@shared/infoBar'
-import { RELATIVE_PINNED_COLUMNS } from '@shared/settingsSchema'
+import { nameGroup, type DriverPartId } from '@shared/rowHead'
 import type {
   CarPenalty,
   ElementEntry,
@@ -151,9 +152,16 @@ export function toSlotViews(
   })
 }
 
-/** Column widths (em of the row font). The driver cell takes the rest. */
+/**
+ * Column widths (em of the row font). The driver cell takes the rest. The driver's parts in
+ * columns of their own (request 11) as wide as their slot in the driver cell: the number's plate
+ * (NumberBadge: 2.1em of the plate's 0.82em text, 2.4 with the stripe), the make, the flag.
+ */
 export const RELATIVE_COL_EM = {
   pos: 1.9,
+  number: 1.85,
+  brand: 1.75,
+  country: 1.73,
   // One flag badge, centred (as the tyre's ring).
   flags: 1.3,
   lic: 2.8,
@@ -167,6 +175,8 @@ export const RELATIVE_COL_EM = {
 } as const satisfies Readonly<Record<Exclude<RelativeColumnId, 'driver'>, number>>
 /** Row width (em) the default columns need with a readable name: it caps the font by width. */
 export const RELATIVE_FIT_EM = 27
+/** The number's column with the stripe style ('#23' after the stripe). */
+const NUMBER_STRIPE_EM = 2.15
 const COL_GAP_EM = 0.4
 /** The driver cell's gap between its parts (DriverCell.vue .ov-driver). */
 const CELL_GAP_EM = 0.35
@@ -174,18 +184,25 @@ const CELL_GAP_EM = 0.35
 export const BRAND_FIT_EM = 1.75 + CELL_GAP_EM
 /** The flag's slot (CountryFlag.vue: 1.5 × the plate's 1.15em) and its gap, rounded up. */
 export const FLAG_FIT_EM = Math.ceil((1.5 * 1.15 + CELL_GAP_EM) * 100) / 100
+/** The penalty flag's slot before the name (DriverPart.vue) and its gap. */
+const FLAGS_SLOT_EM = RELATIVE_COL_EM.flags + CELL_GAP_EM
 
 export interface RelativeColumns {
-  /** The cells a row draws, in the list's order (the driver cell always among them). */
+  /** What a row draws, in the list's order (the name always among them). */
   cells: readonly RelativeColumnId[]
-  /** Penalty flag badges after the name: on, and without their own column (the `flags` cell). */
+  /** The row's grid tracks: `cells` but the driver's parts drawn in the name's cell. */
+  tracks: readonly RelativeColumnId[]
+  /** The driver's parts drawn in the name's cell, before and after the name (rowHead.ts). */
+  before: readonly DriverPartId[]
+  after: readonly DriverPartId[]
+  /** Penalty flag badges after the name: on, and placed there. */
   flags: boolean
   /**
    * The PIT / tow badge after the name: the PIT column is hidden (as the standings put it
    * inline without their "Boxes" column, R10).
    */
   pitInline: boolean
-  /** The make's logo and the driver's flag inside the driver cell. */
+  /** The make's logo and the driver's flag are drawn, wherever they are. */
   brand: boolean
   country: boolean
   /** grid-template-columns of a row (and of the column heads). */
@@ -211,53 +228,69 @@ export interface ColumnExtras {
   country: boolean
   /** The iRating column's width (iRatingColumnEm: request 10's format and plate); today's if absent. */
   irEm?: number
+  /** appearance.numberStyle: the number's own column is wider with the stripe. */
+  numberStyle?: 'chip' | 'stripe'
 }
 
 /**
  * The row's cells in the list's order: hidden ones leave the grid, so the name takes their
- * width. The position and the driver always start the row, as in the standings (R10: a file
- * that moved them draws them there too); the tyre column shows only while some row has a
- * compound (today's rule).
+ * width. The row's start is columns too (request 11): the driver's parts that touch the name
+ * are drawn in its cell, the others in tracks of their own. The make's logo and both flags show
+ * while the «Piloto» block draws them; the tyre column only while some row has a compound
+ * (today's rule).
  */
 export function relativeColumns(
   list: readonly Readonly<ElementEntry<RelativeColumnId>>[],
   x: ColumnExtras
 ): RelativeColumns {
   const cells: RelativeColumnId[] = []
-  for (const id of visibleIds(pinFirst(list, RELATIVE_PINNED_COLUMNS))) {
+  for (const id of visibleIds(list)) {
     if (id === 'tyre' && !x.tyres) continue
-    // The flags' column only while the «Piloto» block draws them.
+    // The «Piloto» block's parts while it draws them.
     if (id === 'flags' && !x.flags) continue
+    if (id === 'brand' && !x.brand) continue
+    if (id === 'country' && !x.country) continue
     if (!cells.includes(id)) cells.push(id)
   }
   // The driver is required: a list main normalised always has it; a missing one goes where it is
   // by default. The gap can be hidden (R10, as in the standings); a list without it at all (not
   // normalised) still draws it at the end.
-  if (!cells.includes('driver')) cells.splice(cells.includes('pos') ? 1 : 0, 0, 'driver')
+  if (!cells.includes('driver')) cells.splice(cells[0] === 'pos' ? 1 : 0, 0, 'driver')
   if (!cells.includes('gap') && !list.some((e) => e.id === 'gap')) cells.push('gap')
+  const g = nameGroup(cells, 'driver')
   const irEm = x.irEm ?? RELATIVE_COL_EM.ir
-  const tracks = cells.map((id) =>
-    id === 'driver' ? 'minmax(0, 1fr)' : `${id === 'ir' ? irEm : RELATIVE_COL_EM[id]}em`
-  )
+  const numberEm = x.numberStyle === 'stripe' ? NUMBER_STRIPE_EM : RELATIVE_COL_EM.number
+  const width = (id: Exclude<RelativeColumnId, 'driver'>): number =>
+    id === 'ir' ? irEm : id === 'number' ? numberEm : RELATIVE_COL_EM[id]
+  const tracks = g.tracks.map((id) => (id === 'driver' ? 'minmax(0, 1fr)' : `${width(id)}em`))
   let fitEm = RELATIVE_FIT_EM
   // A wider iRating (request 10) widens the fit by what it adds, as the extras below.
   if (cells.includes('ir')) fitEm += irEm - RELATIVE_COL_EM.ir
   if (cells.includes('tyre')) fitEm += RELATIVE_COL_EM.tyre + COL_GAP_EM
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
-  if (cells.includes('flags')) fitEm += RELATIVE_COL_EM.flags + COL_GAP_EM
   if (cells.includes('last')) fitEm += RELATIVE_COL_EM.last + COL_GAP_EM
-  if (x.brand) fitEm += BRAND_FIT_EM
-  if (x.country) fitEm += FLAG_FIT_EM
+  // The penalty flags take room anywhere but after the name (after its text, as always).
+  if (g.tracks.includes('flags')) fitEm += RELATIVE_COL_EM.flags + COL_GAP_EM
+  if (g.before.includes('flags')) fitEm += FLAGS_SLOT_EM
+  if (cells.includes('brand')) fitEm += BRAND_FIT_EM
+  if (cells.includes('country')) fitEm += FLAG_FIT_EM
+  // A part in a column of its own: a column's gap instead of the driver cell's.
+  for (const id of g.tracks) {
+    if (id === 'number' || id === 'brand' || id === 'country') fitEm += COL_GAP_EM - CELL_GAP_EM
+  }
   return {
     cells,
-    flags: x.flags && !cells.includes('flags'),
+    tracks: g.tracks,
+    before: g.before,
+    after: g.after,
+    flags: g.after.includes('flags'),
     pitInline: !cells.includes('pit'),
-    brand: x.brand,
-    country: x.country,
+    brand: cells.includes('brand'),
+    country: cells.includes('country'),
     template: tracks.join(' '),
     fitEm: Math.round(fitEm * 100) / 100,
-    key: `${cells.join(',')}|${[x.flags, x.brand, x.country].map(Number).join('')}|${irEm}`
+    key: `${cells.join(',')}|${irEm}|${numberEm}`
   }
 }
 
@@ -266,7 +299,7 @@ export interface RelativeHeadView extends ColumnHead {
   readonly id: RelativeColumnId
 }
 
-/** The heads row over the cells (same order, same grid). */
+/** The heads row over the tracks (same order, same grid). */
 export function relativeHeads(
   cells: readonly RelativeColumnId[],
   licenseStyle: LicenseStyle,

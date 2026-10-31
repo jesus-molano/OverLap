@@ -15,6 +15,7 @@ import {
   migrateOldBars,
   migrateRelativeColumns,
   migrateRelativeDensity,
+  migrateRowHead,
   migrateSection
 } from './migrate'
 
@@ -438,7 +439,17 @@ describe('the element lists from the options they replaced (v2.6)', () => {
       fuel: { showGauge: false, showLimits: false },
       lights: { showWater: false, showPitLimiter: true }
     })
-    expect(ids(s.relative.columns)).toEqual(['driver', 'ir', 'lic', 'stint', 'gap'])
+    expect(ids(s.relative.columns)).toEqual([
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'ir',
+      'lic',
+      'stint',
+      'gap'
+    ])
     expect(ids(s.relative.headerBar)).toEqual(['title', 'session', 'split'])
     expect(ids(s.radar.parts)).toEqual(['guides', 'sideAlerts'])
     expect(ids(s.standings.headerBar)).toEqual(['session', 'carCount', 'split', 'remaining'])
@@ -565,12 +576,17 @@ describe('the element lists from the options they replaced (v2.6)', () => {
   it('a file that has the list keeps it: the old fields are ignored', () => {
     const columns = [{ id: 'gap', visible: true }]
     const s = normalizeSettings({ relative: { columns, showClassPosition: true } })
-    // The flags' column (2.4) goes in hidden, before the list's own entries here.
-    expect(s.relative.columns.filter((e) => e.id !== 'flags')[0]).toEqual({
-      id: 'gap',
-      visible: true
-    })
-    expect(s.relative.columns.find((e) => e.id === 'pos')?.visible).toBe(false)
+    // The row's start (request 11) goes in front, the position hidden as the list had it (absent),
+    // the penalty flags after the name.
+    expect(s.relative.columns.slice(0, 7)).toEqual([
+      { id: 'pos', visible: false },
+      { id: 'number', visible: true },
+      { id: 'brand', visible: true },
+      { id: 'country', visible: true },
+      { id: 'driver', visible: true },
+      { id: 'flags', visible: true },
+      { id: 'gap', visible: true }
+    ])
   })
 })
 
@@ -706,8 +722,11 @@ describe('migrateRelativeColumns (R10)', () => {
 
   it('gives an untouched list today’s default (iRating before the licence)', () => {
     const s = normalizeSettings({ relative: { columns: L('pos driver lic ir -tyre -stint gap') } })
-    expect(s.relative.columns.map((e) => e.id).slice(0, 5)).toEqual([
+    expect(s.relative.columns.map((e) => e.id).slice(0, 8)).toEqual([
       'pos',
+      'number',
+      'brand',
+      'country',
       'driver',
       'flags',
       'ir',
@@ -718,10 +737,10 @@ describe('migrateRelativeColumns (R10)', () => {
   it('keeps a list of its own, the new PIT column hidden at its end', () => {
     const own = L('pos driver lic ir tyre -stint gap')
     const s = normalizeSettings({ relative: { columns: own } })
-    // The flags' column (2.4) hidden after the name.
+    // The row's start (request 11) and the penalty flags after the name, as they were drawn.
     expect(s.relative.columns).toEqual([
       // «Última vuelta» (request 8) hidden after the gap.
-      ...L('pos driver -flags lic ir tyre -stint gap -last'),
+      ...L('pos number brand country driver flags lic ir tyre -stint gap -last'),
       { id: 'pit', visible: false }
     ])
   })
@@ -747,12 +766,17 @@ describe('migrateRelativeColumns (R10)', () => {
     expect(ids(lb?.options?.sections.relative.columns)).toEqual(
       ids(OPTION_SCHEMA.relative.columns.default)
     )
+    // Its position and name were drawn first whatever their place: the row's start in front.
     expect(ids(s.relative.columns)).toEqual([
+      '-pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
       'gap',
       '-last',
-      'driver',
-      '-flags',
-      ...ids(custom).slice(2),
+      ...ids(custom).slice(3),
       '-pit'
     ])
   })
@@ -761,17 +785,23 @@ describe('migrateRelativeColumns (R10)', () => {
     const s = normalizeSettings({
       relative: { columns: L('pos driver ir lic -pit -tyre -stint gap') }
     })
-    expect(s.relative.columns).toEqual(L('pos driver -flags ir lic gap -last -pit -stint -tyre'))
-    // One with a column shown keeps its order (it is what it draws), the flags' added hidden.
+    expect(s.relative.columns).toEqual(
+      L('pos number brand country driver flags ir lic gap -last -pit -stint -tyre')
+    )
+    // One with a column shown keeps its order (it is what it draws).
     const own = L('pos driver ir lic -pit tyre -stint gap')
     expect(normalizeSettings({ relative: { columns: own } }).relative.columns).toEqual(
-      L('pos driver -flags ir lic -pit tyre -stint gap -last')
+      L('pos number brand country driver flags ir lic -pit tyre -stint gap -last')
     )
     // An old file's switches too: its tyre stays before the gap.
     const old = normalizeSettings({ version: 4, relative: { showTyre: true } }).relative.columns
     expect(old.filter((e) => e.visible).map((e) => e.id)).toEqual([
       'pos',
+      'number',
+      'brand',
+      'country',
       'driver',
+      'flags',
       'ir',
       'lic',
       'tyre',
@@ -797,7 +827,7 @@ describe('migrateRelativeColumns (R10)', () => {
 })
 
 describe('the penalty flags’ column (2.4)', () => {
-  it('goes into a saved list hidden, right after the name, so nothing moves', () => {
+  it('goes into a saved list right after the name, so nothing moves', () => {
     const s = normalizeSettings({
       version: 5,
       standings: {
@@ -822,9 +852,27 @@ describe('the penalty flags’ column (2.4)', () => {
     })
     const ids = (l: readonly { id: string; visible: boolean }[]): string[] =>
       l.map((e) => `${e.visible ? '' : '-'}${e.id}`)
-    expect(ids(s.standings.columns).slice(0, 3)).toEqual(['-flags', 'gap', 'gained'])
-    expect(ids(s.relative.columns).slice(0, 3)).toEqual(['driver', '-flags', 'gap'])
-    expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', '-flags', 'value'])
+    // Shown there (request 11: the «Piloto» block shows them), after the name's text as before.
+    expect(ids(s.standings.columns).slice(0, 8)).toEqual([
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'gap',
+      'gained'
+    ])
+    expect(ids(s.relative.columns).slice(0, 7)).toEqual([
+      '-pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'gap'
+    ])
+    expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', 'flags', 'value'])
   })
 
   it('keeps a list that already has it as it is', () => {
@@ -833,7 +881,79 @@ describe('the penalty flags’ column (2.4)', () => {
       { id: 'flags', visible: true }
     ]
     const s = normalizeSettings({ version: 5, standings: { columns } })
-    expect(s.standings.columns.slice(0, 2)).toEqual(columns)
+    expect(s.standings.columns.slice(5, 7)).toEqual(columns)
+  })
+})
+
+describe('the row’s start as columns (request 11)', () => {
+  const ids = (l: readonly { id: string; visible: boolean }[]): string[] =>
+    l.map((e) => `${e.visible ? '' : '-'}${e.id}`)
+  const L2 = (spec: string): { id: string; visible: boolean }[] =>
+    spec.split(' ').map((s) => ({ id: s.replace('-', ''), visible: !s.startsWith('-') }))
+
+  it('puts today’s start in front of a saved list: the position as it was shown', () => {
+    const columns = L2('gained gap')
+    const hidden = normalizeSettings({ version: 5, standings: { columns, showPosition: false } })
+    expect(ids(hidden.standings.columns).slice(0, 8)).toEqual([
+      '-pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'gained',
+      'gap'
+    ])
+    expect(hidden.standings).not.toHaveProperty('showPosition')
+    const shown = normalizeSettings({ version: 5, standings: { columns } })
+    expect(ids(shown.standings.columns)[0]).toBe('pos')
+  })
+
+  it('moves a hidden penalty flags’ entry (after the name, then) right after the name, shown', () => {
+    const s = normalizeSettings({
+      version: 5,
+      relative: { columns: L2('pos driver ir -flags gap') },
+      traffic: { parts: L2('icon -flags driver value') }
+    })
+    expect(ids(s.relative.columns).slice(0, 7)).toEqual([
+      'pos',
+      'number',
+      'brand',
+      'country',
+      'driver',
+      'flags',
+      'ir'
+    ])
+    expect(ids(s.traffic.parts).slice(0, 4)).toEqual(['icon', 'driver', 'flags', 'value'])
+  })
+
+  it('leaves a list in the new shape alone, whatever its order', () => {
+    const columns = L2('gap -last number driver pos -brand country flags ir')
+    expect(migrateRowHead('relative', { columns }).columns).toBe(columns)
+    // The parts the «Piloto» block shows are always in the list: normalisation shows them.
+    const s = normalizeSettings({ version: 6, relative: { columns } })
+    expect(ids(s.relative.columns).slice(0, 9)).toEqual(
+      ids(L2('gap -last number driver pos brand country flags ir'))
+    )
+  })
+
+  it('carries the position of a saved layout into its own list', () => {
+    const base = JSON.parse(JSON.stringify(createDefaultSettings())) as OverlaySettings
+    const a = base.savedLayouts.list[0]
+    if (a?.options === undefined) throw new Error('a full layout')
+    // Another layout than the one in use (that one is the options in effect).
+    const b = JSON.parse(JSON.stringify(a)) as typeof a
+    b.id = 'bbbbbbbb-0000-4000-8000-000000000000'
+    b.name = 'B'
+    if (b.options === undefined) throw new Error('a full layout')
+    const legacy = b.options.sections.standings as unknown as Record<string, unknown>
+    legacy.columns = L2('gained ir gap')
+    legacy.showPosition = false
+    base.savedLayouts.list.push(b)
+    const s = normalizeSettings(JSON.parse(JSON.stringify(base)))
+    const lb = s.savedLayouts.list.find((l) => l.name === 'B')
+    const cols = lb?.options?.sections.standings.columns ?? []
+    expect(ids(cols).slice(0, 6)).toEqual(['-pos', 'number', 'brand', 'country', 'driver', 'flags'])
   })
 })
 
