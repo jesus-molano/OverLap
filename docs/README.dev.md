@@ -11,7 +11,7 @@ Vitest 5.
 | Requisito     | Detalle                                                                        |
 | ------------- | ------------------------------------------------------------------------------ |
 | Sistema       | Windows 10/11 x64 (con `dev:mock` también se puede desarrollar en Linux/macOS) |
-| Node.js       | >= 22.12 (desarrollado con Node 24) y npm                                      |
+| Node.js       | 22 (>= 22.13) o 24 (el de la CI y el de desarrollo) y npm                      |
 | No hace falta | Visual Studio, Python ni `electron-rebuild`                                    |
 
 ## Addon nativo y `postinstall`
@@ -86,17 +86,21 @@ portable; `app.setPath('userData', ...)` en `src/main/index.ts` la fija). Junto 
 
 - Lo normal es cambiarlos desde la ventana de Ajustes; si lo editas a mano, hazlo **con la app
   cerrada**.
-- El archivo lleva `version` (ahora 5, `SETTINGS_VERSION` en `src/shared/settings/defaults.ts`); los
-  de versiones anteriores se migran solos (`src/shared/settings/migrate.ts`). Los valores por
+- El archivo lleva `version` (ahora 6, `SETTINGS_VERSION` en `src/shared/settings/defaults.ts`); los
+  de versiones anteriores se migran solos (`src/shared/settings/migrate.ts`), y antes del primer
+  guardado se copian una vez a `settings.json.v5.bak`, para poder volver a esa versión. Los valores por
   defecto y los límites de cada opción están en `src/shared/settingsSchema.ts`, y la normalización en
   `src/shared/settings/normalize.ts`.
 - Secciones: `appearance`, `visibility`, `widgets` (posición, tamaño, escala, visibilidad, bloqueo,
   opacidad y reglas de cada widget), una por widget con sus opciones (`relative`, `radar`,
-  `standings`, `battle`, `inputs`, `traffic`, `alerts`, `delta`, `fuel`, `lights`), `shortcuts`,
-  `settingsWindow`, `layouts` y `savedLayouts` (las disposiciones: lista, la activa, los vínculos con
-  coches y los coches recientes; máximo 30).
+  `standings`, `battle`, `inputs`, `traffic`, `alerts`, `delta`, `fuel`, `lights`, `spotter`),
+  `shortcuts`, `shortcutsMore` (el segundo y el tercer atajo de cada acción), `buttonDeviceNames`
+  (el último nombre visto de cada mando), `settingsWindow`, `layouts` (`autoSwitch` y `sort`) y
+  `savedLayouts` (las disposiciones: lista, la activa, los vínculos con coches, los coches recientes
+  y las opciones comunes de las de solo posición; máximo 30). Desde la versión 6 de ajustes cada
+  disposición guarda también las opciones de los widgets (`SavedLayout.mode` / `options`).
 - Las coordenadas son DIP de la pantalla principal. Si un archivo está dañado se guarda una copia
-  `.bak` y se usan los valores por defecto.
+  `.bak` y se usan los valores por defecto. `personal-bests.json` tiene su propio `.bak`.
 
 ## Widgets
 
@@ -118,7 +122,7 @@ Las definiciones están en `WIDGET_DEFS` (`src/shared/widgets.ts`).
 
 ## Cuándo se ve el overlay (detalle)
 
-En **Ajustes > Visibilidad** (sección `visibility` de `settings.json`; **Cuándo
+En **Ajustes › Visibilidad** (sección `visibility` de `settings.json`; **Cuándo
 mostrar el overlay** también está en la bandeja, en el submenú **Cuándo mostrar**):
 
 | Opción                                                   | Por defecto                           | Qué hace                                                                      |
@@ -150,7 +154,7 @@ mostrar el overlay** también está en la bandeja, en el submenú **Cuándo most
   Radar, Spotter, Pedales, Testigos y Delta la tienen desactivada, con el motivo: fuera del coche no tienen
   datos; Combustible también: no muestra nada con el sistema de repeticiones activo, y lo está en
   la pantalla de sesión. Con «Solo cuando estás en el coche» (o «Solo en carrera») y las
-  repeticiones ocultas, la pantalla de sesión ya se oculta por estar fuera del coche: Apariencia no
+  repeticiones ocultas, la pantalla de sesión ya se oculta por estar fuera del coche: Visibilidad no
   ofrece «Ocultar en la pantalla de sesión», y solo cuentan las excepciones de cada widget. Con
   «Seguir al coche en cámara» sí cuenta: la pantalla de sesión es el punto en directo de las
   repeticiones, donde los widgets siguen al coche.
@@ -183,19 +187,25 @@ en una sesión real.
 - 3 coches delante y 3 detrás por defecto (`relative.carsAhead` / `carsBehind`); si faltan coches se
   rellena con filas vacías para que tu fila quede centrada.
 - Cada fila incluye posición en clase, número, nombre, licencia, iRating y gap.
-- **Personalizar** (Ajustes > Relativo, cada zona con su editor: arrastrar o ↑ ↓ para ordenar, el
+- **Personalizar** (Ajustes › Relativo, cada zona con su editor: arrastrar o ↑ ↓ para ordenar, el
   ojo para mostrar u ocultar, «Restablecer»):
-  - **Columnas** (`relative.columns`): posición, piloto, licencia, iRating, neumático, stint y hueco,
-    en el orden que quieras (las que van antes del piloto quedan a su izquierda). Piloto y hueco no
-    se pueden ocultar. Debajo: **títulos de columna** (`columnHeads`, «POS», «PILOTO», «SR»…,
-    desactivadas), **logotipo de la marca** (`brandMarks`: Auto, solo si hay más de una marca en la
-    sesión; Siempre; Nunca) y **bandera del país** (`countryFlags`, activada; nada si el piloto no
-    eligió ninguna).
+  - **Columnas** (`relative.columns`, `RELATIVE_COLUMN_IDS`): posición, número, logo de la marca,
+    bandera del país, nombre, banderas, puestos ganados, iRating, licencia, hueco, última vuelta,
+    boxes, vueltas del stint y neumático, en el orden que quieras (las que van antes del nombre
+    quedan a su izquierda). Ocultas de serie: puestos ganados, última vuelta, boxes, neumático y
+    stint. Solo el nombre sale siempre (`TABLE_REQUIRED`: nombre, logo, bandera y banderas no
+    tienen ojo): la posición y el hueco se pueden ocultar. El logo, la bandera del país y las
+    banderas de penalización se colocan en la lista, y si salen lo dice el bloque «Piloto»
+    (`brandMarks`, `countryFlags`, `showFlags`: de serie `inherit`, «Global», lo de Apariencia;
+    el logo en Auto sale solo si hay más de una marca en la sesión, y la bandera, nada si el
+    piloto no eligió ninguna). Debajo: **títulos de columna** (`columnHeads`, «POS», «PILOTO»,
+    «SR»…, desactivadas).
   - **Cabecera** (`headerBar` + `headerBarSize`) y **pie** (`footerBar` + `footerBarSize`): barras de
-    datos con el mismo catálogo (nombre, sesión, tiempo o vueltas restantes, hora, SoF, coches,
+    datos con el mismo catálogo (nombre, sesión, tiempo o vueltas restantes, hora, hora en pista,
+    SoF, coches,
     incidentes, iRating en juego, SR proyectado, vuelta rápida de clase, combustible, pista, agua,
     viento, aire, goma); «A la derecha» separa lo que se alinea al otro extremo. Tamaño No /
-    Pequeña / Normal / Grande. Por defecto, la cabecera de siempre y el pie oculto. Si no cabe, se
+    Pequeña / Normal / Grande. Por defecto, la cabecera solo con el título y el pie oculto. Si no cabe, se
     quitan primero los datos menos importantes; el texto nunca baja del mínimo.
   - Las barras y los títulos de columna cuentan en el alto: con ellos el texto de las filas
     encoge un poco; los logotipos y banderas cuentan en el ancho.
@@ -234,10 +244,11 @@ en una sesión real.
 
 ### Posiciones: personalizar
 
-En Ajustes → Posiciones, un editor por zona (arrastra ⠿ o ↑ ↓ para ordenar, el ojo muestra u
+En Ajustes › Posiciones, un editor por zona (arrastra ⠿ o ↑ ↓ para ordenar, el ojo muestra u
 oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia al momento:
 
-- **Columnas** (`standings.columns`): orden y visibilidad; posición, número y nombre son fijos. Si
+- **Columnas** (`standings.columns`): orden y visibilidad; solo el nombre es fijo (la posición y el
+  número tienen su ojo; logo, bandera y banderas, su fila en «Piloto»). Si
   la ventana se estrecha se van primero las columnas añadidas (iRating en juego, stint,
   neumático…), luego la bandera y el logotipo, después las de siempre y, al final, el número queda
   en una franja: un adorno nunca quita una columna que ya había. «Hueco al líder» sigue atado a
@@ -245,13 +256,15 @@ oculta, «Restablecer» vuelve a lo de fábrica); la muestra de al lado cambia a
 - **Títulos de columna** (`columnHeads`, desactivadas): una fila con «POS», «PILOTO», «iR»,
   «INT.»… en el orden de las columnas; la del hueco dice «LÍDER» o «DIF.» según el modo y la sesión.
 - **Logotipo de la marca** (`brandMarks`: Auto, Siempre, Nunca; Auto solo si hay varias marcas) y
-  **bandera del país** (`countryFlags`, activada) delante del nombre.
+  **bandera del país** (`countryFlags`), del bloque «Piloto»: de serie «Global» (`inherit`, lo de
+  Apariencia: Auto y activada).
 - **Cabecera, segunda línea y pie** son barras de datos (`headerBar`, `subheaderBar`, `footerBar`,
   cada una con su tamaño o «No»): sesión, lo que queda, hora local, SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, combustible y las condiciones. Por
-  defecto, lo de siempre: la sesión, tus incidentes y lo que queda; tu iRating en juego, la vuelta
-  rápida de clase y tu SR; el pie
-  de condiciones. Con varias clases el SoF y los coches van en cada línea de clase, no arriba.
+  defecto, la cabecera con el título, la sesión y el SoF a la izquierda y tus incidentes y lo que
+  queda a la derecha; la segunda línea (tu iRating en juego, la vuelta rápida de clase y tu SR)
+  apagada en una instalación nueva (`subheaderBarSize: 'off'`); el pie de condiciones (pista, agua y
+  viento; el aire y la goma, ocultos en la lista) y los coches. Con varias clases el SoF y los coches van en cada línea de clase, no arriba.
 - **Línea de clase** (`classLine`): SoF y número de coches, en el orden que elijas.
 - **Vuelta rápida**: la mejor vuelta de cada clase va en una placa morada que llena su celda, y su
   fila lleva la etiqueta «VR» junto al nombre.
@@ -274,11 +287,12 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
 - Las tres van ocultas por defecto, al final de la lista de columnas, y son las primeras en
   esconderse si la ventana se estrecha (luego la mejor vuelta).
 - **Banderas** tras el nombre: negra, reparación (meatball) y aviso (negra enrollada, dibujada como
-  la bandera blanca y negra de aviso). Las dos tablas las muestran y en las dos se pueden quitar
-  (`relative.showFlags`, `standings.showFlags`, activadas). La negra enrollada que iRacing pone a
+  la bandera blanca y negra de aviso). Las muestran Relativo, Posiciones, Batalla y Tráfico, y en los cuatro se
+  pueden quitar (`showFlags` del bloque «Piloto»: de serie «Global», `appearance.penaltyFlags`,
+  activada). La negra enrollada que iRacing pone a
   un coche que ya terminó no se muestra.
 - En el relativo: las columnas `tyre` y `stint` de `relative.columns` (ocultas) y `relative.showFlags`
-  (activada). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
+  (Global). Con más columnas el texto encoge un poco si la ventana es estrecha; las filas no
   cambian de alto.
 - En modo mock se ven paradas, stints, duros y algún coche con lluvia, y un aviso al coche de delante
   entre los 2:30 y los 3:15 de cada sesión.
@@ -311,7 +325,7 @@ Lo que el overlay nativo no da, cada cosa como opción propia:
   lado), con su propia memoria, así que funciona con el radar oculto o con otro alcance. Un `prev`
   nulo del bucle (sesión nueva, reconexión, una regla que lo ocultó) la reinicia.
 - Cada lado lleva lo de los dos estilos (`spotter.barStyle`, de dibujo). **Cercanía** (de serie,
-  `close`): la proximidad del radar sobre su alcance, 1 con alguien al lado (`CarLeftRight`), y
+  `closeness`): la proximidad del radar sobre su alcance, 1 con alguien al lado (`CarLeftRight`), y
   para un coche que el radar mantiene en su lado `1 - (|d| - L) / (12 - L)`, cuantizado a 1/50. Se
   dibuja como un bloque a toda altura escalado desde abajo (`closeTransform`), con la rampa
   ámbar→rojo (`color-mix` de `--ov-warn` y `--ov-alert`, así sigue la paleta para daltónicos). Un
@@ -345,14 +359,16 @@ space-between`); cada tramo es un bloque a toda altura escalado desde arriba (`t
 - Se desvanece cuando no hay nadie cerca ni al lado, con histéresis para que no parpadee en el límite
   del alcance.
 - Si la longitud de pista falta o viene rara, solo se muestran los avisos laterales.
-- **Personalizar** (Ajustes > Tráfico): grupos (`traffic.groups`: orden y cuáles; uno oculto no se
-  busca), columnas de cada línea (`traffic.parts`: piloto y tiempo siempre) y cabecera
-  (`traffic.header`: nombre del widget y rótulos de grupo). Sin rótulos, una raya separa los grupos;
+- **Personalizar** (Ajustes › Tráfico): grupos (`traffic.groups`: orden y cuáles; uno oculto no se
+  busca), columnas de cada línea (`traffic.parts`: icono, clase, piloto, banderas, texto antes del tiempo,
+  tiempo y sector; piloto, tiempo y banderas sin ojo), barras de datos (`traffic.headerBar`, el
+  título, visible; `traffic.footerBar`, apagado) y rótulos de grupo (`traffic.captions`, activados;
+  el antiguo `traffic.header` se migra a estos dos). Sin rótulos, una raya separa los grupos;
   sin el texto «te alcanza en», un peligro conserva su etiqueta («Parado»).
 
 ### Batalla: personalizar
 
-En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
+En Ajustes › Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 
 - **Rivales** (`battle.lanes`): el de delante y el de detrás, en el orden que elijas (arriba o a
   la izquierda el primero); uno oculto no se busca y sin ninguno el widget no sale.
@@ -360,8 +376,16 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   defecto. La línea del rival y la del hueco son fijas.
 - **Detalles** (`battle.parts`): iRating y licencia del rival, texto de la tendencia e iRating en
   juego. El iRating no sale lado a lado.
+- **Predicción de alcance** (`battle.prediction`): sus cuatro frases («Le alcanzas en…», «Te
+  alcanza en…», «Necesitas… s/v», «No le alcanzas · No te alcanza»), cada una con su ojo, en orden
+  fijo.
+- **Hueco** (`battle.gapStyle`): `plain` («Sin signo», el medido, de serie) o `relative` («Como
+  Relativo», positivo delante y negativo detrás). Disposición (`battle.layout`): `stacked` o
+  `side`. Cabecera y pie (`battle.headerBar`, `battle.footerBar`): barras de datos, apagadas de
+  serie.
 - **Logotipo de la marca** (`battle.brandMarks`, Auto: solo con varias marcas en la sesión) y
-  **bandera del país** (`battle.countryFlags`, desactivada): delante del nombre; por debajo de
+  **bandera del país** (`battle.countryFlags`), del bloque «Piloto», de serie «Global»
+  (Apariencia): delante del nombre; por debajo de
   ~20 em de ancho se ocultan para dejar sitio al nombre.
 
 ### Delta
@@ -384,14 +408,17 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   - **Óptima de tu clase** (`classOptimal`): los mejores tiempos de cada sector en las vueltas
     limpias de tu clase en esta sesión, sean de quien sean (tú incluido), unidos en una vuelta.
 - Con `delta.fallback` se usa la siguiente mientras no exista la elegida: pb → session → class,
-  optimal → pb → classOptimal y classOptimal → pb (`class` no tiene ninguna).
+  session → class, optimal → pb → classOptimal y classOptimal → pb (`class` no tiene ninguna).
 - La referencia solo cambia al empezar una vuelta, así el delta nunca salta a mitad de vuelta (un
   sector mejor marcado a mitad de vuelta cuenta desde la siguiente). También al elegir otra en Ajustes
   o con el atajo «Cambiar la referencia del delta» (sin teclas por defecto: pasa a la siguiente en la
   sesión actual): el widget dice unos segundos «Vuelta óptima desde la próxima vuelta» y luego su
   nombre.
-- Personalizable (`delta.rows`, `delta.top`, `delta.laps`): el orden de las filas (línea superior,
-  barra, sectores y **tiempos de vuelta**), qué sale en la línea superior (tendencia, vuelta prevista,
+- Personalizable (`delta.rows`, `delta.top`, `delta.refBars`, `delta.laps`): el orden de las filas
+  (línea superior, barra, **filas por referencia**, sectores y **tiempos de vuelta**; las filas por
+  referencia y los tiempos, ocultos de serie), qué referencias llevan fila (`delta.refBars`: récord,
+  mejor de la sesión y óptima visibles; las dos de clase, ocultas; desde 2.4.1 cada una es una fila
+  igual, con su nombre, su delta, su tendencia y su barra a la misma escala), qué sale en la línea superior (tendencia, vuelta prevista,
   referencia) y, en la fila de tiempos (oculta por defecto), tu última, tu mejor, tu óptima y tu
   récord en el orden que quieras. El tiempo con el que compara el delta va subrayado y con «Δ» (también
   con la referencia de reserva); las de clase no son una vuelta tuya y no marcan ninguno.
@@ -406,11 +433,11 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 
 ### Avisos
 
-- Una banda con lo que te afecta: lo más importante en grande y el resto al lado, cada aviso con sus
+- Una banda con lo que te afecta: lo más importante en grande y el resto debajo, en pequeño, cada aviso con sus
   palabras y su marca (se lee también con la paleta daltónica). Un aviso breve sigue en pantalla al
   menos `alerts.holdS` segundos.
 - Extras (`alerts.parts`): «qué hacer» tras cada aviso y los demás avisos en chips.
-- Cada caso se activa o desactiva en Ajustes → Avisos; todos vienen activados:
+- Cada caso se activa o desactiva en Ajustes › Avisos; todos vienen activados:
   - **Banderas** tuyas y de la sesión, también la **negra enrollada**
     (`ADVERTENCIA · dirección de carrera`, sin motivo: no llega en los datos). Solo dentro del coche.
     La verde y la de cuadros cuentan desde que salen (3 y 10 s, o «Mantener visible» si es más):
@@ -514,11 +541,11 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 
 ### Incidentes
 
-- **Contador siempre visible** en la cabecera del Relativo y de Posiciones, en cualquier tipo de
-  sesión: `3x` (`PlayerCarMyIncidentCount`), en carreras por equipos también el del equipo
+- **Contador**: el elemento «Incidentes» de las barras de datos (Relativo, Posiciones, Batalla,
+  Tráfico y Combustible), de serie solo en la cabecera de Posiciones, en cualquier tipo de sesión: `3x` (`PlayerCarMyIncidentCount`), en carreras por equipos también el del equipo
   (`3x · eq. 7x`), y el próximo límite de la sesión si lo hay (`11x · pen. a 17x`, `DQ a 25x`). Se
-  pone naranja a 4x o menos del límite. Opciones `relative.showIncidents` y
-  `standings.headerIncidents`.
+  pone naranja a 4x o menos del límite. Las antiguas `relative.showIncidents` y
+  `standings.headerIncidents` se migran a ese elemento.
 - **Aviso «+Nx»** en Avisos, al menos 6 s (o «Mantener visible» si es más):
   `+2x Pérdida de control · V5 · S3 · grava`. El tipo sale de `PlayerIncidents`, la vuelta y el
   sector del modelo de carrera y la superficie de `PlayerTrackSurfaceMaterial`. Las subidas a menos
@@ -536,10 +563,11 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 ### Condiciones de pista (barras de información)
 
 - Ya no es un widget aparte ni una línea fija: pista, agua, viento, aire y goma son elementos de las
-  barras de información, que van en la cabecera o en el pie del Relativo, Posiciones o el
-  Combustible (Ajustes → Personalizar; `*.headerBar`, `*.footerBar`). Por defecto el pie está
+  barras de información, que van en la cabecera o en el pie del Relativo, Posiciones, Batalla,
+  Tráfico o el Combustible (Ajustes › Personalizar; `*.headerBar`, `*.footerBar`). Por defecto el pie está
   **visible en Posiciones**, que crece una línea, y **oculto en el Relativo**, donde quitaría
-  alto a las filas. La flecha de la pista y el dial del viento se activan en la fila de su elemento,
+  alto a las filas; en una instalación nueva muestra pista, agua y viento (el aire y la goma,
+  ocultos en su lista). La flecha de la pista y el dial del viento se activan en la fila de su elemento,
   en cualquier barra (`conditionsTrend`, `conditionsWindDirection`).
 - Los datos (iRacing no da pronóstico):
   - temperatura de la pista (`TrackTempCrew`, en grados enteros: va en pasos de 1 °F) con una
@@ -573,14 +601,15 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
   últimas `fuel.avgLaps` (5), la última y la que más gastó; «midiendo…» hasta la primera. Entre
   sesiones del mismo coche y circuito (práctica → carrera) se aprovecha la media anterior hasta tener
   una propia.
-- Cabecera opcional (`fuel.headerBar`, oculta por defecto): una barra de datos como las del Relativo
-  y Posiciones (nombre, vueltas de combustible, hora, sesión…), en tamaño pequeño, normal o
-  grande.
+- Cabecera y pie opcionales (`fuel.headerBar`, `fuel.footerBar`, ocultos por defecto): barras de
+  datos como las del Relativo y Posiciones (nombre, hora, sesión…; sin las vueltas de combustible,
+  que ya dice la línea principal), en tamaño pequeño, normal o grande.
 - Líneas, cada una con su ojo y en el orden que quieras (`fuel.lines`; la principal siempre): depósito (barra con una marca en lo que necesitas),
   consumo, para meta y repostar (con `fuel.marginLaps` vueltas de margen, 0.5; `LLENO` si una parada
   no basta) junto a lo que tienes en el menú de boxes (`PitSvFuel`, naranja si no llega), ventana
   `V24–V28` y paradas, ahorro por vuelta para quitarte una parada (si es un 10 % o menos), la última
-  lectura de neumáticos y las reparaciones rápidas y juegos que quedan si la sesión los limita.
+  lectura de neumáticos y las reparaciones rápidas y juegos que quedan si la sesión los limita (estas
+  dos, `tyres` y `limits`, ocultas en una instalación nueva).
 - El plan cuenta paradas al final de vuelta (la última, en la penúltima vuelta) y relevos de vueltas
   enteras, y parte del combustible con el que empezó la vuelta: no baila dentro de la vuelta. En la
   última ya no hay parada: solo dice si llegas (`SOBRAN`) o no (`FALTAN`). Desde la parrilla o el
@@ -606,28 +635,28 @@ En Ajustes > Batalla, un editor por zona (arrastrar, ↑ ↓, ojo):
 ## Arquitectura
 
 ```
- iRacing SDK (memoria compartida, solo lectura)
-        |
-        v
- +--------------------------------------+
- | utilityProcess de telemetría         |  src/telemetry
- |  TelemetrySource: IRacingSource      |
- |                   MockSource         |
- |  bucle ~60 Hz -> PROVIDERS (shared)  |
- +--------------------------------------+
+ iRacing SDK (memoria compartida, solo lectura)        mandos (Raw Input, solo lectura)
+        |                                                      |
+        v                                                      v
+ +--------------------------------------+   +--------------------------------+
+ | utilityProcess de telemetría         |   | utilityProcess de entrada      |
+ |  TelemetrySource: IRacingSource      |   |  src/input (solo mientras algún|
+ |                   MockSource         |   |  atajo es un botón)            |
+ |  bucle ~60 Hz -> PROVIDERS (shared)  |   +--------------------------------+
+ +--------------------------------------+            |  botones pulsados
         |  status / data / log      ^  config / shutdown
-        v                           |
- +--------------------------------------+
- | main (Electron)                      |  src/main
- |  dónde está cada widget, qué ventana |
- |  lo aloja, ratón, estado, bandeja,   |
- |  ajustes                             |
- +--------------------------------------+
+        v                           |                v
+ +-------------------------------------------------------------+
+ | main (Electron)                                    src/main |
+ |  dónde está cada widget, qué ventana lo aloja, ratón,       |
+ |  estado, bandeja, atajos, ajustes                           |
+ +-------------------------------------------------------------+
         |  IPC: cada payload solo a la ventana que aloja su widget
-        +------------------------------+
-        v                              v
- [ ?view=overlay  pantalla 1 ]  [ ?view=overlay  pantalla 2 ]   src/renderer (Vue) + src/preload
-   relativo, radar, ...           clasificación, ...            (un panel por widget)
+        +------------------------------+------------------------+
+        v                              v                        v
+ [ ?view=overlay  pantalla 1 ]  [ ?view=overlay  pantalla 2 ]  [ ?view=osd ]   src/renderer (Vue)
+   relativo, radar, ...           posiciones, ...                aviso de un     + src/preload
+   (un panel por widget)                                         atajo
 ```
 
 Una sola ventana por pantalla: Chromium presenta más o menos una ventana por refresco, así que ocho
@@ -648,8 +677,10 @@ documento todos los paneles van a la tasa de refresco.
   una ventana coge el ratón (`mouseMode.ts`), guarda lo que el renderer confirma y la oculta en
   cuanto su superficie puede quedar mal (fallo o cuelgue del renderer, pérdida de la GPU, suspensión,
   cambio de pantalla) hasta recuperarla.
-- **Renderer** (`src/renderer`): la misma app Vue con `?view=overlay` (las ventanas del overlay) o
-  `?view=settings` (Ajustes). En el overlay, `overlay/OverlayApp.vue` pinta un panel con posición
+- **Renderer** (`src/renderer`): la misma app Vue con `?view=overlay` (las ventanas del overlay),
+  `?view=settings` (Ajustes) o `?view=osd` (el aviso sobre el juego al usar un atajo,
+  `src/main/osdWindow.ts`: transparente, sin foco y sin ratón; se apaga con
+  `settingsWindow.shortcutToasts`). En el overlay, `overlay/OverlayApp.vue` pinta un panel con posición
   absoluta por widget (`WidgetSlot.vue`, `contain: strict`), ajusta los de alto automático a su
   contenido y hace las interacciones del modo edición (`EditFrame.vue`, `dragSession.ts`); lo que
   cambian vuelve a main como `BoundsCommit`. Preload tipado con `contextBridge` (`window.overlay`,
@@ -658,23 +689,36 @@ documento todos los paneles van a la tasa de refresco.
 
 Canales IPC (`src/shared/ipc.ts`):
 
-| Canal                     | Sentido          | Contenido                                                                |
-| ------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| `overlay:init`            | renderer -> main | devuelve `InitialState` (invoke), con el `OverlayLayout`                 |
-| `overlay:layout`          | main -> overlay  | `OverlayLayout`: qué widgets aloja la ventana y dónde                    |
-| `overlay:data`            | main -> overlay  | `WidgetDataMessage`, solo de los widgets que aloja                       |
-| `overlay:auto-hidden`     | main -> overlay  | `AutoHiddenMessage` (una regla oculta o muestra uno)                     |
-| `overlay:status`          | main -> renderer | `OverlayStatus`                                                          |
-| `overlay:edit-mode`       | main -> renderer | `boolean`                                                                |
-| `overlay:settings`        | main -> renderer | `OverlaySettings` al cambiar                                             |
-| `overlay:commit-bounds`   | overlay -> main  | `BoundsCommit` (arrastre, rueda, alto ajustado, soltar en otra pantalla) |
-| `overlay:scale-step`      | overlay -> main  | `ScaleStepMessage` (rueda sobre un widget de alto automático)            |
-| `overlay:drag-state`      | overlay -> main  | `DragStateMessage` (hay un arrastre en curso)                            |
-| `overlay:update-settings` | Ajustes -> main  | `SettingsPatch` validado (invoke)                                        |
-| `overlay:command`         | Ajustes -> main  | modo edición, ocultar, grabar atajo, restablecer, carpeta, récords       |
-| `overlay:personal-bests`  | main -> Ajustes  | `PersonalBestList`                                                       |
-| `overlay:overlay-hidden`  | main -> Ajustes  | `boolean`: el overlay está oculto                                        |
-| `overlay:shortcut-status` | main -> Ajustes  | `ShortcutStatusMap`: atajo registrado, desactivado o en uso por otra app |
+| Canal                      | Sentido          | Contenido                                                                     |
+| -------------------------- | ---------------- | ----------------------------------------------------------------------------- |
+| `overlay:init`             | renderer -> main | devuelve `InitialState` (invoke), con el `OverlayLayout`                      |
+| `overlay:layout`           | main -> overlay  | `OverlayLayout`: qué widgets aloja la ventana y dónde                         |
+| `overlay:data`             | main -> overlay  | `WidgetDataMessage`, solo de los widgets que aloja                            |
+| `overlay:auto-hidden`      | main -> overlay  | `AutoHiddenMessage` (una regla oculta o muestra uno)                          |
+| `overlay:status`           | main -> renderer | `OverlayStatus`                                                               |
+| `overlay:edit-mode`        | main -> renderer | `boolean`                                                                     |
+| `overlay:settings`         | main -> renderer | `OverlaySettings` al cambiar                                                  |
+| `overlay:commit-bounds`    | overlay -> main  | `BoundsCommit` (arrastre, rueda, alto ajustado, soltar en otra pantalla)      |
+| `overlay:scale-step`       | overlay -> main  | `ScaleStepMessage` (rueda sobre un widget de alto automático)                 |
+| `overlay:drag-state`       | overlay -> main  | `DragStateMessage` (hay un arrastre en curso)                                 |
+| `overlay:widget-toggle`    | overlay -> main  | `WidgetToggleMessage`: el ojo o el candado de una etiqueta del modo edición   |
+| `overlay:edit-chips`       | overlay -> main  | `EditChipsMessage`: dónde están sus etiquetas (modo edición)                  |
+| `overlay:open-widget-page` | overlay -> main  | `OpenWidgetPageMessage`: el ⚙ de una etiqueta                                 |
+| `overlay:cursor-hidden`    | main -> overlay  | `boolean`: el juego oculta el cursor mientras editas                          |
+| `overlay:edit-focus`       | main -> overlay  | `WidgetId`: se entró con «Editar posición» desde su página                    |
+| `overlay:update-settings`  | Ajustes -> main  | `SettingsPatch` validado (invoke)                                             |
+| `overlay:command`          | Ajustes -> main  | `SettingsCommand` (`src/shared/ipc.ts`): modo edición, atajos, restablecer, … |
+| `overlay:personal-bests`   | main -> Ajustes  | `PersonalBestList`                                                            |
+| `overlay:overlay-hidden`   | main -> Ajustes  | `boolean`: el overlay está oculto                                             |
+| `overlay:shortcut-status`  | main -> Ajustes  | `ShortcutStatusReport`: atajo registrado, desactivado o en uso por otra app   |
+| `overlay:shortcut-used`    | main -> Ajustes  | `UsedShortcut`: un atajo se ha usado («Pulsado hace 3 s»)                     |
+| `overlay:controller-press` | main -> Ajustes  | `ControllerPress`: un botón de un mando mientras se graba un atajo            |
+| `overlay:current-car`      | main -> Ajustes  | `CarRef \| null`: el coche en el que estás (vínculos de disposiciones)        |
+| `overlay:session-classes`  | main -> Ajustes  | `string[]`: las clases de la sesión multiclase                                |
+| `overlay:layout-notice`    | main -> Ajustes  | `LayoutNotice`: cómo fue una exportación, una importación o «Traer todos…»    |
+| `overlay:settings-page`    | main -> Ajustes  | `SettingsWindowPage`: abrir esta página (el «Más…» de la bandeja)             |
+| `overlay:save-failing`     | main -> Ajustes  | `boolean`: los ajustes dejaron de guardarse (o vuelven a guardarse)           |
+| `overlay:osd`              | main -> aviso    | `OsdMessage`: el aviso sobre el juego al usar un atajo                        |
 
 ## Anti-cheat
 
@@ -703,33 +747,48 @@ solo se abre, sin derechos de acceso, para leer su nombre (`HidD_GetProductStrin
 ## Cómo añadir un widget nuevo
 
 1. **Registro**: añade la entrada en `WIDGET_DEFS` (`src/shared/widgets.ts`) con `id`, `hz`,
-   `defaultBounds`, `minSize` y `defaultVisible`, y su nombre en `widgetTitles` de cada idioma
-   (`src/shared/i18n/messages/core.ts`); `WIDGET_DEFS` no lleva textos.
+   `defaultBounds`, `minSize`, `defaultVisible`, `sizeModel` (`'auto-height'` o `'free'`) y
+   `defaultShowIn`, y las marcas que le toquen (`followsCamera`, `keepsLiveInReplay`,
+   `defaultOnSessionScreen`, `inCarOnly`, `noSessionScreen`, `showsInPits`). Ponlo en uno de los
+   grupos de `WIDGET_GROUPS` (el mismo archivo; `widgets.test.ts` comprueba que cada widget está
+   en uno) y su nombre en `widgetTitles` de cada idioma (`src/shared/i18n/messages/core.ts`);
+   `WIDGET_DEFS` no lleva textos.
 2. **Tipo del payload**: añádelo a `WidgetPayloads` (`src/shared/types.ts`) con la misma clave que el
    `id`. `WidgetDataMessage` se deriva solo.
 3. **Variables**: si necesitas variables nuevas, añádelas a `TELEMETRY_VARS`
    (`src/shared/telemetry.ts`; los nombres se comprueban contra los tipos de irsdk-node, así que una
-   errata no compila), al mock (`src/telemetry/mock/simulation.ts`) para poder desarrollarlo sin
-   iRacing y a los `makeFrame` de `relative.test.ts` y `radar.test.ts` (si no, `npm run typecheck`
-   falla). Las variables propias de cada coche (`dcBrakeBias`, `dcABS`…) no existen en todos: la
+   errata no compila) y al mock (`src/telemetry/mock/simulation.ts`) para poder desarrollarlo sin
+   iRacing (los `makeFrame` de los tests parten de `TELEMETRY_VAR_NAMES` y no hay que tocarlos).
+   Las variables propias de cada coche (`dcBrakeBias`, `dcABS`…) no existen en todos: la
    fuente real solo pide las que hay en la sesión y las demás llegan como array vacío, así que el
    provider debe tratarlas como "sin dato".
    - Si necesitas datos nuevos del YAML de sesión, añádelos a `SessionMeta` (`src/shared/types.ts`),
      a `parseSessionMeta` y `EMPTY_SESSION` (`src/shared/session.ts`, con su test) y a
-     `sessionInfo()` del mock.
+     `buildSessionInfo()` del mock (`src/telemetry/mock/sessionInfo.ts`).
 4. **Cálculo**: función pura en `src/shared/<widget>.ts` con sus tests (`<widget>.test.ts` al lado) y
-   regístrala en `PROVIDERS` (`src/shared/providers.ts`). Recibe `{ frame, session, config }` y el
-   payload anterior (`prev`) por si necesitas suavizado.
+   regístrala en `PROVIDERS` (`src/shared/providers.ts`). Recibe `{ frame, session, config, race,
+bests }` (`ProviderContext`: `race` es la vista del `RaceModel` y `bests`, los récords
+   personales) y el payload anterior (`prev`) por si necesitas suavizado.
 5. **Vista**: componente en `src/renderer/src/widgets/<widget>/<Name>Widget.vue` que use
    `useWidgetData('<id>')` y regístralo en `src/renderer/src/widgets/index.ts`. Ningún texto va en el
    código: todos salen de `useI18n()`, de los diccionarios de `src/shared/i18n/messages/` (el español
    es la referencia y el inglés tiene que tener las mismas claves, o no compila). Los payloads llevan
    códigos, nunca frases.
-6. **Opciones** (si las tiene): añádelas a `OverlaySettings` y `TelemetryConfig` (`types.ts`), a los
-   valores por defecto y la normalización de `src/shared/settings.ts` y, si quieres tocarlas desde la
-   bandeja, a `src/main/tray.ts`.
+6. **Opciones** (si las tiene): decláralas en `OPTION_SCHEMA` (`src/shared/settingsSchema.ts`), de
+   donde salen los valores por defecto y los límites; añade su sección a `OverlaySettings` y
+   `TelemetryConfig` (`types.ts`), a `createDefaultSettings` (`src/shared/settings/defaults.ts`) y
+   a `src/shared/settings/config.ts` (lo que llega al proceso de telemetría), y una migración en
+   `src/shared/settings/migrate.ts` si cambia algo de un archivo de antes. Si quieres tocarlas desde
+   la bandeja, a `src/main/tray.ts`.
+7. **Ajustes**: su página en `WIDGET_OPTIONS` (`src/renderer/src/settings/options/index.ts`), su
+   icono en `NAV_ICONS` (`src/renderer/src/settings/layout/navIcons.ts`; sin él no compila), una
+   muestra para la vista previa (`src/renderer/src/settings/samples/`) y su atajo
+   `toggle<Name>` («Más acciones»: `shortcuts` en `settingsSchema.ts` y `WIDGET_SHORTCUT_ACTIONS`
+   en `src/shared/shortcuts.ts`).
 
-Main, bandeja, ajustes y el proceso de telemetría lo recogen solos a partir de `WIDGET_DEFS`.
+Main, la bandeja, la barra lateral de los Ajustes y el proceso de telemetría recogen el widget a
+partir de `WIDGET_DEFS` y `WIDGET_GROUPS` (ventanas, visibilidad, reglas, menú); lo de los pasos 6 y
+7 no es automático.
 
 Consejos:
 
