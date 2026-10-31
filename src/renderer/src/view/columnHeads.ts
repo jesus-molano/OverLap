@@ -46,11 +46,12 @@ function licHead(style: LicenseStyle, m: Messages): string {
   return style === 'letter' ? m.widgets.heads.lic : m.widgets.heads.sr
 }
 
-/** Header of a relative column. */
+/** Header of a relative column; `race` as the standings' (outside races 'last' shows the best). */
 export function relativeHead(
   id: RelativeColumnId,
   licenseStyle: LicenseStyle,
-  m: Messages
+  m: Messages,
+  race = true
 ): ColumnHead {
   const h = m.widgets.heads
   switch (id) {
@@ -71,6 +72,8 @@ export function relativeHead(
       return { label: h.stint, align: 'end' }
     case 'gap':
       return { label: h.gap, align: 'end' }
+    case 'last':
+      return { label: race ? h.last : h.best, align: 'end' }
   }
 }
 

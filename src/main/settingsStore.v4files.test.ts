@@ -192,7 +192,9 @@ describe('a customised v4 file', () => {
       '-pit',
       'tyre',
       'stint',
-      'gap'
+      'gap',
+      // «Última vuelta» (request 8), hidden after the gap.
+      '-last'
     ])
     expect(r.headerBar.find((e) => e.id === 'incidents')?.visible).toBe(false)
     expect(r.footerBarSize).toBe('normal')
@@ -313,7 +315,8 @@ describe('a hand-edited v4 file', () => {
       '-pit',
       'tyre',
       '-stint',
-      'gap'
+      'gap',
+      '-last'
     ])
     expect(s.relative.carsAhead).toBeLessThan(99)
     expect(s.relative).not.toHaveProperty('mystery')

@@ -679,7 +679,10 @@ describe('row fields', () => {
         towed: false,
         stintLaps: null,
         tyre: null,
-        penalty: null
+        penalty: null,
+        lastLap: null,
+        lastLapKind: 'normal',
+        bestLap: null
       },
       {
         carIdx: 1,
@@ -700,7 +703,10 @@ describe('row fields', () => {
         towed: false,
         stintLaps: null,
         tyre: null,
-        penalty: null
+        penalty: null,
+        lastLap: null,
+        lastLapKind: 'normal',
+        bestLap: null
       }
     ])
   })
@@ -808,5 +814,71 @@ describe('stint, tyres and flags', () => {
     expect(rows.get(0)?.penalty).toBeNull()
     expect(rows.get(1)?.penalty).toBe('furled')
     expect(rows.get(2)?.penalty).toBe('meatball')
+  })
+})
+
+describe('«Última vuelta» (request 8)', () => {
+  const cars = { 0: { pct: 0.5 }, 1: { pct: 0.55 }, 2: { pct: 0.45 }, 3: { pct: 0.4 } }
+  const perCar = (values: Record<number, number>): number[] => {
+    const out = new Array<number>(MAX_CARS).fill(-1)
+    for (const [k, v] of Object.entries(values)) out[Number(k)] = v
+    return out
+  }
+  /** Only car() is read: each listed car's best lap (and last, the model's). */
+  function raceWith(best: Record<number, number>, last: Record<number, number> = {}): RaceView {
+    const view: Pick<RaceView, 'car'> = {
+      car: (i) =>
+        best[i] === undefined
+          ? undefined
+          : ({ carIdx: i, bestLapTime: best[i], lastLapTime: last[i] ?? -1 } as RaceCarState)
+    }
+    return view as RaceView
+  }
+
+  it('reads the last lap and what it was as the standings do, by class', () => {
+    const frame = makeFrame(cars, {
+      overrides: { CarIdxLastLapTime: perCar({ 0: 101.2345, 1: 100.5, 2: 99.9, 3: 102 }) }
+    })
+    // Car 3 is in another class: its best is not the GT3s'.
+    const list = [...drivers(3), makeDriver(3, { classId: 2, classShortName: 'LMP2' })]
+    const race = raceWith({ 0: 101.2345, 1: 100.5, 2: 99.0, 3: 102 })
+    const rows = new Map(
+      computeRelative(frame, makeSession(list), OPTS, race).rows.map((r) => [r.carIdx, r])
+    )
+    // Your own best, not the class's (car 2 has 99.0).
+    expect(rows.get(0)).toMatchObject({
+      lastLap: 101.235,
+      bestLap: 101.235,
+      lastLapKind: 'personal-best'
+    })
+    expect(rows.get(1)?.lastLapKind).toBe('personal-best')
+    // A lap slower than its best.
+    expect(rows.get(2)).toMatchObject({ lastLap: 99.9, bestLap: 99, lastLapKind: 'normal' })
+    // The only car of its class: its best is the class's.
+    expect(rows.get(3)?.lastLapKind).toBe('class-best')
+  })
+
+  it('marks the class fastest even when that car is not among the rows shown', () => {
+    const frame = makeFrame(cars, { overrides: { CarIdxLastLapTime: perCar({ 0: 100 }) } })
+    const opts = { ...OPTS, carsAhead: 0, carsBehind: 0 }
+    const race = raceWith({ 0: 100, 1: 101, 2: 102, 3: 103 })
+    const data = computeRelative(frame, makeSession(drivers(4)), opts, race)
+    expect(data.rows.map((r) => r.carIdx)).toEqual([0])
+    expect(data.rows[0]?.lastLapKind).toBe('class-best')
+    const slower = raceWith({ 0: 100, 1: 99.5 })
+    expect(computeRelative(frame, makeSession(drivers(4)), opts, slower).rows[0]?.lastLapKind).toBe(
+      'personal-best'
+    )
+  })
+
+  it('without a race model: the sim’s last lap only, no best and no kind', () => {
+    const frame = makeFrame(cars, {
+      overrides: { CarIdxLastLapTime: perCar({ 0: 100.25, 1: -1 }) }
+    })
+    const rows = new Map(
+      computeRelative(frame, makeSession(drivers(4)), OPTS).rows.map((r) => [r.carIdx, r])
+    )
+    expect(rows.get(0)).toMatchObject({ lastLap: 100.25, bestLap: null, lastLapKind: 'normal' })
+    expect(rows.get(1)?.lastLap).toBeNull()
   })
 })

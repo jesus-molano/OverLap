@@ -4,6 +4,7 @@ import { useI18n } from '@renderer/composables/useI18n'
 import Badge from '@renderer/ui/Badge.vue'
 import DriverCell from '@renderer/ui/DriverCell.vue'
 import Icon from '@renderer/ui/Icon.vue'
+import LapTime from '@renderer/ui/LapTime.vue'
 import LicenseChip from '@renderer/ui/LicenseChip.vue'
 import PenaltyIcon from '@renderer/ui/PenaltyIcon.vue'
 import PositionChip from '@renderer/ui/PositionChip.vue'
@@ -138,11 +139,11 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
       >{{ line.gapLeader }}</span
     >
     <span v-else-if="id === 'last'" class="c-lap" data-el="standings.columns.last"
-      ><span class="sd-lap" :class="`is-${line.lapKind}`">{{ line.lap }}</span></span
-    >
+      ><LapTime :text="line.lap" :kind="line.lapKind"
+    /></span>
     <span v-else-if="id === 'best'" class="c-lap" data-el="standings.columns.best"
-      ><span class="sd-lap" :class="`is-${line.bestKind}`">{{ line.best }}</span></span
-    >
+      ><LapTime :text="line.best" :kind="line.bestKind"
+    /></span>
     <span v-else-if="id === 'pitLap'" class="c-pitlap" data-el="standings.columns.pitLap">{{
       line.pitLap
     }}</span>
@@ -316,33 +317,6 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
   overflow: hidden;
 }
 
-/* Plate geometry, so a filled or keyed lap is exactly as tall as the row's other plates. */
-.sd-lap {
-  display: inline-flex;
-  align-items: center;
-  height: var(--ov-plate-h);
-  padding: 0 0.25em;
-  border-radius: var(--ov-radius-chip);
-  font-size: max(var(--ov-min-text), 0.85em);
-  font-weight: var(--ov-w-text);
-  line-height: 1;
-}
-
-/*
- * Fastest lap of the class: the purple plate (a racing convention; white reads at 4.8:1), filling
- * the whole cell so it reads at a glance, with a lit top edge like the other solid plates.
- */
-.sd-lap.is-best {
-  justify-content: flex-end;
-  width: 100%;
-  padding: 0 0.3em;
-  background: var(--ov-best-fill);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22);
-  color: #ffffff;
-  font-weight: var(--ov-w-solid);
-  text-shadow: none;
-}
-
 /* The row of the class's fastest lap: the same purple plate as its info bar item, 'VR'. */
 .sd-vr {
   display: inline-flex;
@@ -359,18 +333,6 @@ const inlinePenalty = computed(() => (props.cols.flagsInline ? props.line.penalt
   letter-spacing: var(--ov-track-tag);
   line-height: 1;
   text-shadow: none;
-}
-
-/* The driver's own best: green figures over a green key (a ring would mean a warning). */
-.sd-lap.is-pb {
-  background: linear-gradient(var(--ov-good), var(--ov-good)) left bottom / 100% var(--ov-key-w)
-    no-repeat;
-  color: var(--ov-good);
-  font-weight: var(--ov-w-strong);
-}
-
-.sd-lap.is-none {
-  color: var(--ov-fg-dim);
 }
 
 .sd-chequered {

@@ -183,6 +183,18 @@ describe('matchSharedColumns (R10: «Igualar con…»)', () => {
     )
   })
 
+  it('carries «Última vuelta» both ways, as any column both tables have (request 8)', () => {
+    const relative = L('pos driver ir lic gap -last -pit -stint -tyre')
+    const standings = L('-gained ir lic last -delta gap -gapLeader best pit -pitLap stint -tyre')
+    // Its place and eye come from the standings: shown, before the gap.
+    expect(matchSharedColumns(relative, standings)).toEqual(
+      L('pos driver ir lic last gap pit stint -tyre')
+    )
+    expect(matchSharedColumns(standings, relative)).toEqual(
+      L('-gained ir lic gap -delta -last -gapLeader best -pit -pitLap -stint -tyre')
+    )
+  })
+
   it('changes nothing when both already agree', () => {
     const a = L('pos driver ir lic -pit -tyre -stint gap')
     expect(matchSharedColumns(a, a)).toEqual(a)

@@ -52,6 +52,9 @@ function row(carIdx: number, over: Partial<RelativeRow> = {}): RelativeRow {
     stintLaps: null,
     tyre: null,
     penalty: null,
+    lastLap: null,
+    lastLapKind: 'normal',
+    bestLap: null,
     ...over
   }
 }
@@ -242,7 +245,7 @@ describe('relativeColumns', () => {
   })
 
   it('follows the list’s order after the position and the driver, which always start the row', () => {
-    // [pos driver flags ir lic gap pit stint tyre] → [gap ir pos driver flags lic pit stint tyre]
+    // [pos driver flags ir lic gap last pit stint tyre] → [gap ir pos driver flags lic last pit …]
     let list = moveElement(DEF, 5, 0)
     list = moveElement(list, 4, 1)
     expect(list.map((e) => e.id)).toEqual([
@@ -252,6 +255,7 @@ describe('relativeColumns', () => {
       'driver',
       'flags',
       'lic',
+      'last',
       'pit',
       'stint',
       'tyre'
@@ -282,6 +286,20 @@ describe('relativeColumns', () => {
     // Moved like any column.
     const moved = relativeColumns(moveElement(shown, 2, 8), plain)
     expect(moved.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'flags'])
+  })
+
+  it('draws «Última vuelta» (hidden by default) after the gap, as wide as the standings’', () => {
+    expect(DEF.find((e) => e.id === 'last')).toEqual({ id: 'last', visible: false })
+    const shown = setElementVisible(DEF, 'last', true)
+    const c = relativeColumns(shown, plain)
+    expect(c.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'gap', 'last'])
+    expect(c.template).toBe('1.9em minmax(0, 1fr) 2.4em 2.8em 3.1em 4.2em')
+    expect(c.fitEm).toBeCloseTo(27 + 4.2 + 0.4, 5)
+    expect(c.key).not.toBe(relativeColumns(DEF, plain).key)
+    // Moved like any column: before the gap.
+    const at = shown.findIndex((e) => e.id === 'last')
+    const moved = relativeColumns(moveElement(shown, at, at - 1), plain)
+    expect(moved.cells).toEqual(['pos', 'driver', 'ir', 'lic', 'last', 'gap'])
   })
 
   it('hides the gap like any column, as the standings do (R10)', () => {
@@ -353,6 +371,12 @@ describe('relativeHeads', () => {
       ['stint', ES.widgets.heads.stint, 'end']
     ])
     expect(relativeHeads(['lic'], 'letter', EN)[0]?.label).toBe(EN.widgets.heads.lic)
+    // «Última vuelta» as the standings': the best lap outside races.
+    expect(relativeHeads(['last'], 'outline', ES, true)[0]).toMatchObject({
+      label: ES.widgets.heads.last,
+      align: 'end'
+    })
+    expect(relativeHeads(['last'], 'outline', EN, false)[0]?.label).toBe(EN.widgets.heads.best)
     expect(ES.widgets.heads.driver).not.toBe(EN.widgets.heads.driver)
   })
 })
@@ -419,6 +443,29 @@ describe('stint, tyre and flag cells', () => {
   })
 })
 
+describe('«Última vuelta» cell', () => {
+  const styles = createDriverStyles()
+  it('is the standings’ cell: the last lap and its kind in races, the best lap elsewhere', () => {
+    const r = row(1, { lastLap: 107.312, lastLapKind: 'personal-best', bestLap: 107.312 })
+    expect(toSlotView(r, 0, styles, 'full', ES, true)).toMatchObject({
+      lastLap: '1:47.312',
+      lastLapKind: 'pb'
+    })
+    const best = row(1, { lastLap: 107.9, lastLapKind: 'class-best', bestLap: 107.9 })
+    expect(toSlotView(best, 0, styles, 'full', ES, true).lastLapKind).toBe('best')
+    // Outside races: the best lap, filled for the class's first (ordered by best lap there).
+    const q = row(0, { lastLap: 108.5, bestLap: 107.004, classPosition: 1 })
+    expect(toSlotView(q, 0, styles, 'full', ES, false)).toMatchObject({
+      lastLap: '1:47.004',
+      lastLapKind: 'best'
+    })
+    expect(toSlotView(row(1), 0, styles, 'full', ES, true)).toMatchObject({
+      lastLap: '—',
+      lastLapKind: 'none'
+    })
+  })
+})
+
 describe('previewRelative', () => {
   it('has as many cars as the options ask for, the player centred', () => {
     const d = previewRelative(3, 2)
@@ -446,6 +493,19 @@ describe('previewRelative', () => {
     expect([...flags].sort()).toEqual(['black', 'furled', 'meatball'])
     expect(rows.every((r) => r.stintLaps !== null)).toBe(true)
     expect(new Set(rows.map((r) => r.tyre))).toEqual(new Set(['Hard', 'Wet', null]))
+  })
+
+  it('has a lap for everyone close to you: one class fastest, a personal best, the rest plain', () => {
+    const rows = previewRelative(3, 3).rows
+    expect(rows.every((r) => r.lastLap !== null && r.bestLap !== null)).toBe(true)
+    const kinds = rows.map((r) => r.lastLapKind)
+    expect(kinds.filter((k) => k === 'class-best')).toHaveLength(1)
+    expect(kinds).toContain('personal-best')
+    // The class's fastest is the lowest best lap of its class in the whole sample.
+    const all = previewRelative(10, 10).rows
+    const fastest = rows.find((r) => r.lastLapKind === 'class-best')
+    const cls = all.filter((r) => r.classShortName === fastest?.classShortName)
+    expect(Math.min(...cls.map((r) => r.bestLap ?? Infinity))).toBe(fastest?.bestLap)
   })
 })
 

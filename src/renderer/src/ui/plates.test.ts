@@ -36,7 +36,8 @@ const PLATES: ReadonlyArray<readonly [file: string, selector: string]> = [
   ['./Badge.vue', '.ov-badge'],
   ['./Chip.vue', '.ov-chip'],
   ['./SimPill.vue', '.ov-sim'],
-  ['./PreviewTag.vue', '.ov-preview-tag']
+  ['./PreviewTag.vue', '.ov-preview-tag'],
+  ['./LapTime.vue', '.ov-laptime']
 ]
 
 describe('plate geometry', () => {

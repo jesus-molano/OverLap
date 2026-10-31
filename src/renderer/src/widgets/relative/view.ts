@@ -20,7 +20,7 @@ import type {
   RelativeRow
 } from '@shared/types'
 import type { Density } from '@renderer/view/appearance'
-import { stintCell, tyreCell } from '@renderer/view/carExtras'
+import { lapCell, stintCell, tyreCell, type LapKind } from '@renderer/view/carExtras'
 import { relativeHead, type ColumnHead } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles } from '@renderer/view/styles'
@@ -46,6 +46,9 @@ export interface RelativeSlotView extends DriverCellView {
   stintUnit: string
   /** Tyre compound letter ('H'), '—' when unknown. */
   tyre: string
+  /** «Última vuelta», as the standings' (lapCell): outside races, the best lap. */
+  lastLap: string
+  lastLapKind: LapKind
   /** The car's make ('unknown' keeps an empty slot) and the driver's flag code ('' for none). */
   brand: BrandId
   country: string
@@ -95,15 +98,18 @@ function rowCss(row: RelativeRow, alt: boolean, lap: RelativeSlotView['lap']): s
   return css
 }
 
+/** `race`: a race session (the «Última vuelta» cell shows the best lap elsewhere). */
 export function toSlotView(
   row: RelativeRow,
   index: number,
   styles: DriverStyles,
   nameFormat: NameFormat,
-  m: Messages
+  m: Messages,
+  race = true
 ): RelativeSlotView {
   const lap = row.isPlayer || row.lapRelation === 'same' ? null : row.lapRelation
   const stint = stintCell(row.stintLaps, m)
+  const last = lapCell(row, race)
   return {
     ...toDriverCell(row, styles, nameFormat, m),
     kind: 'car',
@@ -119,6 +125,8 @@ export function toSlotView(
     stint: stint.text,
     stintUnit: stint.unit,
     tyre: tyreCell(row.tyre),
+    lastLap: last.text,
+    lastLapKind: last.kind,
     brand: row.brand,
     country: row.country
   }
@@ -128,10 +136,11 @@ export function toSlotViews(
   rows: readonly (RelativeRow | null)[],
   styles: DriverStyles,
   nameFormat: NameFormat,
-  m: Messages
+  m: Messages,
+  race = true
 ): SlotView[] {
   return rows.map((row, i) => {
-    if (row !== null) return toSlotView(row, i, styles, nameFormat, m)
+    if (row !== null) return toSlotView(row, i, styles, nameFormat, m, race)
     return i % 2 === 1 ? EMPTY_ODD : EMPTY_EVEN
   })
 }
@@ -146,6 +155,8 @@ export const RELATIVE_COL_EM = {
   pit: 2.6,
   tyre: 1.3,
   stint: 2.3,
+  // As the standings' (widgets/standings/columns.ts): '1:47.312' at 0.85em.
+  last: 4.2,
   gap: 3.1
 } as const satisfies Readonly<Record<Exclude<RelativeColumnId, 'driver'>, number>>
 /** Row width (em) the default columns need with a readable name: it caps the font by width. */
@@ -224,6 +235,7 @@ export function relativeColumns(
   if (cells.includes('stint')) fitEm += RELATIVE_COL_EM.stint + COL_GAP_EM
   if (cells.includes('pit')) fitEm += RELATIVE_COL_EM.pit + COL_GAP_EM
   if (cells.includes('flags')) fitEm += RELATIVE_COL_EM.flags + COL_GAP_EM
+  if (cells.includes('last')) fitEm += RELATIVE_COL_EM.last + COL_GAP_EM
   if (x.brand) fitEm += BRAND_FIT_EM
   if (x.country) fitEm += FLAG_FIT_EM
   return {
@@ -247,9 +259,10 @@ export interface RelativeHeadView extends ColumnHead {
 export function relativeHeads(
   cells: readonly RelativeColumnId[],
   licenseStyle: LicenseStyle,
-  m: Messages
+  m: Messages,
+  race = true
 ): RelativeHeadView[] {
-  return cells.map((id) => ({ id, ...relativeHead(id, licenseStyle, m) }))
+  return cells.map((id) => ({ id, ...relativeHead(id, licenseStyle, m, race) }))
 }
 
 /** The column heads row's height (em of the row font), counted in the font fit. */

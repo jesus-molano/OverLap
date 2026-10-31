@@ -288,6 +288,10 @@ export interface RelativeRow {
   /** Its tyre compound's name ('Hard'), null when unknown (tyreCompoundOf in tyres.ts). */
   tyre: string | null
   penalty: CarPenalty | null
+  /** Its last and best laps and what the last one was, as StandingsRow's (shared/lapTimes.ts). */
+  lastLap: number | null
+  lastLapKind: StandingsRow['lastLapKind']
+  bestLap: number | null
 }
 
 export interface RelativeData {
@@ -1305,10 +1309,11 @@ export type ElementList<Id extends string = string> = ElementEntry<Id>[]
 /**
  * Cells of a relative row, left to right. `driver` (number plate, brand mark, flag, name and its
  * badges) and `gap` always stay. `flags`: the penalty flags in a column of their own (hidden,
- * they go after the name, as the PIT badge without its column).
+ * they go after the name, as the PIT badge without its column). `last`: Posiciones' «Última vuelta»
+ * (outside races, the best lap).
  */
 export type RelativeColumnId =
-  'pos' | 'driver' | 'flags' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap'
+  'pos' | 'driver' | 'flags' | 'ir' | 'lic' | 'pit' | 'tyre' | 'stint' | 'gap' | 'last'
 /** What a class line (and a single-class header) says about the class, in that order. */
 export type StandingsClassLineId = 'sof' | 'carCount'
 export type BattleLaneId = 'ahead' | 'behind'

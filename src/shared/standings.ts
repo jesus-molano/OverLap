@@ -8,6 +8,7 @@ import { driverIdentity, fieldHasMultipleBrands } from './driver'
 import { isElementVisible } from './elements'
 import { infoItemShown } from './infoBar'
 import { incidentCount } from './incidents/count'
+import { isClassBest, lastLapKind, lastLapOf, quantLap } from './lapTimes'
 import { penaltyOf } from './penalty'
 import type { RaceCarState, RaceView } from './race/raceView'
 import { ownTowTime, showsTow } from './race/towBadge'
@@ -34,12 +35,8 @@ import type {
   StandingsData,
   StandingsHeader,
   StandingsOptions,
-  StandingsRow,
   StandingsStatus
 } from './types'
-
-/** Two lap times this close (s) are the same lap. */
-const LAP_EPS = 0.0005
 
 export type StandingsDisplayRow = StandingsClassBlock['rows'][number]
 
@@ -47,11 +44,6 @@ export type StandingsDisplayRow = StandingsClassBlock['rows'][number]
 function quantGap(s: number): number {
   const q = Math.round(s * 10) / 10
   return q > 0 ? q : 0
-}
-
-function quantLap(s: number | null | undefined): number | null {
-  if (s === null || s === undefined || !Number.isFinite(s) || s <= 0) return null
-  return Math.round(s * 1000) / 1000
 }
 
 interface Entry {
@@ -130,7 +122,6 @@ function groupByClass(
   preGreen: boolean
 ): ClassGroup[] {
   const byId = new Map<number, ClassGroup>()
-  const officialLast = frame.CarIdxLastLapTime
   const group = (driver: DriverEntry): ClassGroup => {
     let g = byId.get(driver.classId)
     if (!g) {
@@ -165,11 +156,7 @@ function groupByClass(
     const driver = session.drivers.get(car.carIdx)
     if (!isEntry(driver, session)) continue
     const g = group(driver)
-    // The sim's own last lap (ms resolution, same source as CarIdxBestLapTime) when it has one;
-    // a finisher's stays frozen at its finishing lap (the model's), whatever the cool-down does.
-    const lastLap = car.finished
-      ? quantLap(car.lastLapTime)
-      : (quantLap(officialLast[car.carIdx]) ?? quantLap(car.lastLapTime))
+    const lastLap = lastLapOf(frame, car)
     const bestLap = quantLap(car.bestLapTime)
     if (bestLap !== null && (g.classBest === null || bestLap < g.classBest)) g.classBest = bestLap
     g.cars.push({ car, driver, lastLap, bestLap })
@@ -207,16 +194,6 @@ function statusOf(car: RaceCarState): StandingsStatus {
   if (car.inPits) return 'pits'
   if (car.offTrack) return 'off-track'
   return 'running'
-}
-
-function isClassBest(lap: number | null, classBest: number | null): boolean {
-  return lap !== null && classBest !== null && Math.abs(lap - classBest) <= LAP_EPS
-}
-
-function lapKind(e: Entry, classBest: number | null): StandingsRow['lastLapKind'] {
-  const last = e.lastLap
-  if (last === null || e.bestLap === null || Math.abs(last - e.bestLap) > LAP_EPS) return 'normal'
-  return isClassBest(e.bestLap, classBest) ? 'class-best' : 'personal-best'
 }
 
 /** What the visible columns need: the rest is left null, so it never re-sends the table. */
@@ -293,7 +270,7 @@ function makeRow(
     interval,
     gapToLeader,
     lastLap: e.lastLap,
-    lastLapKind: lapKind(e, g.classBest),
+    lastLapKind: lastLapKind(e.lastLap, e.bestLap, g.classBest),
     bestLap: e.bestLap,
     bestLapKind: isClassBest(e.bestLap, g.classBest) ? 'class-best' : 'normal',
     // The loop feeds one race model with live frames only (the live point of a replay

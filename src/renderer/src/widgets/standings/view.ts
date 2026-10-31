@@ -25,7 +25,7 @@ import type {
   StandingsOptions,
   StandingsRow
 } from '@shared/types'
-import { stintCell, tyreCell } from '@renderer/view/carExtras'
+import { lapCell, stintCell, tyreCell, type LapKind } from '@renderer/view/carExtras'
 import { gapShowsLeader } from '@renderer/view/columnHeads'
 import { toDriverCell, type DriverCellView } from '@renderer/view/driverCell'
 import type { DriverStyles, InlineStyle } from '@renderer/view/styles'
@@ -39,8 +39,6 @@ const DELTA_DIM_BELOW = 5
 export const META_SEP = '\u2002'
 
 export type GapKind = 'time' | 'laps' | 'leader' | 'none'
-/** 'best' = fastest of the class (purple plate), 'pb' = the driver's own best (green key). */
-export type LapKind = 'normal' | 'pb' | 'best' | 'none'
 /**
  * What the pit cell shows: a badge (in the pits, towed there, out lap), the stop count, or
  * the flag.
@@ -189,24 +187,6 @@ export function pitKind(row: StandingsRow): PitKind {
   if (row.status === 'pits') return row.towed ? 'tow' : 'pit'
   if (row.outLap) return 'out'
   return (row.pitStops ?? 0) > 0 ? 'stops' : 'none'
-}
-
-/** Race: the last lap and its kind. Elsewhere: the best lap, filled for the class's best. */
-export function lapCell(row: StandingsRow, race: boolean): { text: string; kind: LapKind } {
-  if (!race) {
-    const text = formatLapTime(row.bestLap)
-    if (text === '—') return { text, kind: 'none' }
-    return { text, kind: row.classPosition === 1 ? 'best' : 'normal' }
-  }
-  const text = formatLapTime(row.lastLap)
-  if (text === '—') return { text, kind: 'none' }
-  const kind: LapKind =
-    row.lastLapKind === 'class-best'
-      ? 'best'
-      : row.lastLapKind === 'personal-best'
-        ? 'pb'
-        : 'normal'
-  return { text, kind }
 }
 
 /** The 'best' column (races only): the best lap, filled when it is the class's fastest. */

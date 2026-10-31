@@ -1778,7 +1778,8 @@ export const settingsEs = {
         pit: 'Boxes',
         tyre: 'Neumático',
         stint: 'Vueltas del stint',
-        gap: 'Hueco'
+        gap: 'Hueco',
+        last: 'Última vuelta'
       }
     },
     radar: {
@@ -3548,7 +3549,8 @@ export const settingsEn: Dict<typeof settingsEs> = {
         pit: 'Pits',
         tyre: 'Tyre',
         stint: 'Stint laps',
-        gap: 'Gap'
+        gap: 'Gap',
+        last: 'Last lap'
       }
     },
     radar: {

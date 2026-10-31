@@ -675,12 +675,13 @@ export function migrateWidgetsV5(
 /**
  * Ids added to a list after files saved it, hidden, that such a list gets at their default place
  * (after the nearest id before them in the spec) instead of at the end: turned on, they land
- * where a new install has them. The penalty flags' column (2.4) goes right after the name.
+ * where a new install has them. The penalty flags' column (2.4) goes right after the name, the
+ * relative's «Última vuelta» (request 8) after the gap.
  */
 const NEW_ELEMENTS: Readonly<
   Partial<Record<OptionSection, Readonly<Record<string, readonly string[]>>>>
 > = {
-  relative: { columns: ['flags'] },
+  relative: { columns: ['flags', 'last'] },
   standings: { columns: ['flags'] },
   traffic: { parts: ['flags'] }
 }
