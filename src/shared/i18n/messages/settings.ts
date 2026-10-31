@@ -1405,7 +1405,7 @@ export const settingsEs = {
       'Una fila por cada referencia que elijas, con su nombre, su delta y su barra (verde a la izquierda: más rápido). Con solo la que usa el delta, el delta de siempre',
     /** Under the references while the delta draws a row per reference (two or more). */
     referenceRowsHelp:
-      'Con una fila por referencia, la línea de arriba nombra la que usa el delta: «Prev.» y los sectores van con ella',
+      'Con una fila por referencia, la que usa el delta se nombra encima de las filas (o, sin esa línea, delante de los sectores): «Prev.» y los sectores van con ella',
     /** Delta references, in UI order. */
     references: {
       pb: {
@@ -1457,7 +1457,8 @@ export const settingsEs = {
     predicted: 'Vuelta prevista',
     predictedHelp: 'El tiempo que harás si mantienes el ritmo: referencia + delta',
     sectors: 'Sectores',
-    sectorsHelp: 'Cada sector contra la referencia; el que estás corriendo, en vivo',
+    sectorsHelp:
+      'Cada sector contra la referencia que usa el delta; el que estás corriendo, en vivo',
     trend: 'Tendencia',
     trendHelp: '«Ganando» o «perdiendo» según cómo cambia el delta ahora mismo'
   },
@@ -1787,7 +1788,7 @@ export const settingsEs = {
       rows: 'Líneas',
       top: 'Línea superior',
       laps: 'Tiempos de vuelta',
-      refBars: 'Barras por referencia'
+      refBars: 'Filas por referencia'
     },
     fuel: { headerBar: 'Cabecera', lines: 'Líneas', footerBar: 'Pie' },
     lights: { icons: 'Testigos' },
@@ -1882,7 +1883,7 @@ export const settingsEs = {
       rows: {
         top: 'Línea superior',
         bar: 'Barra',
-        refs: 'Barras por referencia',
+        refs: 'Filas por referencia',
         sectors: 'Sectores',
         laps: 'Tiempos de vuelta'
       },
@@ -3297,7 +3298,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     refBarsHelp:
       'One row for each reference you pick, with its name, its delta and its bar (green to the left: faster). With only the one the delta uses, the usual delta',
     referenceRowsHelp:
-      'With a row per reference, the line above them names the one the delta uses: “Pred.” and the sectors follow it',
+      'With a row per reference, the one the delta uses is named above the rows (or, without that line, before the sectors): “Pred.” and the sectors follow it',
     references: {
       pb: {
         label: 'Personal best',
@@ -3340,7 +3341,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     predicted: 'Predicted lap',
     predictedHelp: 'The lap time you’ll set if you keep this pace: reference + delta',
     sectors: 'Sectors',
-    sectorsHelp: 'Each sector against the reference; the current one updates live',
+    sectorsHelp: 'Each sector against the reference the delta uses; the current one updates live',
     trend: 'Trend',
     trendHelp: '“Gaining” or “losing” depending on how the delta is changing right now'
   },
@@ -3605,7 +3606,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
     inputs: { sections: 'Blocks', bars: 'Bars', info: 'Readouts', car: 'Car' },
     traffic: { groups: 'Groups', parts: 'Columns', headerBar: 'Header', footerBar: 'Footer' },
     alerts: { parts: 'Extras' },
-    delta: { rows: 'Lines', top: 'Top line', laps: 'Lap times', refBars: 'Bars per reference' },
+    delta: { rows: 'Lines', top: 'Top line', laps: 'Lap times', refBars: 'Rows per reference' },
     fuel: { headerBar: 'Header', lines: 'Lines', footerBar: 'Footer' },
     lights: { icons: 'Lights' },
     settingsWindow: { customizeOpen: 'Open sections of Customise' }
@@ -3692,7 +3693,7 @@ export const settingsEn: Dict<typeof settingsEs> = {
       rows: {
         top: 'Top line',
         bar: 'Bar',
-        refs: 'Bars per reference',
+        refs: 'Rows per reference',
         sectors: 'Sectors',
         laps: 'Lap times'
       },

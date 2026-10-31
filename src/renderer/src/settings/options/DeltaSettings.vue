@@ -12,7 +12,13 @@ import {
   SHOW_IN_KINDS,
   type NumericSpec
 } from '@shared/settingsSchema'
-import type { DeltaOptions, DeltaReference, DeltaRowId, ElementEntry } from '@shared/types'
+import type {
+  DeltaOptions,
+  DeltaReference,
+  DeltaRowId,
+  DeltaTopId,
+  ElementEntry
+} from '@shared/types'
 import { useI18n } from '../../composables/useI18n'
 import { useOverlayState } from '../../composables/useOverlay'
 import { useDeviceNames, useShortcuts } from '../../composables/useShortcuts'
@@ -64,12 +70,15 @@ function setReference(kind: SessionKind, field: DeltaReferenceField): Setter<Del
   }
 }
 /**
- * With a row per reference (two or more), what the line above them is: the one in use, which the
- * predicted lap and the sectors follow. Under the three references.
+ * With a row per reference (two or more), where the one in use is named (the line above the rows,
+ * or the sectors), which the predicted lap and the sectors follow: while one of them is shown.
+ * Under the three references.
  */
-const rowsHelp = computed(() =>
-  deltaShapeOf(opts.value).lanes >= 2 ? t.value.settings.delta.referenceRowsHelp : ''
-)
+const rowsHelp = computed(() => {
+  const o = opts.value
+  const follows = isElementVisible(o.top, 'predicted') || isElementVisible(o.rows, 'sectors')
+  return follows && deltaShapeOf(o).lanes >= 2 ? t.value.settings.delta.referenceRowsHelp : ''
+})
 /** 'La vista previa usa la de Carrera: Vuelta óptima'. */
 const previewNote = computed(() => {
   const d = t.value.settings.delta
@@ -190,6 +199,11 @@ function growForBars(delta: DeltaOptions): void {
   const bounds = deltaBarsGrowth(s, delta)
   if (bounds !== null) sendCommand({ type: 'set-widget-bounds', widgetId: 'delta', bounds })
 }
+/** A part of the top line shown again can bring back the line above the rows: grown for it too. */
+function applyTop(next: ElementEntry<DeltaTopId>[]): Promise<unknown> {
+  growForBars({ ...opts.value, top: next })
+  return setTop(next)
+}
 function applyRows(next: ElementEntry<DeltaRowId>[]): Promise<unknown> {
   growForBars({ ...opts.value, rows: next })
   return setRows(next)
@@ -270,7 +284,7 @@ const tallWords = computed(() => ({
           :items="opts.top"
           :spec="S.top"
           :labels="topTexts"
-          :apply="setTop"
+          :apply="applyTop"
         />
         <ElementEditor
           v-else-if="id === 'refs'"

@@ -53,7 +53,13 @@ describe('DeltaSettings', () => {
     expect(t).toContain(
       `<p v-if="rowsHelp !== ''" class="st-row st-help dl-cycle">{{ rowsHelp }}</p>`
     )
-    expect(SOURCE).toContain('deltaShapeOf(opts.value).lanes >= 2')
+    // Said while something follows it (the predicted lap or the sectors).
+    expect(SOURCE).toContain(
+      "isElementVisible(o.top, 'predicted') || isElementVisible(o.rows, 'sectors')"
+    )
+    expect(SOURCE).toContain('deltaShapeOf(o).lanes >= 2')
+    // A part of the top line shown again can bring back the line above the rows: it grows too.
+    expect(SOURCE).toContain(':apply="applyTop"')
     // A session's reference that adds a row grows the window as a bar does.
     expect(SOURCE).toContain('growForBars({ ...opts.value, [field]: v })')
     for (const lang of ['es', 'en'] as const) {

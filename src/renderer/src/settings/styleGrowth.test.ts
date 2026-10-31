@@ -182,6 +182,27 @@ describe('Delta: showing the bars per reference from its page grows the window',
     expect(deltaBarsGrowth(before, { ...before.delta, referenceRace: 'optimal' })).toBeNull()
   })
 
+  it('grows when a part of the top line brings back the line above the rows', () => {
+    const s = createDefaultSettings()
+    const rows = withBars(s, true, 3)
+    const bare = { ...rows, top: rows.top.map((e) => ({ ...e, visible: false })) }
+    const before = { ...s, delta: bare } as OverlaySettings
+    // The predicted lap shown again: the line above the three rows, at the same text size.
+    const top = bare.top.map((e) => ({ ...e, visible: e.id === 'predicted' }))
+    const grown = deltaBarsGrowth(before, { ...bare, top })
+    expect(grown?.height ?? 0).toBeGreaterThan(s.widgets.delta.bounds.height)
+    expect(grown).toEqual(
+      grownBounds(
+        s.widgets.delta.bounds,
+        deltaFit(before),
+        deltaFit({ ...before, delta: { ...bare, top } })
+      )
+    )
+    // «Estado» alone puts its chevrons on the rows: no line, nothing to grow.
+    const state = bare.top.map((e) => ({ ...e, visible: e.id === 'state' }))
+    expect(deltaBarsGrowth(before, { ...bare, top: state })).toBeNull()
+  })
+
   it('never for fewer bars, the same bars, or a window that already fits', () => {
     const s = createDefaultSettings()
     const on = { ...s, delta: withBars(s, true, 3) } as OverlaySettings
