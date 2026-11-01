@@ -2,6 +2,7 @@ English: [README.md](README.md)
 
 # OverLap
 
+[![Web: overlapsim.com](https://img.shields.io/badge/Web-overlapsim.com-ffc400)](https://overlapsim.com)
 [![Entra en el Discord](https://img.shields.io/badge/Discord-Entrar-5865F2?logo=discord&logoColor=white)](https://discord.gg/JDJCw4TJtY)
 [![Invítame a un café en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
