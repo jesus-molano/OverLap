@@ -2,6 +2,7 @@ Español: [README.es.md](README.es.md)
 
 # OverLap
 
+[![Join the Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/JDJCw4TJtY)
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws its widgets
@@ -31,6 +32,7 @@ track, the panel lets the game show through according to the opacity you choose.
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [When the overlay shows](#when-the-overlay-shows)
 - [Streaming](#streaming)
+- [VR](#vr)
 - [Privacy and anti-cheat](#privacy-and-anti-cheat)
 - [Known issues](#known-issues)
 - [Licence and credits](#licence-and-credits)
@@ -63,7 +65,7 @@ track, the panel lets the game show through according to the opacity you choose.
 | iRacing     | In a borderless window (borderless / windowed fullscreen) |
 
 - In **exclusive fullscreen** the overlay does not show.
-- In **VR** it does not show, except with a tool such as OpenKneeboard.
+- In **VR** it does not show, except with OpenKneeboard: see [VR](#vr).
 
 ### Download and open
 
@@ -717,14 +719,14 @@ still works too.
 OverLap can put your widgets in **OBS, Streamlabs, vMix or XSplit** as a **browser source**: a web
 page your streaming program draws over the game, with a transparent background. You choose which
 widgets go to the stream, apart from what you see on screen, and you place and size each one in
-your streaming program. Turn it on in **Settings › Streaming**.
+your streaming program. Turn it on in **Settings › Streaming & VR**.
 
 **How to add a widget to OBS**
 
 Your streaming program runs on **this same PC**, or on a separate streaming PC on your home network
 with **From another PC on my network** (see **A separate streaming PC** below).
 
-1. In **Settings › Streaming**, turn on **Turn on streaming mode**.
+1. In **Settings › Streaming & VR**, turn on **Turn on streaming mode**.
 2. In OBS: drag **Drag to OBS**, next to the widget (the screen or the curtain), onto the OBS
    scene. OBS asks whether to add the source (“Add Source via URL”): say **Yes**. It makes a Browser
    source with its name (“OverLap · Relative”) and size: the one on your screen, and for a widget that
@@ -847,6 +849,56 @@ always passes, while an address that tries wrong codes has to wait, longer each 
 minutes (an old code after **Change the code** is refused without counting, so a forgotten OBS
 source never locks the streaming PC out); the request must name this PC by its network address or
 its name; the code is never written to the log. Off, nothing listens on your network.
+
+## VR
+
+OverLap does not draw inside the headset, but [OpenKneeboard](https://openkneeboard.com), a free
+program, can show your widgets in VR. It is tested with a Quest 3S and Meta Horizon Link. The same
+steps are in **Settings › Streaming & VR**, under the **VR guide** button at the top.
+
+**On your PC**
+
+1. Install OpenKneeboard. In OverLap, turn on **Turn on streaming mode**.
+2. Tick **In the stream** for the widgets you want to see in the headset and copy their URL with
+   **Copy URL**.
+3. In OpenKneeboard, open **Settings › Tabs**, press **Add a tab**, choose **Web Dashboard** and paste
+   the URL. Each widget goes in its own tab, and the page tells OpenKneeboard its name and size, so
+   the widget fills its panel with a transparent background.
+
+**In the headset**
+
+4. With a Quest, open Meta Horizon Link and set it as the active OpenXR runtime in **Settings ›
+   General**. Connect it with Link or Air Link.
+5. In iRacing, choose **OpenXR** in the display mode menu at the top right. Oculus mode does not work
+   with OpenKneeboard.
+6. Go on track with the headset on. The panel appears on your knees and the widget shows once iRacing
+   is running.
+
+**Placing the panel**
+
+7. Bind a key to **Recenter VR** in OpenKneeboard's **Settings › Input** and press it seated as you
+   drive, looking ahead. That unlocks the position in **Settings › Virtual Reality**.
+8. This is a good starting point to have it in front of you:
+
+| OpenKneeboard setting | Value |
+| --- | --- |
+| Vertical distance from eye level | 0.25 m |
+| Forward position | 0.70 m |
+| Left-to-right position | to taste, for example -0.30 m |
+| Kneeboard width and height limit | 0.40 m |
+| Pitch | 67°, so it faces you |
+
+To see several widgets at once, add more views in **Settings › Virtual Reality**. You can also paste a
+screen's URL to see them all together, only smaller.
+
+**If something fails.** If you cannot see the panel, press Recenter and check that OpenXR is on in
+OpenKneeboard. If it ends up behind the cockpit, close iRacing and set
+`DepthLayerExtensionEnabled=0` in the `[OpenXR]` section of
+`Documents\iRacing\rendererDX11OpenXR.ini`.
+
+**Anti-cheat.** OpenKneeboard hooks into how the game draws. Its
+[compatibility page](https://openkneeboard.com/compatibility/games/) says they know of no bans, but
+that the theoretical risk exists, so using it is your call.
 
 ## Privacy and anti-cheat
 

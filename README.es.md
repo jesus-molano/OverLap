@@ -2,12 +2,13 @@ English: [README.md](README.md)
 
 # OverLap
 
+[![Entra en el Discord](https://img.shields.io/badge/Discord-Entrar-5865F2?logo=discord&logoColor=white)](https://discord.gg/JDJCw4TJtY)
 [![Invítame a un café en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja sus
 widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, delta,
 combustible, pedales, avisos y testigos. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
-guardar una disposición distinta para cada coche.
+guardar un layout distinto para cada coche.
 
 - Solo **lee** los datos del SDK de iRacing: no inyecta nada en el juego. A internet solo sale para
   buscar actualizaciones en GitHub, y se puede apagar (ver
@@ -28,10 +29,11 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 - [Widgets](#widgets)
 - [Ajustes y personalización](#ajustes-y-personalización)
 - [Modo edición](#modo-edición)
-- [Disposiciones](#disposiciones)
+- [Layouts](#layouts)
 - [Atajos de teclado](#atajos-de-teclado)
 - [Cuándo se ve el overlay](#cuándo-se-ve-el-overlay)
 - [Streaming](#streaming)
+- [VR](#vr)
 - [Privacidad y anti-cheat](#privacidad-y-anti-cheat)
 - [Problemas conocidos](#problemas-conocidos)
 - [Licencia y créditos](#licencia-y-créditos)
@@ -65,7 +67,7 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 | iRacing   | En ventana sin bordes (borderless / pantalla completa en ventana) |
 
 - En **pantalla completa exclusiva** el overlay no se ve.
-- En **VR** no se ve, salvo con una herramienta como OpenKneeboard.
+- En **VR** no se ve, salvo con OpenKneeboard: mira [VR](#vr).
 
 ### Descargar y abrir
 
@@ -89,7 +91,7 @@ principio de esta sección.
 OverLap se queda en la **bandeja del sistema** (junto al reloj). Desde su icono ves su estado (y si
 algún atajo no funciona), abres los **Ajustes…**, muestras u ocultas cada widget (agrupados como en
 los Ajustes), cambias el alcance del radar, los nombres (**Nombres**: Piloto, Equipo o Equipo ·
-piloto), cuándo se ve el overlay y la disposición en uso, muestras u ocultas todo el overlay
+piloto), cuándo se ve el overlay y el layout en uso, muestras u ocultas todo el overlay
 (**Mostrar el overlay**), entras en modo edición, traes los widgets a la pantalla del ratón
 (**Traer todos los widgets a esta pantalla**), deshaces lo último (**Deshacer: …**, cuando hay algo
 que deshacer), abres la carpeta de ajustes o sales. Volver a abrir el `.exe` con OverLap ya en
@@ -100,7 +102,7 @@ se ocultan (salvo con **Mantener «Esperando a iRacing»** en Visibilidad); Over
 
 Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Acerca de y ayuda › Archivos y diagnóstico › Abrir carpeta**,
 o la bandeja). En esa página, **Exportar todo…** guarda en un archivo todos los ajustes (Apariencia,
-atajos, visibilidad y todas las disposiciones con sus opciones) y tus récords, e **Importar todo…**
+atajos, visibilidad y todos los layouts con sus opciones) y tus récords, e **Importar todo…**
 los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**,
 mientras no cambies nada más) y los récords del archivo se suman a los tuyos (gana la vuelta más
 rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
@@ -207,7 +209,7 @@ Con varias clases, **Orden de las clases** pone tu clase primero (de serie), la 
 (como iRacing) o el orden que quieras (**A mano**): una lista de clases por su nombre corto que se
 recuerda entre sesiones y se ordena arrastrando, con ↑ ↓ o arrastrando la línea de una clase en la
 vista previa. La lista se llena sola mientras corres: cada clase de una sesión multiclase se recuerda
-al final, en todas las disposiciones, sin tocar tu orden, y la × de una clase recordada la
+al final, en todos los layouts, sin tocar tu orden, y la × de una clase recordada la
 olvida (hasta que vuelva en otra sesión).
 
 Antes de la verde muestra la parrilla entera, y al acabar la sesión se queda con los resultados en
@@ -459,10 +461,10 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **Restablecer…** dice qué devuelve a fábrica, sección por sección (en un widget: Contenido,
   Personalizar, Pilotos, Ventana y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
   icono ↺ en la cabecera, que restablece solo esa sección. Es un solo clic: un aviso abajo dice qué
-  se ha restablecido (y en qué disposición, si tienes varias) con **Deshacer** (o `Ctrl+Z`)
+  se ha restablecido (y en qué layout, si tienes varios) con **Deshacer** (o `Ctrl+Z`)
   durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Global» en todos
-  los widgets, al ocultar un widget y al eliminar una disposición. Piden un segundo clic
-  **Restablecer todo** (en Acerca de y ayuda) y **Copiar estas opciones a todas**, que también se
+  los widgets, al ocultar un widget y al eliminar un layout. Piden un segundo clic
+  **Restablecer todo** (en Acerca de y ayuda) y **Copiar estas opciones a todos los layouts**, que también se
   deshacen, y borrar récords personales, lo único que no se puede deshacer.
 - **Personalizar**: en esa pestaña de la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
@@ -485,7 +487,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   muestras más coches, para que el texto no encoja), **Limpio** (sin fondo: solo el texto sobre el
   juego, con su contorno; sin filas alternas, logos ni banderas, número en franja, licencia solo letra), **Compacto**
   (pequeño pero legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo
-  letra, sin logos ni banderas de país) y **Completo** (fondo al 90 %, logos siempre y todo a la vista en todos los widgets de la disposición en uso: cada columna,
+  letra, sin logos ni banderas de país) y **Completo** (fondo al 90 %, logos siempre y todo a la vista en todos los widgets del layout en uso: cada columna,
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
@@ -495,11 +497,11 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   ellos, lo que Completo añadió se queda, salvo que marques «Quitar también lo que añadió
   Completo» (cada widget vuelve a lo que mostraba antes); con **OverLap** se va siempre, porque
   vuelve todo de serie. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
-  unidades, los sitios ni qué widgets se ven (eso lo eligen las disposiciones).
+  unidades, los sitios ni qué widgets se ven (eso lo eligen los layouts).
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
   por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de todos los widgets:
   en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
-  proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
+  proporción, en todos tus layouts), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
   (marca los widgets con datos simulados; activada de serie) y el bloque **Pilotos** global: **Nombres de** (**Piloto**, de serie; **Equipo**: en carreras por equipos cada coche se
@@ -568,57 +570,57 @@ juego.
 Posición, tamaño y visibilidad se guardan solos. Fuera del modo edición los widgets dejan pasar
 todos los clics al juego.
 
-## Disposiciones
+## Layouts
 
-![Ajustes: Disposiciones](docs/screenshots/ajustes-disposiciones.png)
+![Ajustes: Layouts](docs/screenshots/ajustes-disposiciones.png)
 
-Una disposición guarda, con un nombre, dónde está cada widget (en cada pantalla), su tamaño, su
+Un layout guarda, con un nombre, dónde está cada widget (en cada pantalla), su tamaño, su
 escala, si se ve y si está bloqueado, y también las opciones de cada widget: columnas y su orden,
 elementos, barras de información, referencias del delta, estilo del volante, opacidad, en qué
-sesiones se ve… Una para el Mazda, otra para el GT3. La apariencia (idioma, unidades, color,
+sesiones se ve… Uno para el Mazda, otro para el GT3. La apariencia (idioma, unidades, color,
 tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mismos.
 
-- Cada disposición es **Posición y opciones** (de serie) o **Solo posición**: esta solo mueve los
-  widgets y usa las **opciones comunes**, compartidas por todas las de solo posición. Lo eliges al
-  guardarla o importarla (en **Más opciones**), y lo cambias luego con **Renombrar o editar**; solo una de solo
+- Cada layout es **Posición y opciones** (de serie) o **Solo posición**: este solo mueve los
+  widgets y usa las **opciones comunes**, compartidas por todos los de solo posición. Lo eliges al
+  guardarlo o importarlo (en **Más opciones**), y lo cambias luego con **Renombrar o editar**; solo uno de solo
   posición lo dice en su fila.
-- **Ajustes › Disposiciones** tiene tres bloques. **Disposiciones guardadas**: cada fila muestra
+- **Ajustes › Layouts** tiene tres bloques. **Layouts guardados**: cada fila muestra
   su nombre, sus coches y **Aplicar** (o **En uso**); su menú **⋯** tiene **Renombrar o editar**
   (un doble clic en el nombre hace lo mismo), **Duplicar**,
-  **Exportar…** (un `.json` con sus opciones), **Subir** / **Bajar** y **Eliminar** (la que está
+  **Exportar…** (un `.json` con sus opciones), **Subir** / **Bajar** y **Eliminar** (el que está
   en uso no se puede eliminar). Arrastra una fila por su asa, o enfoca el asa y usa las flechas,
-  para cambiar tu orden. **Nueva disposición** guarda lo que ves con un nombre; su pliegue **Más
-  opciones**, que dice lo que contiene, tiene qué restaurará la nueva, **Nueva desde un ejemplo** e **Importar desde un archivo**. **Por
-  coche** reúne todos los vínculos con coches. Hasta 30 disposiciones; **Buscar disposiciones** las
-  encuentra por nombre o por coche, y **Orden** las lista en tu orden (**Personalizado**, de serie,
+  para cambiar tu orden. **Nuevo layout** guarda lo que ves con un nombre; su pliegue **Más
+  opciones**, que dice lo que contiene, tiene qué restaurará el nuevo, **Layouts de ejemplo** e **Importar desde un archivo**. **Por
+  coche** reúne todos los vínculos con coches. Hasta 30 layouts; **Buscar layouts** los
+  encuentra por nombre o por coche, y **Orden** los lista en tu orden (**Personalizado**, de serie,
   el mismo de la bandeja y del atajo), por **Nombre** o por **Uso reciente**. La bandeja muestra
-  las cinco primeras y **Más…**.
-- **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget y
-  al cambiar sus opciones. En la página de cada widget, bajo la vista previa (con dos disposiciones o
-  más, o una de solo posición), pone dónde se guarda lo que cambias (**Guardando en:** la disposición, u **Opciones comunes**), con **Copiar estas
-  opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
-- Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
-  **Siguiente disposición**.
-- **Nueva desde un ejemplo** (en **Más opciones**) añade a la lista, sin aplicarla, una de dos
-  disposiciones muy distintas, con sus propios sitios (para la pantalla de tus widgets: dibujados
+  los cinco primeros y **Más…**.
+- **El que está en uso se guarda automáticamente** al mover, redimensionar, ocultar o bloquear un widget y
+  al cambiar sus opciones. En la página de cada widget, bajo la vista previa (con dos layouts o
+  más, o uno de solo posición), pone dónde se guarda lo que cambias (**Guardando en:** el layout, u **Opciones comunes**), con **Copiar estas
+  opciones a todos** para llevar las opciones de ese widget a todos los layouts.
+- Se cambia desde la bandeja (submenú **Layout**), desde los Ajustes o con el atajo
+  **Siguiente layout**.
+- **Layouts de ejemplo** (en **Más opciones**) añade a la lista, sin aplicarlo, uno de dos
+  layouts muy distintos, con sus propios sitios (para la pantalla de tus widgets: dibujados
   para 1920 x 1080, a la misma distancia de sus bordes en cualquier 16:9 y en el centro de una
   ultrapanorámica) y opciones; tu Apariencia no cambia:
-  - **Equilibrada**: lo esencial para una carrera (Relativo, Radar, Delta, Combustible, Avisos y
+  - **Equilibrado**: lo esencial para una carrera (Relativo, Radar, Delta, Combustible, Avisos y
     Pedales) en sitios cómodos y a buen tamaño, con las opciones de fábrica.
   - **Ingeniero de pista**: todos los widgets, pequeños y con todos los datos, en los bordes (el
     retrovisor y la carretera quedan libres), cada uno en su otro aspecto: todas las columnas, más
     coches, una barra por referencia, los datos del coche...
 
-  Con **Siguiente disposición** alternas entre ellas en carrera.
+  Con **Siguiente layout** alternas entre ellos en carrera.
 
-- **Por coche**: el interruptor **Cambiar sola al subirte a un coche** (desactivado de serie) y una sola lista de
+- **Por coche**: el interruptor **Cambiar de layout al subirte a un coche** (desactivado de serie) y una sola lista de
   coches, primero en el que estás, después los recientes y los de tus récords, cada uno con la
-  disposición que usa; esa disposición se aplica sola al subirte a ese modelo. Vincular un coche
-  activa el interruptor (con **Deshacer**, en la página o en la bandeja, que también vuelve a la
-  disposición que tenías). Estando en un coche sin disposición, la página ofrece **Usar «…»** y la bandeja
-  **Vincular … a «…»**, y al guardar una nueva puedes usarla para tu coche (marcado de inicio solo
-  si el interruptor ya está activado y el coche aún no tiene disposición). Cada disposición muestra sus coches como
-  etiquetas. Un coche sin vínculo se queda con la última que usaste.
+  layout que usa; ese layout se aplica automáticamente al subirte a ese modelo. Vincular un coche
+  activa el interruptor (con **Deshacer**, en la página o en la bandeja, que también vuelve al
+  layout que tenías). Estando en un coche sin layout, la página ofrece **Usar «…»** y la bandeja
+  **Vincular … a «…»**, y al guardar uno nuevo puedes usarlo para tu coche (marcado de inicio solo
+  si el interruptor ya está activado y el coche aún no tiene layout). Cada layout muestra sus coches como
+  etiquetas. Un coche sin vínculo se queda con el último que usaste.
 
 ## Atajos de teclado
 
@@ -632,7 +634,7 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 | `Ctrl+Mayús+H`      | Mostrar u ocultar todo el overlay de golpe                  |
 | `Ctrl+Mayús+E`      | Entrar o salir del modo edición                             |
 | `Ctrl+Mayús+O`      | Abrir los Ajustes (o traerlos al frente)                    |
-| (sin asignar)       | Siguiente disposición                                       |
+| (sin asignar)       | Siguiente layout                                            |
 | (sin asignar)       | Cambiar la referencia del delta                             |
 | (sin asignar)       | Nombres: piloto, equipo o ambos, en todos los widgets       |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |
@@ -641,11 +643,11 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - **Más acciones**, plegado bajo la tabla, tiene una fila por widget («Mostrar u ocultar
   Relativo»…): lo mismo que su ojo en la barra lateral o su casilla en la bandeja (que muestra el
   atajo junto al widget). Ninguna tiene atajo de serie; se despliega solo si alguna lo tiene. Para
-  quitar o poner un widget en carrera sin cambiar de disposición; el aviso sobre el juego dice
+  quitar o poner un widget en carrera sin cambiar de layout; el aviso sobre el juego dice
   «Oculto: Posiciones» o «Visible: Posiciones».
 - **Nombres: piloto, equipo o ambos** pasa todos los widgets al siguiente de Piloto, Equipo y
   Equipo · piloto (el **Nombres de** de Apariencia y el de cada widget que tenga uno propio,
-  también en cada disposición guardada, así que todos coinciden; si no coincidían, a Equipo). Se
+  también en cada layout guardado, así que todos coinciden; si no coincidían, a Equipo). Se
   guarda como cualquier opción y el aviso sobre el juego dice «Nombres: Equipo», «Nombres: Equipo ·
   piloto» o «Nombres: Piloto» (fuera de una sesión por equipos añade que se ven los pilotos). Si
   unos widgets mostraban unos nombres y otros otros, **Deshacer** en la bandeja lo devuelve.
@@ -664,8 +666,8 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
   una frase que haga falta (un atajo rechazado, el aviso de `AltGr`) sale debajo de esa misma
   columna.
 - Al usarlo (también `Esc` al salir del modo edición), un aviso breve arriba de la pantalla
-  donde están tus widgets dice qué ha hecho, o por qué no se ve nada (por ejemplo, «Solo hay una
-  disposición»); también confirma **Traer todos…** y **Vincular…** de la bandeja. Se apaga en
+  donde están tus widgets dice qué ha hecho, o por qué no se ve nada (por ejemplo, «Solo hay un
+  layout»); también confirma **Traer todos…** y **Vincular…** de la bandeja. Se apaga en
   **Confirmar sobre el juego**. La fila de la acción dice «Pulsado hace 3 s», para probarlo desde
   el juego, y si un atajo no se puede
   registrar, la bandeja lo dice bajo el estado.
@@ -731,14 +733,14 @@ sigue funcionando.
 OverLap puede llevar tus widgets a **OBS, Streamlabs, vMix o XSplit** como **fuente de navegador**:
 una página que tu programa de streaming pinta encima del juego, con el fondo transparente. Eliges
 qué widgets van al stream, aparte de lo que ves en pantalla, y colocas y das tamaño a cada uno en tu
-programa de streaming. Se activa en **Ajustes › Streaming**.
+programa de streaming. Se activa en **Ajustes › Streaming y VR**.
 
 **Cómo añadir un widget a OBS**
 
 Tu programa de streaming va en **este mismo PC**, o en un PC de streaming aparte de tu red de casa
 con **Desde otro PC de mi red** (mira **Un PC de streaming aparte**, más abajo).
 
-1. En **Ajustes › Streaming**, activa **Activar el modo streaming**.
+1. En **Ajustes › Streaming y VR**, activa **Activar el modo streaming**.
 2. En OBS: arrastra **Arrastrar a OBS**, junto al widget (a la pantalla o a la cortina), hasta la
    escena de OBS. OBS pregunta si añade la fuente («Add Source via URL»): di **Sí**. Crea una fuente
    de navegador con su nombre («OverLap · Relativo») y su tamaño: el de tu pantalla, y para un widget
@@ -852,7 +854,7 @@ mi red**, y es **de solo lectura**: una página
 solo puede recibir los datos de los widgets, no puede cambiar nada de OverLap. Rechaza peticiones de
 otras webs, sirve solo los archivos de la página del stream (y la copia de la imagen de la cortina,
 si eliges una; ningún otro archivo tuyo) y a cada página le manda solo lo que
-pintan sus widgets (nunca los nombres de tus mandos, tus atajos ni tus disposiciones). Su puerto es fijo para
+pintan sus widgets (nunca los nombres de tus mandos, tus atajos ni tus layouts). Su puerto es fijo para
 que tus fuentes de OBS sigan funcionando; si otro programa lo usa, la página lo dice y ofrece uno
 libre, pero OverLap nunca lo cambia por su cuenta. Nada del modo streaming toca iRacing: enseña los
 mismos datos que los widgets ya leen.
@@ -868,6 +870,54 @@ más, hasta cinco minutos (un código viejo tras **Cambiar el código** se recha
 fuente olvidada en OBS nunca deja fuera al PC de streaming); la petición debe nombrar este PC por su
 dirección de red o su nombre; el código nunca se escribe en el registro. Apagado, nada escucha en tu
 red.
+
+## VR
+
+OverLap no dibuja dentro del visor, pero [OpenKneeboard](https://openkneeboard.com), un programa
+gratuito, puede enseñar tus widgets en VR. Está probado con unas Quest 3S y Meta Horizon Link. Los
+mismos pasos están en **Ajustes › Streaming y VR**, con el botón **Guía de VR** de arriba.
+
+**En tu PC**
+
+1. Instala OpenKneeboard. En OverLap, activa **Activar el modo streaming**.
+2. Marca **En el stream** los widgets que quieras ver en el visor y copia su URL con **Copiar URL**.
+3. En OpenKneeboard, abre **Settings › Tabs**, pulsa **Add a tab**, elige **Web Dashboard** y pega la
+   URL. Cada widget va en su propia pestaña, y la página le dice a OpenKneeboard su nombre y su
+   tamaño, así que el widget llena su panel con fondo transparente.
+
+**En el visor**
+
+4. Con unas Quest, abre Meta Horizon Link y márcalo como runtime de OpenXR activo en **Settings ›
+   General**. Conéctalas con Link o Air Link.
+5. En iRacing, elige **OpenXR** en el menú de modo de pantalla, arriba a la derecha. El modo Oculus
+   no funciona con OpenKneeboard.
+6. Entra en pista con el visor puesto. El panel sale sobre tus rodillas y el widget aparece cuando
+   iRacing está en marcha.
+
+**Colocar el panel**
+
+7. Asigna una tecla a **Recenter VR** en **Settings › Input** de OpenKneeboard y púlsala sentado como
+   conduces, mirando al frente. Eso desbloquea la posición en **Settings › Virtual Reality**.
+8. Este es un buen punto de partida para verlo delante de ti:
+
+| Ajuste de OpenKneeboard | Valor |
+| --- | --- |
+| Vertical distance from eye level | 0,25 m |
+| Forward position | 0,70 m |
+| Left-to-right position | a tu gusto, por ejemplo -0,30 m |
+| Kneeboard width y height limit | 0,40 m |
+| Pitch | 67°, para que mire hacia ti |
+
+Para ver varios widgets a la vez, añade más vistas en **Settings › Virtual Reality**. También puedes
+pegar la URL de una pantalla y verlos todos juntos, aunque más pequeños.
+
+**Si algo falla.** Si no ves el panel, pulsa Recenter y comprueba que OpenXR está activado en
+OpenKneeboard. Si queda detrás del cockpit, cierra iRacing y pon `DepthLayerExtensionEnabled=0` en la
+sección `[OpenXR]` de `Documents\iRacing\rendererDX11OpenXR.ini`.
+
+**El antitrampas.** OpenKneeboard se engancha al dibujo del juego. Su
+[página de compatibilidad](https://openkneeboard.com/compatibility/games/) dice que no les consta
+ningún baneo, pero que el riesgo teórico existe, así que usarlo es decisión tuya.
 
 ## Privacidad y anti-cheat
 

@@ -5,6 +5,28 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.8.0] - 2026-11-01
+
+### Added
+
+- **OverLap in VR through OpenKneeboard**, a free program that shows web pages inside the headset.
+  Add a **Web Dashboard** tab there and paste a widget's URL. The page tells OpenKneeboard its name
+  and size, so each tab is named after its widget and the widget fills its panel with a transparent
+  background. It is tested with a Quest 3S and Meta Horizon Link. The **VR guide** button at the top
+  of **Settings › Streaming & VR**, which is the page's new name, and the README's VR section give
+  every step: iRacing in OpenXR, placing the panel and what to do if it does not show.
+- **A Discord for OverLap**: suggest ideas, report faults and share your layouts. It is linked beside
+  the **Settings** title and in **About and help**.
+
+### Changed
+
+- **The Spanish interface now says «layout»** instead of «disposición». Searching the settings for
+  «disposición» or «diseño» still finds the page.
+- **`overlap.log` no longer shows your Windows user name**, so it is safer to attach to a bug report.
+  Your user folder is written as `%USERPROFILE%` in every line, and the lines earlier versions left
+  in `overlap.log` and `overlap.old.log` are cleaned the next time OverLap starts. The log can still
+  contain driver names from your sessions.
+
 ## [2.7.2] - 2026-11-01
 
 ### Changed
@@ -1620,6 +1642,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.8.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.0
 [2.7.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.2
 [2.7.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.1
 [2.7.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.0
