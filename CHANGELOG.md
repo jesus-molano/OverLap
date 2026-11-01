@@ -5,6 +5,24 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.7.2] - 2026-11-01
+
+### Changed
+
+- **Every text reads as a person would say it.** Settings, the tray, the confirmations over the game
+  and the stream pages use natural, complete sentences instead of fragments glued with semicolons
+  and colons, in Spanish and in English, at the same length or shorter. The labels on the widgets
+  themselves do not change.
+- **Descriptions sit under their title everywhere**, never beside it: the info bars’ sides, the
+  hidden items of a list, a layout’s mode, **How they work** on Shortcuts, the edit-mode banner and
+  **Overlay hidden**, as well as the preview’s tip.
+
+### Added
+
+- **A reminder after changing the streaming port**: your sources still use the old one, so drag them
+  to OBS again or copy their URLs again. It goes away when you close it or when a source connects on
+  the new port.
+
 ## [2.7.1] - 2026-11-01
 
 ### Added
@@ -1602,6 +1620,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.7.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.2
 [2.7.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.1
 [2.7.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.0
 [2.6.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.6.0
