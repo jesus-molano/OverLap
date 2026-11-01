@@ -300,8 +300,10 @@ page), your session best, your optimal lap from sectors, the class fastest lap o
 and it can differ in practice, qualifying and race: by default, your personal best in practice and
 your optimal lap in qualifying and race. With **Fall back to the next one** (on), while that
 reference does not exist the delta uses the next one (for example, your personal best until you
-have a clean lap); off, it shows no delta until it exists. **Bar range** (1 s by default, from 0.5
-to 3 s) is what fills it. Only legal laps count: without going off track (not even with an iRacing
+have a clean lap); off, it shows no delta until it exists. In team races, **In team races, compare
+with** decides whose laps your session best and your optimal lap count: yours by default (the
+team's, with a **team** tag, until you have a clean one) or the whole team's. **Bar range** (1 s by
+default, from 0.5 to 3 s) is what fills it. Only legal laps count: without going off track (not even with an iRacing
 1x), without stopping, without pit lane, tow or yellow; a touch or a spin does not invalidate it.
 The reference only changes when a lap starts.
 

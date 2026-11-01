@@ -308,8 +308,10 @@ Delta), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor 
 óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
 personal en práctica y tu vuelta óptima en clasificación y en carrera. Con **Usar la siguiente si
 no existe** (activado), mientras no haya esa referencia el delta usa la siguiente (por ejemplo, tu
-récord hasta tener una vuelta limpia); apagado, no muestra delta hasta que exista. **Rango de la
-barra** (1 s de serie, de 0,5 a 3 s) es lo que la llena. Solo cuentan las vueltas legales: sin
+récord hasta tener una vuelta limpia); apagado, no muestra delta hasta que exista. **En carreras por
+equipos, comparar con** decide de quién son las vueltas de tu mejor vuelta y tu óptima: tuyas de
+serie (las del equipo, con la etiqueta **equipo**, hasta que tengas una limpia) o de todo el equipo.
+**Rango de la barra** (1 s de serie, de 0,5 a 3 s) es lo que la llena. Solo cuentan las vueltas legales: sin
 salirte de pista (tampoco con un 1x de iRacing), sin pararte, sin pit lane, grúa ni amarilla; un
 toque o un trompo no la invalidan. La referencia solo cambia al empezar una vuelta.
 

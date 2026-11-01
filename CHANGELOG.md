@@ -5,6 +5,21 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.9.0] - 2026-11-01
+
+### Changed
+
+- **The delta in team races compares with your own laps.** The session best and the optimal lap
+  used to count every driver in your car, so the slower driver always chased a teammate's times.
+  Now they only count the laps you drive, and so does the lap times row. Until you have a clean lap
+  the delta uses the team's, with a **team** tag next to the reference. To go back, set **In team
+  races, compare with** to the whole team in **Settings › Delta**.
+
+### Fixed
+
+- A class fastest lap that a teammate set in your car was named as yours (**You**). It now carries
+  the **team** tag.
+
 ## [2.8.1] - 2026-11-01
 
 ### Added
@@ -1649,6 +1664,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.9.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.9.0
 [2.8.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.1
 [2.8.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.0
 [2.7.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.2
