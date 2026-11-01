@@ -881,13 +881,13 @@ steps are in **Settings › Streaming & VR**, under the **VR guide** button at t
    drive, looking ahead. That unlocks the position in **Settings › Virtual Reality**.
 8. This is a good starting point to have it in front of you:
 
-| OpenKneeboard setting | Value |
-| --- | --- |
-| Vertical distance from eye level | 0.25 m |
-| Forward position | 0.70 m |
-| Left-to-right position | to taste, for example -0.30 m |
-| Kneeboard width and height limit | 0.40 m |
-| Pitch | 67°, so it faces you |
+| OpenKneeboard setting            | Value                         |
+| -------------------------------- | ----------------------------- |
+| Vertical distance from eye level | 0.25 m                        |
+| Forward position                 | 0.70 m                        |
+| Left-to-right position           | to taste, for example -0.30 m |
+| Kneeboard width and height limit | 0.40 m                        |
+| Pitch                            | 67°, so it faces you          |
 
 To see several widgets at once, add more views in **Settings › Virtual Reality**. You can also paste a
 screen's URL to see them all together, only smaller.

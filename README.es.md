@@ -901,13 +901,13 @@ mismos pasos están en **Ajustes › Streaming y VR**, con el botón **Guía de 
    conduces, mirando al frente. Eso desbloquea la posición en **Settings › Virtual Reality**.
 8. Este es un buen punto de partida para verlo delante de ti:
 
-| Ajuste de OpenKneeboard | Valor |
-| --- | --- |
-| Vertical distance from eye level | 0,25 m |
-| Forward position | 0,70 m |
-| Left-to-right position | a tu gusto, por ejemplo -0,30 m |
-| Kneeboard width y height limit | 0,40 m |
-| Pitch | 67°, para que mire hacia ti |
+| Ajuste de OpenKneeboard          | Valor                           |
+| -------------------------------- | ------------------------------- |
+| Vertical distance from eye level | 0,25 m                          |
+| Forward position                 | 0,70 m                          |
+| Left-to-right position           | a tu gusto, por ejemplo -0,30 m |
+| Kneeboard width y height limit   | 0,40 m                          |
+| Pitch                            | 67°, para que mire hacia ti     |
 
 Para ver varios widgets a la vez, añade más vistas en **Settings › Virtual Reality**. También puedes
 pegar la URL de una pantalla y verlos todos juntos, aunque más pequeños.

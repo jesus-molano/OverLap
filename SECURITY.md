@@ -21,8 +21,8 @@ Please include, if you can:
 - what happens and how to reproduce it;
 - what an attacker could do with it.
 
-If you attach the log (`overlap.log`), review it first and remove any personal data (paths with
-your Windows user name, driver names).
+If you attach the log (`overlap.log`), review it first and remove any personal data (driver names,
+for example).
 
 ## What to expect
 

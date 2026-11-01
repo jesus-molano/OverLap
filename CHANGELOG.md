@@ -5,6 +5,13 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.8.1] - 2026-11-01
+
+### Added
+
+- **A way to OverLap's website**: **About and help** has a button that opens
+  [overlapsim.com](https://overlapsim.com), and the READMEs link to it.
+
 ## [2.8.0] - 2026-11-01
 
 ### Added
@@ -1642,6 +1649,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.8.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.1
 [2.8.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.0
 [2.7.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.2
 [2.7.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.1

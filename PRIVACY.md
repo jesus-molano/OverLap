@@ -20,8 +20,8 @@ also reads your wheel's buttons (through Windows Raw Input) if you bind a shortc
 - backup copies of those two files (`settings.json.bak`, `settings.json.v5.bak`,
   `personal-bests.json.bak`) and, if you use the simulated data mode, its own `mock/` subfolder;
 - `overlap.log` (and `overlap.old.log`): the app's log, for diagnosing problems. It can contain
-  paths on your computer (with your Windows user name) and driver names from your sessions. It
-  never leaves your computer unless you copy it;
+  paths on your computer (your user folder is written as `%USERPROFILE%`, without your Windows user
+  name) and driver names from your sessions. It never leaves your computer unless you copy it;
 - `update-state.json` and `.updaterId`: the updater's state and a random id it creates (see the
   updater, below);
 - Electron/Chromium's own caches and storage (no personal data).
