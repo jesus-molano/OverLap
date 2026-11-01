@@ -5,6 +5,88 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.7.0] - 2026-11-01
+
+### Added
+
+- **Streaming mode** (**Settings › Streaming**, off by default): your widgets in **OBS, Streamlabs,
+  vMix or XSplit** as a **browser source**, transparent, placed and sized in your streaming program.
+  OverLap opens a small local server only while it is on: it listens on `127.0.0.1` only (nothing on
+  your network or the internet can reach it), refuses requests from other web sites (Host and Origin
+  checks) and is read only (a page can only receive the widgets' data; nothing it sends is read).
+  Off, no port is open. It serves the stream page's own files only (by their exact names, from the
+  build's manifest), takes at most 16 pages, and sends a page only the settings its widgets draw
+  with (never controller names, shortcuts or layouts). Your streaming program must run on the same
+  PC.
+- **One URL per widget** (`http://127.0.0.1:39217/w/relative`…), drawn by the same widgets as the
+  overlay, scaled to the source's size, and one **screen mirror** per screen
+  (`…/screen/1`): the stream's widgets where they are over the game, a replacement for capturing the
+  overlay window.
+- **Widgets in the stream**, chosen apart from what you see on screen: a widget can be in the stream
+  while it is hidden on your screen (OverLap then computes it for the stream only). By default:
+  Standings, Relative, Inputs, Delta and Battle; Fuel (strategy) and the driver aids (Radar,
+  Spotter, Traffic, Warning lights, Alerts) stay out until you tick them. Each row has **Copy URL**
+  and the size to give the source (the width, and room in height, for a widget that grows with the
+  session). Off, the page says the URLs do not answer yet; a mistyped address draws nothing on the
+  stream. The pedals' trace is drawn at the source's size, as sharp as the text.
+- **Setup curtain** (`…/curtain`): while iRacing shows the garage (IsGarageVisible), an opaque panel
+  with your text (“Adjusting the car…” by default) covers the stream; transparent the rest of the
+  time, and never on your own screen. Once up, it stays up if the connection drops (OverLap
+  restarting, streaming turned off) until OverLap is back and you leave the garage.
+- **An image on the setup curtain** (**Setup curtain › Image**, «Imagen»): your logo or a
+  background, PNG, JPG, WebP or GIF (animated too) up to 20 MB, checked by its first bytes and not
+  its name. OverLap keeps a copy in its folder (`stream/`), so it keeps working if you move the
+  file; the settings only say there is one, never where it came from. **Sizing: Fill** (default)
+  **or Fit**, **Show the text on top** (on by default: low, on a soft plate with a shadow), and
+  **Remove image** (deletes the copy). The stream changes at once, without reloading the source.
+  The server serves that copy only, at `/curtain/image` (with the same Host and Origin checks;
+  404 without one), and no other file of yours. **Import everything** never brings an image
+  (this PC's stays); **Reset everything** takes it off the curtain and keeps the copy until
+  OverLap next starts, so its **Undo** brings it back. **Search settings** finds it by
+  imagen/image, logo, foto/picture and fondo de la cortina.
+- **Brand logos in the stream**: As on screen (default), Monochrome, Text or None.
+- **Hide the overlay from capture** (off by default): Windows leaves OverLap's windows out of screen
+  captures, also out of your own recordings and Discord; Windows does not guarantee every program
+  honours it.
+- A fixed, editable **port** (39217 by default, away from SimHub's 8888 and obs-websocket's 4455);
+  when another program has it, the page says so and offers a free one, but OverLap never changes it
+  by itself, so OBS sources never break silently. The page shows how many sources are connected.
+- The stream pages **reconnect by themselves** when OBS reloads them or OverLap restarts, **reload
+  themselves** after an OverLap update, stay **empty and transparent while iRacing is not running**,
+  and take `?preview=1` to show sample content while you place them. They are built for the
+  Chromium 127 of OBS 31/32's browser source and bring their own font (Inter, SIL OFL 1.1) for a PC
+  without Segoe UI Variable.
+- A short guide on the page for OBS, Streamlabs, vMix and XSplit, and a **Streaming** section in the
+  user guide. **Search settings** finds it by streaming, OBS, Twitch, URL, curtain/cortina, setup
+  and capture/captura.
+- Measured with the mock race and two stream pages connected (`/w/inputs` at 60 Hz and a screen
+  mirror): about 115 messages and 85 KB per second on the loopback, and some 2 % of one core more in
+  OverLap's main process (0.2 to 5 % over three rounds); with no page connected the server does no
+  work at all.
+- **Traffic: the gap as in the Relative.** Battle's **Gap** option, in Traffic's Content with the
+  same choices: **Unsigned** (by default, as always: “catches you in 6 s”, “you catch it in
+  5 s”) or **As Relative**, where each car line shows its time exactly as the Relative does,
+  positive ahead and negative behind, without the words before it. A hazard keeps “at 3.2 s”:
+  how far it is, not a rival.
+
+### Changed
+
+- **Widget page tabs: no change dot.** A dot on a tab read as something pending; each section's ↺
+  and the **Reset…** menu say what differs from the defaults.
+- The renderer is built for Chromium 127 (OBS's browser source); Electron's newer Chromium runs it
+  the same.
+- The README's and PRIVACY.md's network wording: the update check is still the only connection to
+  the internet; streaming mode only listens on this PC.
+- **Reset everything** and **Import everything** keep this computer's stream port (your OBS sources
+  have it); an import also keeps whether streaming mode is on here, so it never opens a port.
+
+### Pending / known
+
+- OBS 31/32 (Chromium 127) and 33: every URL, the Inputs trace at 60 Hz, transparency, the curtain
+  in the garage; Streamlabs, vMix and XSplit.
+- That Windows Firewall does not ask on a clean Windows 11 (the server is on 127.0.0.1 only).
+- Which programs honour **Hide the overlay from capture**.
+
 ## [2.6.0] - 2026-11-01
 
 ### Added
@@ -1420,6 +1502,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.7.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.0
 [2.6.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.6.0
 [2.5.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.3
 [2.5.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.2

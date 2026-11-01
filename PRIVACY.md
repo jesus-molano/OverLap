@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 31-10-2026.
+Last updated: 01-11-2026.
 
 _En español: puedes hacer cualquier pregunta sobre privacidad en español en un issue._
 
@@ -57,6 +57,24 @@ Releases (`github.com/jesus-molano/OverLap`):
 - **it can be turned off** in **Settings › About and help › Updates › Check for updates
   automatically** (on by default); off, OverLap only connects when you press **Check now**. The
   portable only checks and tells you: it never downloads or installs a version.
+
+**Streaming mode (from 2.7).** Off by default. When you turn it on in **Settings › Streaming**,
+OverLap opens a small web server **on your own computer only**, so OBS, Streamlabs, vMix or XSplit
+can show your widgets as a browser source:
+
+- **where**: it listens only on `127.0.0.1` (this computer), on the port you choose (`39217` by
+  default). Nothing on your network or the internet can connect to it, and it connects to nothing:
+  it is not an internet connection. Turned off, no port is open;
+- **what it serves**: the stream page and the widgets' live data (the same the overlay shows: the
+  drivers in your session, positions, gaps, your inputs…), only to programs on your computer that
+  open its addresses, and only the settings those widgets draw with (never your controllers' names,
+  shortcuts or layouts). It is read only: nothing they send can change OverLap. It refuses requests
+  that come from other web sites. Importing a backup never turns it on. If you give the setup
+  curtain an image, it also serves OverLap's copy of that image, and no other file of yours;
+- **what it keeps**: nothing new, except the copy of the curtain's image if you choose one (in
+  OverLap's folder, `stream/`; **Remove image** deletes it); the server writes only a line in
+  `overlap.log` when it starts or stops;
+- what your streaming program then broadcasts is up to you and that program.
 
 Apart from this, OverLap makes no network connections at all.
 

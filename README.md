@@ -4,7 +4,7 @@ Español: [README.es.md](README.es.md)
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
-An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws eleven widgets
+An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws its widgets
 on top of the game: relative, standings, battle, traffic, radar, spotter, delta, fuel, inputs,
 alerts and warning lights. Each one can be placed, scaled and customised to your taste, and you can
 save a different layout for each car.
@@ -30,6 +30,7 @@ track, the panel lets the game show through according to the opacity you choose.
 - [Layouts](#layouts)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [When the overlay shows](#when-the-overlay-shows)
+- [Streaming](#streaming)
 - [Privacy and anti-cheat](#privacy-and-anti-cheat)
 - [Known issues](#known-issues)
 - [Licence and credits](#licence-and-credits)
@@ -236,9 +237,12 @@ when nobody is near. The header (the title) takes more data, and there is an opt
 In Content, how far it looks: **Look behind** (12 s by default), **Look ahead** (8 s) and **Hazards
 up to** (8 s); **Entries per group** (3 by default, from 1 to 5) and **Multiclass only** (on: in a
 single-class race it only warns about whoever laps you or passes you under a blue flag, and about
-hazards). In Customise, the **Groups** (Hazards, Slower traffic and Faster class) and the
-**Columns** of each line (icon, class, driver, flags, words before the time, time and sector) are
-reordered and hidden, and **Group captions** (on) puts the name above each group.
+hazards). **Gap**, as in Battle: **Unsigned** (by default: “catches you in 6 s”, “you catch it in 5
+s”) or **As Relative** (each car's time as the Relative shows it, positive ahead and negative
+behind, without the words before it); a hazard always reads “at 3.2 s”. In Customise, the **Groups**
+(Hazards, Slower traffic and Faster class) and the **Columns** of each line (icon, class, driver,
+flags, words before the time, time and sector) are reordered and hidden, and **Group captions** (on)
+puts the name above each group.
 
 ### Radar
 
@@ -399,8 +403,8 @@ readable and centred on your row (or stays fixed, or is always a strip: **Scroll
 footer). Under the preview, each widget's page has **tabs**, the same names in the same order on
 every page: **Content**, **Customise**, the widget's own tab where it has one (**Drivers** on
 Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights) and
-**Window and visibility**. A small dot on a tab means some of its settings differ from the defaults
-(its tooltip says how many). The tab bar stays under the folded preview, `Ctrl+PgUp` / `Ctrl+PgDn`
+**Window and visibility**. No mark on a tab says it has changes: each section's ↺ and the
+**Reset…** menu at the top do that. The tab bar stays under the folded preview, `Ctrl+PgUp` / `Ctrl+PgDn`
 change tab, and the tab you chose is kept as you go from widget to widget while the window is open.
 In a narrow window the tabs drop their icons, then say **Window** (and **Bests**), and only then
 scroll sideways. Lines in one tab take you to a setting in another: “Which alerts show · Go to
@@ -432,7 +436,7 @@ report, without names) and **Open log**.
 
 - **Per widget**: visible, locked, background (the global one from Appearance or its own opacity;
   only the panel: the text stays sharp and, at low opacity, gets an outline), scale (the same row
-  and the same 80/100/125/150% buttons in all eleven; in Relative, Radar, Spotter and Delta it
+  and the same 80/100/125/150% buttons in every widget; in Relative, Radar, Spotter and Delta it
   changes the size of its window, like the wheel in edit mode), automatic or fixed height, which way
   it grows (down or up, with automatic height), which sessions it shows in, hide in the pits (except
   Alerts, which warns about the limiter and the pit entry) and show on the session screen (except
@@ -469,7 +473,7 @@ report, without names) and **Open log**.
   (no background: just the text over the game, with its outline; no alternating rows, logos or
   flags, number as a stripe, licence as letter only), **Compact** (small but readable: compact rows,
   text at 85%, surnames, number as a stripe, licence as letter only, no logos or country flags) and
-  **Complete** (background at 90%, logos always and everything in view in the eleven widgets of the
+  **Complete** (background at 90%, logos always and everything in view in every widget of the
   layout in use: every column, element, info bar and alert; the widgets grow so the text does not
   shrink). If it is going to change something you set yourself, it first tells you what changes
   (from before to after) and where it is saved, and waits for you to **Apply**; everything is undone
@@ -483,7 +487,7 @@ report, without names) and **Open log**.
   layouts choose that).
 - **Appearance**: language, accent colour (it marks you and nothing else), widget background (80% by
   default, the one all follow except those with their own), text size (it multiplies the scale of
-  all eleven widgets: in Relative, Radar, Spotter and Delta, which fill their window, it enlarges
+  every widget: in Relative, Radar, Spotter and Delta, which fill their window, it enlarges
   their window in the same proportion, in all your layouts), text outline, density and alternating
   rows, licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
   °F, gallons in Fuel and feet in the radar range), **SIM tag** (marks the widgets with simulated
@@ -579,7 +583,7 @@ overlay shows and the shortcuts are always the same.
 - It is switched from the tray (**Layout** submenu), from the Settings or with the **Next layout**
   shortcut.
 - **Examples**: **Light** (Relative with 2 cars ahead and 2 behind, Radar, Delta, Fuel and Alerts)
-  and **All eleven** (all eleven widgets) are added to the list with your widgets where they are,
+  and **All widgets** (every widget) are added to the list with your widgets where they are,
   without being applied; with **Next layout** you switch between less and more information in a
   race.
 - **By car** (off by default): links a layout to the car you are in, to a recent one or to one of
@@ -688,8 +692,78 @@ In **Settings › Visibility**:
   and its name leads to it.
 - Edit mode always shows every widget, with the reason if one is hidden.
 
-For OBS, use the window capture “Display N · OverLap” (it brings every widget on that screen) or the
-display capture.
+For OBS and other streaming programs, see [Streaming](#streaming): your widgets as browser
+sources, with a transparent background. Capturing the window “Display N · OverLap” or the display
+still works too.
+
+## Streaming
+
+OverLap can put your widgets in **OBS, Streamlabs, vMix or XSplit** as a **browser source**: a web
+page your streaming program draws over the game, with a transparent background. You choose which
+widgets go to the stream, apart from what you see on screen, and you place and size each one in
+your streaming program. Turn it on in **Settings › Streaming**.
+
+**How to add a widget to OBS**
+
+Your streaming program must run on **this same PC**: the server only answers programs on this PC,
+so a separate streaming PC cannot connect (use game capture or NDI there instead).
+
+1. In **Settings › Streaming**, turn on **Turn on streaming mode** and press **Copy URL** next to
+   the widget (or the screen).
+2. In OBS (or Streamlabs): **Add source › Browser**, paste the URL and set the width and height the
+   page shows for that widget (**Size in OBS**). Any size with the same proportions works: the
+   widget scales to the source. A widget that grows with the session (Standings, Relative…) only
+   gives its width: leave room in height, below it the source is transparent.
+3. Turn off **Refresh browser when scene becomes active**: the source reconnects by itself when
+   OverLap restarts, and reloads itself after an OverLap update.
+4. vMix: **Add Input › Web Browser**. XSplit: **Add Source › Webpage**. Same URL and size.
+
+Add `?preview=1` to the end of a URL to see sample content while you place it without iRacing.
+While iRacing is not running the sources stay empty and transparent: no “Waiting for iRacing”.
+
+**The addresses** (the port is `39217` unless you change it):
+
+- `http://127.0.0.1:39217/w/relative` (one per widget: `standings`, `battle`, `inputs`,
+  `delta`…): that widget alone. It shows only while it is ticked **In the stream**, even if you hid
+  it on your screen. In the stream by default: Standings, Relative, Inputs, Delta and Battle. Fuel
+  (strategy your rivals could read live) and the driver aids (Radar, Spotter, Traffic, Warning
+  lights, Alerts) are off until you tick them.
+- `http://127.0.0.1:39217/screen/1` (one per screen, the **screen mirror**): what OverLap draws
+  over the game on that screen, where it is, transparent, but only the stream's widgets. It replaces
+  capturing the overlay window.
+- `http://127.0.0.1:39217/curtain` (**Setup curtain**): while iRacing shows the garage (the setup
+  screen), an opaque panel with your text (“Adjusting the car…” unless you write another) covers the
+  stream; the rest of the time it is transparent. Put it on top of everything in OBS, at the canvas
+  size. It only appears in the stream, never on your screen.
+
+  **Image** (in **Setup curtain**): your logo or a background image for the curtain, with
+  **Choose image…**: PNG, JPG, WebP or GIF (animated too), up to 20 MB. OverLap keeps a copy in its
+  folder, so it keeps working if you move the file, and the stream changes at once, without
+  reloading the source. **Sizing**: **Fill** (default: fills the curtain, cropping what is left
+  over) or **Fit** (all of it shows, with dark bands). **Show the text on top** (on by default) puts
+  your text low over the image with a shadow and a soft backing. **Remove image** deletes the copy. A
+  backup never carries the image: importing one keeps this PC's.
+
+**Brand logos in the stream** can be **As on screen** (default), **Monochrome**, **Text** (the
+make's three letters) or **None**. **Hide the overlay from capture** (off by default) asks Windows to
+leave OverLap's windows out of screen captures, so the overlay does not appear if you capture the
+game or the screen; it also disappears from your own recordings, screenshots and Discord shares,
+and Windows does not guarantee every program honours it.
+
+If streaming mode is off, or the server stops, a curtain that is up stays up until OverLap is back
+and you leave the garage. A mistyped address draws nothing on the stream (with `?preview=1` it says
+so).
+
+**Privacy and security.** The server only exists while streaming mode is on (off, no port is open;
+importing a backup never turns it on), it listens only on this PC (`127.0.0.1`: nothing on your
+network or the internet can connect) and it is **read only**: a page can only receive the widgets'
+data, it cannot change anything in OverLap. It refuses requests from other web sites, serves only
+the stream page's own files (and the copy of the curtain's image, if you choose one; no other file
+of yours), and sends a page only what its widgets draw with (never your
+controllers' names, shortcuts or layouts). Its port is fixed so your OBS sources keep
+working; if another program uses it, the page says so and offers a free one, but OverLap never
+changes it by itself. Nothing in streaming mode touches iRacing: it shows the same data the widgets
+already read.
 
 ## Privacy and anti-cheat
 
@@ -706,6 +780,9 @@ display capture.
   in **About and help › Updates**. Your settings and personal bests stay on your computer. The
   buttons in **About and help** (guide, issues, licence, third-party notices and download) only
   open the browser when you click them.
+- **Streaming mode, on this PC only**: off by default. Turned on, it opens a read-only local server
+  on `127.0.0.1` for your streaming program; nothing on your network or the internet can reach it,
+  and nothing goes out (see [Streaming](#streaming)).
 - It does not turn on iRacing's `.ibt` telemetry recording.
 
 The full privacy policy is in [PRIVACY.md](PRIVACY.md).
@@ -768,9 +845,9 @@ anyone.
 - **Who publishes:** every release is built and uploaded by hand by the author,
   [jesus-molano](https://github.com/jesus-molano), only to this repository's
   [Releases](https://github.com/jesus-molano/OverLap/releases). Download OverLap only from there.
-- **Privacy:** see [PRIVACY.md](PRIVACY.md). OverLap's only network use is the update check against
-  this repository's GitHub Releases, which can be turned off; it sends nothing about iRacing or your
-  settings.
+- **Privacy:** see [PRIVACY.md](PRIVACY.md). OverLap's only connection to the internet is the
+  update check against this repository's GitHub Releases, which can be turned off; it sends nothing
+  about iRacing or your settings. Streaming mode (off by default) only listens on this PC.
 
 ## Support OverLap
 

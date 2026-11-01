@@ -4,7 +4,7 @@ English: [README.md](README.md)
 
 [![Invítame a un café en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
-Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja once
+Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja sus
 widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, delta,
 combustible, pedales, avisos y testigos. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar una disposición distinta para cada coche.
@@ -31,6 +31,7 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 - [Disposiciones](#disposiciones)
 - [Atajos de teclado](#atajos-de-teclado)
 - [Cuándo se ve el overlay](#cuándo-se-ve-el-overlay)
+- [Streaming](#streaming)
 - [Privacidad y anti-cheat](#privacidad-y-anti-cheat)
 - [Problemas conocidos](#problemas-conocidos)
 - [Licencia y créditos](#licencia-y-créditos)
@@ -244,10 +245,12 @@ opcional.
 En Contenido, hasta dónde mira: **Mirar atrás** (12 s de serie), **Mirar delante** (8 s) y
 **Peligros hasta** (8 s); **Entradas por grupo** (3 de serie, de 1 a 5) y **Solo en multiclase**
 (activado: en una carrera de una sola clase solo avisa de quien te dobla o te adelanta con bandera
-azul, y de los peligros). En Personalizar, los **Grupos** (Peligros, Tráfico lento y Clase más
-rápida) y las **Columnas** de cada línea (icono, clase, piloto, banderas, texto antes del tiempo,
-tiempo y sector) se ordenan y se ocultan, y **Rótulos de los grupos** (activado) pone el nombre
-encima de cada grupo.
+azul, y de los peligros). **Hueco**, como en Batalla: **Sin signo** (de serie: «te alcanza en 6 s»,
+«le alcanzas en 5 s») o **Como Relativo** (el tiempo de cada coche tal como lo muestra el Relativo,
+positivo delante y negativo detrás, sin el texto antes del tiempo); un peligro siempre dice «a 3.2
+s». En Personalizar, los **Grupos** (Peligros, Tráfico lento y Clase más rápida) y las **Columnas**
+de cada línea (icono, clase, piloto, banderas, texto antes del tiempo, tiempo y sector) se ordenan y
+se ocultan, y **Rótulos de los grupos** (activado) pone el nombre encima de cada grupo.
 
 ### Radar
 
@@ -411,8 +414,8 @@ tu fila (o queda fija, o siempre en franja: **Al bajar**, en su pie). Bajo la vi
 de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
 **Contenido**, **Personalizar**, la propia del widget si la tiene (**Pilotos** en Relativo,
 Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos) y **Ventana y
-visibilidad**. Un punto discreto en una pestaña indica que tiene ajustes cambiados respecto a
-fábrica (su texto de ayuda dice cuántos). La barra de pestañas se queda bajo la vista previa
+visibilidad**. Ninguna marca en las pestañas indica cambios: eso lo dicen el ↺ de cada sección y
+el menú **Restablecer…** de arriba. La barra de pestañas se queda bajo la vista previa
 plegada, `Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
 de un widget a otro mientras la ventana sigue abierta. En una ventana estrecha las pestañas
 pierden los iconos, luego ponen **Ventana** y solo entonces se desplazan de lado. Algunas líneas
@@ -447,7 +450,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 
 - **Por widget**: visible, bloqueado, fondo (el global de Apariencia o una opacidad propia; solo el
   panel: el texto sigue nítido y, con poca opacidad, lleva contorno), escala (la misma fila y los
-  mismos botones 80/100/125/150 % en los once; en Relativo, Radar, Spotter y Delta cambia el tamaño de su
+  mismos botones 80/100/125/150 % en todos; en Relativo, Radar, Spotter y Delta cambia el tamaño de su
   ventana, como la rueda en modo edición), alto automático o fijo, hacia dónde crece (abajo o arriba, con alto automático), en qué sesiones
   se muestra, ocultar en boxes (salvo Avisos, que avisa del limitador y de la entrada a boxes) y
   mostrar en la pantalla de sesión (salvo los que solo tienen datos en el coche; de serie, solo
@@ -482,7 +485,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   muestras más coches, para que el texto no encoja), **Limpio** (sin fondo: solo el texto sobre el
   juego, con su contorno; sin filas alternas, logos ni banderas, número en franja, licencia solo letra), **Compacto**
   (pequeño pero legible: filas compactas, texto al 85 %, apellidos, número en franja, licencia solo
-  letra, sin logos ni banderas de país) y **Completo** (fondo al 90 %, logos siempre y todo a la vista en los once widgets de la disposición en uso: cada columna,
+  letra, sin logos ni banderas de país) y **Completo** (fondo al 90 %, logos siempre y todo a la vista en todos los widgets de la disposición en uso: cada columna,
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
@@ -494,7 +497,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   vuelve todo de serie. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
   unidades, los sitios ni qué widgets se ven (eso lo eligen las disposiciones).
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
-  por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de los once widgets:
+  por defecto, el que siguen todos salvo los que tengan uno propio), tamaño del texto (multiplica la escala de todos los widgets:
   en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
@@ -591,7 +594,7 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
 - **Ejemplos**: **Ligera** (Relativo con 2 coches delante y 2 detrás, Radar, Delta, Combustible y
-  Avisos) y **Los once** (los once widgets) se añaden a la lista con tus widgets donde están, sin
+  Avisos) y **Todos los widgets** se añaden a la lista con tus widgets donde están, sin
   aplicarse; con **Siguiente disposición** alternas entre menos y más información en carrera.
 - **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
   uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche
@@ -703,8 +706,82 @@ En **Ajustes › Visibilidad**:
   lateral), y su nombre lleva a ella.
 - El modo edición siempre enseña todos los widgets, con el motivo si alguno está oculto.
 
-Para OBS, usa la captura de ventana «Pantalla N · OverLap» (trae todos los widgets de esa pantalla)
-o la captura de pantalla.
+Para OBS y otros programas de streaming, mira [Streaming](#streaming): tus widgets como fuentes de
+navegador, con el fondo transparente. Capturar la ventana «Pantalla N · OverLap» o la pantalla
+sigue funcionando.
+
+## Streaming
+
+OverLap puede llevar tus widgets a **OBS, Streamlabs, vMix o XSplit** como **fuente de navegador**:
+una página que tu programa de streaming pinta encima del juego, con el fondo transparente. Eliges
+qué widgets van al stream, aparte de lo que ves en pantalla, y colocas y das tamaño a cada uno en tu
+programa de streaming. Se activa en **Ajustes › Streaming**.
+
+**Cómo añadir un widget a OBS**
+
+Tu programa de streaming debe estar en **este mismo PC**: el servidor solo responde a programas de
+este PC, así que con un PC de streaming aparte no funciona (usa allí la captura del juego o NDI).
+
+1. En **Ajustes › Streaming**, activa **Activar el modo streaming** y pulsa **Copiar URL** junto al
+   widget (o a la pantalla).
+2. En OBS (o Streamlabs): **Añadir fuente › Navegador**, pega la URL y pon el ancho y el alto que
+   indica la página para ese widget (**Tamaño en OBS**). Vale cualquier tamaño con la misma
+   proporción: el widget se escala a la fuente. Un widget que crece con la sesión (Posiciones,
+   Relativo…) solo indica el ancho: deja alto de sobra, debajo la fuente es transparente.
+3. Desactiva **Actualizar el navegador cuando la escena se active** (Refresh browser when scene
+   becomes active): la fuente se reconecta sola cuando OverLap se reinicia y se recarga sola tras una
+   actualización de OverLap.
+4. vMix: **Añadir entrada › Web Browser**. XSplit: **Añadir fuente › Página web**. Misma URL y
+   tamaño.
+
+Añade `?preview=1` al final de una URL para ver un ejemplo mientras la colocas sin iRacing.
+Mientras iRacing no está abierto, las fuentes quedan vacías y transparentes: sin «Esperando a
+iRacing».
+
+**Las direcciones** (el puerto es `39217` salvo que lo cambies):
+
+- `http://127.0.0.1:39217/w/relative` (una por widget: `standings`, `battle`, `inputs`,
+  `delta`…): ese widget solo. Se ve mientras está marcado **En el stream**, aunque lo hayas ocultado
+  en tu pantalla. De serie van al stream Posiciones, Relativo, Pedales, Delta y Batalla.
+  Combustible (estrategia que un rival podría leer en directo) y las ayudas al piloto (Radar,
+  Spotter, Tráfico, Testigos, Avisos) quedan fuera hasta que los marques.
+- `http://127.0.0.1:39217/screen/1` (una por pantalla, el **espejo de pantalla**): lo que OverLap
+  dibuja sobre el juego en esa pantalla, en su sitio y transparente, pero solo los widgets del
+  stream. Sustituye a capturar la ventana del overlay.
+- `http://127.0.0.1:39217/curtain` (**Cortina de setup**): mientras iRacing enseña el garaje (la
+  pantalla de setup), un panel opaco con tu texto («Ajustando el coche…» si no escribes otro) tapa el
+  stream; el resto del tiempo es transparente. Ponla encima de todo en OBS, con el tamaño del lienzo.
+  Solo sale en el stream, nunca en tu pantalla.
+
+  **Imagen** (en **Cortina de setup**): tu logo o una imagen de fondo para la cortina, con
+  **Elegir imagen…**: PNG, JPG, WebP o GIF (también animado), hasta 20 MB. OverLap guarda una copia
+  en su carpeta, así que sigue funcionando aunque muevas el archivo, y cambia en el stream al
+  momento, sin recargar la fuente. **Ajuste**: **Cubrir** (de serie: llena la cortina y recorta lo
+  que sobra) o **Encajar** (se ve entera, con bandas oscuras). **Mostrar el texto encima** (de serie
+  sí) pone tu texto abajo, sobre la imagen, con una sombra y un fondo suave. **Quitar imagen** borra la
+  copia. Una copia de seguridad no lleva la imagen: al importarla se queda la de este PC.
+
+Los **logos de marcas en el stream** pueden ir **Como en pantalla** (de serie), **Monocromo**,
+**Texto** (las tres letras de la marca) o **Nada**. **Ocultar el overlay de la captura** (apagado de
+serie) pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así que el
+overlay no sale si capturas el juego o la pantalla; también desaparece de tus propias grabaciones,
+capturas y de lo que compartes en Discord, y Windows no garantiza que todos los programas lo
+respeten.
+
+Si apagas el modo streaming o el servidor se para, una cortina que está puesta sigue puesta hasta
+que OverLap vuelve y sales del garaje. Una dirección mal escrita no pinta nada en el stream (con
+`?preview=1` lo dice).
+
+**Privacidad y seguridad.** El servidor solo existe mientras el modo streaming está activado
+(apagado, no hay ningún puerto abierto; importar una copia nunca lo activa), escucha solo en este PC
+(`127.0.0.1`: nada de tu red ni de internet puede conectarse) y es **de solo lectura**: una página
+solo puede recibir los datos de los widgets, no puede cambiar nada de OverLap. Rechaza peticiones de
+otras webs, sirve solo los archivos de la página del stream (y la copia de la imagen de la cortina,
+si eliges una; ningún otro archivo tuyo) y a cada página le manda solo lo que
+pintan sus widgets (nunca los nombres de tus mandos, tus atajos ni tus disposiciones). Su puerto es fijo para
+que tus fuentes de OBS sigan funcionando; si otro programa lo usa, la página lo dice y ofrece uno
+libre, pero OverLap nunca lo cambia por su cuenta. Nada del modo streaming toca iRacing: enseña los
+mismos datos que los widgets ya leen.
 
 ## Privacidad y anti-cheat
 
@@ -721,6 +798,9 @@ o la captura de pantalla.
   se apaga en **Acerca de y ayuda › Actualizaciones**. Tus ajustes y récords se quedan en tu equipo.
   Los botones de **Acerca de y ayuda** (guía, problemas, licencia, avisos de terceros y descargar)
   solo abren el navegador cuando los pulsas.
+- **Modo streaming, solo en este PC**: apagado de serie. Activado, abre un servidor local de solo
+  lectura en `127.0.0.1` para tu programa de streaming; nada de tu red ni de internet puede
+  llegar a él y no sale nada (mira [Streaming](#streaming)).
 - No activa la grabación de telemetría `.ibt` de iRacing.
 
 La política de privacidad completa está en [PRIVACY.md](PRIVACY.md).
@@ -785,9 +865,10 @@ controla las actualizaciones. Ninguna release de OverLap está firmada por nadie
   [jesus-molano](https://github.com/jesus-molano), solo a las
   [releases](https://github.com/jesus-molano/OverLap/releases) de este repositorio. Descarga OverLap
   solo de ahí.
-- **Privacidad:** ver [PRIVACY.md](PRIVACY.md). La única conexión de OverLap es la búsqueda de
-  actualizaciones en las releases de GitHub de este repositorio, que se puede apagar; no envía nada
-  de iRacing ni de tus ajustes.
+- **Privacidad:** ver [PRIVACY.md](PRIVACY.md). La única conexión de OverLap a internet es la
+  búsqueda de actualizaciones en las releases de GitHub de este repositorio, que se puede apagar; no
+  envía nada de iRacing ni de tus ajustes. El modo streaming (apagado de serie) solo escucha en este
+  PC.
 
 ## Apoyar OverLap
 
