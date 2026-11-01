@@ -44,6 +44,46 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   (this PC's stays); **Reset everything** takes it off the curtain and keeps the copy until
   OverLap next starts, so its **Undo** brings it back. **Search settings** finds it by
   imagen/image, logo, foto/picture and fondo de la cortina.
+- **Drag to OBS**, next to every **Copy URL** (widgets, screen mirrors, curtain): a link you drag
+  from the Streaming page onto OBS's scene, and OBS makes the Browser source itself (it asks each
+  time, “Add Source via URL”: say Yes), named “OverLap · Relative” and at the widget's size on your
+  screen (a list that grows with the session, such as Standings, gets its width and room to grow,
+  600 to 1440 px; another auto-height widget, such as Inputs, twice its height; a mirror and the
+  curtain get the canvas size). It uses the `layer-name`, `layer-width` and `layer-height`
+  parameters OBS reads from a dropped URL and takes out of the URL it saves (OBS 28 to 32); the
+  server ignores them. A click on it opens nothing and says, for a moment, to drag it. **Copy URL**
+  stays for Streamlabs, vMix and XSplit.
+- **From another PC on my network** (**Settings › Streaming › Separate streaming PC**, off by
+  default): for a separate streaming PC at home. On, the server also listens on this PC's private
+  IPv4 addresses (followed as they change; the likely one listed first) and answers only computers
+  on that address's own network (its subnet: never a public address, carrier-grade NAT or another
+  private network such as a VPN's). Everything from them must carry this PC's code: 20 random
+  characters made on this PC the first time, shown in groups of four without I, L, O or U, typed in
+  any case and with or without dashes; in the address (`?t=`), or for the stream page's own files
+  in an HttpOnly, SameSite cookie named after the port and sent only to `/assets/`; compared in
+  constant time, never written to the log. The right code always passes; an address that tries
+  wrong codes waits, from 1 s doubling up to 5 min, and the code before **Change the code** (an OBS
+  source still retrying with it) or a wrong cookie alone is refused without counting, so the
+  streaming PC is never locked out. The Host must be one of this PC's network addresses or its
+  name, and the Origin checks stay. This PC needs no code, as before. Turned off, the network
+  listener closes and the other PC's sources are dropped at once. The code belongs to this PC:
+  **Import everything** and **Reset everything** keep it (a reset turns the switch off), a backup
+  file never carries it. The page explains it in numbered steps in plain words (turn it on; type this
+  address exactly into the browser's bar on the streaming PC, “Try this first” when there are two
+  and “If the first one doesn't open, try this”, with **Copy address**; enter this PC's code, hidden
+  until **Show** since the Settings window is often on stream; drag each widget into its OBS; if
+  Windows asks, tick only “Private networks”), a line on how the other PC is doing (“Waiting for the
+  other PC”, “Connected: 1 source from another PC”, “You changed the code: update the other PC's
+  sources” until one is back, “Off: the other PC gets nothing”), a short **If it doesn't work** list
+  (same home network, address bar, the other address, network set to Private, the firewall's
+  Private tick, the installed version, a changed code), and **Change the code** on its own quieter
+  line with a second click that says what to redo on the other PC.
+- **Links page** (`…/links`): every address of the stream on one plain page, to open in a browser on the
+  streaming PC and drag each source into its OBS (each one with a grip and “Drag to OBS”), or
+  **Copy URL** (its one script, allowed by its hash, copies over plain http or selects the address
+  for Ctrl+C); from another PC every address on it carries the code, and without the code
+  the page is a small form to type it (it says when the code was wrong, changed, or tried too often, from the try that makes it wait); the
+  warning that the addresses carry the code shows once, small, at the end.
 - **Brand logos in the stream**: As on screen (default), Monochrome, Text or None.
 - **Hide the overlay from capture** (off by default): Windows leaves OverLap's windows out of screen
   captures, also out of your own recordings and Discord; Windows does not guarantee every program
@@ -71,14 +111,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- **Layouts page, easier to read** (same features and settings): each row is its name, its cars,
+  **Apply** (or **In use**) and a **⋯** menu with the rest; drag a row by its handle (or use the
+  arrow keys on it) to reorder. Three blocks: the list, **New layout** (what it restores, the
+  examples and the import folded under **More options**) and **Per car**, with every car link in
+  one list, whose switch is now **Switch by itself when you get in a car** (it was **By car**).
+  **Bring every widget to this screen** moved to **Visibility › Screens**, above the widget table.
+- **New examples** (**Layouts › More options › New from an example**): **Balanced** (the essentials
+  for a race in comfortable places, factory options) and **Race engineer** (every widget, small and
+  dense along the edges, each in its other look) replace Light and All widgets. Each comes with its
+  own places for the screen your widgets are on (drawn for 1920 x 1080, kept to their edges on any
+  16:9 size) and its own options; your settings and your Appearance are untouched.
 - **Widget page tabs: no change dot.** A dot on a tab read as something pending; each section's ↺
   and the **Reset…** menu say what differs from the defaults.
 - The renderer is built for Chromium 127 (OBS's browser source); Electron's newer Chromium runs it
   the same.
 - The README's and PRIVACY.md's network wording: the update check is still the only connection to
-  the internet; streaming mode only listens on this PC.
+  the internet; streaming mode only listens on this PC, or also on your home network, with a code,
+  when you turn that on.
 - **Reset everything** and **Import everything** keep this computer's stream port (your OBS sources
   have it); an import also keeps whether streaming mode is on here, so it never opens a port.
+
+### Fixed
+
+- **Column titles** in the standings and the relative are never cut off any more, in Spanish or
+  English, at any size or density: the narrow columns use the timing screens' short words (STN for
+  the stint, PAR. / STOP for the lap of the last stop, LIC for the licence letter, GAP for the gap
+  to the leader in English), the tyre column gets its title (NEU / TYR), the relative's position
+  and tyre columns are a little wider for theirs, and a test checks every title against its column.
 
 ### Pending / known
 

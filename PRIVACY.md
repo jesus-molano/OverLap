@@ -63,7 +63,8 @@ OverLap opens a small web server **on your own computer only**, so OBS, Streamla
 can show your widgets as a browser source:
 
 - **where**: it listens only on `127.0.0.1` (this computer), on the port you choose (`39217` by
-  default). Nothing on your network or the internet can connect to it, and it connects to nothing:
+  default), unless you also turn on the option below. Nothing on your network or the internet can
+  connect to it, and it connects to nothing:
   it is not an internet connection. Turned off, no port is open;
 - **what it serves**: the stream page and the widgets' live data (the same the overlay shows: the
   drivers in your session, positions, gaps, your inputs…), only to programs on your computer that
@@ -74,6 +75,18 @@ can show your widgets as a browser source:
 - **what it keeps**: nothing new, except the copy of the curtain's image if you choose one (in
   OverLap's folder, `stream/`; **Remove image** deletes it); the server writes only a line in
   `overlap.log` when it starts or stops;
+- **from another PC on your network** (off by default, **From another PC on my network**): only
+  when you turn it on, it also listens on this computer's private network addresses, for a separate
+  streaming PC at home. It answers only computers on the same home network (never the internet, nor
+  carrier-grade NAT, nor another private network such as a VPN's), and only requests that carry this
+  computer's code: a random code made on this computer, kept in its settings (an import and **Reset
+  everything** keep it, a backup file never carries it; the Settings page shows it only when you
+  press **Show**), sent in the address, and for the stream page's own files in a cookie (it holds
+  only the code, is named after the port and is sent only to `/assets/` paths). Wrong
+  codes make that address wait. The code is never written to `overlap.log`; the log notes only the
+  network addresses it listens on and an address that tried wrong codes. **Change the code** makes a
+  new one. Windows Firewall asks you when you turn it on: allow private networks only. Turned off,
+  it stops listening on your network at once;
 - what your streaming program then broadcasts is up to you and that program.
 
 Apart from this, OverLap makes no network connections at all.

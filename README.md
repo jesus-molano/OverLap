@@ -538,7 +538,7 @@ game.
   (“move Relative”, “resize Relative”, “hide Battle”). When you leave edit mode they are forgotten.
 - Drag it off its screen to take it to another (“Release to move it to the other display”). If you
   disconnect a monitor, **Bring every widget to this screen** (in the tray, to the mouse's screen,
-  or in **Layouts › Screens**, to the Settings' screen) brings them all back at once. For a minute
+  or in **Visibility › Screens**, to the Settings' screen) brings them all back at once. For a minute
   it can be undone from either place (**Undo: …** in the tray).
 - The radar always stays above the other widgets (so you never lose the car alongside you). In edit
   mode, its label says which panels it covers (“Covers: Alerts, Delta”) and a covered panel says
@@ -569,12 +569,18 @@ overlay shows and the shortcuts are always the same.
 
 - Each layout is **Position and options** (default) or **Position only**: the latter only moves the
   widgets and uses the **shared options**, shared by every position-only layout. You choose it when
-  saving or importing it, and change it later with **Edit**.
-- In **Settings › Layouts** you save the current one with a name and apply, edit, duplicate,
-  reorder, export to a `.json` (with its options), import or delete (the one in use cannot be
-  deleted). Up to 30 layouts; **Search layouts** finds them by name or by car, and **Sort by** lists
-  them in your order (**Custom**, default, the same as the tray and the shortcut), by **Name** or by
-  **Recently used**. The tray shows the first five and **More…**.
+  saving or importing it (under **More options**), and change it later with **Rename or edit**; only a
+  position-only layout says so on its row.
+- **Settings › Layouts** has three blocks. **Saved layouts**: each row shows its name, its cars and
+  **Apply** (or **In use**); its **⋯** menu has **Rename or edit** (a double click on the name
+  does the same), **Duplicate**, **Export…** (a `.json` with its options), **Move up** / **Move
+  down** and **Delete** (the one in use cannot be deleted).
+  Drag a row by its handle, or focus the handle and use the arrow keys, to change your order. **New
+  layout** saves what you see with a name; its **More options** fold, which lists what it holds, has
+  what the new one will restore, **New from an example** and **Import from a file**. **Per car** holds every car link. Up to 30 layouts;
+  **Search layouts** finds them by name or by car, and **Sort by** lists them in your order
+  (**Custom**, default, the same as the tray and the shortcut), by **Name** or by **Recently used**.
+  The tray shows the first five and **More…**.
 - **The one in use updates by itself** when you move, resize, hide or lock a widget and when you
   change its options. On each widget's page, under the preview (with two or more layouts, or a
   position-only one), it says where what you change is saved (**Saving to:** the layout, or
@@ -582,16 +588,26 @@ overlay shows and the shortcuts are always the same.
   every layout.
 - It is switched from the tray (**Layout** submenu), from the Settings or with the **Next layout**
   shortcut.
-- **Examples**: **Light** (Relative with 2 cars ahead and 2 behind, Radar, Delta, Fuel and Alerts)
-  and **All widgets** (every widget) are added to the list with your widgets where they are,
-  without being applied; with **Next layout** you switch between less and more information in a
-  race.
-- **By car** (off by default): links a layout to the car you are in, to a recent one or to one of
-  your personal bests, and it applies by itself when you get into that model; linking a car turns
-  it on (with **Undo**, on the page or in the tray, which also goes back to the layout you had).
-  While in a car with no layout, the page and the tray offer **Link to “…”**, and when saving a new
-  one you can link it to your car (ticked to begin with only if **By car** is already on). Each
-  layout shows its cars as tags. A car with no link keeps the last one you used.
+- **New from an example** (in **More options**) adds one of two very different overlays to the
+  list, without applying it, with its own places (for the screen your widgets are on: drawn for
+  1920 x 1080, kept to their edges on any 16:9 size and in the middle of an ultrawide) and options;
+  your Appearance stays:
+  - **Balanced**: the essentials for a race (Relative, Radar, Delta, Fuel, Alerts and Inputs) in
+    comfortable places and at a good size, with the factory options.
+  - **Race engineer**: every widget, small and full of data, along the edges (the mirror and the
+    road stay clear), each one in its other look: every column, more cars, a bar per reference,
+    the car's readouts...
+
+  With **Next layout** you switch between them in a race.
+
+- **Per car**: the **Switch by itself when you get in a car** switch (off by default) and one list of cars, the one you are in
+  first, then recent ones and those of your personal bests, each with the layout it uses; that
+  layout applies by itself when you get into that model. Linking a car turns the switch on (with
+  **Undo**, on the page or in the tray, which also goes back to the layout you had). While in a car
+  with no layout, the page offers **Use “…”** and the tray **Link … to “…”**, and when saving a new
+  one you can use it for your car (ticked to begin with only if the switch is already on and the
+  car has no layout yet). Each layout shows its
+  cars as tags. A car with no link keeps the last one you used.
 
 ## Keyboard shortcuts
 
@@ -705,18 +721,22 @@ your streaming program. Turn it on in **Settings › Streaming**.
 
 **How to add a widget to OBS**
 
-Your streaming program must run on **this same PC**: the server only answers programs on this PC,
-so a separate streaming PC cannot connect (use game capture or NDI there instead).
+Your streaming program runs on **this same PC**, or on a separate streaming PC on your home network
+with **From another PC on my network** (see **A separate streaming PC** below).
 
-1. In **Settings › Streaming**, turn on **Turn on streaming mode** and press **Copy URL** next to
-   the widget (or the screen).
-2. In OBS (or Streamlabs): **Add source › Browser**, paste the URL and set the width and height the
-   page shows for that widget (**Size in OBS**). Any size with the same proportions works: the
-   widget scales to the source. A widget that grows with the session (Standings, Relative…) only
-   gives its width: leave room in height, below it the source is transparent.
-3. Turn off **Refresh browser when scene becomes active**: the source reconnects by itself when
+1. In **Settings › Streaming**, turn on **Turn on streaming mode**.
+2. In OBS: drag **Drag to OBS**, next to the widget (the screen or the curtain), onto the OBS
+   scene. OBS asks whether to add the source (“Add Source via URL”): say **Yes**. It makes a Browser
+   source with its name (“OverLap · Relative”) and size: the one on your screen, and for a widget that
+   grows with the session (Standings, Relative…) its width and room in height, below it the source
+   is transparent. The screen mirror and the curtain get the canvas size.
+3. With Streamlabs, or in OBS by hand: press **Copy URL**, **Add source › Browser**, paste the URL
+   and set the width and height the page shows for that widget (**Size in OBS**). Any size with the
+   same proportions works: the widget scales to the source.
+4. Turn off **Refresh browser when scene becomes active**: the source reconnects by itself when
    OverLap restarts, and reloads itself after an OverLap update.
-4. vMix: **Add Input › Web Browser**. XSplit: **Add Source › Webpage**. Same URL and size.
+5. vMix: **Add Input › Web Browser**. XSplit: **Add Source › Webpage**. Same URL and size (**Copy
+   URL**).
 
 Add `?preview=1` to the end of a URL to see sample content while you place it without iRacing.
 While iRacing is not running the sources stay empty and transparent: no “Waiting for iRacing”.
@@ -744,6 +764,50 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
   your text low over the image with a shadow and a soft backing. **Remove image** deletes the copy. A
   backup never carries the image: importing one keeps this PC's.
 
+**A separate streaming PC**
+
+With **From another PC on my network** (in **Separate streaming PC**, off by default), a second PC
+at home runs OBS and reads the widgets from the gaming PC over your network. The page explains it
+in numbered steps, with streaming mode already on:
+
+1. Turn on **From another PC on my network**.
+2. On the streaming PC, open a browser and type the address the page shows exactly into the bar at
+   the top (for example `http://192.168.1.37:39217/links`). If two show, the one marked **Try this
+   first**; if the first one doesn't open, try the other. (**Copy address** copies it with the code
+   already in it, in case you message it to the other PC.)
+3. Enter this PC's code (press **Show** to see it): 20 letters and digits in groups of four, without
+   I, L, O or U so none is misread; upper or lower case and dashes do not matter. It lists every
+   source of the stream.
+4. Drag each widget into its OBS (OBS asks whether to add the source: say **Yes**), or **Copy URL**
+   for other programs. Each address carries the code.
+5. If Windows asks, tick only **Private networks** and press **Allow** (never **Public networks**).
+
+Above the steps, a line says how the other PC is doing: **Waiting for the other PC**, **Connected: 1
+source from another PC**, **You changed the code: update the other PC's sources** or, when off,
+**Off: the other PC gets nothing**.
+
+**If it doesn't work** (the same list is under the steps):
+
+- Both PCs on the same home network or Wi‑Fi (OverLap does not answer another network, a VPN's
+  included).
+- OverLap open on this PC, with **From another PC on my network** on.
+- The address in the browser's address bar (not the search box), with the numbers at the end.
+- If a second address shows, try that one.
+- Windows: your network set to **Private** (**Settings › Network & internet**).
+- Firewall: OverLap with **Private** ticked (**Windows Security › Firewall & network protection ›
+  Allow an app through firewall**).
+- Use the installed version: the portable one runs from a new folder with each version, so Windows
+  asks again after every update.
+- Changed the code? Type the new one on the other PC and drag the sources again.
+
+The code is random and belongs to this PC (an import and **Reset everything** keep it; a backup
+never carries it). Whoever has this code sees your widgets: do not show the Settings window on
+stream. **Change the code** (on its own line, it asks for a second click) if you shared it by
+mistake: the other PC's sources stop working, and there you will have to open the address again,
+type the new code and drag them again; the line reminds you until a source of the other PC is back.
+Off, the other PC stops getting the widgets: its sources stay empty until you turn it back on (with
+the same code, they come back by themselves); this PC's keep working.
+
 **Brand logos in the stream** can be **As on screen** (default), **Monochrome**, **Text** (the
 make's three letters) or **None**. **Hide the overlay from capture** (off by default) asks Windows to
 leave OverLap's windows out of screen captures, so the overlay does not appear if you capture the
@@ -756,7 +820,8 @@ so).
 
 **Privacy and security.** The server only exists while streaming mode is on (off, no port is open;
 importing a backup never turns it on), it listens only on this PC (`127.0.0.1`: nothing on your
-network or the internet can connect) and it is **read only**: a page can only receive the widgets'
+network or the internet can connect) unless you turn on **From another PC on my network**, and it
+is **read only**: a page can only receive the widgets'
 data, it cannot change anything in OverLap. It refuses requests from other web sites, serves only
 the stream page's own files (and the copy of the curtain's image, if you choose one; no other file
 of yours), and sends a page only what its widgets draw with (never your
@@ -764,6 +829,17 @@ controllers' names, shortcuts or layouts). Its port is fixed so your OBS sources
 working; if another program uses it, the page says so and offers a free one, but OverLap never
 changes it by itself. Nothing in streaming mode touches iRacing: it shows the same data the widgets
 already read.
+
+With **From another PC on my network** on, it also listens on this PC's private network addresses
+(followed as they change), and there: only computers on the same network as that address may
+connect (the adapter's own subnet: never a public address, nor carrier-grade NAT, `100.64.0.0/10`,
+nor another private network such as a VPN's, also with the code), every request and connection must
+carry this PC's code (in the address; the page's own script and style files get it from a cookie
+named after the port and sent only to `/assets/`), compared in constant time; the right code
+always passes, while an address that tries wrong codes has to wait, longer each time, up to five
+minutes (an old code after **Change the code** is refused without counting, so a forgotten OBS
+source never locks the streaming PC out); the request must name this PC by its network address or
+its name; the code is never written to the log. Off, nothing listens on your network.
 
 ## Privacy and anti-cheat
 
@@ -782,7 +858,8 @@ already read.
   open the browser when you click them.
 - **Streaming mode, on this PC only**: off by default. Turned on, it opens a read-only local server
   on `127.0.0.1` for your streaming program; nothing on your network or the internet can reach it,
-  and nothing goes out (see [Streaming](#streaming)).
+  and nothing goes out. Only if you also turn on **From another PC on my network** does it answer
+  your home network, and only with this PC's code (see [Streaming](#streaming)).
 - It does not turn on iRacing's `.ibt` telemetry recording.
 
 The full privacy policy is in [PRIVACY.md](PRIVACY.md).
@@ -847,7 +924,8 @@ anyone.
   [Releases](https://github.com/jesus-molano/OverLap/releases). Download OverLap only from there.
 - **Privacy:** see [PRIVACY.md](PRIVACY.md). OverLap's only connection to the internet is the
   update check against this repository's GitHub Releases, which can be turned off; it sends nothing
-  about iRacing or your settings. Streaming mode (off by default) only listens on this PC.
+  about iRacing or your settings. Streaming mode (off by default) only listens on this PC, or also on
+  your home network, with a code, when you turn that on.
 
 ## Support OverLap
 

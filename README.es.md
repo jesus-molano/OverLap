@@ -548,7 +548,7 @@ juego.
   también **Deshacer: …** con lo que hiciste («mover Relativo», «cambiar el tamaño de Relativo»,
   «ocultar Batalla»). Al salir del modo edición se olvidan.
 - Arrástralo fuera de su pantalla para llevarlo a otra («Suelta para moverlo a la otra pantalla»). Si desconectas un monitor, **Traer todos
-  los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Disposiciones ›
+  los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Visibilidad ›
   Pantallas**, a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
   cualquiera de los dos sitios (**Deshacer: …** en la bandeja).
 - El radar siempre queda por encima de los demás widgets (para no perder nunca el coche que va a tu
@@ -580,28 +580,44 @@ tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mis
 
 - Cada disposición es **Posición y opciones** (de serie) o **Solo posición**: esta solo mueve los
   widgets y usa las **opciones comunes**, compartidas por todas las de solo posición. Lo eliges al
-  guardarla o importarla, y lo cambias luego con **Editar**.
-- En **Ajustes › Disposiciones** guardas la actual con un nombre y aplicas, editas, duplicas,
-  ordenas, exportas a un `.json` (con sus opciones), importas o eliminas (la que está en uso no se
-  puede eliminar). Hasta 30 disposiciones; **Buscar disposiciones** las encuentra por nombre o por
-  coche, y **Orden** las lista en tu orden (**Personalizado**, de serie, el mismo de la bandeja y
-  del atajo), por **Nombre** o por **Uso reciente**. La bandeja muestra las cinco primeras y
-  **Más…**.
+  guardarla o importarla (en **Más opciones**), y lo cambias luego con **Renombrar o editar**; solo una de solo
+  posición lo dice en su fila.
+- **Ajustes › Disposiciones** tiene tres bloques. **Disposiciones guardadas**: cada fila muestra
+  su nombre, sus coches y **Aplicar** (o **En uso**); su menú **⋯** tiene **Renombrar o editar**
+  (un doble clic en el nombre hace lo mismo), **Duplicar**,
+  **Exportar…** (un `.json` con sus opciones), **Subir** / **Bajar** y **Eliminar** (la que está
+  en uso no se puede eliminar). Arrastra una fila por su asa, o enfoca el asa y usa las flechas,
+  para cambiar tu orden. **Nueva disposición** guarda lo que ves con un nombre; su pliegue **Más
+  opciones**, que dice lo que contiene, tiene qué restaurará la nueva, **Nueva desde un ejemplo** e **Importar desde un archivo**. **Por
+  coche** reúne todos los vínculos con coches. Hasta 30 disposiciones; **Buscar disposiciones** las
+  encuentra por nombre o por coche, y **Orden** las lista en tu orden (**Personalizado**, de serie,
+  el mismo de la bandeja y del atajo), por **Nombre** o por **Uso reciente**. La bandeja muestra
+  las cinco primeras y **Más…**.
 - **La que está en uso se actualiza sola** al mover, redimensionar, ocultar o bloquear un widget y
   al cambiar sus opciones. En la página de cada widget, bajo la vista previa (con dos disposiciones o
   más, o una de solo posición), pone dónde se guarda lo que cambias (**Guardando en:** la disposición, u **Opciones comunes**), con **Copiar estas
   opciones a todas** para llevar las opciones de ese widget a todas las disposiciones.
 - Se cambia desde la bandeja (submenú **Disposición**), desde los Ajustes o con el atajo
   **Siguiente disposición**.
-- **Ejemplos**: **Ligera** (Relativo con 2 coches delante y 2 detrás, Radar, Delta, Combustible y
-  Avisos) y **Todos los widgets** se añaden a la lista con tus widgets donde están, sin
-  aplicarse; con **Siguiente disposición** alternas entre menos y más información en carrera.
-- **Según el coche** (desactivado de serie): vincula una disposición al coche en el que estás, a
-  uno reciente o a uno de tus récords, y se aplica sola al subirte a ese modelo; vincular un coche
-  lo activa (con **Deshacer**, en la página o en la bandeja, que también vuelve a la disposición
-  que tenías). Estando en un coche sin disposición, la página y la bandeja ofrecen **Vincular a
-  «…»**, y al guardar una nueva puedes vincularla a tu coche (marcado de inicio solo si **Según el
-  coche** ya está activado). Cada disposición muestra sus coches como
+- **Nueva desde un ejemplo** (en **Más opciones**) añade a la lista, sin aplicarla, una de dos
+  disposiciones muy distintas, con sus propios sitios (para la pantalla de tus widgets: dibujados
+  para 1920 x 1080, a la misma distancia de sus bordes en cualquier 16:9 y en el centro de una
+  ultrapanorámica) y opciones; tu Apariencia no cambia:
+  - **Equilibrada**: lo esencial para una carrera (Relativo, Radar, Delta, Combustible, Avisos y
+    Pedales) en sitios cómodos y a buen tamaño, con las opciones de fábrica.
+  - **Ingeniero de pista**: todos los widgets, pequeños y con todos los datos, en los bordes (el
+    retrovisor y la carretera quedan libres), cada uno en su otro aspecto: todas las columnas, más
+    coches, una barra por referencia, los datos del coche...
+
+  Con **Siguiente disposición** alternas entre ellas en carrera.
+
+- **Por coche**: el interruptor **Cambiar sola al subirte a un coche** (desactivado de serie) y una sola lista de
+  coches, primero en el que estás, después los recientes y los de tus récords, cada uno con la
+  disposición que usa; esa disposición se aplica sola al subirte a ese modelo. Vincular un coche
+  activa el interruptor (con **Deshacer**, en la página o en la bandeja, que también vuelve a la
+  disposición que tenías). Estando en un coche sin disposición, la página ofrece **Usar «…»** y la bandeja
+  **Vincular … a «…»**, y al guardar una nueva puedes usarla para tu coche (marcado de inicio solo
+  si el interruptor ya está activado y el coche aún no tiene disposición). Cada disposición muestra sus coches como
   etiquetas. Un coche sin vínculo se queda con la última que usaste.
 
 ## Atajos de teclado
@@ -719,20 +735,23 @@ programa de streaming. Se activa en **Ajustes › Streaming**.
 
 **Cómo añadir un widget a OBS**
 
-Tu programa de streaming debe estar en **este mismo PC**: el servidor solo responde a programas de
-este PC, así que con un PC de streaming aparte no funciona (usa allí la captura del juego o NDI).
+Tu programa de streaming va en **este mismo PC**, o en un PC de streaming aparte de tu red de casa
+con **Desde otro PC de mi red** (mira **Un PC de streaming aparte**, más abajo).
 
-1. En **Ajustes › Streaming**, activa **Activar el modo streaming** y pulsa **Copiar URL** junto al
-   widget (o a la pantalla).
-2. En OBS (o Streamlabs): **Añadir fuente › Navegador**, pega la URL y pon el ancho y el alto que
-   indica la página para ese widget (**Tamaño en OBS**). Vale cualquier tamaño con la misma
-   proporción: el widget se escala a la fuente. Un widget que crece con la sesión (Posiciones,
-   Relativo…) solo indica el ancho: deja alto de sobra, debajo la fuente es transparente.
-3. Desactiva **Actualizar el navegador cuando la escena se active** (Refresh browser when scene
+1. En **Ajustes › Streaming**, activa **Activar el modo streaming**.
+2. En OBS: arrastra **Arrastrar a OBS**, junto al widget (a la pantalla o a la cortina), hasta la
+   escena de OBS. OBS pregunta si añade la fuente («Add Source via URL»): di **Sí**. Crea una fuente
+   de navegador con su nombre («OverLap · Relativo») y su tamaño: el de tu pantalla, y para un widget
+   que crece con la sesión (Posiciones, Relativo…) su ancho y alto de sobra, debajo es transparente.
+   La pantalla y la cortina toman el tamaño del lienzo.
+3. Con Streamlabs, o en OBS a mano: pulsa **Copiar URL**, **Añadir fuente › Navegador**, pega la
+   URL y pon el ancho y el alto que indica la página para ese widget (**Tamaño en OBS**). Vale
+   cualquier tamaño con la misma proporción: el widget se escala a la fuente.
+4. Desactiva **Actualizar el navegador cuando la escena se active** (Refresh browser when scene
    becomes active): la fuente se reconecta sola cuando OverLap se reinicia y se recarga sola tras una
    actualización de OverLap.
-4. vMix: **Añadir entrada › Web Browser**. XSplit: **Añadir fuente › Página web**. Misma URL y
-   tamaño.
+5. vMix: **Añadir entrada › Web Browser**. XSplit: **Añadir fuente › Página web**. Misma URL y
+   tamaño (**Copiar URL**).
 
 Añade `?preview=1` al final de una URL para ver un ejemplo mientras la colocas sin iRacing.
 Mientras iRacing no está abierto, las fuentes quedan vacías y transparentes: sin «Esperando a
@@ -761,6 +780,51 @@ iRacing».
   sí) pone tu texto abajo, sobre la imagen, con una sombra y un fondo suave. **Quitar imagen** borra la
   copia. Una copia de seguridad no lleva la imagen: al importarla se queda la de este PC.
 
+**Un PC de streaming aparte**
+
+Con **Desde otro PC de mi red** (en **PC de streaming aparte**, apagado de serie), un segundo PC de
+tu casa lleva OBS y lee los widgets del PC de juego por tu red. La página lo explica en pasos
+numerados, con el modo streaming ya activado:
+
+1. Activa **Desde otro PC de mi red**.
+2. En el PC de streaming, abre el navegador y escribe tal cual, en la barra de arriba, la dirección
+   que enseña la página (por ejemplo `http://192.168.1.37:39217/links`). Si salen dos, la marcada
+   **Prueba primero esta**; si la primera no abre, prueba la otra. (**Copiar dirección** la copia con
+   el código ya puesto, por si te la mandas al otro PC en un mensaje.)
+3. Pon el código de este PC (pulsa **Mostrar** para verlo): 20 letras y números en grupos de cuatro,
+   sin I, L, O ni U para no confundirlas; da igual mayúsculas o minúsculas y los guiones. Salen todas
+   las fuentes del stream.
+4. Arrastra cada widget a su OBS (OBS pregunta si añade la fuente: di **Sí**), o **Copiar URL** para
+   otros programas. Cada dirección lleva el código.
+5. Si Windows pregunta, marca solo **Redes privadas** y pulsa **Permitir** (nunca **Redes
+   públicas**).
+
+Encima de los pasos, una línea dice cómo va el otro PC: **Esperando al otro PC**, **Conectado: 1
+fuente desde otro PC**, **Has cambiado el código: actualiza las fuentes del otro PC** o, apagado,
+**Apagado: el otro PC no recibe nada**.
+
+**Si no funciona** (la misma lista está bajo los pasos):
+
+- Los dos PCs, en la misma red de casa o Wi‑Fi (OverLap no contesta a otra red, tampoco a una VPN).
+- OverLap abierto en este PC, con **Desde otro PC de mi red** activado.
+- La dirección, en la barra de direcciones del navegador (no en el buscador) y con los números del
+  final.
+- Si sale una segunda dirección, prueba esa.
+- Windows: tu red como **Privada** (**Configuración › Red e Internet**).
+- Firewall: OverLap con **Privada** marcada (**Seguridad de Windows › Firewall y protección de red ›
+  Permitir una aplicación a través del firewall**).
+- Usa la versión instalada: la portable se ejecuta desde una carpeta nueva en cada versión, así que
+  Windows vuelve a preguntar tras cada actualización.
+- ¿Cambiaste el código? Escribe el nuevo en el otro PC y arrastra otra vez las fuentes.
+
+El código es aleatorio y es de este PC (importar y **Restablecer todo** lo conservan; una copia de
+seguridad nunca lo lleva). Quien tenga este código ve tus widgets: no enseñes la ventana de Ajustes
+en el stream. **Cambiar el código** (en su propia línea, pide un segundo clic) si lo has compartido
+sin querer: las fuentes del otro PC dejan de funcionar, y allí tendrás que volver a abrir la
+dirección, escribir el código nuevo y arrastrarlas otra vez; la línea lo recuerda hasta que vuelve
+una fuente del otro PC. Apagado, el otro PC deja de recibir los widgets: sus fuentes se quedan
+vacías hasta que lo vuelvas a activar (con el mismo código, vuelven solas); las de este PC siguen.
+
 Los **logos de marcas en el stream** pueden ir **Como en pantalla** (de serie), **Monocromo**,
 **Texto** (las tres letras de la marca) o **Nada**. **Ocultar el overlay de la captura** (apagado de
 serie) pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así que el
@@ -774,7 +838,8 @@ que OverLap vuelve y sales del garaje. Una dirección mal escrita no pinta nada 
 
 **Privacidad y seguridad.** El servidor solo existe mientras el modo streaming está activado
 (apagado, no hay ningún puerto abierto; importar una copia nunca lo activa), escucha solo en este PC
-(`127.0.0.1`: nada de tu red ni de internet puede conectarse) y es **de solo lectura**: una página
+(`127.0.0.1`: nada de tu red ni de internet puede conectarse) salvo que actives **Desde otro PC de
+mi red**, y es **de solo lectura**: una página
 solo puede recibir los datos de los widgets, no puede cambiar nada de OverLap. Rechaza peticiones de
 otras webs, sirve solo los archivos de la página del stream (y la copia de la imagen de la cortina,
 si eliges una; ningún otro archivo tuyo) y a cada página le manda solo lo que
@@ -782,6 +847,18 @@ pintan sus widgets (nunca los nombres de tus mandos, tus atajos ni tus disposici
 que tus fuentes de OBS sigan funcionando; si otro programa lo usa, la página lo dice y ofrece uno
 libre, pero OverLap nunca lo cambia por su cuenta. Nada del modo streaming toca iRacing: enseña los
 mismos datos que los widgets ya leen.
+
+Con **Desde otro PC de mi red** activado, escucha también en las direcciones de red privadas de este
+PC (las sigue si cambian), y ahí: solo pueden conectarse equipos de la misma red que esa dirección
+(la subred del adaptador: nunca una dirección pública, ni la de CGNAT, `100.64.0.0/10`, ni otra red
+privada como la de una VPN, aunque traigan el código), cada petición y cada conexión debe llevar el
+código de este PC (en la dirección; los archivos de código y estilo de la página lo toman de una
+cookie con el nombre del puerto que solo va a `/assets/`), comparado en tiempo constante; el código
+correcto siempre entra, y una dirección que prueba códigos equivocados tiene que esperar, cada vez
+más, hasta cinco minutos (un código viejo tras **Cambiar el código** se rechaza sin contar, así una
+fuente olvidada en OBS nunca deja fuera al PC de streaming); la petición debe nombrar este PC por su
+dirección de red o su nombre; el código nunca se escribe en el registro. Apagado, nada escucha en tu
+red.
 
 ## Privacidad y anti-cheat
 
@@ -800,7 +877,8 @@ mismos datos que los widgets ya leen.
   solo abren el navegador cuando los pulsas.
 - **Modo streaming, solo en este PC**: apagado de serie. Activado, abre un servidor local de solo
   lectura en `127.0.0.1` para tu programa de streaming; nada de tu red ni de internet puede
-  llegar a él y no sale nada (mira [Streaming](#streaming)).
+  llegar a él y no sale nada. Solo si activas también **Desde otro PC de mi red** responde a tu red
+  de casa, y solo con el código de este PC (mira [Streaming](#streaming)).
 - No activa la grabación de telemetría `.ibt` de iRacing.
 
 La política de privacidad completa está en [PRIVACY.md](PRIVACY.md).
@@ -868,7 +946,7 @@ controla las actualizaciones. Ninguna release de OverLap está firmada por nadie
 - **Privacidad:** ver [PRIVACY.md](PRIVACY.md). La única conexión de OverLap a internet es la
   búsqueda de actualizaciones en las releases de GitHub de este repositorio, que se puede apagar; no
   envía nada de iRacing ni de tus ajustes. El modo streaming (apagado de serie) solo escucha en este
-  PC.
+  PC, o también en tu red de casa, con un código, si lo activas.
 
 ## Apoyar OverLap
 
