@@ -5,6 +5,46 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.7.1] - 2026-11-01
+
+### Added
+
+- **Tell your screens apart** (**Streaming › Screen mirror**): each display draws its monitor small,
+  with the stream widgets on it where they are, and says how many it shows (“5 stream widgets”, “No
+  stream widgets”). **Identify** shows each display’s number in big over its monitor for three
+  seconds, so you know which one to drag; it never shows in a capture.
+- **Ctrl+K** (or **Ctrl+F**) anywhere in Settings puts the cursor in **Search settings**, which
+  shows the key while it is empty.
+
+### Changed
+
+- **The setup curtain’s text is optional**, with an image or without one: **Show text** (on by
+  default) off leaves a plain opaque panel, or your image alone.
+- **About and help** sits with the pages at the top of the sidebar, instead of at its foot under
+  the shortcut keys.
+- The accent colour shows in a few details of Settings: the current page’s rail and icon, a switch
+  that is on and a slider’s filled part. Everything else stays neutral.
+- The sidebar’s shortcut keys take one line each (Shift drawn as ⇧; the full keys on hover).
+- **Example layouts** say what they are (layouts made by OverLap to start from, added without
+  touching yours) before the chosen one’s description, and **More options** says what it holds
+  under its name.
+- The welcome’s **Where everything is** says that the tray icon opens a menu, and that widgets
+  showing when you get in the car is the default, which you can change in **Visibility**.
+- Section notes in Settings sit under their title, never beside it, so a narrow window no longer
+  breaks the title into a word per line.
+- The Streaming page explains itself better: what a screen mirror is for (one source with all of a
+  monitor’s stream widgets, instead of the single widgets, not with them), why a new source is empty
+  without iRacing on track and how to place it before (`?preview=1`), when **Hide the overlay from
+  capture** is needed (only if your streaming program captures the whole screen), and that the
+  setup curtain may cover the whole canvas or just a part. The texts speak of any streaming program,
+  with OBS as the example; the size each widget’s row gives is now “Source size”.
+
+### Fixed
+
+- **From another PC on my network**: turning it on for the first time could leave the page without
+  the address to type on the other PC and without this PC’s code until Settings was reopened. The
+  code is now made in the same change as the switch.
+
 ## [2.7.0] - 2026-11-01
 
 ### Added
@@ -1562,6 +1602,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.7.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.1
 [2.7.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.7.0
 [2.6.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.6.0
 [2.5.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.3

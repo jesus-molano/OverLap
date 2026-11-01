@@ -434,7 +434,7 @@ sesión que cambias en Delta, tu coche más atrás al cambiar los primeros puest
 coches por grupo al cambiar las entradas de Tráfico. Una lista que va dentro de un bloque oculto
 (los datos del coche en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de
 sus elementos se muestra también el bloque.
-Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
+Arriba de la barra lateral (o con **Ctrl+K**), **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
 lleva a él (abre su pestaña y su sección y lo señala), también los botones («exportar», «editar posición»,
 «restablecer») y las opciones de cada selector («imperiales», «apellido», «English»), por palabras
 de uso diario («zoom», «bloquear», «parpadeo», «daltonismo», «galones», «rpm», «tecla», «botón del
@@ -745,7 +745,7 @@ con **Desde otro PC de mi red** (mira **Un PC de streaming aparte**, más abajo)
    que crece con la sesión (Posiciones, Relativo…) su ancho y alto de sobra, debajo es transparente.
    La pantalla y la cortina toman el tamaño del lienzo.
 3. Con Streamlabs, o en OBS a mano: pulsa **Copiar URL**, **Añadir fuente › Navegador**, pega la
-   URL y pon el ancho y el alto que indica la página para ese widget (**Tamaño en OBS**). Vale
+   URL y pon el ancho y el alto que indica la página para ese widget (**Tamaño de la fuente**). Vale
    cualquier tamaño con la misma proporción: el widget se escala a la fuente.
 4. Desactiva **Actualizar el navegador cuando la escena se active** (Refresh browser when scene
    becomes active): la fuente se reconecta sola cuando OverLap se reinicia y se recarga sola tras una
@@ -766,18 +766,24 @@ iRacing».
   Spotter, Tráfico, Testigos, Avisos) quedan fuera hasta que los marques.
 - `http://127.0.0.1:39217/screen/1` (una por pantalla, el **espejo de pantalla**): lo que OverLap
   dibuja sobre el juego en esa pantalla, en su sitio y transparente, pero solo los widgets del
-  stream. Sustituye a capturar la ventana del overlay.
+  stream: una sola fuente con todos los widgets del stream de ese monitor. Úsala en lugar de los
+  widgets sueltos, no a la vez (saldrían repetidos). La fila de cada pantalla dibuja su monitor en
+  pequeño con sus widgets del stream y dice cuántos enseña; **Identificar** muestra en grande el
+  número de cada pantalla sobre su monitor tres segundos, para saber cuál arrastrar (la del monitor
+  donde juegas).
 - `http://127.0.0.1:39217/curtain` (**Cortina de setup**): mientras iRacing enseña el garaje (la
   pantalla de setup), un panel opaco con tu texto («Ajustando el coche…» si no escribes otro) tapa el
-  stream; el resto del tiempo es transparente. Ponla encima de todo en OBS, con el tamaño del lienzo.
-  Solo sale en el stream, nunca en tu pantalla.
+  stream; el resto del tiempo es transparente. Ponla encima de todo en tu programa de streaming: del
+  tamaño del lienzo para taparlo todo, o más pequeña para tapar solo una parte. Solo sale en el
+  stream, nunca en tu pantalla.
 
   **Imagen** (en **Cortina de setup**): tu logo o una imagen de fondo para la cortina, con
   **Elegir imagen…**: PNG, JPG, WebP o GIF (también animado), hasta 20 MB. OverLap guarda una copia
   en su carpeta, así que sigue funcionando aunque muevas el archivo, y cambia en el stream al
   momento, sin recargar la fuente. **Ajuste**: **Cubrir** (de serie: llena la cortina y recorta lo
-  que sobra) o **Encajar** (se ve entera, con bandas oscuras). **Mostrar el texto encima** (de serie
-  sí) pone tu texto abajo, sobre la imagen, con una sombra y un fondo suave. **Quitar imagen** borra la
+  que sobra) o **Encajar** (se ve entera, con bandas oscuras). **Mostrar texto** (de serie sí; con imagen
+  o sin ella) pone tu texto en la cortina, abajo sobre la imagen con una sombra y un fondo suave;
+  apagado, la cortina es solo el panel o tu imagen. **Quitar imagen** borra la
   copia. Una copia de seguridad no lleva la imagen: al importarla se queda la de este PC.
 
 **Un PC de streaming aparte**
@@ -827,8 +833,11 @@ vacías hasta que lo vuelvas a activar (con el mismo código, vuelven solas); la
 
 Los **logos de marcas en el stream** pueden ir **Como en pantalla** (de serie), **Monocromo**,
 **Texto** (las tres letras de la marca) o **Nada**. **Ocultar el overlay de la captura** (apagado de
-serie) pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así que el
-overlay no sale si capturas el juego o la pantalla; también desaparece de tus propias grabaciones,
+serie) es solo para un programa de streaming que captura la pantalla entera (en OBS, **Captura de
+pantalla**): pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así
+que el overlay de tu monitor no sale en esa captura y en el stream solo salen los widgets que añades
+como fuentes. Si capturas solo el juego (en OBS, **Captura de juego**), no hace falta. También
+desaparece de tus propias grabaciones,
 capturas y de lo que compartes en Discord, y Windows no garantiza que todos los programas lo
 respeten.
 

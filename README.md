@@ -421,7 +421,7 @@ another situation, the preview switches to it and says so below: the reference o
 change in Delta, your car further back when you change the top positions in Standings, five cars per
 group when you change the entries in Traffic. A list that sits inside a hidden block (the car data
 in Inputs, the lap times in Delta) says so below, and showing one of its items also shows the block.
-At the top of the sidebar, **Search settings** finds any setting by its words and takes you to it
+At the top of the sidebar (or with **Ctrl+K**), **Search settings** finds any setting by its words and takes you to it
 (it opens its tab and its section and points it out), the buttons too (“export”, “edit position”, “reset”) and
 the options of each selector (“imperial”, “surname”, “Español”), by everyday words (“zoom”, “lock”,
 “blinking”, “colour-blind”, “gallons”, “rpm”, “key”, “wheel button”, “per car”, “bigger”) or by
@@ -731,7 +731,7 @@ with **From another PC on my network** (see **A separate streaming PC** below).
    grows with the session (Standings, Relative…) its width and room in height, below it the source
    is transparent. The screen mirror and the curtain get the canvas size.
 3. With Streamlabs, or in OBS by hand: press **Copy URL**, **Add source › Browser**, paste the URL
-   and set the width and height the page shows for that widget (**Size in OBS**). Any size with the
+   and set the width and height the page shows for that widget (**Source size**). Any size with the
    same proportions works: the widget scales to the source.
 4. Turn off **Refresh browser when scene becomes active**: the source reconnects by itself when
    OverLap restarts, and reloads itself after an OverLap update.
@@ -749,19 +749,24 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
   (strategy your rivals could read live) and the driver aids (Radar, Spotter, Traffic, Warning
   lights, Alerts) are off until you tick them.
 - `http://127.0.0.1:39217/screen/1` (one per screen, the **screen mirror**): what OverLap draws
-  over the game on that screen, where it is, transparent, but only the stream's widgets. It replaces
-  capturing the overlay window.
+  over the game on that screen, where it is, transparent, but only the stream's widgets: one source
+  with all of that monitor's stream widgets. Use it instead of the single widgets, not with them
+  (they would show twice). Each display's row draws its monitor small with its stream widgets and
+  says how many it shows; **Identify** shows each display's number in big over its monitor for
+  three seconds, so you know which one to drag (drag the one of the monitor you play on).
 - `http://127.0.0.1:39217/curtain` (**Setup curtain**): while iRacing shows the garage (the setup
   screen), an opaque panel with your text (“Adjusting the car…” unless you write another) covers the
-  stream; the rest of the time it is transparent. Put it on top of everything in OBS, at the canvas
-  size. It only appears in the stream, never on your screen.
+  stream; the rest of the time it is transparent. Put it on top of everything in your streaming
+  program: at the canvas size to cover it all, or smaller to cover just a part. It only appears in
+  the stream, never on your screen.
 
   **Image** (in **Setup curtain**): your logo or a background image for the curtain, with
   **Choose image…**: PNG, JPG, WebP or GIF (animated too), up to 20 MB. OverLap keeps a copy in its
   folder, so it keeps working if you move the file, and the stream changes at once, without
   reloading the source. **Sizing**: **Fill** (default: fills the curtain, cropping what is left
-  over) or **Fit** (all of it shows, with dark bands). **Show the text on top** (on by default) puts
-  your text low over the image with a shadow and a soft backing. **Remove image** deletes the copy. A
+  over) or **Fit** (all of it shows, with dark bands). **Show text** (on by default; with or without an
+  image) puts your text on the curtain, low over the image with a shadow and a soft backing; off,
+  the curtain is the plain panel or your image alone. **Remove image** deletes the copy. A
   backup never carries the image: importing one keeps this PC's.
 
 **A separate streaming PC**
@@ -809,9 +814,11 @@ Off, the other PC stops getting the widgets: its sources stay empty until you tu
 the same code, they come back by themselves); this PC's keep working.
 
 **Brand logos in the stream** can be **As on screen** (default), **Monochrome**, **Text** (the
-make's three letters) or **None**. **Hide the overlay from capture** (off by default) asks Windows to
-leave OverLap's windows out of screen captures, so the overlay does not appear if you capture the
-game or the screen; it also disappears from your own recordings, screenshots and Discord shares,
+make's three letters) or **None**. **Hide the overlay from capture** (off by default) is only for a
+streaming program that captures the whole screen (in OBS, **Display Capture**): it asks Windows to
+leave OverLap's windows out of screen captures, so the overlay on your monitor is not in that
+capture and the stream shows only the widgets you add as sources. If you capture only the game (in
+OBS, **Game Capture**), you do not need it. It also disappears from your own recordings, screenshots and Discord shares,
 and Windows does not guarantee every program honours it.
 
 If streaming mode is off, or the server stops, a curtain that is up stays up until OverLap is back
