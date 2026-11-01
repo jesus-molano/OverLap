@@ -7,7 +7,7 @@ English: [README.md](README.md)
 [![Invítame a un café en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja sus
-widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, delta,
+widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, mapa de pista, delta,
 combustible, pedales, avisos y testigos. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar un layout distinto para cada coche.
 
@@ -145,7 +145,7 @@ luego cada 5 horas, la descarga en segundo plano y la instala **al cerrar OverLa
 Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus opciones. Todos se
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
 carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
-bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar y Spotter), **Tu
+bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter y Mapa de pista), **Tu
 vuelta** (Delta, Combustible y Pedales) y **Estado del coche** (Avisos y Testigos).
 
 ### Relativo
@@ -296,6 +296,27 @@ de la pantalla) y su alto, su largo; el grosor, **Grosor de las barras** (14 px 
 en Contenido. De serie solo se ve con un coche al lado o a punto de estarlo (**Solo con un coche
 al lado**, en Contenido, activado), y está oculto: se activa en Visibilidad, la barra lateral o la
 bandeja.
+
+### Mapa de pista
+
+Todos los coches a lo largo de una línea que va de la meta a la meta, con una marca para cada sector.
+Cada punto es un coche en su fracción de vuelta, y no dice nada más: OverLap nunca coloca un coche
+del que no tiene datos. Las clases se distinguen por el color y por la forma, tu coche es más grande
+y va con un contorno, un coche que te saca una vuelta lleva el contorno a rayas y uno al que le sacas
+una vuelta a puntos, y el coche de seguridad va en gris con la etiqueta PC. Un coche que se sale o que
+está parado se queda en su sitio y cambia de estilo, porque iRacing no da la posición lateral.
+
+Un coche en el pit lane o en su box sale de la línea y pasa a la fila **Boxes**, como una ficha con su
+número y sin ninguna posición en ella. Un inscrito del que iRacing no manda datos no se dibuja: una
+línea al pie dice cuántos son y cuáles («2 coches sin datos: #12 y #44»). Tu coche sigue en el mapa
+mientras conduce un compañero, porque se lee como cualquier otro; para verlo también en la pantalla
+de sesión de iRacing, enciende su interruptor en Visibilidad.
+
+En Contenido eliges la **etiqueta** de cada punto (ninguna, dorsal o puesto en su clase; si dos se
+pisan se quita una, pero la tuya siempre se queda) y los **coches en el mapa** (todos o tu clase). En
+**Personalizar › Elementos** puedes quitar las marcas de sector, la fila de boxes y la línea de coches
+sin datos, y la cabecera y el pie están ahí para las vueltas, el tiempo o el puesto tras la parada.
+Viene oculto: enciéndelo en Visibilidad, la barra lateral o la bandeja.
 
 ### Delta
 

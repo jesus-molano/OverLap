@@ -7,8 +7,8 @@ Español: [README.es.md](README.es.md)
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws its widgets
-on top of the game: relative, standings, battle, traffic, radar, spotter, delta, fuel, inputs,
-alerts and warning lights. Each one can be placed, scaled and customised to your taste, and you can
+on top of the game: relative, standings, battle, traffic, radar, spotter, track map, delta, fuel,
+inputs, alerts and warning lights. Each one can be placed, scaled and customised to your taste, and you can
 save a different layout for each car.
 
 - It only **reads** the iRacing SDK data: it injects nothing into the game. It only goes online to
@@ -143,7 +143,7 @@ away with **Restart and update** (in **Settings › About and help › Updates**
 Each widget has its page in the Settings, with a live preview and its options. All of them can be
 shown or hidden, locked, scaled and limited to certain sessions (practice, qualifying, race). They
 come in the same order and the same groups as in the Settings sidebar and the tray: **Track and
-rivals** (Relative, Standings, Battle, Traffic, Radar and Spotter), **Your lap** (Delta, Fuel and
+rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter and Track map), **Your lap** (Delta, Fuel and
 Inputs) and **Car status** (Alerts and Warning lights).
 
 ### Relative
@@ -288,6 +288,27 @@ The window's width is the gap between the bars (to put them at the sides of the 
 screen) and its height is their length; their thickness, **Bar thickness** (14 px by default), is
 chosen in Content. By default it only shows with a car alongside or about to be (**Only with a car
 alongside**, in Content, on), and it is hidden: turn it on in Visibility, the sidebar or the tray.
+
+### Track map
+
+Every car along one line that runs from the start/finish to the start/finish, with a mark for each
+sector. Each dot is a car at its fraction of the lap, and it says nothing else: OverLap never places
+a car it has no data for. Classes differ by colour and by shape, your car is larger and ringed, a
+car a lap up on you has a dashed outline and one a lap down a dotted one, and the pace car is grey
+and labelled PC. A car off track or stopped stays in its place and changes style, because iRacing
+gives no sideways position.
+
+A car on pit road or in its box leaves the line for the **Pits** row, as a chip with its number and
+no place along it. A registered car that iRacing sends no data for is not drawn: a line at the foot
+says how many and which ones (“2 cars without data: #12 and #44”). Your car stays on the map with a
+teammate driving, because it is read like any other car; to see it on iRacing's session screen too,
+turn on that widget's switch in Visibility.
+
+In Content you choose each dot's **label** (none, car number or place in its class; labels that
+would collide are dropped, but yours always stays) and the **cars on the map** (all or your class).
+In **Customise › Elements** you can remove the sector marks, the pit row and the line of cars without
+data, and the header and footer are there for the laps, the time or the position after a stop. It
+is hidden by default: turn it on in Visibility, the sidebar or the tray.
 
 ### Delta
 

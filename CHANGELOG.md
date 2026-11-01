@@ -5,6 +5,18 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.11.0] - 2026-11-01
+
+### Added
+
+- **Track map**, a new widget in its first form: every car along one line, at its fraction of the
+  lap, with the start/finish and the sectors marked. Classes differ by colour and by shape, your car
+  is larger and ringed, a car a lap up or down on you has its own outline, and the pace car is grey
+  and labelled PC. It never places a car it has no data for: one on pit road goes to a row of its
+  own with no place along it, one off track or stopped keeps its place in another style, and in a
+  race a registered car with no data is named in a line at the foot. It is off until you turn it on, it
+  works in a team race with a teammate driving, and it works as a stream source and in OpenKneeboard.
+
 ## [2.10.0] - 2026-11-01
 
 ### Added
@@ -1685,6 +1697,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.11.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.0
 [2.10.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.10.0
 [2.9.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.9.0
 [2.8.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.1
