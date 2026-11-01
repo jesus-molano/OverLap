@@ -39,6 +39,23 @@ transparente; en pista, el panel deja ver el juego a través según la opacidad 
 
 ## Instalación
 
+> [!WARNING]
+> **Windows SmartScreen / Microsoft Defender te avisará al abrir OverLap.** La primera vez que abras
+> cada versión descargada, Windows dirá que ha protegido tu equipo de una «aplicación no
+> reconocida», y Smart App Control puede bloquearla. No es porque OverLap contenga nada dañino: es
+> que no está firmado, porque un certificado de firma cuesta dinero cada año, y OverLap es un
+> proyecto pequeño y gratuito. La hice para mis carreras y ahora la comparto.
+>
+> - **Qué hacer:** pulsa **Más información → Ejecutar de todas formas**.
+> - **Si la bloquea Smart App Control:** no se puede permitir solo una aplicación. Puedes desactivar
+>   Smart App Control (Configuración › Privacidad y seguridad › Seguridad de Windows › Control de
+>   aplicaciones y navegador › Configuración de Smart App Control; en la mayoría de versiones de
+>   Windows 11, una vez desactivado no se puede volver a activar sin reinstalar Windows) o esperar a
+>   una versión firmada.
+> - **Para ir sobre seguro:** descarga OverLap solo de la
+>   [página oficial de releases](https://github.com/jesus-molano/OverLap/releases), y si quieres,
+>   comprueba el archivo en [VirusTotal](https://www.virustotal.com/) antes de abrirlo.
+
 ### Requisitos
 
 | Requisito | Detalle                                                           |
@@ -65,18 +82,17 @@ versiones; elige una:
 
 Las dos usan los mismos ajustes, así que puedes pasar del portable al instalador sin perder nada (no
 se pueden abrir a la vez: si abres la instalada con el portable en marcha, el portable te avisa de que
-lo cierres). Los `.exe` no están firmados, así que **Windows SmartScreen** avisará la primera vez
-que abras cada versión descargada: pulsa **Más información → Ejecutar de todas formas**. Si Windows
-lo bloquea sin darte esa opción, es **Smart App Control**, que no deja abrir programas sin firmar.
+lo cierres). Windows avisa la primera vez que abres cada versión descargada: ver el aviso al
+principio de esta sección.
 
 OverLap se queda en la **bandeja del sistema** (junto al reloj). Desde su icono ves su estado (y si
 algún atajo no funciona), abres los **Ajustes…**, muestras u ocultas cada widget (agrupados como en
-los Ajustes), cambias el alcance del radar, los nombres entre piloto y equipo (**Nombres de
-equipo**), cuándo se ve el overlay y la disposición en uso,
-muestras u ocultas todo el overlay (**Mostrar el overlay**), entras en modo edición, traes los
-widgets a la pantalla del ratón (**Traer todos los widgets a esta pantalla**), deshaces lo último
-(**Deshacer: …**, cuando hay algo que deshacer), abres la carpeta de ajustes o sales. Volver a abrir
-el `.exe` con OverLap ya en marcha abre los Ajustes.
+los Ajustes), cambias el alcance del radar, los nombres (**Nombres**: Piloto, Equipo o Equipo ·
+piloto), cuándo se ve el overlay y la disposición en uso, muestras u ocultas todo el overlay
+(**Mostrar el overlay**), entras en modo edición, traes los widgets a la pantalla del ratón
+(**Traer todos los widgets a esta pantalla**), deshaces lo último (**Deshacer: …**, cuando hay algo
+que deshacer), abres la carpeta de ajustes o sales. Volver a abrir el `.exe` con OverLap ya en
+marcha abre los Ajustes.
 
 Si iRacing no está abierto, Relativo y Posiciones muestran «Esperando a iRacing…» unos segundos y
 se ocultan (salvo con **Mantener «Esperando a iRacing»** en Visibilidad); OverLap se conecta solo en cuanto arranca el simulador.
@@ -177,8 +193,8 @@ nombre. Cualquier columna puede ir entre ellas: «Puestos ganados» entre la pos
 las banderas entre el número y el logo… Lo que queda pegado al nombre va con él, en su celda:
 delante, alineado de fila a fila; detrás, al final de su celda, también alineado. Separado por
 otra columna, va en una columna propia. Una regla:
-**la lista dice dónde; el bloque «Piloto», si salen y cómo** el logo, la bandera del país y las
-banderas (su fila de la lista no tiene ojo sino un enlace a su fila de «Piloto», y dice cómo están
+**la lista dice dónde; el bloque «Pilotos», si salen y cómo** el logo, la bandera del país y las
+banderas (su fila de la lista no tiene ojo sino un enlace a su fila de «Pilotos», y dice cómo están
 ahí). La posición y el número, que no están en el bloque, tienen su ojo. «Igualar con…» lo lleva
 todo, y en la vista previa se arrastran como las demás. Cabecera con la sesión, su SoF, tus
 incidentes y lo que queda; pie con las condiciones de pista (temperatura y su tendencia, agua y
@@ -221,7 +237,7 @@ lento al que alcanzas y los peligros de delante (coches parados, muy lentos o fu
 te dobla, o te adelanta con bandera azul, sale siempre que esté dentro de **Mirar atrás** (con el
 grupo **Clase más rápida** visible), en ámbar o rojo según se acerca. Cada
 coche lleva, como en el relativo, el logo de su marca, la bandera de su piloto y su bandera de
-penalización (el bloque «Piloto» de su página). Se
+penalización (el bloque «Pilotos» de su página). Se
 desvanece cuando no hay nadie cerca. La cabecera (el título) admite más datos, y hay un pie
 opcional.
 
@@ -391,9 +407,23 @@ arrancándolo con `--settings` (los accesos directos del instalador lo llevan). 
 **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día; al bajar
 por las opciones se encoge a la vez que bajas, hasta una franja que se sigue leyendo, centrada en
-tu fila (o queda fija, o siempre en franja: **Al bajar**, en su pie). Con la ventana ancha (desde 1100 px) las opciones van a dos columnas: «Personalizar» a la
-derecha. Lo que cambias se ve en la vista previa; si no se ve, la opción dice por qué con una nota
-corta: **No cabe a 540 px** (el ancho del widget no deja sitio para esa columna o ese dato:
+tu fila (o queda fija, o siempre en franja: **Al bajar**, en su pie). Bajo la vista previa, la página
+de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
+**Contenido**, **Personalizar**, la propia del widget si la tiene (**Pilotos** en Relativo,
+Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos) y **Ventana y
+visibilidad**. Un punto discreto en una pestaña indica que tiene ajustes cambiados respecto a
+fábrica (su texto de ayuda dice cuántos). La barra de pestañas se queda bajo la vista previa
+plegada, `Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
+de un widget a otro mientras la ventana sigue abierta. En una ventana estrecha las pestañas
+pierden los iconos, luego ponen **Ventana** y solo entonces se desplazan de lado. Algunas líneas
+llevan a un ajuste de otra pestaña: «Qué avisos salen · Ir a Personalizar», «Altura de fila:
+Densidad, en Contenido», «El ancho se cambia con Editar posición» («El tamaño…» cuando también el
+alto es el de la ventana), la fila de Contenido que además decide cuándo salen Batalla, Spotter o
+Testigos y, en **Pilotos**, la fila de la columna del iRating en Personalizar. Con la ventana ancha
+(desde 1100 px) Personalizar lleva su lista principal a la izquierda y las demás a la derecha (una
+sola lista ocupa todo el ancho), y Pilotos y Ventana y visibilidad van a dos columnas. Lo que
+cambias se ve en la vista previa; si no se ve, la opción dice por qué con una nota corta: **No cabe
+a 540 px** (el ancho del widget no deja sitio para esa columna o ese dato:
 ensánchalo u oculta otro). Las opciones que actúan durante la sesión (cuándo se ve un widget, el
 bloqueo, cuánto tiempo sigue un aviso…) dicen **No cambia la vista previa**. Cuando un ajuste solo
 se ve en otra situación, la vista previa se pone en ella y lo dice debajo: la referencia de la
@@ -402,7 +432,7 @@ coches por grupo al cambiar las entradas de Tráfico. Una lista que va dentro de
 (los datos del coche en Pedales, los tiempos de vuelta en Delta) lo dice debajo, y al mostrar uno de
 sus elementos se muestra también el bloque.
 Arriba de la barra lateral, **Buscar ajuste** encuentra cualquier ajuste por sus palabras y te
-lleva a él (abre su sección y lo señala), también los botones («exportar», «editar posición»,
+lleva a él (abre su pestaña y su sección y lo señala), también los botones («exportar», «editar posición»,
 «restablecer») y las opciones de cada selector («imperiales», «apellido», «English»), por palabras
 de uso diario («zoom», «bloquear», «parpadeo», «daltonismo», «galones», «rpm», «tecla», «botón del
 volante», «por coche», «letra grande») o por el nombre de un estilo; lo que ahora oculta otro ajuste sale marcado «con otro
@@ -424,14 +454,14 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   Posiciones).
 - **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia, Visibilidad y Atajos),
   **Restablecer…** dice qué devuelve a fábrica, sección por sección (en un widget: Contenido,
-  Piloto, Personalizar, Ventana y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
+  Personalizar, Pilotos, Ventana y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
   icono ↺ en la cabecera, que restablece solo esa sección. Es un solo clic: un aviso abajo dice qué
   se ha restablecido (y en qué disposición, si tienes varias) con **Deshacer** (o `Ctrl+Z`)
   durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Global» en todos
   los widgets, al ocultar un widget y al eliminar una disposición. Piden un segundo clic
   **Restablecer todo** (en Acerca de y ayuda) y **Copiar estas opciones a todas**, que también se
   deshacen, y borrar récords personales, lo único que no se puede deshacer.
-- **Personalizar**: en la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
+- **Personalizar**: en esa pestaña de la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
   Una regla para todas las páginas: **Contenido** es el comportamiento (cuántos, cuánto tiempo,
   umbrales, modos) y **Personalizar** lo que se ve (cada lista con su ojo y, con ella, cómo se
@@ -469,8 +499,10 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   proporción, en todas tus disposiciones), contorno del texto, densidad y filas alternas,
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
-  (marca los widgets con datos simulados; activada de serie) y el bloque **Piloto** global: **Nombres de** (**Piloto**, de serie, o **Equipo**: en carreras por equipos cada coche se
-  nombra por su equipo, tal como lo manda iRacing, también la vuelta rápida de clase del Delta; un
+  (marca los widgets con datos simulados; activada de serie) y el bloque **Pilotos** global: **Nombres de** (**Piloto**, de serie; **Equipo**: en carreras por equipos cada coche se
+  nombra por su equipo, tal como lo manda iRacing, también la vuelta rápida de clase del Delta; o
+  **Equipo · piloto**: los dos en la misma línea, «Vela Rossa Corse · M. Echeverría», el piloto
+  más pequeño y en gris y con el formato del nombre; si no cabe se recorta antes el piloto. Un
   coche sin equipo propio, como en cualquier otra carrera, sigue con su piloto), formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k» o el número
   entero, «2.520», con los miles del idioma; también el SoF) e **iRating con el color de la
@@ -481,15 +513,15 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **sin parpadeos** (las luces de cambio fijas en azul) y el **tamaño de esta ventana** (80–150 %,
   también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda; botones 80/100/125/150 %, como los demás
   tamaños). Al pie, dos botones llevan a **Tamaño del texto** y **Contorno del texto**.
-- **Bloque «Piloto»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, justo después
-  de Contenido, las mismas filas (nombre, formato de nombre, logo de la marca, bandera del país,
+- **Bloque «Pilotos»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, en su propia
+  pestaña **Pilotos**, las mismas filas (nombre, formato de nombre, logo de la marca, bandera del país,
   banderas de penalización, formato del iRating e iRating con el color de la licencia; en Tráfico,
   que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. El
   logo, la bandera del país y las banderas de penalización salen o no según su fila; dónde, lo
   decide la lista de columnas de Relativo y Posiciones (y la de columnas de Tráfico, para las
   banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
   sin columnas, las lleva tras el nombre.
-- **Récords personales** (al final de la página de Delta): la lista por coche y trazado, con borrar uno, el actual o todos.
+- **Récords personales** (una pestaña de la página de Delta, que dice también dónde se elige su referencia): la lista por coche y trazado, con borrar uno, el actual o todos.
 
 ## Modo edición
 
@@ -583,7 +615,7 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 | `Ctrl+Mayús+O`      | Abrir los Ajustes (o traerlos al frente)                    |
 | (sin asignar)       | Siguiente disposición                                       |
 | (sin asignar)       | Cambiar la referencia del delta                             |
-| (sin asignar)       | Nombres: piloto o equipo, en todos los widgets              |
+| (sin asignar)       | Nombres: piloto, equipo o ambos, en todos los widgets       |
 | `Esc`               | Salir del modo edición (solo mientras editas; no se cambia) |
 | (sin asignar)       | **Más acciones**: mostrar u ocultar cada widget, uno a uno  |
 
@@ -592,13 +624,13 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
   atajo junto al widget). Ninguna tiene atajo de serie; se despliega solo si alguna lo tiene. Para
   quitar o poner un widget en carrera sin cambiar de disposición; el aviso sobre el juego dice
   «Oculto: Posiciones» o «Visible: Posiciones».
-- **Nombres: piloto o equipo** pone todos los widgets con los nombres de los equipos, o todos con
-  los de los pilotos (el **Nombres de** de Apariencia y el de cada widget que tenga uno propio,
-  también en cada disposición guardada, así que todos coinciden; pulsado otra vez, todos pasan al
-  otro). Se guarda como cualquier opción y el aviso sobre el juego dice «Nombres: Equipo» o
-  «Nombres: Piloto» (fuera de una sesión por equipos añade que se ven los pilotos). Si unos widgets
-  mostraban pilotos y otros equipos, **Deshacer** en la bandeja lo devuelve. También está en la
-  bandeja (**Nombres de equipo**, marcada mientras todos los widgets muestran equipos).
+- **Nombres: piloto, equipo o ambos** pasa todos los widgets al siguiente de Piloto, Equipo y
+  Equipo · piloto (el **Nombres de** de Apariencia y el de cada widget que tenga uno propio,
+  también en cada disposición guardada, así que todos coinciden; si no coincidían, a Equipo). Se
+  guarda como cualquier opción y el aviso sobre el juego dice «Nombres: Equipo», «Nombres: Equipo ·
+  piloto» o «Nombres: Piloto» (fuera de una sesión por equipos añade que se ven los pilotos). Si
+  unos widgets mostraban unos nombres y otros otros, **Deshacer** en la bandeja lo devuelve.
+  También está en la bandeja (**Nombres**, con los tres y marcado el que muestran todos).
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
 - Se cambian en **Ajustes › Atajos**, una tabla con una fila por acción y una columna por atajo
@@ -695,8 +727,8 @@ La política de privacidad completa está en [PRIVACY.md](PRIVACY.md).
 
 ## Problemas conocidos
 
-- Los `.exe` no están firmados: Windows SmartScreen avisa al abrir cada versión descargada, y Smart
-  App Control no deja abrirlos (ver [Instalación](#instalación)).
+- Los `.exe` no están firmados, así que Windows avisa al abrirlos (ver el aviso al principio de
+  [Instalación](#instalación)).
 - El portable se descomprime en una carpeta temporal en cada arranque, así que tarda unos segundos
   en abrirse (el instalador no).
 - Si alguna ventana se ve con fondo negro en lugar de transparente, puede ser la aceleración por
@@ -742,8 +774,8 @@ Los cambios de cada versión están en el [registro de cambios](CHANGELOG.md).
 
 ## Firma del código
 
-**Estado: los ejecutables de OverLap no están firmados.** Windows SmartScreen avisa al abrir una
-versión descargada (ver [Instalación](#instalación)), y Smart App Control la bloquea. El
+**Estado: los ejecutables de OverLap no están firmados** (qué hace Windows al abrirlos: ver
+[Instalación](#instalación)). El
 actualizador de la versión instalada acepta actualizaciones sin firmar: comprueba que el instalador
 descargado coincide con la huella sha512 del `latest.yml` de la release, servido por HTTPS desde las
 releases de GitHub de este repositorio, así que quien controle las releases de este repositorio

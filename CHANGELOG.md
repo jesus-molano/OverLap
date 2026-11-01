@@ -5,6 +5,65 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.6.0] - 2026-11-01
+
+### Added
+
+- **Tabs on every widget page.** Under the preview, each widget's page now has a tab bar with the
+  same names in the same order everywhere: **Content**, **Customise**, the widget's own tab where
+  it has one (**Drivers** on Relative, Standings, Battle and Traffic, **Personal bests** on Delta,
+  **Legend** on Lights) and **Window and visibility**. One tab shows at a time, and the bar stays
+  under the folded preview while you scroll. Each tab has an icon and says what it holds in its
+  tooltip; `Ctrl+PgUp` / `Ctrl+PgDn` change tab from anywhere in the page, and the arrow keys,
+  `Home` and `End` while a tab has the focus.
+- **A dot for what you changed**: a small, quiet dot on a tab whose settings differ from the
+  defaults (its tooltip says how many), the same thing as that section's ↺.
+- **The tab you chose is kept** as you go from widget to widget while the window is open; a page
+  without it opens on its first tab, and the next page that has it opens on it again.
+- **Lines that take you to the right tab**: on Alerts and Lights, “Which alerts/lights show · Go
+  to Customise”; on Battle, and on Spotter and Lights while “Only with a car alongside” or “Lit
+  only” is on, Window and visibility names the row of Content that also decides when the widget
+  shows, and goes to it; Personal bests says where the delta's reference is chosen; under the
+  iRating format in Drivers, the iRating column's row in Customise; under the columns of Relative
+  and Standings, “Row height: Density, in Content”; and under the height, “The width is changed
+  with Edit position” (“The size…” where the height is the window's too).
+- **Names of › Team · driver**: a third choice beside Driver and Team, in Appearance and in the
+  Drivers tab of Relative, Standings, Battle and Traffic. One line, the team's name as always and
+  then, after a dot, the driver's in the name format, smaller and grey: “Vela Rossa Corse ·
+  M. Echeverría”; the row keeps its height. The team comes first: short of room, the driver's part
+  is cut before the team's. A car without a team of its own shows its driver alone, and the Delta's
+  class best names the team. The shortcut (now **Names: driver, team or both**) goes Driver, Team,
+  Team · driver and back, and the tray's **Team names** box is now a **Names** submenu with the
+  three.
+
+### Changed
+
+- **Search, “Show in list” and the preview with tabs**: a search result and the undo toast’s
+  “Show in list” open the tab that holds the setting, then point it out. An edit in the preview
+  (an eye, a drag) never changes the tab; a click on an element that is always shown, or that
+  Drivers shows or hides, opens its tab, brings its row into view and points it out.
+- **Search** lists a setting of its own before one that every widget page has: “opacity” finds
+  Appearance's “Widget background” first, then each widget's Background.
+- **Delta's references** are now called “Reference in practice”, “in qualifying” and “in race”,
+  so searching “reference” finds them.
+- **“Driver” is now “Drivers”** everywhere: the tab, its section, the reset items and the hints in
+  the column lists. The **Reset…** menu lists the sections in the tabs' order.
+- **Background** in Window and visibility and **Widget background** in Appearance say “opacity”
+  and “transparency” in their help, so the search finds them by either word.
+- **Wide window**: Customise puts its main list on the left and the other lists on the right (a
+  page with a single list keeps it full width), and Drivers and Window and visibility lay their
+  rows out in two columns.
+- **Narrow window**: the tab bar stays one row; first the icons go, then “Window and visibility”
+  says “Window” (and “Personal bests” “Bests”; the full name stays in its tooltip), and only then
+  the bar scrolls sideways. The lines that go to another tab keep their button beside the text.
+- The user guide's screenshots are in English (README.md) and Spanish (README.es.md), from 2.6;
+  Installation starts with a note on the Windows SmartScreen warning and what to do.
+
+### Fixed
+
+- The standings' class list, which a multiclass session fills by itself, no longer counts as a
+  change of yours (its ↺ and “Reset…” item stayed on at the factory settings).
+
 ## [2.5.3] - 2026-10-31
 
 ### Changed
@@ -1361,6 +1420,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.6.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.6.0
 [2.5.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.3
 [2.5.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.2
 [2.5.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.5.1

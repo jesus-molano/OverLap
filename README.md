@@ -16,7 +16,7 @@ save a different layout for each car.
   through to the game.
 - In Spanish or English: the first time, in the Windows language (if it is neither, in English).
 
-![OverLap's Relative, Delta, Radar, Spotter, Warning lights and Standings](docs/screenshots/overlap.png)
+![OverLap's Relative, Delta, Radar, Spotter, Warning lights and Standings](docs/screenshots/en/overlap.png)
 
 _Every screenshot uses the app's own sample data (made-up drivers) on a transparent background; on
 track, the panel lets the game show through according to the opacity you choose._
@@ -37,6 +37,22 @@ track, the panel lets the game show through according to the opacity you choose.
 - [Support OverLap](#support-overlap)
 
 ## Installation
+
+> [!WARNING]
+> **Windows SmartScreen / Microsoft Defender will warn you about OverLap.** The first time you open
+> each downloaded version, Windows says it protected your PC from an “unrecognised app”, and Smart
+> App Control may block it. Not because OverLap contains anything harmful: it is not code-signed,
+> because a signing certificate costs money every year, and OverLap is a small, free project. I
+> built it for my own races and now I share it.
+>
+> - **What to do:** click **More info → Run anyway**.
+> - **If Smart App Control blocks it:** it cannot be allowed for one app only. You can turn Smart
+>   App Control off (Settings › Privacy & security › Windows Security › App & browser control ›
+>   Smart App Control settings; on most Windows 11 versions, once off it cannot be turned back on
+>   without reinstalling Windows) or wait for a signed version.
+> - **To stay safe:** download OverLap only from the official
+>   [Releases page](https://github.com/jesus-molano/OverLap/releases), and if you like, check the
+>   file on [VirusTotal](https://www.virustotal.com/) before you open it.
 
 ### Requirements
 
@@ -63,14 +79,12 @@ pick one:
 
 Both use the same settings, so you can move from the portable to the installer without losing
 anything (they cannot run at the same time: if you open the installed one while the portable is
-running, the portable asks you to close it). The `.exe` files are not signed, so **Windows
-SmartScreen** will warn you the first time you open each downloaded version: click **More info → Run
-anyway**. If Windows blocks it without offering that option, it is **Smart App Control**, which does
-not let unsigned programs open.
+running, the portable asks you to close it). Windows warns the first time you open each downloaded
+version: see the warning at the start of this section.
 
 OverLap stays in the **system tray** (next to the clock). From its icon you see its status (and
 whether any shortcut is not working), open the **Settings…**, show or hide each widget (grouped as
-in the Settings), change the radar range, switch between driver and team names (**Team names**), when
+in the Settings), change the radar range, the names (**Names**: Driver, Team or Team · driver), when
 the overlay shows and the layout in use, show or
 hide the whole overlay (**Show the overlay**), enter edit mode, bring the widgets to the mouse's
 screen (**Bring every widget to this screen**), undo the last thing (**Undo: …**, when there is
@@ -130,7 +144,7 @@ Inputs) and **Car status** (Alerts and Warning lights).
 
 ### Relative
 
-<img src="docs/screenshots/relativo.png" alt="Relative" width="460">
+<img src="docs/screenshots/en/relativo.png" alt="Relative" width="460">
 
 The cars ahead of and behind you on track (3 and 3 by default, up to 10) with the gap in seconds:
 positive ahead, negative behind. Each row has the class position, the number in its class colour,
@@ -152,7 +166,7 @@ the name always shows. At the foot of the list, **Column titles** and **Match St
 
 ### Standings
 
-<img src="docs/screenshots/posiciones.png" alt="Standings" width="540">
+<img src="docs/screenshots/en/posiciones.png" alt="Standings" width="540">
 
 Compact mode (the leaders, the cars around you and the leaders of each other class: **Top
 positions** and **Around you**, 3 and 3 by default; from each other class, by default its leader,
@@ -172,9 +186,9 @@ ones). By default, in the usual order, with the flags after the name. Any column
 them: “Positions gained” between the position and the number, the flags between the number and the
 logo… Whatever is right next to the name goes with it, in its cell: before it, aligned from row to
 row; after it, at the end of its cell, also aligned. Separated by another column, it goes in a
-column of its own. One rule: **the list says where; the “Driver” block, whether and how** the logo,
+column of its own. One rule: **the list says where; the “Drivers” block, whether and how** the logo,
 the country flag and the flags show (their row in the list has no eye but a link to their row in
-“Driver”, and says how they are set there). The position and the number, which are not in the
+“Drivers”, and says how they are set there). The position and the number, which are not in the
 block, have their eye. “Match…” carries everything over, and in the preview they are dragged like
 the rest. A header with the session, its SoF, your incidents and what is left; a footer with the
 track conditions (temperature and its trend, water and rain, wind with a dial pointing at your car)
@@ -194,7 +208,7 @@ on the session screen.
 
 ### Battle
 
-<img src="docs/screenshots/batalla.png" alt="Battle" width="380">
+<img src="docs/screenshots/en/batalla.png" alt="Battle" width="380">
 
 Your class rival ahead and the one behind while they are within the gap you choose (1.5 s by
 default): the gap and its trend, the prediction (“Catching in ~4 laps of 19”), the sectors (S1 S2
@@ -210,13 +224,13 @@ Optional: a header and footer with session data (see below).
 
 ### Traffic
 
-<img src="docs/screenshots/trafico.png" alt="Traffic" width="400">
+<img src="docs/screenshots/en/trafico.png" alt="Traffic" width="400">
 
 The faster cars catching you from behind (how soon and in which sector), the slow traffic you are
 catching and the hazards ahead (stopped, very slow or off-track cars). Whoever is lapping you, or
 passing you under a blue flag, always shows as long as they are within **Look behind** (with the
 **Faster class** group shown), in amber or red as they get closer. Each car has, as in the relative,
-its make logo, its driver's flag and its penalty flag (the “Driver” block on its page). It fades out
+its make logo, its driver's flag and its penalty flag (the “Drivers” block on its page). It fades out
 when nobody is near. The header (the title) takes more data, and there is an optional footer.
 
 In Content, how far it looks: **Look behind** (12 s by default), **Look ahead** (8 s) and **Hazards
@@ -228,7 +242,7 @@ reordered and hidden, and **Group captions** (on) puts the name above each group
 
 ### Radar
 
-<img src="docs/screenshots/radar.png" alt="Radar" width="220">
+<img src="docs/screenshots/en/radar.png" alt="Radar" width="220">
 
 A top-down view with the cars to scale around yours, turning red as they get closer, and a warning
 on the side when someone is alongside. Range from 5 to 100 m (20 m by default, with buttons for 10,
@@ -239,7 +253,7 @@ is always drawn above the other widgets (see [Edit mode](#edit-mode)).
 
 ### Spotter
 
-<img src="docs/screenshots/spotter.png" alt="Spotter" width="400">
+<img src="docs/screenshots/en/spotter.png" alt="Spotter" width="400">
 
 Two bars, one on each side, for those who prefer side bars to the central radar (or want them
 alongside it: they are independent, each with its own page and visibility). **Bar style** chooses
@@ -270,7 +284,7 @@ alongside**, in Content, on), and it is hidden: turn it on in Visibility, the si
 
 ### Delta
 
-<img src="docs/screenshots/delta.png" alt="Delta" width="400">
+<img src="docs/screenshots/en/delta.png" alt="Delta" width="400">
 
 A delta bar against the reference you choose, with trend, predicted lap and each sector. The
 reference can be your personal best with that car on that layout (it is stored on your computer and
@@ -296,7 +310,7 @@ one for the reference in use) and the page says “No room” on the rest.
 
 ### Fuel
 
-<img src="docs/screenshots/combustible.png" alt="Fuel" width="320">
+<img src="docs/screenshots/en/combustible.png" alt="Fuel" width="320">
 
 More drawing than text: the laps the fuel gives you in large type (in green if you make it to the
 finish), the litres and the laps left; the tank marked in laps, with a line where what you need
@@ -317,7 +331,7 @@ one carries the **Pit menu** bar (on).
 
 ### Inputs
 
-<img src="docs/screenshots/pedales.png" alt="Inputs" width="360">
+<img src="docs/screenshots/en/pedales.png" alt="Inputs" width="360">
 
 Throttle, brake and clutch trace, bars, gear, speed and steering, in the order you want. Shift
 lights with the car's own rev ranges and a “Car” block with RPM, brake bias, TC level and FFB (in
@@ -335,7 +349,7 @@ by default) and **Wind colour** (by default, the global accent).
 
 ### Alerts
 
-<img src="docs/screenshots/avisos.png" alt="Alerts" width="400">
+<img src="docs/screenshots/en/avisos.png" alt="Alerts" width="400">
 
 A band with what affects you, the most important in large type and the rest below, small. Flags
 (also the furled black flag and the blue flag, each with its own row), limiter and speeding in the
@@ -352,7 +366,7 @@ chips for the other alerts.
 
 ### Warning lights
 
-<img src="docs/screenshots/testigos.png" alt="Warning lights" width="300">
+<img src="docs/screenshots/en/testigos.png" alt="Warning lights" width="300">
 
 The engine warning lights as on a dashboard, in a row or a column (**Orientation**): oil and fuel
 pressure, engine stalled, mandatory and optional repairs (with the crew's time, “42 s (crew)”, or
@@ -375,15 +389,27 @@ with a three-step **welcome**: language and units, which widgets to use (six tic
 at least one) and where everything is, with **Try with sample data** to see the widgets on your
 screen and place them. Windows notes that OverLap stays in the tray.
 
-![Settings: the Relative page](docs/screenshots/ajustes-relativo.png)
+![Settings: the Relative page](docs/screenshots/en/ajustes-relativo.png)
 
 They open from the tray (**Settings…**), with `Ctrl+Shift+O`, by opening the `.exe` again or by
 starting it with `--settings` (the installer's shortcuts do). Everything applies **live** and saves by
 itself; at the top of each page there is a preview of the widget on a night or day track
 background; as you scroll down the options it shrinks as far as you scroll, down to a strip that stays
 readable and centred on your row (or stays fixed, or is always a strip: **Scrolling**, in its
-footer). With a wide window (from 1100 px) the options go in two
-columns: “Customise” on the right. What you change shows in the preview; if it does not, the option
+footer). Under the preview, each widget's page has **tabs**, the same names in the same order on
+every page: **Content**, **Customise**, the widget's own tab where it has one (**Drivers** on
+Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights) and
+**Window and visibility**. A small dot on a tab means some of its settings differ from the defaults
+(its tooltip says how many). The tab bar stays under the folded preview, `Ctrl+PgUp` / `Ctrl+PgDn`
+change tab, and the tab you chose is kept as you go from widget to widget while the window is open.
+In a narrow window the tabs drop their icons, then say **Window** (and **Bests**), and only then
+scroll sideways. Lines in one tab take you to a setting in another: “Which alerts show · Go to
+Customise”, “Row height: Density, in Content”, “The width is changed with Edit position” (“The
+size…” when the height is the window's too), the row of Content that also decides when Battle,
+Spotter or Lights show, and in **Drivers** the iRating column's row in Customise. With a wide window
+(from 1100 px) Customise puts its main list on the left and the others on the right (a single list
+keeps the whole width), and Drivers and Window and visibility go in two columns. What you change
+shows in the preview; if it does not, the option
 says why with a short note: **No room at 540 px** (the widget's width leaves no room for that column
 or that data: widen it or hide another). Options that act during the session (when a widget shows,
 the lock, how long an alert stays…) say **Not shown in the preview**. When a setting only shows in
@@ -392,7 +418,7 @@ change in Delta, your car further back when you change the top positions in Stan
 group when you change the entries in Traffic. A list that sits inside a hidden block (the car data
 in Inputs, the lap times in Delta) says so below, and showing one of its items also shows the block.
 At the top of the sidebar, **Search settings** finds any setting by its words and takes you to it
-(it opens its section and points it out), the buttons too (“export”, “edit position”, “reset”) and
+(it opens its tab and its section and points it out), the buttons too (“export”, “edit position”, “reset”) and
 the options of each selector (“imperial”, “surname”, “Español”), by everyday words (“zoom”, “lock”,
 “blinking”, “colour-blind”, “gallons”, “rpm”, “key”, “wheel button”, “per car”, “bigger”) or by
 the name of a style; what another setting now hides is marked “with another setting”. The sidebar
@@ -412,15 +438,15 @@ report, without names) and **Open log**.
   Alerts, which warns about the limiter and the pit entry) and show on the session screen (except
   those that only have data in the car; by default, only Standings).
 - **Reset and undo**: at the top of each page (the widgets, Appearance, Visibility and Shortcuts),
-  **Reset…** says what it returns to default, section by section (in a widget: Content, Driver,
-  Customise, Window and visibility, Position and size, or the whole widget), and each section has
+  **Reset…** says what it returns to default, section by section (in a widget: Content, Customise,
+  Drivers, Window and visibility, Position and size, or the whole widget), and each section has
   its ↺ icon in the header, which resets only that section. It is a single click: a notice at the
   bottom says what was reset (and in which layout, if you have several) with **Undo** (or `Ctrl+Z`)
   for a few seconds. The same when you reset a list or a shortcut, use “Global” on all widgets, hide
   a widget or delete a layout. **Reset everything** (in About and help) and **Copy these options to
   all layouts** ask for a second click (they can be undone too), and so does deleting personal
   bests, the only thing that cannot be undone.
-- **Customise**: on each widget's page, editors to reorder (by dragging or with ↑ ↓) and show or
+- **Customise**: in that tab of each widget's page, editors to reorder (by dragging or with ↑ ↓) and show or
   hide each part: columns, header, second line, footer, rows, groups, alerts… One rule for every
   page: **Content** is the behaviour (how many, how long, thresholds, modes) and **Customise** is
   what you see (each list with its eye and, with it, how its items look; an item's option, in its
@@ -461,9 +487,11 @@ report, without names) and **Open log**.
   their window in the same proportion, in all your layouts), text outline, density and alternating
   rows, licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
   °F, gallons in Fuel and feet in the radar range), **SIM tag** (marks the widgets with simulated
-  data; on by default) and the global **Driver** block: **Names of** (**Driver**, the default, or
+  data; on by default) and the global **Drivers** block: **Names of** (**Driver**, the default;
   **Team**: in team races each car is named by its team, as iRacing sends it, the Delta's class best
-  too; a car without a team of its own, as in every other race, keeps its driver), name format,
+  too; or **Team · driver**: both on one line, “Vela Rossa Corse · M. Echeverría”, the driver
+  smaller and grey and in the name format; when it does not fit the driver is cut first. A car
+  without a team of its own, as in every other race, keeps its driver), name format,
   make logo (Auto, Always or Never), country flag, penalty flags, **iRating format** (“2.5k” or the whole number, “2,520”,
   with the language's thousands separator; the SoF too) and **iRating in the licence colour** (off
   by default: each driver's in the colours and style of their licence).
@@ -474,15 +502,15 @@ report, without names) and **Open log**.
   window** (80–150%, also with `Ctrl` and `+` / `-` / `0` or `Ctrl` and the wheel; 80/100/125/150%
   buttons, like the other sizes). At the bottom, two buttons lead to **Text size** and **Text
   outline**.
-- **“Driver” block**: Relative, Standings, Battle and Traffic have on their page, right after
-  Content, the same rows (name, name format, make logo, country flag, penalty flags, iRating format and
+- **“Drivers” block**: Relative, Standings, Battle and Traffic have on their page, in its own
+  **Drivers** tab, the same rows (name, name format, make logo, country flag, penalty flags, iRating format and
   iRating in the licence colour; in Traffic, which does not show the drivers' iRating, the last one
   is off), each with “Global (…)”, the Appearance value, or a value of its own. The logo, the
   country flag and the penalty flags show or not according to their row; where is decided by the
   column list of Relative and Standings (and Traffic's column list, for the flags): right after the
   name, after its text; anywhere else, in a column of its own. Battle, with no columns, puts them
   after the name.
-- **Personal bests** (at the end of the Delta page): the list by car and layout, with deleting one,
+- **Personal bests** (a tab of the Delta page, which also says where its reference is chosen): the list by car and layout, with deleting one,
   the current one or all.
 
 ## Edit mode
@@ -527,7 +555,7 @@ through to the game.
 
 ## Layouts
 
-![Settings: Layouts](docs/screenshots/ajustes-disposiciones.png)
+![Settings: Layouts](docs/screenshots/en/ajustes-disposiciones.png)
 
 A layout saves, under a name, where each widget is (on each screen), its size, its scale, whether
 it shows and whether it is locked, and also each widget's options: columns and their order,
@@ -575,7 +603,7 @@ the G29, or a button on each wheel. Any of them runs the action.
 | `Ctrl+Shift+O`     | Open the Settings (or bring them to the front)            |
 | (unassigned)       | Next layout                                               |
 | (unassigned)       | Next delta reference                                      |
-| (unassigned)       | Names: driver or team, in every widget                    |
+| (unassigned)       | Names: driver, team or both, in every widget              |
 | `Esc`              | Exit edit mode (only while editing; it cannot be changed) |
 | (unassigned)       | **More actions**: show or hide each widget, one by one    |
 
@@ -584,13 +612,13 @@ the G29, or a button on each wheel. Any of them runs the action.
   widget). None has a shortcut by default; it unfolds by itself if any has one. To take a widget off
   or put it back during a race without changing layout; the notice over the game says “Standings
   hidden” or “Standings shown”.
-- **Names: driver or team** puts every widget on the teams' names, or every one on the drivers'
+- **Names: driver, team or both** puts every widget on the next of Driver, Team and Team · driver
   (Appearance's **Names of** and the value of each widget that has its own, in every saved layout
-  too, so they all agree; pressed again, they all go to the other one). It is saved like any option
-  and the notice over the game says “Names: Team” or “Names: Driver” (outside a team session it
-  adds that the drivers' names stay). If some widgets showed drivers and others teams, the tray's
-  **Undo** puts that back. The tray has it too (**Team names**, ticked while every widget shows
-  teams).
+  too, so they all agree; when they did not, on Team). It is saved like any option and the notice
+  over the game says “Names: Team”, “Names: Team · driver” or “Names: Driver” (outside a team
+  session it adds that the drivers' names stay). If the widgets showed different names, the tray's
+  **Undo** puts that back. The tray has it too (**Names**, with the three and the one every widget
+  shows ticked).
 - Hiding the overlay does not stop the telemetry: when you show it again it comes back with
   up-to-date data. When the app opens, the overlay is always visible.
 - They are changed in **Settings › Shortcuts**, a table with one row per action and one column per
@@ -684,8 +712,8 @@ The full privacy policy is in [PRIVACY.md](PRIVACY.md).
 
 ## Known issues
 
-- The `.exe` files are not signed: Windows SmartScreen warns when you open each downloaded version,
-  and Smart App Control does not let them open (see [Installation](#installation)).
+- The `.exe` files are not code-signed, so Windows warns about them (see the warning at the start of
+  [Installation](#installation)).
 - The portable unpacks into a temporary folder on every start, so it takes a few seconds to open
   (the installed version does not).
 - If a window shows with a black background instead of a transparent one, it may be the graphics
@@ -730,8 +758,8 @@ The changes in each version are in the [changelog](CHANGELOG.md).
 
 ## Code signing policy
 
-**Status: OverLap's executables are not code-signed.** Windows SmartScreen warns when you open a
-downloaded version (see [Installation](#installation)), and Smart App Control blocks it. The
+**Status: OverLap's executables are not code-signed** (what Windows does when you open them: see
+[Installation](#installation)). The
 installed app's updater accepts unsigned updates: it checks that the downloaded installer matches
 the sha512 in the release's `latest.yml`, served over HTTPS from this repository's GitHub Releases,
 so whoever controls this repository's releases controls the updates. No OverLap release is signed by
