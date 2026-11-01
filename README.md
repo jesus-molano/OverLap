@@ -464,7 +464,9 @@ report, without names) and **Open log**.
   Small / Normal / Large” selector and the Left and Right boxes with the data you want from the same
   catalogue (with **+ Add a data item**, on the left or on the right: title, session, time left,
   local time, sim time (the sim's, with a sun), SoF, cars, incidents, iRating at stake, projected
-  SR, class fastest lap, laps of fuel, track, water, wind, air, rubber; Fuel does not offer its own
+  SR, class fastest lap, laps of fuel, track, water, wind, air, rubber, and on their own laps done
+  and total, laps done, laps left, time gone and total, time gone, time left, stint laps, position
+  after a stop (an estimate in races, once someone has stopped) and each part of the iRating; Fuel does not offer its own
   laps of fuel, which it already shows). By default they follow a rule: on the left of the header
   the title and the session, on the right your incidents and the time left; on the left of the
   footer the conditions, on the right the cars and the fuel; and the session data, only in

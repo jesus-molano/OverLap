@@ -478,7 +478,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
-  viento, aire, goma; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
+  viento, aire, goma, y por separado vueltas hechas y total, vueltas hechas, vueltas que quedan,
+  tiempo pasado y total, tiempo pasado, tiempo que queda, vueltas del stint, puesto tras la parada
+  (una estimación en carrera, cuando alguien ya ha parado) y cada parte del iRating; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus
   incidentes y el tiempo restante; a la izquierda del pie las condiciones, a la derecha los coches y el
   combustible; y los datos de la sesión, solo en Posiciones. **Copiar a** pasa una cabecera o un

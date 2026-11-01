@@ -5,6 +5,27 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.10.0] - 2026-11-01
+
+### Added
+
+- **Laps and time as separate items** for the headers and footers: laps done and total (`8/15`,
+  `8/≈16` when the total is an estimate), laps done, laps left, time gone and total (`24:12/45m`),
+  time gone and time left. Show any of them, in any bar, in the order you like.
+- **Stint laps** as an item: the laps since your last stop.
+- **Position after a stop** as an item: an estimate in races of where you would rejoin if you
+  stopped now. OverLap measures what a stop costs from the stops of the session, so it appears once
+  someone has stopped.
+- **The iRating at stake in parts**: the figure of your place, one place up or down, and the
+  break-even place can each be shown on their own. The whole item is still there.
+
+### Fixed
+
+- In a narrow settings window, two columns that stack no longer touch: Appearance's sections keep
+  their usual gap.
+- After the flag of a practice or qualifying session by time, the laps left no longer showed a count
+  made up from a clock that measures something else.
+
 ## [2.9.0] - 2026-11-01
 
 ### Changed
@@ -1664,6 +1685,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.10.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.10.0
 [2.9.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.9.0
 [2.8.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.1
 [2.8.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.8.0
