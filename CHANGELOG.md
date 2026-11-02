@@ -5,6 +5,31 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.11.3] - 2026-11-02
+
+### Added
+
+- A new item for the info bars, **Rain**, shows iRacing's precipitation percentage, 0% too. It is
+  on by default wherever the conditions are.
+- A new item for the info bars, **Track name**, shows the circuit's name as iRacing writes it, and
+  its short form when the line is tight. A new install has it as the first item of the Standings
+  footer. If you already have OverLap it starts hidden, and you can turn it on in **Customise**.
+
+### Changed
+
+- Each header and footer is one line with its data together, with no empty hole in the middle. This
+  applies once to the bars you already have, in your layouts too and in the layout files you import
+  from an older version, and everything you had shown stays shown and in its order. If you want
+  something at the far end, you can still drag it to the **Right** box, and it stays there.
+- **Water on track** no longer includes the rain, which is now its own item. Your bars get it right
+  after the water, shown if the water was shown. It is the first item to go when a line is tight, so
+  your bars keep drawing what they drew.
+- The class line in Standings has its SoF and its car count right after the class name instead of at
+  the far right. A narrow panel shortens the class name, never them.
+- The black flag and the black-and-white warning flag on a driver's row are larger and have no pole.
+  They still differ by their shape: one is swallow-tailed, the other a square split along its
+  diagonal.
+
 ## [2.11.2] - 2026-11-02
 
 ### Changed
@@ -1736,6 +1761,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.11.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.3
 [2.11.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.2
 [2.11.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.1
 [2.11.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.0

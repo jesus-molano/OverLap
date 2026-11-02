@@ -195,8 +195,9 @@ the country flag and the flags show (their row in the list has no eye but a link
 “Drivers”, and says how they are set there). The position and the number, which are not in the
 block, have their eye. “Match…” carries everything over, and in the preview they are dragged like
 the rest. A header with the session, its SoF, your incidents and what is left; a footer with the
-track conditions (temperature and its trend, water and rain, wind with a dial pointing at your car)
-and the cars. One click away in Customise: a second line with your iRating at stake, your projected
+track's name, the track conditions (temperature and its trend, water, the rain percentage, wind with
+a dial pointing at your car) and the cars. One click away in Customise: a second line with your
+iRating at stake, your projected
 SR and the class fastest lap, and the air and rubber in the footer (by default they do not show on
 a new install, so it reads at a glance).
 
@@ -487,13 +488,17 @@ report, without names) and **Open log**.
   Small / Normal / Large” selector and the Left and Right boxes with the data you want from the same
   catalogue (with **+ Add a data item**, on the left or on the right: title, session, time left,
   local time, sim time (the sim's, with a sun), SoF, cars, incidents, iRating at stake, projected
-  SR, class fastest lap, laps of fuel, track, water, wind, air, rubber, and on their own laps done
+  SR, class fastest lap, laps of fuel, track name, track temperature, water, rain, wind, air,
+  rubber, and on their own laps done
   and total, laps done, laps left, time gone and total, time gone, time left, stint laps, position
   after a stop (an estimate in races, once someone has stopped) and each part of the iRating; Fuel does not offer its own
-  laps of fuel, which it already shows). By default they follow a rule: on the left of the header
-  the title and the session, on the right your incidents and the time left; on the left of the
-  footer the conditions, on the right the cars and the fuel; and the session data, only in
-  Standings. **Copy to** copies a header or a footer, with its size, to the same place in another
+  laps of fuel, which it already shows). By default each bar is one line with its data together:
+  the header says the title and the session, then your incidents and the time left; the footer
+  the conditions, then the cars and the fuel; and the session data and the track's name, only in
+  Standings. Whatever you drag to the **Right** box lines up at the far end of the line. The track's
+  name is the one iRacing writes, its short form when the line is tight, and the rain is iRacing's
+  precipitation percentage, 0% too, and the first thing to go when the line is tight. **Copy to** copies a header or a footer, with its size, to the
+  same place in another
   widget. If they do not fit, the least important are removed whole; the text never shrinks. Delta,
   Inputs, Radar, Spotter, Warning lights and Alerts do not have them: they are compact readouts, and
   a bar would only add height.

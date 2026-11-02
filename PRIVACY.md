@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 01-11-2026.
+Last updated: 02-11-2026.
 
 _En español: puedes hacer cualquier pregunta sobre privacidad en español en un issue._
 
@@ -18,7 +18,8 @@ also reads your wheel's buttons (through Windows Raw Input) if you bind a shortc
 - `settings.json`: your settings and layouts;
 - `personal-bests.json`: your lap records (for the delta);
 - backup copies of those two files (`settings.json.bak`, `settings.json.v5.bak`,
-  `personal-bests.json.bak`) and, if you use the simulated data mode, its own `mock/` subfolder;
+  `settings.json.v6.bak`, `personal-bests.json.bak`) and, if you use the simulated data mode, its
+  own `mock/` subfolder;
 - `overlap.log` (and `overlap.old.log`): the app's log, for diagnosing problems. It can contain
   paths on your computer (your user folder is written as `%USERPROFILE%`, without your Windows user
   name) and driver names from your sessions. It never leaves your computer unless you copy it;

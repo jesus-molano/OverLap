@@ -201,8 +201,9 @@ otra columna, va en una columna propia. Una regla:
 banderas (su fila de la lista no tiene ojo sino un enlace a su fila de «Pilotos», y dice cómo están
 ahí). La posición y el número, que no están en el bloque, tienen su ojo. «Igualar con…» lo lleva
 todo, y en la vista previa se arrastran como las demás. Cabecera con la sesión, su SoF, tus
-incidentes y lo que queda; pie con las condiciones de pista (temperatura y su tendencia, agua y
-lluvia, viento con un dial que apunta a tu coche) y los coches. A un clic en Personalizar: una
+incidentes y lo que queda; pie con el nombre del circuito, las condiciones de pista (temperatura y
+su tendencia, agua, porcentaje de lluvia, viento con un dial que apunta a tu coche) y los coches. A
+un clic en Personalizar: una
 segunda línea con tu iRating en juego, tu SR proyectado y la vuelta rápida de clase, y el aire y la
 goma en el pie (de serie no salen en una instalación nueva, para leerla de un vistazo).
 
@@ -500,13 +501,17 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
   un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
   quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
-  iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, pista, agua,
-  viento, aire, goma, y por separado vueltas hechas y total, vueltas hechas, vueltas que quedan,
+  iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, nombre del
+  circuito, temperatura de la pista, agua, lluvia, viento, aire, goma, y por separado vueltas hechas
+  y total, vueltas hechas, vueltas que quedan,
   tiempo pasado y total, tiempo pasado, tiempo que queda, vueltas del stint, puesto tras la parada
   (una estimación en carrera, cuando alguien ya ha parado) y cada parte del iRating; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
-  defecto siguen una regla: a la izquierda de la cabecera el título y la sesión, a la derecha tus
-  incidentes y el tiempo restante; a la izquierda del pie las condiciones, a la derecha los coches y el
-  combustible; y los datos de la sesión, solo en Posiciones. **Copiar a** pasa una cabecera o un
+  defecto cada barra es una sola línea con sus datos juntos: la cabecera dice el título y la sesión,
+  y luego tus incidentes y el tiempo restante; el pie las condiciones, y luego los coches y el
+  combustible; y los datos de la sesión y el nombre del circuito, solo en Posiciones. Lo que arrastres
+  a la caja **Derecha** se alinea al otro extremo de la línea. El nombre del circuito es el que escribe
+  iRacing, en su forma corta si la línea va justa, y la lluvia es el porcentaje de precipitación de
+  iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si no caben, se quitan enteros los menos importantes; el texto nunca se
   encoge. Delta, Pedales, Radar, Spotter, Testigos y Avisos no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
