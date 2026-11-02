@@ -392,7 +392,9 @@ pressure, pit limiter and damage (the mandatory repairs) are warning lights too:
 **Warning light** checkbox that turns theirs on or off in Warning lights, and the other way round
 (**Alert** on the Warning lights page). **Keep visible** (3 s by default) keeps a brief alert on
 screen long enough to read it; in **Customise › Extras** you can remove the what-to-do line and the
-chips for the other alerts.
+chips for the other alerts. The blue flag says a faster car is behind you. It lasts exactly as long
+as iRacing gives it, and it is not shown while the green flag is out, because iRacing's own graphic
+shows green then.
 
 ### Warning lights
 

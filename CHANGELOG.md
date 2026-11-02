@@ -5,6 +5,21 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.11.2] - 2026-11-02
+
+### Changed
+
+- Traffic's slow warning is back to how it was before 2.11.1. The 2.11.1 rule warned later at slow
+  corners, so a car is slow again when it is well under its own pace, and Traffic warns earlier at
+  those corners and also warns of cars in them. The guard for holes in the data stays, so a short
+  hole does not read as a slowdown.
+- The blue flag is no longer shown while the green flag is out, as in iRacing's own graphic. It
+  lasts exactly as long as iRacing gives it, whatever **Keep visible** says.
+- The blue flag now describes rather than orders: it says there is a faster car behind instead of
+  telling you to let it pass.
+- Traffic's rule of 2.11.1 for the blue flag is undone. Under a blue flag it again lists any car
+  behind that can be passing you, with the same reading of the flag as Alerts.
+
 ## [2.11.1] - 2026-11-02
 
 ### Fixed
@@ -1721,6 +1736,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.11.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.2
 [2.11.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.1
 [2.11.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.0
 [2.10.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.10.0

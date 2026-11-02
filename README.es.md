@@ -401,7 +401,9 @@ daltónicos). Motor calado, presión de aceite, limitador de boxes y daños (la 
 obligatoria) son también testigos: su fila tiene una casilla **Testigo** que enciende o apaga el
 suyo en Testigos, y al revés (**Aviso** en la página de Testigos). **Mantener visible** (3 s de
 serie) deja un aviso breve en pantalla el tiempo de leerlo; en **Personalizar › Extras** se quitan
-la línea de qué hacer y los chips de los demás avisos.
+la línea de qué hacer y los chips de los demás avisos. La bandera azul dice que hay un coche más
+rápido detrás. Dura justo lo que le da iRacing y no sale mientras esté la verde, porque entonces el
+gráfico de iRacing muestra la verde.
 
 ### Testigos
 
