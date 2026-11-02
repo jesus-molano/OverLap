@@ -5,6 +5,30 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.11.1] - 2026-11-02
+
+### Fixed
+
+- Traffic no longer calls a car slow when it is not. A car is now slow when it is well under what
+  the slower cars do at that point of the lap, learned from the clean laps of the event's sessions,
+  so a car in a slow corner is no hazard and a short hole in the data does not read as a slowdown.
+  What qualifying learned warns on the first lap of the race. Until a point of the lap has enough
+  clean laps, nothing is called slow there. A stopped or off-track car still warns at once.
+- Cars in their stall at the green no longer lead their class. A car that has not started racing
+  stays behind the running cars, in grid order, in the standings, the relative, the places gained
+  and the battle, until it is out on track. A real pit-lane start then takes its place as usual.
+- No last lap for a lap that never happened. A lap broken by a tow, a reset, a teleport or leaving
+  the world has no time any more in the delta, relative and standings. A short hole in the data does
+  not lose a real lap, and iRacing's time of a lap stays when the car leaves the world.
+- The first lap of a race has one time. It now always reads as iRacing times it, in every widget,
+  team races included. OverLap shows no time of its own for it, so it stays empty until iRacing
+  publishes it, and the delta shows no time at the line that ends it.
+- Traffic under a blue flag lists a car as passing you only when it is really gaining on you, not
+  a slower class you have just passed.
+- A car no longer loses a lap for a moment when iRacing's lap counter goes back for a second after
+  a hole in the data, which showed it a lap down on the track map and the relative and left its stint laps one short.
+  A counter that stays lower is still believed, about three seconds later.
+
 ## [2.11.0] - 2026-11-01
 
 ### Added
@@ -1697,6 +1721,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.11.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.1
 [2.11.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.0
 [2.10.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.10.0
 [2.9.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.9.0
