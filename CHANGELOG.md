@@ -5,6 +5,12 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.12.1] - 2026-11-02
+
+### Fixed
+
+- The first items of the Settings side menu no longer stretch and sit far apart on tall screens.
+
 ## [2.12.0] - 2026-11-02
 
 ### Added
@@ -1876,6 +1882,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.12.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.1
 [2.12.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.0
 [2.11.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.3
 [2.11.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.2
