@@ -5,6 +5,121 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.12.0] - 2026-11-02
+
+### Added
+
+- Track map has a **Legend** tab. It shows your car, each class, a car off track or crawling, a car a
+  lap up or down, the pits row, the cars without data and the pace car, each as the widget draws it.
+  It also says that a dot only tells where that car is along the lap, because iRacing gives no
+  sideways position.
+- Delta stays visible while you drive with no reference at all yet. It shows iRacing’s current lap
+  time, empty sectors and a sentence saying that you need a clean lap to see the delta. It never
+  shows an invented delta or a predicted lap. On a dirty lap, the lap is also marked invalid. In a
+  narrow window the sentence is shorter, and the widget keeps its height.
+- Delta has a **Show without a reference** switch, on by default. Off, the widget stays hidden until
+  there is a reference, as it did before. It only shows while you are on track, never in the garage
+  or out of the car.
+- Headers and footers have a **Separator**: a thin line you add from **Add a separator**, on the left
+  or on the right, and drag between items like any other. Each one has its own size and can be
+  removed. A bar can have as many as you want, and they are saved with the layout. It shows only
+  between two items. When room is short, separators shrink and then go, before any item is removed.
+- **Water on track** has a **Format** on its row: **Graph and text**, **Text only** or **Graph only**.
+  **Rain**, **Air temperature** and **Track temperature** have one too: **Name and value** or **Icon
+  and value**. The track's trend arrow stays in both. Each widget keeps its own, and today's look is
+  the default.
+- Appearance has a **Background colour** next to the widgets’ background, with a colour picker and
+  four dark swatches. Each widget can follow it or have its own on its page, and the opacity applies
+  on top of it. It reaches every widget, the stream pages and the screen mirrors, and it is saved
+  with the layouts. A note appears under the picker when the text would be hard to read on that
+  colour, and the colour can still be chosen. The default is today’s.
+- Appearance has **Your row’s highlight**: **Line**, today’s look and the default, or **Gradient**,
+  where your accent colour crosses the whole row from left to right and fades towards its end. It
+  applies in Standings and Relative.
+- Appearance has **Lines between rows**, on by default. It decides whether a thin line is drawn
+  between rows while **Alternating rows** is off. With both off, nothing is drawn between the rows,
+  neither the lines between groups in Traffic nor the dotted line where Standings skips rows.
+- Pedals has a **Show** choice: **What you press**, the default, or **What the car applies**. When
+  stopped, iRacing applies the brake and the clutch by itself, so with the second choice both show
+  at full without you touching them.
+
+### Changed
+
+- Alerts no longer shows `DAMAGE · pit for mandatory repairs`. iRacing can turn that warning on for
+  a few seconds with no flag and turn it off alone, so the band now leaves it to iRacing's real
+  meatball flag. The mandatory repairs warning light stays, and its legend says only what iRacing
+  reports.
+- **Saving to**, at the top of a widget's page, is now one small line with no box and no help text.
+  **Copy these options to all layouts** moved to the **⋯** menu on that line, with its second click
+  to confirm and the sentence saying how it went. The line still does not show with one layout.
+- **Search settings** now finds **Small** of **When scrolling**, the preview's third fold choice, by
+  its own word and by “strip”. It also finds **Scene** and **When scrolling** themselves.
+- Section notes now wrap more evenly, and the note on the warning lights page is written in full
+  sentences.
+- The meatball flag on a driver’s row now looks like the real one: a black square with a large orange
+  disc, with no pole, as big as the other two flags and with a fine light edge so that the black
+  does not vanish on the dark panel.
+
+- A header or footer with items only on the left keeps them together from the left. With items on
+  both sides, each side takes room in proportion to what it holds and shares its free room between
+  its items, so no large hole is left in the middle. A lone item on the right sits at the end of the
+  bar.
+- An item now leaves a header or footer only when the line really does not fit, by what the items
+  take as drawn, and not because of a fixed width kept for each one. An item that left comes back
+  only when there is clearly room to spare, so a value that grows from 9:59 to 10:00 does not make
+  items come and go. The least important item still goes first, and a bar's height never changes.
+
+- Three tabs of every widget page have new names, in the same place and with the same settings:
+  **Content** is now **Options**, **Customise** is now **Elements**, and **Window and visibility**
+  is now **Size and visibility**. In Track map, the **Elements** list is now **Map parts**.
+- Settings is easier to read at a glance. Section titles are larger and no longer in capitals, there
+  is more space before each section than between two rows, and a tab no longer repeats its own name
+  as a title above its rows. A tab's reset button is now at the end of the tab bar.
+- Under its name, each widget's page now says what the widget is for. Its size moved to the first
+  line of **Size and visibility**, and the note that a widget is hidden is now a line under that
+  sentence.
+- The preview's tip is one line, it shows only in **Options** and **Elements**, and it goes away
+  with **Got it** or your first change in the preview. The rest of the tip is behind its info icon.
+- Many help lines are shorter, and the technical detail moved behind the info icon. **Size and
+  visibility**, **Streaming & VR**, Delta, Fuel, Alerts and Warning lights were rewritten in full
+  sentences, and each note now sits next to the setting it explains.
+- Some names now say one thing each. **Compact mode** in Standings is now **Short table**, the
+  preview's **Scrolling** is now **When scrolling**, with the choices **Folds**, **Whole** and
+  **Small**, and the boxes in the Alerts and Warning lights lists are **Also in Warning lights** and
+  **Also in Alerts**. Help texts no longer name a colour that the colour-blind palette changes.
+- **Edit mode** is always in view at the foot of the sidebar. The list of shortcut keys under it
+  shows only when the window is at least 1000 px high, and every shortcut is still on the
+  **Shortcuts** page.
+- On a very wide window, the cards of one-column tabs and long notes stop growing, so a control
+  stays close to its label.
+- In **Elements**, the two columns start level, the right one stays in view while the main list
+  scrolls, and its bars are in the order the widget draws them.
+- In the **Drivers** tab every row now reads the same way, with the choices under the label and its
+  help. A line over the rows says what **Global** means, with a button to Appearance.
+- **Appearance** has one **Language and units** card in place of **Language** and **Other**.
+  Resetting it still does not change the language. **Country flag**, **Penalty flags** and **iRating
+  in the licence colour** are switches now, and the styles are described in one short sentence each.
+- **Visibility** shows the table of widgets first. **Bring every widget to this screen** moved under
+  it, in a section called **If a widget is stuck on another screen**, and **A widget does not show?**
+  in the help takes you straight there. The boxes of a widget that is off are dimmed, and they still
+  work.
+- **Shortcuts** explains how to use a cell above the table. Its columns are **Main shortcut** and
+  two **Alternative**, the action's column is wider when there is room, and a cell where nothing can
+  be assigned yet is blank.
+- **Layouts**, with a single layout, starts with **More options** open so the examples are in view,
+  and that layout's name no longer leaves room for a drag handle. With links and the switch off, it
+  now says that the links do not apply until you turn layout switching on.
+- **About and help** is now **Help and about**, and it starts with **Quick help**. In **Licence**, the
+  licence text and the logos' text are folded under their titles, and the buttons stay in view.
+- In a narrow window, a widget page's three buttons stay together on one line, the styles go two by
+  two, and the widget's name stays in view when the **Visibility** table scrolls sideways.
+- The welcome keeps the same height on every step, so its button no longer moves. In step 2, pointing
+  at a widget says what it is for, and step 3 adds **Ctrl+K** to search any setting.
+- On the widgets, some texts read better over the game: Fuel writes **Measured on lap 12.** and
+  **Measured when you stop in the pits.**, the clock of a timed session says **19:13 left** or **5:47
+  done**, and Battle writes an estimate with **≈**, as in **≈1 lap and 11 left**. Track map says **3
+  without data**. What each widget computes has not changed.
+
 ## [2.11.3] - 2026-11-02
 
 ### Added
@@ -1761,6 +1876,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.12.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.0
 [2.11.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.3
 [2.11.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.2
 [2.11.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.1
