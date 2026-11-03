@@ -447,17 +447,15 @@ pantalla y colocarlos. Windows avisa de que OverLap queda en la bandeja.
 Se abren desde la bandeja (**Ajustes…**), con `Ctrl+Mayús+O`, volviendo a abrir el `.exe` o
 arrancándolo con `--settings` (los accesos directos del instalador lo llevan). Todo se aplica
 **en vivo** y se guarda solo; arriba de
-cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día; al bajar
-por las opciones se encoge a la vez que bajas, hasta una franja que se sigue leyendo, centrada en
-tu fila (o queda entera, o siempre pequeña: **Al desplazar**, en su pie). Con **Entera** ocupa como mucho un tercio de la
-ventana, y la línea que tiene debajo cambia su altura: cada widget guarda la suya y con un doble clic vuelve
-al tamaño inicial. La muestra nunca se dibuja más grande que su tamaño real. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de hueco, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
+cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día, que se queda arriba
+al bajar por las opciones. Ocupa como mucho el 45 % de la ventana, nunca baja de un tamaño que se lea (si no cabe, enseña sus primeras filas) y la línea que tiene debajo cambia su altura: al estirarla más de lo que el widget necesita, este crece con ella, hasta el doble de su tamaño real o hasta el 60 % de la ventana. Cada widget guarda la suya y con un doble clic vuelve
+al tamaño inicial. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de hueco, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
 de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
 **Opciones**, **Elementos**, la propia del widget si la tiene (**Pilotos** en Relativo,
 Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos y Mapa de pista) y **Tamaño y
 visibilidad**. Ninguna marca en las pestañas indica cambios: eso lo dicen el ↺ del final de la barra
-de pestañas y el menú **Restablecer…** de arriba. La barra de pestañas se queda bajo la vista previa
-plegada, `Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
+de pestañas y el menú **Restablecer…** de arriba. La barra de pestañas se queda bajo la vista previa,
+`Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
 de un widget a otro mientras la ventana sigue abierta. En una ventana estrecha las pestañas
 pierden los iconos, luego ponen **Tamaño** y solo entonces se desplazan de lado. Algunas líneas
 llevan a un ajuste de otra pestaña: «Qué avisos salen · Ir a Elementos», «La altura de fila se cambia con

@@ -5,6 +5,25 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.7] - 2026-11-03
+
+### Changed
+
+- The preview in **Settings** now always stays whole above the options while you scroll. By default it
+  takes up to 45 % of the window instead of a third.
+- A widget in the preview is no longer drawn below 85 % of its size, down from 75 %, so its text stays
+  readable. If it does not fit at that size, you see its first rows at their real size.
+- The preview is never shorter than 160 px, with the widget in the middle, so a thin widget no longer
+  sits right on top of the buttons.
+- The line under the preview now goes further. Stretched past what the widget needs, the widget grows
+  with it, up to twice its real size or 60 % of the window. Each widget keeps its own height, and a
+  double click returns to the original size. For more room, **Open in a window** is still there.
+
+### Removed
+
+- **When scrolling** and its choices **Folds**, **Whole** and **Small** are gone from the preview, along
+  with **Show whole**.
+
 ## [2.13.6] - 2026-11-03
 
 ### Changed

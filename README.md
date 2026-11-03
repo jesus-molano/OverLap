@@ -435,11 +435,10 @@ screen and place them. Windows notes that OverLap stays in the tray.
 They open from the tray (**Settings…**), with `Ctrl+Shift+O`, by opening the `.exe` again or by
 starting it with `--settings` (the installer's shortcuts do). Everything applies **live** and saves by
 itself; at the top of each page there is a preview of the widget on a night or day track
-background; as you scroll down the options it shrinks as far as you scroll, down to a strip that stays
-readable and centred on your row (or stays whole, or is always small: **When scrolling**, in its
-footer). With **Whole** it takes a third of the window at most, and the line under it changes its height:
-each widget keeps its own, and a double click returns to the original size. The sample is never drawn
-larger than its real size. **Open in a window** takes the preview to a window of its own that stays on
+background, which stays at the top as you scroll down the options. It takes 45 % of the window at most,
+never goes below a size that reads (if it does not fit, it shows its first rows) and the line under it
+changes its height: stretched past what the widget needs, the widget grows with it, up to twice its real
+size or 60 % of the window. Each widget keeps its own, and a double click returns to the original size. **Open in a window** takes the preview to a window of its own that stays on
 top, can go to another screen and follows the page you are on. It opens right beside Settings when that
 screen has room, and after that where you left it. You edit it as you do in Settings, with
 example data: a click hides an element, and a drag moves it or changes its slot, with its **Undo**. It
@@ -447,7 +446,7 @@ stays above the widgets too and closes with Settings, while the options take all
 every page: **Options**, **Elements**, the widget's own tab where it has one (**Drivers** on
 Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights and Track map) and
 **Size and visibility**. No mark on a tab says it has changes: the ↺ at the end of the tab bar and the
-**Reset…** menu at the top do that. The tab bar stays under the folded preview, `Ctrl+PgUp` / `Ctrl+PgDn`
+**Reset…** menu at the top do that. The tab bar stays under the preview, `Ctrl+PgUp` / `Ctrl+PgDn`
 change tab, and the tab you chose is kept as you go from widget to widget while the window is open.
 In a narrow window the tabs drop their icons, then say **Size** (and **Bests**), and only then
 scroll sideways. Lines in one tab take you to a setting in another: “Which alerts show · Go to

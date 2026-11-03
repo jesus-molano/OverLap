@@ -59,7 +59,7 @@ body:
       value: |
         ### The log (`overlap.log`)
 
-        If we ask for it, open the log from Settings › About and help › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as paths with your Windows user name or driver names from your sessions. Delete them or replace them with `…` before uploading it.
+        If we ask for it, open the log from Settings › About and help › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as driver names from your sessions. Delete them or replace them with `…` before uploading it.
   - type: checkboxes
     id: log-checked
     attributes:
