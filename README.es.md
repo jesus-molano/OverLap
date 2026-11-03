@@ -402,7 +402,7 @@ que los toques.
 <img src="docs/screenshots/avisos.png" alt="Avisos" width="400">
 
 Una banda con lo que te afecta, lo más importante en grande y el resto debajo, en pequeño. Banderas (también
-la bandera de advertencia y la azul, cada una con su fila), limitador y exceso de velocidad en el pit lane, «PON LIMITADOR» antes de
+la bandera de advertencia y la azul, cada una con su fila), limitador y exceso de velocidad en el pit lane («LIMITADOR OFF» espera a que el coche salga de su box), «PON LIMITADOR» antes de
 entrar, 10 y 5 vueltas para el final, grúa con cuenta atrás, motor calado, sentido contrario,
 presión de aceite, «ENTRA ESTA VUELTA», combustible bajo y cada
 incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada caso se muestra u oculta
@@ -528,17 +528,23 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   y los de en medio al centro, así que los datos en los huecos 1, 3 y 5 de 5 quedan en un extremo, en el
   centro exacto y en el otro extremo. Un hueco vacío es solo espacio, y con 0 huecos la barra no se
   muestra y sus datos se quedan guardados. Un dato sin nada que decir, como el agua con la pista seca,
-  deja su hueco vacío y nada más se mueve. Un dato más largo que su hueco toma sitio de los huecos vacíos
+  deja su hueco vacío y nada más se mueve. Si ninguno de los datos de una barra tiene nada que decir,
+  como una línea de cifras de carrera en entrenamientos, la barra no se muestra sobre el juego ni en las
+  páginas de streaming. Vuelve en cuanto un dato tiene algo que decir y se va unos segundos después de
+  que se vaya el último, o enseguida en una sesión nueva. La vista previa la sigue mostrando con sus huecos
+  vacíos para que puedas editarla. Un dato más largo que su hueco toma sitio de los huecos vacíos
   y luego de los que les sobra. En la vista previa, con la pestaña **Elementos** abierta, cada hueco
   vacío se ve como un contorno tenue: un clic te deja elegir qué poner, un clic en un dato lo quita, y
   arrastrando lo llevas a cualquier hueco de la cabecera, la segunda línea o el pie de ese widget, y
   cambia de sitio con lo que hubiera. Con el teclado se hace lo mismo desde la lista, con flechas y un
   menú. Quitar huecos nunca pierde un dato: los datos pasan a los huecos libres, o la barra se queda
   como estaba y te dice por qué. Un dato puede estar en dos barras de un widget, como la hora en la
-  cabecera y en el pie. En su fila, **Agua en la pista** elige **Gráfico y texto**, **Solo texto** o **Solo gráfico**,
+  cabecera y en el pie. **Resaltar**, en la fila de un dato, lo dibuja en el color de acento de
+  **Apariencia** y un 9 % más grande, sin cambiar la altura de la barra, y lo que avisa de algo conserva
+  su propio color. En su fila, **Agua en la pista** elige **Gráfico y texto**, **Solo texto** o **Solo gráfico**,
   y **Lluvia**, **Temperatura del aire**, **Temperatura de la pista**, **Goma**, **Viento** sin su dial, **SoF**, el número de coches,
   las vueltas de combustible, la posición tras boxes y el stint eligen **Nombre y valor** o **Icono y valor**, y los
-  incidentes **Solo texto** o **Icono y valor**, en cada widget. En la vista previa, una franja fina en los bordes del widget
+  incidentes **Solo texto** o **Icono y valor**, la hora en pista **Icono y valor** o **Nombre y valor** («PISTA 14:32») y la hora local **Solo la hora** o **Nombre y hora** («LOCAL 14:32»), en cada widget. En la vista previa, una franja fina en los bordes del widget
   cambia su tamaño como en el modo edición, solo el ancho si su alto sigue al contenido, con **Deshacer**. El nombre del circuito es el que escribe
   iRacing, en su forma corta si la línea va justa, y la lluvia es el porcentaje de precipitación de
   iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
@@ -562,7 +568,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   vuelve todo de serie. No cambian el acento, la Accesibilidad, la etiqueta SIM, el idioma, las
   unidades, los sitios ni qué widgets se ven (eso lo eligen los layouts).
 - **Apariencia**: idioma, color de acento (te marca a ti y nada más), fondo de los widgets (80 %
-  por defecto, el que siguen todos salvo los que tengan uno propio) y su **Color del fondo** (de serie, el casi negro de siempre; si el texto se leería mal sobre él, aparece una nota), tamaño del texto (multiplica la escala de todos los widgets:
+  por defecto, el que siguen todos salvo los que tengan uno propio) y su **Color del fondo** (de serie, el casi negro de siempre; sobre un color claro el texto se vuelve oscuro solo y los logos de las marcas usan sus colores impresos, sobre uno saturado el texto de color se aclara hasta leerse, y solo aparece una nota en un tono medio donde ni el texto claro ni el oscuro se leen bien), tamaño del texto (multiplica la escala de todos los widgets:
   en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
   proporción, en todos tus layouts), contorno del texto, densidad y filas alternas,
   **Líneas entre filas** (la línea fina que se dibuja con las filas alternas apagadas; con las dos
@@ -575,7 +581,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **Equipo · piloto**: los dos en la misma línea, «Vela Rossa Corse · M. Echeverría», el piloto
   más pequeño y en gris y con el formato del nombre; si no cabe se recorta antes el piloto. Un
   coche sin equipo propio, como en cualquier otra carrera, sigue con su piloto), formato del nombre, logo de la marca (Auto, Siempre o
-  Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k» o el número
+  Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k», cortado y sin redondear, o el número
   entero, «2.520», con los miles del idioma; también el SoF) e **iRating con el color de la
   licencia** (apagado de serie: el de cada piloto con los colores y el estilo de su licencia).
 - **Accesibilidad** (en el grupo **General** de Apariencia, con Idioma y unidades), todo apagado de serie: **paleta para daltónicos**

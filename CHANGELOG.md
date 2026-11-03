@@ -5,6 +5,51 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.2] - 2026-11-03
+
+### Added
+
+- Each item of a header or footer has a **Highlight** option on its row in **Elements**. It draws that
+  item in the accent colour of **Appearance** and about 9% larger, so a title can stand out from the
+  rest of the bar. It is off by default. The bar keeps its height, and the item's real width counts
+  when the bar decides what fits. Anything that signals something keeps its own colour, such as an
+  incident limit that is close or a rating going up or down.
+
+### Changed
+
+- A header, second line or footer with nothing to show no longer draws over the game or on the stream
+  pages. For example, a line of race figures goes away in practice and the widget takes up less height.
+  The line returns as soon as one of its items has data and leaves a few seconds after the last one
+  goes, or at once in a new session. It stays in the preview of the settings and in edit mode, with its
+  empty slots, so you can still edit it, and an item that always draws, such as the title, keeps its line on.
+- The track temperature icon of the bars is now the track seen from the front, with its two edges and
+  its centre line, in place of the thermometer on the road.
+- The text of a widget now follows its background colour. On a light colour it turns black, with its
+  greys, row lines and status colours darkened to match, in the overlay, the stream pages and the
+  mirror. Dark backgrounds look exactly as before, and below 35% opacity the text stays as it was
+  with its outline, because the game shows through. The note under the colour now only appears on a
+  mid tone where neither light nor dark text reads well. On a saturated colour, such as a strong blue
+  or red, the licences, the class names, the warning lights' words and the status colours turn paler
+  until they read, and the letters under the pedals in Inputs follow the background too. On a light
+  colour, the car logos use their printed colours instead of the pale ones made for a dark background.
+- The class line in Standings can show its car count with the helmet too. It follows the same
+  **Icon and value** choice as the car count in the bars, and that choice is also under **Class line**.
+- The abbreviated iRating and SoF now cut the figure instead of rounding it, so 2599 shows as 2.5k and
+  not 2.6k. The whole number and values under 1000 stay as they were.
+- The clocks of the bars can show their name. **Sim time** chooses **Icon and value** or **Name and
+  value**, which reads "TRACK 14:32", and **Local time** chooses **Time only** or **Name and time**,
+  which reads "LOCAL 14:32". Both start as they looked until now.
+
+### Fixed
+
+- Alerts no longer shows "LIMITER OFF" in red while your car stands in its stall. It appears as soon as
+  the car rolls out of the stall without the limiter, and being over the limit in the stall still shows.
+- On tracks whose line is in the pit lane, the stint laps no longer go up to 1 or 2 for a moment when
+  you leave the pits. A stint that follows a stop goes to 0 at the line, and a lap ended on pit road
+  before stopping still counts until the pit exit.
+- On those same tracks, Delta no longer says "invalid" for the lap that starts between the line and
+  the pit exit. It says "out lap" from the line.
+
 ## [2.13.1] - 2026-11-03
 
 ### Changed
@@ -1995,6 +2040,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.2
 [2.13.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.1
 [2.13.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.0
 [2.12.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.1

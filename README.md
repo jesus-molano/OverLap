@@ -392,7 +392,7 @@ without you touching them.
 
 A band with what affects you, the most important in large type and the rest below, small. Flags
 (also the warning flag and the blue flag, each with its own row), limiter and speeding in the
-pit lane, “LIMITER OFF” before the entry, 10 and 5 laps to go, tow with a countdown, engine stalled,
+pit lane (“LIMITER OFF” waits until the car rolls out of its stall), “LIMITER OFF” before the entry, 10 and 5 laps to go, tow with a countdown, engine stalled,
 wrong way, oil pressure, “BOX THIS LAP”, low fuel and each incident
 as it is added (“+2x Loss of control · L5 · S3 · gravel”). Each case is shown or hidden with its eye
 in **Elements › Alerts**, grouped (Flags, Pit lane, During the race, Engine, Fuel), and each alert
@@ -515,16 +515,21 @@ report, without names) and **Open log**.
   the right and those between to the centre, so items in slots 1, 3 and 5 of 5 sit at the left end,
   the true centre and the right end. An empty slot is simply space, and 0 slots hide the bar with its
   items kept. An item with nothing to say, such as the water on a dry track, keeps its slot empty, so
-  nothing else moves. An item too long for its slot takes room from the empty slots and then from
+  nothing else moves. When none of a bar's items has anything to say, such as a line of race figures in
+  practice, the bar is not shown over the game or on the stream pages. It returns as soon as an item has
+  data, and it leaves a few seconds after the last one goes, or at once in a new session. The preview
+  still shows it with its empty slots, so you can edit it. An item too long for its slot takes room from the empty slots and then from
   others with room to spare. In the preview, a thin strip on the widget's edges changes its size as in edit mode, the width alone while its height follows the content, with **Undo**. While the **Elements** tab is open, each empty slot is a
   faint outline: a click lists what can go there, a click on an item removes it, and a drag takes it to
   any slot of that widget's header, second line or footer, swapping with what is there. The keyboard
   does the same from the list, with arrows and a menu. Fewer slots never lose an item: the items move
   into the free ones, or the bar keeps its slots and says why. An item can be in two bars of a widget,
-  such as the clock in the header and the footer. On its row, **Water on track** chooses **Graph
+  such as the clock in the header and the footer. **Highlight** on an item's row draws it in the accent
+  colour of **Appearance** and about 9% larger, without changing the bar's height, and anything that
+  signals something keeps its own colour. On its row, **Water on track** chooses **Graph
   and text**, **Text only** or **Graph only**, and **Rain**, **Air temperature**, **Track
   temperature**, **Rubber**, **Wind** without its dial, **SoF**, the car count, the laps of fuel, the position after a stop and the
-  stint choose **Name and value** or **Icon and value**, and the incidents **Text only** or **Icon and value**, per widget. The track's
+  stint choose **Name and value** or **Icon and value**, the incidents **Text only** or **Icon and value**, the sim time **Icon and value** or **Name and value** (“TRACK 14:32”), and the local time **Time only** or **Name and time** (“LOCAL 14:32”), per widget. The track's
   name is the one iRacing writes, its short form when the line is tight, and the rain is iRacing's
   precipitation percentage, 0% too, and the first thing to go when the line is tight. **Copy to** copies a header or a footer, with its size, to the
   same place in another
@@ -552,7 +557,7 @@ report, without names) and **Open log**.
   layouts choose that).
 - **Appearance**: language, accent colour (it marks you and nothing else), widget background (80% by
   default, the one all follow except those with their own) and its **Background colour** (today’s
-  near-black by default, a note appears if the text would be hard to read on it), text size (it multiplies the scale of
+  near-black by default; on a light colour the text turns dark by itself and the car logos use their printed colours, on a saturated one the coloured text turns paler until it reads, and a note appears only on a mid tone where neither light nor dark text reads well), text size (it multiplies the scale of
   every widget: in Relative, Radar, Spotter and Delta, which fill their window, it enlarges
   their window in the same proportion, in all your layouts), text outline, density and alternating
   rows, **Lines between rows** (the thin line drawn while alternating rows are off; with both off
@@ -564,7 +569,7 @@ report, without names) and **Open log**.
   too; or **Team · driver**: both on one line, “Vela Rossa Corse · M. Echeverría”, the driver
   smaller and grey and in the name format; when it does not fit the driver is cut first. A car
   without a team of its own, as in every other race, keeps its driver), name format,
-  make logo (Auto, Always or Never), country flag, penalty flags, **iRating format** (“2.5k” or the whole number, “2,520”,
+  make logo (Auto, Always or Never), country flag, penalty flags, **iRating format** (“2.5k”, cut and not rounded, or the whole number, “2,520”,
   with the language's thousands separator; the SoF too) and **iRating in the licence colour** (off
   by default: each driver's in the colours and style of their licence).
 - **Accessibility** (in the **General** group of Appearance, with Language and units), all off by
