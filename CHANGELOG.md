@@ -5,6 +5,19 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.5] - 2026-11-03
+
+### Added
+
+- Headers and footers have five new items, hidden by default: **Humidity**, **Fog**, **Air pressure**,
+  **Air density** and **Sun height**, with the value iRacing gives. Each one can show its name or an
+  icon. Pressure follows your units, and the sun goes negative at night.
+
+### Changed
+
+- The list that opens when you click an empty slot now comes in sections, with its items in
+  alphabetical order inside each.
+
 ## [2.13.4] - 2026-11-03
 
 ### Changed
@@ -2057,6 +2070,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.5]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.5
 [2.13.4]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.4
 [2.13.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.3
 [2.13.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.2
