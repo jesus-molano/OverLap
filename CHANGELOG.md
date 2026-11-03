@@ -5,6 +5,16 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.3] - 2026-11-03
+
+### Added
+
+- **Pedals:** the clutch can be drawn as a thin line glued to the brake. It only shows while you press
+  it, and the other bars never move. Choose it on the **Clutch** row of **Bars**; the normal bar stays
+  the default.
+- **Pedals:** the trace can show your gear as a stepped line with its number. In quick downshifts only
+  the last number shows. Turn it on in the **Trace** options; it starts off.
+
 ## [2.13.2] - 2026-11-03
 
 ### Added
@@ -2040,6 +2050,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.3
 [2.13.2]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.2
 [2.13.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.1
 [2.13.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.0
