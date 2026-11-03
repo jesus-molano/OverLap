@@ -5,6 +5,16 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.6] - 2026-11-03
+
+### Changed
+
+- **Battle:** the sector and lap times now use the same sign as **Delta**. A negative time in green means
+  you were faster than your rival, and a positive one in red that you were slower. Until now it was
+  the other way round. The pace you are gaining or losing and the pace you need no longer carry a
+  sign, because their arrow and their words already say it.
+- The air density icon of the bars is now a solid weight, easier to see at small sizes.
+
 ## [2.13.5] - 2026-11-03
 
 ### Added
@@ -2070,6 +2080,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.6]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.6
 [2.13.5]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.5
 [2.13.4]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.4
 [2.13.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.3
