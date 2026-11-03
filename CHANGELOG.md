@@ -5,6 +5,18 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.1] - 2026-11-03
+
+### Changed
+
+- The tyre and helmet icons of the info bars are redrawn. The rubber item shows a tyre with bits of
+  rubber thrown up, and the car count a racing helmet from the side.
+
+### Removed
+
+- The icon choice of the SoF item. It always shows as "SoF 2.2k", because three bars read as phone
+  signal rather than the strength of the field.
+
 ## [2.13.0] - 2026-11-03
 
 ### Added
@@ -1983,6 +1995,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.1
 [2.13.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.0
 [2.12.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.1
 [2.12.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.0
