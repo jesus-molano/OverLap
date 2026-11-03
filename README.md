@@ -175,7 +175,7 @@ the name always shows. At the foot of the list, **Column titles** and **Match St
 Short table (the leaders, the cars around you and the leaders of each other class: **Top
 positions** and **Around you**, 3 and 3 by default; from each other class, by default its leader,
 on one line; with **Cars of other classes** from 0 to 10, as many as you like under its class name)
-or full. Each class line has its SoF and its car count, each with its eye in **Elements › Class
+or full. With **With a single class too** on, a session with one class has its class line as well, and its SoF and car count leave the bars. Each class line has its SoF and its car count, each with its eye in **Elements › Class
 line**; the SoF also goes at the end of a one-line leader. Columns that are reordered by dragging
 and hide by themselves if the window gets narrow: positions gained (races only), iRating, licence,
 iRating at stake, gap (**Measured** to the car ahead, to the leader or both; by default, to the car
@@ -437,7 +437,13 @@ starting it with `--settings` (the installer's shortcuts do). Everything applies
 itself; at the top of each page there is a preview of the widget on a night or day track
 background; as you scroll down the options it shrinks as far as you scroll, down to a strip that stays
 readable and centred on your row (or stays whole, or is always small: **When scrolling**, in its
-footer). Under the preview, each widget's page has **tabs**, the same names in the same order on
+footer). With **Whole** it takes a third of the window at most, and the line under it changes its height:
+each widget keeps its own, and a double click returns to the original size. The sample is never drawn
+larger than its real size. **Open in a window** takes the preview to a window of its own that stays on
+top, can go to another screen and follows the page you are on. It opens right beside Settings when that
+screen has room, and after that where you left it. You edit it as you do in Settings, with
+example data: a click hides an element, and a drag moves it or changes its slot, with its **Undo**. It
+stays above the widgets too and closes with Settings, while the options take all the room. Under the preview, each widget's page has **tabs**, the same names in the same order on
 every page: **Options**, **Elements**, the widget's own tab where it has one (**Drivers** on
 Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights and Track map) and
 **Size and visibility**. No mark on a tab says it has changes: the ↺ at the end of the tab bar and the
@@ -489,13 +495,14 @@ report, without names) and **Open log**.
   all layouts** ask for a second click (they can be undone too), and so does deleting personal
   bests, the only thing that cannot be undone.
 - **Elements**: in that tab of each widget's page, editors to reorder (by dragging or with ↑ ↓) and show or
-  hide each part: columns, header, second line, footer, rows, groups, alerts… One rule for every
-  page: **Options** is the behaviour (how many, how long, thresholds, modes) and **Elements** is
-  what you see (each list with its eye and, with it, how its items look; an item's option, in its
+  hide each part: columns, header, second line, footer, rows, groups, alerts… The preview draws only
+  what the widget really shows, a click on an element hides it, with **Undo**, and what is hidden
+  comes back with the eye on its row. One rule for every page: **Options** is the behaviour (how
+  many, how long, thresholds, modes) and **Elements** is what you see (each list with its eye and, with it, how its items look; an item's option, in its
   row).
-- **Header and footer**: Relative, Standings, Fuel, Traffic and Battle have the same ones: a “No /
-  Small / Normal / Large” selector and the Left and Right boxes with the data you want from the same
-  catalogue (with **+ Add a data item**, on the left or on the right: title, session, time left,
+- **Header and footer**: Relative, Standings, Fuel, Traffic and Battle have the same ones: a row of
+  0 to 9 **slots**, a “Small / Normal / Large” size and the data you want from the same catalogue
+  (with **+ Add a data item**: title, session, time left,
   local time, sim time (the sim's, with a sun), SoF, cars, incidents, iRating at stake, projected
   SR, class fastest lap, laps of fuel, track name, track temperature, water, rain, wind, air,
   rubber, and on their own laps done
@@ -504,13 +511,20 @@ report, without names) and **Open log**.
   laps of fuel, which it already shows). By default each bar is one line with its data together:
   the header says the title and the session, then your incidents and the time left; the footer
   the conditions, then the cars and the fuel; and the session data and the track's name, only in
-  Standings. With data only on the left, it stays together from the left. With data on both sides, each side
-  takes room in proportion to what it holds and shares its free room between its items, and a lone
-  item on the right sits at the end of the bar. **Add a separator** puts a thin line between two
-  items: each has its own size and can be removed, you can add as many as you want, and when room
-  is short they shrink and go before any data does. On its row, **Water on track** chooses **Graph
-  and text**, **Text only** or **Graph only**, and **Rain**, **Air temperature** and **Track
-  temperature** choose **Name and value** or **Icon and value**, per widget. The track's
+  Standings. The slots share the width equally: the first aligns its item to the left, the last to
+  the right and those between to the centre, so items in slots 1, 3 and 5 of 5 sit at the left end,
+  the true centre and the right end. An empty slot is simply space, and 0 slots hide the bar with its
+  items kept. An item with nothing to say, such as the water on a dry track, keeps its slot empty, so
+  nothing else moves. An item too long for its slot takes room from the empty slots and then from
+  others with room to spare. In the preview, a thin strip on the widget's edges changes its size as in edit mode, the width alone while its height follows the content, with **Undo**. While the **Elements** tab is open, each empty slot is a
+  faint outline: a click lists what can go there, a click on an item removes it, and a drag takes it to
+  any slot of that widget's header, second line or footer, swapping with what is there. The keyboard
+  does the same from the list, with arrows and a menu. Fewer slots never lose an item: the items move
+  into the free ones, or the bar keeps its slots and says why. An item can be in two bars of a widget,
+  such as the clock in the header and the footer. On its row, **Water on track** chooses **Graph
+  and text**, **Text only** or **Graph only**, and **Rain**, **Air temperature**, **Track
+  temperature**, **Rubber**, **Wind** without its dial, **SoF**, the car count, the laps of fuel, the position after a stop and the
+  stint choose **Name and value** or **Icon and value**, and the incidents **Text only** or **Icon and value**, per widget. The track's
   name is the one iRacing writes, its short form when the line is tight, and the rain is iRacing's
   precipitation percentage, 0% too, and the first thing to go when the line is tight. **Copy to** copies a header or a footer, with its size, to the
   same place in another

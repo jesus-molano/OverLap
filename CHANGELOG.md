@@ -5,6 +5,107 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.0] - 2026-11-03
+
+### Added
+
+- The size of a widget can be changed from its preview, by dragging a thin strip on its edges as in
+  edit mode: only the width while its height follows the content, and nothing while it is locked. The
+  edge follows the pointer at whatever scale the sample is drawn. It changes the real widget when you
+  let go, with **Undo**, and the sample keeps its scale until the pointer leaves the preview, so
+  nothing moves under it. It also works in the preview's own window.
+- Standings has **With a single class too** under **Class line**. It is off by default. When it is on,
+  a session with one class also draws its class line, such as "MX-5 SoF 2.2k 11 cars", and the SoF and
+  the car count no longer go to the bars as well.
+- More info bar items can show an icon instead of their name, with **Icon and value** on their row:
+  rubber (a tyre with a glint), wind when it has no dial, SoF, car count (a helmet), incidents, laps of
+  fuel, position after a stop and stint. Text stays the default. An item is never drawn with its value
+  alone. The iRating, the safety rating, the fastest lap and the laps and time gone or left stay as
+  text, because an icon would not say more at that size or could not be told apart from another.
+- When the options have the room, the rows of a card go to two columns. A row keeps its column when a
+  choice brings in another one. A tab with a single list keeps a readable width instead.
+- The preview has a divider under it to choose its height with **Whole**, which takes a third of the
+  window at most until you do. Each widget keeps its own, a double click returns to the original size,
+  and the divider never makes the sample too small to read or the preview larger than its sample needs.
+- A preview can go to a window of its own with **Open in a window**. That window stays on top, can be
+  moved and resized, also to another screen. The first time it opens right beside Settings when that
+  screen has room, and after that where you left it while that screen is connected. It follows the page you are on and every change you make. It is the same sample with
+  example data, not the real widget, and it says so. A page with no preview says that in a short
+  sentence.
+- While that window is open, the options take all the room in Settings, and a line there says where
+  the preview is, keeps the scene and brings it back. It closes with Settings and never takes the
+  focus from Settings or the sim until you click in it. It stays out of a capture and follows **No
+  flashing** like the other windows.
+- You edit the preview in that window as you do in Settings. A click hides an element, a drag moves it
+  or changes its slot, also to another info bar, and an empty slot opens the list of what it can take.
+  **Undo** shows there too. Settings still makes and saves every change, and the keyboard route stays
+  in Settings. The Appearance preview can only be looked at, there as in Settings. The window draws the
+  same example as Settings, also after a change that needs a different one, such as a single class.
+- That window stays above the widgets on screen as well, without flickering.
+
+### Changed
+
+- The sample in a preview is no longer drawn larger than its real size in a wide window.
+- On screens of 2200 px or more, the sidebar now stays at the window's left edge on every page, and
+  the page is centred in the rest.
+
+- Headers, second lines and footers are now a row of 0 to 9 **slots**, in each widget's **Elements**
+  tab. The slots share the width equally. The first aligns its item to the left, the last to the right
+  and those between to the centre, so items in slots 1, 3 and 5 of 5 sit at the left end, the true
+  centre and the right end. An empty slot is simply space.
+- With 0 slots a bar does not show and its items stay saved. The size is now **Small**, **Normal** or
+  **Large**.
+- An item with nothing to say, such as the water on a dry track, keeps its slot empty, and nothing else
+  moves.
+- An item too long for its slot takes room from the empty slots and then from others with room to spare.
+  If it still does not fit, the least important item goes, whole, and its slot stays empty. It comes
+  back only when there is clearly room.
+- In the preview, a click on an empty slot lists what can go there, and a click on an item removes it
+  from the bar. You can drag an item to any slot of the header, the second line or the footer of that
+  widget. If the slot already holds an item, the two swap places. While the **Elements** tab is open,
+  each empty slot shows as a faint outline that changes nothing in the widget. A slot whose item has
+  nothing to say now shows that item's name, faint, so you can tell it from a free one.
+- A bar with slots always keeps its height, even when none of its items has anything to say, so the
+  widget never jumps when the data comes and goes. Only 0 slots hide a bar.
+- Editing a bar in the Standings no longer changes which classes the preview draws. With several
+  classes, the SoF and the car count stay on the class lines, and their slots show their names.
+- The **Elements** tab offers the same with the keyboard: a row per slot, arrows to move an item one
+  slot, and a menu to send it to any slot of any bar or to choose what goes in an empty one.
+- Reducing the slots of a bar never loses an item. The items move into the free slots, and a sentence
+  says so. If they would not fit, the bar keeps its slots and a sentence says why.
+- The same item can stay in two bars of a widget, such as the clock in the header and in the footer. The
+  list that an empty slot opens says when another bar already has it.
+- Your saved bars, layouts, per-car profiles, layout files and backups change to slots once, on their
+  own, with everything shown in the same order. The right side's marker and each separator become
+  empty slots.
+
+### Fixed
+
+- A sample no longer changes height under the pointer while you touch an option, and a small
+  difference no longer shifts the options after the pointer has left them.
+- Standings at its default 540 px keeps the country flag, because the driver name gives way a little.
+- A page that fits in the window no longer has a scrollbar. The line that says changes are saved now
+  sits right under the options instead of being pushed to the bottom. A short tab opened from far down
+  a long one shows no scrollbar either, and it returns to the top once the pointer leaves the options.
+
+### Removed
+
+- Bars no longer have the **Left** and **Right** boxes, the **Separator** or the sharing of room by
+  blocks. Slots replace them.
+- Bars no longer draw grey hidden items in the preview.
+- The preview no longer draws what is hidden, in any widget. There are no more translucent columns,
+  rows or sections, and no translucent unlit lights with **Lit only**. It shows only what the widget
+  really shows, so opening the **Elements** tab adds nothing to it but the faint outlines of the bars'
+  empty slots. A click on an element still hides it, with **Undo**, and what is hidden comes back with
+  the eye on its row in the **Elements** list.
+
+### Fixed
+
+- Pointing at the preview no longer moves anything, and neither does opening the **Elements** tab.
+- Hiding an element from the preview on top no longer moves the options while the pointer is on the
+  preview. The preview keeps its height until you leave it, and a small difference stays until you come
+  back to the page.
+
 ## [2.12.1] - 2026-11-02
 
 ### Fixed
@@ -1882,6 +1983,7 @@ and in an offline race against the AI:
   tool like OpenKneeboard.
 - The portable `.exe` is not signed: Windows SmartScreen may warn when opening it.
 
+[2.13.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.13.0
 [2.12.1]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.1
 [2.12.0]: https://github.com/jesus-molano/OverLap/releases/tag/v2.12.0
 [2.11.3]: https://github.com/jesus-molano/OverLap/releases/tag/v2.11.3

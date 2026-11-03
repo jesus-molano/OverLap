@@ -181,7 +181,8 @@ Tabla resumida (los primeros, tu entorno y los primeros de cada otra clase: **Pr
 **Alrededor de ti**, 3 y 3 de serie; de cada otra clase, de serie su líder, en una línea; con
 **Coches de otras clases** de 0 a 10, los que quieras bajo el nombre de su clase) o entera. La
 línea de cada clase lleva su SoF y su número de coches, cada uno con su ojo en **Elementos ›
-Línea de clase**; el SoF va también al final de un líder en una línea. Columnas que se ordenan
+Línea de clase**; con **También con una sola clase**, una sesión de una clase también tiene su línea, y su SoF y sus coches dejan
+las barras; el SoF va también al final de un líder en una línea. Columnas que se ordenan
 arrastrando y se esconden solas si la ventana se estrecha: puestos ganados (solo en carrera),
 iRating, licencia, iRating en juego, hueco (**Medido** al de delante, al líder o ambos; de serie,
 al de delante), última y mejor vuelta (en morado la más rápida de la clase), boxes, última parada,
@@ -448,7 +449,9 @@ arrancándolo con `--settings` (los accesos directos del instalador lo llevan). 
 **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día; al bajar
 por las opciones se encoge a la vez que bajas, hasta una franja que se sigue leyendo, centrada en
-tu fila (o queda entera, o siempre pequeña: **Al desplazar**, en su pie). Bajo la vista previa, la página
+tu fila (o queda entera, o siempre pequeña: **Al desplazar**, en su pie). Con **Entera** ocupa como mucho un tercio de la
+ventana, y la línea que tiene debajo cambia su altura: cada widget guarda la suya y con un doble clic vuelve
+al tamaño inicial. La muestra nunca se dibuja más grande que su tamaño real. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de hueco, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
 de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
 **Opciones**, **Elementos**, la propia del widget si la tiene (**Pilotos** en Relativo,
 Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos y Mapa de pista) y **Tamaño y
@@ -505,12 +508,14 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   deshacen, y borrar récords personales, lo único que no se puede deshacer.
 - **Elementos**: en esa pestaña de la página de cada widget, editores para ordenar (arrastrando o con ↑ ↓) y
   mostrar u ocultar cada parte: columnas, cabecera, segunda línea, pie, filas, grupos, avisos…
+  La vista previa dibuja solo lo que el widget muestra de verdad, un clic en un elemento lo oculta, con
+  **Deshacer**, y lo oculto vuelve con el ojo de su fila.
   Una regla para todas las páginas: **Opciones** es el comportamiento (cuántos, cuánto tiempo,
   umbrales, modos) y **Elementos** lo que se ve (cada lista con su ojo y, con ella, cómo se
   ven sus elementos; la opción de un elemento, en su fila).
 - **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
-  un selector «No / Pequeña / Normal / Grande» y las cajas Izquierda y Derecha con los datos que
-  quieras del mismo catálogo (con **+ Añadir dato**, a la izquierda o a la derecha: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
+  una fila de 0 a 9 **huecos**, un tamaño «Pequeña / Normal / Grande» y los datos que quieras del
+  mismo catálogo (con **+ Añadir dato**: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, nombre del
   circuito, temperatura de la pista, agua, lluvia, viento, aire, goma, y por separado vueltas hechas
   y total, vueltas hechas, vueltas que quedan,
@@ -518,14 +523,23 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   (una estimación en carrera, cuando alguien ya ha parado) y cada parte del iRating; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto cada barra es una sola línea con sus datos juntos: la cabecera dice el título y la sesión,
   y luego tus incidentes y el tiempo restante; el pie las condiciones, y luego los coches y el
-  combustible; y los datos de la sesión y el nombre del circuito, solo en Posiciones. Con datos solo a
-  la izquierda, quedan juntos desde la izquierda. Con datos a los dos lados, cada lado ocupa según lo
-  que lleva y reparte su sitio libre entre sus datos, y un dato solo a la derecha va al final de la
-  barra. **Añadir un separador** pone una línea fina entre dos datos: cada uno tiene su tamaño y se
-  puede quitar, puedes poner los que quieras, y si falta sitio encogen y desaparecen antes que ningún
-  dato. En su fila, **Agua en la pista** elige **Gráfico y texto**, **Solo texto** o **Solo gráfico**,
-  y **Lluvia**, **Temperatura del aire** y **Temperatura de la pista** eligen **Nombre y valor** o
-  **Icono y valor**, en cada widget. El nombre del circuito es el que escribe
+  combustible; y los datos de la sesión y el nombre del circuito, solo en Posiciones. Los huecos
+  reparten el ancho a partes iguales: el primero alinea su dato a la izquierda, el último a la derecha
+  y los de en medio al centro, así que los datos en los huecos 1, 3 y 5 de 5 quedan en un extremo, en el
+  centro exacto y en el otro extremo. Un hueco vacío es solo espacio, y con 0 huecos la barra no se
+  muestra y sus datos se quedan guardados. Un dato sin nada que decir, como el agua con la pista seca,
+  deja su hueco vacío y nada más se mueve. Un dato más largo que su hueco toma sitio de los huecos vacíos
+  y luego de los que les sobra. En la vista previa, con la pestaña **Elementos** abierta, cada hueco
+  vacío se ve como un contorno tenue: un clic te deja elegir qué poner, un clic en un dato lo quita, y
+  arrastrando lo llevas a cualquier hueco de la cabecera, la segunda línea o el pie de ese widget, y
+  cambia de sitio con lo que hubiera. Con el teclado se hace lo mismo desde la lista, con flechas y un
+  menú. Quitar huecos nunca pierde un dato: los datos pasan a los huecos libres, o la barra se queda
+  como estaba y te dice por qué. Un dato puede estar en dos barras de un widget, como la hora en la
+  cabecera y en el pie. En su fila, **Agua en la pista** elige **Gráfico y texto**, **Solo texto** o **Solo gráfico**,
+  y **Lluvia**, **Temperatura del aire**, **Temperatura de la pista**, **Goma**, **Viento** sin su dial, **SoF**, el número de coches,
+  las vueltas de combustible, la posición tras boxes y el stint eligen **Nombre y valor** o **Icono y valor**, y los
+  incidentes **Solo texto** o **Icono y valor**, en cada widget. En la vista previa, una franja fina en los bordes del widget
+  cambia su tamaño como en el modo edición, solo el ancho si su alto sigue al contenido, con **Deshacer**. El nombre del circuito es el que escribe
   iRacing, en su forma corta si la línea va justa, y la lluvia es el porcentaje de precipitación de
   iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si de verdad la línea no cabe, se quitan enteros los menos importantes, y
