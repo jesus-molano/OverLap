@@ -5,6 +5,20 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.15.0] - 2026-11-04
+
+### Changed
+
+- The **Tyre** column in Relative and Standings now covers more cars. iRacing only names the tyres of
+  your own car model, so the rest is worked out: every car of your class uses your list, and another
+  class shows W when it is not on its first tyre and the track is wet or it rains. On a dry track,
+  another class shows nothing. The column's help says so.
+
+### Added
+
+- The log now says when **Delta** stays empty while you drive and why, and when it comes back, so that
+  a report with the log can tell the cause.
+
 ## [2.14.1] - 2026-11-04
 
 ### Changed
