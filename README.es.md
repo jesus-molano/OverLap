@@ -547,7 +547,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   las vueltas de combustible, la posición tras boxes y el stint eligen **Nombre y valor** o **Icono y valor**, y los
   incidentes **Solo texto** o **Icono y valor**, la hora en pista **Icono y valor** o **Nombre y valor** («PISTA 14:32») y la hora local **Solo la hora** o **Nombre y hora** («LOCAL 14:32»), en cada widget. En la vista previa, una franja fina en los bordes del widget
   cambia su tamaño como en el modo edición, solo el ancho si su alto sigue al contenido, con **Deshacer**. El nombre del circuito es el que escribe
-  iRacing, en su forma corta si la línea va justa, o con su opción siempre el **Nombre completo**,
+  iRacing, y con su opción puedes elegir **Nombre completo**,
   **Nombre y layout** o **Solo el layout**, y la lluvia es el porcentaje de precipitación de
   iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si de verdad la línea no cabe, se quitan enteros los menos importantes, y

@@ -5,6 +5,14 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.14.1] - 2026-11-04
+
+### Changed
+
+- The circuit's item in the bars has three formats: **Full name**, **Name and layout** and **Layout
+  only**. **Name, full if it fits** is gone, and a widget that used it now shows the **Full name**.
+  That name is longer, so on a tight line the item can give way sooner to make room for others.
+
 ## [2.14.0] - 2026-11-04
 
 ### Added
