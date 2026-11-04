@@ -531,7 +531,8 @@ report, without names) and **Open log**.
   and text**, **Text only** or **Graph only**, and **Rain**, **Air temperature**, **Track
   temperature**, **Rubber**, **Wind** without its dial, **SoF**, the car count, the laps of fuel, the position after a stop and the
   stint choose **Name and value** or **Icon and value**, the incidents **Text only** or **Icon and value**, the sim time **Icon and value** or **Name and value** (“TRACK 14:32”), and the local time **Time only** or **Name and time** (“LOCAL 14:32”), per widget. The track's
-  name is the one iRacing writes, its short form when the line is tight, and the rain is iRacing's
+  name is the one iRacing writes, its short form when the line is tight, or by its option always the
+  **Full name**, the **Name and layout** or the **Layout only**, and the rain is iRacing's
   precipitation percentage, 0% too, and the first thing to go when the line is tight. **Copy to** copies a header or a footer, with its size, to the
   same place in another
   widget. If the line really does not fit, the least important are removed whole, and they come back

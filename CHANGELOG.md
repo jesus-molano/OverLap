@@ -5,6 +5,19 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.14.0] - 2026-11-04
+
+### Added
+
+- The circuit's item in the bars can now say **Name, full if it fits**, as it did until now, the **Full
+  name**, the **Name and layout**, such as "Snetterton Circuit 300", or the **Layout only**. A track with
+  no layouts shows its name.
+
+### Fixed
+
+- The circuit's name in the bars no longer shows only a number on tracks whose short name is just the
+  layout, such as "300" at Snetterton. It shows the track's full name instead.
+
 ## [2.13.9] - 2026-11-04
 
 ### Fixed
