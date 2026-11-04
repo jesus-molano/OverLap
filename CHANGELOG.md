@@ -5,6 +5,15 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.9] - 2026-11-04
+
+### Fixed
+
+- **Fuel** now shows the tyre reading of a pit stop where you only refuel. The reading was lost when
+  iRacing's values did not change during the stop, so the widget kept saying the tyres are measured in
+  the pits. It reads them as iRacing gives them from the moment you stop in your box, and in the garage
+  it reads nothing.
+
 ## [2.13.8] - 2026-11-04
 
 ### Changed
