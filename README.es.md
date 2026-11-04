@@ -332,9 +332,12 @@ Delta), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor 
 óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
 personal en práctica y tu vuelta óptima en clasificación y en carrera. Con **Usar la siguiente si
 no existe** (activado), mientras no haya esa referencia el delta usa la siguiente (por ejemplo, tu
-récord hasta tener una vuelta limpia); apagado, no muestra delta hasta que exista. Con **Mostrar sin
+récord hasta tener una vuelta limpia). Si no existe ninguna vuelta limpia, compara con tu vuelta más
+rápida hasta el momento, con la etiqueta **no limpia**, así que las vueltas con salidas de pista o la
+primera de una carrera ya te dan delta en la siguiente. Apagado, no muestra delta hasta que exista la
+elegida. Con **Mostrar sin
 referencia** (activado), mientras conduces sin ninguna referencia el widget sigue a la vista con el
-tiempo de la vuelta en curso de iRacing, los sectores vacíos y una frase que pide una vuelta limpia, y
+tiempo de la vuelta en curso de iRacing, los sectores vacíos y una frase que pide una vuelta, y
 marca como inválida una vuelta sucia, pero nunca un delta ni una vuelta prevista inventados; apagado,
 se oculta hasta que haya una. **En carreras por
 equipos, comparar con** decide de quién son las vueltas de tu mejor vuelta y tu óptima: tuyas de

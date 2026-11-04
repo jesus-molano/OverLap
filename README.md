@@ -323,9 +323,11 @@ page), your session best, your optimal lap from sectors, the class fastest lap o
 and it can differ in practice, qualifying and race: by default, your personal best in practice and
 your optimal lap in qualifying and race. With **Fall back to the next one** (on), while that
 reference does not exist the delta uses the next one (for example, your personal best until you
-have a clean lap); off, it shows no delta until it exists. With **Show without a reference** (on),
+have a clean lap). If no clean lap exists at all, it compares with your fastest lap so far, tagged
+**not clean**, so laps with an off-track or a race's first lap still give you a delta on the next
+one. Off, it shows no delta until the chosen one exists. With **Show without a reference** (on),
 while you drive with no reference yet the widget stays and shows iRacing's current lap time, empty
-sectors and a sentence asking for a clean lap, and marks a dirty lap as invalid, but never an
+sectors and a sentence asking for a lap, and marks a dirty lap as invalid, but never an
 invented delta or predicted lap; off, it stays hidden until there is one. In team races, **In team races, compare
 with** decides whose laps your session best and your optimal lap count: yours by default (the
 team's, with a **team** tag, until you have a clean one) or the whole team's. **Bar range** (1 s by

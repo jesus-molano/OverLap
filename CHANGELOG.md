@@ -5,6 +5,18 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.13.8] - 2026-11-04
+
+### Changed
+
+- **Delta** now gives you information before your first clean lap. With **Fall back to the next one**
+  on, if no clean lap exists it compares with your fastest lap so far and tags it **not clean**. Laps
+  with an off-track count for this, and so does a race's first lap, timed from line to line. A lap
+  through pit road, a tow or a jump does not. The next clean lap takes over when a lap starts, and
+  these laps never become your session best, your optimal or your personal best.
+- With no lap completed yet, **Delta** still shows iRacing's lap time, and its sentence now asks for a
+  lap instead of a clean lap. With **Fall back to the next one** off, it still asks for a clean lap.
+
 ## [2.13.7] - 2026-11-03
 
 ### Changed
