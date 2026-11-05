@@ -7,6 +7,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.22.0] - 2026-11-05
+
+Taking a widget to another screen in edit mode is now clear: you can see where it will land, and a button on its label does
+it with one click. I have checked it with two screens and sample data, but not yet with the game open or on screens with
+different scaling.
+
+### Added
+
+- **Edit mode**: with more than one screen, a button on a widget's label sends it to the next screen, and `Ctrl+Z` brings
+  it back.
+
+### Changed
+
+- **Edit mode**: dragging a widget to another screen now shows an outline on that screen, where it will land, and says
+  clearly that it moves when you release the mouse button. A widget stopped by the edge of its screen tells you to keep
+  dragging.
+
 ## [2.21.1] - 2026-11-05
 
 The **data lines** were not drawn over the game, in edit mode or on the streaming pages since they arrived in 2.19.0: they

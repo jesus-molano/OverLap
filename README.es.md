@@ -840,7 +840,9 @@ juego.
   las flechas o el ojo y el candado de la etiqueta), y luego el anterior; la bandeja ofrece
   también **Deshacer: …** con lo que hiciste («mover Relativo», «cambiar el tamaño de Relativo»,
   «ocultar Batalla»). Al salir del modo edición se olvidan.
-- Arrástralo fuera de su pantalla para llevarlo a otra («Suelta para moverlo a la otra pantalla»). Si desconectas un monitor, **Traer todos
+- Para llevarlo a otra pantalla, arrástralo hasta ella: un contorno te enseña dónde quedará y el widget pasa
+  al soltar el botón del ratón. También puedes pulsar el botón de la pantalla en su etiqueta, que lo envía a la
+  siguiente pantalla, al mismo sitio relativo (`Ctrl+Z` lo devuelve). Si desconectas un monitor, **Traer todos
   los widgets a esta pantalla** (en la bandeja, a la pantalla del ratón, o en **Visibilidad**,
   a la de los Ajustes) los recupera de una vez. Durante un minuto se deshace desde
   cualquiera de los dos sitios (**Deshacer: …** en la bandeja).

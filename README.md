@@ -824,7 +824,9 @@ game.
 - `Ctrl+Z` undoes the last edit-mode change (a drag, a resize, the wheel, the arrows or the label's
   eye and padlock), and then the one before; the tray also offers **Undo: …** with what you did
   (“move Relative”, “resize Relative”, “hide Battle”). When you leave edit mode they are forgotten.
-- Drag it off its screen to take it to another (“Release to move it to the other display”). If you
+- To take it to another screen, drag it there: an outline shows where it will land, and the widget
+  moves when you release the mouse button. You can also press the screen button on its label, which
+  sends it to the next screen, at the same relative place (`Ctrl+Z` brings it back). If you
   disconnect a monitor, **Bring every widget to this screen** (in the tray, to the mouse's screen,
   or in **Visibility**, to the Settings' screen) brings them all back at once. For a minute
   it can be undone from either place (**Undo: …** in the tray).
