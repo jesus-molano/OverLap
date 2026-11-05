@@ -261,6 +261,12 @@ few seconds even when iRacing no longer reports it. It hides by itself when nobo
 **Elements › Radar parts** you can remove the distance guides, their distances and the side alerts. It
 is always drawn above the other widgets (see [Edit mode](#edit-mode)).
 
+iRacing gives no sideways position, only how many cars are on each side, so a car with a dashed outline
+is our estimate; its distance along the track is always iRacing's. Cars of your lane that would cover
+each other open sideways. Under **Options** you can change the **Panel** (square, round or none), the
+**Cars** (block or silhouette), the **Side alert**, the **Guides** (lines or rings) and the **Car colour**,
+add a **Closing arrow**, or use **Quick setting** to change them in one go.
+
 ### Spotter
 
 <img src="docs/screenshots/en/spotter.png" alt="Spotter" width="400">
@@ -280,8 +286,12 @@ what they tell:
   cap at that end. If iRacing says someone is there but they cannot be placed, the whole bar is
   dashed.
 
+**Look** chooses how they are drawn, all telling the same: **Line**, **Bar** (default), **LED**, **Arrows**,
+**Neon** or **Car**. You can also change the **Colour**, **Glow around it**, **Bar background** and **Flash
+when a car arrives**, or use **Quick setting** to change them in one go.
+
 The two marks (the cap and the “2”) have their eye in **Elements › Bar parts** (“Car about to come
-alongside”, this one only with “Where it covers you”, and “Two cars on one side”); by default, both.
+alongside”, this one only with **Bar** and “Where it covers you”, and “Two cars on one side”); by default, both.
 
 Which side comes from iRacing's spotter, and only once the car is level with you: one coming up from
 behind that has not yet been alongside you has no side yet. How much is the distance along the

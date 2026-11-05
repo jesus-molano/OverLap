@@ -270,6 +270,13 @@ conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta solo cuan
 cerca. En **Elementos › Partes del radar** se quitan las guías de distancia, sus distancias y los avisos
 laterales. Siempre se dibuja encima de los demás widgets (ver [Modo edición](#modo-edición)).
 
+iRacing no da la posición lateral, solo cuántos coches hay a cada lado, así que un coche con borde
+discontinuo es una estimación nuestra. Su distancia a lo largo de la pista siempre es la de iRacing. Los
+coches de tu carril que se taparían se abren en horizontal. En **Opciones** puedes cambiar el **Panel**
+(cuadrado, redondo o sin panel), los **Coches** (bloque o silueta), el **Aviso de lado**, las **Guías**
+(líneas o anillos) y el **Color de los coches**, añadir la **Flecha de acercamiento** o usar **Ajuste
+rápido** para cambiarlos de una vez.
+
 ### Spotter
 
 <img src="docs/screenshots/spotter.png" alt="Spotter" width="400">
@@ -288,8 +295,12 @@ cuentan:
   que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
   iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
 
+**Aspecto** elige cómo se dibujan, y todos cuentan lo mismo: **Línea**, **Barra** (de serie), **LED**,
+**Flechas**, **Neón** o **Coche**. También puedes cambiar el **Color**, **Brillo alrededor**, **Fondo de la
+barra** y **Destello al llegar un coche**, o usar **Ajuste rápido** para cambiarlos de una vez.
+
 Las dos marcas (el tope y el «2») tienen su ojo en **Elementos › Partes de la barra** («Coche a punto de
-ponerse al lado», este solo con «Dónde te cubre», y «Dos coches en un lado»); de serie, las dos.
+ponerse al lado», este solo con **Barra** y «Dónde te cubre», y «Dos coches en un lado»); de serie, las dos.
 
 Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
 acerca por detrás sin haber estado a tu lado no tiene lado todavía. Cuánto, la distancia a lo largo

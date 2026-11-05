@@ -7,6 +7,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.18.0] - 2026-11-05
+
+The Radar stops jumping and piling cars on top of each other, and both the Radar and the Spotter can now look simpler or
+showier. Your settings stay as they were, and the default looks are the ones you had, apart from the dashed outline
+on what is our estimate. I checked the Radar against races I had recorded, but I have not yet driven a live race with it.
+
+### Added
+
+- **Spotter**: six looks, **Line**, **Bar**, **LED**, **Arrows**, **Neon** and **Car**, all telling the same.
+  **Colour**, **Glow around it**, **Bar background** and **Flash when a car arrives** come with them, and
+  **Quick setting** changes them in one go. **Bar** stays the default, so nothing changes until you choose.
+- **Radar**: **Panel** (square, round or none), **Cars** (block or silhouette), **Side alert**, **Guides** (lines or
+  rings), **Car colour** and **Closing arrow**, with their own **Quick setting**. The default look is the one you had.
+
+### Changed
+
+- **Radar**: a car whose place is our estimate now has a dashed outline: a car remembered on its side, a car
+  iRacing counts that we cannot match, and cars of your lane running side by side. iRacing gives no sideways position.
+- **Radar**: a change of place takes 280 ms, starting and stopping softly, instead of 170 ms with a jump at the start.
+
+### Fixed
+
+- **Radar**: cars of your lane no longer cover each other. They open sideways and keep their real distance.
+- **Radar**: two cars on one side no longer swap lanes when the inner one leaves, and two cars nose to tail on one
+  side now share a lane.
+- **Radar**: a car going round you from one side to the other changes side when iRacing counts it there, with no ghost
+  car beside it and no jump three seconds later.
+- **Radar and Spotter**: when iRacing counts a car on a side, a car following you in your lane is less likely to take it.
+
 ## [2.17.0] - 2026-11-05
 
 The settings are laid out by subject now. Until this version, many tabs dealt their rows out left and right in
