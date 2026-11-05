@@ -148,7 +148,7 @@ Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus 
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
 carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
 bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter, Mapa de pista, Mapa y Clima), **Tu
-vuelta** (Delta, Vueltas, Combustible y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación).
+vuelta** (Delta, Vueltas, Combustible y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación), más las tres **Líneas de datos**.
 
 ### Relativo
 
@@ -594,6 +594,29 @@ y despliegas sus propias opciones: el estado con su palabra o solo con su forma,
 sin ellos. La tira abarcando 15, 30 o 60 segundos, con su cifra o sin ella. El número del próximo coche,
 oculto de serie, con su clase o sin ella. Viene oculto: enciéndelo en Visibilidad, la barra lateral o la bandeja.
 
+### Líneas de datos
+
+Es una línea suelta con los datos que elijas, sin ningún widget alrededor, para ponerla donde quieras de la
+pantalla. Hay tres independientes, cada una con su sitio, sus datos y su atajo. Vienen ocultas, así que tu layout no
+cambia hasta que las actives.
+
+Admiten los mismos datos que las cabeceras, con los mismos huecos, y además **Tu texto**, por ejemplo el nombre de tu
+copa para un directo. En **Elementos** los ordenas arrastrándolos en la vista previa. Si falta sitio, se cae primero
+el dato menos importante.
+
+**Estilo** elige cómo se dibujan:
+
+- **Indicadores**: cada dato lleva un dibujo de lo que significa, como un anillo con lo que va de sesión, la parrilla
+  de tu clase contigo marcado o las pastillas de incidentes hasta el siguiente límite. Puedes quitarle el dibujo a cada
+  dato con **Con gráfico**. Lo que calculamos nosotros (las vueltas de combustible y los ratings proyectados) lleva ≈.
+- **Celdas**: su icono y el valor en grande.
+- **Retransmisión**: un rótulo de televisión, con el dato del primer hueco en una placa, con **Corte inclinado** o recto.
+- **Marcador**: el dato del primer hueco en el centro y más alto, con los demás a los lados. Con **Lado del
+  protagonista** lo sacas hacia abajo o hacia arriba, según dónde pongas la línea.
+
+En los dos últimos, el dato del primer hueco es el último que se cae, y **Progreso de la sesión** añade una línea fina
+con lo que va de sesión. También puedes quitar los **Rótulos** y elegir los **Anchos**, según el dato o iguales.
+
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
@@ -1026,7 +1049,7 @@ iRacing».
   antes de enseñarlos**. De serie van al stream Posiciones, Relativo, Pedales, Delta y Batalla.
   Todos los demás quedan fuera hasta que los marques: Combustible (estrategia que un rival podría
   leer en directo), las ayudas al piloto (Radar, Spotter, Tráfico, Testigos, Avisos), Mapa de pista,
-  Mapa, Clima, Vueltas, Boxes y Reincorporación.
+  Mapa, Clima, Vueltas, Boxes, Reincorporación y las líneas de datos.
 - `http://127.0.0.1:39217/screen/1` (una por pantalla, el **espejo de pantalla**): lo que OverLap
   dibuja sobre el juego en esa pantalla, en su sitio y transparente, pero solo los widgets del
   stream: una sola fuente con los widgets que tienes visibles en ese monitor y marcados **En el

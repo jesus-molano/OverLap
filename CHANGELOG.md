@@ -7,6 +7,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.19.0] - 2026-11-05
+
+A line of data of its own, placed anywhere on the screen with no widget around it, that stands out far more than a
+header. The three lines come hidden, so your layout stays as it is until you turn them on. I have checked them on sample
+data, but I have not yet driven a real race with them.
+
+### Added
+
+- **Data lines**: three separate lines, each with its own place, items and shortcut, in a new group of the sidebar.
+  They take the same items as the headers, with the same slots, and an item you drag to another slot swaps with what is
+  there. When a line runs out of room, the least important item goes first, as in the headers.
+- **Data lines**: four styles. **Gauges** draws each item, **Cells** shows it with its icon and a large value,
+  **Broadcast** looks like a TV caption, and **Scoreboard** puts one main item in the middle. In the last two the item in
+  the first slot is the main one, and a thin line can show how far the session has gone.
+- **Data lines**: in **Gauges**, each item can go without its drawing. What we calculate (the laps of fuel and the
+  projected ratings) carries ≈.
+- **Position in your class**: a new item for the headers and footers of every widget that has them, and for the lines.
+- **Your text**: an item only the lines have, with your own words, such as your cup's name for a stream.
+
 ## [2.18.0] - 2026-11-05
 
 The Radar stops jumping and piling cars on top of each other, and both the Radar and the Spotter can now look simpler or

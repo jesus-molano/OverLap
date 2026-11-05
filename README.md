@@ -146,7 +146,7 @@ Each widget has its page in the Settings, with a live preview and its options. A
 shown or hidden, locked, scaled and limited to certain sessions (practice, qualifying, race). They
 come in the same order and the same groups as in the Settings sidebar and the tray: **Track and
 rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Laps, Fuel and
-Inputs) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin).
+Inputs) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin), plus the three **Data lines**.
 
 ### Relative
 
@@ -577,6 +577,29 @@ unfold its own options: the state with its word or as its shape alone, with the 
 The strip covering 15, 30 or 60 seconds, with its figure or without it. The next car's number, hidden by
 default, with its class or not. It is hidden by default: turn it on in Visibility, the sidebar or the tray.
 
+### Data lines
+
+A loose line with the items you choose and no widget around it, to place anywhere on the screen. There are three
+separate ones, each with its own place, items and shortcut. They come hidden, so your layout stays as it is until you
+turn them on.
+
+They take the same items as the headers, with the same slots, plus **Your text**, such as your cup's name for a stream.
+In **Elements** you arrange them by dragging them in the preview. When room runs out, the least important item goes
+first.
+
+**Style** chooses how they are drawn:
+
+- **Gauges**: each item has a drawing of what it means, such as a ring with how far the session has gone, your class's
+  grid with you marked, or pips for your incidents up to the next limit. **With a drawing** takes it off each item. What
+  we calculate (the laps of fuel and the projected ratings) carries ≈.
+- **Cells**: its icon and a large value.
+- **Broadcast**: a TV caption, with the item in the first slot on a plate, with a **Slanted cut** or a straight one.
+- **Scoreboard**: the item in the first slot in the middle and taller, with the others to either side. **Main item side**
+  takes it downwards or upwards, depending on where you put the line.
+
+In the last two, the item in the first slot is the last to go, and **Session progress** adds a thin line with how far
+the session has gone. You can also take off the **Captions** and choose the **Widths**, by item or equal.
+
 ## Settings and customisation
 
 The first time, OverLap opens the Settings, in the Windows language (Spanish or, if not, English),
@@ -1004,8 +1027,7 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
   it on your screen. The list comes in two groups, **The ones viewers usually care about** and **Worth a thought
   before you show them**. In the stream by default: Standings, Relative, Inputs, Delta and Battle.
   Everything else is off until you tick it: Fuel (strategy your rivals could read live), the driver
-  aids (Radar, Spotter, Traffic, Warning lights, Alerts), Track map, Map, Weather, Laps, Pit lane and
-  Rejoin.
+  aids (Radar, Spotter, Traffic, Warning lights, Alerts), Track map, Map, Weather, Laps, Pit lane, Rejoin and the data lines.
 - `http://127.0.0.1:39217/screen/1` (one per screen, the **screen mirror**): what OverLap draws
   over the game on that screen, where it is, transparent, but only the stream's widgets: one source
   with the widgets you have visible on that monitor and ticked **In the stream**. A widget hidden on
