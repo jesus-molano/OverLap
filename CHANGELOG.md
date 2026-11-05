@@ -7,6 +7,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.23.0] - 2026-11-05
+
+The «Boxes» column in **Relative** and **Standings** can now show the lap a car last stopped on, instead of how many
+stops it has made. I have checked it in the overlay with sample data, but not yet in a live race.
+
+### Added
+
+- **Relative** and **Standings**: the «Boxes» column can show the lap of a car's last stop instead of how many stops it
+  has made. You choose it in the column's own row. PIT, OUT and TOW still show as before.
+
 ## [2.22.1] - 2026-11-05
 
 The **rev counter** could blink on and off in the pits, because OverLap took a steady reading for a lost connection. The
