@@ -7,6 +7,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.23.1] - 2026-11-05
+
+The bands that came to the **Delta** in 2.21.0 were hard to see. They are now clearer. I have checked it in the overlay
+with sample data, but not yet in a live race.
+
+### Changed
+
+- **Delta**: the band on every other row, and on every other column of the lap times line, is about twice as strong,
+  and it still shows over a see-through panel. The line between those columns is also easier to see.
+
 ## [2.23.0] - 2026-11-05
 
 The «Boxes» column in **Relative** and **Standings** can now show the lap a car last stopped on, instead of how many
