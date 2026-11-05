@@ -1052,7 +1052,10 @@ con **Desde otro PC de mi red** (mira **Un PC de streaming aparte**, más abajo)
 5. vMix: **Añadir entrada › Web Browser**. XSplit: **Añadir fuente › Página web**. Misma URL y
    tamaño (**Copiar URL**).
 
-Añade `?preview=1` al final de una URL para ver un ejemplo mientras la colocas sin iRacing.
+Para colocar tus fuentes sin iRacing, entra en el **modo edición** de OverLap: mientras estés en él,
+muestran un ejemplo, y al salir vuelven a quedar vacías. Durante una sesión, el modo edición no
+cambia nada en el stream. También puedes añadir `?preview=1` al final de una URL, y esa fuente
+muestra siempre el ejemplo, cortina incluida.
 Mientras iRacing no está abierto, las fuentes quedan vacías y transparentes: sin «Esperando a
 iRacing».
 

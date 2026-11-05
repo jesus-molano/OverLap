@@ -7,6 +7,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.24.0] - 2026-11-05
+
+Placing your widgets in OBS without iRacing no longer needs a change to their address: edit mode does it. I have
+checked it on a stream page with sample data, but not yet in OBS with the installed version or in a live race.
+
+### Added
+
+- **Streaming**: while you are in edit mode and iRacing is not running, your stream sources show sample content, so you
+  can place them in OBS without changing their address. When you leave edit mode they are empty again. During a
+  session, edit mode changes nothing on the stream.
+
 ## [2.23.1] - 2026-11-05
 
 The bands that came to the **Delta** in 2.21.0 were hard to see. They are now clearer. I have checked it in the overlay

@@ -1032,7 +1032,10 @@ with **From another PC on my network** (see **A separate streaming PC** below).
 5. vMix: **Add Input › Web Browser**. XSplit: **Add Source › Webpage**. Same URL and size (**Copy
    URL**).
 
-Add `?preview=1` to the end of a URL to see sample content while you place it without iRacing.
+To place your sources without iRacing, enter OverLap's **edit mode**: while you are in it, they show
+sample content. When you leave, they are empty again. During a session edit mode changes nothing
+on the stream. You can also add `?preview=1` to the end of a URL, and that source always shows the
+sample, the curtain included.
 While iRacing is not running the sources stay empty and transparent: no “Waiting for iRacing”.
 
 **The addresses** (the port is `39217` unless you change it):
