@@ -7,6 +7,95 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.17.0] - 2026-11-05
+
+The settings are laid out by subject now. Until this version, many tabs dealt their rows out left and right in
+turns, so a column meant nothing and a setting could change sides from one widget to the next. Now the rows stay
+together in groups with a title, and each group has its own place. No setting has been removed, your settings and layouts
+stay as they were, and **Ctrl+K** still finds a setting by its old name.
+
+### Changed
+
+- The **Size**, **Drivers** and **Options** tabs of each widget have titled groups, such as **Size and position**,
+  **Background** and **When it shows**. From a window 1100 px wide each group has a fixed column, so a setting is in the
+  same place on every widget, and below that width the groups go one under another. A tab with few settings is a single
+  card, and cards measure 640 px at most, so a slider no longer crosses the whole window.
+  - **Locked** is now always in **Size and position**, and the background rows have shorter names under their group:
+    **Opacity**, **This widget's opacity** and **Colour**.
+- **Elements** keeps the lists a widget is made of on the left, and its bars and everything else around them on the
+  right. **Warning lights** and **Pedals** take the rows that sat at the foot of a list to groups of their own, **Next
+  to each light** and **Pedal colours and source**. **Alerts** and **Warning lights** now open **Options** with the line
+  that takes you to their list.
+- More of each page fits on the screen. The title and its buttons go away as the options scroll, while the hint, the
+  preview and the tabs stay. In the window that opens on a 1080p screen, **Standings** goes from 251 to 391 px of
+  options on view. Sliders take about 97 px instead of 133, with the name and value first, then the note, then the
+  slider with its quick picks beside it.
+- Texts that made you ask now say what they do, in full sentences.
+  - The bars' spaces are now always **slots**, and each bar says what its number does, both on and off. A closed bar
+    says, for example, that it has 1 item in 3 slots. The list for adding an item goes under headings, and **Copy to** is one menu at
+    the foot of a bar.
+  - The lists are named for what they hold, and the rows of **Radar**, **Track map**, **Delta** and the columns of
+    **Traffic** explain themselves.
+  - **Global** is now **Like Appearance**, with the value it takes, and **Edit position** is now **Move and resize**.
+  - **Match Standings** and **Match Relative** are now **Copy from**, a row with its own title and note.
+  - The third name choice is now **Team and driver** everywhere, also in the tray and in the message a shortcut shows
+    over the game.
+  - The line that takes you to another tab is a whole sentence, and so are the tips of the preview's divider and of its
+    day and night switch. In the tables' lists, the rows for the logo and the flags say whether they show and where to
+    change them.
+- **Appearance** keeps colour, text and **Rows** on the left, and **Drivers** gets a column of its own on the right, in
+  the same order as the widgets' tab and with its own reset. A note says which widgets use it and what each one can
+  change alone. Its texts no longer promise what a style does not touch, and the undo message says when a widget keeps
+  its own background.
+- **Visibility** groups the columns of its table under **Shows in**, **Hides** and **Editing**, so a tick that shows a
+  widget is never next to one that hides it. The headings only stand on end when the table is very narrow. A session
+  screen a widget can never show on is now a dash, not a box nobody can tick.
+- **Shortcuts** has its instructions in full sentences, with the overlay and edit mode first and Esc right after them.
+  In the window that opens on a 1080p screen each row now takes one line, with a third binding below it when it is in
+  use. What a press does has a section of its own.
+- **Layouts** no longer folds things under **More options**. What a layout keeps is in the form, before you save, and
+  it has one name, **What this layout keeps**, with the choices **Place, size and options** and **Place and size**.
+  **Add a ready-made layout** holds the examples and the import, under **Per car**. The car you are in stays apart, and
+  past 8 the others scroll in a box.
+- Importing a layout no longer asks what it will restore, because the file already says so. A file with options comes
+  in with them, and one without them uses the shared options. An older file used to take a copy of the shared options
+  and now uses them directly.
+- **Help and about** has fixed columns. **If something goes wrong** brings together the diagnostics, reporting a problem,
+  the settings folder and the log, and the copy button says when it has copied. Every button that opens the browser ends
+  in the same arrow.
+- **Copy diagnostics** no longer writes `session-info.json`, which holds the drivers' names and iRating. That file now
+  has its own row, **Session data**, which says so and tells you how it went. Use it only if you are asked to.
+- **Streaming & VR** has two fixed columns, and the guide to adding your widgets comes second rather than seventh of
+  eight. It now says to tick the widgets and to choose between single widgets and a Screen mirror. The widgets go in two
+  lists, **The ones viewers usually care about** and **Worth a thought before you show them**, and each one takes a
+  single line until you tick it.
+  - The port folds and opens by itself when it is taken, and the steps for another PC open once it is on. Its
+    troubleshooting list closes once a source connects. All of it can still be found with **Ctrl+K**.
+  - **Screen mirror** now says what it really shows, the widgets visible on that monitor and ticked for the stream.
+  - The group **Privacy** is now **Logos, tags and screen capture**, the curtain's address sits under its switch, and
+    the state lines are full sentences.
+- **Weather**, **Pit lane**, **Rejoin** and **Map**, the widgets new in 2.16.0, follow the same layout in their
+  **Options**, and **Laps** has its columns beside its elements. The **Drivers** page has two fixed columns.
+
+### Added
+
+- A narrow **Relative** now says when the text shrinks or when columns are cut off.
+- Dropping a row you dragged in a list now offers **Undo**, as the preview already did.
+
+### Fixed
+
+- The note on a column with no room for it never showed, so you could turn a column on and see nothing happen. It shows
+  now, and so do the notes for logos and flags that depended on it.
+- **Ctrl+K** no longer fills its results with one title that many pages share, and a search in the plural finds the
+  setting too. A result always centres in what the options show, and a result whose group has gone opens its tab.
+- With the **Spotter**'s default style, the row of the car about to come alongside says which style it needs, because
+  its eye did nothing there.
+- Hiding a widget no longer moves **Visible** from under the pointer, and a long widget title keeps its line, with the
+  buttons below it in a narrow window.
+- **Visibility** no longer scrolls sideways in a window between 900 and 1050 px wide.
+- **Reset** opens clear of the sidebar, and the sidebar fits on the default window with no scrollbar cutting a widget's
+  name.
+
 ## [2.16.1] - 2026-11-05
 
 ### Changed

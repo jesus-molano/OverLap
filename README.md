@@ -88,7 +88,7 @@ version: see the warning at the start of this section.
 
 OverLap stays in the **system tray** (next to the clock). From its icon you see its status (and
 whether any shortcut is not working), open the **Settings…**, show or hide each widget (grouped as
-in the Settings), change the radar range, the names (**Names**: Driver, Team or Team · driver), when
+in the Settings), change the radar range, the names (**Names**: Driver, Team, or Team and driver), when
 the overlay shows and the layout in use, show or
 hide the whole overlay (**Show the overlay**), enter edit mode, bring the widgets to the mouse's
 screen (**Bring every widget to this screen**), undo the last thing (**Undo: …**, when there is
@@ -99,24 +99,26 @@ If iRacing is not open, Relative and Standings show “Waiting for iRacing…”
 then hide (unless **Keep “Waiting for iRacing”** is on in Visibility); OverLap connects by itself as
 soon as the sim starts.
 
-The settings are saved in `%APPDATA%\iracing-overlay\` (**Settings › Help and about › Files and
-diagnostics › Open folder**, or the tray). On that page, **Export everything…** saves all the
+The settings are saved in `%APPDATA%\iracing-overlay\` (**Settings › Help and about › If something goes
+wrong › Open folder**, or the tray). On that page, **Export everything…** saves all the
 settings (Appearance, shortcuts, visibility and every layout with its options) and your personal
 bests to a file, and **Import everything…** brings them back on another computer or after a
 reinstall: the settings apply at once (with **Undo**, as long as you change nothing else) and the
 file's personal bests are added to yours (the fastest lap wins; none of yours is deleted, and if
-the list is full it says how many do not fit). That page also has the version, a quick help,
-**User guide** and **Report a problem** (they open the browser), **Open log**, **Copy
-diagnostics**, **Show the welcome** and **Reset everything** (press again to confirm; as freshly
-installed, in your language; your personal bests stay; with **Undo**). At the bottom, **Licence**
-says OverLap is free to use but not open source (with no warranty) and opens the licence and the
+the list is full it says how many do not fit). The page has two columns. On the left are a quick help,
+**If something goes wrong** (**Copy diagnostics**, **Report a problem** on Discord or GitHub, the
+folder, **Open log** and **Session data**, which saves `session-info.json` with the drivers' names
+and iRating, only if you are asked to) and the **User guide** with the community. On the right are
+**Version and updates**, the backup, **Show the welcome** and **Reset everything** (press again to
+confirm; as freshly installed, in your language; your personal bests stay; with **Undo**). The
+buttons with an arrow open the browser. At the bottom, **Licence** says OverLap is free to use but not open source (with no warranty) and opens the licence and the
 third-party notices in the browser.
 
 ### Updates
 
 The installed version looks for a new version in the GitHub releases a minute after it starts and
 then every 5 hours, downloads it in the background and installs it **when OverLap closes**, or right
-away with **Restart and update** (in **Settings › Help and about › Updates** or in the tray).
+away with **Restart and update** (in **Settings › Help and about › Version and updates** or in the tray).
 
 - **Never during an iRacing session**: nothing downloads (a half-finished download stops and
   resumes when the session ends), nothing installs, OverLap does not restart and no notice shows
@@ -166,7 +168,7 @@ gained (races only, as in Standings), column titles and an info bar at the top a
 (session, time left, SoF, iRating at stake, projected SR, track conditions…). The start of the row
 is columns too, as in Standings (see below): position, number, logo, country flag, name and penalty
 flags go wherever you put them. Every column has its eye, the position, number and gap too: only
-the name always shows. At the foot of the list, **Column titles** and **Match Standings**.
+the name always shows. Over the list, **Column titles**, and at its foot, **Copy from Standings**.
 
 ### Standings
 
@@ -178,10 +180,10 @@ on one line; with **Cars of other classes** from 0 to 10, as many as you like un
 or full. With **With a single class too** on, a session with one class has its class line as well, and its SoF and car count leave the bars. Each class line has its SoF and its car count, each with its eye in **Elements › Class
 line**; the SoF also goes at the end of a one-line leader. Columns that are reordered by dragging
 and hide by themselves if the window gets narrow: positions gained (races only), iRating, licence,
-iRating at stake, gap (**Measured** to the car ahead, to the leader or both; by default, to the car
+iRating at stake, gap (**Measure the gap** to the car ahead, to the leader or both; by default, to the car
 ahead), last and best lap (the fastest in the class in purple), pit, last stop, stint and tyre.
 Hidden by default: iRating at stake, gap to leader, last stop, stint and tyre. The iRating at stake
-row has **iRating at stake for everyone** (off: only yours), and at the foot of the list, **Column
+row has **iRating at stake on every row** (off: only yours), and over the list, **Column
 titles**. In Options, **Density** (the global one or its own).
 
 The start of the row is columns from the same list too, in Standings and in Relative: **Position**,
@@ -193,7 +195,7 @@ row; after it, at the end of its cell, also aligned. Separated by another column
 column of its own. One rule: **the list says where; the “Drivers” block, whether and how** the logo,
 the country flag and the flags show (their row in the list has no eye but a link to their row in
 “Drivers”, and says how they are set there). The position and the number, which are not in the
-block, have their eye. “Match…” carries everything over, and in the preview they are dragged like
+block, have their eye. “Copy from…” carries everything over, and in the preview they are dragged like
 the rest. A header with the session, its SoF, your incidents and what is left; a footer with the
 track's name, the track conditions (temperature and its trend, water, the rain percentage, wind with
 a dial pointing at your car) and the cars. One click away in Elements: a second line with your
@@ -218,13 +220,13 @@ on the session screen.
 Your class rival ahead and the one behind while they are within the gap you choose (1.5 s by
 default): the gap and its trend, the prediction (“Catching in ≈4 laps and 19 left”), the sectors (S1 S2
 S3 and the last lap) and the iRating at stake; the last three laps, one click away in Elements
-(**Lines › Laps**). One above the other or side by side. By default, races only. **Keep visible**
+(**Lines for each rival › Laps**). One above the other or side by side. By default, races only. **Keep visible**
 (3 s by default) keeps the battle on screen for a moment after the rival leaves the gap. The gap,
 unsigned (the measured one, by default) or **Signed** (the same time, positive ahead and
 negative behind); and each phrase of the prediction (“Catching in…”, “Catches you in…”, “Need…
-s/lap”, “Out of reach · Safe to the flag”) with its eye, in **Catch prediction**. In Elements,
+s/lap”, “Out of reach or safe to the flag”) with its eye, in **Catch prediction**. In Elements,
 each rival (**Rivals**: the car ahead and the car behind; with neither, the widget does not show)
-and each detail (**Details**: iRating, licence, trend text and iRating at stake) has its eye.
+and each detail (**Details of each rival**: iRating, licence, trend text and iRating at stake) has its eye.
 Optional: a header and footer with session data (see below).
 
 ### Traffic
@@ -256,7 +258,7 @@ A top-down view with the cars to scale around yours, turning red as they get clo
 on the side when someone is alongside. Range from 5 to 100 m (20 m by default, with buttons for 10,
 20, 30 and 50 m; in feet with imperial units). A car that has just passed you keeps its side for a
 few seconds even when iRacing no longer reports it. It hides by itself when nobody is near. In
-**Elements › Layers** you can remove the distance guides, their distances and the side alerts. It
+**Elements › Radar parts** you can remove the distance guides, their distances and the side alerts. It
 is always drawn above the other widgets (see [Edit mode](#edit-mode)).
 
 ### Spotter
@@ -278,7 +280,7 @@ what they tell:
   cap at that end. If iRacing says someone is there but they cannot be placed, the whole bar is
   dashed.
 
-The two marks (the cap and the “2”) have their eye in **Elements › Marks** (“Car about to come
+The two marks (the cap and the “2”) have their eye in **Elements › Bar parts** (“Car about to come
 alongside”, this one only with “Where it covers you”, and “Two cars on one side”); by default, both.
 
 Which side comes from iRacing's spotter, and only once the car is level with you: one coming up from
@@ -383,8 +385,8 @@ new session. It is hidden by default: turn it on in Visibility, the sidebar or t
 
 A delta bar against the reference you choose, with trend, predicted lap and each sector. The
 reference can be your personal best with that car on that layout (it is stored on your computer and
-is not lost when the session changes; the list, **Personal bests**, is at the end of the Delta
-page), your session best, your optimal lap from sectors, the class fastest lap or the class optimal,
+is not lost when the session changes; the list is in the Delta page's own **Personal bests**
+tab), your session best, your optimal lap from sectors, the class fastest lap or the class optimal,
 and it can differ in practice, qualifying and race: by default, your personal best in practice and
 your optimal lap in qualifying and race. With **Fall back to the next one** (on), while that
 reference does not exist the delta uses the next one (for example, your personal best until you
@@ -490,9 +492,9 @@ as it is added (“+2x Loss of control · L5 · S3 · gravel”). Each case is s
 in **Elements › Alerts**, grouped (Flags, Pit lane, During the race, Engine, Fuel), and each alert
 has its shape as well as its colour (it reads with the colour-blind palette). Engine stalled, oil
 pressure and pit limiter are warning lights too: their row has a
-**Also in Warning lights** checkbox that turns theirs on or off in Warning lights, and the other way round
-(**Also in Alerts** on the Warning lights page). **Keep visible** (3 s by default) keeps a brief alert on
-screen long enough to read it; in **Elements › Extras** you can remove the what-to-do line and the
+**Shows in Warning lights** checkbox that turns theirs on or off in Warning lights, and the other way round
+(**Shows in Alerts** on the Warning lights page). **Keep visible** (3 s by default) keeps a brief alert on
+screen long enough to read it; in **Elements › Beside the alert** you can remove the what-to-do line and the
 chips for the other alerts. The blue flag says a faster car is behind you. It lasts exactly as long
 as iRacing gives it, and it is not shown while the green flag is out, because iRacing's own graphic
 shows green then.
@@ -510,8 +512,8 @@ average, before the car's own light comes on. Its Settings page explains what ea
 to do, in its **Legend**.
 
 In Options, **Lit only** (off: with it on, the widget hides while none is lit). In **Elements ›
-Lights**, each one with its eye (and **Also in Alerts** on the ones it shares with Alerts) and, below,
-**Name beside the icon** (off), **Text side** (in a column), **Temperatures** (off: “98° +6°”), **Repair time**
+Lights**, each one with its eye (and **Shows in Alerts** on the ones it shares with Alerts), and in the
+group **Next to each light**, **Name beside the icon** (off), **Text side** (in a column), **Temperatures** (off: “98° +6°”), **Repair time**
 (on, with **Mark as crew time**, on, and **Real countdown (estimated)**, off) and **Rising
 temperature** (on).
 
@@ -591,12 +593,13 @@ Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend**
 **Reset…** menu at the top do that. The tab bar stays under the preview, `Ctrl+PgUp` / `Ctrl+PgDn`
 change tab, and the tab you chose is kept as you go from widget to widget while the window is open.
 In a narrow window the tabs drop their icons, then say **Size** (and **Bests**), and only then
-scroll sideways. Lines in one tab take you to a setting in another: “Which alerts show · Go to
-Elements”, “The row height is changed with Density, in Options”, “The width is changed with Edit position” (“The
+scroll sideways. Lines in one tab take you to a setting in another: “Which alerts show”, with its button to
+Elements, “The row height is chosen in Density, in the Options tab”, “To change the width, drag the edge of the preview or enter edit mode” (“To change the
 size…” when the height is yours to set too), the row of Options that also decides when Battle,
 Spotter or Lights show, and in **Drivers** the iRating column's row in Elements. With a wide window
-(from 1100 px) Elements puts its main list on the left and the others on the right (a single list
-keeps the whole width), and Drivers and Size and visibility go in two columns. What you change
+(from 1100 px) Elements puts the widget's lists on the left and the bars and what goes with them on
+the right (a single list stays in one wider column), and Options, Drivers and Size and visibility put their titled groups in two
+columns (rows never split between them). What you change
 shows in the preview; if it does not, the option
 says why with a short note: **At 540 px wide there is no room for this** (the widget's width leaves no room for that column
 or that data: widen it or hide another). Options that act during the session (when a widget shows,
@@ -631,7 +634,7 @@ report, without names) and **Open log**.
   its ↺ icon (at the end of the tab bar in a widget, in the header on the other pages), which resets
   only that section. It is a single click: a notice at the
   bottom says what was reset (and in which layout, if you have several) with **Undo** (or `Ctrl+Z`)
-  for a few seconds. The same when you reset a list or a shortcut, use “Global” on all widgets, hide
+  for a few seconds. The same when you reset a list or a shortcut, use “Use Appearance’s on all”, hide
   a widget or delete a layout. **Reset everything** (in Help and about) and **Copy these options to
   all layouts** ask for a second click (they can be undone too), and so does deleting personal
   bests, the only thing that cannot be undone.
@@ -641,7 +644,7 @@ report, without names) and **Open log**.
   comes back with the eye on its row. One rule for every page: **Options** is the behaviour (how
   many, how long, thresholds, modes) and **Elements** is what you see (each list with its eye and, with it, how its items look; an item's option, in its
   row).
-- **Header and footer**: Relative, Standings, Fuel, Traffic and Battle have the same ones: a row of
+- **Header and footer**: Relative, Standings, Track map, Fuel, Traffic and Battle have the same ones: a row of
   0 to 9 **slots**, a “Small / Normal / Large” size and the data you want from the same catalogue
   (with **+ Add a data item**: title, session, time left,
   local time, sim time (the sim's, with a sun), SoF, cars, incidents, iRating at stake, projected
@@ -677,7 +680,7 @@ report, without names) and **Open log**.
   same place in another
   widget. If the line really does not fit, the least important are removed whole, and they come back
   when there is clearly room to spare; the text never shrinks. Delta,
-  Inputs, Radar, Spotter, Warning lights and Alerts do not have them: they are compact readouts, and
+  Inputs, Radar, Spotter, Warning lights, Alerts, Map, Weather, Laps, Pit lane and Rejoin do not have them: they are compact readouts, and
   a bar would only add height.
 - **Style** (at the top of Appearance), four that look different at a glance: **OverLap**
   (everything by default: the look and what each widget shows, with Relative and Delta at their
@@ -689,8 +692,8 @@ report, without names) and **Open log**.
   layout in use: every column, element, info bar and alert; the widgets grow so the text does not
   shrink). If it is going to change something you set yourself, it first tells you what changes
   (from before to after) and where it is saved, and waits for you to **Apply**; everything is undone
-  with **Undo**, windows included. The rest of Appearance remains as **Fine tuning of the style**
-  (Colour and Text on the left, Rows and drivers on the right), and if you touch it (or what a
+  with **Undo**, windows included. The rest of Appearance remains as **Fine tuning**
+  (Colour, Text and Rows on the left, Drivers on the right), and if you touch it (or what a
   widget shows, with OverLap or Complete) the style becomes “Custom”. Clean and Compact only change
   the look: when you leave **Complete** for one of them, what Complete added stays, unless you tick
   “Also take away what Complete added” (each widget goes back to what it showed before); with
@@ -708,7 +711,7 @@ report, without names) and **Open log**.
   °F, gallons in Fuel and feet in the radar range), **SIM tag** (marks the widgets with simulated
   data; on by default) and the global **Drivers** block: **Which name shows** (**Driver**, the default;
   **Team**: in team races each car is named by its team, as iRacing sends it, the Delta's class best
-  too; or **Team · driver**: both on one line, “Vela Rossa Corse · M. Echeverría”, the driver
+  too; or **Team and driver**: both on one line, “Vela Rossa Corse · M. Echeverría”, the driver
   smaller and grey and in the name format; when it does not fit the driver is cut first. A car
   without a team of its own, as in every other race, keeps its driver), name format,
   make logo (Auto, Always or Never), country flag, penalty flags, **iRating format** (“2.5k”, cut and not rounded, or the whole number, “2,520”,
@@ -722,9 +725,10 @@ report, without names) and **Open log**.
   buttons, like the other sizes). At the bottom, two buttons lead to **Text size** and **Text
   outline**.
 - **“Drivers” block**: Relative, Standings, Battle and Traffic have on their page, in its own
-  **Drivers** tab, the same rows (name, name format, make logo, country flag, penalty flags, iRating format and
+  **Drivers** tab, the same rows in three groups: **Names** (which name shows and its format), **iRating** (its format and
   iRating in the licence colour; in Traffic, which does not show the drivers' iRating, the last one
-  is off), each with “Global (…)”, the Appearance value, or a value of its own. The logo, the
+  is off) and **Logos, flags and tags** (make logo, country flag, penalty flags and driver tags). Each has
+  “Like Appearance (…)” or a value of its own, except driver tags, which have no Appearance value and are not in Traffic. The logo, the
   country flag and the penalty flags show or not according to their row; where is decided by the
   column list of Relative and Standings (and Traffic's column list, for the flags): right after the
   name, after its text; anywhere else, in a column of its own. Battle, with no columns, puts them
@@ -758,7 +762,7 @@ them.
 ## Edit mode
 
 Enter it with `Ctrl+Shift+E`, from the tray or with the **Edit mode** button in the Settings. On a
-widget's page, **Edit position** (next to “Visible”) enters it and points that widget out over the
+widget's page, **Move and resize** (next to “Visible”) enters it and points that widget out over the
 game.
 
 - Drag a widget to move it and use its edges and corners to resize it; the mouse wheel scales it.
@@ -769,7 +773,7 @@ game.
   `Ctrl` + arrows resize it. Its label has its border in the edit colour, so you know which one they
   apply to; `Tab` and `Shift+Tab` go to the next or previous widget (from top to bottom), also
   without a cursor, with an “Arrows: Relative” notice. They work with the game or the desktop in
-  front, and also with the Settings in front (right after **Edit position**, `Tab` too), except
+  front, and also with the Settings in front (right after **Move and resize**, `Tab` too), except
   while a field, a slider or a list in the Settings has focus: then they belong to it.
 - `Ctrl+Z` undoes the last edit-mode change (a drag, a resize, the wheel, the arrows or the label's
   eye and padlock), and then the one before; the tray also offers **Undo: …** with what you did
@@ -805,28 +809,31 @@ elements, info bars, delta references, steering style, opacity, which sessions i
 the Mazda, another for the GT3. The appearance (language, units, colour, text size…), when the
 overlay shows and the shortcuts are always the same.
 
-- Each layout is **Position and options** (default) or **Position only**: the latter only moves the
-  widgets and uses the **shared options**, shared by every position-only layout. You choose it when
-  saving or importing it (under **More options**), and change it later with **Rename or edit**; only a
-  position-only layout says so on its row.
-- **Settings › Layouts** has three blocks. **Saved layouts**: each row shows its name, its cars and
+- Each layout is **Place, size and options** (default) or **Place and size**: the latter only returns
+  each widget to its place and size, and uses the **shared options**, shared by every layout of its
+  kind. You choose it when saving it, in **What this layout keeps**, and change it later with **Rename
+  or edit**; only a place-and-size layout says so on its row. When you import one, the file decides:
+  with options it keeps them, and without them it uses the shared ones.
+- **Settings › Layouts** has four blocks. **Saved layouts**: each row shows its name, its cars and
   **Apply** (or **In use**); its **⋯** menu has **Rename or edit** (a double click on the name
   does the same), **Duplicate**, **Export…** (a `.json` with its options), **Move up** / **Move
   down** and **Delete** (the one in use cannot be deleted).
-  Drag a row by its handle, or focus the handle and use the arrow keys, to change your order. **New
-  layout** saves what you see with a name; its **More options** fold, which lists what it holds, has
-  what the new one will restore, **New from an example** and **Import from a file**. **Per car** holds every car link. Up to 30 layouts;
+  Drag a row by the dots on its left, or focus them and use the arrow keys, to change your order. **New
+  layout** saves what you see with a name and what you choose in **What this layout keeps**. **Per
+  car** holds every car link: the car you are in goes apart, and the others move to a scrolling box
+  when there are more than 8. **Add a ready-made layout** has **Example layouts** and **Import from a
+  file**. Up to 30 layouts;
   **Search layouts** finds them by name or by car, and **Sort by** lists them in your order
   (**Custom**, default, the same as the tray and the shortcut), by **Name** or by **Recently used**.
   The tray shows the first five and **More…**.
 - **The one in use updates by itself** when you move, resize, hide or lock a widget and when you
   change its options. On each widget's page, one line above the preview (with two or more layouts,
-  or a position-only one) says where what you change is saved (**Saving to** the layout, or **Shared
+  or a place-and-size one) says where what you change is saved (**Saving to** the layout, or **Shared
   options**). Its **⋯** menu has **Copy these options to all layouts**, to carry that widget's options
   to every layout, with a second click to confirm and a sentence saying how it went.
 - It is switched from the tray (**Layout** submenu), from the Settings or with the **Next layout**
   shortcut.
-- **New from an example** (in **More options**) adds one of two very different overlays to the
+- **Example layouts** (in **Add a ready-made layout**) adds one of two very different overlays to the
   list, without applying it, with its own places (for the screen your widgets are on: drawn for
   1920 x 1080, kept to their edges on any 16:9 size and in the middle of an ultrawide) and options;
   your Appearance stays:
@@ -870,17 +877,17 @@ the G29, or a button on each wheel. Any of them runs the action.
   widget). None has a shortcut by default; it unfolds by itself if any has one. To take a widget off
   or put it back during a race without changing layout; the notice over the game says “Standings
   hidden” or “Standings shown”.
-- **Switch between driver and team** puts every widget on the next of Driver, Team and Team · driver
+- **Switch between driver and team** puts every widget on the next of **Driver**, **Team** and **Team and driver**
   (Appearance's **Which name shows** and the value of each widget that has its own, in every saved layout
   too, so they all agree; when they did not, on Team). It is saved like any option and the notice
-  over the game says “Names: Team”, “Names: Team · driver” or “Names: Driver” (outside a team
+  over the game says “Names: Team”, “Names: Team and driver” or “Names: Driver” (outside a team
   session it adds that the drivers' names stay). If the widgets showed different names, the tray's
   **Undo** puts that back. The tray has it too (**Names**, with the three and the one every widget
   shows ticked).
 - Hiding the overlay does not stop the telemetry: when you show it again it comes back with
   up-to-date data. When the app opens, the overlay is always visible.
 - They are changed in **Settings › Shortcuts**, a table with one row per action and one column per
-  shortcut (**Main shortcut**, **Alternative**, **Alternative**), like a game's controls screen.
+  shortcut (**Main shortcut**, then **Alternatives**), like a game's controls screen.
   Each cell is the control: a click on a cell with a shortcut swaps it for another, and its **×**
   (on hover) or `Delete` removes it; the first free cell says **+ Assign** and waits for a
   combination or a wheel button. When you remove one, those to its right shift left (the first is
@@ -929,7 +936,7 @@ the G29, or a button on each wheel. Any of them runs the action.
 
 In **Settings › Visibility**:
 
-- **When to show the overlay**: only when you are in the car (default), races only or always. Out of
+- **Show the overlay**: only when you are in the car (default), races only or always. Out of
   the car only Standings stays, on the session screen, with the results.
 - **In replays**: **Hide** (default) or **Follow the car on camera**: the widgets follow the car you
   are watching; when you rewind only Standings stays (with the live race), and those that only have
@@ -940,10 +947,11 @@ In **Settings › Visibility**:
 - **Keep “Waiting for iRacing”** (off): without iRacing, Standings and Relative keep the notice
   instead of hiding.
 - Each widget also has its own rules: which sessions it shows in and whether it hides in the pits.
-  Below, the **Where each widget shows** table brings them all together (visible, practice,
-  qualifying, race, hide in the pits, session screen and locked), one row per widget: each cell is
-  the same setting, with the same meaning, as on its page (the Visible column is the sidebar's eye),
-  and its name leads to it.
+  Below, the **Where each widget shows** table brings them all together: Visible, **Shows in**
+  (practice, qualifying, race and session screen), **Hides** (hide in the pits) and **Editing**
+  (locked), one row per widget. Each cell is the same setting, with the same meaning, as on its page
+  (the Visible column is the sidebar's eye), and its name leads to it. A dash says that widget can
+  never show on the session screen.
 - Edit mode always shows every widget, with the reason if one is hidden.
 
 For OBS and other streaming programs, see [Streaming](#streaming): your widgets as browser
@@ -969,7 +977,7 @@ with **From another PC on my network** (see **A separate streaming PC** below).
    grows with the session (Standings, Relative…) its width and room in height, below it the source
    is transparent. The screen mirror and the curtain get the canvas size.
 3. With Streamlabs, or in OBS by hand: press **Copy URL**, **Add source › Browser**, paste the URL
-   and set the width and height the page shows for that widget (**Source size**). Any size with the
+   and set the width and height the widget's row gives. Any size with the
    same proportions works: the widget scales to the source.
 4. Turn off **Refresh browser when scene becomes active**: the source reconnects by itself when
    OverLap restarts, and reloads itself after an OverLap update.
@@ -983,13 +991,16 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
 
 - `http://127.0.0.1:39217/w/relative` (one per widget: `standings`, `battle`, `inputs`,
   `delta`…): that widget alone. It shows only while it is ticked **In the stream**, even if you hid
-  it on your screen. In the stream by default: Standings, Relative, Inputs, Delta and Battle. Fuel
-  (strategy your rivals could read live) and the driver aids (Radar, Spotter, Traffic, Warning
-  lights, Alerts) are off until you tick them.
+  it on your screen. The list comes in two groups, **The ones viewers usually care about** and **Worth a thought
+  before you show them**. In the stream by default: Standings, Relative, Inputs, Delta and Battle.
+  Everything else is off until you tick it: Fuel (strategy your rivals could read live), the driver
+  aids (Radar, Spotter, Traffic, Warning lights, Alerts), Track map, Map, Weather, Laps, Pit lane and
+  Rejoin.
 - `http://127.0.0.1:39217/screen/1` (one per screen, the **screen mirror**): what OverLap draws
   over the game on that screen, where it is, transparent, but only the stream's widgets: one source
-  with all of that monitor's stream widgets. Use it instead of the single widgets, not with them
-  (they would show twice). Each display's row draws its monitor small with its stream widgets and
+  with the widgets you have visible on that monitor and ticked **In the stream**. A widget hidden on
+  your screen does not show here, although its own URL still shows it. Use it instead of the single
+  widgets, not with them (they would show twice). Each display's row draws its monitor small with its stream widgets and
   says how many it shows; **Identify** shows each display's number in big over its monitor for
   three seconds, so you know which one to drag (drag the one of the monitor you play on).
 - `http://127.0.0.1:39217/curtain` (**Setup curtain**): while iRacing shows the garage (the setup
@@ -1011,7 +1022,8 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
 
 With **From another PC on my network** (in **Separate streaming PC**, off by default), a second PC
 at home runs OBS and reads the widgets from the gaming PC over your network. The page explains it
-in numbered steps, with streaming mode already on:
+in numbered steps, folded under **See what it takes** while it is off and in sight once it is on,
+with streaming mode already on:
 
 1. Turn on **From another PC on my network**.
 2. On the streaming PC, open a browser and type the address the page shows exactly into the bar at
@@ -1021,15 +1033,16 @@ in numbered steps, with streaming mode already on:
 3. Enter this PC's code (press **Show** to see it): 20 letters and digits in groups of four, without
    I, L, O or U so none is misread; upper or lower case and dashes do not matter. It lists every
    source of the stream.
-4. Drag each widget into its OBS (OBS asks whether to add the source: say **Yes**), or **Copy URL**
-   for other programs. Each address carries the code.
+4. On that PC, add each widget to your streaming program, by dragging it if you use OBS (OBS asks
+   whether to add the source: say **Yes**) or with **Copy URL** in another program. Each address
+   carries the code.
 5. If Windows asks, tick only **Private networks** and press **Allow** (never **Public networks**).
 
-Above the steps, a line says how the other PC is doing: **Waiting for the other PC**, **Connected: 1
-source from another PC**, **You changed the code: update the other PC's sources** or, when off,
-**Off: the other PC gets nothing**.
+Above the steps, a line says how the other PC is doing: **Waiting for the other PC**, **Connected,
+with 1 source from the other PC**, **You changed the code: update the other PC's sources** or, when
+off, **Off, so the other PC gets nothing**.
 
-**If it doesn't work** (the same list is under the steps):
+**If it doesn't work** (the same list is folded under the steps, and open while there are no sources):
 
 - Both PCs on the same home network or Wi‑Fi (OverLap does not answer another network, a VPN's
   included).
@@ -1126,7 +1139,8 @@ steps are in **Settings › Streaming & VR**, under the **VR guide** button at t
 | Pitch                            | 67°, so it faces you          |
 
 To see several widgets at once, add more views in **Settings › Virtual Reality**. You can also paste a
-screen's URL to see them all together, only smaller.
+screen's URL to see together the ones you have visible on that monitor and ticked **In the stream**,
+only smaller.
 
 **If something fails.** If you cannot see the panel, press Recenter and check that OpenXR is on in
 OpenKneeboard. If it ends up behind the cockpit, close iRacing and set
@@ -1149,7 +1163,7 @@ that the theoretical risk exists, so using it is your call.
 - **Network, only for updates**: OverLap has no accounts and sends none of your data anywhere. Its
   only connection is the update check against this repository's GitHub releases (a minute after it
   starts and every 5 hours; GitHub sees your IP address, as with any download), and it is turned off
-  in **Help and about › Updates**. Your settings and personal bests stay on your computer. The
+  in **Help and about › Version and updates**. Your settings and personal bests stay on your computer. The
   buttons in **Help and about** (guide, issues, licence, third-party notices and download) only
   open the browser when you click them.
 - **Streaming mode, on this PC only**: off by default. Turned on, it opens a read-only local server
@@ -1192,7 +1206,7 @@ Versions 2.4.2 to 2.5.2 were published under the GNU GPL version 3 or later
 trademarks and artwork (from Wikimedia, from worldvectorlogo.com and from the Dallara and Tatuus
 websites), shown only so you can tell which make each car is; their owners keep all their rights and
 OverLap grants none. The monochrome set comes from [Simple Icons](https://simpleicons.org) (CC0,
-public domain) and is chosen in **Appearance › Rows and drivers › Logo colour › Monochrome**: it has
+public domain) and is chosen in **Appearance › Drivers › Logo colour › Monochrome**: it has
 18 of the makes, and the rest are still drawn in greys from the colour set. OverLap is not
 affiliated with any car maker. The detail, source by source, is in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md#brand-logos).

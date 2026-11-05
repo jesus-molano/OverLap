@@ -101,24 +101,26 @@ marcha abre los Ajustes.
 Si iRacing no está abierto, Relativo y Posiciones muestran «Esperando a iRacing…» unos segundos y
 se ocultan (salvo con **Mantener «Esperando a iRacing»** en Visibilidad); OverLap se conecta solo en cuanto arranca el simulador.
 
-Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Ayuda y acerca de › Archivos y diagnóstico › Abrir carpeta**,
+Los ajustes se guardan en `%APPDATA%\iracing-overlay\` (**Ajustes › Ayuda y acerca de › Si algo falla › Abrir carpeta**,
 o la bandeja). En esa página, **Exportar todo…** guarda en un archivo todos los ajustes (Apariencia,
 atajos, visibilidad y todos los layouts con sus opciones) y tus récords, e **Importar todo…**
 los recupera en otro equipo o tras reinstalar: los ajustes se ponen al momento (con **Deshacer**,
 mientras no cambies nada más) y los récords del archivo se suman a los tuyos (gana la vuelta más
-rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). Ahí están también la
-versión, una ayuda rápida, **Guía de uso** e **Informar de un problema** (abren el navegador),
-**Abrir registro**, **Copiar diagnóstico**, **Ver la bienvenida** y **Restablecer todo** (pulsa
-otra vez para confirmar; como recién instalado, en tu idioma; tus récords se quedan; con
-**Deshacer**).
-Al final, **Licencia** dice que OverLap es gratuito pero no es de código abierto (sin garantía) y
+rápida; ninguno de los tuyos se borra, y si la lista está llena se dice cuántos no caben). La página tiene dos
+columnas. A la izquierda están una ayuda rápida, **Si algo falla** (**Copiar diagnóstico**,
+**Informar de un problema** en el Discord o en GitHub, la carpeta, **Abrir registro** y **Datos de
+la sesión**, que guarda `session-info.json` con los nombres y el iRating de los pilotos, solo si
+te lo piden) y la **Guía de uso** con la comunidad. A la derecha están **Versión y
+actualizaciones**, la copia de seguridad, **Ver la bienvenida** y **Restablecer todo** (pulsa otra
+vez para confirmar; como recién instalado, en tu idioma; tus récords se quedan; con **Deshacer**).
+Los botones con una flecha abren el navegador. Al final, **Licencia** dice que OverLap es gratuito pero no es de código abierto (sin garantía) y
 abre en el navegador la licencia y los avisos de terceros.
 
 ### Actualizaciones
 
 La versión instalada busca una versión nueva en las releases de GitHub al minuto de arrancar y
 luego cada 5 horas, la descarga en segundo plano y la instala **al cerrar OverLap**, o al momento con
-**Reiniciar y actualizar** (en **Ajustes › Ayuda y acerca de › Actualizaciones** o en la bandeja).
+**Reiniciar y actualizar** (en **Ajustes › Ayuda y acerca de › Versión y actualizaciones** o en la bandeja).
 
 - **Nunca durante una sesión de iRacing**: no se descarga nada (una descarga a medias se para y
   sigue al acabar la sesión), no se instala nada, OverLap no se reinicia y no sale ningún aviso sobre
@@ -170,8 +172,8 @@ datos arriba y abajo (sesión, tiempo restante, SoF,
 iRating en juego, SR proyectado, condiciones de pista…). El principio de la fila también son
 columnas, como en Posiciones (ver más abajo): posición, número, logo, bandera del país, nombre y
 banderas de penalización van donde los pongas. Cada columna tiene su ojo, también la posición, el
-número y el hueco: solo el nombre sale siempre. Al pie de la lista, **Títulos de columna** e
-**Igualar con Posiciones**.
+número y el hueco: solo el nombre sale siempre. Sobre la lista, **Títulos de columna**, y a su pie,
+**Copiar de Posiciones**.
 
 ### Posiciones
 
@@ -184,11 +186,11 @@ línea de cada clase lleva su SoF y su número de coches, cada uno con su ojo en
 Línea de clase**; con **También con una sola clase**, una sesión de una clase también tiene su línea, y su SoF y sus coches dejan
 las barras; el SoF va también al final de un líder en una línea. Columnas que se ordenan
 arrastrando y se esconden solas si la ventana se estrecha: puestos ganados (solo en carrera),
-iRating, licencia, iRating en juego, hueco (**Medido** al de delante, al líder o ambos; de serie,
+iRating, licencia, iRating en juego, hueco (**Medir el hueco** al de delante, al líder o ambos; de serie,
 al de delante), última y mejor vuelta (en morado la más rápida de la clase), boxes, última parada,
 stint y neumático. De serie ocultas: iRating en juego, hueco al líder, última parada, stint y
-neumático. La fila del iRating en juego tiene **iRating en juego de todos** (apagado: solo el
-tuyo), y al pie de la lista, **Títulos de columna**. En Opciones, **Densidad** (la global o una
+neumático. La fila del iRating en juego tiene **iRating en juego en todas las filas** (apagado: solo el
+tuyo), y sobre la lista, **Títulos de columna**. En Opciones, **Densidad** (la global o una
 propia).
 
 El principio de la fila también son columnas de la misma lista, en Posiciones y en Relativo:
@@ -200,7 +202,7 @@ delante, alineado de fila a fila; detrás, al final de su celda, también alinea
 otra columna, va en una columna propia. Una regla:
 **la lista dice dónde; el bloque «Pilotos», si salen y cómo** el logo, la bandera del país y las
 banderas (su fila de la lista no tiene ojo sino un enlace a su fila de «Pilotos», y dice cómo están
-ahí). La posición y el número, que no están en el bloque, tienen su ojo. «Igualar con…» lo lleva
+ahí). La posición y el número, que no están en el bloque, tienen su ojo. «Copiar de…» lo lleva
 todo, y en la vista previa se arrastran como las demás. Cabecera con la sesión, su SoF, tus
 incidentes y lo que queda; pie con el nombre del circuito, las condiciones de pista (temperatura y
 su tendencia, agua, porcentaje de lluvia, viento con un dial que apunta a tu coche) y los coches. A
@@ -225,13 +227,13 @@ la pantalla de sesión.
 Tu rival de clase de delante y el de detrás mientras estén a menos del hueco que elijas (1,5 s por
 defecto): el hueco y su tendencia, la predicción («Le alcanzas en ≈4 v y quedan 19»), los sectores (S1 S2
 S3 y la última vuelta) y el iRating en juego; las tres últimas vueltas, a un clic en Elementos
-(**Líneas › Vueltas**). Uno encima del otro o lado a lado. Por defecto, solo en carrera.
+(**Líneas de cada rival › Vueltas**). Uno encima del otro o lado a lado. Por defecto, solo en carrera.
 **Mantener visible** (3 s de serie) deja la batalla en pantalla un momento después de que el rival
 salga del hueco. El hueco, sin signo (el medido, de serie) o **Con signo** (el mismo tiempo,
 positivo delante y negativo detrás); y cada frase de la predicción («Le alcanzas en…», «Te alcanza
-en…», «Necesitas… s/v», «No le alcanzas · No te alcanza») con su ojo, en **Predicción de
+en…», «Necesitas… s/v», «No le alcanzas o no te alcanza») con su ojo, en **Predicción de
 alcance**. En Elementos, cada rival (**Rivales**: el de delante y el de detrás; sin ninguno, el
-widget no se muestra) y cada detalle (**Detalles**: iRating, licencia, texto de la tendencia e
+widget no se muestra) y cada detalle (**Datos de cada rival**: iRating, licencia, texto de la tendencia e
 iRating en juego) tienen su ojo. Opcionales: cabecera y pie con datos de la sesión (ver más abajo).
 
 ### Tráfico
@@ -265,7 +267,7 @@ Vista cenital con los coches a escala alrededor del tuyo, que pasan a rojo segú
 aviso en el lateral cuando tienes a alguien al lado. Alcance de 5 a 100 m (20 m por defecto, con
 botones de 10, 20, 30 y 50 m; en pies con unidades imperiales). Un coche que te acaba de pasar
 conserva su lado unos segundos aunque iRacing ya no lo diga. Se oculta solo cuando no hay nadie
-cerca. En **Elementos › Capas** se quitan las guías de distancia, sus distancias y los avisos
+cerca. En **Elementos › Partes del radar** se quitan las guías de distancia, sus distancias y los avisos
 laterales. Siempre se dibuja encima de los demás widgets (ver [Modo edición](#modo-edición)).
 
 ### Spotter
@@ -286,7 +288,7 @@ cuentan:
   que acaba de estar a tu lado y ahora va justo delante o detrás, un tope tenue en ese extremo. Si
   iRacing dice que hay alguien pero no se puede situar, la barra entera sale discontinua.
 
-Las dos marcas (el tope y el «2») tienen su ojo en **Elementos › Marcas** («Coche a punto de
+Las dos marcas (el tope y el «2») tienen su ojo en **Elementos › Partes de la barra** («Coche a punto de
 ponerse al lado», este solo con «Dónde te cubre», y «Dos coches en un lado»); de serie, las dos.
 
 Qué lado lo dice el spotter de iRacing, y solo cuando el coche ya está a tu altura: uno que se
@@ -393,7 +395,7 @@ nuevo en cada sesión. Viene oculto: enciéndelo en Visibilidad, la barra latera
 
 Barra delta frente a la referencia que elijas, con tendencia, vuelta prevista y cada sector. La
 referencia puede ser tu récord personal con ese coche en ese trazado (se guarda en tu equipo y no se
-pierde al cambiar de sesión; la lista, **Récords personales**, está al final de la página de
+pierde al cambiar de sesión; la lista está en la pestaña **Récords** de la página de
 Delta), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor de tu clase o la
 óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
 personal en práctica y tu vuelta óptima en clasificación y en carrera. Con **Usar la siguiente si
@@ -504,9 +506,9 @@ incidente al sumarlo («+2x Pérdida de control · V5 · S3 · grava»). Cada ca
 con su ojo en **Elementos › Avisos**, agrupado (Banderas, Boxes, Durante la carrera, Motor,
 Combustible), y cada aviso tiene su forma además de su color (se lee con la paleta para
 daltónicos). Motor calado, presión de aceite y limitador de boxes
-son también testigos: su fila tiene una casilla **También en Testigos** que enciende o apaga el
-suyo en Testigos, y al revés (**También en Avisos** en la página de Testigos). **Mantener visible** (3 s de
-serie) deja un aviso breve en pantalla el tiempo de leerlo; en **Elementos › Extras** se quitan
+son también testigos: su fila tiene una casilla **Sale en Testigos** que enciende o apaga el
+suyo en Testigos, y al revés (**Sale en Avisos** en la página de Testigos). **Mantener visible** (3 s de
+serie) deja un aviso breve en pantalla el tiempo de leerlo; en **Elementos › Junto al aviso** se quitan
 la línea de qué hacer y los chips de los demás avisos. La bandera azul dice que hay un coche más
 rápido detrás. Dura justo lo que le da iRacing y no sale mientras esté la verde, porque entonces el
 gráfico de iRacing muestra la verde.
@@ -524,8 +526,8 @@ encima de tu media, antes de que se encienda el testigo del coche. Su página de
 es cada uno y qué hacer, en su **Leyenda**.
 
 En Opciones, **Solo encendidos** (apagado: con él, el widget se oculta mientras no hay ninguno
-encendido). En **Elementos › Testigos**, cada uno con su ojo (y **También en Avisos** en los que comparte
-con Avisos) y, debajo, **Nombre junto al icono** (apagado), **Lado de los textos** (en columna),
+encendido). En **Elementos › Testigos**, cada uno con su ojo (y **Sale en Avisos** en los que comparte
+con Avisos), y en el grupo **Junto a cada testigo**, **Nombre junto al icono** (apagado), **Lado de los textos** (en columna),
 **Temperaturas** (apagado: «98° +6°»), **Tiempo de reparación** (activado, con **Marcar el tiempo de los
 mecánicos**, activado, y **Cuenta atrás real (estimada)**, apagado) y **Temperatura al alza**
 (activado).
@@ -595,7 +597,7 @@ arrancándolo con `--settings` (los accesos directos del instalador lo llevan). 
 **en vivo** y se guarda solo; arriba de
 cada página hay una vista previa del widget sobre un fondo de circuito de noche o de día, que se queda arriba
 al bajar por las opciones. Ocupa como mucho el 45 % de la ventana, nunca baja de un tamaño que se lea (si no cabe, enseña sus primeras filas) y la línea que tiene debajo cambia su altura: al estirarla más de lo que el widget necesita, este crece con ella, hasta el doble de su tamaño real o hasta el 60 % de la ventana. Cada widget guarda la suya y con un doble clic vuelve
-al tamaño inicial. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de hueco, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
+al tamaño inicial. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de espacio, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
 de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
 **Opciones**, **Elementos**, la propia del widget si la tiene (**Pilotos** en Relativo,
 Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos, Mapa de pista y Mapa) y **Tamaño y
@@ -604,12 +606,13 @@ de pestañas y el menú **Restablecer…** de arriba. La barra de pestañas se q
 `Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
 de un widget a otro mientras la ventana sigue abierta. En una ventana estrecha las pestañas
 pierden los iconos, luego ponen **Tamaño** y solo entonces se desplazan de lado. Algunas líneas
-llevan a un ajuste de otra pestaña: «Qué avisos salen · Ir a Elementos», «La altura de fila se cambia con
-Densidad, en Opciones», «El ancho se cambia con Editar posición» («El tamaño…» cuando también el
+llevan a un ajuste de otra pestaña: «Qué avisos salen», con su botón a Elementos, «La altura de las filas se elige en
+Densidad, en la pestaña Opciones», «Para cambiar el ancho, arrastra el borde de la vista previa o entra en modo edición» («Para cambiar el tamaño…» cuando también el
 alto lo eliges tú), la fila de Opciones que además decide cuándo salen Batalla, Spotter o
 Testigos y, en **Pilotos**, la fila de la columna del iRating en Elementos. Con la ventana ancha
-(desde 1100 px) Elementos lleva su lista principal a la izquierda y las demás a la derecha (una
-sola lista ocupa todo el ancho), y Pilotos y Tamaño y visibilidad van a dos columnas. Lo que
+(desde 1100 px) Elementos lleva las listas del widget a la izquierda y las barras y lo que las
+acompaña a la derecha (una sola lista se queda en una columna más ancha), y Opciones, Pilotos y Tamaño y visibilidad llevan sus grupos con
+título a dos columnas (las filas nunca se reparten entre ellas). Lo que
 cambias se ve en la vista previa; si no se ve, la opción dice por qué con una nota corta: **A 540 px
 de ancho no hay sitio para esto** (el ancho del widget no deja sitio para esa columna o ese dato:
 ensánchalo u oculta otro). Las opciones que actúan durante la sesión (cuándo se ve un widget, el
@@ -641,12 +644,12 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   mostrar en la pantalla de sesión (salvo los que solo tienen datos en el coche; de serie, solo
   Posiciones).
 - **Restablecer y deshacer**: arriba de cada página (los widgets, Apariencia, Visibilidad y Atajos),
-  **Restablecer…** dice qué devuelve a fábrica, sección por sección (en un widget: Opciones,
+  **Restablecer…** dice qué deja de serie, sección por sección (en un widget: Opciones,
   Elementos, Pilotos, Tamaño y visibilidad, Posición y tamaño, o todo), y cada sección tiene su
   icono ↺ (en un widget, al final de la barra de pestañas; en las demás páginas, en la cabecera),
   que restablece solo esa sección. Es un solo clic: un aviso abajo dice qué
   se ha restablecido (y en qué layout, si tienes varios) con **Deshacer** (o `Ctrl+Z`)
-  durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Global» en todos
+  durante unos segundos. Lo mismo al restablecer una lista o un atajo, al usar «Usar el de Apariencia en todos»
   los widgets, al ocultar un widget y al eliminar un layout. Piden un segundo clic
   **Restablecer todo** (en Ayuda y acerca de) y **Copiar estas opciones a todos los layouts**, que también se
   deshacen, y borrar récords personales, lo único que no se puede deshacer.
@@ -657,8 +660,8 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   Una regla para todas las páginas: **Opciones** es el comportamiento (cuántos, cuánto tiempo,
   umbrales, modos) y **Elementos** lo que se ve (cada lista con su ojo y, con ella, cómo se
   ven sus elementos; la opción de un elemento, en su fila).
-- **Cabecera y pie**: Relativo, Posiciones, Combustible, Tráfico y Batalla tienen los mismos:
-  una fila de 0 a 9 **huecos**, un tamaño «Pequeña / Normal / Grande» y los datos que quieras del
+- **Cabecera y pie**: Relativo, Posiciones, Mapa de pista, Combustible, Tráfico y Batalla tienen los mismos:
+  una fila de 0 a 9 **espacios**, un tamaño «Pequeña / Normal / Grande» y los datos que quieras del
   mismo catálogo (con **+ Añadir dato**: título, sesión, tiempo restante, hora local, hora en pista (la del simulador, con un sol), SoF, coches, incidentes,
   iRating en juego, SR proyectado, vuelta rápida de clase, vueltas de combustible, nombre del
   circuito, temperatura de la pista, agua, lluvia, viento, aire, goma, y por separado vueltas hechas
@@ -667,21 +670,21 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   (una estimación en carrera, cuando alguien ya ha parado) y cada parte del iRating; Combustible no ofrece sus propias vueltas de combustible, que ya dice). Por
   defecto cada barra es una sola línea con sus datos juntos: la cabecera dice el título y la sesión,
   y luego tus incidentes y el tiempo restante; el pie las condiciones, y luego los coches y el
-  combustible; y los datos de la sesión y el nombre del circuito, solo en Posiciones. Los huecos
+  combustible; y los datos de la sesión y el nombre del circuito, solo en Posiciones. Los espacios
   reparten el ancho a partes iguales: el primero alinea su dato a la izquierda, el último a la derecha
-  y los de en medio al centro, así que los datos en los huecos 1, 3 y 5 de 5 quedan en un extremo, en el
-  centro exacto y en el otro extremo. Un hueco vacío es solo espacio, y con 0 huecos la barra no se
+  y los de en medio al centro, así que los datos en los espacios 1, 3 y 5 de 5 quedan en un extremo, en el
+  centro exacto y en el otro extremo. Un espacio vacío solo deja sitio libre, y con 0 espacios la barra no se
   muestra y sus datos se quedan guardados. Un dato sin nada que decir, como el agua con la pista seca,
-  deja su hueco vacío y nada más se mueve. Si ninguno de los datos de una barra tiene nada que decir,
+  deja su espacio vacío y nada más se mueve. Si ninguno de los datos de una barra tiene nada que decir,
   como una línea de cifras de carrera en entrenamientos, la barra no se muestra sobre el juego ni en las
   páginas de streaming. Vuelve en cuanto un dato tiene algo que decir y se va unos segundos después de
-  que se vaya el último, o enseguida en una sesión nueva. La vista previa la sigue mostrando con sus huecos
-  vacíos para que puedas editarla. Un dato más largo que su hueco toma sitio de los huecos vacíos
-  y luego de los que les sobra. En la vista previa, con la pestaña **Elementos** abierta, cada hueco
+  que se vaya el último, o enseguida en una sesión nueva. La vista previa la sigue mostrando con sus espacios
+  vacíos para que puedas editarla. Un dato más largo que su espacio toma sitio de los espacios vacíos
+  y luego de los que les sobra. En la vista previa, con la pestaña **Elementos** abierta, cada espacio
   vacío se ve como un contorno tenue: un clic te deja elegir qué poner, un clic en un dato lo quita, y
-  arrastrando lo llevas a cualquier hueco de la cabecera, la segunda línea o el pie de ese widget, y
+  arrastrando lo llevas a cualquier espacio de la cabecera, la segunda línea o el pie de ese widget, y
   cambia de sitio con lo que hubiera. Con el teclado se hace lo mismo desde la lista, con flechas y un
-  menú. Quitar huecos nunca pierde un dato: los datos pasan a los huecos libres, o la barra se queda
+  menú. Quitar espacios nunca pierde un dato: los datos pasan a los espacios libres, o la barra se queda
   como estaba y te dice por qué. Un dato puede estar en dos barras de un widget, como la hora en la
   cabecera y en el pie. **Resaltar**, en la fila de un dato, lo dibuja en el color de acento de
   **Apariencia** y un 9 % más grande, sin cambiar la altura de la barra, y lo que avisa de algo conserva
@@ -694,7 +697,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **Nombre y layout** o **Solo el layout**, y la lluvia es el porcentaje de precipitación de
   iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si de verdad la línea no cabe, se quitan enteros los menos importantes, y
-  vuelven cuando sobra sitio de forma clara; el texto nunca se encoge. Delta, Pedales, Radar, Spotter, Testigos y Avisos no tienen: son lecturas compactas, y una barra
+  vuelven cuando sobra sitio de forma clara; el texto nunca se encoge. Delta, Pedales, Radar, Spotter, Testigos, Avisos, Mapa, Clima, Vueltas, Boxes y Reincorporación no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
 - **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (todo de serie: el
   aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie, o lo justo más si
@@ -705,7 +708,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   elemento, barra de información y aviso; los widgets crecen para que el texto no encoja). Si va a
   cambiar algo que pusiste tú, antes te dice qué cambia (de antes a después) y dónde se guarda, y
   esperas a **Aplicar**; todo se deshace con **Deshacer**, ventanas incluidas. El resto de
-  Apariencia queda como **Ajuste fino del estilo** (Color y Texto a la izquierda, Filas y pilotos a
+  Apariencia queda como **Ajuste fino** (Color, Texto y Filas a la izquierda, Pilotos a
   la derecha), y si lo tocas (o lo que muestra un widget, con OverLap o Completo) el estilo pasa a
   «Personalizado». Limpio y Compacto solo cambian el aspecto: al dejar **Completo** por uno de
   ellos, lo que Completo añadió se queda, salvo que marques «Quitar también lo que añadió
@@ -723,7 +726,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
   (marca los widgets con datos simulados; activada de serie) y el bloque **Pilotos** global: **Qué nombre se muestra** (**Piloto**, de serie; **Equipo**: en carreras por equipos cada coche se
   nombra por su equipo, tal como lo manda iRacing, también la vuelta rápida de clase del Delta; o
-  **Equipo · piloto**: los dos en la misma línea, «Vela Rossa Corse · M. Echeverría», el piloto
+  **Equipo y piloto**: los dos en la misma línea, «Vela Rossa Corse · M. Echeverría», el piloto
   más pequeño y en gris y con el formato del nombre; si no cabe se recorta antes el piloto. Un
   coche sin equipo propio, como en cualquier otra carrera, sigue con su piloto), formato del nombre, logo de la marca (Auto, Siempre o
   Nunca), bandera del país, banderas de penalización, **formato del iRating** («2.5k», cortado y sin redondear, o el número
@@ -736,9 +739,10 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   también con `Ctrl` y `+` / `-` / `0` o `Ctrl` y la rueda; botones 80/100/125/150 %, como los demás
   tamaños). Al pie, dos botones llevan a **Tamaño del texto** y **Contorno del texto**.
 - **Bloque «Pilotos»**: Relativo, Posiciones, Batalla y Tráfico tienen en su página, en su propia
-  pestaña **Pilotos**, las mismas filas (nombre, formato de nombre, logo de la marca, bandera del país,
-  banderas de penalización, formato del iRating e iRating con el color de la licencia; en Tráfico,
-  que no muestra el iRating de los pilotos, esta última está apagada), cada una con «Global (…)», lo de Apariencia, o un valor propio. El
+  pestaña **Pilotos**, las mismas filas en tres grupos: **Nombres** (qué nombre se muestra y su formato), **iRating** (su formato e
+  iRating con el color de la licencia; en Tráfico, que no muestra el iRating de los pilotos, esta última
+  está apagada) y **Logos, banderas y etiquetas** (logo de la marca, bandera del país, banderas de penalización y etiquetas de pilotos).
+  Cada una tiene «Como Apariencia (…)» o un valor propio, salvo las etiquetas de pilotos, que no tienen valor en Apariencia ni están en Tráfico. El
   logo, la bandera del país y las banderas de penalización salen o no según su fila; dónde, lo
   decide la lista de columnas de Relativo y Posiciones (y la de columnas de Tráfico, para las
   banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
@@ -771,7 +775,7 @@ página abierta en otro PC de tu red, y entonces reciben solo las etiquetas de q
 ## Modo edición
 
 Entra con `Ctrl+Mayús+E`, desde la bandeja o con el botón **Modo edición** de los Ajustes. En la
-página de un widget, **Editar posición** (junto a «Visible») entra y señala ese widget sobre el
+página de un widget, **Mover y redimensionar** (junto a «Visible») entra y señala ese widget sobre el
 juego.
 
 - Arrastra un widget para moverlo y usa sus bordes y esquinas para cambiar su tamaño; la rueda del
@@ -782,7 +786,7 @@ juego.
   `Ctrl` + flechas cambian su tamaño. Su etiqueta lleva el borde en el color de edición, para que
   sepas a cuál se aplican; `Tab` y `Mayús+Tab` pasan al widget siguiente o al anterior (de arriba
   abajo), también sin cursor, con un aviso «Flechas: Relativo». Funcionan con el juego o el
-  escritorio delante, y también con los Ajustes delante (justo después de **Editar posición**,
+  escritorio delante, y también con los Ajustes delante (justo después de **Mover y redimensionar**,
   también `Tab`), salvo mientras un campo, un deslizador o una lista de los Ajustes tiene el foco:
   entonces son suyas.
 - `Ctrl+Z` deshace el último cambio del modo edición (un arrastre, un cambio de tamaño, la rueda,
@@ -820,34 +824,36 @@ elementos, barras de información, referencias del delta, estilo del volante, op
 sesiones se ve… Uno para el Mazda, otro para el GT3. La apariencia (idioma, unidades, color,
 tamaño del texto…), cuándo se ve el overlay y los atajos son siempre los mismos.
 
-- Cada layout es **Posición y opciones** (de serie) o **Solo posición**: este solo mueve los
-  widgets y usa las **opciones comunes**, compartidas por todos los de solo posición. Lo eliges al
-  guardarlo o importarlo (en **Más opciones**), y lo cambias luego con **Renombrar o editar**; solo uno de solo
-  posición lo dice en su fila.
-- **Ajustes › Layouts** tiene tres bloques. **Layouts guardados**: cada fila muestra
+- Cada layout es **Sitio, tamaño y opciones** (de serie) o **Sitio y tamaño**: este solo devuelve
+  cada widget a su sitio y su tamaño, y usa las **opciones compartidas** por todos los de su tipo. Lo
+  eliges al guardarlo, en **Qué guarda este layout**, y lo cambias luego con **Renombrar o editar**;
+  solo uno de sitio y tamaño lo dice en su fila. Al importar lo decide el archivo: si lleva opciones
+  las conserva y, si no, usa las compartidas.
+- **Ajustes › Layouts** tiene cuatro bloques. **Layouts guardados**: cada fila muestra
   su nombre, sus coches y **Aplicar** (o **En uso**); su menú **⋯** tiene **Renombrar o editar**
   (un doble clic en el nombre hace lo mismo), **Duplicar**,
   **Exportar…** (un `.json` con sus opciones), **Subir** / **Bajar** y **Eliminar** (el que está
-  en uso no se puede eliminar). Arrastra una fila por su asa, o enfoca el asa y usa las flechas,
-  para cambiar tu orden. **Nuevo layout** guarda lo que ves con un nombre; su pliegue **Más
-  opciones**, que dice lo que contiene, tiene qué restaurará el nuevo, **Layouts de ejemplo** e **Importar desde un archivo**. **Por
-  coche** reúne todos los vínculos con coches. Hasta 30 layouts; **Buscar layouts** los
+  en uso no se puede eliminar). Arrastra una fila por los puntos de su izquierda, o enfócalos y usa las flechas,
+  para cambiar tu orden. **Nuevo layout** guarda lo que ves con un nombre y lo que elijas en **Qué
+  guarda este layout**. **Por coche** reúne todos los vínculos con coches: el coche en el que estás
+  va aparte, y los demás pasan a una caja con scroll cuando son más de 8. **Añadir un layout hecho**
+  tiene **Layouts de ejemplo** e **Importar desde un archivo**. Hasta 30 layouts; **Buscar layouts** los
   encuentra por nombre o por coche, y **Orden** los lista en tu orden (**Personalizado**, de serie,
   el mismo de la bandeja y del atajo), por **Nombre** o por **Uso reciente**. La bandeja muestra
   los cinco primeros y **Más…**.
 - **El que está en uso se guarda automáticamente** al mover, redimensionar, ocultar o bloquear un widget y
   al cambiar sus opciones. En la página de cada widget, una línea sobre la vista previa (con dos
-  layouts o más, o uno de solo posición) dice dónde se guarda lo que cambias (**Guardando en** el layout, o en **Opciones comunes**). Su menú **⋯**
+  layouts o más, o uno de sitio y tamaño) dice dónde se guarda lo que cambias (**Guardando en** el layout, o en **Opciones compartidas**). Su menú **⋯**
   tiene **Copiar estas opciones a todos los layouts**, para llevar las opciones de ese widget a todos los layouts, con un segundo clic para confirmar
   y una frase que dice cómo ha ido.
 - Se cambia desde la bandeja (submenú **Layout**), desde los Ajustes o con el atajo
   **Siguiente layout**.
-- **Layouts de ejemplo** (en **Más opciones**) añade a la lista, sin aplicarlo, uno de dos
+- **Layouts de ejemplo** (en **Añadir un layout hecho**) añade a la lista, sin aplicarlo, uno de dos
   layouts muy distintos, con sus propios sitios (para la pantalla de tus widgets: dibujados
   para 1920 x 1080, a la misma distancia de sus bordes en cualquier 16:9 y en el centro de una
   ultrapanorámica) y opciones; tu Apariencia no cambia:
   - **Equilibrado**: lo esencial para una carrera (Relativo, Radar, Delta, Combustible, Avisos y
-    Pedales) en sitios cómodos y a buen tamaño, con las opciones de fábrica.
+    Pedales) en sitios cómodos y a buen tamaño, con las opciones de serie.
   - **Ingeniero de pista**: todos los widgets, pequeños y con todos los datos, en los bordes (el
     retrovisor y la carretera quedan libres), cada uno en su otro aspecto: todas las columnas, más
     coches, una barra por referencia, los datos del coche...
@@ -886,8 +892,8 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
   atajo junto al widget). Ninguna tiene atajo de serie; se despliega solo si alguna lo tiene. Para
   quitar o poner un widget en carrera sin cambiar de layout; el aviso sobre el juego dice
   «Oculto: Posiciones» o «Visible: Posiciones».
-- **Cambiar entre piloto y equipo** pasa todos los widgets al siguiente de Piloto, Equipo y
-  Equipo · piloto (el **Qué nombre se muestra** de Apariencia y el de cada widget que tenga uno propio,
+- **Cambiar entre piloto y equipo** pasa todos los widgets al siguiente de **Piloto**, **Equipo** y
+  **Equipo y piloto** (el **Qué nombre se muestra** de Apariencia y el de cada widget que tenga uno propio,
   también en cada layout guardado, así que todos coinciden; si no coincidían, a Equipo). Se
   guarda como cualquier opción y el aviso sobre el juego dice «Nombres: Equipo», «Nombres: Equipo ·
   piloto» o «Nombres: Piloto» (fuera de una sesión por equipos añade que se ven los pilotos). Si
@@ -896,12 +902,12 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Ocultar el overlay no detiene la telemetría: al mostrarlo vuelve con los datos al día. Al abrir
   la app, el overlay siempre está visible.
 - Se cambian en **Ajustes › Atajos**, una tabla con una fila por acción y una columna por atajo
-  (**Atajo principal**, **Alternativo**, **Alternativo**), como la pantalla de controles de un juego.
+  (**Atajo principal** y después **Alternativos**), como la pantalla de controles de un juego.
   Cada casilla es el control: un clic en una casilla con atajo lo cambia por otro, y su **×** (al
   pasar el ratón) o `Supr` lo quitan; la primera casilla libre dice **+ Asignar** y espera una
   combinación o un botón del volante. Al quitar uno, los de la derecha se corren a la izquierda (el
   primero es el que lee la versión 2.1.1). Sin ninguno, la acción queda desactivada. El icono ↺ de la
-  derecha la deja solo con el de fábrica. Mientras grabas, `Esc` cancela y `Retroceso` o `Supr`
+  derecha la deja solo con el de serie. Mientras grabas, `Esc` cancela y `Retroceso` o `Supr`
   quitan el atajo que estás cambiando.
 - Los avisos van en la casilla a la que se refieren (**Desconectado**, **En uso por otra app**), y
   una frase que haga falta (un atajo rechazado, el aviso de `AltGr`) sale debajo de esa misma
@@ -942,13 +948,13 @@ botón 24 del G29, o un botón en cada volante. Cualquiera de ellos ejecuta la a
 - Los botones solo se leen mientras algún atajo es un botón (o mientras eliges uno): sin ninguno,
   OverLap no lee los mandos.
 - Si vuelves a la versión 2.1.1, cada acción conserva solo su primer atajo (los demás se pierden al
-  guardar), y si era un botón vuelve a su combinación de fábrica.
+  guardar), y si era un botón vuelve a su combinación de serie.
 
 ## Cuándo se ve el overlay
 
 En **Ajustes › Visibilidad**:
 
-- **Cuándo mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o
+- **Mostrar el overlay**: solo cuando estás en el coche (por defecto), solo en carrera o
   siempre. Fuera del coche solo se queda Posiciones en la pantalla de sesión, con los resultados.
 - **En repeticiones**: **Ocultar** (por defecto) o **Seguir al coche en cámara**: los widgets siguen
   al coche que miras; al rebobinar solo queda Posiciones (con la carrera en directo), y los que solo
@@ -959,10 +965,11 @@ En **Ajustes › Visibilidad**:
 - **Mantener «Esperando a iRacing»** (apagado): sin iRacing, Posiciones y Relativo siguen con el
   aviso en vez de ocultarse.
 - Cada widget tiene además sus propias reglas: en qué sesiones se muestra y si se oculta en boxes.
-  Debajo, la tabla **Dónde se ve cada widget** las reúne todas (visible, práctica, clasificación,
-  carrera, ocultar en boxes, pantalla de sesión y bloqueado), una fila por widget: cada casilla es
-  el mismo ajuste, con el mismo sentido, que en su página (la columna Visible es el ojo de la barra
-  lateral), y su nombre lleva a ella.
+  Debajo, la tabla **Dónde se ve cada widget** las reúne todas: Visible, **Se ve en** (práctica,
+  clasificación, carrera y pantalla de sesión), **Se oculta** (ocultar en boxes) y **Al editar**
+  (bloqueado), una fila por widget. Cada casilla es el mismo ajuste, con el mismo sentido, que en
+  su página (la columna Visible es el ojo de la barra lateral), y su nombre lleva a ella. Un guion
+  dice que ese widget nunca puede verse en la pantalla de sesión.
 - El modo edición siempre enseña todos los widgets, con el motivo si alguno está oculto.
 
 Para OBS y otros programas de streaming, mira [Streaming](#streaming): tus widgets como fuentes de
@@ -988,7 +995,7 @@ con **Desde otro PC de mi red** (mira **Un PC de streaming aparte**, más abajo)
    que crece con la sesión (Posiciones, Relativo…) su ancho y alto de sobra, debajo es transparente.
    La pantalla y la cortina toman el tamaño del lienzo.
 3. Con Streamlabs, o en OBS a mano: pulsa **Copiar URL**, **Añadir fuente › Navegador**, pega la
-   URL y pon el ancho y el alto que indica la página para ese widget (**Tamaño de la fuente**). Vale
+   URL y pon el ancho y el alto que indica la fila de ese widget. Vale
    cualquier tamaño con la misma proporción: el widget se escala a la fuente.
 4. Desactiva **Actualizar el navegador cuando la escena se active** (Refresh browser when scene
    becomes active): la fuente se reconecta sola cuando OverLap se reinicia y se recarga sola tras una
@@ -1004,13 +1011,16 @@ iRacing».
 
 - `http://127.0.0.1:39217/w/relative` (una por widget: `standings`, `battle`, `inputs`,
   `delta`…): ese widget solo. Se ve mientras está marcado **En el stream**, aunque lo hayas ocultado
-  en tu pantalla. De serie van al stream Posiciones, Relativo, Pedales, Delta y Batalla.
-  Combustible (estrategia que un rival podría leer en directo) y las ayudas al piloto (Radar,
-  Spotter, Tráfico, Testigos, Avisos) quedan fuera hasta que los marques.
+  en tu pantalla. La lista va en dos grupos, **Los que suelen interesar a quien te ve** y **Conviene pensarlo
+  antes de enseñarlos**. De serie van al stream Posiciones, Relativo, Pedales, Delta y Batalla.
+  Todos los demás quedan fuera hasta que los marques: Combustible (estrategia que un rival podría
+  leer en directo), las ayudas al piloto (Radar, Spotter, Tráfico, Testigos, Avisos), Mapa de pista,
+  Mapa, Clima, Vueltas, Boxes y Reincorporación.
 - `http://127.0.0.1:39217/screen/1` (una por pantalla, el **espejo de pantalla**): lo que OverLap
   dibuja sobre el juego en esa pantalla, en su sitio y transparente, pero solo los widgets del
-  stream: una sola fuente con todos los widgets del stream de ese monitor. Úsala en lugar de los
-  widgets sueltos, no a la vez (saldrían repetidos). La fila de cada pantalla dibuja su monitor en
+  stream: una sola fuente con los widgets que tienes visibles en ese monitor y marcados **En el
+  stream**. Un widget oculto en tu pantalla no sale aquí, aunque su propia URL sí lo enseñe. Úsala en
+  lugar de los widgets sueltos, no a la vez (saldrían repetidos). La fila de cada pantalla dibuja su monitor en
   pequeño con sus widgets del stream y dice cuántos enseña; **Identificar** muestra en grande el
   número de cada pantalla sobre su monitor tres segundos, para saber cuál arrastrar (la del monitor
   donde juegas).
@@ -1033,7 +1043,8 @@ iRacing».
 
 Con **Desde otro PC de mi red** (en **PC de streaming aparte**, apagado de serie), un segundo PC de
 tu casa lleva OBS y lee los widgets del PC de juego por tu red. La página lo explica en pasos
-numerados, con el modo streaming ya activado:
+numerados, plegados en **Ver qué hace falta** mientras está apagado y a la vista al activarlo, con el
+modo streaming ya activado:
 
 1. Activa **Desde otro PC de mi red**.
 2. En el PC de streaming, abre el navegador y escribe tal cual, en la barra de arriba, la dirección
@@ -1043,16 +1054,17 @@ numerados, con el modo streaming ya activado:
 3. Pon el código de este PC (pulsa **Mostrar** para verlo): 20 letras y números en grupos de cuatro,
    sin I, L, O ni U para no confundirlas; da igual mayúsculas o minúsculas y los guiones. Salen todas
    las fuentes del stream.
-4. Arrastra cada widget a su OBS (OBS pregunta si añade la fuente: di **Sí**), o **Copiar URL** para
-   otros programas. Cada dirección lleva el código.
+4. En ese PC, añade cada widget a tu programa de streaming, arrastrándolo si usas OBS (OBS pregunta
+   si añade la fuente: di **Sí**) o con **Copiar URL** en otro programa. Cada dirección lleva el
+   código.
 5. Si Windows pregunta, marca solo **Redes privadas** y pulsa **Permitir** (nunca **Redes
    públicas**).
 
-Encima de los pasos, una línea dice cómo va el otro PC: **Esperando al otro PC**, **Conectado: 1
-fuente desde otro PC**, **Has cambiado el código: actualiza las fuentes del otro PC** o, apagado,
-**Apagado: el otro PC no recibe nada**.
+Encima de los pasos, una línea dice cómo va el otro PC: **Esperando al otro PC**, **Conectado, con 1
+fuente desde el otro PC**, **Has cambiado el código: actualiza las fuentes del otro PC** o,
+apagado, **Apagado, así que el otro PC no recibe nada**.
 
-**Si no funciona** (la misma lista está bajo los pasos):
+**Si no funciona** (la misma lista está plegada bajo los pasos, y abierta mientras no hay fuentes):
 
 - Los dos PCs, en la misma red de casa o Wi‑Fi (OverLap no contesta a otra red, tampoco a una VPN).
 - OverLap abierto en este PC, con **Desde otro PC de mi red** activado.
@@ -1151,7 +1163,8 @@ mismos pasos están en **Ajustes › Streaming y VR**, con el botón **Guía de 
 | Pitch                            | 67°, para que mire hacia ti     |
 
 Para ver varios widgets a la vez, añade más vistas en **Settings › Virtual Reality**. También puedes
-pegar la URL de una pantalla y verlos todos juntos, aunque más pequeños.
+pegar la URL de una pantalla y ver juntos los que tienes visibles en ese monitor y marcados
+**En el stream**, aunque más pequeños.
 
 **Si algo falla.** Si no ves el panel, pulsa Recenter y comprueba que OpenXR está activado en
 OpenKneeboard. Si queda detrás del cockpit, cierra iRacing y pon `DepthLayerExtensionEnabled=0` en la
@@ -1173,7 +1186,7 @@ ningún baneo, pero que el riesgo teórico existe, así que usarlo es decisión 
 - **Red, solo para actualizaciones**: OverLap no tiene cuentas ni envía datos tuyos a ningún sitio.
   Su única conexión es la búsqueda de actualizaciones en las releases de GitHub de este repositorio
   (al minuto de arrancar y cada 5 horas; GitHub ve tu dirección IP, como en cualquier descarga), y
-  se apaga en **Ayuda y acerca de › Actualizaciones**. Tus ajustes y récords se quedan en tu equipo.
+  se apaga en **Ayuda y acerca de › Versión y actualizaciones**. Tus ajustes y récords se quedan en tu equipo.
   Los botones de **Ayuda y acerca de** (guía, problemas, licencia, avisos de terceros y descargar)
   solo abren el navegador cuando los pulsas.
 - **Modo streaming, solo en este PC**: apagado de serie. Activado, abre un servidor local de solo
@@ -1217,7 +1230,7 @@ Las versiones 2.4.2 a 2.5.2 se publicaron bajo la GNU GPL versión 3 o posterior
 dibujos de terceros (de Wikimedia, de worldvectorlogo.com y de las webs de Dallara y Tatuus), que se
 muestran solo para saber de qué marca es cada coche; sus dueños conservan todos sus derechos y
 OverLap no concede ninguno. El juego monocromo sale de [Simple Icons](https://simpleicons.org) (CC0,
-de dominio público) y se elige en **Apariencia › Filas y pilotos › Color del logo › Monocromo**:
+de dominio público) y se elige en **Apariencia › Pilotos › Color del logo › Monocromo**:
 tiene 18 de las marcas, y las demás se siguen dibujando en grises a partir del juego en color.
 OverLap no está afiliado a ninguna marca de coches. El detalle, fuente por fuente, está en
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md#brand-logos).

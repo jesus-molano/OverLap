@@ -35,9 +35,10 @@ also reads your wheel's buttons (through Windows Raw Input) if you bind a shortc
   `settings.json.v6.bak`, `personal-bests.json.bak`, `track-shapes.json.bak`, `driver-tags.json.bak` if that file ever turns out
   damaged) and, if you use the simulated data mode, its
   own `mock/` subfolder;
-- `session-info.json`: only if you use **Copy diagnostics**, the session info iRacing gave for the
-  session you are in, for diagnosing problems. It includes the names and iRating of the drivers in
-  that session. It stays on your computer unless you send it, and the next time replaces it;
+- `session-info.json`: only if you press **Save data** under **Session data**, the session info
+  iRacing gave for the session you are in, for diagnosing problems. It includes the names and iRating
+  of the drivers in that session. It stays on your computer unless you send it, and the next time
+  replaces it;
 - `overlap.log` (and `overlap.old.log`): the app's log, for diagnosing problems. It can contain
   paths on your computer (your user folder is written as `%USERPROFILE%`, without your Windows user
   name) and driver names from your sessions. It never leaves your computer unless you copy it;
@@ -50,9 +51,10 @@ You can delete it all by deleting those folders. **Export everything…** only w
 choose.
 
 **What you choose to share.** **Copy diagnostics** copies a text (versions, status and displays, no
-names) to the clipboard for you to paste wherever you like. The buttons in **About and help** (User
-guide, Report a problem, Licence, Third-party notices, Download) open your browser on
-GitHub only when you click them; GitHub's privacy policy applies from there.
+names of drivers, cars or tracks) to the clipboard for you to paste wherever you like, and it saves
+no file. The buttons with an arrow in **Help and about** (the guide, the website, Discord, GitHub,
+Licence, Third-party notices, Download) open your browser only when you click them, and each site's
+privacy policy applies from there.
 
 **The updater (from 2.5).** OverLap looks for new versions in its repository's public GitHub
 Releases (`github.com/jesus-molano/OverLap`):
@@ -73,8 +75,8 @@ Releases (`github.com/jesus-molano/OverLap`):
 - **unsigned**: updates are not code-signed. After downloading, OverLap checks the file against the
   sha512 published with the release: that protects against a damaged download, but whoever controls
   this repository's releases controls the updates;
-- **it can be turned off** in **Settings › About and help › Updates › Check for updates
-  automatically** (on by default); off, OverLap only connects when you press **Check now**. The
+- **it can be turned off** in **Settings › Help and about › Version and updates › Check for
+  updates automatically** (on by default); off, OverLap only connects when you press **Check now**. The
   portable only checks and tells you: it never downloads or installs a version.
 
 **Streaming mode (from 2.7).** Off by default. When you turn it on in **Settings › Streaming**,

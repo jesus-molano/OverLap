@@ -12,7 +12,7 @@ body:
     id: version
     attributes:
       label: OverLap version
-      description: In Settings › About and help.
+      description: In Settings › Help and about › Version and updates.
       placeholder: '2.7.0'
     validations:
       required: true
@@ -52,14 +52,14 @@ body:
     id: diagnostics
     attributes:
       label: Diagnostics
-      description: Settings › About and help › **Copy diagnostics**, then paste it here (it has no names).
+      description: Settings › Help and about › If something goes wrong › **Copy diagnostics**, then paste it here (it has no names).
       render: text
   - type: markdown
     attributes:
       value: |
         ### The log (`overlap.log`)
 
-        If we ask for it, open the log from Settings › About and help › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as driver names from your sessions. Delete them or replace them with `…` before uploading it.
+        If we ask for it, open the log from Settings › Help and about › If something goes wrong › **Open log** (it is in `%APPDATA%\iracing-overlay\`). **Read it before attaching it**: it can contain personal data, such as driver names from your sessions. Delete them or replace them with `…` before uploading it.
   - type: checkboxes
     id: log-checked
     attributes:

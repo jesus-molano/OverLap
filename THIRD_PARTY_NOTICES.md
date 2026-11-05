@@ -44,7 +44,7 @@ artwork; see [Brand logos](#brand-logos).
 The Discord mark in Settings is the shape from [Bootstrap Icons](https://icons.getbootstrap.com)
 (MIT). Discord and its logo are trademarks of Discord Inc.
 
-OverLap draws car make logos in two sets, chosen in **Appearance › Rows and drivers › Logo
+OverLap draws car make logos in two sets, chosen in **Appearance › Drivers › Logo
 colour**:
 
 - **Monochrome logos** («Monochrome») are paths from
