@@ -267,6 +267,15 @@ each other open sideways. Under **Options** you can change the **Panel** (square
 **Cars** (block or silhouette), the **Side alert**, the **Guides** (lines or rings) and the **Car colour**,
 add a **Closing arrow**, or use **Quick setting** to change them in one go.
 
+### Rev counter
+
+Your gear in the middle and the revs on an arc from your car's idle to its redline. From the first shift light the arc
+turns amber, and at the shift point it turns red with a red ring, which blinks if you over-rev and stays steady with **No
+flashing**. **Look** chooses between **Line**, **Disc**, **LED**, **Dial**, **Half moon** and **Neon**. You can also pick the
+**Arc colour**, **Background**, **Glow** and **Shift warning**, or use **Quick setting** to change them in one go. In
+**Elements › Rev counter parts** you can remove the speed and the shift point's mark. It starts hidden. If a car gives no
+shift points, they are worked out from its redline and the mark is dashed.
+
 ### Spotter
 
 <img src="docs/screenshots/en/spotter.png" alt="Spotter" width="400">

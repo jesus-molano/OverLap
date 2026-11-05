@@ -277,6 +277,15 @@ coches de tu carril que se taparían se abren en horizontal. En **Opciones** pue
 (líneas o anillos) y el **Color de los coches**, añadir la **Flecha de acercamiento** o usar **Ajuste
 rápido** para cambiarlos de una vez.
 
+### Cuentavueltas
+
+La marcha en el centro y las revoluciones en un arco, del ralentí a la línea roja de tu coche. Desde la primera luz de
+cambio el arco pasa a ámbar, y en el punto de cambio a rojo con un borde rojo, que parpadea si te pasas de vueltas y se
+queda fijo con **Sin parpadeos**. **Aspecto** elige entre **Línea**, **Disco**, **LED**, **Esfera**, **Media luna** y **Neón**.
+También puedes elegir **Color del arco**, **Fondo**, **Brillo** y **Aviso de cambio**, o usar **Ajuste rápido** para cambiarlos
+de una vez. En **Elementos › Partes del cuentavueltas** se quitan la velocidad y la marca del punto de cambio. Empieza
+oculto. Si un coche no trae puntos de cambio, se calculan con su línea roja y la marca sale discontinua.
+
 ### Spotter
 
 <img src="docs/screenshots/spotter.png" alt="Spotter" width="400">

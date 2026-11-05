@@ -7,6 +7,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-11-05
+
+A new widget shows your gear and revs on a dial, with six looks to choose from. It starts hidden, so nothing changes until
+you turn it on. I have checked it with sample data and the shift points of a real car, but not yet in a live race.
+
+### Added
+
+- **Rev counter**, a new widget: your gear in the middle and the revs on an arc from your car's idle to its redline, with
+  a shift warning at the same points as the lights in **Pedals**. It has six looks, **Line**, **Disc**, **LED**, **Dial**,
+  **Half moon** and **Neon**, with your choice of arc colour, background and glow. It starts hidden.
+
+### Changed
+
+- The **Quick setting** of the **Spotter** and the **Radar**: **Showy** is now called **Neon** on the Spotter and **Glow** on
+  the Radar, which say what you get.
+
 ## [2.19.1] - 2026-11-05
 
 The data lines no longer waste room on one side. I have checked this on sample data, but not yet in a real race.
