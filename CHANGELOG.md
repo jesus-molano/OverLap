@@ -7,6 +7,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.21.0] - 2026-11-05
+
+The **Delta** and the **Relative** are easier to read, and **Fuel** no longer shows two figures wrongly. I have checked this
+with sample data and recorded races, but not yet in a live race.
+
+### Added
+
+- **Delta**: the new **Separation** group has **Bands between columns**, off by default, which puts each time of the lap
+  times line in its own column.
+- **Relative**: a new **Last stop** column, hidden by default, shows the lap of a car's last stop in a race, as in the
+  **Standings**.
+- **Fuel**: an option keeps AutoFuel always in view on the main line, lit when it is on and dim when it is off. It is off
+  by default.
+- **Fuel**: the tyres line marks with a white edge the tyres you have ticked for your next stop. Unticking a single tyre
+  is not yet tested in a real session.
+
+### Changed
+
+- With several references, the rows of the **Delta** now look like a table: every other row has its band. **Bands between
+  rows**, in the new **Separation** group, turns this off and brings back the lines.
+- The pit state of the **Relative** now works as in the **Standings**: **PIT**, **TOW**, **OUT** on the lap after a stop,
+  the chequered flag once finished, and in its column the number of stops the rest of the time. With the column hidden,
+  all but the stops go after the name, so **OUT** and the flag are new there.
+
+### Fixed
+
+- In edit mode with iRacing connected, the **data lines** no longer look empty out of a race: what the session does not
+  say comes from the sample, with the sample tag, so you can size them. Over the game they still show only iRacing's values.
+- **Fuel** no longer says the pit menu adds 0 L while AutoFuel is on. It now shows AutoFuel, without litres, because
+  iRacing gives none.
+- **Fuel** no longer counts tyre sets in a session without a limit, where iRacing's figure is not a count. No recorded
+  session had a real limit, so a limited one is still untested.
+
 ## [2.20.0] - 2026-11-05
 
 A new widget shows your gear and revs on a dial, with six looks to choose from. It starts hidden, so nothing changes until

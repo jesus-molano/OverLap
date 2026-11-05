@@ -164,8 +164,9 @@ el próximo límite de la sesión («3x · DQ a 17x»), la sesión y el tiempo r
 defecto en Posiciones, y aquí con un clic en su cabecera. En Opciones, **Densidad** (la global
 de Apariencia o una propia).
 
-Opcionales: columnas de boxes (PIT o GRÚA en su columna; sin ella, tras el nombre, como en
-Posiciones), vueltas del stint y neumático (en el mismo orden que en Posiciones), última vuelta
+Opcionales: columnas de boxes (PIT, OUT, GRÚA, la bandera de meta o el número de paradas, como en Posiciones;
+sin ella, todo menos las paradas va tras el nombre), última parada (la vuelta, solo en carrera),
+vueltas del stint y neumático (en el mismo orden que en Posiciones), última vuelta
 (como la de Posiciones: morada la rápida de su clase, verde su récord; fuera de carrera, su mejor
 vuelta), puestos ganados (solo en carrera, como en Posiciones), títulos de columna y una barra de
 datos arriba y abajo (sesión, tiempo restante, SoF,
@@ -443,7 +444,9 @@ más rápido), bajo una línea que nombra la que usa el delta (la vuelta previst
 con ella; sin esa línea, los sectores llevan su nombre). Con una sola, el delta de siempre. Al
 encender filas desde su página la ventana crece lo justo para que quepan todas; si luego la
 achicas, se ven las que caben (siempre la de la referencia en uso) y la página dice que en las demás no hay
-sitio.
+sitio. En Opciones, **Separación**: **Franjas entre filas** (de serie, una fila de cada dos lleva una
+franja; sin ella, líneas finas) y **Franjas entre columnas** (cada tiempo de la fila de tiempos en su
+columna, apagado de serie).
 
 ### Vueltas
 
@@ -482,11 +485,12 @@ gastó); lo que hay que echar junto a una barra del menú de boxes; la carrera c
 posición, la ventana de parada («V17–V33») y las paradas («1 parada»); el ahorro por vuelta que te
 quita una parada, como una barra con el recorte; el coche visto desde arriba con el desgaste de cada
 neumático en tres franjas (de verde a rojo, o de azul a naranja con la paleta para daltónicos,
-medido en tu última parada) y los juegos que quedan; y las reparaciones rápidas si la sesión las
+medido en tu última parada), un borde blanco en las ruedas marcadas para la próxima parada y los
+juegos que quedan si la sesión los limita; y las reparaciones rápidas si la sesión las
 limita (estas dos líneas, a un clic en Elementos: no salen de serie en una instalación nueva). Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
 (donde se mide el consumo) y en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
-En Opciones, **Vueltas para la media** (cuántas vueltas limpias se promedian: 5 de serie) y
+En Opciones, **AutoFuel siempre a la vista** (en la línea principal, encendido cuando está activo, apagado de serie), **Vueltas para la media** (cuántas vueltas limpias se promedian: 5 de serie) y
 **Margen de seguridad** (0,5 vueltas de sobra en meta; los avisos de combustible usan la misma media, sin el margen).
 En **Elementos › Líneas**, cada línea salvo «Combustible y vueltas» tiene su ojo, y la de
 «Repostar y para meta» lleva la barra del **Menú de boxes** (activada).

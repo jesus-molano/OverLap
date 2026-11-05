@@ -161,8 +161,8 @@ shows its name; your incidents and the session's next limit (“3x · DQ at 17x�
 the time left show by default in Standings, and here one click away in its header. In Options,
 **Density** (the global one from Appearance or its own).
 
-Optional: pit columns (PIT or TOW in its column; without it, after the name, as in Standings),
-stint laps and tyre (in the same order as in Standings), last lap (like the one in Standings: purple
+Optional: pit columns (PIT, OUT, TOW, the chequered flag or the number of stops, as in Standings; without
+it, all but the stops go after the name), last stop (the lap, races only), stint laps and tyre (in the same order as in Standings), last lap (like the one in Standings: purple
 for the fastest in its class, green for its own best; outside a race, its best lap), positions
 gained (races only, as in Standings), column titles and an info bar at the top and bottom
 (session, time left, SoF, iRating at stake, projected SR, track conditions…). The start of the row
@@ -429,7 +429,10 @@ its trend and its bar, all on the same scale, green on the left: faster), under 
 one the delta uses (the predicted lap and the sectors go with it; without that line, the sectors
 carry its name). With only one, the usual delta. When you turn rows on from its page the window
 grows just enough for all of them to fit; if you then shrink it, the ones that fit show (always the
-one for the reference in use) and the page says there is no room for the rest.
+one for the reference in use) and the page says there is no room for the rest. In Options,
+**Separation**: **Bands between rows** (on by default, every other row has a band; without it, thin
+lines) and **Bands between columns** (each time of the lap times row in its own column, off by
+default).
 
 ### Laps
 
@@ -466,13 +469,14 @@ reaches; the use with a line of your last clean laps (average, last and the thir
 add next to a bar for the pit menu; the race as a line with your position, the pit window
 (“L17–L33”) and the stops (“1 stop”); the saving per lap that cuts a stop, as a bar with the cut;
 the car seen from above with the wear of each tyre in three bands (from green to red, or from blue
-to orange with the colour-blind palette, measured at your last stop) and the sets left; and the
+to orange with the colour-blind palette, measured at your last stop), a white edge on the tyres ticked for your next stop and the sets left
+if the session limits them; and the
 fast repairs if the session limits them (these two lines, one click away in Elements: they do not
 show by default on a new install). It only measures clean laps, and the plan does not change within
 a lap. By default, in practice (where the use is measured) and in races. Optional: a header and
 footer with session data.
 
-In Options, **Laps to average** (how many clean laps are averaged: 5 by default) and **Safety margin** (0.5
+In Options, **AutoFuel always in view** (on the main line, lit when it is on, off by default), **Laps to average** (how many clean laps are averaged: 5 by default) and **Safety margin** (0.5
 laps to spare at the finish; the fuel alerts use the same average, without the margin). In
 **Elements › Lines**, every line except “Fuel and laps” has its eye, and the “Add and to finish”
 one carries the **Pit menu** bar (on).
