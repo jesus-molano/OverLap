@@ -5,6 +5,18 @@ All notable changes to OverLap are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [2.15.1] - 2026-11-04
+
+### Changed
+
+- In the **Tyre** column, a compound worked out by OverLap now has a dashed ring. A solid ring is one
+  iRacing names, which means your own car model. A dashed one can be wrong, so don't treat it as a fact.
+
+### Added
+
+- **Copy diagnostics** now also saves `session-info.json` next to the log, with what iRacing gave for the
+  session you are in, to help diagnose problems. It stays on your computer unless you send it.
+
 ## [2.15.0] - 2026-11-04
 
 ### Changed

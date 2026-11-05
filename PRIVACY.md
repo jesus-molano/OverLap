@@ -20,6 +20,9 @@ also reads your wheel's buttons (through Windows Raw Input) if you bind a shortc
 - backup copies of those two files (`settings.json.bak`, `settings.json.v5.bak`,
   `settings.json.v6.bak`, `personal-bests.json.bak`) and, if you use the simulated data mode, its
   own `mock/` subfolder;
+- `session-info.json`: only if you use **Copy diagnostics**, the session info iRacing gave for the
+  session you are in, for diagnosing problems. It includes the names and iRating of the drivers in
+  that session. It stays on your computer unless you send it, and the next time replaces it;
 - `overlap.log` (and `overlap.old.log`): the app's log, for diagnosing problems. It can contain
   paths on your computer (your user folder is written as `%USERPROFILE%`, without your Windows user
   name) and driver names from your sessions. It never leaves your computer unless you copy it;
