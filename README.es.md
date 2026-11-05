@@ -744,28 +744,28 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
   sin columnas, las lleva tras el nombre.
 - **Récords personales** (una pestaña de la página de Delta, que dice también dónde se elige su referencia): la lista por coche y trazado, con borrar uno, el actual o todos.
-- **Pilotos**: tus marcas y notas sobre otros pilotos, de una sesión a otra. Mira más abajo.
+- **Pilotos**: tus etiquetas y notas sobre otros pilotos, de una sesión a otra. Mira más abajo.
 
 ### Pilotos
 
-La página **Pilotos** lista los pilotos de la sesión y a todos los que marcaste antes, con un buscador por
-nombre, número, equipo, ID, nota o marca. A cualquiera le puedes poner las marcas **Amigo**, **Equipo**,
+La página **Pilotos** lista los pilotos de la sesión y a todos los que etiquetaste antes, con un buscador por
+nombre, número, equipo, ID, nota o etiqueta. A cualquiera le puedes poner las etiquetas **Amigo**, **Equipo**,
 **Rápido**, **Limpio** o **Sucio**, cada una con su icono, y una nota libre. Limpio y Sucio no pueden ir
 juntas. A quien no está en la sesión lo puedes añadir por su ID de iRacing. Un piloto se conoce solo por lo
-que da iRacing, su ID y su nombre, y en un evento por equipos es el que va al volante, así que la marca le
+que da iRacing, su ID y su nombre, y en un evento por equipos es el que va al volante, así que la etiqueta le
 sigue de coche en coche. Las notas se escriben en esta página, nunca sobre el overlay.
 
-Relativo, Posiciones y Batalla dibujan las marcas como diga la pestaña **Pilotos** de cada uno: **Icono**,
-**Etiqueta** con el nombre de la marca, **Franja** al lado de la fila, **Nombre** subrayado en el color de la marca con
-su icono, o **Nada**. Después del nombre, la etiqueta le deja sitio primero, hasta quedarse en su icono. Cada marca tiene su icono y su dibujo de franja, así que se distinguen sin mirar el
+Relativo, Posiciones y Batalla dibujan las etiquetas como diga la pestaña **Pilotos** de cada uno: **Icono**,
+**Etiqueta completa** con su icono y su nombre, **Franja** al lado de la fila, **Nombre** subrayado en el color de la etiqueta con
+su icono, o **Nada**. Después del nombre, la etiqueta le deja sitio primero, hasta quedarse en su icono. Cada etiqueta tiene su icono y su dibujo de franja, así que se distinguen sin mirar el
 color, también con la paleta para daltónicos. En las tablas se colocan en **Columnas** como las demás partes
-del nombre, y una tabla sin nadie marcado deja su sitio como estaba. A los widgets solo les llegan las marcas,
+del nombre, y una tabla sin nadie etiquetado deja su sitio como estaba. A los widgets solo les llegan las etiquetas,
 nunca una nota.
 
-Tus marcas y notas son tuyas. Se quedan en este ordenador, en `driver-tags.json`, y ni los layouts ni
-**Exportar todo** las llevan. Las notas nunca salen de él. Las fuentes del stream no reciben ninguna marca
-salvo que actives **Marcas de pilotos en el stream** en la página de Streaming, que vale también para una
-página abierta en otro PC de tu red, y entonces reciben solo las marcas de quienes están en la sesión.
+Tus etiquetas y notas son tuyas. Se quedan en este ordenador, en `driver-tags.json`, y ni los layouts ni
+**Exportar todo** las llevan. Las notas nunca salen de él. Las fuentes del stream no reciben ninguna etiqueta
+salvo que actives **Etiquetas de pilotos en el stream** en la página de Streaming, que vale también para una
+página abierta en otro PC de tu red, y entonces reciben solo las etiquetas de quienes están en la sesión.
 **Restablecer todo** no las toca.
 
 ## Modo edición
@@ -1075,8 +1075,8 @@ una fuente del otro PC. Apagado, el otro PC deja de recibir los widgets: sus fue
 vacías hasta que lo vuelvas a activar (con el mismo código, vuelven solas); las de este PC siguen.
 
 Los **logos de marcas en el stream** pueden ir **Como en pantalla** (de serie), **Monocromo**,
-**Texto** (las tres letras de la marca) o **Nada**. **Marcas de pilotos en el stream** (apagado de serie)
-lleva a las fuentes las marcas que pones en **Pilotos**, nunca tus notas. **Ocultar el overlay de la captura** (apagado de
+**Texto** (las tres letras de la marca) o **Nada**. **Etiquetas de pilotos en el stream** (apagado de serie)
+lleva a las fuentes las etiquetas que pones en **Pilotos**, nunca tus notas. **Ocultar el overlay de la captura** (apagado de
 serie) es solo para un programa de streaming que captura la pantalla entera (en OBS, **Captura de
 pantalla**): pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así
 que el overlay de tu monitor no sale en esa captura y en el stream solo salen los widgets que añades

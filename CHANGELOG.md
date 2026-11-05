@@ -7,6 +7,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.16.1] - 2026-11-05
+
+### Changed
+
+- In Spanish, your tags on other drivers are now called **etiquetas** everywhere, instead of **marcas**. The option for
+  the chip with the tag's name is now **Etiqueta completa**.
+
+### Fixed
+
+- On the **Map**, a sector's number no longer sits under a car's number, and at the foot of the track it stays clear
+  of the row of cars with no data.
+- On **Pit lane** as a strip, the word **estimate** stays beside the cars in the lane.
+- On **Weather** as a grid, the plate that says the track is declared wet is as wide as its words, as in the list.
+
 ## [2.16.0] - 2026-11-05
 
 Five new widgets and your own notes on other drivers. All the widgets are hidden until you turn them on, so your
