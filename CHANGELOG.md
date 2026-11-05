@@ -7,6 +7,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.24.1] - 2026-11-05
+
+The **welcome** is clearer and looks like OverLap, and opening it again no longer turns off widgets you had on. I have
+checked it in the Settings with sample data, but not yet on a fresh install.
+
+### Changed
+
+- **Welcome**: the first step shows a widget with sample data, and it changes as you pick the language. The third step,
+  now «Cómo se usa OverLap», draws the Windows tray with OverLap's icon, says that OverLap stays there when you close
+  the window, and has its own button to leave edit mode after «Probar con datos de ejemplo». The texts are clearer in
+  both languages, and the widget groups fit in three columns.
+
+### Fixed
+
+- **Welcome**: opening it again from «Ver la bienvenida» starts with the widgets you have on, so going through it no
+  longer turns off the ones you had chosen.
+- **Welcome**: leaving it with «Saltar» or Esc after the widgets step keeps what that step showed ticked, and a double
+  click on «Siguiente» no longer skips a step.
+- **Welcome**: the keyboard stays inside it, Esc works wherever the focus is, and a screen reader hears what each
+  widget is for. In Spanish it no longer shows a sideways scrollbar.
+
 ## [2.24.0] - 2026-11-05
 
 Placing your widgets in OBS without iRacing no longer needs a change to their address: edit mode does it. I have

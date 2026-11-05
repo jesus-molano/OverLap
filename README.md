@@ -616,9 +616,10 @@ the session has gone. You can also take off the **Captions** and choose the **Wi
 ## Settings and customisation
 
 The first time, OverLap opens the Settings, in the Windows language (Spanish or, if not, English),
-with a three-step **welcome**: language and units, which widgets to use (six ticked to begin with,
-at least one) and where everything is, with **Try with sample data** to see the widgets on your
-screen and place them. Windows notes that OverLap stays in the tray.
+with a three-step **welcome**: language and units over a live sample of a widget, which widgets to
+use (six ticked to begin with, at least one) and how to use OverLap, with **Try with sample data** to
+see the widgets on your screen and place them. Opened again from **Show the welcome**, it starts
+with the widgets you have on. Windows notes that OverLap stays in the tray.
 
 ![Settings: the Relative page](docs/screenshots/en/ajustes-relativo.png)
 

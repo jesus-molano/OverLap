@@ -633,9 +633,10 @@ con lo que va de sesión. También puedes quitar los **Rótulos** y elegir los *
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
-una **bienvenida** de tres pasos: idioma y unidades, qué widgets usar (seis marcados de inicio, al
-menos uno) y dónde está todo, con **Probar con datos de ejemplo** para ver los widgets en tu
-pantalla y colocarlos. Windows avisa de que OverLap queda en la bandeja.
+una **bienvenida** de tres pasos: idioma y unidades sobre un widget de ejemplo, qué widgets usar
+(seis marcados de inicio, al menos uno) y cómo se usa OverLap, con **Probar con datos de ejemplo**
+para ver los widgets en tu pantalla y colocarlos. Si la abres de nuevo con **Ver la bienvenida**,
+empieza con los widgets que tienes activos. Windows avisa de que OverLap queda en la bandeja.
 
 ![Ajustes: página del Relativo](docs/screenshots/ajustes-relativo.png)
 
