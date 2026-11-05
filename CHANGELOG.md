@@ -7,6 +7,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.19.1] - 2026-11-05
+
+The data lines no longer waste room on one side. I have checked this on sample data, but not yet in a real race.
+
+### Fixed
+
+- **Data lines**: in **Scoreboard**, each side now spreads its items across its whole width, instead of leaving the end
+  of the shorter side empty. With a line nearly full, the main item can move a little from the middle rather than lose an
+  item.
+- **Data lines**: changing the style from **Scoreboard** no longer leaves an empty space at one end of the line.
+- **Data lines**: changing the style works out again what fits, so no items overlap.
+- **Data lines**: an item with no room left no longer keeps a little space at the end of the line.
+
 ## [2.19.0] - 2026-11-05
 
 A line of data of its own, placed anywhere on the screen with no widget around it, that stands out far more than a
