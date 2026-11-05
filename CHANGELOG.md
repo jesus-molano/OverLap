@@ -7,6 +7,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.21.1] - 2026-11-05
+
+The **data lines** were not drawn over the game, in edit mode or on the streaming pages since they arrived in 2.19.0: they
+only showed in the preview in Settings. I have checked the fix in the overlay with sample data, but not yet in a live race.
+
+### Fixed
+
+- **Data lines** now show on screen, in edit mode, in a race and on the streaming pages.
+
 ## [2.21.0] - 2026-11-05
 
 The **Delta** and the **Relative** are easier to read, and **Fuel** no longer shows two figures wrongly. I have checked this
