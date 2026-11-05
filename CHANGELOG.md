@@ -7,6 +7,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.22.1] - 2026-11-05
+
+The **rev counter** could blink on and off in the pits, because OverLap took a steady reading for a lost connection. The
+**Spotter** had the same problem with a car alongside. I have checked the fix with tests, but not yet in a live race.
+
+### Fixed
+
+- The **rev counter** stays on screen while your gear, revs and speed do not change, as when you wait in your pit box.
+- The **Spotter** stays on screen while a car alongside does not change the reading.
+
 ## [2.22.0] - 2026-11-05
 
 Taking a widget to another screen in edit mode is now clear: you can see where it will land, and a button on its label does
