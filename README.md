@@ -7,8 +7,8 @@ Español: [README.es.md](README.es.md)
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws its widgets
-on top of the game: relative, standings, battle, traffic, radar, spotter, track map, delta, fuel,
-inputs, alerts and warning lights. Each one can be placed, scaled and customised to your taste, and you can
+on top of the game: relative, standings, battle, traffic, radar, spotter, track map, map, weather, delta,
+laps, fuel, inputs, alerts, warning lights, pit lane and rejoin. Each one can be placed, scaled and customised to your taste, and you can
 save a different layout for each car.
 
 - It only **reads** the iRacing SDK data: it injects nothing into the game. It only goes online to
@@ -143,8 +143,8 @@ away with **Restart and update** (in **Settings › Help and about › Updates**
 Each widget has its page in the Settings, with a live preview and its options. All of them can be
 shown or hidden, locked, scaled and limited to certain sessions (practice, qualifying, race). They
 come in the same order and the same groups as in the Settings sidebar and the tray: **Track and
-rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter and Track map), **Your lap** (Delta, Fuel and
-Inputs) and **Car status** (Alerts and Warning lights).
+rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Laps, Fuel and
+Inputs) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin).
 
 ### Relative
 
@@ -312,6 +312,71 @@ data, and the header and footer are there for the laps, the time or the position
 **Legend** tab shows each mark as the widget draws it and says what it means. It is hidden by default:
 turn it on in Visibility, the sidebar or the tray.
 
+### Map
+
+The shape of the track with every car on it, for a track you have driven. iRacing gives no shape and no car
+positions, only how far each car is along its lap, so you record the shape yourself. OverLap adds up your
+speed and heading over your clean laps. It takes two laps that agree, and until then the widget says how many
+it needs and why the last one did not count, and suggests **Track map**, which works from the first lap. The
+shape is saved on your computer in `track-shapes.json`, and no track comes with OverLap. The file does not
+leave your computer, and the shape of the track you are on only travels to your own stream page if you put the
+Map there. A button on its page forgets them all.
+
+The line is our estimate and carries that mark. It is the line you drive, not the middle of the track, and
+each new lap is blended in. A lap does not count if it touches the pits, leaves the track, stops, gets an
+incident of yours, or is a teammate's or a replay's. It also does not count if it ends too far from where it
+began, if it measures differently from the track, or if it does not match the lap before. The limits for
+these have not been measured in real races yet, so on a long track a lap may never close, and that track stays
+on the strip. A shape on screen does not change during a race. If iRacing rescans a track, a run of laps
+that agree with each other and not with the shape replaces it.
+
+Each car goes where iRacing says it is on its lap. Classes have their colour and shape, your car is the
+largest mark, in your accent colour unless you choose your class's, and it keeps its ring in any palette.
+A car off the track stays on the line in another style, because iRacing gives no lateral position. A car in the
+pits goes in the **Pits** row, the same as on the strip. There are no corner numbers because iRacing does not say
+where each corner is.
+
+In **Options** you choose the view (the whole track, a zone around your car with how many metres it spans,
+or no labels), the rotation (fit the widget, or 0 to 270 degrees), what each car says, which cars show,
+their size and your car's colour. In **Elements** each part has its own options: the line's width and dark
+edge, the arrow at the start line, sectors as bars, bars with a number or alternating stretches, and the pit
+lane dashed or solid, drawn once you have driven through it with the track learnt. It is hidden by default:
+turn it on in Visibility, the sidebar or the tray.
+
+### Weather
+
+How wet the track is and what the sky is doing, drawn so you can read it at a glance. Each row leads
+with a graphic and has its words second: a gauge of seven steps and a drop that fills with iRacing's
+water level, a cloud with up to three drops for the rain now, a chart of the last minutes, a pip for
+each car of your class, thermometers for the track and the air, a compass for the wind and an icon
+for the sky, with the moon once the sun is down. A blue plate says when iRacing declares the track
+wet. Each step is taller than the last and each pip is either solid or empty, so the colour-blind
+palette still reads, and with **No flashing** on nothing animates.
+
+The water, the rain, the temperatures and the sky are what iRacing gives, as given. If iRacing does not
+know the water level, the gauge stays empty and never says dry. iRacing gives no forecast here, so this
+widget has none either. The rain is how much it rains now, never the chance of rain. Four things are
+our own work from iRacing's readings. The wind is the mean of the last minute, and the arrow on the
+track temperature says if it rises or falls over the last few minutes. The direction (getting wetter,
+drying or steady) compares the water over the last minutes and carries a mark saying it is ours: it
+tells you what the track did, not what it will do. In the strip that mark is a dashed ring around its
+arrow. The count of wet tyres is made by us from the cars of your class whose compound is known, and if we worked one of
+them out, the ring of the W is dashed, as in the **Tyre** column. That row does not show if the session
+names no compounds, or on a dry track when nobody is on wets.
+
+In Options you choose its shape (list, two-column grid or a single strip), its density, the size of
+the icons, whether each row says its name, and **Only when wet**, so it shows only while the track is
+wet, it rains or it is declared wet. In **Elements** you reorder or hide each row and unfold its own
+options: the water as steps, a drop or its name, with its level number if you want it. The rain as
+drops, a bar or a percentage. The history over 10, 20 or 30 minutes, plotting water, rain or both, as
+an area, a stepped line or bars, at the height you want and with or without the direction. The tyres
+as pips, a bar or a number such as 5 of 12. The temperatures you want, with a thermometer or just the
+value and with or without the trend. The wind as a compass, an arrow or text, against your car or
+against north. The sky with its name or without it, and the humidity and the fog as rows of their own.
+
+The history starts when you turn the widget on, keeps going while a rule hides it and starts again in a
+new session. It is hidden by default: turn it on in Visibility, the sidebar or the tray.
+
 ### Delta
 
 <img src="docs/screenshots/en/delta.png" alt="Delta" width="400">
@@ -344,6 +409,31 @@ one the delta uses (the predicted lap and the sectors go with it; without that l
 carry its name). With only one, the usual delta. When you turn rows on from its page the window
 grows just enough for all of them to fit; if you then shrink it, the ones that fit show (always the
 one for the reference in use) and the page says there is no room for the rest.
+
+### Laps
+
+Your own laps as a list, a bar chart or both, and you choose which. In the chart there is one bar per lap
+and lower is faster, with a dashed line at your best. Your best lap has its own colour and a star, a lap
+that is not clean has a triangle, and a pit lap is dimmed with a P and its bar cut off, so it does not
+flatten the rest. The same marks lead the rows of the list, so the colour-blind palette still reads. Each
+row has the lap's number, its time and what it loses against your best, as a figure, a bar or both. Two
+figures sit on top: your best lap with its star, and your consistency. Nothing blinks.
+
+The times are iRacing's as it gives them. A clean lap means the same as in the Delta: it does not touch the
+pits, leave the track or stop, it does not run under a yellow, it is not the first of a race and it adds no
+off-track incident of yours. A contact or a spin that does not take you off the track does not spoil it on its
+own, because iRacing still counts it. Your best lap is the Delta's too, the fastest of your clean laps. The consistency is our
+estimate and carries that mark: it is how much your latest clean laps vary, and it takes three to give the
+figure. A new lap can take up to five seconds to show while iRacing publishes its time. If iRacing publishes none, the lap carries our timing with the same mark, and if we have no
+time at all, that lap does not show. In a team race it shows only the laps you drive yourself, never your
+teammates'. Your last 40 laps are kept.
+
+In **Elements** you reorder or hide each part and each column of the list and unfold its own options. The
+chart has 10, 20 or 40 bars, its height, pit laps cut off or left out, the line at your best and the lap
+numbers. The list has 5, 10 or 20 rows, with the latest on top or at the bottom. Each mark can be turned off
+on its own, the time can have two or three decimals, and the consistency can be counted over 5, 10 or 20
+clean laps or all of them, in seconds or as a percentage. It is hidden by default: turn it on in Visibility,
+the sidebar or the tray.
 
 ### Fuel
 
@@ -425,6 +515,56 @@ Lights**, each one with its eye (and **Also in Alerts** on the ones it shares wi
 (on, with **Mark as crew time**, on, and **Real countdown (estimated)**, off) and **Rising
 temperature** (on).
 
+### Pit lane
+
+Everything you need between the pit entry and the pit exit, and nothing the rest of the lap: it shows
+only on pit road or heading for its entry. Each row leads with a graphic. Your speed is a bar with a
+mark at the limit and a large figure, beside the limit on a round sign. Under the limit it is green,
+and over it the bar passes the mark and turns red with a triangle, so the colour-blind palette still
+reads. It turns red at the same moment as the speeding alert in **Alerts**, because both use one rule.
+Heading for the entry it stays a neutral colour, because the limit does not apply until you are on pit road.
+The limiter is a chip with a check or a triangle, and nothing blinks. The way to your box is a road
+with your car moving along it to the box's mark, or a large figure with five blocks that go out as you
+near it. The cars in the lane are marks on either side of your car, and a chip says when you stand
+in your box and when the crew is working.
+
+The speed, the limit, the limiter and your box's state are what iRacing gives, as given, and what iRacing
+does not give stays out. The distance to your box is ours: it comes from where iRacing puts your box
+and your car on the lap, across the start line too, so it can differ a little from what the lane
+measures, and it carries the mark **estimate**. It goes away once your box is behind you. We also make
+the count of cars from the ones iRacing gives in the lane, and it leaves out the safety car, which
+parks there, and it carries the same mark. The repairs' countdown is in **Warning lights**, and it is not repeated here.
+
+In Options you choose its shape (a list or a single strip), its density, the size of the figures, whether
+each row says its name, and **Heading for the entry too**, so it can wait until you are inside the lane.
+In **Elements** you reorder or hide each row and unfold its own options: the speed as a bar and figure, a
+bar or a figure, with or without the limit's sign. The limiter and your box's state with their words or
+as an icon. The way to your box as a road, with or without the figure, or as a figure with blocks. The
+cars as marks or a figure, ahead, behind or both. Speeds and distances follow your units. It is hidden by
+default: turn it on in Visibility, the sidebar or the tray.
+
+### Rejoin
+
+For when you have gone off or stopped, and nothing the rest of the lap: it shows only when you are off
+the track, stopped or crawling and not in the pits. Its state is drawn by a shape and a colour, so the
+colour-blind palette still reads: a red square says **Wait**, a yellow triangle says **With care** and a
+green circle says **Gap open**. Below, a strip has your car at the right, the next car coming towards it
+and the seconds until it gets there. Nothing blinks.
+
+All of it is our estimate and carries that mark. iRacing gives no lateral position for the cars, so this
+is only a gap along the lap. It is how long the next car would take to reach where you are, at its pace.
+It cannot see your line back onto the track or where that car goes by, and it guarantees nothing, so always
+look before you rejoin. It counts the cars of every class, and it leaves out the ones off the track or in
+the pits. It also counts the pace car when it is on the track, and since we do not know its pace we give
+it yours. If we do not have the gap, it stays empty, as an outline with no word and no car, and never as
+the green circle. If you hide the state, the strip carries its shape.
+
+In Options you choose a large light or a thin band, its density and the seconds under which each state
+shows, by default 5 for **Wait** and 10 for **With care**. In **Elements** you reorder or hide each row and
+unfold its own options: the state with its word or as its shape alone, with the seconds beside it or not.
+The strip covering 15, 30 or 60 seconds, with its figure or without it. The next car's number, hidden by
+default, with its class or not. It is hidden by default: turn it on in Visibility, the sidebar or the tray.
+
 ## Settings and customisation
 
 The first time, OverLap opens the Settings, in the Windows language (Spanish or, if not, English),
@@ -446,7 +586,7 @@ screen has room, and after that where you left it. You edit it as you do in Sett
 example data: a click hides an element, and a drag moves it or changes its slot, with its **Undo**. It
 stays above the widgets too and closes with Settings, while the options take all the room. Under the preview, each widget's page has **tabs**, the same names in the same order on
 every page: **Options**, **Elements**, the widget's own tab where it has one (**Drivers** on
-Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights and Track map) and
+Relative, Standings, Battle and Traffic, **Personal bests** on Delta, **Legend** on Lights, Track map and Map) and
 **Size and visibility**. No mark on a tab says it has changes: the ↺ at the end of the tab bar and the
 **Reset…** menu at the top do that. The tab bar stays under the preview, `Ctrl+PgUp` / `Ctrl+PgDn`
 change tab, and the tab you chose is kept as you go from widget to widget while the window is open.
@@ -591,6 +731,29 @@ report, without names) and **Open log**.
   after the name.
 - **Personal bests** (a tab of the Delta page, which also says where its reference is chosen): the list by car and layout, with deleting one,
   the current one or all.
+- **Drivers**: your own tags and notes on other drivers, across sessions. See below.
+
+### Drivers
+
+The **Drivers** page lists the drivers of the session and everyone you tagged before, with a search by
+name, number, team, ID, note or tag. Give anyone the tags **Friend**, **Team**, **Fast**, **Clean** or
+**Dirty**, each with its own icon, and a free note. Clean and Dirty cannot go together. Someone who is
+not in the session can be added by their iRacing ID. A driver is known only by what iRacing gives, their
+ID and name, and in a team event that is the driver at the wheel, so the tag follows them from car to car.
+You write the notes on this page, never over the overlay.
+
+Relative, Standings and Battle draw the tags as each one's **Drivers** tab says: **Icon**, **Chip** with
+the tag's name, **Stripe** at the side of the row, **Name** underlined in the tag's colour with its icon,
+or **None**. After the name, a chip gives way to the name first, down to its icon.
+Each tag has its own icon and its own stripe pattern, so they read without their colour, in the
+colour-blind palette too. In the tables you place them in **Columns** like the other parts of the name,
+and a table with nobody tagged keeps its room as it was. Only tags reach the widgets, never a note.
+
+Your tags and notes are yours. They stay on this computer, in `driver-tags.json`, and neither layout files
+nor **Export everything** carry them. Notes never leave it. Stream sources get no tags unless you turn on
+**Driver tags in the stream** on the Streaming page, which also counts for a page on another PC on your
+network, and then they get only the tags of the people in the session. **Reset everything** does not touch
+them.
 
 ## Edit mode
 
@@ -889,7 +1052,8 @@ Off, the other PC stops getting the widgets: its sources stay empty until you tu
 the same code, they come back by themselves); this PC's keep working.
 
 **Brand logos in the stream** can be **As on screen** (default), **Monochrome**, **Text** (the
-make's three letters) or **None**. **Hide the overlay from capture** (off by default) is only for a
+make's three letters) or **None**. **Driver tags in the stream** (off by default) takes the tags you set
+on the **Drivers** page to the sources, never your notes. **Hide the overlay from capture** (off by default) is only for a
 streaming program that captures the whole screen (in OBS, **Display Capture**): it asks Windows to
 leave OverLap's windows out of screen captures, so the overlay on your monitor is not in that
 capture and the stream shows only the widgets you add as sources. If you capture only the game (in

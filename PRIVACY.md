@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 02-11-2026.
+Last updated: 05-11-2026.
 
 _En español: puedes hacer cualquier pregunta sobre privacidad en español en un issue._
 
@@ -17,8 +17,23 @@ also reads your wheel's buttons (through Windows Raw Input) if you bind a shortc
 
 - `settings.json`: your settings and layouts;
 - `personal-bests.json`: your lap records (for the delta);
-- backup copies of those two files (`settings.json.bak`, `settings.json.v5.bak`,
-  `settings.json.v6.bak`, `personal-bests.json.bak`) and, if you use the simulated data mode, its
+- `track-shapes.json`: only if you turn on the **Map** widget, the shape of each track you drive there, worked
+  out from your own speed and heading, with the track's iRacing ID, layout and length. The file stays on your
+  computer, and the shape of the track you are on goes only to your stream page if you put the Map there (see
+  the stream server below). Layout files and **Export everything** do not carry it, and **Reset everything** leaves it as it is.
+  **Forget the recorded tracks** on that widget's page empties it and deletes its backup copy. If the simulated
+  data mode is on, its shapes go in its own `mock/` subfolder, and that button then acts only on those;
+- `driver-tags.json`: only if you use the **Drivers** page, your tags and notes on other drivers: each
+  one's iRacing member ID and name as iRacing gives them, the tags you chose, your note and when you
+  last changed it. It stays on your computer. Your notes are never sent anywhere. Your tags are not
+  either, unless you turn on **Driver tags in the stream** (see the stream server below). Layout files
+  and **Export everything** do not carry it, and **Reset everything** leaves it as it is; **Delete all**
+  on that page empties it and deletes its backup copy if there is one, while deleting one driver leaves
+  that copy as it was. If the simulated data mode is on, its made-up drivers go in its own `mock/`
+  subfolder;
+- backup copies of those files (`settings.json.bak`, `settings.json.v5.bak`,
+  `settings.json.v6.bak`, `personal-bests.json.bak`, `track-shapes.json.bak`, `driver-tags.json.bak` if that file ever turns out
+  damaged) and, if you use the simulated data mode, its
   own `mock/` subfolder;
 - `session-info.json`: only if you use **Copy diagnostics**, the session info iRacing gave for the
   session you are in, for diagnosing problems. It includes the names and iRating of the drivers in
@@ -73,7 +88,11 @@ can show your widgets as a browser source:
 - **what it serves**: the stream page and the widgets' live data (the same the overlay shows: the
   drivers in your session, positions, gaps, your inputs…), only to programs on your computer that
   open its addresses, and only the settings those widgets draw with (never your controllers' names,
-  shortcuts or layouts). It is read only: nothing they send can change OverLap. It refuses requests
+  shortcuts or layouts). The data of Relative, Standings and Battle includes each driver's iRacing member
+  ID, as iRacing gives it. The Map's data includes the recorded shape of the track you are on, so with the Map in
+  the stream it reaches the stream page, also on another PC of your network if you turn that on. Your tags on drivers are served only if you turn on **Driver tags in the
+  stream** (off by default, and an import never turns it on), and then only those of the drivers in the
+  session, also to a page on another PC of your network. Your notes are never served, on or off. It is read only: nothing they send can change OverLap. It refuses requests
   that come from other web sites. Importing a backup never turns it on. If you give the setup
   curtain an image, it also serves OverLap's copy of that image, and no other file of yours;
 - **what it keeps**: nothing new, except the copy of the curtain's image if you choose one (in

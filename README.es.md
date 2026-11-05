@@ -7,8 +7,8 @@ English: [README.md](README.md)
 [![Invítame a un café en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jesusmolano)
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja sus
-widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, mapa de pista, delta,
-combustible, pedales, avisos y testigos. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
+widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, mapa de pista, mapa, clima, delta,
+vueltas, combustible, pedales, avisos, testigos, boxes y reincorporación. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar un layout distinto para cada coche.
 
 - Solo **lee** los datos del SDK de iRacing: no inyecta nada en el juego. A internet solo sale para
@@ -145,8 +145,8 @@ luego cada 5 horas, la descarga en segundo plano y la instala **al cerrar OverLa
 Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus opciones. Todos se
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
 carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
-bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter y Mapa de pista), **Tu
-vuelta** (Delta, Combustible y Pedales) y **Estado del coche** (Avisos y Testigos).
+bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter, Mapa de pista, Mapa y Clima), **Tu
+vuelta** (Delta, Vueltas, Combustible y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación).
 
 ### Relativo
 
@@ -321,6 +321,72 @@ sin datos, y la cabecera y el pie están ahí para las vueltas, el tiempo o el p
 Su pestaña **Leyenda** enseña cada marca como la dibuja el widget y dice qué significa. Viene oculto:
 enciéndelo en Visibilidad, la barra lateral o la bandeja.
 
+### Mapa
+
+La forma de la pista con todos los coches encima, para una pista que hayas conducido. iRacing no da la forma ni
+la posición de los coches, solo lo que lleva cada uno de vuelta, así que la forma la grabas tú. OverLap suma tu
+velocidad y tu rumbo a lo largo de tus vueltas limpias. Hacen falta dos vueltas que coincidan, y hasta entonces
+el widget dice cuántas faltan y por qué no contó la última, y te sugiere **Mapa de pista**, que funciona desde
+la primera vuelta. La forma se guarda en tu ordenador, en `track-shapes.json`, y OverLap no trae ninguna pista.
+El archivo no sale de tu ordenador, y la forma de la pista en la que estás solo viaja a tu propia página de
+streaming si pones allí el Mapa. Un botón en su página las olvida todas.
+
+La línea es nuestra estimación y lleva esa marca. Es la que tú trazas y no el centro de la pista, y cada vuelta
+nueva se mezcla con ella. Una vuelta no cuenta si toca boxes, sale de pista, se para, te suma un incidente, o es
+de un compañero o de una repetición. Tampoco cuenta si acaba demasiado lejos de donde empezó, si no mide lo que
+mide la pista o si no coincide con la anterior. Esos límites aún no se han medido en carreras reales, así que en
+una pista larga puede que ninguna vuelta cierre, y esa pista se queda con la tira. Una forma en pantalla no
+cambia durante una carrera. Si iRacing reescanea una pista, unas cuantas vueltas seguidas que coincidan entre sí
+y no con la forma la sustituyen.
+
+Cada coche va donde iRacing dice que lleva su vuelta. Las clases tienen su color y su forma, y tu coche es la marca
+más grande, en tu color de acento salvo que elijas el de tu clase, y conserva su aro en cualquier paleta. Un
+coche que se sale sigue sobre la línea con otro estilo, porque iRacing no da la posición lateral. Un coche en
+boxes va en la fila **Boxes**, igual que en la tira. No hay números de curva porque iRacing no dice dónde está
+cada una.
+
+En **Opciones** eliges la vista (la pista entera, una zona alrededor de tu coche con los metros que abarca, o sin
+etiquetas), el giro (ajustar al widget, o de 0 a 270 grados), lo que dice cada coche, qué coches salen, su tamaño
+y el color de tu coche. En **Elementos** cada parte tiene sus opciones: el grosor y el borde oscuro de la línea,
+la flecha de la meta, los sectores como rayas, rayas con número o tramos alternos, y la calle de boxes discontinua
+o continua, que se dibuja cuando has pasado por ella con la pista ya aprendida. Está oculto por defecto: actívalo
+en Visibilidad, en la barra lateral o en la bandeja.
+
+### Clima
+
+Cuánta agua hay en la pista y qué hace el cielo, dibujado para leerlo de un vistazo. Cada fila empieza
+por un gráfico y deja las palabras para después: siete escalones y una gota que se llena con el nivel
+de agua de iRacing, una nube con hasta tres gotas para la lluvia de ahora, un gráfico de los últimos
+minutos, un punto por cada coche de tu clase, termómetros para la pista y el aire, una brújula para el
+viento y un icono para el cielo, con la luna cuando el sol ya se ha puesto. Una placa azul avisa cuando
+iRacing declara la pista mojada. Cada escalón es más alto que el anterior y cada punto está relleno o
+vacío, así que se lee igual con la paleta para daltónicos, y con **Sin parpadeos** nada se anima.
+
+El agua, la lluvia, las temperaturas y el cielo son lo que da iRacing, tal cual. Si iRacing no sabe el
+nivel de agua, los escalones se quedan vacíos y nunca dicen seco. iRacing no da ninguna previsión aquí,
+así que este widget tampoco. La lluvia es lo que llueve ahora, nunca la probabilidad de que llueva.
+Cuatro cosas las calculamos nosotros con lo que da iRacing. El viento es la media del último minuto, y la
+flecha de la temperatura de la pista dice si sube o baja en los últimos minutos. La dirección (se moja, se
+seca o estable) compara el agua de los últimos minutos y lleva una marca que dice que es nuestra: cuenta
+lo que ha hecho la pista, no lo que hará. En la tira esa marca es un anillo discontinuo alrededor de su
+flecha. El recuento de neumáticos de lluvia
+lo hacemos nosotros con los coches de tu clase de los que se sabe el compuesto y, si hemos deducido
+alguno, el anillo de la W sale discontinuo, como en la columna **Neumático**. Esa fila no sale si la sesión
+no nombra compuestos, ni con la pista seca si nadie lleva lluvia.
+
+En Opciones eliges su forma (lista, cuadrícula de dos columnas o una sola tira), la densidad, el tamaño
+de los iconos, si cada fila dice su nombre y **Solo con mojado**, para que salga solo si la pista está
+mojada, si llueve o si está declarada mojada. En **Elementos** ordenas u ocultas cada fila y despliegas
+sus propias opciones: el agua en escalones, gota o nombre, con el número del nivel si lo quieres. La
+lluvia en gotas, barra o porcentaje. El historial de 10, 20 o 30 minutos, con agua, lluvia o las dos, en
+área, línea a escalones o barras, del alto que quieras y con la dirección o sin ella. Los neumáticos en
+puntos, barra o número, por ejemplo 5 de 12. Las temperaturas que quieras, con termómetro o solo el valor
+y con la tendencia o sin ella. El viento en brújula, flecha o texto, respecto a tu coche o al norte. El
+cielo con su nombre o sin él, y la humedad y la niebla como filas propias.
+
+El historial empieza cuando enciendes el widget, sigue acumulándose aunque una regla lo oculte y empieza de
+nuevo en cada sesión. Viene oculto: enciéndelo en Visibilidad, la barra lateral o la bandeja.
+
 ### Delta
 
 <img src="docs/screenshots/delta.png" alt="Delta" width="400">
@@ -356,6 +422,32 @@ con ella; sin esa línea, los sectores llevan su nombre). Con una sola, el delta
 encender filas desde su página la ventana crece lo justo para que quepan todas; si luego la
 achicas, se ven las que caben (siempre la de la referencia en uso) y la página dice que en las demás no hay
 sitio.
+
+### Vueltas
+
+Tus propias vueltas en una lista, en un gráfico de barras o en los dos, y tú eliges. En el gráfico hay una
+barra por vuelta y cuanto más baja, más rápida, con una línea discontinua en tu mejor vuelta. Tu mejor vuelta
+lleva su color y una estrella, la que no es limpia lleva un triángulo, y la de boxes sale atenuada, con una P
+y la barra cortada, para que no aplaste a las demás. Las mismas marcas encabezan las filas de la lista, así que
+la paleta para daltónicos se sigue leyendo. Cada fila tiene el número de la vuelta, su tiempo y lo que pierde
+contra tu mejor vuelta, como cifra, como barra o las dos cosas. Arriba hay dos cifras, tu mejor vuelta con su
+estrella y tu consistencia. Nada parpadea.
+
+Los tiempos son los de iRacing tal como los da. Una vuelta limpia es lo mismo que para el Delta: no toca boxes,
+no sale de pista, no se para, no va bajo bandera amarilla, no es la primera de la carrera y no te suma
+un incidente por salirte de pista. Un contacto o un trompo que no te saque de la pista no la estropean por sí
+solos, porque iRacing la sigue contando. Tu mejor vuelta es también la del Delta, la más rápida de tus vueltas limpias. La consistencia es
+nuestra estimación y lleva esa marca: es cuánto varían tus últimas vueltas limpias, y hacen falta tres para dar
+la cifra. Una vuelta nueva puede tardar hasta cinco segundos en salir mientras iRacing publica su tiempo. Si no lo publica, lleva nuestro cronometraje con la misma marca, y si no
+tenemos ninguno, esa vuelta no sale. En una carrera por equipos solo salen las vueltas que conduces tú, nunca
+las de tus compañeros. Se guardan tus últimas 40 vueltas.
+
+En **Elementos** ordenas u ocultas cada parte y cada columna de la lista y despliegas sus opciones. El gráfico
+tiene 10, 20 o 40 barras, su altura, las vueltas de boxes cortadas o fuera, la línea de tu mejor vuelta y los
+números de vuelta. La lista tiene 5, 10 o 20 filas, con la última arriba o abajo. Cada marca se puede apagar
+por separado, el tiempo puede llevar dos o tres decimales, y la consistencia se puede contar sobre 5, 10 o 20
+vueltas limpias o todas, en segundos o en porcentaje. Está oculto por defecto: actívalo en Visibilidad, la
+barra lateral o la bandeja.
 
 ### Combustible
 
@@ -438,6 +530,57 @@ con Avisos) y, debajo, **Nombre junto al icono** (apagado), **Lado de los textos
 mecánicos**, activado, y **Cuenta atrás real (estimada)**, apagado) y **Temperatura al alza**
 (activado).
 
+### Boxes
+
+Todo lo que necesitas entre la entrada y la salida de boxes, y nada durante el resto de la vuelta: solo
+sale en la calle de boxes o yendo hacia su entrada. Cada fila empieza por un gráfico. Tu velocidad es
+una barra con una marca en el límite y una cifra grande, junto al límite en una señal redonda. Por debajo
+del límite va en verde, y por encima la barra pasa la marca y se pone en rojo con un triángulo, así que
+se lee igual con la paleta para daltónicos. Se pone en rojo a la vez que el aviso de exceso de **Avisos**,
+porque los dos usan la misma regla. Yendo hacia la entrada va en un color neutro, porque el límite no se
+aplica hasta que estás en la calle de boxes. El limitador es una etiqueta con un visto o un triángulo, y nada
+parpadea. El camino a tu box es una carretera por la que avanza tu coche hasta la marca del box, o una
+cifra grande con cinco bloques que se apagan al acercarte. Los coches en la calle de boxes son marcas a
+cada lado de tu coche, y una etiqueta dice cuándo estás parado en tu box y cuándo trabaja el equipo.
+
+La velocidad, el límite, el limitador y el estado de tu box son lo que da iRacing, tal cual, y lo que
+iRacing no da no sale. La distancia a tu box es nuestra: sale de dónde pone iRacing tu box y tu coche
+en la vuelta, también al cruzar la línea de meta, así que puede diferir un poco de lo que mide la calle de
+boxes, y lleva la marca **estimación**. Desaparece cuando dejas tu box atrás. El recuento de coches también
+lo hacemos nosotros con los que iRacing da en boxes, y no cuenta el coche de seguridad, que aparca ahí,
+y lleva la misma marca.
+La cuenta atrás de las reparaciones está en **Testigos** y aquí no se repite.
+
+En Opciones eliges su forma (lista o una sola tira), la densidad, el tamaño de las cifras, si cada fila
+dice su nombre y **También hacia la entrada**, para que pueda esperar a que estés dentro de la calle de
+boxes. En **Elementos** ordenas u ocultas cada fila y despliegas sus propias opciones: la velocidad con
+barra y cifra, solo barra o solo cifra, con la señal del límite o sin ella. El limitador y el estado de tu
+box con sus palabras o solo con el icono. El camino a tu box como carretera, con la cifra o sin ella, o
+como cifra con bloques. Los coches como marcas o como cifra, delante, detrás o los dos. Las velocidades y
+las distancias siguen tus unidades. Viene oculto: enciéndelo en Visibilidad, la barra lateral o la bandeja.
+
+### Reincorporación
+
+Para cuando te has salido o te has parado, y nada durante el resto de la vuelta: solo sale si estás fuera
+de pista, parado o casi parado y no estás en boxes. Su estado va dibujado con una forma y un color, así
+que se lee igual con la paleta para daltónicos: un cuadrado rojo dice **Espera**, un triángulo amarillo
+dice **Con cuidado** y un círculo verde dice **Hueco libre**. Debajo, una tira lleva tu coche a la derecha,
+el próximo coche acercándose y los segundos que le faltan para llegar. Nada parpadea.
+
+Todo es nuestra estimación y lleva esa marca. iRacing no da la posición lateral de los coches, así que esto
+es solo un hueco a lo largo de la vuelta. Es lo que tardaría el próximo coche en llegar a donde estás, a su
+ritmo. No puede ver tu trazada de vuelta a la pista ni por dónde pasa ese coche, y no garantiza nada, así
+que mira siempre antes de volver. Cuenta los coches de todas las clases, y no cuenta los que están fuera de
+pista o en boxes. También cuenta el coche de seguridad cuando está en pista, y como no sabemos su ritmo le
+damos el tuyo. Si no tenemos el hueco, se queda vacío, con un contorno sin palabra y sin coche, y nunca con
+el círculo verde. Si ocultas el estado, la tira lleva su forma.
+
+En Opciones eliges una luz grande o una banda fina, la densidad y los segundos por debajo de los que sale
+cada estado, de serie 5 para **Espera** y 10 para **Con cuidado**. En **Elementos** ordenas u ocultas cada fila
+y despliegas sus propias opciones: el estado con su palabra o solo con su forma, con los segundos al lado o
+sin ellos. La tira abarcando 15, 30 o 60 segundos, con su cifra o sin ella. El número del próximo coche,
+oculto de serie, con su clase o sin ella. Viene oculto: enciéndelo en Visibilidad, la barra lateral o la bandeja.
+
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
@@ -455,7 +598,7 @@ al bajar por las opciones. Ocupa como mucho el 45 % de la ventana, nunca baja de
 al tamaño inicial. **Sacar a ventana** lleva la vista previa a una ventana propia que queda encima, puede ir a otra pantalla y sigue la página en la que estás. Se abre justo al lado de Ajustes si esa pantalla tiene sitio, y después donde la dejaste. Se edita igual que la de Ajustes, con datos de ejemplo: un clic oculta un elemento, y arrastrándolo lo mueves o lo cambias de hueco, con su **Deshacer**. Queda también encima de los widgets y se cierra con Ajustes, mientras las opciones ocupan todo el sitio. Bajo la vista previa, la página
 de cada widget tiene **pestañas**, con los mismos nombres y en el mismo orden en todas:
 **Opciones**, **Elementos**, la propia del widget si la tiene (**Pilotos** en Relativo,
-Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos y Mapa de pista) y **Tamaño y
+Posiciones, Batalla y Tráfico, **Récords** en Delta, **Leyenda** en Testigos, Mapa de pista y Mapa) y **Tamaño y
 visibilidad**. Ninguna marca en las pestañas indica cambios: eso lo dicen el ↺ del final de la barra
 de pestañas y el menú **Restablecer…** de arriba. La barra de pestañas se queda bajo la vista previa,
 `Ctrl+RePág` / `Ctrl+AvPág` cambian de pestaña y la pestaña elegida se mantiene al pasar
@@ -601,6 +744,29 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   banderas): justo tras el nombre, tras su texto; en otro sitio, en una columna propia. Batalla,
   sin columnas, las lleva tras el nombre.
 - **Récords personales** (una pestaña de la página de Delta, que dice también dónde se elige su referencia): la lista por coche y trazado, con borrar uno, el actual o todos.
+- **Pilotos**: tus marcas y notas sobre otros pilotos, de una sesión a otra. Mira más abajo.
+
+### Pilotos
+
+La página **Pilotos** lista los pilotos de la sesión y a todos los que marcaste antes, con un buscador por
+nombre, número, equipo, ID, nota o marca. A cualquiera le puedes poner las marcas **Amigo**, **Equipo**,
+**Rápido**, **Limpio** o **Sucio**, cada una con su icono, y una nota libre. Limpio y Sucio no pueden ir
+juntas. A quien no está en la sesión lo puedes añadir por su ID de iRacing. Un piloto se conoce solo por lo
+que da iRacing, su ID y su nombre, y en un evento por equipos es el que va al volante, así que la marca le
+sigue de coche en coche. Las notas se escriben en esta página, nunca sobre el overlay.
+
+Relativo, Posiciones y Batalla dibujan las marcas como diga la pestaña **Pilotos** de cada uno: **Icono**,
+**Etiqueta** con el nombre de la marca, **Franja** al lado de la fila, **Nombre** subrayado en el color de la marca con
+su icono, o **Nada**. Después del nombre, la etiqueta le deja sitio primero, hasta quedarse en su icono. Cada marca tiene su icono y su dibujo de franja, así que se distinguen sin mirar el
+color, también con la paleta para daltónicos. En las tablas se colocan en **Columnas** como las demás partes
+del nombre, y una tabla sin nadie marcado deja su sitio como estaba. A los widgets solo les llegan las marcas,
+nunca una nota.
+
+Tus marcas y notas son tuyas. Se quedan en este ordenador, en `driver-tags.json`, y ni los layouts ni
+**Exportar todo** las llevan. Las notas nunca salen de él. Las fuentes del stream no reciben ninguna marca
+salvo que actives **Marcas de pilotos en el stream** en la página de Streaming, que vale también para una
+página abierta en otro PC de tu red, y entonces reciben solo las marcas de quienes están en la sesión.
+**Restablecer todo** no las toca.
 
 ## Modo edición
 
@@ -909,7 +1075,8 @@ una fuente del otro PC. Apagado, el otro PC deja de recibir los widgets: sus fue
 vacías hasta que lo vuelvas a activar (con el mismo código, vuelven solas); las de este PC siguen.
 
 Los **logos de marcas en el stream** pueden ir **Como en pantalla** (de serie), **Monocromo**,
-**Texto** (las tres letras de la marca) o **Nada**. **Ocultar el overlay de la captura** (apagado de
+**Texto** (las tres letras de la marca) o **Nada**. **Marcas de pilotos en el stream** (apagado de serie)
+lleva a las fuentes las marcas que pones en **Pilotos**, nunca tus notas. **Ocultar el overlay de la captura** (apagado de
 serie) es solo para un programa de streaming que captura la pantalla entera (en OBS, **Captura de
 pantalla**): pide a Windows que deje las ventanas de OverLap fuera de las capturas de pantalla, así
 que el overlay de tu monitor no sale en esa captura y en el stream solo salen los widgets que añades
