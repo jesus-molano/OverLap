@@ -7,6 +7,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.25.0] - 2026-11-06
+
+**Pit lane** and **Rejoin** have a new look, the **rev counter** can carry curved wings with your fuel, warning lights
+or the weather, and the **tray menu** is much shorter. I have checked all of it in the overlay with sample data, but not
+yet in a real race.
+
+### Added
+
+- **Rev counter**: two optional wings beside the dial, «Ala izquierda» and «Ala derecha», each with nothing, your fuel
+  (with the tank's level along its edge and the laps it lasts), the lit warning lights in their own colours and shapes,
+  or the weather in icons (track temperature, wind, rain and humidity). They work even with Fuel, Warning lights and
+  the data bars turned off. Each reading sits on the wing's curve, and a long one is drawn smaller instead of being cut.
+  With a wing on, the rev counter takes more width, so you may need to widen its window.
+
+### Changed
+
+- **Pit lane**: the speed is the centre of the widget. «Velocímetro» (the former «Lista») draws it on a half gauge
+  with the limit sign on its mark, and «Señal» (the former «Tira») wraps the limit sign in a ring of your speed and
+  takes less room. The limiter and your box sit beside the speed, the way to your box and the cars in the lane below,
+  and a single «estimación» mark replaces the two it had. The limiter shows its own warning light.
+- **Rejoin**: the whole panel is tinted with the state, and the strip is now a ruler with the three zones of your own
+  thresholds (Espera and Con cuidado), with the next car on it in its class's colour and the seconds marked under it.
+- **Tray menu**: the widgets are grouped in submenus as in the settings window, and the things you use most (Ajustes,
+  showing the overlay, edit mode) are at the top, so the menu fits on the screen.
+
 ## [2.24.1] - 2026-11-05
 
 The **welcome** is clearer and looks like OverLap, and opening it again no longer turns off widgets you had on. I have
