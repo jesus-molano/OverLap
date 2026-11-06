@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.25.2] - 2026-11-06
+
+Widgets whose height follows their content no longer slow the rest down in a race. Checked in a real race at
+Snetterton, with OBS recording.
+
+### Fixed
+
+- **Widgets with an automatic height** (Traffic, Battle, Standings, Alerts and others): each time one grew or shrank,
+  OverLap saved the whole settings file and sent every setting again to every widget and every OBS page, several
+  times a minute in a race. Now only the settings window hears of it, and the new height is saved at most every
+  30 seconds, with your next change, or when OverLap closes.
+
 ## [2.25.1] - 2026-11-06
 
 The **rev counter**'s wings read better. I have checked it in the overlay with sample data, but not yet in a real race.
