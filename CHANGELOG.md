@@ -7,6 +7,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.25.1] - 2026-11-06
+
+The **rev counter**'s wings read better. I have checked it in the overlay with sample data, but not yet in a real race.
+
+### Changed
+
+- **Rev counter**: in a wing, the warning lights are their icons alone, in each level's colour, with no box round them.
+  The weather's icons and units are brighter and a little bigger, and the wind shows its arrow and its figure without
+  the unit, so it no longer shrinks to fit.
+
 ## [2.25.0] - 2026-11-06
 
 **Neumáticos** is a widget of its own, out of Fuel. **Pit lane** and **Rejoin** have a new look, the **rev counter** can
