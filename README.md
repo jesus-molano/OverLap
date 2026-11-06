@@ -8,7 +8,7 @@ Español: [README.es.md](README.es.md)
 
 An iRacing overlay for Windows. OverLap reads the sim's official telemetry and draws its widgets
 on top of the game: relative, standings, battle, traffic, radar, spotter, track map, map, weather, delta,
-laps, fuel, inputs, alerts, warning lights, pit lane and rejoin. Each one can be placed, scaled and customised to your taste, and you can
+laps, fuel, tyres, inputs, alerts, warning lights, pit lane and rejoin. Each one can be placed, scaled and customised to your taste, and you can
 save a different layout for each car.
 
 - It only **reads** the iRacing SDK data: it injects nothing into the game. It only goes online to
@@ -145,7 +145,7 @@ away with **Restart and update** (in **Settings › Help and about › Version a
 Each widget has its page in the Settings, with a live preview and its options. All of them can be
 shown or hidden, locked, scaled and limited to certain sessions (practice, qualifying, race). They
 come in the same order and the same groups as in the Settings sidebar and the tray: **Track and
-rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Laps, Fuel and
+rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Laps, Fuel, Tyres and
 Inputs) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin), plus the three **Data lines**.
 
 ### Relative
@@ -467,12 +467,9 @@ More drawing than text: the laps the fuel gives you in large type (in green if y
 finish), the litres and the laps left; the tank marked in laps, with a line where what you need
 reaches; the use with a line of your last clean laps (average, last and the thirstiest); what to
 add next to a bar for the pit menu; the race as a line with your position, the pit window
-(“L17–L33”) and the stops (“1 stop”); the saving per lap that cuts a stop, as a bar with the cut;
-the car seen from above with the wear of each tyre in three bands (from green to red, or from blue
-to orange with the colour-blind palette, measured at your last stop), a white edge on the tyres ticked for your next stop and the sets left
-if the session limits them; and the
-fast repairs if the session limits them (these two lines, one click away in Elements: they do not
-show by default on a new install). It only measures clean laps, and the plan does not change within
+(“L17–L33”) and the stops (“1 stop”); the saving per lap that cuts a stop, as a bar with the cut; and the fast repairs and the tyre sets
+left if the session limits them (this line, one click away in Elements: it does not show by default
+on a new install). The tyres have a widget of their own, Tyres. It only measures clean laps, and the plan does not change within
 a lap. By default, in practice (where the use is measured) and in races. Optional: a header and
 footer with session data.
 
@@ -480,6 +477,23 @@ In Options, **AutoFuel always in view** (on the main line, lit when it is on, of
 laps to spare at the finish; the fuel alerts use the same average, without the margin). In
 **Elements › Lines**, every line except “Fuel and laps” has its eye, and the “Add and to finish”
 one carries the **Pit menu** bar (on).
+
+### Tyres
+
+How your tyres are, as iRacing gives them. iRacing only measures them when you stop in your box, so
+until your first stop they are empty, and then they show that reading until the next one. Each tyre
+is drawn in three bands, edge to edge, in the colour of the rubber it has left (from green to red, or
+from blue to orange with the colour-blind palette), with the figure of its most worn band beside it.
+A wrench and a white edge mark the tyres ticked in the pit menu for your next stop. Around the
+tyres, your compound with its letter and its name, a small wheel for each set the session allows
+(filled while you still have it, only if the session limits them) and the lap of the stop that
+measured them.
+
+In Options, **Shape**: **Car** (the car seen from above with the figure beside each tyre, by
+default) or **Strip** (the four tyres in one row, for a corner of the screen or the stream). In
+**Elements** you hide the compound, the sets or the reading. It is hidden by default: turn it on in
+Visibility, the sidebar or the tray. If your Fuel showed its tyres line, the update turns Tyres on
+for you, beside Fuel.
 
 ### Inputs
 
@@ -727,7 +741,7 @@ report, without names) and **Open log**.
   same place in another
   widget. If the line really does not fit, the least important are removed whole, and they come back
   when there is clearly room to spare; the text never shrinks. Delta,
-  Inputs, Radar, Spotter, Warning lights, Alerts, Map, Weather, Laps, Pit lane and Rejoin do not have them: they are compact readouts, and
+  Inputs, Radar, Spotter, Warning lights, Alerts, Map, Weather, Laps, Tyres, Pit lane and Rejoin do not have them: they are compact readouts, and
   a bar would only add height.
 - **Style** (at the top of Appearance), four that look different at a glance: **OverLap**
   (everything by default: the look and what each widget shows, with Relative and Delta at their
@@ -1045,7 +1059,7 @@ While iRacing is not running the sources stay empty and transparent: no “Waiti
   `delta`…): that widget alone. It shows only while it is ticked **In the stream**, even if you hid
   it on your screen. The list comes in two groups, **The ones viewers usually care about** and **Worth a thought
   before you show them**. In the stream by default: Standings, Relative, Inputs, Delta and Battle.
-  Everything else is off until you tick it: Fuel (strategy your rivals could read live), the driver
+  Everything else is off until you tick it: Fuel and Tyres (strategy your rivals could read live), the driver
   aids (Radar, Spotter, Traffic, Warning lights, Alerts), Track map, Map, Weather, Laps, Pit lane, Rejoin and the data lines.
 - `http://127.0.0.1:39217/screen/1` (one per screen, the **screen mirror**): what OverLap draws
   over the game on that screen, where it is, transparent, but only the stream's widgets: one source

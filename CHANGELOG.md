@@ -9,12 +9,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [2.25.0] - 2026-11-06
 
-**Pit lane** and **Rejoin** have a new look, the **rev counter** can carry curved wings with your fuel, warning lights
-or the weather, and the **tray menu** is much shorter. I have checked all of it in the overlay with sample data, but not
-yet in a real race.
+**Neumáticos** is a widget of its own, out of Fuel. **Pit lane** and **Rejoin** have a new look, the **rev counter** can
+carry curved wings with your fuel, warning lights or the weather, and the **tray menu** is much shorter. I have checked
+all of it in the overlay with sample data, but not yet in a real race.
 
 ### Added
 
+- **Neumáticos**: your tyres as iRacing gives them. Each tyre is drawn in three bands in the colour of the rubber it
+  has left, with the figure of its most worn band beside it, as measured at your last stop (iRacing only measures them
+  in your box). A wrench and a white edge mark the tyres ticked in the pit menu for your next stop. Around them are
+  your compound, a small wheel for each set the session allows (when it limits them) and the lap of the stop that
+  measured them. «Forma» offers «Coche», the car seen from above, or «Tira», the four tyres in one row for a corner of
+  the screen or the stream. It is hidden by default.
 - **Rev counter**: two optional wings beside the dial, «Ala izquierda» and «Ala derecha», each with nothing, your fuel
   (with the tank's level along its edge and the laps it lasts), the lit warning lights in their own colours and shapes,
   or the weather in icons (track temperature, wind, rain and humidity). They work even with Fuel, Warning lights and
@@ -23,6 +29,8 @@ yet in a real race.
 
 ### Changed
 
+- **Fuel**: the tyres line is gone, because the tyres now have their own widget. If your Fuel showed that line, the
+  update turns on Neumáticos for you, next to Fuel. The tyre sets left are now always on the fast repairs line.
 - **Pit lane**: the speed is the centre of the widget. «Velocímetro» (the former «Lista») draws it on a half gauge
   with the limit sign on its mark, and «Señal» (the former «Tira») wraps the limit sign in a ring of your speed and
   takes less room. The limiter and your box sit beside the speed, the way to your box and the cars in the lane below,

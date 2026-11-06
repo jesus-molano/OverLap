@@ -8,7 +8,7 @@ English: [README.md](README.md)
 
 Overlay para iRacing en Windows. OverLap lee la telemetría oficial del simulador y dibuja sus
 widgets encima del juego: relativo, posiciones, batalla, tráfico, radar, spotter, mapa de pista, mapa, clima, delta,
-vueltas, combustible, pedales, avisos, testigos, boxes y reincorporación. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
+vueltas, combustible, neumáticos, pedales, avisos, testigos, boxes y reincorporación. Cada uno se coloca, se escala y se personaliza a tu gusto, y puedes
 guardar un layout distinto para cada coche.
 
 - Solo **lee** los datos del SDK de iRacing: no inyecta nada en el juego. A internet solo sale para
@@ -148,7 +148,7 @@ Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus 
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
 carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
 bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter, Mapa de pista, Mapa y Clima), **Tu
-vuelta** (Delta, Vueltas, Combustible y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación), más las tres **Líneas de datos**.
+vuelta** (Delta, Vueltas, Combustible, Neumáticos y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación), más las tres **Líneas de datos**.
 
 ### Relativo
 
@@ -483,17 +483,32 @@ los litros y las vueltas que quedan; el depósito marcado en vueltas, con una ra
 necesitas; el consumo con una línea de tus últimas vueltas limpias (media, última y la que más
 gastó); lo que hay que echar junto a una barra del menú de boxes; la carrera como una línea con tu
 posición, la ventana de parada («V17–V33») y las paradas («1 parada»); el ahorro por vuelta que te
-quita una parada, como una barra con el recorte; el coche visto desde arriba con el desgaste de cada
-neumático en tres franjas (de verde a rojo, o de azul a naranja con la paleta para daltónicos,
-medido en tu última parada), un borde blanco en las ruedas marcadas para la próxima parada y los
-juegos que quedan si la sesión los limita; y las reparaciones rápidas si la sesión las
-limita (estas dos líneas, a un clic en Elementos: no salen de serie en una instalación nueva). Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
+quita una parada, como una barra con el recorte; y las reparaciones rápidas y los juegos de
+neumáticos que quedan si la sesión los limita (esta línea, a un clic en Elementos: no sale de serie
+en una instalación nueva). Los neumáticos tienen su propio widget, Neumáticos. Solo mide vueltas limpias, y el plan no cambia dentro de la vuelta. Por defecto, en práctica
 (donde se mide el consumo) y en carrera. Opcionales: cabecera y pie con datos de la sesión.
 
 En Opciones, **AutoFuel siempre a la vista** (en la línea principal, encendido cuando está activo, apagado de serie), **Vueltas para la media** (cuántas vueltas limpias se promedian: 5 de serie) y
 **Margen de seguridad** (0,5 vueltas de sobra en meta; los avisos de combustible usan la misma media, sin el margen).
 En **Elementos › Líneas**, cada línea salvo «Combustible y vueltas» tiene su ojo, y la de
 «Repostar y para meta» lleva la barra del **Menú de boxes** (activada).
+
+### Neumáticos
+
+Cómo están tus neumáticos, tal como los da iRacing. iRacing solo los mide cuando paras en tu box, así
+que hasta la primera parada salen vacíos, y después enseñan esa lectura hasta la siguiente. Cada
+neumático se dibuja en tres franjas, de un borde al otro, con el color de la goma que le queda (de
+verde a rojo, o de azul a naranja con la paleta para daltónicos), y a su lado la cifra de su franja
+más gastada. Una llave y un borde blanco marcan las ruedas que tienes marcadas en el menú de boxes
+para la próxima parada. Alrededor van tu compuesto con su letra y su nombre, una rueda pequeña por
+cada juego que permite la sesión (rellena si aún te queda, solo si la sesión los limita) y la vuelta
+de la parada en la que se midieron.
+
+En Opciones, **Forma**: **Coche** (el coche visto desde arriba con la cifra junto a cada rueda, de
+serie) o **Tira** (las cuatro ruedas en una fila, para una esquina de la pantalla o del directo). En
+**Elementos** ocultas el compuesto, los juegos o la lectura. Viene oculto de serie: actívalo en
+Visibilidad, la barra lateral o la bandeja. Si tu Combustible enseñaba su línea de neumáticos, al
+actualizar se te activa Neumáticos junto a Combustible.
 
 ### Pedales
 
@@ -745,7 +760,7 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   **Nombre y layout** o **Solo el layout**, y la lluvia es el porcentaje de precipitación de
   iRacing, también con 0 %, y lo primero que se quita cuando la línea va justa. **Copiar a** pasa una cabecera o un
   pie, con su tamaño, al mismo sitio de otro widget. Si de verdad la línea no cabe, se quitan enteros los menos importantes, y
-  vuelven cuando sobra sitio de forma clara; el texto nunca se encoge. Delta, Pedales, Radar, Spotter, Testigos, Avisos, Mapa, Clima, Vueltas, Boxes y Reincorporación no tienen: son lecturas compactas, y una barra
+  vuelven cuando sobra sitio de forma clara; el texto nunca se encoge. Delta, Pedales, Radar, Spotter, Testigos, Avisos, Mapa, Clima, Vueltas, Neumáticos, Boxes y Reincorporación no tienen: son lecturas compactas, y una barra
   solo les añadiría altura.
 - **Estilo** (arriba de Apariencia), cuatro distintos a simple vista: **OverLap** (todo de serie: el
   aspecto y lo que muestra cada widget, con Relativo y Delta a su tamaño de serie, o lo justo más si
@@ -1066,8 +1081,8 @@ iRacing».
   `delta`…): ese widget solo. Se ve mientras está marcado **En el stream**, aunque lo hayas ocultado
   en tu pantalla. La lista va en dos grupos, **Los que suelen interesar a quien te ve** y **Conviene pensarlo
   antes de enseñarlos**. De serie van al stream Posiciones, Relativo, Pedales, Delta y Batalla.
-  Todos los demás quedan fuera hasta que los marques: Combustible (estrategia que un rival podría
-  leer en directo), las ayudas al piloto (Radar, Spotter, Tráfico, Testigos, Avisos), Mapa de pista,
+  Todos los demás quedan fuera hasta que los marques: Combustible y Neumáticos (estrategia que un
+  rival podría leer en directo), las ayudas al piloto (Radar, Spotter, Tráfico, Testigos, Avisos), Mapa de pista,
   Mapa, Clima, Vueltas, Boxes, Reincorporación y las líneas de datos.
 - `http://127.0.0.1:39217/screen/1` (una por pantalla, el **espejo de pantalla**): lo que OverLap
   dibuja sobre el juego en esa pantalla, en su sitio y transparente, pero solo los widgets del
