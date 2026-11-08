@@ -417,8 +417,10 @@ nuevo en cada sesión. Viene oculto: enciéndelo en Visibilidad, la barra latera
 Barra delta frente a la referencia que elijas, con tendencia, vuelta prevista y cada sector. La
 referencia puede ser tu récord personal con ese coche en ese trazado (se guarda en tu equipo y no se
 pierde al cambiar de sesión; la lista está en la pestaña **Récords** de la página de
-Delta), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor de tu clase o la
-óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
+Delta), tu óptima personal (el delta de iRacing contra tus mejores sectores de siempre con ese coche
+en ese circuito, con todas las vueltas que diste allí; iRacing solo da el delta, así que no tiene
+vuelta prevista ni sectores), tu mejor vuelta de la sesión, tu vuelta óptima por sectores, la mejor
+de tu clase o la óptima de tu clase, y puede ser distinta en práctica, clasificación y carrera: de serie, tu récord
 personal en práctica y tu vuelta óptima en clasificación y en carrera. Con **Usar la siguiente si
 no existe** (activado), mientras no haya esa referencia el delta usa la siguiente (por ejemplo, tu
 récord hasta tener una vuelta limpia). Si no existe ninguna vuelta limpia, compara con tu vuelta más

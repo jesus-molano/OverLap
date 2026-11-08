@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.26.0] - 2026-11-08
+
+The **Delta** can compare with iRacing's own optimal lap. I have checked it with tests, but not yet in a real race.
+
+### Added
+
+- **Delta: Personal optimal**, a new reference. It is iRacing's own delta to your optimal lap with that car at that
+  track: your best sectors from every lap you drove there, also the ones without OverLap open. iRacing gives only the
+  delta, so with this reference there is no predicted lap and no sectors. It can be a bar in **Rows per reference**
+  too. With **Fall back to the next one**, while iRacing has no optimal lap there, the delta uses your session's
+  optimal lap and then your class's. Your session's **Optimal lap** stays as it was.
+
 ## [2.25.2] - 2026-11-06
 
 Widgets whose height follows their content no longer slow the rest down in a race. Checked in a real race at

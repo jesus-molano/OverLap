@@ -405,8 +405,10 @@ new session. It is hidden by default: turn it on in Visibility, the sidebar or t
 A delta bar against the reference you choose, with trend, predicted lap and each sector. The
 reference can be your personal best with that car on that layout (it is stored on your computer and
 is not lost when the session changes; the list is in the Delta page's own **Personal bests**
-tab), your session best, your optimal lap from sectors, the class fastest lap or the class optimal,
-and it can differ in practice, qualifying and race: by default, your personal best in practice and
+tab), your personal optimal (iRacing's own delta to your best sectors ever with that car at that
+track, from every lap you drove there; iRacing gives only the delta, so it has no predicted lap or
+sectors), your session best, your optimal lap from sectors, the class fastest lap or the class
+optimal, and it can differ in practice, qualifying and race: by default, your personal best in practice and
 your optimal lap in qualifying and race. With **Fall back to the next one** (on), while that
 reference does not exist the delta uses the next one (for example, your personal best until you
 have a clean lap). If no clean lap exists at all, it compares with your fastest lap so far, tagged
