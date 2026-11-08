@@ -425,7 +425,8 @@ The reference only changes when a lap starts.
 
 In **Elements › Lines**, the **Top line** (lap state, predicted lap and reference, each with its
 eye). Optional: a **Lap times** row with your last, your best and your optimal (and your personal
-best, one click away), and several references at once (**Rows per reference**, by default your
+best and personal optimal, one click away; the personal optimal's time is the one iRacing keeps in
+its lap files, so it shows only once iRacing has a whole optimal lap there), and several references at once (**Rows per reference**, by default your
 three; the two class ones, one click away): each one with an identical row (its name, its delta,
 its trend and its bar, all on the same scale, green on the left: faster), under a line naming the
 one the delta uses (the predicted lap and the sectors go with it; without that line, the sectors

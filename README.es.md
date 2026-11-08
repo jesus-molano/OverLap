@@ -439,7 +439,9 @@ toque o un trompo no la invalidan. La referencia solo cambia al empezar una vuel
 
 En **Elementos › Líneas**, la **Línea superior** (estado de la vuelta, vuelta prevista y
 referencia, cada uno con su ojo). Opcional: una fila de **Tiempos de vuelta** con tu última, tu
-mejor y tu óptima (y tu récord, a un clic), y varias referencias a la vez (**Filas por
+mejor y tu óptima (y tu récord y tu óptima personal, a un clic; el tiempo de la óptima personal es
+el que guarda iRacing en sus archivos de vueltas, así que solo sale cuando iRacing tiene una óptima
+completa allí), y varias referencias a la vez (**Filas por
 referencia**, de serie las tres tuyas; las dos de clase, a un clic): cada una con una fila
 igual (su nombre, su delta, su tendencia y su barra, todas a la misma escala, verde a la izquierda:
 más rápido), bajo una línea que nombra la que usa el delta (la vuelta prevista y los sectores van

@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.26.1] - 2026-11-08
+
+The **Delta**'s Lap times can show your personal optimal's time. I have checked it in the overlay with sample data
+and with the lap files on my computer, but not yet in a real race.
+
+### Added
+
+- **Delta: the personal optimal's time in Lap times.** The **Lap times** row can show your personal optimal too, as
+  **iR opt.** (one click away, like your personal best). Its time is the one iRacing keeps in its lap files for that
+  car and track, read as it is: it shows only once iRacing has a whole optimal lap there, and a new one appears a few
+  seconds after iRacing saves it.
+
 ## [2.26.0] - 2026-11-08
 
 The **Delta** can compare with iRacing's own optimal lap. I have checked it with tests, but not yet in a real race.
