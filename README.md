@@ -145,8 +145,8 @@ away with **Restart and update** (in **Settings › Help and about › Version a
 Each widget has its page in the Settings, with a live preview and its options. All of them can be
 shown or hidden, locked, scaled and limited to certain sessions (practice, qualifying, race). They
 come in the same order and the same groups as in the Settings sidebar and the tray: **Track and
-rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Laps, Fuel, Tyres and
-Inputs) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin), plus the three **Data lines**.
+rivals** (Relative, Standings, Battle, Traffic, Radar, Spotter, Track map, Map and Weather), **Your lap** (Delta, Delta bar, Laps, Fuel, Tyres,
+Inputs and Rev counter) and **Car status** (Alerts, Warning lights, Pit lane and Rejoin), plus the three **Data lines**.
 
 ### Relative
 
@@ -169,6 +169,8 @@ gained (races only, as in Standings), column titles and an info bar at the top a
 is columns too, as in Standings (see below): position, number, logo, country flag, name and penalty
 flags go wherever you put them. Every column has its eye, the position, number and gap too: only
 the name always shows. Over the list, **Column titles**, and at its foot, **Copy from Standings**.
+Under **Gap**, **Gap decimals**: tenths (by default), hundredths or thousandths for gaps under a
+minute.
 
 ### Standings
 
@@ -428,7 +430,7 @@ eye). Optional: a **Lap times** row with your last, your best and your optimal (
 best and personal optimal, one click away; the personal optimal's time is the one iRacing keeps in
 its lap files, so it shows only once iRacing has a whole optimal lap there), and several references at once (**Rows per reference**, by default your
 three; the two class ones, one click away): each one with an identical row (its name, its delta,
-its trend and its bar, all on the same scale, green on the left: faster), under a line naming the
+its trend and its bar, all on the same scale, green on the right: faster), under a line naming the
 one the delta uses (the predicted lap and the sectors go with it; without that line, the sectors
 carry its name). With only one, the usual delta. When you turn rows on from its page the window
 grows just enough for all of them to fit; if you then shrink it, the ones that fit show (always the
@@ -436,6 +438,12 @@ one for the reference in use) and the page says there is no room for the rest. I
 **Separation**: **Bands between rows** (on by default, every other row has a band; without it, thin
 lines) and **Bands between columns** (each time of the lap times row in its own column, off by
 default).
+
+The bar fills to the right in green when you are faster and to the left in red when you are slower.
+Under **Bar**, **Bar in its own window** takes the main bar out of the Delta and shows it as the
+**Delta bar** widget, to place and size anywhere in edit mode. It has the Delta's scale and reference.
+In its **Elements**, it shows the bar alone (by default) or the delta's figure in the middle, with the
+bar on each side. With a row per reference, each row keeps its own bar.
 
 ### Laps
 

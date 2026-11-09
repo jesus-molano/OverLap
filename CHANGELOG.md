@@ -7,6 +7,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.27.0] - 2026-11-09
+
+The **Delta**'s bar can go in a window of its own, every delta bar now fills to the right when you are faster, and
+the **Relative**'s gap can show hundredths or thousandths. I have checked all of it in the overlay with sample data,
+but not yet in a real race.
+
+### Added
+
+- **Delta bar**, a new widget. On the **Delta**'s page, **Bar in its own window** takes the main bar out of the Delta
+  and shows it as a widget of its own, to place and size anywhere in edit mode. It uses the Delta's scale and
+  reference. It can show the bar alone, or the delta's figure in the middle with the bar on each side. With a row per
+  reference, each row keeps its own bar.
+- **Relative: gap decimals.** Under **Gap** in the Relative's **Elements**, choose tenths (as before), hundredths or
+  thousandths for gaps under a minute. The column widens so they fit.
+
+### Changed
+
+- **Delta bars fill to the right when you are faster** and to the left when you are slower, in green and red as
+  before. This covers the main bar, the bars and rows per reference and the new Delta bar, with their marks beyond
+  the scale and the trend's chevrons.
+
 ## [2.26.1] - 2026-11-08
 
 The **Delta**'s Lap times can show your personal optimal's time. I have checked it in the overlay with sample data

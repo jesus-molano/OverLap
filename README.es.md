@@ -148,7 +148,7 @@ Cada widget tiene su página en los Ajustes, con una vista previa en vivo y sus 
 pueden mostrar u ocultar, bloquear, escalar y limitar a ciertas sesiones (práctica, clasificación,
 carrera). Van en el mismo orden y los mismos grupos que en la barra lateral de los Ajustes y en la
 bandeja: **Pista y rivales** (Relativo, Posiciones, Batalla, Tráfico, Radar, Spotter, Mapa de pista, Mapa y Clima), **Tu
-vuelta** (Delta, Vueltas, Combustible, Neumáticos y Pedales) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación), más las tres **Líneas de datos**.
+vuelta** (Delta, Barra del delta, Vueltas, Combustible, Neumáticos, Pedales y Cuentavueltas) y **Estado del coche** (Avisos, Testigos, Boxes y Reincorporación), más las tres **Líneas de datos**.
 
 ### Relativo
 
@@ -174,7 +174,8 @@ iRating en juego, SR proyectado, condiciones de pista…). El principio de la fi
 columnas, como en Posiciones (ver más abajo): posición, número, logo, bandera del país, nombre y
 banderas de penalización van donde los pongas. Cada columna tiene su ojo, también la posición, el
 número y el hueco: solo el nombre sale siempre. Sobre la lista, **Títulos de columna**, y a su pie,
-**Copiar de Posiciones**.
+**Copiar de Posiciones**. Bajo **Hueco**, **Decimales del hueco**: décimas (de serie), centésimas o
+milésimas para los huecos de menos de un minuto.
 
 ### Posiciones
 
@@ -443,7 +444,7 @@ mejor y tu óptima (y tu récord y tu óptima personal, a un clic; el tiempo de 
 el que guarda iRacing en sus archivos de vueltas, así que solo sale cuando iRacing tiene una óptima
 completa allí), y varias referencias a la vez (**Filas por
 referencia**, de serie las tres tuyas; las dos de clase, a un clic): cada una con una fila
-igual (su nombre, su delta, su tendencia y su barra, todas a la misma escala, verde a la izquierda:
+igual (su nombre, su delta, su tendencia y su barra, todas a la misma escala, verde a la derecha:
 más rápido), bajo una línea que nombra la que usa el delta (la vuelta prevista y los sectores van
 con ella; sin esa línea, los sectores llevan su nombre). Con una sola, el delta de siempre. Al
 encender filas desde su página la ventana crece lo justo para que quepan todas; si luego la
@@ -451,6 +452,13 @@ achicas, se ven las que caben (siempre la de la referencia en uso) y la página 
 sitio. En Opciones, **Separación**: **Franjas entre filas** (de serie, una fila de cada dos lleva una
 franja; sin ella, líneas finas) y **Franjas entre columnas** (cada tiempo de la fila de tiempos en su
 columna, apagado de serie).
+
+La barra se llena hacia la derecha en verde si vas más rápido y hacia la izquierda en rojo si vas más
+lento. En **Barra**, **Barra en su propia ventana** saca la barra principal del Delta y la muestra
+como el widget **Barra del delta**, para ponerla y darle el tamaño que quieras en el modo de edición.
+Tiene la escala y la referencia del Delta. En sus **Elementos**, muestra solo la barra (de serie) o
+también la cifra del delta en el centro, con la barra a cada lado. Con una fila por referencia, cada
+fila conserva su barra.
 
 ### Vueltas
 
