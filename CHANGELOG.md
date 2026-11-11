@@ -7,6 +7,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.28.0] - 2026-11-11
+
+The **Data lines** can carry your channel's colours: the Broadcast plate no longer has to be white, and the text and
+captions can have a colour of their own. I have checked the colour logic with tests, but not yet on screen in a real
+session.
+
+### Added
+
+- **Data lines** have colours of their own, for a streamer's brand. **Text colour** (the values), **Caption colour**
+  (the captions and the units) and, in **Broadcast**, **Plate colour** and **Plate text**: the plate no longer has
+  to be white. Each comes as **Automatic**, drawn as before, and a plate of your colour takes the black or white text
+  that reads on it unless you choose that too. What warns keeps its colour, a note says when a colour barely reads on
+  its background, and the stream sources show the same colours.
+
 ## [2.27.0] - 2026-11-09
 
 The **Delta**'s bar can go in a window of its own, every delta bar now fills to the right when you are faster, and

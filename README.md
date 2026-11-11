@@ -638,6 +638,12 @@ first.
 In the last two, the item in the first slot is the last to go, and **Session progress** adds a thin line with how far
 the session has gone. You can also take off the **Captions** and choose the **Widths**, by item or equal.
 
+Each line has its own **colours**, to carry your channel's: **Text colour** (the values), **Caption colour** (the
+small captions and the units) and, in Broadcast, **Plate colour** and **Plate text**. They come as **Automatic**, as
+always: the plate white, or in your accent when the item is you, and its text black or white, whichever reads better
+on the colour you choose. What warns about something keeps its colour, and a note tells you when a colour barely
+reads on its background, without changing it. The stream shows them the same.
+
 ## Settings and customisation
 
 The first time, OverLap opens the Settings, in the Windows language (Spanish or, if not, English),

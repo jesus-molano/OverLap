@@ -657,6 +657,12 @@ el dato menos importante.
 En los dos últimos, el dato del primer hueco es el último que se cae, y **Progreso de la sesión** añade una línea fina
 con lo que va de sesión. También puedes quitar los **Rótulos** y elegir los **Anchos**, según el dato o iguales.
 
+Cada línea tiene sus **colores**, para llevar los de tu canal: **Color del texto** (los valores), **Color de los
+rótulos** (los rótulos pequeños y las unidades) y, en Retransmisión, **Color de la placa** y **Texto de la placa**.
+De serie van en **Automático**, como siempre: la placa blanca, o en tu acento si el dato eres tú, y su texto en negro o
+blanco, el que mejor se lea sobre el color que elijas. Lo que avisa de algo conserva su color, y una nota te dice si
+un color apenas se lee sobre su fondo, sin cambiarlo. En el stream salen igual.
+
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
