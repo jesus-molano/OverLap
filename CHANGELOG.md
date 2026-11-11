@@ -7,6 +7,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.29.0] - 2026-11-11
+
+The **Data lines** can carry your logo, and your row in **Standings** and **Relative** can be painted whole in your
+colour. I have checked both in the overlay and in the settings, but not yet in a real race or on a stream.
+
+### Added
+
+- **Your row’s highlight** has a third style, **Full line**: the whole row in your accent colour, with a little of the
+  panel showing through, in **Standings** and **Relative**. Its text takes black or white, whichever reads better on your colour, and your
+  position plate turns over so it still shows.
+- **Data lines** can carry **Your logo**: one image for the three lines, kept as a copy like the curtain's. Each line
+  places it at the left, the right or in the centre between its items, lets it **Stick out** above, below or both, and
+  can draw it **With a gap** of the line's background around it. A logo that sticks out grows the line's window by that
+  much, so nothing is cut, on your screen or on the stream.
+
 ## [2.28.0] - 2026-11-11
 
 The **Data lines** can carry your channel's colours: the Broadcast plate no longer has to be white, and the text and

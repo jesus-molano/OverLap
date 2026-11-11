@@ -663,6 +663,13 @@ De serie van en **Automático**, como siempre: la placa blanca, o en tu acento s
 blanco, el que mejor se lea sobre el color que elijas. Lo que avisa de algo conserva su color, y una nota te dice si
 un color apenas se lee sobre su fondo, sin cambiarlo. En el stream salen igual.
 
+Una línea también puede llevar **Tu logo**. Eliges la imagen una vez (PNG, JPG, WebP o GIF), y las tres líneas la
+comparten. OverLap guarda una copia, así que sigue funcionando aunque muevas el archivo. En cada línea eliges la
+**Posición del logo** (a la izquierda, a la derecha o en el centro, entre los datos; en Marcador el centro es del
+protagonista, así que va a un lado), si **Sobresale** por arriba, por abajo o por los dos lados, y **Con hueco**, un
+borde del fondo de la línea alrededor que lo separa de la placa. Cuando sobresale, la ventana de la línea crece eso
+mismo, así que no se corta nada, ni en tu pantalla ni en el stream.
+
 ## Ajustes y personalización
 
 La primera vez, OverLap abre los Ajustes, en el idioma de Windows (español o, si no, inglés), con
@@ -801,8 +808,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   en Relativo, Radar, Spotter y Delta, que llenan su ventana, agranda su ventana en la misma
   proporción, en todos tus layouts), contorno del texto, densidad y filas alternas,
   **Líneas entre filas** (la línea fina que se dibuja con las filas alternas apagadas; con las dos
-  cosas apagadas las filas quedan limpias), **Resaltado de tu fila** (**Línea** de serie, o
-  **Degradado**: tu acento cruza la fila y se apaga hacia el final),
+  cosas apagadas las filas quedan limpias), **Resaltado de tu fila** (**Línea** de serie;
+  **Degradado**: tu acento cruza la fila y se apaga hacia el final; o **Línea completa**: toda la
+  fila en tu acento, con el texto en negro o blanco, el que mejor se lea),
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
   (marca los widgets con datos simulados; activada de serie) y el bloque **Pilotos** global: **Qué nombre se muestra** (**Piloto**, de serie; **Equipo**: en carreras por equipos cada coche se

@@ -644,6 +644,13 @@ always: the plate white, or in your accent when the item is you, and its text bl
 on the colour you choose. What warns about something keeps its colour, and a note tells you when a colour barely
 reads on its background, without changing it. The stream shows them the same.
 
+A line can also carry **Your logo**. Choose the image once (PNG, JPG, WebP or GIF), and the three lines share it.
+OverLap keeps a copy, so it keeps working if you move the file. For each line you choose its **Logo position** (left,
+right, or in the centre between the items; in Scoreboard the centre belongs to the main item, so it goes at one end),
+whether it **Sticks out** above, below or both, and **With a gap**, a border of the line's background around it that
+sets it apart from the plate. When it sticks out, the line's window grows by that much, so nothing is cut, on your
+screen or on the stream.
+
 ## Settings and customisation
 
 The first time, OverLap opens the Settings, in the Windows language (Spanish or, if not, English),
@@ -784,8 +791,9 @@ report, without names) and **Open log**.
   every widget: in Relative, Radar, Spotter and Delta, which fill their window, it enlarges
   their window in the same proportion, in all your layouts), text outline, density and alternating
   rows, **Lines between rows** (the thin line drawn while alternating rows are off; with both off
-  the rows are left clean), **Your row’s highlight** (**Line** by default, or **Gradient**: your
-  accent crosses the row and fades towards its end), licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
+  the rows are left clean), **Your row’s highlight** (**Line** by default; **Gradient**: your
+  accent crosses the row and fades towards its end; or **Full line**: the whole row in your accent,
+  with black or white text, whichever reads better), licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
   °F, gallons in Fuel and feet in the radar range), **SIM tag** (marks the widgets with simulated
   data; on by default) and the global **Drivers** block: **Which name shows** (**Driver**, the default;
   **Team**: in team races each car is named by its team, as iRacing sends it, the Delta's class best
