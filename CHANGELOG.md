@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.30.1] - 2026-11-12
+
+Your best lap in **Standings** and **Relative** is iRacing’s again, as it gives it. I have checked it with tests, but
+not yet in a real race.
+
+### Fixed
+
+- Your best lap no longer goes missing in **Standings** and **Relative**. When iRacing counted a lap that left the
+  track as your best, OverLap showed your best legal lap instead, and if none of your laps was legal, it showed
+  nothing at all, only your last lap. Now your row shows the best lap iRacing gives, as on its own timing screens.
+  The **Delta** and **Laps** still use only your legal laps.
+
 ## [2.30.0] - 2026-11-12
 
 Your row in **Standings** and **Relative** can have a colour of its own, and **Full line** no longer hides your lap
