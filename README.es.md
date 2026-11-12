@@ -809,8 +809,9 @@ estado** de arriba dice qué está oculto y por qué; con un clic abre un panel 
   proporción, en todos tus layouts), contorno del texto, densidad y filas alternas,
   **Líneas entre filas** (la línea fina que se dibuja con las filas alternas apagadas; con las dos
   cosas apagadas las filas quedan limpias), **Resaltado de tu fila** (**Línea** de serie;
-  **Degradado**: tu acento cruza la fila y se apaga hacia el final; o **Línea completa**: toda la
-  fila en tu acento, con el texto en negro o blanco, el que mejor se lea),
+  **Degradado**: tu color cruza la fila y se apaga hacia el final; o **Línea completa**: toda la
+  fila en tu color, con el texto en negro o blanco, el que mejor se lea, y tus placas de vuelta a
+  la vista), **Color de tu fila** (tu acento de serie, o un color propio para tu fila y tu posición),
   estilo de la licencia y del número, color del logo (color o monocromo), unidades métricas o
   imperiales (mph, °F, galones en Combustible y pies en el alcance del radar), **etiqueta SIM**
   (marca los widgets con datos simulados; activada de serie) y el bloque **Pilotos** global: **Qué nombre se muestra** (**Piloto**, de serie; **Equipo**: en carreras por equipos cada coche se

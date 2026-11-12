@@ -792,8 +792,9 @@ report, without names) and **Open log**.
   their window in the same proportion, in all your layouts), text outline, density and alternating
   rows, **Lines between rows** (the thin line drawn while alternating rows are off; with both off
   the rows are left clean), **Your row’s highlight** (**Line** by default; **Gradient**: your
-  accent crosses the row and fades towards its end; or **Full line**: the whole row in your accent,
-  with black or white text, whichever reads better), licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
+  colour crosses the row and fades towards its end; or **Full line**: the whole row in your colour,
+  with black or white text, whichever reads better, and your lap plates still showing), **Your row’s
+  colour** (your accent by default, or a colour of its own for your row and your position), licence and number style, logo colour (colour or monochrome), metric or imperial units (mph,
   °F, gallons in Fuel and feet in the radar range), **SIM tag** (marks the widgets with simulated
   data; on by default) and the global **Drivers** block: **Which name shows** (**Driver**, the default;
   **Team**: in team races each car is named by its team, as iRacing sends it, the Delta's class best

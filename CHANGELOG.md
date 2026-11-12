@@ -7,6 +7,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [2.30.0] - 2026-11-12
+
+Your row in **Standings** and **Relative** can have a colour of its own, and **Full line** no longer hides your lap
+plates. I have checked both with tests and in the real widgets with sample data, but not yet in a real race.
+
+### Added
+
+- **Your row’s colour**, in Appearance › Rows under **Your row’s highlight**: your accent by default, as before, or a
+  colour of its own. It paints your row in its three highlights, your position plate, and your position on the
+  **Data lines**. **Full line** picks black or white text for that colour.
+
+### Fixed
+
+- With **Full line**, your row no longer hides your best lap and the class’s fastest lap (**VR**). On the light accents
+  the green of your best lap turned almost black and the purple plate blended into the row. On your row both are now
+  solid plates in their own colours, green and purple, with a dark edge, in **Standings** and **Relative**.
+
 ## [2.29.0] - 2026-11-11
 
 The **Data lines** can carry your logo, and your row in **Standings** and **Relative** can be painted whole in your
